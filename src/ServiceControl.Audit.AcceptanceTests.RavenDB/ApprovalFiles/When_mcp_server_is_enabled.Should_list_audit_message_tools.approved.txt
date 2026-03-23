@@ -1,13 +1,33 @@
 [
   {
-    "name": "search_audit_messages",
-    "description": "Use this tool to find audit messages by a keyword or phrase. Good for questions like: \u0027find messages containing order 12345\u0027, \u0027search for CustomerCreated messages\u0027, or \u0027look for messages mentioning this ID\u0027. Searches across message body content, headers, and metadata using full-text search. Prefer this tool over GetAuditMessages when the user provides a specific term, identifier, or phrase to search for. If the user just wants to browse recent messages without a search term, use GetAuditMessages instead.",
+    "name": "get_audit_message_body",
+    "description": "Use this tool to inspect the actual payload of a processed message. Good for questions like: \u0027show me the message body\u0027, \u0027what data was in this message?\u0027, or \u0027let me see the content of message X\u0027. Returns the serialized message body content, typically JSON. You need a message ID, which you can get from any audit message query result. Use this when the user wants to see what data was actually sent, not just message metadata.",
     "inputSchema": {
       "type": "object",
       "properties": {
-        "query": {
-          "description": "Free-text search query \u2014 matches against message body, headers, and metadata",
+        "messageId": {
+          "description": "The message ID from a previous audit message query result",
           "type": "string"
+        }
+      },
+      "required": [
+        "messageId"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_audit_messages",
+    "description": "Use this tool to browse successfully processed audit messages when the user wants an overview rather than a text search. Good for questions like: \u0027show recent audit messages\u0027, \u0027what messages were processed today?\u0027, \u0027list messages from endpoint X\u0027, or \u0027show slow messages\u0027. Returns message metadata such as message type, endpoints, sent time, processed time, and timing metrics. For broad requests, use the default paging and sorting. Prefer this tool over SearchAuditMessages when the user does not provide a specific keyword or phrase. If the user is looking for a specific term, id, or text fragment, use SearchAuditMessages instead.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "includeSystemMessages": {
+          "description": "Set to true to include NServiceBus infrastructure messages. Usually leave as false to see only business messages.",
+          "type": "boolean",
+          "default": false
         },
         "page": {
           "description": "Page number, 1-based",
@@ -30,7 +50,7 @@
           "default": "desc"
         },
         "timeSentFrom": {
-          "description": "Only return messages sent after this time (ISO 8601)",
+          "description": "Only return messages sent after this time (ISO 8601). Use with timeSentTo to query a specific time window.",
           "type": [
             "string",
             "null"
@@ -45,10 +65,7 @@
           ],
           "default": null
         }
-      },
-      "required": [
-        "query"
-      ]
+      }
     },
     "execution": {
       "taskSupport": "optional"
@@ -87,25 +104,6 @@
       },
       "required": [
         "conversationId"
-      ]
-    },
-    "execution": {
-      "taskSupport": "optional"
-    }
-  },
-  {
-    "name": "get_audit_message_body",
-    "description": "Use this tool to inspect the actual payload of a processed message. Good for questions like: \u0027show me the message body\u0027, \u0027what data was in this message?\u0027, or \u0027let me see the content of message X\u0027. Returns the serialized message body content, typically JSON. You need a message ID, which you can get from any audit message query result. Use this when the user wants to see what data was actually sent, not just message metadata.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "messageId": {
-          "description": "The message ID from a previous audit message query result",
-          "type": "string"
-        }
-      },
-      "required": [
-        "messageId"
       ]
     },
     "execution": {
@@ -211,15 +209,14 @@
     }
   },
   {
-    "name": "get_audit_messages",
-    "description": "Use this tool to browse successfully processed audit messages when the user wants an overview rather than a text search. Good for questions like: \u0027show recent audit messages\u0027, \u0027what messages were processed today?\u0027, \u0027list messages from endpoint X\u0027, or \u0027show slow messages\u0027. Returns message metadata such as message type, endpoints, sent time, processed time, and timing metrics. For broad requests, use the default paging and sorting. Prefer this tool over SearchAuditMessages when the user does not provide a specific keyword or phrase. If the user is looking for a specific term, id, or text fragment, use SearchAuditMessages instead.",
+    "name": "search_audit_messages",
+    "description": "Use this tool to find audit messages by a keyword or phrase. Good for questions like: \u0027find messages containing order 12345\u0027, \u0027search for CustomerCreated messages\u0027, or \u0027look for messages mentioning this ID\u0027. Searches across message body content, headers, and metadata using full-text search. Prefer this tool over GetAuditMessages when the user provides a specific term, identifier, or phrase to search for. If the user just wants to browse recent messages without a search term, use GetAuditMessages instead.",
     "inputSchema": {
       "type": "object",
       "properties": {
-        "includeSystemMessages": {
-          "description": "Set to true to include NServiceBus infrastructure messages. Usually leave as false to see only business messages.",
-          "type": "boolean",
-          "default": false
+        "query": {
+          "description": "Free-text search query \u2014 matches against message body, headers, and metadata",
+          "type": "string"
         },
         "page": {
           "description": "Page number, 1-based",
@@ -242,7 +239,7 @@
           "default": "desc"
         },
         "timeSentFrom": {
-          "description": "Only return messages sent after this time (ISO 8601). Use with timeSentTo to query a specific time window.",
+          "description": "Only return messages sent after this time (ISO 8601)",
           "type": [
             "string",
             "null"
@@ -257,7 +254,10 @@
           ],
           "default": null
         }
-      }
+      },
+      "required": [
+        "query"
+      ]
     },
     "execution": {
       "taskSupport": "optional"

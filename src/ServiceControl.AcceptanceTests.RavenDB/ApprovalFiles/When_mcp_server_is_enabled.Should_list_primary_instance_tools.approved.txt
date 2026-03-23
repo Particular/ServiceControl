@@ -1,7 +1,48 @@
 [
   {
-    "name": "unarchive_failure_group",
-    "description": "Use this tool to restore an entire archived failure group back to the unresolved list. Good for questions like: \u0027unarchive this failure group\u0027, \u0027restore all archived NullReferenceException failures\u0027, or \u0027unarchive the whole group\u0027. All messages that were archived together under this group will become available for retry again. You need a group ID, which you can get from GetFailureGroups. Returns InProgress if an unarchive operation is already running for this group.",
+    "name": "archive_failed_message",
+    "description": "Use this tool to dismiss a single failed message that does not need to be retried. Good for questions like: \u0027archive this message\u0027, \u0027dismiss this failure\u0027, or \u0027I do not need to retry this one\u0027. Archiving moves the message out of the unresolved list so it no longer shows up as an active problem. This is an asynchronous operation \u2014 the message will be archived shortly after the request is accepted. If you need to archive many messages with the same root cause, use ArchiveFailureGroup instead.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "failedMessageId": {
+          "description": "The unique message ID from a previous query result",
+          "type": "string"
+        }
+      },
+      "required": [
+        "failedMessageId"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "archive_failed_messages",
+    "description": "Use this tool to dismiss multiple failed messages at once that do not need to be retried. Good for questions like: \u0027archive these messages\u0027, \u0027dismiss these failures\u0027, or \u0027archive messages msg-1, msg-2, msg-3\u0027. Prefer ArchiveFailureGroup when all messages share the same failure cause \u2014 use this tool when you have a specific set of message IDs to archive.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageIds": {
+          "description": "The unique message IDs from a previous query result",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "messageIds"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "archive_failure_group",
+    "description": "Use this tool to dismiss an entire failure group \u2014 all messages that failed with the same exception type and stack trace. Good for questions like: \u0027archive this failure group\u0027, \u0027dismiss all NullReferenceException failures\u0027, or \u0027archive the whole group\u0027. This is the most efficient way to archive many related failures at once. You need a group ID, which you can get from GetFailureGroups. Returns InProgress if an archive operation is already running for this group.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -30,33 +71,19 @@
     }
   },
   {
-    "name": "unarchive_failed_messages",
-    "description": "Use this tool to restore multiple previously archived failed messages back to the unresolved list. Good for questions like: \u0027unarchive these messages\u0027, \u0027restore these failures\u0027, or \u0027unarchive messages msg-1, msg-2, msg-3\u0027. Prefer UnarchiveFailureGroup when restoring an entire group \u2014 use this tool when you have a specific set of message IDs.",
+    "name": "get_failed_message_by_id",
+    "description": "Use this tool to get the full details of a specific failed message, including all processing attempts and exception information. Good for questions like: \u0027show me details for this failed message\u0027, \u0027what exception caused this failure?\u0027, or \u0027how many times has this message failed?\u0027. You need the message\u0027s unique ID, which you can get from GetFailedMessages or GetFailureGroups results. If you only need the most recent failure attempt, use GetFailedMessageLastAttempt instead \u2014 it returns less data.",
     "inputSchema": {
       "type": "object",
       "properties": {
-        "messageIds": {
-          "description": "The unique message IDs to restore",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+        "failedMessageId": {
+          "description": "The unique message ID from a previous query result",
+          "type": "string"
         }
       },
       "required": [
-        "messageIds"
+        "failedMessageId"
       ]
-    },
-    "execution": {
-      "taskSupport": "optional"
-    }
-  },
-  {
-    "name": "get_retry_history",
-    "description": "Use this tool to check the history of retry operations. Good for questions like: \u0027has someone already retried these?\u0027, \u0027what happened the last time we retried this group?\u0027, \u0027show retry history\u0027, or \u0027were any retries attempted today?\u0027. Returns which groups were retried, when, and whether the retries succeeded or failed. Use this before retrying a group to avoid duplicate retry attempts.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {}
     },
     "execution": {
       "taskSupport": "optional"
@@ -70,112 +97,6 @@
       "properties": {
         "failedMessageId": {
           "description": "The unique message ID from a previous query result",
-          "type": "string"
-        }
-      },
-      "required": [
-        "failedMessageId"
-      ]
-    },
-    "execution": {
-      "taskSupport": "optional"
-    }
-  },
-  {
-    "name": "retry_all_failed_messages_by_endpoint",
-    "description": "Use this tool to retry all failed messages for a specific NServiceBus endpoint. Good for questions like: \u0027retry all failures in the Sales endpoint\u0027, \u0027the bug in Shipping is fixed, retry its failures\u0027, or \u0027reprocess all errors for this endpoint\u0027. Useful when a bug in one endpoint has been fixed and all its failures should be reprocessed.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "endpointName": {
-          "description": "The NServiceBus endpoint name, e.g. \u0027Sales\u0027 or \u0027Shipping.MessageHandler\u0027",
-          "type": "string"
-        }
-      },
-      "required": [
-        "endpointName"
-      ]
-    },
-    "execution": {
-      "taskSupport": "optional"
-    }
-  },
-  {
-    "name": "retry_failed_message",
-    "description": "Use this tool to reprocess a single failed message by sending it back to its original queue. Good for questions like: \u0027retry this message\u0027, \u0027reprocess this failure\u0027, or \u0027send this message back for processing\u0027. The message will go through normal processing again. Only use after the underlying issue (bug fix, infrastructure problem) has been resolved. If you need to retry many messages with the same root cause, use RetryFailureGroup instead.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "failedMessageId": {
-          "description": "The unique message ID from a previous query result",
-          "type": "string"
-        }
-      },
-      "required": [
-        "failedMessageId"
-      ]
-    },
-    "execution": {
-      "taskSupport": "optional"
-    }
-  },
-  {
-    "name": "retry_failure_group",
-    "description": "Use this tool to retry all failed messages that share the same exception type and stack trace. Good for questions like: \u0027retry this failure group\u0027, \u0027the bug causing these NullReferenceExceptions is fixed, retry them\u0027, or \u0027retry all messages in this group\u0027. This is the most targeted way to retry related failures after fixing a specific bug. You need a group ID, which you can get from GetFailureGroups. Returns InProgress if a retry is already running for this group.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "groupId": {
-          "description": "The failure group ID from get_failure_groups results",
-          "type": "string"
-        }
-      },
-      "required": [
-        "groupId"
-      ]
-    },
-    "execution": {
-      "taskSupport": "optional"
-    }
-  },
-  {
-    "name": "retry_all_failed_messages",
-    "description": "Use this tool to retry every unresolved failed message across all queues and endpoints. Good for questions like: \u0027retry everything\u0027, \u0027reprocess all failures\u0027, or \u0027retry all failed messages\u0027. This is a broad operation \u2014 prefer RetryFailedMessagesByQueue, RetryAllFailedMessagesByEndpoint, or RetryFailureGroup when you can scope the retry more narrowly.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {}
-    },
-    "execution": {
-      "taskSupport": "optional"
-    }
-  },
-  {
-    "name": "archive_failure_group",
-    "description": "Use this tool to dismiss an entire failure group \u2014 all messages that failed with the same exception type and stack trace. Good for questions like: \u0027archive this failure group\u0027, \u0027dismiss all NullReferenceException failures\u0027, or \u0027archive the whole group\u0027. This is the most efficient way to archive many related failures at once. You need a group ID, which you can get from GetFailureGroups. Returns InProgress if an archive operation is already running for this group.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "groupId": {
-          "description": "The failure group ID from get_failure_groups results",
-          "type": "string"
-        }
-      },
-      "required": [
-        "groupId"
-      ]
-    },
-    "execution": {
-      "taskSupport": "optional"
-    }
-  },
-  {
-    "name": "unarchive_failed_message",
-    "description": "Use this tool to restore a previously archived failed message back to the unresolved list so it can be retried. Good for questions like: \u0027unarchive this message\u0027, \u0027restore this failure\u0027, or \u0027I need to retry this archived message\u0027. Use when a message was archived by mistake or when the underlying issue has been fixed and the message should be reprocessed. If you need to restore many messages from the same failure group, use UnarchiveFailureGroup instead.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "failedMessageId": {
-          "description": "The unique message ID to restore",
           "type": "string"
         }
       },
@@ -244,132 +165,6 @@
     }
   },
   {
-    "name": "get_failure_groups",
-    "description": "Use this tool to understand why messages are failing by seeing failures grouped by root cause. Good for questions like: \u0027why are messages failing?\u0027, \u0027what errors are happening?\u0027, \u0027group failures by exception\u0027, or \u0027what are the top failure causes?\u0027. Each group represents a distinct exception type and stack trace, showing how many messages are affected and when failures started and last occurred. This is usually the best starting point for diagnosing production issues \u2014 call it before drilling into individual messages. Call with no parameters to use the default grouping by exception type and stack trace.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "classifier": {
-          "description": "How to group failures. The default \u0027Exception Type and Stack Trace\u0027 is almost always what you want. Use \u0027Message Type\u0027 to group by the NServiceBus message type instead.",
-          "type": "string",
-          "default": "Exception Type and Stack Trace"
-        },
-        "classifierFilter": {
-          "description": "Only include groups matching this filter text",
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        }
-      }
-    },
-    "execution": {
-      "taskSupport": "optional"
-    }
-  },
-  {
-    "name": "archive_failed_message",
-    "description": "Use this tool to dismiss a single failed message that does not need to be retried. Good for questions like: \u0027archive this message\u0027, \u0027dismiss this failure\u0027, or \u0027I do not need to retry this one\u0027. Archiving moves the message out of the unresolved list so it no longer shows up as an active problem. This is an asynchronous operation \u2014 the message will be archived shortly after the request is accepted. If you need to archive many messages with the same root cause, use ArchiveFailureGroup instead.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "failedMessageId": {
-          "description": "The unique message ID from a previous query result",
-          "type": "string"
-        }
-      },
-      "required": [
-        "failedMessageId"
-      ]
-    },
-    "execution": {
-      "taskSupport": "optional"
-    }
-  },
-  {
-    "name": "retry_failed_messages_by_queue",
-    "description": "Use this tool to retry all unresolved failed messages from a specific queue. Good for questions like: \u0027retry all failures in the Sales queue\u0027, \u0027reprocess everything from this queue\u0027, or \u0027the queue consumer is back, retry its failures\u0027. Useful when a queue\u0027s consumer was down or misconfigured and is now fixed. Only retries messages with unresolved status.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "queueAddress": {
-          "description": "The full queue address including machine name, e.g. \u0027Sales@machine\u0027",
-          "type": "string"
-        }
-      },
-      "required": [
-        "queueAddress"
-      ]
-    },
-    "execution": {
-      "taskSupport": "optional"
-    }
-  },
-  {
-    "name": "get_failed_message_by_id",
-    "description": "Use this tool to get the full details of a specific failed message, including all processing attempts and exception information. Good for questions like: \u0027show me details for this failed message\u0027, \u0027what exception caused this failure?\u0027, or \u0027how many times has this message failed?\u0027. You need the message\u0027s unique ID, which you can get from GetFailedMessages or GetFailureGroups results. If you only need the most recent failure attempt, use GetFailedMessageLastAttempt instead \u2014 it returns less data.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "failedMessageId": {
-          "description": "The unique message ID from a previous query result",
-          "type": "string"
-        }
-      },
-      "required": [
-        "failedMessageId"
-      ]
-    },
-    "execution": {
-      "taskSupport": "optional"
-    }
-  },
-  {
-    "name": "retry_failed_messages",
-    "description": "Use this tool to reprocess multiple specific failed messages at once. Good for questions like: \u0027retry these messages\u0027, \u0027reprocess messages msg-1, msg-2, msg-3\u0027, or \u0027retry this batch\u0027. Prefer RetryFailureGroup when all messages share the same failure cause \u2014 use this tool when you have a specific set of message IDs to retry.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "messageIds": {
-          "description": "The unique message IDs from a previous query result",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "required": [
-        "messageIds"
-      ]
-    },
-    "execution": {
-      "taskSupport": "optional"
-    }
-  },
-  {
-    "name": "archive_failed_messages",
-    "description": "Use this tool to dismiss multiple failed messages at once that do not need to be retried. Good for questions like: \u0027archive these messages\u0027, \u0027dismiss these failures\u0027, or \u0027archive messages msg-1, msg-2, msg-3\u0027. Prefer ArchiveFailureGroup when all messages share the same failure cause \u2014 use this tool when you have a specific set of message IDs to archive.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "messageIds": {
-          "description": "The unique message IDs from a previous query result",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "required": [
-        "messageIds"
-      ]
-    },
-    "execution": {
-      "taskSupport": "optional"
-    }
-  },
-  {
     "name": "get_failed_messages_by_endpoint",
     "description": "Use this tool to see failed messages for a specific NServiceBus endpoint. Good for questions like: \u0027what is failing in the Sales endpoint?\u0027, \u0027show errors for Shipping\u0027, or \u0027are there failures in this endpoint?\u0027. Returns the same paged failure data as GetFailedMessages but scoped to one endpoint. Prefer this tool over GetFailedMessages when the user mentions a specific endpoint name.",
     "inputSchema": {
@@ -418,6 +213,211 @@
       },
       "required": [
         "endpointName"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_failure_groups",
+    "description": "Use this tool to understand why messages are failing by seeing failures grouped by root cause. Good for questions like: \u0027why are messages failing?\u0027, \u0027what errors are happening?\u0027, \u0027group failures by exception\u0027, or \u0027what are the top failure causes?\u0027. Each group represents a distinct exception type and stack trace, showing how many messages are affected and when failures started and last occurred. This is usually the best starting point for diagnosing production issues \u2014 call it before drilling into individual messages. Call with no parameters to use the default grouping by exception type and stack trace.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "classifier": {
+          "description": "How to group failures. The default \u0027Exception Type and Stack Trace\u0027 is almost always what you want. Use \u0027Message Type\u0027 to group by the NServiceBus message type instead.",
+          "type": "string",
+          "default": "Exception Type and Stack Trace"
+        },
+        "classifierFilter": {
+          "description": "Only include groups matching this filter text",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_retry_history",
+    "description": "Use this tool to check the history of retry operations. Good for questions like: \u0027has someone already retried these?\u0027, \u0027what happened the last time we retried this group?\u0027, \u0027show retry history\u0027, or \u0027were any retries attempted today?\u0027. Returns which groups were retried, when, and whether the retries succeeded or failed. Use this before retrying a group to avoid duplicate retry attempts.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "retry_all_failed_messages",
+    "description": "Use this tool to retry every unresolved failed message across all queues and endpoints. Good for questions like: \u0027retry everything\u0027, \u0027reprocess all failures\u0027, or \u0027retry all failed messages\u0027. This is a broad operation \u2014 prefer RetryFailedMessagesByQueue, RetryAllFailedMessagesByEndpoint, or RetryFailureGroup when you can scope the retry more narrowly.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "retry_all_failed_messages_by_endpoint",
+    "description": "Use this tool to retry all failed messages for a specific NServiceBus endpoint. Good for questions like: \u0027retry all failures in the Sales endpoint\u0027, \u0027the bug in Shipping is fixed, retry its failures\u0027, or \u0027reprocess all errors for this endpoint\u0027. Useful when a bug in one endpoint has been fixed and all its failures should be reprocessed.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "endpointName": {
+          "description": "The NServiceBus endpoint name, e.g. \u0027Sales\u0027 or \u0027Shipping.MessageHandler\u0027",
+          "type": "string"
+        }
+      },
+      "required": [
+        "endpointName"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "retry_failed_message",
+    "description": "Use this tool to reprocess a single failed message by sending it back to its original queue. Good for questions like: \u0027retry this message\u0027, \u0027reprocess this failure\u0027, or \u0027send this message back for processing\u0027. The message will go through normal processing again. Only use after the underlying issue (bug fix, infrastructure problem) has been resolved. If you need to retry many messages with the same root cause, use RetryFailureGroup instead.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "failedMessageId": {
+          "description": "The unique message ID from a previous query result",
+          "type": "string"
+        }
+      },
+      "required": [
+        "failedMessageId"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "retry_failed_messages",
+    "description": "Use this tool to reprocess multiple specific failed messages at once. Good for questions like: \u0027retry these messages\u0027, \u0027reprocess messages msg-1, msg-2, msg-3\u0027, or \u0027retry this batch\u0027. Prefer RetryFailureGroup when all messages share the same failure cause \u2014 use this tool when you have a specific set of message IDs to retry.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageIds": {
+          "description": "The unique message IDs from a previous query result",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "messageIds"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "retry_failed_messages_by_queue",
+    "description": "Use this tool to retry all unresolved failed messages from a specific queue. Good for questions like: \u0027retry all failures in the Sales queue\u0027, \u0027reprocess everything from this queue\u0027, or \u0027the queue consumer is back, retry its failures\u0027. Useful when a queue\u0027s consumer was down or misconfigured and is now fixed. Only retries messages with unresolved status.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "queueAddress": {
+          "description": "The full queue address including machine name, e.g. \u0027Sales@machine\u0027",
+          "type": "string"
+        }
+      },
+      "required": [
+        "queueAddress"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "retry_failure_group",
+    "description": "Use this tool to retry all failed messages that share the same exception type and stack trace. Good for questions like: \u0027retry this failure group\u0027, \u0027the bug causing these NullReferenceExceptions is fixed, retry them\u0027, or \u0027retry all messages in this group\u0027. This is the most targeted way to retry related failures after fixing a specific bug. You need a group ID, which you can get from GetFailureGroups. Returns InProgress if a retry is already running for this group.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "description": "The failure group ID from get_failure_groups results",
+          "type": "string"
+        }
+      },
+      "required": [
+        "groupId"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "unarchive_failed_message",
+    "description": "Use this tool to restore a previously archived failed message back to the unresolved list so it can be retried. Good for questions like: \u0027unarchive this message\u0027, \u0027restore this failure\u0027, or \u0027I need to retry this archived message\u0027. Use when a message was archived by mistake or when the underlying issue has been fixed and the message should be reprocessed. If you need to restore many messages from the same failure group, use UnarchiveFailureGroup instead.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "failedMessageId": {
+          "description": "The unique message ID to restore",
+          "type": "string"
+        }
+      },
+      "required": [
+        "failedMessageId"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "unarchive_failed_messages",
+    "description": "Use this tool to restore multiple previously archived failed messages back to the unresolved list. Good for questions like: \u0027unarchive these messages\u0027, \u0027restore these failures\u0027, or \u0027unarchive messages msg-1, msg-2, msg-3\u0027. Prefer UnarchiveFailureGroup when restoring an entire group \u2014 use this tool when you have a specific set of message IDs.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageIds": {
+          "description": "The unique message IDs to restore",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "messageIds"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "unarchive_failure_group",
+    "description": "Use this tool to restore an entire archived failure group back to the unresolved list. Good for questions like: \u0027unarchive this failure group\u0027, \u0027restore all archived NullReferenceException failures\u0027, or \u0027unarchive the whole group\u0027. All messages that were archived together under this group will become available for retry again. You need a group ID, which you can get from GetFailureGroups. Returns InProgress if an unarchive operation is already running for this group.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "description": "The failure group ID from get_failure_groups results",
+          "type": "string"
+        }
+      },
+      "required": [
+        "groupId"
       ]
     },
     "execution": {

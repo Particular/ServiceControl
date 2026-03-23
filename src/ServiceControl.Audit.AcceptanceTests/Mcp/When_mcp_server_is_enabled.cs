@@ -61,7 +61,8 @@ class When_mcp_server_is_enabled : AcceptanceTest
 
         Assert.That(toolsJson, Is.Not.Null);
         var mcpResponse = JsonSerializer.Deserialize<McpListToolsResponse>(toolsJson, JsonOptions)!;
-        var formattedTools = JsonSerializer.Serialize(mcpResponse.Result.Tools, new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        var sortedTools = mcpResponse.Result.Tools.Cast<JsonElement>().OrderBy(t => t.GetProperty("name").GetString()).ToList();
+        var formattedTools = JsonSerializer.Serialize(sortedTools, new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         Approver.Verify(formattedTools);
     }
 
