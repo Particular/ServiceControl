@@ -14,6 +14,7 @@ using NServiceBus.AcceptanceTesting;
 using NServiceBus.AcceptanceTesting.Customization;
 using NServiceBus.Settings;
 using NUnit.Framework;
+using Particular.Approvals;
 
 class When_mcp_server_is_enabled : AcceptanceTest
 {
@@ -52,7 +53,7 @@ class When_mcp_server_is_enabled : AcceptanceTest
                     return false;
                 }
 
-                toolsJson = await response.Content.ReadAsStringAsync();
+                toolsJson = await ReadMcpResponseJson(response);
                 return response.StatusCode == HttpStatusCode.OK;
             })
             .Run();
@@ -61,18 +62,8 @@ class When_mcp_server_is_enabled : AcceptanceTest
         var doc = JsonDocument.Parse(toolsJson);
         var result = doc.RootElement.GetProperty("result");
         var tools = result.GetProperty("tools");
-
-        var toolNames = tools.EnumerateArray()
-            .Select(t => t.GetProperty("name").GetString())
-            .ToList();
-
-        Assert.That(toolNames, Does.Contain("GetAuditMessages"));
-        Assert.That(toolNames, Does.Contain("SearchAuditMessages"));
-        Assert.That(toolNames, Does.Contain("GetAuditMessagesByEndpoint"));
-        Assert.That(toolNames, Does.Contain("GetAuditMessagesByConversation"));
-        Assert.That(toolNames, Does.Contain("GetAuditMessageBody"));
-        Assert.That(toolNames, Does.Contain("GetKnownEndpoints"));
-        Assert.That(toolNames, Does.Contain("GetEndpointAuditCounts"));
+        var formattedTools = JsonSerializer.Serialize(tools, new JsonSerializerOptions { WriteIndented = true });
+        Approver.Verify(formattedTools);
     }
 
     [Test]
@@ -113,7 +104,7 @@ class When_mcp_server_is_enabled : AcceptanceTest
                     return false;
                 }
 
-                toolResult = await response.Content.ReadAsStringAsync();
+                toolResult = await ReadMcpResponseJson(response);
                 return true;
             })
             .Run();
@@ -144,6 +135,8 @@ class When_mcp_server_is_enabled : AcceptanceTest
                 }
             })
         };
+        request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+        request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/event-stream"));
         return await HttpClient.SendAsync(request);
     }
 
@@ -163,6 +156,25 @@ class When_mcp_server_is_enabled : AcceptanceTest
         return null;
     }
 
+    static async Task<string> ReadMcpResponseJson(HttpResponseMessage response)
+    {
+        var body = await response.Content.ReadAsStringAsync();
+        var contentType = response.Content.Headers.ContentType?.MediaType;
+
+        if (contentType == "text/event-stream")
+        {
+            foreach (var line in body.Split('\n'))
+            {
+                if (line.StartsWith("data: "))
+                {
+                    return line.Substring("data: ".Length);
+                }
+            }
+        }
+
+        return body;
+    }
+
     async Task<HttpResponseMessage> SendMcpRequest(string sessionId, string method, object @params)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, "/mcp")
@@ -175,6 +187,8 @@ class When_mcp_server_is_enabled : AcceptanceTest
                 @params
             })
         };
+        request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+        request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/event-stream"));
         request.Headers.Add("mcp-session-id", sessionId);
         return await HttpClient.SendAsync(request);
     }

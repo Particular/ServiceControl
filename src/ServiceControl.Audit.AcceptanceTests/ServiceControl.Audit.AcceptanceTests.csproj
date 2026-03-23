@@ -19,6 +19,7 @@
     <PackageReference Include="NServiceBus.SagaAudit" />
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit.Analyzers" />
+    <PackageReference Include="Particular.Approvals" />
     <PackageReference Include="NUnit3TestAdapter" />
   </ItemGroup>
 
