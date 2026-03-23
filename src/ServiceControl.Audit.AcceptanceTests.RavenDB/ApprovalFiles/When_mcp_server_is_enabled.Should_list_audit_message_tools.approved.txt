@@ -1,0 +1,266 @@
+[
+  {
+    "name": "search_audit_messages",
+    "description": "Search audit messages by a keyword or phrase. Searches across message content and metadata.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "description": "The search query string",
+          "type": "string"
+        },
+        "page": {
+          "description": "Page number (1-based). Default is 1",
+          "type": "integer",
+          "default": 1
+        },
+        "perPage": {
+          "description": "Number of results per page. Default is 50",
+          "type": "integer",
+          "default": 50
+        },
+        "sort": {
+          "description": "Sort field: time_sent, processed_at, message_type, critical_time, delivery_time, processing_time. Default is time_sent",
+          "type": "string",
+          "default": "time_sent"
+        },
+        "direction": {
+          "description": "Sort direction: asc or desc. Default is desc",
+          "type": "string",
+          "default": "desc"
+        },
+        "timeSentFrom": {
+          "description": "Filter by time sent start (ISO 8601 format)",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "timeSentTo": {
+          "description": "Filter by time sent end (ISO 8601 format)",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "query"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_audit_messages_by_conversation",
+    "description": "Get all audit messages that belong to a specific conversation. A conversation groups related messages that were triggered by the same initial message.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "conversationId": {
+          "description": "The conversation ID to filter by",
+          "type": "string"
+        },
+        "page": {
+          "description": "Page number (1-based). Default is 1",
+          "type": "integer",
+          "default": 1
+        },
+        "perPage": {
+          "description": "Number of results per page. Default is 50",
+          "type": "integer",
+          "default": 50
+        },
+        "sort": {
+          "description": "Sort field: time_sent, processed_at, message_type, critical_time, delivery_time, processing_time. Default is time_sent",
+          "type": "string",
+          "default": "time_sent"
+        },
+        "direction": {
+          "description": "Sort direction: asc or desc. Default is desc",
+          "type": "string",
+          "default": "desc"
+        }
+      },
+      "required": [
+        "conversationId"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_audit_message_body",
+    "description": "Get the body content of a specific audit message by its message ID.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "description": "The message ID",
+          "type": "string"
+        }
+      },
+      "required": [
+        "messageId"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_audit_messages_by_endpoint",
+    "description": "Get audit messages received by a specific endpoint. Can optionally filter by keyword.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "endpointName": {
+          "description": "The name of the receiving endpoint",
+          "type": "string"
+        },
+        "keyword": {
+          "description": "Optional keyword to filter messages",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "includeSystemMessages": {
+          "description": "Whether to include system messages in results. Default is false",
+          "type": "boolean",
+          "default": false
+        },
+        "page": {
+          "description": "Page number (1-based). Default is 1",
+          "type": "integer",
+          "default": 1
+        },
+        "perPage": {
+          "description": "Number of results per page. Default is 50",
+          "type": "integer",
+          "default": 50
+        },
+        "sort": {
+          "description": "Sort field: time_sent, processed_at, message_type, critical_time, delivery_time, processing_time. Default is time_sent",
+          "type": "string",
+          "default": "time_sent"
+        },
+        "direction": {
+          "description": "Sort direction: asc or desc. Default is desc",
+          "type": "string",
+          "default": "desc"
+        },
+        "timeSentFrom": {
+          "description": "Filter by time sent start (ISO 8601 format)",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "timeSentTo": {
+          "description": "Filter by time sent end (ISO 8601 format)",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "endpointName"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_endpoint_audit_counts",
+    "description": "Get audit message counts per day for a specific endpoint. Useful for understanding message throughput.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "endpointName": {
+          "description": "The name of the endpoint",
+          "type": "string"
+        }
+      },
+      "required": [
+        "endpointName"
+      ]
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_known_endpoints",
+    "description": "Get a list of all known endpoints that have sent or received audit messages.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_audit_messages",
+    "description": "Get a list of successfully processed audit messages. Supports paging and sorting. Returns message metadata including endpoints, timing information, and message type.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "includeSystemMessages": {
+          "description": "Whether to include system messages in results. Default is false",
+          "type": "boolean",
+          "default": false
+        },
+        "page": {
+          "description": "Page number (1-based). Default is 1",
+          "type": "integer",
+          "default": 1
+        },
+        "perPage": {
+          "description": "Number of results per page. Default is 50",
+          "type": "integer",
+          "default": 50
+        },
+        "sort": {
+          "description": "Sort field: time_sent, processed_at, message_type, critical_time, delivery_time, processing_time. Default is time_sent",
+          "type": "string",
+          "default": "time_sent"
+        },
+        "direction": {
+          "description": "Sort direction: asc or desc. Default is desc",
+          "type": "string",
+          "default": "desc"
+        },
+        "timeSentFrom": {
+          "description": "Filter by time sent start (ISO 8601 format)",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "timeSentTo": {
+          "description": "Filter by time sent end (ISO 8601 format)",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  }
+]

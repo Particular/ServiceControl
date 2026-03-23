@@ -16,6 +16,7 @@ using Audit.Persistence;
 using NUnit.Framework;
 using ServiceControl.SagaAudit;
 
+
 [TestFixture]
 class EndpointMcpToolsTests
 {
@@ -37,10 +38,10 @@ class EndpointMcpToolsTests
             new QueryStatsInfo("etag", 1));
 
         var result = await tools.GetKnownEndpoints();
-        var doc = JsonDocument.Parse(result);
+        var response = JsonSerializer.Deserialize<McpToolResponse<KnownEndpointsView>>(result, JsonOptions)!;
 
-        Assert.That(doc.RootElement.GetProperty("totalCount").GetInt32(), Is.EqualTo(1));
-        Assert.That(doc.RootElement.GetProperty("results").GetArrayLength(), Is.EqualTo(1));
+        Assert.That(response.TotalCount, Is.EqualTo(1));
+        Assert.That(response.Results, Has.Count.EqualTo(1));
     }
 
     [Test]
@@ -51,10 +52,18 @@ class EndpointMcpToolsTests
             new QueryStatsInfo("etag", 1));
 
         var result = await tools.GetEndpointAuditCounts("Sales");
-        var doc = JsonDocument.Parse(result);
+        var response = JsonSerializer.Deserialize<McpToolResponse<AuditCount>>(result, JsonOptions)!;
 
-        Assert.That(doc.RootElement.GetProperty("totalCount").GetInt32(), Is.EqualTo(1));
+        Assert.That(response.TotalCount, Is.EqualTo(1));
         Assert.That(store.LastAuditCountsEndpointName, Is.EqualTo("Sales"));
+    }
+
+    static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+    class McpToolResponse<T>
+    {
+        public int TotalCount { get; set; }
+        public List<T> Results { get; set; } = [];
     }
 
     class StubAuditDataStore : IAuditDataStore

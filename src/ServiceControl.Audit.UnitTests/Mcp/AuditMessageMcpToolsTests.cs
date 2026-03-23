@@ -37,10 +37,10 @@ class AuditMessageMcpToolsTests
             new QueryStatsInfo("etag", 1));
 
         var result = await tools.GetAuditMessages();
-        var doc = JsonDocument.Parse(result);
+        var response = JsonSerializer.Deserialize<McpToolResponse<MessagesView>>(result, JsonOptions)!;
 
-        Assert.That(doc.RootElement.GetProperty("totalCount").GetInt32(), Is.EqualTo(1));
-        Assert.That(doc.RootElement.GetProperty("results").GetArrayLength(), Is.EqualTo(1));
+        Assert.That(response.TotalCount, Is.EqualTo(1));
+        Assert.That(response.Results, Has.Count.EqualTo(1));
     }
 
     [Test]
@@ -95,10 +95,10 @@ class AuditMessageMcpToolsTests
         store.MessageBodyResult = MessageBodyView.FromString("{\"orderId\": 123}", "application/json", 16, "etag");
 
         var result = await tools.GetAuditMessageBody("msg-1");
-        var doc = JsonDocument.Parse(result);
+        var response = JsonSerializer.Deserialize<McpMessageBodyResponse>(result, JsonOptions)!;
 
-        Assert.That(doc.RootElement.GetProperty("contentType").GetString(), Is.EqualTo("application/json"));
-        Assert.That(doc.RootElement.GetProperty("body").GetString(), Is.EqualTo("{\"orderId\": 123}"));
+        Assert.That(response.ContentType, Is.EqualTo("application/json"));
+        Assert.That(response.Body, Is.EqualTo("{\"orderId\": 123}"));
     }
 
     [Test]
@@ -107,9 +107,9 @@ class AuditMessageMcpToolsTests
         store.MessageBodyResult = MessageBodyView.NotFound();
 
         var result = await tools.GetAuditMessageBody("msg-missing");
-        var doc = JsonDocument.Parse(result);
+        var response = JsonSerializer.Deserialize<McpErrorResponse>(result, JsonOptions)!;
 
-        Assert.That(doc.RootElement.GetProperty("error").GetString(), Does.Contain("not found"));
+        Assert.That(response.Error, Does.Contain("not found"));
     }
 
     [Test]
@@ -118,9 +118,29 @@ class AuditMessageMcpToolsTests
         store.MessageBodyResult = MessageBodyView.NoContent();
 
         var result = await tools.GetAuditMessageBody("msg-empty");
-        var doc = JsonDocument.Parse(result);
+        var response = JsonSerializer.Deserialize<McpErrorResponse>(result, JsonOptions)!;
 
-        Assert.That(doc.RootElement.GetProperty("error").GetString(), Does.Contain("no body content"));
+        Assert.That(response.Error, Does.Contain("no body content"));
+    }
+
+    static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+    class McpToolResponse<T>
+    {
+        public int TotalCount { get; set; }
+        public List<T> Results { get; set; } = [];
+    }
+
+    class McpMessageBodyResponse
+    {
+        public string? ContentType { get; set; }
+        public int ContentLength { get; set; }
+        public string? Body { get; set; }
+    }
+
+    class McpErrorResponse
+    {
+        public string? Error { get; set; }
     }
 
     class StubAuditDataStore : IAuditDataStore

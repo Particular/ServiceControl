@@ -1,5 +1,6 @@
 namespace ServiceControl.Audit.AcceptanceTests.Mcp;
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -59,10 +60,8 @@ class When_mcp_server_is_enabled : AcceptanceTest
             .Run();
 
         Assert.That(toolsJson, Is.Not.Null);
-        var doc = JsonDocument.Parse(toolsJson);
-        var result = doc.RootElement.GetProperty("result");
-        var tools = result.GetProperty("tools");
-        var formattedTools = JsonSerializer.Serialize(tools, new JsonSerializerOptions { WriteIndented = true });
+        var mcpResponse = JsonSerializer.Deserialize<McpListToolsResponse>(toolsJson, JsonOptions)!;
+        var formattedTools = JsonSerializer.Serialize(mcpResponse.Result.Tools, new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         Approver.Verify(formattedTools);
     }
 
@@ -95,7 +94,7 @@ class When_mcp_server_is_enabled : AcceptanceTest
 
                 var response = await SendMcpRequest(sessionId, "tools/call", new
                 {
-                    name = "GetAuditMessages",
+                    name = "get_audit_messages",
                     arguments = new { includeSystemMessages = false, page = 1, perPage = 50 }
                 });
 
@@ -110,12 +109,42 @@ class When_mcp_server_is_enabled : AcceptanceTest
             .Run();
 
         Assert.That(toolResult, Is.Not.Null);
-        var doc = JsonDocument.Parse(toolResult);
-        var result = doc.RootElement.GetProperty("result");
-        var content = result.GetProperty("content");
-        var textContent = content.EnumerateArray().First().GetProperty("text").GetString();
-        var messagesResult = JsonDocument.Parse(textContent);
-        Assert.That(messagesResult.RootElement.GetProperty("totalCount").GetInt32(), Is.GreaterThanOrEqualTo(1));
+        var mcpResponse = JsonSerializer.Deserialize<McpCallToolResponse>(toolResult, JsonOptions)!;
+        var textContent = mcpResponse.Result.Content[0].Text;
+        var messagesResult = JsonSerializer.Deserialize<McpToolResult>(textContent, JsonOptions)!;
+        Assert.That(messagesResult.TotalCount, Is.GreaterThanOrEqualTo(1));
+    }
+
+    static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+    class McpListToolsResponse
+    {
+        public McpListToolsResult Result { get; set; }
+    }
+
+    class McpListToolsResult
+    {
+        public List<object> Tools { get; set; } = [];
+    }
+
+    class McpCallToolResponse
+    {
+        public McpCallToolResult Result { get; set; }
+    }
+
+    class McpCallToolResult
+    {
+        public List<McpContent> Content { get; set; } = [];
+    }
+
+    class McpContent
+    {
+        public string Text { get; set; }
+    }
+
+    class McpToolResult
+    {
+        public int TotalCount { get; set; }
     }
 
     async Task<HttpResponseMessage> InitializeMcpSession()
