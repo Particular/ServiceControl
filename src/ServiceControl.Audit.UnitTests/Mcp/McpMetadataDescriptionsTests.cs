@@ -12,13 +12,13 @@ using DescriptionAttribute = System.ComponentModel.DescriptionAttribute;
 [TestFixture]
 class McpMetadataDescriptionsTests
 {
-    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessages), "read-only")]
-    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.SearchAuditMessages), "read-only")]
-    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessagesByEndpoint), "read-only")]
-    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessagesByConversation), "read-only")]
-    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessageBody), "read-only")]
-    [TestCase(typeof(EndpointTools), nameof(EndpointTools.GetKnownEndpoints), "read-only")]
-    [TestCase(typeof(EndpointTools), nameof(EndpointTools.GetEndpointAuditCounts), "read-only")]
+    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessages), "Read-only")]
+    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.SearchAuditMessages), "Read-only")]
+    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessagesByEndpoint), "Read-only")]
+    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessagesByConversation), "Read-only")]
+    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessageBody), "Read-only")]
+    [TestCase(typeof(EndpointTools), nameof(EndpointTools.GetKnownEndpoints), "Read-only")]
+    [TestCase(typeof(EndpointTools), nameof(EndpointTools.GetEndpointAuditCounts), "Read-only")]
     public void Audit_query_tools_are_described_as_read_only(Type toolType, string methodName, string expectedPhrase)
     {
         var description = GetMethodDescription(toolType, methodName);
@@ -29,11 +29,38 @@ class McpMetadataDescriptionsTests
     [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessageBody), "messageId", "audit message ID")]
     [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessagesByConversation), "conversationId", "conversation ID")]
     [TestCase(typeof(EndpointTools), nameof(EndpointTools.GetEndpointAuditCounts), "endpointName", "NServiceBus endpoint name")]
+    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessagesByEndpoint), "endpointName", "endpoint name")]
     public void Key_audit_tool_parameters_identify_the_entity_type(Type toolType, string methodName, string parameterName, string expectedPhrase)
     {
         var description = GetParameterDescription(toolType, methodName, parameterName);
 
         Assert.That(description, Does.Contain(expectedPhrase));
+    }
+
+    [Test]
+    public void Audit_tools_distinguish_browse_search_trace_and_payload_scenarios()
+    {
+        var browse = GetMethodDescription(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessages));
+        var search = GetMethodDescription(typeof(AuditMessageTools), nameof(AuditMessageTools.SearchAuditMessages));
+        var conversation = GetMethodDescription(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessagesByConversation));
+        var endpoint = GetMethodDescription(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessagesByEndpoint));
+        var body = GetMethodDescription(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessageBody));
+        var knownEndpoints = GetMethodDescription(typeof(EndpointTools), nameof(EndpointTools.GetKnownEndpoints));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(browse, Does.Contain("browse recent message activity").And.Contain("SearchAuditMessages"));
+
+            Assert.That(search, Does.Contain("specific business identifier or text").And.Contain("GetAuditMessages"));
+
+            Assert.That(conversation, Does.Contain("conversation").And.Contain("multiple endpoints"));
+
+            Assert.That(endpoint, Does.Contain("single endpoint").And.Contain("GetAuditMessagesByConversation"));
+
+            Assert.That(body, Does.Contain("message payload").And.Contain("search or browsing tools"));
+
+            Assert.That(knownEndpoints, Does.Contain("starting point").And.Contain("available endpoints"));
+        });
     }
 
     static string GetMethodDescription(Type toolType, string methodName)

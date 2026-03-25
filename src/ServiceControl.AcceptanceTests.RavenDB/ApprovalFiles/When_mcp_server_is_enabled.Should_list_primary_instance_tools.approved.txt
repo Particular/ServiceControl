@@ -96,7 +96,7 @@
   },
   {
     "name": "get_failed_message_by_id",
-    "description": "Read-only. Use this tool to get the full details of a specific failed message, including all processing attempts and exception information. Good for questions like: \u0027show me details for this failed message\u0027, \u0027what exception caused this failure?\u0027, or \u0027how many times has this message failed?\u0027. You need a failed message ID, which you can get from GetFailedMessages or GetFailureGroups results. If you only need the most recent failure attempt, use GetFailedMessageLastAttempt instead \u2014 it returns less data.",
+    "description": "Get detailed information about a specific failed message. Use this when you already know the failed message ID and need to inspect its contents or failure details. Use GetFailedMessages or GetFailureGroups to locate relevant messages before calling this tool. Read-only.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -121,7 +121,7 @@
   },
   {
     "name": "get_failed_message_last_attempt",
-    "description": "Read-only. Use this tool to see how a specific message failed most recently. Good for questions like: \u0027what was the last error for this message?\u0027, \u0027show me the latest exception\u0027, or \u0027what happened on the last attempt?\u0027. Returns the latest processing attempt with its exception, stack trace, and headers. Lighter than GetFailedMessageById when you only care about the most recent failure rather than the full history.",
+    "description": "Retrieve the last processing attempt for a failed message. Use this to understand the most recent failure behavior, including exception details and processing context. Typically used after identifying a failed message via GetFailedMessages or GetFailedMessageById. Read-only.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -146,7 +146,7 @@
   },
   {
     "name": "get_failed_messages",
-    "description": "Read-only. Use this tool to retrieve failed messages for investigation when the user wants to see what is failing. Good for questions like: \u0027what messages are currently failing?\u0027, \u0027are there failures in a specific queue?\u0027, or \u0027what failed recently?\u0027. Returns a paged list of failed messages with their status, exception details, and queue information. For broad requests, call with no parameters to get the most recent failures \u2014 only add filters when you need to narrow the scope. Prefer GetFailedMessagesByEndpoint when the user mentions a specific endpoint.",
+    "description": "Retrieve failed messages for investigation. Use this when exploring recent failures or narrowing down failures by queue, status, or time range. Prefer GetFailureGroups when starting root-cause analysis across many failures. Use GetFailedMessageById when inspecting a specific failed message. Read-only.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -159,7 +159,7 @@
           "default": null
         },
         "modified": {
-          "description": "Filter failed messages to entries modified after this ISO 8601 date/time. Omit this filter to include older results.",
+          "description": "Restricts failed-message results to entries modified after this ISO 8601 date/time. Omitting this may return a large result set.",
           "type": [
             "string",
             "null"
@@ -208,12 +208,12 @@
   },
   {
     "name": "get_failed_messages_by_endpoint",
-    "description": "Read-only. Use this tool to see failed messages for a specific NServiceBus endpoint. Good for questions like: \u0027what is failing in the Sales endpoint?\u0027, \u0027show errors for Shipping\u0027, or \u0027are there failures in this endpoint?\u0027. Returns the same paged failure data as GetFailedMessages but scoped to one endpoint. Prefer this tool over GetFailedMessages when the user mentions a specific endpoint name.",
+    "description": "Retrieve failed messages for a specific endpoint. Use this when investigating failures in a named endpoint such as Billing or Sales. Prefer GetFailureGroups when you need root-cause analysis across many failures. Use GetFailedMessageLastAttempt after this when you need the most recent failure details for a specific message. Read-only.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "endpointName": {
-          "description": "The NServiceBus endpoint name to investigate, for example \u0027Sales\u0027 or \u0027Shipping.MessageHandler\u0027.",
+          "description": "The endpoint name that owns the failed messages. Use values obtained from endpoint-aware failed-message results.",
           "type": "string"
         },
         "status": {
@@ -225,7 +225,7 @@
           "default": null
         },
         "modified": {
-          "description": "Filter endpoint results to failed messages modified after this ISO 8601 date/time. Omit this filter to include older results.",
+          "description": "Restricts endpoint failed-message results to entries modified after this ISO 8601 date/time. Omitting this may return a large result set.",
           "type": [
             "string",
             "null"
@@ -269,7 +269,7 @@
   },
   {
     "name": "get_failure_groups",
-    "description": "Read-only. Use this tool to understand why messages are failing by seeing failures grouped by root cause. Good for questions like: \u0027why are messages failing?\u0027, \u0027what errors are happening?\u0027, \u0027group failures by exception\u0027, or \u0027what are the top failure causes?\u0027. Each group represents a distinct exception type and stack trace, showing how many messages are affected and when failures started and last occurred. This is usually the best starting point for diagnosing production issues \u2014 call it before drilling into individual messages. Call with no parameters to use the default grouping by exception type and stack trace.",
+    "description": "Retrieve failure groups, where failed messages are grouped by exception type and stack trace. Use this as the first step when analyzing large numbers of failures to identify dominant root causes. Prefer GetFailedMessages when you need individual message details. Read-only.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -317,7 +317,7 @@
   },
   {
     "name": "retry_all_failed_messages",
-    "description": "Use this tool to retry every unresolved failed message across all queues and endpoints. This operation changes system state. It may affect many messages. Good for questions like: \u0027retry everything\u0027, \u0027reprocess all failures\u0027, or \u0027retry all failed messages\u0027. It affects all unresolved failed messages across the instance. This is a broad operation \u2014 prefer RetryFailedMessagesByQueue, RetryAllFailedMessagesByEndpoint, or RetryFailureGroup when you can scope the retry more narrowly.",
+    "description": "Retry all currently failed messages across all queues. Use only when the user explicitly requests a broad retry operation. Prefer narrower retry tools such as RetryFailureGroup or RetryFailedMessages when possible. This operation changes system state. It may affect many messages. It affects all unresolved failed messages across the instance and may affect a large number of messages.",
     "inputSchema": {
       "type": "object",
       "properties": {}
@@ -334,12 +334,12 @@
   },
   {
     "name": "retry_all_failed_messages_by_endpoint",
-    "description": "Use this tool to retry all failed messages for a specific NServiceBus endpoint. This operation changes system state. It may affect many messages. Good for questions like: \u0027retry all failures in the Sales endpoint\u0027, \u0027the bug in Shipping is fixed, retry its failures\u0027, or \u0027reprocess all errors for this endpoint\u0027. Useful when a bug in one endpoint has been fixed and all its failures should be reprocessed.",
+    "description": "Retry all failed messages for a specific endpoint. Use this when the user explicitly wants an endpoint-scoped retry after an endpoint-specific issue is fixed. Prefer RetryFailureGroup or RetryFailedMessages when you can retry a narrower set of failures. This operation changes system state. It may affect many messages. Use the endpoint name from failed-message results.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "endpointName": {
-          "description": "The NServiceBus endpoint name, e.g. \u0027Sales\u0027 or \u0027Shipping.MessageHandler\u0027",
+          "description": "The endpoint name whose failed messages should be retried. Use values obtained from failed-message results.",
           "type": "string"
         }
       },
@@ -384,7 +384,7 @@
   },
   {
     "name": "retry_failed_messages",
-    "description": "Use this tool to reprocess multiple specific failed messages at once. This operation changes system state. It may affect many messages. Good for questions like: \u0027retry these messages\u0027, \u0027reprocess messages msg-1, msg-2, msg-3\u0027, or \u0027retry this batch\u0027. Prefer RetryFailureGroup when all messages share the same failure cause \u2014 use this tool when you have a specific set of message IDs to retry.",
+    "description": "Retry a selected set of failed messages by their IDs. Use this when the user explicitly wants to retry specific known messages. Prefer RetryFailureGroup when retrying all messages with the same root cause. This operation changes system state. It may affect many messages. Use values obtained from failed-message investigation tools.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -412,12 +412,12 @@
   },
   {
     "name": "retry_failed_messages_by_queue",
-    "description": "Use this tool to retry all unresolved failed messages from a specific queue. This operation changes system state. It may affect many messages. Good for questions like: \u0027retry all failures in the Sales queue\u0027, \u0027reprocess everything from this queue\u0027, or \u0027the queue consumer is back, retry its failures\u0027. Useful when a queue\u0027s consumer was down or misconfigured and is now fixed. Only retries messages with unresolved status.",
+    "description": "Retry all unresolved failed messages from a specific queue. Use this when the user explicitly wants a queue-scoped retry after a queue or consumer issue is fixed. Prefer RetryFailureGroup or RetryFailedMessages when you can retry a narrower set of failures. This operation changes system state. It may affect many messages. Use the queue address from failed-message results.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "queueAddress": {
-          "description": "The full queue address including machine name, e.g. \u0027Sales@machine\u0027",
+          "description": "Queue address whose unresolved failed messages should be retried. Use values obtained from failed-message results.",
           "type": "string"
         }
       },
@@ -437,7 +437,7 @@
   },
   {
     "name": "retry_failure_group",
-    "description": "Use this tool to retry all failed messages that share the same exception type and stack trace. This operation changes system state. It may affect many messages. Good for questions like: \u0027retry this failure group\u0027, \u0027the bug causing these NullReferenceExceptions is fixed, retry them\u0027, or \u0027retry all messages in this group\u0027. This is the most targeted way to retry related failures after fixing a specific bug. You need a failure group ID, which you can get from GetFailureGroups. Returns InProgress if a retry is already running for this group.",
+    "description": "Retry all failed messages in a failure group that share the same root cause. Use this when multiple failures are caused by the same issue and can be retried together. Prefer RetryFailedMessages for more granular control. This operation changes system state. It may affect many messages. Use the failure group ID from GetFailureGroups. Returns InProgress if a retry is already running for this group.",
     "inputSchema": {
       "type": "object",
       "properties": {

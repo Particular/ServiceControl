@@ -41,11 +41,12 @@ public class RetryTools(IMessageSession messageSession, RetryingManager retrying
     }
 
     [McpServerTool(ReadOnly = false, Idempotent = false, Destructive = true, OpenWorld = false), Description(
-        "Use this tool to reprocess multiple specific failed messages at once. " +
+        "Retry a selected set of failed messages by their IDs. " +
+        "Use this when the user explicitly wants to retry specific known messages. " +
+        "Prefer RetryFailureGroup when retrying all messages with the same root cause. " +
         "This operation changes system state. " +
         "It may affect many messages. " +
-        "Good for questions like: 'retry these messages', 'reprocess messages msg-1, msg-2, msg-3', or 'retry this batch'. " +
-        "Prefer RetryFailureGroup when all messages share the same failure cause — use this tool when you have a specific set of message IDs to retry."
+        "Use values obtained from failed-message investigation tools."
     )]
     public async Task<string> RetryFailedMessages(
         [Description("The failed message IDs from previous failed-message query results.")] string[] messageIds)
@@ -63,14 +64,15 @@ public class RetryTools(IMessageSession messageSession, RetryingManager retrying
     }
 
     [McpServerTool(ReadOnly = false, Idempotent = false, Destructive = true, OpenWorld = false), Description(
-        "Use this tool to retry all unresolved failed messages from a specific queue. " +
+        "Retry all unresolved failed messages from a specific queue. " +
+        "Use this when the user explicitly wants a queue-scoped retry after a queue or consumer issue is fixed. " +
+        "Prefer RetryFailureGroup or RetryFailedMessages when you can retry a narrower set of failures. " +
         "This operation changes system state. " +
         "It may affect many messages. " +
-        "Good for questions like: 'retry all failures in the Sales queue', 'reprocess everything from this queue', or 'the queue consumer is back, retry its failures'. " +
-        "Useful when a queue's consumer was down or misconfigured and is now fixed. Only retries messages with unresolved status."
+        "Use the queue address from failed-message results."
     )]
     public async Task<string> RetryFailedMessagesByQueue(
-        [Description("The full queue address including machine name, e.g. 'Sales@machine'")] string queueAddress)
+        [Description("Queue address whose unresolved failed messages should be retried. Use values obtained from failed-message results.")] string queueAddress)
     {
         logger.LogInformation("MCP RetryFailedMessagesByQueue invoked (queueAddress={QueueAddress})", queueAddress);
 
@@ -83,12 +85,12 @@ public class RetryTools(IMessageSession messageSession, RetryingManager retrying
     }
 
     [McpServerTool(ReadOnly = false, Idempotent = false, Destructive = true, OpenWorld = false), Description(
-        "Use this tool to retry every unresolved failed message across all queues and endpoints. " +
+        "Retry all currently failed messages across all queues. " +
+        "Use only when the user explicitly requests a broad retry operation. " +
+        "Prefer narrower retry tools such as RetryFailureGroup or RetryFailedMessages when possible. " +
         "This operation changes system state. " +
         "It may affect many messages. " +
-        "Good for questions like: 'retry everything', 'reprocess all failures', or 'retry all failed messages'. " +
-        "It affects all unresolved failed messages across the instance. " +
-        "This is a broad operation — prefer RetryFailedMessagesByQueue, RetryAllFailedMessagesByEndpoint, or RetryFailureGroup when you can scope the retry more narrowly."
+        "It affects all unresolved failed messages across the instance and may affect a large number of messages."
     )]
     public async Task<string> RetryAllFailedMessages()
     {
@@ -99,14 +101,15 @@ public class RetryTools(IMessageSession messageSession, RetryingManager retrying
     }
 
     [McpServerTool(ReadOnly = false, Idempotent = false, Destructive = true, OpenWorld = false), Description(
-        "Use this tool to retry all failed messages for a specific NServiceBus endpoint. " +
+        "Retry all failed messages for a specific endpoint. " +
+        "Use this when the user explicitly wants an endpoint-scoped retry after an endpoint-specific issue is fixed. " +
+        "Prefer RetryFailureGroup or RetryFailedMessages when you can retry a narrower set of failures. " +
         "This operation changes system state. " +
         "It may affect many messages. " +
-        "Good for questions like: 'retry all failures in the Sales endpoint', 'the bug in Shipping is fixed, retry its failures', or 'reprocess all errors for this endpoint'. " +
-        "Useful when a bug in one endpoint has been fixed and all its failures should be reprocessed."
+        "Use the endpoint name from failed-message results."
     )]
     public async Task<string> RetryAllFailedMessagesByEndpoint(
-        [Description("The NServiceBus endpoint name, e.g. 'Sales' or 'Shipping.MessageHandler'")] string endpointName)
+        [Description("The endpoint name whose failed messages should be retried. Use values obtained from failed-message results.")] string endpointName)
     {
         logger.LogInformation("MCP RetryAllFailedMessagesByEndpoint invoked (endpoint={EndpointName})", endpointName);
 
@@ -115,12 +118,12 @@ public class RetryTools(IMessageSession messageSession, RetryingManager retrying
     }
 
     [McpServerTool(ReadOnly = false, Idempotent = false, Destructive = true, OpenWorld = false), Description(
-        "Use this tool to retry all failed messages that share the same exception type and stack trace. " +
+        "Retry all failed messages in a failure group that share the same root cause. " +
+        "Use this when multiple failures are caused by the same issue and can be retried together. " +
+        "Prefer RetryFailedMessages for more granular control. " +
         "This operation changes system state. " +
         "It may affect many messages. " +
-        "Good for questions like: 'retry this failure group', 'the bug causing these NullReferenceExceptions is fixed, retry them', or 'retry all messages in this group'. " +
-        "This is the most targeted way to retry related failures after fixing a specific bug. " +
-        "You need a failure group ID, which you can get from GetFailureGroups. " +
+        "Use the failure group ID from GetFailureGroups. " +
         "Returns InProgress if a retry is already running for this group."
     )]
     public async Task<string> RetryFailureGroup(

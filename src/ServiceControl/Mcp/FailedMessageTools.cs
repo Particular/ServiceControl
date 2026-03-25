@@ -24,15 +24,15 @@ using Persistence.Infrastructure;
 public class FailedMessageTools(IErrorMessageDataStore store, ILogger<FailedMessageTools> logger)
 {
     [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
-        "Read-only. Use this tool to retrieve failed messages for investigation when the user wants to see what is failing. " +
-        "Good for questions like: 'what messages are currently failing?', 'are there failures in a specific queue?', or 'what failed recently?'. " +
-        "Returns a paged list of failed messages with their status, exception details, and queue information. " +
-        "For broad requests, call with no parameters to get the most recent failures — only add filters when you need to narrow the scope. " +
-        "Prefer GetFailedMessagesByEndpoint when the user mentions a specific endpoint."
+        "Retrieve failed messages for investigation. " +
+        "Use this when exploring recent failures or narrowing down failures by queue, status, or time range. " +
+        "Prefer GetFailureGroups when starting root-cause analysis across many failures. " +
+        "Use GetFailedMessageById when inspecting a specific failed message. " +
+        "Read-only."
     )]
     public async Task<string> GetFailedMessages(
         [Description("Filter failed messages by status: unresolved (still failing), resolved (succeeded on retry), archived (dismissed), or retryissued (retry in progress). Omit this filter to include all statuses.")] string? status = null,
-        [Description("Filter failed messages to entries modified after this ISO 8601 date/time. Omit this filter to include older results.")] string? modified = null,
+        [Description("Restricts failed-message results to entries modified after this ISO 8601 date/time. Omitting this may return a large result set.")] string? modified = null,
         [Description("Filter failed messages to a specific queue address, for example 'Sales@machine'. Omit this filter to include all queues.")] string? queueAddress = null,
         [Description("Page number, 1-based")] int page = 1,
         [Description("Results per page")] int perPage = 50,
@@ -56,10 +56,10 @@ public class FailedMessageTools(IErrorMessageDataStore store, ILogger<FailedMess
     }
 
     [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
-        "Read-only. Use this tool to get the full details of a specific failed message, including all processing attempts and exception information. " +
-        "Good for questions like: 'show me details for this failed message', 'what exception caused this failure?', or 'how many times has this message failed?'. " +
-        "You need a failed message ID, which you can get from GetFailedMessages or GetFailureGroups results. " +
-        "If you only need the most recent failure attempt, use GetFailedMessageLastAttempt instead — it returns less data."
+        "Get detailed information about a specific failed message. " +
+        "Use this when you already know the failed message ID and need to inspect its contents or failure details. " +
+        "Use GetFailedMessages or GetFailureGroups to locate relevant messages before calling this tool. " +
+        "Read-only."
     )]
     public async Task<string> GetFailedMessageById(
         [Description("The failed message ID from a previous failed-message query result.")] string failedMessageId)
@@ -78,10 +78,10 @@ public class FailedMessageTools(IErrorMessageDataStore store, ILogger<FailedMess
     }
 
     [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
-        "Read-only. Use this tool to see how a specific message failed most recently. " +
-        "Good for questions like: 'what was the last error for this message?', 'show me the latest exception', or 'what happened on the last attempt?'. " +
-        "Returns the latest processing attempt with its exception, stack trace, and headers. " +
-        "Lighter than GetFailedMessageById when you only care about the most recent failure rather than the full history."
+        "Retrieve the last processing attempt for a failed message. " +
+        "Use this to understand the most recent failure behavior, including exception details and processing context. " +
+        "Typically used after identifying a failed message via GetFailedMessages or GetFailedMessageById. " +
+        "Read-only."
     )]
     public async Task<string> GetFailedMessageLastAttempt(
         [Description("The failed message ID from a previous failed-message query result.")] string failedMessageId)
@@ -114,15 +114,16 @@ public class FailedMessageTools(IErrorMessageDataStore store, ILogger<FailedMess
     }
 
     [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
-        "Read-only. Use this tool to see failed messages for a specific NServiceBus endpoint. " +
-        "Good for questions like: 'what is failing in the Sales endpoint?', 'show errors for Shipping', or 'are there failures in this endpoint?'. " +
-        "Returns the same paged failure data as GetFailedMessages but scoped to one endpoint. " +
-        "Prefer this tool over GetFailedMessages when the user mentions a specific endpoint name."
+        "Retrieve failed messages for a specific endpoint. " +
+        "Use this when investigating failures in a named endpoint such as Billing or Sales. " +
+        "Prefer GetFailureGroups when you need root-cause analysis across many failures. " +
+        "Use GetFailedMessageLastAttempt after this when you need the most recent failure details for a specific message. " +
+        "Read-only."
     )]
     public async Task<string> GetFailedMessagesByEndpoint(
-        [Description("The NServiceBus endpoint name to investigate, for example 'Sales' or 'Shipping.MessageHandler'.")] string endpointName,
+        [Description("The endpoint name that owns the failed messages. Use values obtained from endpoint-aware failed-message results.")] string endpointName,
         [Description("Filter failed messages by status: unresolved, resolved, archived, or retryissued. Omit this filter to include all statuses for the endpoint.")] string? status = null,
-        [Description("Filter endpoint results to failed messages modified after this ISO 8601 date/time. Omit this filter to include older results.")] string? modified = null,
+        [Description("Restricts endpoint failed-message results to entries modified after this ISO 8601 date/time. Omitting this may return a large result set.")] string? modified = null,
         [Description("Page number, 1-based")] int page = 1,
         [Description("Results per page")] int perPage = 50,
         [Description("Sort by: time_sent, message_type, or time_of_failure")] string sort = "time_of_failure",

@@ -19,10 +19,9 @@ using Persistence;
 public class EndpointTools(IAuditDataStore store, ILogger<EndpointTools> logger)
 {
     [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
-        "This is a read-only tool for discovering what NServiceBus endpoints exist in the system. " +
-        "Good for questions like: 'what endpoints do we have?', 'what services are running?', or 'list all endpoints'. " +
-        "Returns all endpoints that have processed audit messages, including their name and host information. " +
-        "This is a good starting point when you need an endpoint name for other tools like GetAuditMessagesByEndpoint or GetEndpointAuditCounts."
+        "List all known endpoints that have sent or received audit messages. " +
+        "Use this as a starting point to discover available endpoints before exploring their activity. " +
+        "Read-only."
     )]
     public async Task<string> GetKnownEndpoints(CancellationToken cancellationToken = default)
     {
@@ -40,13 +39,13 @@ public class EndpointTools(IAuditDataStore store, ILogger<EndpointTools> logger)
     }
 
     [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
-        "This is a read-only tool for seeing daily message volume trends for a specific endpoint. " +
-        "Good for questions like: 'how much traffic does Sales handle?', 'has throughput changed recently?', or 'show me message counts for this endpoint'. " +
-        "Returns message counts per day, which helps identify throughput changes, traffic spikes, or drops in activity that might indicate problems. " +
-        "You need an endpoint name — use GetKnownEndpoints first if you do not have one."
+        "Retrieve daily audit-message counts for a specific endpoint. " +
+        "Use this when checking throughput or activity trends for one endpoint. " +
+        "Prefer GetKnownEndpoints when you do not already know the endpoint name. " +
+        "Read-only."
     )]
     public async Task<string> GetEndpointAuditCounts(
-        [Description("The NServiceBus endpoint name, for example 'Sales' or 'Shipping.MessageHandler'.")] string endpointName,
+        [Description("The NServiceBus endpoint name whose audit activity should be counted. Use values obtained from GetKnownEndpoints.")] string endpointName,
         CancellationToken cancellationToken = default)
     {
         logger.LogInformation("MCP GetEndpointAuditCounts invoked (endpoint={EndpointName})", endpointName);

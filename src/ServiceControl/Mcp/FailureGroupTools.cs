@@ -20,11 +20,10 @@ using Recoverability;
 public class FailureGroupTools(GroupFetcher fetcher, IRetryHistoryDataStore retryStore, ILogger<FailureGroupTools> logger)
 {
     [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
-        "Read-only. Use this tool to understand why messages are failing by seeing failures grouped by root cause. " +
-        "Good for questions like: 'why are messages failing?', 'what errors are happening?', 'group failures by exception', or 'what are the top failure causes?'. " +
-        "Each group represents a distinct exception type and stack trace, showing how many messages are affected and when failures started and last occurred. " +
-        "This is usually the best starting point for diagnosing production issues — call it before drilling into individual messages. " +
-        "Call with no parameters to use the default grouping by exception type and stack trace."
+        "Retrieve failure groups, where failed messages are grouped by exception type and stack trace. " +
+        "Use this as the first step when analyzing large numbers of failures to identify dominant root causes. " +
+        "Prefer GetFailedMessages when you need individual message details. " +
+        "Read-only."
     )]
     public async Task<string> GetFailureGroups(
         [Description("How to group failures. The default 'Exception Type and Stack Trace' is almost always what you want. Use 'Message Type' to group by the NServiceBus message type instead.")] string classifier = "Exception Type and Stack Trace",
