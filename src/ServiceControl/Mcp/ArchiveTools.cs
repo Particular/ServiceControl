@@ -43,6 +43,7 @@ public class ArchiveTools(IMessageSession messageSession, IArchiveMessages archi
     [McpServerTool(ReadOnly = false, Idempotent = false, Destructive = true, OpenWorld = false), Description(
         "Use this tool to dismiss multiple failed messages at once that do not need to be retried. " +
         "This operation changes system state. " +
+        "It may affect many messages. " +
         "Good for questions like: 'archive these messages', 'dismiss these failures', or 'archive messages msg-1, msg-2, msg-3'. " +
         "Prefer ArchiveFailureGroup when all messages share the same failure cause — use this tool when you have a specific set of message IDs to archive."
     )]
@@ -67,9 +68,10 @@ public class ArchiveTools(IMessageSession messageSession, IArchiveMessages archi
     [McpServerTool(ReadOnly = false, Idempotent = false, Destructive = true, OpenWorld = false), Description(
         "Use this tool to dismiss an entire failure group — all messages that failed with the same exception type and stack trace. " +
         "This operation changes system state. " +
+        "It may affect many messages. " +
         "Good for questions like: 'archive this failure group', 'dismiss all NullReferenceException failures', or 'archive the whole group'. " +
         "This is the most efficient way to archive many related failures at once. " +
-        "You need a group ID, which you can get from GetFailureGroups. " +
+        "You need a failure group ID, which you can get from GetFailureGroups. " +
         "Returns InProgress if an archive operation is already running for this group."
     )]
     public async Task<string> ArchiveFailureGroup(
@@ -108,6 +110,7 @@ public class ArchiveTools(IMessageSession messageSession, IArchiveMessages archi
     [McpServerTool(ReadOnly = false, Idempotent = false, Destructive = true, OpenWorld = false), Description(
         "Use this tool to restore multiple previously archived failed messages back to the unresolved list. " +
         "This operation changes system state. " +
+        "It may affect many messages. " +
         "Good for questions like: 'unarchive these messages', 'restore these failures', or 'unarchive messages msg-1, msg-2, msg-3'. " +
         "Prefer UnarchiveFailureGroup when restoring an entire group — use this tool when you have a specific set of message IDs."
     )]
@@ -129,9 +132,10 @@ public class ArchiveTools(IMessageSession messageSession, IArchiveMessages archi
     [McpServerTool(ReadOnly = false, Idempotent = false, Destructive = true, OpenWorld = false), Description(
         "Use this tool to restore an entire archived failure group back to the unresolved list. " +
         "This operation changes system state. " +
+        "It may affect many messages. " +
         "Good for questions like: 'unarchive this failure group', 'restore all archived NullReferenceException failures', or 'unarchive the whole group'. " +
         "All messages that were archived together under this group will become available for retry again. " +
-        "You need a group ID, which you can get from GetFailureGroups. " +
+        "You need a failure group ID, which you can get from GetFailureGroups. " +
         "Returns InProgress if an unarchive operation is already running for this group."
     )]
     public async Task<string> UnarchiveFailureGroup(

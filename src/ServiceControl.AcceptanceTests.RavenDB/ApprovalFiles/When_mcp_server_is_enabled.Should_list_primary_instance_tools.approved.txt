@@ -26,7 +26,7 @@
   },
   {
     "name": "archive_failed_messages",
-    "description": "Use this tool to dismiss multiple failed messages at once that do not need to be retried. This operation changes system state. Good for questions like: \u0027archive these messages\u0027, \u0027dismiss these failures\u0027, or \u0027archive messages msg-1, msg-2, msg-3\u0027. Prefer ArchiveFailureGroup when all messages share the same failure cause \u2014 use this tool when you have a specific set of message IDs to archive.",
+    "description": "Use this tool to dismiss multiple failed messages at once that do not need to be retried. This operation changes system state. It may affect many messages. Good for questions like: \u0027archive these messages\u0027, \u0027dismiss these failures\u0027, or \u0027archive messages msg-1, msg-2, msg-3\u0027. Prefer ArchiveFailureGroup when all messages share the same failure cause \u2014 use this tool when you have a specific set of message IDs to archive.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -54,7 +54,7 @@
   },
   {
     "name": "archive_failure_group",
-    "description": "Use this tool to dismiss an entire failure group \u2014 all messages that failed with the same exception type and stack trace. This operation changes system state. Good for questions like: \u0027archive this failure group\u0027, \u0027dismiss all NullReferenceException failures\u0027, or \u0027archive the whole group\u0027. This is the most efficient way to archive many related failures at once. You need a group ID, which you can get from GetFailureGroups. Returns InProgress if an archive operation is already running for this group.",
+    "description": "Use this tool to dismiss an entire failure group \u2014 all messages that failed with the same exception type and stack trace. This operation changes system state. It may affect many messages. Good for questions like: \u0027archive this failure group\u0027, \u0027dismiss all NullReferenceException failures\u0027, or \u0027archive the whole group\u0027. This is the most efficient way to archive many related failures at once. You need a failure group ID, which you can get from GetFailureGroups. Returns InProgress if an archive operation is already running for this group.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -317,7 +317,7 @@
   },
   {
     "name": "retry_all_failed_messages",
-    "description": "Use this tool to retry every unresolved failed message across all queues and endpoints. This operation changes system state. Good for questions like: \u0027retry everything\u0027, \u0027reprocess all failures\u0027, or \u0027retry all failed messages\u0027. It affects all unresolved failed messages across the instance. This is a broad operation \u2014 prefer RetryFailedMessagesByQueue, RetryAllFailedMessagesByEndpoint, or RetryFailureGroup when you can scope the retry more narrowly.",
+    "description": "Use this tool to retry every unresolved failed message across all queues and endpoints. This operation changes system state. It may affect many messages. Good for questions like: \u0027retry everything\u0027, \u0027reprocess all failures\u0027, or \u0027retry all failed messages\u0027. It affects all unresolved failed messages across the instance. This is a broad operation \u2014 prefer RetryFailedMessagesByQueue, RetryAllFailedMessagesByEndpoint, or RetryFailureGroup when you can scope the retry more narrowly.",
     "inputSchema": {
       "type": "object",
       "properties": {}
@@ -334,7 +334,7 @@
   },
   {
     "name": "retry_all_failed_messages_by_endpoint",
-    "description": "Use this tool to retry all failed messages for a specific NServiceBus endpoint. This operation changes system state. Good for questions like: \u0027retry all failures in the Sales endpoint\u0027, \u0027the bug in Shipping is fixed, retry its failures\u0027, or \u0027reprocess all errors for this endpoint\u0027. Useful when a bug in one endpoint has been fixed and all its failures should be reprocessed.",
+    "description": "Use this tool to retry all failed messages for a specific NServiceBus endpoint. This operation changes system state. It may affect many messages. Good for questions like: \u0027retry all failures in the Sales endpoint\u0027, \u0027the bug in Shipping is fixed, retry its failures\u0027, or \u0027reprocess all errors for this endpoint\u0027. Useful when a bug in one endpoint has been fixed and all its failures should be reprocessed.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -384,7 +384,7 @@
   },
   {
     "name": "retry_failed_messages",
-    "description": "Use this tool to reprocess multiple specific failed messages at once. This operation changes system state. Good for questions like: \u0027retry these messages\u0027, \u0027reprocess messages msg-1, msg-2, msg-3\u0027, or \u0027retry this batch\u0027. Prefer RetryFailureGroup when all messages share the same failure cause \u2014 use this tool when you have a specific set of message IDs to retry.",
+    "description": "Use this tool to reprocess multiple specific failed messages at once. This operation changes system state. It may affect many messages. Good for questions like: \u0027retry these messages\u0027, \u0027reprocess messages msg-1, msg-2, msg-3\u0027, or \u0027retry this batch\u0027. Prefer RetryFailureGroup when all messages share the same failure cause \u2014 use this tool when you have a specific set of message IDs to retry.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -412,7 +412,7 @@
   },
   {
     "name": "retry_failed_messages_by_queue",
-    "description": "Use this tool to retry all unresolved failed messages from a specific queue. This operation changes system state. Good for questions like: \u0027retry all failures in the Sales queue\u0027, \u0027reprocess everything from this queue\u0027, or \u0027the queue consumer is back, retry its failures\u0027. Useful when a queue\u0027s consumer was down or misconfigured and is now fixed. Only retries messages with unresolved status.",
+    "description": "Use this tool to retry all unresolved failed messages from a specific queue. This operation changes system state. It may affect many messages. Good for questions like: \u0027retry all failures in the Sales queue\u0027, \u0027reprocess everything from this queue\u0027, or \u0027the queue consumer is back, retry its failures\u0027. Useful when a queue\u0027s consumer was down or misconfigured and is now fixed. Only retries messages with unresolved status.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -437,7 +437,7 @@
   },
   {
     "name": "retry_failure_group",
-    "description": "Use this tool to retry all failed messages that share the same exception type and stack trace. This operation changes system state. Good for questions like: \u0027retry this failure group\u0027, \u0027the bug causing these NullReferenceExceptions is fixed, retry them\u0027, or \u0027retry all messages in this group\u0027. This is the most targeted way to retry related failures after fixing a specific bug. You need a group ID, which you can get from GetFailureGroups. Returns InProgress if a retry is already running for this group.",
+    "description": "Use this tool to retry all failed messages that share the same exception type and stack trace. This operation changes system state. It may affect many messages. Good for questions like: \u0027retry this failure group\u0027, \u0027the bug causing these NullReferenceExceptions is fixed, retry them\u0027, or \u0027retry all messages in this group\u0027. This is the most targeted way to retry related failures after fixing a specific bug. You need a failure group ID, which you can get from GetFailureGroups. Returns InProgress if a retry is already running for this group.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -487,7 +487,7 @@
   },
   {
     "name": "unarchive_failed_messages",
-    "description": "Use this tool to restore multiple previously archived failed messages back to the unresolved list. This operation changes system state. Good for questions like: \u0027unarchive these messages\u0027, \u0027restore these failures\u0027, or \u0027unarchive messages msg-1, msg-2, msg-3\u0027. Prefer UnarchiveFailureGroup when restoring an entire group \u2014 use this tool when you have a specific set of message IDs.",
+    "description": "Use this tool to restore multiple previously archived failed messages back to the unresolved list. This operation changes system state. It may affect many messages. Good for questions like: \u0027unarchive these messages\u0027, \u0027restore these failures\u0027, or \u0027unarchive messages msg-1, msg-2, msg-3\u0027. Prefer UnarchiveFailureGroup when restoring an entire group \u2014 use this tool when you have a specific set of message IDs.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -515,7 +515,7 @@
   },
   {
     "name": "unarchive_failure_group",
-    "description": "Use this tool to restore an entire archived failure group back to the unresolved list. This operation changes system state. Good for questions like: \u0027unarchive this failure group\u0027, \u0027restore all archived NullReferenceException failures\u0027, or \u0027unarchive the whole group\u0027. All messages that were archived together under this group will become available for retry again. You need a group ID, which you can get from GetFailureGroups. Returns InProgress if an unarchive operation is already running for this group.",
+    "description": "Use this tool to restore an entire archived failure group back to the unresolved list. This operation changes system state. It may affect many messages. Good for questions like: \u0027unarchive this failure group\u0027, \u0027restore all archived NullReferenceException failures\u0027, or \u0027unarchive the whole group\u0027. All messages that were archived together under this group will become available for retry again. You need a failure group ID, which you can get from GetFailureGroups. Returns InProgress if an unarchive operation is already running for this group.",
     "inputSchema": {
       "type": "object",
       "properties": {
