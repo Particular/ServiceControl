@@ -26,6 +26,20 @@ class McpMetadataDescriptionsTests
         Assert.That(description, Does.Contain(expectedPhrase));
     }
 
+    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessages))]
+    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.SearchAuditMessages))]
+    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessagesByEndpoint))]
+    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessagesByConversation))]
+    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessageBody))]
+    [TestCase(typeof(EndpointTools), nameof(EndpointTools.GetKnownEndpoints))]
+    [TestCase(typeof(EndpointTools), nameof(EndpointTools.GetEndpointAuditCounts))]
+    public void Read_only_audit_tools_end_with_read_only_sentence(Type toolType, string methodName)
+    {
+        var description = GetMethodDescription(toolType, methodName);
+
+        Assert.That(description, Does.EndWith("Read-only."));
+    }
+
     [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessageBody), "messageId", "audit message ID")]
     [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessagesByConversation), "conversationId", "conversation ID")]
     [TestCase(typeof(EndpointTools), nameof(EndpointTools.GetEndpointAuditCounts), "endpointName", "NServiceBus endpoint name")]

@@ -100,10 +100,11 @@ public class FailedMessageTools(IErrorMessageDataStore store, ILogger<FailedMess
     }
 
     [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
-        "Read-only. Use this tool as a quick health check to see how many messages are in each failure state. " +
+        "Use this tool as a quick health check to see how many messages are in each failure state. " +
         "Good for questions like: 'how many errors are there?', 'what is the error situation?', or 'are there unresolved failures?'. " +
         "Returns counts for unresolved, archived, resolved, and retryissued statuses. " +
-        "This is a good first tool to call when asked about the overall error situation before drilling into specific messages."
+        "This is a good first tool to call when asked about the overall error situation before drilling into specific messages. " +
+        "Read-only."
     )]
     public async Task<string> GetErrorsSummary()
     {

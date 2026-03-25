@@ -39,10 +39,11 @@ public class FailureGroupTools(GroupFetcher fetcher, IRetryHistoryDataStore retr
     }
 
     [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
-        "Read-only. Use this tool to check the history of retry operations. " +
+        "Use this tool to check the history of retry operations. " +
         "Good for questions like: 'has someone already retried these?', 'what happened the last time we retried this group?', 'show retry history', or 'were any retries attempted today?'. " +
         "Returns which groups were retried, when, and whether the retries succeeded or failed. " +
-        "Use this before retrying a group to avoid duplicate retry attempts."
+        "Use this before retrying a group to avoid duplicate retry attempts. " +
+        "Read-only."
     )]
     public async Task<string> GetRetryHistory()
     {

@@ -12,6 +12,20 @@ using DescriptionAttribute = System.ComponentModel.DescriptionAttribute;
 [TestFixture]
 class McpMetadataDescriptionsTests
 {
+    [TestCase(typeof(FailedMessageTools), nameof(FailedMessageTools.GetFailedMessages))]
+    [TestCase(typeof(FailedMessageTools), nameof(FailedMessageTools.GetFailedMessageById))]
+    [TestCase(typeof(FailedMessageTools), nameof(FailedMessageTools.GetFailedMessageLastAttempt))]
+    [TestCase(typeof(FailedMessageTools), nameof(FailedMessageTools.GetErrorsSummary))]
+    [TestCase(typeof(FailedMessageTools), nameof(FailedMessageTools.GetFailedMessagesByEndpoint))]
+    [TestCase(typeof(FailureGroupTools), nameof(FailureGroupTools.GetFailureGroups))]
+    [TestCase(typeof(FailureGroupTools), nameof(FailureGroupTools.GetRetryHistory))]
+    public void Read_only_primary_tools_end_with_read_only_sentence(Type toolType, string methodName)
+    {
+        var description = GetMethodDescription(toolType, methodName);
+
+        Assert.That(description, Does.EndWith("Read-only."));
+    }
+
     [TestCase(typeof(RetryTools), nameof(RetryTools.RetryFailedMessage))]
     [TestCase(typeof(RetryTools), nameof(RetryTools.RetryFailedMessages))]
     [TestCase(typeof(RetryTools), nameof(RetryTools.RetryFailedMessagesByQueue))]
