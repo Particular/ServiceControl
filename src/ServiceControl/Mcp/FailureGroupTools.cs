@@ -11,7 +11,7 @@ using Persistence;
 using Recoverability;
 
 [McpServerToolType, Description(
-    "Tools for inspecting failure groups and retry history.\n\n" +
+    "Read-only tools for inspecting failure groups and retry history.\n\n" +
     "Agent guidance:\n" +
     "1. GetFailureGroups is usually the best starting point for diagnosing production issues — call it before drilling into individual messages.\n" +
     "2. Call GetFailureGroups with no parameters to use the default grouping by exception type and stack trace.\n" +
@@ -19,8 +19,8 @@ using Recoverability;
 )]
 public class FailureGroupTools(GroupFetcher fetcher, IRetryHistoryDataStore retryStore, ILogger<FailureGroupTools> logger)
 {
-    [McpServerTool, Description(
-        "Use this tool to understand why messages are failing by seeing failures grouped by root cause. " +
+    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
+        "Read-only. Use this tool to understand why messages are failing by seeing failures grouped by root cause. " +
         "Good for questions like: 'why are messages failing?', 'what errors are happening?', 'group failures by exception', or 'what are the top failure causes?'. " +
         "Each group represents a distinct exception type and stack trace, showing how many messages are affected and when failures started and last occurred. " +
         "This is usually the best starting point for diagnosing production issues — call it before drilling into individual messages. " +
@@ -28,7 +28,7 @@ public class FailureGroupTools(GroupFetcher fetcher, IRetryHistoryDataStore retr
     )]
     public async Task<string> GetFailureGroups(
         [Description("How to group failures. The default 'Exception Type and Stack Trace' is almost always what you want. Use 'Message Type' to group by the NServiceBus message type instead.")] string classifier = "Exception Type and Stack Trace",
-        [Description("Only include groups matching this filter text")] string? classifierFilter = null)
+        [Description("Filter failure groups by classifier text. Omit this filter to include all groups for the selected classifier.")] string? classifierFilter = null)
     {
         logger.LogInformation("MCP GetFailureGroups invoked (classifier={Classifier})", classifier);
 
@@ -39,8 +39,8 @@ public class FailureGroupTools(GroupFetcher fetcher, IRetryHistoryDataStore retr
         return JsonSerializer.Serialize(results, McpJsonOptions.Default);
     }
 
-    [McpServerTool, Description(
-        "Use this tool to check the history of retry operations. " +
+    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
+        "Read-only. Use this tool to check the history of retry operations. " +
         "Good for questions like: 'has someone already retried these?', 'what happened the last time we retried this group?', 'show retry history', or 'were any retries attempted today?'. " +
         "Returns which groups were retried, when, and whether the retries succeeded or failed. " +
         "Use this before retrying a group to avoid duplicate retry attempts."
