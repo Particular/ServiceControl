@@ -43,6 +43,7 @@ public class RetryTools(IMessageSession messageSession, RetryingManager retrying
     [McpServerTool(ReadOnly = false, Idempotent = false, Destructive = true, OpenWorld = false), Description(
         "Use this tool to reprocess multiple specific failed messages at once. " +
         "This operation changes system state. " +
+        "It may affect many messages. " +
         "Good for questions like: 'retry these messages', 'reprocess messages msg-1, msg-2, msg-3', or 'retry this batch'. " +
         "Prefer RetryFailureGroup when all messages share the same failure cause — use this tool when you have a specific set of message IDs to retry."
     )]
@@ -64,6 +65,7 @@ public class RetryTools(IMessageSession messageSession, RetryingManager retrying
     [McpServerTool(ReadOnly = false, Idempotent = false, Destructive = true, OpenWorld = false), Description(
         "Use this tool to retry all unresolved failed messages from a specific queue. " +
         "This operation changes system state. " +
+        "It may affect many messages. " +
         "Good for questions like: 'retry all failures in the Sales queue', 'reprocess everything from this queue', or 'the queue consumer is back, retry its failures'. " +
         "Useful when a queue's consumer was down or misconfigured and is now fixed. Only retries messages with unresolved status."
     )]
@@ -83,6 +85,7 @@ public class RetryTools(IMessageSession messageSession, RetryingManager retrying
     [McpServerTool(ReadOnly = false, Idempotent = false, Destructive = true, OpenWorld = false), Description(
         "Use this tool to retry every unresolved failed message across all queues and endpoints. " +
         "This operation changes system state. " +
+        "It may affect many messages. " +
         "Good for questions like: 'retry everything', 'reprocess all failures', or 'retry all failed messages'. " +
         "It affects all unresolved failed messages across the instance. " +
         "This is a broad operation — prefer RetryFailedMessagesByQueue, RetryAllFailedMessagesByEndpoint, or RetryFailureGroup when you can scope the retry more narrowly."
@@ -98,6 +101,7 @@ public class RetryTools(IMessageSession messageSession, RetryingManager retrying
     [McpServerTool(ReadOnly = false, Idempotent = false, Destructive = true, OpenWorld = false), Description(
         "Use this tool to retry all failed messages for a specific NServiceBus endpoint. " +
         "This operation changes system state. " +
+        "It may affect many messages. " +
         "Good for questions like: 'retry all failures in the Sales endpoint', 'the bug in Shipping is fixed, retry its failures', or 'reprocess all errors for this endpoint'. " +
         "Useful when a bug in one endpoint has been fixed and all its failures should be reprocessed."
     )]
@@ -113,9 +117,10 @@ public class RetryTools(IMessageSession messageSession, RetryingManager retrying
     [McpServerTool(ReadOnly = false, Idempotent = false, Destructive = true, OpenWorld = false), Description(
         "Use this tool to retry all failed messages that share the same exception type and stack trace. " +
         "This operation changes system state. " +
+        "It may affect many messages. " +
         "Good for questions like: 'retry this failure group', 'the bug causing these NullReferenceExceptions is fixed, retry them', or 'retry all messages in this group'. " +
         "This is the most targeted way to retry related failures after fixing a specific bug. " +
-        "You need a group ID, which you can get from GetFailureGroups. " +
+        "You need a failure group ID, which you can get from GetFailureGroups. " +
         "Returns InProgress if a retry is already running for this group."
     )]
     public async Task<string> RetryFailureGroup(

@@ -39,10 +39,32 @@ class McpMetadataDescriptionsTests
         Assert.That(description, Does.Contain("all unresolved failed messages across the instance"));
     }
 
+    [TestCase(typeof(RetryTools), nameof(RetryTools.RetryFailedMessages))]
+    [TestCase(typeof(RetryTools), nameof(RetryTools.RetryFailedMessagesByQueue))]
+    [TestCase(typeof(RetryTools), nameof(RetryTools.RetryAllFailedMessages))]
+    [TestCase(typeof(RetryTools), nameof(RetryTools.RetryAllFailedMessagesByEndpoint))]
+    [TestCase(typeof(RetryTools), nameof(RetryTools.RetryFailureGroup))]
+    [TestCase(typeof(ArchiveTools), nameof(ArchiveTools.ArchiveFailedMessages))]
+    [TestCase(typeof(ArchiveTools), nameof(ArchiveTools.ArchiveFailureGroup))]
+    [TestCase(typeof(ArchiveTools), nameof(ArchiveTools.UnarchiveFailedMessages))]
+    [TestCase(typeof(ArchiveTools), nameof(ArchiveTools.UnarchiveFailureGroup))]
+    public void Bulk_mutating_tools_warn_that_they_may_affect_many_messages(Type toolType, string methodName)
+    {
+        var description = GetMethodDescription(toolType, methodName);
+
+        Assert.That(description, Does.Contain("may affect many messages"));
+    }
+
     [TestCase(typeof(FailedMessageTools), nameof(FailedMessageTools.GetFailedMessageById), "failedMessageId", "failed message ID")]
     [TestCase(typeof(FailedMessageTools), nameof(FailedMessageTools.GetFailedMessageLastAttempt), "failedMessageId", "failed message ID")]
+    [TestCase(typeof(RetryTools), nameof(RetryTools.RetryFailedMessage), "failedMessageId", "failed message ID")]
+    [TestCase(typeof(RetryTools), nameof(RetryTools.RetryFailedMessages), "messageIds", "failed message IDs")]
     [TestCase(typeof(ArchiveTools), nameof(ArchiveTools.ArchiveFailureGroup), "groupId", "failure group ID")]
     [TestCase(typeof(ArchiveTools), nameof(ArchiveTools.UnarchiveFailureGroup), "groupId", "failure group ID")]
+    [TestCase(typeof(ArchiveTools), nameof(ArchiveTools.ArchiveFailedMessage), "failedMessageId", "failed message ID")]
+    [TestCase(typeof(ArchiveTools), nameof(ArchiveTools.ArchiveFailedMessages), "messageIds", "failed message IDs")]
+    [TestCase(typeof(ArchiveTools), nameof(ArchiveTools.UnarchiveFailedMessage), "failedMessageId", "failed message ID")]
+    [TestCase(typeof(ArchiveTools), nameof(ArchiveTools.UnarchiveFailedMessages), "messageIds", "failed message IDs")]
     public void Key_error_tool_parameters_identify_the_entity_type(Type toolType, string methodName, string parameterName, string expectedPhrase)
     {
         var description = GetParameterDescription(toolType, methodName, parameterName);
