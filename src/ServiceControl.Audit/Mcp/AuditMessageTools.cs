@@ -12,7 +12,7 @@ using ModelContextProtocol.Server;
 using Persistence;
 
 [McpServerToolType, Description(
-    "Tools for exploring audit messages.\n\n" +
+    "Read-only tools for exploring audit messages.\n\n" +
     "Agent guidance:\n" +
     "1. For broad requests like 'show recent messages', start with GetAuditMessages using defaults.\n" +
     "2. For requests containing a concrete text term, identifier, or phrase, use SearchAuditMessages.\n" +
@@ -23,22 +23,20 @@ using Persistence;
 )]
 public class AuditMessageTools(IAuditDataStore store, ILogger<AuditMessageTools> logger)
 {
-    [McpServerTool, Description(
-        "Use this tool to browse successfully processed audit messages when the user wants an overview rather than a text search. " +
-        "Good for questions like: 'show recent audit messages', 'what messages were processed today?', 'list messages from endpoint X', or 'show slow messages'. " +
-        "Returns message metadata such as message type, endpoints, sent time, processed time, and timing metrics. " +
-        "For broad requests, use the default paging and sorting. " +
-        "Prefer this tool over SearchAuditMessages when the user does not provide a specific keyword or phrase. " +
-        "If the user is looking for a specific term, id, or text fragment, use SearchAuditMessages instead."
+    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
+        "Retrieve audit messages with paging and sorting. " +
+        "Use this to browse recent message activity or explore message flow over time. " +
+        "Prefer SearchAuditMessages when looking for specific keywords or content. " +
+        "Read-only."
     )]
     public async Task<string> GetAuditMessages(
-        [Description("Set to true to include NServiceBus infrastructure messages. Usually leave as false to see only business messages.")] bool includeSystemMessages = false,
+        [Description("Set to true to include NServiceBus infrastructure messages. Leave this as false for the usual business-message view.")] bool includeSystemMessages = false,
         [Description("Page number, 1-based")] int page = 1,
         [Description("Results per page")] int perPage = 50,
         [Description("Sort by: time_sent, processed_at, message_type, critical_time, delivery_time, or processing_time")] string sort = "time_sent",
         [Description("Sort direction: asc or desc")] string direction = "desc",
-        [Description("Only return messages sent after this time (ISO 8601). Use with timeSentTo to query a specific time window.")] string? timeSentFrom = null,
-        [Description("Only return messages sent before this time (ISO 8601)")] string? timeSentTo = null,
+        [Description("Restricts audit-message results to messages sent after this ISO 8601 date/time. Omitting this may return a large result set.")] string? timeSentFrom = null,
+        [Description("Restricts audit-message results to messages sent before this ISO 8601 date/time. Omitting this may return a large result set.")] string? timeSentTo = null,
         CancellationToken cancellationToken = default)
     {
         logger.LogInformation("MCP GetAuditMessages invoked (page={Page}, includeSystemMessages={IncludeSystem})", page, includeSystemMessages);
@@ -58,21 +56,20 @@ public class AuditMessageTools(IAuditDataStore store, ILogger<AuditMessageTools>
         }, McpJsonOptions.Default);
     }
 
-    [McpServerTool, Description(
-        "Use this tool to find audit messages by a keyword or phrase. " +
-        "Good for questions like: 'find messages containing order 12345', 'search for CustomerCreated messages', or 'look for messages mentioning this ID'. " +
-        "Searches across message body content, headers, and metadata using full-text search. " +
-        "Prefer this tool over GetAuditMessages when the user provides a specific term, identifier, or phrase to search for. " +
-        "If the user just wants to browse recent messages without a search term, use GetAuditMessages instead."
+    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
+        "Search audit messages by keyword across message content and metadata. " +
+        "Use this when trying to locate messages related to a specific business identifier or text. " +
+        "Prefer GetAuditMessages for general browsing or timeline exploration. " +
+        "Read-only."
     )]
     public async Task<string> SearchAuditMessages(
-        [Description("Free-text search query — matches against message body, headers, and metadata")] string query,
+        [Description("The free-text search query to match against audit message body content, headers, and metadata.")] string query,
         [Description("Page number, 1-based")] int page = 1,
         [Description("Results per page")] int perPage = 50,
         [Description("Sort by: time_sent, processed_at, message_type, critical_time, delivery_time, or processing_time")] string sort = "time_sent",
         [Description("Sort direction: asc or desc")] string direction = "desc",
-        [Description("Only return messages sent after this time (ISO 8601)")] string? timeSentFrom = null,
-        [Description("Only return messages sent before this time (ISO 8601)")] string? timeSentTo = null,
+        [Description("Restricts audit search results to messages sent after this ISO 8601 date/time. Omitting this may return a large result set.")] string? timeSentFrom = null,
+        [Description("Restricts audit search results to messages sent before this ISO 8601 date/time. Omitting this may return a large result set.")] string? timeSentTo = null,
         CancellationToken cancellationToken = default)
     {
         logger.LogInformation("MCP SearchAuditMessages invoked (query={Query}, page={Page})", query, page);
@@ -92,23 +89,22 @@ public class AuditMessageTools(IAuditDataStore store, ILogger<AuditMessageTools>
         }, McpJsonOptions.Default);
     }
 
-    [McpServerTool, Description(
-        "Use this tool to see what messages a specific NServiceBus endpoint has processed. " +
-        "Good for questions like: 'what messages did Sales process?', 'show messages handled by Shipping', or 'find OrderPlaced messages in the Billing endpoint'. " +
-        "Returns the same metadata as GetAuditMessages but scoped to one endpoint. " +
-        "Prefer this tool over GetAuditMessages when the user mentions a specific endpoint name. " +
-        "Optionally pass a keyword to search within that endpoint's messages."
+    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
+        "Retrieve audit messages processed by a specific endpoint. " +
+        "Use this to understand activity and behavior of a single endpoint. " +
+        "Prefer GetAuditMessagesByConversation when tracing a specific message flow. " +
+        "Read-only."
     )]
     public async Task<string> GetAuditMessagesByEndpoint(
-        [Description("The NServiceBus endpoint name, e.g. 'Sales' or 'Shipping.MessageHandler'")] string endpointName,
-        [Description("Optional keyword to search within this endpoint's messages")] string? keyword = null,
-        [Description("Set to true to include NServiceBus infrastructure messages")] bool includeSystemMessages = false,
+        [Description("The endpoint name that processed the audit messages. Use values obtained from GetKnownEndpoints.")] string endpointName,
+        [Description("Optional keyword to narrow results within this endpoint. Omit it to browse the endpoint without full-text filtering.")] string? keyword = null,
+        [Description("Set to true to include NServiceBus infrastructure messages for this endpoint. Leave false for the usual business-message view.")] bool includeSystemMessages = false,
         [Description("Page number, 1-based")] int page = 1,
         [Description("Results per page")] int perPage = 50,
         [Description("Sort by: time_sent, processed_at, message_type, critical_time, delivery_time, or processing_time")] string sort = "time_sent",
         [Description("Sort direction: asc or desc")] string direction = "desc",
-        [Description("Only return messages sent after this time (ISO 8601)")] string? timeSentFrom = null,
-        [Description("Only return messages sent before this time (ISO 8601)")] string? timeSentTo = null,
+        [Description("Restricts endpoint audit-message results to messages sent after this ISO 8601 date/time. Omitting this may return a large result set.")] string? timeSentFrom = null,
+        [Description("Restricts endpoint audit-message results to messages sent before this ISO 8601 date/time. Omitting this may return a large result set.")] string? timeSentTo = null,
         CancellationToken cancellationToken = default)
     {
         logger.LogInformation("MCP GetAuditMessagesByEndpoint invoked (endpoint={EndpointName}, keyword={Keyword}, page={Page})", endpointName, keyword, page);
@@ -130,15 +126,14 @@ public class AuditMessageTools(IAuditDataStore store, ILogger<AuditMessageTools>
         }, McpJsonOptions.Default);
     }
 
-    [McpServerTool, Description(
-        "Use this tool to trace the full chain of messages triggered by an initial message. " +
-        "Good for questions like: 'what happened after this message was sent?', 'show me the full message flow', or 'trace this conversation'. " +
-        "A conversation groups all related messages together — the original command and every event, reply, or saga message it caused. " +
-        "You need a conversation ID, which you can get from any audit message query result. " +
-        "Essential for understanding message flow and debugging cascading issues."
+    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
+        "Retrieve all audit messages belonging to a conversation. " +
+        "Use this to trace the full flow of a message or business process across multiple endpoints. " +
+        "Prefer this tool when you already have a conversation ID. " +
+        "Read-only."
     )]
     public async Task<string> GetAuditMessagesByConversation(
-        [Description("The conversation ID from a previous audit message query result")] string conversationId,
+        [Description("The conversation ID from a previous audit message query result.")] string conversationId,
         [Description("Page number, 1-based")] int page = 1,
         [Description("Results per page")] int perPage = 50,
         [Description("Sort by: time_sent, processed_at, message_type, critical_time, delivery_time, or processing_time")] string sort = "time_sent",
@@ -161,15 +156,14 @@ public class AuditMessageTools(IAuditDataStore store, ILogger<AuditMessageTools>
         }, McpJsonOptions.Default);
     }
 
-    [McpServerTool, Description(
-        "Use this tool to inspect the actual payload of a processed message. " +
-        "Good for questions like: 'show me the message body', 'what data was in this message?', or 'let me see the content of message X'. " +
-        "Returns the serialized message body content, typically JSON. " +
-        "You need a message ID, which you can get from any audit message query result. " +
-        "Use this when the user wants to see what data was actually sent, not just message metadata."
+    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
+        "Retrieve the body content of a specific audit message. " +
+        "Use this when you need to inspect message payload or data for debugging. " +
+        "Typically used after locating a message via search or browsing tools. " +
+        "Read-only."
     )]
     public async Task<string> GetAuditMessageBody(
-        [Description("The message ID from a previous audit message query result")] string messageId,
+        [Description("The audit message ID from a previous audit message query result.")] string messageId,
         CancellationToken cancellationToken = default)
     {
         logger.LogInformation("MCP GetAuditMessageBody invoked (messageId={MessageId})", messageId);

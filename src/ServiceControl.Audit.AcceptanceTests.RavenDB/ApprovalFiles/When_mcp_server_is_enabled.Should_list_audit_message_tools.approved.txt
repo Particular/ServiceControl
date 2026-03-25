@@ -1,12 +1,12 @@
 [
   {
     "name": "get_audit_message_body",
-    "description": "Use this tool to inspect the actual payload of a processed message. Good for questions like: \u0027show me the message body\u0027, \u0027what data was in this message?\u0027, or \u0027let me see the content of message X\u0027. Returns the serialized message body content, typically JSON. You need a message ID, which you can get from any audit message query result. Use this when the user wants to see what data was actually sent, not just message metadata.",
+    "description": "Retrieve the body content of a specific audit message. Use this when you need to inspect message payload or data for debugging. Typically used after locating a message via search or browsing tools. Read-only.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "messageId": {
-          "description": "The message ID from a previous audit message query result",
+          "description": "The audit message ID from a previous audit message query result.",
           "type": "string"
         }
       },
@@ -14,18 +14,24 @@
         "messageId"
       ]
     },
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
     "execution": {
       "taskSupport": "optional"
     }
   },
   {
     "name": "get_audit_messages",
-    "description": "Use this tool to browse successfully processed audit messages when the user wants an overview rather than a text search. Good for questions like: \u0027show recent audit messages\u0027, \u0027what messages were processed today?\u0027, \u0027list messages from endpoint X\u0027, or \u0027show slow messages\u0027. Returns message metadata such as message type, endpoints, sent time, processed time, and timing metrics. For broad requests, use the default paging and sorting. Prefer this tool over SearchAuditMessages when the user does not provide a specific keyword or phrase. If the user is looking for a specific term, id, or text fragment, use SearchAuditMessages instead.",
+    "description": "Retrieve audit messages with paging and sorting. Use this to browse recent message activity or explore message flow over time. Prefer SearchAuditMessages when looking for specific keywords or content. Read-only.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "includeSystemMessages": {
-          "description": "Set to true to include NServiceBus infrastructure messages. Usually leave as false to see only business messages.",
+          "description": "Set to true to include NServiceBus infrastructure messages. Leave this as false for the usual business-message view.",
           "type": "boolean",
           "default": false
         },
@@ -50,7 +56,7 @@
           "default": "desc"
         },
         "timeSentFrom": {
-          "description": "Only return messages sent after this time (ISO 8601). Use with timeSentTo to query a specific time window.",
+          "description": "Restricts audit-message results to messages sent after this ISO 8601 date/time. Omitting this may return a large result set.",
           "type": [
             "string",
             "null"
@@ -58,7 +64,7 @@
           "default": null
         },
         "timeSentTo": {
-          "description": "Only return messages sent before this time (ISO 8601)",
+          "description": "Restricts audit-message results to messages sent before this ISO 8601 date/time. Omitting this may return a large result set.",
           "type": [
             "string",
             "null"
@@ -67,18 +73,24 @@
         }
       }
     },
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
     "execution": {
       "taskSupport": "optional"
     }
   },
   {
     "name": "get_audit_messages_by_conversation",
-    "description": "Use this tool to trace the full chain of messages triggered by an initial message. Good for questions like: \u0027what happened after this message was sent?\u0027, \u0027show me the full message flow\u0027, or \u0027trace this conversation\u0027. A conversation groups all related messages together \u2014 the original command and every event, reply, or saga message it caused. You need a conversation ID, which you can get from any audit message query result. Essential for understanding message flow and debugging cascading issues.",
+    "description": "Retrieve all audit messages belonging to a conversation. Use this to trace the full flow of a message or business process across multiple endpoints. Prefer this tool when you already have a conversation ID. Read-only.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "conversationId": {
-          "description": "The conversation ID from a previous audit message query result",
+          "description": "The conversation ID from a previous audit message query result.",
           "type": "string"
         },
         "page": {
@@ -106,22 +118,28 @@
         "conversationId"
       ]
     },
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
     "execution": {
       "taskSupport": "optional"
     }
   },
   {
     "name": "get_audit_messages_by_endpoint",
-    "description": "Use this tool to see what messages a specific NServiceBus endpoint has processed. Good for questions like: \u0027what messages did Sales process?\u0027, \u0027show messages handled by Shipping\u0027, or \u0027find OrderPlaced messages in the Billing endpoint\u0027. Returns the same metadata as GetAuditMessages but scoped to one endpoint. Prefer this tool over GetAuditMessages when the user mentions a specific endpoint name. Optionally pass a keyword to search within that endpoint\u0027s messages.",
+    "description": "Retrieve audit messages processed by a specific endpoint. Use this to understand activity and behavior of a single endpoint. Prefer GetAuditMessagesByConversation when tracing a specific message flow. Read-only.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "endpointName": {
-          "description": "The NServiceBus endpoint name, e.g. \u0027Sales\u0027 or \u0027Shipping.MessageHandler\u0027",
+          "description": "The endpoint name that processed the audit messages. Use values obtained from GetKnownEndpoints.",
           "type": "string"
         },
         "keyword": {
-          "description": "Optional keyword to search within this endpoint\u0027s messages",
+          "description": "Optional keyword to narrow results within this endpoint. Omit it to browse the endpoint without full-text filtering.",
           "type": [
             "string",
             "null"
@@ -129,7 +147,7 @@
           "default": null
         },
         "includeSystemMessages": {
-          "description": "Set to true to include NServiceBus infrastructure messages",
+          "description": "Set to true to include NServiceBus infrastructure messages for this endpoint. Leave false for the usual business-message view.",
           "type": "boolean",
           "default": false
         },
@@ -154,7 +172,7 @@
           "default": "desc"
         },
         "timeSentFrom": {
-          "description": "Only return messages sent after this time (ISO 8601)",
+          "description": "Restricts endpoint audit-message results to messages sent after this ISO 8601 date/time. Omitting this may return a large result set.",
           "type": [
             "string",
             "null"
@@ -162,7 +180,7 @@
           "default": null
         },
         "timeSentTo": {
-          "description": "Only return messages sent before this time (ISO 8601)",
+          "description": "Restricts endpoint audit-message results to messages sent before this ISO 8601 date/time. Omitting this may return a large result set.",
           "type": [
             "string",
             "null"
@@ -174,18 +192,24 @@
         "endpointName"
       ]
     },
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
     "execution": {
       "taskSupport": "optional"
     }
   },
   {
     "name": "get_endpoint_audit_counts",
-    "description": "Use this tool to see daily message volume trends for a specific endpoint. Good for questions like: \u0027how much traffic does Sales handle?\u0027, \u0027has throughput changed recently?\u0027, or \u0027show me message counts for this endpoint\u0027. Returns message counts per day, which helps identify throughput changes, traffic spikes, or drops in activity that might indicate problems. You need an endpoint name \u2014 use GetKnownEndpoints first if you do not have one.",
+    "description": "Retrieve daily audit-message counts for a specific endpoint. Use this when checking throughput or activity trends for one endpoint. Prefer GetKnownEndpoints when you do not already know the endpoint name. Read-only.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "endpointName": {
-          "description": "The NServiceBus endpoint name, e.g. \u0027Sales\u0027 or \u0027Shipping.MessageHandler\u0027",
+          "description": "The NServiceBus endpoint name whose audit activity should be counted. Use values obtained from GetKnownEndpoints.",
           "type": "string"
         }
       },
@@ -193,16 +217,28 @@
         "endpointName"
       ]
     },
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
     "execution": {
       "taskSupport": "optional"
     }
   },
   {
     "name": "get_known_endpoints",
-    "description": "Use this tool to discover what NServiceBus endpoints exist in the system. Good for questions like: \u0027what endpoints do we have?\u0027, \u0027what services are running?\u0027, or \u0027list all endpoints\u0027. Returns all endpoints that have processed audit messages, including their name and host information. This is a good starting point when you need an endpoint name for other tools like GetAuditMessagesByEndpoint or GetEndpointAuditCounts.",
+    "description": "List all known endpoints that have sent or received audit messages. Use this as a starting point to discover available endpoints before exploring their activity. Read-only.",
     "inputSchema": {
       "type": "object",
       "properties": {}
+    },
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
     },
     "execution": {
       "taskSupport": "optional"
@@ -210,12 +246,12 @@
   },
   {
     "name": "search_audit_messages",
-    "description": "Use this tool to find audit messages by a keyword or phrase. Good for questions like: \u0027find messages containing order 12345\u0027, \u0027search for CustomerCreated messages\u0027, or \u0027look for messages mentioning this ID\u0027. Searches across message body content, headers, and metadata using full-text search. Prefer this tool over GetAuditMessages when the user provides a specific term, identifier, or phrase to search for. If the user just wants to browse recent messages without a search term, use GetAuditMessages instead.",
+    "description": "Search audit messages by keyword across message content and metadata. Use this when trying to locate messages related to a specific business identifier or text. Prefer GetAuditMessages for general browsing or timeline exploration. Read-only.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "query": {
-          "description": "Free-text search query \u2014 matches against message body, headers, and metadata",
+          "description": "The free-text search query to match against audit message body content, headers, and metadata.",
           "type": "string"
         },
         "page": {
@@ -239,7 +275,7 @@
           "default": "desc"
         },
         "timeSentFrom": {
-          "description": "Only return messages sent after this time (ISO 8601)",
+          "description": "Restricts audit search results to messages sent after this ISO 8601 date/time. Omitting this may return a large result set.",
           "type": [
             "string",
             "null"
@@ -247,7 +283,7 @@
           "default": null
         },
         "timeSentTo": {
-          "description": "Only return messages sent before this time (ISO 8601)",
+          "description": "Restricts audit search results to messages sent before this ISO 8601 date/time. Omitting this may return a large result set.",
           "type": [
             "string",
             "null"
@@ -258,6 +294,12 @@
       "required": [
         "query"
       ]
+    },
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
     },
     "execution": {
       "taskSupport": "optional"
