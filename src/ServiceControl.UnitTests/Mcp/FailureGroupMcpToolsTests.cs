@@ -4,9 +4,9 @@ namespace ServiceControl.UnitTests.Mcp;
 
 using System;
 using System.Collections.Generic;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
+using ModelContextProtocol.Server;
 using NUnit.Framework;
 using ServiceControl.Mcp;
 using ServiceControl.Persistence;
@@ -42,11 +42,11 @@ class FailureGroupMcpToolsTests
         ];
 
         var result = await tools.GetFailureGroups();
-        var response = JsonSerializer.Deserialize<List<GroupOperation>>(result, JsonOptions)!;
 
-        Assert.That(response, Has.Count.EqualTo(1));
-        Assert.That(response[0].Id, Is.EqualTo("group-1"));
-        Assert.That(response[0].Count, Is.EqualTo(5));
+        Assert.That(result, Is.TypeOf<GroupOperation[]>());
+        Assert.That(result, Has.Length.EqualTo(1));
+        Assert.That(result[0].Id, Is.EqualTo("group-1"));
+        Assert.That(result[0].Count, Is.EqualTo(5));
     }
 
     [Test]
@@ -63,13 +63,21 @@ class FailureGroupMcpToolsTests
         retryStore.RetryHistoryResult = RetryHistory.CreateNew();
 
         var result = await tools.GetRetryHistory();
-        var response = JsonSerializer.Deserialize<RetryHistory>(result, JsonOptions)!;
 
-        Assert.That(response.HistoricOperations, Is.Empty);
-        Assert.That(response.UnacknowledgedOperations, Is.Empty);
+        Assert.That(result, Is.TypeOf<RetryHistory>());
+        Assert.That(result.HistoricOperations, Is.Empty);
+        Assert.That(result.UnacknowledgedOperations, Is.Empty);
     }
 
-    static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    [TestCase(nameof(FailureGroupTools.GetFailureGroups))]
+    [TestCase(nameof(FailureGroupTools.GetRetryHistory))]
+    public void Structured_tools_use_structured_content(string methodName)
+    {
+        var method = typeof(FailureGroupTools).GetMethod(methodName)!;
+        var attribute = (McpServerToolAttribute)Attribute.GetCustomAttribute(method, typeof(McpServerToolAttribute))!;
+
+        Assert.That(attribute.UseStructuredContent, Is.True);
+    }
 
     class StubGroupsDataStore : IGroupsDataStore
     {

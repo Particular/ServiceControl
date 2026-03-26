@@ -3,12 +3,15 @@
 namespace ServiceControl.Audit.Mcp;
 
 using System.ComponentModel;
-using System.Text.Json;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Auditing;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
+using Monitoring;
 using Persistence;
+using ServiceControl.Infrastructure.Mcp;
 
 [McpServerToolType, Description(
     "Read-only tools for discovering and inspecting NServiceBus endpoints.\n\n" +
@@ -18,12 +21,12 @@ using Persistence;
 )]
 public class EndpointTools(IAuditDataStore store, ILogger<EndpointTools> logger)
 {
-    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
+    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false, UseStructuredContent = true), Description(
         "List all known endpoints that have sent or received audit messages. " +
         "Use this as a starting point to discover available endpoints before exploring their activity. " +
         "Read-only."
     )]
-    public async Task<string> GetKnownEndpoints(CancellationToken cancellationToken = default)
+    public async Task<McpCollectionResult<KnownEndpointsView>> GetKnownEndpoints(CancellationToken cancellationToken = default)
     {
         logger.LogInformation("MCP GetKnownEndpoints invoked");
 
@@ -31,20 +34,20 @@ public class EndpointTools(IAuditDataStore store, ILogger<EndpointTools> logger)
 
         logger.LogInformation("MCP GetKnownEndpoints returned {Count} endpoints", results.QueryStats.TotalCount);
 
-        return JsonSerializer.Serialize(new
+        return new McpCollectionResult<KnownEndpointsView>
         {
-            results.QueryStats.TotalCount,
-            results.Results
-        }, McpJsonOptions.Default);
+            TotalCount = (int)results.QueryStats.TotalCount,
+            Results = results.Results.ToArray()
+        };
     }
 
-    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
+    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false, UseStructuredContent = true), Description(
         "Retrieve daily audit-message counts for a specific endpoint. " +
         "Use this when checking throughput or activity trends for one endpoint. " +
         "Prefer GetKnownEndpoints when you do not already know the endpoint name. " +
         "Read-only."
     )]
-    public async Task<string> GetEndpointAuditCounts(
+    public async Task<McpCollectionResult<AuditCount>> GetEndpointAuditCounts(
         [Description("The NServiceBus endpoint name whose audit activity should be counted. Use values obtained from GetKnownEndpoints.")] string endpointName,
         CancellationToken cancellationToken = default)
     {
@@ -54,10 +57,10 @@ public class EndpointTools(IAuditDataStore store, ILogger<EndpointTools> logger)
 
         logger.LogInformation("MCP GetEndpointAuditCounts returned {Count} entries for endpoint '{EndpointName}'", results.QueryStats.TotalCount, endpointName);
 
-        return JsonSerializer.Serialize(new
+        return new McpCollectionResult<AuditCount>
         {
-            results.QueryStats.TotalCount,
-            results.Results
-        }, McpJsonOptions.Default);
+            TotalCount = (int)results.QueryStats.TotalCount,
+            Results = results.Results.ToArray()
+        };
     }
 }

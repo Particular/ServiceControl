@@ -3,7 +3,6 @@
 namespace ServiceControl.Mcp;
 
 using System.ComponentModel;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
@@ -19,13 +18,13 @@ using Recoverability;
 )]
 public class FailureGroupTools(GroupFetcher fetcher, IRetryHistoryDataStore retryStore, ILogger<FailureGroupTools> logger)
 {
-    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
+    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false, UseStructuredContent = true), Description(
         "Retrieve failure groups, where failed messages are grouped by exception type and stack trace. " +
         "Use this as the first step when analyzing large numbers of failures to identify dominant root causes. " +
         "Prefer GetFailedMessages when you need individual message details. " +
         "Read-only."
     )]
-    public async Task<string> GetFailureGroups(
+    public async Task<GroupOperation[]> GetFailureGroups(
         [Description("How to group failures. The default 'Exception Type and Stack Trace' is almost always what you want. Use 'Message Type' to group by the NServiceBus message type instead.")] string classifier = "Exception Type and Stack Trace",
         [Description("Filter failure groups by classifier text. Omit this filter to include all groups for the selected classifier.")] string? classifierFilter = null)
     {
@@ -35,21 +34,20 @@ public class FailureGroupTools(GroupFetcher fetcher, IRetryHistoryDataStore retr
 
         logger.LogInformation("MCP GetFailureGroups returned {Count} groups", results.Length);
 
-        return JsonSerializer.Serialize(results, McpJsonOptions.Default);
+        return results;
     }
 
-    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
+    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false, UseStructuredContent = true), Description(
         "Use this tool to check the history of retry operations. " +
         "Good for questions like: 'has someone already retried these?', 'what happened the last time we retried this group?', 'show retry history', or 'were any retries attempted today?'. " +
         "Returns which groups were retried, when, and whether the retries succeeded or failed. " +
         "Use this before retrying a group to avoid duplicate retry attempts. " +
         "Read-only."
     )]
-    public async Task<string> GetRetryHistory()
+    public async Task<RetryHistory> GetRetryHistory()
     {
         logger.LogInformation("MCP GetRetryHistory invoked");
 
-        var retryHistory = await retryStore.GetRetryHistory();
-        return JsonSerializer.Serialize(retryHistory, McpJsonOptions.Default);
+        return await retryStore.GetRetryHistory();
     }
 }

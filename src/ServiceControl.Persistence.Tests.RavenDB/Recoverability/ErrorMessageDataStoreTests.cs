@@ -53,6 +53,48 @@
             Assert.That(result.Results, Is.Not.Empty);
         }
 
+        [Test]
+        public async Task ErrorsSummary_returns_counts_by_status()
+        {
+            using (var session = DocumentStore.OpenAsyncSession())
+            {
+                await session.StoreAsync(FailedMessageBuilder.Default(m =>
+                {
+                    m.Id = "3";
+                    m.UniqueMessageId = "c";
+                    m.Status = FailedMessageStatus.Archived;
+                }));
+
+                await session.StoreAsync(FailedMessageBuilder.Default(m =>
+                {
+                    m.Id = "4";
+                    m.UniqueMessageId = "d";
+                    m.Status = FailedMessageStatus.Resolved;
+                }));
+
+                await session.StoreAsync(FailedMessageBuilder.Default(m =>
+                {
+                    m.Id = "5";
+                    m.UniqueMessageId = "e";
+                    m.Status = FailedMessageStatus.RetryIssued;
+                }));
+
+                await session.SaveChangesAsync();
+            }
+
+            CompleteDatabaseOperation();
+
+            var result = await store.ErrorsSummary();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result["unresolved"], Is.EqualTo(2));
+                Assert.That(result["archived"], Is.EqualTo(1));
+                Assert.That(result["resolved"], Is.EqualTo(1));
+                Assert.That(result["retryissued"], Is.EqualTo(1));
+            });
+        }
+
         [SetUp]
         public async Task GetStore()
         {

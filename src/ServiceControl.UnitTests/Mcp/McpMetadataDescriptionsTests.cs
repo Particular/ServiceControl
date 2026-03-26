@@ -150,13 +150,16 @@ class McpMetadataDescriptionsTests
         });
     }
 
+    static MethodInfo GetMethod(Type toolType, string methodName)
+        => toolType.GetMethod(methodName)!;
+
     static string GetMethodDescription(Type toolType, string methodName)
-        => toolType.GetMethod(methodName)!
+        => GetMethod(toolType, methodName)
             .GetCustomAttribute<DescriptionAttribute>()!
             .Description;
 
     static string GetParameterDescription(Type toolType, string methodName, string parameterName)
-        => toolType.GetMethod(methodName)!
+        => GetMethod(toolType, methodName)
             .GetParameters()
             .Single(p => p.Name == parameterName)
             .GetCustomAttribute<DescriptionAttribute>()!

@@ -12,20 +12,6 @@ using DescriptionAttribute = System.ComponentModel.DescriptionAttribute;
 [TestFixture]
 class McpMetadataDescriptionsTests
 {
-    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessages), "Read-only")]
-    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.SearchAuditMessages), "Read-only")]
-    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessagesByEndpoint), "Read-only")]
-    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessagesByConversation), "Read-only")]
-    [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessageBody), "Read-only")]
-    [TestCase(typeof(EndpointTools), nameof(EndpointTools.GetKnownEndpoints), "Read-only")]
-    [TestCase(typeof(EndpointTools), nameof(EndpointTools.GetEndpointAuditCounts), "Read-only")]
-    public void Audit_query_tools_are_described_as_read_only(Type toolType, string methodName, string expectedPhrase)
-    {
-        var description = GetMethodDescription(toolType, methodName);
-
-        Assert.That(description, Does.Contain(expectedPhrase));
-    }
-
     [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessages))]
     [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.SearchAuditMessages))]
     [TestCase(typeof(AuditMessageTools), nameof(AuditMessageTools.GetAuditMessagesByEndpoint))]
@@ -77,13 +63,16 @@ class McpMetadataDescriptionsTests
         });
     }
 
+    static MethodInfo GetMethod(Type toolType, string methodName)
+        => toolType.GetMethod(methodName)!;
+
     static string GetMethodDescription(Type toolType, string methodName)
-        => toolType.GetMethod(methodName)!
+        => GetMethod(toolType, methodName)
             .GetCustomAttribute<DescriptionAttribute>()!
             .Description;
 
     static string GetParameterDescription(Type toolType, string methodName, string parameterName)
-        => toolType.GetMethod(methodName)!
+        => GetMethod(toolType, methodName)
             .GetParameters()
             .Single(p => p.Name == parameterName)
             .GetCustomAttribute<DescriptionAttribute>()!

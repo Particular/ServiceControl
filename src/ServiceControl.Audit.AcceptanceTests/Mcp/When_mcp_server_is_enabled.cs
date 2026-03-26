@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using AcceptanceTesting;
@@ -16,6 +15,7 @@ using NServiceBus.AcceptanceTesting.Customization;
 using NServiceBus.Settings;
 using NUnit.Framework;
 using Particular.Approvals;
+using ServiceControl.AcceptanceTesting.Mcp;
 
 class When_mcp_server_is_enabled : AcceptanceTest
 {
@@ -42,13 +42,13 @@ class When_mcp_server_is_enabled : AcceptanceTest
         await Define<ScenarioContext>()
             .Done(async _ =>
             {
-                var sessionId = await InitializeAndGetSessionId();
-                if (sessionId == null)
+                var session = await InitializeAndGetSessionInfo();
+                if (session == null)
                 {
                     return false;
                 }
 
-                var response = await SendMcpRequest(sessionId, "tools/list", new { });
+                var response = await SendMcpRequest(session, "tools/list", new { });
                 if (response == null)
                 {
                     return false;
@@ -60,8 +60,10 @@ class When_mcp_server_is_enabled : AcceptanceTest
             .Run();
 
         Assert.That(toolsJson, Is.Not.Null);
-        var mcpResponse = JsonSerializer.Deserialize<McpListToolsResponse>(toolsJson, JsonOptions)!;
+        var mcpResponse = McpAcceptanceTestSupport.DeserializeListToolsResponse(toolsJson);
         var sortedTools = mcpResponse.Result.Tools.Cast<JsonElement>().OrderBy(t => t.GetProperty("name").GetString()).ToList();
+        AssertAuditTools(sortedTools);
+        McpAcceptanceTestSupport.AssertToolsHaveOutputSchema(sortedTools);
         var formattedTools = JsonSerializer.Serialize(sortedTools, new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         Approver.Verify(formattedTools);
     }
@@ -87,13 +89,13 @@ class When_mcp_server_is_enabled : AcceptanceTest
                     return false;
                 }
 
-                var sessionId = await InitializeAndGetSessionId();
-                if (sessionId == null)
+                var session = await InitializeAndGetSessionInfo();
+                if (session == null)
                 {
                     return false;
                 }
 
-                var response = await SendMcpRequest(sessionId, "tools/call", new
+                var response = await SendMcpRequest(session, "tools/call", new
                 {
                     name = "get_audit_messages",
                     arguments = new { includeSystemMessages = false, page = 1, perPage = 50 }
@@ -110,118 +112,35 @@ class When_mcp_server_is_enabled : AcceptanceTest
             .Run();
 
         Assert.That(toolResult, Is.Not.Null);
-        var mcpResponse = JsonSerializer.Deserialize<McpCallToolResponse>(toolResult, JsonOptions)!;
-        var textContent = mcpResponse.Result.Content[0].Text;
-        var messagesResult = JsonSerializer.Deserialize<McpToolResult>(textContent, JsonOptions)!;
-        Assert.That(messagesResult.TotalCount, Is.GreaterThanOrEqualTo(1));
-    }
-
-    static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-
-    class McpListToolsResponse
-    {
-        public McpListToolsResult Result { get; set; }
-    }
-
-    class McpListToolsResult
-    {
-        public List<object> Tools { get; set; } = [];
-    }
-
-    class McpCallToolResponse
-    {
-        public McpCallToolResult Result { get; set; }
-    }
-
-    class McpCallToolResult
-    {
-        public List<McpContent> Content { get; set; } = [];
-    }
-
-    class McpContent
-    {
-        public string Text { get; set; }
-    }
-
-    class McpToolResult
-    {
-        public int TotalCount { get; set; }
-    }
-
-    async Task<HttpResponseMessage> InitializeMcpSession()
-    {
-        var request = new HttpRequestMessage(HttpMethod.Post, "/mcp")
+        var mcpResponse = McpAcceptanceTestSupport.DeserializeCallToolResponse(toolResult);
+        McpAcceptanceTestSupport.AssertStructuredToolResponse(toolResult, mcpResponse.Result.StructuredContent, mcpResponse.Result.Content, structuredContent =>
         {
-            Content = JsonContent.Create(new
-            {
-                jsonrpc = "2.0",
-                id = 1,
-                method = "initialize",
-                @params = new
-                {
-                    protocolVersion = "2025-03-26",
-                    capabilities = new { },
-                    clientInfo = new { name = "test-client", version = "1.0" }
-                }
-            })
-        };
-        request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-        request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/event-stream"));
-        return await HttpClient.SendAsync(request);
+            Assert.That(structuredContent.GetProperty("totalCount").GetInt32(), Is.GreaterThanOrEqualTo(1));
+            Assert.That(structuredContent.GetProperty("results").ValueKind, Is.EqualTo(JsonValueKind.Array));
+            Assert.That(structuredContent.GetProperty("results").GetArrayLength(), Is.GreaterThanOrEqualTo(1));
+        });
     }
 
-    async Task<string> InitializeAndGetSessionId()
+    static void AssertAuditTools(IReadOnlyCollection<JsonElement> tools)
     {
-        var response = await InitializeMcpSession();
-        if (response.StatusCode != HttpStatusCode.OK)
-        {
-            return null;
-        }
+        Assert.That(tools, Has.Count.EqualTo(7));
 
-        if (response.Headers.TryGetValues("mcp-session-id", out var values))
-        {
-            return values.FirstOrDefault();
-        }
+        var names = tools.Select(tool => tool.GetProperty("name").GetString()).ToArray();
 
-        return null;
+        Assert.That(names, Does.Contain("get_audit_messages"));
+        Assert.That(names, Does.Contain("search_audit_messages"));
+        Assert.That(names, Does.Contain("get_audit_message_body"));
+        Assert.That(names, Does.Contain("get_known_endpoints"));
+        Assert.That(names, Does.Contain("get_endpoint_audit_counts"));
     }
 
-    static async Task<string> ReadMcpResponseJson(HttpResponseMessage response)
-    {
-        var body = await response.Content.ReadAsStringAsync();
-        var contentType = response.Content.Headers.ContentType?.MediaType;
+    Task<HttpResponseMessage> InitializeMcpSession() => McpAcceptanceTestSupport.InitializeMcpSession(HttpClient);
 
-        if (contentType == "text/event-stream")
-        {
-            foreach (var line in body.Split('\n'))
-            {
-                if (line.StartsWith("data: "))
-                {
-                    return line.Substring("data: ".Length);
-                }
-            }
-        }
+    Task<McpSessionInfo> InitializeAndGetSessionInfo() => McpAcceptanceTestSupport.InitializeAndGetSessionInfo(HttpClient);
 
-        return body;
-    }
+    Task<HttpResponseMessage> SendMcpRequest(McpSessionInfo sessionInfo, string method, object @params) => McpAcceptanceTestSupport.SendMcpRequest(HttpClient, sessionInfo, method, @params);
 
-    async Task<HttpResponseMessage> SendMcpRequest(string sessionId, string method, object @params)
-    {
-        var request = new HttpRequestMessage(HttpMethod.Post, "/mcp")
-        {
-            Content = JsonContent.Create(new
-            {
-                jsonrpc = "2.0",
-                id = 2,
-                method,
-                @params
-            })
-        };
-        request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-        request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/event-stream"));
-        request.Headers.Add("mcp-session-id", sessionId);
-        return await HttpClient.SendAsync(request);
-    }
+    static Task<string> ReadMcpResponseJson(HttpResponseMessage response) => McpAcceptanceTestSupport.ReadMcpResponseJson(response);
 
     public class Sender : EndpointConfigurationBuilder
     {

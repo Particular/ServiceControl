@@ -3,11 +3,11 @@
 namespace ServiceControl.UnitTests.Mcp;
 
 using System.Collections.Generic;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using NServiceBus.Testing;
 using NUnit.Framework;
+using ServiceControl.Infrastructure.Mcp;
 using ServiceControl.Mcp;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.Recoverability;
@@ -32,9 +32,10 @@ class ArchiveMcpToolsTests
     public async Task ArchiveFailedMessage_returns_accepted()
     {
         var result = await tools.ArchiveFailedMessage("msg-1");
-        var response = JsonSerializer.Deserialize<McpStatusResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Status, Is.EqualTo("Accepted"));
+        Assert.That(result.Status, Is.EqualTo(McpOperationStatus.Accepted));
+        Assert.That(result.Message, Is.EqualTo("Archive requested for message 'msg-1'."));
+        Assert.That(result.Error, Is.Null);
         Assert.That(messageSession.SentMessages, Has.Length.EqualTo(1));
     }
 
@@ -42,9 +43,10 @@ class ArchiveMcpToolsTests
     public async Task ArchiveFailedMessages_returns_accepted()
     {
         var result = await tools.ArchiveFailedMessages(["msg-1", "msg-2"]);
-        var response = JsonSerializer.Deserialize<McpStatusResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Status, Is.EqualTo("Accepted"));
+        Assert.That(result.Status, Is.EqualTo(McpOperationStatus.Accepted));
+        Assert.That(result.Message, Is.EqualTo("Archive requested for 2 messages."));
+        Assert.That(result.Error, Is.Null);
         Assert.That(messageSession.SentMessages, Has.Length.EqualTo(2));
     }
 
@@ -52,18 +54,20 @@ class ArchiveMcpToolsTests
     public async Task ArchiveFailedMessages_rejects_empty_ids()
     {
         var result = await tools.ArchiveFailedMessages(["msg-1", ""]);
-        var response = JsonSerializer.Deserialize<McpErrorResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Error, Does.Contain("non-empty"));
+        Assert.That(result.Status, Is.EqualTo(McpOperationStatus.ValidationError));
+        Assert.That(result.Message, Is.Null);
+        Assert.That(result.Error, Does.Contain("non-empty"));
     }
 
     [Test]
     public async Task ArchiveFailureGroup_returns_accepted()
     {
         var result = await tools.ArchiveFailureGroup("group-1");
-        var response = JsonSerializer.Deserialize<McpStatusResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Status, Is.EqualTo("Accepted"));
+        Assert.That(result.Status, Is.EqualTo(McpOperationStatus.Accepted));
+        Assert.That(result.Message, Is.EqualTo("Archive requested for all messages in failure group 'group-1'."));
+        Assert.That(result.Error, Is.Null);
     }
 
     [Test]
@@ -72,18 +76,20 @@ class ArchiveMcpToolsTests
         archiver.OperationInProgress = true;
 
         var result = await tools.ArchiveFailureGroup("group-1");
-        var response = JsonSerializer.Deserialize<McpStatusResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Status, Is.EqualTo("InProgress"));
+        Assert.That(result.Status, Is.EqualTo(McpOperationStatus.InProgress));
+        Assert.That(result.Message, Is.EqualTo("An archive operation is already in progress for group 'group-1'."));
+        Assert.That(result.Error, Is.Null);
     }
 
     [Test]
     public async Task UnarchiveFailedMessage_returns_accepted()
     {
         var result = await tools.UnarchiveFailedMessage("msg-1");
-        var response = JsonSerializer.Deserialize<McpStatusResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Status, Is.EqualTo("Accepted"));
+        Assert.That(result.Status, Is.EqualTo(McpOperationStatus.Accepted));
+        Assert.That(result.Message, Is.EqualTo("Unarchive requested for message 'msg-1'."));
+        Assert.That(result.Error, Is.Null);
         Assert.That(messageSession.SentMessages, Has.Length.EqualTo(1));
     }
 
@@ -91,27 +97,30 @@ class ArchiveMcpToolsTests
     public async Task UnarchiveFailedMessages_returns_accepted()
     {
         var result = await tools.UnarchiveFailedMessages(["msg-1", "msg-2"]);
-        var response = JsonSerializer.Deserialize<McpStatusResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Status, Is.EqualTo("Accepted"));
+        Assert.That(result.Status, Is.EqualTo(McpOperationStatus.Accepted));
+        Assert.That(result.Message, Is.EqualTo("Unarchive requested for 2 messages."));
+        Assert.That(result.Error, Is.Null);
     }
 
     [Test]
     public async Task UnarchiveFailedMessages_rejects_empty_ids()
     {
         var result = await tools.UnarchiveFailedMessages(["msg-1", ""]);
-        var response = JsonSerializer.Deserialize<McpErrorResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Error, Does.Contain("non-empty"));
+        Assert.That(result.Status, Is.EqualTo(McpOperationStatus.ValidationError));
+        Assert.That(result.Message, Is.Null);
+        Assert.That(result.Error, Does.Contain("non-empty"));
     }
 
     [Test]
     public async Task UnarchiveFailureGroup_returns_accepted()
     {
         var result = await tools.UnarchiveFailureGroup("group-1");
-        var response = JsonSerializer.Deserialize<McpStatusResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Status, Is.EqualTo("Accepted"));
+        Assert.That(result.Status, Is.EqualTo(McpOperationStatus.Accepted));
+        Assert.That(result.Message, Is.EqualTo("Unarchive requested for all messages in failure group 'group-1'."));
+        Assert.That(result.Error, Is.Null);
     }
 
     [Test]
@@ -120,22 +129,10 @@ class ArchiveMcpToolsTests
         archiver.OperationInProgress = true;
 
         var result = await tools.UnarchiveFailureGroup("group-1");
-        var response = JsonSerializer.Deserialize<McpStatusResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Status, Is.EqualTo("InProgress"));
-    }
-
-    static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-
-    class McpStatusResponse
-    {
-        public string? Status { get; set; }
-        public string? Message { get; set; }
-    }
-
-    class McpErrorResponse
-    {
-        public string? Error { get; set; }
+        Assert.That(result.Status, Is.EqualTo(McpOperationStatus.InProgress));
+        Assert.That(result.Message, Is.EqualTo("An unarchive operation is already in progress for group 'group-1'."));
+        Assert.That(result.Error, Is.Null);
     }
 
     class StubArchiveMessages : IArchiveMessages

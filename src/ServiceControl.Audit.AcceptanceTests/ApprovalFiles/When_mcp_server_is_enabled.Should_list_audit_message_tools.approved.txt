@@ -14,6 +14,32 @@
         "messageId"
       ]
     },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "contentType": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "contentLength": {
+          "type": "integer"
+        },
+        "body": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
@@ -73,6 +99,236 @@
         }
       }
     },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "totalCount": {
+          "type": "integer"
+        },
+        "results": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "messageId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "messageType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "sendingEndpoint": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "hostId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "host": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "receivingEndpoint": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "hostId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "host": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "timeSent": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "processedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "criticalTime": {
+                "$comment": "Represents a System.TimeSpan value.",
+                "type": "string",
+                "pattern": "^-?(\\d\u002B\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$"
+              },
+              "processingTime": {
+                "$comment": "Represents a System.TimeSpan value.",
+                "type": "string",
+                "pattern": "^-?(\\d\u002B\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$"
+              },
+              "deliveryTime": {
+                "$comment": "Represents a System.TimeSpan value.",
+                "type": "string",
+                "pattern": "^-?(\\d\u002B\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$"
+              },
+              "isSystemMessage": {
+                "type": "boolean"
+              },
+              "conversationId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "headers": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "value"
+                  ]
+                }
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "Successful",
+                  "ResolvedSuccessfully"
+                ]
+              },
+              "messageIntent": {
+                "type": "string",
+                "enum": [
+                  "Send",
+                  "Publish",
+                  "Subscribe",
+                  "Unsubscribe",
+                  "Reply"
+                ]
+              },
+              "bodyUrl": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "bodySize": {
+                "type": "integer"
+              },
+              "invokedSagas": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "changeStatus": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "sagaType": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "sagaId": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  }
+                }
+              },
+              "originatesFromSaga": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "changeStatus": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "sagaType": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "sagaId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              },
+              "instanceId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
@@ -117,6 +373,236 @@
       "required": [
         "conversationId"
       ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "totalCount": {
+          "type": "integer"
+        },
+        "results": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "messageId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "messageType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "sendingEndpoint": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "hostId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "host": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "receivingEndpoint": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "hostId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "host": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "timeSent": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "processedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "criticalTime": {
+                "$comment": "Represents a System.TimeSpan value.",
+                "type": "string",
+                "pattern": "^-?(\\d\u002B\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$"
+              },
+              "processingTime": {
+                "$comment": "Represents a System.TimeSpan value.",
+                "type": "string",
+                "pattern": "^-?(\\d\u002B\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$"
+              },
+              "deliveryTime": {
+                "$comment": "Represents a System.TimeSpan value.",
+                "type": "string",
+                "pattern": "^-?(\\d\u002B\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$"
+              },
+              "isSystemMessage": {
+                "type": "boolean"
+              },
+              "conversationId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "headers": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "value"
+                  ]
+                }
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "Successful",
+                  "ResolvedSuccessfully"
+                ]
+              },
+              "messageIntent": {
+                "type": "string",
+                "enum": [
+                  "Send",
+                  "Publish",
+                  "Subscribe",
+                  "Unsubscribe",
+                  "Reply"
+                ]
+              },
+              "bodyUrl": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "bodySize": {
+                "type": "integer"
+              },
+              "invokedSagas": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "changeStatus": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "sagaType": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "sagaId": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  }
+                }
+              },
+              "originatesFromSaga": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "changeStatus": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "sagaType": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "sagaId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              },
+              "instanceId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      }
     },
     "annotations": {
       "destructiveHint": false,
@@ -192,6 +678,236 @@
         "endpointName"
       ]
     },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "totalCount": {
+          "type": "integer"
+        },
+        "results": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "messageId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "messageType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "sendingEndpoint": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "hostId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "host": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "receivingEndpoint": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "hostId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "host": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "timeSent": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "processedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "criticalTime": {
+                "$comment": "Represents a System.TimeSpan value.",
+                "type": "string",
+                "pattern": "^-?(\\d\u002B\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$"
+              },
+              "processingTime": {
+                "$comment": "Represents a System.TimeSpan value.",
+                "type": "string",
+                "pattern": "^-?(\\d\u002B\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$"
+              },
+              "deliveryTime": {
+                "$comment": "Represents a System.TimeSpan value.",
+                "type": "string",
+                "pattern": "^-?(\\d\u002B\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$"
+              },
+              "isSystemMessage": {
+                "type": "boolean"
+              },
+              "conversationId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "headers": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "value"
+                  ]
+                }
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "Successful",
+                  "ResolvedSuccessfully"
+                ]
+              },
+              "messageIntent": {
+                "type": "string",
+                "enum": [
+                  "Send",
+                  "Publish",
+                  "Subscribe",
+                  "Unsubscribe",
+                  "Reply"
+                ]
+              },
+              "bodyUrl": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "bodySize": {
+                "type": "integer"
+              },
+              "invokedSagas": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "changeStatus": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "sagaType": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "sagaId": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  }
+                }
+              },
+              "originatesFromSaga": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "changeStatus": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "sagaType": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "sagaId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              },
+              "instanceId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
@@ -217,6 +933,32 @@
         "endpointName"
       ]
     },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "totalCount": {
+          "type": "integer"
+        },
+        "results": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "utcDate": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "count": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
@@ -233,6 +975,59 @@
     "inputSchema": {
       "type": "object",
       "properties": {}
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "totalCount": {
+          "type": "integer"
+        },
+        "results": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "endpointDetails": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "hostId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "host": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "hostDisplayName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      }
     },
     "annotations": {
       "destructiveHint": false,
@@ -294,6 +1089,236 @@
       "required": [
         "query"
       ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "totalCount": {
+          "type": "integer"
+        },
+        "results": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "messageId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "messageType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "sendingEndpoint": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "hostId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "host": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "receivingEndpoint": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "hostId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "host": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "timeSent": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "processedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "criticalTime": {
+                "$comment": "Represents a System.TimeSpan value.",
+                "type": "string",
+                "pattern": "^-?(\\d\u002B\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$"
+              },
+              "processingTime": {
+                "$comment": "Represents a System.TimeSpan value.",
+                "type": "string",
+                "pattern": "^-?(\\d\u002B\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$"
+              },
+              "deliveryTime": {
+                "$comment": "Represents a System.TimeSpan value.",
+                "type": "string",
+                "pattern": "^-?(\\d\u002B\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$"
+              },
+              "isSystemMessage": {
+                "type": "boolean"
+              },
+              "conversationId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "headers": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "value"
+                  ]
+                }
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "Successful",
+                  "ResolvedSuccessfully"
+                ]
+              },
+              "messageIntent": {
+                "type": "string",
+                "enum": [
+                  "Send",
+                  "Publish",
+                  "Subscribe",
+                  "Unsubscribe",
+                  "Reply"
+                ]
+              },
+              "bodyUrl": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "bodySize": {
+                "type": "integer"
+              },
+              "invokedSagas": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "changeStatus": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "sagaType": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "sagaId": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  }
+                }
+              },
+              "originatesFromSaga": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "changeStatus": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "sagaType": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "sagaId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              },
+              "instanceId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      }
     },
     "annotations": {
       "destructiveHint": false,

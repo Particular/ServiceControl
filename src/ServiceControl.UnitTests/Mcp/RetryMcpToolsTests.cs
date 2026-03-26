@@ -2,11 +2,11 @@
 
 namespace ServiceControl.UnitTests.Mcp;
 
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using NServiceBus.Testing;
 using NUnit.Framework;
+using ServiceControl.Infrastructure.Mcp;
 using ServiceControl.Mcp;
 using ServiceControl.Persistence;
 using ServiceControl.Recoverability;
@@ -31,9 +31,10 @@ class RetryMcpToolsTests
     public async Task RetryFailedMessage_returns_accepted()
     {
         var result = await tools.RetryFailedMessage("msg-1");
-        var response = JsonSerializer.Deserialize<McpStatusResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Status, Is.EqualTo("Accepted"));
+        Assert.That(result.Status, Is.EqualTo(McpOperationStatus.Accepted));
+        Assert.That(result.Message, Is.EqualTo("Retry requested for message 'msg-1'."));
+        Assert.That(result.Error, Is.Null);
         Assert.That(messageSession.SentMessages, Has.Length.EqualTo(1));
     }
 
@@ -41,9 +42,10 @@ class RetryMcpToolsTests
     public async Task RetryFailedMessages_returns_accepted()
     {
         var result = await tools.RetryFailedMessages(["msg-1", "msg-2"]);
-        var response = JsonSerializer.Deserialize<McpStatusResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Status, Is.EqualTo("Accepted"));
+        Assert.That(result.Status, Is.EqualTo(McpOperationStatus.Accepted));
+        Assert.That(result.Message, Is.EqualTo("Retry requested for 2 messages."));
+        Assert.That(result.Error, Is.Null);
         Assert.That(messageSession.SentMessages, Has.Length.EqualTo(1));
     }
 
@@ -51,18 +53,20 @@ class RetryMcpToolsTests
     public async Task RetryFailedMessages_rejects_empty_ids()
     {
         var result = await tools.RetryFailedMessages(["msg-1", ""]);
-        var response = JsonSerializer.Deserialize<McpErrorResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Error, Does.Contain("non-empty"));
+        Assert.That(result.Status, Is.EqualTo(McpOperationStatus.ValidationError));
+        Assert.That(result.Message, Is.Null);
+        Assert.That(result.Error, Does.Contain("non-empty"));
     }
 
     [Test]
     public async Task RetryFailedMessagesByQueue_returns_accepted()
     {
         var result = await tools.RetryFailedMessagesByQueue("Sales@machine");
-        var response = JsonSerializer.Deserialize<McpStatusResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Status, Is.EqualTo("Accepted"));
+        Assert.That(result.Status, Is.EqualTo(McpOperationStatus.Accepted));
+        Assert.That(result.Message, Is.EqualTo("Retry requested for all failed messages in queue 'Sales@machine'."));
+        Assert.That(result.Error, Is.Null);
         Assert.That(messageSession.SentMessages, Has.Length.EqualTo(1));
     }
 
@@ -70,9 +74,10 @@ class RetryMcpToolsTests
     public async Task RetryAllFailedMessages_returns_accepted()
     {
         var result = await tools.RetryAllFailedMessages();
-        var response = JsonSerializer.Deserialize<McpStatusResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Status, Is.EqualTo("Accepted"));
+        Assert.That(result.Status, Is.EqualTo(McpOperationStatus.Accepted));
+        Assert.That(result.Message, Is.EqualTo("Retry requested for all failed messages."));
+        Assert.That(result.Error, Is.Null);
         Assert.That(messageSession.SentMessages, Has.Length.EqualTo(1));
     }
 
@@ -80,18 +85,20 @@ class RetryMcpToolsTests
     public async Task RetryAllFailedMessagesByEndpoint_returns_accepted()
     {
         var result = await tools.RetryAllFailedMessagesByEndpoint("Sales");
-        var response = JsonSerializer.Deserialize<McpStatusResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Status, Is.EqualTo("Accepted"));
+        Assert.That(result.Status, Is.EqualTo(McpOperationStatus.Accepted));
+        Assert.That(result.Message, Is.EqualTo("Retry requested for all failed messages in endpoint 'Sales'."));
+        Assert.That(result.Error, Is.Null);
     }
 
     [Test]
     public async Task RetryFailureGroup_returns_accepted()
     {
         var result = await tools.RetryFailureGroup("group-1");
-        var response = JsonSerializer.Deserialize<McpStatusResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Status, Is.EqualTo("Accepted"));
+        Assert.That(result.Status, Is.EqualTo(McpOperationStatus.Accepted));
+        Assert.That(result.Message, Is.EqualTo("Retry requested for all messages in failure group 'group-1'."));
+        Assert.That(result.Error, Is.Null);
     }
 
     [Test]
@@ -101,21 +108,9 @@ class RetryMcpToolsTests
         await retryingManager.Preparing("group-1", RetryType.FailureGroup, 1);
 
         var result = await tools.RetryFailureGroup("group-1");
-        var response = JsonSerializer.Deserialize<McpStatusResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Status, Is.EqualTo("InProgress"));
-    }
-
-    static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-
-    class McpStatusResponse
-    {
-        public string? Status { get; set; }
-        public string? Message { get; set; }
-    }
-
-    class McpErrorResponse
-    {
-        public string? Error { get; set; }
+        Assert.That(result.Status, Is.EqualTo(McpOperationStatus.InProgress));
+        Assert.That(result.Message, Is.EqualTo("A retry operation is already in progress for group 'group-1'."));
+        Assert.That(result.Error, Is.Null);
     }
 }

@@ -14,6 +14,31 @@
         "failedMessageId"
       ]
     },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
     "annotations": {
       "destructiveHint": true,
       "idempotentHint": false,
@@ -42,6 +67,31 @@
         "messageIds"
       ]
     },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
     "annotations": {
       "destructiveHint": true,
       "idempotentHint": false,
@@ -67,6 +117,31 @@
         "groupId"
       ]
     },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
     "annotations": {
       "destructiveHint": true,
       "idempotentHint": false,
@@ -83,6 +158,23 @@
     "inputSchema": {
       "type": "object",
       "properties": {}
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "unresolved": {
+          "type": "integer"
+        },
+        "archived": {
+          "type": "integer"
+        },
+        "resolved": {
+          "type": "integer"
+        },
+        "retryIssued": {
+          "type": "integer"
+        }
+      }
     },
     "annotations": {
       "destructiveHint": false,
@@ -109,6 +201,143 @@
         "failedMessageId"
       ]
     },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "processingAttempts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "messageMetadata": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "failureDetails": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "addressOfFailingEndpoint": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "timeOfFailure": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "exception": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "exceptionType": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "message": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "source": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "stackTrace": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              "attemptedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "messageId": {
+                "type": "string"
+              },
+              "body": {
+                "type": "string"
+              },
+              "headers": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "failureGroups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "uniqueMessageId": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Unresolved",
+            "Resolved",
+            "RetryIssued",
+            "Archived"
+          ]
+        }
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
@@ -133,6 +362,145 @@
       "required": [
         "failedMessageId"
       ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "messageType": {
+          "type": "string"
+        },
+        "timeSent": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "isSystemMessage": {
+          "type": "boolean"
+        },
+        "exception": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "exceptionType": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "message": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "source": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "stackTrace": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "messageId": {
+          "type": "string"
+        },
+        "numberOfProcessingAttempts": {
+          "type": "integer"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Unresolved",
+            "Resolved",
+            "RetryIssued",
+            "Archived"
+          ]
+        },
+        "sendingEndpoint": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "name": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "hostId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "host": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "receivingEndpoint": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "name": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "hostId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "host": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "queueAddress": {
+          "type": "string"
+        },
+        "timeOfFailure": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "edited": {
+          "type": "boolean"
+        },
+        "editOf": {
+          "type": "string"
+        }
+      }
     },
     "annotations": {
       "destructiveHint": false,
@@ -193,6 +561,168 @@
           "description": "Sort direction: asc or desc",
           "type": "string",
           "default": "desc"
+        }
+      }
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "totalCount": {
+          "type": "integer"
+        },
+        "results": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "messageType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "timeSent": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "isSystemMessage": {
+                "type": "boolean"
+              },
+              "exception": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "exceptionType": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "message": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "source": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "stackTrace": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "messageId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "numberOfProcessingAttempts": {
+                "type": "integer"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "Unresolved",
+                  "Resolved",
+                  "RetryIssued",
+                  "Archived"
+                ]
+              },
+              "sendingEndpoint": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "hostId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "host": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "receivingEndpoint": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "hostId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "host": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "queueAddress": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "timeOfFailure": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "lastModified": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "edited": {
+                "type": "boolean"
+              },
+              "editOf": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
         }
       }
     },
@@ -257,6 +787,168 @@
         "endpointName"
       ]
     },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "totalCount": {
+          "type": "integer"
+        },
+        "results": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "messageType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "timeSent": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "isSystemMessage": {
+                "type": "boolean"
+              },
+              "exception": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "exceptionType": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "message": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "source": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "stackTrace": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "messageId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "numberOfProcessingAttempts": {
+                "type": "integer"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "Unresolved",
+                  "Resolved",
+                  "RetryIssued",
+                  "Archived"
+                ]
+              },
+              "sendingEndpoint": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "hostId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "host": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "receivingEndpoint": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "hostId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "host": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "queueAddress": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "timeOfFailure": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "lastModified": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "edited": {
+                "type": "boolean"
+              },
+              "editOf": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
@@ -288,6 +980,107 @@
         }
       }
     },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "type": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "count": {
+                "type": "integer"
+              },
+              "operationMessagesCompletedCount": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "comment": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "first": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "last": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "operationStatus": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "operationFailed": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "operationProgress": {
+                "type": "number"
+              },
+              "operationRemainingCount": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "operationStartTime": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "operationCompletionTime": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "needUserAcknowledgement": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "result"
+      ]
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
@@ -305,6 +1098,125 @@
       "type": "object",
       "properties": {}
     },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "historicOperations": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "retryType": {
+                "type": "string",
+                "enum": [
+                  "Unknown",
+                  "SingleMessage",
+                  "FailureGroup",
+                  "MultipleMessages",
+                  "AllForEndpoint",
+                  "All",
+                  "ByQueueAddress"
+                ]
+              },
+              "startTime": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "completionTime": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "originator": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "failed": {
+                "type": "boolean"
+              },
+              "numberOfMessagesProcessed": {
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "unacknowledgedOperations": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "retryType": {
+                "type": "string",
+                "enum": [
+                  "Unknown",
+                  "SingleMessage",
+                  "FailureGroup",
+                  "MultipleMessages",
+                  "AllForEndpoint",
+                  "All",
+                  "ByQueueAddress"
+                ]
+              },
+              "startTime": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "completionTime": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "last": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "originator": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "classifier": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "failed": {
+                "type": "boolean"
+              },
+              "numberOfMessagesProcessed": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    },
     "annotations": {
       "destructiveHint": false,
       "idempotentHint": true,
@@ -321,6 +1233,31 @@
     "inputSchema": {
       "type": "object",
       "properties": {}
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
     },
     "annotations": {
       "destructiveHint": true,
@@ -347,6 +1284,31 @@
         "endpointName"
       ]
     },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
     "annotations": {
       "destructiveHint": true,
       "idempotentHint": false,
@@ -371,6 +1333,31 @@
       "required": [
         "failedMessageId"
       ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
     },
     "annotations": {
       "destructiveHint": true,
@@ -400,6 +1387,31 @@
         "messageIds"
       ]
     },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
     "annotations": {
       "destructiveHint": true,
       "idempotentHint": false,
@@ -424,6 +1436,31 @@
       "required": [
         "queueAddress"
       ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
     },
     "annotations": {
       "destructiveHint": true,
@@ -450,6 +1487,31 @@
         "groupId"
       ]
     },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
     "annotations": {
       "destructiveHint": true,
       "idempotentHint": false,
@@ -474,6 +1536,31 @@
       "required": [
         "failedMessageId"
       ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
     },
     "annotations": {
       "destructiveHint": true,
@@ -503,6 +1590,31 @@
         "messageIds"
       ]
     },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
     "annotations": {
       "destructiveHint": true,
       "idempotentHint": false,
@@ -527,6 +1639,31 @@
       "required": [
         "groupId"
       ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
     },
     "annotations": {
       "destructiveHint": true,

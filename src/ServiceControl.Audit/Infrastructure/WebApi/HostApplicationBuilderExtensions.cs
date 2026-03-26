@@ -13,6 +13,9 @@
         {
             if (settings.EnableMcpServer)
             {
+                builder.Services.AddTransient<ServiceControl.Audit.Mcp.AuditMessageTools>();
+                builder.Services.AddTransient<ServiceControl.Audit.Mcp.EndpointTools>();
+
                 builder.Services
                     .AddMcpServer()
                     .WithHttpTransport()

@@ -23,6 +23,11 @@
 
             if (settings.EnableMcpServer)
             {
+                builder.Services.AddTransient<ServiceControl.Mcp.FailedMessageTools>();
+                builder.Services.AddTransient<ServiceControl.Mcp.FailureGroupTools>();
+                builder.Services.AddTransient<ServiceControl.Mcp.RetryTools>();
+                builder.Services.AddTransient<ServiceControl.Mcp.ArchiveTools>();
+
                 builder.Services
                     .AddMcpServer()
                     .WithHttpTransport()

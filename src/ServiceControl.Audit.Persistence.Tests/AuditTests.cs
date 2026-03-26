@@ -8,6 +8,7 @@
     using NServiceBus;
     using NUnit.Framework;
     using ServiceControl.Audit.Infrastructure;
+    using ServiceControl.Audit.Monitoring;
 
     [TestFixture]
     class AuditTests : PersistenceTestFixture
@@ -77,6 +78,23 @@
 
             Assert.That(queryResult.Results, Has.Count.EqualTo(2));
         }
+
+        [Test]
+        public async Task QueryMessagesByReceivingEndpoint_excludes_system_messages_unless_requested()
+        {
+            await IngestProcessedMessagesAudits(
+                MakeMessage(messageId: "business", processingEndpoint: "Sales", isSystemMessage: false),
+                MakeMessage(messageId: "system", processingEndpoint: "Sales", isSystemMessage: true)
+            );
+
+            var excluded = await DataStore.QueryMessagesByReceivingEndpoint(false, "Sales", new PagingInfo(), new SortInfo("message_id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
+            var included = await DataStore.QueryMessagesByReceivingEndpoint(true, "Sales", new PagingInfo(), new SortInfo("message_id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
+
+            Assert.That(excluded.Results, Has.Count.EqualTo(1));
+            Assert.That(excluded.Results[0].MessageId, Is.EqualTo("business"));
+            Assert.That(included.Results, Has.Count.EqualTo(2));
+        }
+
         [Test]
         public async Task Can_roundtrip_message_body()
         {
@@ -234,7 +252,8 @@
             string conversationId = null,
             string processingEndpoint = null,
             DateTime? processingStarted = null,
-            string messageType = null
+            string messageType = null,
+            bool isSystemMessage = false
         )
         {
             messageId ??= Guid.NewGuid().ToString();
@@ -249,10 +268,11 @@
                 { "CriticalTime", TimeSpan.FromSeconds(5) },
                 { "ProcessingTime", TimeSpan.FromSeconds(1) },
                 { "DeliveryTime", TimeSpan.FromSeconds(4) },
-                { "IsSystemMessage", false },
+                { "IsSystemMessage", isSystemMessage },
                 { "MessageType", messageType },
                 { "IsRetried", false },
                 { "ConversationId", conversationId },
+                { "ReceivingEndpoint", new EndpointDetails { Name = processingEndpoint } },
                 //{ "ContentLength", 10}
             };
 

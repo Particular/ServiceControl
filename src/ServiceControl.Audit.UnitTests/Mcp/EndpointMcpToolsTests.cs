@@ -4,7 +4,6 @@ namespace ServiceControl.Audit.UnitTests.Mcp;
 
 using System;
 using System.Collections.Generic;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Audit.Auditing;
@@ -14,7 +13,9 @@ using Audit.Mcp;
 using Audit.Monitoring;
 using Audit.Persistence;
 using Microsoft.Extensions.Logging.Abstractions;
+using ModelContextProtocol.Server;
 using NUnit.Framework;
+using ServiceControl.Infrastructure.Mcp;
 using ServiceControl.SagaAudit;
 
 
@@ -39,10 +40,10 @@ class EndpointMcpToolsTests
             new QueryStatsInfo("etag", 1));
 
         var result = await tools.GetKnownEndpoints();
-        var response = JsonSerializer.Deserialize<McpToolResponse<KnownEndpointsView>>(result, JsonOptions)!;
 
-        Assert.That(response.TotalCount, Is.EqualTo(1));
-        Assert.That(response.Results, Has.Count.EqualTo(1));
+        Assert.That(result, Is.TypeOf<McpCollectionResult<KnownEndpointsView>>());
+        Assert.That(result.TotalCount, Is.EqualTo(1));
+        Assert.That(result.Results, Has.Count.EqualTo(1));
     }
 
     [Test]
@@ -53,18 +54,20 @@ class EndpointMcpToolsTests
             new QueryStatsInfo("etag", 1));
 
         var result = await tools.GetEndpointAuditCounts("Sales");
-        var response = JsonSerializer.Deserialize<McpToolResponse<AuditCount>>(result, JsonOptions)!;
 
-        Assert.That(response.TotalCount, Is.EqualTo(1));
+        Assert.That(result, Is.TypeOf<McpCollectionResult<AuditCount>>());
+        Assert.That(result.TotalCount, Is.EqualTo(1));
         Assert.That(store.LastAuditCountsEndpointName, Is.EqualTo("Sales"));
     }
 
-    static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-
-    class McpToolResponse<T>
+    [TestCase(nameof(EndpointTools.GetKnownEndpoints))]
+    [TestCase(nameof(EndpointTools.GetEndpointAuditCounts))]
+    public void Structured_tools_use_structured_content(string methodName)
     {
-        public int TotalCount { get; set; }
-        public List<T> Results { get; set; } = [];
+        var method = typeof(EndpointTools).GetMethod(methodName)!;
+        var attribute = (McpServerToolAttribute)Attribute.GetCustomAttribute(method, typeof(McpServerToolAttribute))!;
+
+        Assert.That(attribute.UseStructuredContent, Is.True);
     }
 
     class StubAuditDataStore : IAuditDataStore
@@ -89,6 +92,9 @@ class EndpointMcpToolsTests
             => Task.FromResult(new QueryResult<IList<MessagesView>>([], QueryStatsInfo.Zero));
 
         public Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default)
+            => Task.FromResult(new QueryResult<IList<MessagesView>>([], QueryStatsInfo.Zero));
+
+        public Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(bool includeSystemMessages, string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default)
             => Task.FromResult(new QueryResult<IList<MessagesView>>([], QueryStatsInfo.Zero));
 
         public Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default)

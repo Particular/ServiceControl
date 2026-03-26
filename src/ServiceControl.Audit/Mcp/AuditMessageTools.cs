@@ -3,13 +3,15 @@
 namespace ServiceControl.Audit.Mcp;
 
 using System.ComponentModel;
-using System.Text.Json;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Auditing.MessagesView;
 using Infrastructure;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
 using Persistence;
+using ServiceControl.Infrastructure.Mcp;
 
 [McpServerToolType, Description(
     "Read-only tools for exploring audit messages.\n\n" +
@@ -23,13 +25,13 @@ using Persistence;
 )]
 public class AuditMessageTools(IAuditDataStore store, ILogger<AuditMessageTools> logger)
 {
-    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
+    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false, UseStructuredContent = true), Description(
         "Retrieve audit messages with paging and sorting. " +
         "Use this to browse recent message activity or explore message flow over time. " +
         "Prefer SearchAuditMessages when looking for specific keywords or content. " +
         "Read-only."
     )]
-    public async Task<string> GetAuditMessages(
+    public async Task<McpCollectionResult<MessagesView>> GetAuditMessages(
         [Description("Set to true to include NServiceBus infrastructure messages. Leave this as false for the usual business-message view.")] bool includeSystemMessages = false,
         [Description("Page number, 1-based")] int page = 1,
         [Description("Results per page")] int perPage = 50,
@@ -49,20 +51,20 @@ public class AuditMessageTools(IAuditDataStore store, ILogger<AuditMessageTools>
 
         logger.LogInformation("MCP GetAuditMessages returned {Count} results", results.QueryStats.TotalCount);
 
-        return JsonSerializer.Serialize(new
+        return new McpCollectionResult<MessagesView>
         {
-            results.QueryStats.TotalCount,
-            results.Results
-        }, McpJsonOptions.Default);
+            TotalCount = (int)results.QueryStats.TotalCount,
+            Results = results.Results.ToArray()
+        };
     }
 
-    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
+    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false, UseStructuredContent = true), Description(
         "Search audit messages by keyword across message content and metadata. " +
         "Use this when trying to locate messages related to a specific business identifier or text. " +
         "Prefer GetAuditMessages for general browsing or timeline exploration. " +
         "Read-only."
     )]
-    public async Task<string> SearchAuditMessages(
+    public async Task<McpCollectionResult<MessagesView>> SearchAuditMessages(
         [Description("The free-text search query to match against audit message body content, headers, and metadata.")] string query,
         [Description("Page number, 1-based")] int page = 1,
         [Description("Results per page")] int perPage = 50,
@@ -82,20 +84,20 @@ public class AuditMessageTools(IAuditDataStore store, ILogger<AuditMessageTools>
 
         logger.LogInformation("MCP SearchAuditMessages returned {Count} results", results.QueryStats.TotalCount);
 
-        return JsonSerializer.Serialize(new
+        return new McpCollectionResult<MessagesView>
         {
-            results.QueryStats.TotalCount,
-            results.Results
-        }, McpJsonOptions.Default);
+            TotalCount = (int)results.QueryStats.TotalCount,
+            Results = results.Results.ToArray()
+        };
     }
 
-    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
+    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false, UseStructuredContent = true), Description(
         "Retrieve audit messages processed by a specific endpoint. " +
         "Use this to understand activity and behavior of a single endpoint. " +
         "Prefer GetAuditMessagesByConversation when tracing a specific message flow. " +
         "Read-only."
     )]
-    public async Task<string> GetAuditMessagesByEndpoint(
+    public async Task<McpCollectionResult<MessagesView>> GetAuditMessagesByEndpoint(
         [Description("The endpoint name that processed the audit messages. Use values obtained from GetKnownEndpoints.")] string endpointName,
         [Description("Optional keyword to narrow results within this endpoint. Omit it to browse the endpoint without full-text filtering.")] string? keyword = null,
         [Description("Set to true to include NServiceBus infrastructure messages for this endpoint. Leave false for the usual business-message view.")] bool includeSystemMessages = false,
@@ -114,25 +116,25 @@ public class AuditMessageTools(IAuditDataStore store, ILogger<AuditMessageTools>
         var timeSentRange = new DateTimeRange(timeSentFrom, timeSentTo);
 
         var results = keyword != null
-            ? await store.QueryMessagesByReceivingEndpointAndKeyword(endpointName, keyword, pagingInfo, sortInfo, timeSentRange, cancellationToken)
+            ? await store.QueryMessagesByReceivingEndpointAndKeyword(includeSystemMessages, endpointName, keyword, pagingInfo, sortInfo, timeSentRange, cancellationToken)
             : await store.QueryMessagesByReceivingEndpoint(includeSystemMessages, endpointName, pagingInfo, sortInfo, timeSentRange, cancellationToken);
 
         logger.LogInformation("MCP GetAuditMessagesByEndpoint returned {Count} results for endpoint '{EndpointName}'", results.QueryStats.TotalCount, endpointName);
 
-        return JsonSerializer.Serialize(new
+        return new McpCollectionResult<MessagesView>
         {
-            results.QueryStats.TotalCount,
-            results.Results
-        }, McpJsonOptions.Default);
+            TotalCount = (int)results.QueryStats.TotalCount,
+            Results = results.Results.ToArray()
+        };
     }
 
-    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
+    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false, UseStructuredContent = true), Description(
         "Retrieve all audit messages belonging to a conversation. " +
         "Use this to trace the full flow of a message or business process across multiple endpoints. " +
         "Prefer this tool when you already have a conversation ID. " +
         "Read-only."
     )]
-    public async Task<string> GetAuditMessagesByConversation(
+    public async Task<McpCollectionResult<MessagesView>> GetAuditMessagesByConversation(
         [Description("The conversation ID from a previous audit message query result.")] string conversationId,
         [Description("Page number, 1-based")] int page = 1,
         [Description("Results per page")] int perPage = 50,
@@ -149,20 +151,20 @@ public class AuditMessageTools(IAuditDataStore store, ILogger<AuditMessageTools>
 
         logger.LogInformation("MCP GetAuditMessagesByConversation returned {Count} results", results.QueryStats.TotalCount);
 
-        return JsonSerializer.Serialize(new
+        return new McpCollectionResult<MessagesView>
         {
-            results.QueryStats.TotalCount,
-            results.Results
-        }, McpJsonOptions.Default);
+            TotalCount = (int)results.QueryStats.TotalCount,
+            Results = results.Results.ToArray()
+        };
     }
 
-    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false), Description(
+    [McpServerTool(ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false, UseStructuredContent = true), Description(
         "Retrieve the body content of a specific audit message. " +
         "Use this when you need to inspect message payload or data for debugging. " +
         "Typically used after locating a message via search or browsing tools. " +
         "Read-only."
     )]
-    public async Task<string> GetAuditMessageBody(
+    public async Task<McpAuditMessageBodyResult> GetAuditMessageBody(
         [Description("The audit message ID from a previous audit message query result.")] string messageId,
         CancellationToken cancellationToken = default)
     {
@@ -173,30 +175,36 @@ public class AuditMessageTools(IAuditDataStore store, ILogger<AuditMessageTools>
         if (!result.Found)
         {
             logger.LogWarning("MCP GetAuditMessageBody: message '{MessageId}' not found", messageId);
-            return JsonSerializer.Serialize(new { Error = $"Message '{messageId}' not found." }, McpJsonOptions.Default);
+            return new McpAuditMessageBodyResult
+            {
+                Error = $"Message '{messageId}' not found."
+            };
         }
 
         if (!result.HasContent)
         {
             logger.LogWarning("MCP GetAuditMessageBody: message '{MessageId}' has no body content", messageId);
-            return JsonSerializer.Serialize(new { Error = $"Message '{messageId}' has no body content." }, McpJsonOptions.Default);
+            return new McpAuditMessageBodyResult
+            {
+                Error = $"Message '{messageId}' has no body content."
+            };
         }
 
         if (result.StringContent != null)
         {
-            return JsonSerializer.Serialize(new
+            return new McpAuditMessageBodyResult
             {
-                result.ContentType,
-                result.ContentLength,
+                ContentType = result.ContentType,
+                ContentLength = result.ContentLength,
                 Body = result.StringContent
-            }, McpJsonOptions.Default);
+            };
         }
 
-        return JsonSerializer.Serialize(new
+        return new McpAuditMessageBodyResult
         {
-            result.ContentType,
-            result.ContentLength,
+            ContentType = result.ContentType,
+            ContentLength = result.ContentLength,
             Body = "(stream content - not available as text)"
-        }, McpJsonOptions.Default);
+        };
     }
 }

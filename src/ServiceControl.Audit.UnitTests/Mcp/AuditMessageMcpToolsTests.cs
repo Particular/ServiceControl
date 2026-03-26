@@ -4,7 +4,6 @@ namespace ServiceControl.Audit.UnitTests.Mcp;
 
 using System;
 using System.Collections.Generic;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Audit.Auditing;
@@ -14,7 +13,9 @@ using Audit.Mcp;
 using Audit.Monitoring;
 using Audit.Persistence;
 using Microsoft.Extensions.Logging.Abstractions;
+using ModelContextProtocol.Server;
 using NUnit.Framework;
+using ServiceControl.Infrastructure.Mcp;
 using ServiceControl.SagaAudit;
 
 [TestFixture]
@@ -38,10 +39,10 @@ class AuditMessageMcpToolsTests
             new QueryStatsInfo("etag", 1));
 
         var result = await tools.GetAuditMessages();
-        var response = JsonSerializer.Deserialize<McpToolResponse<MessagesView>>(result, JsonOptions)!;
 
-        Assert.That(response.TotalCount, Is.EqualTo(1));
-        Assert.That(response.Results, Has.Count.EqualTo(1));
+        Assert.That(result, Is.TypeOf<McpCollectionResult<MessagesView>>());
+        Assert.That(result.TotalCount, Is.EqualTo(1));
+        Assert.That(result.Results, Has.Count.EqualTo(1));
     }
 
     [Test]
@@ -83,6 +84,14 @@ class AuditMessageMcpToolsTests
     }
 
     [Test]
+    public async Task GetAuditMessagesByEndpoint_with_keyword_passes_includeSystemMessages()
+    {
+        await tools.GetAuditMessagesByEndpoint("Sales", keyword: "OrderPlaced", includeSystemMessages: true);
+
+        Assert.That(store.LastQueryByEndpointAndKeywordIncludeSystemMessages, Is.True);
+    }
+
+    [Test]
     public async Task GetAuditMessagesByConversation_queries_by_conversation_id()
     {
         await tools.GetAuditMessagesByConversation("conv-123");
@@ -96,10 +105,10 @@ class AuditMessageMcpToolsTests
         store.MessageBodyResult = MessageBodyView.FromString("{\"orderId\": 123}", "application/json", 16, "etag");
 
         var result = await tools.GetAuditMessageBody("msg-1");
-        var response = JsonSerializer.Deserialize<McpMessageBodyResponse>(result, JsonOptions)!;
 
-        Assert.That(response.ContentType, Is.EqualTo("application/json"));
-        Assert.That(response.Body, Is.EqualTo("{\"orderId\": 123}"));
+        Assert.That(result, Is.TypeOf<McpAuditMessageBodyResult>());
+        Assert.That(result.ContentType, Is.EqualTo("application/json"));
+        Assert.That(result.Body, Is.EqualTo("{\"orderId\": 123}"));
     }
 
     [Test]
@@ -108,9 +117,9 @@ class AuditMessageMcpToolsTests
         store.MessageBodyResult = MessageBodyView.NotFound();
 
         var result = await tools.GetAuditMessageBody("msg-missing");
-        var response = JsonSerializer.Deserialize<McpErrorResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Error, Does.Contain("not found"));
+        Assert.That(result, Is.TypeOf<McpAuditMessageBodyResult>());
+        Assert.That(result.Error, Does.Contain("not found"));
     }
 
     [Test]
@@ -119,29 +128,22 @@ class AuditMessageMcpToolsTests
         store.MessageBodyResult = MessageBodyView.NoContent();
 
         var result = await tools.GetAuditMessageBody("msg-empty");
-        var response = JsonSerializer.Deserialize<McpErrorResponse>(result, JsonOptions)!;
 
-        Assert.That(response.Error, Does.Contain("no body content"));
+        Assert.That(result, Is.TypeOf<McpAuditMessageBodyResult>());
+        Assert.That(result.Error, Does.Contain("no body content"));
     }
 
-    static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-
-    class McpToolResponse<T>
+    [TestCase(nameof(AuditMessageTools.GetAuditMessages))]
+    [TestCase(nameof(AuditMessageTools.SearchAuditMessages))]
+    [TestCase(nameof(AuditMessageTools.GetAuditMessagesByEndpoint))]
+    [TestCase(nameof(AuditMessageTools.GetAuditMessagesByConversation))]
+    [TestCase(nameof(AuditMessageTools.GetAuditMessageBody))]
+    public void Structured_tools_use_structured_content(string methodName)
     {
-        public int TotalCount { get; set; }
-        public List<T> Results { get; set; } = [];
-    }
+        var method = typeof(AuditMessageTools).GetMethod(methodName)!;
+        var attribute = (McpServerToolAttribute)Attribute.GetCustomAttribute(method, typeof(McpServerToolAttribute))!;
 
-    class McpMessageBodyResponse
-    {
-        public string? ContentType { get; set; }
-        public int ContentLength { get; set; }
-        public string? Body { get; set; }
-    }
-
-    class McpErrorResponse
-    {
-        public string? Error { get; set; }
+        Assert.That(attribute.UseStructuredContent, Is.True);
     }
 
     class StubAuditDataStore : IAuditDataStore
@@ -160,6 +162,7 @@ class AuditMessageMcpToolsTests
         public string? LastQueryByEndpointKeyword { get; private set; }
         public string? LastQueryByEndpointAndKeywordEndpoint { get; private set; }
         public string? LastQueryByEndpointAndKeywordKeyword { get; private set; }
+        public bool? LastQueryByEndpointAndKeywordIncludeSystemMessages { get; private set; }
         public string? LastConversationId { get; private set; }
 
         public Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default)
@@ -182,9 +185,13 @@ class AuditMessageMcpToolsTests
         }
 
         public Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default)
+            => QueryMessagesByReceivingEndpointAndKeyword(false, endpoint, keyword, pagingInfo, sortInfo, timeSentRange, cancellationToken);
+
+        public Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(bool includeSystemMessages, string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default)
         {
             LastQueryByEndpointAndKeywordEndpoint = endpoint;
             LastQueryByEndpointAndKeywordKeyword = keyword;
+            LastQueryByEndpointAndKeywordIncludeSystemMessages = includeSystemMessages;
             return Task.FromResult(MessagesResult ?? EmptyMessagesResult);
         }
 
