@@ -2,6 +2,7 @@ namespace ServiceControl.Mcp;
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 
 static class McpJsonOptions
 {
@@ -9,6 +10,7 @@ static class McpJsonOptions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        WriteIndented = false
+        WriteIndented = false,
+        TypeInfoResolverChain = { McpSerializationContext.Default, new DefaultJsonTypeInfoResolver() }
     };
 }

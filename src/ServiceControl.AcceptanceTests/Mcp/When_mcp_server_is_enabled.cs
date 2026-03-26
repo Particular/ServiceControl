@@ -60,7 +60,7 @@ class When_mcp_server_is_enabled : AcceptanceTest
         var sortedTools = mcpResponse.Result.Tools.Cast<JsonElement>().OrderBy(t => t.GetProperty("name").GetString()).ToList();
         AssertPrimaryTools(sortedTools);
         McpAcceptanceTestSupport.AssertToolsHaveOutputSchema(sortedTools);
-        var formattedTools = JsonSerializer.Serialize(sortedTools, new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        var formattedTools = McpAcceptanceTestSupport.FormatToolsForApproval(sortedTools);
         Approver.Verify(formattedTools);
     }
 

@@ -4,7 +4,7 @@ namespace ServiceControl.Infrastructure.Mcp;
 
 using System.Text.Json.Serialization;
 
-[JsonConverter(typeof(JsonStringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter<McpOperationStatus>))]
 public enum McpOperationStatus
 {
     Accepted,

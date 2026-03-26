@@ -13,8 +13,6 @@ public static class McpAcceptanceTestSupport
 {
     const string RequestedProtocolVersion = "2025-11-25";
 
-    static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-
     public static async Task<HttpResponseMessage> InitializeMcpSession(HttpClient httpClient)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, "/mcp")
@@ -46,7 +44,7 @@ public static class McpAcceptanceTestSupport
             return null;
         }
 
-        var initializeResponse = JsonSerializer.Deserialize<McpInitializeResponse>(await ReadMcpResponseJson(response), JsonOptions)!;
+        var initializeResponse = JsonSerializer.Deserialize(await ReadMcpResponseJson(response), McpAcceptanceJsonContext.Default.McpInitializeResponse)!;
         var protocolVersion = initializeResponse.Result.ProtocolVersion;
 
         if (!response.Headers.TryGetValues("mcp-session-id", out var values))
@@ -108,10 +106,13 @@ public static class McpAcceptanceTestSupport
     }
 
     public static McpListToolsResponse DeserializeListToolsResponse(string toolsJson) =>
-        JsonSerializer.Deserialize<McpListToolsResponse>(toolsJson, JsonOptions)!;
+        JsonSerializer.Deserialize(toolsJson, McpAcceptanceJsonContext.Default.McpListToolsResponse)!;
 
     public static McpCallToolResponse DeserializeCallToolResponse(string toolResult) =>
-        JsonSerializer.Deserialize<McpCallToolResponse>(toolResult, JsonOptions)!;
+        JsonSerializer.Deserialize(toolResult, McpAcceptanceJsonContext.Default.McpCallToolResponse)!;
+
+    public static string FormatToolsForApproval(List<JsonElement> sortedTools) =>
+        JsonSerializer.Serialize(sortedTools, McpAcceptanceJsonContext.Default.ListJsonElement);
 
     public static void AssertToolsHaveOutputSchema(IEnumerable<JsonElement> tools)
     {
@@ -182,12 +183,12 @@ public class McpContent
     public string Text { get; set; }
 }
 
-class McpInitializeResponse
+public class McpInitializeResponse
 {
     public McpInitializeResult Result { get; set; }
 }
 
-class McpInitializeResult
+public class McpInitializeResult
 {
     public string ProtocolVersion { get; set; }
 }

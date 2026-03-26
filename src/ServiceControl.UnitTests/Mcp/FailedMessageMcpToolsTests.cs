@@ -96,7 +96,11 @@ class FailedMessageMcpToolsTests
                         TimeOfFailure = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc)
                     },
                     Headers = new Dictionary<string, string> { ["NServiceBus.MessageId"] = "message-1" },
-                    MessageMetadata = new Dictionary<string, object> { ["Retries"] = 3 }
+                    MessageMetadata = new Dictionary<string, object>
+                    {
+                        ["Retries"] = 3,
+                        ["Context"] = new { RetryCount = 3, Note = (string?)null }
+                    }
                 }
             ],
             FailureGroups =
@@ -120,10 +124,13 @@ class FailedMessageMcpToolsTests
             Assert.That(result.UniqueMessageId, Is.EqualTo("unique-1"));
             Assert.That(result.ProcessingAttempts, Has.Count.EqualTo(1));
             Assert.That(result.ProcessingAttempts[0].MessageId, Is.EqualTo("message-1"));
-            Assert.That(result.ProcessingAttempts[0].MessageMetadata, Has.Count.EqualTo(1));
+            Assert.That(result.ProcessingAttempts[0].MessageMetadata, Has.Count.EqualTo(2));
             Assert.That(result.ProcessingAttempts[0].MessageMetadata[0].Key, Is.EqualTo("Retries"));
             Assert.That(result.ProcessingAttempts[0].MessageMetadata[0].Value, Is.EqualTo("3"));
             Assert.That(result.ProcessingAttempts[0].MessageMetadata[0].Type, Is.EqualTo("integer"));
+            Assert.That(result.ProcessingAttempts[0].MessageMetadata[1].Key, Is.EqualTo("Context"));
+            Assert.That(result.ProcessingAttempts[0].MessageMetadata[1].Value, Is.EqualTo("{\"retryCount\":3}"));
+            Assert.That(result.ProcessingAttempts[0].MessageMetadata[1].Type, Is.EqualTo("json"));
             Assert.That(result.FailureGroups, Has.Count.EqualTo(1));
             Assert.That(result.FailureGroups[0].Id, Is.EqualTo("group-1"));
         });

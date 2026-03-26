@@ -93,7 +93,7 @@ public class McpMessageMetadataEntryResult
             double number => number.ToString(CultureInfo.InvariantCulture),
             decimal number => number.ToString(CultureInfo.InvariantCulture),
             Enum enumValue => enumValue.ToString(),
-            _ => JsonSerializer.Serialize(value)
+            _ => JsonSerializer.Serialize(value, value.GetType(), McpJsonOptions.Default)
         };
     }
 
