@@ -70,11 +70,14 @@ public class SqlServerQuery(
             var endData =
                 await queueTableName.DatabaseDetails.GetSnapshot(queueTableName, cancellationToken);
 
-            yield return new QueueThroughput
+            if (endData.RowVersion.HasValue && startData.RowVersion.HasValue)
             {
-                DateUTC = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime),
-                TotalThroughput = endData.RowVersion - startData.RowVersion
-            };
+                yield return new QueueThroughput
+                {
+                    DateUTC = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime),
+                    TotalThroughput = endData.RowVersion.Value - startData.RowVersion.Value
+                };
+            }
 
             startData = endData;
         }
