@@ -13,6 +13,7 @@
     <Project Path="ServiceControlInstaller.Packaging.UnitTests/ServiceControlInstaller.Packaging.UnitTests.csproj" />
     <Project Path="SetupProcessFake/SetupProcessFake.csproj" />
   </Folder>
+  <Folder Name="/Instances/" />
   <Folder Name="/Instances/Audit/">
     <Project Path="ServiceControl.Audit/ServiceControl.Audit.csproj" />
   </Folder>
@@ -78,6 +79,7 @@
   <Folder Name="/ServiceControl.Transports/">
     <Project Path="ServiceControl.Transports.ASBS/ServiceControl.Transports.ASBS.csproj" />
     <Project Path="ServiceControl.Transports.ASQ/ServiceControl.Transports.ASQ.csproj" />
+    <Project Path="ServiceControl.Transports.IBMMQ/ServiceControl.Transports.IBMMQ.csproj" />
     <Project Path="ServiceControl.Transports.Learning/ServiceControl.Transports.Learning.csproj" />
     <Project Path="ServiceControl.Transports.Msmq/ServiceControl.Transports.Msmq.csproj" />
     <Project Path="ServiceControl.Transports.PostgreSql/ServiceControl.Transports.PostgreSql.csproj" />
@@ -89,6 +91,7 @@
   <Folder Name="/ServiceControl.Transports/Testing/">
     <Project Path="ServiceControl.Transports.ASBS.Tests/ServiceControl.Transports.ASBS.Tests.csproj" />
     <Project Path="ServiceControl.Transports.ASQ.Tests/ServiceControl.Transports.ASQ.Tests.csproj" />
+    <Project Path="ServiceControl.Transports.IBMMQ.Tests/ServiceControl.Transports.IBMMQ.Tests.csproj" />
     <Project Path="ServiceControl.Transports.Msmq.Tests/ServiceControl.Transports.Msmq.Tests.csproj" />
     <Project Path="ServiceControl.Transports.PostgreSql.Tests/ServiceControl.Transports.PostgreSql.Tests.csproj" />
     <Project Path="ServiceControl.Transports.RabbitMQClassicConventionalRouting.Tests/ServiceControl.Transports.RabbitMQClassicConventionalRoutingTests.csproj" />

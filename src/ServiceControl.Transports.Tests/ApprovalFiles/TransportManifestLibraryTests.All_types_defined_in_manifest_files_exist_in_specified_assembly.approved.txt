@@ -1,6 +1,7 @@
 [
   "AmazonSQS",
   "AzureStorageQueue",
+  "IBMMQ",
   "LearningTransport",
   "LearningTransport",
   "MSMQ",

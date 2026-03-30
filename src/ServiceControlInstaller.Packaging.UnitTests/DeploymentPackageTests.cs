@@ -88,7 +88,8 @@ namespace Tests
                 "MSMQ",
                 "AmazonSQS",
                 "LearningTransport",
-                "PostgreSql"};
+                "PostgreSql",
+                "IBMMQ"};
 
             var bundledTransports = deploymentPackage.DeploymentUnits
                 .Where(u => u.Category == "Transports")
