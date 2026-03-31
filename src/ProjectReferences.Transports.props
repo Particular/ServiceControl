@@ -3,6 +3,7 @@
   <ItemGroup Label="Transports">
     <ProjectReference Include="..\ServiceControl.Transports.ASBS\ServiceControl.Transports.ASBS.csproj" ReferenceOutputAssembly="false" Private="false" />
     <ProjectReference Include="..\ServiceControl.Transports.ASQ\ServiceControl.Transports.ASQ.csproj" ReferenceOutputAssembly="false" Private="false" />
+    <ProjectReference Include="..\ServiceControl.Transports.IBMMQ\ServiceControl.Transports.IBMMQ.csproj" ReferenceOutputAssembly="false" Private="false" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" ReferenceOutputAssembly="false" Private="false" />
     <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj" ReferenceOutputAssembly="false" Private="false" SkipGetTargetFrameworkProperties="true" UndefineProperties="TargetFramework" />
     <ProjectReference Include="..\ServiceControl.Transports.PostgreSql\ServiceControl.Transports.PostgreSql.csproj" ReferenceOutputAssembly="false" Private="false" />

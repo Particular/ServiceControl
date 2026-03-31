@@ -36,6 +36,11 @@
     ]
   },
   {
+    "Name": "IBMMQ",
+    "DisplayName": "IBM MQ",
+    "Aliases": []
+  },
+  {
     "Name": "LearningTransport",
     "DisplayName": "Learning Transport (Non-Production)",
     "Aliases": []

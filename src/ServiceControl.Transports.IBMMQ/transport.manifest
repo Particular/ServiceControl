@@ -1,0 +1,14 @@
+{
+  "Definitions": [
+    {
+      "Name": "IBMMQ",
+      "DisplayName": "IBM MQ",
+      "AssemblyName": "ServiceControl.Transports.IBMMQ",
+      "TypeName": "ServiceControl.Transports.IBMMQ.IBMMQTransportCustomization, ServiceControl.Transports.IBMMQ",
+      "SampleConnectionString": "mq://admin:passw0rd@localhost:1414/QM1?topicprefix=DEV&channel=DEV.ADMIN.SVRCONN&appname={APPNAME}&sslkeyrepo={SSLKEYREPO}&cipherspec={CIPHERSPEC}&sslpeername={SSLPEERNAME}",
+      "AvailableInSCMU": true,
+      "Aliases": [
+      ]
+    }
+  ]
+}
