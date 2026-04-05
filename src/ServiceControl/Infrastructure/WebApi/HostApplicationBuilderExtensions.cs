@@ -23,19 +23,18 @@
 
             if (settings.EnableMcpServer || settings.EnableMcpServerWriteMode)
             {
-                builder.Services.AddTransient<ServiceControl.Mcp.FailedMessageTools>();
-                builder.Services.AddTransient<ServiceControl.Mcp.FailureGroupTools>();
+                var mcpBuilder = builder.Services
+                    .AddMcpServer()
+                    .WithHttpTransport()
+                    .WithTools<ServiceControl.Mcp.FailedMessageTools>()
+                    .WithTools<ServiceControl.Mcp.FailureGroupTools>();
 
                 if (settings.EnableMcpServerWriteMode)
                 {
-                    builder.Services.AddTransient<ServiceControl.Mcp.RetryTools>();
-                    builder.Services.AddTransient<ServiceControl.Mcp.ArchiveTools>();
+                    mcpBuilder
+                        .WithTools<ServiceControl.Mcp.RetryTools>()
+                        .WithTools<ServiceControl.Mcp.ArchiveTools>();
                 }
-
-                builder.Services
-                    .AddMcpServer()
-                    .WithHttpTransport()
-                    .WithToolsFromAssembly();
             }
 
             builder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy(settings.CorsSettings)));
