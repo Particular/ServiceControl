@@ -54,6 +54,7 @@
             ServiceControlQueueAddress = SettingsReader.Read<string>(SettingsRootNamespace, "ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
             EnableFullTextSearchOnBodies = SettingsReader.Read(SettingsRootNamespace, "EnableFullTextSearchOnBodies", true);
+            EnableMcpServerWriteMode = SettingsReader.Read(SettingsRootNamespace, "EnableMcpServerWriteMode", false);
             EnableMcpServer = SettingsReader.Read(SettingsRootNamespace, "EnableMcpServer", false);
             ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
 
@@ -188,7 +189,14 @@
 
         public bool EnableFullTextSearchOnBodies { get; set; }
 
-        public bool EnableMcpServer { get; set; }
+        bool enableMcpServer;
+        public bool EnableMcpServer
+        {
+            get => enableMcpServer || EnableMcpServerWriteMode;
+            set => enableMcpServer = value;
+        }
+
+        public bool EnableMcpServerWriteMode { get; set; }
 
         // The default value is set to the maximum allowed time by the most
         // restrictive hosting platform, which is Linux containers. Linux

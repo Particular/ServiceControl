@@ -16,7 +16,7 @@ using ServiceControl.AcceptanceTesting.Mcp;
 class When_mcp_server_is_enabled : AcceptanceTest
 {
     [SetUp]
-    public void EnableMcp() => SetSettings = s => s.EnableMcpServer = true;
+    public void EnableMcp() => SetSettings = s => s.EnableMcpServerWriteMode = true;
 
     [Test]
     public async Task Should_expose_mcp_endpoint()

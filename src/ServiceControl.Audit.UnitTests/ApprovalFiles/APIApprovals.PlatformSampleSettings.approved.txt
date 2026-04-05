@@ -59,5 +59,6 @@
   "TimeToRestartAuditIngestionAfterFailure": "00:01:00",
   "EnableFullTextSearchOnBodies": true,
   "EnableMcpServer": false,
+  "EnableMcpServerWriteMode": false,
   "ShutdownTimeout": "00:00:05"
 }

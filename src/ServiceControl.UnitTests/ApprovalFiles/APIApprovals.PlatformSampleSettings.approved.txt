@@ -38,6 +38,7 @@
   "NotificationsFilter": null,
   "AllowMessageEditing": false,
   "EnableMcpServer": false,
+  "EnableMcpServerWriteMode": false,
   "EnableIntegratedServicePulse": false,
   "ServicePulseSettings": null,
   "MessageFilter": null,
