@@ -55,7 +55,7 @@
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
             EnableFullTextSearchOnBodies = SettingsReader.Read(SettingsRootNamespace, "EnableFullTextSearchOnBodies", true);
             EnableMcpServerWriteMode = SettingsReader.Read(SettingsRootNamespace, "EnableMcpServerWriteMode", false);
-            EnableMcpServer = SettingsReader.Read(SettingsRootNamespace, "EnableMcpServer", false);
+            EnableMcpServer = SettingsReader.Read(SettingsRootNamespace, "EnableMcpServer", false) || EnableMcpServerWriteMode;
             ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
 
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
@@ -189,12 +189,7 @@
 
         public bool EnableFullTextSearchOnBodies { get; set; }
 
-        bool enableMcpServer;
-        public bool EnableMcpServer
-        {
-            get => enableMcpServer || EnableMcpServerWriteMode;
-            set => enableMcpServer = value;
-        }
+        public bool EnableMcpServer { get; set; }
 
         public bool EnableMcpServerWriteMode { get; set; }
 

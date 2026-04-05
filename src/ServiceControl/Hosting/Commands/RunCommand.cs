@@ -30,7 +30,7 @@
             hostBuilder.AddServiceControlApi(settings);
 
             var app = hostBuilder.Build();
-            app.UseServiceControl(settings.ForwardedHeadersSettings, settings.HttpsSettings, settings.EnableMcpServer);
+            app.UseServiceControl(settings.ForwardedHeadersSettings, settings.HttpsSettings, settings.EnableMcpServer || settings.EnableMcpServerWriteMode);
             if (settings.EnableIntegratedServicePulse)
             {
                 app.UseServicePulse(settings.ServicePulseSettings);

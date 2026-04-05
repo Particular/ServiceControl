@@ -1,10 +1,10 @@
 namespace ServiceControl.AcceptanceTests.Mcp;
 
 using System.Linq;
-using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using NServiceBus.AcceptanceTesting;
+using ServiceControl.AcceptanceTesting;
 using NUnit.Framework;
 using ServiceControl.AcceptanceTesting.Mcp;
 

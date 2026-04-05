@@ -21,7 +21,7 @@
 
             builder.AddServiceControlApis();
 
-            if (settings.EnableMcpServer)
+            if (settings.EnableMcpServer || settings.EnableMcpServerWriteMode)
             {
                 builder.Services.AddTransient<ServiceControl.Mcp.FailedMessageTools>();
                 builder.Services.AddTransient<ServiceControl.Mcp.FailureGroupTools>();

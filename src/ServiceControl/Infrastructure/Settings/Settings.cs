@@ -82,7 +82,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             TrackInstancesInitialValue = SettingsReader.Read(SettingsRootNamespace, "TrackInstancesInitialValue", true);
             ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
             EnableMcpServerWriteMode = SettingsReader.Read(SettingsRootNamespace, "EnableMcpServerWriteMode", false);
-            EnableMcpServer = SettingsReader.Read(SettingsRootNamespace, "EnableMcpServer", false);
+            EnableMcpServer = SettingsReader.Read(SettingsRootNamespace, "EnableMcpServer", false) || EnableMcpServerWriteMode;
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
         }
 
@@ -115,12 +115,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool AllowMessageEditing { get; set; }
 
-        bool enableMcpServer;
-        public bool EnableMcpServer
-        {
-            get => enableMcpServer || EnableMcpServerWriteMode;
-            set => enableMcpServer = value;
-        }
+        public bool EnableMcpServer { get; set; }
 
         public bool EnableMcpServerWriteMode { get; set; }
 
