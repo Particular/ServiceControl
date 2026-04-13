@@ -38,9 +38,8 @@ static class RabbitMQTransportExtensions
             transport.ValidateRemoteCertificate = !disableRemoteCertificateValidation;
         }
 
-        if (dictionary.TryGetValue("UseExternalAuthMechanism", out var useExternalAuthMechanismString))
+        if (dictionary.TryGetValue("UseExternalAuthMechanism", out var useExternalAuthMechanismString) && bool.TryParse(useExternalAuthMechanismString, out var useExternalAuthMechanism) && useExternalAuthMechanism)
         {
-            _ = bool.TryParse(useExternalAuthMechanismString, out var useExternalAuthMechanism);
             transport.AuthMechanisms = [new ExternalMechanismFactory()];
         }
     }
