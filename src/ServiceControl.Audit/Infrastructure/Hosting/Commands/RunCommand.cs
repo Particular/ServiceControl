@@ -25,10 +25,10 @@
                 //Do nothing. The transports in NSB 8 are designed to handle broker outages. Audit ingestion will be paused when broker is unavailable.
                 return Task.CompletedTask;
             }, settings, endpointConfiguration);
-            hostBuilder.AddServiceControlAuditApi(settings.CorsSettings);
+            hostBuilder.AddServiceControlAuditApi(settings);
 
             var app = hostBuilder.Build();
-            app.UseServiceControlAudit(settings.ForwardedHeadersSettings, settings.HttpsSettings);
+            app.UseServiceControlAudit(settings.ForwardedHeadersSettings, settings.HttpsSettings, settings.EnableMcpServer);
             app.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
 
             await app.RunAsync(settings.RootUrl);

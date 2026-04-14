@@ -1,0 +1,1678 @@
+[
+  {
+    "name": "archive_failed_message",
+    "description": "Use this tool to dismiss a single failed message that does not need to be retried. This operation changes system state. Good for questions like: \u0027archive this message\u0027, \u0027dismiss this failure\u0027, or \u0027I do not need to retry this one\u0027. Archiving moves the message out of the unresolved list so it no longer shows up as an active problem. This is an asynchronous operation \u2014 the message will be archived shortly after the request is accepted. If you need to archive many messages with the same root cause, use ArchiveFailureGroup instead.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "failedMessageId": {
+          "description": "The failed message ID from a previous failed-message query result.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "failedMessageId"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "archive_failed_messages",
+    "description": "Use this tool to dismiss multiple failed messages at once that do not need to be retried. This operation changes system state. It may affect many messages. Good for questions like: \u0027archive these messages\u0027, \u0027dismiss these failures\u0027, or \u0027archive messages msg-1, msg-2, msg-3\u0027. Prefer ArchiveFailureGroup when all messages share the same failure cause \u2014 use this tool when you have a specific set of message IDs to archive.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageIds": {
+          "description": "The failed message IDs from previous failed-message query results.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "messageIds"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "archive_failure_group",
+    "description": "Use this tool to dismiss an entire failure group \u2014 all messages that failed with the same exception type and stack trace. This operation changes system state. It may affect many messages. Good for questions like: \u0027archive this failure group\u0027, \u0027dismiss all NullReferenceException failures\u0027, or \u0027archive the whole group\u0027. This is the most efficient way to archive many related failures at once. You need a failure group ID, which you can get from GetFailureGroups. Returns InProgress if an archive operation is already running for this group.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "description": "The failure group ID from previous GetFailureGroups results.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "groupId"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_errors_summary",
+    "description": "Use this tool as a quick health check to see how many messages are in each failure state. Good for questions like: \u0027how many errors are there?\u0027, \u0027what is the error situation?\u0027, or \u0027are there unresolved failures?\u0027. Returns counts for unresolved, archived, resolved, and retryissued statuses. This is a good first tool to call when asked about the overall error situation before drilling into specific messages. Read-only.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "unresolved": {
+          "type": "integer"
+        },
+        "archived": {
+          "type": "integer"
+        },
+        "resolved": {
+          "type": "integer"
+        },
+        "retryIssued": {
+          "type": "integer"
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_failed_message_by_id",
+    "description": "Get detailed information about a specific failed message. Use this when you already know the failed message ID and need to inspect its contents or failure details. Use GetFailedMessages or GetFailureGroups to locate relevant messages before calling this tool. Read-only.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "failedMessageId": {
+          "description": "The failed message ID from a previous failed-message query result.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "failedMessageId"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "processingAttempts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "messageMetadata": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "failureDetails": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "addressOfFailingEndpoint": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "timeOfFailure": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "exception": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "exceptionType": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "message": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "source": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "stackTrace": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              "attemptedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "messageId": {
+                "type": "string"
+              },
+              "body": {
+                "type": "string"
+              },
+              "headers": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "failureGroups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "uniqueMessageId": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Unresolved",
+            "Resolved",
+            "RetryIssued",
+            "Archived"
+          ]
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_failed_message_last_attempt",
+    "description": "Retrieve the last processing attempt for a failed message. Use this to understand the most recent failure behavior, including exception details and processing context. Typically used after identifying a failed message via GetFailedMessages or GetFailedMessageById. Read-only.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "failedMessageId": {
+          "description": "The failed message ID from a previous failed-message query result.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "failedMessageId"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "messageType": {
+          "type": "string"
+        },
+        "timeSent": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "isSystemMessage": {
+          "type": "boolean"
+        },
+        "exception": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "exceptionType": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "message": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "source": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "stackTrace": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "messageId": {
+          "type": "string"
+        },
+        "numberOfProcessingAttempts": {
+          "type": "integer"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Unresolved",
+            "Resolved",
+            "RetryIssued",
+            "Archived"
+          ]
+        },
+        "sendingEndpoint": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "name": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "hostId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "host": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "receivingEndpoint": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "name": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "hostId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "host": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "queueAddress": {
+          "type": "string"
+        },
+        "timeOfFailure": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "edited": {
+          "type": "boolean"
+        },
+        "editOf": {
+          "type": "string"
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_failed_messages",
+    "description": "Retrieve failed messages for investigation. Use this when exploring recent failures or narrowing down failures by queue, status, or time range. Prefer GetFailureGroups when starting root-cause analysis across many failures. Use GetFailedMessageById when inspecting a specific failed message. Read-only.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "description": "Filter failed messages by status: unresolved (still failing), resolved (succeeded on retry), archived (dismissed), or retryissued (retry in progress). Omit this filter to include all statuses.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "modified": {
+          "description": "Restricts failed-message results to entries modified after this ISO 8601 date/time. Omitting this may return a large result set.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "queueAddress": {
+          "description": "Filter failed messages to a specific queue address, for example \u0027Sales@machine\u0027. Omit this filter to include all queues.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "page": {
+          "description": "Page number, 1-based",
+          "type": "integer",
+          "default": 1
+        },
+        "perPage": {
+          "description": "Results per page",
+          "type": "integer",
+          "default": 50
+        },
+        "sort": {
+          "description": "Sort by: time_sent, message_type, or time_of_failure",
+          "type": "string",
+          "default": "time_of_failure"
+        },
+        "direction": {
+          "description": "Sort direction: asc or desc",
+          "type": "string",
+          "default": "desc"
+        }
+      }
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "totalCount": {
+          "type": "integer"
+        },
+        "results": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "messageType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "timeSent": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "isSystemMessage": {
+                "type": "boolean"
+              },
+              "exception": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "exceptionType": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "message": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "source": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "stackTrace": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "messageId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "numberOfProcessingAttempts": {
+                "type": "integer"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "Unresolved",
+                  "Resolved",
+                  "RetryIssued",
+                  "Archived"
+                ]
+              },
+              "sendingEndpoint": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "hostId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "host": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "receivingEndpoint": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "hostId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "host": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "queueAddress": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "timeOfFailure": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "lastModified": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "edited": {
+                "type": "boolean"
+              },
+              "editOf": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_failed_messages_by_endpoint",
+    "description": "Retrieve failed messages for a specific endpoint. Use this when investigating failures in a named endpoint such as Billing or Sales. Prefer GetFailureGroups when you need root-cause analysis across many failures. Use GetFailedMessageLastAttempt after this when you need the most recent failure details for a specific message. Read-only.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "endpointName": {
+          "description": "The endpoint name that owns the failed messages. Use values obtained from endpoint-aware failed-message results.",
+          "type": "string"
+        },
+        "status": {
+          "description": "Filter failed messages by status: unresolved, resolved, archived, or retryissued. Omit this filter to include all statuses for the endpoint.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "modified": {
+          "description": "Restricts endpoint failed-message results to entries modified after this ISO 8601 date/time. Omitting this may return a large result set.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "page": {
+          "description": "Page number, 1-based",
+          "type": "integer",
+          "default": 1
+        },
+        "perPage": {
+          "description": "Results per page",
+          "type": "integer",
+          "default": 50
+        },
+        "sort": {
+          "description": "Sort by: time_sent, message_type, or time_of_failure",
+          "type": "string",
+          "default": "time_of_failure"
+        },
+        "direction": {
+          "description": "Sort direction: asc or desc",
+          "type": "string",
+          "default": "desc"
+        }
+      },
+      "required": [
+        "endpointName"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "totalCount": {
+          "type": "integer"
+        },
+        "results": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "messageType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "timeSent": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "isSystemMessage": {
+                "type": "boolean"
+              },
+              "exception": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "exceptionType": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "message": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "source": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "stackTrace": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "messageId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "numberOfProcessingAttempts": {
+                "type": "integer"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "Unresolved",
+                  "Resolved",
+                  "RetryIssued",
+                  "Archived"
+                ]
+              },
+              "sendingEndpoint": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "hostId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "host": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "receivingEndpoint": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "hostId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "host": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "queueAddress": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "timeOfFailure": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "lastModified": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "edited": {
+                "type": "boolean"
+              },
+              "editOf": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_failure_groups",
+    "description": "Retrieve failure groups, where failed messages are grouped by exception type and stack trace. Use this as the first step when analyzing large numbers of failures to identify dominant root causes. Prefer GetFailedMessages when you need individual message details. Read-only.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "classifier": {
+          "description": "How to group failures. The default \u0027Exception Type and Stack Trace\u0027 is almost always what you want. Use \u0027Message Type\u0027 to group by the NServiceBus message type instead.",
+          "type": "string",
+          "default": "Exception Type and Stack Trace"
+        },
+        "classifierFilter": {
+          "description": "Filter failure groups by classifier text. Omit this filter to include all groups for the selected classifier.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        }
+      }
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "type": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "count": {
+                "type": "integer"
+              },
+              "operationMessagesCompletedCount": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "comment": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "first": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "last": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "operationStatus": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "operationFailed": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "operationProgress": {
+                "type": "number"
+              },
+              "operationRemainingCount": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "operationStartTime": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "operationCompletionTime": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "needUserAcknowledgement": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "result"
+      ]
+    },
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "get_retry_history",
+    "description": "Use this tool to check the history of retry operations. Good for questions like: \u0027has someone already retried these?\u0027, \u0027what happened the last time we retried this group?\u0027, \u0027show retry history\u0027, or \u0027were any retries attempted today?\u0027. Returns which groups were retried, when, and whether the retries succeeded or failed. Use this before retrying a group to avoid duplicate retry attempts. Read-only.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "historicOperations": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "retryType": {
+                "type": "string",
+                "enum": [
+                  "Unknown",
+                  "SingleMessage",
+                  "FailureGroup",
+                  "MultipleMessages",
+                  "AllForEndpoint",
+                  "All",
+                  "ByQueueAddress"
+                ]
+              },
+              "startTime": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "completionTime": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "originator": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "failed": {
+                "type": "boolean"
+              },
+              "numberOfMessagesProcessed": {
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "unacknowledgedOperations": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "retryType": {
+                "type": "string",
+                "enum": [
+                  "Unknown",
+                  "SingleMessage",
+                  "FailureGroup",
+                  "MultipleMessages",
+                  "AllForEndpoint",
+                  "All",
+                  "ByQueueAddress"
+                ]
+              },
+              "startTime": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "completionTime": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "last": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "originator": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "classifier": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "failed": {
+                "type": "boolean"
+              },
+              "numberOfMessagesProcessed": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "retry_all_failed_messages",
+    "description": "Retry all currently failed messages across all queues. Use only when the user explicitly requests a broad retry operation. Prefer narrower retry tools such as RetryFailureGroup or RetryFailedMessages when possible. This operation changes system state. It may affect many messages. It affects all unresolved failed messages across the instance and may affect a large number of messages.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "retry_all_failed_messages_by_endpoint",
+    "description": "Retry all failed messages for a specific endpoint. Use this when the user explicitly wants an endpoint-scoped retry after an endpoint-specific issue is fixed. Prefer RetryFailureGroup or RetryFailedMessages when you can retry a narrower set of failures. This operation changes system state. It may affect many messages. Use the endpoint name from failed-message results.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "endpointName": {
+          "description": "The endpoint name whose failed messages should be retried. Use values obtained from failed-message results.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "endpointName"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "retry_failed_message",
+    "description": "Use this tool to reprocess a single failed message by sending it back to its original queue. This operation changes system state. Good for questions like: \u0027retry this message\u0027, \u0027reprocess this failure\u0027, or \u0027send this message back for processing\u0027. The message will go through normal processing again. Only use after the underlying issue (bug fix, infrastructure problem) has been resolved. If you need to retry many messages with the same root cause, use RetryFailureGroup instead.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "failedMessageId": {
+          "description": "The failed message ID from a previous failed-message query result.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "failedMessageId"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "retry_failed_messages",
+    "description": "Retry a selected set of failed messages by their IDs. Use this when the user explicitly wants to retry specific known messages. Prefer RetryFailureGroup when retrying all messages with the same root cause. This operation changes system state. It may affect many messages. Use values obtained from failed-message investigation tools.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageIds": {
+          "description": "The failed message IDs from previous failed-message query results.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "messageIds"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "retry_failed_messages_by_queue",
+    "description": "Retry all unresolved failed messages from a specific queue. Use this when the user explicitly wants a queue-scoped retry after a queue or consumer issue is fixed. Prefer RetryFailureGroup or RetryFailedMessages when you can retry a narrower set of failures. This operation changes system state. It may affect many messages. Use the queue address from failed-message results.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "queueAddress": {
+          "description": "Queue address whose unresolved failed messages should be retried. Use values obtained from failed-message results.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "queueAddress"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "retry_failure_group",
+    "description": "Retry all failed messages in a failure group that share the same root cause. Use this when multiple failures are caused by the same issue and can be retried together. Prefer RetryFailedMessages for more granular control. This operation changes system state. It may affect many messages. Use the failure group ID from GetFailureGroups. Returns InProgress if a retry is already running for this group.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "description": "The failure group ID from previous GetFailureGroups results.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "groupId"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "unarchive_failed_message",
+    "description": "Use this tool to restore a previously archived failed message back to the unresolved list so it can be retried. This operation changes system state. Good for questions like: \u0027unarchive this message\u0027, \u0027restore this failure\u0027, or \u0027I need to retry this archived message\u0027. Use when a message was archived by mistake or when the underlying issue has been fixed and the message should be reprocessed. If you need to restore many messages from the same failure group, use UnarchiveFailureGroup instead.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "failedMessageId": {
+          "description": "The failed message ID to restore from the archived state.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "failedMessageId"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "unarchive_failed_messages",
+    "description": "Use this tool to restore multiple previously archived failed messages back to the unresolved list. This operation changes system state. It may affect many messages. Good for questions like: \u0027unarchive these messages\u0027, \u0027restore these failures\u0027, or \u0027unarchive messages msg-1, msg-2, msg-3\u0027. Prefer UnarchiveFailureGroup when restoring an entire group \u2014 use this tool when you have a specific set of message IDs.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "messageIds": {
+          "description": "The failed message IDs to restore from the archived state.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "messageIds"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  },
+  {
+    "name": "unarchive_failure_group",
+    "description": "Use this tool to restore an entire archived failure group back to the unresolved list. This operation changes system state. It may affect many messages. Good for questions like: \u0027unarchive this failure group\u0027, \u0027restore all archived NullReferenceException failures\u0027, or \u0027unarchive the whole group\u0027. All messages that were archived together under this group will become available for retry again. You need a failure group ID, which you can get from GetFailureGroups. Returns InProgress if an unarchive operation is already running for this group.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "description": "The failure group ID from previous GetFailureGroups results.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "groupId"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Accepted",
+            "InProgress",
+            "ValidationError"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "execution": {
+      "taskSupport": "optional"
+    }
+  }
+]
