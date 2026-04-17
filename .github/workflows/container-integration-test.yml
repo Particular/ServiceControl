@@ -77,7 +77,7 @@ jobs:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup Azure Service Bus
         if: ${{ matrix.name == 'asb' }}
-        uses: Particular/setup-azureservicebus-action@v2.2.0
+        uses: Particular/setup-azureservicebus-action@v2.3.0
         with:
           connection-string-name: CONNECTIONSTRING
           azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
