@@ -75,14 +75,16 @@ namespace ServiceControl.Contracts.Operations
                     endpoint.Name = queueAndMachinename.Queue;
                 }
 
-                if (string.IsNullOrEmpty(endpoint.Host))
-                {
-                    endpoint.Host = queueAndMachinename.Machine;
-                }
+                endpoint.Host = string.IsNullOrEmpty(endpoint.Host) ? queueAndMachinename.Machine : "unknown";
 
                 // If we've been now able to get the endpoint details, return the new info.
-                if (!string.IsNullOrEmpty(endpoint.Name) && !string.IsNullOrEmpty(endpoint.Host))
+                if (!string.IsNullOrEmpty(endpoint.Name))
                 {
+                    if (endpoint.HostId == Guid.Empty)
+                    {
+                        endpoint.HostId = DeterministicGuid.MakeId(endpoint.Name, endpoint.Host);
+                    }
+
                     return endpoint;
                 }
             }
