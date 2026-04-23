@@ -75,7 +75,10 @@ namespace ServiceControl.Contracts.Operations
                     endpoint.Name = queueAndMachinename.Queue;
                 }
 
-                endpoint.Host = string.IsNullOrEmpty(endpoint.Host) ? queueAndMachinename.Machine : "unknown";
+                if (string.IsNullOrEmpty(endpoint.Host))
+                {
+                    endpoint.Host = queueAndMachinename.Machine ?? "unknown";
+                }
 
                 // If we've been now able to get the endpoint details, return the new info.
                 if (!string.IsNullOrEmpty(endpoint.Name))
