@@ -49,39 +49,28 @@ jobs:
             Invoke-Expression $cmd
             Write-Output "::endgroup::"
           }
-      - name: Update Docker Hub Description - ServiceControl
+      - name: Update Docker Hub Descriptions
         if: ${{ steps.validate.outputs.latest == 'true' }}
-        uses: peter-evans/dockerhub-description@v5.0.0
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: particular/servicecontrol
-          readme-filepath: ./src/ServiceControl/Container-README.md
-          short-description: Gather status, performance and monitoring data for multiple endpoints from a single location.
-      - name: Update Docker Hub Description - Audit
-        if: ${{ steps.validate.outputs.latest == 'true' }}
-        uses: peter-evans/dockerhub-description@v5.0.0
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: particular/servicecontrol-audit
-          readme-filepath: ./src/ServiceControl.Audit/Container-README.md
-          short-description: Provide valuable information about the message flow through a system.
-      - name: Update Docker Hub Description - Monitoring
-        if: ${{ steps.validate.outputs.latest == 'true' }}
-        uses: peter-evans/dockerhub-description@v5.0.0
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: particular/servicecontrol-monitoring
-          readme-filepath: ./src/ServiceControl.Monitoring/Container-README.md
-          short-description: Track the health of a distributed system.
-      - name: Update Docker Hub Description - RavenDB
-        if: ${{ steps.validate.outputs.latest == 'true' }}
-        uses: peter-evans/dockerhub-description@v5.0.0
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: particular/servicecontrol-ravendb
-          readme-filepath: ./src/ServiceControl.RavenDB/Container-README.md
-          short-description: The default storage for ServiceControl instances.
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $loginBody = @{ username = $env:DOCKERHUB_USERNAME; password = $env:DOCKERHUB_TOKEN } | ConvertTo-Json
+          $loginResponse = Invoke-RestMethod -Uri "https://hub.docker.com/v2/users/login" -Method Post -ContentType "application/json" -Body $loginBody
+          $token = $loginResponse.token
+          $headers = @{ Authorization = "Bearer $token" }
+
+          $repos = @(
+            @{ name = "servicecontrol"; readme = "./src/ServiceControl/Container-README.md"; description = "Gather status, performance and monitoring data for multiple endpoints from a single location." },
+            @{ name = "servicecontrol-audit"; readme = "./src/ServiceControl.Audit/Container-README.md"; description = "Provide valuable information about the message flow through a system." },
+            @{ name = "servicecontrol-monitoring"; readme = "./src/ServiceControl.Monitoring/Container-README.md"; description = "Track the health of a distributed system." },
+            @{ name = "servicecontrol-ravendb"; readme = "./src/ServiceControl.RavenDB/Container-README.md"; description = "The default storage for ServiceControl instances." }
+          )
+
+          foreach ($repo in $repos) {
+            $readmeContent = Get-Content -Raw $repo.readme
+            $updateBody = @{ description = $repo.description; full_description = $readmeContent } | ConvertTo-Json -Depth 5
+            Invoke-RestMethod -Uri "https://hub.docker.com/v2/repositories/particular/$($repo.name)/" -Method Patch -ContentType "application/json" -Headers $headers -Body $updateBody
+            Write-Output "Updated description for particular/$($repo.name)"
+          }
