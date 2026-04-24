@@ -96,6 +96,7 @@ namespace ServiceControl.Transports
         public string ConnectionString { get; set; }
         public string EndpointName { get; set; }
         public string ErrorQueue { get; set; }
+        public System.Collections.Generic.IReadOnlySet<System.Type> EventTypesPublished { get; init; }
         public int? MaxConcurrency { get; set; }
         public bool RunCustomChecks { get; set; }
         public string TransportType { get; set; }

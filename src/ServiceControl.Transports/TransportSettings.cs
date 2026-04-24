@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Transports
 {
     using System;
+    using System.Collections.Generic;
     using System.Runtime.Loader;
     using NServiceBus.Settings;
 
@@ -17,6 +18,8 @@
         public int? MaxConcurrency { get; set; }
 
         public bool RunCustomChecks { get; set; }
+
+        public IReadOnlySet<Type> EventTypesPublished { get; init; } = new HashSet<Type>();
 
         public string ErrorQueue
         {
