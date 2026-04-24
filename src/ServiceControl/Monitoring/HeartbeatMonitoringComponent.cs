@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using Connection;
+    using Contracts;
     using EndpointControl.Handlers;
     using EventLog;
     using ExternalIntegrations;
@@ -8,6 +9,7 @@
     using Infrastructure.DomainEvents;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using NServiceBus;
     using Particular.ServiceControl;
     using Persistence;
     using Recoverability;
@@ -16,7 +18,17 @@
 
     class HeartbeatMonitoringComponent : ServiceControlComponent
     {
-        public override void Configure(Settings settings, ITransportCustomization transportCustomization, IHostApplicationBuilder hostBuilder)
+        public override void Setup(Settings settings, IComponentInstallationContext context, IHostApplicationBuilder hostBuilder)
+        {
+            // Integration Events
+            if (!settings.DisableExternalIntegrationsPublishing)
+            {
+                context.AddEventPublished<HeartbeatRestored>();
+                context.AddEventPublished<HeartbeatStopped>();
+            }
+        }
+
+        public override void Configure(Settings settings, EndpointConfiguration endpointConfiguration, ITransportCustomization transportCustomization, IHostApplicationBuilder hostBuilder)
         {
             hostBuilder.Services.AddHostedService<HeartbeatMonitoringHostedService>();
             hostBuilder.Services.AddHostedService<HeartbeatEndpointSettingsSyncHostedService>();

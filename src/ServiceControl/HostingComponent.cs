@@ -5,11 +5,12 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Transports;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using NServiceBus;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class HostingComponent : ServiceControlComponent
     {
-        public override void Configure(Settings settings, ITransportCustomization transportCustomization, IHostApplicationBuilder hostBuilder)
+        public override void Configure(Settings settings, EndpointConfiguration endpointConfiguration, ITransportCustomization transportCustomization, IHostApplicationBuilder hostBuilder)
         {
             var services = hostBuilder.Services;
             services.AddPlatformConnectionProvider<RemotePlatformConnectionDetailsProvider>();
