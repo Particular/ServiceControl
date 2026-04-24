@@ -7,7 +7,6 @@ namespace ServiceBus.Management.Infrastructure
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using ServiceControl.Configuration;
-    using ServiceControl.ExternalIntegrations;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Plugins;
     using ServiceControl.Infrastructure.Subscriptions;
@@ -37,11 +36,6 @@ namespace ServiceBus.Management.Infrastructure
 
             configuration.GetSettings().Set(settings.LoggingSettings);
             configuration.SetDiagnosticsPath(settings.LoggingSettings.LogPath);
-
-            if (!settings.DisableExternalIntegrationsPublishing)
-            {
-                configuration.EnableFeature<ExternalIntegrationsFeature>();
-            }
 
             var recoverability = configuration.Recoverability();
             recoverability.Immediate(c => c.NumberOfRetries(3));

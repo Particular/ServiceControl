@@ -1,11 +1,17 @@
 namespace Particular.ServiceControl
 {
+    using System;
     using System.Collections.Generic;
 
-    class ComponentInstallationContext : IComponentInstallationContext
+    public class ComponentInstallationContext : IComponentInstallationContext
     {
-        public List<string> Queues { get; } = [];
+        public IReadOnlyCollection<string> Queues => queuesToCreate;
+        public IReadOnlySet<Type> EventTypesPublished => eventTypePublished;
 
-        public void CreateQueue(string queueName) => Queues.Add(queueName);
+        public void CreateQueue(string queueName) => queuesToCreate.Add(queueName);
+        public void AddEventPublished<TEvent>() => eventTypePublished.Add(typeof(TEvent));
+
+        readonly List<string> queuesToCreate = [];
+        readonly HashSet<Type> eventTypePublished = [];
     }
 }

@@ -4,13 +4,14 @@ using global::ServiceControl.Infrastructure;
 using global::ServiceControl.LicenseManagement;
 using global::ServiceControl.Transports;
 using Microsoft.Extensions.Hosting;
+using NServiceBus;
 using Particular.LicensingComponent;
 using Particular.LicensingComponent.Shared;
 using ServiceBus.Management.Infrastructure.Settings;
 
 class LicensingComponent : ServiceControlComponent
 {
-    public override void Configure(Settings settings, ITransportCustomization transportCustomization,
+    public override void Configure(Settings settings, EndpointConfiguration endpointConfiguration, ITransportCustomization transportCustomization,
         IHostApplicationBuilder hostBuilder)
     {
         var licenseDetails = LicenseManager.FindLicense().Details;
