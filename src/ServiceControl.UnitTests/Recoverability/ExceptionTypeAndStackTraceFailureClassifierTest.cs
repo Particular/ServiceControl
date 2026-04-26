@@ -7,6 +7,8 @@
     [TestFixture]
     public class ExceptionTypeAndStackTraceFailureClassifierTest
     {
+        const string noStackTraceClassification = "exceptionType: No stacktrace available";
+
         [Test]
         public void Failure_Without_ExceptionDetails_should_not_group()
         {
@@ -23,7 +25,7 @@
             var failureWithEmptyStackTrace = CreateFailureDetailsWithStackTrace(string.Empty);
             var classification = classifier.ClassifyFailure(failureWithEmptyStackTrace);
 
-            Assert.That(classification, Is.EqualTo("exceptionType: 0"));
+            Assert.That(classification, Is.EqualTo(noStackTraceClassification));
         }
 
         [Test]
@@ -33,7 +35,7 @@
             var failureWithNullStackTrace = CreateFailureDetailsWithStackTrace(null);
             var classification = classifier.ClassifyFailure(failureWithNullStackTrace);
 
-            Assert.That(classification, Is.EqualTo("exceptionType: 0"));
+            Assert.That(classification, Is.EqualTo(noStackTraceClassification));
         }
 
         [Test]
@@ -43,7 +45,7 @@
             var failureWithNonStandardStackTrace = CreateFailureDetailsWithStackTrace("something other than a normal stack trace");
             var classification = classifier.ClassifyFailure(failureWithNonStandardStackTrace);
 
-            Assert.That(classification, Is.EqualTo("exceptionType: 0"));
+            Assert.That(classification, Is.EqualTo(noStackTraceClassification));
         }
 
         [Test]
@@ -53,7 +55,7 @@
             var failureWithNullMessage = CreateFailureDetailsWithMessage(null);
             var classification = classifier.ClassifyFailure(failureWithNullMessage);
 
-            Assert.That(classification, Is.EqualTo("exceptionType: 0"));
+            Assert.That(classification, Is.EqualTo(noStackTraceClassification));
         }
 
         [Test]
@@ -63,7 +65,7 @@
             var failureWithEmptyMessage = CreateFailureDetailsWithMessage(string.Empty);
             var classification = classifier.ClassifyFailure(failureWithEmptyMessage);
 
-            Assert.That(classification, Is.EqualTo("exceptionType: 0"));
+            Assert.That(classification, Is.EqualTo(noStackTraceClassification));
         }
 
         [Test]
@@ -73,7 +75,7 @@
             var failureWithWhitespaceMessage = CreateFailureDetailsWithMessage("   ");
             var classification = classifier.ClassifyFailure(failureWithWhitespaceMessage);
 
-            Assert.That(classification, Is.EqualTo("exceptionType: 0"));
+            Assert.That(classification, Is.EqualTo(noStackTraceClassification));
         }
 
         [Test]
