@@ -28,8 +28,8 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.7" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.7" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.5.0" />
-    <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.16.0" />
-    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.16.0" />
+    <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.18.0" />
+    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.18.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
     <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
     <PackageVersion Include="Mindscape.Raygun4Net.NetCore" Version="11.2.5" />
@@ -76,7 +76,7 @@
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="10.0.7" />
     <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="10.0.7" />
     <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="10.0.7" />
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.18.0" />
     <PackageVersion Include="System.Management" Version="10.0.7" />
     <PackageVersion Include="System.Management.Automation" Version="7.4.14" />
     <PackageVersion Include="System.Reactive" Version="6.1.0" />
@@ -86,7 +86,7 @@
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>
   <ItemGroup Label="Versions to pin transitive references">
-    <PackageVersion Include="Microsoft.IdentityModel.Abstractions" Version="8.16.0" />
+    <PackageVersion Include="Microsoft.IdentityModel.Abstractions" Version="8.18.0" />
     <PackageVersion Include="System.IO.Hashing" Version="10.0.7" />
   </ItemGroup>
   <ItemGroup>
