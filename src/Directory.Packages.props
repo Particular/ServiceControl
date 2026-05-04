@@ -16,18 +16,18 @@
     <PackageVersion Include="Fody" Version="6.9.3" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.3" />
     <PackageVersion Include="HdrHistogram" Version="2.5.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.5" />
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.5" />
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.5" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="10.0.5" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.5" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.5" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.5" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.5" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.5" />
-    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.4.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.5.0" />
     <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.16.0" />
     <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.16.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
@@ -73,21 +73,21 @@
     <PackageVersion Include="ReactiveUI.WPF" Version="22.3.1" />
     <PackageVersion Include="Seq.Extensions.Logging" Version="9.0.0" />
     <PackageVersion Include="ServiceControl.Contracts" Version="5.1.0" />
-    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="10.0.5" />
-    <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="10.0.5" />
-    <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="10.0.5" />
+    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="10.0.7" />
+    <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="10.0.7" />
+    <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="10.0.7" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
-    <PackageVersion Include="System.Management" Version="10.0.5" />
+    <PackageVersion Include="System.Management" Version="10.0.7" />
     <PackageVersion Include="System.Management.Automation" Version="7.4.14" />
     <PackageVersion Include="System.Reactive" Version="6.1.0" />
-    <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="10.0.5" />
-    <PackageVersion Include="System.ServiceProcess.ServiceController" Version="10.0.5" />
+    <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="10.0.7" />
+    <PackageVersion Include="System.ServiceProcess.ServiceController" Version="10.0.7" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>
   <ItemGroup Label="Versions to pin transitive references">
     <PackageVersion Include="Microsoft.IdentityModel.Abstractions" Version="8.16.0" />
-    <PackageVersion Include="System.IO.Hashing" Version="10.0.5" />
+    <PackageVersion Include="System.IO.Hashing" Version="10.0.7" />
   </ItemGroup>
   <ItemGroup>
     <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="6.1.63" />
