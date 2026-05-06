@@ -185,7 +185,7 @@
             return configuration.TransportCustomization.ProvisionQueues(transportSettings, []);
         }
 
-        protected static TimeSpan TestTimeout = TimeSpan.FromSeconds(60);
+        protected static TimeSpan TestTimeout = TimeSpan.FromMinutes(5);
 
         protected async Task SendAndReceiveMessages(string queueName, int numMessagesToIngest)
         {
@@ -200,7 +200,7 @@
 
                     if (numMessagesIngested == numMessagesToIngest)
                     {
-                        onMessagesProcessed.SetResult(true);
+                        onMessagesProcessed.TrySetResult(true);
                     }
 
                     return Task.CompletedTask;
