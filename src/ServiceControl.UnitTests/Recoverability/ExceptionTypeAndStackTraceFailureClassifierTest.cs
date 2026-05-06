@@ -7,7 +7,7 @@
     [TestFixture]
     public class ExceptionTypeAndStackTraceFailureClassifierTest
     {
-        const string noStackTraceClassification = "exceptionType: No stacktrace available";
+        const string noStackTraceClassification = "exceptionType: No stacktrace";
 
         [Test]
         public void Failure_Without_ExceptionDetails_should_not_group()

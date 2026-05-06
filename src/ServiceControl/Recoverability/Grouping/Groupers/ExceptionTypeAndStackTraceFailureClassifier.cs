@@ -55,7 +55,7 @@ namespace ServiceControl.Recoverability
             return GetNonStandardClassification(exception.ExceptionType);
         }
 
-        static string GetNonStandardClassification(string exceptionType) => exceptionType + ": No stacktrace available";
+        static string GetNonStandardClassification(string exceptionType) => exceptionType + ": No stacktrace";
 
         public const string Id = "Exception Type and Stack Trace";
 
