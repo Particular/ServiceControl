@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Text.Json;
     using NUnit.Framework;
     using Particular.Approvals;
@@ -64,15 +64,11 @@
             }
         }
 
-        public static string[][] GetAuditPersistenceManifestPaths()
+        public static IEnumerable<string> GetAuditPersistenceManifestPaths()
         {
             var deployPath = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "..", "..", "..", "..", "..", "deploy"));
             var persistersPath = Path.Combine(deployPath, "Particular.ServiceControl.Audit", "Persisters");
-            var manifestPaths = Directory.GetFiles(persistersPath, "persistence.manifest", SearchOption.AllDirectories);
-
-            return manifestPaths
-                .Select(path => new string[] { path })
-                .ToArray();
+            return Directory.GetFiles(persistersPath, "persistence.manifest", SearchOption.AllDirectories);
         }
     }
 }
