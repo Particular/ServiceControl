@@ -138,15 +138,24 @@ namespace ServiceControl.Transports
                 true,
                 null); //null means "not hosted by core", transport SHOULD adjust accordingly to not assume things
 
-            var receivers = new[]{
+            var receiveQueueName = transportSettings.EndpointName;
+            var receivers = new[]
+            {
                 new ReceiveSettings(
                     transportSettings.EndpointName,
-                    new QueueAddress(transportSettings.EndpointName),
+                    new QueueAddress(receiveQueueName),
                     false,
                     false,
-                    transportSettings.ErrorQueue)};
+                    transportSettings.ErrorQueue)
+            };
 
-            var transportInfrastructure = await transport.Initialize(hostSettings, receivers, additionalQueues.Union([transportSettings.ErrorQueue]).Select(ToTransportQualifiedQueueNameCore).ToArray());
+            var additionalQueuesToProvision = additionalQueues.Where(queueName => queueName != receiveQueueName)
+                .Union([transportSettings.ErrorQueue])
+                .Select(ToTransportQualifiedQueueNameCore)
+                .Distinct()
+                .ToArray();
+
+            var transportInfrastructure = await transport.Initialize(hostSettings, receivers, additionalQueuesToProvision);
             await transportInfrastructure.Shutdown();
         }
 

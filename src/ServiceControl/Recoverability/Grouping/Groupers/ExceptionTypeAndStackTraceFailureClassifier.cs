@@ -29,6 +29,7 @@ namespace ServiceControl.Recoverability
                 // We need to remove the message in order to make sure the stack trace parser does not get into catastrophic backtracking mode.
                 exceptionStackTrace = exceptionStackTrace.Replace(exception.Message, string.Empty);
             }
+
             try
             {
                 var firstStackTraceFrame = StackTraceParser.Parse(exceptionStackTrace, (frame, type, method, parameterList, parameters, file, line) => new StackFrame
@@ -54,10 +55,7 @@ namespace ServiceControl.Recoverability
             return GetNonStandardClassification(exception.ExceptionType);
         }
 
-        static string GetNonStandardClassification(string exceptionType)
-        {
-            return exceptionType + ": 0";
-        }
+        static string GetNonStandardClassification(string exceptionType) => exceptionType + ": No stacktrace";
 
         public const string Id = "Exception Type and Stack Trace";
 
