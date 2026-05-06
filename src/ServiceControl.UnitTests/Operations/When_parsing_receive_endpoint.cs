@@ -7,10 +7,10 @@ using ServiceControl.Contracts.Operations;
 using ServiceControl.Infrastructure;
 
 [TestFixture]
-public class EndpointDetailsParserTests
+public class When_parsing_receive_endpoint
 {
     [Test]
-    public void Receiving_endpoint_should_use_failed_queue_machine_when_host_is_missing()
+    public void Should_infer_host_from_machine_name_in_failed_queue_when_host_header_is_missing()
     {
         var headers = new Dictionary<string, string>
         {
@@ -29,7 +29,7 @@ public class EndpointDetailsParserTests
     }
 
     [Test]
-    public void Receiving_endpoint_should_use_unknown_host_when_failed_queue_is_used_to_infer_endpoint_name()
+    public void Should_fallback_to_unknown_if_host_can_not_be_determined()
     {
         var headers = new Dictionary<string, string>
         {
