@@ -34,8 +34,8 @@ class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
         //No failure time will result in utc now being used
         Assert.That(failure.TimeOfFailure, Is.GreaterThan(testStartTime));
 
-        // Both host and endpoint name is currently needed so this will be null since no host can be detected from the failed q header
-        Assert.That(failure.ReceivingEndpoint, Is.Null);
+        Assert.That(failure.ReceivingEndpoint, Is.Not.Null);
+        Assert.That(failure.ReceivingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint));
     }
 
     [Test]
@@ -44,10 +44,6 @@ class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
         var context = await Define<TestContext>(c =>
             {
                 c.AddMinimalRequiredHeaders();
-
-                // This is needed for ServiceControl to be able to detect both endpoint (via failed q header) and host via the processing machine header
-                // Missing endpoint or host will cause a null ref in ServicePulse
-                c.Headers[Headers.ProcessingMachine] = "MyMachine";
 
                 c.Headers[FaultsHeaderKeys.ExceptionType] = "SomeExceptionType";
                 c.Headers[FaultsHeaderKeys.Message] = "Some message";
@@ -62,8 +58,6 @@ class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
 
         // ServicePulse assumes that the receiving endpoint name is present
         Assert.That(failure.ReceivingEndpoint, Is.Not.Null);
-        Assert.That(failure.ReceivingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint));
-        Assert.That(failure.ReceivingEndpoint.Host, Is.EqualTo("MyMachine"));
 
         // ServicePulse needs both an exception type and description to render the UI in a resonable way
         Assert.That(failure.Exception.ExceptionType, Is.EqualTo("SomeExceptionType"));
