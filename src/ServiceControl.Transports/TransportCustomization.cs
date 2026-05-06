@@ -138,17 +138,18 @@ namespace ServiceControl.Transports
                 true,
                 null); //null means "not hosted by core", transport SHOULD adjust accordingly to not assume things
 
+            var receiveQueueName = transportSettings.EndpointName;
             var receivers = new[]
             {
                 new ReceiveSettings(
                     transportSettings.EndpointName,
-                    new QueueAddress(transportSettings.EndpointName),
+                    new QueueAddress(receiveQueueName),
                     false,
                     false,
                     transportSettings.ErrorQueue)
             };
 
-            var additionalQueuesToProvision = additionalQueues
+            var additionalQueuesToProvision = additionalQueues.Where(queueName => queueName != receiveQueueName)
                 .Union([transportSettings.ErrorQueue])
                 .Select(ToTransportQualifiedQueueNameCore)
                 .Distinct()
