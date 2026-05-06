@@ -149,9 +149,10 @@ namespace ServiceControl.Transports
             };
 
             var additionalQueuesToProvision = additionalQueues
-                .Distinct()
                 .Union([transportSettings.ErrorQueue])
-                .Select(ToTransportQualifiedQueueNameCore).ToArray();
+                .Select(ToTransportQualifiedQueueNameCore)
+                .Distinct()
+                .ToArray();
 
             var transportInfrastructure = await transport.Initialize(hostSettings, receivers, additionalQueuesToProvision);
             await transportInfrastructure.Shutdown();
