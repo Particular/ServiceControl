@@ -4,7 +4,6 @@ namespace Particular.ServiceControl
     using System.Diagnostics;
     using System.Runtime.InteropServices;
     using global::ServiceControl.CustomChecks;
-    using global::ServiceControl.ExternalIntegrations;
     using global::ServiceControl.Hosting;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.BackgroundTasks;
@@ -45,8 +44,15 @@ namespace Particular.ServiceControl
             hostBuilder.Logging.ClearProviders();
             hostBuilder.Logging.ConfigureLogging(settings.LoggingSettings.LogLevel);
 
+            var componentSetupContext = new ComponentInstallationContext();
+            var serviceControlComponents = ServiceControlMainInstance.Components;
+            foreach (ServiceControlComponent component in serviceControlComponents)
+            {
+                component.Setup(settings, componentSetupContext, hostBuilder);
+            }
+
             var services = hostBuilder.Services;
-            var transportSettings = settings.ToTransportSettings();
+            var transportSettings = settings.ToTransportSettings(componentSetupContext);
             var transportCustomization = TransportFactory.Create(transportSettings);
             transportCustomization.AddTransportForPrimary(services, transportSettings);
 
@@ -81,11 +87,6 @@ namespace Particular.ServiceControl
             NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, configuration);
             hostBuilder.UseNServiceBus(configuration);
 
-            if (!settings.DisableExternalIntegrationsPublishing)
-            {
-                hostBuilder.AddExternalIntegrationEvents();
-            }
-
             hostBuilder.AddServicePulseSignalRNotifier();
             hostBuilder.AddEmailNotifications();
             hostBuilder.AddAsyncTimer();
@@ -101,7 +102,7 @@ namespace Particular.ServiceControl
                 hostBuilder.AddWindowsServiceWithRequestTimeout();
             }
 
-            hostBuilder.AddServiceControlComponents(settings, transportCustomization, ServiceControlMainInstance.Components);
+            hostBuilder.AddServiceControlComponents(componentSetupContext, settings, transportCustomization, serviceControlComponents);
         }
 
         public static void AddServiceControlInstallers(this IHostApplicationBuilder hostApplicationBuilder, Settings settings)

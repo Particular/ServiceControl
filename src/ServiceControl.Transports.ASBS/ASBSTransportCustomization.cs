@@ -1,7 +1,11 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
+    using System.Collections.Generic;
     using System.Linq;
     using System.Text.Json;
+    using System.Threading.Tasks;
+    using Azure.Messaging.ServiceBus;
+    using Azure.Messaging.ServiceBus.Administration;
     using BrokerThroughput;
     using Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -71,18 +75,7 @@
                 {
                     TopicToPublishTo = connectionSettings.TopicName,
                     TopicToSubscribeOn = connectionSettings.TopicName,
-                    EventsToMigrateMap =
-                    [
-                        "ServiceControl.Contracts.CustomCheckFailed",
-                        "ServiceControl.Contracts.CustomCheckSucceeded",
-                        "ServiceControl.Contracts.HeartbeatRestored",
-                        "ServiceControl.Contracts.HeartbeatStopped",
-                        "ServiceControl.Contracts.FailedMessagesArchived",
-                        "ServiceControl.Contracts.FailedMessagesUnArchived",
-                        "ServiceControl.Contracts.MessageFailed",
-                        "ServiceControl.Contracts.MessageFailureResolvedByRetry",
-                        "ServiceControl.Contracts.MessageFailureResolvedManually"
-                    ]
+                    EventsToMigrateMap = [.. transportSettings.EventTypesPublished.Select(t => t.FullName)]
                 });
             }
             else if (SettingsReader.TryRead<string>(serviceBusRootNamespace, "Topology", out var topologyJson))
@@ -103,6 +96,48 @@
         {
             services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
+        }
+
+        public override async Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues)
+        {
+            await base.ProvisionQueues(transportSettings, additionalQueues);
+
+            if (transportSettings.EventTypesPublished.Count == 0)
+            {
+                return;
+            }
+
+            var connectionSettings = ConnectionStringParser.Parse(transportSettings.ConnectionString);
+
+            var managementClient = connectionSettings.AuthenticationMethod.BuildManagementClient();
+
+            var creationTasks = new List<Task>(transportSettings.EventTypesPublished.Count);
+            foreach (var publishedTopic in transportSettings.EventTypesPublished)
+            {
+                creationTasks.Add(CreateTopic(publishedTopic.FullName));
+            }
+            await Task.WhenAll(creationTasks);
+
+            async Task CreateTopic(string publishedTopic)
+            {
+                var topicToPublishTo = new CreateTopicOptions(connectionSettings.HierarchyNamespace != null
+                    ? $"{connectionSettings.HierarchyNamespace}/{publishedTopic}"
+                    : publishedTopic)
+                {
+                    EnableBatchedOperations = true,
+                    MaxSizeInMegabytes = 5 * 1024, // we are currently not configuring this in the connection string so it uses the same default as the transport
+                    EnablePartitioning = connectionSettings.EnablePartitioning,
+                };
+
+                try
+                {
+                    await managementClient.CreateTopicAsync(topicToPublishTo).ConfigureAwait(false);
+                }
+                catch (ServiceBusException sbe) when (sbe.Reason == ServiceBusFailureReason.MessagingEntityAlreadyExists || sbe.IsTransient)
+                {
+                    // carry on
+                }
+            }
         }
     }
 }

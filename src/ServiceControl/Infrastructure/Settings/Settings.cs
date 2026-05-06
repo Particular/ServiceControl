@@ -9,6 +9,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using Microsoft.Extensions.Logging;
     using NLog.Common;
     using NServiceBus.Transport;
+    using Particular.ServiceControl;
     using ServiceControl.Configuration;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Settings;
@@ -238,7 +239,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return connectionStringSettings?.ConnectionString;
         }
 
-        public TransportSettings ToTransportSettings()
+        public TransportSettings ToTransportSettings(ComponentInstallationContext installationContext)
         {
             var transportSettings = new TransportSettings
             {
@@ -247,7 +248,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
                 MaxConcurrency = MaximumConcurrencyLevel,
                 RunCustomChecks = true,
                 TransportType = TransportType,
-                AssemblyLoadContextResolver = AssemblyLoadContextResolver
+                AssemblyLoadContextResolver = AssemblyLoadContextResolver,
+                EventTypesPublished = installationContext.EventTypesPublished,
             };
             return transportSettings;
         }

@@ -40,7 +40,7 @@
             }
             else
             {
-                var transportSettings = settings.ToTransportSettings();
+                var transportSettings = settings.ToTransportSettings(componentSetupContext);
                 transportSettings.RunCustomChecks = false;
                 var transportCustomization = TransportFactory.Create(transportSettings);
 

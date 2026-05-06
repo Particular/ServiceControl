@@ -4,6 +4,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Connection;
+    using Contracts;
     using Contracts.MessageFailures;
     using CustomChecks;
     using EventLog;
@@ -20,9 +21,40 @@
     using Retrying;
     using ServiceBus.Management.Infrastructure.Settings;
     using Transports;
+    using FailedMessagesUnArchived = Contracts.FailedMessagesUnArchived;
+    using MessageEditedAndRetried = Contracts.MessageEditedAndRetried;
+    using MessageFailed = Contracts.MessageFailed;
+    using MessageFailureResolvedByRetry = Contracts.MessageFailureResolvedByRetry;
+    using MessageFailureResolvedManually = Contracts.MessageFailureResolvedManually;
 
     class RecoverabilityComponent : ServiceControlComponent
     {
+        public override void Setup(Settings settings, IComponentInstallationContext context, IHostApplicationBuilder hostBuilder)
+        {
+            context.CreateQueue(settings.StagingQueue);
+
+            if (settings.IngestErrorMessages)
+            {
+                context.CreateQueue(settings.ErrorQueue);
+            }
+
+            if (settings.ForwardErrorMessages && settings.ErrorLogQueue != null)
+            {
+                context.CreateQueue(settings.ErrorLogQueue);
+            }
+
+            // Integration Events
+            if (!settings.DisableExternalIntegrationsPublishing)
+            {
+                context.AddEventPublished<FailedMessagesArchived>();
+                context.AddEventPublished<FailedMessagesUnArchived>();
+                context.AddEventPublished<MessageFailed>();
+                context.AddEventPublished<MessageFailureResolvedByRetry>();
+                context.AddEventPublished<MessageFailureResolvedManually>();
+                context.AddEventPublished<MessageEditedAndRetried>();
+            }
+        }
+
         public override void Configure(Settings settings, ITransportCustomization transportCustomization, IHostApplicationBuilder hostBuilder)
         {
             var services = hostBuilder.Services;
@@ -104,21 +136,6 @@
             services.AddEventLogMapping<MessageSubmittedForRetryDefinition>();
             services.AddEventLogMapping<MessagesSubmittedForRetryDefinition>();
             services.AddEventLogMapping<MessagesSubmittedForRetryFailedDefinition>();
-        }
-
-        public override void Setup(Settings settings, IComponentInstallationContext context, IHostApplicationBuilder hostBuilder)
-        {
-            context.CreateQueue(settings.StagingQueue);
-
-            if (settings.IngestErrorMessages)
-            {
-                context.CreateQueue(settings.ErrorQueue);
-            }
-
-            if (settings.ForwardErrorMessages && settings.ErrorLogQueue != null)
-            {
-                context.CreateQueue(settings.ErrorLogQueue);
-            }
         }
 
         class FailedMessageNotificationsHostedService : IHostedService

@@ -1,7 +1,9 @@
 namespace Particular.ServiceControl
 {
-    interface IComponentInstallationContext
+    public interface IComponentInstallationContext
     {
         void CreateQueue(string queueName);
+
+        void AddEventPublished<TEvent>();
     }
 }
