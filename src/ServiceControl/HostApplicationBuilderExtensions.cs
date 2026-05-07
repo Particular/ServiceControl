@@ -11,6 +11,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure.Metrics;
     using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Infrastructure.WebApi;
+    using global::ServiceControl.Mcp;
     using global::ServiceControl.Notifications.Email;
     using global::ServiceControl.Persistence;
     using global::ServiceControl.Transports;
@@ -62,6 +63,7 @@ namespace Particular.ServiceControl
             services.AddSingleton<MessageStreamerHub>();
             services.AddSingleton(settings);
             services.AddEnvironmentDataProvider<ServiceControlErrorInstanceEnvironmentDataProvider>();
+            services.AddEnvironmentDataProvider<McpEnvironmentDataProvider>();
 
             services.AddHttpLogging(options =>
             {

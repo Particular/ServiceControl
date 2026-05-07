@@ -66,10 +66,14 @@
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken)
+            => await QueryMessagesByReceivingEndpointAndKeyword(false, endpoint, keyword, pagingInfo, sortInfo, timeSentRange, cancellationToken);
+
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(bool includeSystemMessages, string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken)
         {
             var messages = GetMessageIdsMatchingQuery(keyword);
 
             var matched = messageViews.Where(w => w.ReceivingEndpoint.Name == endpoint && messages.Contains(w.MessageId) &&
+                    (!w.IsSystemMessage || includeSystemMessages) &&
                     (timeSentRange == null || !timeSentRange.From.HasValue || w.TimeSent >= timeSentRange.From.Value) &&
                     (timeSentRange == null || !timeSentRange.To.HasValue || w.TimeSent <= timeSentRange.To.Value))
                 .ToList();
@@ -79,6 +83,7 @@
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken)
         {
             var matched = messageViews.Where(w => w.ReceivingEndpoint.Name == endpointName &&
+                    (!w.IsSystemMessage || includeSystemMessages) &&
                     (timeSentRange == null || !timeSentRange.From.HasValue || w.TimeSent >= timeSentRange.From.Value) &&
                     (timeSentRange == null || !timeSentRange.To.HasValue || w.TimeSent <= timeSentRange.To.Value))
                 .ToList();
