@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Web;
+using BrokerThroughput;
 using Microsoft.Extensions.DependencyInjection;
 using NServiceBus;
 using NServiceBus.Transport.IBMMQ;
@@ -17,6 +18,9 @@ public class IBMMQTransportCustomization : TransportCustomization<IBMMQTransport
 
     protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, IBMMQTransport transportDefinition, TransportSettings transportSettings) =>
         transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
+
+    protected override void AddTransportForPrimaryCore(IServiceCollection services, TransportSettings transportSettings) =>
+        services.AddSingleton<IBrokerThroughputQuery, IBMMQQuery>();
 
     protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
     {
