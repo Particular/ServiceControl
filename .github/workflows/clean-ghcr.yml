@@ -7,15 +7,28 @@ jobs:
   clean:
     name: Delete unused containers
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - name: Clean up images
-        uses: snok/container-retention-policy@v3.0.1
-        with:
-          image-names: servicecontrol servicecontrol-audit servicecontrol-monitoring servicecontrol-ravendb
-          image-tags: pr-*, *-alpha.*
-          tag-selection: both
-          cut-off: 2w
-          timestamp-to-use: updated_at
-          account: particular
-          token: ${{ secrets.GITHUB_TOKEN }}
-          dry-run: false
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cutoff=$(date -u -d "2 weeks ago" +"%Y-%m-%dT%H:%M:%SZ")
+          images=("servicecontrol" "servicecontrol-audit" "servicecontrol-monitoring" "servicecontrol-ravendb")
+
+          for image in "${images[@]}"; do
+            echo "Processing image: $image"
+            version_ids=$(gh api --paginate "/orgs/particular/packages/container/${image}/versions" | \
+              jq -r --arg cutoff "$cutoff" \
+                '.[] | select(.updated_at < $cutoff) | select(.metadata.container.tags | (length == 0 or any(.[]; test("^pr-") or test("-alpha\\.")))) | .id')
+
+            if [ -n "$version_ids" ]; then
+              echo "$version_ids" | while read -r version_id; do
+                echo "Deleting version $version_id of $image"
+                gh api --method DELETE "/orgs/particular/packages/container/${image}/versions/${version_id}"
+              done
+            else
+              echo "No versions to delete for $image"
+            fi
+          done
