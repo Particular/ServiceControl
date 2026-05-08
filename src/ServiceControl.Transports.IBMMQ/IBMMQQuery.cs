@@ -147,8 +147,10 @@ class IBMMQQuery(
                     {
                         errors.Add(
                             "Statistics collection is disabled on the queue manager (STATQ=OFF). " +
-                            "Run `ALTER QMGR STATQ(ON)` to enable broker-side throughput collection. " +
-                            "ServiceControl will continue to operate; audit-based throughput will be used as a fallback.");
+                            "Broker-side throughput collection is unavailable. ServiceControl will " +
+                            "continue to operate; audit-based and monitoring-based throughput collection " +
+                            "(when configured) provide the same data without requiring queue manager " +
+                            "changes. To enable broker-side collection, run `ALTER QMGR STATQ(ON)`.");
                     }
                 }
                 finally
