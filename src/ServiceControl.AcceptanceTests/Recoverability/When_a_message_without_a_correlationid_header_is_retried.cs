@@ -64,7 +64,7 @@
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoRetries();
-                    c.RegisterComponents(services => services.AddSingleton<CorrelationIdRemover>());
+                    c.RegisterMessageMutator(new CorrelationIdRemover());
                 });
 
             public class MyMessageHandler(MyContext testContext, IReadOnlySettings settings)

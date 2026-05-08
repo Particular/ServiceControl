@@ -28,6 +28,8 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
         {
             var externalProcessorSubscribed = false;
 
+            CustomizeHostBuilder = builder => builder.Services.AddSingleton<IEventPublisher, FaultyPublisher>();
+
             CustomConfiguration = config =>
             {
                 config.OnEndpointSubscribed<MyContext>((s, ctx) =>
@@ -37,8 +39,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                         externalProcessorSubscribed = true;
                     }
                 });
-
-                config.RegisterComponents(services => services.AddSingleton<IEventPublisher, FaultyPublisher>());
             };
 
             ExecuteWhen(() => externalProcessorSubscribed, domainEvents => domainEvents.Raise(new EndpointFailedToHeartbeat

@@ -24,15 +24,15 @@
         {
             var criticalErrorExecuted = false;
 
-            SetSettings = settings => { settings.MaximumConcurrencyLevel = 10; };
+            SetSettings = settings => settings.MaximumConcurrencyLevel = 10;
+            CustomizeHostBuilder = builder => builder.Services.AddSingleton<CounterEnricher>();
             CustomConfiguration = config =>
             {
-                config.DefineCriticalErrorAction((_, __) =>
+                config.DefineCriticalErrorAction((_, _) =>
                 {
                     criticalErrorExecuted = true;
                     return Task.CompletedTask;
                 });
-                config.RegisterComponents(services => services.AddSingleton<CounterEnricher>());
             };
 
             FailedMessage failure = null;

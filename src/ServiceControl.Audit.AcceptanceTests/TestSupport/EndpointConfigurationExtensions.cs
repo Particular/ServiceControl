@@ -14,12 +14,6 @@ static class EndpointConfigurationExtensions
         configuration.GetSettings().Set("SC.ScenarioContext", context);
         configuration.GetSettings().Set(context);
 
-        configuration.RegisterComponents(r =>
-        {
-            r.AddSingleton(context.GetType(), context);
-            r.AddSingleton(typeof(ScenarioContext), context);
-        });
-
         configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();
         configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
         configuration.Pipeline.Register(new StampDispatchBehavior(context), "Stamps outgoing messages with session ID");

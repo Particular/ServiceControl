@@ -92,14 +92,10 @@
 
         class RemoteEndpoint : EndpointConfigurationBuilder
         {
-            public RemoteEndpoint() => EndpointSetup<DefaultServerWithAudit>(c => c.RegisterComponents(services => services.AddSingleton<IMutateIncomingTransportMessages, MessageBodySpy>()));
+            public RemoteEndpoint() => EndpointSetup<DefaultServerWithAudit, MyContext>((c, context) => c.RegisterMessageMutator(new MessageBodySpy(context)));
 
-            public class MessageBodySpy : IMutateIncomingTransportMessages
+            public class MessageBodySpy(MyContext testContext) : IMutateIncomingTransportMessages
             {
-                readonly MyContext testContext;
-
-                public MessageBodySpy(MyContext testContext) => this.testContext = testContext;
-
                 public Task MutateIncoming(MutateIncomingTransportMessageContext context)
                 {
                     testContext.MessageContentType = context.Headers[Headers.ContentType];

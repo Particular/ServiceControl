@@ -2,7 +2,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport;
 
 using System.IO;
 using AcceptanceTesting;
-using Microsoft.Extensions.DependencyInjection;
 using NServiceBus;
 using NServiceBus.AcceptanceTesting;
 using NServiceBus.Configuration.AdvancedExtensibility;
@@ -13,12 +12,6 @@ static class EndpointConfigurationExtensions
     {
         configuration.GetSettings().Set("SC.ScenarioContext", context);
         configuration.GetSettings().Set(context);
-
-        configuration.RegisterComponents(r =>
-        {
-            r.AddSingleton(context.GetType(), context);
-            r.AddSingleton(typeof(ScenarioContext), context);
-        });
 
         configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();
         configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();

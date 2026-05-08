@@ -30,7 +30,6 @@
             await endpointTestExecutionConfiguration.Configure(endpointCustomizations.EndpointName, endpointConfiguration, runDescriptor.Settings, endpointCustomizations.PublisherMetadata);
             runDescriptor.OnTestCompleted(_ => endpointTestExecutionConfiguration.Cleanup());
 
-            endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
             await endpointConfiguration.DefinePersistence(runDescriptor, endpointCustomizations);
 
             endpointConfiguration.UseSerialization<SystemJsonSerializer>();
