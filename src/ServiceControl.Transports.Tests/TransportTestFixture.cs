@@ -30,7 +30,9 @@
         public virtual async Task Setup()
         {
             //used for loggers outside ServiceControl (i.e. transports and core) to use the logger factory defined here
+#pragma warning disable CS0618 // Type or member is obsolete
             LogManager.UseFactory(new ExtensionsLoggerFactory(new TestContextAppenderFactory(Microsoft.Extensions.Logging.LogLevel.Warning)));
+#pragma warning restore CS0618 // Type or member is obsolete
             LoggerUtil.ActiveLoggers = Loggers.Test;
             configuration = new TransportTestsConfiguration();
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);

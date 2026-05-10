@@ -16,8 +16,10 @@ namespace ServiceControl.Infrastructure
     {
         public static void ConfigureLogging(LoggingSettings loggingSettings)
         {
-            //used for loggers outside of ServiceControl (i.e. transports and core) to use the logger factory defined here
+            //used for loggers outside ServiceControl (i.e. transports and core) to use the logger factory defined here
+#pragma warning disable CS0618 // Type or member is obsolete
             LogManager.UseFactory(new ExtensionsLoggerFactory(LoggerFactory.Create(configure => configure.ConfigureLogging(loggingSettings.LogLevel))));
+#pragma warning restore CS0618 // Type or member is obsolete
 
             if (!LoggerUtil.IsLoggingTo(Loggers.NLog) || NLog.LogManager.Configuration != null)
             {
