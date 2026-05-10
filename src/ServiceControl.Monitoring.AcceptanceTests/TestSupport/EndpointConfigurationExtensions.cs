@@ -4,6 +4,7 @@ using System.IO;
 using AcceptanceTesting;
 using NServiceBus;
 using NServiceBus.AcceptanceTesting;
+using NServiceBus.AcceptanceTesting.Customization;
 using NServiceBus.Configuration.AdvancedExtensibility;
 
 static class EndpointConfigurationExtensions
@@ -11,7 +12,7 @@ static class EndpointConfigurationExtensions
     public static void CustomizeServiceControlMonitoringEndpointTesting(this EndpointConfiguration configuration, ScenarioContext context)
     {
         configuration.GetSettings().Set("SC.ScenarioContext", context);
-        configuration.GetSettings().Set(context);
+        configuration.RegisterScenarioContext(context);
 
         configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();
         configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
