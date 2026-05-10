@@ -59,12 +59,12 @@ class AuditIngestionFaultPolicy
             Id = Guid.NewGuid().ToString(),
             Message = new FailedTransportMessage
             {
-                Id = errorContext.Message.MessageId,
-                Headers = errorContext.Message.Headers,
+                Id = errorContext.MessageId,
+                Headers = errorContext.Headers,
                 // At the moment we are taking a defensive copy of the body to avoid issues with the message body
                 // buffers being returned to the pool and potentially being overwritten. Once we know how RavenDB
-                // handles byte[] to ReadOnlyMemory<byte> conversion we might be able to remove this.
-                Body = errorContext.Message.Body.ToArray()
+                // handles byte[] to ReadOnlyMemory<byte> conversion, we might be able to remove this.
+                Body = errorContext.Body.ToArray()
             },
             ExceptionInfo = errorContext.Exception.ToFriendlyString()
         };
