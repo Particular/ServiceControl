@@ -81,6 +81,8 @@ public static class HostApplicationBuilderExtensions
 
     static void ConfigureEndpoint(EndpointConfiguration config, Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, ITransportCustomization transportCustomization, TransportSettings transportSettings, Settings settings, IServiceCollection services)
     {
+        config.Handlers.ServiceControlMonitoringAssembly.AddAll();
+
         transportCustomization.CustomizeMonitoringEndpoint(config, transportSettings);
 
         var serviceControlThroughputDataQueue = settings.ServiceControlThroughputDataQueue;

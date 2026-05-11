@@ -29,6 +29,8 @@ namespace ServiceBus.Management.Infrastructure
                 assemblyScanner.Disable = true;
             }
 
+            configuration.Handlers.ServiceControlAssembly.AddAll();
+
             configuration.EnableFeature<RegisterPluginMessagesFeature>();
 
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
