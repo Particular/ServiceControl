@@ -38,7 +38,6 @@
     <PackageVersion Include="NServiceBus.AcceptanceTesting" Version="10.2.0-alpha.8" />
     <PackageVersion Include="NServiceBus.AmazonSQS" Version="9.0.1" />
     <PackageVersion Include="NServiceBus.CustomChecks" Version="6.0.1" />
-    <PackageVersion Include="NServiceBus.Extensions.Hosting" Version="4.0.1" />
     <PackageVersion Include="NServiceBus.Extensions.Logging" Version="4.0.1" />
     <PackageVersion Include="NServiceBus.Heartbeat" Version="6.0.1" />
     <PackageVersion Include="NServiceBus.Metrics" Version="6.0.1" />

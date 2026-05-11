@@ -74,7 +74,7 @@ public static class HostApplicationBuilderExtensions
         services.AddLicenseCheck();
 
         ConfigureEndpoint(endpointConfiguration, onCriticalError, transportCustomization, transportSettings, settings, services);
-        hostBuilder.UseNServiceBus(endpointConfiguration);
+        services.AddNServiceBusEndpoint(endpointConfiguration);
 
         hostBuilder.AddAsyncTimer();
     }

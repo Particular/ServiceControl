@@ -85,7 +85,7 @@ namespace Particular.ServiceControl
             services.AddMetrics(settings.PrintMetrics);
 
             NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, configuration);
-            hostBuilder.UseNServiceBus(configuration);
+            hostBuilder.Services.AddNServiceBusEndpoint(configuration);
 
             hostBuilder.AddServicePulseSignalRNotifier();
             hostBuilder.AddEmailNotifications();

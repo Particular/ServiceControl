@@ -68,7 +68,7 @@ static class HostApplicationBuilderExtensions
         services.AddPersistence(persistenceSettings, persistenceConfiguration);
 
         NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, onCriticalError, configuration);
-        builder.UseNServiceBus(configuration);
+        services.AddNServiceBusEndpoint(configuration);
 
         builder.AddMetrics(settings);
 
