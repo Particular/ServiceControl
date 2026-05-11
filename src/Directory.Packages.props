@@ -40,7 +40,7 @@
     <PackageVersion Include="NServiceBus.CustomChecks" Version="6.0.1" />
     <PackageVersion Include="NServiceBus.Extensions.Hosting" Version="4.0.1" />
     <PackageVersion Include="NServiceBus.Extensions.Logging" Version="4.0.1" />
-    <PackageVersion Include="NServiceBus.Heartbeat" Version="6.0.0" />
+    <PackageVersion Include="NServiceBus.Heartbeat" Version="6.0.1" />
     <PackageVersion Include="NServiceBus.Metrics" Version="6.0.1" />
     <PackageVersion Include="NServiceBus.Metrics.ServiceControl" Version="6.0.0" />
     <PackageVersion Include="NServiceBus.Persistence.NonDurable" Version="3.0.0" />
