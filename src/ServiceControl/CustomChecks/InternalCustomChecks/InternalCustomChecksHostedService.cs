@@ -37,7 +37,7 @@
         {
             if (managers.Any())
             {
-                await Task.WhenAll(managers.Select(m => m.Stop()).ToArray());
+                await Task.WhenAll([.. managers.Select(m => m.Stop())]);
             }
         }
 
@@ -47,6 +47,7 @@
             HostId = hostInfo.HostId,
             Name = endpointName
         };
-        IList<InternalCustomCheckManager> managers = [];
+
+        readonly IList<InternalCustomCheckManager> managers = [];
     }
 }
