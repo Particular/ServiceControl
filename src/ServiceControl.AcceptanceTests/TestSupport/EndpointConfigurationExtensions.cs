@@ -22,6 +22,8 @@
             configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
             configuration.Pipeline.Register(new StampDispatchBehavior(context), "Stamps outgoing messages with session ID");
             configuration.Pipeline.Register(new DiscardMessagesBehavior(context), "Discards messages based on session ID");
+
+            configuration.AssemblyScanner().Disable = true;
         }
     }
 }
