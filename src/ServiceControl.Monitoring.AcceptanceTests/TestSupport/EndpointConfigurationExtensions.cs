@@ -1,6 +1,5 @@
 namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport;
 
-using System.IO;
 using AcceptanceTesting;
 using NServiceBus;
 using NServiceBus.AcceptanceTesting;
@@ -18,8 +17,5 @@ static class EndpointConfigurationExtensions
         configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
         configuration.Pipeline.Register(new StampDispatchBehavior(context), "Stamps outgoing messages with session ID");
         configuration.Pipeline.Register(new DiscardMessagesBehavior(context), "Discards messages based on session ID");
-
-        var assemblyScanner = configuration.AssemblyScanner();
-        assemblyScanner.ExcludeAssemblies(Path.GetFileName(typeof(ServiceControlComponentRunner).Assembly.Location));
     }
 }

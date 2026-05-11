@@ -65,17 +65,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     SettingsPerInstance[AuditInstanceSettings.DEFAULT_INSTANCE_NAME] = auditSettings;
                 }, auditEndpointConfiguration =>
                 {
-                    var scanner = auditEndpointConfiguration.AssemblyScanner();
-                    var excludedAssemblies = new[]
-                    {
-                        "ServiceControl.Persistence.RavenDB.dll",
-                        "ServiceControl.AcceptanceTests.RavenDB.dll",
-                        "ServiceControl.Audit.AcceptanceTests.dll",
-                        Path.GetFileName(typeof(PrimaryInstanceSettings).Assembly.Location),
-                        Path.GetFileName(typeof(ServiceControlComponentRunner).Assembly.Location),
-                    };
-                    scanner.ExcludeAssemblies(excludedAssemblies);
-
                     customAuditEndpointConfiguration(auditEndpointConfiguration);
                 },
                 _ => { },
@@ -98,17 +87,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 },
                 primaryEndpointConfiguration =>
                 {
-                    var scanner = primaryEndpointConfiguration.AssemblyScanner();
-                    var excludedAssemblies = new[]
-                    {
-                        "ServiceControl.Persistence.RavenDB.dll",
-                        "ServiceControl.AcceptanceTests.RavenDB.dll",
-                        "ServiceControl.Audit.AcceptanceTests.dll",
-                        Path.GetFileName(typeof(AuditInstanceSettings).Assembly.Location),
-                        typeof(ServiceControlComponentRunner).Assembly.GetName().Name
-                    };
-                    scanner.ExcludeAssemblies(excludedAssemblies);
-
                     customPrimaryEndpointConfiguration(primaryEndpointConfiguration);
                 },
                 primaryHostBuilder =>

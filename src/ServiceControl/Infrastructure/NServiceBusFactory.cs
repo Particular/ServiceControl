@@ -26,7 +26,7 @@ namespace ServiceBus.Management.Infrastructure
             {
                 configuration = new EndpointConfiguration(transportSettings.EndpointName);
                 var assemblyScanner = configuration.AssemblyScanner();
-                assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
+                assemblyScanner.Disable = true;
             }
 
             configuration.EnableFeature<RegisterPluginMessagesFeature>();

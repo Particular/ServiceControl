@@ -54,7 +54,7 @@
         {
             var endpointConfiguration = new EndpointConfiguration(settings.InstanceName);
             var assemblyScanner = endpointConfiguration.AssemblyScanner();
-            assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
+            assemblyScanner.Disable = true;
 
             return endpointConfiguration;
         }

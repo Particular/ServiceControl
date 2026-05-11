@@ -23,7 +23,7 @@ namespace ServiceControl.Audit.Infrastructure
             {
                 configuration = new EndpointConfiguration(endpointName);
                 var assemblyScanner = configuration.AssemblyScanner();
-                assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
+                assemblyScanner.Disable = true;
             }
 
             configuration.EnableFeature<RegisterPluginMessagesFeature>();
