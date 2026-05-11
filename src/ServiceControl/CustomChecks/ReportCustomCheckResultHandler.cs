@@ -7,13 +7,9 @@
     using Plugin.CustomChecks.Messages;
     using ServiceControl.Operations;
 
-    class ReportCustomCheckResultHandler : IHandleMessages<ReportCustomCheckResult>
+    [Handler]
+    class ReportCustomCheckResultHandler(CustomCheckResultProcessor checkResultProcessor) : IHandleMessages<ReportCustomCheckResult>
     {
-        public ReportCustomCheckResultHandler(CustomCheckResultProcessor checkResultProcessor)
-        {
-            this.checkResultProcessor = checkResultProcessor;
-        }
-
         public async Task Handle(ReportCustomCheckResult message, IMessageHandlerContext context)
         {
             if (string.IsNullOrEmpty(message.EndpointName))
@@ -48,7 +44,5 @@
 
             await checkResultProcessor.ProcessResult(checkDetails);
         }
-
-        readonly CustomCheckResultProcessor checkResultProcessor;
     }
 }

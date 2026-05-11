@@ -5,13 +5,9 @@
     using Messaging;
     using NServiceBus;
 
-    public class QueueLengthReportHandler : IHandleMessages<TaggedLongValueOccurrence>
+    [Handler]
+    public class QueueLengthReportHandler(QueueLengthStore queueLengthStore) : IHandleMessages<TaggedLongValueOccurrence>
     {
-        public QueueLengthReportHandler(QueueLengthStore queueLengthStore)
-        {
-            this.queueLengthStore = queueLengthStore;
-        }
-
         public Task Handle(TaggedLongValueOccurrence message, IMessageHandlerContext context)
         {
             var endpointName = context.MessageHeaders[Headers.OriginatingEndpoint];
@@ -25,8 +21,6 @@
             return Task.CompletedTask;
         }
 
-
-        QueueLengthStore queueLengthStore;
 
         const string QueueLengthMessageType = "QueueLength";
     }

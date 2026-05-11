@@ -6,21 +6,13 @@ namespace ServiceControl.Recoverability
     using NServiceBus;
     using ServiceControl.Persistence;
 
-    class RetriesHandler : IHandleMessages<RequestRetryAll>,
+    [Handler]
+    class RetriesHandler(RetriesGateway retries, IErrorMessageDataStore dataStore) : IHandleMessages<RequestRetryAll>,
         IHandleMessages<RetryMessagesById>,
         IHandleMessages<RetryMessage>,
         IHandleMessages<MessageFailed>,
         IHandleMessages<RetryMessagesByQueueAddress>
     {
-        readonly RetriesGateway retries;
-        readonly IErrorMessageDataStore dataStore;
-
-        public RetriesHandler(RetriesGateway retries, IErrorMessageDataStore dataStore)
-        {
-            this.retries = retries;
-            this.dataStore = dataStore;
-        }
-
         /// <summary>
         /// For handling leftover messages. MessageFailed are no longer published on the bus and the code is moved to
         /// <see cref="FailedMessageRetryCleaner" />.
@@ -49,15 +41,9 @@ namespace ServiceControl.Recoverability
             return Task.CompletedTask;
         }
 
-        public Task Handle(RetryMessage message, IMessageHandlerContext context)
-        {
-            return retries.StartRetryForSingleMessage(message.FailedMessageId);
-        }
+        public Task Handle(RetryMessage message, IMessageHandlerContext context) => retries.StartRetryForSingleMessage(message.FailedMessageId);
 
-        public Task Handle(RetryMessagesById message, IMessageHandlerContext context)
-        {
-            return retries.StartRetryForMessageSelection(message.MessageUniqueIds);
-        }
+        public Task Handle(RetryMessagesById message, IMessageHandlerContext context) => retries.StartRetryForMessageSelection(message.MessageUniqueIds);
 
         public Task Handle(RetryMessagesByQueueAddress message, IMessageHandlerContext context)
         {

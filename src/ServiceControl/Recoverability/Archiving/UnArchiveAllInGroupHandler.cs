@@ -5,15 +5,9 @@ namespace ServiceControl.Recoverability
     using NServiceBus;
     using ServiceControl.Persistence.Recoverability;
 
-    class UnarchiveAllInGroupHandler : IHandleMessages<UnarchiveAllInGroup>
+    [Handler]
+    class UnarchiveAllInGroupHandler(IArchiveMessages archiver, RetryingManager retryingManager, ILogger<UnarchiveAllInGroupHandler> logger) : IHandleMessages<UnarchiveAllInGroup>
     {
-        public UnarchiveAllInGroupHandler(IArchiveMessages archiver, RetryingManager retryingManager, ILogger<UnarchiveAllInGroupHandler> logger)
-        {
-            this.archiver = archiver;
-            this.retryingManager = retryingManager;
-            this.logger = logger;
-        }
-
         public async Task Handle(UnarchiveAllInGroup message, IMessageHandlerContext context)
         {
             if (retryingManager.IsRetryInProgressFor(message.GroupId))
@@ -24,9 +18,5 @@ namespace ServiceControl.Recoverability
 
             await archiver.UnarchiveAllInGroup(message.GroupId);
         }
-
-        IArchiveMessages archiver;
-        RetryingManager retryingManager;
-        readonly ILogger<UnarchiveAllInGroupHandler> logger;
     }
 }

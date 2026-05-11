@@ -14,20 +14,10 @@
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.MessageRedirects;
 
-    class EditHandler : IHandleMessages<EditAndSend>
+    [Handler]
+    class EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IMessageDispatcher dispatcher, ErrorQueueNameCache errorQueueNameCache, IDomainEvents domainEvents, ILogger<EditHandler> logger)
+        : IHandleMessages<EditAndSend>
     {
-        public EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IMessageDispatcher dispatcher, ErrorQueueNameCache errorQueueNameCache, IDomainEvents domainEvents, ILogger<EditHandler> logger)
-        {
-            this.store = store;
-            this.redirectsStore = redirectsStore;
-            this.dispatcher = dispatcher;
-            this.errorQueueNameCache = errorQueueNameCache;
-            this.domainEvents = domainEvents;
-            this.logger = logger;
-            corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName, logger);
-
-        }
-
         public async Task Handle(EditAndSend message, IMessageHandlerContext context)
         {
             FailedMessage failedMessage;
@@ -125,12 +115,6 @@
                 context.CancellationToken);
         }
 
-        readonly CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
-        readonly IErrorMessageDataStore store;
-        readonly IMessageRedirectsDataStore redirectsStore;
-        readonly IMessageDispatcher dispatcher;
-        readonly ErrorQueueNameCache errorQueueNameCache;
-        readonly ILogger<EditHandler> logger;
-        readonly IDomainEvents domainEvents;
+        readonly CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy = new(RuntimeEnvironment.MachineName, logger);
     }
 }
