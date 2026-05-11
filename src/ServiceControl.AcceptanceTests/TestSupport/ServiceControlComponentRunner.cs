@@ -21,6 +21,7 @@
     using Microsoft.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTesting.Support;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
@@ -122,6 +123,8 @@
                     // Force the DI container to run the dependency resolution check to verify all dependencies can be resolved
                     EnvironmentName = Environments.Development
                 });
+
+                hostBuilder.Services.AddScenarioContext(context);
                 hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControl(settings, configuration);
                 hostBuilder.AddServiceControlHttps(settings.HttpsSettings);

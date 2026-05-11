@@ -23,6 +23,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using ServiceControl.Hosting.Auth;
     using ServiceControl.Hosting.Https;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTesting.Support;
     using ServiceControl.Infrastructure;
 
@@ -119,6 +120,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     // Force the DI container to run the dependency resolution check to verify all dependencies can be resolved
                     EnvironmentName = Environments.Development
                 });
+                hostBuilder.Services.AddScenarioContext(context);
                 hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControlAudit((criticalErrorContext, cancellationToken) =>
                 {
