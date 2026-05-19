@@ -82,7 +82,7 @@ namespace ServiceControl.Persistence
             }
 
             var sort = sortInfo.Sort;
-            if (!AsyncDocumentQuerySortOptions.Contains(sort))
+            if (!SortInfo.AllowedSortOptions.Contains(sort))
             {
                 sort = "time_sent";
             }
@@ -206,17 +206,6 @@ namespace ServiceControl.Persistence
 
             return source;
         }
-
-        static HashSet<string> AsyncDocumentQuerySortOptions =
-        [
-            "id",
-            "message_id",
-            "message_type",
-            "time_sent",
-            "status",
-            "modified",
-            "time_of_failure"
-        ];
 
         static string[] SplitChars =
         {
