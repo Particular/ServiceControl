@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Hosting.Commands
 {
     using System;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +11,7 @@
     using Operations;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
+    using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
 
@@ -26,7 +28,7 @@
             assemblyScanner.Disable = true;
 
             var hostBuilder = Host.CreateApplicationBuilder();
-            hostBuilder.AddServiceControl(settings, endpointConfiguration);
+            hostBuilder.AddServiceControl(settings, endpointConfiguration, new RecoverabilityComponent());
 
             using var app = hostBuilder.Build();
             await app.StartAsync();

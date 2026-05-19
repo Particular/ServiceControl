@@ -1,5 +1,6 @@
 namespace Particular.ServiceControl
 {
+    using System;
     using global::ServiceControl.Transports;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -9,7 +10,7 @@ namespace Particular.ServiceControl
     {
         public static void AddServiceControlComponents(this IHostApplicationBuilder hostBuilder, ComponentInstallationContext componentContext, Settings settings,
             ITransportCustomization transportCustomization,
-            params ServiceControlComponent[] components)
+            params ReadOnlySpan<ServiceControlComponent> components)
         {
             hostBuilder.Services.AddSingleton(componentContext);
             foreach (var component in components)
