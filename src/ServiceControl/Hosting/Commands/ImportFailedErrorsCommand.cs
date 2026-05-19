@@ -4,8 +4,8 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
     using Operations;
@@ -22,13 +22,15 @@
             settings.RunRetryProcessor = false;
             settings.DisableHealthChecks = true;
 
-            EndpointConfiguration endpointConfiguration = CreateEndpointConfiguration(settings);
+            var endpointConfiguration = new EndpointConfiguration(settings.InstanceName);
+            var assemblyScanner = endpointConfiguration.AssemblyScanner();
+            assemblyScanner.Disable = true;
 
-            var hostBuilder = Host.CreateApplicationBuilder();
+            var hostBuilder = WebApplication.CreateBuilder();
             hostBuilder.AddServiceControl(settings, endpointConfiguration);
             hostBuilder.AddServiceControlApi(settings.CorsSettings);
 
-            using var app = hostBuilder.Build();
+            await using var app = hostBuilder.Build();
             await app.StartAsync();
 
             var importFailedErrors = app.Services.GetRequiredService<ImportFailedErrors>();
@@ -48,15 +50,6 @@
             {
                 await app.StopAsync(CancellationToken.None);
             }
-        }
-
-        protected virtual EndpointConfiguration CreateEndpointConfiguration(Settings settings)
-        {
-            var endpointConfiguration = new EndpointConfiguration(settings.InstanceName);
-            var assemblyScanner = endpointConfiguration.AssemblyScanner();
-            assemblyScanner.Disable = true;
-
-            return endpointConfiguration;
         }
     }
 }
