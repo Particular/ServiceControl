@@ -3,9 +3,8 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Infrastructure.WebApi;
-    using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
     using Operations;
@@ -26,11 +25,10 @@
             var assemblyScanner = endpointConfiguration.AssemblyScanner();
             assemblyScanner.Disable = true;
 
-            var hostBuilder = WebApplication.CreateBuilder();
+            var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.AddServiceControl(settings, endpointConfiguration);
-            hostBuilder.AddServiceControlApi(settings.CorsSettings);
 
-            await using var app = hostBuilder.Build();
+            using var app = hostBuilder.Build();
             await app.StartAsync();
 
             var importFailedErrors = app.Services.GetRequiredService<ImportFailedErrors>();
