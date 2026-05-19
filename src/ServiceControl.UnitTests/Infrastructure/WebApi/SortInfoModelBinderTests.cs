@@ -17,11 +17,21 @@ namespace ServiceControl.UnitTests.Infrastructure.WebApi
         // RavenDB layer. The model binder must not silently rewrite them away.
         [TestCase("time_of_failure")]
         [TestCase("modified")]
+        [TestCase("message_type")]
+        [TestCase("processed_at")]
         public async Task Preserves_valid_failed_message_sort_field(string sort)
         {
             var sortInfo = await Bind(sort, "asc");
 
             Assert.That(sortInfo.Sort, Is.EqualTo(sort));
+        }
+
+        [Test]
+        public async Task Falls_back_to_time_sent_for_unknown_sort_field()
+        {
+            var sortInfo = await Bind("not_a_real_field", "asc");
+
+            Assert.That(sortInfo.Sort, Is.EqualTo("time_sent"));
         }
 
         static async Task<SortInfo> Bind(string sort, string direction)

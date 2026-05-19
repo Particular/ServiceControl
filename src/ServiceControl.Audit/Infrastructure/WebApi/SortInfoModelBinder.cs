@@ -1,8 +1,6 @@
 namespace ServiceControl.Audit.Infrastructure.WebApi;
 
 using System;
-using System.Collections.Frozen;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
@@ -21,7 +19,7 @@ public class SortInfoModelBinder : IModelBinder
 
         bindingContext.HttpContext.Request.Query.TryGetValue("sort", out var sortValue);
         var sort = sortValue.ToString();
-        if (!AllowableSortOptions.Contains(sort))
+        if (!SortInfo.AllowedSortOptions.Contains(sort))
         {
             sort = "time_sent";
         }
@@ -29,17 +27,4 @@ public class SortInfoModelBinder : IModelBinder
         bindingContext.Result = ModelBindingResult.Success(new SortInfo(sort, direction));
         return Task.CompletedTask;
     }
-
-    static readonly FrozenSet<string> AllowableSortOptions = new HashSet<string>
-    {
-        "processed_at",
-        "id",
-        "message_type",
-        "time_sent",
-        "critical_time",
-        "delivery_time",
-        "processing_time",
-        "status",
-        "message_id"
-    }.ToFrozenSet();
 }
