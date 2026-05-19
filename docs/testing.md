@@ -52,7 +52,7 @@ Containers built by a PR and stored on GitHub Container Registry can be tested l
       you will be prompted for a username (your particular.net email) and a password (the token)
     - ensure that you get a successful login message.
     - Use `docker logout ghcr.io` once the following steps are complete and consider removing the token from github if its no longer needed
-2. In the terminal, navigate to `[/docs/test-ghcr-tag`](/docs/test/ghcr-tag).
+2. In the terminal, navigate to [`/docs/test-ghcr-tag`](/docs/test/ghcr-tag).
 3. Edit the [`.env` file](/docs/test-ghcr-tag/.env) to specify the PR-based tag (in the form `pr-####`) to test.
 4. Run `docker compose up -d`.
 5. Services will be available at the following URLs:
