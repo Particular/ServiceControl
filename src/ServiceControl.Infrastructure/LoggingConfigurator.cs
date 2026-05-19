@@ -2,12 +2,10 @@ namespace ServiceControl.Infrastructure
 {
     using System;
     using System.IO;
-    using Microsoft.Extensions.Logging;
     using NLog;
     using NLog.Config;
     using NLog.Layouts;
     using NLog.Targets;
-    using NServiceBus.Extensions.Logging;
     using ServiceControl.Configuration;
     using LogManager = NServiceBus.Logging.LogManager;
     using LogLevel = NLog.LogLevel;
@@ -16,11 +14,6 @@ namespace ServiceControl.Infrastructure
     {
         public static void ConfigureLogging(LoggingSettings loggingSettings)
         {
-            //used for loggers outside ServiceControl (i.e. transports and core) to use the logger factory defined here
-#pragma warning disable CS0618 // Type or member is obsolete
-            LogManager.UseFactory(new ExtensionsLoggerFactory(LoggerFactory.Create(configure => configure.ConfigureLogging(loggingSettings.LogLevel))));
-#pragma warning restore CS0618 // Type or member is obsolete
-
             if (!LoggerUtil.IsLoggingTo(Loggers.NLog) || NLog.LogManager.Configuration != null)
             {
                 return;
@@ -88,9 +81,8 @@ namespace ServiceControl.Infrastructure
             return AppEnvironment.RunningInContainer ? "console" : fileTarget.FileName.Render(logEventInfo);
         }
 
-        static LogLevel ToNLogLevel(this Microsoft.Extensions.Logging.LogLevel level)
-        {
-            return level switch
+        static LogLevel ToNLogLevel(this Microsoft.Extensions.Logging.LogLevel level) =>
+            level switch
             {
                 Microsoft.Extensions.Logging.LogLevel.Trace => LogLevel.Trace,
                 Microsoft.Extensions.Logging.LogLevel.Debug => LogLevel.Debug,
@@ -101,7 +93,6 @@ namespace ServiceControl.Infrastructure
                 Microsoft.Extensions.Logging.LogLevel.None => LogLevel.Off,
                 _ => LogLevel.Off,
             };
-        }
 
         const long megaByte = 1024 * 1024;
 
