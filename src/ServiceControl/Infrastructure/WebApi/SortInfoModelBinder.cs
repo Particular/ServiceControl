@@ -41,6 +41,8 @@ public class SortInfoModelBinder : IModelBinder
         "delivery_time",
         "processing_time",
         "status",
-        "message_id"
+        "message_id",
+        "modified",
+        "time_of_failure"
     }.ToFrozenSet();
 }
