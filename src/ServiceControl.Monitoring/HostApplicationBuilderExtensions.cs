@@ -30,7 +30,6 @@ public static class HostApplicationBuilderExtensions
         Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, Settings settings,
         EndpointConfiguration endpointConfiguration)
     {
-        hostBuilder.Services.AddLogging();
         hostBuilder.Logging.ConfigureLogging(settings.LoggingSettings.LogLevel);
 
         var services = hostBuilder.Services;
