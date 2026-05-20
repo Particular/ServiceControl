@@ -201,7 +201,7 @@
                 {
                     Name = endpoint.Key,
                     EndpointInstanceIds = endpoint.Value.Select(i => i.InstanceId).ToArray(),
-                    IsStale = endpoint.Value.Any(activityTracker.IsStale),
+                    IsStale = endpoint.Value.All(activityTracker.IsStale),
                     ConnectedCount = endpoint.Value.Count(id => !activityTracker.IsStale(id)),
                     DisconnectedCount = endpoint.Value.Count(activityTracker.IsStale)
                 })
