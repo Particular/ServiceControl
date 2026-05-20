@@ -2,7 +2,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Net.Http;
     using System.Reflection;
     using System.Text.Json;
@@ -13,7 +12,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using ServiceBus.Management.Infrastructure.Settings;

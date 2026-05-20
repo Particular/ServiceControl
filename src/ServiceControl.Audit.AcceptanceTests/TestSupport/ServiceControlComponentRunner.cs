@@ -120,6 +120,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     // Force the DI container to run the dependency resolution check to verify all dependencies can be resolved
                     EnvironmentName = Environments.Development
                 });
+                hostBuilder.Logging.AddContextAppender(context);
                 hostBuilder.Services.AddScenarioContext(context);
                 hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControlAudit((criticalErrorContext, cancellationToken) =>

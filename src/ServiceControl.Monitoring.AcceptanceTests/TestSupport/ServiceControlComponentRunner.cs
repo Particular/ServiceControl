@@ -99,6 +99,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 });
                 hostBuilder.Logging.ClearProviders();
                 hostBuilder.Logging.ConfigureLogging(LogLevel.Information);
+                hostBuilder.Logging.AddContextAppender(context);
 
                 hostBuilder.Services.AddScenarioContext(context);
 

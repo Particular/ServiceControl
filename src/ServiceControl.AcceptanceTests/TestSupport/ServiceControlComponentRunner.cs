@@ -2,7 +2,6 @@
 {
     using System;
     using System.IO;
-    using System.Linq;
     using System.Net.Http;
     using System.Runtime.Loader;
     using System.Text.Json;
@@ -21,6 +20,7 @@
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
+    using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTesting.Support;
     using Particular.ServiceControl;
@@ -48,9 +48,9 @@
         public Func<HttpMessageHandler> HttpMessageHandlerFactory { get; private set; }
         public IDomainEvents DomainEvents { get; private set; }
 
-        public Task Initialize(RunDescriptor run) => InitializeServiceControl(run);
+        public Task Initialize(RunDescriptor run) => InitializeServiceControl(run.ScenarioContext);
 
-        async Task InitializeServiceControl(RunDescriptor runDescriptor)
+        async Task InitializeServiceControl(ScenarioContext context)
         {
             var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(logPath);
@@ -89,7 +89,7 @@
                         return false;
                     }
 
-                    var currentSession = runDescriptor.ScenarioContext.TestRunId.ToString();
+                    var currentSession = context.TestRunId.ToString();
                     if (!headers.TryGetValue("SC.SessionID", out var session) || session != currentSession)
                     {
                         logger.LogDebug("Discarding message '{MessageId}'({OriginalMessageId}) because it's session id is '{SessionId}' instead of '{CurrentSessionId}'", id, originalMessageId ?? string.Empty, session, currentSession);
@@ -113,7 +113,7 @@
             }
 
             var configuration = new EndpointConfiguration(instanceName);
-            configuration.CustomizeServiceControlEndpointTesting(runDescriptor.ScenarioContext);
+            configuration.CustomizeServiceControlEndpointTesting(context);
 
             customConfiguration(configuration);
 
@@ -125,17 +125,11 @@
                     EnvironmentName = Environments.Development
                 });
 
-                hostBuilder.Services.AddScenarioContext(runDescriptor.ScenarioContext);
+                hostBuilder.Logging.AddContextAppender(context);
+
+                hostBuilder.Services.AddScenarioContext(context);
                 hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControl(settings, configuration);
-                var appenderProvider = runDescriptor.Services.Single(x => x.ServiceType == typeof(ILoggerProvider) && x.ImplementationInstance?.GetType().Name.Contains("ContextAppender") is true);
-                hostBuilder.Services.AddLogging(loggingBuilder =>
-                {
-                    if (appenderProvider.ImplementationInstance is ILoggerProvider provider)
-                    {
-                        loggingBuilder.AddProvider(provider);
-                    }
-                });
                 hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
                 hostBuilder.AddServiceControlApi(settings.CorsSettings);
 
