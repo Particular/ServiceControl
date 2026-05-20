@@ -125,14 +125,14 @@
                     EnvironmentName = Environments.Development
                 });
 
-                hostBuilder.Logging.AddContextAppender(context);
-
                 hostBuilder.Services.AddScenarioContext(context);
                 hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControl(settings, configuration);
                 hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
                 hostBuilder.AddServiceControlApi(settings.CorsSettings);
 
+                // AddServiceControl clears all logging providers, so we need to re-add the context appender after it
+                hostBuilder.Logging.AddContextAppender(context);
                 hostBuilder.AddServiceControlTesting(settings);
 
                 hostBuilderCustomization(hostBuilder);
