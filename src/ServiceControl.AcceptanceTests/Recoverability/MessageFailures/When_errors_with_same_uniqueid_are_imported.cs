@@ -55,18 +55,18 @@
                 })
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(criticalErrorExecuted, Is.False);
                 Assert.That(failure, Is.Not.Null);
-            });
+            }
 
             var attempts = failure.ProcessingAttempts;
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(attempts, Has.Count.EqualTo(2));
                 Assert.That(attempts.Select(a => a.AttemptedAt), Is.EquivalentTo(context.FailureTimes));
-            });
+            }
         }
 
         class CounterEnricher(MyContext testContext) : IEnrichImportedErrorMessages

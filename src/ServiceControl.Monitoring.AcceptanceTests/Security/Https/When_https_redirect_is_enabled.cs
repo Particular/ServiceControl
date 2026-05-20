@@ -40,8 +40,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.Https
             HttpsAssertions.AssertHttpsRedirect(response, expectedPort: 443);
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

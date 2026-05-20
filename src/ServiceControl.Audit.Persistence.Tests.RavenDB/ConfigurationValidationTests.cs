@@ -16,12 +16,12 @@
 
             var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(configuration.AuditRetentionPeriod, Is.EqualTo(settings.AuditRetentionPeriod));
                 Assert.That(configuration.MaxBodySizeToStore, Is.EqualTo(settings.MaxBodySizeToStore));
                 Assert.That(configuration.EnableFullTextSearch, Is.EqualTo(settings.EnableFullTextSearchOnBodies));
-            });
+            }
         }
 
         [Test]
@@ -34,11 +34,11 @@
 
             var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(configuration.ServerConfiguration.UseEmbeddedServer, Is.False);
                 Assert.That(configuration.ServerConfiguration.ConnectionString, Is.EqualTo(connectionString));
-            });
+            }
         }
 
         [Test]
@@ -53,13 +53,13 @@
             settings.PersisterSpecificSettings[RavenPersistenceConfiguration.LogPathKey] = logPath;
             var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(configuration.ServerConfiguration.UseEmbeddedServer, Is.True);
                 Assert.That(configuration.ServerConfiguration.DbPath, Is.EqualTo(dpPath));
                 Assert.That(configuration.ServerConfiguration.LogPath, Is.EqualTo(logPath));
                 Assert.That(configuration.ServerConfiguration.ServerUrl, Is.EqualTo("http://localhost:11111"));
-            });
+            }
         }
 
         [Test]

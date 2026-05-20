@@ -68,45 +68,46 @@
                 })
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(exceptionTypeAndStackTraceGroups.Count, Is.EqualTo(2), "There should be 2 Exception Type and Stack Trace Groups");
                 Assert.That(messageTypeGroups.Count, Is.EqualTo(2), "There should be 2 Message Type Groups");
-            });
+            }
 
             defaultGroups.ForEach(g => Console.WriteLine(JsonSerializer.Serialize(g)));
 
             Assert.That(exceptionTypeAndStackTraceGroups.Select(g => g.Id).Except(defaultGroups.Select(g => g.Id)), Is.Empty, "/api/recoverability/groups did not retrieve Exception Type and Stack Trace Group");
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(messageTypeGroups.Select(g => g.Id).ToArray(), Does.Contain(DeterministicGuid.MakeId(MessageTypeFailureClassifier.Id, typeof(MyMessageA).FullName).ToString()));
                 Assert.That(failedMessageA.UniqueMessageId, Is.EqualTo(context.UniqueMessageIdA));
                 Assert.That(failedMessageA.FailureGroups, Is.Not.Empty, "MyMessageA should have failure groups");
-            });
-            Assert.Multiple(() =>
+            }
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(failedMessageA.FailureGroups.Count(g => g.Type == ExceptionTypeAndStackTraceFailureClassifier.Id), Is.EqualTo(1), $"{ExceptionTypeAndStackTraceFailureClassifier.Id} FailureGroup was not created");
                 Assert.That(failedMessageA.FailureGroups.Count(g => g.Type == MessageTypeFailureClassifier.Id), Is.EqualTo(1), $"{MessageTypeFailureClassifier.Id} FailureGroup was not created");
-            });
+            }
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(messageTypeGroups.Select(g => g.Id).ToArray(), Does.Contain(DeterministicGuid.MakeId(MessageTypeFailureClassifier.Id, typeof(MyMessageB).FullName).ToString()));
                 Assert.That(failedMessageB.UniqueMessageId, Is.EqualTo(context.UniqueMessageIdB));
                 Assert.That(failedMessageB.FailureGroups, Is.Not.Empty, "MyMessageB should have failure groups");
-            });
-            Assert.Multiple(() =>
+            }
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(failedMessageB.FailureGroups.Count(g => g.Type == ExceptionTypeAndStackTraceFailureClassifier.Id), Is.EqualTo(1), $"{ExceptionTypeAndStackTraceFailureClassifier.Id} FailureGroup was not created");
                 Assert.That(failedMessageB.FailureGroups.Count(g => g.Type == MessageTypeFailureClassifier.Id), Is.EqualTo(1), $"{MessageTypeFailureClassifier.Id} FailureGroup was not created");
-            });
+            }
         }
 
         public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
 
+            [Handler]
             public class MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings) :
                 IHandleMessages<MyMessageA>,
                 IHandleMessages<MyMessageB>

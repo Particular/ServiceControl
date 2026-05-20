@@ -61,11 +61,11 @@
 
             var timings = store.GetIntervals(now.Add(store.IntervalSize));
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(timings[0].TotalMeasurements, Is.EqualTo(1));
                 Assert.That(timings[0].TotalValue, Is.EqualTo(2L));
-            });
+            }
         }
 
         [Test]
@@ -134,17 +134,17 @@
 
             var nonEmptyIntervals = timings[0].Intervals.Where(i => i.TotalMeasurements > 0).ToArray();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(nonEmptyIntervals, Has.Length.EqualTo(3));
                 Assert.That(timings[0].TotalMeasurements, Is.EqualTo(4));
-            });
+            }
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(nonEmptyIntervals.Select(i => i.TotalValue), Is.EqualTo(new double[] { 4, 1, 1 }).AsCollection);
                 Assert.That(nonEmptyIntervals.Select(i => i.TotalMeasurements), Is.EqualTo(new double[] { 2, 1, 1 }).AsCollection);
-            });
+            }
         }
 
         [Test]
@@ -164,11 +164,11 @@
             var timings = store.GetIntervals(now);
             var intervalStarts = timings[0].Intervals.Select(i => i.IntervalStart).ToArray();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(intervalStarts[0], Is.GreaterThan(intervalStarts[1]));
                 Assert.That(intervalStarts[1], Is.GreaterThan(intervalStarts[2]));
-            });
+            }
         }
 
         [Test]
@@ -192,11 +192,11 @@
             var timings = store.GetIntervals(now);
             var delayedTimings = store.GetIntervals(now.Add(delay));
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(timings[0].TotalMeasurements, Is.EqualTo(0));
                 Assert.That(delayedTimings[0].TotalMeasurements, Is.EqualTo(3));
-            });
+            }
         }
 
         IntervalsStore<int> AnyStore()

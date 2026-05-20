@@ -51,7 +51,7 @@
                 })
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(auditedMessage.MessageId, Is.EqualTo(context.MessageId));
                 Assert.That(auditedMessage.Status, Is.EqualTo(MessageStatus.Successful));
@@ -74,16 +74,16 @@
                 Assert.That(auditedMessage.CriticalTime, Is.GreaterThan(TimeSpan.Zero), "Critical time should be calculated");
 
                 Assert.That(auditedMessage.MessageIntent, Is.EqualTo(MessageIntent.Send), "Message intent should be set");
-            });
+            }
 
             var bodyAsString = Encoding.UTF8.GetString(body);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(bodyAsString, Does.Contain(Payload), bodyAsString);
                 Assert.That(auditedMessage.BodySize, Is.EqualTo(body.Length));
                 Assert.That(auditedMessage.Headers.Any(h => h.Key == Headers.MessageId), Is.True);
-            });
+            }
         }
 
         [Test]
@@ -117,11 +117,11 @@
                 .Run();
 
             Assert.That(counts, Has.Count.EqualTo(1));
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(counts[0].UtcDate, Is.EqualTo(DateTime.UtcNow.Date));
                 Assert.That(counts[0].Count, Is.EqualTo(1));
-            });
+            }
         }
 
         public class Sender : EndpointConfigurationBuilder
@@ -138,6 +138,7 @@
         {
             public Receiver() => EndpointSetup<DefaultServerWithAudit>();
 
+            [Handler]
             public class MyMessageHandler(MyContext testContext, IReadOnlySettings settings) : IHandleMessages<MyMessage>
             {
                 public Task Handle(MyMessage message, IMessageHandlerContext context)

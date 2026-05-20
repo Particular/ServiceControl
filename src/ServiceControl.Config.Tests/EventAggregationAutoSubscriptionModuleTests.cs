@@ -36,17 +36,14 @@
             Assert.That(events.Subscribers, Does.Not.Contain(nonHandler), "Non-handlers should not be subscribed on activation");
         }
 
-        class FakeEvent { }
+        class FakeEvent;
 
         class FakeEventHandler : IHandle<FakeEvent>
         {
             public Task HandleAsync(FakeEvent message, CancellationToken cancellationToken) => throw new NotImplementedException();
         }
 
-        class FakeNonEventHandler
-        {
-
-        }
+        class FakeNonEventHandler;
 
         class FakeEventAggregator : IEventAggregator
         {

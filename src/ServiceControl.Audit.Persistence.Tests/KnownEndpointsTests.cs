@@ -26,13 +26,13 @@
 
             Assert.That(endpoints.Results, Has.Count.EqualTo(1));
             var endpoint = endpoints.Results[0];
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(endpoint.HostDisplayName, Is.EqualTo(ingestedEndpoint.Host));
                 Assert.That(endpoint.EndpointDetails.Host, Is.EqualTo(ingestedEndpoint.Host));
                 Assert.That(endpoint.EndpointDetails.HostId, Is.EqualTo(ingestedEndpoint.HostId));
                 Assert.That(endpoint.EndpointDetails.Name, Is.EqualTo(ingestedEndpoint.Name));
-            });
+            }
         }
 
         [Test]
@@ -50,11 +50,11 @@
 
             var queryResult = await DataStore.QueryKnownEndpoints(TestContext.CurrentContext.CancellationToken);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(queryResult.QueryStats.TotalCount, Is.EqualTo(200));
                 Assert.That(queryResult.Results, Has.Count.EqualTo(200));
-            });
+            }
         }
 
         async Task IngestKnownEndpoints(params KnownEndpoint[] knownEndpoints)

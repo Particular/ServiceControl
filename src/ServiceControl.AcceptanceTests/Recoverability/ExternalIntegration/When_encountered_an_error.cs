@@ -66,11 +66,11 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                 .Done(c => c.NotificationDelivered)
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(context.NotificationDelivered, Is.True);
                 Assert.That(context.Failed, Is.True);
-            });
+            }
         }
 
         class FaultyPublisher(MyContext context) : IEventPublisher
@@ -103,6 +103,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_INSTANCE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<HeartbeatStopped>(Settings.DEFAULT_INSTANCE_NAME); });
 
+            [Handler]
             public class FailureHandler(MyContext testContext) : IHandleMessages<HeartbeatStopped>
             {
                 public Task Handle(HeartbeatStopped message, IMessageHandlerContext context)

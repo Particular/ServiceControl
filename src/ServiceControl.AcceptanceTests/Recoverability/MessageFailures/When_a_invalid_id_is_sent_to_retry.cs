@@ -51,6 +51,7 @@
                     c.NoRetries();
                 });
 
+            [Handler]
             public class MessageThatWillFailHandler(MyContext scenarioContext, IReadOnlySettings settings)
                 : IHandleMessages<MessageThatWillFail>
             {
@@ -78,8 +79,6 @@
         }
 
 
-        public class MessageThatWillFail : ICommand
-        {
-        }
+        public class MessageThatWillFail : ICommand;
     }
 }

@@ -37,9 +37,7 @@
             Assert.That(context.ReceivedReplyToAddress, Is.EqualTo(context.ReplyToAddress));
         }
 
-        class OriginalMessage : IMessage
-        {
-        }
+        class OriginalMessage : IMessage;
 
         class ReplyToContext : ScenarioContext
         {

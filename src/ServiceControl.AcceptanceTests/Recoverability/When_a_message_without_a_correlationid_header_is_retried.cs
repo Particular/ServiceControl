@@ -47,18 +47,16 @@
             Assert.That(context.RetryHandled, Is.True, "Retry not handled correctly");
         }
 
-        class MyMessage : IMessage
-        {
-        }
+        internal class MyMessage : IMessage;
 
-        class MyContext : ScenarioContext
+        internal class MyContext : ScenarioContext
         {
             public string UniqueMessageId { get; set; }
             public bool RetryIssued { get; set; }
             public bool RetryHandled { get; set; }
         }
 
-        class Receiver : EndpointConfigurationBuilder
+        public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
@@ -67,6 +65,7 @@
                     c.RegisterMessageMutator(new CorrelationIdRemover());
                 });
 
+            [Handler]
             public class MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
                 : IHandleMessages<MyMessage>
             {

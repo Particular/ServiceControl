@@ -39,8 +39,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.Https
             HttpsAssertions.AssertNoHttpsRedirect(response);
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

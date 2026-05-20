@@ -54,14 +54,14 @@
 
             Assert.That(context.MessagesView.Count, Is.EqualTo(1));
             var failedMessage = context.MessagesView.Single();
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(failedMessage.Status, Is.EqualTo(FailedMessageStatus.Resolved));
                 Assert.That(failedMessage.NumberOfProcessingAttempts, Is.EqualTo(1));
-            });
+            }
         }
 
-        class Context : ScenarioContext, ISequenceContext
+        internal class Context : ScenarioContext, ISequenceContext
         {
             public bool ThrowOnHandler { get; set; } = true;
             public bool ReceivedRetry { get; set; }
@@ -69,11 +69,12 @@
             public List<FailedMessageView> MessagesView { get; set; }
         }
 
-        class RetryingEndpoint : EndpointConfigurationBuilder
+        public class RetryingEndpoint : EndpointConfigurationBuilder
         {
             public RetryingEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c => c.NoRetries());
 
-            class RetryMessageHandler(Context testContext) : IHandleMessages<RetryMessage>
+            [Handler]
+            public class RetryMessageHandler(Context testContext) : IHandleMessages<RetryMessage>
             {
                 public Task Handle(RetryMessage message, IMessageHandlerContext context)
                 {
@@ -89,6 +90,6 @@
             }
         }
 
-        class RetryMessage : IMessage;
+        internal class RetryMessage : IMessage;
     }
 }

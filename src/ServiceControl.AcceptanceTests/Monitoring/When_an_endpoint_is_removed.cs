@@ -28,11 +28,11 @@ namespace ServiceControl.AcceptanceTests.Monitoring
                 })
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(response.IsSuccessStatusCode, Is.True);
                 Assert.That(response.Content.Headers.Allow.Contains("DELETE"), Is.True);
-            });
+            }
         }
 
         [Test]

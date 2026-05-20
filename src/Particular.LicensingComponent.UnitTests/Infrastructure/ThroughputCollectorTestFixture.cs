@@ -33,8 +33,6 @@
         protected ThroughputTestsConfiguration configuration = new();
 
         [AttributeUsage(AttributeTargets.Method)]
-        public class UseNonBrokerTransportAttribute : Attribute
-        {
-        }
+        public class UseNonBrokerTransportAttribute : Attribute;
     }
 }

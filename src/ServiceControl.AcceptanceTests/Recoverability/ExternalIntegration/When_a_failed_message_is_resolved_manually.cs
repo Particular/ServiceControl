@@ -72,6 +72,7 @@
                     routing.RouteToEndpoint(typeof(MessageFailureResolvedManually).Assembly, Settings.DEFAULT_INSTANCE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<MessageFailureResolvedManually>(Settings.DEFAULT_INSTANCE_NAME); });
 
+            [Handler]
             public class FailureHandler(Context testContext) : IHandleMessages<MessageFailureResolvedManually>
             {
                 public Task Handle(MessageFailureResolvedManually message, IMessageHandlerContext context)

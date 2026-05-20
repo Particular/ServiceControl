@@ -188,8 +188,6 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.OpenIdConnect
             OpenIdConnectAssertions.AssertNoAuthenticationRequired(response);
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

@@ -56,11 +56,11 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
                 })
                 .Run(cancellationToken);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(originalMessage, Is.Not.Null, "Original message was not received");
                 Assert.That(retriedMessage, Is.Not.Null, "Retried message was not received");
-            });
+            }
 
             Assert.That(originalMessage.FailureGroups, Is.Not.Null, "The original message has no failure groups");
             Assert.That(retriedMessage.FailureGroups, Is.Not.Null, "The retried message has no failure groups");
@@ -68,13 +68,13 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
             var originalExceptionAndStackTraceFailureGroupIds = originalMessage.FailureGroups.Where(x => x.Type == ExceptionTypeAndStackTraceFailureClassifier.Id).Select(x => x.Id).ToArray();
             var retriedExceptionAndStackTraceFailureGroupIds = retriedMessage.FailureGroups.Where(x => x.Type == ExceptionTypeAndStackTraceFailureClassifier.Id).Select(x => x.Id).ToArray();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(originalExceptionAndStackTraceFailureGroupIds.Any(), Is.True, "The original message was not classified");
                 Assert.That(retriedExceptionAndStackTraceFailureGroupIds.Any(), Is.True, "The retried message was not classified");
 
                 Assert.That(retriedMessage.FailureGroups.Single(x => x.Type == MessageTypeFailureClassifier.Id).Id, Is.EqualTo(originalMessage.FailureGroups.Single(x => x.Type == MessageTypeFailureClassifier.Id).Id), $"{MessageTypeFailureClassifier.Id} FailureGroup Ids changed");
-            });
+            }
 
             foreach (var failureId in originalExceptionAndStackTraceFailureGroupIds)
             {
@@ -87,6 +87,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
         {
             public MeowReceiver() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoDelayedRetries(); });
 
+            [Handler]
             public class FailingMessageHandler(MeowContext scenarioContext, IReadOnlySettings settings)
                 : IHandleMessages<Meow>
             {

@@ -65,6 +65,7 @@
                 EndpointSetup<DefaultServerWithAudit>(c => { });
             }
 
+            [Handler]
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 readonly MyContext testContext;
@@ -86,9 +87,7 @@
         }
 
 
-        public class MyMessage : ICommand
-        {
-        }
+        public class MyMessage : ICommand;
 
         public class MyContext : ScenarioContext
         {

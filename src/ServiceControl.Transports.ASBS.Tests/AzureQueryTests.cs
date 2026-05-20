@@ -50,12 +50,12 @@ class AzureQueryTests : TransportTestFixture
 
         Assert.That(success, Is.False);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(errors, Has.Member("ClientId is a required setting"));
             Assert.That(errors, Has.Member("ClientSecret is a required setting"));
             Assert.That(errors, Has.Member("TenantId is a required setting"));
-        });
+        }
 
         Approver.Verify(diagnostics);
     }

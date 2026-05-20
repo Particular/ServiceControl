@@ -40,11 +40,11 @@
         {
             var viewModel = Given_adding_audit_instance();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.AuditHostName, Is.EqualTo("localhost"));
                 Assert.That(viewModel.AuditHostNameWarning, Is.Not.EqualTo("Not using localhost can expose ServiceControl to anonymous access."));
-            });
+            }
         }
     }
 }

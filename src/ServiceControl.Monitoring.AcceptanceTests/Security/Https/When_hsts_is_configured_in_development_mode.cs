@@ -47,8 +47,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.Https
             HttpsAssertions.AssertNoHstsHeader(response);
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

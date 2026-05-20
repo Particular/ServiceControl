@@ -28,11 +28,11 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
         var reportGenerationState = await ThroughputCollector.GetReportGenerationState(default);
 
         // Assert
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(reportGenerationState.ReportCanBeGenerated, Is.True);
             Assert.That(reportGenerationState.Reason, Is.EqualTo(""));
-        });
+        }
     }
 
 
@@ -48,11 +48,11 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
         var reportGenerationState = await ThroughputCollector.GetReportGenerationState(default);
 
         // Assert
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(reportGenerationState.ReportCanBeGenerated, Is.True);
             Assert.That(reportGenerationState.Reason, Is.EqualTo(""));
-        });
+        }
     }
 
     [Test]
@@ -69,11 +69,11 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
         var reportGenerationState = await ThroughputCollector.GetReportGenerationState(default);
 
         // Assert
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(reportGenerationState.ReportCanBeGenerated, Is.False);
             Assert.That(reportGenerationState.Reason, Does.Contain("one day"), "Report generation failure reason does not contain 'one day'");
-        });
+        }
         Assert.That(reportGenerationState.Reason, Does.Contain("broker"), "Report generation failure reason does not contain 'broker'");
     }
 
@@ -90,11 +90,11 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
         var reportGenerationState = await ThroughputCollector.GetReportGenerationState(default);
 
         // Assert
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(reportGenerationState.ReportCanBeGenerated, Is.False);
             Assert.That(reportGenerationState.Reason, Does.Contain("one day"), "Report generation failure reason does not contain 'one day'");
-        });
+        }
         Assert.That(reportGenerationState.Reason, Does.Contain("broker"), "Report generation failure reason does not contain 'broker'");
     }
 }

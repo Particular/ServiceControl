@@ -60,11 +60,11 @@
             var value = m.Headers.First(kv => kv.Key == "ServiceControl.SagaStateChange").Value;
             var strings = value.Split(';');
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(strings.Any(s => s == context.Saga1Id + ":New"), Is.True);
                 Assert.That(strings.Any(s => s == context.Saga2Id + ":New"), Is.True);
-            });
+            }
         }
 
         void AssertStateChange<T>(IEnumerable<MessagesView> messages, Guid sagaId, string stateChange)
@@ -89,6 +89,7 @@
                 //we need to enable the plugin for it to enrich the audited messages, state changes will go to input queue and just be discarded
                 EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(Conventions.EndpointNamingConvention(typeof(SagaAuditProcessorFake))));
 
+            [Saga]
             public class Saga1(MyContext testContext) : Saga<Saga1.Saga1Data>, IAmStartedByMessages<InitiateSaga>,
                 IHandleMessages<UpdateSaga1>, IHandleMessages<CompleteSaga1>
             {
@@ -116,6 +117,7 @@
                 }
             }
 
+            [Saga]
             public class Saga2(MyContext testContext) : Saga<Saga2.Saga2Data>, IAmStartedByMessages<InitiateSaga>,
                 IHandleMessages<UpdateSaga2>, IHandleMessages<CompleteSaga2>
             {
