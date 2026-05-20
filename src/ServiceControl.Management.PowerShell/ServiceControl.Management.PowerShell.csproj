@@ -27,7 +27,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyModel" GeneratePathProperty="true" VersionOverride="8.0.2" />
-    <PackageReference Include="System.Management.Automation" VersionOverride="7.4.15" />
+    <PackageReference Include="System.Management.Automation" VersionOverride="7.6.1" />
   </ItemGroup>
 
   <ItemGroup>
