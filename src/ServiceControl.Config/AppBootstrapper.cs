@@ -11,6 +11,7 @@
     using Caliburn.Micro;
     using FluentValidation;
     using ReactiveUI;
+    using ReactiveUI.Builder;
     using ServiceControl.Config.Framework;
     using ServiceControlInstaller.Engine.Validation;
     using UI.Shell;
@@ -41,17 +42,18 @@
             DisableRxUIDebuggerBreak();
         }
 
+        // ReactiveUI's default handler calls Debugger.Break() on unhandled reactive exceptions, which pauses at an unhelpful
+        // internal location. This replaces it so exceptions are re-thrown on the main thread with a useful stack trace instead.
         void DisableRxUIDebuggerBreak()
         {
-            RxApp.DefaultExceptionHandler = Observer.Create(delegate (Exception ex)
-            {
-                RxApp.MainThreadScheduler.Schedule(() =>
+            _ = RxAppBuilder.CreateReactiveUIBuilder()
+                .WithExceptionHandler(Observer.Create(delegate (Exception ex)
                 {
-                    throw new Exception(
-                        "An OnError occurred on an object (usually ObservableAsPropertyHelper) that would break a binding or command. To prevent this, Subscribe to the ThrownExceptions property of your objects",
-                        ex);
-                });
-            });
+                    _ = RxSchedulers.MainThreadScheduler.Schedule(() => throw new Exception(
+                            "An OnError occurred on an object (usually ObservableAsPropertyHelper) that would break a binding or command. To prevent this, Subscribe to the ThrownExceptions property of your objects",
+                            ex));
+                }))
+            .BuildApp();
         }
 
         protected override object GetInstance(Type service, string key)
