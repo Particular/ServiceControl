@@ -20,6 +20,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
         public HttpClient HttpClient => runner.HttpClient;
         public JsonSerializerOptions SerializerOptions => runner.SerializerOptions;
+        public IServiceProvider Services => runner.Services;
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {

@@ -39,6 +39,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         public HttpClient HttpClient { get; private set; }
         public JsonSerializerOptions SerializerOptions => Infrastructure.WebApi.SerializerOptions.Default;
         public IServiceProvider ServiceProvider { get; private set; }
+        public IServiceProvider Services => ServiceProvider;
         public TestServer InstanceTestServer { get; private set; }
         public Task Initialize(RunDescriptor run) => InitializeServiceControl(run.ScenarioContext);
 

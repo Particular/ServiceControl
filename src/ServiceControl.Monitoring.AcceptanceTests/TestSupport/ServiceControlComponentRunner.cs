@@ -32,6 +32,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
         public HttpClient HttpClient { get; private set; }
         public JsonSerializerOptions SerializerOptions => Infrastructure.SerializerOptions.Default;
+        public IServiceProvider Services => host?.Services;
 
         public Task Initialize(RunDescriptor run) => InitializeServiceControl(run.ScenarioContext);
 

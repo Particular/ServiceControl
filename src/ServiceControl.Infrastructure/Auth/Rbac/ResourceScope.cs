@@ -20,12 +20,18 @@ public sealed class ResourceScope(IReadOnlyList<string> allow, IReadOnlyList<str
     /// </summary>
     public static readonly ResourceScope Unrestricted = new(["*"], []);
 
+    /// <summary>The allow-list patterns.</summary>
+    public IReadOnlyList<string> Allow { get; } = allow;
+
+    /// <summary>The deny-list patterns.</summary>
+    public IReadOnlyList<string> Deny { get; } = deny;
+
     /// <summary>
     /// Returns true if the resource is matched by at least one allow pattern
     /// and not matched by any deny pattern.
     /// </summary>
     public bool Permits(string resource) =>
-        allow.Any(p => Matches(p, resource)) && !deny.Any(p => Matches(p, resource));
+        Allow.Any(p => Matches(p, resource)) && !Deny.Any(p => Matches(p, resource));
 
     static bool Matches(string pattern, string resource) =>
         pattern == "*" ||

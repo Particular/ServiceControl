@@ -45,6 +45,7 @@
         public JsonSerializerOptions SerializerOptions => Infrastructure.WebApi.SerializerOptions.Default;
         public Func<HttpMessageHandler> HttpMessageHandlerFactory { get; private set; }
         public IDomainEvents DomainEvents { get; private set; }
+        public IServiceProvider Services => host?.Services;
 
         public Task Initialize(RunDescriptor run) => InitializeServiceControl(run.ScenarioContext);
 
@@ -123,6 +124,7 @@
                     EnvironmentName = Environments.Development
                 });
                 hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
+                hostBuilder.AddServiceControlAuthorization(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControl(settings, configuration);
                 hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
                 hostBuilder.AddServiceControlApi(settings.CorsSettings);

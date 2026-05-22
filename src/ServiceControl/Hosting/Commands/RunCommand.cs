@@ -25,6 +25,7 @@
             var hostBuilder = WebApplication.CreateBuilder();
 
             hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
+            hostBuilder.AddServiceControlAuthorization(settings.OpenIdConnectSettings);
             hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
             hostBuilder.AddServiceControl(settings, endpointConfiguration);
             hostBuilder.AddServiceControlApi(settings.CorsSettings);

@@ -75,7 +75,7 @@ public static class RbacPolicyLoader
                 roles[key] = new RbacRole(key, bindings, permissions);
             }
         }
-        return new RbacPolicy(dto.SchemaVersion, roles);
+        return new RbacPolicy(dto.SchemaVersion, roles) { LoadedAt = DateTimeOffset.UtcNow };
     }
 
     // DTO types used for deserialization only

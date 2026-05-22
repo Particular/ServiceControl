@@ -58,5 +58,10 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     {
         public HttpClient HttpClient { get; set; }
         public JsonSerializerOptions SerializerOptions { get; set; }
+
+        // Services is not meaningful in the multi-instance context where the per-instance
+        // provider is a lightweight shim — callers that need host services should use the
+        // full runner directly.
+        public IServiceProvider Services => null;
     }
 }

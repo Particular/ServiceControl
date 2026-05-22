@@ -207,6 +207,30 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
         }
 
         /// <summary>
+        /// Generates a valid JWT token carrying Keycloak-style realm_access roles.
+        /// The <see cref="RealmAccessClaimsTransformation"/> will expand these into
+        /// individual <c>role</c> claims so the RBAC evaluator can match them.
+        /// </summary>
+        /// <param name="subject">The subject (sub) claim.</param>
+        /// <param name="realmRoles">The roles to embed in <c>realm_access.roles</c>.</param>
+        /// <param name="expiresIn">Token lifetime (default 1 hour).</param>
+        public string GenerateTokenWithRealmRoles(
+            string subject = "test-user",
+            IEnumerable<string> realmRoles = null,
+            TimeSpan? expiresIn = null)
+        {
+            var roles = realmRoles == null ? Array.Empty<string>() : new List<string>(realmRoles).ToArray();
+            var realmAccessJson = JsonSerializer.Serialize(new { roles });
+
+            var additionalClaims = new List<Claim>
+            {
+                new("realm_access", realmAccessJson, Microsoft.IdentityModel.JsonWebTokens.JsonClaimValueTypes.Json)
+            };
+
+            return GenerateToken(subject, expiresIn, additionalClaims);
+        }
+
+        /// <summary>
         /// Generates an expired JWT token for testing token expiration.
         /// </summary>
         public string GenerateExpiredToken(string subject = "test-user")

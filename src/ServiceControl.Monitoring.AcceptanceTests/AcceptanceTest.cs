@@ -19,6 +19,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests
     {
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
         public JsonSerializerOptions SerializerOptions => serviceControlRunnerBehavior.SerializerOptions;
+        public IServiceProvider Services => serviceControlRunnerBehavior.Services;
 
         [SetUp]
         public void Setup()
