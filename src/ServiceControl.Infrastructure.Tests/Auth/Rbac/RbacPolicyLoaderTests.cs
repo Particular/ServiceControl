@@ -32,4 +32,15 @@ public class RbacPolicyLoaderTests
     public void Invalid_yaml_throws_with_a_clear_message()
         => Assert.That(() => RbacPolicyLoader.Parse("not: : valid"),
             Throws.Exception.With.Message.Contains("rbac"));
+
+    [Test]
+    public void LoadFromFile_non_existent_path_throws_RbacPolicyException_containing_path()
+    {
+        const string missingPath = "/tmp/_claude/does-not-exist/rbac-policy.yaml";
+
+        Assert.That(
+            () => RbacPolicyLoader.LoadFromFile(missingPath),
+            Throws.TypeOf<RbacPolicyException>()
+                  .With.Message.Contains(missingPath));
+    }
 }

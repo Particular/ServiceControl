@@ -45,13 +45,7 @@ public sealed class PermissionEvaluator(Func<RbacPolicy> policyFactory) : IPermi
                     continue;
                 }
 
-                // Wildcard "*" grant is unrestricted
-                if (grant.Permission == "*")
-                {
-                    return true;
-                }
-
-                // No scope means the permission applies to all resources
+                // No scope (including wildcard "*") means the permission applies to all resources
                 if (grant.Scope == null)
                 {
                     return true;

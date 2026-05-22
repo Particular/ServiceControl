@@ -113,6 +113,44 @@ public class PermissionEvaluatorTests
         Assert.That(permissions, Does.Contain("messages:archive"));
     }
 
+    [Test]
+    public void IsInScope_grant_deny_in_one_role_does_not_block_allow_in_another_role()
+    {
+        // role-a covers messages:retry but explicitly denies the target resource
+        // role-b covers messages:retry and allows the same resource
+        // A user in both roles must be permitted — a deny in one grant must not
+        // leak across to a separate grant from a different role.
+        const string yaml = """
+            schemaVersion: 1
+            roles:
+              role-a:
+                bindings: [ "role:role-a" ]
+                permissions:
+                  - permission: "messages:retry"
+                    scope: { allow: ["acme.*"], deny: ["acme.finance.*"] }
+              role-b:
+                bindings: [ "role:role-b" ]
+                permissions:
+                  - permission: "messages:retry"
+                    scope: { allow: ["acme.finance.*"], deny: [] }
+            """;
+
+        var evaluator = new PermissionEvaluator(() => RbacPolicyLoader.Parse(yaml));
+
+        // user is in both roles
+        var identity = new ClaimsIdentity("Bearer");
+        identity.AddClaim(new Claim("role", "role-a"));
+        identity.AddClaim(new Claim("role", "role-b"));
+        var user = new ClaimsPrincipal(identity);
+
+        // role-a denies acme.finance.ap but role-b allows it — overall: permitted
+        Assert.That(evaluator.IsInScope(user, "messages:retry", "acme.finance.ap"), Is.True,
+            "Grant B's allow should win independently of grant A's deny");
+
+        // role-a allows acme.sales.orders; role-b also allows it — still permitted
+        Assert.That(evaluator.IsInScope(user, "messages:retry", "acme.sales.orders"), Is.True);
+    }
+
     static ClaimsPrincipal PrincipalWithRoles(params string[] roles)
     {
         var identity = new ClaimsIdentity("Bearer");

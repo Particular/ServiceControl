@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Authentication;
 /// <summary>
 /// An <see cref="IClaimsTransformation"/> that flattens Keycloak's nested
 /// <c>realm_access.roles</c> JSON claim into individual <c>role</c> claims,
-/// making them available to policy matching and <see cref="IPermissionEvaluator"/>.
+/// making them available to policy matching and <see cref="ServiceControl.Infrastructure.Auth.Rbac.IPermissionEvaluator"/>.
 /// <para>
 /// Keycloak sets <c>MapInboundClaims = false</c>, so the <c>realm_access</c>
 /// claim arrives as a raw JSON string. This transformation unpacks it.
