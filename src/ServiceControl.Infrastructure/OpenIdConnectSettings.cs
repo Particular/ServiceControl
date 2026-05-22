@@ -41,6 +41,8 @@ public class OpenIdConnectSettings
             ServicePulseAuthority = SettingsReader.Read<string>(rootNamespace, "Authentication.ServicePulse.Authority");
         }
 
+        RbacPolicyFile = SettingsReader.Read(rootNamespace, "Authentication.RbacPolicyFile", "rbac.yaml");
+
         if (validateConfiguration)
         {
             Validate(requireServicePulseSettings);
@@ -52,6 +54,12 @@ public class OpenIdConnectSettings
     /// and all API endpoints are accessible without authentication.
     /// </summary>
     public bool Enabled { get; }
+
+    /// <summary>
+    /// Path to the RBAC policy file. Defaults to "rbac.yaml" resolved relative to the host executable.
+    /// Can be overridden via the Authentication.RbacPolicyFile setting.
+    /// </summary>
+    public string RbacPolicyFile { get; }
 
     /// <summary>
     /// The OpenID Connect authority URL (issuer). This is the base URL of the identity provider
