@@ -47,6 +47,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="rbac.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="App.config" />
     <None Include="App.config" />
   </ItemGroup>

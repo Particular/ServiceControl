@@ -1,0 +1,25 @@
+schemaVersion: 1
+roles:
+  sc-admin:
+    bindings: [ "role:sc-admin" ]
+    permissions: [ "*" ]
+  sc-operator:
+    bindings: [ "role:sc-operator" ]
+    permissions:
+      - "messages:view"
+      - "messages:retry"
+      - "messages:archive"
+      - "messages:unarchive"
+      - "messages:edit"
+      - "recoverabilitygroups:view"
+      - "recoverabilitygroups:retry"
+      - "recoverabilitygroups:archive"
+      - "endpoints:view"
+      - "customchecks:view"
+  sc-viewer:
+    bindings: [ "role:sc-viewer" ]
+    permissions:
+      - "messages:view"
+      - "recoverabilitygroups:view"
+      - "endpoints:view"
+      - "customchecks:view"
