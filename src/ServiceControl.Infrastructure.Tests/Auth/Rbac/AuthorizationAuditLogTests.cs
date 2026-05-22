@@ -17,7 +17,7 @@ public class AuthorizationAuditLogTests
 
         auditLog.Decision("alice", "messages:retry", "acme.sales", allowed: true, reason: "role:sc-operator matched");
 
-        var entries = provider.GetEntries("ServiceControl.Audit");
+        var entries = provider.EntriesFor("ServiceControl.Audit");
         Assert.That(entries, Has.Count.EqualTo(1));
         Assert.That(entries[0].Message, Does.Contain("alice"));
         Assert.That(entries[0].Message, Does.Contain("messages:retry"));
@@ -34,7 +34,7 @@ public class AuthorizationAuditLogTests
 
         auditLog.Decision("bob", "messages:retry", null, allowed: false, reason: "no matching role");
 
-        var entries = provider.GetEntries("ServiceControl.Audit");
+        var entries = provider.EntriesFor("ServiceControl.Audit");
         Assert.That(entries, Has.Count.EqualTo(1));
         Assert.That(entries[0].Message, Does.Contain("bob"));
         Assert.That(entries[0].Message, Does.Contain("messages:retry"));
@@ -51,7 +51,7 @@ public class AuthorizationAuditLogTests
 
         auditLog.Decision("carol", "endpoints:view", null, allowed: true, reason: "role:sc-viewer matched");
 
-        var otherEntries = provider.GetEntries("ServiceControl.SomeOtherCategory");
+        var otherEntries = provider.EntriesFor("ServiceControl.SomeOtherCategory");
         Assert.That(otherEntries, Is.Empty);
     }
 
@@ -65,7 +65,7 @@ public class AuthorizationAuditLogTests
         auditLog.Decision("alice", "messages:view", null, allowed: true, "role matched");
         auditLog.Decision("alice", "messages:retry", "acme.finance", allowed: false, "out of scope");
 
-        var entries = provider.GetEntries("ServiceControl.Audit");
+        var entries = provider.EntriesFor("ServiceControl.Audit");
         Assert.That(entries, Has.Count.EqualTo(2));
         Assert.That(entries[0].Message, Does.Contain("allow"));
         Assert.That(entries[1].Message, Does.Contain("deny"));

@@ -151,6 +151,70 @@ public class PermissionEvaluatorTests
         Assert.That(evaluator.IsInScope(user, "messages:retry", "acme.sales.orders"), Is.True);
     }
 
+    [Test]
+    public void Resolve_deduplicates_identical_grants_from_multiple_roles()
+    {
+        // Both role-a and role-b grant messages:view with no scope.
+        // A user in both roles should see exactly one messages:view entry in the descriptor.
+        const string yaml = """
+            schemaVersion: 1
+            roles:
+              role-a:
+                bindings: [ "role:role-a" ]
+                permissions: [ "messages:view" ]
+              role-b:
+                bindings: [ "role:role-b" ]
+                permissions: [ "messages:view" ]
+            """;
+
+        var evaluator = new PermissionEvaluator(() => RbacPolicyLoader.Parse(yaml));
+
+        var identity = new ClaimsIdentity("Bearer");
+        identity.AddClaim(new Claim("role", "role-a"));
+        identity.AddClaim(new Claim("role", "role-b"));
+        var user = new ClaimsPrincipal(identity);
+
+        var effective = evaluator.Resolve(user);
+
+        var viewGrants = effective.Grants.Where(g => g.Permission == "messages:view").ToArray();
+        Assert.That(viewGrants, Has.Length.EqualTo(1),
+            "Two roles granting the same permission+scope must yield exactly one entry in the descriptor");
+    }
+
+    [Test]
+    public void Resolve_preserves_distinct_scopes_for_same_permission()
+    {
+        // role-a grants messages:retry scoped to acme.sales.*, role-b grants it scoped to acme.finance.*.
+        // Both entries must appear (OR semantics: user can retry in either scope).
+        const string yaml = """
+            schemaVersion: 1
+            roles:
+              role-a:
+                bindings: [ "role:role-a" ]
+                permissions:
+                  - permission: "messages:retry"
+                    scope: { allow: ["acme.sales.*"], deny: [] }
+              role-b:
+                bindings: [ "role:role-b" ]
+                permissions:
+                  - permission: "messages:retry"
+                    scope: { allow: ["acme.finance.*"], deny: [] }
+            """;
+
+        var evaluator = new PermissionEvaluator(() => RbacPolicyLoader.Parse(yaml));
+
+        var identity = new ClaimsIdentity("Bearer");
+        identity.AddClaim(new Claim("role", "role-a"));
+        identity.AddClaim(new Claim("role", "role-b"));
+        var user = new ClaimsPrincipal(identity);
+
+        var effective = evaluator.Resolve(user);
+
+        var retryGrants = effective.Grants.Where(g => g.Permission == "messages:retry").ToArray();
+        Assert.That(retryGrants, Has.Length.EqualTo(2),
+            "Two roles granting the same permission with different scopes must yield two entries (OR semantics)");
+    }
+
     static ClaimsPrincipal PrincipalWithRoles(params string[] roles)
     {
         var identity = new ClaimsIdentity("Bearer");

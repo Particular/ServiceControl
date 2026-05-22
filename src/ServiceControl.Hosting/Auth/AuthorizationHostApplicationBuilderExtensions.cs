@@ -27,6 +27,10 @@ public static class AuthorizationHostApplicationBuilderExtensions
             return;
         }
 
+        // Note: the authenticated-user FallbackPolicy (spec §5.5) is intentionally NOT registered
+        // here — it is already wired up by AddServiceControlAuthentication via AddAuthorization()
+        // in HostApplicationBuilderExtensions. Duplicating it here would be redundant.
+
         // The policy is loaded once at startup (reloading is a later enhancement).
         // We capture the load time so the descriptor endpoint can expose it as the 'version' field.
         var policyFilePath = ResolveRbacPolicyPath(oidcSettings.RbacPolicyFile);

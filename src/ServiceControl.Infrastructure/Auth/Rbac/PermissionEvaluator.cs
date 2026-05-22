@@ -61,9 +61,22 @@ public sealed class PermissionEvaluator(Func<RbacPolicy> policyFactory) : IPermi
         return false;
     }
 
+    /// <summary>
+    /// Resolves the full set of effective permissions for the user based on their claims
+    /// and the current RBAC policy. Identical grants (same permission AND same scope) from
+    /// multiple matching roles are deduplicated — a user in two roles that both grant
+    /// <c>messages:view</c> with no scope yields exactly one entry.
+    /// <para>
+    /// <b>OR semantics:</b> multiple entries for the same permission with <em>different</em> scopes
+    /// are all preserved. ServicePulse evaluates <c>can(permission, resource)</c> as
+    /// <c>true</c> if <em>any</em> entry for that permission permits the resource.
+    /// All downstream branches consuming this descriptor must apply the same OR semantics.
+    /// </para>
+    /// </summary>
     public EffectivePermissions Resolve(ClaimsPrincipal user)
     {
         var policy = policyFactory();
+        var seen = new HashSet<string>();
         var grants = new List<EffectiveGrant>();
 
         foreach (var role in MatchingRoles(user, policy))
@@ -74,11 +87,36 @@ public sealed class PermissionEvaluator(Func<RbacPolicy> policyFactory) : IPermi
                     ? new ResourceScope(grant.Scope.Allow, grant.Scope.Deny)
                     : null;
 
+                // Build a canonical key to detect identical grants (same permission + same scope).
+                // Different scopes for the same permission are intentionally preserved
+                // (OR semantics: any matching entry grants access).
+                var key = GrantKey(grant.Permission, scope);
+                if (!seen.Add(key))
+                {
+                    continue;
+                }
+
                 grants.Add(new EffectiveGrant(grant.Permission, scope));
             }
         }
 
         return new EffectivePermissions(grants);
+    }
+
+    /// <summary>
+    /// Produces a stable string key representing a (permission, scope) pair for deduplication.
+    /// Scope patterns are sorted so that identical pattern sets in different order compare equal.
+    /// </summary>
+    static string GrantKey(string permission, ResourceScope? scope)
+    {
+        if (scope == null)
+        {
+            return permission;
+        }
+
+        var allow = string.Join(',', scope.Allow.Order(StringComparer.Ordinal));
+        var deny = string.Join(',', scope.Deny.Order(StringComparer.Ordinal));
+        return $"{permission}|allow:{allow}|deny:{deny}";
     }
 
     /// <summary>

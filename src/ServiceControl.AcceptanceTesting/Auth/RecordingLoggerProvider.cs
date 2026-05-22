@@ -9,8 +9,8 @@ using Microsoft.Extensions.Logging;
 
 /// <summary>
 /// An in-memory <see cref="ILoggerProvider"/> that captures log entries for test assertions.
-/// Thread-safe. Use <see cref="Entries"/> to read captured entries; use
-/// <see cref="GetEntries(string)"/> to filter by category.
+/// Thread-safe. Use <see cref="Entries"/> to read all captured entries; use
+/// <see cref="EntriesFor(string)"/> to filter by category.
 /// </summary>
 public sealed class RecordingLoggerProvider : ILoggerProvider
 {
@@ -18,7 +18,7 @@ public sealed class RecordingLoggerProvider : ILoggerProvider
 
     public IReadOnlyList<LogEntry> Entries => entries.ToArray();
 
-    public IReadOnlyList<LogEntry> GetEntries(string category) =>
+    public IReadOnlyList<LogEntry> EntriesFor(string category) =>
         entries.Where(e => e.Category == category).ToArray();
 
     public ILogger CreateLogger(string categoryName) =>
