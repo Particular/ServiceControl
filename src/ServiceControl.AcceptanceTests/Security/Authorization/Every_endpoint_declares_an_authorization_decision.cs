@@ -44,48 +44,78 @@ namespace ServiceControl.AcceptanceTests.Security.Authorization
 
             // Message failures area — wired in Phase 1
             "GET api/errors",
-            "GET api/endpoints/{name}/errors",
+            "HEAD api/errors",
             "GET api/errors/summary",
-            "GET api/errors/{id}",
-            "POST api/errors/{failedMessageId}/retry",
+            "GET api/errors/{failedMessageId:required:minlength(1)}",
+            "GET api/errors/last/{failedMessageId:required:minlength(1)}",
+            "POST api/errors/{failedMessageId:required:minlength(1)}/retry",
             "POST api/errors/retry",
             "POST api/errors/retry/all",
-            "POST api/errors/{endpoint}/retry",
-            "POST api/errors/{id}/archive",
-            "POST api/errors/archive",
-            "POST api/errors/{id}/unarchive",
-            "POST api/errors/unarchive",
-            "POST api/edit/{failedMessageId}",
-            "GET api/errors/{id}/headers",
-            "GET api/errors/{id}/body",
+            "POST api/errors/queues/{queueAddress:required:minlength(1)}/retry",
+            "POST api/errors/{endpointName:required:minlength(1)}/retry/all",
+            "PATCH/POST api/errors/{messageId:required:minlength(1)}/archive",
+            "PATCH/POST api/errors/archive",
+            "PATCH api/errors/unarchive",
+            "PATCH api/errors/{from}...{to}/unarchive",
+            "GET api/errors/groups/{classifier?}",
+            "GET api/archive/groups/id/{groupId:required:minlength(1)}",
+
+            // Edit area — wired in Phase 1
+            "GET api/edit/config",
+            "POST api/edit/{failedMessageId:required:minlength(1)}",
+
+            // Pending retries area — wired in Phase 1
             "GET api/pendingretries",
             "GET api/pendingretries/{queue}",
-            "POST api/pendingretries/resolve",
+            "POST api/pendingretries/retry",
+            "POST api/pendingretries/queues/retry",
+            "PATCH api/pendingretries/resolve",
+            "PATCH api/pendingretries/queues/resolve",
+
+            // Queue addresses — wired later
+            "GET api/errors/queues/addresses",
+            "GET api/errors/queues/addresses/search/{search}",
+            "DELETE api/errors/queues/{queueaddress}",
 
             // Recoverability area — wired in Phase 1
-            "GET api/recoverability/groups",
-            "GET api/recoverability/groups/{id}/errors",
-            "POST api/recoverability/groups/{id}/comment",
-            "GET api/recoverability/groups/{groupId}/history",
-            "POST api/recoverability/groups/{id}/errors/retry",
-            "POST api/recoverability/groups/{id}/errors/archive",
-            "POST api/recoverability/groups/{id}/errors/unarchive",
-            "GET api/recoverability/unacknowledgedgroups",
+            "GET api/recoverability/groups/{classifier?}",
+            "GET api/recoverability/groups/{groupId:required:minlength(1)}/errors",
+            "HEAD api/recoverability/groups/{groupId:required:minlength(1)}/errors",
+            "POST api/recoverability/groups/{groupId:required:minlength(1)}/comment",
+            "DELETE api/recoverability/groups/{groupId:required:minlength(1)}/comment",
+            "GET api/recoverability/groups/id/{groupId:required:minlength(1)}",
+            "POST api/recoverability/groups/{groupId:required:minlength(1)}/errors/retry",
+            "POST api/recoverability/groups/{groupId:required:minlength(1)}/errors/archive",
+            "POST api/recoverability/groups/{groupId:required:minlength(1)}/errors/unarchive",
+            "DELETE api/recoverability/unacknowledgedgroups/{groupId:required:minlength(1)}",
+            "GET api/recoverability/classifiers",
+            "GET api/recoverability/history",
 
             // Messages search area — wired in Phase 1
             "GET api/messages",
+            "GET api/messages2",
             "GET api/messages/search/{keyword}",
             "GET api/messages/search",
+            "GET api/messages/{id}/body",
+            "GET api/conversations/{conversationId:required:minlength(1)}",
             "GET api/endpoints/{endpoint}/messages",
+            "GET api/endpoints/{endpoint}/messages/search",
             "GET api/endpoints/{endpoint}/messages/search/{keyword}",
-            "GET api/messages/{id}/conversations/{conversationId}",
+            "GET api/endpoints/{endpoint}/audit-count",
 
             // Endpoints monitoring area — wired later
             "GET api/endpoints",
             "GET api/endpoints/{id}",
+            "GET api/endpoints/known",
+            "GET api/endpoints/{endpointname}/errors",
             "GET api/heartbeatstatus",
-            "PATCH api/endpoints/{id}",
-            "DELETE api/endpoints/{id}",
+            "GET api/heartbeats/stats",
+            "PATCH api/endpoints/{endpointId}",
+            "DELETE api/endpoints/{endpointId}",
+
+            // Endpoint settings — wired later
+            "GET api/endpointssettings",
+            "PATCH api/endpointssettings/{endpointName?}",
 
             // Custom checks — wired later
             "GET api/customchecks",
@@ -100,23 +130,41 @@ namespace ServiceControl.AcceptanceTests.Security.Authorization
             // Licensing — wired later
             "GET api/license",
             "POST api/license",
+            "GET api/licensing/endpoints",
+            "POST api/licensing/endpoints/update",
+            "GET api/licensing/report/available",
+            "GET api/licensing/report/file",
+            "GET api/licensing/settings/info",
+            "GET api/licensing/settings/test",
+            "GET api/licensing/settings/masks",
+            "POST api/licensing/settings/masks/update",
 
             // Notifications — wired later
             "GET api/notifications",
+            "GET api/notifications/email",
             "POST api/notifications/email",
+            "POST api/notifications/email/toggle",
+            "POST api/notifications/email/test",
             "DELETE api/notifications",
 
             // Message redirects — wired later
             "GET api/redirects",
             "POST api/redirects",
-            "PUT api/redirects/{messageredirectid}",
-            "DELETE api/redirects/{messageredirectid}",
-
-            // Queue addresses — wired later
-            "DELETE api/errors/queues/{queueaddress}",
+            "HEAD api/redirect",
+            "PUT api/redirects/{messageRedirectId:guid}",
+            "DELETE api/redirects/{messageRedirectId:guid}",
 
             // Connections — wired later
             "GET api/connection",
+
+            // Failed errors / failed message retries — wired later
+            "GET api/failederrors/count",
+            "POST api/failederrors/import",
+            "GET api/failedmessageretries/count",
+
+            // Internal / test endpoints — wired later
+            "GET api/test/knownendpoints/query",
+            "POST api/criticalerror/trigger",
 
             // Root (AllowAnonymous) — documented but not in baseline (they already pass)
             // "GET api"
