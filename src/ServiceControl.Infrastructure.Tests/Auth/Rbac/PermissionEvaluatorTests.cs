@@ -1,0 +1,135 @@
+namespace ServiceControl.Infrastructure.Tests.Auth.Rbac;
+
+using System.Linq;
+using System.Security.Claims;
+using NUnit.Framework;
+using ServiceControl.Infrastructure.Auth.Rbac;
+
+[TestFixture]
+public class PermissionEvaluatorTests
+{
+    const string OperatorPolicyYaml = """
+        schemaVersion: 1
+        roles:
+          sc-operator:
+            bindings: [ "role:sc-operator" ]
+            permissions:
+              - "messages:view"
+              - "messages:retry"
+              - "messages:archive"
+        """;
+
+    const string ScopedPolicyYaml = """
+        schemaVersion: 1
+        roles:
+          scoped-role:
+            bindings: [ "group:/devops/sales" ]
+            permissions:
+              - permission: "messages:retry"
+                scope: { allow: ["acme.sales.*"], deny: [] }
+        """;
+
+    const string AdminPolicyYaml = """
+        schemaVersion: 1
+        roles:
+          sc-admin:
+            bindings: [ "role:sc-admin" ]
+            permissions: [ "*" ]
+        """;
+
+    [Test]
+    public void Operator_has_retry_but_not_admin_only_permission()
+    {
+        var policy = RbacPolicyLoader.Parse(OperatorPolicyYaml);
+        var evaluator = new PermissionEvaluator(() => policy);
+        var user = PrincipalWithRoles("sc-operator");
+
+        Assert.That(evaluator.HasPermission(user, "messages:retry"), Is.True);
+        Assert.That(evaluator.HasPermission(user, "configuration:manage"), Is.False);
+    }
+
+    [Test]
+    public void IsInScope_applies_allow_and_deny_patterns()
+    {
+        var evaluator = new PermissionEvaluator(() => RbacPolicyLoader.Parse(ScopedPolicyYaml));
+        var user = PrincipalWithGroups("/devops/sales");
+
+        Assert.That(evaluator.IsInScope(user, "messages:retry", "acme.sales.orders"), Is.True);
+        Assert.That(evaluator.IsInScope(user, "messages:retry", "acme.finance.ap"), Is.False);
+    }
+
+    [Test]
+    public void Wildcard_permission_grants_access_to_all_permissions()
+    {
+        var evaluator = new PermissionEvaluator(() => RbacPolicyLoader.Parse(AdminPolicyYaml));
+        var user = PrincipalWithRoles("sc-admin");
+
+        Assert.That(evaluator.HasPermission(user, "messages:retry"), Is.True);
+        Assert.That(evaluator.HasPermission(user, "configuration:manage"), Is.True);
+        Assert.That(evaluator.HasPermission(user, "anything:else"), Is.True);
+    }
+
+    [Test]
+    public void Wildcard_permission_is_in_scope_for_any_resource()
+    {
+        var evaluator = new PermissionEvaluator(() => RbacPolicyLoader.Parse(AdminPolicyYaml));
+        var user = PrincipalWithRoles("sc-admin");
+
+        Assert.That(evaluator.IsInScope(user, "messages:retry", "any.queue"), Is.True);
+        Assert.That(evaluator.IsInScope(user, "anything:else", "another.queue"), Is.True);
+    }
+
+    [Test]
+    public void Unrestricted_grant_is_in_scope_for_any_resource()
+    {
+        var evaluator = new PermissionEvaluator(() => RbacPolicyLoader.Parse(OperatorPolicyYaml));
+        var user = PrincipalWithRoles("sc-operator");
+
+        // messages:retry is granted without a scope, so any resource is in scope
+        Assert.That(evaluator.IsInScope(user, "messages:retry", "any.queue"), Is.True);
+        Assert.That(evaluator.IsInScope(user, "messages:retry", "another.queue"), Is.True);
+    }
+
+    [Test]
+    public void User_without_matching_role_has_no_permissions()
+    {
+        var evaluator = new PermissionEvaluator(() => RbacPolicyLoader.Parse(OperatorPolicyYaml));
+        var user = PrincipalWithRoles("sc-viewer");
+
+        Assert.That(evaluator.HasPermission(user, "messages:view"), Is.False);
+    }
+
+    [Test]
+    public void Resolve_returns_effective_permissions_for_user()
+    {
+        var evaluator = new PermissionEvaluator(() => RbacPolicyLoader.Parse(OperatorPolicyYaml));
+        var user = PrincipalWithRoles("sc-operator");
+
+        var effective = evaluator.Resolve(user);
+
+        var permissions = effective.Grants.Select(g => g.Permission).ToArray();
+        Assert.That(permissions, Does.Contain("messages:retry"));
+        Assert.That(permissions, Does.Contain("messages:view"));
+        Assert.That(permissions, Does.Contain("messages:archive"));
+    }
+
+    static ClaimsPrincipal PrincipalWithRoles(params string[] roles)
+    {
+        var identity = new ClaimsIdentity("Bearer");
+        foreach (var role in roles)
+        {
+            identity.AddClaim(new Claim("role", role));
+        }
+        return new ClaimsPrincipal(identity);
+    }
+
+    static ClaimsPrincipal PrincipalWithGroups(params string[] groups)
+    {
+        var identity = new ClaimsIdentity("Bearer");
+        foreach (var group in groups)
+        {
+            identity.AddClaim(new Claim("group", group));
+        }
+        return new ClaimsPrincipal(identity);
+    }
+}
