@@ -3,6 +3,7 @@ namespace ServiceControl.Audit.Infrastructure
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Auditing;
     using Contracts.EndpointControl;
     using Contracts.MessageFailures;
     using NServiceBus;
@@ -46,6 +47,14 @@ namespace ServiceControl.Audit.Infrastructure
                 routing.RouteToEndpoint(typeof(RegisterNewEndpoint), serviceControlLogicalQueue);
                 routing.RouteToEndpoint(typeof(MarkMessageFailureResolvedByRetry), serviceControlLogicalQueue);
 
+                configuration.AddCustomCheck<AuditIngestionCustomCheck>();
+                configuration.AddCustomCheck<FailedAuditImportCustomCheck>();
+
+                // SC.Audit runs its custom checks (AuditIngestionCustomCheck, FailedAuditImportCustomCheck)
+                // via the custom check mechanism, not the DI-based InternalCustomChecksHostedService used by the primary instance. The results are
+                // forwarded as ReportCustomCheckResult messages to the primary instance, which is// the sole owner of the ICustomChecksDataStore persistence.
+                // The primary's ReportCustomCheckResultHandler receives these and stores them through CustomCheckResultProcessor — the same path used for custom checks reported by
+                // any monitored endpoint in the ecosystem.
                 configuration.ReportCustomChecksTo(
                     transportCustomization.ToTransportQualifiedQueueName(settings.ServiceControlQueueAddress),
                     TimeSpan.FromMinutes(1) // Prevent clock skew issues, overrides calculated TTL due to some custom check using short reporting intervals (i.e. 5s results in 20s TTL)
