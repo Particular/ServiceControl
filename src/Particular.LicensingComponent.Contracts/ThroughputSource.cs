@@ -4,5 +4,6 @@ public enum ThroughputSource
 {
     Broker,
     Monitoring,
-    Audit
+    Audit,
+    Heartbeat
 }

@@ -2,18 +2,12 @@
 {
     using System;
     using System.Collections.Generic;
-    using NServiceBus;
 
-    class EndpointHeartbeat : ICommand
+    class EndpointThroughput
     {
-        public DateTime ExecutedAt { get; set; }
-
         public string EndpointName { get; set; }
-
         public Guid HostId { get; set; }
-
         public string Host { get; set; }
-
         public Dictionary<DateTime, long> Throughput { get; set; }
     }
 }
