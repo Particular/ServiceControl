@@ -48,6 +48,7 @@ static class HostApplicationBuilderExtensions
 
         services.Configure<HostOptions>(options => options.ShutdownTimeout = settings.ShutdownTimeout);
 
+        services.AddSingleton(configuration);
         services.AddSingleton(settings);
         services.AddSingleton<EndpointInstanceMonitoring>();
         services.AddSingleton<AuditIngestor>();
