@@ -43,6 +43,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <RuntimeHostConfigurationOption Include="NServiceBus.Core.Hosting.UseV2DeterministicGuid" Value="true" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="App.config" />
     <None Include="App.config" />
   </ItemGroup>

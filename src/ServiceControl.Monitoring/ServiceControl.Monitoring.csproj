@@ -32,6 +32,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <RuntimeHostConfigurationOption Include="NServiceBus.Core.Hosting.UseV2DeterministicGuid" Value="true" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.Monitoring.dll.config;nsb*.txt" DirExclude=".logs" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Monitoring" />
   </ItemGroup>
 
