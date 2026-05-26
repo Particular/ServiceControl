@@ -38,9 +38,10 @@ namespace ServiceControl.Audit.Infrastructure
             var serviceControlLogicalQueue = settings.ServiceControlQueueAddress;
             if (!string.IsNullOrWhiteSpace(serviceControlLogicalQueue))
             {
-                if (serviceControlLogicalQueue.IndexOf("@") >= 0)
+                var indexOfAtSign = serviceControlLogicalQueue.IndexOf("@", StringComparison.Ordinal);
+                if (indexOfAtSign >= 0)
                 {
-                    serviceControlLogicalQueue = serviceControlLogicalQueue.Substring(0, serviceControlLogicalQueue.IndexOf("@"));
+                    serviceControlLogicalQueue = serviceControlLogicalQueue[..indexOfAtSign];
                 }
 
                 var routing = new RoutingSettings(configuration.GetSettings());
