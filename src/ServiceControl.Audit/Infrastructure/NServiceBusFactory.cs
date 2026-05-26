@@ -80,9 +80,6 @@ namespace ServiceControl.Audit.Infrastructure
             }
         }
 
-        static bool IsExternalContract(Type t) =>
-            t.Namespace != null
-            && t.Namespace.StartsWith("ServiceControl.Contracts")
-            && t.Assembly.GetName().Name == "ServiceControl.Contracts";
+        static bool IsExternalContract(Type t) => t.Namespace != null && t.Namespace.StartsWith("ServiceControl.Contracts") && t.Assembly.GetName().Name == "ServiceControl.Contracts";
     }
 }
