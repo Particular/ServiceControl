@@ -19,25 +19,18 @@
     {
         [SetUp]
         public void SetIngestionRestartInterval() =>
-            SetSettings = s =>
-            {
-                s.TimeToRestartAuditIngestionAfterFailure = TimeSpan.FromSeconds(1);
-            };
+            SetSettings = static s => s.TimeToRestartAuditIngestionAfterFailure = TimeSpan.FromSeconds(1);
 
         [Test]
         public async Task Should_stop_ingestion()
         {
-            SetStorageConfiguration = d =>
-            {
-                d.Add(RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey, "0");
-            };
+            SetStorageConfiguration = static d => d.Add(RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey, "0");
 
             await Define<ScenarioContext>()
                 .WithEndpoint<Sender>(b => b
                     .When(context =>
                     {
-                        return context.Logs.ToArray().Any(i =>
-                            i.Message.StartsWith(AuditIngestion.LogMessages.StartedInfrastructure));
+                        return context.Logs.ToArray().Any(i => i.Message.StartsWith(AuditIngestion.LogMessages.StartedInfrastructure));
                     }, (_, __) =>
                     {
                         var databaseConfiguration = ServiceProvider.GetRequiredService<DatabaseConfiguration>();
@@ -47,8 +40,7 @@
                     })
                     .When(context =>
                     {
-                        return context.Logs.ToArray().Any(i =>
-                            i.Message.StartsWith(AuditIngestion.LogMessages.StoppedInfrastructure));
+                        return context.Logs.ToArray().Any(i => i.Message.StartsWith(AuditIngestion.LogMessages.StoppedInfrastructure));
                     }, (bus, c) => bus.SendLocal(new MyMessage()))
                 )
                 .Done(async c => await this.TryGetSingle<MessagesView>(
@@ -60,10 +52,7 @@
         [CancelAfter(120_000)]
         public async Task Should_stop_ingestion_and_resume_when_more_space_is_available(CancellationToken cancellationToken)
         {
-            SetStorageConfiguration = d =>
-            {
-                d.Add(RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey, "0");
-            };
+            SetStorageConfiguration = static d => d.Add(RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey, "0");
 
             var ingestionShutdown = false;
 
@@ -71,10 +60,8 @@
                .WithEndpoint<Sender>(b => b
                    .When(context =>
                    {
-                       return context.Logs.ToArray().Any(i =>
-                           i.Message.StartsWith(
-                                AuditIngestion.LogMessages.StartedInfrastructure));
-                   }, (session, context) =>
+                       return context.Logs.ToArray().Any(i => i.Message.StartsWith(AuditIngestion.LogMessages.StartedInfrastructure));
+                   }, (_, _) =>
                    {
                        var databaseConfiguration = ServiceProvider.GetRequiredService<DatabaseConfiguration>();
                        databaseConfiguration.ServerConfiguration.DbPath = TestContext.CurrentContext.TestDirectory;
@@ -83,13 +70,11 @@
                    })
                    .When(context =>
                    {
-                       ingestionShutdown = context.Logs.ToArray().Any(i =>
-                           i.Message.StartsWith(AuditIngestion.LogMessages.StoppedInfrastructure));
-
+                       ingestionShutdown = context.Logs.ToArray().Any(i => i.Message.StartsWith(AuditIngestion.LogMessages.StoppedInfrastructure));
                        return ingestionShutdown;
                    },
                        (bus, c) => bus.SendLocal(new MyMessage()))
-                   .When(c => ingestionShutdown, (session, context) =>
+                   .When(c => ingestionShutdown, (_, _) =>
                    {
                        var databaseConfiguration = ServiceProvider.GetRequiredService<DatabaseConfiguration>();
                        databaseConfiguration.MinimumStorageLeftRequiredForIngestion = 0;

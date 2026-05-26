@@ -17,7 +17,7 @@
     {
         [SetUp]
         public void SetupIngestion() =>
-            SetSettings = s =>
+            SetSettings = static s =>
             {
                 s.TimeToRestartErrorIngestionAfterFailure = TimeSpan.FromSeconds(1);
                 s.DisableHealthChecks = false;
@@ -32,7 +32,7 @@
                     .When(context =>
                     {
                         return context.Logs.ToArray().Any(i => i.Message.StartsWith(ErrorIngestion.LogMessages.StartedInfrastructure));
-                    }, (_, __) =>
+                    }, (_, _) =>
                     {
                         PersisterSettings.MinimumStorageLeftRequiredForIngestion = 100;
                         PersisterSettings.DatabasePath = TestContext.CurrentContext.TestDirectory;
@@ -40,8 +40,7 @@
                     })
                     .When(context =>
                         {
-                            return context.Logs.ToArray().Any(i =>
-                                i.Message.StartsWith(ErrorIngestion.LogMessages.StoppedInfrastructure));
+                            return context.Logs.ToArray().Any(i => i.Message.StartsWith(ErrorIngestion.LogMessages.StoppedInfrastructure));
                         }, (bus, c) => bus.SendLocal(new MyMessage())
                     )
                     .DoNotFailOnErrorMessages())
@@ -57,9 +56,8 @@
                .WithEndpoint<Sender>(b => b
                     .When(context =>
                     {
-                        return context.Logs.ToArray().Any(i =>
-                            i.Message.StartsWith(ErrorIngestion.LogMessages.StartedInfrastructure));
-                    }, (session, context) =>
+                        return context.Logs.ToArray().Any(i => i.Message.StartsWith(ErrorIngestion.LogMessages.StartedInfrastructure));
+                    }, (_, _) =>
                     {
                         PersisterSettings.MinimumStorageLeftRequiredForIngestion = 100;
                         PersisterSettings.DatabasePath = TestContext.CurrentContext.TestDirectory;
@@ -67,13 +65,11 @@
                     })
                     .When(context =>
                     {
-                        ingestionShutdown = context.Logs.ToArray().Any(i =>
-                            i.Message.StartsWith(ErrorIngestion.LogMessages.StoppedInfrastructure));
-
+                        ingestionShutdown = context.Logs.ToArray().Any(i => i.Message.StartsWith(ErrorIngestion.LogMessages.StoppedInfrastructure));
                         return ingestionShutdown;
                     },
                         (bus, c) => bus.SendLocal(new MyMessage()))
-                    .When(c => ingestionShutdown, (session, context) =>
+                    .When(c => ingestionShutdown, (_, _) =>
                     {
                         PersisterSettings.MinimumStorageLeftRequiredForIngestion = 0;
                         return Task.CompletedTask;
