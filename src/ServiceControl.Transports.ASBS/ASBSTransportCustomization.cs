@@ -10,6 +10,7 @@
     using Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
+    using NServiceBus.CustomChecks;
     using NServiceBus.Transport.AzureServiceBus;
 
     public class ASBSTransportCustomization : TransportCustomization<AzureServiceBusTransport>
@@ -17,8 +18,11 @@
         protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
-        protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition, TransportSettings transportSettings) =>
+        protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition, TransportSettings transportSettings)
+        {
+            endpointConfiguration.AddCustomCheck<DeadLetterQueueCheck>();
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
+        }
 
         protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
@@ -60,6 +64,9 @@
             TransportSettings transportSettings)
         {
             services.AddSingleton<IBrokerThroughputQuery, AzureQuery>();
+
+            services.AddTransient<DeadLetterQueueCheck>(); // Allows for T to have different instance registered for testing
+            services.AddTransient<ICustomCheck, DeadLetterQueueCheck>(b => b.GetService<DeadLetterQueueCheck>());
 
             var connectionSettings = ConnectionStringParser.Parse(transportSettings.ConnectionString);
             TopicTopology selectedTopology;

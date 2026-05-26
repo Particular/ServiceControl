@@ -2,15 +2,20 @@
 {
     using System.Linq;
     using Microsoft.Extensions.DependencyInjection;
+    using MSMQ.DLQMonitor;
     using NServiceBus;
+    using NServiceBus.CustomChecks;
 
     public class MsmqTransportCustomization : TransportCustomization<MsmqTransport>
     {
         protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
-        protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition, TransportSettings transportSettings) =>
+        protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition, TransportSettings transportSettings)
+        {
+            endpointConfiguration.AddCustomCheck<DeadLetterQueueCheck>();
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
+        }
 
         protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
@@ -19,6 +24,12 @@
         {
             services.AddSingleton<IProvideQueueLength, NoOpQueueLengthProvider>();
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
+        }
+
+        protected override void AddTransportForPrimaryCore(IServiceCollection services, TransportSettings transportSettings)
+        {
+            services.AddTransient<DeadLetterQueueCheck>(); // Allows for T to have different instance registered for testing
+            services.AddTransient<ICustomCheck, DeadLetterQueueCheck>(b => b.GetService<DeadLetterQueueCheck>());
         }
 
         protected override MsmqTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
