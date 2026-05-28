@@ -6,20 +6,66 @@ roles:
   sc-operator:
     bindings: [ "role:sc-operator" ]
     permissions:
+      # Messages
       - "messages:view"
       - "messages:retry"
       - "messages:archive"
       - "messages:unarchive"
       - "messages:edit"
+      # Recoverability groups
       - "recoverabilitygroups:view"
       - "recoverabilitygroups:retry"
       - "recoverabilitygroups:archive"
+      - "recoverabilitygroups:unarchive"
+      # Endpoints
       - "endpoints:view"
+      - "endpoints:manage"
+      - "endpoints:delete"
+      # Heartbeats
+      - "heartbeats:view"
+      # Custom checks
       - "customchecks:view"
+      - "customchecks:delete"
+      # Sagas
+      - "sagas:view"
+      # Event log
+      - "eventlog:view"
+      # Licensing — view only (manage is admin-only)
+      - "licensing:view"
+      # Notifications
+      - "notifications:view"
+      - "notifications:manage"
+      - "notifications:test"
+      # Retry redirects
+      - "redirects:view"
+      - "redirects:manage"
+      # Queue addresses
+      - "queues:view"
+      - "queues:delete"
+      # Throughput
+      - "throughput:view"
+      - "throughput:manage"
+      # Platform connections
+      - "connections:view"
+      - "connections:manage"
+      # Monitoring & audit (read-only)
+      - "monitoring:view"
+      - "audit:view"
   sc-viewer:
     bindings: [ "role:sc-viewer" ]
     permissions:
       - "messages:view"
       - "recoverabilitygroups:view"
       - "endpoints:view"
+      - "heartbeats:view"
       - "customchecks:view"
+      - "sagas:view"
+      - "eventlog:view"
+      - "licensing:view"
+      - "notifications:view"
+      - "redirects:view"
+      - "queues:view"
+      - "throughput:view"
+      - "connections:view"
+      - "monitoring:view"
+      - "audit:view"
