@@ -7,15 +7,13 @@ namespace ServiceControl.MessageFailures.Api
     using Microsoft.AspNetCore.Mvc;
     using Persistence;
     using ServiceControl.Infrastructure.Auth.Rbac;
-    using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Infrastructure.WebApi.Auth;
 
     [ApiController]
     [Route("api")]
     public class GetErrorByIdController(
         IErrorMessageDataStore store,
-        IResourceScopeChecker resourceScopeChecker,
-        IPermissionEvaluator permissionEvaluator) : ControllerBase
+        IResourceScopeChecker resourceScopeChecker) : ControllerBase
     {
         [RequirePermission(Permissions.MessagesView)]
         [Authorize(Policy = Permissions.MessagesView)]

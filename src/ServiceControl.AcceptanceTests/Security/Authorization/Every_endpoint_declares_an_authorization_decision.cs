@@ -42,66 +42,37 @@ namespace ServiceControl.AcceptanceTests.Security.Authorization
             // These are here so the test can document what endpoints exist during Phase 0.
             // Endpoints below lack [RequirePermission] / [AuthenticatedOnly] / [AllowAnonymous]:
 
-            // Message failures area — wired in Phase 1
-            // POST api/errors/{failedMessageId}/retry — enforced on s2 (removed from baseline)
-            // POST api/errors/retry — enforced on s2 (removed from baseline)
-            // POST api/errors/retry/all — enforced on s2 (removed from baseline)
-            // POST api/errors/queues/{queueAddress}/retry — enforced on s2 (removed from baseline)
-            // POST api/errors/{endpointName}/retry/all — enforced on s2 (removed from baseline)
-            "GET api/errors",
-            "HEAD api/errors",
-            "GET api/errors/summary",
-            "GET api/errors/{failedMessageId:required:minlength(1)}",
-            "GET api/errors/last/{failedMessageId:required:minlength(1)}",
-            "PATCH/POST api/errors/{messageId:required:minlength(1)}/archive",
-            "PATCH/POST api/errors/archive",
-            "PATCH api/errors/unarchive",
-            "PATCH api/errors/{from}...{to}/unarchive",
-            "GET api/errors/groups/{classifier?}",
-            "GET api/archive/groups/id/{groupId:required:minlength(1)}",
+            // Message failures area — enforced on tf3651-authz-s2; removed from baseline.
+            // Retry: POST api/errors/{id}/retry, POST api/errors/retry, POST api/errors/retry/all,
+            //        POST api/errors/queues/{queueAddress}/retry, POST api/errors/{name}/retry/all
+            // Errors GET/HEAD: GET api/errors, HEAD api/errors, GET api/errors/summary
+            // Error by ID: GET api/errors/{id}, GET api/errors/last/{id}
+            // Archive: PATCH/POST api/errors/{id}/archive, PATCH/POST api/errors/archive
+            // Unarchive: PATCH api/errors/unarchive, PATCH api/errors/{from}...{to}/unarchive
+            // Archive groups: GET api/errors/groups/{classifier?}, GET api/archive/groups/id/{groupId}
+            // Edit: GET api/edit/config, POST api/edit/{id}
+            // Pending retries: POST api/pendingretries/retry, POST api/pendingretries/queues/retry,
+            //                  PATCH api/pendingretries/resolve, PATCH api/pendingretries/queues/resolve
+            // Recoverability: GET/HEAD recoverability groups/errors, POST/DELETE comment,
+            //                 GET history, GET classifiers, POST retry/archive/unarchive
+            // Messages search: GET api/messages, GET api/messages2, GET api/messages/search,
+            //                  GET api/messages/search/{keyword}, GET api/messages/{id}/body,
+            //                  GET api/conversations/{conversationId}, GET api/endpoints/{e}/messages,
+            //                  GET api/endpoints/{e}/messages/search, GET api/endpoints/{e}/messages/search/{k},
+            //                  GET api/endpoints/{e}/audit-count
 
-            // Edit area — wired in Phase 1
-            "GET api/edit/config",
-            "POST api/edit/{failedMessageId:required:minlength(1)}",
-
-            // Pending retries area — wired in Phase 1
+            // Pending retries GET — these routes exist in the endpoint baseline but may be
+            // served by a separate controller or forwarded; kept in baseline until confirmed wired.
             "GET api/pendingretries",
             "GET api/pendingretries/{queue}",
-            "POST api/pendingretries/retry",
-            "POST api/pendingretries/queues/retry",
-            "PATCH api/pendingretries/resolve",
-            "PATCH api/pendingretries/queues/resolve",
 
             // Queue addresses — wired later
             "GET api/errors/queues/addresses",
             "GET api/errors/queues/addresses/search/{search}",
             "DELETE api/errors/queues/{queueaddress}",
 
-            // Recoverability area — wired in Phase 1
-            "GET api/recoverability/groups/{classifier?}",
-            "GET api/recoverability/groups/{groupId:required:minlength(1)}/errors",
-            "HEAD api/recoverability/groups/{groupId:required:minlength(1)}/errors",
-            "POST api/recoverability/groups/{groupId:required:minlength(1)}/comment",
-            "DELETE api/recoverability/groups/{groupId:required:minlength(1)}/comment",
-            "GET api/recoverability/groups/id/{groupId:required:minlength(1)}",
-            "POST api/recoverability/groups/{groupId:required:minlength(1)}/errors/retry",
-            "POST api/recoverability/groups/{groupId:required:minlength(1)}/errors/archive",
-            "POST api/recoverability/groups/{groupId:required:minlength(1)}/errors/unarchive",
+            // Recoverability unacknowledged groups — wired later
             "DELETE api/recoverability/unacknowledgedgroups/{groupId:required:minlength(1)}",
-            "GET api/recoverability/classifiers",
-            "GET api/recoverability/history",
-
-            // Messages search area — wired in Phase 1
-            "GET api/messages",
-            "GET api/messages2",
-            "GET api/messages/search/{keyword}",
-            "GET api/messages/search",
-            "GET api/messages/{id}/body",
-            "GET api/conversations/{conversationId:required:minlength(1)}",
-            "GET api/endpoints/{endpoint}/messages",
-            "GET api/endpoints/{endpoint}/messages/search",
-            "GET api/endpoints/{endpoint}/messages/search/{keyword}",
-            "GET api/endpoints/{endpoint}/audit-count",
 
             // Endpoints monitoring area — wired later
             "GET api/endpoints",
