@@ -176,57 +176,60 @@ namespace ServiceControl.AcceptanceTests.Security.Authorization
         [Test]
         public async Task All_endpoints_have_a_reviewed_authorization_decision()
         {
-            IEnumerable<EndpointDataSource> dataSources = null;
-
-            _ = await Define<Context>()
-                .Done(ctx =>
-                {
-                    dataSources = Services.GetRequiredService<IEnumerable<EndpointDataSource>>();
-                    return Task.FromResult(dataSources != null);
-                })
-                .Run();
-
             var uncoveredEndpoints = new List<string>();
             var newUncoveredEndpoints = new List<string>(); // NEW endpoints without a decision — always fail
 
-            foreach (var dataSource in dataSources)
-            {
-                foreach (var endpoint in dataSource.Endpoints)
+            // Enumerate endpoints inside Done() while the host (and its IServiceProvider) is still alive.
+            // Accessing dataSource.Endpoints after Run() completes is unsafe when the authorization
+            // policy provider is registered — ASP.NET Core's RouteEndpointDataSource resolves
+            // endpoint metadata lazily via the service provider, which is disposed after Run().
+            _ = await Define<Context>()
+                .Done(ctx =>
                 {
-                    // Only check MVC controller actions
-                    var actionDescriptor = endpoint.Metadata.GetMetadata<ControllerActionDescriptor>();
-                    if (actionDescriptor == null)
+                    var dataSources = Services.GetRequiredService<IEnumerable<EndpointDataSource>>();
+
+                    foreach (var dataSource in dataSources)
                     {
-                        continue;
+                        foreach (var endpoint in dataSource.Endpoints)
+                        {
+                            // Only check MVC controller actions
+                            var actionDescriptor = endpoint.Metadata.GetMetadata<ControllerActionDescriptor>();
+                            if (actionDescriptor == null)
+                            {
+                                continue;
+                            }
+
+                            // Build a route key: "METHOD path/template"
+                            var routePattern = (endpoint as RouteEndpoint)?.RoutePattern.RawText ?? "unknown";
+                            var httpMethods = endpoint.Metadata.GetOrderedMetadata<Microsoft.AspNetCore.Routing.HttpMethodMetadata>()
+                                .SelectMany(m => m.HttpMethods)
+                                .Distinct()
+                                .OrderBy(x => x)
+                                .ToList();
+
+                            var httpMethod = httpMethods.Count == 1 ? httpMethods[0] : string.Join("/", httpMethods);
+                            var routeKey = $"{httpMethod} {routePattern}";
+
+                            // Check for one of the three valid authorization decisions
+                            if (HasAuthorizationDecision(endpoint, actionDescriptor))
+                            {
+                                continue; // Covered — has a decision
+                            }
+
+                            if (Phase0Baseline.Contains(routeKey))
+                            {
+                                uncoveredEndpoints.Add(routeKey); // Known uncovered — in baseline, Phase 1+ will fix
+                            }
+                            else
+                            {
+                                newUncoveredEndpoints.Add(routeKey); // NEW endpoint without decision — fail now
+                            }
+                        }
                     }
 
-                    // Build a route key: "METHOD path/template"
-                    var routePattern = (endpoint as RouteEndpoint)?.RoutePattern.RawText ?? "unknown";
-                    var httpMethods = endpoint.Metadata.GetOrderedMetadata<Microsoft.AspNetCore.Routing.HttpMethodMetadata>()
-                        .SelectMany(m => m.HttpMethods)
-                        .Distinct()
-                        .OrderBy(x => x)
-                        .ToList();
-
-                    var httpMethod = httpMethods.Count == 1 ? httpMethods[0] : string.Join("/", httpMethods);
-                    var routeKey = $"{httpMethod} {routePattern}";
-
-                    // Check for one of the three valid authorization decisions
-                    if (HasAuthorizationDecision(endpoint, actionDescriptor))
-                    {
-                        continue; // Covered — has a decision
-                    }
-
-                    if (Phase0Baseline.Contains(routeKey))
-                    {
-                        uncoveredEndpoints.Add(routeKey); // Known uncovered — in baseline, Phase 1+ will fix
-                    }
-                    else
-                    {
-                        newUncoveredEndpoints.Add(routeKey); // NEW endpoint without decision — fail now
-                    }
-                }
-            }
+                    return Task.FromResult(true);
+                })
+                .Run();
 
             if (newUncoveredEndpoints.Count > 0)
             {
