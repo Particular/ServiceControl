@@ -10,6 +10,7 @@
     using ServiceControl;
     using ServiceControl.Hosting.Auth;
     using ServiceControl.Hosting.Https;
+    using ServiceControl.Infrastructure.WebApi.Auth;
     using ServicePulse;
 
     class RunCommand : AbstractCommand
@@ -26,6 +27,7 @@
 
             hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
             hostBuilder.AddServiceControlAuthorization(settings.OpenIdConnectSettings);
+            hostBuilder.AddServiceControlS2Authorization(settings.OpenIdConnectSettings);
             hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
             hostBuilder.AddServiceControl(settings, endpointConfiguration);
             hostBuilder.AddServiceControlApi(settings.CorsSettings);

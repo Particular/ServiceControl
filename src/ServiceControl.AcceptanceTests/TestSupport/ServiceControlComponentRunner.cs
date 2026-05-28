@@ -14,6 +14,7 @@
     using Hosting.Https;
     using Infrastructure.DomainEvents;
     using Infrastructure.WebApi;
+    using Infrastructure.WebApi.Auth;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
@@ -125,6 +126,7 @@
                 });
                 hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControlAuthorization(settings.OpenIdConnectSettings);
+                hostBuilder.AddServiceControlS2Authorization(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControl(settings, configuration);
                 hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
                 hostBuilder.AddServiceControlApi(settings.CorsSettings);

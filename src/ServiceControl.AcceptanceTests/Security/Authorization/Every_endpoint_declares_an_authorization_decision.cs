@@ -43,16 +43,16 @@ namespace ServiceControl.AcceptanceTests.Security.Authorization
             // Endpoints below lack [RequirePermission] / [AuthenticatedOnly] / [AllowAnonymous]:
 
             // Message failures area — wired in Phase 1
+            // POST api/errors/{failedMessageId}/retry — enforced on s2 (removed from baseline)
+            // POST api/errors/retry — enforced on s2 (removed from baseline)
+            // POST api/errors/retry/all — enforced on s2 (removed from baseline)
+            // POST api/errors/queues/{queueAddress}/retry — enforced on s2 (removed from baseline)
+            // POST api/errors/{endpointName}/retry/all — enforced on s2 (removed from baseline)
             "GET api/errors",
             "HEAD api/errors",
             "GET api/errors/summary",
             "GET api/errors/{failedMessageId:required:minlength(1)}",
             "GET api/errors/last/{failedMessageId:required:minlength(1)}",
-            "POST api/errors/{failedMessageId:required:minlength(1)}/retry",
-            "POST api/errors/retry",
-            "POST api/errors/retry/all",
-            "POST api/errors/queues/{queueAddress:required:minlength(1)}/retry",
-            "POST api/errors/{endpointName:required:minlength(1)}/retry/all",
             "PATCH/POST api/errors/{messageId:required:minlength(1)}/archive",
             "PATCH/POST api/errors/archive",
             "PATCH api/errors/unarchive",
