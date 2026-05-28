@@ -5,9 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNetCore.Authorization;
 using NUnit.Framework;
+using ServiceControl.Connection;
 using ServiceControl.Infrastructure.Auth.Rbac;
-using ServiceControl.Infrastructure.WebApi;
 
 /// <summary>
 /// Fast unit-style tests (no host startup) that keep the permission catalogue honest.
@@ -16,8 +17,9 @@ using ServiceControl.Infrastructure.WebApi;
 /// <list type="number">
 ///   <item>
 ///     Every constant in <see cref="Permissions.All"/> (except <c>*</c>) is either enforced
-///     via a <c>[RequirePermission]</c> attribute on a controller action, or explicitly declared
-///     as unenforced in <see cref="KnownUnenforcedPermissions.Set"/>.
+///     via an <c>[Authorize(Policy = X)]</c> attribute on a controller action (where <c>X</c> is
+///     a member of <see cref="Permissions.All"/>), or explicitly declared as unenforced in
+///     <see cref="KnownUnenforcedPermissions.Set"/>.
 ///     Failing this means a new constant was added without enforcement or a known-unenforced entry.
 ///   </item>
 ///   <item>
@@ -30,8 +32,8 @@ using ServiceControl.Infrastructure.WebApi;
 /// Assembly walk strategy:
 /// <list type="bullet">
 ///   <item>
-///     <see cref="RequirePermissionAttribute"/> and all controllers live in the
-///     main ServiceControl assembly, anchored via <see cref="RequirePermissionAttribute"/>.
+///     All controllers live in the main ServiceControl assembly, anchored via
+///     <see cref="ConnectionController"/> (a stable, non-auth-specific controller type).
 ///   </item>
 ///   <item>
 ///     <see cref="Permissions"/> and <see cref="KnownUnenforcedPermissions"/> live in the
@@ -45,30 +47,38 @@ using ServiceControl.Infrastructure.WebApi;
 public class Catalogue_completeness_tests
 {
     /// <summary>
-    /// Collects all permissions that appear on at least one <c>[RequirePermission]</c>
-    /// attribute on any controller action method across the ServiceControl assembly.
+    /// Collects all permission strings that appear as the <c>Policy</c> of an
+    /// <c>[Authorize]</c> attribute on any controller class or action method across the
+    /// ServiceControl assembly, filtered to only those that are members of <see cref="Permissions.All"/>.
     /// </summary>
     static IReadOnlySet<string> CollectEnforcedPermissions()
     {
-        // The main ServiceControl assembly hosts both RequirePermissionAttribute and all controllers.
-        var scAssembly = typeof(RequirePermissionAttribute).Assembly;
+        // The main ServiceControl assembly hosts all controllers.
+        // Anchored via ConnectionController — a stable, always-present controller type.
+        var scAssembly = typeof(ConnectionController).Assembly;
 
         var enforced = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var type in scAssembly.GetExportedTypes())
         {
-            // Check class-level [RequirePermission]
-            foreach (var attr in type.GetCustomAttributes<RequirePermissionAttribute>(inherit: true))
+            // Check class-level [Authorize(Policy = X)]
+            foreach (var attr in type.GetCustomAttributes<AuthorizeAttribute>(inherit: true))
             {
-                enforced.Add(attr.Permission);
+                if (attr.Policy != null && Permissions.All.Contains(attr.Policy))
+                {
+                    enforced.Add(attr.Policy);
+                }
             }
 
-            // Check method-level [RequirePermission] on all public instance methods
+            // Check method-level [Authorize(Policy = X)] on all public instance methods
             foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
             {
-                foreach (var attr in method.GetCustomAttributes<RequirePermissionAttribute>(inherit: true))
+                foreach (var attr in method.GetCustomAttributes<AuthorizeAttribute>(inherit: true))
                 {
-                    enforced.Add(attr.Permission);
+                    if (attr.Policy != null && Permissions.All.Contains(attr.Policy))
+                    {
+                        enforced.Add(attr.Policy);
+                    }
                 }
             }
         }
@@ -101,8 +111,8 @@ public class Catalogue_completeness_tests
         {
             Assert.Fail(
                 $"The following permission(s) are declared in Permissions but are neither enforced " +
-                $"by a [RequirePermission] attribute nor listed in KnownUnenforcedPermissions.Set.\n" +
-                $"Either add a [RequirePermission(\"{gaps[0]}\")] to the appropriate controller action, " +
+                $"by an [Authorize(Policy = X)] attribute on a controller action nor listed in KnownUnenforcedPermissions.Set.\n" +
+                $"Either add [Authorize(Policy = \"{gaps[0]}\")] to the appropriate controller action, " +
                 $"or add the constant to KnownUnenforcedPermissions.Set until enforcement is implemented:\n" +
                 string.Join("\n", gaps.Select(p => $"  - {p}")));
         }
@@ -133,7 +143,7 @@ public class Catalogue_completeness_tests
         {
             Assert.Fail(
                 $"The following permission(s) are listed in KnownUnenforcedPermissions.Set but are " +
-                $"now enforced by a [RequirePermission] attribute — remove them from " +
+                $"now enforced by an [Authorize(Policy = X)] attribute — remove them from " +
                 $"KnownUnenforcedPermissions.Set to keep the set accurate:\n" +
                 string.Join("\n", stale.Select(p => $"  - {p}")));
         }
