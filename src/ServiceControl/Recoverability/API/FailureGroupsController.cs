@@ -37,21 +37,47 @@ namespace ServiceControl.Recoverability.API
             return result;
         }
 
+        /// <summary>
+        /// Adds or updates a comment for the specified failure group.
+        /// <para>
+        /// <b>Fail-closed for scoped users:</b> failure groups span multiple queues and cannot be
+        /// scope-checked against a single queue address. If the user holds only scope-restricted
+        /// grants for <c>recoverabilitygroups:view</c>, access is denied with 403.
+        /// </para>
+        /// </summary>
         [Authorize(Policy = Permissions.RecoverabilityGroupsView)]
         [Route("recoverability/groups/{groupId:required:minlength(1)}/comment")]
         [HttpPost]
         public async Task<IActionResult> EditComment(string groupId, string comment)
         {
+            var scopeDenied = await EnforceGroupScopeAsync(groupId, Permissions.RecoverabilityGroupsView);
+            if (scopeDenied != null)
+            {
+                return scopeDenied;
+            }
+
             await store.EditComment(groupId, comment);
 
             return Accepted();
         }
 
+        /// <summary>
+        /// Deletes the comment for the specified failure group.
+        /// <para>
+        /// <b>Fail-closed for scoped users:</b> same semantics as <see cref="EditComment"/>.
+        /// </para>
+        /// </summary>
         [Authorize(Policy = Permissions.RecoverabilityGroupsView)]
         [Route("recoverability/groups/{groupId:required:minlength(1)}/comment")]
         [HttpDelete]
         public async Task<IActionResult> DeleteComment(string groupId)
         {
+            var scopeDenied = await EnforceGroupScopeAsync(groupId, Permissions.RecoverabilityGroupsView);
+            if (scopeDenied != null)
+            {
+                return scopeDenied;
+            }
+
             await store.DeleteComment(groupId);
 
             return Accepted();
@@ -119,6 +145,24 @@ namespace ServiceControl.Recoverability.API
             Response.WithEtag(result.QueryStats.ETag);
 
             return result.Results.FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Fail-closed scope check for group operations. Groups span multiple queues and cannot
+        /// be scope-checked against a single queue address, so scoped users are denied.
+        /// </summary>
+        async Task<IActionResult> EnforceGroupScopeAsync(string groupId, string permission)
+        {
+            if (!permissionEvaluator.HasUnrestrictedGrant(User, permission))
+            {
+                await AuthorizationHelpers.WriteScopeDenied403(
+                    Response,
+                    permission,
+                    queueAddress: groupId);
+                return new EmptyResult();
+            }
+
+            return null;
         }
     }
 }
