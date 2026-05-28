@@ -3,7 +3,6 @@ namespace ServiceControl.Recoverability.API
     using System;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
     using ServiceControl.Infrastructure.Auth.Rbac;
@@ -28,15 +27,10 @@ namespace ServiceControl.Recoverability.API
             // Unrestricted users (sc-admin with "*" or sc-operator with no scope) proceed normally.
             if (!permissionEvaluator.HasUnrestrictedGrant(User, Permissions.RecoverabilityGroupsRetry))
             {
-                Response.ContentType = "application/json";
-                Response.StatusCode = StatusCodes.Status403Forbidden;
-                await Response.WriteAsJsonAsync(new
-                {
-                    error = "forbidden",
-                    permission = Permissions.RecoverabilityGroupsRetry,
-                    resource = groupId,
-                    reason = $"Group '{groupId}' cannot be scope-verified — access denied fail-closed for scoped users. Use per-message retry operations."
-                });
+                await AuthorizationHelpers.WriteScopeDenied403(
+                    Response,
+                    Permissions.RecoverabilityGroupsRetry,
+                    queueAddress: groupId);
                 return Empty;
             }
 

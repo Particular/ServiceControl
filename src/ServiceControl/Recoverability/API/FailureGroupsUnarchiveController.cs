@@ -2,7 +2,6 @@ namespace ServiceControl.Recoverability.API
 {
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
     using ServiceControl.Infrastructure.Auth.Rbac;
@@ -27,15 +26,10 @@ namespace ServiceControl.Recoverability.API
             // v1 documented limitation: scoped users must use per-message unarchive operations.
             if (!permissionEvaluator.HasUnrestrictedGrant(User, Permissions.RecoverabilityGroupsUnarchive))
             {
-                Response.ContentType = "application/json";
-                Response.StatusCode = StatusCodes.Status403Forbidden;
-                await Response.WriteAsJsonAsync(new
-                {
-                    error = "forbidden",
-                    permission = Permissions.RecoverabilityGroupsUnarchive,
-                    resource = groupId,
-                    reason = $"Group '{groupId}' cannot be scope-verified — access denied fail-closed for scoped users. Use per-message unarchive operations."
-                });
+                await AuthorizationHelpers.WriteScopeDenied403(
+                    Response,
+                    Permissions.RecoverabilityGroupsUnarchive,
+                    queueAddress: groupId);
                 return Empty;
             }
 
