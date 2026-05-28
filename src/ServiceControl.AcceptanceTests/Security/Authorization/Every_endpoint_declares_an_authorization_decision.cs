@@ -12,35 +12,37 @@ namespace ServiceControl.AcceptanceTests.Security.Authorization
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceControl.Infrastructure.Auth.Rbac;
     using ServiceControl.Infrastructure.WebApi;
 
     /// <summary>
     /// Asserts that every API endpoint in the ServiceControl host carries an explicit
     /// authorization decision — either:
     /// <list type="bullet">
-    ///   <item><see cref="RequirePermissionAttribute"/> — a specific permission is required (Phase 1+)</item>
+    ///   <item><see cref="AuthorizeAttribute"/> with a <c>Policy</c> that is a member of <see cref="Permissions.All"/> — a specific permission is required</item>
     ///   <item><see cref="AuthenticatedOnlyAttribute"/> — reviewed: authenticated but no permission needed</item>
     ///   <item><see cref="AllowAnonymousAttribute"/> — reviewed: public (e.g. health/metadata endpoints)</item>
     /// </list>
     ///
-    /// <para>In Phase 0, no endpoints have <see cref="RequirePermissionAttribute"/> yet, so the entire
+    /// <para>In Phase 0, no endpoints have a permission policy yet, so the entire
     /// set is in the <see cref="Phase0Baseline"/>.  As Phase 1+ wires permissions the baseline shrinks.
-    /// Any endpoint NOT in the baseline and NOT carrying one of the three attributes fails the test
-    /// immediately, catching new endpoints that were added without a decision.</para>
+    /// Any endpoint NOT in the baseline and NOT carrying one of the three recognized decisions fails the
+    /// test immediately, catching new endpoints that were added without a decision.</para>
     /// </summary>
     class Every_endpoint_declares_an_authorization_decision : AcceptanceTest
     {
         /// <summary>
         /// The Phase 0 baseline: all endpoints that do not yet have a permission declaration.
         /// A route in this set is allowed to be "uncovered" — it was here before RBAC.
-        /// Remove routes from this list as Phase 1+ wires <see cref="RequirePermissionAttribute"/>;
-        /// this set reaching empty is the definition of "coverage complete".
+        /// Remove routes from this list as Phase 1+ wires <c>[Authorize(Policy = X)]</c> where
+        /// <c>X</c> is a member of <see cref="Permissions.All"/>; this set reaching empty is the
+        /// definition of "coverage complete".
         /// </summary>
         static readonly HashSet<string> Phase0Baseline =
         [
             // Authentication (AllowAnonymous — will never be in the baseline)
             // These are here so the test can document what endpoints exist during Phase 0.
-            // Endpoints below lack [RequirePermission] / [AuthenticatedOnly] / [AllowAnonymous]:
+            // Endpoints below lack [Authorize(Policy=X)] / [AuthenticatedOnly] / [AllowAnonymous]:
 
             // Message failures area — wired in Phase 1
             "GET api/errors",
@@ -232,7 +234,7 @@ namespace ServiceControl.AcceptanceTests.Security.Authorization
             {
                 Assert.Fail(
                     $"The following endpoints were added without an authorization decision. " +
-                    $"Add [RequirePermission], [AuthenticatedOnly], or [AllowAnonymous] to each:\n" +
+                    $"Add [Authorize(Policy = <permission>)], [AuthenticatedOnly], or [AllowAnonymous] to each:\n" +
                     string.Join("\n", newUncoveredEndpoints.Select(e => $"  - {e}")));
             }
 
@@ -246,7 +248,12 @@ namespace ServiceControl.AcceptanceTests.Security.Authorization
         }
 
         /// <summary>
-        /// Returns true if the endpoint has one of the three recognized authorization decisions.
+        /// Returns true if the endpoint has one of the recognized authorization decisions:
+        /// <list type="bullet">
+        ///   <item><c>[Authorize(Policy = X)]</c> where <c>X</c> is a member of <see cref="Permissions.All"/></item>
+        ///   <item><see cref="AuthenticatedOnlyAttribute"/> — reviewed: authenticated but no specific permission needed</item>
+        ///   <item><see cref="AllowAnonymousAttribute"/> — reviewed: public endpoint</item>
+        /// </list>
         /// Checks both class-level and method-level attributes (method-level takes precedence in MVC).
         /// </summary>
         static bool HasAuthorizationDecision(Microsoft.AspNetCore.Http.Endpoint endpoint, ControllerActionDescriptor descriptor)
@@ -254,22 +261,39 @@ namespace ServiceControl.AcceptanceTests.Security.Authorization
             var controllerType = descriptor.ControllerTypeInfo;
             var methodInfo = descriptor.MethodInfo;
 
-            return
-                // RequirePermissionAttribute — Phase 1+ enforcement
-                endpoint.Metadata.GetMetadata<RequirePermissionAttribute>() != null ||
-                controllerType.GetCustomAttribute<RequirePermissionAttribute>() != null ||
-                methodInfo.GetCustomAttribute<RequirePermissionAttribute>() != null ||
+            // [Authorize(Policy = X)] where X is a known permission — Phase 1+ enforcement
+            if (HasPermissionPolicy(endpoint.Metadata.GetOrderedMetadata<AuthorizeAttribute>()) ||
+                HasPermissionPolicy(controllerType.GetCustomAttributes<AuthorizeAttribute>(inherit: true)) ||
+                HasPermissionPolicy(methodInfo.GetCustomAttributes<AuthorizeAttribute>(inherit: true)))
+            {
+                return true;
+            }
 
-                // AuthenticatedOnlyAttribute — reviewed: no specific permission needed
-                endpoint.Metadata.GetMetadata<AuthenticatedOnlyAttribute>() != null ||
+            // AuthenticatedOnlyAttribute — reviewed: no specific permission needed
+            if (endpoint.Metadata.GetMetadata<AuthenticatedOnlyAttribute>() != null ||
                 controllerType.GetCustomAttribute<AuthenticatedOnlyAttribute>() != null ||
-                methodInfo.GetCustomAttribute<AuthenticatedOnlyAttribute>() != null ||
+                methodInfo.GetCustomAttribute<AuthenticatedOnlyAttribute>() != null)
+            {
+                return true;
+            }
 
-                // AllowAnonymousAttribute — reviewed: public endpoint
-                endpoint.Metadata.GetMetadata<AllowAnonymousAttribute>() != null ||
+            // AllowAnonymousAttribute — reviewed: public endpoint
+            if (endpoint.Metadata.GetMetadata<AllowAnonymousAttribute>() != null ||
                 controllerType.GetCustomAttribute<AllowAnonymousAttribute>() != null ||
-                methodInfo.GetCustomAttribute<AllowAnonymousAttribute>() != null;
+                methodInfo.GetCustomAttribute<AllowAnonymousAttribute>() != null)
+            {
+                return true;
+            }
+
+            return false;
         }
+
+        /// <summary>
+        /// Returns true if any of the given <see cref="AuthorizeAttribute"/> instances carries a
+        /// <c>Policy</c> that is a member of <see cref="Permissions.All"/>.
+        /// </summary>
+        static bool HasPermissionPolicy(IEnumerable<AuthorizeAttribute> attributes) =>
+            attributes.Any(a => a.Policy != null && Permissions.All.Contains(a.Policy));
 
         class Context : ScenarioContext;
     }

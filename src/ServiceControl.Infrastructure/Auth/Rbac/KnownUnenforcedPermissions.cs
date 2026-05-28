@@ -5,11 +5,11 @@ using System.Collections.Generic;
 
 /// <summary>
 /// The set of permission constants that are declared in <see cref="Permissions"/> but are not
-/// yet enforced by any <c>[RequirePermission]</c> attribute on a controller action.
+/// yet enforced by any <c>[Authorize(Policy = X)]</c> attribute on a controller action.
 /// <para>
 /// This set serves as the "known-unenforced" allowlist for the catalogue cross-check test
 /// (<c>Catalogue_completeness_tests</c>). When a permission is wired up with
-/// <c>[RequirePermission]</c>, remove it from this set; when a new unenforced constant is added
+/// <c>[Authorize(Policy = X)]</c>, remove it from this set; when a new unenforced constant is added
 /// to <see cref="Permissions"/>, add it here until enforcement is implemented.
 /// </para>
 /// <para>
@@ -20,8 +20,8 @@ using System.Collections.Generic;
 public static class KnownUnenforcedPermissions
 {
     /// <summary>
-    /// Every permission constant that is declared but not yet enforced by a
-    /// <c>[RequirePermission]</c> attribute on a controller action method.
+    /// Every permission constant that is declared but not yet enforced by an
+    /// <c>[Authorize(Policy = X)]</c> attribute on a controller action method.
     /// </summary>
     public static readonly IReadOnlySet<string> Set = new HashSet<string>
     {
