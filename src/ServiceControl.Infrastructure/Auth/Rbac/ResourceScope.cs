@@ -35,13 +35,16 @@ public sealed class ResourceScope(IReadOnlyList<string> allow, IReadOnlyList<str
 
     static bool Matches(string pattern, string resource)
     {
-        // Queue addresses are stored lower-case in the index; normalise the pattern
-        // to lower-case so that mixed-case policy entries (e.g. "Finance.*") work
-        // correctly against lower-case queue addresses.
-        var lower = pattern.ToLowerInvariant();
-        return lower == "*" ||
-               lower == resource ||
-               (lower.EndsWith(".*", StringComparison.Ordinal) &&
-                resource.StartsWith(lower[..^1], StringComparison.Ordinal));
+        // Normalise both pattern and resource to lower-case.
+        // Queue addresses in the RavenDB index are stored lower-case; policy entries
+        // may be mixed-case (e.g. "Finance.*"), and in-memory resource identifiers
+        // (from FailedMessage.QueueAddress) may also be mixed-case.
+        // Lowercasing both sides ensures consistent case-insensitive comparison.
+        var lowerPattern = pattern.ToLowerInvariant();
+        var lowerResource = resource.ToLowerInvariant();
+        return lowerPattern == "*" ||
+               lowerPattern == lowerResource ||
+               (lowerPattern.EndsWith(".*", StringComparison.Ordinal) &&
+                lowerResource.StartsWith(lowerPattern[..^1], StringComparison.Ordinal));
     }
 }
