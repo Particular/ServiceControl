@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.MessageFailures.Api
+namespace ServiceControl.MessageFailures.Api
 {
     using System;
     using System.ComponentModel.DataAnnotations;
@@ -6,13 +6,19 @@
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
     using InternalMessages;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
+    using ServiceControl.Infrastructure.Auth.Rbac;
+    using ServiceControl.Infrastructure.WebApi;
+    using ServiceControl.Infrastructure.WebApi.Auth;
 
     [ApiController]
     [Route("api")]
     public class PendingRetryMessagesController(IMessageSession session) : ControllerBase
     {
+        [RequirePermission(Permissions.MessagesRetry)]
+        [Authorize(Policy = Permissions.MessagesRetry)]
         [Route("pendingretries/retry")]
         [HttpPost]
         public async Task<IActionResult> RetryBy(string[] ids)
@@ -28,6 +34,8 @@
             return Accepted();
         }
 
+        [RequirePermission(Permissions.MessagesRetry)]
+        [Authorize(Policy = Permissions.MessagesRetry)]
         [Route("pendingretries/queues/retry")]
         [HttpPost]
         public async Task<IActionResult> RetryBy(PendingRetryRequest request)

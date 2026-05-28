@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 namespace ServiceControl.MessageFailures.Api
 {
@@ -9,14 +9,20 @@ namespace ServiceControl.MessageFailures.Api
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
     using InternalMessages;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
     using NServiceBus;
+    using ServiceControl.Infrastructure.Auth.Rbac;
+    using ServiceControl.Infrastructure.WebApi;
+    using ServiceControl.Infrastructure.WebApi.Auth;
 
     [ApiController]
     [Route("api")]
     public class ResolveMessagesController(IMessageSession session) : ControllerBase
     {
+        [RequirePermission(Permissions.MessagesRetry)]
+        [Authorize(Policy = Permissions.MessagesRetry)]
         [Route("pendingretries/resolve")]
         [HttpPatch]
         public async Task<IActionResult> ResolveBy(UniqueMessageIdsModel request)
@@ -61,6 +67,8 @@ namespace ServiceControl.MessageFailures.Api
             return Accepted();
         }
 
+        [RequirePermission(Permissions.MessagesRetry)]
+        [Authorize(Policy = Permissions.MessagesRetry)]
         [Route("pendingretries/queues/resolve")]
         [HttpPatch]
         public async Task<IActionResult> ResolveBy(QueueModel queueModel)

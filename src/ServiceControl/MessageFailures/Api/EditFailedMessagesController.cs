@@ -1,16 +1,20 @@
-﻿namespace ServiceControl.MessageFailures.Api
+namespace ServiceControl.MessageFailures.Api
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
     using Persistence;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.Auth.Rbac;
+    using ServiceControl.Infrastructure.WebApi;
+    using ServiceControl.Infrastructure.WebApi.Auth;
 
     [ApiController]
     [Route("api")]
@@ -18,13 +22,18 @@
         Settings settings,
         IErrorMessageDataStore store,
         IMessageSession session,
+        IResourceScopeChecker resourceScopeChecker,
         ILogger<EditFailedMessagesController> logger)
         : ControllerBase
     {
+        [RequirePermission(Permissions.MessagesEdit)]
+        [Authorize(Policy = Permissions.MessagesEdit)]
         [Route("edit/config")]
         [HttpGet]
         public EditConfigurationModel Config() => GetEditConfiguration();
 
+        [RequirePermission(Permissions.MessagesEdit)]
+        [Authorize(Policy = Permissions.MessagesEdit)]
         [Route("edit/{failedMessageId:required:minlength(1)}")]
         [HttpPost]
         public async Task<ActionResult<EditRetryResponse>> Edit(string failedMessageId, [FromBody] EditMessageModel edit)
@@ -51,6 +60,20 @@
             {
                 logger.LogWarning("The original failed message could not be loaded for id={FailedMessageId}", failedMessageId);
                 return BadRequest();
+            }
+
+            // Resource-scope check: is this message's queue address in scope for this user?
+            var queueAddress = failedMessage.ProcessingAttempts
+                .LastOrDefault()
+                ?.FailureDetails
+                ?.AddressOfFailingEndpoint;
+
+            var scopeDeny = await resourceScopeChecker.EnforceAsync(
+                User, Permissions.MessagesEdit, queueAddress, HttpContext);
+
+            if (scopeDeny != null)
+            {
+                return Empty;
             }
 
             //WARN

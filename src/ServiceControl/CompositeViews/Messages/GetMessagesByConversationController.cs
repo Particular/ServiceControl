@@ -3,15 +3,21 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using Persistence.Infrastructure;
+    using ServiceControl.Infrastructure.Auth.Rbac;
+    using ServiceControl.Infrastructure.WebApi;
+    using ServiceControl.Infrastructure.WebApi.Auth;
 
     [ApiController]
     [Route("api")]
     public class GetMessagesByConversationController(MessagesByConversationApi byConversationApi)
         : ControllerBase
     {
+        [RequirePermission(Permissions.MessagesView)]
+        [Authorize(Policy = Permissions.MessagesView)]
         [Route("conversations/{conversationId:required:minlength(1)}")]
         [HttpGet]
         public async Task<IList<MessagesView>> Messages([FromQuery] PagingInfo pagingInfo,

@@ -1,17 +1,23 @@
-﻿namespace ServiceControl.MessageFailures.Api
+namespace ServiceControl.MessageFailures.Api
 {
     using System;
     using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
     using InternalMessages;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
+    using ServiceControl.Infrastructure.Auth.Rbac;
+    using ServiceControl.Infrastructure.WebApi;
+    using ServiceControl.Infrastructure.WebApi.Auth;
 
     [ApiController]
     [Route("api")]
     public class UnArchiveMessagesController(IMessageSession session) : ControllerBase
     {
+        [RequirePermission(Permissions.MessagesUnarchive)]
+        [Authorize(Policy = Permissions.MessagesUnarchive)]
         [Route("errors/unarchive")]
         [HttpPatch]
         public async Task<IActionResult> Unarchive(string[] ids)
@@ -28,6 +34,8 @@
             return Accepted();
         }
 
+        [RequirePermission(Permissions.MessagesUnarchive)]
+        [Authorize(Policy = Permissions.MessagesUnarchive)]
         [Route("errors/{from}...{to}/unarchive")]
         [HttpPatch]
         public async Task<IActionResult> Unarchive(string from, string to)
