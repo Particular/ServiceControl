@@ -19,7 +19,6 @@ public class GetMessages2Controller(
     SearchEndpointApi searchEndpointApi)
     : ControllerBase
 {
-    [RequirePermission(Permissions.MessagesView)]
     [Authorize(Policy = Permissions.MessagesView)]
     [Route("messages2")]
     [HttpGet]

@@ -15,7 +15,6 @@ namespace ServiceControl.Recoverability.API
     [Route("api")]
     public class FailureGroupsRetryController(IMessageSession bus, RetryingManager retryingManager, IPermissionEvaluator permissionEvaluator) : ControllerBase
     {
-        [RequirePermission(Permissions.RecoverabilityGroupsRetry)]
         [Authorize(Policy = Permissions.RecoverabilityGroupsRetry)]
         [Route("recoverability/groups/{groupId:required:minlength(1)}/errors/retry")]
         [HttpPost]

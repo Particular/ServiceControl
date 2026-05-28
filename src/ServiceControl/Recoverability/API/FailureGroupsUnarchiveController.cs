@@ -15,7 +15,6 @@ namespace ServiceControl.Recoverability.API
     [Route("api")]
     public class FailureGroupsUnarchiveController(IMessageSession bus, IArchiveMessages archiver, IPermissionEvaluator permissionEvaluator) : ControllerBase
     {
-        [RequirePermission(Permissions.RecoverabilityGroupsUnarchive)]
         [Authorize(Policy = Permissions.RecoverabilityGroupsUnarchive)]
         [Route("recoverability/groups/{groupId:required:minlength(1)}/errors/unarchive")]
         [HttpPost]

@@ -16,7 +16,6 @@ namespace ServiceControl.MessageFailures.Api
         IErrorMessageDataStore store,
         IPermissionEvaluator permissionEvaluator) : ControllerBase
     {
-        [RequirePermission(Permissions.MessagesView)]
         [Authorize(Policy = Permissions.MessagesView)]
         [Route("errors")]
         [HttpGet]
@@ -41,7 +40,6 @@ namespace ServiceControl.MessageFailures.Api
             return results.Results;
         }
 
-        [RequirePermission(Permissions.MessagesView)]
         [Authorize(Policy = Permissions.MessagesView)]
         [Route("errors")]
         [HttpHead]
@@ -56,7 +54,6 @@ namespace ServiceControl.MessageFailures.Api
             Response.WithQueryStatsInfo(queryResult);
         }
 
-        [RequirePermission(Permissions.MessagesView)]
         [Authorize(Policy = Permissions.MessagesView)]
         [Route("endpoints/{endpointname}/errors")]
         [HttpGet]
@@ -80,7 +77,6 @@ namespace ServiceControl.MessageFailures.Api
             return results.Results;
         }
 
-        [RequirePermission(Permissions.MessagesView)]
         [Authorize(Policy = Permissions.MessagesView)]
         [Route("errors/summary")]
         [HttpGet]

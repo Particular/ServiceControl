@@ -16,7 +16,6 @@ namespace ServiceControl.MessageFailures.Api
     [Route("api")]
     public class ArchiveMessagesController(IMessageSession messageSession, IErrorMessageDataStore dataStore) : ControllerBase
     {
-        [RequirePermission(Permissions.MessagesArchive)]
         [Authorize(Policy = Permissions.MessagesArchive)]
         [Route("errors/archive")]
         [HttpPost]
@@ -39,7 +38,6 @@ namespace ServiceControl.MessageFailures.Api
             return Accepted();
         }
 
-        [RequirePermission(Permissions.MessagesView)]
         [Authorize(Policy = Permissions.MessagesView)]
         [Route("errors/groups/{classifier?}")]
         [HttpGet]
@@ -52,7 +50,6 @@ namespace ServiceControl.MessageFailures.Api
             return Ok(results);
         }
 
-        [RequirePermission(Permissions.MessagesArchive)]
         [Authorize(Policy = Permissions.MessagesArchive)]
         [Route("errors/{messageId:required:minlength(1)}/archive")]
         [HttpPost]
@@ -69,7 +66,6 @@ namespace ServiceControl.MessageFailures.Api
             return Accepted();
         }
 
-        [RequirePermission(Permissions.MessagesView)]
         [Authorize(Policy = Permissions.MessagesView)]
         [Route("archive/groups/id/{groupId:required:minlength(1)}")]
         [HttpGet]

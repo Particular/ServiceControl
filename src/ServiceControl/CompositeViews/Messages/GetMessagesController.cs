@@ -36,7 +36,6 @@ namespace ServiceControl.CompositeViews.Messages
         ILogger<GetMessagesController> logger)
         : ControllerBase
     {
-        [RequirePermission(Permissions.MessagesView)]
         [Authorize(Policy = Permissions.MessagesView)]
         [Route("messages")]
         [HttpGet]
@@ -53,7 +52,6 @@ namespace ServiceControl.CompositeViews.Messages
             return result.Results;
         }
 
-        [RequirePermission(Permissions.MessagesView)]
         [Authorize(Policy = Permissions.MessagesView)]
         [Route("endpoints/{endpoint}/messages")]
         [HttpGet]
@@ -71,7 +69,6 @@ namespace ServiceControl.CompositeViews.Messages
         }
 
         // the endpoint name is needed in the route to match the route and forward it as path and query to the remotes
-        [RequirePermission(Permissions.MessagesView)]
         [Authorize(Policy = Permissions.MessagesView)]
         [Route("endpoints/{endpoint}/audit-count")]
         [HttpGet]
@@ -84,7 +81,6 @@ namespace ServiceControl.CompositeViews.Messages
             return result.Results;
         }
 
-        [RequirePermission(Permissions.MessagesView)]
         [Authorize(Policy = Permissions.MessagesView)]
         [Route("messages/{id}/body")]
         [HttpGet]
@@ -125,7 +121,6 @@ namespace ServiceControl.CompositeViews.Messages
             return Empty;
         }
 
-        [RequirePermission(Permissions.MessagesView)]
         [Authorize(Policy = Permissions.MessagesView)]
         [Route("messages/search")]
         [HttpGet]
@@ -139,7 +134,6 @@ namespace ServiceControl.CompositeViews.Messages
             return result.Results;
         }
 
-        [RequirePermission(Permissions.MessagesView)]
         [Authorize(Policy = Permissions.MessagesView)]
         [Route("messages/search/{keyword}")]
         [HttpGet]
@@ -154,7 +148,6 @@ namespace ServiceControl.CompositeViews.Messages
             return result.Results;
         }
 
-        [RequirePermission(Permissions.MessagesView)]
         [Authorize(Policy = Permissions.MessagesView)]
         [Route("endpoints/{endpoint}/messages/search")]
         [HttpGet]
@@ -168,7 +161,6 @@ namespace ServiceControl.CompositeViews.Messages
             return result.Results;
         }
 
-        [RequirePermission(Permissions.MessagesView)]
         [Authorize(Policy = Permissions.MessagesView)]
         [Route("endpoints/{endpoint}/messages/search/{keyword}")]
         [HttpGet]

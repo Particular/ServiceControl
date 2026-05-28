@@ -15,7 +15,6 @@
     public class GetMessagesByConversationController(MessagesByConversationApi byConversationApi)
         : ControllerBase
     {
-        [RequirePermission(Permissions.MessagesView)]
         [Authorize(Policy = Permissions.MessagesView)]
         [Route("conversations/{conversationId:required:minlength(1)}")]
         [HttpGet]

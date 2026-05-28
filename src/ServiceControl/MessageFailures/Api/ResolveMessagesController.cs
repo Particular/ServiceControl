@@ -21,7 +21,6 @@ namespace ServiceControl.MessageFailures.Api
     [Route("api")]
     public class ResolveMessagesController(IMessageSession session) : ControllerBase
     {
-        [RequirePermission(Permissions.MessagesRetry)]
         [Authorize(Policy = Permissions.MessagesRetry)]
         [Route("pendingretries/resolve")]
         [HttpPatch]
@@ -67,7 +66,6 @@ namespace ServiceControl.MessageFailures.Api
             return Accepted();
         }
 
-        [RequirePermission(Permissions.MessagesRetry)]
         [Authorize(Policy = Permissions.MessagesRetry)]
         [Route("pendingretries/queues/resolve")]
         [HttpPatch]

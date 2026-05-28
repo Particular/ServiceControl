@@ -15,7 +15,6 @@ namespace ServiceControl.MessageFailures.Api
         IErrorMessageDataStore store,
         IResourceScopeChecker resourceScopeChecker) : ControllerBase
     {
-        [RequirePermission(Permissions.MessagesView)]
         [Authorize(Policy = Permissions.MessagesView)]
         [Route("errors/{failedMessageId:required:minlength(1)}")]
         [HttpGet]
@@ -46,7 +45,6 @@ namespace ServiceControl.MessageFailures.Api
             return result;
         }
 
-        [RequirePermission(Permissions.MessagesView)]
         [Authorize(Policy = Permissions.MessagesView)]
         [Route("errors/last/{failedMessageId:required:minlength(1)}")]
         [HttpGet]

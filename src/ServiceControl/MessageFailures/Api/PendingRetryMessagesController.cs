@@ -17,7 +17,6 @@ namespace ServiceControl.MessageFailures.Api
     [Route("api")]
     public class PendingRetryMessagesController(IMessageSession session) : ControllerBase
     {
-        [RequirePermission(Permissions.MessagesRetry)]
         [Authorize(Policy = Permissions.MessagesRetry)]
         [Route("pendingretries/retry")]
         [HttpPost]
@@ -34,7 +33,6 @@ namespace ServiceControl.MessageFailures.Api
             return Accepted();
         }
 
-        [RequirePermission(Permissions.MessagesRetry)]
         [Authorize(Policy = Permissions.MessagesRetry)]
         [Route("pendingretries/queues/retry")]
         [HttpPost]

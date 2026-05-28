@@ -35,7 +35,6 @@ namespace ServiceControl.MessageFailures.Api
         /// Requires <c>messages:retry</c> permission (verb gate via policy),
         /// plus an inline resource-scope check against the message's queue address.
         /// </summary>
-        [RequirePermission(Permissions.MessagesRetry)]
         [Authorize(Policy = Permissions.MessagesRetry)]
         [Route("errors/{failedMessageId:required:minlength(1)}/retry")]
         [HttpPost]
@@ -87,7 +86,6 @@ namespace ServiceControl.MessageFailures.Api
             return Empty;
         }
 
-        [RequirePermission(Permissions.MessagesRetry)]
         [Authorize(Policy = Permissions.MessagesRetry)]
         [Route("errors/retry")]
         [HttpPost]
@@ -103,7 +101,6 @@ namespace ServiceControl.MessageFailures.Api
             return Accepted();
         }
 
-        [RequirePermission(Permissions.MessagesRetry)]
         [Authorize(Policy = Permissions.MessagesRetry)]
         [Route("errors/queues/{queueAddress:required:minlength(1)}/retry")]
         [HttpPost]
@@ -118,7 +115,6 @@ namespace ServiceControl.MessageFailures.Api
             return Accepted();
         }
 
-        [RequirePermission(Permissions.MessagesRetry)]
         [Authorize(Policy = Permissions.MessagesRetry)]
         [Route("errors/retry/all")]
         [HttpPost]
@@ -129,7 +125,6 @@ namespace ServiceControl.MessageFailures.Api
             return Accepted();
         }
 
-        [RequirePermission(Permissions.MessagesRetry)]
         [Authorize(Policy = Permissions.MessagesRetry)]
         [Route("errors/{endpointName:required:minlength(1)}/retry/all")]
         [HttpPost]
