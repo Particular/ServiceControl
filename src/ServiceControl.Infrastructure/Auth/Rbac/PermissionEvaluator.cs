@@ -61,6 +61,78 @@ public sealed class PermissionEvaluator(Func<RbacPolicy> policyFactory) : IPermi
         return false;
     }
 
+    public bool HasUnrestrictedGrant(ClaimsPrincipal user, string permission)
+    {
+        var policy = policyFactory();
+        foreach (var role in MatchingRoles(user, policy))
+        {
+            foreach (var grant in role.Permissions)
+            {
+                if (GrantMatchesPermission(grant, permission) && grant.Scope == null)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Returns the effective queue scope for the user for the given permission,
+    /// or <see langword="null"/> if the user has an unrestricted grant.
+    /// When multiple scoped grants exist, their allow/deny lists are merged (OR semantics on allow).
+    /// </summary>
+    public ResourceScope? ResolveQueueScope(ClaimsPrincipal user, string permission)
+    {
+        // If the user has any unrestricted grant, return null (no filter needed).
+        if (HasUnrestrictedGrant(user, permission))
+        {
+            return null;
+        }
+
+        var policy = policyFactory();
+        var mergedAllow = new List<string>();
+        var mergedDeny = new List<string>();
+
+        foreach (var role in MatchingRoles(user, policy))
+        {
+            foreach (var grant in role.Permissions)
+            {
+                if (!GrantMatchesPermission(grant, permission))
+                {
+                    continue;
+                }
+
+                if (grant.Scope != null)
+                {
+                    foreach (var pattern in grant.Scope.Allow)
+                    {
+                        if (!mergedAllow.Contains(pattern))
+                        {
+                            mergedAllow.Add(pattern);
+                        }
+                    }
+
+                    foreach (var pattern in grant.Scope.Deny)
+                    {
+                        if (!mergedDeny.Contains(pattern))
+                        {
+                            mergedDeny.Add(pattern);
+                        }
+                    }
+                }
+            }
+        }
+
+        // No scoped grants → deny all (user has no applicable grants)
+        if (mergedAllow.Count == 0)
+        {
+            return new ResourceScope([], []);
+        }
+
+        return new ResourceScope(mergedAllow, mergedDeny);
+    }
+
     /// <summary>
     /// Resolves the full set of effective permissions for the user based on their claims
     /// and the current RBAC policy. Identical grants (same permission AND same scope) from

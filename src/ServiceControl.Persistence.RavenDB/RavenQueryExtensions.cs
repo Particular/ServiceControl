@@ -1,3 +1,4 @@
+#nullable enable
 namespace ServiceControl.Persistence
 {
     using System;
@@ -7,6 +8,7 @@ namespace ServiceControl.Persistence
     using System.Linq.Expressions;
     using Raven.Client.Documents.Linq;
     using Raven.Client.Documents.Session;
+    using ServiceControl.Infrastructure.Auth.Rbac;
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.Infrastructure;
 
@@ -203,6 +205,93 @@ namespace ServiceControl.Persistence
 
             source.AndAlso();
             source.WhereEquals("QueueAddress", queueAddress.ToLowerInvariant());
+
+            return source;
+        }
+
+        /// <summary>
+        /// Applies an RBAC queue-scope filter to the query before paging is applied, so that
+        /// <c>Total-Count</c> and page sizes reflect only messages the caller is permitted to see.
+        /// <para>
+        /// When <paramref name="scope"/> is <see langword="null"/> the caller has an unrestricted
+        /// grant — no filter is added. When the allow-list contains <c>*</c> the query is also
+        /// unrestricted. An empty allow-list yields zero rows (deny-all).
+        /// Pattern syntax: exact match, or <c>prefix.*</c> (starts-with match).
+        /// Deny patterns are applied after allow (deny wins).
+        /// </para>
+        /// </summary>
+        public static IAsyncDocumentQuery<T> FilterByQueueScope<T>(this IAsyncDocumentQuery<T> source, ResourceScope? scope)
+        {
+            if (scope == null)
+            {
+                return source;
+            }
+
+            // A wildcard allow pattern means unrestricted — no filter.
+            if (scope.Allow.Any(p => p == "*"))
+            {
+                return source;
+            }
+
+            // Empty allow list → deny everything.
+            if (scope.Allow.Count == 0)
+            {
+                source.AndAlso();
+                // WhereEquals on a non-existent value is the cleanest way to produce zero rows.
+                source.WhereEquals("QueueAddress", "__no-match__");
+                return source;
+            }
+
+            // Build the allow OR-group.
+            source.AndAlso();
+            source.OpenSubclause();
+
+            var first = true;
+            foreach (var pattern in scope.Allow)
+            {
+                if (!first)
+                {
+                    source.OrElse();
+                }
+
+                first = false;
+
+                var lower = pattern.ToLowerInvariant();
+
+                if (lower.EndsWith(".*", StringComparison.Ordinal))
+                {
+                    // Prefix wildcard: "Prefix.*" → starts-with "prefix."
+                    // Strip the trailing "*" to get the prefix including the dot.
+                    var prefix = lower[..^1]; // e.g. "sales." from "sales.*"
+                    source.WhereStartsWith("QueueAddress", prefix);
+                }
+                else
+                {
+                    // Exact match.
+                    source.WhereEquals("QueueAddress", lower);
+                }
+            }
+
+            source.CloseSubclause();
+
+            // Apply deny patterns (AND NOT for each). Deny wins over allow.
+            foreach (var denyPattern in scope.Deny)
+            {
+                var lower = denyPattern.ToLowerInvariant();
+
+                if (lower.EndsWith(".*", StringComparison.Ordinal))
+                {
+                    // Prefix deny: AND NOT (QueueAddress STARTS WITH prefix).
+                    var prefix = lower[..^1]; // e.g. "finance." from "finance.*"
+                    source.AndAlso().Not.WhereStartsWith("QueueAddress", prefix);
+                }
+                else
+                {
+                    // Exact deny.
+                    source.AndAlso();
+                    source.WhereNotEquals("QueueAddress", lower);
+                }
+            }
 
             return source;
         }
