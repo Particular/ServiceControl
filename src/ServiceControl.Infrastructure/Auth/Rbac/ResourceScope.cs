@@ -33,9 +33,15 @@ public sealed class ResourceScope(IReadOnlyList<string> allow, IReadOnlyList<str
     public bool Permits(string resource) =>
         Allow.Any(p => Matches(p, resource)) && !Deny.Any(p => Matches(p, resource));
 
-    static bool Matches(string pattern, string resource) =>
-        pattern == "*" ||
-        pattern == resource ||
-        (pattern.EndsWith(".*", StringComparison.Ordinal) &&
-         resource.StartsWith(pattern[..^1], StringComparison.Ordinal));
+    static bool Matches(string pattern, string resource)
+    {
+        // Queue addresses are stored lower-case in the index; normalise the pattern
+        // to lower-case so that mixed-case policy entries (e.g. "Finance.*") work
+        // correctly against lower-case queue addresses.
+        var lower = pattern.ToLowerInvariant();
+        return lower == "*" ||
+               lower == resource ||
+               (lower.EndsWith(".*", StringComparison.Ordinal) &&
+                resource.StartsWith(lower[..^1], StringComparison.Ordinal));
+    }
 }
