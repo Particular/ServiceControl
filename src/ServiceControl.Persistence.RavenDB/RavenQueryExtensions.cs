@@ -37,9 +37,9 @@ namespace ServiceControl.Persistence
             {
                 "id" or "message_id" => m => m.MessageId,
                 "message_type" => m => m.MessageType,
-                "critical_time" => m => m.CriticalTime,
-                "delivery_time" => m => m.DeliveryTime,
-                "processing_time" => m => m.ProcessingTime,
+                "critical_time" => m => m.CriticalTime!,
+                "delivery_time" => m => m.DeliveryTime!,
+                "processing_time" => m => m.ProcessingTime!,
                 "processed_at" => m => m.ProcessedAt,
                 "status" => m => m.Status,
                 _ => m => m.TimeSent,

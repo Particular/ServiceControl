@@ -339,7 +339,7 @@ namespace ServiceControl.Persistence.RavenDB
             var message = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
             if (message == null)
             {
-                return null;
+                return null!;
             }
             var result = Map(message, session);
             return result;
@@ -365,7 +365,7 @@ namespace ServiceControl.Persistence.RavenDB
                 NumberOfProcessingAttempts = message.ProcessingAttempts.Count,
                 Status = message.Status,
                 TimeOfFailure = failureDetails.TimeOfFailure,
-                LastModified = session.Advanced.GetLastModifiedFor(message).Value,
+                LastModified = session.Advanced.GetLastModifiedFor(message)!.Value,
                 Edited = wasEdited,
                 EditOf = wasEdited ? message.ProcessingAttempts.Last().Headers["ServiceControl.EditOf"] : ""
             };
@@ -522,7 +522,7 @@ namespace ServiceControl.Persistence.RavenDB
 
         class DocumentPatchResult
         {
-            public string Document { get; set; }
+            public string? Document { get; set; }
         }
 
         public async Task<string[]> UnArchiveMessagesByRange(DateTime from, DateTime to)
@@ -640,7 +640,7 @@ namespace ServiceControl.Persistence.RavenDB
 
         public async Task<byte[]> FetchFromFailedMessage(string uniqueMessageId)
         {
-            byte[] body = null;
+            byte[]? body = null;
             var result = await bodyStorage.TryFetch(uniqueMessageId)
                          ?? throw new InvalidOperationException("IBodyStorage.TryFetch result cannot be null");
 
@@ -659,7 +659,7 @@ namespace ServiceControl.Persistence.RavenDB
                     body = memoryStream.ToArray();
                 }
             }
-            return body;
+            return body!;
         }
 
         public async Task StoreEventLogItem(EventLogItem logItem)
