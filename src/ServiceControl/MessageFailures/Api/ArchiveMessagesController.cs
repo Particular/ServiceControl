@@ -8,7 +8,6 @@ namespace ServiceControl.MessageFailures.Api
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
     using ServiceControl.Infrastructure.Auth.Rbac;
-    using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Infrastructure.WebApi.Auth;
     using ServiceControl.Persistence;
     using ServiceControl.Recoverability;

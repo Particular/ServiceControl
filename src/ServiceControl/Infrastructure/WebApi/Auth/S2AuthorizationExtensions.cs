@@ -1,6 +1,7 @@
 #nullable enable
 namespace ServiceControl.Infrastructure.WebApi.Auth;
 
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ServiceControl.Infrastructure;
+using ServiceControl.Infrastructure.Auth.Rbac;
 
 /// <summary>
 /// Registers the S2 policy-attribute authorization services.
@@ -44,12 +46,13 @@ public static class S2AuthorizationExtensions
 
         if (!oidcSettings.Enabled)
         {
-            // OIDC disabled: register a no-op scope checker so controllers can inject
-            // IResourceScopeChecker unconditionally. The verb gate is allow-all when OIDC
-            // is disabled, so EnforceAsync would not be reached; but the no-op is a
-            // safe fallback.  IPermissionEvaluator / IAuthorizationAuditLog are not
-            // registered when OIDC is disabled, so ResourceScopeChecker cannot be used.
+            // OIDC disabled: register no-op implementations of all S2 services so controllers
+            // that inject IResourceScopeChecker or IPermissionEvaluator still resolve.
+            // Both are allow-all — the verb gate is bypassed when OIDC is disabled, so none
+            // of the enforcement paths are reached; but the no-ops are safe fallbacks that
+            // preserve pre-RBAC behaviour (no filtering, no scope restriction).
             services.AddSingleton<IResourceScopeChecker, AllowAllResourceScopeChecker>();
+            services.AddSingleton<IPermissionEvaluator, AllowAllPermissionEvaluator>();
             return;
         }
 
@@ -70,5 +73,23 @@ public static class S2AuthorizationExtensions
             string? queueAddress,
             HttpContext context) =>
             Task.FromResult<IActionResult?>(null);
+    }
+
+    /// <summary>
+    /// A no-op <see cref="IPermissionEvaluator"/> that always allows access.
+    /// Registered when OIDC is disabled to preserve the pre-RBAC behaviour.
+    /// <para>
+    /// <see cref="ResolveQueueScope"/> returns <see langword="null"/> (unrestricted — no filter),
+    /// and <see cref="HasUnrestrictedGrant"/> returns <see langword="true"/>,
+    /// so no queue-scope filtering is applied and no fail-closed logic triggers.
+    /// </para>
+    /// </summary>
+    sealed class AllowAllPermissionEvaluator : IPermissionEvaluator
+    {
+        public bool HasPermission(ClaimsPrincipal user, string permission) => true;
+        public bool IsInScope(ClaimsPrincipal user, string permission, string resource) => true;
+        public bool HasUnrestrictedGrant(ClaimsPrincipal user, string permission) => true;
+        public ResourceScope? ResolveQueueScope(ClaimsPrincipal user, string permission) => null;
+        public EffectivePermissions Resolve(ClaimsPrincipal user) => new([]);
     }
 }

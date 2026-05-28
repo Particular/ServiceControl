@@ -38,7 +38,7 @@ namespace ServiceControl.Persistence.RavenDB
             PagingInfo pagingInfo,
             SortInfo sortInfo,
             bool includeSystemMessages,
-            DateTimeRange timeSentRange
+            DateTimeRange? timeSentRange
             )
         {
             using var session = await sessionProvider.OpenSession();
@@ -61,7 +61,7 @@ namespace ServiceControl.Persistence.RavenDB
             PagingInfo pagingInfo,
             SortInfo sortInfo,
             bool includeSystemMessages,
-            DateTimeRange timeSentRange
+            DateTimeRange? timeSentRange
             )
         {
             using var session = await sessionProvider.OpenSession();
@@ -86,7 +86,7 @@ namespace ServiceControl.Persistence.RavenDB
             string searchKeyword,
             PagingInfo pagingInfo,
             SortInfo sortInfo,
-            DateTimeRange timeSentRange
+            DateTimeRange? timeSentRange
             )
         {
             using var session = await sessionProvider.OpenSession();
@@ -130,7 +130,7 @@ namespace ServiceControl.Persistence.RavenDB
             string searchTerms,
             PagingInfo pagingInfo,
             SortInfo sortInfo,
-            DateTimeRange timeSentRange
+            DateTimeRange? timeSentRange
             )
         {
             using var session = await sessionProvider.OpenSession();

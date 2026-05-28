@@ -9,7 +9,6 @@ namespace ServiceControl.Recoverability.API
     using Microsoft.AspNetCore.Mvc;
     using Persistence.Infrastructure;
     using ServiceControl.Infrastructure.Auth.Rbac;
-    using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Infrastructure.WebApi.Auth;
     using ServiceControl.Persistence;
 

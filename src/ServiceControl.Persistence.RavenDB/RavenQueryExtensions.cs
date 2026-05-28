@@ -176,7 +176,7 @@ namespace ServiceControl.Persistence
             return source;
         }
 
-        public static IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> FilterBySentTimeRange(this IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> source, DateTimeRange range)
+        public static IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> FilterBySentTimeRange(this IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> source, DateTimeRange? range)
         {
             if (range == null)
             {

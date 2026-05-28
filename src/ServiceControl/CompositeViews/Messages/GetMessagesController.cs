@@ -16,7 +16,6 @@ namespace ServiceControl.CompositeViews.Messages
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.Auth.Rbac;
-    using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Infrastructure.WebApi.Auth;
     using Yarp.ReverseProxy.Forwarder;
 
