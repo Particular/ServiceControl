@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Web;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using NServiceBus;
 using NServiceBus.CustomChecks;
 using NServiceBus.Transport.IBMMQ;
@@ -24,11 +25,7 @@ public class IBMMQTransportCustomization : TransportCustomization<IBMMQTransport
         services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
     }
 
-    protected override void AddTransportForPrimaryCore(IServiceCollection services, TransportSettings transportSettings)
-    {
-        services.AddTransient<DeadLetterQueueCheck>(); // Allows for T to have different instance registered for testing
-        services.AddTransient<ICustomCheck, DeadLetterQueueCheck>(b => b.GetService<DeadLetterQueueCheck>());
-    }
+    protected override void AddTransportForPrimaryCore(IServiceCollection services, TransportSettings transportSettings) => services.TryAddEnumerable(ServiceDescriptor.Singleton<ICustomCheck, DeadLetterQueueCheck>());
 
     protected override IBMMQTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
     {

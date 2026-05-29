@@ -9,6 +9,7 @@
     using BrokerThroughput;
     using Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
     using NServiceBus;
     using NServiceBus.CustomChecks;
     using NServiceBus.Transport.AzureServiceBus;
@@ -59,9 +60,7 @@
             TransportSettings transportSettings)
         {
             services.AddSingleton<IBrokerThroughputQuery, AzureQuery>();
-
-            services.AddTransient<DeadLetterQueueCheck>(); // Allows for T to have different instance registered for testing
-            services.AddTransient<ICustomCheck, DeadLetterQueueCheck>(b => b.GetService<DeadLetterQueueCheck>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<ICustomCheck, DeadLetterQueueCheck>());
 
             var connectionSettings = ConnectionStringParser.Parse(transportSettings.ConnectionString);
             TopicTopology selectedTopology;

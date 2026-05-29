@@ -2,6 +2,7 @@
 {
     using System.Linq;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
     using MSMQ.DLQMonitor;
     using NServiceBus;
     using NServiceBus.CustomChecks;
@@ -22,11 +23,7 @@
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
         }
 
-        protected override void AddTransportForPrimaryCore(IServiceCollection services, TransportSettings transportSettings)
-        {
-            services.AddTransient<DeadLetterQueueCheck>(); // Allows for T to have different instance registered for testing
-            services.AddTransient<ICustomCheck, DeadLetterQueueCheck>(b => b.GetService<DeadLetterQueueCheck>());
-        }
+        protected override void AddTransportForPrimaryCore(IServiceCollection services, TransportSettings transportSettings) => services.TryAddEnumerable(ServiceDescriptor.Singleton<ICustomCheck, DeadLetterQueueCheck>());
 
         protected override MsmqTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
