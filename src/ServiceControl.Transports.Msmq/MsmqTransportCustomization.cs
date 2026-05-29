@@ -11,11 +11,7 @@
         protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
-        protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition, TransportSettings transportSettings)
-        {
-            endpointConfiguration.AddCustomCheck<DeadLetterQueueCheck>();
-            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
-        }
+        protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition, TransportSettings transportSettings) => transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
         protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;

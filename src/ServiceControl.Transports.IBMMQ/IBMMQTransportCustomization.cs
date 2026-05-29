@@ -13,11 +13,7 @@ public class IBMMQTransportCustomization : TransportCustomization<IBMMQTransport
     protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, IBMMQTransport transportDefinition, TransportSettings transportSettings) =>
         transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
-    protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, IBMMQTransport transportDefinition, TransportSettings transportSettings)
-    {
-        endpointConfiguration.AddCustomCheck<DeadLetterQueueCheck>();
-        transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
-    }
+    protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, IBMMQTransport transportDefinition, TransportSettings transportSettings) => transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
     protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, IBMMQTransport transportDefinition, TransportSettings transportSettings) =>
         transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
