@@ -6,7 +6,6 @@
     using Azure.Messaging.ServiceBus.Administration;
     using Microsoft.Extensions.Logging;
     using NServiceBus.CustomChecks;
-    using ServiceControl.Infrastructure;
 
     // This check is intended to detect if messages are accumulating in the staging queue's dead letter queue,
     // which could indicate a problem with ServiceControl's retries. It is not intended to be a general check
@@ -14,10 +13,11 @@
     // It is only meant to be running on the primary instance, as the audit and monitoring instances do not have a staging queue.
     public class DeadLetterQueueCheck : CustomCheck
     {
-        public DeadLetterQueueCheck(TransportSettings settings) : base(id: "Dead Letter Queue", category: "Transport", repeatAfter: TimeSpan.FromHours(1))
+        public DeadLetterQueueCheck(TransportSettings settings, ILogger<DeadLetterQueueCheck> logger) : base(id: "Dead Letter Queue", category: "Transport", repeatAfter: TimeSpan.FromHours(1))
         {
-            Logger.LogDebug("Azure Service Bus Dead Letter Queue custom check starting");
+            logger.LogDebug("Azure Service Bus Dead Letter Queue custom check starting");
 
+            this.logger = logger;
             connectionString = settings.ConnectionString;
             stagingQueue = $"{settings.EndpointName}.staging";
             runCheck = settings.RunCustomChecks;
@@ -30,7 +30,7 @@
                 return CheckResult.Pass;
             }
 
-            Logger.LogDebug("Checking Dead Letter Queue length");
+            logger.LogDebug("Checking Dead Letter Queue length");
             var managementClient = new ServiceBusAdministrationClient(connectionString);
 
             var queueRuntimeInfo = await managementClient.GetQueueRuntimePropertiesAsync(stagingQueue, cancellationToken);
@@ -38,20 +38,18 @@
 
             if (deadLetterMessageCount > 0)
             {
-                Logger.LogWarning("{DeadLetterMessageCount} messages in the Dead Letter Queue '{StagingQueue}'. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular if you would like help from our engineers to ensure no message loss while resolving these dead letter messages", deadLetterMessageCount, stagingQueue);
+                logger.LogWarning("{DeadLetterMessageCount} messages in the Dead Letter Queue '{StagingQueue}'. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular if you would like help from our engineers to ensure no message loss while resolving these dead letter messages", deadLetterMessageCount, stagingQueue);
                 return CheckResult.Failed($"{deadLetterMessageCount} messages in the Dead Letter Queue '{stagingQueue}'. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular if you would like help from our engineers to ensure no message loss while resolving these dead letter messages.");
             }
 
-            Logger.LogDebug("No messages in Dead Letter Queue");
+            logger.LogDebug("No messages in Dead Letter Queue");
 
             return CheckResult.Pass;
         }
 
-        string connectionString;
-        string stagingQueue;
-        bool runCheck;
-
-
-        static readonly ILogger Logger = LoggerUtil.CreateStaticLogger(typeof(DeadLetterQueueCheck));
+        readonly string connectionString;
+        readonly string stagingQueue;
+        readonly bool runCheck;
+        readonly ILogger<DeadLetterQueueCheck> logger;
     }
 }

@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Threading.Tasks;
 using IBM.WMQ;
+using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using Transports;
 using Transports.IBMMQ;
@@ -20,7 +21,7 @@ class DeadLetterQueueCheckTests
             RunCustomChecks = false
         };
 
-        var check = new DeadLetterQueueCheck(settings);
+        var check = new DeadLetterQueueCheck(settings, NullLogger<DeadLetterQueueCheck>.Instance);
         var result = await check.PerformCheck().ConfigureAwait(false);
 
         Assert.That(result.HasFailed, Is.False);
@@ -37,7 +38,7 @@ class DeadLetterQueueCheckTests
             RunCustomChecks = true
         };
 
-        var check = new DeadLetterQueueCheck(settings);
+        var check = new DeadLetterQueueCheck(settings, NullLogger<DeadLetterQueueCheck>.Instance);
         var result = await check.PerformCheck().ConfigureAwait(false);
 
         Assert.That(result.HasFailed, Is.False);
@@ -57,11 +58,14 @@ class DeadLetterQueueCheckTests
                 RunCustomChecks = true
             };
 
-            var check = new DeadLetterQueueCheck(settings);
+            var check = new DeadLetterQueueCheck(settings, NullLogger<DeadLetterQueueCheck>.Instance);
             var result = await check.PerformCheck().ConfigureAwait(false);
 
-            Assert.That(result.HasFailed, Is.True);
-            Assert.That(result.FailureReason, Does.Contain("messages in the Dead Letter Queue"));
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(result.HasFailed, Is.True);
+                Assert.That(result.FailureReason, Does.Contain("messages in the Dead Letter Queue"));
+            }
         }
         finally
         {
@@ -78,11 +82,14 @@ class DeadLetterQueueCheckTests
             RunCustomChecks = true
         };
 
-        var check = new DeadLetterQueueCheck(settings);
+        var check = new DeadLetterQueueCheck(settings, NullLogger<DeadLetterQueueCheck>.Instance);
         var result = await check.PerformCheck().ConfigureAwait(false);
 
-        Assert.That(result.HasFailed, Is.True);
-        Assert.That(result.FailureReason, Does.Contain("Unable to check Dead Letter Queue"));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.HasFailed, Is.True);
+            Assert.That(result.FailureReason, Does.Contain("Unable to check Dead Letter Queue"));
+        }
         Assert.That(result.FailureReason, Does.Contain("RC="));
     }
 
