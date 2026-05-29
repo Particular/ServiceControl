@@ -94,7 +94,7 @@
         {
             await base.OnActivate();
 
-            await CheckForUpdates();
+            BeginCheckForUpdates();
         }
 
         public async Task RefreshInstances()
@@ -121,27 +121,42 @@
             AppVersion = Constants.CurrentVersion;
         }
 
-        async Task CheckForUpdates()
+        void BeginCheckForUpdates()
         {
-            // Get the lates upgradble version based on the current version
-            // get the json version file from https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt
-
-            var availableUpgradeRelease = await VersionCheckerHelper.GetLatestRelease(AppVersion);
-
-            if (availableUpgradeRelease.Version == AppVersion)
+            updateCheckTask = Task.Run(async () =>
             {
-                UpdateAvailable = false;
-            }
-            else
-            {
-                AvailableUpgradeReleaseLink = availableUpgradeRelease.Assets.FirstOrDefault().Download.ToString();
-                UpdateAvailableText = $"v{availableUpgradeRelease.Version} - Update Available";
-                UpdateAvailable = true;
-            }
+                NotifyOfPropertyChange(nameof(IsCheckingForUpdate));
+                try
+                {
+                    // Get the lates upgradeable version based on the current version
+                    // get the json version file from https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt
 
-            NotifyOfPropertyChange(nameof(UpdateAvailable));
+                    var availableUpgradeRelease = await VersionCheckerHelper.GetLatestRelease(AppVersion);
+
+                    if (availableUpgradeRelease.Version == AppVersion)
+                    {
+                        UpdateAvailable = false;
+                    }
+                    else
+                    {
+                        AvailableUpgradeReleaseLink = availableUpgradeRelease.Assets.FirstOrDefault().Download.ToString();
+                        UpdateAvailableText = $"v{availableUpgradeRelease.Version} - Update Available";
+                        UpdateAvailable = true;
+                    }
+
+                    NotifyOfPropertyChange(nameof(UpdateAvailable));
+                }
+                finally
+                {
+                    updateCheckTask = null;
+                    NotifyOfPropertyChange(nameof(IsCheckingForUpdate));
+                }
+            });
         }
 
+        public bool IsCheckingForUpdate => updateCheckTask is not null;
+
+        Task updateCheckTask;
         readonly ListInstancesViewModel listInstances;
         readonly NoInstancesViewModel noInstances;
     }
