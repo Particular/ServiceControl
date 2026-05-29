@@ -60,15 +60,33 @@ public class SqlServerQuery(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var queueTableName = (BrokerQueueTable)brokerQueue;
-        var startData =
-            await queueTableName.DatabaseDetails.GetSnapshot(queueTableName, cancellationToken);
+
+        BrokerQueueTableSnapshot startData;
+        try
+        {
+            startData = await queueTableName.DatabaseDetails.GetSnapshot(queueTableName, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to query throughput starting snapshot for {QueueName}", queueTableName.QueueName);
+            throw;
+        }
 
         // looping for 24 hours
         for (var i = 0; i < 24; i++)
         {
             await Task.Delay(TimeSpan.FromHours(1), timeProvider, cancellationToken);
-            var endData =
-                await queueTableName.DatabaseDetails.GetSnapshot(queueTableName, cancellationToken);
+
+            BrokerQueueTableSnapshot? endData;
+            try
+            {
+                endData = await queueTableName.DatabaseDetails.GetSnapshot(queueTableName, cancellationToken);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Failed to query throughput hour {hour} for {QueueName}", i, queueTableName.QueueName);
+                throw;
+            }
 
             if (endData.RowVersion.HasValue && startData.RowVersion.HasValue)
             {
