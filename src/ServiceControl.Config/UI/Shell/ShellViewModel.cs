@@ -116,42 +116,47 @@
             }
         }
 
-        void LoadAppVersion()
-        {
-            AppVersion = Constants.CurrentVersion;
-        }
+        void LoadAppVersion() => AppVersion = Constants.CurrentVersion;
 
         void BeginCheckForUpdates()
         {
-            updateCheckTask = Task.Run(async () =>
+            if (updateCheckTask is not null)
             {
+                return;
+            }
+
+            updateCheckTask = CheckForUpdates();
+
+            NotifyOfPropertyChange(nameof(IsCheckingForUpdate));
+        }
+
+        async Task CheckForUpdates()
+        {
+            try
+            {
+                var availableUpgradeRelease = await VersionCheckerHelper.GetLatestRelease(AppVersion);
+
+                if (availableUpgradeRelease.Version == AppVersion)
+                {
+                    UpdateAvailable = false;
+                }
+                else
+                {
+                    AvailableUpgradeReleaseLink = availableUpgradeRelease.Assets.FirstOrDefault()?.Download.ToString();
+                    UpdateAvailableText = $"v{availableUpgradeRelease.Version} - Update Available";
+                    UpdateAvailable = true;
+                }
+            }
+            catch
+            {
+                UpdateAvailable = false;
+            }
+            finally
+            {
+                updateCheckTask = null;
+                NotifyOfPropertyChange(nameof(UpdateAvailable));
                 NotifyOfPropertyChange(nameof(IsCheckingForUpdate));
-                try
-                {
-                    // Get the lates upgradeable version based on the current version
-                    // get the json version file from https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt
-
-                    var availableUpgradeRelease = await VersionCheckerHelper.GetLatestRelease(AppVersion);
-
-                    if (availableUpgradeRelease.Version == AppVersion)
-                    {
-                        UpdateAvailable = false;
-                    }
-                    else
-                    {
-                        AvailableUpgradeReleaseLink = availableUpgradeRelease.Assets.FirstOrDefault().Download.ToString();
-                        UpdateAvailableText = $"v{availableUpgradeRelease.Version} - Update Available";
-                        UpdateAvailable = true;
-                    }
-
-                    NotifyOfPropertyChange(nameof(UpdateAvailable));
-                }
-                finally
-                {
-                    updateCheckTask = null;
-                    NotifyOfPropertyChange(nameof(IsCheckingForUpdate));
-                }
-            });
+            }
         }
 
         public bool IsCheckingForUpdate => updateCheckTask is not null;
