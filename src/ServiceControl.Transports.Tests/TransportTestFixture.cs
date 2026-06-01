@@ -29,7 +29,10 @@
         [SetUp]
         public virtual async Task Setup()
         {
-            //used for loggers outside ServiceControl (i.e. transports and core) to use the logger factory defined here
+            //used for loggers outside ServiceControl (i.e. transports and core) to use the logger factory defined here.
+            // We are currently using the obsolete LogManager.UseFactory method, but it is necessary for compatibility with existing logging infrastructure
+            // that uses the NServiceBus.Logging.LogManager. Transports standalone do not support logging via DI yet
+            // Once they do the bridge can be removed.
 #pragma warning disable CS0618 // Type or member is obsolete
             LogManager.UseFactory(new ExtensionsLoggerFactory(new TestContextAppenderFactory(Microsoft.Extensions.Logging.LogLevel.Warning)));
 #pragma warning restore CS0618 // Type or member is obsolete
