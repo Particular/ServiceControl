@@ -105,7 +105,16 @@ public class BrokerThroughputCollectorHostedService(
 
             await foreach (var queueThroughput in brokerThroughputQuery.GetThroughputPerDay(queueName, startDate, stoppingToken))
             {
-                await dataStore.RecordEndpointThroughput(queueName.QueueName, ThroughputSource.Broker, queueThroughput.DateUTC, queueThroughput.TotalThroughput, stoppingToken);
+                try
+                {
+                    await dataStore.RecordEndpointThroughput(queueName.QueueName, ThroughputSource.Broker, queueThroughput.DateUTC, queueThroughput.TotalThroughput, stoppingToken);
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Failed to record throughput for {QueueName}", queueName.QueueName);
+                    Console.WriteLine(e);
+                    throw;
+                }
             }
         }
     }
