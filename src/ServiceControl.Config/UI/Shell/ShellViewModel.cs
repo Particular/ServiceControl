@@ -154,7 +154,10 @@
             finally
             {
                 updateCheckTask = null;
+
                 NotifyOfPropertyChange(nameof(UpdateAvailable));
+                NotifyOfPropertyChange(nameof(UpdateAvailableText));
+                NotifyOfPropertyChange(nameof(AvailableUpgradeReleaseLink));
                 NotifyOfPropertyChange(nameof(IsCheckingForUpdate));
             }
         }
