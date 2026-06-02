@@ -1,11 +1,14 @@
 namespace ServiceControl.Monitoring.Http
 {
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
+    using ServiceControl.Infrastructure.Auth;
     using ServiceControl.Monitoring.Licensing;
 
     [ApiController]
     public class LicenseController(ActiveLicense activeLicense) : ControllerBase
     {
+        [Authorize(Policy = Permissions.MonitoringLicenseView)]
         [Route("license")]
         [HttpGet]
         public ActionResult<LicenseInfo> License(bool refresh)

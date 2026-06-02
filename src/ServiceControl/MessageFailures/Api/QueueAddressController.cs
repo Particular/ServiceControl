@@ -2,7 +2,9 @@
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Infrastructure.Auth;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Persistence.Infrastructure;
     using ServiceControl.Persistence;
@@ -11,6 +13,7 @@
     [Route("api")]
     public class QueueAddressController(IQueueAddressStore store) : ControllerBase
     {
+        [Authorize(Policy = Permissions.ErrorQueuesView)]
         [Route("errors/queues/addresses")]
         [HttpGet]
         public async Task<IList<QueueAddress>> GetAddresses([FromQuery] PagingInfo pagingInfo)
@@ -22,6 +25,7 @@
             return result.Results;
         }
 
+        [Authorize(Policy = Permissions.ErrorQueuesView)]
         [Route("errors/queues/addresses/search/{search}")]
         [HttpGet]
         public async Task<ActionResult<IList<QueueAddress>>> GetAddressesBySearchTerm([FromQuery] PagingInfo pagingInfo, string search = null)

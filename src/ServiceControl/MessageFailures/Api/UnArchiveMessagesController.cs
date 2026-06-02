@@ -4,7 +4,9 @@
     using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
+    using Infrastructure.Auth;
     using InternalMessages;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
 
@@ -12,6 +14,7 @@
     [Route("api")]
     public class UnArchiveMessagesController(IMessageSession session) : ControllerBase
     {
+        [Authorize(Policy = Permissions.ErrorMessagesUnarchive)]
         [Route("errors/unarchive")]
         [HttpPatch]
         public async Task<IActionResult> Unarchive(string[] ids)
@@ -28,6 +31,7 @@
             return Accepted();
         }
 
+        [Authorize(Policy = Permissions.ErrorMessagesUnarchive)]
         [Route("errors/{from}...{to}/unarchive")]
         [HttpPatch]
         public async Task<IActionResult> Unarchive(string from, string to)

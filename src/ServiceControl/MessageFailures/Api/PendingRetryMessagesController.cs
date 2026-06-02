@@ -5,7 +5,9 @@
     using System.Linq;
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
+    using Infrastructure.Auth;
     using InternalMessages;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
 
@@ -13,6 +15,7 @@
     [Route("api")]
     public class PendingRetryMessagesController(IMessageSession session) : ControllerBase
     {
+        [Authorize(Policy = Permissions.ErrorMessagesRetry)]
         [Route("pendingretries/retry")]
         [HttpPost]
         public async Task<IActionResult> RetryBy(string[] ids)
@@ -28,6 +31,7 @@
             return Accepted();
         }
 
+        [Authorize(Policy = Permissions.ErrorMessagesRetry)]
         [Route("pendingretries/queues/retry")]
         [HttpPost]
         public async Task<IActionResult> RetryBy(PendingRetryRequest request)

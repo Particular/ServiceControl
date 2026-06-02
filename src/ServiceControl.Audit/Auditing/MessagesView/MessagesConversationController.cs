@@ -5,13 +5,16 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Persistence;
+    using ServiceControl.Infrastructure.Auth;
 
     [ApiController]
     [Route("api")]
     public class MessagesConversationController(IAuditDataStore dataStore) : ControllerBase
     {
+        [Authorize(Policy = Permissions.AuditMessageView)]
         [Route("conversations/{conversationId}")]
         [HttpGet]
         public async Task<IList<MessagesView>> Get([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string conversationId, CancellationToken cancellationToken)

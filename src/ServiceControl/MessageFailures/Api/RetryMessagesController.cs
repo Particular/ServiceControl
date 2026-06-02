@@ -4,7 +4,9 @@
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Infrastructure.Auth;
     using InternalMessages;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
@@ -23,6 +25,7 @@
         IMessageSession messageSession,
         ILogger<RetryMessagesController> logger) : ControllerBase
     {
+        [Authorize(Policy = Permissions.ErrorMessagesRetry)]
         [Route("errors/{failedMessageId:required:minlength(1)}/retry")]
         [HttpPost]
         public async Task<IActionResult> RetryMessageBy([FromQuery(Name = "instance_id")] string instanceId, string failedMessageId)
@@ -49,6 +52,7 @@
             return Empty;
         }
 
+        [Authorize(Policy = Permissions.ErrorMessagesRetry)]
         [Route("errors/retry")]
         [HttpPost]
         public async Task<IActionResult> RetryAllBy(List<string> messageIds)
@@ -63,6 +67,7 @@
             return Accepted();
         }
 
+        [Authorize(Policy = Permissions.ErrorMessagesRetry)]
         [Route("errors/queues/{queueAddress:required:minlength(1)}/retry")]
         [HttpPost]
         public async Task<IActionResult> RetryAllBy(string queueAddress)
@@ -76,6 +81,7 @@
             return Accepted();
         }
 
+        [Authorize(Policy = Permissions.ErrorMessagesRetry)]
         [Route("errors/retry/all")]
         [HttpPost]
         public async Task<IActionResult> RetryAll()
@@ -85,6 +91,7 @@
             return Accepted();
         }
 
+        [Authorize(Policy = Permissions.ErrorMessagesRetry)]
         [Route("errors/{endpointName:required:minlength(1)}/retry/all")]
         [HttpPost]
         public async Task<IActionResult> RetryAllByEndpoint(string endpointName)

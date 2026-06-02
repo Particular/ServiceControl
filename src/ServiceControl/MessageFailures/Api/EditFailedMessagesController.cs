@@ -5,6 +5,8 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using Infrastructure.Auth;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
@@ -21,10 +23,12 @@
         ILogger<EditFailedMessagesController> logger)
         : ControllerBase
     {
+        [Authorize(Policy = Permissions.ErrorMessagesEdit)]
         [Route("edit/config")]
         [HttpGet]
         public EditConfigurationModel Config() => GetEditConfiguration();
 
+        [Authorize(Policy = Permissions.ErrorMessagesEdit)]
         [Route("edit/{failedMessageId:required:minlength(1)}")]
         [HttpPost]
         public async Task<ActionResult<EditRetryResponse>> Edit(string failedMessageId, [FromBody] EditMessageModel edit)
