@@ -112,7 +112,6 @@ public class BrokerThroughputCollectorHostedService(
                 catch (Exception e)
                 {
                     logger.LogError(e, "Failed to record throughput for {QueueName}", queueName.QueueName);
-                    Console.WriteLine(e);
                     throw;
                 }
             }
