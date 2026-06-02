@@ -8,10 +8,10 @@
         [SupportedOSPlatform("windows")]
         public static void Create()
         {
-            if (!EventLog.SourceExists(SourceName))
-            {
-                EventLog.CreateEventSource(SourceName, null);
-            }
+            //if (!EventLog.SourceExists(SourceName))
+            //{
+            //    EventLog.CreateEventSource(SourceName, null);
+            //}
         }
 
         public const string SourceName = "ServiceControl.Audit";

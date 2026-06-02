@@ -133,7 +133,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     return criticalErrorContext.Stop(cancellationToken);
                 }, settings, configuration);
 
-                hostBuilder.AddServiceControlAuditApi(settings.CorsSettings);
+                hostBuilder.AddServiceControlAuditApi(settings);
                 hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
 
                 hostBuilder.AddServiceControlAuditTesting(settings);
@@ -144,7 +144,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
                 host.UseTestRemoteIp();
                 host.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
-                host.UseServiceControlAudit(settings.ForwardedHeadersSettings, settings.HttpsSettings);
+                host.UseServiceControlAudit(settings.ForwardedHeadersSettings, settings.HttpsSettings, settings.EnableMcpServer);
                 await host.StartAsync();
                 ServiceProvider = host.Services;
                 InstanceTestServer = host.GetTestServer();

@@ -26,6 +26,7 @@
   <ItemGroup>
     <PackageReference Include="ByteSize" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
+    <PackageReference Include="ModelContextProtocol.AspNetCore" />
     <PackageReference Include="NServiceBus.CustomChecks" />
     <PackageReference Include="NServiceBus.Extensions.Hosting" />
     <PackageReference Include="NServiceBus.Extensions.Logging" />

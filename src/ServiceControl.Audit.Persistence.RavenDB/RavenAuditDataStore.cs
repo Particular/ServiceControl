@@ -62,11 +62,15 @@
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken)
+            => await QueryMessagesByReceivingEndpointAndKeyword(false, endpoint, keyword, pagingInfo, sortInfo, timeSentRange, cancellationToken);
+
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(bool includeSystemMessages, string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                 .Statistics(out var stats)
                 .Search(x => x.Query, keyword)
+                .IncludeSystemMessagesWhere(includeSystemMessages)
                 .Where(m => m.ReceivingEndpointName == endpoint)
                 .FilterBySentTimeRange(timeSentRange)
                 .Sort(sortInfo)

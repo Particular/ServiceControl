@@ -8,7 +8,7 @@ using ServiceControl.Infrastructure;
 
 public static class WebApplicationExtensions
 {
-    public static void UseServiceControlAudit(this WebApplication app, ForwardedHeadersSettings forwardedHeadersSettings, HttpsSettings httpsSettings)
+    public static void UseServiceControlAudit(this WebApplication app, ForwardedHeadersSettings forwardedHeadersSettings, HttpsSettings httpsSettings, bool enableMcpServer)
     {
         app.UseServiceControlForwardedHeaders(forwardedHeadersSettings);
         app.UseServiceControlHttps(httpsSettings);
@@ -17,5 +17,10 @@ public static class WebApplicationExtensions
         app.UseHttpLogging();
         app.UseCors();
         app.MapControllers();
+
+        if (enableMcpServer)
+        {
+            app.MapMcp("/mcp");
+        }
     }
 }

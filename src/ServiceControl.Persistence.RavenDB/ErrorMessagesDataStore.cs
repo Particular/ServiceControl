@@ -285,33 +285,26 @@
         public async Task<IDictionary<string, object>> ErrorsSummary()
         {
             using var session = await sessionProvider.OpenSession();
-            var facetResults = await session.Query<FailedMessage, FailedMessageFacetsIndex>()
-                .AggregateBy(new List<Facet>
-                {
-                    new Facet
-                    {
-                        FieldName = "Name",
-                        DisplayFieldName = "Endpoints"
-                    },
-                    new Facet
-                    {
-                        FieldName = "Host",
-                        DisplayFieldName = "Hosts"
-                    },
-                    new Facet
-                    {
-                        FieldName = "MessageType",
-                        DisplayFieldName = "Message types"
-                    }
-                }).ExecuteAsync();
 
-            var results = facetResults
-                .ToDictionary(
-                    x => x.Key,
-                    x => (object)x.Value
-                );
+            var unresolvedCount = await session.Query<FailedMessage>()
+                .CountAsync(message => message.Status == FailedMessageStatus.Unresolved);
 
-            return results;
+            var archivedCount = await session.Query<FailedMessage>()
+                .CountAsync(message => message.Status == FailedMessageStatus.Archived);
+
+            var resolvedCount = await session.Query<FailedMessage>()
+                .CountAsync(message => message.Status == FailedMessageStatus.Resolved);
+
+            var retryIssuedCount = await session.Query<FailedMessage>()
+                .CountAsync(message => message.Status == FailedMessageStatus.RetryIssued);
+
+            return new Dictionary<string, object>
+            {
+                ["unresolved"] = unresolvedCount,
+                ["archived"] = archivedCount,
+                ["resolved"] = resolvedCount,
+                ["retryissued"] = retryIssuedCount
+            };
         }
 
         public Task<FailedMessage> ErrorBy(string failedMessageId) => ErrorByDocumentId(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));

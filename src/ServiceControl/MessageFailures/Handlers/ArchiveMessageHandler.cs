@@ -21,7 +21,7 @@
 
             var failedMessage = await dataStore.ErrorBy(failedMessageId);
 
-            if (failedMessage.Status != FailedMessageStatus.Archived)
+            if (failedMessage is not null && failedMessage.Status != FailedMessageStatus.Archived)
             {
                 await domainEvents.Raise(new FailedMessageArchived
                 {

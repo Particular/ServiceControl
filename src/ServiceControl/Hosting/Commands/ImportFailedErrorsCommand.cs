@@ -26,7 +26,7 @@
 
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.AddServiceControl(settings, endpointConfiguration);
-            hostBuilder.AddServiceControlApi(settings.CorsSettings);
+            hostBuilder.AddServiceControlApi(settings);
 
             using var app = hostBuilder.Build();
             await app.StartAsync();
