@@ -1,6 +1,7 @@
-﻿namespace ServiceControl.Infrastructure;
+﻿#nullable enable
 
-using System;
+namespace ServiceControl.Infrastructure;
+
 using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
@@ -9,53 +10,56 @@ public class PluginAssemblyLoadContext(string assemblyPath) : AssemblyLoadContex
 {
     readonly AssemblyDependencyResolver resolver = new(assemblyPath);
 
-    protected override Assembly Load(AssemblyName assemblyName)
+    protected override Assembly? Load(AssemblyName assemblyName)
     {
-        var assemblyPath = resolver.ResolveAssemblyToPath(assemblyName);
-        if (assemblyPath is not null)
+        var pluginPath = resolver.ResolveAssemblyToPath(assemblyName);
+        if (pluginPath is null)
         {
-            // Before loading the assembly from the plugin folder, we should give the default context a chance to resolve shared dependencies.
-            // This is necessary because we don't have a clean separation of dependencies, so both the instances and the plugins can use the same dependencies.
-            // If we let the plugin context load a separate copy, then we run into problems, where the same type in each context are considered different types.
-            // Since we ensure we are using the same version of dependencies in every project, it should be okay to use the default context copy.
-            foreach (var assembly in Default.Assemblies)
-            {
-                var loadedAssembly = assembly.GetName();
-
-                if (loadedAssembly.Name == assemblyName.Name)
-                {
-                    return loadedAssembly.Version >= assemblyName.Version ? assembly : LoadFromAssemblyPath(assemblyPath);
-                }
-            }
-
-            try
-            {
-                var defaultAssembly = Default.LoadFromAssemblyName(assemblyName);
-                if (defaultAssembly.GetName().Version >= assemblyName.Version)
-                {
-                    return defaultAssembly;
-                }
-            }
-            catch (Exception exception) when (exception is FileNotFoundException or FileLoadException)
-            {
-                return LoadFromAssemblyPath(assemblyPath);
-            }
-
-            return LoadFromAssemblyPath(assemblyPath);
+            // The plugin did not ship this dependency at all. Let the runtime fall through to the default ALC's own resolver
+            // (TPA / shared framework / probing), which is the correct behavior for a host-only dependency.
+            return null;
         }
 
-        return null;
+        // Tier 1: the default ALC has already loaded it. We still require its version to be >= the requested version; a
+        // downgraded dependency on the host must not be silently preferred over the plugin's local copy.
+        foreach (var loaded in Default.Assemblies)
+        {
+            var loadedName = loaded.GetName();
+            if (loadedName.Name == assemblyName.Name
+                && loadedName.Version >= assemblyName.Version)
+            {
+                return loaded;
+            }
+        }
+
+        // Tier 2: ask the default ALC to resolve a fresh copy. This is the path that hits the host's deps.json TPA, which is
+        // how a plugin can see NServiceBus.CustomChecks as the same Type instance the host's DI container holds. If the
+        // default ALC has no candidate for this name (FileNotFound / FileLoad), we fall through to tier 3.
+        try
+        {
+            var fromDefault = Default.LoadFromAssemblyName(assemblyName);
+            if (fromDefault.GetName().Version >= assemblyName.Version)
+            {
+                return fromDefault;
+            }
+        }
+        catch (FileNotFoundException)
+        {
+            // Default ALC has no candidate; fall through.
+        }
+        catch (FileLoadException)
+        {
+            // Default ALC has a candidate that failed to load (e.g., a bad image); fall through to the plugin's copy.
+        }
+
+        // Tier 3: the plugin's local copy. Better to load a plugin-shipped version than to fail the load entirely.
+        return LoadFromAssemblyPath(pluginPath);
     }
 
     protected override nint LoadUnmanagedDll(string unmanagedDllName)
     {
         var unmanagedDllPath = resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
 
-        if (unmanagedDllPath is not null)
-        {
-            return LoadUnmanagedDllFromPath(unmanagedDllPath);
-        }
-
-        return nint.Zero;
+        return unmanagedDllPath is not null ? LoadUnmanagedDllFromPath(unmanagedDllPath) : nint.Zero;
     }
 }
