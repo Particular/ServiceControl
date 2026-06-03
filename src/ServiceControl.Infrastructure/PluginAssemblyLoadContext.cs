@@ -2,7 +2,6 @@
 
 namespace ServiceControl.Infrastructure;
 
-using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
 
@@ -12,36 +11,30 @@ public class PluginAssemblyLoadContext(string assemblyPath) : AssemblyLoadContex
 
     protected override Assembly? Load(AssemblyName assemblyName)
     {
-        var pluginPath = resolver.ResolveAssemblyToPath(assemblyName);
-        if (pluginPath is null)
+        var assemblyPath = resolver.ResolveAssemblyToPath(assemblyName);
+
+        if (assemblyPath is null)
         {
-            // The plugin did not ship this dependency at all. Let the runtime fall through to the default ALC's own resolver
-            // (TPA / shared framework / probing), which is the correct behavior for a host-only dependency.
+            // The requested assembly is not a dependency of the plugin assembly, so it was not found in the plugin folder.
+            // Return null to let the default context handle it.
             return null;
         }
 
-        // Tier 1: ask the default ALC to resolve a fresh copy. This is the path that hits the host's deps.json TPA, which is
-        // how a plugin can see NServiceBus.CustomChecks as the same Type instance the host's DI container holds. If the
-        // default ALC has no candidate for this name (FileNotFound / FileLoad), we fall through to tier 2.
+        // Check the default context first to see if the requested assembly is available.
+        // If it is, we want to use it to ensure proper dependency sharing.
         try
         {
-            var fromDefault = Default.LoadFromAssemblyName(assemblyName);
-            if (fromDefault.GetName().Version >= assemblyName.Version)
+            var defaultAssembly = Default.LoadFromAssemblyName(assemblyName);
+
+            if (defaultAssembly.GetName().Version >= assemblyName.Version)
             {
-                return fromDefault;
+                return defaultAssembly;
             }
         }
-        catch (FileNotFoundException)
-        {
-            // Default ALC has no candidate; fall through.
-        }
-        catch (FileLoadException)
-        {
-            // Default ALC has a candidate that failed to load (e.g., a bad image); fall through to the plugin's copy.
-        }
+        catch { }
 
-        // Tier 2: the plugin's local copy. Better to load a plugin-shipped version than to fail the load entirely.
-        return LoadFromAssemblyPath(pluginPath);
+        // Load the requested assembly from the plugin folder
+        return LoadFromAssemblyPath(assemblyPath);
     }
 
     protected override nint LoadUnmanagedDll(string unmanagedDllName)
