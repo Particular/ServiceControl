@@ -67,7 +67,7 @@ Containers built by a PR and stored on GitHub Container Registry can be tested l
 
 ## Container tests using Aspire
 
-The https://github.com/Particular/Particular.Aspire.Hosting.ServicePlatform package integrates servicecontrol with the Aspire hosting platform. This package configures environment variables to attach the platform. There is a single file apphost in [`test-ghcr-tag-aspire`](/docs/test-ghcr-tag-aspire) to start up serviceconrol from a prerelease container image.
+The [Particular.Aspire.Hosting.ServicePlatform](https://github.com/Particular/Particular.Aspire.Hosting.ServicePlatform) package integrates the Particular Platform with the Aspire hosting platform. This package configures environment variables to attach the platform. There is a single file apphost in [`test-ghcr-tag-aspire`](/docs/test-ghcr-tag-aspire) to start up serviceconrol from a prerelease container image.
 
 Containers built by a PR and stored on GitHub Container Registry can be tested locally:
 
