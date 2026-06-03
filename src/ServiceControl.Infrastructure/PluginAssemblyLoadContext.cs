@@ -20,21 +20,9 @@ public class PluginAssemblyLoadContext(string assemblyPath) : AssemblyLoadContex
             return null;
         }
 
-        // Tier 1: the default ALC has already loaded it. We still require its version to be >= the requested version; a
-        // downgraded dependency on the host must not be silently preferred over the plugin's local copy.
-        foreach (var loaded in Default.Assemblies)
-        {
-            var loadedName = loaded.GetName();
-            if (loadedName.Name == assemblyName.Name
-                && loadedName.Version >= assemblyName.Version)
-            {
-                return loaded;
-            }
-        }
-
-        // Tier 2: ask the default ALC to resolve a fresh copy. This is the path that hits the host's deps.json TPA, which is
+        // Tier 1: ask the default ALC to resolve a fresh copy. This is the path that hits the host's deps.json TPA, which is
         // how a plugin can see NServiceBus.CustomChecks as the same Type instance the host's DI container holds. If the
-        // default ALC has no candidate for this name (FileNotFound / FileLoad), we fall through to tier 3.
+        // default ALC has no candidate for this name (FileNotFound / FileLoad), we fall through to tier 2.
         try
         {
             var fromDefault = Default.LoadFromAssemblyName(assemblyName);
@@ -52,7 +40,7 @@ public class PluginAssemblyLoadContext(string assemblyPath) : AssemblyLoadContex
             // Default ALC has a candidate that failed to load (e.g., a bad image); fall through to the plugin's copy.
         }
 
-        // Tier 3: the plugin's local copy. Better to load a plugin-shipped version than to fail the load entirely.
+        // Tier 2: the plugin's local copy. Better to load a plugin-shipped version than to fail the load entirely.
         return LoadFromAssemblyPath(pluginPath);
     }
 
