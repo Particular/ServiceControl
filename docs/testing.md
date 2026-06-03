@@ -67,27 +67,18 @@ Containers built by a PR and stored on GitHub Container Registry can be tested l
 
 ## Container tests using Aspire
 
-The https://github.com/Particular/Particular.Aspire.Hosting.ServicePlatform package integrates servicecontrol with the Aspire hosting platform. This package configures environment variables to attach the platform. There is a single file apphost in [`testghcr-tag-aspire`](/docs/testghcr-tag-aspire) to start up serviceconrol from a prerelease container image.
+The https://github.com/Particular/Particular.Aspire.Hosting.ServicePlatform package integrates servicecontrol with the Aspire hosting platform. This package configures environment variables to attach the platform. There is a single file apphost in [`test-ghcr-tag-aspire`](/docs/test-ghcr-tag-aspire) to start up serviceconrol from a prerelease container image.
 
 Containers built by a PR and stored on GitHub Container Registry can be tested locally:
 
-1. Make sure you have the [Aspire CLI installed](https://aspire.dev/get-started/install-cli/).
-2. [Authenticate to the GitHub Container Registry using a personal access token](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-with-a-personal-access-token-classic).
-    - Create a [classic token](https://github.com/settings/tokens). Select the scope for `read:packages`
-    - Copy the newly created token text.
-    - Run the following command in a terminal:
-       ```shell
-       docker login ghcr.io
-       ```
-      you will be prompted for a username (your particular.net email) and a password (the token)
-    - ensure that you get a successful login message.
-    - Use `docker logout ghcr.io` once the following steps are complete and consider removing the token from github if its no longer needed.
-4. Run `aspire run docs/test-ghcr-tag-aspire/AppHost.cs -- [tag]` to start the application, where [tag] is the PR-based tag (in the form `pr-####`) to test. If no tag is provided, it will default to the `latest` tag.
-5. Once running you can open the dashboard from the link in the terminal, this dashboard will provide the assigned ports for each service.
+1. Set up your github container registry credentials as described in the [Container tests](#container-tests) section above.
+2. Make sure you have the [Aspire CLI installed](https://aspire.dev/get-started/install-cli/).
+3. Run `aspire run docs/test-ghcr-tag-aspire/AppHost.cs -- tag` to start the application, where `tag` is the PR-based tag (in the form `pr-####`) to test. If no tag is provided, it will default to the `latest` tag.
+4. Once running you can open the dashboard from the link in the terminal, this dashboard will provide the assigned ports for each service.
     * RabbitMQ Management (Login: `guest`/`guest`)
     * RavenDB
     * ServiceControl API
     * Audit API
     * Monitoring API
     * ServicePulse (latest from Docker Hub)
-6. Aspire will automatically tear down the application when you exit the CLI process.
+5. Aspire will automatically tear down the application when you exit the CLI process.
