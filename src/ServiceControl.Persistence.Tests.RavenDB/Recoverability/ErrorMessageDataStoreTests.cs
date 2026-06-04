@@ -49,7 +49,7 @@
         [Test]
         public async Task ErrorGet()
         {
-            var result = await store.ErrorGet(null, null, null, new PagingInfo(1, 50), new SortInfo("", ""));
+            var result = await store.ErrorGet(null, null, null, new PagingInfo(1, 50), new SortInfo("", ""), new AuthorizationInfo());
             Assert.That(result.Results, Is.Not.Empty);
         }
 

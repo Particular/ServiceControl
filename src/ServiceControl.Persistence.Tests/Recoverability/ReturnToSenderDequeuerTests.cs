@@ -199,14 +199,14 @@
 
             public Task<QueryResult<FailureGroupView>> GetFailureGroupView(string groupId, string status, string modified) => throw new NotImplementedException();
 
-            public Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier) => throw new NotImplementedException();
+            public Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier, AuthorizationInfo authInfo) => throw new NotImplementedException();
 
-            public Task<QueryResult<IList<FailedMessageView>>> ErrorGet(string status, string modified, string queueAddress, PagingInfo pagingInfo, SortInfo sortInfo) => throw new NotImplementedException();
+            public Task<QueryResult<IList<FailedMessageView>>> ErrorGet(string status, string modified, string queueAddress, PagingInfo pagingInfo, SortInfo sortInfo, AuthorizationInfo authInfo) => throw new NotImplementedException();
 
-            public Task<QueryStatsInfo> ErrorsHead(string status, string modified, string queueAddress) => throw new NotImplementedException();
+            public Task<QueryStatsInfo> ErrorsHead(string status, string modified, string queueAddress, AuthorizationInfo authInfo) => throw new NotImplementedException();
 
             public Task<QueryResult<IList<FailedMessageView>>> ErrorsByEndpointName(string status, string endpointName, string modified, PagingInfo pagingInfo,
-                SortInfo sortInfo) =>
+                SortInfo sortInfo, AuthorizationInfo authInfo) =>
                 throw new NotImplementedException();
 
             public Task<IDictionary<string, object>> ErrorsSummary() => throw new NotImplementedException();

@@ -6,6 +6,7 @@ namespace ServiceControl.MessageFailures.Api
     using InternalMessages;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
+    using Persistence.Infrastructure;
     using ServiceControl.Persistence;
     using ServiceControl.Recoverability;
 
@@ -38,7 +39,8 @@ namespace ServiceControl.MessageFailures.Api
         [HttpGet]
         public async Task<IActionResult> GetArchiveMessageGroups(string classifier = "Exception Type and Stack Trace")
         {
-            var results = await dataStore.GetFailureGroupsByClassifier(classifier);
+            var authInfo = AuthorizationInfo.FromClaims(HttpContext.User);
+            var results = await dataStore.GetFailureGroupsByClassifier(classifier, authInfo);
 
             Response.WithDeterministicEtag(EtagHelper.CalculateEtag(results));
 

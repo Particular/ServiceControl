@@ -195,12 +195,17 @@
             return new QueryResult<FailureGroupView>(document, stats.ToQueryStatsInfo());
         }
 
-        public async Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier)
+        public async Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier, AuthorizationInfo authInfo)
         {
             using var session = await sessionProvider.OpenSession();
             var groups = session
                 .Query<FailureGroupView, ArchivedGroupsViewIndex>()
                 .Where(v => v.Type == classifier);
+
+            if (classifier == "Endpoint Name" && authInfo?.ReadQueues is { Length: > 0 } readQueues && !readQueues.Contains("*"))
+            {
+                groups = groups.Where(v => v.Title.In(readQueues));
+            }
 
             var results = await groups
                 .OrderByDescending(x => x.Last)
@@ -215,7 +220,8 @@
             string modified,
             string queueAddress,
             PagingInfo pagingInfo,
-            SortInfo sortInfo
+            SortInfo sortInfo,
+            AuthorizationInfo authInfo
             )
         {
             using var session = await sessionProvider.OpenSession();
@@ -225,6 +231,7 @@
                 .FilterByStatusWhere(status)
                 .FilterByLastModifiedRange(modified)
                 .FilterByQueueAddress(queueAddress)
+                .FilterByReadQueuesAuth(authInfo)
                 .Sort(sortInfo)
                 .Paging(pagingInfo)
                 .SelectFields<FailedMessage>()
@@ -240,7 +247,8 @@
         public async Task<QueryStatsInfo> ErrorsHead(
             string status,
             string modified,
-            string queueAddress
+            string queueAddress,
+            AuthorizationInfo authInfo
             )
         {
             using var session = await sessionProvider.OpenSession();
@@ -249,6 +257,7 @@
                 .FilterByStatusWhere(status)
                 .FilterByLastModifiedRange(modified)
                 .FilterByQueueAddress(queueAddress)
+                .FilterByReadQueuesAuth(authInfo)
                 .GetQueryResultAsync();
 
             return stats.ToQueryStatsInfo();
@@ -259,7 +268,8 @@
             string endpointName,
             string modified,
             PagingInfo pagingInfo,
-            SortInfo sortInfo
+            SortInfo sortInfo,
+            AuthorizationInfo authInfo
             )
         {
             using var session = await sessionProvider.OpenSession();
@@ -270,6 +280,7 @@
                 .AndAlso()
                 .WhereEquals("ReceivingEndpointName", endpointName)
                 .FilterByLastModifiedRange(modified)
+                .FilterByReadQueuesAuth(authInfo)
                 .Sort(sortInfo)
                 .Paging(pagingInfo)
                 .SelectFields<FailedMessage>()

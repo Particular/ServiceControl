@@ -5,6 +5,7 @@ namespace ServiceControl.Persistence
     using System.Globalization;
     using System.Linq;
     using System.Linq.Expressions;
+    using System.Text.RegularExpressions;
     using Raven.Client.Documents.Linq;
     using Raven.Client.Documents.Session;
     using ServiceControl.MessageFailures;
@@ -190,6 +191,39 @@ namespace ServiceControl.Persistence
             {
                 source = source.Where(m => m.TimeSent <= range.To);
             }
+
+            return source;
+        }
+
+        public static IAsyncDocumentQuery<T> FilterByReadQueuesAuth<T>(this IAsyncDocumentQuery<T> source, AuthorizationInfo authInfo)
+        {
+            if (authInfo?.ReadQueues == null || authInfo.ReadQueues.Length == 0 || authInfo.ReadQueues.Contains("*"))
+            {
+                return source;
+            }
+
+            source.AndAlso();
+            source.OpenSubclause();
+            var first = true;
+            foreach (var queue in authInfo.ReadQueues)
+            {
+                if (!first)
+                {
+                    source.OrElse();
+                }
+
+                if (queue.Contains('*'))
+                {
+                    var pattern = "^" + string.Join(".*", queue.ToLowerInvariant().Split('*').Select(Regex.Escape)) + "$";
+                    source.WhereRegex("QueueAddress", pattern);
+                }
+                else
+                {
+                    source.WhereEquals("QueueAddress", queue.ToLowerInvariant());
+                }
+                first = false;
+            }
+            source.CloseSubclause();
 
             return source;
         }

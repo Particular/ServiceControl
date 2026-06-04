@@ -59,7 +59,9 @@
                 classifierFilter = null;
             }
 
-            var results = await fetcher.GetGroups(classifier, classifierFilter);
+            var authInfo = AuthorizationInfo.FromClaims(HttpContext.User);
+
+            var results = await fetcher.GetGroups(classifier, classifierFilter, authInfo);
             Response.WithDeterministicEtag(EtagHelper.CalculateEtag(results));
             return results;
         }

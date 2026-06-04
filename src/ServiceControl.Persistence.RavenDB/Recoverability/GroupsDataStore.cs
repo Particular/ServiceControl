@@ -7,11 +7,12 @@
     using Raven.Client.Documents;
     using Raven.Client.Documents.Linq;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
 
     class GroupsDataStore(IRavenSessionProvider sessionProvider) : IGroupsDataStore
     {
-        public async Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier, string classifierFilter)
+        public async Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier, string classifierFilter, AuthorizationInfo authInfo)
         {
             using var session = await sessionProvider.OpenSession();
             var query = Queryable.Where(session.Query<FailureGroupView, FailureGroupsViewIndex>(), v => v.Type == classifier);
@@ -19,6 +20,11 @@
             if (!string.IsNullOrWhiteSpace(classifierFilter))
             {
                 query = query.Where(v => v.Title == classifierFilter);
+            }
+
+            if (classifier == "Endpoint Name" && authInfo?.ReadQueues is { Length: > 0 } readQueues && !readQueues.Contains("*"))
+            {
+                query = query.Where(v => v.Title.In(readQueues));
             }
 
             var groups = await query.OrderByDescending(x => x.Last)

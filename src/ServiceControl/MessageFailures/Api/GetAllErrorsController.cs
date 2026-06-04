@@ -15,12 +15,15 @@
         [HttpGet]
         public async Task<IList<FailedMessageView>> ErrorsGet([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string status, string modified, string queueAddress)
         {
+            var authInfo = AuthorizationInfo.FromClaims(HttpContext.User);
+
             var results = await store.ErrorGet(
                     status: status,
                     modified: modified,
                     queueAddress: queueAddress,
                     pagingInfo,
-                    sortInfo
+                    sortInfo,
+                    authInfo
                     );
 
             Response.WithQueryStatsAndPagingInfo(results.QueryStats, pagingInfo);
@@ -32,10 +35,13 @@
         [HttpHead]
         public async Task ErrorsHead(string status, string modified, string queueAddress)
         {
+            var authInfo = AuthorizationInfo.FromClaims(HttpContext.User);
+
             var queryResult = await store.ErrorsHead(
                     status: status,
                     modified: modified,
-                    queueAddress: queueAddress
+                    queueAddress: queueAddress,
+                    authInfo
                     );
 
             Response.WithQueryStatsInfo(queryResult);
@@ -45,12 +51,15 @@
         [HttpGet]
         public async Task<IList<FailedMessageView>> ErrorsByEndpointName([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string status, string modified, string endpointName)
         {
+            var authInfo = AuthorizationInfo.FromClaims(HttpContext.User);
+
             var results = await store.ErrorsByEndpointName(
                 status: status,
                 endpointName: endpointName,
                 modified: modified,
                 pagingInfo,
-                sortInfo
+                sortInfo,
+                authInfo
                 );
 
             Response.WithQueryStatsAndPagingInfo(results.QueryStats, pagingInfo);

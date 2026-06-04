@@ -23,12 +23,12 @@
         Task StoreFailedErrorImport(FailedErrorImport failure);
         Task<IEditFailedMessagesManager> CreateEditFailedMessageManager();
         Task<QueryResult<FailureGroupView>> GetFailureGroupView(string groupId, string status, string modified);
-        Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier);
+        Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier, AuthorizationInfo authInfo);
 
         // GetAllErrorsController
-        Task<QueryResult<IList<FailedMessageView>>> ErrorGet(string status, string modified, string queueAddress, PagingInfo pagingInfo, SortInfo sortInfo);
-        Task<QueryStatsInfo> ErrorsHead(string status, string modified, string queueAddress);
-        Task<QueryResult<IList<FailedMessageView>>> ErrorsByEndpointName(string status, string endpointName, string modified, PagingInfo pagingInfo, SortInfo sortInfo);
+        Task<QueryResult<IList<FailedMessageView>>> ErrorGet(string status, string modified, string queueAddress, PagingInfo pagingInfo, SortInfo sortInfo, AuthorizationInfo authInfo);
+        Task<QueryStatsInfo> ErrorsHead(string status, string modified, string queueAddress, AuthorizationInfo authInfo);
+        Task<QueryResult<IList<FailedMessageView>>> ErrorsByEndpointName(string status, string endpointName, string modified, PagingInfo pagingInfo, SortInfo sortInfo, AuthorizationInfo authInfo);
         Task<IDictionary<string, object>> ErrorsSummary();
 
         // GetErrorByIdController
