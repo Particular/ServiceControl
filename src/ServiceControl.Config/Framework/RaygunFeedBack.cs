@@ -138,7 +138,7 @@ namespace ServiceControl.Config.Framework
         readonly Guid trackingId;
         readonly RaygunSettings raygunSettings = new() { ApiKey = "zdm49nndHCXZ3NVzM8Kzug==" };
 
-        const string RaygunUrl = "https://raygun.io";
+        const string RaygunUrl = "https://raygun.com";
 
         sealed class Feedback(string message) : Exception(message);
     }
