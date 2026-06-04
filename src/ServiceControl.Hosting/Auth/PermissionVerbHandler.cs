@@ -18,11 +18,8 @@ using ServiceControl.Infrastructure.Auth;
 /// </summary>
 public sealed class PermissionVerbHandler : AuthorizationHandler<PermissionRequirement>
 {
-    // TODO: The claim that carries a user's roles is identity-provider specific and must become
-    // configurable (per-IdP) rather than hardcoded. Roles are expected as a flat, multivalued claim;
-    // the token handler splits a top-level JSON array into individual claims, so no parsing is needed.
-    // For Keycloak, add a "User Realm Role" protocol mapper with Multivalued = ON and Token Claim Name
-    // = "roles" (a dotted name like "realm_access.roles" would nest it into an object instead).
+    // The per-IdP variability of the source claim is absorbed by RolesClaimsTransformation, which
+    // reads from the path configured in Authentication.RolesClaim and emits canonical "roles" claims.
     const string RoleClaimType = "roles";
 
     protected override Task HandleRequirementAsync(

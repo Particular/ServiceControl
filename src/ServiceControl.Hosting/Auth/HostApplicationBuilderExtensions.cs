@@ -3,6 +3,7 @@
     using System;
     using System.Text.Json;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.DependencyInjection;
@@ -99,6 +100,12 @@
                 configure.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
                     .RequireAuthenticatedUser()
                     .Build());
+
+            // Normalise per-IdP role claim shapes (Keycloak's nested realm_access.roles, Entra app
+            // roles, Cognito groups) into canonical "roles" claims for the verb handler. The source
+            // path is configurable via Authentication.RolesClaim.
+            hostBuilder.Services.AddSingleton<IClaimsTransformation>(
+                new RolesClaimsTransformation(oidcSettings.RolesClaim));
         }
 
         static string GetErrorMessage(JwtBearerChallengeContext context)
