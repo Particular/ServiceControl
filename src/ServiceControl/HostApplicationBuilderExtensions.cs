@@ -30,7 +30,7 @@ namespace Particular.ServiceControl
 
     static class HostApplicationBuilderExtensions
     {
-        public static void AddServiceControl(this IHostApplicationBuilder hostBuilder, Settings settings, EndpointConfiguration configuration)
+        public static void AddServiceControl(this IHostApplicationBuilder hostBuilder, Settings settings, EndpointConfiguration configuration, params ReadOnlySpan<ServiceControlComponent> components)
         {
             ArgumentNullException.ThrowIfNull(configuration);
 
@@ -45,7 +45,7 @@ namespace Particular.ServiceControl
             hostBuilder.Logging.ConfigureLogging(settings.LoggingSettings.LogLevel);
 
             var componentSetupContext = new ComponentInstallationContext();
-            var serviceControlComponents = ServiceControlMainInstance.Components;
+            var serviceControlComponents = components is { Length: 0 } ? ServiceControlMainInstance.Components : components;
             foreach (ServiceControlComponent component in serviceControlComponents)
             {
                 component.Setup(settings, componentSetupContext, hostBuilder);
@@ -85,9 +85,8 @@ namespace Particular.ServiceControl
             services.AddMetrics(settings.PrintMetrics);
 
             NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, configuration);
-            hostBuilder.UseNServiceBus(configuration);
+            hostBuilder.Services.AddNServiceBusEndpoint(configuration);
 
-            hostBuilder.AddServicePulseSignalRNotifier();
             hostBuilder.AddEmailNotifications();
             hostBuilder.AddAsyncTimer();
 

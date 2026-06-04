@@ -51,8 +51,6 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
             Assert.That(requestInfo.Configuration.KnownProxies, Does.Contain("127.0.0.1").Or.Contain("::1"));
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

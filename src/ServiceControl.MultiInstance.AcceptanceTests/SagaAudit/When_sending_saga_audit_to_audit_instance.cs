@@ -58,11 +58,11 @@
                 .Run();
 
             Assert.That(sagaHistory, Is.Not.Null);
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(sagaHistory.SagaId, Is.EqualTo(context.SagaId));
                 Assert.That(sagaHistory.SagaType, Is.EqualTo(typeof(SagaEndpoint.MySaga).FullName));
-            });
+            }
 
             var sagaStateChange = sagaHistory.Changes.First();
             Assert.That(sagaStateChange.InitiatingMessage.Intent, Is.EqualTo("Send"));
@@ -77,6 +77,7 @@
                     c.AuditProcessedMessagesTo("audit");
                 });
 
+            [Saga]
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
                 readonly MyContext testContext;

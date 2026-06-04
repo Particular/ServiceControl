@@ -8,7 +8,7 @@ public record ErrorMetrics(ErrorContext Context, Counter<long> Failures) : IDisp
 {
     public void Dispose()
     {
-        var tags = IngestionMetrics.GetMessageTags(Context.Message.Headers);
+        var tags = IngestionMetrics.GetMessageTags(Context.Headers);
 
         tags.Add("result", retry ? "retry" : "stored-poison");
 

@@ -50,8 +50,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
             Assert.That(requestInfo.Configuration.KnownNetworks, Does.Contain("127.0.0.0/8").Or.Contain("::1/128"));
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

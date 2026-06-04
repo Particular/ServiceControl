@@ -52,9 +52,9 @@
             {
                 Message = new FailedTransportMessage
                 {
-                    Id = errorContext.Message.MessageId,
-                    Headers = errorContext.Message.Headers,
-                    Body = errorContext.Message.Body.ToArray()
+                    Id = errorContext.MessageId,
+                    Headers = errorContext.Headers,
+                    Body = errorContext.Body.ToArray()
                 },
                 ExceptionInfo = errorContext.Exception.ToFriendlyString(),
                 Id = FailedErrorImport.MakeDocumentId(Guid.NewGuid())

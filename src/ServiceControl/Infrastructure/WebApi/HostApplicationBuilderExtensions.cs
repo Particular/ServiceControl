@@ -3,6 +3,7 @@
     using System.Linq;
     using System.Reflection;
     using CompositeViews.Messages;
+    using DomainEvents;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -39,6 +40,8 @@
 
             var signalR = builder.Services.AddSignalR();
             signalR.AddJsonProtocol(options => options.PayloadSerializerOptions.CustomizeDefaults());
+
+            builder.AddServicePulseSignalRNotifier();
         }
 
         static void RegisterApiTypes(this IServiceCollection serviceCollection, Assembly assembly)

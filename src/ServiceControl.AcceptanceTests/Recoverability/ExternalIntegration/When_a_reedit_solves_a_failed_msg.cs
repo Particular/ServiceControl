@@ -118,7 +118,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                     return true;
                 }).Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(context.FailedMessageFailedMessageIds.Count, Is.EqualTo(2));
                 Assert.That(context.FailedMessageFailedMessageIds, Is.Unique);
@@ -130,7 +130,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                 Assert.That(context.RetryFailedMessageIds, Has.Some.EqualTo(context.OriginalMessageFailureId));
                 Assert.That(context.EditedMessageEditOf2, Is.EqualTo(context.SecondMessageFailureId));
                 Assert.That(context.RetryFailedMessageIds, Has.Some.EqualTo(context.SecondMessageFailureId));
-            });
+            }
         }
 
 
@@ -156,7 +156,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
         {
             public MessageReceiver() => EndpointSetup<DefaultServerWithoutAudit>(c => c.NoRetries());
 
-
+            [Handler]
             public class EditMessageResolutionHandler(EditMessageResolutionContext testContext)
                 : IHandleMessages<EditResolutionMessage>, IHandleMessages<MessageFailed>, IHandleMessages<MessageEditedAndRetried>
             {

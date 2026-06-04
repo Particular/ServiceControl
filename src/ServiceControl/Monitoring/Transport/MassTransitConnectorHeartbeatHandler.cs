@@ -5,6 +5,7 @@ using Connector.MassTransit;
 using HeartbeatMonitoring;
 using NServiceBus;
 
+[Handler]
 class MassTransitConnectorHeartbeatHandler(MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus) : IHandleMessages<MassTransitConnectorHeartbeat>
 {
     public Task Handle(MassTransitConnectorHeartbeat message, IMessageHandlerContext context)

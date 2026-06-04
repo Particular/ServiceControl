@@ -18,10 +18,7 @@
         const string transportAlias = "ServiceControl.Transports.AzureServiceBus.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus";
 
         [SetUp]
-        public void SetUp()
-        {
-            LoggerUtil.ActiveLoggers = Loggers.Test;
-        }
+        public void SetUp() => LoggerUtil.ActiveLoggers = Loggers.Test;
 
         [Test]
         public void Should_find_transport_manifest_by_name()

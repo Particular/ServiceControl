@@ -84,10 +84,11 @@
                 .Run(cancellationToken);
         }
 
-        class FailureEndpoint : EndpointConfigurationBuilder
+        public class FailureEndpoint : EndpointConfigurationBuilder
         {
             public FailureEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
 
+            [Handler]
             public class MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
                 : IHandleMessages<MyMessage>
             {
@@ -110,12 +111,12 @@
             }
         }
 
-        class MyMessage : ICommand
+        internal class MyMessage : ICommand
         {
             public string Name { get; set; }
         }
 
-        class MyContext : ScenarioContext
+        internal class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
 

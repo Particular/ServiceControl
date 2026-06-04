@@ -1,12 +1,15 @@
 ﻿namespace ServiceControl.Monitoring.AcceptanceTests.Tests
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting.EndpointTemplates;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceControl.AcceptanceTesting;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_querying_disconnected_count : AcceptanceTest
     {
@@ -15,26 +18,22 @@
         {
             TestContext context = null;
 
-            SetSettings = settings =>
-            {
-                settings.EndpointUptimeGracePeriod = TimeSpan.FromSeconds(1);
-            };
+            SetSettings = settings => settings.EndpointUptimeGracePeriod = TimeSpan.FromSeconds(1);
 
             await Define<TestContext>(ctx => context = ctx)
                 .WithEndpoint<MonitoredEndpoint>(b =>
-                    b.CustomConfig(c => c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromMilliseconds(200), "First"))
-                    .ToCreateInstance((services, configuration) => EndpointWithExternallyManagedContainer.Create(configuration, services), async (startableEndpoint, provider, ct) =>
-                    {
-                        context.FirstInstance = await startableEndpoint.Start(provider, ct);
-                        return context.FirstInstance;
-                    }))
+                    b.CustomConfig(c => c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromMilliseconds(200), "First")))
                 .WithEndpoint<MonitoredEndpoint>(b =>
-                    b.CustomConfig(c => c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromMilliseconds(200), "Second"))
-                    .ToCreateInstance((services, configuration) => EndpointWithExternallyManagedContainer.Create(configuration, services), async (startableEndpoint, provider, ct) =>
-                    {
-                        context.SecondInstance = await startableEndpoint.Start(provider, ct);
-                        return context.SecondInstance;
-                    }))
+                    b.CustomConfig(c => c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromMilliseconds(200), "Second")))
+                .WithServiceResolve(static (provider, context, _) =>
+                {
+                    var endpointName = Conventions.EndpointNamingConvention(typeof(MonitoredEndpoint));
+                    context.StopFirstInstance = provider.GetRequiredKeyedService<Func<CancellationToken, Task>>(
+                        new KeyedServiceKey($"{endpointName}1", "Stopper"));
+                    context.StopSecondInstance = provider.GetRequiredKeyedService<Func<CancellationToken, Task>>(
+                        new KeyedServiceKey($"{endpointName}2", "Stopper"));
+                    return Task.CompletedTask;
+                })
                 .Done(async c =>
                 {
                     if (!c.WaitedInitial2Seconds)
@@ -57,7 +56,7 @@
                     if (!c.StoppedFirstInstance)
                     {
                         c.AfterAllStartedCount = disconnectedCount;
-                        await c.FirstInstance.Stop();
+                        await c.StopFirstInstance(CancellationToken.None);
                         c.StoppedFirstInstance = true;
                         await Task.Delay(2000);
                         return false;
@@ -66,7 +65,7 @@
                     if (!c.StoppedSecondInstance)
                     {
                         c.AfterFirstStoppedCount = disconnectedCount;
-                        await c.SecondInstance.Stop();
+                        await c.StopSecondInstance(CancellationToken.None);
                         c.StoppedSecondInstance = true;
                         await Task.Delay(2000);
                         return false;
@@ -77,12 +76,12 @@
                 })
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(context.AfterAllStartedCount, Is.EqualTo(0), "Disconnected count after all endpoints started");
                 Assert.That(context.AfterFirstStoppedCount, Is.EqualTo(0), "Disconnected count after first endpoint stopped");
                 Assert.That(context.AfterSecondStoppedCount, Is.EqualTo(1), "Disconnected count after both endpoints stopped");
-            });
+            }
         }
 
         class MonitoredEndpoint : EndpointConfigurationBuilder
@@ -93,9 +92,9 @@
         class TestContext : ScenarioContext
         {
             public bool WaitedInitial2Seconds { get; set; }
-            public IEndpointInstance FirstInstance { get; set; }
+            public Func<CancellationToken, Task> StopFirstInstance { get; set; }
             public bool StoppedFirstInstance { get; set; }
-            public IEndpointInstance SecondInstance { get; set; }
+            public Func<CancellationToken, Task> StopSecondInstance { get; set; }
             public bool StoppedSecondInstance { get; set; }
             public int AfterAllStartedCount { get; set; } = int.MinValue; //So we know if there is a logical failure, not a zero was returned
             public int AfterFirstStoppedCount { get; set; } = int.MinValue;

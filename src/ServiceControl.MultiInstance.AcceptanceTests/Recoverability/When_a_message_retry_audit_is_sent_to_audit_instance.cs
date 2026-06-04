@@ -67,6 +67,7 @@
         {
             public Failing() => EndpointSetup<DefaultServerWithAudit>(c => { c.NoRetries(); });
 
+            [Handler]
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 readonly MyContext Context;
@@ -99,9 +100,7 @@
         }
 
 
-        public class MyMessage : ICommand
-        {
-        }
+        public class MyMessage : ICommand;
 
         public class MyContext : ScenarioContext
         {

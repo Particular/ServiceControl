@@ -22,11 +22,11 @@ class AuditServiceMetadataTests : PersistenceTestBase
 
         //Assert
         Assert.That(retrievedAuditServiceMetadata, Is.Not.Null);
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(retrievedAuditServiceMetadata.Transports, Is.EquivalentTo(expectedAuditServiceMetadata.Transports));
             Assert.That(retrievedAuditServiceMetadata.Versions, Is.EquivalentTo(expectedAuditServiceMetadata.Versions));
-        });
+        }
     }
 
     [Test]
@@ -47,10 +47,10 @@ class AuditServiceMetadataTests : PersistenceTestBase
 
         // Assert
         Assert.That(retrievedAuditServiceMetadata, Is.Not.Null);
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(retrievedAuditServiceMetadata.Transports, Is.EquivalentTo(expectedAuditServiceMetadata.Transports));
             Assert.That(retrievedAuditServiceMetadata.Versions, Is.EquivalentTo(expectedAuditServiceMetadata.Versions));
-        });
+        }
     }
 }

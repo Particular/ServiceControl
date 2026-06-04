@@ -34,6 +34,7 @@
         {
             public Receiver() => EndpointSetup<DefaultServerWithAudit>();
 
+            [Handler]
             public class MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
                 : IHandleMessages<MyMessage>
             {

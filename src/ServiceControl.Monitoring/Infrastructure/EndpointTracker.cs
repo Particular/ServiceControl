@@ -6,28 +6,14 @@
     using NServiceBus;
     using NServiceBus.Metrics;
 
-    public class EndpointTracker : IHandleMessages<MetricReport>, IHandleMessages<TaggedLongValueOccurrence>, IHandleMessages<EndpointMetadataReport>
+    [Handler]
+    public class EndpointTracker(EndpointRegistry endpointRegistry, EndpointInstanceActivityTracker activityTracker) : IHandleMessages<MetricReport>, IHandleMessages<TaggedLongValueOccurrence>, IHandleMessages<EndpointMetadataReport>
     {
-        public EndpointTracker(EndpointRegistry endpointRegistry, EndpointInstanceActivityTracker activityTracker)
-        {
-            this.endpointRegistry = endpointRegistry;
-            this.activityTracker = activityTracker;
-        }
+        public Task Handle(EndpointMetadataReport message, IMessageHandlerContext context) => RecordEndpointInstanceId(context);
 
-        public Task Handle(EndpointMetadataReport message, IMessageHandlerContext context)
-        {
-            return RecordEndpointInstanceId(context);
-        }
+        public Task Handle(MetricReport message, IMessageHandlerContext context) => RecordEndpointInstanceId(context);
 
-        public Task Handle(MetricReport message, IMessageHandlerContext context)
-        {
-            return RecordEndpointInstanceId(context);
-        }
-
-        public Task Handle(TaggedLongValueOccurrence message, IMessageHandlerContext context)
-        {
-            return RecordEndpointInstanceId(context);
-        }
+        public Task Handle(TaggedLongValueOccurrence message, IMessageHandlerContext context) => RecordEndpointInstanceId(context);
 
         Task RecordEndpointInstanceId(IMessageHandlerContext context)
         {
@@ -38,9 +24,5 @@
 
             return Task.CompletedTask;
         }
-
-        readonly EndpointInstanceActivityTracker activityTracker;
-
-        EndpointRegistry endpointRegistry;
     }
 }

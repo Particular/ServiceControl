@@ -43,6 +43,7 @@
         {
             public Receiver() => EndpointSetup<DefaultServerWithoutAudit>(c => c.Recoverability().Delayed(s => s.NumberOfRetries(0)));
 
+            [Handler]
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public Task Handle(MyMessage message, IMessageHandlerContext context) => throw new Exception("Simulated exception");

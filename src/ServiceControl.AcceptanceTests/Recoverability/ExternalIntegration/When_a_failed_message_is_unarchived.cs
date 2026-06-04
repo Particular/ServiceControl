@@ -81,6 +81,7 @@
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<FailedMessagesUnArchived>(Settings.DEFAULT_INSTANCE_NAME); });
             }
 
+            [Handler]
             public class FailureHandler(Context testContext) : IHandleMessages<FailedMessagesUnArchived>
             {
                 public Task Handle(FailedMessagesUnArchived message, IMessageHandlerContext context)

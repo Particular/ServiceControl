@@ -15,7 +15,6 @@
             var endpointConfiguration = new EndpointConfiguration(endpointCustomization.EndpointName);
 
             endpointConfiguration.UseSerialization<SystemJsonSerializer>();
-            endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
 
             var recoverability = endpointConfiguration.Recoverability();
             recoverability.Immediate(c => c.NumberOfRetries(3));

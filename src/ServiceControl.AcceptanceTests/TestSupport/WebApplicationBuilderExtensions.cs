@@ -13,7 +13,6 @@ static class WebApplicationBuilderExtensions
     {
         // Do not register additional test controllers or hosted services here. Instead, in the test that needs them, use (for example):
         // CustomizeHostBuilder = builder => builder.ConfigureServices((hostContext, services) => services.AddHostedService<SetupNotificationSettings>());
-        hostBuilder.Logging.AddScenarioContextLogging();
 
         hostBuilder.WebHost.UseTestServer(options => options.BaseAddress = new Uri(settings.RootUrl));
 

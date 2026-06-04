@@ -20,11 +20,11 @@
 
             var expectedErrorInstanceServiceName = $"Particular.{viewModel.ConventionName}-1";
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.AuditInstanceName, Is.EqualTo(expectedAuditInstanceServiceName));
                 Assert.That(viewModel.ErrorInstanceName, Is.EqualTo(expectedErrorInstanceServiceName));
-            });
+            }
         }
 
         [Test]
@@ -49,11 +49,11 @@
                 SubmitAttempted = true
             };
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.AuditInstanceName, Is.EqualTo(expected));
                 Assert.That(viewModel.ErrorInstanceName, Is.EqualTo(expected));
-            });
+            }
         }
     }
 }

@@ -8,21 +8,10 @@
     using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class SendEmailNotificationHandler : IHandleMessages<SendEmailNotification>
+    [Handler]
+    class SendEmailNotificationHandler(IErrorMessageDataStore store, Settings settings, EmailThrottlingState throttlingState, EmailSender emailSender, ILogger<SendEmailNotificationHandler> logger)
+        : IHandleMessages<SendEmailNotification>
     {
-        readonly IErrorMessageDataStore store;
-        readonly EmailThrottlingState throttlingState;
-        readonly EmailSender emailSender;
-
-        public SendEmailNotificationHandler(IErrorMessageDataStore store, Settings settings, EmailThrottlingState throttlingState, EmailSender emailSender, ILogger<SendEmailNotificationHandler> logger)
-        {
-            this.store = store;
-            this.throttlingState = throttlingState;
-            this.emailSender = emailSender;
-            this.logger = logger;
-            emailDropFolder = settings.EmailDropFolder;
-        }
-
         public async Task Handle(SendEmailNotification message, IMessageHandlerContext context)
         {
             NotificationsSettings notifications;
@@ -92,12 +81,11 @@
             }
         }
 
-        string emailDropFolder;
+        readonly string emailDropFolder = settings.EmailDropFolder;
 
-        readonly ILogger<SendEmailNotificationHandler> logger;
-        static TimeSpan spinDelay = TimeSpan.FromSeconds(1);
-        static TimeSpan throttlingDelay = TimeSpan.FromSeconds(30);
-        static TimeSpan cacheTimeout = TimeSpan.FromMinutes(5);
+        static readonly TimeSpan spinDelay = TimeSpan.FromSeconds(1);
+        static readonly TimeSpan throttlingDelay = TimeSpan.FromSeconds(30);
+        static readonly TimeSpan cacheTimeout = TimeSpan.FromMinutes(5);
 
         public static RecoverabilityAction RecoverabilityPolicy(RecoverabilityConfig config, ErrorContext context)
         {
@@ -110,10 +98,5 @@
         }
     }
 
-    class EmailNotificationException : Exception
-    {
-        public EmailNotificationException(Exception exception) : base("Error sending email notification.", exception)
-        {
-        }
-    }
+    class EmailNotificationException(Exception exception) : Exception("Error sending email notification.", exception);
 }

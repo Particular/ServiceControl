@@ -66,8 +66,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.Cors
             CorsAssertions.AssertAllowedMethods(response, "POST", "GET", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD");
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

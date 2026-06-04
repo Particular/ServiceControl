@@ -33,6 +33,7 @@
         {
             public Receiver() => EndpointSetup<DefaultServerWithAudit>();
 
+            [Handler]
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public Task Handle(MyMessage message, IMessageHandlerContext context) => Task.CompletedTask;

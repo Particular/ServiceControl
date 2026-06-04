@@ -48,7 +48,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 })
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(failedMessage.UniqueMessageId, Is.EqualTo(context.UniqueMessageId));
 
@@ -57,7 +57,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     "The returned message should match the processed one");
                 Assert.That(failedMessage.Status, Is.EqualTo(FailedMessageStatus.Unresolved), "Status should be set to unresolved");
                 Assert.That(failedMessage.ProcessingAttempts.Count, Is.EqualTo(1), "Failed count should be 1");
-            });
+            }
             Assert.That(failedMessage.ProcessingAttempts.Single().FailureDetails.Exception.Message, Is.EqualTo("Simulated exception"),
                 "Exception message should be captured");
         }
@@ -139,13 +139,13 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 })
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 // The message Ids may contain a \ if they are from older versions.
                 Assert.That(failure.MessageId.Replace(@"\", "-"), Is.EqualTo(context.MessageId), "The returned message should match the processed one");
                 Assert.That(failure.Status, Is.EqualTo(FailedMessageStatus.Unresolved), "Status of new messages should be failed");
                 Assert.That(failure.NumberOfProcessingAttempts, Is.EqualTo(1), "One attempt should be stored");
-            });
+            }
         }
 
         [Test]
@@ -164,13 +164,13 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 })
                 .Run(cancellationToken);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(failure.Id, Is.EqualTo(context.UniqueMessageId), "The unique id should be returned");
                 Assert.That(failure.Status, Is.EqualTo(MessageStatus.Failed), "Status of new messages should be failed");
                 Assert.That(failure.SendingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint));
                 Assert.That(failure.ReceivingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint));
-            });
+            }
         }
 
         [Test]
@@ -188,13 +188,13 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 })
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(entry.Severity, Is.EqualTo(Severity.Error), "Failures should be treated as errors");
                 Assert.That(entry.Description, Does.Contain("exception"), "For failed messages, the description should contain the exception information");
                 Assert.That(entry.RelatedTo.Any(item => item == "/message/" + context.UniqueMessageId), Is.True, "Should contain the api url to retrieve additional details about the failed message");
                 Assert.That(entry.RelatedTo.Any(item => item == "/endpoint/" + context.EndpointNameOfReceivingEndpoint), Is.True, "Should contain the api url to retrieve additional details about the endpoint where the message failed");
-            });
+            }
         }
 
         [Test]
@@ -349,6 +349,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
 
+            [Handler]
             public class MyMessageHandler(
                 MyContext testContext,
                 IReadOnlySettings settings,
@@ -375,6 +376,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     c.UseSerialization<MySuperSerializer>();
                 });
 
+            [Handler]
             public class MyMessageHandler(
                 MyContext testContext,
                 IReadOnlySettings settings,
@@ -429,6 +431,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     c.NoRetries();
                 });
 
+            [Handler]
             public class MyMessageHandler(QueueSearchContext queueSearchContext) : IHandleMessages<MyMessage>
             {
                 public Task Handle(MyMessage message, IMessageHandlerContext context)

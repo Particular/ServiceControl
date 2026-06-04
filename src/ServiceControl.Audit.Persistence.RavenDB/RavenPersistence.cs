@@ -1,6 +1,9 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
+    using System.Linq;
+    using CustomChecks;
     using Microsoft.Extensions.DependencyInjection;
+    using NServiceBus;
     using Persistence.UnitOfWork;
     using UnitOfWork;
 
@@ -9,6 +12,17 @@
         public void AddPersistence(IServiceCollection services)
         {
             ConfigureLifecycle(services, databaseConfiguration);
+
+            if (services.SingleOrDefault(s => s.ServiceType == typeof(EndpointConfiguration)) is
+                {
+                    ImplementationInstance: EndpointConfiguration endpointConfiguration
+                })
+            {
+                endpointConfiguration.AddCustomCheck<CheckDirtyMemory>();
+                endpointConfiguration.AddCustomCheck<CheckFreeDiskSpace>();
+                endpointConfiguration.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
+                endpointConfiguration.AddCustomCheck<CheckRavenDBIndexLag>();
+            }
 
             services.AddSingleton<IAuditDataStore, RavenAuditDataStore>();
             services.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenAuditIngestionUnitOfWorkFactory>();

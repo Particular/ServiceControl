@@ -104,7 +104,7 @@
 
             var editedMessageBody = JsonSerializer.Deserialize<FailingMessage>(context.EditedMessageFailure.ProcessingAttempts.Last().MessageMetadata["MsgFullText"].ToString());
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(context.OriginalMessageFailure.Id, Is.Not.EqualTo(context.EditedMessageFailure.Id));
                 Assert.That(context.OriginalMessageFailure.UniqueMessageId, Is.Not.EqualTo(context.EditedMessageFailure.UniqueMessageId));
@@ -118,10 +118,10 @@
                 Assert.That(context.MessageFailedIds, Is.Unique);
                 Assert.That(context.MessageFailedIds, Has.Some.EqualTo(context.OriginalMessageFailureId));
                 Assert.That(context.MessageFailedIds, Has.Some.EqualTo(context.EditedMessageFailureId));
-            });
+            }
         }
 
-        class EditMessageFailureContext : ScenarioContext
+        internal class EditMessageFailureContext : ScenarioContext
         {
             public bool OriginalMessageHandled { get; set; }
             public bool EditedMessage { get; set; }
@@ -136,11 +136,12 @@
             public List<string> MessageFailedIds { get; } = [];
         }
 
-        class FailingEditedMessageReceiver : EndpointConfigurationBuilder
+        public class FailingEditedMessageReceiver : EndpointConfigurationBuilder
         {
             public FailingEditedMessageReceiver() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
 
-            class FailingMessageHandler(EditMessageFailureContext testContext)
+            [Handler]
+            public class FailingMessageHandler(EditMessageFailureContext testContext)
                 : IHandleMessages<FailingMessage>, IHandleMessages<ServiceControl.Contracts.MessageFailed>
             {
                 public Task Handle(FailingMessage message, IMessageHandlerContext context)
@@ -169,7 +170,7 @@
             }
         }
 
-        class FailingMessage : IMessage
+        internal class FailingMessage : IMessage
         {
             public bool HasBeenEdited { get; init; }
             public string MessageInternalId { get; init; }

@@ -5,13 +5,9 @@
     using NServiceBus.Metrics;
     using Transports;
 
-    public class EndpointMetadataReportHandler : IHandleMessages<EndpointMetadataReport>
+    [Handler]
+    public class EndpointMetadataReportHandler(IProvideQueueLength queueLengthProvider) : IHandleMessages<EndpointMetadataReport>
     {
-        public EndpointMetadataReportHandler(IProvideQueueLength queueLengthProvider)
-        {
-            this.queueLengthProvider = queueLengthProvider;
-        }
-
         public Task Handle(EndpointMetadataReport message, IMessageHandlerContext context)
         {
             var endpointName = context.MessageHeaders[Headers.OriginatingEndpoint];
@@ -20,7 +16,5 @@
 
             return Task.CompletedTask;
         }
-
-        IProvideQueueLength queueLengthProvider;
     }
 }

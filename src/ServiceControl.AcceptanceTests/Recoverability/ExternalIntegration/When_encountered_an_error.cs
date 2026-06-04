@@ -28,6 +28,8 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
         {
             var externalProcessorSubscribed = false;
 
+            CustomizeHostBuilder = builder => builder.Services.AddSingleton<IEventPublisher, FaultyPublisher>();
+
             CustomConfiguration = config =>
             {
                 config.OnEndpointSubscribed<MyContext>((s, ctx) =>
@@ -37,8 +39,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                         externalProcessorSubscribed = true;
                     }
                 });
-
-                config.RegisterComponents(services => services.AddSingleton<IEventPublisher, FaultyPublisher>());
             };
 
             ExecuteWhen(() => externalProcessorSubscribed, domainEvents => domainEvents.Raise(new EndpointFailedToHeartbeat
@@ -66,11 +66,11 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                 .Done(c => c.NotificationDelivered)
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(context.NotificationDelivered, Is.True);
                 Assert.That(context.Failed, Is.True);
-            });
+            }
         }
 
         class FaultyPublisher(MyContext context) : IEventPublisher
@@ -103,6 +103,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_INSTANCE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<HeartbeatStopped>(Settings.DEFAULT_INSTANCE_NAME); });
 
+            [Handler]
             public class FailureHandler(MyContext testContext) : IHandleMessages<HeartbeatStopped>
             {
                 public Task Handle(HeartbeatStopped message, IMessageHandlerContext context)

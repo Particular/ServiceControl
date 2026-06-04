@@ -37,11 +37,11 @@
             var queryResultAfterExpiration = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResultBeforeExpiration.Results, Has.Count.EqualTo(1));
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(queryResultBeforeExpiration.Results[0].MessageId, Is.EqualTo("MyMessageId"));
                 Assert.That(queryResultAfterExpiration.Results.Count, Is.EqualTo(0));
-            });
+            }
         }
 
         [Test]
@@ -67,11 +67,11 @@
             var queryResultAfterExpiration = await DataStore.QueryKnownEndpoints(TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResultBeforeExpiration.Results, Has.Count.EqualTo(1));
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(queryResultBeforeExpiration.Results[0].EndpointDetails.Name, Is.EqualTo("Wazowsky"));
                 Assert.That(queryResultAfterExpiration.Results.Count, Is.EqualTo(0));
-            });
+            }
         }
 
         [Test]
@@ -93,11 +93,11 @@
             var queryResultAfterExpiration = await DataStore.QuerySagaHistoryById(sagaId, TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResultBeforeExpiration.Results, Is.Not.Null);
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(queryResultBeforeExpiration.Results.Changes, Has.Count.EqualTo(2));
                 Assert.That(queryResultAfterExpiration.Results, Is.Null);
-            });
+            }
         }
 
         ProcessedMessage MakeMessage(

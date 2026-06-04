@@ -30,8 +30,6 @@
             Assert.That(classifiers, Does.Contain(AddressOfFailingEndpointClassifier.Id), "AddressOfFailingEndpointClassifier was not found");
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

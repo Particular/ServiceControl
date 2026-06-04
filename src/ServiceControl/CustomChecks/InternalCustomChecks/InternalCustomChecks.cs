@@ -21,7 +21,7 @@
             services.AddCustomCheck<SagaAuditMisconfigurationCustomCheck>();
 
             services.AddHostedService(provider => new InternalCustomChecksHostedService(
-                provider.GetServices<ICustomCheck>().ToList(),
+                [.. provider.GetServices<ICustomCheck>()],
                 provider.GetRequiredService<HostInformation>(),
                 provider.GetRequiredService<IAsyncTimer>(),
                 provider.GetRequiredService<CustomCheckResultProcessor>(),

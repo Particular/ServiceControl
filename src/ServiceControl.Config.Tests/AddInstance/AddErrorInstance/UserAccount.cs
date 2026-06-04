@@ -65,7 +65,7 @@
         {
             var viewModel = Given_adding_error_instance();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ErrorUseSystemAccount, Is.True);
                 Assert.That(viewModel.ErrorUseServiceAccount, Is.False);
@@ -73,7 +73,7 @@
                 Assert.That(viewModel.ErrorPasswordEnabled, Is.False);
                 Assert.That(viewModel.ErrorPassword, Is.Empty);
                 Assert.That(viewModel.ErrorServiceAccount, Is.EqualTo("LocalSystem"));
-            });
+            }
         }
 
         [Test]
@@ -86,7 +86,7 @@
                 .Collect_changed_properties(changedProperties)
                 .When_local_system_account_selected();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ErrorUseSystemAccount, Is.True);
                 Assert.That(viewModel.ErrorUseServiceAccount, Is.False);
@@ -94,7 +94,7 @@
                 Assert.That(viewModel.ErrorPasswordEnabled, Is.False);
                 Assert.That(viewModel.ErrorPassword, Is.Empty);
                 Assert.That(viewModel.ErrorServiceAccount, Is.EqualTo("LocalSystem"));
-            });
+            }
         }
 
         [Test]
@@ -113,7 +113,7 @@
             nameof(viewModel.ErrorPasswordEnabled)
                 .Was_notified_of_change(changedProperties);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ErrorUseSystemAccount, Is.False);
                 Assert.That(viewModel.ErrorUseServiceAccount, Is.True);
@@ -121,7 +121,7 @@
                 Assert.That(viewModel.ErrorPasswordEnabled, Is.False);
                 Assert.That(viewModel.ErrorPassword, Is.Empty);
                 Assert.That(viewModel.ErrorServiceAccount, Is.EqualTo("LocalService"));
-            });
+            }
         }
 
         [Test]
@@ -140,7 +140,7 @@
             nameof(viewModel.ErrorPasswordEnabled)
                 .Was_notified_of_change(changedProperties);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ErrorUseSystemAccount, Is.False);
                 Assert.That(viewModel.ErrorUseServiceAccount, Is.False);
@@ -148,7 +148,7 @@
                 Assert.That(viewModel.ErrorServiceAccount, Is.Null);
                 Assert.That(viewModel.ErrorPasswordEnabled, Is.True);
                 Assert.That(viewModel.ErrorPassword, Is.Null);
-            });
+            }
         }
 
 
@@ -172,7 +172,7 @@
             nameof(viewModel.ErrorPasswordEnabled)
                 .Was_notified_of_change(changedProperties);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ErrorUseSystemAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.ErrorUseSystemAccount)));
                 Assert.That(viewModel.ErrorUseServiceAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.ErrorUseServiceAccount)));
@@ -180,7 +180,7 @@
                 Assert.That(viewModel.ErrorPasswordEnabled, Is.True, () => string.Format(ShouldBeTrue, nameof(viewModel.ErrorPasswordEnabled)));
                 Assert.That(viewModel.ErrorServiceAccount, Is.EqualTo(userAccount), () => string.Format(ShouldEqual, nameof(viewModel.ErrorServiceAccount), userAccount));
                 Assert.That(viewModel.ErrorPassword, Is.EqualTo(userPassword), () => string.Format(ShouldEqual, nameof(viewModel.ErrorPassword), userPassword));
-            });
+            }
         }
 
         [TestCase("foo", null)]
@@ -205,7 +205,7 @@
 
             nameof(viewModel.ErrorPassword).Was_notified_of_change(changedProperties);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ErrorUseSystemAccount, Is.True, () => string.Format(ShouldBeFalse, nameof(viewModel.ErrorUseSystemAccount)));
                 Assert.That(viewModel.ErrorUseServiceAccount, Is.False, () => string.Format(ShouldBeTrue, nameof(viewModel.ErrorUseServiceAccount)));
@@ -213,7 +213,7 @@
                 Assert.That(viewModel.ErrorPasswordEnabled, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.ErrorPasswordEnabled)));
                 Assert.That(viewModel.ErrorServiceAccount, Is.EqualTo("LocalSystem"));
                 Assert.That(viewModel.ErrorPassword, Is.Empty);
-            });
+            }
         }
 
 
@@ -239,7 +239,7 @@
 
             nameof(viewModel.ErrorPassword).Was_notified_of_change(changedProperties);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ErrorUseSystemAccount, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.ErrorUseSystemAccount)));
                 Assert.That(viewModel.ErrorUseServiceAccount, Is.True, () => string.Format(ShouldBeTrue, nameof(viewModel.ErrorUseServiceAccount)));
@@ -247,7 +247,7 @@
                 Assert.That(viewModel.ErrorPasswordEnabled, Is.False, () => string.Format(ShouldBeFalse, nameof(viewModel.ErrorPasswordEnabled)));
                 Assert.That(viewModel.ErrorServiceAccount, Is.EqualTo("LocalService"));
                 Assert.That(viewModel.ErrorPassword, Is.Empty);
-            });
+            }
         }
     }
 }

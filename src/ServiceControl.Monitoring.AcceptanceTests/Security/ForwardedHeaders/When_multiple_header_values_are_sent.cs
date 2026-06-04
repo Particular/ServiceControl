@@ -42,8 +42,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
                 expectedOriginalClientIp: "203.0.113.50");
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

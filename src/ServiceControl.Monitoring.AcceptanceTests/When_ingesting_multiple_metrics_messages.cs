@@ -18,8 +18,7 @@
         {
             CustomConfiguration = endpointConfiguration =>
             {
-                endpointConfiguration.Pipeline.Register(typeof(InterceptIngestionBehavior),
-                    "Intercepts ingestion exceptions");
+                endpointConfiguration.Pipeline.Register(typeof(InterceptIngestionBehavior), "Intercepts ingestion exceptions");
             };
 
             var metricReported = false;
@@ -46,14 +45,14 @@
                 })
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(metricReported, Is.True);
                 Assert.That(ctx.Errors, Is.Empty);
-            });
+            }
         }
 
-        class EndpointWithTimings : EndpointConfigurationBuilder
+        public class EndpointWithTimings : EndpointConfigurationBuilder
         {
             public EndpointWithTimings() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
@@ -61,13 +60,15 @@
                     c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromSeconds(5));
                 });
 
-            class Handler : IHandleMessages<SampleMessage>
+            [Handler]
+            public class Handler : IHandleMessages<SampleMessage>
             {
                 public Task Handle(SampleMessage message, IMessageHandlerContext context)
                     => Task.Delay(TimeSpan.FromMilliseconds(10), context.CancellationToken);
             }
 
-            class AnotherHandler : IHandleMessages<AnotherSampleMessage>
+            [Handler]
+            public class AnotherHandler : IHandleMessages<AnotherSampleMessage>
             {
                 public Task Handle(AnotherSampleMessage message, IMessageHandlerContext context)
                     => Task.Delay(TimeSpan.FromMilliseconds(10), context.CancellationToken);
@@ -100,10 +101,10 @@
             public List<Exception> Errors { get; set; } = [];
         }
 
-        class SampleMessage : SampleBaseMessage;
+        internal class SampleMessage : SampleBaseMessage;
 
-        class AnotherSampleMessage : SampleBaseMessage;
+        internal class AnotherSampleMessage : SampleBaseMessage;
 
-        class SampleBaseMessage : IMessage;
+        internal class SampleBaseMessage : IMessage;
     }
 }

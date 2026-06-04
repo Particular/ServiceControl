@@ -60,12 +60,12 @@
             var editFailedMessagesManager = await ErrorMessageDataStore.CreateEditFailedMessageManager();
             var editOperation = await editFailedMessagesManager.GetCurrentEditingRequestId(failedMessageId);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(failedMessage.Status, Is.EqualTo(status));
                 Assert.That(editOperation, Is.Null);
                 Assert.That(dispatcher.DispatchedMessages, Is.Empty);
-            });
+            }
         }
 
         [Test]
@@ -93,11 +93,11 @@
                 var failedMessage = await editFailedMessagesManagerAssert.GetFailedMessage(failedMessageId);
                 var editId = await editFailedMessagesManagerAssert.GetCurrentEditingRequestId(failedMessageId);
 
-                Assert.Multiple(() =>
+                using (Assert.EnterMultipleScope())
                 {
                     Assert.That(editId, Is.EqualTo(previousEdit));
                     Assert.That(failedMessage.Status, Is.EqualTo(FailedMessageStatus.Unresolved));
-                });
+                }
             }
 
             Assert.That(dispatcher.DispatchedMessages, Is.Empty);
@@ -116,14 +116,14 @@
             await handler.Handle(message, handlerContent);
 
             var dispatchedMessage = dispatcher.DispatchedMessages.Single();
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(
                             dispatchedMessage.Item1.Destination,
                             Is.EqualTo(failedMessage.ProcessingAttempts.Last().FailureDetails.AddressOfFailingEndpoint));
                 Assert.That(dispatchedMessage.Item1.Message.Body.ToArray(), Is.EqualTo(newBodyContent));
                 Assert.That(dispatchedMessage.Item1.Message.Headers["someKey"], Is.EqualTo("someValue"));
-            });
+            }
 
             using (var x = await ErrorMessageDataStore.CreateEditFailedMessageManager())
             {
@@ -132,11 +132,11 @@
 
                 var editId = await x.GetCurrentEditingRequestId(failedMessage2.UniqueMessageId);
 
-                Assert.Multiple(() =>
+                using (Assert.EnterMultipleScope())
                 {
                     Assert.That(failedMessage2.Status, Is.EqualTo(FailedMessageStatus.Resolved), "Failed message status");
                     Assert.That(editId, Is.EqualTo(handlerContent.MessageId), "MessageId");
-                });
+                }
             }
         }
 

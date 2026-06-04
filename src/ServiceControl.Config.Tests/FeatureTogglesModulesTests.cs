@@ -21,11 +21,11 @@
 
             var injectionTarget = container.Resolve<FakeClass>();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(injectionTarget.SomeFeatureIsEnabled, Is.True, "Property with activated feature toggle should be set.");
                 Assert.That(injectionTarget.SomeUnrelatedFeatureIsEnabled, Is.False, "Property without activated feature toggle should be ignored.");
-            });
+            }
         }
 
         class FakeClass

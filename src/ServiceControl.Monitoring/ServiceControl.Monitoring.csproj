@@ -23,13 +23,16 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
-    <PackageReference Include="NServiceBus.Extensions.Hosting" />
     <PackageReference Include="NServiceBus.Persistence.NonDurable" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Remove="App.config" />
     <None Include="App.config" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <RuntimeHostConfigurationOption Include="NServiceBus.Core.Hosting.UseV2DeterministicGuid" Value="true" />
   </ItemGroup>
 
   <ItemGroup>

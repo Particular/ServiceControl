@@ -87,11 +87,11 @@
 
             await new ReturnToSender(null, NullLogger<ReturnToSender>.Instance).HandleMessage(message, sender, "error");
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(sender.Destination, Is.EqualTo("Proxy"));
                 Assert.That(sender.Message.Headers["ServiceControl.TargetEndpointAddress"], Is.EqualTo("TargetEndpoint"));
-            });
+            }
         }
 
         [Test]
@@ -108,11 +108,11 @@
 
             await new ReturnToSender(null, NullLogger<ReturnToSender>.Instance).HandleMessage(message, sender, "error");
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(sender.Destination, Is.EqualTo("TargetEndpoint"));
                 Assert.That(sender.Message.Headers.ContainsKey("ServiceControl.TargetEndpointAddress"), Is.False);
-            });
+            }
         }
 
         [Test]
@@ -137,11 +137,11 @@
                 //Intentionally empty catch
             }
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(message.Headers.ContainsKey("ServiceControl.TargetEndpointAddress"), Is.True);
                 Assert.That(message.Headers.ContainsKey("ServiceControl.Retry.Attempt.MessageId"), Is.True);
-            });
+            }
         }
 
         class FaultySender : IMessageDispatcher

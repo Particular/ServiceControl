@@ -20,6 +20,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using ServiceControl.Hosting.Auth;
     using ServiceControl.Hosting.Https;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTesting.Support;
     using ServiceControl.Infrastructure;
 
@@ -98,6 +99,9 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 });
                 hostBuilder.Logging.ClearProviders();
                 hostBuilder.Logging.ConfigureLogging(LogLevel.Information);
+                hostBuilder.Logging.AddContextAppender(context);
+
+                hostBuilder.Services.AddScenarioContext(context);
 
                 hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControlMonitoring((criticalErrorContext, cancellationToken) =>
