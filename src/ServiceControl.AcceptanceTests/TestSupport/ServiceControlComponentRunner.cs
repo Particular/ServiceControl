@@ -123,6 +123,7 @@
                     EnvironmentName = Environments.Development
                 });
                 hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
+                hostBuilder.AddServiceControlAuthorization(settings.OpenIdConnectSettings.Enabled);
                 hostBuilder.AddServiceControl(settings, configuration);
                 hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
                 hostBuilder.AddServiceControlApi(settings.CorsSettings);
