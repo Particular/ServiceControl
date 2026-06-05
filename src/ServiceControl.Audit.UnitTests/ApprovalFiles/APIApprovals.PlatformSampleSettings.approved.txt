@@ -12,6 +12,7 @@
     "ValidateLifetime": true,
     "ValidateIssuerSigningKey": true,
     "RequireHttpsMetadata": true,
+    "RolesClaim": "realm_access.roles",
     "ServicePulseAuthority": null,
     "ServicePulseClientId": null,
     "ServicePulseApiScopes": null
