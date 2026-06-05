@@ -19,7 +19,7 @@
             var hostBuilder = WebApplication.CreateBuilder();
 
             hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
-            hostBuilder.AddServiceControlAuthorization(settings.OpenIdConnectSettings.Enabled);
+            hostBuilder.AddServiceControlAuthorization(settings.OpenIdConnectSettings);
             hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
             hostBuilder.AddServiceControlAudit((_, __) =>
             {

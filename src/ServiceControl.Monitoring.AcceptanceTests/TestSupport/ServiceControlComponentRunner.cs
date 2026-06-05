@@ -100,7 +100,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 hostBuilder.Logging.ConfigureLogging(LogLevel.Information);
 
                 hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
-                hostBuilder.AddServiceControlAuthorization(settings.OpenIdConnectSettings.Enabled);
+                hostBuilder.AddServiceControlAuthorization(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControlMonitoring((criticalErrorContext, cancellationToken) =>
                 {
                     var logitem = new ScenarioContext.LogItem

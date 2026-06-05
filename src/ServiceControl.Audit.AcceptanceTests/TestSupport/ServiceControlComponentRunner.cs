@@ -120,7 +120,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     EnvironmentName = Environments.Development
                 });
                 hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
-                hostBuilder.AddServiceControlAuthorization(settings.OpenIdConnectSettings.Enabled);
+                hostBuilder.AddServiceControlAuthorization(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControlAudit((criticalErrorContext, cancellationToken) =>
                 {
                     var logitem = new ScenarioContext.LogItem

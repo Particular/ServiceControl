@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using ServiceControl.Infrastructure;
 
 /// <summary>
 /// Registers the permission-based policy authorization services: a dynamic
@@ -20,8 +21,13 @@ using Microsoft.Extensions.Options;
 /// </summary>
 public static class PermissionAuthorizationExtensions
 {
-    public static void AddServiceControlAuthorization(this IHostApplicationBuilder hostBuilder, bool oidcEnabled)
+    public static void AddServiceControlAuthorization(this IHostApplicationBuilder hostBuilder, OpenIdConnectSettings oidcSettings)
     {
+        if (!oidcSettings.RoleBasedAuthorizationEnabled)
+        {
+            return;
+        }
+
         var services = hostBuilder.Services;
 
         // Ensure the authorization core services and options are present (idempotent).
@@ -31,13 +37,8 @@ public static class PermissionAuthorizationExtensions
         // policy provider registered by AddAuthorization(). When OIDC is disabled it returns allow-all
         // policies (no requirement); when enabled it emits a PermissionRequirement for the verb handler.
         services.AddSingleton<IAuthorizationPolicyProvider>(sp =>
-            new PermissionPolicyProvider(sp.GetRequiredService<IOptions<AuthorizationOptions>>(), oidcEnabled));
+            new PermissionPolicyProvider(sp.GetRequiredService<IOptions<AuthorizationOptions>>(), oidcSettings.Enabled));
 
-        // The role-based handler is only needed when OIDC is enabled — otherwise the provider produces
-        // no PermissionRequirement for it to evaluate.
-        if (oidcEnabled)
-        {
-            services.AddSingleton<IAuthorizationHandler, PermissionVerbHandler>();
-        }
+        services.AddSingleton<IAuthorizationHandler>(service => new PermissionVerbHandler(oidcSettings.RolesClaim));
     }
 }

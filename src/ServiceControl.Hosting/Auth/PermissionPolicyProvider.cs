@@ -52,7 +52,7 @@ public sealed class PermissionPolicyProvider(IOptions<AuthorizationOptions> auth
             StringComparer.Ordinal);
 
     public Task<AuthorizationPolicy?> GetPolicyAsync(string policyName) =>
-        Task.FromResult<AuthorizationPolicy?>(policies.GetValueOrDefault(policyName));
+        Task.FromResult(policies.GetValueOrDefault(policyName));
 
     public Task<AuthorizationPolicy> GetDefaultPolicyAsync()
     {
