@@ -40,7 +40,14 @@ public sealed class PermissionPolicyProvider(IOptions<AuthorizationOptions> auth
         Permissions.All.ToFrozenDictionary(
             permission => permission,
             permission => oidcEnabled
-                ? new AuthorizationPolicyBuilder().AddRequirements(new PermissionRequirement(permission)).Build()
+                ? new AuthorizationPolicyBuilder()
+                    // RequireAuthenticatedUser() must come first so an unauthenticated request fails as
+                    // FailedAuthentication (→ 401 challenge) rather than FailedRequirements (→ 403
+                    // forbid). Without it, PermissionVerbHandler is reached for anonymous callers and a
+                    // missing-roles outcome is classified as a forbidden permission failure.
+                    .RequireAuthenticatedUser()
+                    .AddRequirements(new PermissionRequirement(permission))
+                    .Build()
                 : AllowAll,
             StringComparer.Ordinal);
 
