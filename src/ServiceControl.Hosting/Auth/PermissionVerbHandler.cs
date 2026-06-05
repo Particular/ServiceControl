@@ -1,7 +1,7 @@
 #nullable enable
 namespace ServiceControl.Hosting.Auth;
 
-using System.IdentityModel.Tokens.Jwt;
+using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -19,7 +19,11 @@ using ServiceControl.Infrastructure.Auth;
 /// <see cref="PermissionRequirement"/>, so this handler is not needed.
 /// </para>
 /// </summary>
-public sealed class PermissionVerbHandler(IAuthorizationAuditLog auditLog) : AuthorizationHandler<PermissionRequirement>
+public sealed class PermissionVerbHandler(
+    IAuthorizationAuditLog auditLog,
+    string subjectIdClaim,
+    string subjectNameClaim)
+    : AuthorizationHandler<PermissionRequirement>
 {
     // The per-IdP variability of the source claim is absorbed by RolesClaimsTransformation, which
     // reads from the path configured in Authentication.RolesClaim and emits canonical "roles" claims.
@@ -37,10 +41,8 @@ public sealed class PermissionVerbHandler(IAuthorizationAuditLog auditLog) : Aut
             return Task.CompletedTask;
         }
 
-        var subjectId = context.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? "<unknown>";
-        var subjectName = context.User.FindFirst("preferred_username")?.Value
-            ?? context.User.FindFirst(ClaimTypes.Name)?.Value
-            ?? subjectId;
+        var subjectId = RequireClaim(context.User, subjectIdClaim, "Authentication.SubjectIdClaim");
+        var subjectName = RequireClaim(context.User, subjectNameClaim, "Authentication.SubjectNameClaim");
         var roles = context.User.FindAll(RoleClaimType).Select(claim => claim.Value).ToArray();
         var permission = requirement.Permission;
 
@@ -72,5 +74,17 @@ public sealed class PermissionVerbHandler(IAuthorizationAuditLog auditLog) : Aut
 
         // Leave the requirement unmet → the framework forbids (403).
         return Task.CompletedTask;
+    }
+
+    static string RequireClaim(ClaimsPrincipal user, string claimType, string settingName)
+    {
+        var value = user.FindFirst(claimType)?.Value;
+        if (string.IsNullOrEmpty(value))
+        {
+            throw new InvalidOperationException(
+                $"Authenticated principal is missing the required '{claimType}' claim configured by {settingName}. " +
+                "Configure the identity provider to emit this claim, or point the setting at the claim the IdP actually emits.");
+        }
+        return value;
     }
 }

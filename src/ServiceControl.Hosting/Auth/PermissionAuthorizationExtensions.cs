@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using ServiceControl.Infrastructure;
 using ServiceControl.Infrastructure.Auth;
 
 /// <summary>
@@ -21,7 +22,7 @@ using ServiceControl.Infrastructure.Auth;
 /// </summary>
 public static class PermissionAuthorizationExtensions
 {
-    public static void AddServiceControlAuthorization(this IHostApplicationBuilder hostBuilder, bool oidcEnabled)
+    public static void AddServiceControlAuthorization(this IHostApplicationBuilder hostBuilder, OpenIdConnectSettings oidcSettings)
     {
         var services = hostBuilder.Services;
 
@@ -32,16 +33,21 @@ public static class PermissionAuthorizationExtensions
         // policy provider registered by AddAuthorization(). When OIDC is disabled it returns allow-all
         // policies (no requirement); when enabled it emits a PermissionRequirement for the verb handler.
         services.AddSingleton<IAuthorizationPolicyProvider>(sp =>
-            new PermissionPolicyProvider(sp.GetRequiredService<IOptions<AuthorizationOptions>>(), oidcEnabled));
+            new PermissionPolicyProvider(sp.GetRequiredService<IOptions<AuthorizationOptions>>(), oidcSettings.Enabled));
 
         // The role-based handler is only needed when OIDC is enabled — otherwise the provider produces
         // no PermissionRequirement for it to evaluate. The handler emits an audit-log entry for every
         // decision through IAuthorizationAuditLog (registered alongside) so the platform can show, after
-        // the fact, who attempted what and how the system responded.
-        if (oidcEnabled)
+        // the fact, who attempted what and how the system responded. The subject-id and subject-name
+        // claim names flow through from configuration so the handler can read them off the principal.
+        if (oidcSettings.Enabled)
         {
             services.AddSingleton<IAuthorizationAuditLog, AuthorizationAuditLog>();
-            services.AddSingleton<IAuthorizationHandler, PermissionVerbHandler>();
+            services.AddSingleton<IAuthorizationHandler>(sp =>
+                new PermissionVerbHandler(
+                    sp.GetRequiredService<IAuthorizationAuditLog>(),
+                    oidcSettings.SubjectIdClaim,
+                    oidcSettings.SubjectNameClaim));
         }
     }
 }
