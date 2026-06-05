@@ -21,11 +21,15 @@ using ServiceControl.Infrastructure.Auth;
 public sealed class RolesClaimsTransformation(string rolesClaimPath) : IClaimsTransformation
 {
     const string SentinelClaimType = "_roles_transformed";
+    // The sentinel's value is irrelevant; only the claim's presence matters. A non-empty
+    // placeholder is required because a Claim value cannot be null.
+    const string SentinelClaimValue = "1";
     const string RoleClaimType = "roles";
 
     public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
     {
-        if (principal.Identity?.IsAuthenticated != true || principal.HasClaim(SentinelClaimType, "1"))
+        var isAuthenticated = principal.Identity?.IsAuthenticated == true;
+        if (!isAuthenticated || AlreadyTransformed(principal))
         {
             return Task.FromResult(principal);
         }
@@ -33,7 +37,7 @@ public sealed class RolesClaimsTransformation(string rolesClaimPath) : IClaimsTr
         var roles = RolesClaimExtractor.Extract(principal, rolesClaimPath);
 
         var claims = new Claim[roles.Count + 1];
-        claims[0] = new Claim(SentinelClaimType, "1");
+        claims[0] = new Claim(SentinelClaimType, SentinelClaimValue);
         for (var i = 0; i < roles.Count; i++)
         {
             claims[i + 1] = new Claim(RoleClaimType, roles[i]);
@@ -44,4 +48,9 @@ public sealed class RolesClaimsTransformation(string rolesClaimPath) : IClaimsTr
         transformed.AddIdentity(new ClaimsIdentity(claims));
         return Task.FromResult(transformed);
     }
+
+    // True once this transformation has stamped its sentinel claim, keeping TransformAsync
+    // idempotent across the repeated calls ASP.NET makes for the same principal.
+    static bool AlreadyTransformed(ClaimsPrincipal principal) =>
+        principal.HasClaim(SentinelClaimType, SentinelClaimValue);
 }
