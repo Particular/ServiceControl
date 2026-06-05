@@ -4,6 +4,8 @@ namespace Tests
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Runtime.InteropServices;
+    using Microsoft.AspNetCore.Http;
     using NUnit.Framework;
 
     [TestFixtureSource(typeof(DeploymentPackage), nameof(DeploymentPackage.All))]
@@ -30,7 +32,7 @@ namespace Tests
         }
 
         [Test]
-        public void DuplicateAssemblyShouldHaveMatchingVersions()
+        public void DuplicateAssembliesInDeploymentUnitsShouldHaveMatchingVersions()
         {
             var detectedMismatches = new List<string>();
 
@@ -41,6 +43,38 @@ namespace Tests
                 {
                     detectedMismatches.AddRange(GetAssemblyMismatches(leftDeploymentUnit, rightDeploymentUnit));
                 }
+            }
+
+            Assert.That(detectedMismatches, Is.Empty, $"Component assembly version mismatch detected");
+        }
+
+        [Test]
+        public void DuplicateAssembliesFromRuntimeShouldHaveMatchingVersions()
+        {
+            var detectedMismatches = new List<string>();
+
+            var runtimeDirectory = new DirectoryInfo(RuntimeEnvironment.GetRuntimeDirectory());
+            var runtimeDeploymentUnit = new DeploymentPackage.DeploymentUnit(runtimeDirectory, ".NET Runtime");
+
+            foreach (var deploymentUnit in deploymentPackage.DeploymentUnits)
+            {
+                detectedMismatches.AddRange(GetAssemblyMismatches(deploymentUnit, runtimeDeploymentUnit));
+            }
+
+            Assert.That(detectedMismatches, Is.Empty, $"Component assembly version mismatch detected");
+        }
+
+        [Test]
+        public void DuplicateAssembliesFromASPNetCoreShouldHaveMatchingVersions()
+        {
+            var detectedMismatches = new List<string>();
+
+            var aspNetCoreDirectory = new DirectoryInfo(Path.GetDirectoryName(typeof(HttpResponse).Assembly.Location));
+            var aspNetCoreDeploymentUnit = new DeploymentPackage.DeploymentUnit(aspNetCoreDirectory, "ASP.NET Core Runtime");
+
+            foreach (var deploymentUnit in deploymentPackage.DeploymentUnits)
+            {
+                detectedMismatches.AddRange(GetAssemblyMismatches(deploymentUnit, aspNetCoreDeploymentUnit));
             }
 
             Assert.That(detectedMismatches, Is.Empty, $"Component assembly version mismatch detected");
