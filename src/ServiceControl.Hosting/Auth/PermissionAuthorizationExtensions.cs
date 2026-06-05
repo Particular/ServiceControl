@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using ServiceControl.Infrastructure.Auth;
 
 /// <summary>
 /// Registers the permission-based policy authorization services: a dynamic
@@ -34,9 +35,12 @@ public static class PermissionAuthorizationExtensions
             new PermissionPolicyProvider(sp.GetRequiredService<IOptions<AuthorizationOptions>>(), oidcEnabled));
 
         // The role-based handler is only needed when OIDC is enabled — otherwise the provider produces
-        // no PermissionRequirement for it to evaluate.
+        // no PermissionRequirement for it to evaluate. The handler emits an audit-log entry for every
+        // decision through IAuthorizationAuditLog (registered alongside) so the platform can show, after
+        // the fact, who attempted what and how the system responded.
         if (oidcEnabled)
         {
+            services.AddSingleton<IAuthorizationAuditLog, AuthorizationAuditLog>();
             services.AddSingleton<IAuthorizationHandler, PermissionVerbHandler>();
         }
     }
