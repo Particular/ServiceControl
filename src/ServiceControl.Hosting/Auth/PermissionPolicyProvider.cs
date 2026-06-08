@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
+using ServiceControl.Infrastructure;
 using ServiceControl.Infrastructure.Auth;
 
 /// <summary>
@@ -27,19 +28,19 @@ using ServiceControl.Infrastructure.Auth;
 /// delegated to the configured <see cref="AuthorizationOptions"/>.
 /// </para>
 /// </summary>
-public sealed class PermissionPolicyProvider(IOptions<AuthorizationOptions> authorizationOptions, bool oidcEnabled)
+public sealed class PermissionPolicyProvider(IOptions<AuthorizationOptions> authorizationOptions, OpenIdConnectSettings oidcSettings)
     : IAuthorizationPolicyProvider
 {
     // Carries no requirement, so it succeeds without any IAuthorizationHandler being registered.
     static readonly AuthorizationPolicy AllowAll =
         new AuthorizationPolicyBuilder().RequireAssertion(_ => true).Build();
 
-    readonly FrozenDictionary<string, AuthorizationPolicy> policies = BuildPolicies(oidcEnabled);
+    readonly FrozenDictionary<string, AuthorizationPolicy> policies = BuildPolicies(oidcSettings);
 
-    static FrozenDictionary<string, AuthorizationPolicy> BuildPolicies(bool oidcEnabled) =>
+    static FrozenDictionary<string, AuthorizationPolicy> BuildPolicies(OpenIdConnectSettings oidcSettings) =>
         Permissions.All.ToFrozenDictionary(
             permission => permission,
-            permission => oidcEnabled
+            permission => oidcSettings.RoleBasedAuthorizationEnabled
                 ? new AuthorizationPolicyBuilder()
                     // RequireAuthenticatedUser() must come first so an unauthenticated request fails as
                     // FailedAuthentication (→ 401 challenge) rather than FailedRequirements (→ 403

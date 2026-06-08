@@ -29,7 +29,6 @@ public sealed class PermissionVerbHandler : AuthorizationHandler<PermissionRequi
     {
         var roles = context.User.FindAll(RoleClaimType).Select(claim => claim.Value);
 
-        // TODO: Although plural, likely roles will only contain a single value unless we want to define a role for each instance but likely customers don't care about instances
         if (RolePermissions.IsGranted(roles, requirement.Permission))
         {
             context.Succeed(requirement);

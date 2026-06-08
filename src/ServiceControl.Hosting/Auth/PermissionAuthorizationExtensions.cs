@@ -35,11 +35,8 @@ public static class PermissionAuthorizationExtensions
         // policies (no requirement), so anonymous-to-the-policy calls pass through and the verb
         // handler is unnecessary.
         services.AddSingleton<IAuthorizationPolicyProvider>(sp =>
-            new PermissionPolicyProvider(sp.GetRequiredService<IOptions<AuthorizationOptions>>(), oidcSettings.RoleBasedAuthorizationEnabled));
+            new PermissionPolicyProvider(sp.GetRequiredService<IOptions<AuthorizationOptions>>(), oidcSettings));
 
-        if (oidcSettings.RoleBasedAuthorizationEnabled)
-        {
-            services.AddSingleton<IAuthorizationHandler>(_ => new PermissionVerbHandler(oidcSettings.RolesClaim));
-        }
+        services.AddSingleton<IAuthorizationHandler>(_ => new PermissionVerbHandler(oidcSettings.RolesClaim));
     }
 }
