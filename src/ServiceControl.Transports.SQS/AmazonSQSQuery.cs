@@ -23,6 +23,8 @@ using Microsoft.Extensions.Logging;
 public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timeProvider, TransportSettings transportSettings)
     : BrokerThroughputQuery(logger, "AmazonSQS")
 {
+    const int MaxDaysToQuery = 365;
+
     AmazonCloudWatchClient? cloudWatch;
     AmazonSQSClient? sqs;
     string? prefix;
@@ -198,7 +200,13 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var utcNow = timeProvider.GetUtcNow();
-        var endDate = DateOnly.FromDateTime(utcNow.DateTime).AddDays(-1); // Query date up to but not including today
+        var today = DateOnly.FromDateTime(utcNow.DateTime);
+        var earliestQueryDate = today.AddDays(-MaxDaysToQuery);
+        if (startDate < earliestQueryDate)
+        {
+            startDate = earliestQueryDate;
+        }
+        var endDate = today.AddDays(-1); // Query date up to but not including today
 
         var isBeforeStartDate = endDate < startDate;
 
