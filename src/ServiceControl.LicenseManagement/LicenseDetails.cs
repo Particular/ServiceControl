@@ -24,6 +24,7 @@
         public bool WarnUserUpgradeProtectionIsExpiring { get; private init; }
         public bool WarnUserUpgradeProtectionHasExpired { get; private init; }
         public string Status { get; private init; }
+        public LicensedProduct[] Products { get; private init; }
 
         public static LicenseDetails TrialFromEndDate(DateOnly endDate)
         {
@@ -64,6 +65,7 @@
                 IsTrialLicense = license.IsTrialLicense,
                 LicenseType = license.LicenseType,
                 Edition = license.Edition,
+                Products = license.Products,
                 ValidForServiceControl = license.ValidForApplication("ServiceControl"),
                 DaysUntilSubscriptionExpires = license.GetDaysUntilLicenseExpires(),
                 DaysUntilUpgradeProtectionExpires = license.GetDaysUntilUpgradeProtectionExpires(),

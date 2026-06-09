@@ -1,9 +1,12 @@
 ﻿namespace ServiceControl.Licensing
 {
+    using System.Linq;
+    using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
     using Monitoring.HeartbeatMonitoring;
+    using Particular.Licensing;
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -31,6 +34,8 @@
                 LicenseType = activeLicense.Details.LicenseType ?? string.Empty,
                 InstanceName = settings.InstanceName ?? string.Empty,
                 LicenseStatus = activeLicense.Details.Status,
+                //strip any internal prefix from what gets displayed to the customer
+                Products = activeLicense.Details.Products?.Select(product => product with { Size = product.Size.EndsWith("U") ? "Unlimited" : Regex.Replace(product.Size, @"^\D*", "") }).ToArray(),
                 LicenseExtensionUrl = connectorHeartbeatStatus.LastHeartbeat == null
                     ? $"https://particular.net/extend-your-trial?p={clientName}"
                     : $"https://particular.net/license/mt?p={clientName}&t={(activeLicense.IsEvaluation ? 0 : 1)}"
@@ -52,6 +57,8 @@
             public string ExpirationDate { get; set; }
 
             public string Status { get; set; }
+
+            public LicensedProduct[] Products { get; set; }
 
             public string LicenseType { get; set; }
 
