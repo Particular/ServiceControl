@@ -73,6 +73,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
                 UserIndicator = endpointData.UserIndicator ?? (endpointData.IsKnownEndpoint ? Contracts.UserIndicator.NServiceBusEndpoint.ToString() : string.Empty),
                 IsKnownEndpoint = endpointData.IsKnownEndpoint,
                 MaxDailyThroughput = endpointData.ThroughputData.MaxDailyThroughput(),
+                MonthlyThroughput = endpointData.ThroughputData.MonthlyThroughput(),
                 MaxMonthlyThroughput = endpointData.ThroughputData.MaxMonthlyThroughput()
             };
 

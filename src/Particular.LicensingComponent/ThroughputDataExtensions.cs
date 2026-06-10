@@ -23,6 +23,11 @@ static class ThroughputDataExtensions
         return 0;
     }
 
+    public static MonthlyThroughput[] MonthlyThroughput(this List<ThroughputData> throughputs) => [.. throughputs
+            .SelectMany(data => data)
+            .GroupBy(kvp => $"{kvp.Key.Year}-{kvp.Key.Month.ToString().PadLeft(2, '0')}")
+            .Select(group => new MonthlyThroughput(group.Key, group.Sum(kvp => kvp.Value)))];
+
     public static long MaxMonthlyThroughput(this List<ThroughputData> throughputs)
     {
         var monthlySums = throughputs
