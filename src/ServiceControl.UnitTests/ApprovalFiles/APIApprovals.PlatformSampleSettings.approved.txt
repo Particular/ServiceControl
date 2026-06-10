@@ -12,12 +12,13 @@
     "ValidateLifetime": true,
     "ValidateIssuerSigningKey": true,
     "RequireHttpsMetadata": true,
-    "RolesClaim": "realm_access.roles",
     "SubjectIdClaim": "sub",
     "SubjectNameClaim": "preferred_username",
     "ServicePulseAuthority": null,
     "ServicePulseClientId": null,
-    "ServicePulseApiScopes": null
+    "ServicePulseApiScopes": null,
+    "RolesClaim": "roles",
+    "RoleBasedAuthorizationEnabled": false
   },
   "ForwardedHeadersSettings": {
     "Enabled": true,

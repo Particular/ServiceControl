@@ -36,6 +36,7 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
             configuration = new OpenIdConnectTestConfiguration(ServiceControlInstanceType.Primary)
                 .WithConfigurationValidationDisabled()
                 .WithAuthenticationEnabled()
+                .WithRoleBasedAuthorizationEnabled()
                 .WithAuthority(mockOidcServer.Authority)
                 .WithAudience(TestAudience)
                 .WithServicePulseClientId(TestClientId)

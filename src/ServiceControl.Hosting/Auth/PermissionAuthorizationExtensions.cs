@@ -29,25 +29,26 @@ public static class PermissionAuthorizationExtensions
         // Ensure the authorization core services and options are present (idempotent).
         services.AddAuthorization();
 
-        // Resolve permission policy names dynamically. Registered last so it supersedes the default
-        // policy provider registered by AddAuthorization(). When OIDC is disabled it returns allow-all
-        // policies (no requirement); when enabled it emits a PermissionRequirement for the verb handler.
+        // The policy provider is registered UNCONDITIONALLY: every instance hosts controllers with
+        // [Authorize(Policy = Permissions.X)] attributes, and without a provider that knows those
+        // policy names ASP.NET throws "AuthorizationPolicy named '...' was not found" → 500 on every
+        // request to an annotated endpoint. When RBAC is disabled the provider returns allow-all
+        // policies (no requirement), so anonymous-to-the-policy calls pass through and the verb
+        // handler is unnecessary.
         services.AddSingleton<IAuthorizationPolicyProvider>(sp =>
-            new PermissionPolicyProvider(sp.GetRequiredService<IOptions<AuthorizationOptions>>(), oidcSettings.Enabled));
+            new PermissionPolicyProvider(sp.GetRequiredService<IOptions<AuthorizationOptions>>(), oidcSettings));
 
-        // The role-based handler is only needed when OIDC is enabled — otherwise the provider produces
-        // no PermissionRequirement for it to evaluate. The handler emits an audit-log entry for every
-        // decision through IAuthorizationAuditLog (registered alongside) so the platform can show, after
-        // the fact, who attempted what and how the system responded. The subject-id and subject-name
-        // claim names flow through from configuration so the handler can read them off the principal.
-        if (oidcSettings.Enabled)
-        {
-            services.AddSingleton<IAuthorizationAuditLog, AuthorizationAuditLog>();
-            services.AddSingleton<IAuthorizationHandler>(sp =>
-                new PermissionVerbHandler(
-                    sp.GetRequiredService<IAuthorizationAuditLog>(),
-                    oidcSettings.SubjectIdClaim,
-                    oidcSettings.SubjectNameClaim));
-        }
+        // The provider only emits a PermissionRequirement when RBAC is enabled, so the handler is the
+        // only thing that evaluates one. It is registered alongside the provider (cheap singleton, never
+        // invoked when no requirement is produced). The handler emits an audit-log entry for every
+        // decision through IAuthorizationAuditLog so the platform can show, after the fact, who attempted
+        // what and how the system responded. The subject-id and subject-name claim names flow through
+        // from configuration so the handler can read them off the principal.
+        services.AddSingleton<IAuthorizationAuditLog, AuthorizationAuditLog>();
+        services.AddSingleton<IAuthorizationHandler>(sp =>
+            new PermissionVerbHandler(
+                sp.GetRequiredService<IAuthorizationAuditLog>(),
+                oidcSettings.SubjectIdClaim,
+                oidcSettings.SubjectNameClaim));
     }
 }

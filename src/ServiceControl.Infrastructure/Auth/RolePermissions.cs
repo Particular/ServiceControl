@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Hardcoded role → permission policy. Two roles for now:
+/// Role → permission policy. Two roles:
 /// <list type="bullet">
 ///   <item><c>reader</c> — granted every <c>*:*:view</c> permission (read-only access).</item>
 ///   <item><c>writer</c> — granted every permission (<c>*:*:*</c>).</item>
@@ -17,10 +17,6 @@ using System.Linq;
 /// immutable <see cref="FrozenSet{T}"/> of granted permissions per role. As a result both
 /// <see cref="IsGranted"/> and <see cref="GetPermissions(string)"/> are O(1) hash lookups with no
 /// per-call pattern matching or allocation.
-/// <para>
-/// TODO: interim hardcoded model — replace with a configurable role/permission mapping (loaded from
-/// configuration or the IdP) when more than these two coarse roles are needed.
-/// </para>
 /// </summary>
 public static class RolePermissions
 {
