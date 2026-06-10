@@ -18,9 +18,10 @@ using ServiceControl.Infrastructure.Auth;
 /// </summary>
 public sealed class PermissionVerbHandler : AuthorizationHandler<PermissionRequirement>
 {
-    // The per-IdP variability of the source claim is absorbed by RolesClaimsTransformation, which
-    // reads from the path configured in Authentication.RolesClaim and emits canonical "roles" claims.
-    const string RoleClaimType = "roles";
+    public PermissionVerbHandler(string rolesClaimName)
+    {
+        RoleClaimType = rolesClaimName;
+    }
 
     protected override Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
@@ -28,8 +29,6 @@ public sealed class PermissionVerbHandler : AuthorizationHandler<PermissionRequi
     {
         var roles = context.User.FindAll(RoleClaimType).Select(claim => claim.Value);
 
-
-        // TODO: Although plural, likely roles will only contain a single value unless we want to define a role for each instance but likely customers don't care about instances
         if (RolePermissions.IsGranted(roles, requirement.Permission))
         {
             context.Succeed(requirement);
@@ -38,4 +37,6 @@ public sealed class PermissionVerbHandler : AuthorizationHandler<PermissionRequi
         // Otherwise leave the requirement unmet → the request is denied (403/401).
         return Task.CompletedTask;
     }
+
+    internal string RoleClaimType = "roles";
 }

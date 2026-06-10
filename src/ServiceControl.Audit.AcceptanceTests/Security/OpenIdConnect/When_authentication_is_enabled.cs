@@ -33,6 +33,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.OpenIdConnect
             configuration = new OpenIdConnectTestConfiguration(ServiceControlInstanceType.Audit)
                 .WithConfigurationValidationDisabled()
                 .WithAuthenticationEnabled()
+                .WithRoleBasedAuthorizationEnabled()
                 .WithAuthority(mockOidcServer.Authority)
                 .WithAudience(TestAudience)
                 .WithRequireHttpsMetadata(false);
