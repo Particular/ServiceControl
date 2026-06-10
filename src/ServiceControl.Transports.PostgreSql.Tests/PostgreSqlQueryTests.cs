@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
+using Npgsql;
 using NUnit.Framework;
 using Particular.Approvals;
 using Transports;
@@ -113,7 +114,77 @@ class PostgreSqlQueryTests : TransportTestFixture
         reset.Set();
         await runScenarioAndAdvanceTime.WaitAsync(token);
 
-        // Asserting that we have one message per hour during 24 hours, the first snapshot is not counted hence the 23 assertion. 
+        // Asserting that we have one message per hour during 24 hours, the first snapshot is not counted hence the 23 assertion.
         Assert.That(total, Is.EqualTo(23));
+    }
+
+    [Test]
+    public async Task NoNegativeThroughputWhenQueueTableIsDeletedBetweenSnapshots()
+    {
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(50));
+        CancellationToken token = cancellationTokenSource.Token;
+        var dictionary = new Dictionary<string, string>
+        {
+            { PostgreSqlQuery.PostgreSqlSettings.ConnectionString, configuration.ConnectionString }
+        };
+
+        await CreateTestQueue(transportSettings.EndpointName);
+
+        query.Initialize(new ReadOnlyDictionary<string, string>(dictionary));
+
+        var queueNames = new List<IBrokerQueue>();
+        await foreach (IBrokerQueue queueName in query.GetQueueNames(token))
+        {
+            queueNames.Add(queueName);
+        }
+
+        IBrokerQueue queue = queueNames.Find(name => ((BrokerQueueTable)name).SanitizedName == transportSettings.EndpointName);
+        Assert.That(queue, Is.Not.Null);
+
+        // Send messages so the start snapshot has a positive RowVersion
+        await SendAndReceiveMessages(transportSettings.EndpointName, 5);
+
+        var brokerQueueTable = (BrokerQueueTable)queue;
+        int advanceCount = 0;
+        using var done = new ManualResetEventSlim();
+
+        var dropTableTask = Task.Run(async () =>
+        {
+            while (!done.IsSet)
+            {
+                // Drop the table mid-way while GetThroughputPerDay is waiting for the next hour
+                if (advanceCount == 3)
+                {
+                    await DropQueueTable(brokerQueueTable.QueueAddress.QualifiedTableName);
+                }
+
+                provider.Advance(TimeSpan.FromHours(1));
+                advanceCount++;
+
+                // Pace advances to give GetThroughputPerDay time to process the iteration
+                // and register its next Task.Delay before we advance again
+                await Task.Delay(TimeSpan.FromMilliseconds(500), CancellationToken.None);
+            }
+        }, token);
+
+        var throughputValues = new List<QueueThroughput>();
+        await foreach (QueueThroughput queueThroughput in query.GetThroughputPerDay(queue, new DateOnly(), token))
+        {
+            throughputValues.Add(queueThroughput);
+        }
+
+        done.Set();
+        await dropTableTask.WaitAsync(token);
+
+        Assert.That(throughputValues, Has.All.Matches<QueueThroughput>(qt => qt.TotalThroughput >= 0));
+    }
+
+    async Task DropQueueTable(string qualifiedTableName)
+    {
+        await using var conn = new NpgsqlConnection(configuration.ConnectionString);
+        await conn.OpenAsync();
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = $"DROP TABLE IF EXISTS {qualifiedTableName} CASCADE;";
+        await cmd.ExecuteNonQueryAsync();
     }
 }
