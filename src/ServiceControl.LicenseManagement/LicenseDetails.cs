@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.LicenseManagement
 {
     using System;
+    using System.Linq;
+    using System.Text.RegularExpressions;
     using Particular.Licensing;
 
     public class LicenseDetails
@@ -65,7 +67,8 @@
                 IsTrialLicense = license.IsTrialLicense,
                 LicenseType = license.LicenseType,
                 Edition = license.Edition,
-                Products = license.Products,
+                //strip any internal prefix from what gets displayed to the customer
+                Products = license.LicensedEndpoints?.Select(le => new LicensedProduct(le.Size.EndsWith("U") ? "Unlimited" : Regex.Replace(le.Size, @"^\D*", ""), le.Quantity)).ToArray(),
                 ValidForServiceControl = license.ValidForApplication("ServiceControl"),
                 DaysUntilSubscriptionExpires = license.GetDaysUntilLicenseExpires(),
                 DaysUntilUpgradeProtectionExpires = license.GetDaysUntilUpgradeProtectionExpires(),
@@ -97,4 +100,6 @@
             return oneDayGrace < DateTime.UtcNow.Date;
         }
     }
+
+    public record LicensedProduct(string Name, int Quantity);
 }
