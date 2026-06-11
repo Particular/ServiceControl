@@ -21,7 +21,7 @@ public sealed partial class AuthorizationAuditLog(ILoggerFactory loggerFactory) 
         ArgumentException.ThrowIfNullOrEmpty(permission);
         ArgumentException.ThrowIfNullOrEmpty(reason);
 
-        if(allowed)
+        if (allowed)
         {
             LogAllow(logger, subjectId, subjectName, permission, resource, reason);
         }
