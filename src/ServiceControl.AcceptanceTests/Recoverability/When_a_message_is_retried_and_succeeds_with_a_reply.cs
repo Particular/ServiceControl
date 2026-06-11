@@ -48,22 +48,18 @@
             Assert.That(context.ReplyHandledBy, Is.EqualTo("Originating Endpoint"), "Reply handled by incorrect endpoint");
         }
 
-        class OriginalMessage : IMessage
-        {
-        }
+        internal class OriginalMessage : IMessage;
 
-        class ReplyMessage : IMessage
-        {
-        }
+        internal class ReplyMessage : IMessage;
 
-        class RetryReplyContext : ScenarioContext
+        internal class RetryReplyContext : ScenarioContext
         {
             public bool RetryIssued { get; set; }
             public string UniqueMessageId { get; set; }
             public string ReplyHandledBy { get; set; }
         }
 
-        class Originator : EndpointConfigurationBuilder
+        public class Originator : EndpointConfigurationBuilder
         {
             public Originator() => EndpointSetup<DefaultServerWithoutAudit>(c =>
             {
@@ -71,6 +67,7 @@
                 routing.RouteToEndpoint(typeof(OriginalMessage), typeof(Receiver));
             });
 
+            [Handler]
             public class ReplyMessageHandler(RetryReplyContext testContext) : IHandleMessages<ReplyMessage>
             {
                 public Task Handle(ReplyMessage message, IMessageHandlerContext context)
@@ -81,10 +78,11 @@
             }
         }
 
-        class Receiver : EndpointConfigurationBuilder
+        public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver() => EndpointSetup<DefaultServerWithoutAudit>(c => c.NoRetries());
 
+            [Handler]
             public class OriginalMessageHandler(RetryReplyContext testContext, IReadOnlySettings settings)
                 : IHandleMessages<OriginalMessage>
             {
@@ -103,6 +101,7 @@
                 }
             }
 
+            [Handler]
             public class ReplyMessageHandler(RetryReplyContext testContext) : IHandleMessages<ReplyMessage>
             {
                 public Task Handle(ReplyMessage message, IMessageHandlerContext context)

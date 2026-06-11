@@ -65,6 +65,7 @@
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
 
+            [Handler]
             public class MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
                 : IHandleMessages<MyMessage>
             {

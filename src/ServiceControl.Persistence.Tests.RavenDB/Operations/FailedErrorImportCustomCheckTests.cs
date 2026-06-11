@@ -50,11 +50,11 @@
 
             var result = await customCheck.PerformCheck();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(result.HasFailed, Is.True);
                 Assert.That(result.FailureReason, Does.StartWith("One or more error messages have failed to import properly into ServiceControl and have been stored in the ServiceControl database."));
-            });
+            }
         }
     }
 }

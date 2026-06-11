@@ -14,9 +14,7 @@
         int ProgressPercent { set; }
     }
 
-    public interface IProgressObject : IProgress<ProgressDetails>, IDisposable
-    {
-    }
+    public interface IProgressObject : IProgress<ProgressDetails>, IDisposable;
 
     public struct ProgressDetails
     {

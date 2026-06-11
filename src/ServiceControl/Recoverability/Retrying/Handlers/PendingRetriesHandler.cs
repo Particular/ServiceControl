@@ -6,6 +6,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus;
     using Persistence;
 
+    [Handler]
     class PendingRetriesHandler : IHandleMessages<RetryPendingMessagesById>,
         IHandleMessages<RetryPendingMessages>
     {

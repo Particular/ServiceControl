@@ -61,6 +61,7 @@
                     routing.RouteToEndpoint(typeof(FailedMessagesArchived).Assembly, Settings.DEFAULT_INSTANCE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<FailedMessagesArchived>(Settings.DEFAULT_INSTANCE_NAME); });
 
+            [Handler]
             public class FailureHandler(Context testContext) : IHandleMessages<MessageFailureResolvedByRetry>
             {
                 public Task Handle(MessageFailureResolvedByRetry message, IMessageHandlerContext context)

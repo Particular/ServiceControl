@@ -1,6 +1,4 @@
 ﻿namespace ServiceControl.Config.Events
 {
-    class ResetInstances
-    {
-    }
+    class ResetInstances;
 }

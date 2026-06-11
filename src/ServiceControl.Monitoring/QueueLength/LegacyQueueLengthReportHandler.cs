@@ -9,6 +9,7 @@
     using NServiceBus;
     using NServiceBus.Metrics;
 
+    [Handler]
     class LegacyQueueLengthReportHandler(LegacyQueueLengthReportHandler.LegacyQueueLengthEndpoints legacyEndpoints, ILogger<LegacyQueueLengthReportHandler> logger) : IHandleMessages<MetricReport>
     {
         public Task Handle(MetricReport message, IMessageHandlerContext context)
@@ -39,9 +40,9 @@
                 return registeredInstances.TryAdd(id, id);
             }
 
-            ConcurrentDictionary<string, string> registeredInstances = new ConcurrentDictionary<string, string>();
+            readonly ConcurrentDictionary<string, string> registeredInstances = new ConcurrentDictionary<string, string>();
             long lastCleanTicks = DateTime.UtcNow.Ticks;
-            static long cleanIntervalTicks = TimeSpan.FromHours(1).Ticks;
+            static readonly long cleanIntervalTicks = TimeSpan.FromHours(1).Ticks;
         }
     }
 }

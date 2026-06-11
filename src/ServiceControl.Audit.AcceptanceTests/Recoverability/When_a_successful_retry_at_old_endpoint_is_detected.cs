@@ -76,6 +76,7 @@
                     cfg.DisableFeature<PlatformRetryNotifications>();
                 });
 
+            [Handler]
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public Task Handle(MyMessage message, IMessageHandlerContext context) => Task.CompletedTask;

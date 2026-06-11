@@ -70,6 +70,7 @@
                     publisherMetadata.RegisterPublisherFor<CustomCheckSucceeded>(Settings.DEFAULT_INSTANCE_NAME);
                 });
 
+            [Handler]
             public class CustomCheckSucceededHandler(MyContext testContext) : IHandleMessages<CustomCheckSucceeded>
             {
                 public Task Handle(CustomCheckSucceeded message, IMessageHandlerContext context)

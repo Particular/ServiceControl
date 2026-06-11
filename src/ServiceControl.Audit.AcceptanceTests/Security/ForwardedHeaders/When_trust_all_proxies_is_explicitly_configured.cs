@@ -52,8 +52,6 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
                 "TrustAllProxies should be explicitly set to true");
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

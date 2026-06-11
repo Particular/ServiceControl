@@ -9,16 +9,16 @@
     using BrokerThroughput;
     using Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
     using NServiceBus;
+    using NServiceBus.CustomChecks;
     using NServiceBus.Transport.AzureServiceBus;
 
     public class ASBSTransportCustomization : TransportCustomization<AzureServiceBusTransport>
     {
-        protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition, TransportSettings transportSettings) =>
-            transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
+        protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition, TransportSettings transportSettings) => transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
-        protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition, TransportSettings transportSettings) =>
-            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
+        protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition, TransportSettings transportSettings) => transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
         protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
@@ -60,6 +60,7 @@
             TransportSettings transportSettings)
         {
             services.AddSingleton<IBrokerThroughputQuery, AzureQuery>();
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<ICustomCheck, DeadLetterQueueCheck>());
 
             var connectionSettings = ConnectionStringParser.Parse(transportSettings.ConnectionString);
             TopicTopology selectedTopology;

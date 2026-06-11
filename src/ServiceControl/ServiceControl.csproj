@@ -34,8 +34,6 @@
     <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" />
     <PackageReference Include="NServiceBus.CustomChecks" />
-    <PackageReference Include="NServiceBus.Extensions.Hosting" />
-    <PackageReference Include="NServiceBus.Extensions.Logging" />
     <PackageReference Include="Particular.ServicePulse.Core" />
     <PackageReference Include="ServiceControl.Contracts" />
     <PackageReference Include="Yarp.ReverseProxy" />
@@ -49,6 +47,10 @@
   <ItemGroup>
     <Content Remove="App.config" />
     <None Include="App.config" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <RuntimeHostConfigurationOption Include="NServiceBus.Core.Hosting.UseV2DeterministicGuid" Value="true" />
   </ItemGroup>
 
   <ItemGroup>

@@ -30,11 +30,11 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(instanceNamesProvided); // Provided because the convention default auto-fills them on instantiation
                 Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ConventionName)), Is.Empty);
-            });
+            }
         }
 
         [Test]
@@ -59,11 +59,11 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(instanceNamesProvided, Is.True, "Instance names were not provided.");
                 Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ConventionName)), Is.Empty);
-            });
+            }
         }
 
         [Test]
@@ -77,11 +77,11 @@
                 ConventionName = "Something"
             };
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ErrorInstanceName, Is.EqualTo($"Particular.{viewModel.ConventionName}"));
                 Assert.That(viewModel.AuditInstanceName, Is.EqualTo($"Particular.{viewModel.ConventionName}.Audit"));
-            });
+            }
         }
 
         #endregion
@@ -221,14 +221,14 @@
             var selectedAccount = viewModel.AuditServiceAccount;
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditServiceAccount));
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 //by default the add instance will always have a value of "LocalSystem"(even if you manually set everything to false or empty)
 
                 Assert.That(selectedAccount, Is.EqualTo("LocalSystem"));
 
                 Assert.That(errors, Is.Empty);
-            });
+            }
 
         }
 
@@ -358,12 +358,12 @@
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName));
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(errors, Is.Not.Empty, "Hostname validation should exist and trigger for invalid hostnames");
                 Assert.That(errors.Cast<string>().Any(error => error.Contains("Hostname is not valid")), Is.True,
                     "Hostname validation should display the exact error message 'Hostname is not valid'");
-            });
+            }
         }
 
         #endregion

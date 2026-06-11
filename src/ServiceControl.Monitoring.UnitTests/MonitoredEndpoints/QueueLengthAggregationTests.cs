@@ -35,11 +35,11 @@
 
             var values = Aggregator.ToRoundedSumOfBreakdownAverages(intervals, HistoryPeriod.FromMinutes(5));
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(values.Points[0], Is.EqualTo(Math.Round((3d / 4d) + (5d / 6d))));
                 Assert.That(values.Points[1], Is.EqualTo(Math.Round(2d / 3d)));
-            });
+            }
         }
 
         [Test]

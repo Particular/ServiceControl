@@ -65,8 +65,6 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
             CorsAssertions.AssertCorsDisabled(response);
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

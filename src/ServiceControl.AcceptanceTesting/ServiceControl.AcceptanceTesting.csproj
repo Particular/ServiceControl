@@ -16,7 +16,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.IdentityModel.Tokens" />
     <PackageReference Include="NServiceBus.AcceptanceTesting" />
-    <PackageReference Include="NServiceBus.Extensions.Logging" />
     <PackageReference Include="NServiceBus.Persistence.NonDurable" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
   </ItemGroup>

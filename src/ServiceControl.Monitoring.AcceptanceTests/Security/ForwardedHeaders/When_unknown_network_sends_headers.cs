@@ -55,8 +55,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
             Assert.That(requestInfo.Configuration.KnownNetworks, Does.Contain("192.168.0.0/16"));
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

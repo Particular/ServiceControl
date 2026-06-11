@@ -59,6 +59,7 @@
                     c.NoOutbox();
                 });
 
+            [Handler]
             public class MyMessageHandler(
                 Context scenarioContext,
                 IReadOnlySettings settings,

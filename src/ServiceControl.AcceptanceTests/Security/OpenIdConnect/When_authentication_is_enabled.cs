@@ -205,8 +205,6 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
             OpenIdConnectAssertions.AssertUnauthorized(response);
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

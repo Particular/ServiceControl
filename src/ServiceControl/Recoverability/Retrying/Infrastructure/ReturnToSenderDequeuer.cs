@@ -197,9 +197,8 @@ class ReturnToSenderDequeuer : IHostedService
 
             try
             {
-                var message = errorContext.Message;
-                var destination = message.Headers["ServiceControl.TargetEndpointAddress"];
-                var messageUniqueId = message.Headers["ServiceControl.Retry.UniqueMessageId"];
+                var destination = errorContext.Headers["ServiceControl.TargetEndpointAddress"];
+                var messageUniqueId = errorContext.Headers["ServiceControl.Retry.UniqueMessageId"];
                 logger.LogWarning(errorContext.Exception, "Failed to send '{UniqueMessageId}' message to '{Destination}' for retry. Attempting to revert message status to unresolved so it can be tried again", messageUniqueId, destination);
 
                 await dataStore.RevertRetry(messageUniqueId);

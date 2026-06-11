@@ -10,8 +10,6 @@ static class WebApplicationBuilderExtensions
 {
     public static void AddServiceControlMonitoringTesting(this WebApplicationBuilder hostBuilder, Settings settings)
     {
-        hostBuilder.Logging.AddScenarioContextLogging();
-
         hostBuilder.WebHost.UseTestServer(options => options.BaseAddress = new Uri(settings.RootUrl));
         // This facilitates receiving the test server anywhere where DI is available
         hostBuilder.Services.AddKeyedSingleton(settings.InstanceName,

@@ -41,7 +41,7 @@
             Assert.That(metricReported, Is.True);
         }
 
-        class EndpointWithRetries : EndpointConfigurationBuilder
+        public class EndpointWithRetries : EndpointConfigurationBuilder
         {
             public EndpointWithRetries() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
@@ -49,7 +49,8 @@
                     c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromSeconds(1));
                 });
 
-            class Handler(TestContext testContext) : IHandleMessages<SampleMessage>
+            [Handler]
+            public class Handler(TestContext testContext) : IHandleMessages<SampleMessage>
             {
                 public Task Handle(SampleMessage message, IMessageHandlerContext context)
                 {
@@ -63,13 +64,13 @@
             }
         }
 
-        class TestContext : ScenarioContext
+        internal class TestContext : ScenarioContext
         {
             public bool ShuttingDown { get; set; }
         }
 
-        class SampleMessage : SampleBaseMessage;
+        internal class SampleMessage : SampleBaseMessage;
 
-        class SampleBaseMessage : IMessage;
+        internal class SampleBaseMessage : IMessage;
     }
 }

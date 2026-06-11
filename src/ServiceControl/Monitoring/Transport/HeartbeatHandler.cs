@@ -5,13 +5,9 @@
     using Plugin.Heartbeat.Messages;
     using ServiceControl.Persistence;
 
-    class HeartbeatHandler : IHandleMessages<EndpointHeartbeat>
+    [Handler]
+    class HeartbeatHandler(IEndpointInstanceMonitoring monitor) : IHandleMessages<EndpointHeartbeat>
     {
-        public HeartbeatHandler(IEndpointInstanceMonitoring monitor)
-        {
-            this.monitor = monitor;
-        }
-
         public Task Handle(EndpointHeartbeat message, IMessageHandlerContext context)
         {
             var endpointInstanceId = new EndpointInstanceId(message.EndpointName, message.Host, message.HostId);
@@ -20,7 +16,5 @@
 
             return Task.CompletedTask;
         }
-
-        IEndpointInstanceMonitoring monitor;
     }
 }

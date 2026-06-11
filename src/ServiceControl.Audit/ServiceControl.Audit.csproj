@@ -27,8 +27,6 @@
     <PackageReference Include="ByteSize" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
     <PackageReference Include="NServiceBus.CustomChecks" />
-    <PackageReference Include="NServiceBus.Extensions.Hosting" />
-    <PackageReference Include="NServiceBus.Extensions.Logging" />
     <PackageReference Include="OpenTelemetry.Exporter.Console" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
@@ -42,6 +40,10 @@
   <ItemGroup>
     <None Remove="Infrastructure\Hosting\Help.txt" />
     <EmbeddedResource Include="Infrastructure\Hosting\Help.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <RuntimeHostConfigurationOption Include="NServiceBus.Core.Hosting.UseV2DeterministicGuid" Value="true" />
   </ItemGroup>
 
   <ItemGroup>

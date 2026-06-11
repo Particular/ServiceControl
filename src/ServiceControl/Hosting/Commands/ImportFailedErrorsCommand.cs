@@ -1,9 +1,9 @@
 ﻿namespace ServiceControl.Hosting.Commands
 {
     using System;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Infrastructure.WebApi;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
@@ -11,6 +11,7 @@
     using Operations;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
+    using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
 
@@ -22,11 +23,12 @@
             settings.RunRetryProcessor = false;
             settings.DisableHealthChecks = true;
 
-            EndpointConfiguration endpointConfiguration = CreateEndpointConfiguration(settings);
+            var endpointConfiguration = new EndpointConfiguration(settings.InstanceName);
+            var assemblyScanner = endpointConfiguration.AssemblyScanner();
+            assemblyScanner.Disable = true;
 
             var hostBuilder = Host.CreateApplicationBuilder();
-            hostBuilder.AddServiceControl(settings, endpointConfiguration);
-            hostBuilder.AddServiceControlApi(settings.CorsSettings);
+            hostBuilder.AddServiceControl(settings, endpointConfiguration, new RecoverabilityComponent());
 
             using var app = hostBuilder.Build();
             await app.StartAsync();
@@ -48,15 +50,6 @@
             {
                 await app.StopAsync(CancellationToken.None);
             }
-        }
-
-        protected virtual EndpointConfiguration CreateEndpointConfiguration(Settings settings)
-        {
-            var endpointConfiguration = new EndpointConfiguration(settings.InstanceName);
-            var assemblyScanner = endpointConfiguration.AssemblyScanner();
-            assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
-
-            return endpointConfiguration;
         }
     }
 }

@@ -24,15 +24,15 @@
         {
             var criticalErrorExecuted = false;
 
-            SetSettings = settings => { settings.MaximumConcurrencyLevel = 10; };
+            SetSettings = settings => settings.MaximumConcurrencyLevel = 10;
+            CustomizeHostBuilder = builder => builder.Services.AddSingleton<CounterEnricher>();
             CustomConfiguration = config =>
             {
-                config.DefineCriticalErrorAction((_, __) =>
+                config.DefineCriticalErrorAction((_, _) =>
                 {
                     criticalErrorExecuted = true;
                     return Task.CompletedTask;
                 });
-                config.RegisterComponents(services => services.AddSingleton<CounterEnricher>());
             };
 
             FailedMessage failure = null;
@@ -55,18 +55,18 @@
                 })
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(criticalErrorExecuted, Is.False);
                 Assert.That(failure, Is.Not.Null);
-            });
+            }
 
             var attempts = failure.ProcessingAttempts;
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(attempts, Has.Count.EqualTo(2));
                 Assert.That(attempts.Select(a => a.AttemptedAt), Is.EquivalentTo(context.FailureTimes));
-            });
+            }
         }
 
         class CounterEnricher(MyContext testContext) : IEnrichImportedErrorMessages

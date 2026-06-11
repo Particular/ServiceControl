@@ -78,6 +78,7 @@
         {
             public AuditLogSpy() => EndpointSetup<DefaultServerWithoutAudit>();
 
+            [Handler]
             public class MyMessageHandler(MyContext testContext) : IHandleMessages<MyMessage>
             {
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
@@ -102,6 +103,7 @@
         {
             public Receiver() => EndpointSetup<DefaultServerWithAudit>();
 
+            [Handler]
             public class MyMessageHandler(MyContext testContext) : IHandleMessages<MyMessage>
             {
                 public Task Handle(MyMessage message, IMessageHandlerContext context)

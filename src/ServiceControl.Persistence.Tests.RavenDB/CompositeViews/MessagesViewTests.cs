@@ -194,11 +194,11 @@
 
                 var messagesWithNoTimestamp = await query.TransformToMessageView().ToArrayAsync();
 
-                Assert.Multiple(() =>
+                using (Assert.EnterMultipleScope())
                 {
                     Assert.That(messagesWithNoTimestamp[0].TimeSent, Is.EqualTo(null));
                     Assert.That(messagesWithNoTimestamp[1].TimeSent, Is.EqualTo(null));
-                });
+                }
             }
         }
 

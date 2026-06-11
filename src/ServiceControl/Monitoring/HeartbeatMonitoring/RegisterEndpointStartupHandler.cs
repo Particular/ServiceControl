@@ -6,13 +6,9 @@
     using ServiceControl.Operations;
     using ServiceControl.Persistence;
 
-    class RegisterEndpointStartupHandler : IHandleMessages<RegisterEndpointStartup>
+    [Handler]
+    class RegisterEndpointStartupHandler(IEndpointInstanceMonitoring monitoring) : IHandleMessages<RegisterEndpointStartup>
     {
-        public RegisterEndpointStartupHandler(IEndpointInstanceMonitoring monitoring)
-        {
-            this.monitoring = monitoring;
-        }
-
         public Task Handle(RegisterEndpointStartup message, IMessageHandlerContext context)
         {
             var endpointDetails = new EndpointDetails
@@ -23,7 +19,5 @@
             };
             return monitoring.DetectEndpointFromHeartbeatStartup(endpointDetails, message.StartedAt);
         }
-
-        IEndpointInstanceMonitoring monitoring;
     }
 }

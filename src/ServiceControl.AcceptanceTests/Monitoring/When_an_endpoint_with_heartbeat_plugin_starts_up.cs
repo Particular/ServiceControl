@@ -30,11 +30,11 @@
                 })
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(endpoint.Monitored, Is.True);
                 Assert.That(endpoint.IsSendingHeartbeats, Is.True);
-            });
+            }
         }
 
         [Test]

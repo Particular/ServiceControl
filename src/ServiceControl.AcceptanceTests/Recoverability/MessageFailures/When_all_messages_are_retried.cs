@@ -83,11 +83,11 @@
                 })
                 .Run(cancellationToken);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(messageToBeArchived.Status, Is.EqualTo(FailedMessageStatus.Archived), "Non retried message should be archived");
                 Assert.That(messageToBeRetriedAsPartOfRetryAll.Status, Is.EqualTo(FailedMessageStatus.Resolved), "Retried Message should not be set to Archived when group is retried");
-            });
+            }
         }
 
         public class Receiver : EndpointConfigurationBuilder
@@ -99,6 +99,7 @@
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
 
+            [Handler]
             public class MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
                 : IHandleMessages<MyMessage>
             {

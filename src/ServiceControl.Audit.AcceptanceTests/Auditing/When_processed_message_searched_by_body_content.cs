@@ -74,11 +74,11 @@
                 })
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(context.MessageIngested, Is.True);
                 Assert.That(context.MessageFound, Is.False);
-            });
+            }
         }
 
         public class Sender : EndpointConfigurationBuilder
@@ -95,6 +95,7 @@
         {
             public Receiver() => EndpointSetup<DefaultServerWithAudit>();
 
+            [Handler]
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 MyContext testContext;

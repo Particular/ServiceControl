@@ -85,8 +85,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.Cors
             CorsAssertions.AssertExposedHeaders(response, "ETag", "Last-Modified", "Link", "Total-Count", "X-Particular-Version");
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

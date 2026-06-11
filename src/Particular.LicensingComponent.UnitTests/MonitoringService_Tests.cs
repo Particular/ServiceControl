@@ -47,11 +47,11 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
 
         // Assert
         Assert.That(foundEndpoint, Is.Not.Null, "Expected to find Endpoint1");
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(foundEndpoint.Id.Name, Is.EqualTo("Endpoint1"), "Expected name to be Endpoint1");
             Assert.That(foundEndpoint.EndpointIndicators, Is.Not.Null, "Expected to find endpoint indicators");
-        });
+        }
         Assert.That(foundEndpoint.EndpointIndicators, Does.Contain(EndpointIndicator.KnownEndpoint.ToString()),
                     "Expected KnownEndpoint indicator");
 
@@ -59,7 +59,7 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
         Assert.That(foundEndpointThroughput.ContainsKey("Endpoint1"), Is.True, "Expected throughput for Endpoint1");
 
         Assert.That(throughputData.Length, Is.EqualTo(1), "Expected 1 throughput data for Endpoint1");
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(throughputData[0].ThroughputSource, Is.EqualTo(ThroughputSource.Monitoring),
                     "Expected ThroughputSource to be Monitoring for Endpoint1");
@@ -67,7 +67,7 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
                 $"Expected throughput for {message.StartDateTime.Date} for Endpoint1");
             Assert.That(throughputData[0][DateOnly.FromDateTime(message.EndDateTime.Date)], Is.EqualTo(15),
                 $"Expected throughput for {message.StartDateTime.Date} to be 15 for Endpoint1");
-        });
+        }
     }
 
     [Test]
@@ -113,12 +113,12 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
 
         // Assert
         Assert.That(connectionSettingsResult, Is.Not.Null, "connectionSettingsResult should be returned");
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(connectionSettingsResult.ConnectionSuccessful, Is.True, "Connection status should be successful");
             Assert.That(connectionSettingsResult.ConnectionErrorMessages.Count, Is.EqualTo(0),
                 "Unexpected ConnectionErrorMessages");
-        });
+        }
 
         Assert.That(connectionSettingsResult.Diagnostics, Is.Not.Null, "Expected diagnostic");
         Assert.That(
@@ -143,13 +143,13 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
 
         // Assert
         Assert.That(connectionSettingsResult, Is.Not.Null, "connectionSettingsResult should be returned");
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(connectionSettingsResult.ConnectionSuccessful, Is.False,
                     "Connection status should be unsuccessful");
             Assert.That(connectionSettingsResult.ConnectionErrorMessages.Count, Is.EqualTo(0),
                 "Unexpected ConnectionErrorMessages");
-        });
+        }
 
         Assert.That(connectionSettingsResult.Diagnostics, Is.Not.Null, "Expected diagnostic");
         Assert.That(

@@ -21,12 +21,12 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
         {
             var errors = await SortTest("time_sent");
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(errors[0].MessageId, Does.StartWith("1"));
                 Assert.That(errors[1].MessageId, Does.StartWith("2"));
                 Assert.That(errors[2].MessageId, Does.StartWith("3"));
-            });
+            }
         }
 
         [Test]
@@ -34,12 +34,12 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
         {
             var errors = await SortTest("message_type");
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(errors[0].MessageId, Does.StartWith("1"));
                 Assert.That(errors[1].MessageId, Does.StartWith("2"));
                 Assert.That(errors[2].MessageId, Does.StartWith("3"));
-            });
+            }
         }
 
         async Task<List<FailedMessageView>> SortTest(string sortProperty)
@@ -126,8 +126,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
             }
         }
 
-        public class MyContext : ScenarioContext
-        {
-        }
+        public class MyContext : ScenarioContext;
     }
 }

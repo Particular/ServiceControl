@@ -39,11 +39,11 @@
         {
             var viewModel = Given_adding_error_instance();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ErrorHostName, Is.EqualTo("localhost"));
                 Assert.That(viewModel.ErrorHostNameWarning, Is.Empty);
-            });
+            }
         }
     }
 }

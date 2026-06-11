@@ -66,26 +66,26 @@
                 })
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(exceptionTypeAndStackTraceGroups, Is.Not.Null, "Exception Type And Stack Trace Group should be created");
                 Assert.That(messageTypeGroups, Is.Not.Null, "Message Type Group should be created");
                 Assert.That(firstFailure, Is.Not.Null, "The first failure message should be created");
                 Assert.That(secondFailure, Is.Not.Null, "The second failure message should be created");
-            });
+            }
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(exceptionTypeAndStackTraceGroups.Count, Is.EqualTo(1), "There should only be one Exception Type And Stack Trace Group");
                 Assert.That(messageTypeGroups.Count, Is.EqualTo(1), "There should only be one Message Type Group");
-            });
+            }
 
             var failureGroup = exceptionTypeAndStackTraceGroups.First();
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(failureGroup.Count, Is.EqualTo(2), "Exception Type And Stack Trace Group should have both messages in it");
                 Assert.That(messageTypeGroups.First().Count, Is.EqualTo(2), "Message Type Group should have both messages in it");
-            });
+            }
 
             var failureTimes = firstFailure.ProcessingAttempts
                 .Union(secondFailure.ProcessingAttempts)
@@ -93,17 +93,18 @@
                 .Select(x => x.FailureDetails.TimeOfFailure)
                 .ToList();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(failureGroup.First, Is.EqualTo(failureTimes.Min()), "Failure Group should start when the earliest failure occurred");
                 Assert.That(failureGroup.Last, Is.EqualTo(failureTimes.Max()), "Failure Group should end when the latest failure occurred");
-            });
+            }
         }
 
         public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
 
+            [Handler]
             public class MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
                 : IHandleMessages<MyMessage>
             {

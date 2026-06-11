@@ -30,8 +30,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
             ForwardedHeadersAssertions.AssertPartialHeadersApplied(requestInfo, expectedScheme: "https");
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

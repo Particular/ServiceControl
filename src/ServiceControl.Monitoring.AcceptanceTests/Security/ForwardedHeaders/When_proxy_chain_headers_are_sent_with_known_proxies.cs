@@ -51,8 +51,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
                 expectedRemainingForwardedFor: "203.0.113.50,10.0.0.1");
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

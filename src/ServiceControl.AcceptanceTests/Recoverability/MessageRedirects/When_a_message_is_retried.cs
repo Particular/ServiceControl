@@ -56,6 +56,7 @@
         {
             public FromEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
 
+            [Handler]
             public class MessageToRetryHandler(
                 Context testContext,
                 IReadOnlySettings settings,
@@ -75,6 +76,7 @@
         {
             public ToNewEndpoint() => EndpointSetup<DefaultServerWithoutAudit>();
 
+            [Handler]
             public class MessageToRetryHandler(Context testContext) : IHandleMessages<MessageToRetry>
             {
                 public Task Handle(MessageToRetry message, IMessageHandlerContext context)

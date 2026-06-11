@@ -20,7 +20,7 @@
 
             try
             {
-                Assert.Multiple(() =>
+                using (Assert.EnterMultipleScope())
                 {
                     Assert.That(ravenStudio, Does.Exist); // As of 6.2.3 this exists in embedded & self-contained versions
                     Assert.That(ravenServerDll, Does.Exist);  // As of 6.2.3 this exists in embedded & self-contained versions
@@ -30,7 +30,7 @@
                         Assert.That(ravenServerExe, Does.Exist);
                         Assert.That(offlineOperationsUtility, Does.Exist);
                     }
-                });
+                }
             }
             catch (Exception)
             {

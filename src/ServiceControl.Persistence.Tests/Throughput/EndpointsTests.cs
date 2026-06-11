@@ -22,11 +22,11 @@ class EndpointsTests : PersistenceTestBase
         var endpoints = await LicensingDataStore.GetAllEndpoints(true, default);
         var foundEndpoint = endpoints.Single();
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(foundEndpoint.Id.Name, Is.EqualTo(endpoint.Id.Name));
             Assert.That(foundEndpoint.Id.ThroughputSource, Is.EqualTo(endpoint.Id.ThroughputSource));
-        });
+        }
     }
 
     [Test]
@@ -62,20 +62,20 @@ class EndpointsTests : PersistenceTestBase
         var throughput = await LicensingDataStore.GetEndpointThroughputByQueueName([endpoint1.SanitizedName], default);
 
         var foundEndpoint = endpoints.Single();
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(foundEndpoint.Id.Name, Is.EqualTo(endpoint1.Id.Name));
             Assert.That(foundEndpoint.Id.ThroughputSource, Is.EqualTo(endpoint1.Id.ThroughputSource));
             Assert.That(throughput, Contains.Key(endpoint1.SanitizedName));
-        });
+        }
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(throughput[endpoint1.SanitizedName].Count, Is.EqualTo(1),
                 "Should be only a single ThroughputData returned");
             Assert.That(throughput[endpoint1.SanitizedName].Single(), Has.Count.EqualTo(2),
                 "Should be two days of throughput data");
-        });
+        }
     }
 
     [Test]

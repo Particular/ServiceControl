@@ -4,13 +4,9 @@
     using Messaging;
     using NServiceBus;
 
-    public class MessageTypeTracker : IHandleMessages<TaggedLongValueOccurrence>
+    [Handler]
+    public class MessageTypeTracker(MessageTypeRegistry registry) : IHandleMessages<TaggedLongValueOccurrence>
     {
-        public MessageTypeTracker(MessageTypeRegistry registry)
-        {
-            this.registry = registry;
-        }
-
         public Task Handle(TaggedLongValueOccurrence message, IMessageHandlerContext context)
         {
             var endpointName = context.MessageHeaders[Headers.OriginatingEndpoint];
@@ -19,7 +15,5 @@
 
             return Task.CompletedTask;
         }
-
-        readonly MessageTypeRegistry registry;
     }
 }

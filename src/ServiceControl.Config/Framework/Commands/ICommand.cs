@@ -1,8 +1,6 @@
 ﻿namespace ServiceControl.Config.Framework.Commands
 {
-    public interface ICommand : ICommand<object>
-    {
-    }
+    public interface ICommand : ICommand<object>;
 
     public interface ICommand<in T> : IRaiseCanExecuteChanged, System.Windows.Input.ICommand
     {

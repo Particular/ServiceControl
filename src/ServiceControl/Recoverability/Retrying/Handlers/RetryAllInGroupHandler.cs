@@ -7,7 +7,9 @@ namespace ServiceControl.Recoverability
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Recoverability;
 
-    class RetryAllInGroupHandler : IHandleMessages<RetryAllInGroup>
+    [Handler]
+    class RetryAllInGroupHandler(RetriesGateway retries, RetryingManager retryingManager, IArchiveMessages archiver, IRetryDocumentDataStore dataStore, ILogger<RetryAllInGroupHandler> logger)
+        : IHandleMessages<RetryAllInGroup>
     {
         public async Task Handle(RetryAllInGroup message, IMessageHandlerContext context)
         {
@@ -42,20 +44,5 @@ namespace ServiceControl.Recoverability
                 started
             ));
         }
-
-        public RetryAllInGroupHandler(RetriesGateway retries, RetryingManager retryingManager, IArchiveMessages archiver, IRetryDocumentDataStore dataStore, ILogger<RetryAllInGroupHandler> logger)
-        {
-            this.retries = retries;
-            this.retryingManager = retryingManager;
-            this.archiver = archiver;
-            this.dataStore = dataStore;
-            this.logger = logger;
-        }
-
-        readonly RetriesGateway retries;
-        readonly RetryingManager retryingManager;
-        readonly IArchiveMessages archiver;
-        readonly IRetryDocumentDataStore dataStore;
-        readonly ILogger<RetryAllInGroupHandler> logger;
     }
 }

@@ -2,7 +2,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Net.Http;
     using System.Reflection;
     using System.Text.Json;
@@ -13,7 +12,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -65,17 +63,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     SettingsPerInstance[AuditInstanceSettings.DEFAULT_INSTANCE_NAME] = auditSettings;
                 }, auditEndpointConfiguration =>
                 {
-                    var scanner = auditEndpointConfiguration.AssemblyScanner();
-                    var excludedAssemblies = new[]
-                    {
-                        "ServiceControl.Persistence.RavenDB.dll",
-                        "ServiceControl.AcceptanceTests.RavenDB.dll",
-                        "ServiceControl.Audit.AcceptanceTests.dll",
-                        Path.GetFileName(typeof(PrimaryInstanceSettings).Assembly.Location),
-                        Path.GetFileName(typeof(ServiceControlComponentRunner).Assembly.Location),
-                    };
-                    scanner.ExcludeAssemblies(excludedAssemblies);
-
                     customAuditEndpointConfiguration(auditEndpointConfiguration);
                 },
                 _ => { },
@@ -98,17 +85,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 },
                 primaryEndpointConfiguration =>
                 {
-                    var scanner = primaryEndpointConfiguration.AssemblyScanner();
-                    var excludedAssemblies = new[]
-                    {
-                        "ServiceControl.Persistence.RavenDB.dll",
-                        "ServiceControl.AcceptanceTests.RavenDB.dll",
-                        "ServiceControl.Audit.AcceptanceTests.dll",
-                        Path.GetFileName(typeof(AuditInstanceSettings).Assembly.Location),
-                        typeof(ServiceControlComponentRunner).Assembly.GetName().Name
-                    };
-                    scanner.ExcludeAssemblies(excludedAssemblies);
-
                     customPrimaryEndpointConfiguration(primaryEndpointConfiguration);
                 },
                 primaryHostBuilder =>

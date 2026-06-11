@@ -50,7 +50,7 @@
                 })
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(failedMessage.MessageId, Is.EqualTo(context.MessageId));
                 Assert.That(failedMessage.Status, Is.EqualTo(MessageStatus.Failed));
@@ -72,16 +72,16 @@
                 Assert.That(failedMessage.ProcessingTime, Is.EqualTo(TimeSpan.Zero), "Processing time should not be calculated");
                 Assert.That(failedMessage.CriticalTime, Is.EqualTo(TimeSpan.Zero), "Critical time should be not calculated");
                 Assert.That(failedMessage.MessageIntent, Is.EqualTo(MessageIntent.Send), "Message intent should be set");
-            });
+            }
 
             var bodyAsString = Encoding.UTF8.GetString(body);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(bodyAsString, Does.Contain(Payload), bodyAsString);
                 Assert.That(failedMessage.BodySize, Is.EqualTo(body.Length));
                 Assert.That(failedMessage.Headers.Any(h => h.Key == Headers.MessageId), Is.True);
-            });
+            }
         }
 
         public class Sender : EndpointConfigurationBuilder
@@ -104,6 +104,7 @@
                     recoverability.Delayed(x => x.NumberOfRetries(0));
                 });
 
+            [Handler]
             public class MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
                 : IHandleMessages<MyMessage>
             {

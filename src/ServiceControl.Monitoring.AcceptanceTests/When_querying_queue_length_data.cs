@@ -94,7 +94,7 @@
                  .Run();
         }
 
-        class SendingEndpoint : EndpointConfigurationBuilder
+        public class SendingEndpoint : EndpointConfigurationBuilder
         {
             public SendingEndpoint() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
@@ -102,7 +102,8 @@
                     c.LimitMessageProcessingConcurrencyTo(1);
                 });
 
-            class Handler(TestContext testContext) : IHandleMessages<SampleMessage>
+            [Handler]
+            public class Handler(TestContext testContext) : IHandleMessages<SampleMessage>
             {
                 public Task Handle(SampleMessage message, IMessageHandlerContext context) =>
                     //Concurrency limit 1 and this should block any processing on input queue
@@ -113,17 +114,13 @@
             }
         }
 
-        class SampleMessage : SampleBaseMessage
-        {
-        }
+        internal class SampleMessage : SampleBaseMessage;
 
-        class SampleBaseMessage : IMessage
-        {
-        }
+        internal class SampleBaseMessage : IMessage;
 
-        class TestContext : ScenarioContext
+        internal class TestContext : ScenarioContext
         {
-            public TaskCompletionSource<bool> TestEnded = new();
+            public readonly TaskCompletionSource<bool> TestEnded = new();
         }
     }
 }

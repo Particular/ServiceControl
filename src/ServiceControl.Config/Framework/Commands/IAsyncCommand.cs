@@ -2,9 +2,7 @@
 {
     using System.Threading.Tasks;
 
-    public interface IAsyncCommand : IAsyncCommand<object>
-    {
-    }
+    public interface IAsyncCommand : IAsyncCommand<object>;
 
     public interface IAsyncCommand<in T> : IRaiseCanExecuteChanged, System.Windows.Input.ICommand
     {
