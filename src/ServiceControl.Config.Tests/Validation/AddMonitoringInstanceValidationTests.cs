@@ -63,11 +63,11 @@
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceAccount));
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(selectedAccount, Is.EqualTo("LocalSystem"));
                 Assert.That(errors, Is.Empty);
-            });
+            }
         }
 
         //if custom user account is selected, then account name  are required fields
@@ -162,12 +162,12 @@
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.HostName));
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(errors, Is.Not.Empty, "Hostname validation should exist and trigger for invalid hostnames");
                 Assert.That(errors.Cast<string>().Any(error => error.Contains("Hostname is not valid")), Is.True,
                     "Hostname validation should display the exact error message 'Hostname is not valid'");
-            });
+            }
         }
 
         #endregion

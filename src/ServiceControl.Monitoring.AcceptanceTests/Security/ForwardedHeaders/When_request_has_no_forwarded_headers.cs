@@ -32,8 +32,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
             ForwardedHeadersAssertions.AssertDirectAccessWithNoForwardedHeaders(requestInfo);
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

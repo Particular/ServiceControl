@@ -7,16 +7,11 @@
     using NServiceBus;
     using Persistence;
 
-    class MessageFailureResolvedHandler :
+    [Handler]
+    class MessageFailureResolvedHandler(IErrorMessageDataStore dataStore, IDomainEvents domainEvents) :
         IHandleMessages<MarkPendingRetryAsResolved>,
         IHandleMessages<MarkPendingRetriesAsResolved>
     {
-        public MessageFailureResolvedHandler(IErrorMessageDataStore dataStore, IDomainEvents domainEvents)
-        {
-            this.dataStore = dataStore;
-            this.domainEvents = domainEvents;
-        }
-
         public Task Handle(MarkPendingRetriesAsResolved message, IMessageHandlerContext context)
         {
             Task ProcessCallback(string id)
@@ -46,8 +41,5 @@
                 FailedMessageId = message.FailedMessageId
             }, context.CancellationToken);
         }
-
-        IErrorMessageDataStore dataStore;
-        IDomainEvents domainEvents;
     }
 }

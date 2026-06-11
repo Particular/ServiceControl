@@ -57,8 +57,6 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
                 expectedRemainingForwardedHost: "example.com");
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

@@ -30,7 +30,6 @@ public static class HostApplicationBuilderExtensions
         Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, Settings settings,
         EndpointConfiguration endpointConfiguration)
     {
-        hostBuilder.Services.AddLogging();
         hostBuilder.Logging.ConfigureLogging(settings.LoggingSettings.LogLevel);
 
         var services = hostBuilder.Services;
@@ -74,13 +73,17 @@ public static class HostApplicationBuilderExtensions
         services.AddLicenseCheck();
 
         ConfigureEndpoint(endpointConfiguration, onCriticalError, transportCustomization, transportSettings, settings, services);
-        hostBuilder.UseNServiceBus(endpointConfiguration);
+        services.AddNServiceBusEndpoint(endpointConfiguration);
 
         hostBuilder.AddAsyncTimer();
     }
 
     static void ConfigureEndpoint(EndpointConfiguration config, Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, ITransportCustomization transportCustomization, TransportSettings transportSettings, Settings settings, IServiceCollection services)
     {
+        config.AssemblyScanner().Disable = true;
+
+        config.Handlers.ServiceControlMonitoringAssembly.AddAll();
+
         transportCustomization.CustomizeMonitoringEndpoint(config, transportSettings);
 
         var serviceControlThroughputDataQueue = settings.ServiceControlThroughputDataQueue;

@@ -17,11 +17,11 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.InstallErrorInstance, Is.True);
                 Assert.That(viewModel.InstallAuditInstance, Is.True);
-            });
+            }
         }
 
         [Test]
@@ -29,11 +29,11 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.Transports, Is.Not.Empty);
                 Assert.That(viewModel.SelectedTransport, Is.Null);
-            });
+            }
         }
 
         [Test]
@@ -41,12 +41,12 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ShowConnectionString, Is.False);
                 Assert.That(viewModel.ConnectionString, Is.Null);
                 Assert.That(viewModel.SampleConnectionString, Is.Null);
-            });
+            }
         }
 
         [Test]
@@ -70,7 +70,7 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ErrorServiceAccount, Is.EqualTo("LocalSystem"));
                 Assert.That(viewModel.ErrorUseSystemAccount, Is.True);
@@ -78,9 +78,9 @@
                 Assert.That(viewModel.ErrorUseProvidedAccount, Is.False);
                 Assert.That(viewModel.ErrorPasswordEnabled, Is.False);
                 Assert.That(viewModel.ErrorPassword, Is.Empty);
-            });
+            }
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.AuditServiceAccount, Is.EqualTo("LocalSystem"));
                 Assert.That(viewModel.AuditUseSystemAccount, Is.True);
@@ -88,7 +88,7 @@
                 Assert.That(viewModel.AuditUseProvidedAccount, Is.False);
                 Assert.That(viewModel.AuditPasswordEnabled, Is.False);
                 Assert.That(viewModel.AuditPassword, Is.Empty);
-            });
+            }
         }
 
         [Test]
@@ -96,13 +96,13 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ErrorHostName, Is.EqualTo("localhost"));
                 Assert.That(viewModel.ErrorHostNameWarning, Is.Empty);
                 Assert.That(viewModel.AuditHostName, Is.EqualTo("localhost"));
                 Assert.That(viewModel.AuditHostNameWarning, Is.Empty);
-            });
+            }
         }
 
         [Test]
@@ -116,11 +116,11 @@
 
             var errorPortNumberErrors = errorInfo.GetErrors(nameof(viewModel.ErrorPortNumber));
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(errorPortNumberErrors, Is.Empty);
                 Assert.That(viewModel.AuditPortNumber, Is.EqualTo("44444"));
-            });
+            }
 
             var auditPortNumberErrors = errorInfo.GetErrors(nameof(viewModel.AuditPortNumber));
 
@@ -138,11 +138,11 @@
 
             var errorPortNumberErrors = errorInfo.GetErrors(nameof(viewModel.ErrorDatabaseMaintenancePortNumber));
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(errorPortNumberErrors, Is.Empty);
                 Assert.That(viewModel.AuditDatabaseMaintenancePortNumber, Is.EqualTo("44445"));
-            });
+            }
 
             var auditPortNumberErrors = errorInfo.GetErrors(nameof(viewModel.AuditDatabaseMaintenancePortNumber));
 
@@ -157,13 +157,13 @@
 
             var errorInfo = (INotifyDataErrorInfo)viewModel;
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ErrorDestinationPath, Is.EqualTo($@"{programX86Path}\Particular Software\Particular.ServiceControl"));
                 Assert.That(errorInfo.GetErrors(nameof(viewModel.ErrorDestinationPath)), Is.Empty);
                 Assert.That(viewModel.AuditDestinationPath, Is.EqualTo($@"{programX86Path}\Particular Software\Particular.ServiceControl.Audit"));
                 Assert.That(errorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)), Is.Empty);
-            });
+            }
         }
 
         [Test]
@@ -173,13 +173,13 @@
 
             var errorInfo = (INotifyDataErrorInfo)viewModel;
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ErrorLogPath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl\Logs"));
                 Assert.That(errorInfo.GetErrors(nameof(viewModel.ErrorLogPath)), Is.Empty);
                 Assert.That(viewModel.AuditLogPath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl.Audit\Logs"));
                 Assert.That(errorInfo.GetErrors(nameof(viewModel.AuditLogPath)), Is.Empty);
-            });
+            }
         }
 
 
@@ -190,13 +190,13 @@
 
             var errorInfo = (INotifyDataErrorInfo)viewModel;
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ErrorDatabasePath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl\DB"));
                 Assert.That(errorInfo.GetErrors(nameof(viewModel.ErrorDatabasePath)), Is.Empty);
                 Assert.That(viewModel.AuditDatabasePath, Is.EqualTo($@"{programDataPath}\Particular\ServiceControl\Particular.ServiceControl.Audit\DB"));
                 Assert.That(errorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)), Is.Empty);
-            });
+            }
         }
 
         [Test]
@@ -204,21 +204,21 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ErrorRetentionUnits, Is.EqualTo(TimeSpanUnits.Days));
                 Assert.That(viewModel.ErrorRetention, Is.EqualTo(SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI));
                 Assert.That(viewModel.ErrorRetention, Is.GreaterThanOrEqualTo(viewModel.MinimumErrorRetentionPeriod));
                 Assert.That(viewModel.ErrorRetention, Is.LessThanOrEqualTo(viewModel.MaximumErrorRetentionPeriod));
-            });
+            }
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.AuditRetentionUnits, Is.EqualTo(TimeSpanUnits.Days));
                 Assert.That(viewModel.AuditRetention, Is.EqualTo(SettingConstants.AuditRetentionPeriodDefaultInDaysForUI));
                 Assert.That(viewModel.AuditRetention, Is.GreaterThanOrEqualTo(viewModel.MinimumErrorRetentionPeriod));
                 Assert.That(viewModel.AuditRetention, Is.LessThanOrEqualTo(viewModel.MaximumErrorRetentionPeriod));
-            });
+            }
         }
 
         [Test]
@@ -226,17 +226,17 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ErrorQueueName, Is.Not.Empty);
                 Assert.That(viewModel.ErrorQueueName, Is.EqualTo("error"));
-            });
+            }
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.AuditQueueName, Is.Not.Empty);
                 Assert.That(viewModel.AuditQueueName, Is.EqualTo("audit"));
-            });
+            }
         }
 
         [Test]
@@ -244,20 +244,20 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ErrorForwardingOptions, Is.Not.Empty);
                 Assert.That(viewModel.ErrorForwarding.Value, Is.EqualTo(false));
                 Assert.That(viewModel.ErrorForwardingQueueName, Is.Null);
                 Assert.That(viewModel.ShowErrorForwardingQueue, Is.False);
-            });
+            }
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.AuditForwardingOptions, Is.Not.Empty);
                 Assert.That(viewModel.AuditForwarding.Value, Is.EqualTo(false));
                 Assert.That(viewModel.ShowAuditForwardingQueue, Is.False);
-            });
+            }
         }
 
         [Test]
@@ -265,17 +265,17 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ErrorEnableFullTextSearchOnBodiesOptions, Is.Not.Empty);
                 Assert.That(viewModel.ErrorEnableFullTextSearchOnBodies.Value, Is.EqualTo(true));
-            });
+            }
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.AuditEnableFullTextSearchOnBodiesOptions, Is.Not.Empty);
                 Assert.That(viewModel.AuditEnableFullTextSearchOnBodies.Value, Is.EqualTo(true));
-            });
+            }
         }
     }
 }

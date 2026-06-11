@@ -47,13 +47,13 @@
             var viewModel = Given_a_service_control_instance()
                 .When_MSQMQ_transport_is_selected();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ShowConnectionString, Is.False);
                 Assert.That(viewModel.SelectedTransport.Name, Is.EqualTo("MSMQ"));
                 Assert.That(viewModel.SampleConnectionString, Is.Empty);
                 Assert.That(viewModel.TransportWarning, Is.Null);
-            });
+            }
         }
 
         [TestAllTransportsExcept("MSMQ")]
@@ -62,12 +62,12 @@
             var viewModel = Given_a_service_control_instance()
                 .When_a_transport_is_selected(transportInfoName);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ShowConnectionString, Is.True);
                 Assert.That(viewModel.SelectedTransport.Name, Does.StartWith(transportInfoName));
                 Assert.That(viewModel.SampleConnectionString, Is.Not.Empty);
-            });
+            }
 
             if (transportInfoName is "SQLServer" or "AmazonSQS" or "AzureStorageQueue" or "PostgreSQL")
             {
@@ -86,12 +86,12 @@
             var viewModel = Given_a_service_control_instance()
                 .When_no_transport_is_selected();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ShowConnectionString, Is.False);
                 Assert.That(viewModel.SampleConnectionString, Is.Null);
                 Assert.That(viewModel.TransportWarning, Is.Null);
-            });
+            }
         }
 
     }

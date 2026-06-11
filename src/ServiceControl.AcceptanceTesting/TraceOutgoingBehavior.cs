@@ -8,16 +8,11 @@ namespace ServiceControl.AcceptanceTesting
     using NServiceBus.Pipeline;
     using NServiceBus.Settings;
 
-    public class TraceOutgoingBehavior : IBehavior<IOutgoingLogicalMessageContext, IOutgoingLogicalMessageContext>
+    public class TraceOutgoingBehavior(IReadOnlySettings settings) : IBehavior<IOutgoingLogicalMessageContext, IOutgoingLogicalMessageContext>
     {
-        public TraceOutgoingBehavior(ScenarioContext scenarioContext, IReadOnlySettings settings)
-        {
-            this.scenarioContext = scenarioContext;
-            this.settings = settings;
-        }
-
         public Task Invoke(IOutgoingLogicalMessageContext context, Func<IOutgoingLogicalMessageContext, Task> next)
         {
+            var scenarioContext = settings.Get<ScenarioContext>();
             scenarioContext.Logs.Enqueue(new ScenarioContext.LogItem
             {
                 Endpoint = settings.EndpointName(),
@@ -28,15 +23,6 @@ namespace ServiceControl.AcceptanceTesting
             return next(context);
         }
 
-        ScenarioContext scenarioContext;
-        IReadOnlySettings settings;
-
-        public class Registration : RegisterStep
-        {
-            public Registration()
-                : base("TraceOutgoingBehavior", typeof(TraceOutgoingBehavior), "Adds outgoing messages to the acceptance test trace")
-            {
-            }
-        }
+        public class Registration() : RegisterStep("TraceOutgoingBehavior", typeof(TraceOutgoingBehavior), "Adds outgoing messages to the acceptance test trace");
     }
 }

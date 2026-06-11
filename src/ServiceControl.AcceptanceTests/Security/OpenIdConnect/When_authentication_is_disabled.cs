@@ -63,8 +63,6 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
             await OpenIdConnectAssertions.AssertAuthConfigurationResponse(response, expectedEnabled: false);
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

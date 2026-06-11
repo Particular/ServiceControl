@@ -43,11 +43,12 @@
             }
         }
 
-        static readonly HttpClient httpClient = new HttpClient(new HttpClientHandler
+        static readonly HttpClient httpClient = new(new HttpClientHandler
         {
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
         })
         {
+            Timeout = TimeSpan.FromSeconds(30),
             DefaultRequestHeaders =
             {
                 Accept =

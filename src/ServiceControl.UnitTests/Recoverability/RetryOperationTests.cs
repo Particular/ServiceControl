@@ -15,7 +15,7 @@
         {
             var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), NullLogger.Instance);
             await summary.Wait(DateTime.UtcNow, "FailureGroup1");
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(summary.RetryState, Is.EqualTo(RetryState.Waiting));
                 Assert.That(summary.NumberOfMessagesForwarded, Is.EqualTo(0));
@@ -23,7 +23,7 @@
                 Assert.That(summary.NumberOfMessagesSkipped, Is.EqualTo(0));
                 Assert.That(summary.TotalNumberOfMessages, Is.EqualTo(0));
                 Assert.That(summary.Originator, Is.EqualTo("FailureGroup1"));
-            });
+            }
         }
 
         [Test]
@@ -39,12 +39,12 @@
         {
             var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), NullLogger.Instance);
             await summary.Prepare(1000);
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(summary.RetryState, Is.EqualTo(RetryState.Preparing));
                 Assert.That(summary.NumberOfMessagesPrepared, Is.EqualTo(0));
                 Assert.That(summary.TotalNumberOfMessages, Is.EqualTo(1000));
-            });
+            }
         }
 
         [Test]
@@ -53,12 +53,12 @@
             var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), NullLogger.Instance);
             await summary.Prepare(1000);
             await summary.PrepareBatch(1000);
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(summary.RetryState, Is.EqualTo(RetryState.Preparing));
                 Assert.That(summary.NumberOfMessagesPrepared, Is.EqualTo(1000));
                 Assert.That(summary.TotalNumberOfMessages, Is.EqualTo(1000));
-            });
+            }
         }
 
         [Test]
@@ -69,12 +69,12 @@
             await summary.PrepareBatch(1000);
             await summary.Forwarding();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(summary.RetryState, Is.EqualTo(RetryState.Forwarding));
                 Assert.That(summary.NumberOfMessagesForwarded, Is.EqualTo(0));
                 Assert.That(summary.TotalNumberOfMessages, Is.EqualTo(1000));
-            });
+            }
         }
 
         [Test]
@@ -86,12 +86,12 @@
             await summary.Forwarding();
             await summary.BatchForwarded(500);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(summary.RetryState, Is.EqualTo(RetryState.Forwarding));
                 Assert.That(summary.NumberOfMessagesForwarded, Is.EqualTo(500));
                 Assert.That(summary.TotalNumberOfMessages, Is.EqualTo(1000));
-            });
+            }
         }
 
         [Test]
@@ -104,14 +104,14 @@
             await summary.Forwarding();
             await summary.BatchForwarded(1000);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(domainEvents.RaisedEvents[0] is RetryOperationPreparing, Is.True);
                 Assert.That(domainEvents.RaisedEvents[1] is RetryOperationPreparing, Is.True);
                 Assert.That(domainEvents.RaisedEvents[2] is RetryOperationForwarding, Is.True);
                 Assert.That(domainEvents.RaisedEvents[3] is RetryMessagesForwarded, Is.True);
                 Assert.That(domainEvents.RaisedEvents[4] is RetryOperationCompleted, Is.True);
-            });
+            }
         }
 
         [Test]
@@ -123,12 +123,12 @@
             await summary.Forwarding();
             await summary.BatchForwarded(1000);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(summary.RetryState, Is.EqualTo(RetryState.Completed));
                 Assert.That(summary.NumberOfMessagesForwarded, Is.EqualTo(1000));
                 Assert.That(summary.TotalNumberOfMessages, Is.EqualTo(1000));
-            });
+            }
         }
 
         [Test]
@@ -140,11 +140,11 @@
             await summary.PrepareBatch(1000);
             await summary.Skip(1000);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(summary.RetryState, Is.EqualTo(RetryState.Preparing));
                 Assert.That(summary.NumberOfMessagesSkipped, Is.EqualTo(1000));
-            });
+            }
         }
 
         [Test]
@@ -156,11 +156,11 @@
             await summary.PrepareBatch(1000);
             await summary.Skip(1000);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(summary.RetryState, Is.EqualTo(RetryState.Completed));
                 Assert.That(summary.NumberOfMessagesSkipped, Is.EqualTo(1000));
-            });
+            }
         }
 
         [Test]
@@ -174,12 +174,12 @@
             await summary.Forwarding();
             await summary.BatchForwarded(1000);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(summary.RetryState, Is.EqualTo(RetryState.Completed));
                 Assert.That(summary.NumberOfMessagesForwarded, Is.EqualTo(1000));
                 Assert.That(summary.NumberOfMessagesSkipped, Is.EqualTo(1000));
-            });
+            }
         }
     }
 }

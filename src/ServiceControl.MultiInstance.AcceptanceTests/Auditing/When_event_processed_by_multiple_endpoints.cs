@@ -12,7 +12,7 @@
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     // HINT: If this is included inside of the test class, the learning transport cannot set up the subscriptions
-    class SomeEvent : IEvent { }
+    class SomeEvent : IEvent;
 
     class When_event_processed_by_multiple_endpoints : AcceptanceTest
     {
@@ -57,33 +57,20 @@
 
         class Publisher : EndpointConfigurationBuilder
         {
-            public Publisher()
-            {
-                EndpointSetup<DefaultServerWithAudit>();
-            }
+            public Publisher() => EndpointSetup<DefaultServerWithAudit>();
         }
 
-        class Subscriber1 : EndpointConfigurationBuilder
+        public class Subscriber1 : EndpointConfigurationBuilder
         {
-            public Subscriber1()
-            {
+            public Subscriber1() =>
                 EndpointSetup<DefaultServerWithAudit>(
                     _ => { },
                     publisherMetaData => publisherMetaData.RegisterPublisherFor<SomeEvent>(typeof(Publisher))
                 );
-            }
 
-            class SomeEventHandler : IHandleMessages<SomeEvent>
+            [Handler]
+            public class SomeEventHandler(MyContext testContext, IReadOnlySettings settings) : IHandleMessages<SomeEvent>
             {
-                readonly MyContext testContext;
-                readonly IReadOnlySettings settings;
-
-                public SomeEventHandler(MyContext testContext, IReadOnlySettings settings)
-                {
-                    this.testContext = testContext;
-                    this.settings = settings;
-                }
-
                 public Task Handle(SomeEvent message, IMessageHandlerContext context)
                 {
                     testContext.Subscriber1Endpoint = settings.EndpointName();
@@ -93,27 +80,17 @@
             }
         }
 
-        class Subscriber2 : EndpointConfigurationBuilder
+        public class Subscriber2 : EndpointConfigurationBuilder
         {
-            public Subscriber2()
-            {
+            public Subscriber2() =>
                 EndpointSetup<DefaultServerWithAudit>(
                     _ => { },
                     publisherMetaData => publisherMetaData.RegisterPublisherFor<SomeEvent>(typeof(Publisher))
                 );
-            }
 
-            class SomeEventHandler : IHandleMessages<SomeEvent>
+            [Handler]
+            public class SomeEventHandler(MyContext scenarioContext, IReadOnlySettings settings) : IHandleMessages<SomeEvent>
             {
-                readonly MyContext scenarioContext;
-                readonly IReadOnlySettings settings;
-
-                public SomeEventHandler(MyContext scenarioContext, IReadOnlySettings settings)
-                {
-                    this.scenarioContext = scenarioContext;
-                    this.settings = settings;
-                }
-
                 public Task Handle(SomeEvent message, IMessageHandlerContext context)
                 {
                     scenarioContext.Subscriber2Endpoint = settings.EndpointName();
@@ -122,7 +99,7 @@
             }
         }
 
-        class MyContext : ScenarioContext
+        internal class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
             public bool Subscriber1Subscribed { get; set; }

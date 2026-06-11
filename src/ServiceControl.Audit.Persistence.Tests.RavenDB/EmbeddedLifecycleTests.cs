@@ -37,11 +37,11 @@
         {
             await DataStore.QueryKnownEndpoints(TestContext.CurrentContext.CancellationToken);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(dbPath, Does.Exist);
                 Assert.That(logPath, Does.Exist);
-            });
+            }
         }
     }
 }

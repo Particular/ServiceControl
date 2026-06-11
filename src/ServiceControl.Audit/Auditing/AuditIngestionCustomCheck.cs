@@ -5,14 +5,8 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
 
-    class AuditIngestionCustomCheck : CustomCheck
+    class AuditIngestionCustomCheck(AuditIngestionCustomCheck.State criticalErrorHolder) : CustomCheck("Audit Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
     {
-        public AuditIngestionCustomCheck(State criticalErrorHolder)
-            : base("Audit Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
-        {
-            this.criticalErrorHolder = criticalErrorHolder;
-        }
-
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             var failure = criticalErrorHolder.GetLastFailure();
@@ -21,8 +15,7 @@
                 : Task.FromResult(CheckResult.Failed(failure));
         }
 
-        readonly State criticalErrorHolder;
-        static Task<CheckResult> successResult = Task.FromResult(CheckResult.Pass);
+        static readonly Task<CheckResult> successResult = Task.FromResult(CheckResult.Pass);
 
         public class State
         {
@@ -30,11 +23,7 @@
 
             public void Clear() => lastFailure = null;
             public void ReportError(string failure) => lastFailure = failure;
-            public string GetLastFailure()
-            {
-                return lastFailure;
-            }
+            public string GetLastFailure() => lastFailure;
         }
     }
-
 }

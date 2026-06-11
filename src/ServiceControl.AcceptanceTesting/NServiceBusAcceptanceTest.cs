@@ -17,10 +17,7 @@
     public abstract partial class NServiceBusAcceptanceTest
     {
         [SetUp]
-        public void SetUp()
-        {
-            LogManager.Use<DefaultFactory>(); // Ensures that every test the log manager is 'reset' as log manager can otherwise point to disposed resources. For example, when a test uses NServiceBus hosting
-
+        public void SetUp() =>
             Conventions.EndpointNamingConvention = t =>
             {
                 var classAndEndpoint = t.FullName.Split('.').Last();
@@ -37,7 +34,6 @@
 
                 return testName + "." + endpointBuilder;
             };
-        }
 
         [TearDown]
         public void TearDown()

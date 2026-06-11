@@ -37,7 +37,7 @@
 
             Assert.That(auditedMessage, Is.Not.Null);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(auditedMessage.InvokedSagas.First().SagaType, Is.EqualTo(typeof(SagaEndpoint.MySaga).FullName));
                 Assert.That(auditedMessage.InvokedSagas.Last().SagaType, Is.EqualTo(typeof(SagaEndpoint.MyOtherSaga).FullName));
@@ -47,7 +47,7 @@
 
                 Assert.That(auditedMessage.InvokedSagas.First().ChangeStatus, Is.EqualTo("New"));
                 Assert.That(auditedMessage.InvokedSagas.Last().ChangeStatus, Is.EqualTo("Completed"));
-            });
+            }
         }
 
         public class SagaAuditProcessorFake : EndpointConfigurationBuilder
@@ -66,6 +66,7 @@
                 //we need to enable the plugin for it to enrich the audited messages, state changes will go to input queue and just be discarded
                 EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(Conventions.EndpointNamingConvention(typeof(SagaAuditProcessorFake))));
 
+            [Saga]
             public class MySaga(MyContext testContext)
                 : Saga<MySaga.MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
@@ -85,6 +86,7 @@
                 }
             }
 
+            [Saga]
             public class MyOtherSaga(MyContext testContext)
                 : Saga<MyOtherSaga.MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {

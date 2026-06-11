@@ -14,7 +14,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="NLog.Extensions.Logging" />
     <PackageReference Include="NServiceBus" />
-    <PackageReference Include="NServiceBus.Extensions.Logging" />
     <PackageReference Include="NUnit" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
     <PackageReference Include="Seq.Extensions.Logging" />

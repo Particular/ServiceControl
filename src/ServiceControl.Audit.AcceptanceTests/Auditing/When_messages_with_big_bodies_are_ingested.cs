@@ -137,10 +137,11 @@
         const int MAX_BODY_SIZE = 20536;
         const int MAX_BODY_SIZE_BIGGER_THAN_LOH = 87000;
 
-        class FatMessageEndpoint : EndpointConfigurationBuilder
+        public class FatMessageEndpoint : EndpointConfigurationBuilder
         {
             public FatMessageEndpoint() => EndpointSetup<DefaultServerWithAudit>();
 
+            [Handler]
             public class BigFatMessageHandler(Context testContext) : IHandleMessages<BigFatMessage>
             {
                 public Task Handle(BigFatMessage message, IMessageHandlerContext context)
@@ -151,12 +152,12 @@
             }
         }
 
-        class BigFatMessage : IMessage
+        internal class BigFatMessage : IMessage
         {
             public byte[] BigFatBody { get; set; }
         }
 
-        class Context : ScenarioContext
+        internal class Context : ScenarioContext
         {
             public string MessageId { get; set; }
         }

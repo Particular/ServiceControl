@@ -20,7 +20,7 @@
                 return 1;
             }, starts, ends);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(starts[0], Is.EqualTo(0));
                 Assert.That(ends[0], Is.EqualTo(499));
@@ -34,7 +34,7 @@
                 Assert.That(starts, Has.Count.EqualTo(3));
                 Assert.That(ends, Has.Count.EqualTo(3));
                 Assert.That(count, Is.EqualTo(3));
-            });
+            }
         }
 
         [Test]
@@ -50,7 +50,7 @@
                 return 1;
             }, starts, ends);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(starts[0], Is.EqualTo(0));
                 Assert.That(ends[0], Is.EqualTo(0));
@@ -58,7 +58,7 @@
                 Assert.That(starts, Has.Count.EqualTo(1));
                 Assert.That(ends, Has.Count.EqualTo(1));
                 Assert.That(count, Is.EqualTo(1));
-            });
+            }
         }
 
         [Test]
@@ -74,7 +74,7 @@
                 return 1;
             }, starts, ends);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(starts[0], Is.EqualTo(0));
                 Assert.That(ends[0], Is.EqualTo(499));
@@ -88,7 +88,7 @@
                 Assert.That(starts, Has.Count.EqualTo(3));
                 Assert.That(ends, Has.Count.EqualTo(3));
                 Assert.That(count, Is.EqualTo(3));
-            });
+            }
         }
     }
 }

@@ -67,6 +67,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_INSTANCE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<HeartbeatRestored>(Settings.DEFAULT_INSTANCE_NAME); });
 
+            [Handler]
             public class FailureHandler(MyContext testContext) : IHandleMessages<HeartbeatRestored>
             {
                 public Task Handle(HeartbeatRestored message, IMessageHandlerContext context)

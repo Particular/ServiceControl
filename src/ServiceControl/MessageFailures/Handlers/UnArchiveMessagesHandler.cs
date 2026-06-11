@@ -7,6 +7,7 @@
     using NServiceBus;
     using Persistence;
 
+    [Handler]
     class UnArchiveMessagesHandler(IErrorMessageDataStore store, IDomainEvents domainEvents)
         : IHandleMessages<UnArchiveMessages>
     {

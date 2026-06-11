@@ -21,12 +21,14 @@
     using Microsoft.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTesting.Support;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
     using RavenDB.Shared;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
+    using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
     public class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -122,12 +124,16 @@
                     // Force the DI container to run the dependency resolution check to verify all dependencies can be resolved
                     EnvironmentName = Environments.Development
                 });
+
+                hostBuilder.Services.AddScenarioContext(context);
                 hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControlAuthorization(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControl(settings, configuration);
                 hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
                 hostBuilder.AddServiceControlApi(settings.CorsSettings);
 
+                // AddServiceControl clears all logging providers, so we need to re-add the context appender after it
+                hostBuilder.Logging.AddContextAppender(context);
                 hostBuilder.AddServiceControlTesting(settings);
 
                 hostBuilderCustomization(hostBuilder);

@@ -128,8 +128,6 @@ namespace ServiceControl.AcceptanceTests.Security.Cors
             CorsAssertions.AssertOriginNotAllowed(response, disallowedOrigin);
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

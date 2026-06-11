@@ -4,7 +4,9 @@ using System;
 using System.Linq;
 using System.Web;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using NServiceBus;
+using NServiceBus.CustomChecks;
 using NServiceBus.Transport.IBMMQ;
 
 public class IBMMQTransportCustomization : TransportCustomization<IBMMQTransport>
@@ -12,8 +14,7 @@ public class IBMMQTransportCustomization : TransportCustomization<IBMMQTransport
     protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, IBMMQTransport transportDefinition, TransportSettings transportSettings) =>
         transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
-    protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, IBMMQTransport transportDefinition, TransportSettings transportSettings) =>
-        transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
+    protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, IBMMQTransport transportDefinition, TransportSettings transportSettings) => transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
     protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, IBMMQTransport transportDefinition, TransportSettings transportSettings) =>
         transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
@@ -23,6 +24,8 @@ public class IBMMQTransportCustomization : TransportCustomization<IBMMQTransport
         services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
         services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
     }
+
+    protected override void AddTransportForPrimaryCore(IServiceCollection services, TransportSettings transportSettings) => services.TryAddEnumerable(ServiceDescriptor.Singleton<ICustomCheck, DeadLetterQueueCheck>());
 
     protected override IBMMQTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
     {

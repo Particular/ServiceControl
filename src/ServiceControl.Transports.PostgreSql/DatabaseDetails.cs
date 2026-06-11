@@ -97,14 +97,21 @@ public class DatabaseDetails
     {
         var table = new BrokerQueueTableSnapshot(brokerQueueTable);
 
-        await using var conn = await OpenConnectionAsync(cancellationToken);
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = $"select last_value from \"{table.SequenceName}\";";
-        var value = await cmd.ExecuteScalarAsync(cancellationToken);
-
-        if (value is long longValue)
+        try
         {
-            table.RowVersion = longValue;
+            await using var conn = await OpenConnectionAsync(cancellationToken);
+            await using var cmd = conn.CreateCommand();
+            cmd.CommandText = $"select last_value from \"{table.SequenceName}\";";
+            var value = await cmd.ExecuteScalarAsync(cancellationToken);
+
+            if (value is long longValue)
+            {
+                table.RowVersion = longValue;
+            }
+        }
+        catch (NpgsqlException ex) when (ex.SqlState == "42P01")
+        {
+            // Queue table has been deleted; RowVersion remains null
         }
 
         return table;

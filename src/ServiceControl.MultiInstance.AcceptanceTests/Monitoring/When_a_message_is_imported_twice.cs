@@ -64,6 +64,7 @@
                 }
             }
 
+            [Handler]
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public Task Handle(MyMessage message, IMessageHandlerContext context) => Task.CompletedTask;
@@ -71,12 +72,8 @@
         }
 
 
-        public class MyMessage : ICommand
-        {
-        }
+        public class MyMessage : ICommand;
 
-        public class MyContext : ScenarioContext
-        {
-        }
+        public class MyContext : ScenarioContext;
     }
 }

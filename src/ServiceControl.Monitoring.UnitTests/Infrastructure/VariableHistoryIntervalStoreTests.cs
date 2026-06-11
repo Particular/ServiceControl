@@ -33,11 +33,11 @@
                 var intervals = store.GetIntervals(period, now.Add(reportDelay));
 
                 Assert.That(intervals, Has.Length.EqualTo(1));
-                Assert.Multiple(() =>
+                using (Assert.EnterMultipleScope())
                 {
                     Assert.That(intervals[0].TotalValue, Is.EqualTo(5L));
                     Assert.That(intervals[0].TotalMeasurements, Is.EqualTo(1L));
-                });
+                }
             }
         }
 

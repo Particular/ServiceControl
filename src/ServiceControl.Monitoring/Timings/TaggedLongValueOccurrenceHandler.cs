@@ -5,6 +5,7 @@
     using Messaging;
     using NServiceBus;
 
+    [Handler]
     public class TaggedLongValueOccurrenceHandler : IHandleMessages<TaggedLongValueOccurrence>
     {
         public TaggedLongValueOccurrenceHandler(ProcessingTimeStore processingTimeStore, CriticalTimeStore criticalTimeStore)

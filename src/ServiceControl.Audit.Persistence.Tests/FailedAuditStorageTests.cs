@@ -39,11 +39,11 @@
 
             var numFailures = await FailedAuditStorage.GetFailedAuditsCount();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(succeeded, Is.EqualTo(2));
                 Assert.That(numFailures, Is.EqualTo(0));
-            });
+            }
         }
     }
 }

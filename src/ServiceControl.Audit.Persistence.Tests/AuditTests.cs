@@ -96,7 +96,7 @@
             var retrievedMessage = await DataStore.GetMessageBody(bodyId, TestContext.CurrentContext.CancellationToken);
 
             Assert.That(retrievedMessage, Is.Not.Null);
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(retrievedMessage.Found, Is.True);
                 Assert.That(retrievedMessage.HasContent, Is.True);
@@ -104,15 +104,15 @@
                 Assert.That(retrievedMessage.ETag, Is.Not.Null.And.Not.Empty);
                 Assert.That(retrievedMessage.StreamContent, Is.Not.Null);
                 Assert.That(retrievedMessage.ContentType, Is.EqualTo(expectedContentType));
-            });
+            }
 
             var resultBody = new byte[body.Length];
             var readBytes = await retrievedMessage.StreamContent.ReadAsync(resultBody, 0, body.Length);
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(readBytes, Is.EqualTo(body.Length));
                 Assert.That(resultBody, Is.EqualTo(body));
-            });
+            }
         }
 
         [Test]
@@ -133,11 +133,11 @@
             var retrievedMessage = await DataStore.GetMessageBody(bodyId, TestContext.CurrentContext.CancellationToken);
 
             Assert.That(retrievedMessage, Is.Not.Null);
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(retrievedMessage.Found, Is.True);
                 Assert.That(retrievedMessage.HasContent, Is.False);
-            });
+            }
 
         }
 

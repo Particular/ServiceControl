@@ -28,17 +28,18 @@
 
             Assert.That(auditedMessage.OriginatesFromSaga, Is.Not.Null);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(auditedMessage.OriginatesFromSaga.SagaType, Is.EqualTo(typeof(SagaEndpoint.MySaga).FullName));
                 Assert.That(auditedMessage.OriginatesFromSaga.SagaId, Is.EqualTo(context.SagaId));
-            });
+            }
         }
 
         public class SagaEndpoint : EndpointConfigurationBuilder
         {
             public SagaEndpoint() => EndpointSetup<DefaultServerWithAudit>();
 
+            [Saga]
             public class MySaga(MyContext testContext) : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
                 public Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
@@ -57,7 +58,8 @@
                 public string MessageId { get; set; }
             }
 
-            class MessageSentBySagaHandler(MyContext testContext) : IHandleMessages<MessageSentBySaga>
+            [Handler]
+            public class MessageSentBySagaHandler(MyContext testContext) : IHandleMessages<MessageSentBySaga>
             {
                 public Task Handle(MessageSentBySaga message, IMessageHandlerContext context)
                 {

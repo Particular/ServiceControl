@@ -32,7 +32,7 @@
             Assert.That(metricReported, Is.True);
         }
 
-        class EndpointWithTimings : EndpointConfigurationBuilder
+        public class EndpointWithTimings : EndpointConfigurationBuilder
         {
             public EndpointWithTimings() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
@@ -40,7 +40,8 @@
                     c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_INSTANCE_NAME, TimeSpan.FromSeconds(1));
                 });
 
-            class Handler : IHandleMessages<SampleMessage>
+            [Handler]
+            public class Handler : IHandleMessages<SampleMessage>
             {
                 public Task Handle(SampleMessage message, IMessageHandlerContext context)
                     => Task.Delay(TimeSpan.FromMilliseconds(10), context.CancellationToken);
@@ -54,8 +55,8 @@
 
         class Context : ScenarioContext;
 
-        class SampleMessage : SampleBaseMessage;
+        internal class SampleMessage : SampleBaseMessage;
 
-        class SampleBaseMessage : IMessage;
+        internal class SampleBaseMessage : IMessage;
     }
 }

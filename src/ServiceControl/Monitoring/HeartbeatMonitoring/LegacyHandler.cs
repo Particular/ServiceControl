@@ -6,6 +6,7 @@
     using InternalMessages;
     using NServiceBus;
 
+    [Handler]
     class LegacyHandler : IHandleMessages<RegisterPotentiallyMissingHeartbeats>,
         IHandleMessages<RegisterEndpoint>,
         IHandleMessages<EnableEndpointMonitoring>,

@@ -52,11 +52,11 @@
                 })
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(endpoint.MonitorHeartbeat, Is.False);
                 Assert.That(endpoint.Monitored, Is.False);
-            });
+            }
 
             await Define<MyContext>()
                 .WithEndpoint<WithHeartbeat>()
@@ -70,12 +70,12 @@
                 })
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(endpoint.MonitorHeartbeat, Is.True, "Should have heartbeat monitoring on");
                 Assert.That(endpoint.Monitored, Is.True, "Should be flagged as monitored");
                 Assert.That(endpoint.IsSendingHeartbeats, Is.True, "Should be emitting heartbeats");
-            });
+            }
         }
 
         public class MyContext : ScenarioContext;

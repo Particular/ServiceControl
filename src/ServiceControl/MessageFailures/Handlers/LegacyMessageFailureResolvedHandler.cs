@@ -10,16 +10,11 @@
     /// <summary>
     /// This class handles legacy messages that mark a failed message as successfully retried. For further details go to message definitions.
     /// </summary>
-    class LegacyMessageFailureResolvedHandler :
+    [Handler]
+    class LegacyMessageFailureResolvedHandler(IErrorMessageDataStore store, IDomainEvents domainEvents) :
         IHandleMessages<MarkMessageFailureResolvedByRetry>,
         IHandleMessages<MessageFailureResolvedByRetry>
     {
-        public LegacyMessageFailureResolvedHandler(IErrorMessageDataStore store, IDomainEvents domainEvents)
-        {
-            this.store = store;
-            this.domainEvents = domainEvents;
-        }
-
         public async Task Handle(MarkMessageFailureResolvedByRetry message, IMessageHandlerContext context)
         {
             await MarkAsResolvedByRetry(message.FailedMessageId, message.AlternativeFailedMessageIds);
@@ -69,8 +64,5 @@
                 }
             }
         }
-
-        readonly IErrorMessageDataStore store;
-        readonly IDomainEvents domainEvents;
     }
 }

@@ -57,6 +57,7 @@
         {
             public Sender() => EndpointSetup<DefaultServerWithAudit>();
 
+            [Handler]
             public class MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
                 : IHandleMessages<MyMessage>
             {
@@ -70,9 +71,7 @@
         }
 
 
-        public class MyMessage : ICommand
-        {
-        }
+        public class MyMessage : ICommand;
 
         public class MyContext : ScenarioContext
         {
