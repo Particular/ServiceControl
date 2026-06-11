@@ -124,7 +124,7 @@
             Assert.That(auditMessage.IsSystemMessage, Is.False);
         }
 
-        class SystemMessageEndpoint : EndpointConfigurationBuilder
+        public class SystemMessageEndpoint : EndpointConfigurationBuilder
         {
             public SystemMessageEndpoint() => EndpointSetup<DefaultServerWithAudit>(c => c.EnableFeature<SendMessageLowLevel>());
 
@@ -159,7 +159,8 @@
                     => session.SendLocal(new DoQueryAllowed());
             }
 
-            class MyHandler(SystemMessageTestContext testContext) : IHandleMessages<DoQueryAllowed>
+            [Handler]
+            public class MyHandler(SystemMessageTestContext testContext) : IHandleMessages<DoQueryAllowed>
             {
                 public Task Handle(DoQueryAllowed message, IMessageHandlerContext context)
                 {

@@ -19,13 +19,13 @@ public class When_parsing_receive_endpoint
 
         var endpoint = EndpointDetailsParser.ReceivingEndpoint(headers);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(endpoint, Is.Not.Null);
             Assert.That(endpoint.Name, Is.EqualTo("Sales"));
             Assert.That(endpoint.Host, Is.EqualTo("backend-01"));
             Assert.That(endpoint.HostId, Is.EqualTo(DeterministicGuid.MakeId("Sales", "backend-01")));
-        });
+        }
     }
 
     [Test]
@@ -38,12 +38,12 @@ public class When_parsing_receive_endpoint
 
         var endpoint = EndpointDetailsParser.ReceivingEndpoint(headers);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(endpoint, Is.Not.Null);
             Assert.That(endpoint.Name, Is.EqualTo("Billing"));
             Assert.That(endpoint.Host, Is.EqualTo("unknown"));
             Assert.That(endpoint.HostId, Is.EqualTo(DeterministicGuid.MakeId("Billing", "unknown")));
-        });
+        }
     }
 }

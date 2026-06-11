@@ -217,6 +217,7 @@
                     => Task.CompletedTask;
             }
 
+            [Handler]
             public class MyMessageHandler(Context scenarioContext, IReadOnlySettings settings)
                 : IHandleMessages<MyMessage>
             {
@@ -259,6 +260,7 @@
                 protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default) => Task.CompletedTask;
             }
 
+            [Handler]
             public class MyMessageHandler(Context scenarioContext, IReadOnlySettings settings)
                 : IHandleMessages<MyMessage>
             {

@@ -64,14 +64,14 @@
             var logicalEndpointAMetrics = endpointMetricsApi.GetSingleEndpointMetrics(instanceAId.EndpointName);
             var logicalEndpointBMetrics = endpointMetricsApi.GetSingleEndpointMetrics(instanceBId.EndpointName);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(logicalEndpointAMetrics.Instances[0].Metrics["ProcessingTime"].Average, Is.EqualTo(5));
                 Assert.That(logicalEndpointBMetrics.Instances[0].Metrics["ProcessingTime"].Average, Is.EqualTo(10));
 
                 Assert.That(logicalEndpointAMetrics.MessageTypes[0].Metrics["ProcessingTime"].Average, Is.EqualTo(5));
                 Assert.That(logicalEndpointBMetrics.MessageTypes[0].Metrics["ProcessingTime"].Average, Is.EqualTo(10));
-            });
+            }
         }
 
         [Test]
@@ -103,12 +103,12 @@
             var model = endpointMetricsApi.GetAllEndpointsMetrics();
             var item = model[0];
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(item.EndpointInstanceIds, Has.Length.EqualTo(3), nameof(item.EndpointInstanceIds));
                 Assert.That(item.ConnectedCount, Is.EqualTo(2), nameof(item.ConnectedCount));
                 Assert.That(item.DisconnectedCount, Is.EqualTo(1), nameof(item.DisconnectedCount));
-            });
+            }
         }
     }
 }

@@ -38,20 +38,15 @@
             Assert.That(knownEndpoint, Is.Not.Null);
         }
 
-        class SomeMessage : IMessage
-        {
-        }
+        internal class SomeMessage : IMessage;
 
-        class Sender : EndpointConfigurationBuilder
+        public class Sender : EndpointConfigurationBuilder
         {
             public Sender() => EndpointSetup<DefaultServerWithAudit>();
 
-            class SomeMessageHandler : IHandleMessages<SomeMessage>
+            [Handler]
+            public class SomeMessageHandler(MyContext testContext) : IHandleMessages<SomeMessage>
             {
-                readonly MyContext testContext;
-
-                public SomeMessageHandler(MyContext testContext) => this.testContext = testContext;
-
                 public Task Handle(SomeMessage message, IMessageHandlerContext context)
                 {
                     testContext.MessageHandled = true;
@@ -60,7 +55,7 @@
             }
         }
 
-        class MyContext : ScenarioContext
+        internal class MyContext : ScenarioContext
         {
             public bool MessageHandled { get; set; }
         }

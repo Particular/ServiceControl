@@ -59,20 +59,21 @@
 
             Assert.That(failedMessages, Is.Not.Null);
             Assert.That(failedMessages, Is.Not.Empty);
-            Assert.That(failedMessages.Count, Is.EqualTo(1));
+            Assert.That(failedMessages, Has.Count.EqualTo(1));
 
             var failedMessageView = failedMessages.Single();
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(failedMessageView.NumberOfProcessingAttempts, Is.EqualTo(2));
                 Assert.That(failedMessageView.Status, Is.EqualTo(FailedMessageStatus.Unresolved));
-            });
+            }
         }
 
-        class OriginalEndpoint : EndpointConfigurationBuilder
+        public class OriginalEndpoint : EndpointConfigurationBuilder
         {
             public OriginalEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c => c.NoRetries());
 
+            [Handler]
             public class MessageToRetryHandler(
                 Context scenarioContext,
                 IReadOnlySettings settings,
@@ -88,10 +89,11 @@
             }
         }
 
-        class NewEndpoint : EndpointConfigurationBuilder
+        public class NewEndpoint : EndpointConfigurationBuilder
         {
             public NewEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
 
+            [Handler]
             public class MessageToRetryHandler(Context testContext) : IHandleMessages<MessageToRetry>
             {
                 public Task Handle(MessageToRetry message, IMessageHandlerContext context)
@@ -102,7 +104,7 @@
             }
         }
 
-        class Context : ScenarioContext
+        internal class Context : ScenarioContext
         {
             public string FromAddress { get; set; }
             public string ToAddress { get; set; }
@@ -110,6 +112,6 @@
             public bool ProcessedAgain { get; set; }
         }
 
-        class MessageToRetry : ICommand;
+        internal class MessageToRetry : ICommand;
     }
 }

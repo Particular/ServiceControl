@@ -37,6 +37,7 @@
                         .RouteToEndpoint(typeof(TriggeredMessage), typeof(ReceiverRemote));
                 });
 
+            [Handler]
             public class TriggeringMessageHandler : IHandleMessages<TriggeringMessage>
             {
                 readonly MyContext testContext;
@@ -55,6 +56,7 @@
         {
             public ReceiverRemote() => EndpointSetup<DefaultServerWithAudit>(c => { });
 
+            [Handler]
             public class TriggeredMessageHandler : IHandleMessages<TriggeredMessage>
             {
                 readonly MyContext testContext;
@@ -69,13 +71,9 @@
             }
         }
 
-        public class TriggeringMessage : ICommand
-        {
-        }
+        public class TriggeringMessage : ICommand;
 
-        public class TriggeredMessage : ICommand
-        {
-        }
+        public class TriggeredMessage : ICommand;
 
         public class MyContext : ScenarioContext
         {

@@ -5,14 +5,11 @@
     using System.Threading.Tasks;
     using Hosting.Commands;
     using Microsoft.Extensions.Hosting;
-    using Microsoft.Extensions.Logging.Abstractions;
-    using NServiceBus;
     using NUnit.Framework;
     using Particular.ServiceControl.Hosting;
     using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.AcceptanceTesting.InfrastructureConfig;
-
 
     class StartupModeTests : AcceptanceTest
     {
@@ -56,21 +53,6 @@
 
         [Test]
         public async Task CanRunImportFailedMessagesMode()
-            => await new TestableImportFailedErrorsCommand().Execute(new HostArguments(Array.Empty<string>()), settings);
-
-        class TestableImportFailedErrorsCommand() : ImportFailedErrorsCommand()
-        {
-            protected override EndpointConfiguration CreateEndpointConfiguration(Settings settings)
-            {
-                var configuration = base.CreateEndpointConfiguration(settings);
-
-                //HINT: we want to exclude this assembly to prevent loading features that are part of the acceptance testing framework
-                var thisAssembly = new[] { typeof(StartupModeTests).Assembly.GetName().Name };
-
-                configuration.AssemblyScanner().ExcludeAssemblies(thisAssembly);
-
-                return configuration;
-            }
-        }
+            => await new ImportFailedErrorsCommand().Execute(new HostArguments([]), settings);
     }
 }

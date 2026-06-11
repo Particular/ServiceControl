@@ -67,11 +67,11 @@
                 })
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(runResult.ErrorForwarded, Is.True);
                 Assert.That(runResult.MessageFailedEventPublished, Is.True);
-            });
+            }
         }
 
         class MessageFailedHandler(MyContext scenarioContext) : IDomainHandler<MessageFailed>
@@ -101,6 +101,7 @@
         {
             public ErrorLogSpy() => EndpointSetup<DefaultServerWithoutAudit>();
 
+            [Handler]
             public class MyMessageHandler(MyContext scenarioContext) : IHandleMessages<MyMessage>
             {
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
@@ -131,6 +132,7 @@
                     recoverability.Delayed(x => x.NumberOfRetries(0));
                 });
 
+            [Handler]
             public class MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
                 : IHandleMessages<MyMessage>
             {

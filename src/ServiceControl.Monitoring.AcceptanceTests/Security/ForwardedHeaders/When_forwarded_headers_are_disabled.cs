@@ -47,8 +47,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
                 sentXForwardedHost: "example.com");
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

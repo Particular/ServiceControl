@@ -98,7 +98,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                     return true;
                 }).Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(context.ResolvedMessageId, Is.EqualTo(context.EditedMessageFailureId));
                 Assert.That(context.EditedMessageEditOf, Is.EqualTo(context.OriginalMessageFailureId));
@@ -107,7 +107,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                 Assert.That(context.MessageFailedFailedMessageIds, Has.Some.EqualTo(context.OriginalMessageFailureId));
                 Assert.That(context.RetryFailedMessageId, Is.EqualTo(context.OriginalMessageFailureId));
                 Assert.That(context.MessageFailedFailedMessageIds, Has.Some.EqualTo(context.EditedMessageFailureId));
-            });
+            }
         }
 
 
@@ -131,7 +131,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
         {
             public MessageReceiver() => EndpointSetup<DefaultServerWithoutAudit>(c => c.NoRetries());
 
-
+            [Handler]
             public class EditMessageResolutionHandler(EditMessageResolutionContext testContext)
                 : IHandleMessages<EditResolutionMessage>, IHandleMessages<MessageFailureResolvedByRetry>, IHandleMessages<MessageFailed>, IHandleMessages<MessageEditedAndRetried>
             {
@@ -183,9 +183,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
             }
         }
 
-        public class EditResolutionMessage : IMessage
-        {
-        }
+        public class EditResolutionMessage : IMessage;
     }
 }
 

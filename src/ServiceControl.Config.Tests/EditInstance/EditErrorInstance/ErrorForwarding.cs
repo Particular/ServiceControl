@@ -41,12 +41,12 @@
 
             nameof(viewModel.ErrorForwardingQueueName).Was_notified_of_change(changedProperties);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ShowErrorForwardingQueue, Is.True);
                 Assert.That(viewModel.ErrorForwardingWarning, Is.Not.Empty);
                 Assert.That(viewModel.ErrorForwardingQueueName, Is.EqualTo("error.log"));
-            });
+            }
         }
 
         [Test]
@@ -58,12 +58,12 @@
                 .Collect_changed_properties(changedProperties)
                 .When_a_error_forwarding_is_off();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.ShowErrorForwardingQueue, Is.False);
                 Assert.That(viewModel.ErrorForwardingWarning, Is.Null);
                 Assert.That(viewModel.ErrorForwardingQueueName, Is.Null);
-            });
+            }
         }
     }
 }

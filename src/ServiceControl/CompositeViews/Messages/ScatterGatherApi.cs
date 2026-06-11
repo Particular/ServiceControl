@@ -13,14 +13,10 @@ namespace ServiceControl.CompositeViews.Messages
     using ServiceBus.Management.Infrastructure.Settings;
     using JsonSerializer = System.Text.Json.JsonSerializer;
 
-    interface IApi
-    {
-    }
+    interface IApi;
 
     // used to hoist the static jsonSerializer field across the generic instances
-    public abstract class ScatterGatherApiBase
-    {
-    }
+    public abstract class ScatterGatherApiBase;
 
     public record ScatterGatherContext(PagingInfo PagingInfo);
 

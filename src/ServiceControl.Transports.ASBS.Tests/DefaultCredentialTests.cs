@@ -37,9 +37,7 @@
             Assert.That(ctx.EndpointsStarted.Task.IsCompletedSuccessfully, Is.True);
         }
 
-        public class Context : ScenarioContext
-        {
-        }
+        public class Context : ScenarioContext;
 
         public class DefaultCredentialEndpoint : EndpointConfigurationBuilder
         {

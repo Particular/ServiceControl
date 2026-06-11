@@ -39,11 +39,11 @@
         {
             var viewModel = Given_adding_monitoring_instance();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(viewModel.HostName, Is.EqualTo("localhost"));
                 Assert.That(viewModel.HostNameWarning, Is.Not.EqualTo("Not using localhost can expose ServiceControl to anonymous access."));
-            });
+            }
         }
     }
 }

@@ -24,14 +24,11 @@
         public async Task Should_import_all_messages()
         {
             //Make sure the error import attempt fails
-            CustomConfiguration = config => { config.RegisterComponents(services => services.AddSingleton<FailOnceEnricher>()); };
+            CustomizeHostBuilder = builder => builder.Services.AddSingleton<FailOnceEnricher>();
 
             var maximumConcurrencyLevel = 5;
 
-            SetSettings = settings =>
-            {
-                settings.MaximumConcurrencyLevel = maximumConcurrencyLevel;
-            };
+            SetSettings = settings => settings.MaximumConcurrencyLevel = maximumConcurrencyLevel;
 
             await Define<MyContext>(ctx =>
                 {

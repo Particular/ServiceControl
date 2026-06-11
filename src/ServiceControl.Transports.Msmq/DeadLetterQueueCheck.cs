@@ -9,6 +9,10 @@
     using NServiceBus.CustomChecks;
     using Transports;
 
+    // This check is intended to detect if messages are accumulating in the staging queue's dead letter queue,
+    // which could indicate a problem with ServiceControl's retries. It is not intended to be a general check
+    // of the health of the dead letter queue, so it only checks the dead letter queue associated with the staging queue.
+    // It is only meant to be running on the primary instance, as the audit and monitoring instances do not have a staging queue.
     public class DeadLetterQueueCheck : CustomCheck
     {
         public DeadLetterQueueCheck(TransportSettings settings, ILogger<DeadLetterQueueCheck> logger) :

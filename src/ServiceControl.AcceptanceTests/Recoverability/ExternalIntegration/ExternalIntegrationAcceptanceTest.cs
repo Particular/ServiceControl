@@ -24,6 +24,7 @@
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
 
+            [Handler]
             public class AHandler : IHandleMessages<AMessage>
             {
                 public Task Handle(AMessage message, IMessageHandlerContext context) => Task.CompletedTask;

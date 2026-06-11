@@ -63,8 +63,6 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                 expectedApiScopes: TestApiScopes);
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

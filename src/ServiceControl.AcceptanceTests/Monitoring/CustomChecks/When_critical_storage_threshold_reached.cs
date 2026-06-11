@@ -16,41 +16,36 @@
     class When_critical_storage_threshold_reached : AcceptanceTest
     {
         [SetUp]
-        public void SetupIngestion()
-        {
-            SetSettings = s =>
+        public void SetupIngestion() =>
+            SetSettings = static s =>
             {
                 s.TimeToRestartErrorIngestionAfterFailure = TimeSpan.FromSeconds(1);
                 s.DisableHealthChecks = false;
             };
-        }
 
         RavenPersisterSettings PersisterSettings => (RavenPersisterSettings)Settings.PersisterSpecificSettings;
 
         [Test]
-        public async Task Should_stop_ingestion()
-        {
+        public async Task Should_stop_ingestion() =>
             await Define<ScenarioContext>()
                 .WithEndpoint<Sender>(b => b
                     .When(context =>
                     {
                         return context.Logs.ToArray().Any(i => i.Message.StartsWith(ErrorIngestion.LogMessages.StartedInfrastructure));
-                    }, (_, __) =>
+                    }, (_, _) =>
                     {
                         PersisterSettings.MinimumStorageLeftRequiredForIngestion = 100;
                         PersisterSettings.DatabasePath = TestContext.CurrentContext.TestDirectory;
                         return Task.CompletedTask;
                     })
                     .When(context =>
-                    {
-                        return context.Logs.ToArray().Any(i =>
-                            i.Message.StartsWith(ErrorIngestion.LogMessages.StoppedInfrastructure));
-                    }, (bus, c) => bus.SendLocal(new MyMessage())
+                        {
+                            return context.Logs.ToArray().Any(i => i.Message.StartsWith(ErrorIngestion.LogMessages.StoppedInfrastructure));
+                        }, (bus, c) => bus.SendLocal(new MyMessage())
                     )
                     .DoNotFailOnErrorMessages())
                 .Done(async c => await this.TryGetSingle<FailedMessageView>("/api/errors") == false)
                 .Run();
-        }
 
         [Test]
         public async Task Should_stop_ingestion_and_resume_when_more_space_is_available()
@@ -61,9 +56,8 @@
                .WithEndpoint<Sender>(b => b
                     .When(context =>
                     {
-                        return context.Logs.ToArray().Any(i =>
-                            i.Message.StartsWith(ErrorIngestion.LogMessages.StartedInfrastructure));
-                    }, (session, context) =>
+                        return context.Logs.ToArray().Any(i => i.Message.StartsWith(ErrorIngestion.LogMessages.StartedInfrastructure));
+                    }, (_, _) =>
                     {
                         PersisterSettings.MinimumStorageLeftRequiredForIngestion = 100;
                         PersisterSettings.DatabasePath = TestContext.CurrentContext.TestDirectory;
@@ -71,16 +65,11 @@
                     })
                     .When(context =>
                     {
-                        ingestionShutdown = context.Logs.ToArray().Any(i =>
-                            i.Message.StartsWith(ErrorIngestion.LogMessages.StoppedInfrastructure));
-
+                        ingestionShutdown = context.Logs.ToArray().Any(i => i.Message.StartsWith(ErrorIngestion.LogMessages.StoppedInfrastructure));
                         return ingestionShutdown;
                     },
-                        (bus, c) =>
-                        {
-                            return bus.SendLocal(new MyMessage());
-                        })
-                    .When(c => ingestionShutdown, (session, context) =>
+                        (bus, c) => bus.SendLocal(new MyMessage()))
+                    .When(c => ingestionShutdown, (_, _) =>
                     {
                         PersisterSettings.MinimumStorageLeftRequiredForIngestion = 0;
                         return Task.CompletedTask;
@@ -88,8 +77,6 @@
                     .DoNotFailOnErrorMessages())
                 .Done(async c => await this.TryGetSingle<FailedMessageView>("/api/errors"))
                 .Run();
-
-
         }
 
         public class Sender : EndpointConfigurationBuilder
@@ -101,17 +88,13 @@
                     c.NoRetries();
                 });
 
+            [Handler]
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public Task Handle(MyMessage message, IMessageHandlerContext context)
-                {
-                    throw new ApplicationException("Big Error!");
-                }
+                public Task Handle(MyMessage message, IMessageHandlerContext context) => throw new ApplicationException("Big Error!");
             }
         }
 
-        public class MyMessage : ICommand
-        {
-        }
+        public class MyMessage : ICommand;
     }
 }

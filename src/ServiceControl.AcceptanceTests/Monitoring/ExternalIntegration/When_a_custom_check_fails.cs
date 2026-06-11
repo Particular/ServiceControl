@@ -75,6 +75,7 @@
                     publisherMetadata.RegisterPublisherFor<CustomCheckFailed>(Settings.DEFAULT_INSTANCE_NAME);
                 });
 
+            [Handler]
             public class CustomCheckFailedHandler(MyContext testContext) : IHandleMessages<CustomCheckFailed>
             {
                 public Task Handle(CustomCheckFailed message, IMessageHandlerContext context)

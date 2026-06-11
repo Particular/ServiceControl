@@ -5,26 +5,14 @@
     using NServiceBus;
     using ServiceControl.Persistence;
 
-    class RegisterNewEndpointHandler :
+    [Handler]
+    class RegisterNewEndpointHandler(IEndpointInstanceMonitoring endpointInstanceMonitoring) :
         IHandleMessages<NewEndpointDetected>,
         IHandleMessages<RegisterNewEndpoint>
     {
-        public RegisterNewEndpointHandler(IEndpointInstanceMonitoring endpointInstanceMonitoring)
-        {
-            this.endpointInstanceMonitoring = endpointInstanceMonitoring;
-        }
-
         // for backward compatibility reasons
-        public Task Handle(NewEndpointDetected message, IMessageHandlerContext context)
-        {
-            return endpointInstanceMonitoring.EndpointDetected(message.Endpoint);
-        }
+        public Task Handle(NewEndpointDetected message, IMessageHandlerContext context) => endpointInstanceMonitoring.EndpointDetected(message.Endpoint);
 
-        public Task Handle(RegisterNewEndpoint message, IMessageHandlerContext context)
-        {
-            return endpointInstanceMonitoring.EndpointDetected(message.Endpoint);
-        }
-
-        readonly IEndpointInstanceMonitoring endpointInstanceMonitoring;
+        public Task Handle(RegisterNewEndpoint message, IMessageHandlerContext context) => endpointInstanceMonitoring.EndpointDetected(message.Endpoint);
     }
 }

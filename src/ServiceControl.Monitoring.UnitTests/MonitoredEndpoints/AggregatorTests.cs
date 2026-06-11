@@ -98,16 +98,16 @@
             var seconds = period.IntervalSize.TotalSeconds;
             var values = Aggregator.ToTotalMeasurementsPerSecond(intervals, period);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(values.Average, Is.EqualTo((4d + 5d + 6d + 7d) / 2 / seconds));
                 Assert.That(values.Points, Has.Length.EqualTo(2));
-            });
-            Assert.Multiple(() =>
+            }
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(values.Points[0], Is.EqualTo((4d + 6d) / seconds));
                 Assert.That(values.Points[1], Is.EqualTo((5d + 7d) / seconds));
-            });
+            }
         }
 
         [Test]

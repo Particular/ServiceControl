@@ -1,5 +1,3 @@
 ﻿namespace ServiceControl.Persistence.Tests.InMemory;
 
-class InMemoryPersistenceSettings : PersistenceSettings
-{
-}
+class InMemoryPersistenceSettings : PersistenceSettings;

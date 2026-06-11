@@ -63,16 +63,16 @@
                 })
                 .Run();
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(context.EditedMessageProperty, Is.EqualTo("StarWars rocks"));
                 Assert.That(context.EditedMessageId, Is.Not.EqualTo(context.OriginalMessageId));
                 Assert.That(context.OriginalMessageFailure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
                 Assert.That(context.EditedMessageHeaders, Has.No.Member("NServiceBus.ExceptionInfo.StackTrace"));
-            });
+            }
         }
 
-        class EditedMessageReceiver : EndpointConfigurationBuilder
+        public class EditedMessageReceiver : EndpointConfigurationBuilder
         {
             public EditedMessageReceiver() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
@@ -80,7 +80,8 @@
                     c.NoRetries();
                 });
 
-            class EditedMessageHandler(EditMessageContext testContext, IReadOnlySettings settings)
+            [Handler]
+            public class EditedMessageHandler(EditMessageContext testContext, IReadOnlySettings settings)
                 : IHandleMessages<EditMessage>
             {
                 public Task Handle(EditMessage message, IMessageHandlerContext context)
@@ -101,7 +102,7 @@
             }
         }
 
-        class EditMessageContext : ScenarioContext
+        internal class EditMessageContext : ScenarioContext
         {
             public bool EditedMessage { get; set; }
             public string UniqueMessageId { get; set; }
@@ -112,7 +113,7 @@
             public HashSet<string> EditedMessageHeaders { get; set; }
         }
 
-        class EditMessage : IMessage
+        internal class EditMessage : IMessage
         {
             public string SomeProperty { get; set; }
         }

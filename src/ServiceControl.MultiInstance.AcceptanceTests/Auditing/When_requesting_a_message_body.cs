@@ -69,14 +69,14 @@
 
             var body = await response.Content.ReadAsByteArrayAsync(cancellationToken);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(body, Is.EqualTo(context.MessageBody), "Body bytes mismatch");
                 Assert.That(response.Headers.GetValues("ETag").SingleOrDefault(), Is.Not.Null, "Etag not set");
-            });
+            }
         }
 
-        class MyContext : ScenarioContext
+        internal class MyContext : ScenarioContext
         {
             public string AuditInstanceMessageId { get; set; }
             public byte[] MessageBody { get; set; }
@@ -85,21 +85,17 @@
             public string AuditInstanceId { get; set; }
         }
 
-        class MyMessage : ICommand
+        internal class MyMessage : ICommand
         {
             public Guid Id { get; set; } = Guid.NewGuid();
         }
 
-        class RemoteEndpoint : EndpointConfigurationBuilder
+        public class RemoteEndpoint : EndpointConfigurationBuilder
         {
-            public RemoteEndpoint() => EndpointSetup<DefaultServerWithAudit>(c => c.RegisterComponents(services => services.AddSingleton<IMutateIncomingTransportMessages, MessageBodySpy>()));
+            public RemoteEndpoint() => EndpointSetup<DefaultServerWithAudit, MyContext>((c, context) => c.RegisterMessageMutator(new MessageBodySpy(context)));
 
-            public class MessageBodySpy : IMutateIncomingTransportMessages
+            public class MessageBodySpy(MyContext testContext) : IMutateIncomingTransportMessages
             {
-                readonly MyContext testContext;
-
-                public MessageBodySpy(MyContext testContext) => this.testContext = testContext;
-
                 public Task MutateIncoming(MutateIncomingTransportMessageContext context)
                 {
                     testContext.MessageContentType = context.Headers[Headers.ContentType];
@@ -108,12 +104,9 @@
                 }
             }
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            [Handler]
+            public class MyMessageHandler(MyContext testContext) : IHandleMessages<MyMessage>
             {
-                readonly MyContext testContext;
-
-                public MyMessageHandler(MyContext testContext) => this.testContext = testContext;
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     testContext.AuditInstanceMessageId = context.MessageId;

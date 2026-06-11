@@ -10,6 +10,7 @@
     using ServiceControl.Connection;
     using ServiceControl.Infrastructure;
 
+    [Handler]
     class SagaUpdatedHandler(IPlatformConnectionBuilder connectionBuilder, ILogger<SagaUpdatedHandler> logger)
         : IHandleMessages<SagaUpdatedMessage>
     {

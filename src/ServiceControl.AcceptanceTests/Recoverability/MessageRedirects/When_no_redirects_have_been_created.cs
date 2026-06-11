@@ -25,8 +25,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
             Assert.That(response, Is.Empty, "Expected 0 redirects to be created");
         }
 
-        public class Context : ScenarioContext
-        {
-        }
+        public class Context : ScenarioContext;
     }
 }

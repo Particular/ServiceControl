@@ -64,17 +64,17 @@
                 })
                 .Run(cancellationToken);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(decomissionedFailure, Is.Not.Null);
                 Assert.That(successfullyRetried, Is.Not.Null);
-            });
+            }
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(decomissionedFailure.Status, Is.EqualTo(FailedMessageStatus.Unresolved));
                 Assert.That(successfullyRetried.Status, Is.EqualTo(FailedMessageStatus.Resolved));
-            });
+            }
         }
 
         public class FailureEndpoint : EndpointConfigurationBuilder
@@ -87,6 +87,7 @@
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
 
+            [Handler]
             public class MessageThatWillFailHandler(MyContext scenarioContext, IReadOnlySettings settings)
                 : IHandleMessages<MessageThatWillFail>
             {

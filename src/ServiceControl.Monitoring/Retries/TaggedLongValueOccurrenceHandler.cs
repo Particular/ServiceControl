@@ -5,13 +5,9 @@
     using Messaging;
     using NServiceBus;
 
-    public class TaggedLongValueOccurrenceHandler : IHandleMessages<TaggedLongValueOccurrence>
+    [Handler]
+    public class TaggedLongValueOccurrenceHandler(RetriesStore store) : IHandleMessages<TaggedLongValueOccurrence>
     {
-        public TaggedLongValueOccurrenceHandler(RetriesStore store)
-        {
-            this.store = store;
-        }
-
         public Task Handle(TaggedLongValueOccurrence message, IMessageHandlerContext context)
         {
             var instanceId = EndpointInstanceId.From(context.MessageHeaders);
@@ -25,7 +21,6 @@
             return Task.CompletedTask;
         }
 
-        readonly RetriesStore store;
         const string RetriesMessageType = "Retries";
     }
 }

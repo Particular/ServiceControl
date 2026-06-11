@@ -49,11 +49,11 @@
                 })
                 .Run(cancellationToken);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(failure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
                 Assert.That(eventLogItems.Any(item => item.Description.Equals("Failed message resolved by retry") && item.RelatedTo.Contains("/message/" + failure.UniqueMessageId)), Is.True);
-            });
+            }
         }
 
         [Test]
@@ -208,6 +208,7 @@
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
 
+            [Handler]
             public class MyMessageHandler(
                 MyContext scenarioContext,
                 IReadOnlySettings settings,

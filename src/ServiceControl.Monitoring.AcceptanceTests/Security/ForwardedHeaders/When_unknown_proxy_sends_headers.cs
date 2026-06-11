@@ -54,8 +54,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
             Assert.That(requestInfo.Configuration.KnownProxies, Does.Contain("192.168.1.100"));
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
     }
 }

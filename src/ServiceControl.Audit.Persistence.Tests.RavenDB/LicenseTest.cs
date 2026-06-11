@@ -30,7 +30,7 @@
                     var jsonText = await response.Content.ReadAsStringAsync();
                     var details = System.Text.Json.JsonSerializer.Deserialize<LicenseDetails>(jsonText);
 
-                    Assert.Multiple(() =>
+                    using (Assert.EnterMultipleScope())
                     {
                         Assert.That(details.Id, Is.EqualTo("64c6a174-3f3a-4e7d-ac5d-b3eedd801460"));
                         Assert.That(details.LicensedTo, Is.EqualTo("NserviceBus Ltd"));
@@ -38,7 +38,7 @@
                         Assert.That(details.Expired, Is.False);
                         Assert.That(details.Type, Is.EqualTo("Professional"));
                         Assert.That(DateTime.UtcNow.AddDays(7), Is.LessThan(details.Expiration), $"The RavenDB license expires {details.Expiration} which is less than one week. Contact RavenDB at <sales@ravendb.net> for the new license.");
-                    });
+                    }
                 }
             }
         }
