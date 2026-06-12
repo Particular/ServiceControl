@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using ServiceControl.Infrastructure;
 using ServiceControl.Infrastructure.Auth;
 
 /// <summary>
@@ -21,8 +22,7 @@ using ServiceControl.Infrastructure.Auth;
 /// </summary>
 public sealed class PermissionVerbHandler(
     IAuthorizationAuditLog auditLog,
-    string subjectIdClaim,
-    string subjectNameClaim)
+    OpenIdConnectSettings oidcSettings)
     : AuthorizationHandler<PermissionRequirement>
 {
     // The per-IdP variability of the source claim is absorbed by RolesClaimsTransformation, which
@@ -41,8 +41,8 @@ public sealed class PermissionVerbHandler(
             return Task.CompletedTask;
         }
 
-        var subjectId = RequireClaim(context.User, subjectIdClaim, "Authentication.SubjectIdClaim");
-        var subjectName = RequireClaim(context.User, subjectNameClaim, "Authentication.SubjectNameClaim");
+        var subjectId = RequireClaim(context.User, oidcSettings.SubjectIdClaim, "Authentication.SubjectIdClaim");
+        var subjectName = RequireClaim(context.User, oidcSettings.SubjectNameClaim, "Authentication.SubjectNameClaim");
         var roles = context.User.FindAll(RoleClaimType).Select(claim => claim.Value).ToArray();
         var permission = requirement.Permission;
 
