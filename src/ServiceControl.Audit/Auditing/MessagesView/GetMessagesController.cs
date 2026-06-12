@@ -9,11 +9,13 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Persistence;
+    using ServiceControl.Infrastructure.Auth;
 
     [ApiController]
     [Route("api")]
     public class GetMessagesController(IAuditDataStore dataStore) : ControllerBase
     {
+        [Authorize(Policy = Permissions.AuditMessageView)]
         [Route("messages")]
         [HttpGet]
         public async Task<IList<MessagesView>> GetAllMessages([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, [FromQuery(Name = "include_system_messages")] bool includeSystemMessages, CancellationToken cancellationToken)
@@ -23,6 +25,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
             return result.Results;
         }
 
+        [Authorize(Policy = Permissions.AuditMessageView)]
         [Route("endpoints/{endpoint}/messages")]
         [HttpGet]
         public async Task<IList<MessagesView>> GetEndpointMessages([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, [FromQuery(Name = "include_system_messages")] bool includeSystemMessages, string endpoint, CancellationToken cancellationToken)
@@ -43,6 +46,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
             return result.Results;
         }
 
+        [Authorize(Policy = Permissions.AuditMessageView)]
         [Route("messages/{id}/body")]
         [HttpGet]
         public async Task<IActionResult> Get(string id, CancellationToken cancellationToken)
@@ -69,6 +73,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
             return result.StringContent != null ? Content(result.StringContent, contentType) : File(result.StreamContent, contentType);
         }
 
+        [Authorize(Policy = Permissions.AuditMessageView)]
         [Route("messages/search")]
         [HttpGet]
         public async Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string q, CancellationToken cancellationToken)
@@ -78,6 +83,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
             return result.Results;
         }
 
+        [Authorize(Policy = Permissions.AuditMessageView)]
         [Route("messages/search/{keyword}")]
         [HttpGet]
         public async Task<IList<MessagesView>> SearchByKeyWord([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string keyword, CancellationToken cancellationToken)
@@ -87,6 +93,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
             return result.Results;
         }
 
+        [Authorize(Policy = Permissions.AuditMessageView)]
         [Route("endpoints/{endpoint}/messages/search")]
         [HttpGet]
         public async Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint, string q, CancellationToken cancellationToken)
@@ -96,6 +103,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
             return result.Results;
         }
 
+        [Authorize(Policy = Permissions.AuditMessageView)]
         [Route("endpoints/{endpoint}/messages/search/{keyword}")]
         [HttpGet]
         public async Task<IList<MessagesView>> SearchByKeyword([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint, string keyword, CancellationToken cancellationToken)

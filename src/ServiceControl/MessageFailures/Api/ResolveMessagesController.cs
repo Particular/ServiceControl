@@ -8,7 +8,9 @@ namespace ServiceControl.MessageFailures.Api
     using System.Linq;
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
+    using Infrastructure.Auth;
     using InternalMessages;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
     using NServiceBus;
@@ -17,6 +19,7 @@ namespace ServiceControl.MessageFailures.Api
     [Route("api")]
     public class ResolveMessagesController(IMessageSession session) : ControllerBase
     {
+        [Authorize(Policy = Permissions.ErrorMessagesRetry)]
         [Route("pendingretries/resolve")]
         [HttpPatch]
         public async Task<IActionResult> ResolveBy(UniqueMessageIdsModel request)
@@ -61,6 +64,7 @@ namespace ServiceControl.MessageFailures.Api
             return Accepted();
         }
 
+        [Authorize(Policy = Permissions.ErrorMessagesRetry)]
         [Route("pendingretries/queues/resolve")]
         [HttpPatch]
         public async Task<IActionResult> ResolveBy(QueueModel queueModel)

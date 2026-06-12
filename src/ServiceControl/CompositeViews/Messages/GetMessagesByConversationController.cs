@@ -2,7 +2,9 @@
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Infrastructure.Auth;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using Persistence.Infrastructure;
@@ -12,6 +14,7 @@
     public class GetMessagesByConversationController(MessagesByConversationApi byConversationApi)
         : ControllerBase
     {
+        [Authorize(Policy = Permissions.ErrorMessagesView)]
         [Route("conversations/{conversationId:required:minlength(1)}")]
         [HttpGet]
         public async Task<IList<MessagesView>> Messages([FromQuery] PagingInfo pagingInfo,

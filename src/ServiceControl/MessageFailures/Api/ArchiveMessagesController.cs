@@ -2,8 +2,10 @@ namespace ServiceControl.MessageFailures.Api
 {
     using System.Linq;
     using System.Threading.Tasks;
+    using Infrastructure.Auth;
     using Infrastructure.WebApi;
     using InternalMessages;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
     using ServiceControl.Persistence;
@@ -13,6 +15,7 @@ namespace ServiceControl.MessageFailures.Api
     [Route("api")]
     public class ArchiveMessagesController(IMessageSession messageSession, IErrorMessageDataStore dataStore) : ControllerBase
     {
+        [Authorize(Policy = Permissions.ErrorMessagesArchive)]
         [Route("errors/archive")]
         [HttpPost]
         [HttpPatch]
@@ -34,6 +37,7 @@ namespace ServiceControl.MessageFailures.Api
             return Accepted();
         }
 
+        [Authorize(Policy = Permissions.ErrorMessagesView)]
         [Route("errors/groups/{classifier?}")]
         [HttpGet]
         public async Task<IActionResult> GetArchiveMessageGroups(string classifier = "Exception Type and Stack Trace")
@@ -45,6 +49,7 @@ namespace ServiceControl.MessageFailures.Api
             return Ok(results);
         }
 
+        [Authorize(Policy = Permissions.ErrorMessagesArchive)]
         [Route("errors/{messageId:required:minlength(1)}/archive")]
         [HttpPost]
         [HttpPatch]
@@ -55,6 +60,7 @@ namespace ServiceControl.MessageFailures.Api
             return Accepted();
         }
 
+        [Authorize(Policy = Permissions.ErrorMessagesView)]
         [Route("archive/groups/id/{groupId:required:minlength(1)}")]
         [HttpGet]
         public async Task<ActionResult<FailureGroupView>> GetGroup(string groupId, string status = default, string modified = default)

@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
     using System.Threading.Tasks;
+    using Infrastructure.Auth;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Persistence;
 
@@ -8,6 +10,7 @@
     [Route("api")]
     public class GetErrorByIdController(IErrorMessageDataStore store) : ControllerBase
     {
+        [Authorize(Policy = Permissions.ErrorMessagesView)]
         [Route("errors/{failedMessageId:required:minlength(1)}")]
         [HttpGet]
         public async Task<ActionResult<FailedMessage>> ErrorBy(string failedMessageId)
@@ -17,6 +20,7 @@
             return result == null ? NotFound() : result;
         }
 
+        [Authorize(Policy = Permissions.ErrorMessagesView)]
         [Route("errors/last/{failedMessageId:required:minlength(1)}")]
         [HttpGet]
         public async Task<ActionResult<FailedMessageView>> ErrorLastBy(string failedMessageId)

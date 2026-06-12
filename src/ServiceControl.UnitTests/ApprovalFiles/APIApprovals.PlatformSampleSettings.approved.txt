@@ -14,7 +14,9 @@
     "RequireHttpsMetadata": true,
     "ServicePulseAuthority": null,
     "ServicePulseClientId": null,
-    "ServicePulseApiScopes": null
+    "ServicePulseApiScopes": null,
+    "RolesClaim": "roles",
+    "RoleBasedAuthorizationEnabled": false
   },
   "ForwardedHeadersSettings": {
     "Enabled": true,

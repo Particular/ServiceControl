@@ -2,6 +2,8 @@
 {
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure.Auth;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Monitoring.HeartbeatMonitoring;
     using Particular.ServiceControl.Licensing;
@@ -11,6 +13,7 @@
     [Route("api")]
     public class LicenseController(ActiveLicense activeLicense, Settings settings, MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus) : ControllerBase
     {
+        [Authorize(Policy = Permissions.ErrorLicensingView)]
         [HttpGet]
         [Route("license")]
         public async Task<ActionResult<LicenseInfo>> License(bool refresh, string clientName, CancellationToken cancellationToken)
