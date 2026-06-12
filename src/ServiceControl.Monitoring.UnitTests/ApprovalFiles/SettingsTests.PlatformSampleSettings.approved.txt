@@ -12,6 +12,8 @@
     "ValidateLifetime": true,
     "ValidateIssuerSigningKey": true,
     "RequireHttpsMetadata": true,
+    "SubjectIdClaim": "sub",
+    "SubjectNameClaim": "preferred_username",
     "ServicePulseAuthority": null,
     "ServicePulseClientId": null,
     "ServicePulseApiScopes": null,

@@ -3,9 +3,10 @@ namespace ServiceControl.Hosting.Auth;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using ServiceControl.Infrastructure;
+using ServiceControl.Infrastructure.Auth;
 
 /// <summary>
 /// Registers the permission-based policy authorization services: a dynamic
@@ -25,6 +26,10 @@ public static class PermissionAuthorizationExtensions
     {
         var services = hostBuilder.Services;
 
+        // The settings are shared by every auth service below (and the authentication wiring), so they
+        // are registered once in DI and constructor-injected rather than captured in factory lambdas.
+        services.TryAddSingleton(oidcSettings);
+
         // Ensure the authorization core services and options are present (idempotent).
         services.AddAuthorization();
 
@@ -34,9 +39,15 @@ public static class PermissionAuthorizationExtensions
         // request to an annotated endpoint. When RBAC is disabled the provider returns allow-all
         // policies (no requirement), so anonymous-to-the-policy calls pass through and the verb
         // handler is unnecessary.
-        services.AddSingleton<IAuthorizationPolicyProvider>(sp =>
-            new PermissionPolicyProvider(sp.GetRequiredService<IOptions<AuthorizationOptions>>(), oidcSettings));
+        services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 
-        services.AddSingleton<IAuthorizationHandler>(_ => new PermissionVerbHandler(oidcSettings.RolesClaim));
+        // The provider only emits a PermissionRequirement when RBAC is enabled, so the handler is the
+        // only thing that evaluates one. It is registered alongside the provider (cheap singleton, never
+        // invoked when no requirement is produced). The handler emits an audit-log entry for every
+        // decision through IAuthorizationAuditLog so the platform can show, after the fact, who attempted
+        // what and how the system responded. The subject-id and subject-name claim names are read off the
+        // injected OpenIdConnectSettings so the handler can match them on the principal.
+        services.AddSingleton<IAuthorizationAuditLog, AuthorizationAuditLog>();
+        services.AddSingleton<IAuthorizationHandler, PermissionVerbHandler>();
     }
 }
