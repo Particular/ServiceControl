@@ -27,6 +27,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 {
     const string CompleteMessageMetricName = "CompleteMessage";
     const string MicrosoftServicebusNamespacesMetricsNamespace = "Microsoft.ServiceBus/Namespaces";
+    const int MaxDaysToQuery = 90;
 
     string serviceBusName = string.Empty;
     ArmClient? armClient;
@@ -202,8 +203,13 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         logger.LogInformation($"Gathering metrics for \"{brokerQueue.QueueName}\" queue");
-
-        var endDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime).AddDays(-1);
+        var today = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime);
+        var earliestStartDate = today.AddDays(-MaxDaysToQuery);
+        if (startDate < earliestStartDate)
+        {
+            startDate = earliestStartDate;
+        }
+        var endDate = today.AddDays(-1);
         if (endDate < startDate)
         {
             yield break;
