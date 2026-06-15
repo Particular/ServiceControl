@@ -23,7 +23,7 @@ public class AuthorizationAuditLogTests
         Assert.That(entries[0].Message, Does.Contain("alice-sub-001"));
         Assert.That(entries[0].Message, Does.Contain("Alice Smith"));
         Assert.That(entries[0].Message, Does.Contain("error:messages:retry"));
-        Assert.That(entries[0].Message, Does.Contain("allow"));
+        Assert.That(entries[0].Message, Does.Contain("Allow:"));
         Assert.That(entries[0].Level, Is.EqualTo(LogLevel.Information));
     }
 
@@ -41,8 +41,8 @@ public class AuthorizationAuditLogTests
         Assert.That(entries[0].Message, Does.Contain("bob-sub-002"));
         Assert.That(entries[0].Message, Does.Contain("Bob Jones"));
         Assert.That(entries[0].Message, Does.Contain("error:messages:retry"));
-        Assert.That(entries[0].Message, Does.Contain("deny"));
-        Assert.That(entries[0].Level, Is.EqualTo(LogLevel.Information));
+        Assert.That(entries[0].Message, Does.Contain("Deny:"));
+        Assert.That(entries[0].Level, Is.EqualTo(LogLevel.Warning));
     }
 
     [Test]
@@ -69,8 +69,8 @@ public class AuthorizationAuditLogTests
 
         var entries = provider.EntriesFor("ServiceControl.Audit");
         Assert.That(entries, Has.Count.EqualTo(2));
-        Assert.That(entries[0].Message, Does.Contain("allow"));
-        Assert.That(entries[1].Message, Does.Contain("deny"));
+        Assert.That(entries[0].Message, Does.Contain("Allow:"));
+        Assert.That(entries[1].Message, Does.Contain("Deny:"));
     }
 
     [TestCase(null, "Alice", "error:messages:retry", "reason")]
