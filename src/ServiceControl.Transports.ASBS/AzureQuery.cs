@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 using Azure.Core;
 using Azure.Core.Pipeline;
 using Azure.Identity;
-using Azure.Monitor.Query.Metrics;
-using Azure.Monitor.Query.Metrics.Models;
 using Azure.ResourceManager;
+using Azure.ResourceManager.Monitor;
+using Azure.ResourceManager.Monitor.Models;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.ServiceBus;
 using BrokerThroughput;
@@ -33,8 +33,6 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     TokenCredential? credential;
     ResourceIdentifier? resourceId;
     ArmEnvironment armEnvironment;
-    MetricsClientAudience metricsClientAudience;
-    MetricsClient? metricsClient;
 
     protected override void InitializeCore(ReadOnlyDictionary<string, string> settings)
     {
@@ -107,7 +105,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             Diagnostics.AppendLine("Client secret set");
         }
 
-        (armEnvironment, metricsClientAudience) = GetEnvironment();
+        armEnvironment = GetEnvironment();
 
         if (managementUrl == null)
         {
@@ -146,26 +144,26 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
         return;
 
-        (ArmEnvironment armEnvironment, MetricsClientAudience metricsClientAudience) GetEnvironment()
+        ArmEnvironment GetEnvironment()
         {
             if (managementUrlParsed == null || managementUrlParsed == ArmEnvironment.AzurePublicCloud.Endpoint)
             {
-                return (ArmEnvironment.AzurePublicCloud, MetricsClientAudience.AzurePublicCloud);
+                return ArmEnvironment.AzurePublicCloud;
             }
 
             if (managementUrlParsed == ArmEnvironment.AzureChina.Endpoint)
             {
-                return (ArmEnvironment.AzureChina, MetricsClientAudience.AzureChina);
+                return ArmEnvironment.AzureChina;
             }
 
             if (managementUrlParsed == ArmEnvironment.AzureGermany.Endpoint)
             {
-                return (ArmEnvironment.AzureGermany, MetricsClientAudience.AzurePublicCloud);
+                return ArmEnvironment.AzureGermany;
             }
 
             if (managementUrlParsed == ArmEnvironment.AzureGovernment.Endpoint)
             {
-                return (ArmEnvironment.AzureGovernment, MetricsClientAudience.AzureGovernment);
+                return ArmEnvironment.AzureGovernment;
             }
 
             string options = string.Join(", ",
@@ -175,7 +173,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
                 }.Select(environment => $"\"{environment.Endpoint}\""));
             InitialiseErrors.Add($"Management url configuration is invalid, available options are {options}");
 
-            return (ArmEnvironment.AzurePublicCloud, MetricsClientAudience.AzurePublicCloud);
+            return ArmEnvironment.AzurePublicCloud;
         }
     }
 
@@ -235,85 +233,27 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         }
     }
 
-    async Task<MetricsClient> InitializeMetricsClient(CancellationToken cancellationToken = default)
-    {
-        if (resourceId is null || armClient is null || credential is null)
-        {
-            throw new InvalidOperationException("AzureQuery has not been initialized correctly.");
-        }
-
-        var serviceBusNamespaceResource = await armClient
-                                              .GetServiceBusNamespaceResource(resourceId).GetAsync(cancellationToken)
-                                          ?? throw new Exception($"Could not find an Azure Service Bus namespace with resource Id: \"{resourceId}\"");
-
-        // Determine the region of the namespace
-        var regionName = serviceBusNamespaceResource.Value.Data.Location.Name;
-
-        // Build the regional Azure Monitor Metrics endpoint from the audience
-        var metricsEndpoint = BuildMetricsEndpoint(metricsClientAudience, regionName);
-
-        // CreateNewOnMetadataUpdateAttribute the MetricsClient for this namespace
-        return new MetricsClient(
-            metricsEndpoint,
-            credential!,
-            new MetricsClientOptions
-            {
-                Audience = metricsClientAudience,
-                Transport = new HttpClientTransport(
-                    new HttpClient(new SocketsHttpHandler
-                    {
-                        PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
-                    }))
-            });
-    }
-
-    static Uri BuildMetricsEndpoint(MetricsClientAudience audience, string regionName)
-    {
-        var region = regionName.ToLowerInvariant();
-        var builder = new UriBuilder(audience.ToString());
-        builder.Host = $"{region}.{builder.Host}";
-        return builder.Uri;
-    }
-
-    async Task<IReadOnlyList<MetricValue>> GetMetrics(string queueName, DateOnly startTime, DateOnly endTime,
+    async Task<IReadOnlyList<MonitorMetricValue>> GetMetrics(string queueName, DateOnly startTime, DateOnly endTime,
         CancellationToken cancellationToken = default)
     {
-        metricsClient ??= await InitializeMetricsClient(cancellationToken);
-
-        var response = await metricsClient.QueryResourcesAsync(
-            [resourceId!],
-            [CompleteMessageMetricName],
-            MicrosoftServicebusNamespacesMetricsNamespace,
-            new MetricsQueryResourcesOptions
-            {
-                Filter = $"EntityName eq '{queueName}'",
-                TimeRange = new MetricsQueryTimeRange(startTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc), endTime.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc)),
-                Granularity = TimeSpan.FromDays(1)
-            },
-            cancellationToken);
-
-        var metricQueryResult = response.Value.Values.SingleOrDefault(mr => mr.Namespace == MicrosoftServicebusNamespacesMetricsNamespace);
-
-        if (metricQueryResult is null)
+        var options = new ArmResourceGetMonitorMetricsOptions()
         {
-            throw new Exception($"No metrics query results returned for {MicrosoftServicebusNamespacesMetricsNamespace}");
-        }
+            Metricnames = CompleteMessageMetricName,
+            Timespan = $"{startTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc):o}/{endTime.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc):o}",
+            Filter = $"EntityName eq '{queueName}'",
+            Interval = TimeSpan.FromDays(1),
+            Metricnamespace = MicrosoftServicebusNamespacesMetricsNamespace
+        };
 
-        var metricResult = metricQueryResult.GetMetricByName(CompleteMessageMetricName);
+        var response = armClient.GetMonitorMetricsAsync(resourceId, options, cancellationToken);
 
-        if (metricResult.Error.Message is not null)
-        {
-            throw new Exception($"Metrics query result for '{metricResult.Name}' failed: {metricResult.Error.Message}");
-        }
+        var metric = await response.SingleOrDefaultAsync(m => m.Name.Value == CompleteMessageMetricName, cancellationToken)
+            ?? throw new Exception($"Metric {CompleteMessageMetricName} not found for {queueName}");
 
-        var timeSeries = metricResult.TimeSeries.SingleOrDefault();
+        var timeSeries = metric.Timeseries.SingleOrDefault()
+            ?? throw new Exception($"Metric {metric.Name.Value} for {queueName} contains no time series");
 
-        if (timeSeries is null)
-        {
-            throw new Exception($"Metrics query result for '{metricResult.Name}' contained no time series");
-        }
-
-        return timeSeries.Values.AsReadOnly();
+        return timeSeries.Data;
     }
 
     public override async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
