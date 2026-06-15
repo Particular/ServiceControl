@@ -6,6 +6,7 @@
     using Monitoring.HeartbeatMonitoring;
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.LicenseManagement;
 
     [ApiController]
     [Route("api")]
@@ -31,6 +32,7 @@
                 LicenseType = activeLicense.Details.LicenseType ?? string.Empty,
                 InstanceName = settings.InstanceName ?? string.Empty,
                 LicenseStatus = activeLicense.Details.Status,
+                Products = activeLicense.Details.Products,
                 LicenseExtensionUrl = connectorHeartbeatStatus.LastHeartbeat == null
                     ? $"https://particular.net/extend-your-trial?p={clientName}"
                     : $"https://particular.net/license/mt?p={clientName}&t={(activeLicense.IsEvaluation ? 0 : 1)}"
@@ -52,6 +54,8 @@
             public string ExpirationDate { get; set; }
 
             public string Status { get; set; }
+
+            public LicensedProduct[] Products { get; set; }
 
             public string LicenseType { get; set; }
 
