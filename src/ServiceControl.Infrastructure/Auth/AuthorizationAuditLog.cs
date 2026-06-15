@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 /// </summary>
 public sealed partial class AuthorizationAuditLog(ILoggerFactory loggerFactory) : IAuthorizationAuditLog
 {
-    public const string AuditCategory = "ServiceControl.Audit"; // TODO: Currently this is in infrastructure thus used bv all instances. Would we need to use a different category per instance?
+    public const string AuditCategory = "ServiceControl.Audit"; // Logger name is used in logging configuration to write audit entries to a separate file.
 
     readonly ILogger logger = loggerFactory.CreateLogger(AuditCategory);
 
