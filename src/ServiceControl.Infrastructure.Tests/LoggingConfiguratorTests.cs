@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Config;
 using NLog.Extensions.Logging;
-using NLog.Layouts;
 using NLog.Targets;
 using NUnit.Framework;
 using ServiceControl.Infrastructure;
@@ -24,16 +23,17 @@ public class LoggingConfiguratorTests
         LoggingConfigurator.BuildConfiguration("logfile.txt", Path.GetTempPath(), LogLevel.Info);
 
     [Test]
-    public void Audit_category_is_routed_to_a_structured_json_target()
+    public void Audit_target_emits_the_prerendered_event_verbatim()
     {
-        var config = BuildConfig();
+        var auditTarget = BuildConfig().LoggingRules
+            .Single(r => r.LoggerNamePattern == AuditPattern)
+            .Targets.OfType<TargetWithLayout>()
+            .Single(t => t.Name == "audit-console");
 
-        var auditRule = config.LoggingRules.Single(r => r.LoggerNamePattern == AuditPattern);
+        var rendered = auditTarget.Layout.Render(new LogEventInfo(LogLevel.Info, AuthorizationAuditLog.AuditCategory, "ECS-PAYLOAD"));
 
-        Assert.That(
-            auditRule.Targets.OfType<TargetWithLayout>().Any(t => t.Layout is JsonLayout),
-            Is.True,
-            "the audit category should be routed to a target that uses a JSON layout");
+        Assert.That(rendered, Is.EqualTo("ECS-PAYLOAD"),
+            "the audit target must pass the pre-rendered ECS JSON through unwrapped, not double-encode it");
     }
 
     [Test]
@@ -85,21 +85,24 @@ public class LoggingConfiguratorTests
         var allow = JsonDocument.Parse(captured.Logs[0]).RootElement;
         Assert.Multiple(() =>
         {
-            Assert.That(allow.GetProperty("level").GetString(), Is.EqualTo("INFO"));
-            Assert.That(allow.GetProperty("category").GetString(), Is.EqualTo(AuthorizationAuditLog.AuditCategory));
-            Assert.That(allow.GetProperty("SubjectId").GetString(), Is.EqualTo("alice-sub-001"));
-            Assert.That(allow.GetProperty("SubjectName").GetString(), Is.EqualTo("Alice Smith"));
-            Assert.That(allow.GetProperty("Permission").GetString(), Is.EqualTo("error:messages:retry"));
-            Assert.That(allow.GetProperty("Resource").GetString(), Is.EqualTo("acme.sales"));
-            Assert.That(allow.TryGetProperty("timestamp", out _), Is.True, "timestamp attribute should be present");
+            Assert.That(allow.GetProperty("@timestamp").GetString(), Is.Not.Empty, "ECS @timestamp should be present");
+            Assert.That(allow.GetProperty("event").GetProperty("kind").GetString(), Is.EqualTo("event"));
+            Assert.That(allow.GetProperty("event").GetProperty("category")[0].GetString(), Is.EqualTo("iam"));
+            Assert.That(allow.GetProperty("event").GetProperty("type")[0].GetString(), Is.EqualTo("allowed"));
+            Assert.That(allow.GetProperty("event").GetProperty("action").GetString(), Is.EqualTo("error:messages:retry"));
+            Assert.That(allow.GetProperty("event").GetProperty("outcome").GetString(), Is.EqualTo("success"));
+            Assert.That(allow.GetProperty("user").GetProperty("id").GetString(), Is.EqualTo("alice-sub-001"));
+            Assert.That(allow.GetProperty("user").GetProperty("name").GetString(), Is.EqualTo("Alice Smith"));
+            Assert.That(allow.GetProperty("servicecontrol").GetProperty("resource").GetString(), Is.EqualTo("acme.sales"));
         });
 
         var deny = JsonDocument.Parse(captured.Logs[1]).RootElement;
         Assert.Multiple(() =>
         {
-            Assert.That(deny.GetProperty("level").GetString(), Is.EqualTo("WARN"), "denies must surface at Warning level");
-            Assert.That(deny.GetProperty("SubjectId").GetString(), Is.EqualTo("bob-sub-002"));
-            Assert.That(deny.GetProperty("Permission").GetString(), Is.EqualTo("error:messages:retry"));
+            Assert.That(deny.GetProperty("event").GetProperty("type")[0].GetString(), Is.EqualTo("denied"));
+            Assert.That(deny.GetProperty("event").GetProperty("outcome").GetString(), Is.EqualTo("failure"));
+            Assert.That(deny.GetProperty("user").GetProperty("id").GetString(), Is.EqualTo("bob-sub-002"));
+            Assert.That(deny.GetProperty("servicecontrol").GetProperty("resource").ValueKind, Is.EqualTo(JsonValueKind.Null), "absent resource should be JSON null");
         });
     }
 }

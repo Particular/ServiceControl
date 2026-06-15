@@ -77,19 +77,11 @@ namespace ServiceControl.Infrastructure
                 FinalMinLevel = LogLevel.Warn
             };
 
-            // The authorization audit trail is emitted on a dedicated category as structured JSON so it can be
-            // shipped to a SIEM without being polluted by — or polluting — the plain-text operational log.
-            var auditLayout = new JsonLayout
-            {
-                IncludeEventProperties = true, // SubjectId, SubjectName, Permission, Resource, Reason, …
-                Attributes =
-                {
-                    new JsonAttribute("timestamp", "${longdate:universalTime=true}"),
-                    new JsonAttribute("level", "${level:uppercase=true}"),
-                    new JsonAttribute("category", "${logger}"),
-                    new JsonAttribute("message", "${message}")
-                }
-            };
+            // The authorization audit trail is emitted on a dedicated category, separate from the plain-text
+            // operational log, so it can be shipped to a SIEM without the two streams polluting each other.
+            // Each event is already a complete ECS JSON document (built in AuthorizationAuditLog); the target
+            // writes it verbatim, one object per line.
+            var auditLayout = new SimpleLayout("${message}");
 
             var auditConsoleTarget = new ConsoleTarget
             {

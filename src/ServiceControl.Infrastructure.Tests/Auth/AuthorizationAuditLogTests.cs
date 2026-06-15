@@ -2,6 +2,7 @@
 namespace ServiceControl.Infrastructure.Tests.Auth;
 
 using System;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using ServiceControl.Infrastructure.Auth;
@@ -20,10 +21,12 @@ public class AuthorizationAuditLogTests
 
         var entries = provider.EntriesFor("ServiceControl.Audit");
         Assert.That(entries, Has.Count.EqualTo(1));
-        Assert.That(entries[0].Message, Does.Contain("alice-sub-001"));
-        Assert.That(entries[0].Message, Does.Contain("Alice Smith"));
-        Assert.That(entries[0].Message, Does.Contain("error:messages:retry"));
-        Assert.That(entries[0].Message, Does.Contain("Allow:"));
+        var ecs = JsonDocument.Parse(entries[0].Message).RootElement;
+        Assert.That(ecs.GetProperty("event").GetProperty("type")[0].GetString(), Is.EqualTo("allowed"));
+        Assert.That(ecs.GetProperty("event").GetProperty("outcome").GetString(), Is.EqualTo("success"));
+        Assert.That(ecs.GetProperty("user").GetProperty("id").GetString(), Is.EqualTo("alice-sub-001"));
+        Assert.That(ecs.GetProperty("user").GetProperty("name").GetString(), Is.EqualTo("Alice Smith"));
+        Assert.That(ecs.GetProperty("event").GetProperty("action").GetString(), Is.EqualTo("error:messages:retry"));
         Assert.That(entries[0].Level, Is.EqualTo(LogLevel.Information));
     }
 
@@ -38,10 +41,11 @@ public class AuthorizationAuditLogTests
 
         var entries = provider.EntriesFor("ServiceControl.Audit");
         Assert.That(entries, Has.Count.EqualTo(1));
-        Assert.That(entries[0].Message, Does.Contain("bob-sub-002"));
-        Assert.That(entries[0].Message, Does.Contain("Bob Jones"));
-        Assert.That(entries[0].Message, Does.Contain("error:messages:retry"));
-        Assert.That(entries[0].Message, Does.Contain("Deny:"));
+        var ecs = JsonDocument.Parse(entries[0].Message).RootElement;
+        Assert.That(ecs.GetProperty("event").GetProperty("type")[0].GetString(), Is.EqualTo("denied"));
+        Assert.That(ecs.GetProperty("event").GetProperty("outcome").GetString(), Is.EqualTo("failure"));
+        Assert.That(ecs.GetProperty("user").GetProperty("id").GetString(), Is.EqualTo("bob-sub-002"));
+        Assert.That(ecs.GetProperty("servicecontrol").GetProperty("resource").ValueKind, Is.EqualTo(JsonValueKind.Null));
         Assert.That(entries[0].Level, Is.EqualTo(LogLevel.Warning));
     }
 
@@ -69,8 +73,8 @@ public class AuthorizationAuditLogTests
 
         var entries = provider.EntriesFor("ServiceControl.Audit");
         Assert.That(entries, Has.Count.EqualTo(2));
-        Assert.That(entries[0].Message, Does.Contain("Allow:"));
-        Assert.That(entries[1].Message, Does.Contain("Deny:"));
+        Assert.That(JsonDocument.Parse(entries[0].Message).RootElement.GetProperty("event").GetProperty("type")[0].GetString(), Is.EqualTo("allowed"));
+        Assert.That(JsonDocument.Parse(entries[1].Message).RootElement.GetProperty("event").GetProperty("type")[0].GetString(), Is.EqualTo("denied"));
     }
 
     [TestCase(null, "Alice", "error:messages:retry", "reason")]
