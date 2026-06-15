@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Reflection;
 using Microsoft.Extensions.Logging;
 using ServiceControl.Configuration;
@@ -10,6 +11,11 @@ ILogger logger = null;
 try
 {
     ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
+
+    // Establish the telemetry identity once, before any logger is created, so every logger — including the
+    // static bootstrap loggers — attributes exported OTLP logs to this instance.
+    var instanceName = SettingsReader.Read(Settings.SettingsRootNamespace, "InstanceName", Settings.DEFAULT_INSTANCE_NAME);
+    LoggerUtil.Initialize(instanceName, FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion);
 
     var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
     LoggingConfigurator.ConfigureLogging(loggingSettings);
