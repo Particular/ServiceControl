@@ -20,5 +20,7 @@
         public string EventLogItems { get; set; }
         public string ArchivedGroupsUrl { get; set; }
         public string GetArchiveGroup { get; set; }
+        public string MypermissionsAll { get; set; }
+        public string MypermissionsSummary { get; set; }
     }
 }
