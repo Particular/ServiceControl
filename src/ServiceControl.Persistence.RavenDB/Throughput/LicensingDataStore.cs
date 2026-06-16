@@ -140,7 +140,7 @@ class LicensingDataStore(
                 .IncrementalTimeSeriesFor(document.GenerateDocumentId(), ThroughputTimeSeriesName)
                 .GetAsync(from, token: cancellationToken);
 
-            if (results.TryGetValue(document.SanitizedName, out var throughputDatas) &&
+            if (timeSeries is not null && results.TryGetValue(document.SanitizedName, out var throughputDatas) &&
                 throughputDatas is List<ThroughputData> throughputDataList)
             {
                 var endpointDailyThroughputs = timeSeries.Select(entry => new EndpointDailyThroughput(DateOnly.FromDateTime(entry.Timestamp), (long)entry.Value));
