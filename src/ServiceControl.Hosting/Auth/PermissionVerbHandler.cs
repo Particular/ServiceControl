@@ -25,7 +25,6 @@ public sealed class PermissionVerbHandler(
     OpenIdConnectSettings oidcSettings)
     : AuthorizationHandler<PermissionRequirement>
 {
-
     protected override Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
         PermissionRequirement requirement)
