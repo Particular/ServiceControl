@@ -25,9 +25,6 @@ public sealed class PermissionVerbHandler(
     OpenIdConnectSettings oidcSettings)
     : AuthorizationHandler<PermissionRequirement>
 {
-    // The per-IdP variability of the source claim is absorbed by RolesClaimsTransformation, which
-    // reads from the path configured in Authentication.RolesClaim and emits canonical "roles" claims.
-    const string RoleClaimType = "roles";
 
     protected override Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
@@ -43,7 +40,7 @@ public sealed class PermissionVerbHandler(
 
         var subjectId = RequireClaim(context.User, oidcSettings.SubjectIdClaim, "Authentication.SubjectIdClaim");
         var subjectName = RequireClaim(context.User, oidcSettings.SubjectNameClaim, "Authentication.SubjectNameClaim");
-        var roles = context.User.FindAll(RoleClaimType).Select(claim => claim.Value).ToArray();
+        var roles = context.User.FindAll(ClaimTypes.Role).Select(claim => claim.Value).ToArray();
         var permission = requirement.Permission;
 
         if (RolePermissions.IsGranted(roles, permission))

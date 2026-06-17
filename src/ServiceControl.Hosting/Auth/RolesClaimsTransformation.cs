@@ -25,7 +25,6 @@ public sealed class RolesClaimsTransformation(OpenIdConnectSettings oidcSettings
     // The sentinel's value is irrelevant; only the claim's presence matters. A non-empty
     // placeholder is required because a Claim value cannot be null.
     const string SentinelClaimValue = "1";
-    const string RoleClaimType = "roles";
 
     public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
     {
@@ -41,7 +40,7 @@ public sealed class RolesClaimsTransformation(OpenIdConnectSettings oidcSettings
         claims[0] = new Claim(SentinelClaimType, SentinelClaimValue);
         for (var i = 0; i < roles.Count; i++)
         {
-            claims[i + 1] = new Claim(RoleClaimType, roles[i]);
+            claims[i + 1] = new Claim(ClaimTypes.Role, roles[i]);
         }
 
         // Build a new principal so the original (cached) instance is left untouched.
