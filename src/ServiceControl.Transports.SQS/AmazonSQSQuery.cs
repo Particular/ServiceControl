@@ -26,7 +26,7 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
     AmazonCloudWatchClient? cloudWatch;
     AmazonSQSClient? sqs;
     string? prefix;
-    const int MaxDaysToCollect = 30;
+    const int MaxDaysToCollect = 365;
 
     protected override void InitializeCore(ReadOnlyDictionary<string, string> settings)
     {
