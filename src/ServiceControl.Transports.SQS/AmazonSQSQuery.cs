@@ -26,6 +26,7 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
     AmazonCloudWatchClient? cloudWatch;
     AmazonSQSClient? sqs;
     string? prefix;
+    const int MaxDaysToCollect = 365;
 
     protected override void InitializeCore(ReadOnlyDictionary<string, string> settings)
     {
@@ -198,7 +199,16 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var utcNow = timeProvider.GetUtcNow();
-        var endDate = DateOnly.FromDateTime(utcNow.DateTime).AddDays(-1); // Query date up to but not including today
+        var today = DateOnly.FromDateTime(utcNow.DateTime);
+        var earliestStartDate = today.AddDays(-MaxDaysToCollect);
+        if (startDate < earliestStartDate)
+        {
+            startDate = earliestStartDate;
+        }
+
+        // Collect up to yesterday, as today's data is incomplete
+        // We will collect today's data tomorrow
+        var endDate = today.AddDays(-1); // Query date up to but not including today
 
         var isBeforeStartDate = endDate < startDate;
 
