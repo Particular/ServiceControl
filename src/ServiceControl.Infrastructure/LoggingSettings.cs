@@ -11,13 +11,18 @@ public class LoggingSettings
 {
     public LoggingSettings(SettingsRootNamespace rootNamespace, LogLevel defaultLevel = LogLevel.Information, string logPath = null)
     {
-        var loggingProviders = (SettingsReader.Read<string>(rootNamespace, loggingProvidersKey) ?? "").Split(",");
+        var loggingProviders = (SettingsReader.Read<string>(rootNamespace, loggingProvidersKey) ?? string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(name => Enum.TryParse<Loggers>(name, ignoreCase: true, out var logger) ? logger : Loggers.None)
+            .ToHashSet();
+
         var activeLoggers = Loggers.None;
-        if (loggingProviders.Contains("NLog"))
+
+        if (loggingProviders.Contains(Loggers.NLog))
         {
             activeLoggers |= Loggers.NLog;
         }
-        if (loggingProviders.Contains("Seq"))
+        if (loggingProviders.Contains(Loggers.Seq))
         {
             activeLoggers |= Loggers.Seq;
             var seqAddress = SettingsReader.Read<string>(rootNamespace, seqAddressKey);
@@ -26,12 +31,18 @@ public class LoggingSettings
                 LoggerUtil.SeqAddress = seqAddress;
             }
         }
-        if (loggingProviders.Contains("Otlp"))
+        if (loggingProviders.Contains(Loggers.Otlp))
         {
             activeLoggers |= Loggers.Otlp;
         }
-        //this defaults to NLog because historically that was the default, and we don't want to break existing installs that don't have the config key to define loggingProviders
-        LoggerUtil.ActiveLoggers = activeLoggers == Loggers.None ? Loggers.NLog : activeLoggers;
+
+        // This defaults to NLog because historically that was the default, and we don't want to break existing installs that don't have the config key to define loggingProviders
+        if (activeLoggers == Loggers.None)
+        {
+            activeLoggers = Loggers.NLog;
+        }
+
+        LoggerUtil.ActiveLoggers = activeLoggers;
 
         LogLevel = InitializeLogLevel(rootNamespace, defaultLevel);
         LogPath = SettingsReader.Read(rootNamespace, logPathKey, Environment.ExpandEnvironmentVariables(logPath ?? DefaultLogLocation()));
