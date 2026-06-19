@@ -64,7 +64,6 @@ Containers built by a PR and stored on GitHub Container Registry can be tested l
     * [ServicePulse (latest from Docker Hub)](http://localhost:9090)
 6. Tear down services using `docker compose down`.
 
-
 ## Container tests using Aspire
 
 The [Particular.Aspire.Hosting.ServicePlatform](https://github.com/Particular/Particular.Aspire.Hosting.ServicePlatform) package integrates the Particular Platform with the Aspire hosting platform. This package configures environment variables to attach the platform. There is a single file apphost in [`test-ghcr-tag-aspire`](/docs/test-ghcr-tag-aspire) to start up serviceconrol from a prerelease container image.
@@ -73,12 +72,13 @@ Containers built by a PR and stored on GitHub Container Registry can be tested l
 
 1. Set up your github container registry credentials as described in the [Container tests](#container-tests) section above.
 2. Make sure you have the [Aspire CLI installed](https://aspire.dev/get-started/install-cli/).
-3. Run `aspire run docs/test-ghcr-tag-aspire/AppHost.cs -- tag` to start the application, where `tag` is the PR-based tag (in the form `pr-####`) to test. If no tag is provided, it will default to the `latest` tag.
-4. Once running you can open the dashboard from the link in the terminal, this dashboard will provide the assigned ports for each service.
+3. Run `aspire update` to ensure that the testing AppHost file `docs/test-ghcr-tag-aspire/AppHost.cs` is running the latest aspire SDK and RabbitMQ integration package.
+4. Run `aspire run docs/test-ghcr-tag-aspire/AppHost.cs -- tag` to start the application, where `tag` is the PR-based tag (in the form `pr-####`) to test. If no tag is provided, it will default to the `latest` tag.
+5. Once running you can open the dashboard from the link in the terminal, this dashboard will provide the assigned ports for each service.
     * RabbitMQ Management (Login: `guest`/`guest`)
     * RavenDB
     * ServiceControl API
     * Audit API
     * Monitoring API
     * ServicePulse (latest from Docker Hub)
-5. Aspire will automatically tear down the application when you exit the CLI process.
+6. Aspire will automatically tear down the application when you exit the CLI process.

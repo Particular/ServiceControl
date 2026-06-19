@@ -1,6 +1,6 @@
-#:sdk Aspire.AppHost.Sdk@13.4.0
+#:sdk Aspire.AppHost.Sdk@13.4.5
 #:package Particular.Aspire.Hosting.ServicePlatform@1.*
-#:package Aspire.Hosting.RabbitMQ@13.4.0
+#:package Aspire.Hosting.RabbitMQ@13.4.5
 
 using Aspire.Hosting;
 using Particular.Aspire.Hosting.ServicePlatform.Transport;
