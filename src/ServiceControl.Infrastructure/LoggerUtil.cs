@@ -2,6 +2,8 @@
 {
     using System;
     using System.Collections.Concurrent;
+    using System.Diagnostics;
+    using System.Reflection;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using NLog.Extensions.Logging;
@@ -32,15 +34,21 @@
         // created before Initialize runs.
         static ResourceBuilder serviceResourceBuilder = ResourceBuilder.CreateDefault();
 
-        public static void Initialize(string serviceName, string serviceVersion)
+        public static void Initialize()
         {
-            ArgumentException.ThrowIfNullOrEmpty(serviceName);
-            ArgumentException.ThrowIfNullOrEmpty(serviceVersion);
+            var asm = Assembly.GetEntryAssembly() ?? throw new InvalidOperationException("Entry assembly not found");
+            var serviceName = asm.GetName().Name ?? throw new InvalidOperationException("Entry assembly name not found");
+            var serviceVersion = FileVersionInfo.GetVersionInfo(asm.Location).ProductVersion;
 
             // CreateDefault() also reads OTEL_SERVICE_NAME/OTEL_RESOURCE_ATTRIBUTES, so operators can still enrich
             // the resource with deployment-specific attributes via those environment variables.
-            serviceResourceBuilder = ResourceBuilder.CreateDefault()
-                .AddService(serviceName, serviceVersion: serviceVersion, autoGenerateServiceInstanceId: true);
+            serviceResourceBuilder = ResourceBuilder
+                .CreateDefault()
+                .AddService(
+                    serviceName,
+                    serviceVersion: serviceVersion,
+                    autoGenerateServiceInstanceId: true
+                    );
         }
 
         public static bool IsLoggingTo(Loggers logger)
