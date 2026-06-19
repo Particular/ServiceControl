@@ -54,7 +54,11 @@ namespace ServiceControlInstaller.Engine.Instances
             }
 
             instance.SkipQueueCreation = SkipQueueCreation;
-            instance.EnableIntegratedServicePulse = EnableIntegratedServicePulse;
+
+            if (EnableIntegratedServicePulse)
+            {
+                instance.EnableIntegratedServicePulse = true;
+            }
         }
 
         void ApplyChangesTo(ServiceControlAuditInstance instance)
