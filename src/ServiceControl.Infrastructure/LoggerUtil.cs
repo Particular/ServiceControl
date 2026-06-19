@@ -34,7 +34,7 @@
         // created before Initialize runs.
         static ResourceBuilder serviceResourceBuilder = CreateResourcesBuilder();
 
-        static ResourceBuilder  CreateResourcesBuilder()
+        static ResourceBuilder CreateResourcesBuilder()
         {
             var asm = Assembly.GetEntryAssembly() ?? throw new InvalidOperationException("Entry assembly not found");
             var serviceName = asm.GetName().Name ?? throw new InvalidOperationException("Entry assembly name not found");
