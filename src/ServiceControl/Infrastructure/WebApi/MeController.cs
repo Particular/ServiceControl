@@ -7,6 +7,7 @@ namespace ServiceControl.Infrastructure.WebApi
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Hosting.Auth;
 
     [ApiController]
     [Route("api")]
@@ -15,10 +16,10 @@ namespace ServiceControl.Infrastructure.WebApi
     {
         [HttpGet]
         [Route("my/permissions/all")]
-        public ActionResult<PermissionsDescriptor> GetMyPermissions()
+        public ActionResult<PermissionsDescriptor> GetAllMyPermissions()
         {
             var descriptor = new PermissionsDescriptor(
-                User.FindFirst("sub")?.Value ?? User.Identity?.Name ?? "unknown",
+                HttpContext.User.RequireClaim(settings.OpenIdConnectSettings.SubjectNameClaim, "Authentication.SubjectIdClaim"),
                 GrantedPermissions().OrderBy(p => p, StringComparer.Ordinal).ToList());
 
             return Ok(descriptor);
