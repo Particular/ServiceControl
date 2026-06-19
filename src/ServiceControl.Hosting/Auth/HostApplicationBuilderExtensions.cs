@@ -7,6 +7,7 @@
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
     using Microsoft.IdentityModel.Tokens;
     using ServiceControl.Infrastructure;
@@ -20,6 +21,11 @@
             {
                 return;
             }
+
+            // Shared with the authorization services and the claims transformation below; registered
+            // once so it can be constructor-injected rather than captured. TryAdd keeps it idempotent
+            // with AddServiceControlAuthorization, which registers the same instance.
+            hostBuilder.Services.TryAddSingleton(oidcSettings);
 
             _ = hostBuilder.Services.AddAuthentication(options =>
             {
@@ -104,9 +110,8 @@
 
             // Normalise per-IdP role claim shapes (Keycloak's nested realm_access.roles, Entra app
             // roles, Cognito groups) into canonical "roles" claims for the verb handler. The source
-            // path is configurable via Authentication.RolesClaim.
-            hostBuilder.Services.AddSingleton<IClaimsTransformation>(
-                new RolesClaimsTransformation(oidcSettings.RolesClaim));
+            // path is configurable via Authentication.RolesClaim, read off the injected settings.
+            hostBuilder.Services.AddSingleton<IClaimsTransformation, RolesClaimsTransformation>();
         }
 
         static string GetErrorMessage(JwtBearerChallengeContext context)

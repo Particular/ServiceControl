@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
+using ServiceControl.Infrastructure;
 using ServiceControl.Infrastructure.Auth;
 
 /// <summary>
@@ -18,13 +19,12 @@ using ServiceControl.Infrastructure.Auth;
 /// claim makes the transformation idempotent and returns the same principal on subsequent calls.
 /// </para>
 /// </summary>
-public sealed class RolesClaimsTransformation(string rolesClaimPath) : IClaimsTransformation
+public sealed class RolesClaimsTransformation(OpenIdConnectSettings oidcSettings) : IClaimsTransformation
 {
     const string SentinelClaimType = "_roles_transformed";
     // The sentinel's value is irrelevant; only the claim's presence matters. A non-empty
     // placeholder is required because a Claim value cannot be null.
     const string SentinelClaimValue = "1";
-    const string RoleClaimType = "roles";
 
     public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
     {
@@ -34,13 +34,13 @@ public sealed class RolesClaimsTransformation(string rolesClaimPath) : IClaimsTr
             return Task.FromResult(principal);
         }
 
-        var roles = RolesClaimExtractor.Extract(principal, rolesClaimPath);
+        var roles = RolesClaimExtractor.Extract(principal, oidcSettings.RolesClaim);
 
         var claims = new Claim[roles.Count + 1];
         claims[0] = new Claim(SentinelClaimType, SentinelClaimValue);
         for (var i = 0; i < roles.Count; i++)
         {
-            claims[i + 1] = new Claim(RoleClaimType, roles[i]);
+            claims[i + 1] = new Claim(ClaimTypes.Role, roles[i]);
         }
 
         // Build a new principal so the original (cached) instance is left untouched.
