@@ -11,8 +11,6 @@ try
 {
     ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
 
-    LoggerUtil.Initialize();
-
     var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace);
     LoggingConfigurator.ConfigureLogging(loggingSettings);
     logger = LoggerUtil.CreateStaticLogger(typeof(Program));

@@ -32,9 +32,9 @@
         // and the static bootstrap loggers (CreateStaticLogger) share a single instance identity. Defaults to
         // CreateDefault() (which still honors OTEL_SERVICE_NAME/OTEL_RESOURCE_ATTRIBUTES) for the rare logger
         // created before Initialize runs.
-        static ResourceBuilder serviceResourceBuilder = ResourceBuilder.CreateDefault();
+        static ResourceBuilder serviceResourceBuilder = CreateResourcesBuilder();
 
-        public static void Initialize()
+        static ResourceBuilder  CreateResourcesBuilder()
         {
             var asm = Assembly.GetEntryAssembly() ?? throw new InvalidOperationException("Entry assembly not found");
             var serviceName = asm.GetName().Name ?? throw new InvalidOperationException("Entry assembly name not found");
@@ -42,7 +42,7 @@
 
             // CreateDefault() also reads OTEL_SERVICE_NAME/OTEL_RESOURCE_ATTRIBUTES, so operators can still enrich
             // the resource with deployment-specific attributes via those environment variables.
-            serviceResourceBuilder = ResourceBuilder
+            return ResourceBuilder
                 .CreateDefault()
                 .AddService(
                     serviceName,
@@ -51,10 +51,7 @@
                     );
         }
 
-        public static bool IsLoggingTo(Loggers logger)
-        {
-            return (logger & ActiveLoggers) == logger;
-        }
+        public static bool IsLoggingTo(Loggers logger) => (logger & ActiveLoggers) == logger;
 
         public static void ConfigureLogging(this ILoggingBuilder loggingBuilder, LogLevel level)
         {
