@@ -20,7 +20,8 @@ namespace ServiceControl.Infrastructure.WebApi
         {
             var descriptor = new PermissionsDescriptor(
                 HttpContext.User.RequireClaim(settings.OpenIdConnectSettings.SubjectNameClaim, "Authentication.SubjectIdClaim"),
-                GrantedPermissions().OrderBy(p => p, StringComparer.Ordinal).ToList());
+                GrantedPermissions()
+            );
 
             return Ok(descriptor);
         }
@@ -78,7 +79,7 @@ namespace ServiceControl.Infrastructure.WebApi
         static bool IsMonitoringResource(string permission) =>
             permission.StartsWith("monitoring:", StringComparison.Ordinal);
 
-        public sealed record PermissionsDescriptor(string User, IReadOnlyList<string> Permissions);
+        public sealed record PermissionsDescriptor(string User, IReadOnlySet<string> Permissions);
 
         public sealed record PermissionsSummary(
             bool FailedMessagesRead,
