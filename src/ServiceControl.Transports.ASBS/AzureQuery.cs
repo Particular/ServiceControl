@@ -27,7 +27,10 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 {
     const string CompleteMessageMetricName = "CompleteMessage";
     const string MicrosoftServicebusNamespacesMetricsNamespace = "Microsoft.ServiceBus/Namespaces";
-    const int MaxDaysToCollect = 30;
+
+    // ASB keeps 90 days of data but will only return 30 days in a single query
+    const int MaxDaysToCollect = 90;
+    const int MaxDaysToCollectInOneQuery = 30;
 
     string serviceBusName = string.Empty;
     ArmClient? armClient;
@@ -217,9 +220,6 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             yield break;
         }
 
-        var metrics = await GetMetrics(brokerQueue.QueueName, startDate,
-            endDate, cancellationToken);
-
         DateOnly currentDate = startDate;
         var data = new Dictionary<DateOnly, QueueThroughput>();
         while (currentDate <= endDate)
@@ -232,9 +232,14 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
             currentDate = currentDate.AddDays(1);
         }
 
-        foreach (var metricValue in metrics)
+        foreach (var (periodStart, periodEnd) in ReportingWindow.GetReportingWindow(startDate, endDate, MaxDaysToCollectInOneQuery))
         {
-            data[DateOnly.FromDateTime(metricValue.TimeStamp.UtcDateTime)].TotalThroughput = (long)(metricValue.Total ?? 0);
+            var metrics = await GetMetrics(brokerQueue.QueueName, periodStart, periodEnd, cancellationToken);
+
+            foreach (var metricValue in metrics)
+            {
+                data[DateOnly.FromDateTime(metricValue.TimeStamp.UtcDateTime)].TotalThroughput = (long)(metricValue.Total ?? 0);
+            }
         }
 
         foreach (QueueThroughput queueThroughput in data.Values)
