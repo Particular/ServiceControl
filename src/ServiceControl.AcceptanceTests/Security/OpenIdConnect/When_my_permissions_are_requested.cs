@@ -133,8 +133,8 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
             }
         }
 
-        async Task<MeController.PermissionsDescriptor> GetPermissions(string role) =>
-            await Get<MeController.PermissionsDescriptor>("/api/my/permissions/all", role);
+        async Task<PermissionsResponse> GetPermissions(string role) =>
+            await Get<PermissionsResponse>("/api/my/permissions/all", role);
 
         async Task<MeController.PermissionsSummary> GetSummary(string role) =>
             await Get<MeController.PermissionsSummary>("/api/my/permissions", role);

@@ -48,7 +48,7 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
         [Test]
         public async Task Should_grant_every_known_permission_regardless_of_roles()
         {
-            var descriptor = await Get<MeController.PermissionsDescriptor>("/api/my/permissions/all");
+            var descriptor = await Get<PermissionsResponse>("/api/my/permissions/all");
 
             Assert.That(descriptor.Permissions, Is.EquivalentTo(Permissions.All));
         }
