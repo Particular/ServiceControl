@@ -16,7 +16,9 @@
         {
             transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
             var routing = new RoutingSettings(endpointConfiguration.GetSettings());
+#pragma warning disable CS0618 // Type or member is obsolete
             routing.EnableMessageDrivenPubSubCompatibilityMode();
+#pragma warning restore CS0618 // Type or member is obsolete
 
             transportSettings.MaxConcurrency ??= 10;
         }
