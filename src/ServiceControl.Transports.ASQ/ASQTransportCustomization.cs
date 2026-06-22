@@ -11,7 +11,9 @@ namespace ServiceControl.Transports.ASQ
         protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, AzureStorageQueueTransport transportDefinition, TransportSettings transportSettings)
         {
             var routing = new RoutingSettings(endpointConfiguration.GetSettings());
+#pragma warning disable CS0618 // Type or member is obsolete
             routing.EnableMessageDrivenPubSubCompatibilityMode();
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         //Do not ConfigurePubSub for send-only endpoint
