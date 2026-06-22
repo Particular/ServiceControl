@@ -26,11 +26,11 @@ public static class RolePermissions
     /// <summary>Full-access role: every permission.</summary>
     public const string Writer = "writer";
 
-    // Source of truth: the wildcard pattern(s) each role grants.
-    static readonly Dictionary<string, string[]> RolePatterns = new(StringComparer.OrdinalIgnoreCase)
+    // Source of truth: the wildcard pattern(s) each role grants (null segment = '*').
+    static readonly Dictionary<string, PermissionPattern[]> RolePatterns = new(StringComparer.OrdinalIgnoreCase)
     {
-        [Reader] = ["*:*:view"],
-        [Writer] = ["*:*:*"],
+        [Reader] = [new PermissionPattern(null, null, AccessLevel.View)],
+        [Writer] = [new PermissionPattern(null, null, null)],
     };
 
     // Expanded once against the full permission catalogue: role -> concrete granted permissions.
@@ -90,34 +90,12 @@ public static class RolePermissions
 
         foreach (var (role, patterns) in RolePatterns)
         {
-            expanded[role] = Permissions.All
-                .Where(permission => patterns.Any(pattern => Matches(pattern, permission)))
+            expanded[role] = PermissionId.All
+                .Where(permission => patterns.Any(pattern => pattern.Matches(permission)))
+                .Select(permission => permission.ToString())
                 .ToFrozenSet(StringComparer.Ordinal);
         }
 
         return expanded.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
-    }
-
-    /// <summary>Matches a colon-delimited permission against a pattern where <c>*</c> is a segment wildcard.</summary>
-    static bool Matches(string pattern, string permission)
-    {
-        var patternSegments = pattern.Split(':');
-        var permissionSegments = permission.Split(':');
-
-        if (patternSegments.Length != permissionSegments.Length)
-        {
-            return false;
-        }
-
-        for (var i = 0; i < patternSegments.Length; i++)
-        {
-            if (patternSegments[i] != "*"
-                && !string.Equals(patternSegments[i], permissionSegments[i], StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 }
