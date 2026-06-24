@@ -1,6 +1,8 @@
 ﻿#nullable enable
 namespace ServiceControl.Transports.SqlServer
 {
+    using System.Collections.Generic;
+    using System.Linq;
 
     class SqlTable
     {
@@ -10,6 +12,13 @@ namespace ServiceControl.Transports.SqlServer
             var unquotedName = NameHelper.Unquote(name);
             var quotedName = NameHelper.Quote(name);
             var quotedSchema = NameHelper.Quote(schema);
+
+            // Unquoted identifiers, exposed so the bulk catalog-view query (see QueueLengthProvider)
+            // can group tables by catalog and match rows from sys.schemas / sys.tables back to the
+            // tracked tables without parsing the composed full name.
+            Name = unquotedName;
+            Schema = unquotedSchema;
+            Catalog = catalog == null ? null : NameHelper.Unquote(catalog);
             //HINT: The query approximates queue length value based on max and min
             //      of RowVersion IDENTITY(1,1) column. There are couple of scenarios
             //      that might lead to the approximation being off. More details here:
@@ -42,10 +51,55 @@ namespace ServiceControl.Transports.SqlServer
         }
 
         readonly string _fullTableName;
+
+        // Unquoted identifier parts, used to group/match against the catalog views in the bulk query.
+        public string Name { get; }
+        public string Schema { get; }
+        public string? Catalog { get; }
+
+        // Legacy per-table length query. Retained as a documented fallback and for comparison;
+        // the default code path now uses the single bulk catalog-view query in QueueLengthProvider.
         public string LengthQuery { get; }
 
         public override string ToString() =>
             _fullTableName;
+
+        // Builds a SINGLE query that returns the (approximate) length of every supplied table in one
+        // catalog, read entirely from the system catalog views (sys.partitions/sys.tables/sys.schemas).
+        //
+        // Why this is better than the per-table LengthQuery:
+        //   * One statement covers N queues instead of N statements (the customer in case 00105882 saw
+        //     thousands of statements/min; this collapses them to one per catalog per poll).
+        //   * sys.partitions reports the row count maintained by the engine, so it never reads, scans or
+        //     locks the queue tables themselves — the IF EXISTS guard and the max-min RowVersion scan are
+        //     both gone. Metadata visibility means SELECT permission on the queue tables is enough; no
+        //     VIEW DATABASE STATE is required (unlike the dm_db_partition_stats DMV).
+        //   * The queue tables are heaps (index_id 0) with non-clustered indexes only, so index_id IN (0,1)
+        //     yields the table's row count.
+        //
+        // The result is still an approximation — comparable to the existing max-min(RowVersion) estimate,
+        // which itself over-counts identity gaps — which is acceptable for the queue-length monitoring graph.
+        public static string BuildBulkLengthQuery(string? catalog, IReadOnlyCollection<SqlTable> tables)
+        {
+            var prefix = catalog == null ? string.Empty : $"{NameHelper.Quote(catalog)}.";
+
+            var predicate = string.Join(
+                "\n     OR ",
+                tables.Select(t => $"(s.name = '{Escape(t.Schema)}' AND t.name = '{Escape(t.Name)}')"));
+
+            return $"""
+                    SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+                    SELECT s.name AS TableSchema, t.name AS TableName, SUM(p.rows) AS [RowCount]
+                    FROM {prefix}sys.partitions p
+                    INNER JOIN {prefix}sys.tables t ON t.object_id = p.object_id
+                    INNER JOIN {prefix}sys.schemas s ON s.schema_id = t.schema_id
+                    WHERE p.index_id IN (0, 1)
+                      AND ({predicate})
+                    GROUP BY s.name, t.name;
+                    """;
+        }
+
+        static string Escape(string identifier) => identifier.Replace("'", "''");
 
         public static SqlTable Parse(string address, string defaultSchema)
         {

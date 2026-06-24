@@ -14,10 +14,21 @@
         public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store, ILogger<QueueLengthProvider> logger) : base(settings, store)
         {
             connectionString = ConnectionString
-                .RemoveCustomConnectionStringParts(out var customSchema, out _);
+                .RemoveCustomConnectionStringParts(out var customSchema, out _)
+                .RemoveQueueLengthQueryDelayInterval(out var configuredInterval)
+                .RemoveQueueLengthQueryMaxDelayInterval(out var configuredMaxInterval);
+
+            baseDelay = configuredInterval ?? DefaultQueryDelayInterval;
+            // Default the back-off ceiling to the base interval => adaptive back-off OFF unless an operator
+            // opts in with a larger QueueLengthQueryMaxDelayInterval. Never let it fall below the base.
+            maxDelay = configuredMaxInterval is { } max && max > baseDelay ? max : baseDelay;
+            currentDelay = baseDelay;
 
             defaultSchema = customSchema ?? "dbo";
             this.logger = logger;
+
+            logger.LogInformation("SQL queue length query interval: base {BaseDelay}, max {MaxDelay} (adaptive back-off {State})",
+                baseDelay, maxDelay, maxDelay > baseDelay ? "enabled" : "disabled");
         }
         public override void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
@@ -42,11 +53,18 @@
             {
                 try
                 {
-                    await Task.Delay(QueryDelayInterval, stoppingToken);
+                    await Task.Delay(currentDelay, stoppingToken);
 
                     await QueryTableSizes(stoppingToken);
 
                     UpdateQueueLengthStore();
+
+                    // Adapt the cadence: full speed while any queue has work, exponential back-off while the
+                    // whole system is idle. Backing off only when EVERY queue is empty keeps the fix for
+                    // issue #4556 intact — the false-zero "sawtooth" only affects non-empty queues, and those
+                    // are always sampled at the base interval here.
+                    var maxObservedLength = tableSizes.IsEmpty ? 0 : tableSizes.Values.Max();
+                    currentDelay = NextDelay(currentDelay, baseDelay, maxDelay, maxObservedLength);
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
@@ -57,6 +75,23 @@
                     logger.LogError(e, "Error querying sql queue sizes");
                 }
             }
+        }
+
+        // Pure cadence policy (no I/O) so it can be unit tested without a database or the polling loop.
+        internal static TimeSpan NextDelay(TimeSpan current, TimeSpan baseDelay, TimeSpan maxDelay, long maxObservedLength)
+        {
+            if (maxObservedLength > 0)
+            {
+                return baseDelay; // work present -> snap back to full speed
+            }
+
+            var doubled = TimeSpan.FromTicks(current.Ticks * 2);
+            if (doubled < baseDelay)
+            {
+                doubled = baseDelay;
+            }
+
+            return doubled > maxDelay ? maxDelay : doubled;
         }
 
         void UpdateQueueLengthStore()
@@ -79,48 +114,67 @@
 
         async Task QueryTableSizes(CancellationToken cancellationToken)
         {
-            var chunks = tableSizes
-                .Select((i, index) => new
-                {
-                    i,
-                    index
-                })
-                .GroupBy(p => p.index / QueryChunkSize)
-                .Select(grp => grp.Select(g => g.i).ToArray())
-                .ToList();
+            // sys.partitions is per-database, so group the tracked tables by catalog and issue one
+            // bulk query per distinct catalog. In the common single-catalog setup this is ONE query
+            // per poll for the whole system, regardless of how many endpoints are monitored.
+            var byCatalog = tableSizes.Keys.GroupBy(t => t.Catalog);
 
             await using var connection = new SqlConnection(connectionString);
             await connection.OpenAsync(cancellationToken);
 
-            foreach (var chunk in chunks)
+            foreach (var catalogGroup in byCatalog)
             {
-                await UpdateChunk(connection, chunk, cancellationToken);
+                await QueryCatalog(connection, catalogGroup.Key, catalogGroup.ToArray(), cancellationToken);
             }
         }
 
-        async Task UpdateChunk(SqlConnection connection, KeyValuePair<SqlTable, int>[] chunk, CancellationToken cancellationToken)
+        async Task QueryCatalog(SqlConnection connection, string catalog, SqlTable[] tables, CancellationToken cancellationToken)
         {
-            var query = string.Join(Environment.NewLine, chunk.Select(c => c.Key.LengthQuery));
+            var query = SqlTable.BuildBulkLengthQuery(catalog, tables);
 
-            await using var command = new SqlCommand(query, connection);
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-            foreach (var chunkPair in chunk)
+            // (schema, name) -> length, for matching the result rows back to the tracked tables.
+            var results = new Dictionary<(string, string), int>(SchemaNameComparer);
+
+            await using (var command = new SqlCommand(query, connection))
+            await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
             {
-                await reader.ReadAsync(cancellationToken);
-
-                var queueLength = reader.GetInt32(0);
-
-                if (queueLength == -1)
+                while (await reader.ReadAsync(cancellationToken))
                 {
-                    logger.LogWarning("Table {TableName} does not exist", chunkPair.Key);
+                    var schema = reader.GetString(0);
+                    var name = reader.GetString(1);
+                    var length = reader.GetInt64(2); // SUM(p.rows) is bigint
+
+                    results[(schema, name)] = length > int.MaxValue ? int.MaxValue : (int)length;
+                }
+            }
+
+            foreach (var table in tables)
+            {
+                if (results.TryGetValue((table.Schema, table.Name), out var length))
+                {
+                    tableSizes[table] = length;
                 }
                 else
                 {
-                    tableSizes.TryUpdate(chunkPair.Key, queueLength, chunkPair.Value);
+                    // No catalog row for this table -> the queue table does not (yet) exist.
+                    logger.LogWarning("Table {TableName} does not exist", table);
                 }
-
-                await reader.NextResultAsync(cancellationToken);
             }
+        }
+
+        static readonly IEqualityComparer<(string, string)> SchemaNameComparer =
+            new SchemaNameEqualityComparer();
+
+        sealed class SchemaNameEqualityComparer : IEqualityComparer<(string, string)>
+        {
+            public bool Equals((string, string) x, (string, string) y) =>
+                StringComparer.OrdinalIgnoreCase.Equals(x.Item1, y.Item1) &&
+                StringComparer.OrdinalIgnoreCase.Equals(x.Item2, y.Item2);
+
+            public int GetHashCode((string, string) obj) =>
+                HashCode.Combine(
+                    StringComparer.OrdinalIgnoreCase.GetHashCode(obj.Item1),
+                    StringComparer.OrdinalIgnoreCase.GetHashCode(obj.Item2));
         }
 
         readonly ConcurrentDictionary<EndpointToQueueMapping, SqlTable> tableNames = new ConcurrentDictionary<EndpointToQueueMapping, SqlTable>();
@@ -128,11 +182,12 @@
 
         readonly string connectionString;
         readonly string defaultSchema;
+        readonly TimeSpan baseDelay;
+        readonly TimeSpan maxDelay;
+        TimeSpan currentDelay;
 
         readonly ILogger<QueueLengthProvider> logger;
 
-        static readonly TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
-
-        const int QueryChunkSize = 10;
+        static readonly TimeSpan DefaultQueryDelayInterval = TimeSpan.FromMilliseconds(200);
     }
 }
