@@ -20,7 +20,8 @@
             connectionString.RemoveIntervalMilliseconds(queueLengthQueryDelayInterval, out interval);
 
         // Extracts the optional 'QueueLengthQueryMaxDelayInterval' (milliseconds) — the upper bound the adaptive
-        // back-off ramps to while every monitored queue is empty. Equal to the base interval => back-off disabled.
+        // back-off ramps to while every monitored queue is empty. When omitted a default ceiling applies; set it
+        // equal to the base interval to disable back-off.
         public static string RemoveQueueLengthQueryMaxDelayInterval(this string connectionString, out TimeSpan? interval) =>
             connectionString.RemoveIntervalMilliseconds(queueLengthQueryMaxDelayInterval, out interval);
 

@@ -19,9 +19,14 @@
                 .RemoveQueueLengthQueryMaxDelayInterval(out var configuredMaxInterval);
 
             baseDelay = configuredInterval ?? DefaultQueryDelayInterval;
-            // Default the back-off ceiling to the base interval => adaptive back-off OFF unless an operator
-            // opts in with a larger QueueLengthQueryMaxDelayInterval. Never let it fall below the base.
-            maxDelay = configuredMaxInterval is { } max && max > baseDelay ? max : baseDelay;
+            // Adaptive back-off is ON by default: while every monitored queue is idle the cadence ramps from
+            // the base interval up to this ceiling. An operator can widen or effectively disable it (set equal
+            // to the base) via QueueLengthQueryMaxDelayInterval. Never let it fall below the base.
+            maxDelay = configuredMaxInterval ?? DefaultQueryMaxDelayInterval;
+            if (maxDelay < baseDelay)
+            {
+                maxDelay = baseDelay;
+            }
             currentDelay = baseDelay;
 
             defaultSchema = customSchema ?? "dbo";
@@ -53,7 +58,12 @@
             {
                 try
                 {
-                    await Task.Delay(currentDelay, stoppingToken);
+                    // Pace concurrently with the query so the effective cadence is max(interval, queryDuration)
+                    // instead of interval + queryDuration. The additive query-time term is what let the actual
+                    // cadence drift past the 1s monitoring bucket and starve buckets of samples, producing the
+                    // #4556 false-zero "sawtooth". Starting the timer before awaiting the query is what makes
+                    // them overlap; a slow query (> interval) simply paces at its own duration with no catch-up.
+                    var pacing = Task.Delay(currentDelay, stoppingToken);
 
                     await QueryTableSizes(stoppingToken);
 
@@ -62,9 +72,12 @@
                     // Adapt the cadence: full speed while any queue has work, exponential back-off while the
                     // whole system is idle. Backing off only when EVERY queue is empty keeps the fix for
                     // issue #4556 intact — the false-zero "sawtooth" only affects non-empty queues, and those
-                    // are always sampled at the base interval here.
+                    // are always sampled at the base interval here. The reassignment applies next iteration;
+                    // the already-started pacing task captured the previous interval.
                     var maxObservedLength = tableSizes.IsEmpty ? 0 : tableSizes.Values.Max();
                     currentDelay = NextDelay(currentDelay, baseDelay, maxDelay, maxObservedLength);
+
+                    await pacing;
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
@@ -117,7 +130,7 @@
             // sys.partitions is per-database, so group the tracked tables by catalog and issue one
             // bulk query per distinct catalog. In the common single-catalog setup this is ONE query
             // per poll for the whole system, regardless of how many endpoints are monitored.
-            var byCatalog = tableSizes.Keys.GroupBy(t => t.Catalog);
+            var byCatalog = tableSizes.Keys.GroupBy(t => t.UnquotedCatalog);
 
             await using var connection = new SqlConnection(connectionString);
             await connection.OpenAsync(cancellationToken);
@@ -150,7 +163,7 @@
 
             foreach (var table in tables)
             {
-                if (results.TryGetValue((table.Schema, table.Name), out var length))
+                if (results.TryGetValue((table.UnquotedSchema, table.UnquotedName), out var length))
                 {
                     tableSizes[table] = length;
                 }
@@ -188,6 +201,10 @@
 
         readonly ILogger<QueueLengthProvider> logger;
 
-        static readonly TimeSpan DefaultQueryDelayInterval = TimeSpan.FromMilliseconds(200);
+        // Base interval matches the finest monitoring bucket (1-minute history / 60 = 1s per point). With the
+        // concurrent pacing above this yields ~one sample per bucket, so the old 200ms oversampling workaround
+        // for #4556 is no longer needed.
+        static readonly TimeSpan DefaultQueryDelayInterval = TimeSpan.FromSeconds(1);
+        static readonly TimeSpan DefaultQueryMaxDelayInterval = TimeSpan.FromSeconds(10);
     }
 }

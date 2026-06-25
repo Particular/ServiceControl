@@ -4,62 +4,46 @@ namespace ServiceControl.Transports.SqlServer
     using System.Collections.Generic;
     using System.Linq;
 
-    class SqlTable
+    class SqlTable(string name, string schema, string? catalog)
     {
-        SqlTable(string name, string schema, string? catalog)
-        {
-            var unquotedSchema = NameHelper.Unquote(schema);
-            var unquotedName = NameHelper.Unquote(name);
-            var quotedName = NameHelper.Quote(name);
-            var quotedSchema = NameHelper.Quote(schema);
+        // Unquoted identifier parts, exposed so the bulk catalog-view query (see QueueLengthProvider)
+        // can group tables by catalog and match rows from sys.schemas / sys.tables back to the
+        // tracked tables without parsing the composed full name.
+        public string UnquotedName { get; } = NameHelper.Unquote(name);
+        public string UnquotedSchema { get; } = NameHelper.Unquote(schema);
+        public string? UnquotedCatalog { get; } = catalog == null ? null : NameHelper.Unquote(catalog);
 
-            // Unquoted identifiers, exposed so the bulk catalog-view query (see QueueLengthProvider)
-            // can group tables by catalog and match rows from sys.schemas / sys.tables back to the
-            // tracked tables without parsing the composed full name.
-            Name = unquotedName;
-            Schema = unquotedSchema;
-            Catalog = catalog == null ? null : NameHelper.Unquote(catalog);
+        readonly string _fullTableName = BuildFullTableName(name, schema, catalog);
+
+        // Legacy per-table length query. Retained as a documented fallback and for comparison;
+        // the default code path now uses the single bulk catalog-view query in QueueLengthProvider.
+        public string LengthQuery { get; } = BuildLengthQuery(name, schema, catalog);
+
+        static string BuildFullTableName(string name, string schema, string? catalog) =>
+            catalog == null
+                ? $"{NameHelper.Quote(schema)}.{NameHelper.Quote(name)}"
+                : $"{NameHelper.Quote(catalog)}.{NameHelper.Quote(schema)}.{NameHelper.Quote(name)}";
+
+        static string BuildLengthQuery(string name, string schema, string? catalog)
+        {
             //HINT: The query approximates queue length value based on max and min
             //      of RowVersion IDENTITY(1,1) column. There are couple of scenarios
             //      that might lead to the approximation being off. More details here:
             //      https://docs.microsoft.com/en-us/sql/t-sql/statements/create-table-transact-sql-identity-property?view=sql-server-ver15#remarks
             //
             //      Min and Max values return NULL when no rows are found.
-            if (catalog == null)
-            {
-                _fullTableName = $"{quotedSchema}.{quotedName}";
+            var unquotedSchema = NameHelper.Unquote(schema);
+            var unquotedName = NameHelper.Unquote(name);
+            var fullTableName = BuildFullTableName(name, schema, catalog);
+            var catalogPrefix = catalog == null ? string.Empty : $"{NameHelper.Quote(catalog)}.";
 
-                LengthQuery = $"""
-                               IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{unquotedSchema}' AND TABLE_NAME = '{unquotedName}'))
-                                 SELECT isnull(cast(max([RowVersion]) - min([RowVersion]) + 1 AS int), 0) FROM {_fullTableName} WITH (nolock)
-                               ELSE
-                                 SELECT -1;
-                               """;
-            }
-            else
-            {
-                var quotedCatalog = NameHelper.Quote(catalog);
-                _fullTableName = $"{quotedCatalog}.{quotedSchema}.{quotedName}";
-
-                LengthQuery = $"""
-                               IF (EXISTS (SELECT TABLE_NAME FROM {quotedCatalog}.INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{unquotedSchema}' AND TABLE_NAME = '{unquotedName}'))
-                                 SELECT isnull(cast(max([RowVersion]) - min([RowVersion]) + 1 AS int), 0) FROM {_fullTableName} WITH (nolock)
-                               ELSE
-                                 SELECT -1;
-                               """;
-            }
+            return $"""
+                    IF (EXISTS (SELECT TABLE_NAME FROM {catalogPrefix}INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{unquotedSchema}' AND TABLE_NAME = '{unquotedName}'))
+                      SELECT isnull(cast(max([RowVersion]) - min([RowVersion]) + 1 AS int), 0) FROM {fullTableName} WITH (nolock)
+                    ELSE
+                      SELECT -1;
+                    """;
         }
-
-        readonly string _fullTableName;
-
-        // Unquoted identifier parts, used to group/match against the catalog views in the bulk query.
-        public string Name { get; }
-        public string Schema { get; }
-        public string? Catalog { get; }
-
-        // Legacy per-table length query. Retained as a documented fallback and for comparison;
-        // the default code path now uses the single bulk catalog-view query in QueueLengthProvider.
-        public string LengthQuery { get; }
 
         public override string ToString() =>
             _fullTableName;
@@ -85,7 +69,7 @@ namespace ServiceControl.Transports.SqlServer
 
             var predicate = string.Join(
                 "\n     OR ",
-                tables.Select(t => $"(s.name = '{Escape(t.Schema)}' AND t.name = '{Escape(t.Name)}')"));
+                tables.Select(t => $"(s.name = '{Escape(t.UnquotedSchema)}' AND t.name = '{Escape(t.UnquotedName)}')"));
 
             return $"""
                     SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
