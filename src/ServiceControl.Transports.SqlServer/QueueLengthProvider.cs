@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -56,15 +57,15 @@
         {
             while (!stoppingToken.IsCancellationRequested)
             {
+                // Time the whole iteration so the pacing delay below can subtract the work already done this
+                // cycle. The effective cadence is then max(currentDelay, iterationDuration) — the query
+                // overlaps the wait instead of being added to it. That additive query-time term is what let
+                // the cadence drift past the 1s monitoring bucket and starve buckets of samples, producing the
+                // #4556 false-zero "sawtooth"; a slow query (> interval) simply paces at its own duration.
+                var iterationStart = Stopwatch.GetTimestamp();
+
                 try
                 {
-                    // Pace concurrently with the query so the effective cadence is max(interval, queryDuration)
-                    // instead of interval + queryDuration. The additive query-time term is what let the actual
-                    // cadence drift past the 1s monitoring bucket and starve buckets of samples, producing the
-                    // #4556 false-zero "sawtooth". Starting the timer before awaiting the query is what makes
-                    // them overlap; a slow query (> interval) simply paces at its own duration with no catch-up.
-                    var pacing = Task.Delay(currentDelay, stoppingToken);
-
                     await QueryTableSizes(stoppingToken);
 
                     UpdateQueueLengthStore();
@@ -72,20 +73,36 @@
                     // Adapt the cadence: full speed while any queue has work, exponential back-off while the
                     // whole system is idle. Backing off only when EVERY queue is empty keeps the fix for
                     // issue #4556 intact — the false-zero "sawtooth" only affects non-empty queues, and those
-                    // are always sampled at the base interval here. The reassignment applies next iteration;
-                    // the already-started pacing task captured the previous interval.
+                    // are always sampled at the base interval here. Computed after the query (not before) so a
+                    // snap-back to the base interval takes effect on THIS iteration's pacing rather than one
+                    // backed-off wait later.
                     var maxObservedLength = tableSizes.IsEmpty ? 0 : tableSizes.Values.Max();
                     currentDelay = NextDelay(currentDelay, baseDelay, maxDelay, maxObservedLength);
-
-                    await pacing;
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
-                    // no-op
+                    break;
                 }
                 catch (Exception e)
                 {
                     logger.LogError(e, "Error querying sql queue sizes");
+                }
+
+                // Pace AFTER the try so a failed query is still throttled by the interval. Otherwise a fast,
+                // persistent failure (bad login, denied SELECT) would spin the loop with no delay, hammering
+                // the server and flooding the log. currentDelay is unchanged on the failure path, so the last
+                // good cadence is reused.
+                var remaining = currentDelay - Stopwatch.GetElapsedTime(iterationStart);
+                if (remaining > TimeSpan.Zero)
+                {
+                    try
+                    {
+                        await Task.Delay(remaining, stoppingToken);
+                    }
+                    catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                    {
+                        break;
+                    }
                 }
             }
         }
@@ -165,11 +182,18 @@
             {
                 if (results.TryGetValue((table.UnquotedSchema, table.UnquotedName), out var length))
                 {
+                    // Indexer rather than TryUpdate: record the freshly read length unconditionally. A
+                    // concurrent TrackEndpointInputQueue that removed this key could be resurrected here, but
+                    // there is no untrack path today so the entry would persist regardless — kept simple.
                     tableSizes[table] = length;
                 }
                 else
                 {
-                    // No catalog row for this table -> the queue table does not (yet) exist.
+                    // No catalog row for this table -> the queue table does not (yet) exist. Record 0 rather
+                    // than leaving a stale value: maxObservedLength (the back-off trigger) is a Max over
+                    // tableSizes, so a lingering non-zero here would pin the cadence at the base interval and
+                    // permanently defeat the adaptive back-off once a tracked queue is dropped.
+                    tableSizes[table] = 0;
                     logger.LogWarning("Table {TableName} does not exist", table);
                 }
             }

@@ -15,35 +15,10 @@ namespace ServiceControl.Transports.SqlServer
 
         readonly string _fullTableName = BuildFullTableName(name, schema, catalog);
 
-        // Legacy per-table length query. Retained as a documented fallback and for comparison;
-        // the default code path now uses the single bulk catalog-view query in QueueLengthProvider.
-        public string LengthQuery { get; } = BuildLengthQuery(name, schema, catalog);
-
         static string BuildFullTableName(string name, string schema, string? catalog) =>
             catalog == null
                 ? $"{NameHelper.Quote(schema)}.{NameHelper.Quote(name)}"
                 : $"{NameHelper.Quote(catalog)}.{NameHelper.Quote(schema)}.{NameHelper.Quote(name)}";
-
-        static string BuildLengthQuery(string name, string schema, string? catalog)
-        {
-            //HINT: The query approximates queue length value based on max and min
-            //      of RowVersion IDENTITY(1,1) column. There are couple of scenarios
-            //      that might lead to the approximation being off. More details here:
-            //      https://docs.microsoft.com/en-us/sql/t-sql/statements/create-table-transact-sql-identity-property?view=sql-server-ver15#remarks
-            //
-            //      Min and Max values return NULL when no rows are found.
-            var unquotedSchema = NameHelper.Unquote(schema);
-            var unquotedName = NameHelper.Unquote(name);
-            var fullTableName = BuildFullTableName(name, schema, catalog);
-            var catalogPrefix = catalog == null ? string.Empty : $"{NameHelper.Quote(catalog)}.";
-
-            return $"""
-                    IF (EXISTS (SELECT TABLE_NAME FROM {catalogPrefix}INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{unquotedSchema}' AND TABLE_NAME = '{unquotedName}'))
-                      SELECT isnull(cast(max([RowVersion]) - min([RowVersion]) + 1 AS int), 0) FROM {fullTableName} WITH (nolock)
-                    ELSE
-                      SELECT -1;
-                    """;
-        }
 
         public override string ToString() =>
             _fullTableName;
@@ -51,7 +26,7 @@ namespace ServiceControl.Transports.SqlServer
         // Builds a SINGLE query that returns the (approximate) length of every supplied table in one
         // catalog, read entirely from the system catalog views (sys.partitions/sys.tables/sys.schemas).
         //
-        // Why this is better than the per-table LengthQuery:
+        // Why this is better than the previous per-table IF EXISTS + max-min(RowVersion) probe:
         //   * One statement covers N queues instead of N statements (the customer in case 00105882 saw
         //     thousands of statements/min; this collapses them to one per catalog per poll).
         //   * sys.partitions reports the row count maintained by the engine, so it never reads, scans or
@@ -67,16 +42,22 @@ namespace ServiceControl.Transports.SqlServer
         {
             var prefix = catalog == null ? string.Empty : $"{NameHelper.Quote(catalog)}.";
 
-            var predicate = string.Join(
-                "\n     OR ",
-                tables.Select(t => $"(s.name = '{Escape(t.UnquotedSchema)}' AND t.name = '{Escape(t.UnquotedName)}')"));
+            // With no tables the predicate would be empty, producing the invalid `AND ()`. Emit a
+            // constant-false predicate instead so the query stays valid and simply returns no rows.
+            var predicate = tables.Count == 0
+                ? "1 = 0"
+                : string.Join(
+                    "\n     OR ",
+                    tables.Select(t => $"(s.name = '{Escape(t.UnquotedSchema)}' AND t.name = '{Escape(t.UnquotedName)}')"));
 
+            // NOLOCK hints (statement-scoped) rather than SET TRANSACTION ISOLATION LEVEL READ
+            // UNCOMMITTED: the latter is connection-scoped and would persist on the pooled physical
+            // connection. The hint keeps the dirty-read scope on this single catalog-view read.
             return $"""
-                    SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
                     SELECT s.name AS TableSchema, t.name AS TableName, SUM(p.rows) AS [RowCount]
-                    FROM {prefix}sys.partitions p
-                    INNER JOIN {prefix}sys.tables t ON t.object_id = p.object_id
-                    INNER JOIN {prefix}sys.schemas s ON s.schema_id = t.schema_id
+                    FROM {prefix}sys.partitions p WITH (NOLOCK)
+                    INNER JOIN {prefix}sys.tables t WITH (NOLOCK) ON t.object_id = p.object_id
+                    INNER JOIN {prefix}sys.schemas s WITH (NOLOCK) ON s.schema_id = t.schema_id
                     WHERE p.index_id IN (0, 1)
                       AND ({predicate})
                     GROUP BY s.name, t.name;

@@ -25,12 +25,28 @@ class QueueLengthQueryTests
         Assert.That(query, Does.Not.Contain("INFORMATION_SCHEMA"));
         Assert.That(query, Does.Not.Contain("RowVersion"));
 
+        // Dirty reads are scoped to this statement via NOLOCK hints, not a connection-scoped SET that
+        // would leak READ UNCOMMITTED onto the pooled connection.
+        Assert.That(query, Does.Contain("WITH (NOLOCK)"));
+        Assert.That(query, Does.Not.Contain("ISOLATION LEVEL"));
+
         // Both tracked tables are covered by the single query.
         Assert.That(query, Does.Contain("t.name = 'Sales'"));
         Assert.That(query, Does.Contain("t.name = 'Billing'"));
 
-        // Exactly one SELECT that returns rows (the leading SET is not a result-producing statement).
+        // Exactly one result-producing statement.
         Assert.That(System.Text.RegularExpressions.Regex.Matches(query, "SELECT").Count, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void BuildBulkLengthQuery_with_no_tables_stays_valid_and_returns_no_rows()
+    {
+        var query = SqlTable.BuildBulkLengthQuery(catalog: null, []);
+
+        // No predicate terms must not produce the invalid `AND ()`; a constant-false predicate keeps the
+        // query syntactically valid while matching nothing.
+        Assert.That(query, Does.Not.Contain("AND ()"));
+        Assert.That(query, Does.Contain("1 = 0"));
     }
 
     [Test]
@@ -73,6 +89,26 @@ class QueueLengthQueryTests
     {
         const string connectionString = "Data Source=.;Initial Catalog=nsb;QueueLengthQueryDelayInterval=soon";
 
+        Assert.That(() => connectionString.RemoveQueueLengthQueryDelayInterval(out _),
+            Throws.Exception.With.Message.Contains("QueueLengthQueryDelayInterval"));
+    }
+
+    [Test]
+    public void RemoveQueueLengthQueryDelayInterval_throws_on_negative_value()
+    {
+        const string connectionString = "Data Source=.;Initial Catalog=nsb;QueueLengthQueryDelayInterval=-5";
+
+        // A negative interval would flow through to Task.Delay and throw mid-loop; reject it up front.
+        Assert.That(() => connectionString.RemoveQueueLengthQueryDelayInterval(out _),
+            Throws.Exception.With.Message.Contains("QueueLengthQueryDelayInterval"));
+    }
+
+    [Test]
+    public void RemoveQueueLengthQueryDelayInterval_throws_on_zero_value()
+    {
+        const string connectionString = "Data Source=.;Initial Catalog=nsb;QueueLengthQueryDelayInterval=0";
+
+        // Zero would poll with no pacing at all; reject it.
         Assert.That(() => connectionString.RemoveQueueLengthQueryDelayInterval(out _),
             Throws.Exception.With.Message.Contains("QueueLengthQueryDelayInterval"));
     }

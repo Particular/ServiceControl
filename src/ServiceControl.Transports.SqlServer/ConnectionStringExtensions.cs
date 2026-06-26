@@ -33,9 +33,9 @@
 
             if (builder.TryGetValue(key, out var value))
             {
-                if (!int.TryParse(value.ToString(), out var milliseconds))
+                if (!int.TryParse(value.ToString(), out var milliseconds) || milliseconds <= 0)
                 {
-                    throw new Exception($"Can't parse '{value}' as a valid {key} (expected an integer number of milliseconds).");
+                    throw new Exception($"Can't parse '{value}' as a valid {key} (expected a positive integer number of milliseconds).");
                 }
 
                 interval = TimeSpan.FromMilliseconds(milliseconds);
