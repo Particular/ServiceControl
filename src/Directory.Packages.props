@@ -7,7 +7,7 @@
     <PackageVersion Include="Autofac" Version="9.3.0" />
     <PackageVersion Include="AWSSDK.CloudWatch" Version="4.0.10.5" />
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
-   <PackageVersion Include="Azure.ResourceManager.Monitor" Version="1.3.1" />
+    <PackageVersion Include="Azure.ResourceManager.Monitor" Version="1.3.1" />
     <PackageVersion Include="Azure.ResourceManager.ServiceBus" Version="1.1.0" />
     <PackageVersion Include="ByteSize" Version="2.1.2" />
     <PackageVersion Include="Caliburn.Micro" Version="5.0.258" />
@@ -16,17 +16,17 @@
     <PackageVersion Include="Fody" Version="6.9.3" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.4" />
     <PackageVersion Include="HdrHistogram" Version="2.5.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.7.0" />
     <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.19.1" />
     <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.19.1" />
@@ -72,25 +72,25 @@
     <PackageVersion Include="ReactiveUI.WPF" Version="22.3.1" />
     <PackageVersion Include="Seq.Extensions.Logging" Version="9.0.0" />
     <PackageVersion Include="ServiceControl.Contracts" Version="5.1.0" />
-    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="10.0.9" />
-    <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="10.0.9" />
-    <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="10.0.9" />
+    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
-    <PackageVersion Include="System.Management" Version="10.0.9" />
+    <PackageVersion Include="System.Management" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.Management.Automation" Version="7.6.1" />
     <PackageVersion Include="System.Reactive" Version="6.1.0" />
-    <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="10.0.9" />
-    <PackageVersion Include="System.ServiceProcess.ServiceController" Version="10.0.9" />
+    <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="System.ServiceProcess.ServiceController" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>
   <ItemGroup Label="Versions to pin transitive references">
-    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.IdentityModel.Abstractions" Version="8.19.1" />
-    <PackageVersion Include="System.Formats.Cbor" Version="10.0.9" />
-    <PackageVersion Include="System.IO.Hashing" Version="10.0.9" />
-    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.9" />
-    <PackageVersion Include="System.Threading.RateLimiting" Version="10.0.9" />
+    <PackageVersion Include="System.Formats.Cbor" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="System.IO.Hashing" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="System.Threading.RateLimiting" Version="$(RuntimeFrameworkVersion)" />
   </ItemGroup>
   <ItemGroup>
     <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="6.1.63" />
