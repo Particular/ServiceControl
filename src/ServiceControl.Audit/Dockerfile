@@ -1,3 +1,5 @@
+ARG RUNTIMEVERSION=10.0
+
 # Build image
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG TARGETARCH
@@ -9,7 +11,7 @@ RUN dotnet build src/ServiceControl.Audit/ServiceControl.Audit.csproj --configur
 RUN dotnet publish src/HealthCheckApp/HealthCheckApp.csproj --arch $TARGETARCH --output /healthcheck
 
 # Runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-composite-extra
+FROM mcr.microsoft.com/dotnet/aspnet:$RUNTIMEVERSION-noble-chiseled-composite-extra
 WORKDIR /app
 
 EXPOSE 44444
