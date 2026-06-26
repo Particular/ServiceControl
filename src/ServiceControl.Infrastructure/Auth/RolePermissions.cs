@@ -26,11 +26,27 @@ public static class RolePermissions
     /// <summary>Full-access role: every permission.</summary>
     public const string Writer = "writer";
 
+    /// <summary>
+    /// Platform-administrator role: read-only on everything, plus full management of the configuration /
+    /// admin-area resources (licensing, notifications, retry redirects, throughput, connections) — but
+    /// <b>not</b> the message-triage write actions (retry/edit/archive/restore).
+    /// </summary>
+    public const string Admin = "admin";
+
     // Source of truth: the wildcard pattern(s) each role grants.
     static readonly Dictionary<string, string[]> RolePatterns = new(StringComparer.OrdinalIgnoreCase)
     {
         [Reader] = ["*:*:view"],
         [Writer] = ["*:*:*"],
+        [Admin] =
+        [
+            "*:*:view",
+            "error:licensing:*",
+            "error:notifications:*",
+            "error:redirects:*",
+            "error:throughput:*",
+            "error:connections:*",
+        ],
     };
 
     // Expanded once against the full permission catalogue: role -> concrete granted permissions.

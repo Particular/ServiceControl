@@ -43,8 +43,6 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
             EventLogItems = baseUrl + "eventlogitems",
             ArchivedGroupsUrl = baseUrl + "errors/groups/{classifier?}",
             GetArchiveGroup = baseUrl + "archive/groups/id/{groupId}",
-            MypermissionsAll = baseUrl + "my/permissions/all",
-            MypermissionsSummary = baseUrl + "my/permissions"
         };
 
         return Task.FromResult(model);

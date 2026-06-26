@@ -5,10 +5,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using NUnit.Framework;
 using Particular.Approvals;
+using ServiceControl.Hosting.Auth;
+using ServiceControl.Infrastructure.Auth;
 
 [TestFixture]
 public class APIApprovals
@@ -62,7 +65,9 @@ public class APIApprovals
 
     IEnumerable<(MethodInfo Method, RouteAttribute Route)> GetControllerRoutes()
     {
-        var controllers = typeof(Program).Assembly.GetTypes()
+        var controllers = GetControllerAssemblies()
+            .SelectMany(a => a.GetTypes())
+            .Distinct()
             .Where(t => typeof(ControllerBase).IsAssignableFrom(t));
 
         foreach (var type in controllers)
@@ -74,6 +79,45 @@ public class APIApprovals
                 foreach (var routeAtt in routeAtts)
                 {
                     yield return (method, routeAtt);
+                }
+            }
+        }
+    }
+
+    static IEnumerable<Assembly> GetControllerAssemblies() =>
+    [
+        typeof(Program).Assembly,
+        typeof(MyRoutesController).Assembly
+    ];
+
+    [Test]
+    public void Authorize_policies_are_known_permissions()
+    {
+        var controllers = GetControllerAssemblies()
+            .SelectMany(a => a.GetTypes())
+            .Distinct()
+            .Where(t => typeof(ControllerBase).IsAssignableFrom(t));
+
+        foreach (var type in controllers)
+        {
+            foreach (var att in type.GetCustomAttributes<AuthorizeAttribute>())
+            {
+                if (!string.IsNullOrEmpty(att.Policy))
+                {
+                    Assert.That(Permissions.All.Contains(att.Policy), Is.True,
+                        $"Controller {type.FullName} has [Authorize(Policy = \"{att.Policy}\")] which is not a known permission in Permissions.All.");
+                }
+            }
+
+            foreach (var method in type.GetMethods())
+            {
+                foreach (var att in method.GetCustomAttributes<AuthorizeAttribute>())
+                {
+                    if (!string.IsNullOrEmpty(att.Policy))
+                    {
+                        Assert.That(Permissions.All.Contains(att.Policy), Is.True,
+                            $"Method {type.FullName}:{method.Name} has [Authorize(Policy = \"{att.Policy}\")] which is not a known permission in Permissions.All.");
+                    }
                 }
             }
         }

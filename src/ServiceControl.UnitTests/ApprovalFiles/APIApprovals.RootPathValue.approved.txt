@@ -16,7 +16,5 @@
   "SagasUrl": "http://localhost/sagas",
   "EventLogItems": "http://localhost/eventlogitems",
   "ArchivedGroupsUrl": "http://localhost/errors/groups/{classifier?}",
-  "GetArchiveGroup": "http://localhost/archive/groups/id/{groupId}",
-  "MypermissionsAll": "http://localhost/my/permissions/all",
-  "MypermissionsSummary": "http://localhost/my/permissions"
+  "GetArchiveGroup": "http://localhost/archive/groups/id/{groupId}"
 }

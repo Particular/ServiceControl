@@ -36,6 +36,7 @@
             });
             controllers.AddApplicationPart(Assembly.GetExecutingAssembly());
             controllers.AddApplicationPart(typeof(LicensingController).Assembly);
+            controllers.AddApplicationPart(typeof(ServiceControl.Hosting.Auth.MyRoutesController).Assembly);
             controllers.AddJsonOptions(options => options.JsonSerializerOptions.CustomizeDefaults());
 
             var signalR = builder.Services.AddSignalR();
