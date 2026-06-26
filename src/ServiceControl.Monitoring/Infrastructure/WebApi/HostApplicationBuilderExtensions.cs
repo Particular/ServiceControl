@@ -17,6 +17,7 @@ public static class HostApplicationBuilderExtensions
             options.Filters.Add<CachingHttpHandler>();
         });
         controllers.AddApplicationPart(Assembly.GetExecutingAssembly());
+        controllers.AddApplicationPart(typeof(ServiceControl.Hosting.Auth.MyRoutesController).Assembly);
         controllers.AddJsonOptions(options => options.JsonSerializerOptions.CustomizeDefaults());
     }
 }

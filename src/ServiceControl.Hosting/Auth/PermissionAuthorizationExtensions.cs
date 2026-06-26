@@ -49,5 +49,9 @@ public static class PermissionAuthorizationExtensions
         // injected OpenIdConnectSettings so the handler can match them on the principal.
         services.AddSingleton<IAuthorizationAuditLog, AuthorizationAuditLog>();
         services.AddSingleton<IAuthorizationHandler, PermissionVerbHandler>();
+
+        // Backs the my/routes manifest: a singleton table projected from the wired endpoints. Reuses
+        // the EndpointDataSource the framework registers, so it sees exactly the routes that are served.
+        services.AddSingleton<RouteAuthorizationTable>();
     }
 }
