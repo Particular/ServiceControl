@@ -46,6 +46,16 @@ jobs:
         uses: ./.github/actions/validate-version
         with:
           version: ${{ env.MinVerVersion }}
+      - name: Determine runtime version
+        shell: pwsh
+        run: |
+          # Read settings from Custom.Build.props
+          [xml]$xml = Get-Content ./src/Custom.Build.props
+          $runtimeVersion = $xml.selectNodes('/Project/PropertyGroup/RuntimeFrameworkVersion').InnerText
+          if (-not ($runtimeVersion)) {
+            throw "Missing RuntimeFrameworkVersion setting in Custom.Build.props"
+          }
+          echo "RuntimeVersion=$runtimeVersion" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4.0.0
       - name: Log in to GitHub container registry
@@ -64,6 +74,8 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           sbom: true
+          build-args: |
+            RUNTIMEVERSION=${{ env.RuntimeVersion }}
           labels: |
             org.opencontainers.image.source=https://github.com/Particular/ServiceControl/tree/${{ github.sha }}
             org.opencontainers.image.authors="Particular Software"
@@ -75,7 +87,7 @@ jobs:
             org.opencontainers.image.created=${{ steps.date.outputs.date }}
             org.opencontainers.image.title=${{ matrix.title }}
             org.opencontainers.image.description=${{ matrix.description }}
-            org.opencontainers.image.base.name=mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-composite-extra
+            org.opencontainers.image.base.name=mcr.microsoft.com/dotnet/aspnet:${{ env.RuntimeVersion }}-noble-chiseled-composite-extra
           annotations: |
             index:org.opencontainers.image.source=https://github.com/Particular/ServiceControl/tree/${{ github.sha }}
             index:org.opencontainers.image.authors="Particular Software"
@@ -87,6 +99,6 @@ jobs:
             index:org.opencontainers.image.created=${{ steps.date.outputs.date }}
             index:org.opencontainers.image.title=${{ matrix.title }}
             index:org.opencontainers.image.description=${{ matrix.description }}
-            index:org.opencontainers.image.base.name=mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-composite-extra
+            index:org.opencontainers.image.base.name=mcr.microsoft.com/dotnet/aspnet:${{ env.RuntimeVersion }}-noble-chiseled-composite-extra
           file: src/${{ matrix.project }}/Dockerfile
           tags: ghcr.io/particular/${{ matrix.name }}:${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
