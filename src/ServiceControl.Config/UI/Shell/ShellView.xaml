@@ -126,7 +126,7 @@
                            HorizontalOffset="-288"
                            Placement="Bottom"
                            PlacementTarget="{Binding ElementName=StatusPanel}">
-                        <shell:LicensePopupView cal:Bind.Model="{Binding LicenseStatusManager}" />
+                        <shell:LicensePopupView DataContext="{Binding LicenseStatusManager}" />
                     </Popup>
 
                 </StackPanel>
