@@ -105,4 +105,14 @@ public class LoggingConfiguratorTests
             Assert.That(deny.GetProperty("servicecontrol").GetProperty("resource").ValueKind, Is.EqualTo(JsonValueKind.Null), "absent resource should be JSON null");
         });
     }
+
+    [Test]
+    public void Message_action_subcategory_is_captured_by_the_audit_rule()
+    {
+        var config = BuildConfig();
+        var auditRule = config.LoggingRules.Single(r => r.LoggerNamePattern == AuditPattern);
+
+        Assert.That(auditRule.NameMatches(ServiceControl.Infrastructure.Auth.MessageActionAuditLog.MessageCategory), Is.True);
+        Assert.That(auditRule.NameMatches(ServiceControl.Infrastructure.Auth.MessageActionAuditLog.OperationCategory), Is.True);
+    }
 }
