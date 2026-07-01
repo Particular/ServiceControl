@@ -37,8 +37,8 @@ public sealed class PermissionVerbHandler(
             return Task.CompletedTask;
         }
 
-        var subjectId = RequireClaim(context.User, oidcSettings.SubjectIdClaim, "Authentication.SubjectIdClaim");
-        var subjectName = RequireClaim(context.User, oidcSettings.SubjectNameClaim, "Authentication.SubjectNameClaim");
+        var subjectId = context.User.RequireClaim(oidcSettings.SubjectIdClaim, "Authentication.SubjectIdClaim");
+        var subjectName = context.User.RequireClaim(oidcSettings.SubjectNameClaim, "Authentication.SubjectNameClaim");
         var roles = context.User.FindAll(ClaimTypes.Role).Select(claim => claim.Value).ToArray();
         var permission = requirement.Permission;
 
@@ -70,17 +70,5 @@ public sealed class PermissionVerbHandler(
 
         // Leave the requirement unmet → the framework forbids (403).
         return Task.CompletedTask;
-    }
-
-    static string RequireClaim(ClaimsPrincipal user, string claimType, string settingName)
-    {
-        var value = user.FindFirst(claimType)?.Value;
-        if (string.IsNullOrEmpty(value))
-        {
-            throw new InvalidOperationException(
-                $"Authenticated principal is missing the required '{claimType}' claim configured by {settingName}. " +
-                "Configure the identity provider to emit this claim, or point the setting at the claim the IdP actually emits.");
-        }
-        return value;
     }
 }

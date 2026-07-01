@@ -6,3 +6,4 @@ GET /monitored-endpoints => ServiceControl.Monitoring.Http.Diagrams.DiagramApiCo
 GET /monitored-endpoints/{endpointName} => ServiceControl.Monitoring.Http.Diagrams.DiagramApiController:GetSingleEndpointMetrics(String endpointName, Nullable<Int32> history)
 GET /monitored-endpoints/disconnected => ServiceControl.Monitoring.Http.Diagrams.DiagramApiController:DisconnectedEndpointCount()
 DELETE /monitored-instance/{endpointName}/{instanceId} => ServiceControl.Monitoring.Http.Diagrams.DiagramApiController:DeleteEndpointInstance(String endpointName, String instanceId)
+GET /my/routes => ServiceControl.Hosting.Auth.MyRoutesController:GetMyRoutes()
