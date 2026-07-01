@@ -50,6 +50,11 @@ public static class PermissionAuthorizationExtensions
         services.AddSingleton<IAuthorizationAuditLog, AuthorizationAuditLog>();
         services.AddSingleton<IAuthorizationHandler, PermissionVerbHandler>();
 
+        // Message-action audit trail. Registered unconditionally (independent of OIDC being enabled) so
+        // the action trail is recorded even without authentication, attributed to AuditUser.Anonymous.
+        services.AddSingleton<IMessageActionAuditLog, MessageActionAuditLog>();
+        services.AddSingleton<ICurrentUserAccessor, CurrentUserAccessor>();
+
         // Backs the my/routes manifest: a singleton table projected from the wired endpoints. Reuses
         // the EndpointDataSource the framework registers, so it sees exactly the routes that are served.
         services.AddSingleton<RouteAuthorizationTable>();
