@@ -28,11 +28,16 @@ namespace ServiceControl.MessageFailures.Api
                 return UnprocessableEntity(ModelState);
             }
 
-            auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Archive, Permissions.ErrorMessagesArchive, MessageActionScope.Batch,
-                resource: null, count: messageIds.Length, operationId: Guid.NewGuid().ToString("N"));
+            var user = userAccessor.Resolve(User);
+            var operationId = Guid.NewGuid().ToString("N");
+            auditLog.Operation(user, MessageActionKind.Archive, Permissions.ErrorMessagesArchive, MessageActionScope.Batch,
+                resource: null, count: messageIds.Length, operationId: operationId);
 
             foreach (var id in messageIds)
             {
+                auditLog.MessageAction(user, MessageActionKind.Archive, Permissions.ErrorMessagesArchive,
+                    MessageActionScope.Batch, messageId: id, operationId: operationId);
+
                 var request = new ArchiveMessage { FailedMessageId = id };
 
                 await messageSession.SendLocal(request);

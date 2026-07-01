@@ -24,8 +24,15 @@
                 return BadRequest();
             }
 
-            auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Unarchive, Permissions.ErrorMessagesUnarchive, MessageActionScope.Batch,
-                resource: null, count: ids.Length, operationId: Guid.NewGuid().ToString("N"));
+            var user = userAccessor.Resolve(User);
+            var operationId = Guid.NewGuid().ToString("N");
+            auditLog.Operation(user, MessageActionKind.Unarchive, Permissions.ErrorMessagesUnarchive, MessageActionScope.Batch,
+                resource: null, count: ids.Length, operationId: operationId);
+            foreach (var id in ids)
+            {
+                auditLog.MessageAction(user, MessageActionKind.Unarchive, Permissions.ErrorMessagesUnarchive,
+                    MessageActionScope.Batch, messageId: id, operationId: operationId);
+            }
 
             var request = new UnArchiveMessages { FailedMessageIds = ids };
 

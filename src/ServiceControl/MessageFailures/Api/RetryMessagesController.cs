@@ -68,8 +68,15 @@
                 return BadRequest();
             }
 
-            auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Batch,
-                resource: null, count: messageIds.Count, operationId: Guid.NewGuid().ToString("N"));
+            var user = userAccessor.Resolve(User);
+            var operationId = Guid.NewGuid().ToString("N");
+            auditLog.Operation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Batch,
+                resource: null, count: messageIds.Count, operationId: operationId);
+            foreach (var id in messageIds)
+            {
+                auditLog.MessageAction(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry,
+                    MessageActionScope.Batch, messageId: id, operationId: operationId);
+            }
 
             await messageSession.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = messageIds.ToArray());
 
