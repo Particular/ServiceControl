@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.UnitTests.Recoverability
 {
     using System.Collections.Generic;
-    using MessageFailures.Api;
+    using ServiceControl.MessageFailures.Api;
     using NUnit.Framework;
 
     [TestFixture]

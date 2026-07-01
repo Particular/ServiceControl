@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
@@ -23,7 +24,9 @@
         HttpMessageInvoker httpMessageInvoker,
         IHttpForwarder forwarder,
         IMessageSession messageSession,
-        ILogger<RetryMessagesController> logger) : ControllerBase
+        ILogger<RetryMessagesController> logger,
+        ICurrentUserAccessor userAccessor,
+        IMessageActionAuditLog auditLog) : ControllerBase
     {
         [Authorize(Policy = Permissions.ErrorMessagesRetry)]
         [Route("errors/{failedMessageId:required:minlength(1)}/retry")]
@@ -32,6 +35,9 @@
         {
             if (string.IsNullOrWhiteSpace(instanceId) || instanceId == settings.InstanceId)
             {
+                auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Single,
+                    resource: failedMessageId, count: 1, operationId: Guid.NewGuid().ToString("N"));
+
                 await messageSession.SendLocal<RetryMessage>(m => m.FailedMessageId = failedMessageId);
                 return Accepted();
             }
@@ -62,6 +68,9 @@
                 return BadRequest();
             }
 
+            auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Batch,
+                resource: null, count: messageIds.Count, operationId: Guid.NewGuid().ToString("N"));
+
             await messageSession.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = messageIds.ToArray());
 
             return Accepted();
@@ -72,6 +81,9 @@
         [HttpPost]
         public async Task<IActionResult> RetryAllBy(string queueAddress)
         {
+            auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Queue,
+                resource: queueAddress, count: null, operationId: Guid.NewGuid().ToString("N"));
+
             await messageSession.SendLocal<RetryMessagesByQueueAddress>(m =>
             {
                 m.QueueAddress = queueAddress;
@@ -86,6 +98,9 @@
         [HttpPost]
         public async Task<IActionResult> RetryAll()
         {
+            auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.All,
+                resource: null, count: null, operationId: Guid.NewGuid().ToString("N"));
+
             await messageSession.SendLocal(new RequestRetryAll());
 
             return Accepted();
@@ -96,6 +111,9 @@
         [HttpPost]
         public async Task<IActionResult> RetryAllByEndpoint(string endpointName)
         {
+            auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Endpoint,
+                resource: endpointName, count: null, operationId: Guid.NewGuid().ToString("N"));
+
             await messageSession.SendLocal(new RequestRetryAll { Endpoint = endpointName });
 
             return Accepted();
