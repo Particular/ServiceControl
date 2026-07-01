@@ -15,6 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.Transports.SqlServer.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="transport.manifest" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
