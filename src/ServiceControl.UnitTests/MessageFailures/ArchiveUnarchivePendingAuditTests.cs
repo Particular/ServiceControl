@@ -26,6 +26,7 @@ namespace ServiceControl.UnitTests.MessageFailures
             Assert.That(op.Kind, Is.EqualTo(MessageActionKind.Archive));
             Assert.That(op.Scope, Is.EqualTo(MessageActionScope.Batch));
             Assert.That(op.Count, Is.EqualTo(3));
+            Assert.That(op.Resource, Is.Null);
         }
 
         [Test]
@@ -54,6 +55,8 @@ namespace ServiceControl.UnitTests.MessageFailures
             var op = audit.Operations.Single();
             Assert.That(op.Kind, Is.EqualTo(MessageActionKind.Unarchive));
             Assert.That(op.Scope, Is.EqualTo(MessageActionScope.Batch));
+            Assert.That(op.Count, Is.EqualTo(2));
+            Assert.That(op.Resource, Is.Null);
         }
 
         [Test]
@@ -83,6 +86,7 @@ namespace ServiceControl.UnitTests.MessageFailures
             Assert.That(op.Kind, Is.EqualTo(MessageActionKind.Retry));
             Assert.That(op.Scope, Is.EqualTo(MessageActionScope.Batch));
             Assert.That(op.Count, Is.EqualTo(2));
+            Assert.That(op.Resource, Is.Null);
         }
 
         [Test]
