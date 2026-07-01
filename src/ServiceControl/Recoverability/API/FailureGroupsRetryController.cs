@@ -10,7 +10,11 @@ namespace ServiceControl.Recoverability.API
 
     [ApiController]
     [Route("api")]
-    public class FailureGroupsRetryController(IMessageSession bus, RetryingManager retryingManager) : ControllerBase
+    public class FailureGroupsRetryController(
+        IMessageSession bus,
+        RetryingManager retryingManager,
+        ICurrentUserAccessor userAccessor,
+        IMessageActionAuditLog auditLog) : ControllerBase
     {
         [Authorize(Policy = Permissions.ErrorRecoverabilityGroupsRetry)]
         [Route("recoverability/groups/{groupId:required:minlength(1)}/errors/retry")]
@@ -18,6 +22,10 @@ namespace ServiceControl.Recoverability.API
         public async Task<IActionResult> ArchiveGroupErrors(string groupId)
         {
             var started = DateTime.UtcNow;
+
+            auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Retry,
+                Permissions.ErrorRecoverabilityGroupsRetry, MessageActionScope.Group,
+                resource: groupId, count: null, operationId: Guid.NewGuid().ToString("N"));
 
             if (!retryingManager.IsOperationInProgressFor(groupId, RetryType.FailureGroup))
             {
