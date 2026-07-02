@@ -12,7 +12,7 @@
 
     [ApiController]
     [Route("api")]
-    public class UnArchiveMessagesController(IMessageSession session) : ControllerBase
+    public class UnArchiveMessagesController(IMessageSession session, ICurrentUserAccessor userAccessor, IMessageActionAuditLog auditLog) : ControllerBase
     {
         [Authorize(Policy = Permissions.ErrorMessagesUnarchive)]
         [Route("errors/unarchive")]
@@ -22,6 +22,16 @@
             if (ids.Any(string.IsNullOrEmpty))
             {
                 return BadRequest();
+            }
+
+            var user = userAccessor.Resolve(User);
+            var operationId = Guid.NewGuid().ToString("N");
+            auditLog.Operation(user, MessageActionKind.Unarchive, Permissions.ErrorMessagesUnarchive, MessageActionScope.Batch,
+                resource: null, count: ids.Length, operationId: operationId);
+            foreach (var id in ids)
+            {
+                auditLog.MessageAction(user, MessageActionKind.Unarchive, Permissions.ErrorMessagesUnarchive,
+                    MessageActionScope.Batch, messageId: id, operationId: operationId);
             }
 
             var request = new UnArchiveMessages { FailedMessageIds = ids };
@@ -47,6 +57,9 @@
             {
                 return BadRequest();
             }
+
+            auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Unarchive, Permissions.ErrorMessagesUnarchive, MessageActionScope.Range,
+                resource: $"{from}...{to}", count: null, operationId: Guid.NewGuid().ToString("N"));
 
             await session.SendLocal(new UnArchiveMessagesByRange { From = fromDateTime, To = toDateTime });
 

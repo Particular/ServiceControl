@@ -1,5 +1,6 @@
 namespace ServiceControl.MessageFailures.Api
 {
+    using System;
     using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
@@ -13,7 +14,7 @@ namespace ServiceControl.MessageFailures.Api
 
     [ApiController]
     [Route("api")]
-    public class ArchiveMessagesController(IMessageSession messageSession, IErrorMessageDataStore dataStore) : ControllerBase
+    public class ArchiveMessagesController(IMessageSession messageSession, IErrorMessageDataStore dataStore, ICurrentUserAccessor userAccessor, IMessageActionAuditLog auditLog) : ControllerBase
     {
         [Authorize(Policy = Permissions.ErrorMessagesArchive)]
         [Route("errors/archive")]
@@ -27,8 +28,16 @@ namespace ServiceControl.MessageFailures.Api
                 return UnprocessableEntity(ModelState);
             }
 
+            var user = userAccessor.Resolve(User);
+            var operationId = Guid.NewGuid().ToString("N");
+            auditLog.Operation(user, MessageActionKind.Archive, Permissions.ErrorMessagesArchive, MessageActionScope.Batch,
+                resource: null, count: messageIds.Length, operationId: operationId);
+
             foreach (var id in messageIds)
             {
+                auditLog.MessageAction(user, MessageActionKind.Archive, Permissions.ErrorMessagesArchive,
+                    MessageActionScope.Batch, messageId: id, operationId: operationId);
+
                 var request = new ArchiveMessage { FailedMessageId = id };
 
                 await messageSession.SendLocal(request);
@@ -55,6 +64,9 @@ namespace ServiceControl.MessageFailures.Api
         [HttpPatch]
         public async Task<IActionResult> Archive(string messageId)
         {
+            auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Archive, Permissions.ErrorMessagesArchive, MessageActionScope.Single,
+                resource: messageId, count: 1, operationId: Guid.NewGuid().ToString("N"));
+
             await messageSession.SendLocal<ArchiveMessage>(m => m.FailedMessageId = messageId);
 
             return Accepted();

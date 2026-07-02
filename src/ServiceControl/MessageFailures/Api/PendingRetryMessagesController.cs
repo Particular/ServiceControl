@@ -13,7 +13,7 @@
 
     [ApiController]
     [Route("api")]
-    public class PendingRetryMessagesController(IMessageSession session) : ControllerBase
+    public class PendingRetryMessagesController(IMessageSession session, ICurrentUserAccessor userAccessor, IMessageActionAuditLog auditLog) : ControllerBase
     {
         [Authorize(Policy = Permissions.ErrorMessagesRetry)]
         [Route("pendingretries/retry")]
@@ -26,6 +26,16 @@
                 return UnprocessableEntity(ModelState);
             }
 
+            var user = userAccessor.Resolve(User);
+            var operationId = Guid.NewGuid().ToString("N");
+            auditLog.Operation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Batch,
+                resource: null, count: ids.Length, operationId: operationId);
+            foreach (var id in ids)
+            {
+                auditLog.MessageAction(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry,
+                    MessageActionScope.Batch, messageId: id, operationId: operationId);
+            }
+
             await session.SendLocal<RetryPendingMessagesById>(m => m.MessageUniqueIds = ids);
 
             return Accepted();
@@ -36,6 +46,9 @@
         [HttpPost]
         public async Task<IActionResult> RetryBy(PendingRetryRequest request)
         {
+            auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Queue,
+                resource: request.QueueAddress, count: null, operationId: Guid.NewGuid().ToString("N"));
+
             await session.SendLocal<RetryPendingMessages>(m =>
             {
                 m.QueueAddress = request.QueueAddress;
