@@ -32,6 +32,16 @@ public class OpenIdConnectSettings
         ValidateIssuerSigningKey = SettingsReader.Read(rootNamespace, "Authentication.ValidateIssuerSigningKey", true);
         RequireHttpsMetadata = SettingsReader.Read(rootNamespace, "Authentication.RequireHttpsMetadata", true);
 
+        RolesClaim = SettingsReader.Read(rootNamespace, "Authentication.RolesClaim", "roles");
+        RoleBasedAuthorizationEnabled = SettingsReader.Read(rootNamespace, "Authentication.RoleBasedAuthorizationEnabled", false);
+
+        // Claims that identify the principal in the authorization audit log. The handler treats both
+        // as required — a missing or empty value is a sign that the IdP isn't emitting the expected
+        // claim and the operator needs to fix the configuration, so the handler will throw rather
+        // than substitute a placeholder.
+        SubjectIdClaim = SettingsReader.Read(rootNamespace, "Authentication.SubjectIdClaim", "sub");
+        SubjectNameClaim = SettingsReader.Read(rootNamespace, "Authentication.SubjectNameClaim", "preferred_username");
+
         // ServicePulse settings are only relevant for the primary ServiceControl instance
         // which serves the OIDC configuration endpoint that ServicePulse uses for login
         if (requireServicePulseSettings)
@@ -97,6 +107,20 @@ public class OpenIdConnectSettings
     public bool RequireHttpsMetadata { get; }
 
     /// <summary>
+    /// Claim that carries the stable subject identifier (e.g. the JWT <c>sub</c> claim) recorded in
+    /// the authorization audit log. Required — the handler throws if the configured claim is absent
+    /// or empty on an authenticated principal.
+    /// </summary>
+    public string SubjectIdClaim { get; }
+
+    /// <summary>
+    /// Claim that carries the human-readable subject name (e.g. <c>preferred_username</c>) recorded
+    /// in the authorization audit log. Required — the handler throws if the configured claim is
+    /// absent or empty on an authenticated principal.
+    /// </summary>
+    public string SubjectNameClaim { get; }
+
+    /// <summary>
     /// Optional override for the authority URL that ServicePulse should use for authentication.
     /// If not specified, ServicePulse uses the main Authority value.
     /// </summary>
@@ -113,6 +137,21 @@ public class OpenIdConnectSettings
     /// Required on the primary ServiceControl instance when authentication is enabled.
     /// </summary>
     public string ServicePulseApiScopes { get; }
+
+    /// <summary>
+    /// Path within the JWT where the user's role values live. Defaults to <c>realm_access.roles</c>
+    /// to match Keycloak's out-of-box token shape. A flat claim name like <c>roles</c> is used when
+    /// the identity provider emits role values as top-level claims (Keycloak with a "User Realm Role"
+    /// mapper, Microsoft Entra ID app roles, AWS Cognito groups, etc.). The dotted form navigates
+    /// into a nested JSON object claim.
+    /// </summary>
+    public string RolesClaim { get; }
+
+    /// <summary>
+    /// Is RBAC enabled. When false, all authenticated users have access to all methods. When true,
+    /// role based authorization rules are applied.
+    /// </summary>
+    public bool RoleBasedAuthorizationEnabled { get; }
 
     void Validate(bool requireServicePulseSettings)
     {
@@ -187,8 +226,8 @@ public class OpenIdConnectSettings
         var servicePulseAuthorityDisplay = requireServicePulseSettings ? (ServicePulseAuthority ?? "(not configured)") : "(n/a)";
         var servicePulseApiScopesDisplay = requireServicePulseSettings ? (ServicePulseApiScopes ?? "(not configured)") : "(n/a)";
 
-        logger.LogInformation("Authentication settings: Enabled={Enabled}, Authority={Authority}, Audience={Audience}, ValidateIssuer={ValidateIssuer}, ValidateAudience={ValidateAudience}, ValidateLifetime={ValidateLifetime}, ValidateIssuerSigningKey={ValidateIssuerSigningKey}, RequireHttpsMetadata={RequireHttpsMetadata}, ServicePulseClientId={ServicePulseClientId}, ServicePulseAuthority={ServicePulseAuthority}, ServicePulseApiScopes={ServicePulseApiScopes}",
-            Enabled, authorityDisplay, audienceDisplay, ValidateIssuer, ValidateAudience, ValidateLifetime, ValidateIssuerSigningKey, RequireHttpsMetadata, servicePulseClientIdDisplay, servicePulseAuthorityDisplay, servicePulseApiScopesDisplay);
+        logger.LogInformation("Authentication settings: Enabled={Enabled}, Authority={Authority}, Audience={Audience}, ValidateIssuer={ValidateIssuer}, ValidateAudience={ValidateAudience}, ValidateLifetime={ValidateLifetime}, ValidateIssuerSigningKey={ValidateIssuerSigningKey}, RequireHttpsMetadata={RequireHttpsMetadata}, RolesClaim={RolesClaim}, SubjectIdClaim={SubjectIdClaim}, SubjectNameClaim={SubjectNameClaim}, ServicePulseClientId={ServicePulseClientId}, ServicePulseAuthority={ServicePulseAuthority}, ServicePulseApiScopes={ServicePulseApiScopes}",
+            Enabled, authorityDisplay, audienceDisplay, ValidateIssuer, ValidateAudience, ValidateLifetime, ValidateIssuerSigningKey, RequireHttpsMetadata, RolesClaim, SubjectIdClaim, SubjectNameClaim, servicePulseClientIdDisplay, servicePulseAuthorityDisplay, servicePulseApiScopesDisplay);
 
         // Warn about potential misconfigurations
         var hasAuthConfig = !string.IsNullOrWhiteSpace(Authority) || !string.IsNullOrWhiteSpace(Audience);

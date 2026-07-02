@@ -16,6 +16,7 @@ namespace ServiceControl.Monitoring
 
             var hostBuilder = WebApplication.CreateBuilder();
             hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
+            hostBuilder.AddServiceControlAuthorization(settings.OpenIdConnectSettings);
             hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
             hostBuilder.AddServiceControlMonitoring((_, __) => Task.CompletedTask, settings, endpointConfiguration);
             hostBuilder.AddServiceControlMonitoringApi();

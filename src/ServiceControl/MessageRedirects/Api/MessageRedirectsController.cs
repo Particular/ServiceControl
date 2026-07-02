@@ -7,9 +7,11 @@
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
     using Contracts.MessageRedirects;
+    using Infrastructure.Auth;
     using Infrastructure.DomainEvents;
     using Infrastructure.WebApi;
     using MessageFailures.InternalMessages;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
     using ServiceControl.Persistence.Infrastructure;
@@ -25,6 +27,7 @@
         IDomainEvents events)
         : ControllerBase
     {
+        [Authorize(Policy = Permissions.ErrorRedirectsManage)]
         [Route("redirects")]
         [HttpPost]
         public async Task<IActionResult> NewRedirects(MessageRedirectRequest request)
@@ -93,6 +96,7 @@
             return StatusCode((int)HttpStatusCode.Created, messageRedirect);
         }
 
+        [Authorize(Policy = Permissions.ErrorRedirectsManage)]
         [Route("redirects/{messageRedirectId:guid}")]
         [HttpPut]
         public async Task<IActionResult> UpdateRedirect(Guid messageRedirectId, MessageRedirectRequest request)
@@ -135,6 +139,7 @@
             return NoContent();
         }
 
+        [Authorize(Policy = Permissions.ErrorRedirectsManage)]
         [Route("redirects/{messageRedirectId:guid}")]
         [HttpDelete]
         public async Task<IActionResult> DeleteRedirect(Guid messageRedirectId)
@@ -162,6 +167,7 @@
             return NoContent();
         }
 
+        [Authorize(Policy = Permissions.ErrorRedirectsView)]
         [Route("redirect")]
         [HttpHead]
         public async Task CountRedirects()
@@ -172,6 +178,7 @@
             Response.WithTotalCount(redirects.Redirects.Count);
         }
 
+        [Authorize(Policy = Permissions.ErrorRedirectsView)]
         [Route("redirects")]
         [HttpGet]
         public async Task<IEnumerable<RedirectsQueryResult>> Redirects(string sort, string direction, [FromQuery] PagingInfo pagingInfo)

@@ -5,10 +5,12 @@
     using System.Text.Json;
     using System.Threading;
     using Contracts;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Net.Http.Headers;
     using Particular.LicensingComponent.Report;
+    using ServiceControl.Infrastructure.Auth;
 
     [ApiController]
     [Route("api/licensing")]
@@ -19,6 +21,7 @@
             this.throughputCollector = throughputCollector;
         }
 
+        [Authorize(Policy = Permissions.ErrorThroughputView)]
         [Route("endpoints")]
         [HttpGet]
         public async Task<List<EndpointThroughputSummary>> GetEndpointThroughput(CancellationToken cancellationToken)
@@ -26,6 +29,7 @@
             return await throughputCollector.GetThroughputSummary(cancellationToken);
         }
 
+        [Authorize(Policy = Permissions.ErrorThroughputManage)]
         [Route("endpoints/update")]
         [HttpPost]
         public async Task<IActionResult> UpdateUserSelectionOnEndpointThroughput(List<UpdateUserIndicator> updateUserIndicators, CancellationToken cancellationToken)
@@ -34,6 +38,7 @@
             return Ok();
         }
 
+        [Authorize(Policy = Permissions.ErrorThroughputView)]
         [Route("report/available")]
         [HttpGet]
         public async Task<ReportGenerationState> CanThroughputReportBeGenerated(CancellationToken cancellationToken)
@@ -41,6 +46,7 @@
             return await throughputCollector.GetReportGenerationState(cancellationToken);
         }
 
+        [Authorize(Policy = Permissions.ErrorThroughputView)]
         [Route("report/file")]
         [HttpGet]
         public async Task GetThroughputReportFile([FromQuery(Name = "spVersion")] string? spVersion, CancellationToken cancellationToken)
@@ -77,6 +83,7 @@
             await JsonSerializer.SerializeAsync(entryStream, report, SerializationOptions.IndentedWithNoEscaping, cancellationToken);
         }
 
+        [Authorize(Policy = Permissions.ErrorThroughputView)]
         [Route("settings/info")]
         [HttpGet]
         public async Task<ThroughputConnectionSettings> GetThroughputSettingsInformation(CancellationToken cancellationToken)
@@ -84,10 +91,12 @@
             return await throughputCollector.GetThroughputConnectionSettingsInformation(cancellationToken);
         }
 
+        [Authorize(Policy = Permissions.ErrorThroughputView)]
         [Route("settings/test")]
         [HttpGet]
         public async Task<ConnectionTestResults> TestThroughputConnectionSettings(CancellationToken cancellationToken) => await throughputCollector.TestConnectionSettings(cancellationToken);
 
+        [Authorize(Policy = Permissions.ErrorThroughputView)]
         [Route("settings/masks")]
         [HttpGet]
         public async Task<List<string>> GetMasks(CancellationToken cancellationToken)
@@ -95,6 +104,7 @@
             return await throughputCollector.GetReportMasks(cancellationToken);
         }
 
+        [Authorize(Policy = Permissions.ErrorThroughputManage)]
         [Route("settings/masks/update")]
         [HttpPost]
         public async Task<IActionResult> UpdateMasks(List<string> updateMasks, CancellationToken cancellationToken)

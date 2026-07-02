@@ -5,14 +5,17 @@ namespace ServiceControl.Audit.SagaAudit
     using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Persistence;
+    using ServiceControl.Infrastructure.Auth;
     using ServiceControl.SagaAudit;
 
     [ApiController]
     [Route("api")]
     public class SagasController(IAuditDataStore dataStore) : ControllerBase
     {
+        [Authorize(Policy = Permissions.AuditSagaView)]
         [Route("sagas/{id}")]
         [HttpGet]
         public async Task<SagaHistory> Sagas([FromQuery] PagingInfo pagingInfo, Guid id, CancellationToken cancellationToken)

@@ -4,6 +4,8 @@
     using System.Net;
     using System.Threading.Tasks;
     using Email;
+    using Infrastructure.Auth;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -12,6 +14,7 @@
     [Route("api")]
     public class NotificationsController(IErrorMessageDataStore store, Settings settings, EmailSender emailSender) : ControllerBase
     {
+        [Authorize(Policy = Permissions.ErrorNotificationsView)]
         [Route("notifications/email")]
         [HttpGet]
         public async Task<EmailNotifications> GetEmailNotificationsSettings()
@@ -22,6 +25,7 @@
             return notificationsSettings.Email;
         }
 
+        [Authorize(Policy = Permissions.ErrorNotificationsManage)]
         [Route("notifications/email/toggle")]
         [HttpPost]
         public async Task<IActionResult> ToggleEmailNotifications(ToggleEmailNotifications request)
@@ -36,6 +40,7 @@
             return Ok();
         }
 
+        [Authorize(Policy = Permissions.ErrorNotificationsManage)]
         [Route("notifications/email")]
         [HttpPost]
         public async Task<IActionResult> UpdateSettings(UpdateEmailNotificationsSettingsRequest request)
@@ -60,6 +65,7 @@
             return Ok();
         }
 
+        [Authorize(Policy = Permissions.ErrorNotificationsTest)]
         [Route("notifications/email/test")]
         [HttpPost]
         public async Task<IActionResult> SendTestEmail()

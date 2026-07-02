@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Recoverability.API
 {
     using System.Threading.Tasks;
+    using Infrastructure.Auth;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
     using ServiceControl.Persistence.Recoverability;
@@ -9,6 +11,7 @@
     [Route("api")]
     public class FailureGroupsUnarchiveController(IMessageSession bus, IArchiveMessages archiver) : ControllerBase
     {
+        [Authorize(Policy = Permissions.ErrorRecoverabilityGroupsUnarchive)]
         [Route("recoverability/groups/{groupId:required:minlength(1)}/errors/unarchive")]
         [HttpPost]
         public async Task<IActionResult> UnarchiveGroupErrors(string groupId)
