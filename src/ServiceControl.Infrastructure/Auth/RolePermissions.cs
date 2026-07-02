@@ -37,15 +37,17 @@ public static class RolePermissions
     static readonly Dictionary<string, string[]> RolePatterns = new(StringComparer.OrdinalIgnoreCase)
     {
         [Reader] = ["*:*:view"],
-        [Writer] = ["*:*:*"],
+        [Writer] =
+        [
+            "*:*:*",
+            "-error:licensing:*",
+            "-error:notifications:*",
+            "-error:redirects:*",
+            "-error:throughput:*",
+        ],
         [Admin] =
         [
-            "*:*:view",
-            "error:licensing:*",
-            "error:notifications:*",
-            "error:redirects:*",
-            "error:throughput:*",
-            "error:connections:*",
+            "*:*:*",
         ],
     };
 
@@ -106,15 +108,23 @@ public static class RolePermissions
 
         foreach (var (role, patterns) in RolePatterns)
         {
+            var includePatterns = patterns.Where(pattern => pattern[0] != '-');
+            var excludePatterns = patterns.Where(pattern => pattern[0] == '-').Select(pattern => pattern[1..]);
+
             expanded[role] = Permissions.All
-                .Where(permission => patterns.Any(pattern => Matches(pattern, permission)))
+                .Where(permission => includePatterns.Any(pattern => Matches(pattern, permission))
+                    && !excludePatterns.Any(pattern => Matches(pattern, permission)))
                 .ToFrozenSet(StringComparer.Ordinal);
         }
 
         return expanded.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
     }
 
-    /// <summary>Matches a colon-delimited permission against a pattern where <c>*</c> is a segment wildcard.</summary>
+    /// <summary>
+    /// Matches a colon-delimited permission against a pattern where <c>*</c> is a segment wildcard.
+    /// A leading <c>-</c> on the pattern (stripped by <see cref="Expand"/> before calling this method)
+    /// marks the pattern as an exclusion rather than a grant.
+    /// </summary>
     static bool Matches(string pattern, string permission)
     {
         var patternSegments = pattern.Split(':');
