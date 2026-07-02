@@ -74,4 +74,17 @@ public static class RolePermissions
         }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
     static FrozenSet<string> ToSet(string[] permissions) => permissions.ToFrozenSet(StringComparer.Ordinal);
+
+    public static bool IsGranted(string[] roles, string permission)
+    {
+        foreach (var role in roles)
+        {
+            if (Roles.TryGetValue(role, out var granted) && granted.Contains(permission))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
