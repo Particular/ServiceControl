@@ -126,7 +126,7 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
             _ = await Define<Context>()
                 .Done(async ctx =>
                 {
-                    // The "reader" role grants every *:*:view permission, including error:messages:view
+                    // The "reader" role grants every :view permission, including error:messages:view
                     // required by /api/errors. Without a role-bearing claim the request would be 403.
                     var validToken = mockOidcServer.GenerateToken(
                         additionalClaims: new[] { new Claim("roles", "reader") });

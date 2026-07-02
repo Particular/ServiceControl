@@ -85,7 +85,7 @@ public static class Permissions
     /// <inheritdoc cref="ErrorThroughputView"/>
     public const string ErrorThroughputManage = "error:throughput:manage";
 
-    /// <summary>Platform connections area — viewing and managing broker/platform connection settings.</summary>
+    /// <summary>Platform connections area — viewing and managing platform connection settings.</summary>
     public const string ErrorConnectionsView = "error:connections:view";
     /// <inheritdoc cref="ErrorConnectionsView"/>
     public const string ErrorConnectionsManage = "error:connections:manage";

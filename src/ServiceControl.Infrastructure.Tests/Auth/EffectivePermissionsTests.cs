@@ -31,7 +31,7 @@ class EffectivePermissionsTests
 
         var result = EffectivePermissions.ForUser(PrincipalWithRoles(RolePermissions.Reader), settings);
 
-        Assert.That(result, Is.EquivalentTo(RolePermissions.GetPermissions(RolePermissions.Reader)));
+        Assert.That(result, Is.EquivalentTo(RolePermissions.Roles[RolePermissions.Reader]));
     }
 
     [Test]

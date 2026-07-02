@@ -83,7 +83,7 @@ class When_my_routes_are_requested : AcceptanceTest
         var routes = await GetRoutes(RolePermissions.Writer);
 
         Assert.That(routes.Any(r => r.Method == "POST" && r.UrlTemplate.EndsWith("/retry")), Is.True,
-            "writer holds every permission, so retry routes are allowed");
+            "writer holds the operate permissions, so retry routes are allowed");
     }
 
     async Task<List<RouteManifestEntry>> GetRoutes(string role)

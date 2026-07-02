@@ -42,7 +42,7 @@ public sealed class PermissionVerbHandler(
         var roles = context.User.FindAll(ClaimTypes.Role).Select(claim => claim.Value).ToArray();
         var permission = requirement.Permission;
 
-        if (RolePermissions.IsGranted(roles, permission))
+        if (IsGranted(roles, permission))
         {
             auditLog.Decision(
                 subjectId,
@@ -70,5 +70,18 @@ public sealed class PermissionVerbHandler(
 
         // Leave the requirement unmet → the framework forbids (403).
         return Task.CompletedTask;
+    }
+
+    static bool IsGranted(string[] roles, string permission)
+    {
+        foreach (var role in roles)
+        {
+            if (RolePermissions.Roles.TryGetValue(role, out var granted) && granted.Contains(permission))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
