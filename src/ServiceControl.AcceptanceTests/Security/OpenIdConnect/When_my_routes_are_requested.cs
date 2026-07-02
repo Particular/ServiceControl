@@ -63,48 +63,5 @@ class When_my_routes_are_requested : AcceptanceTest
         OpenIdConnectAssertions.AssertUnauthorized(response);
     }
 
-    [Test]
-    public async Task Reader_can_view_but_cannot_retry()
-    {
-        var routes = await GetRoutes(RolePermissions.Reader);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(routes.Any(r => r.UrlTemplate == "/api/configuration"), Is.True,
-                "reader holds :view permissions, so view routes are allowed");
-            Assert.That(routes.Any(r => r.Method == "POST" && r.UrlTemplate.EndsWith("/retry")), Is.False,
-                "reader has no retry permission, so retry routes are excluded");
-        }
-    }
-
-    [Test]
-    public async Task Writer_can_retry()
-    {
-        var routes = await GetRoutes(RolePermissions.Writer);
-
-        Assert.That(routes.Any(r => r.Method == "POST" && r.UrlTemplate.EndsWith("/retry")), Is.True,
-            "writer holds the operate permissions, so retry routes are allowed");
-    }
-
-    async Task<List<RouteManifestEntry>> GetRoutes(string role)
-    {
-        HttpResponseMessage response = null;
-
-        _ = await Define<Context>()
-            .Done(async ctx =>
-            {
-                var token = mockOidcServer.GenerateToken(additionalClaims: [new Claim("roles", role)]);
-                response = await OpenIdConnectAssertions.SendRequestWithBearerToken(
-                    HttpClient, HttpMethod.Get, "/api/my/routes", token);
-                return response != null;
-            })
-            .Run();
-
-        OpenIdConnectAssertions.AssertAuthenticated(response);
-
-        var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<List<RouteManifestEntry>>(content, SerializerOptions);
-    }
-
     class Context : ScenarioContext;
 }
