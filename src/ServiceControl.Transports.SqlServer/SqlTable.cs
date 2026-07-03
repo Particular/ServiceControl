@@ -1,51 +1,70 @@
 ﻿#nullable enable
 namespace ServiceControl.Transports.SqlServer
 {
+    using System.Collections.Generic;
+    using System.Linq;
 
-    class SqlTable
+    class SqlTable(string name, string schema, string? catalog)
     {
-        SqlTable(string name, string schema, string? catalog)
-        {
-            var unquotedSchema = NameHelper.Unquote(schema);
-            var unquotedName = NameHelper.Unquote(name);
-            var quotedName = NameHelper.Quote(name);
-            var quotedSchema = NameHelper.Quote(schema);
-            //HINT: The query approximates queue length value based on max and min
-            //      of RowVersion IDENTITY(1,1) column. There are couple of scenarios
-            //      that might lead to the approximation being off. More details here:
-            //      https://docs.microsoft.com/en-us/sql/t-sql/statements/create-table-transact-sql-identity-property?view=sql-server-ver15#remarks
-            //
-            //      Min and Max values return NULL when no rows are found.
-            if (catalog == null)
-            {
-                _fullTableName = $"{quotedSchema}.{quotedName}";
+        // Unquoted identifier parts, exposed so the bulk catalog-view query (see QueueLengthProvider)
+        // can group tables by catalog and match rows from sys.schemas / sys.tables back to the
+        // tracked tables without parsing the composed full name.
+        public string UnquotedName { get; } = NameHelper.Unquote(name);
+        public string UnquotedSchema { get; } = NameHelper.Unquote(schema);
+        public string? UnquotedCatalog { get; } = catalog == null ? null : NameHelper.Unquote(catalog);
 
-                LengthQuery = $"""
-                               IF (EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{unquotedSchema}' AND TABLE_NAME = '{unquotedName}'))
-                                 SELECT isnull(cast(max([RowVersion]) - min([RowVersion]) + 1 AS int), 0) FROM {_fullTableName} WITH (nolock)
-                               ELSE
-                                 SELECT -1;
-                               """;
-            }
-            else
-            {
-                var quotedCatalog = NameHelper.Quote(catalog);
-                _fullTableName = $"{quotedCatalog}.{quotedSchema}.{quotedName}";
+        readonly string _fullTableName = BuildFullTableName(name, schema, catalog);
 
-                LengthQuery = $"""
-                               IF (EXISTS (SELECT TABLE_NAME FROM {quotedCatalog}.INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{unquotedSchema}' AND TABLE_NAME = '{unquotedName}'))
-                                 SELECT isnull(cast(max([RowVersion]) - min([RowVersion]) + 1 AS int), 0) FROM {_fullTableName} WITH (nolock)
-                               ELSE
-                                 SELECT -1;
-                               """;
-            }
-        }
-
-        readonly string _fullTableName;
-        public string LengthQuery { get; }
+        static string BuildFullTableName(string name, string schema, string? catalog) =>
+            catalog == null
+                ? $"{NameHelper.Quote(schema)}.{NameHelper.Quote(name)}"
+                : $"{NameHelper.Quote(catalog)}.{NameHelper.Quote(schema)}.{NameHelper.Quote(name)}";
 
         public override string ToString() =>
             _fullTableName;
+
+        // Builds a SINGLE query that returns the (approximate) length of every supplied table in one
+        // catalog, read entirely from the system catalog views (sys.partitions/sys.tables/sys.schemas).
+        //
+        // Why this is better than the previous per-table IF EXISTS + max-min(RowVersion) probe:
+        //   * One statement covers N queues instead of N statements (the customer in case 00105882 saw
+        //     thousands of statements/min; this collapses them to one per catalog per poll).
+        //   * sys.partitions reports the row count maintained by the engine, so it never reads, scans or
+        //     locks the queue tables themselves — the IF EXISTS guard and the max-min RowVersion scan are
+        //     both gone. Metadata visibility means SELECT permission on the queue tables is enough; no
+        //     VIEW DATABASE STATE is required (unlike the dm_db_partition_stats DMV).
+        //   * The queue tables are heaps (index_id 0) with non-clustered indexes only, so index_id IN (0,1)
+        //     yields the table's row count.
+        //
+        // The result is still an approximation — comparable to the existing max-min(RowVersion) estimate,
+        // which itself over-counts identity gaps — which is acceptable for the queue-length monitoring graph.
+        public static string BuildBulkLengthQuery(string? catalog, IReadOnlyCollection<SqlTable> tables)
+        {
+            var prefix = catalog == null ? string.Empty : $"{NameHelper.Quote(catalog)}.";
+
+            // With no tables the predicate would be empty, producing the invalid `AND ()`. Emit a
+            // constant-false predicate instead so the query stays valid and simply returns no rows.
+            var predicate = tables.Count == 0
+                ? "1 = 0"
+                : string.Join(
+                    "\n     OR ",
+                    tables.Select(t => $"(s.name = '{Escape(t.UnquotedSchema)}' AND t.name = '{Escape(t.UnquotedName)}')"));
+
+            // NOLOCK hints (statement-scoped) rather than SET TRANSACTION ISOLATION LEVEL READ
+            // UNCOMMITTED: the latter is connection-scoped and would persist on the pooled physical
+            // connection. The hint keeps the dirty-read scope on this single catalog-view read.
+            return $"""
+                    SELECT s.name AS TableSchema, t.name AS TableName, SUM(p.rows) AS [RowCount]
+                    FROM {prefix}sys.partitions p WITH (NOLOCK)
+                    INNER JOIN {prefix}sys.tables t WITH (NOLOCK) ON t.object_id = p.object_id
+                    INNER JOIN {prefix}sys.schemas s WITH (NOLOCK) ON s.schema_id = t.schema_id
+                    WHERE p.index_id IN (0, 1)
+                      AND ({predicate})
+                    GROUP BY s.name, t.name;
+                    """;
+        }
+
+        static string Escape(string identifier) => identifier.Replace("'", "''");
 
         public static SqlTable Parse(string address, string defaultSchema)
         {
