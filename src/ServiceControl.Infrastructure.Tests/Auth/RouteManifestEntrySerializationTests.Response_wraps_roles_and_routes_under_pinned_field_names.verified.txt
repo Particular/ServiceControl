@@ -1,0 +1,11 @@
+﻿{
+  roles: [
+    admin
+  ],
+  routes: [
+    {
+      method: GET,
+      url_template: /api/errors
+    }
+  ]
+}
