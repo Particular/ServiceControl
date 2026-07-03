@@ -41,6 +41,16 @@ public sealed record RouteManifestEntry(
     [property: JsonPropertyName("url_template")] string UrlTemplate);
 
 /// <summary>
+/// The full my/routes payload: the caller's role claims alongside the routes they may invoke. Roles
+/// are reported once at the top level rather than repeated per entry, since they describe the caller,
+/// not the individual route. Field names are pinned for the same cross-instance reason as
+/// <see cref="RouteManifestEntry"/>.
+/// </summary>
+public sealed record MyRoutesResponse(
+    [property: JsonPropertyName("roles")] IReadOnlyList<string> Roles,
+    [property: JsonPropertyName("routes")] IReadOnlyList<RouteManifestEntry> Routes);
+
+/// <summary>
 /// Projects the route table down to the entries a caller may invoke. A route is included when it is
 /// anonymous, requires only authentication (no specific permission), or its required permission is in
 /// the caller's effective set. Enforcement and this projection read the same inputs, so the advertised

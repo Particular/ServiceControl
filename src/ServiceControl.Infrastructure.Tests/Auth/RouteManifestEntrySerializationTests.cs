@@ -24,4 +24,18 @@ class RouteManifestEntrySerializationTests
         Assert.That(json, Does.Contain("\"url_template\""));
         Assert.That(json, Does.Not.Contain("urlTemplate"));
     }
+
+    // Same contract as above, but for the response wrapper: roles are reported once at the top level,
+    // not duplicated onto every route entry.
+    [Test]
+    public void Response_wraps_roles_and_routes_under_pinned_field_names()
+    {
+        var json = JsonSerializer.Serialize(
+            new MyRoutesResponse(["admin"], [new RouteManifestEntry("GET", "/api/errors")]),
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+
+        Assert.That(json, Does.Contain("\"roles\""));
+        Assert.That(json, Does.Contain("\"routes\""));
+        Assert.That(json, Does.Contain("\"url_template\""));
+    }
 }
