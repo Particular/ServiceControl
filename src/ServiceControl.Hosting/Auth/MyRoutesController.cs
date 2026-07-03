@@ -8,7 +8,7 @@ using ServiceControl.Infrastructure;
 using ServiceControl.Infrastructure.Auth;
 
 /// <summary>
-/// Returns the API routes the current token may call, as <c>{ method, urlTemplate }</c> entries.
+/// Returns the API routes the current token may call, as <c>{ method, url_template }</c> entries.
 /// This is the per-instance authorization contract for clients (ServicePulse): each instance reports
 /// only the routes it serves, so a client matches its outgoing request against the allowed set without
 /// ever learning the server's internal permission vocabulary. The endpoint is the bootstrap of that

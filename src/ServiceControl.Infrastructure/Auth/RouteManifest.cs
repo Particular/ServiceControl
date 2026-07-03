@@ -3,6 +3,7 @@ namespace ServiceControl.Infrastructure.Auth;
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 /// <summary>
@@ -28,8 +29,16 @@ public static partial class RouteTemplateNormalizer
 /// <summary>A route the server hosts, with the authorization metadata read from its endpoint.</summary>
 public sealed record RouteAuthInfo(string Method, string UrlTemplate, string? RequiredPermission, bool AllowAnonymous);
 
-/// <summary>A single allowed-route entry returned to the client.</summary>
-public sealed record RouteManifestEntry(string Method, string UrlTemplate);
+/// <summary>
+/// A single allowed-route entry returned to the client. The JSON field names are pinned with
+/// <see cref="JsonPropertyName"/> so the manifest has one stable shape regardless of each host's
+/// global JSON naming policy (the Primary instance serializes snake_case, the Monitoring instance
+/// camelCase). Without this the same contract would emit <c>url_template</c> on one instance and
+/// <c>urlTemplate</c> on another, and clients that merge both would silently drop half the routes.
+/// </summary>
+public sealed record RouteManifestEntry(
+    [property: JsonPropertyName("method")] string Method,
+    [property: JsonPropertyName("url_template")] string UrlTemplate);
 
 /// <summary>
 /// Projects the route table down to the entries a caller may invoke. A route is included when it is

@@ -13,7 +13,7 @@ using NUnit.Framework;
 using ServiceControl.Infrastructure.Auth;
 
 /// <summary>
-/// my/routes returns the API routes the current token may call, as { method, urlTemplate } entries.
+/// my/routes returns the API routes the current token may call, as { method, url_template } entries.
 /// It is the per-instance authorization contract ServicePulse consumes: it gates UI on routes it
 /// already calls rather than on the server's internal permission vocabulary.
 /// </summary>
