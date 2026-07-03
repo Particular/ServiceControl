@@ -84,6 +84,24 @@ public class MessageActionAuditLogTests
         Assert.That(ecs.GetProperty("event").GetProperty("outcome").GetString(), Is.EqualTo("failure"));
     }
 
+    [Test]
+    public void Null_valued_fields_are_omitted()
+    {
+        var (provider, log) = Create();
+
+        log.Operation(new AuditUser("a", "a"), MessageActionKind.Retry, "error:messages:retry",
+            MessageActionScope.All, resource: null, count: null, operationId: "op-5");
+
+        var sc = JsonDocument.Parse(provider.EntriesFor("ServiceControl.Audit")[0].Message).RootElement.GetProperty("servicecontrol");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(sc.TryGetProperty("resource", out _), Is.False);
+            Assert.That(sc.TryGetProperty("count", out _), Is.False);
+            Assert.That(sc.TryGetProperty("message", out _), Is.False);
+            Assert.That(sc.GetProperty("operation").GetProperty("id").GetString(), Is.EqualTo("op-5"));
+        }
+    }
+
     [TestCase(null, "op")]
     [TestCase("", "op")]
     [TestCase("error:messages:retry", null)]

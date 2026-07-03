@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
@@ -19,7 +20,7 @@ public sealed partial class MessageActionAuditLog : IMessageActionAuditLog
     public const string MessageCategory = AuthorizationAuditLog.AuditCategory + ".Messages";  // "ServiceControl.Audit.Messages"
 
     // Relaxed escaping keeps the JSON readable for log sinks, matching AuthorizationAuditLog.
-    static readonly JsonSerializerOptions EcsJsonOptions = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+    static readonly JsonSerializerOptions EcsJsonOptions = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
     readonly ILogger operationLogger;
     readonly ILogger messageLogger;

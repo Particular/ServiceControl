@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
@@ -19,7 +20,7 @@ public sealed partial class AuthorizationAuditLog(ILoggerFactory loggerFactory) 
 
     // Relaxed escaping keeps the JSON readable for log sinks (no \uXXXX for '+', '<', accented names, …);
     // the HTML-safe default only matters in a browser context, which an audit log is not.
-    static readonly JsonSerializerOptions EcsJsonOptions = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+    static readonly JsonSerializerOptions EcsJsonOptions = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
     public void Decision(string subjectId, string subjectName, string permission, string? resource, bool allowed, string reason)
     {
