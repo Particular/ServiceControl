@@ -14,21 +14,28 @@ public static class AuditHeaders
 {
     public const string SubjectId = "ServiceControl.Audit.InitiatedBy.Id";
     public const string SubjectName = "ServiceControl.Audit.InitiatedBy.Name";
+    public const string OperationId = "ServiceControl.Audit.OperationId";
 
-    public static void Stamp(SendOptions options, AuditUser user)
+    public static void Stamp(SendOptions options, AuditUser user, string operationId)
     {
         options.SetHeader(SubjectId, user.Id);
         options.SetHeader(SubjectName, user.Name);
+        if (!string.IsNullOrEmpty(operationId))
+        {
+            options.SetHeader(OperationId, operationId);
+        }
     }
 
-    public static AuditUser Read(IReadOnlyDictionary<string, string> headers)
+    public static (AuditUser User, string? OperationId) Read(IReadOnlyDictionary<string, string> headers)
     {
+        headers.TryGetValue(OperationId, out var operationId);
+
         if (headers.TryGetValue(SubjectId, out var id) && !string.IsNullOrEmpty(id))
         {
             headers.TryGetValue(SubjectName, out var name);
-            return new AuditUser(id, string.IsNullOrEmpty(name) ? id : name);
+            return (new AuditUser(id, string.IsNullOrEmpty(name) ? id : name), operationId);
         }
 
-        return AuditUser.Anonymous;
+        return (AuditUser.Anonymous, operationId);
     }
 }

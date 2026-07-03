@@ -2,13 +2,14 @@
 {
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
+    using Infrastructure.Auth;
     using Infrastructure.DomainEvents;
     using InternalMessages;
     using NServiceBus;
     using ServiceControl.Persistence;
 
     [Handler]
-    class ArchiveMessageHandler(IErrorMessageDataStore dataStore, IDomainEvents domainEvents) : IHandleMessages<ArchiveMessage>
+    class ArchiveMessageHandler(IErrorMessageDataStore dataStore, IDomainEvents domainEvents, IMessageActionAuditLog auditLog) : IHandleMessages<ArchiveMessage>
     {
         public async Task Handle(ArchiveMessage message, IMessageHandlerContext context)
         {
@@ -24,6 +25,12 @@
                 }, context.CancellationToken);
 
                 await dataStore.FailedMessageMarkAsArchived(failedMessageId);
+
+                var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
+                if (!string.IsNullOrEmpty(operationId))
+                {
+                    auditLog.MessageAction(user, MessageActionKind.Archive, Permissions.ErrorMessagesArchive, MessageActionScope.Single, failedMessageId, operationId);
+                }
             }
         }
     }

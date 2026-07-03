@@ -11,31 +11,37 @@ using ServiceControl.Infrastructure.Auth;
 public class AuditHeadersTests
 {
     [Test]
-    public void Stamp_writes_id_and_name_headers()
+    public void Stamp_writes_id_name_and_operation_headers()
     {
         var options = new SendOptions();
-        AuditHeaders.Stamp(options, new AuditUser("alice-sub", "Alice"));
+        AuditHeaders.Stamp(options, new AuditUser("alice-sub", "Alice"), "op-123");
 
         var headers = options.GetHeaders();
         Assert.That(headers[AuditHeaders.SubjectId], Is.EqualTo("alice-sub"));
         Assert.That(headers[AuditHeaders.SubjectName], Is.EqualTo("Alice"));
+        Assert.That(headers[AuditHeaders.OperationId], Is.EqualTo("op-123"));
     }
 
     [Test]
-    public void Read_round_trips_stamped_identity()
+    public void Read_round_trips_stamped_identity_and_operation()
     {
         var headers = new Dictionary<string, string>
         {
             [AuditHeaders.SubjectId] = "alice-sub",
-            [AuditHeaders.SubjectName] = "Alice"
+            [AuditHeaders.SubjectName] = "Alice",
+            [AuditHeaders.OperationId] = "op-123"
         };
 
-        Assert.That(AuditHeaders.Read(headers), Is.EqualTo(new AuditUser("alice-sub", "Alice")));
+        var (user, operationId) = AuditHeaders.Read(headers);
+        Assert.That(user, Is.EqualTo(new AuditUser("alice-sub", "Alice")));
+        Assert.That(operationId, Is.EqualTo("op-123"));
     }
 
     [Test]
     public void Read_returns_anonymous_when_headers_absent()
     {
-        Assert.That(AuditHeaders.Read(new Dictionary<string, string>()), Is.EqualTo(AuditUser.Anonymous));
+        var (user, operationId) = AuditHeaders.Read(new Dictionary<string, string>());
+        Assert.That(user, Is.EqualTo(AuditUser.Anonymous));
+        Assert.That(operationId, Is.Null);
     }
 }

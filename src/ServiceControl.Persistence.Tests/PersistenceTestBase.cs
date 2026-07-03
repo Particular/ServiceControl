@@ -10,6 +10,7 @@ using NServiceBus.Settings;
 using NUnit.Framework;
 using Particular.LicensingComponent.Persistence;
 using ServiceControl.Infrastructure;
+using ServiceControl.Infrastructure.Auth;
 using ServiceControl.Infrastructure.DomainEvents;
 using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence;
@@ -44,6 +45,7 @@ public abstract class PersistenceTestBase
         hostBuilder.Services.AddSingleton(new CriticalError((_, __) => Task.CompletedTask));
         hostBuilder.Services.AddSingleton<IReadOnlySettings>(new SettingsHolder());
         hostBuilder.Services.AddSingleton(new ReceiveAddresses("fakeReceiveAddress"));
+        hostBuilder.Services.AddSingleton<IMessageActionAuditLog, MessageActionAuditLog>();
 
         RegisterServices.Invoke(hostBuilder.Services);
 

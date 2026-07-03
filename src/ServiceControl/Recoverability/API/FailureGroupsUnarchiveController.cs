@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
+    using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
@@ -21,15 +22,21 @@
         [HttpPost]
         public async Task<IActionResult> UnarchiveGroupErrors(string groupId)
         {
-            auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Unarchive,
+            var user = userAccessor.Resolve(User);
+            var operationId = this.AuditOperationId();
+            auditLog.Operation(user, MessageActionKind.Unarchive,
                 Permissions.ErrorRecoverabilityGroupsUnarchive, MessageActionScope.Group,
-                resource: groupId, count: null, operationId: Guid.NewGuid().ToString("N"));
+                resource: groupId, count: null, operationId: operationId);
 
             if (!archiver.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
             {
                 await archiver.StartUnarchiving(groupId, ArchiveType.FailureGroup);
 
-                await bus.SendLocal<UnarchiveAllInGroup>(m => { m.GroupId = groupId; });
+                var sendOptions = new SendOptions();
+                sendOptions.RouteToThisEndpoint();
+                AuditHeaders.Stamp(sendOptions, user, operationId);
+
+                await bus.Send<UnarchiveAllInGroup>(m => { m.GroupId = groupId; }, sendOptions);
             }
 
             return Accepted();

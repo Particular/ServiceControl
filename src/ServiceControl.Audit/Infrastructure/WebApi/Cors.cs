@@ -28,7 +28,7 @@
             }
 
             // Headers exposed to the client in the response (accessible via JavaScript)
-            builder.WithExposedHeaders(["ETag", "Last-Modified", "Link", "Total-Count", "X-Particular-Version"]);
+            builder.WithExposedHeaders(["ETag", "Last-Modified", "Link", "Total-Count", "X-Particular-Version", "Request-Id"]);
             // Headers allowed in the request from the client
             builder.WithHeaders(["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"]);
             // HTTP methods allowed for cross-origin requests

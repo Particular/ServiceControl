@@ -2,6 +2,7 @@ namespace ServiceControl.Recoverability
 {
     using System;
     using System.Threading.Tasks;
+    using Infrastructure.Auth;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
     using ServiceControl.Persistence;
@@ -37,11 +38,15 @@ namespace ServiceControl.Recoverability
             var started = message.Started ?? DateTime.UtcNow;
             await retryingManager.Wait(message.GroupId, RetryType.FailureGroup, started, originator, group?.Type, group?.Last);
 
+            var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
+
             retries.EnqueueRetryForFailureGroup(new RetriesGateway.RetryForFailureGroup(
                 message.GroupId,
                 originator,
                 group?.Type,
-                started
+                started,
+                user,
+                operationId
             ));
         }
     }

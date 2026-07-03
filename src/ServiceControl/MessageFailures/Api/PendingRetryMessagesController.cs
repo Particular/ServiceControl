@@ -6,6 +6,7 @@
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
+    using Infrastructure.WebApi;
     using InternalMessages;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -27,16 +28,15 @@
             }
 
             var user = userAccessor.Resolve(User);
-            var operationId = Guid.NewGuid().ToString("N");
+            var operationId = this.AuditOperationId();
             auditLog.Operation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Batch,
                 resource: null, count: ids.Length, operationId: operationId);
-            foreach (var id in ids)
-            {
-                auditLog.MessageAction(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry,
-                    MessageActionScope.Batch, messageId: id, operationId: operationId);
-            }
 
-            await session.SendLocal<RetryPendingMessagesById>(m => m.MessageUniqueIds = ids);
+            var sendOptions = new SendOptions();
+            sendOptions.RouteToThisEndpoint();
+            AuditHeaders.Stamp(sendOptions, user, operationId);
+
+            await session.Send<RetryPendingMessagesById>(m => m.MessageUniqueIds = ids, sendOptions);
 
             return Accepted();
         }
@@ -46,15 +46,21 @@
         [HttpPost]
         public async Task<IActionResult> RetryBy(PendingRetryRequest request)
         {
-            auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Queue,
-                resource: request.QueueAddress, count: null, operationId: Guid.NewGuid().ToString("N"));
+            var user = userAccessor.Resolve(User);
+            var operationId = this.AuditOperationId();
+            auditLog.Operation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Queue,
+                resource: request.QueueAddress, count: null, operationId: operationId);
 
-            await session.SendLocal<RetryPendingMessages>(m =>
+            var sendOptions = new SendOptions();
+            sendOptions.RouteToThisEndpoint();
+            AuditHeaders.Stamp(sendOptions, user, operationId);
+
+            await session.Send<RetryPendingMessages>(m =>
             {
                 m.QueueAddress = request.QueueAddress;
                 m.PeriodFrom = request.From;
                 m.PeriodTo = request.To;
-            });
+            }, sendOptions);
 
             return Accepted();
         }

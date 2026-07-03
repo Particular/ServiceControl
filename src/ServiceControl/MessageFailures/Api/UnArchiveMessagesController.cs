@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
+    using Infrastructure.WebApi;
     using InternalMessages;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -25,18 +26,15 @@
             }
 
             var user = userAccessor.Resolve(User);
-            var operationId = Guid.NewGuid().ToString("N");
+            var operationId = this.AuditOperationId();
             auditLog.Operation(user, MessageActionKind.Unarchive, Permissions.ErrorMessagesUnarchive, MessageActionScope.Batch,
                 resource: null, count: ids.Length, operationId: operationId);
-            foreach (var id in ids)
-            {
-                auditLog.MessageAction(user, MessageActionKind.Unarchive, Permissions.ErrorMessagesUnarchive,
-                    MessageActionScope.Batch, messageId: id, operationId: operationId);
-            }
 
-            var request = new UnArchiveMessages { FailedMessageIds = ids };
+            var sendOptions = new SendOptions();
+            sendOptions.RouteToThisEndpoint();
+            AuditHeaders.Stamp(sendOptions, user, operationId);
 
-            await session.SendLocal(request);
+            await session.Send(new UnArchiveMessages { FailedMessageIds = ids }, sendOptions);
 
             return Accepted();
         }
@@ -58,10 +56,16 @@
                 return BadRequest();
             }
 
-            auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Unarchive, Permissions.ErrorMessagesUnarchive, MessageActionScope.Range,
-                resource: $"{from}...{to}", count: null, operationId: Guid.NewGuid().ToString("N"));
+            var user = userAccessor.Resolve(User);
+            var operationId = this.AuditOperationId();
+            auditLog.Operation(user, MessageActionKind.Unarchive, Permissions.ErrorMessagesUnarchive, MessageActionScope.Range,
+                resource: $"{from}...{to}", count: null, operationId: operationId);
 
-            await session.SendLocal(new UnArchiveMessagesByRange { From = fromDateTime, To = toDateTime });
+            var sendOptions = new SendOptions();
+            sendOptions.RouteToThisEndpoint();
+            AuditHeaders.Stamp(sendOptions, user, operationId);
+
+            await session.Send(new UnArchiveMessagesByRange { From = fromDateTime, To = toDateTime }, sendOptions);
 
             return Accepted();
         }

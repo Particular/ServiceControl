@@ -3,14 +3,15 @@ namespace ServiceControl.UnitTests.Recoverability;
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using ServiceControl.Infrastructure.Auth;
 using ServiceControl.Persistence.Recoverability;
 using ServiceControl.Recoverability;
 
 sealed class NoopArchiveMessages : IArchiveMessages
 {
-    public Task ArchiveAllInGroup(string groupId) => Task.CompletedTask;
+    public Task ArchiveAllInGroup(string groupId, AuditUser? initiatedBy = null, string? operationId = null) => Task.CompletedTask;
 
-    public Task UnarchiveAllInGroup(string groupId) => Task.CompletedTask;
+    public Task UnarchiveAllInGroup(string groupId, AuditUser? initiatedBy = null, string? operationId = null) => Task.CompletedTask;
 
     public bool IsOperationInProgressFor(string groupId, ArchiveType archiveType) => false;
 

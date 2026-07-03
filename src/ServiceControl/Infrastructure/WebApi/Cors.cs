@@ -25,7 +25,7 @@
             }
 
             // Expose custom headers that clients need to read from responses
-            builder.WithExposedHeaders(["ETag", "Last-Modified", "Link", "Total-Count", "X-Particular-Version", "Content-Disposition"]);
+            builder.WithExposedHeaders(["ETag", "Last-Modified", "Link", "Total-Count", "X-Particular-Version", "Content-Disposition", "Request-Id"]);
             // Allow standard headers required for API requests
             builder.WithHeaders(["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"]);
             // Allow all HTTP methods used by the ServiceControl API

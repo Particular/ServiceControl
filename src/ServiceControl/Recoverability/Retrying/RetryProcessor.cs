@@ -5,6 +5,7 @@ namespace ServiceControl.Recoverability
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure.Auth;
     using Infrastructure.DomainEvents;
     using MessageFailures;
     using Microsoft.Extensions.Logging;
@@ -22,6 +23,7 @@ namespace ServiceControl.Recoverability
             ReturnToSenderDequeuer returnToSender,
             RetryingManager retryingManager,
             Lazy<IMessageDispatcher> messageDispatcher,
+            IMessageActionAuditLog auditLog,
             ILogger<RetryProcessor> logger)
         {
             this.store = store;
@@ -29,6 +31,7 @@ namespace ServiceControl.Recoverability
             this.retryingManager = retryingManager;
             this.domainEvents = domainEvents;
             this.messageDispatcher = messageDispatcher;
+            this.auditLog = auditLog;
             this.logger = logger;
             corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName, logger);
         }
@@ -215,6 +218,8 @@ namespace ServiceControl.Recoverability
 
             await TryDispatch(transportOperations, messages, failedMessageRetriesById, stagingId, previousAttemptFailed);
 
+            AuditStagedMessages(stagingBatch, messages);
+
             if (stagingBatch.RetryType != RetryType.FailureGroup) //FailureGroup published on completion of entire group
             {
                 var failedIds = messages.Select(x => x.UniqueMessageId).ToArray();
@@ -233,6 +238,38 @@ namespace ServiceControl.Recoverability
             stagingBatch.FailureRetries = failedMessageRetriesById.Values.Where(x => msgLookup[x.FailedMessageId].Any()).Select(x => x.Id).ToArray();
             logger.LogInformation("Retry batch {RetryBatchId} staged with Staging Id {StagingId} and {RetryFailureCount} matching failure retries", stagingBatch.Id, stagingBatch.StagingId, stagingBatch.FailureRetries.Count);
             return messages.Length;
+        }
+
+        // Emits one per-message audit entry for each message actually staged for retry. Only bulk/group
+        // operations (retry all/endpoint/queue/group) carry an OperationId here; the explicit-id and
+        // single paths are audited synchronously at the API and leave OperationId null so we don't double-log.
+        void AuditStagedMessages(RetryBatch stagingBatch, IReadOnlyCollection<FailedMessage> messages)
+        {
+            if (string.IsNullOrEmpty(stagingBatch.OperationId))
+            {
+                return;
+            }
+
+            var user = new AuditUser(stagingBatch.InitiatedById, stagingBatch.InitiatedByName);
+            var scope = stagingBatch.RetryType switch
+            {
+                RetryType.All => MessageActionScope.All,
+                RetryType.AllForEndpoint => MessageActionScope.Endpoint,
+                RetryType.ByQueueAddress => MessageActionScope.Queue,
+                RetryType.FailureGroup => MessageActionScope.Group,
+                RetryType.MultipleMessages => MessageActionScope.Batch,
+                RetryType.SingleMessage => MessageActionScope.Single,
+                RetryType.Unknown => MessageActionScope.Single,
+                _ => MessageActionScope.Single
+            };
+            var permission = stagingBatch.RetryType == RetryType.FailureGroup
+                ? Permissions.ErrorRecoverabilityGroupsRetry
+                : Permissions.ErrorMessagesRetry;
+
+            foreach (var failedMessage in messages)
+            {
+                auditLog.MessageAction(user, MessageActionKind.Retry, permission, scope, failedMessage.UniqueMessageId, stagingBatch.OperationId);
+            }
         }
 
         Task TryDispatch(TransportOperation[] transportOperations, IReadOnlyCollection<FailedMessage> messages,
@@ -332,6 +369,7 @@ namespace ServiceControl.Recoverability
         readonly ReturnToSenderDequeuer returnToSender;
         readonly RetryingManager retryingManager;
         readonly Lazy<IMessageDispatcher> messageDispatcher;
+        readonly IMessageActionAuditLog auditLog;
         MessageRedirectsCollection redirects;
         bool isRecoveringFromPrematureShutdown = true;
         CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;

@@ -2,6 +2,7 @@ namespace ServiceControl.Recoverability
 {
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
+    using Infrastructure.Auth;
     using MessageFailures.InternalMessages;
     using NServiceBus;
     using ServiceControl.Persistence;
@@ -29,27 +30,38 @@ namespace ServiceControl.Recoverability
 
         public Task Handle(RequestRetryAll message, IMessageHandlerContext context)
         {
+            var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
+
             if (!string.IsNullOrWhiteSpace(message.Endpoint))
             {
-                retries.StartRetryForEndpoint(message.Endpoint);
+                retries.StartRetryForEndpoint(message.Endpoint, user, operationId);
             }
             else
             {
-                retries.StartRetryForAllMessages();
+                retries.StartRetryForAllMessages(user, operationId);
             }
 
             return Task.CompletedTask;
         }
 
-        public Task Handle(RetryMessage message, IMessageHandlerContext context) => retries.StartRetryForSingleMessage(message.FailedMessageId);
+        public Task Handle(RetryMessage message, IMessageHandlerContext context)
+        {
+            var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
+            return retries.StartRetryForSingleMessage(message.FailedMessageId, user, operationId);
+        }
 
-        public Task Handle(RetryMessagesById message, IMessageHandlerContext context) => retries.StartRetryForMessageSelection(message.MessageUniqueIds);
+        public Task Handle(RetryMessagesById message, IMessageHandlerContext context)
+        {
+            var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
+            return retries.StartRetryForMessageSelection(message.MessageUniqueIds, user, operationId);
+        }
 
         public Task Handle(RetryMessagesByQueueAddress message, IMessageHandlerContext context)
         {
             var failedQueueAddress = message.QueueAddress;
 
-            retries.StartRetryForFailedQueueAddress(failedQueueAddress, message.Status);
+            var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
+            retries.StartRetryForFailedQueueAddress(failedQueueAddress, message.Status, user, operationId);
 
             return Task.CompletedTask;
         }

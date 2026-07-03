@@ -29,18 +29,17 @@ namespace ServiceControl.MessageFailures.Api
             }
 
             var user = userAccessor.Resolve(User);
-            var operationId = Guid.NewGuid().ToString("N");
+            var operationId = this.AuditOperationId();
             auditLog.Operation(user, MessageActionKind.Archive, Permissions.ErrorMessagesArchive, MessageActionScope.Batch,
                 resource: null, count: messageIds.Length, operationId: operationId);
 
             foreach (var id in messageIds)
             {
-                auditLog.MessageAction(user, MessageActionKind.Archive, Permissions.ErrorMessagesArchive,
-                    MessageActionScope.Batch, messageId: id, operationId: operationId);
+                var sendOptions = new SendOptions();
+                sendOptions.RouteToThisEndpoint();
+                AuditHeaders.Stamp(sendOptions, user, operationId);
 
-                var request = new ArchiveMessage { FailedMessageId = id };
-
-                await messageSession.SendLocal(request);
+                await messageSession.Send(new ArchiveMessage { FailedMessageId = id }, sendOptions);
             }
 
             return Accepted();
@@ -64,10 +63,16 @@ namespace ServiceControl.MessageFailures.Api
         [HttpPatch]
         public async Task<IActionResult> Archive(string messageId)
         {
-            auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Archive, Permissions.ErrorMessagesArchive, MessageActionScope.Single,
-                resource: messageId, count: 1, operationId: Guid.NewGuid().ToString("N"));
+            var user = userAccessor.Resolve(User);
+            var operationId = this.AuditOperationId();
+            auditLog.Operation(user, MessageActionKind.Archive, Permissions.ErrorMessagesArchive, MessageActionScope.Single,
+                resource: messageId, count: 1, operationId: operationId);
 
-            await messageSession.SendLocal<ArchiveMessage>(m => m.FailedMessageId = messageId);
+            var sendOptions = new SendOptions();
+            sendOptions.RouteToThisEndpoint();
+            AuditHeaders.Stamp(sendOptions, user, operationId);
+
+            await messageSession.Send<ArchiveMessage>(m => m.FailedMessageId = messageId, sendOptions);
 
             return Accepted();
         }

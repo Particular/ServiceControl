@@ -3,6 +3,7 @@ namespace ServiceControl.Recoverability.API
     using System;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
+    using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
@@ -23,19 +24,25 @@ namespace ServiceControl.Recoverability.API
         {
             var started = DateTime.UtcNow;
 
-            auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Retry,
+            var user = userAccessor.Resolve(User);
+            var operationId = this.AuditOperationId();
+            auditLog.Operation(user, MessageActionKind.Retry,
                 Permissions.ErrorRecoverabilityGroupsRetry, MessageActionScope.Group,
-                resource: groupId, count: null, operationId: Guid.NewGuid().ToString("N"));
+                resource: groupId, count: null, operationId: operationId);
 
             if (!retryingManager.IsOperationInProgressFor(groupId, RetryType.FailureGroup))
             {
                 await retryingManager.Wait(groupId, RetryType.FailureGroup, started);
 
-                await bus.SendLocal(new RetryAllInGroup
+                var sendOptions = new SendOptions();
+                sendOptions.RouteToThisEndpoint();
+                AuditHeaders.Stamp(sendOptions, user, operationId);
+
+                await bus.Send(new RetryAllInGroup
                 {
                     GroupId = groupId,
                     Started = started
-                });
+                }, sendOptions);
             }
 
             return Accepted();

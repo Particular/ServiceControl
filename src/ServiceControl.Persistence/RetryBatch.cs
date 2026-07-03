@@ -19,6 +19,13 @@ namespace ServiceControl.Persistence
         public RetryBatchStatus Status { get; set; }
         public IList<string> FailureRetries { get; set; } = [];
 
+        // Audit attribution for the initiating operation. Populated only for operations whose messages
+        // are resolved asynchronously (retry all/endpoint/queue/group), so the per-message audit entry
+        // can be emitted at the point the batch is actually staged. Null for paths audited at the API.
+        public string InitiatedById { get; set; }
+        public string InitiatedByName { get; set; }
+        public string OperationId { get; set; }
+
         public static string MakeDocumentId(string messageUniqueId) => "RetryBatches/" + messageUniqueId;
     }
 }

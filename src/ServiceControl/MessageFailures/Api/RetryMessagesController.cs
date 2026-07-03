@@ -6,6 +6,7 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
+    using Infrastructure.WebApi;
     using InternalMessages;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
@@ -35,10 +36,16 @@
         {
             if (string.IsNullOrWhiteSpace(instanceId) || instanceId == settings.InstanceId)
             {
-                auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Single,
-                    resource: failedMessageId, count: 1, operationId: Guid.NewGuid().ToString("N"));
+                var user = userAccessor.Resolve(User);
+                var operationId = this.AuditOperationId();
+                auditLog.Operation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Single,
+                    resource: failedMessageId, count: 1, operationId: operationId);
 
-                await messageSession.SendLocal<RetryMessage>(m => m.FailedMessageId = failedMessageId);
+                var sendOptions = new SendOptions();
+                sendOptions.RouteToThisEndpoint();
+                AuditHeaders.Stamp(sendOptions, user, operationId);
+
+                await messageSession.Send<RetryMessage>(m => m.FailedMessageId = failedMessageId, sendOptions);
                 return Accepted();
             }
 
@@ -69,16 +76,15 @@
             }
 
             var user = userAccessor.Resolve(User);
-            var operationId = Guid.NewGuid().ToString("N");
+            var operationId = this.AuditOperationId();
             auditLog.Operation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Batch,
                 resource: null, count: messageIds.Count, operationId: operationId);
-            foreach (var id in messageIds)
-            {
-                auditLog.MessageAction(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry,
-                    MessageActionScope.Batch, messageId: id, operationId: operationId);
-            }
 
-            await messageSession.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = messageIds.ToArray());
+            var sendOptions = new SendOptions();
+            sendOptions.RouteToThisEndpoint();
+            AuditHeaders.Stamp(sendOptions, user, operationId);
+
+            await messageSession.Send<RetryMessagesById>(m => m.MessageUniqueIds = messageIds.ToArray(), sendOptions);
 
             return Accepted();
         }
@@ -88,14 +94,20 @@
         [HttpPost]
         public async Task<IActionResult> RetryAllBy(string queueAddress)
         {
-            auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Queue,
-                resource: queueAddress, count: null, operationId: Guid.NewGuid().ToString("N"));
+            var user = userAccessor.Resolve(User);
+            var operationId = this.AuditOperationId();
+            auditLog.Operation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Queue,
+                resource: queueAddress, count: null, operationId: operationId);
 
-            await messageSession.SendLocal<RetryMessagesByQueueAddress>(m =>
+            var sendOptions = new SendOptions();
+            sendOptions.RouteToThisEndpoint();
+            AuditHeaders.Stamp(sendOptions, user, operationId);
+
+            await messageSession.Send<RetryMessagesByQueueAddress>(m =>
             {
                 m.QueueAddress = queueAddress;
                 m.Status = FailedMessageStatus.Unresolved;
-            });
+            }, sendOptions);
 
             return Accepted();
         }
@@ -105,10 +117,16 @@
         [HttpPost]
         public async Task<IActionResult> RetryAll()
         {
-            auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.All,
-                resource: null, count: null, operationId: Guid.NewGuid().ToString("N"));
+            var user = userAccessor.Resolve(User);
+            var operationId = this.AuditOperationId();
+            auditLog.Operation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.All,
+                resource: null, count: null, operationId: operationId);
 
-            await messageSession.SendLocal(new RequestRetryAll());
+            var sendOptions = new SendOptions();
+            sendOptions.RouteToThisEndpoint();
+            AuditHeaders.Stamp(sendOptions, user, operationId);
+
+            await messageSession.Send(new RequestRetryAll(), sendOptions);
 
             return Accepted();
         }
@@ -118,10 +136,16 @@
         [HttpPost]
         public async Task<IActionResult> RetryAllByEndpoint(string endpointName)
         {
-            auditLog.Operation(userAccessor.Resolve(User), MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Endpoint,
-                resource: endpointName, count: null, operationId: Guid.NewGuid().ToString("N"));
+            var user = userAccessor.Resolve(User);
+            var operationId = this.AuditOperationId();
+            auditLog.Operation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Endpoint,
+                resource: endpointName, count: null, operationId: operationId);
 
-            await messageSession.SendLocal(new RequestRetryAll { Endpoint = endpointName });
+            var sendOptions = new SendOptions();
+            sendOptions.RouteToThisEndpoint();
+            AuditHeaders.Stamp(sendOptions, user, operationId);
+
+            await messageSession.Send(new RequestRetryAll { Endpoint = endpointName }, sendOptions);
 
             return Accepted();
         }
