@@ -1,4 +1,5 @@
 namespace ServiceControl.Persistence.Tests.Recoverability;
+
 using System;
 using System.Linq;
 using System.Text;
