@@ -55,6 +55,20 @@ sealed class EditHandlerAuditTests : PersistenceTestBase
         }
     }
 
+    [Test]
+    public async Task Edit_that_fails_to_dispatch_is_not_audited()
+    {
+        var user = new AuditUser("alice-sub", "Alice");
+        var failedMessage = await CreateAndStoreFailedMessage();
+        var message = CreateEditMessage(failedMessage.UniqueMessageId);
+        dispatcher.ThrowOnDispatch = new InvalidOperationException("simulated dispatch failure");
+
+        var context = new TestableMessageHandlerContext { MessageHeaders = StampedHeaders(user, "op-edit") };
+        Assert.ThrowsAsync<InvalidOperationException>(() => handler.Handle(message, context));
+
+        Assert.That(audit.Messages, Is.Empty, "an edit whose message was never dispatched must not be audited as done");
+    }
+
     static System.Collections.Generic.Dictionary<string, string> StampedHeaders(AuditUser user, string operationId) => new()
     {
         [AuditHeaders.SubjectId] = user.Id,

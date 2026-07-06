@@ -58,12 +58,6 @@
                 await session.SaveChanges();
             }
 
-            var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
-            if (!string.IsNullOrEmpty(operationId))
-            {
-                auditLog.MessageAction(user, MessageActionKind.Edit, Permissions.ErrorMessagesEdit, MessageActionScope.Single, message.FailedMessageId, operationId);
-            }
-
             var redirects = await redirectsStore.GetOrCreate();
 
             var attempt = failedMessage.ProcessingAttempts.Last();
@@ -81,6 +75,14 @@
                 address = retryTo;
             }
             await DispatchEditedMessage(outgoingMessage, address, context);
+
+            // Audited only after the edited message is really dispatched. A dispatch failure is
+            // redelivered and dispatches again, so each audit entry matches an actual dispatch.
+            var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
+            if (!string.IsNullOrEmpty(operationId))
+            {
+                auditLog.MessageAction(user, MessageActionKind.Edit, Permissions.ErrorMessagesEdit, MessageActionScope.Single, message.FailedMessageId, operationId);
+            }
 
             await domainEvents.Raise(new MessageEditedAndRetried
             {

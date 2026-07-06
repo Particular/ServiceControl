@@ -271,8 +271,15 @@
     {
         public List<(UnicastTransportOperation, TransportTransaction)> DispatchedMessages { get; } = [];
 
+        public Exception ThrowOnDispatch { get; set; }
+
         public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, CancellationToken cancellationToken)
         {
+            if (ThrowOnDispatch != null)
+            {
+                throw ThrowOnDispatch;
+            }
+
             DispatchedMessages.AddRange(outgoingMessages.UnicastTransportOperations.Select(m => (m, transaction)));
             return Task.CompletedTask;
         }
