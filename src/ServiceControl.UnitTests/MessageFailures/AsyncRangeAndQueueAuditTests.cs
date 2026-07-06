@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CompositeViews.Messages;
+using NServiceBus;
 using NServiceBus.Testing;
 using NUnit.Framework;
 using ServiceControl.EventLog;
@@ -35,41 +36,47 @@ public class AsyncRangeAndQueueAuditTests
         [AuditHeaders.OperationId] = operationId
     };
 
+    // Per-message retry entries are emitted at staging time (RetryProcessor.AuditStagedMessages),
+    // once the message is really retried. The pending-retries handler only resolves ids, so it must
+    // not audit them itself (a resolved message may still never be staged) — instead it forwards the
+    // audit headers on the follow-up RetryMessagesById so the staged batch carries the attribution.
+
     [Test]
-    public async Task PendingRetries_by_queue_audits_each_resolved_message()
+    public async Task PendingRetries_by_queue_forwards_attribution_to_the_staged_retry()
     {
-        var audit = new RecordingMessageActionAuditLog();
         var store = new StubErrorMessageDataStore { RetryPendingMessagesResult = ["m-1", "m-2"] };
-        var handler = new PendingRetriesHandler(store, audit);
+        var handler = new PendingRetriesHandler(store);
 
         var context = new TestableMessageHandlerContext { MessageHeaders = StampedHeaders("op-q") };
         await handler.Handle(new RetryPendingMessages { QueueAddress = "q", PeriodFrom = DateTime.UtcNow, PeriodTo = DateTime.UtcNow }, context);
 
-        Assert.That(audit.Messages.Select(m => m.MessageId), Is.EquivalentTo(new[] { "m-1", "m-2" }));
+        var sent = context.SentMessages.Single(m => m.Message is RetryMessagesById);
+        var headers = sent.Options.GetHeaders();
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(audit.Messages, Has.All.Matches<RecordingMessageActionAuditLog.MessageEntry>(m => m.User.Equals(User)));
-            Assert.That(audit.Messages, Has.All.Matches<RecordingMessageActionAuditLog.MessageEntry>(m => m.OperationId == "op-q"));
-            Assert.That(audit.Messages, Has.All.Matches<RecordingMessageActionAuditLog.MessageEntry>(m => m.Kind == MessageActionKind.Retry));
-            Assert.That(audit.Messages, Has.All.Matches<RecordingMessageActionAuditLog.MessageEntry>(m => m.Scope == MessageActionScope.Queue));
+            Assert.That(((RetryMessagesById)sent.Message).MessageUniqueIds, Is.EquivalentTo(new[] { "m-1", "m-2" }));
+            Assert.That(headers[AuditHeaders.SubjectId], Is.EqualTo(User.Id));
+            Assert.That(headers[AuditHeaders.SubjectName], Is.EqualTo(User.Name));
+            Assert.That(headers[AuditHeaders.OperationId], Is.EqualTo("op-q"));
         }
     }
 
     [Test]
-    public async Task PendingRetries_by_ids_audits_each_message()
+    public async Task PendingRetries_by_ids_forwards_attribution_to_the_staged_retry()
     {
-        var audit = new RecordingMessageActionAuditLog();
-        var handler = new PendingRetriesHandler(new StubErrorMessageDataStore(), audit);
+        var handler = new PendingRetriesHandler(new StubErrorMessageDataStore());
 
         var context = new TestableMessageHandlerContext { MessageHeaders = StampedHeaders("op-pi") };
         await handler.Handle(new RetryPendingMessagesById { MessageUniqueIds = ["m-1", "m-2"] }, context);
 
-        Assert.That(audit.Messages.Select(m => m.MessageId), Is.EquivalentTo(new[] { "m-1", "m-2" }));
+        var sent = context.SentMessages.Single(m => m.Message is RetryMessagesById);
+        var headers = sent.Options.GetHeaders();
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(audit.Messages, Has.All.Matches<RecordingMessageActionAuditLog.MessageEntry>(m => m.OperationId == "op-pi"));
-            Assert.That(audit.Messages, Has.All.Matches<RecordingMessageActionAuditLog.MessageEntry>(m => m.Kind == MessageActionKind.Retry));
-            Assert.That(audit.Messages, Has.All.Matches<RecordingMessageActionAuditLog.MessageEntry>(m => m.Scope == MessageActionScope.Batch));
+            Assert.That(((RetryMessagesById)sent.Message).MessageUniqueIds, Is.EquivalentTo(new[] { "m-1", "m-2" }));
+            Assert.That(headers[AuditHeaders.SubjectId], Is.EqualTo(User.Id));
+            Assert.That(headers[AuditHeaders.SubjectName], Is.EqualTo(User.Name));
+            Assert.That(headers[AuditHeaders.OperationId], Is.EqualTo("op-pi"));
         }
     }
 

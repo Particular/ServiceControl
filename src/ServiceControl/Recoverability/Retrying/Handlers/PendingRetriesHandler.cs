@@ -11,10 +11,9 @@ namespace ServiceControl.Recoverability
     class PendingRetriesHandler : IHandleMessages<RetryPendingMessagesById>,
         IHandleMessages<RetryPendingMessages>
     {
-        public PendingRetriesHandler(IErrorMessageDataStore dataStore, IMessageActionAuditLog auditLog)
+        public PendingRetriesHandler(IErrorMessageDataStore dataStore)
         {
             this.dataStore = dataStore;
-            this.auditLog = auditLog;
         }
 
         public async Task Handle(RetryPendingMessages message, IMessageHandlerContext context)
@@ -23,40 +22,39 @@ namespace ServiceControl.Recoverability
 
             var ids = await dataStore.GetRetryPendingMessages(message.PeriodFrom, message.PeriodTo, message.QueueAddress);
 
-            var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
-
             foreach (var id in ids)
             {
                 await dataStore.RemoveFailedMessageRetryDocument(id);
                 messageIds.Add(id);
-
-                if (!string.IsNullOrEmpty(operationId))
-                {
-                    auditLog.MessageAction(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Queue, id, operationId);
-                }
             }
 
-            await context.SendLocal(new RetryMessagesById { MessageUniqueIds = messageIds.ToArray() });
+            await SendRetryMessagesById(context, messageIds.ToArray());
         }
 
         public async Task Handle(RetryPendingMessagesById message, IMessageHandlerContext context)
         {
-            var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
-
             foreach (var messageUniqueId in message.MessageUniqueIds)
             {
                 await dataStore.RemoveFailedMessageRetryDocument(messageUniqueId);
-
-                if (!string.IsNullOrEmpty(operationId))
-                {
-                    auditLog.MessageAction(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Batch, messageUniqueId, operationId);
-                }
             }
 
-            await context.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = message.MessageUniqueIds);
+            await SendRetryMessagesById(context, message.MessageUniqueIds);
+        }
+
+        // The per-message audit entries are emitted at staging time (RetryProcessor.AuditStagedMessages),
+        // once a message is really retried — a message resolved here may still never be staged. The audit
+        // headers are re-stamped on the follow-up command so the staged batch carries the attribution.
+        static Task SendRetryMessagesById(IMessageHandlerContext context, string[] messageUniqueIds)
+        {
+            var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
+
+            var sendOptions = new SendOptions();
+            sendOptions.RouteToThisEndpoint();
+            AuditHeaders.Stamp(sendOptions, user, operationId);
+
+            return context.Send(new RetryMessagesById { MessageUniqueIds = messageUniqueIds }, sendOptions);
         }
 
         readonly IErrorMessageDataStore dataStore;
-        readonly IMessageActionAuditLog auditLog;
     }
 }

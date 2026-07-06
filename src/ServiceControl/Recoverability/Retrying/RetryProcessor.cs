@@ -240,9 +240,10 @@ namespace ServiceControl.Recoverability
             return messages.Length;
         }
 
-        // Emits one per-message audit entry for each message actually staged for retry. Only bulk/group
-        // operations (retry all/endpoint/queue/group) carry an OperationId here; the explicit-id and
-        // single paths are audited synchronously at the API and leave OperationId null so we don't double-log.
+        // Emits one per-message audit entry for each message actually staged for retry, for every retry
+        // type: the API emits the operation-level entry, this emits the per-message entries, correlated by
+        // OperationId. Skipped for batches without an OperationId (legacy in-flight commands sent without
+        // the audit headers).
         void AuditStagedMessages(RetryBatch stagingBatch, IReadOnlyCollection<FailedMessage> messages)
         {
             if (string.IsNullOrEmpty(stagingBatch.OperationId))
