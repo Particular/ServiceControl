@@ -24,14 +24,14 @@ namespace ServiceControl.Recoverability.API
         {
             var started = DateTime.UtcNow;
 
-            var user = userAccessor.Resolve(User);
-            var operationId = this.AuditOperationId();
-            auditLog.Operation(user, MessageActionKind.Retry,
-                Permissions.ErrorRecoverabilityGroupsRetry, MessageActionScope.Group,
-                resource: groupId, count: null, operationId: operationId);
-
             if (!retryingManager.IsOperationInProgressFor(groupId, RetryType.FailureGroup))
             {
+                var user = userAccessor.Resolve(User);
+                var operationId = this.AuditOperationId();
+                auditLog.Operation(user, MessageActionKind.Retry,
+                    Permissions.ErrorRecoverabilityGroupsRetry, MessageActionScope.Group,
+                    resource: groupId, count: null, operationId: operationId);
+
                 await retryingManager.Wait(groupId, RetryType.FailureGroup, started);
 
                 var sendOptions = new SendOptions();

@@ -22,14 +22,14 @@
         [HttpPost]
         public async Task<IActionResult> ArchiveGroupErrors(string groupId)
         {
-            var user = userAccessor.Resolve(User);
-            var operationId = this.AuditOperationId();
-            auditLog.Operation(user, MessageActionKind.Archive,
-                Permissions.ErrorRecoverabilityGroupsArchive, MessageActionScope.Group,
-                resource: groupId, count: null, operationId: operationId);
-
             if (!archiver.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
             {
+                var user = userAccessor.Resolve(User);
+                var operationId = this.AuditOperationId();
+                auditLog.Operation(user, MessageActionKind.Archive,
+                    Permissions.ErrorRecoverabilityGroupsArchive, MessageActionScope.Group,
+                    resource: groupId, count: null, operationId: operationId);
+
                 await archiver.StartArchiving(groupId, ArchiveType.FailureGroup);
 
                 var sendOptions = new SendOptions();
