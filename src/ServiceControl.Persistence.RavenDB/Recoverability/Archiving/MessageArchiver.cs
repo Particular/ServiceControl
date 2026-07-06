@@ -89,7 +89,7 @@
 
                     await archivingManager.BatchArchived(archiveOperation.RequestId, archiveOperation.ArchiveType, nextBatch?.DocumentIds.Count ?? 0);
 
-                    archiveOperation = archivingManager.GetStatusForArchiveOperation(archiveOperation.RequestId, archiveOperation.ArchiveType).ToArchiveOperation();
+                    archiveOperation = archivingManager.GetStatusForArchiveOperation(archiveOperation.RequestId, archiveOperation.ArchiveType).ToArchiveOperation(auditUser.Id, auditUser.Name, auditOperationId);
 
                     await archiveDocumentManager.UpdateArchiveOperation(batchSession, archiveOperation);
 
@@ -189,7 +189,7 @@
 
                 await unarchivingManager.BatchUnarchived(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType, nextBatch?.DocumentIds.Count ?? 0);
 
-                unarchiveOperation = unarchivingManager.GetStatusForUnarchiveOperation(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType).ToUnarchiveOperation();
+                unarchiveOperation = unarchivingManager.GetStatusForUnarchiveOperation(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType).ToUnarchiveOperation(auditUser.Id, auditUser.Name, auditOperationId);
 
                 await unarchiveDocumentManager.UpdateUnarchiveOperation(batchSession, unarchiveOperation);
 
