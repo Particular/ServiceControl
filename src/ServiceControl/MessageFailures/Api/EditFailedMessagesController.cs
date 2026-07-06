@@ -84,21 +84,18 @@
 
             var user = userAccessor.Resolve(User);
             var operationId = this.AuditOperationId();
-            auditLog.Operation(user, MessageActionKind.Edit, Permissions.ErrorMessagesEdit, MessageActionScope.Single,
-                resource: failedMessageId, count: 1, operationId: operationId);
 
             // Encode the body in base64 so that the new body doesn't have to be escaped
             var base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(edit.MessageBody));
-            var sendOptions = new SendOptions();
-            sendOptions.RouteToThisEndpoint();
-            AuditHeaders.Stamp(sendOptions, user, operationId);
 
-            await session.Send(new EditAndSend
-            {
-                FailedMessageId = failedMessageId,
-                NewBody = base64String,
-                NewHeaders = edit.MessageHeaders
-            }, sendOptions);
+            await auditLog.AuditedOperation(user, MessageActionKind.Edit, Permissions.ErrorMessagesEdit, MessageActionScope.Single,
+                resource: failedMessageId, count: 1, operationId: operationId,
+                () => session.Send(new EditAndSend
+                {
+                    FailedMessageId = failedMessageId,
+                    NewBody = base64String,
+                    NewHeaders = edit.MessageHeaders
+                }, AuditHeaders.LocalSendOptions(user, operationId)));
 
             return Accepted(new EditRetryResponse { EditIgnored = false });
         }

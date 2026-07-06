@@ -38,14 +38,9 @@
             {
                 var user = userAccessor.Resolve(User);
                 var operationId = this.AuditOperationId();
-                auditLog.Operation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Single,
-                    resource: failedMessageId, count: 1, operationId: operationId);
-
-                var sendOptions = new SendOptions();
-                sendOptions.RouteToThisEndpoint();
-                AuditHeaders.Stamp(sendOptions, user, operationId);
-
-                await messageSession.Send<RetryMessage>(m => m.FailedMessageId = failedMessageId, sendOptions);
+                await auditLog.AuditedOperation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Single,
+                    resource: failedMessageId, count: 1, operationId: operationId,
+                    () => messageSession.Send<RetryMessage>(m => m.FailedMessageId = failedMessageId, AuditHeaders.LocalSendOptions(user, operationId)));
                 return Accepted();
             }
 
@@ -77,14 +72,9 @@
 
             var user = userAccessor.Resolve(User);
             var operationId = this.AuditOperationId();
-            auditLog.Operation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Batch,
-                resource: null, count: messageIds.Count, operationId: operationId);
-
-            var sendOptions = new SendOptions();
-            sendOptions.RouteToThisEndpoint();
-            AuditHeaders.Stamp(sendOptions, user, operationId);
-
-            await messageSession.Send<RetryMessagesById>(m => m.MessageUniqueIds = messageIds.ToArray(), sendOptions);
+            await auditLog.AuditedOperation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Batch,
+                resource: null, count: messageIds.Count, operationId: operationId,
+                () => messageSession.Send<RetryMessagesById>(m => m.MessageUniqueIds = messageIds.ToArray(), AuditHeaders.LocalSendOptions(user, operationId)));
 
             return Accepted();
         }
@@ -96,18 +86,13 @@
         {
             var user = userAccessor.Resolve(User);
             var operationId = this.AuditOperationId();
-            auditLog.Operation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Queue,
-                resource: queueAddress, count: null, operationId: operationId);
-
-            var sendOptions = new SendOptions();
-            sendOptions.RouteToThisEndpoint();
-            AuditHeaders.Stamp(sendOptions, user, operationId);
-
-            await messageSession.Send<RetryMessagesByQueueAddress>(m =>
-            {
-                m.QueueAddress = queueAddress;
-                m.Status = FailedMessageStatus.Unresolved;
-            }, sendOptions);
+            await auditLog.AuditedOperation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Queue,
+                resource: queueAddress, count: null, operationId: operationId,
+                () => messageSession.Send<RetryMessagesByQueueAddress>(m =>
+                {
+                    m.QueueAddress = queueAddress;
+                    m.Status = FailedMessageStatus.Unresolved;
+                }, AuditHeaders.LocalSendOptions(user, operationId)));
 
             return Accepted();
         }
@@ -119,14 +104,9 @@
         {
             var user = userAccessor.Resolve(User);
             var operationId = this.AuditOperationId();
-            auditLog.Operation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.All,
-                resource: null, count: null, operationId: operationId);
-
-            var sendOptions = new SendOptions();
-            sendOptions.RouteToThisEndpoint();
-            AuditHeaders.Stamp(sendOptions, user, operationId);
-
-            await messageSession.Send(new RequestRetryAll(), sendOptions);
+            await auditLog.AuditedOperation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.All,
+                resource: null, count: null, operationId: operationId,
+                () => messageSession.Send(new RequestRetryAll(), AuditHeaders.LocalSendOptions(user, operationId)));
 
             return Accepted();
         }
@@ -138,14 +118,9 @@
         {
             var user = userAccessor.Resolve(User);
             var operationId = this.AuditOperationId();
-            auditLog.Operation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Endpoint,
-                resource: endpointName, count: null, operationId: operationId);
-
-            var sendOptions = new SendOptions();
-            sendOptions.RouteToThisEndpoint();
-            AuditHeaders.Stamp(sendOptions, user, operationId);
-
-            await messageSession.Send(new RequestRetryAll { Endpoint = endpointName }, sendOptions);
+            await auditLog.AuditedOperation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Endpoint,
+                resource: endpointName, count: null, operationId: operationId,
+                () => messageSession.Send(new RequestRetryAll { Endpoint = endpointName }, AuditHeaders.LocalSendOptions(user, operationId)));
 
             return Accepted();
         }

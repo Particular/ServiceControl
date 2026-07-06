@@ -26,17 +26,13 @@
             {
                 var user = userAccessor.Resolve(User);
                 var operationId = this.AuditOperationId();
-                auditLog.Operation(user, MessageActionKind.Archive,
+                await auditLog.AuditedOperation(user, MessageActionKind.Archive,
                     Permissions.ErrorRecoverabilityGroupsArchive, MessageActionScope.Group,
-                    resource: groupId, count: null, operationId: operationId);
-
-                await archiver.StartArchiving(groupId, ArchiveType.FailureGroup);
-
-                var sendOptions = new SendOptions();
-                sendOptions.RouteToThisEndpoint();
-                AuditHeaders.Stamp(sendOptions, user, operationId);
-
-                await bus.Send<ArchiveAllInGroup>(m => { m.GroupId = groupId; }, sendOptions);
+                    resource: groupId, count: null, operationId: operationId, async () =>
+                    {
+                        await archiver.StartArchiving(groupId, ArchiveType.FailureGroup);
+                        await bus.Send<ArchiveAllInGroup>(m => { m.GroupId = groupId; }, AuditHeaders.LocalSendOptions(user, operationId));
+                    });
             }
 
             return Accepted();

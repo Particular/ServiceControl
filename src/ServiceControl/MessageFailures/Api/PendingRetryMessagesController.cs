@@ -29,14 +29,9 @@
 
             var user = userAccessor.Resolve(User);
             var operationId = this.AuditOperationId();
-            auditLog.Operation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Batch,
-                resource: null, count: ids.Length, operationId: operationId);
-
-            var sendOptions = new SendOptions();
-            sendOptions.RouteToThisEndpoint();
-            AuditHeaders.Stamp(sendOptions, user, operationId);
-
-            await session.Send<RetryPendingMessagesById>(m => m.MessageUniqueIds = ids, sendOptions);
+            await auditLog.AuditedOperation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Batch,
+                resource: null, count: ids.Length, operationId: operationId,
+                () => session.Send<RetryPendingMessagesById>(m => m.MessageUniqueIds = ids, AuditHeaders.LocalSendOptions(user, operationId)));
 
             return Accepted();
         }
@@ -48,19 +43,14 @@
         {
             var user = userAccessor.Resolve(User);
             var operationId = this.AuditOperationId();
-            auditLog.Operation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Queue,
-                resource: request.QueueAddress, count: null, operationId: operationId);
-
-            var sendOptions = new SendOptions();
-            sendOptions.RouteToThisEndpoint();
-            AuditHeaders.Stamp(sendOptions, user, operationId);
-
-            await session.Send<RetryPendingMessages>(m =>
-            {
-                m.QueueAddress = request.QueueAddress;
-                m.PeriodFrom = request.From;
-                m.PeriodTo = request.To;
-            }, sendOptions);
+            await auditLog.AuditedOperation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Queue,
+                resource: request.QueueAddress, count: null, operationId: operationId,
+                () => session.Send<RetryPendingMessages>(m =>
+                {
+                    m.QueueAddress = request.QueueAddress;
+                    m.PeriodFrom = request.From;
+                    m.PeriodTo = request.To;
+                }, AuditHeaders.LocalSendOptions(user, operationId)));
 
             return Accepted();
         }

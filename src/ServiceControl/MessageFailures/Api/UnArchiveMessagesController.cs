@@ -27,14 +27,9 @@
 
             var user = userAccessor.Resolve(User);
             var operationId = this.AuditOperationId();
-            auditLog.Operation(user, MessageActionKind.Unarchive, Permissions.ErrorMessagesUnarchive, MessageActionScope.Batch,
-                resource: null, count: ids.Length, operationId: operationId);
-
-            var sendOptions = new SendOptions();
-            sendOptions.RouteToThisEndpoint();
-            AuditHeaders.Stamp(sendOptions, user, operationId);
-
-            await session.Send(new UnArchiveMessages { FailedMessageIds = ids }, sendOptions);
+            await auditLog.AuditedOperation(user, MessageActionKind.Unarchive, Permissions.ErrorMessagesUnarchive, MessageActionScope.Batch,
+                resource: null, count: ids.Length, operationId: operationId,
+                () => session.Send(new UnArchiveMessages { FailedMessageIds = ids }, AuditHeaders.LocalSendOptions(user, operationId)));
 
             return Accepted();
         }
@@ -58,14 +53,9 @@
 
             var user = userAccessor.Resolve(User);
             var operationId = this.AuditOperationId();
-            auditLog.Operation(user, MessageActionKind.Unarchive, Permissions.ErrorMessagesUnarchive, MessageActionScope.Range,
-                resource: $"{from}...{to}", count: null, operationId: operationId);
-
-            var sendOptions = new SendOptions();
-            sendOptions.RouteToThisEndpoint();
-            AuditHeaders.Stamp(sendOptions, user, operationId);
-
-            await session.Send(new UnArchiveMessagesByRange { From = fromDateTime, To = toDateTime }, sendOptions);
+            await auditLog.AuditedOperation(user, MessageActionKind.Unarchive, Permissions.ErrorMessagesUnarchive, MessageActionScope.Range,
+                resource: $"{from}...{to}", count: null, operationId: operationId,
+                () => session.Send(new UnArchiveMessagesByRange { From = fromDateTime, To = toDateTime }, AuditHeaders.LocalSendOptions(user, operationId)));
 
             return Accepted();
         }

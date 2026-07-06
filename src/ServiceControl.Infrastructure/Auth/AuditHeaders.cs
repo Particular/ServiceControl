@@ -26,6 +26,18 @@ public static class AuditHeaders
         }
     }
 
+    /// <summary>
+    /// Options for sending an internal command to this instance's own queue, stamped with the
+    /// initiating principal — the ritual every audited API action performs before sending.
+    /// </summary>
+    public static SendOptions LocalSendOptions(AuditUser user, string operationId)
+    {
+        var options = new SendOptions();
+        options.RouteToThisEndpoint();
+        Stamp(options, user, operationId);
+        return options;
+    }
+
     public static (AuditUser User, string? OperationId) Read(IReadOnlyDictionary<string, string> headers)
     {
         headers.TryGetValue(OperationId, out var operationId);

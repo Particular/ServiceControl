@@ -30,17 +30,14 @@ namespace ServiceControl.MessageFailures.Api
 
             var user = userAccessor.Resolve(User);
             var operationId = this.AuditOperationId();
-            auditLog.Operation(user, MessageActionKind.Archive, Permissions.ErrorMessagesArchive, MessageActionScope.Batch,
-                resource: null, count: messageIds.Length, operationId: operationId);
-
-            foreach (var id in messageIds)
-            {
-                var sendOptions = new SendOptions();
-                sendOptions.RouteToThisEndpoint();
-                AuditHeaders.Stamp(sendOptions, user, operationId);
-
-                await messageSession.Send(new ArchiveMessage { FailedMessageId = id }, sendOptions);
-            }
+            await auditLog.AuditedOperation(user, MessageActionKind.Archive, Permissions.ErrorMessagesArchive, MessageActionScope.Batch,
+                resource: null, count: messageIds.Length, operationId: operationId, async () =>
+                {
+                    foreach (var id in messageIds)
+                    {
+                        await messageSession.Send(new ArchiveMessage { FailedMessageId = id }, AuditHeaders.LocalSendOptions(user, operationId));
+                    }
+                });
 
             return Accepted();
         }
@@ -65,14 +62,9 @@ namespace ServiceControl.MessageFailures.Api
         {
             var user = userAccessor.Resolve(User);
             var operationId = this.AuditOperationId();
-            auditLog.Operation(user, MessageActionKind.Archive, Permissions.ErrorMessagesArchive, MessageActionScope.Single,
-                resource: messageId, count: 1, operationId: operationId);
-
-            var sendOptions = new SendOptions();
-            sendOptions.RouteToThisEndpoint();
-            AuditHeaders.Stamp(sendOptions, user, operationId);
-
-            await messageSession.Send<ArchiveMessage>(m => m.FailedMessageId = messageId, sendOptions);
+            await auditLog.AuditedOperation(user, MessageActionKind.Archive, Permissions.ErrorMessagesArchive, MessageActionScope.Single,
+                resource: messageId, count: 1, operationId: operationId,
+                () => messageSession.Send<ArchiveMessage>(m => m.FailedMessageId = messageId, AuditHeaders.LocalSendOptions(user, operationId)));
 
             return Accepted();
         }
