@@ -35,7 +35,7 @@ namespace ServiceControl.MessageFailures.Api
                 {
                     foreach (var id in messageIds)
                     {
-                        await messageSession.Send(new ArchiveMessage { FailedMessageId = id }, AuditHeaders.LocalSendOptions(user, operationId));
+                        await messageSession.Send(new ArchiveMessage { FailedMessageId = id, Scope = MessageActionScope.Batch }, AuditHeaders.LocalSendOptions(user, operationId));
                     }
                 });
 
@@ -64,7 +64,7 @@ namespace ServiceControl.MessageFailures.Api
             var operationId = this.AuditOperationId();
             await auditLog.AuditedOperation(user, MessageActionKind.Archive, Permissions.ErrorMessagesArchive, MessageActionScope.Single,
                 resource: messageId, count: 1, operationId: operationId,
-                () => messageSession.Send<ArchiveMessage>(m => m.FailedMessageId = messageId, AuditHeaders.LocalSendOptions(user, operationId)));
+                () => messageSession.Send(new ArchiveMessage { FailedMessageId = messageId, Scope = MessageActionScope.Single }, AuditHeaders.LocalSendOptions(user, operationId)));
 
             return Accepted();
         }

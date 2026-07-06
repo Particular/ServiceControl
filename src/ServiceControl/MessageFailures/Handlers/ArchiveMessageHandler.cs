@@ -29,7 +29,7 @@
                 var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
                 if (!string.IsNullOrEmpty(operationId))
                 {
-                    auditLog.MessageAction(user, MessageActionKind.Archive, Permissions.ErrorMessagesArchive, MessageActionScope.Single, failedMessageId, operationId);
+                    auditLog.MessageAction(user, MessageActionKind.Archive, Permissions.ErrorMessagesArchive, message.Scope, failedMessageId, operationId);
                 }
             }
         }

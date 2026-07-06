@@ -152,7 +152,7 @@ public class AsyncRangeAndQueueAuditTests
         }
     }
 
-    sealed class StubErrorMessageDataStore : IErrorMessageDataStore
+    internal sealed class StubErrorMessageDataStore : IErrorMessageDataStore
     {
         public string[] RetryPendingMessagesResult { get; set; } = [];
         public string[] UnArchiveByRangeResult { get; set; } = [];
