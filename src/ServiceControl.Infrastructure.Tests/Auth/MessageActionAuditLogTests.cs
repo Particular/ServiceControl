@@ -9,10 +9,14 @@ using ServiceControl.Infrastructure.Auth;
 [TestFixture]
 public class MessageActionAuditLogTests
 {
-    static (RecordingLoggerProvider provider, MessageActionAuditLog log) Create()
+    static (RecordingLoggerProvider provider, MessageActionAuditLog log) Create(System.Action<ILoggingBuilder>? configure = null)
     {
         var provider = new RecordingLoggerProvider();
-        var factory = LoggerFactory.Create(b => b.AddProvider(provider));
+        var factory = LoggerFactory.Create(b =>
+        {
+            b.AddProvider(provider);
+            configure?.Invoke(b);
+        });
         return (provider, new MessageActionAuditLog(factory));
     }
 
@@ -100,6 +104,48 @@ public class MessageActionAuditLogTests
             Assert.That(sc.TryGetProperty("message", out _), Is.False);
             Assert.That(sc.GetProperty("operation").GetProperty("id").GetString(), Is.EqualTo("op-5"));
         }
+    }
+
+    [Test]
+    public void Success_entries_are_suppressed_when_category_minimum_level_is_warning()
+    {
+        var (provider, log) = Create(b => b.AddFilter(MessageActionAuditLog.MessageCategory, LogLevel.Warning));
+
+        log.MessageAction(new AuditUser("a", "a"), MessageActionKind.Retry, "error:messages:retry",
+            MessageActionScope.Batch, messageId: "m-1", operationId: "op-6");
+
+        Assert.That(provider.EntriesFor(MessageActionAuditLog.MessageCategory), Is.Empty);
+    }
+
+    [Test]
+    public void Failure_entries_are_still_emitted_when_category_minimum_level_is_warning()
+    {
+        var (provider, log) = Create(b => b.AddFilter(MessageActionAuditLog.MessageCategory, LogLevel.Warning));
+
+        log.MessageAction(new AuditUser("a", "a"), MessageActionKind.Retry, "error:messages:retry",
+            MessageActionScope.Batch, messageId: "m-1", operationId: "op-7", success: false);
+
+        var entries = provider.EntriesFor(MessageActionAuditLog.MessageCategory);
+        Assert.That(entries, Has.Count.EqualTo(1));
+        Assert.That(entries[0].Level, Is.EqualTo(LogLevel.Warning));
+    }
+
+    [TestCase(MessageActionScope.Single, "single")]
+    [TestCase(MessageActionScope.Batch, "batch")]
+    [TestCase(MessageActionScope.Group, "group")]
+    [TestCase(MessageActionScope.Queue, "queue")]
+    [TestCase(MessageActionScope.Endpoint, "endpoint")]
+    [TestCase(MessageActionScope.All, "all")]
+    [TestCase(MessageActionScope.Range, "range")]
+    public void Scope_serializes_as_its_lowercase_name(MessageActionScope scope, string expected)
+    {
+        var (provider, log) = Create();
+
+        log.Operation(AuditUser.Anonymous, MessageActionKind.Retry, "error:messages:retry",
+            scope, resource: null, count: null, operationId: "op-8");
+
+        var ecs = JsonDocument.Parse(provider.EntriesFor(MessageActionAuditLog.OperationCategory)[0].Message).RootElement;
+        Assert.That(ecs.GetProperty("servicecontrol").GetProperty("scope").GetString(), Is.EqualTo(expected));
     }
 
     [TestCase(null, "op")]

@@ -3,9 +3,7 @@ namespace ServiceControl.Infrastructure.Auth;
 
 using System;
 using System.Collections.Generic;
-using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
@@ -18,9 +16,6 @@ public sealed partial class MessageActionAuditLog : IMessageActionAuditLog
 {
     public const string OperationCategory = AuthorizationAuditLog.AuditCategory;              // "ServiceControl.Audit"
     public const string MessageCategory = AuthorizationAuditLog.AuditCategory + ".Messages";  // "ServiceControl.Audit.Messages"
-
-    // Relaxed escaping keeps the JSON readable for log sinks, matching AuthorizationAuditLog.
-    static readonly JsonSerializerOptions EcsJsonOptions = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
     readonly ILogger operationLogger;
     readonly ILogger messageLogger;
@@ -35,6 +30,14 @@ public sealed partial class MessageActionAuditLog : IMessageActionAuditLog
     {
         ArgumentException.ThrowIfNullOrEmpty(permission);
         ArgumentException.ThrowIfNullOrEmpty(operationId);
+
+        // Checked before building the ECS document: the generated log methods only check IsEnabled
+        // after the message arguments are evaluated, and the document is not worth building for a
+        // filtered-out category.
+        if (!operationLogger.IsEnabled(success ? LogLevel.Information : LogLevel.Warning))
+        {
+            return;
+        }
 
         var ecs = BuildEcsEvent(user, kind, permission, scope, resource, messageId: null, count, operationId, success);
 
@@ -53,6 +56,14 @@ public sealed partial class MessageActionAuditLog : IMessageActionAuditLog
         ArgumentException.ThrowIfNullOrEmpty(permission);
         ArgumentException.ThrowIfNullOrEmpty(messageId);
         ArgumentException.ThrowIfNullOrEmpty(operationId);
+
+        // Bulk operations emit one entry per message on hot paths (retry staging, archive batches),
+        // and operators are told they can filter this category — skip the document build entirely
+        // when the entry would be dropped.
+        if (!messageLogger.IsEnabled(success ? LogLevel.Information : LogLevel.Warning))
+        {
+            return;
+        }
 
         var ecs = BuildEcsEvent(user, kind, permission, scope, resource: null, messageId, count: null, operationId, success);
 
@@ -87,7 +98,7 @@ public sealed partial class MessageActionAuditLog : IMessageActionAuditLog
             ["servicecontrol"] = new
             {
                 permission,
-                scope = scope.ToString().ToLowerInvariant(),
+                scope = ScopeName(scope),
                 resource,
                 message = messageId is null ? null : new { id = messageId },
                 count,
@@ -95,8 +106,22 @@ public sealed partial class MessageActionAuditLog : IMessageActionAuditLog
             }
         };
 
-        return JsonSerializer.Serialize(ecs, EcsJsonOptions);
+        return JsonSerializer.Serialize(ecs, AuthorizationAuditLog.EcsJsonOptions);
     }
+
+    // Constant lowercase names instead of ToString().ToLowerInvariant(): per-message entries call this
+    // once per message in bulk loops, and the two throwaway strings per entry add up.
+    static string ScopeName(MessageActionScope scope) => scope switch
+    {
+        MessageActionScope.Single => "single",
+        MessageActionScope.Batch => "batch",
+        MessageActionScope.Group => "group",
+        MessageActionScope.Queue => "queue",
+        MessageActionScope.Endpoint => "endpoint",
+        MessageActionScope.All => "all",
+        MessageActionScope.Range => "range",
+        _ => scope.ToString().ToLowerInvariant()
+    };
 
     [LoggerMessage(EventId = 2001, Level = LogLevel.Information, Message = "{AuditEvent}")]
     static partial void LogOperation(ILogger logger, string auditEvent);

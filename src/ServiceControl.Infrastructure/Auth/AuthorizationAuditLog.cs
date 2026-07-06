@@ -19,8 +19,9 @@ public sealed partial class AuthorizationAuditLog(ILoggerFactory loggerFactory) 
     readonly ILogger logger = loggerFactory.CreateLogger(AuditCategory);
 
     // Relaxed escaping keeps the JSON readable for log sinks (no \uXXXX for '+', '<', accented names, …);
-    // the HTML-safe default only matters in a browser context, which an audit log is not.
-    static readonly JsonSerializerOptions EcsJsonOptions = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
+    // the HTML-safe default only matters in a browser context, which an audit log is not. Shared with
+    // MessageActionAuditLog so both ECS streams keep the same serialization contract.
+    internal static readonly JsonSerializerOptions EcsJsonOptions = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
     public void Decision(string subjectId, string subjectName, string permission, string? resource, bool allowed, string reason)
     {
