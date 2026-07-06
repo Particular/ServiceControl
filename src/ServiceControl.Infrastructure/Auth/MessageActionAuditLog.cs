@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 /// <see cref="MessageCategory"/> sub-category so operators can filter the high-volume per-message stream
 /// independently through standard logging configuration.
 /// </summary>
-public sealed partial class MessageActionAuditLog : IMessageActionAuditLog
+public sealed class MessageActionAuditLog : IMessageActionAuditLog
 {
     public const string OperationCategory = AuthorizationAuditLog.AuditCategory;              // "ServiceControl.Audit"
     public const string MessageCategory = AuthorizationAuditLog.AuditCategory + ".Messages";  // "ServiceControl.Audit.Messages"
@@ -31,24 +31,15 @@ public sealed partial class MessageActionAuditLog : IMessageActionAuditLog
         ArgumentException.ThrowIfNullOrEmpty(permission);
         ArgumentException.ThrowIfNullOrEmpty(operationId);
 
-        // Checked before building the ECS document: the generated log methods only check IsEnabled
-        // after the message arguments are evaluated, and the document is not worth building for a
-        // filtered-out category.
-        if (!operationLogger.IsEnabled(success ? LogLevel.Information : LogLevel.Warning))
+        // Checked before building the ECS document — not worth building for a filtered-out category.
+        var level = success ? LogLevel.Information : LogLevel.Warning;
+        if (!operationLogger.IsEnabled(level))
         {
             return;
         }
 
         var ecs = BuildEcsEvent(user, kind, permission, scope, resource, messageId: null, count, operationId, success);
-
-        if (success)
-        {
-            LogOperation(operationLogger, ecs);
-        }
-        else
-        {
-            LogOperationFailure(operationLogger, ecs);
-        }
+        operationLogger.Log(level, OperationEventId, ecs, null, IdentityFormatter);
     }
 
     public void MessageAction(AuditUser user, MessageActionKind kind, string permission, MessageActionScope scope, string messageId, string operationId, bool success = true)
@@ -60,21 +51,14 @@ public sealed partial class MessageActionAuditLog : IMessageActionAuditLog
         // Bulk operations emit one entry per message on hot paths (retry staging, archive batches),
         // and operators are told they can filter this category — skip the document build entirely
         // when the entry would be dropped.
-        if (!messageLogger.IsEnabled(success ? LogLevel.Information : LogLevel.Warning))
+        var level = success ? LogLevel.Information : LogLevel.Warning;
+        if (!messageLogger.IsEnabled(level))
         {
             return;
         }
 
         var ecs = BuildEcsEvent(user, kind, permission, scope, resource: null, messageId, count: null, operationId, success);
-
-        if (success)
-        {
-            LogMessage(messageLogger, ecs);
-        }
-        else
-        {
-            LogMessageFailure(messageLogger, ecs);
-        }
+        messageLogger.Log(level, MessageEventId, ecs, null, IdentityFormatter);
     }
 
     static string BuildEcsEvent(AuditUser user, MessageActionKind kind, string permission, MessageActionScope scope, string? resource, string? messageId, int? count, string operationId, bool success)
@@ -123,15 +107,12 @@ public sealed partial class MessageActionAuditLog : IMessageActionAuditLog
         _ => scope.ToString().ToLowerInvariant()
     };
 
-    [LoggerMessage(EventId = 2001, Level = LogLevel.Information, Message = "{AuditEvent}")]
-    static partial void LogOperation(ILogger logger, string auditEvent);
-
-    [LoggerMessage(EventId = 2001, Level = LogLevel.Warning, Message = "{AuditEvent}")]
-    static partial void LogOperationFailure(ILogger logger, string auditEvent);
-
-    [LoggerMessage(EventId = 2002, Level = LogLevel.Information, Message = "{AuditEvent}")]
-    static partial void LogMessage(ILogger logger, string auditEvent);
-
-    [LoggerMessage(EventId = 2002, Level = LogLevel.Warning, Message = "{AuditEvent}")]
-    static partial void LogMessageFailure(ILogger logger, string auditEvent);
+    // Logged with the pre-rendered document as the state, not as a "{AuditEvent}" template parameter:
+    // a parameterized message is exported over OTLP with the literal "{AuditEvent}" placeholder as the
+    // record body and the JSON only in an attribute — backends that map body → message show the
+    // placeholder. A plain-string state exports the document exactly once, as the record body; NLog is
+    // unaffected either way and writes the same line to audit.json.
+    static readonly EventId OperationEventId = new(2001);
+    static readonly EventId MessageEventId = new(2002);
+    static readonly Func<string, Exception?, string> IdentityFormatter = static (state, _) => state;
 }
