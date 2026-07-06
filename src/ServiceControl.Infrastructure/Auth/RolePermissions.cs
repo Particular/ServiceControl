@@ -36,7 +36,6 @@ public static class RolePermissions
         Permissions.ErrorLicensingView,
         Permissions.ErrorNotificationsView,
         Permissions.ErrorRedirectsView,
-        Permissions.ErrorThroughputView,
     ];
 
     static readonly string[] Operate =
@@ -62,6 +61,7 @@ public static class RolePermissions
         Permissions.ErrorNotificationsManage,
         Permissions.ErrorNotificationsTest,
         Permissions.ErrorRedirectsManage,
+        Permissions.ErrorThroughputView,
         Permissions.ErrorThroughputManage,
     ];
 
@@ -69,7 +69,7 @@ public static class RolePermissions
         new Dictionary<string, FrozenSet<string>>(StringComparer.OrdinalIgnoreCase)
         {
             [Reader] = ToSet([.. Read, .. ReadConfiguration]),
-            [Writer] = ToSet([.. Read, .. Operate]),
+            [Writer] = ToSet([.. Read, .. ReadConfiguration, .. Operate]),
             [Admin] = ToSet([.. Read, .. ReadConfiguration, .. Operate, .. Configure]),
         }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
