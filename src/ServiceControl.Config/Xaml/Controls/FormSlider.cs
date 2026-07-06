@@ -70,6 +70,11 @@
         {
             base.OnValueChanged(oldValue, newValue);
 
+            RefreshSummary();
+        }
+
+        void RefreshSummary()
+        {
             var period = Units == TimeSpanUnits.Days
                 ? TimeSpan.FromDays(Math.Truncate(Value))
                 : TimeSpan.FromHours(Math.Truncate(Value));
@@ -107,8 +112,12 @@
         public static readonly DependencyProperty HeaderProperty =
             DependencyProperty.Register("Header", typeof(string), typeof(FormSlider), new PropertyMetadata(string.Empty));
 
+        // The summary label is computed in OnValueChanged, which can fire before the Units binding is
+        // applied (e.g. when the Minimum binding coerces Value). Refresh the summary when Units changes
+        // so the label never sticks with a unit it was not meant to use.
         public static readonly DependencyProperty UnitsProperty =
-            DependencyProperty.Register("Units", typeof(TimeSpanUnits), typeof(FormSlider));
+            DependencyProperty.Register("Units", typeof(TimeSpanUnits), typeof(FormSlider),
+                new PropertyMetadata(TimeSpanUnits.Days, (d, _) => ((FormSlider)d).RefreshSummary()));
     }
 
     public enum TimeSpanUnits
