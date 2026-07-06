@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
+    using Infrastructure.Auth;
     using Infrastructure.DomainEvents;
     using MessageFailures;
     using Microsoft.Extensions.Logging;
@@ -15,7 +16,7 @@
     using ServiceControl.Persistence.MessageRedirects;
 
     [Handler]
-    class EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IMessageDispatcher dispatcher, ErrorQueueNameCache errorQueueNameCache, IDomainEvents domainEvents, ILogger<EditHandler> logger)
+    class EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IMessageDispatcher dispatcher, ErrorQueueNameCache errorQueueNameCache, IDomainEvents domainEvents, IMessageActionAuditLog auditLog, ILogger<EditHandler> logger)
         : IHandleMessages<EditAndSend>
     {
         public async Task Handle(EditAndSend message, IMessageHandlerContext context)
@@ -55,6 +56,12 @@
 
 
                 await session.SaveChanges();
+            }
+
+            var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
+            if (!string.IsNullOrEmpty(operationId))
+            {
+                auditLog.MessageAction(user, MessageActionKind.Edit, Permissions.ErrorMessagesEdit, MessageActionScope.Single, message.FailedMessageId, operationId);
             }
 
             var redirects = await redirectsStore.GetOrCreate();
