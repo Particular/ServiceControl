@@ -43,12 +43,15 @@
                     ValidateLifetime = oidcSettings.ValidateLifetime,
                     ValidateIssuerSigningKey = oidcSettings.ValidateIssuerSigningKey,
                     ValidAudience = oidcSettings.Audience,
-                    ClockSkew = TimeSpan.FromMinutes(5), // Allow 5 minutes clock skew
-                    RoleClaimType = oidcSettings.RolesClaim
+                    ClockSkew = TimeSpan.FromMinutes(5) // Allow 5 minutes clock skew
                 };
                 options.RequireHttpsMetadata = oidcSettings.RequireHttpsMetadata;
                 // Don't map inbound claims to legacy Microsoft claim types
                 options.MapInboundClaims = false;
+                // No RoleClaimType is set: it only influences IsInRole()/[Authorize(Roles = ...)],
+                // which this platform does not use. Roles are read from RolesClaim (which may be a
+                // nested path such as realm_access.roles) and normalized to ClaimTypes.Role by
+                // RolesClaimsTransformation, which is what the authorization handlers actually read.
 
                 // Custom error response handling for better client experience
                 options.Events = new JwtBearerEvents
