@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
+    using Infrastructure.Auth;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http.Extensions;
@@ -25,10 +26,12 @@
         IMonitoringDataStore dataStore)
         : ControllerBase
     {
+        [Authorize(Policy = Permissions.ErrorHeartbeatsView)]
         [Route("heartbeats/stats")]
         [HttpGet]
         public EndpointMonitoringStats HeartbeatStats() => monitoring.GetStats();
 
+        [Authorize(Policy = Permissions.ErrorEndpointsView)]
         [Route("endpoints")]
         [HttpGet]
         public EndpointsView[] Endpoints() => monitoring.GetEndpoints();
@@ -44,6 +47,7 @@
             Response.Headers.AccessControlExposeHeaders = "Allow";
         }
 
+        [Authorize(Policy = Permissions.ErrorEndpointsDelete)]
         [Route("endpoints/{endpointId}")]
         [HttpDelete]
         public async Task<IActionResult> DeleteEndpoint(Guid endpointId)
@@ -59,6 +63,7 @@
             return NoContent();
         }
 
+        [Authorize(Policy = Permissions.ErrorEndpointsView)]
         [Route("endpoints/known")]
         [HttpGet]
         public async Task<IList<KnownEndpointsView>> KnownEndpoints([FromQuery] PagingInfo pagingInfo)
@@ -70,6 +75,7 @@
             return result.Results;
         }
 
+        [Authorize(Policy = Permissions.ErrorEndpointsManage)]
         [Route("endpoints/{endpointId}")]
         [HttpPatch]
         public async Task<IActionResult> Monitoring(Guid endpointId, [FromBody] EndpointUpdateModel data)

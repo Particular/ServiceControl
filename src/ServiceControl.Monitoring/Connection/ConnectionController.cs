@@ -2,8 +2,10 @@
 {
     using System;
     using System.Text.Json;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
+    using ServiceControl.Infrastructure.Auth;
 
     [ApiController]
     public class ConnectionController(ReceiveAddresses receiveAddresses) : ControllerBase
@@ -11,6 +13,7 @@
         readonly string mainInputQueue = receiveAddresses.MainReceiveAddress;
         readonly TimeSpan defaultInterval = TimeSpan.FromSeconds(1);
 
+        [Authorize(Policy = Permissions.MonitoringConnectionView)]
         [Route("connection")]
         [HttpGet]
         public IActionResult GetConnectionDetails() =>

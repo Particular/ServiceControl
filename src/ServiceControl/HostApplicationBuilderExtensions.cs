@@ -6,6 +6,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.CustomChecks;
     using global::ServiceControl.Hosting;
     using global::ServiceControl.Infrastructure;
+    using global::ServiceControl.Infrastructure.Auth;
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.Metrics;
@@ -58,6 +59,12 @@ namespace Particular.ServiceControl
 
             services.Configure<HostOptions>(options => options.ShutdownTimeout = settings.ShutdownTimeout);
             services.AddSingleton<IDomainEvents, DomainEvents>();
+
+            // Message-action audit trail. Registered here rather than in AddServiceControlAuthorization
+            // because message handlers (archive/unarchive/edit/retry) depend on it, so it must exist in
+            // every host that consumes the input queue — including --import-failed-errors, which never
+            // wires up authorization.
+            services.AddSingleton<IMessageActionAuditLog, MessageActionAuditLog>();
 
             services.AddSingleton<MessageStreamerHub>();
             services.AddSingleton(settings);

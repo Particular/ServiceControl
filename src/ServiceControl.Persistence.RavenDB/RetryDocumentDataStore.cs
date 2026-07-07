@@ -54,7 +54,8 @@
 
         public async Task<string> CreateBatchDocument(string retrySessionId, string requestId, RetryType retryType, string[] failedMessageRetryIds,
             string originator,
-            DateTime startTime, DateTime? last = null, string batchName = null, string classifier = null)
+            DateTime startTime, DateTime? last = null, string batchName = null, string classifier = null,
+            string initiatedById = null, string initiatedByName = null, string operationId = null)
         {
             var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
             using var session = await sessionProvider.OpenSession();
@@ -71,7 +72,10 @@
                 InitialBatchSize = failedMessageRetryIds.Length,
                 RetrySessionId = retrySessionId,
                 FailureRetries = failedMessageRetryIds,
-                Status = RetryBatchStatus.MarkingDocuments
+                Status = RetryBatchStatus.MarkingDocuments,
+                InitiatedById = initiatedById,
+                InitiatedByName = initiatedByName,
+                OperationId = operationId
             });
             await session.SaveChangesAsync();
 

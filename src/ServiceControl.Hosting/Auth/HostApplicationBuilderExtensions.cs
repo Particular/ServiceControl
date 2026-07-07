@@ -3,9 +3,11 @@
     using System;
     using System.Text.Json;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
     using Microsoft.IdentityModel.Tokens;
     using ServiceControl.Infrastructure;
@@ -19,6 +21,11 @@
             {
                 return;
             }
+
+            // Shared with the authorization services and the claims transformation below; registered
+            // once so it can be constructor-injected rather than captured. TryAdd keeps it idempotent
+            // with AddServiceControlAuthorization, which registers the same instance.
+            hostBuilder.Services.TryAddSingleton(oidcSettings);
 
             _ = hostBuilder.Services.AddAuthentication(options =>
             {
@@ -36,7 +43,8 @@
                     ValidateLifetime = oidcSettings.ValidateLifetime,
                     ValidateIssuerSigningKey = oidcSettings.ValidateIssuerSigningKey,
                     ValidAudience = oidcSettings.Audience,
-                    ClockSkew = TimeSpan.FromMinutes(5) // Allow 5 minutes clock skew
+                    ClockSkew = TimeSpan.FromMinutes(5), // Allow 5 minutes clock skew
+                    RoleClaimType = oidcSettings.RolesClaim
                 };
                 options.RequireHttpsMetadata = oidcSettings.RequireHttpsMetadata;
                 // Don't map inbound claims to legacy Microsoft claim types
@@ -99,6 +107,11 @@
                 configure.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
                     .RequireAuthenticatedUser()
                     .Build());
+
+            // Normalise per-IdP role claim shapes (Keycloak's nested realm_access.roles, Entra app
+            // roles, Cognito groups) into canonical "roles" claims for the verb handler. The source
+            // path is configurable via Authentication.RolesClaim, read off the injected settings.
+            hostBuilder.Services.AddSingleton<IClaimsTransformation, RolesClaimsTransformation>();
         }
 
         static string GetErrorMessage(JwtBearerChallengeContext context)

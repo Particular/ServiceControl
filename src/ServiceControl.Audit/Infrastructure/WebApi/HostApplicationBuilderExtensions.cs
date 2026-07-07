@@ -24,6 +24,7 @@
                 options.ModelBinderProviders.Insert(0, new SortInfoModelBindingProvider());
             });
             controllers.AddApplicationPart(Assembly.GetExecutingAssembly());
+            controllers.AddApplicationPart(typeof(ServiceControl.Hosting.Auth.MyRoutesController).Assembly);
             controllers.AddJsonOptions(options => options.JsonSerializerOptions.CustomizeDefaults());
         }
     }

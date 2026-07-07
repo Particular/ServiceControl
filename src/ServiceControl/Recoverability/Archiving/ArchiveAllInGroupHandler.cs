@@ -1,6 +1,7 @@
 namespace ServiceControl.Recoverability
 {
     using System.Threading.Tasks;
+    using Infrastructure.Auth;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
     using ServiceControl.Persistence.Recoverability;
@@ -16,7 +17,9 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            await archiver.ArchiveAllInGroup(message.GroupId);
+            var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
+
+            await archiver.ArchiveAllInGroup(message.GroupId, user, operationId);
         }
     }
 }

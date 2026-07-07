@@ -15,7 +15,8 @@
 
         Task<string> CreateBatchDocument(string retrySessionId, string requestId, RetryType retryType,
             string[] failedMessageRetryIds, string originator, DateTime startTime, DateTime? last = null,
-            string batchName = null, string classifier = null);
+            string batchName = null, string classifier = null,
+            string initiatedById = null, string initiatedByName = null, string operationId = null);
 
         Task<QueryResult<IList<RetryBatch>>> QueryOrphanedBatches(string retrySessionId);
         Task<IList<RetryBatchGroup>> QueryAvailableBatches();

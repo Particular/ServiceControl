@@ -1,23 +1,38 @@
 ﻿namespace ServiceControl.Recoverability.API
 {
+    using System;
     using System.Threading.Tasks;
+    using Infrastructure.Auth;
+    using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
     using ServiceControl.Persistence.Recoverability;
 
     [ApiController]
     [Route("api")]
-    public class FailureGroupsArchiveController(IMessageSession bus, IArchiveMessages archiver) : ControllerBase
+    public class FailureGroupsArchiveController(
+        IMessageSession bus,
+        IArchiveMessages archiver,
+        ICurrentUserAccessor userAccessor,
+        IMessageActionAuditLog auditLog) : ControllerBase
     {
+        [Authorize(Policy = Permissions.ErrorRecoverabilityGroupsArchive)]
         [Route("recoverability/groups/{groupId:required:minlength(1)}/errors/archive")]
         [HttpPost]
         public async Task<IActionResult> ArchiveGroupErrors(string groupId)
         {
             if (!archiver.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
             {
-                await archiver.StartArchiving(groupId, ArchiveType.FailureGroup);
-
-                await bus.SendLocal<ArchiveAllInGroup>(m => { m.GroupId = groupId; });
+                var user = userAccessor.Resolve(User);
+                var operationId = this.AuditOperationId();
+                await auditLog.AuditedOperation(user, MessageActionKind.Archive,
+                    Permissions.ErrorRecoverabilityGroupsArchive, MessageActionScope.Group,
+                    resource: groupId, count: null, operationId: operationId, async () =>
+                    {
+                        await archiver.StartArchiving(groupId, ArchiveType.FailureGroup);
+                        await bus.Send<ArchiveAllInGroup>(m => { m.GroupId = groupId; }, AuditHeaders.LocalSendOptions(user, operationId));
+                    });
             }
 
             return Accepted();

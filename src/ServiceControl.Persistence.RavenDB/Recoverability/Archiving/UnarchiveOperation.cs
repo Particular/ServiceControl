@@ -13,6 +13,13 @@
         public DateTime Started { get; set; }
         public int NumberOfBatches { get; set; }
         public int CurrentBatch { get; set; }
+
+        // Audit attribution for the initiating operation, carried so per-message audit entries can be
+        // emitted (and correlated to the operation) as each batch is unarchived, including after a restart.
+        public string InitiatedById { get; set; }
+        public string InitiatedByName { get; set; }
+        public string OperationId { get; set; }
+
         public static string MakeId(string requestId, ArchiveType archiveType)
         {
             return $"UnarchiveOperations/{(int)archiveType}/{requestId}";

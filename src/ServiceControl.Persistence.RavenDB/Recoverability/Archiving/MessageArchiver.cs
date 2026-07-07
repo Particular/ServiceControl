@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using RavenDB;
+    using ServiceControl.Infrastructure.Auth;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Persistence.Recoverability;
     using ServiceControl.Recoverability;
@@ -17,12 +18,14 @@
             OperationsManager operationsManager,
             IDomainEvents domainEvents,
             ExpirationManager expirationManager,
+            IMessageActionAuditLog auditLog,
             ILogger<MessageArchiver> logger
             )
         {
             this.sessionProvider = sessionProvider;
             this.domainEvents = domainEvents;
             this.expirationManager = expirationManager;
+            this.auditLog = auditLog;
             this.logger = logger;
             this.operationsManager = operationsManager;
 
@@ -33,7 +36,7 @@
             unarchivingManager = new UnarchivingManager(domainEvents, operationsManager);
         }
 
-        public async Task ArchiveAllInGroup(string groupId)
+        public async Task ArchiveAllInGroup(string groupId, AuditUser? initiatedBy = null, string operationId = null)
         {
             logger.LogInformation("Archiving of {GroupId} started", groupId);
             ArchiveOperation archiveOperation;
@@ -54,12 +57,16 @@
                     }
 
                     logger.LogInformation("Splitting group {GroupId} into batches", groupId);
-                    archiveOperation = await archiveDocumentManager.CreateArchiveOperation(session, groupId, ArchiveType.FailureGroup, groupDetails.NumberOfMessagesInGroup, groupDetails.GroupName, batchSize);
+                    archiveOperation = await archiveDocumentManager.CreateArchiveOperation(session, groupId, ArchiveType.FailureGroup, groupDetails.NumberOfMessagesInGroup, groupDetails.GroupName, batchSize, initiatedBy?.Id, initiatedBy?.Name, operationId);
                     await session.SaveChangesAsync();
 
                     logger.LogInformation("Group {GroupId} has been split into {NumberOfBatches} batches", groupId, archiveOperation.NumberOfBatches);
                 }
             }
+
+            // Captured from the persisted operation so resumed operations remain attributed to the initiator.
+            var auditUser = new AuditUser(archiveOperation.InitiatedById, archiveOperation.InitiatedByName);
+            var auditOperationId = archiveOperation.OperationId;
 
             await archivingManager.StartArchiving(archiveOperation);
 
@@ -82,7 +89,7 @@
 
                     await archivingManager.BatchArchived(archiveOperation.RequestId, archiveOperation.ArchiveType, nextBatch?.DocumentIds.Count ?? 0);
 
-                    archiveOperation = archivingManager.GetStatusForArchiveOperation(archiveOperation.RequestId, archiveOperation.ArchiveType).ToArchiveOperation();
+                    archiveOperation = archivingManager.GetStatusForArchiveOperation(archiveOperation.RequestId, archiveOperation.ArchiveType).ToArchiveOperation(auditUser.Id, auditUser.Name, auditOperationId);
 
                     await archiveDocumentManager.UpdateArchiveOperation(batchSession, archiveOperation);
 
@@ -90,11 +97,15 @@
 
                     if (nextBatch != null)
                     {
+                        // Remove `FailedMessages/` prefix and publish pure GUIDs without Raven collection name
+                        var messageIds = nextBatch.DocumentIds.Select(id => id.Replace("FailedMessages/", "")).ToArray();
+
                         await domainEvents.Raise(new FailedMessageGroupBatchArchived
                         {
-                            // Remove `FailedMessages/` prefix and publish pure GUIDs without Raven collection name
-                            FailedMessagesIds = nextBatch.DocumentIds.Select(id => id.Replace("FailedMessages/", "")).ToArray()
+                            FailedMessagesIds = messageIds
                         });
+
+                        AuditArchivedMessages(MessageActionKind.Archive, Permissions.ErrorRecoverabilityGroupsArchive, auditUser, auditOperationId, messageIds);
                     }
 
                     if (nextBatch != null)
@@ -125,7 +136,7 @@
             logger.LogInformation("Archiving of group {GroupId} completed", groupId);
         }
 
-        public async Task UnarchiveAllInGroup(string groupId)
+        public async Task UnarchiveAllInGroup(string groupId, AuditUser? initiatedBy = null, string operationId = null)
         {
             logger.LogInformation("Unarchiving of {GroupId} started", groupId);
             UnarchiveOperation unarchiveOperation;
@@ -147,12 +158,16 @@
                     }
 
                     logger.LogInformation("Splitting group {GroupId} into batches", groupId);
-                    unarchiveOperation = await unarchiveDocumentManager.CreateUnarchiveOperation(session, groupId, ArchiveType.FailureGroup, groupDetails.NumberOfMessagesInGroup, groupDetails.GroupName, batchSize);
+                    unarchiveOperation = await unarchiveDocumentManager.CreateUnarchiveOperation(session, groupId, ArchiveType.FailureGroup, groupDetails.NumberOfMessagesInGroup, groupDetails.GroupName, batchSize, initiatedBy?.Id, initiatedBy?.Name, operationId);
                     await session.SaveChangesAsync();
 
                     logger.LogInformation("Group {GroupId} has been split into {NumberOfBatches} batches", groupId, unarchiveOperation.NumberOfBatches);
                 }
             }
+
+            // Captured from the persisted operation so resumed operations remain attributed to the initiator.
+            var auditUser = new AuditUser(unarchiveOperation.InitiatedById, unarchiveOperation.InitiatedByName);
+            var auditOperationId = unarchiveOperation.OperationId;
 
             await unarchivingManager.StartUnarchiving(unarchiveOperation);
 
@@ -174,7 +189,7 @@
 
                 await unarchivingManager.BatchUnarchived(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType, nextBatch?.DocumentIds.Count ?? 0);
 
-                unarchiveOperation = unarchivingManager.GetStatusForUnarchiveOperation(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType).ToUnarchiveOperation();
+                unarchiveOperation = unarchivingManager.GetStatusForUnarchiveOperation(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType).ToUnarchiveOperation(auditUser.Id, auditUser.Name, auditOperationId);
 
                 await unarchiveDocumentManager.UpdateUnarchiveOperation(batchSession, unarchiveOperation);
 
@@ -182,11 +197,15 @@
 
                 if (nextBatch != null)
                 {
+                    // Remove `FailedMessages/` prefix and publish pure GUIDs without Raven collection name
+                    var messageIds = nextBatch.DocumentIds.Select(id => id.Replace("FailedMessages/", "")).ToArray();
+
                     await domainEvents.Raise(new FailedMessageGroupBatchUnarchived
                     {
-                        // Remove `FailedMessages/` prefix and publish pure GUIDs without Raven collection name
-                        FailedMessagesIds = nextBatch.DocumentIds.Select(id => id.Replace("FailedMessages/", "")).ToArray()
+                        FailedMessagesIds = messageIds
                     });
+
+                    AuditArchivedMessages(MessageActionKind.Unarchive, Permissions.ErrorRecoverabilityGroupsUnarchive, auditUser, auditOperationId, messageIds);
                 }
 
                 if (nextBatch != null)
@@ -215,6 +234,21 @@
             });
         }
 
+        // Emits one per-message audit entry for each message in a batch, correlated to the initiating
+        // operation. Skipped when no OperationId was captured (e.g. legacy in-flight operations).
+        void AuditArchivedMessages(MessageActionKind kind, string permission, AuditUser user, string operationId, string[] messageIds)
+        {
+            if (string.IsNullOrEmpty(operationId))
+            {
+                return;
+            }
+
+            foreach (var messageId in messageIds)
+            {
+                auditLog.MessageAction(user, kind, permission, MessageActionScope.Group, messageId, operationId);
+            }
+        }
+
         public bool IsOperationInProgressFor(string groupId, ArchiveType archiveType) => operationsManager.IsOperationInProgressFor(groupId, archiveType);
 
         public bool IsArchiveInProgressFor(string groupId)
@@ -236,6 +270,7 @@
         readonly OperationsManager operationsManager;
         readonly IDomainEvents domainEvents;
         readonly ExpirationManager expirationManager;
+        readonly IMessageActionAuditLog auditLog;
         readonly ArchiveDocumentManager archiveDocumentManager;
         readonly ArchivingManager archivingManager;
         readonly UnarchiveDocumentManager unarchiveDocumentManager;

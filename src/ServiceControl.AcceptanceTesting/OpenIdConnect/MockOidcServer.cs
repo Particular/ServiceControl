@@ -184,9 +184,13 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
         {
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.RsaSha256);
 
+            // sub + preferred_username are required by PermissionVerbHandler for the audit log;
+            // defaulting them here keeps callers concise. Callers that need to test the
+            // missing-claim path pass an explicit additionalClaim with an empty value to override.
             var claims = new List<Claim>
             {
                 new(JwtRegisteredClaimNames.Sub, subject),
+                new("preferred_username", subject),
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 

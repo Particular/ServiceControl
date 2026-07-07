@@ -35,6 +35,18 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
         }
 
         /// <summary>
+        /// Enables role-based authorization. When on, controllers carrying
+        /// <c>[Authorize(Policy = Permissions.X)]</c> require the caller's "roles" claim to map to a
+        /// role that grants the permission via <c>RolePermissions</c>. When off, the policy provider
+        /// returns allow-all policies and any authenticated request reaches the controller.
+        /// </summary>
+        public OpenIdConnectTestConfiguration WithRoleBasedAuthorizationEnabled()
+        {
+            SetEnvironmentVariable("AUTHENTICATION_ROLEBASEDAUTHORIZATIONENABLED", "true");
+            return this;
+        }
+
+        /// <summary>
         /// Disables settings validation. This allows testing with placeholder/fake OIDC settings.
         /// Should only be used in test scenarios where a real OIDC provider is not available.
         /// </summary>
@@ -164,6 +176,7 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
             ClearEnvironmentVariable("AUTHENTICATION_SERVICEPULSE_CLIENTID");
             ClearEnvironmentVariable("AUTHENTICATION_SERVICEPULSE_APISCOPES");
             ClearEnvironmentVariable("AUTHENTICATION_SERVICEPULSE_AUTHORITY");
+            ClearEnvironmentVariable("AUTHENTICATION_ROLEBASEDAUTHORIZATIONENABLED");
             ClearEnvironmentVariable("VALIDATECONFIG");
         }
 

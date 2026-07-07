@@ -5,13 +5,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Infrastructure;
 using Infrastructure.WebApi;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Persistence;
+using ServiceControl.Infrastructure.Auth;
 
 [ApiController]
 [Route("api")]
 public class GetMessages2Controller(IAuditDataStore dataStore) : ControllerBase
 {
+    [Authorize(Policy = Permissions.AuditMessageView)]
     [Route("messages2")]
     [HttpGet]
     public async Task<IList<MessagesView>> GetAllMessages(

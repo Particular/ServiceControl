@@ -2,7 +2,9 @@ namespace ServiceControl.Audit.Connection
 {
     using System.Text.Json;
     using Infrastructure.Settings;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
+    using ServiceControl.Infrastructure.Auth;
 
     [ApiController]
     [Route("api")]
@@ -11,6 +13,7 @@ namespace ServiceControl.Audit.Connection
         // This controller doesn't use the default serialization settings because
         // ServicePulse and the Platform Connector Plugin expect the connection
         // details the be serialized and formatted in a specific way
+        [Authorize(Policy = Permissions.AuditConnectionView)]
         [Route("connection")]
         [HttpGet]
         public IActionResult GetConnectionDetails() =>

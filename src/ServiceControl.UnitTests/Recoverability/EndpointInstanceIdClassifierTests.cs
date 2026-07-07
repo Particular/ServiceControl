@@ -5,7 +5,7 @@
     using NServiceBus;
     using NUnit.Framework;
     using ServiceControl.Recoverability;
-    using static MessageFailures.FailedMessage;
+    using static ServiceControl.MessageFailures.FailedMessage;
 
     [TestFixture]
     public class EndpointInstanceIdClassifierTests

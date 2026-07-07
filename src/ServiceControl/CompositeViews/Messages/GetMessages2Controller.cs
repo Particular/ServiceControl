@@ -2,7 +2,9 @@ namespace ServiceControl.CompositeViews.Messages;
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Infrastructure.Auth;
 using Infrastructure.WebApi;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Persistence.Infrastructure;
@@ -16,6 +18,7 @@ public class GetMessages2Controller(
     SearchEndpointApi searchEndpointApi)
     : ControllerBase
 {
+    [Authorize(Policy = Permissions.ErrorMessagesView)]
     [Route("messages2")]
     [HttpGet]
     public async Task<IList<MessagesView>> Messages(

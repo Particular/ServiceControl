@@ -5,6 +5,9 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using Infrastructure.Auth;
+    using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
@@ -18,13 +21,17 @@
         Settings settings,
         IErrorMessageDataStore store,
         IMessageSession session,
-        ILogger<EditFailedMessagesController> logger)
+        ILogger<EditFailedMessagesController> logger,
+        ICurrentUserAccessor userAccessor,
+        IMessageActionAuditLog auditLog)
         : ControllerBase
     {
+        [Authorize(Policy = Permissions.ErrorMessagesEdit)]
         [Route("edit/config")]
         [HttpGet]
         public EditConfigurationModel Config() => GetEditConfiguration();
 
+        [Authorize(Policy = Permissions.ErrorMessagesEdit)]
         [Route("edit/{failedMessageId:required:minlength(1)}")]
         [HttpPost]
         public async Task<ActionResult<EditRetryResponse>> Edit(string failedMessageId, [FromBody] EditMessageModel edit)
@@ -75,14 +82,20 @@
                 return BadRequest();
             }
 
+            var user = userAccessor.Resolve(User);
+            var operationId = this.AuditOperationId();
+
             // Encode the body in base64 so that the new body doesn't have to be escaped
             var base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(edit.MessageBody));
-            await session.SendLocal(new EditAndSend
-            {
-                FailedMessageId = failedMessageId,
-                NewBody = base64String,
-                NewHeaders = edit.MessageHeaders
-            });
+
+            await auditLog.AuditedOperation(user, MessageActionKind.Edit, Permissions.ErrorMessagesEdit, MessageActionScope.Single,
+                resource: failedMessageId, count: 1, operationId: operationId,
+                () => session.Send(new EditAndSend
+                {
+                    FailedMessageId = failedMessageId,
+                    NewBody = base64String,
+                    NewHeaders = edit.MessageHeaders
+                }, AuditHeaders.LocalSendOptions(user, operationId)));
 
             return Accepted(new EditRetryResponse { EditIgnored = false });
         }

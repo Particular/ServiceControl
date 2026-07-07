@@ -13,4 +13,5 @@ GET /messages/{id}/body => ServiceControl.Audit.Auditing.MessagesView.GetMessage
 GET /messages/search => ServiceControl.Audit.Auditing.MessagesView.GetMessagesController:Search(PagingInfo pagingInfo, SortInfo sortInfo, String q, CancellationToken cancellationToken)
 GET /messages/search/{keyword} => ServiceControl.Audit.Auditing.MessagesView.GetMessagesController:SearchByKeyWord(PagingInfo pagingInfo, SortInfo sortInfo, String keyword, CancellationToken cancellationToken)
 GET /messages2 => ServiceControl.Audit.Auditing.MessagesView.GetMessages2Controller:GetAllMessages(SortInfo sortInfo, Int32 pageSize, String endpointName, String from, String to, String q, CancellationToken cancellationToken)
+GET /my/routes => ServiceControl.Hosting.Auth.MyRoutesController:GetMyRoutes()
 GET /sagas/{id} => ServiceControl.Audit.SagaAudit.SagasController:Sagas(PagingInfo pagingInfo, Guid id, CancellationToken cancellationToken)

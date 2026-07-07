@@ -16,7 +16,7 @@
     {
         public Task<ArchiveOperation> LoadArchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType) => session.LoadAsync<ArchiveOperation>(ArchiveOperation.MakeId(groupId, archiveType));
 
-        public async Task<ArchiveOperation> CreateArchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType, int numberOfMessages, string groupName, int batchSize)
+        public async Task<ArchiveOperation> CreateArchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType, int numberOfMessages, string groupName, int batchSize, string initiatedById = null, string initiatedByName = null, string operationId = null)
         {
             var operation = new ArchiveOperation
             {
@@ -28,7 +28,10 @@
                 Started = DateTime.UtcNow,
                 GroupName = groupName,
                 NumberOfBatches = (int)Math.Ceiling(numberOfMessages / (float)batchSize),
-                CurrentBatch = 0
+                CurrentBatch = 0,
+                InitiatedById = initiatedById,
+                InitiatedByName = initiatedByName,
+                OperationId = operationId
             };
 
             await session.StoreAsync(operation);

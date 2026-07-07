@@ -1,10 +1,13 @@
 ﻿namespace ServiceControl.AcceptanceTests.RavenDB
 {
     using System;
+    using System.Linq;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
     using Hosting.Commands;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using NServiceBus;
     using NUnit.Framework;
     using Particular.ServiceControl.Hosting;
     using Persistence;
@@ -54,5 +57,42 @@
         [Test]
         public async Task CanRunImportFailedMessagesMode()
             => await new ImportFailedErrorsCommand().Execute(new HostArguments([]), settings);
+
+        [Test]
+        public async Task ImportFailedErrorsHostCanActivateAllMessageHandlers()
+        {
+            // The import host consumes the instance's regular input queue, so pending recoverability
+            // commands (e.g. ArchiveMessage from a bulk archive) can arrive while it runs. Every
+            // handler of the RecoverabilityComponent the host registers must therefore be activatable.
+            var handlerTypes = typeof(ImportFailedErrorsCommand).Assembly.GetTypes()
+                .Where(type => !type.IsAbstract && type.GetInterfaces().Any(
+                    i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IHandleMessages<>)))
+                .Where(type => type.Namespace!.StartsWith("ServiceControl.Recoverability") ||
+                               type.Namespace.StartsWith("ServiceControl.MessageFailures"))
+                .OrderBy(type => type.FullName)
+                .ToArray();
+
+            Assert.That(handlerTypes, Is.Not.Empty);
+
+            using var host = ImportFailedErrorsCommand.BuildHost(settings);
+            await host.StartAsync();
+            try
+            {
+                await using var scope = host.Services.CreateAsyncScope();
+                Assert.Multiple(() =>
+                {
+                    foreach (var handlerType in handlerTypes)
+                    {
+                        // NServiceBus activates handlers via ActivatorUtilities, resolving constructor
+                        // dependencies from the container without the handler type being registered.
+                        Assert.That(() => ActivatorUtilities.CreateInstance(scope.ServiceProvider, handlerType), Throws.Nothing, handlerType.FullName);
+                    }
+                });
+            }
+            finally
+            {
+                await host.StopAsync();
+            }
+        }
     }
 }

@@ -12,10 +12,12 @@
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts.Operations;
+    using ServiceControl.Infrastructure.Auth;
     using ServiceControl.Infrastructure.BackgroundTasks;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Tests.Recoverability;
     using ServiceControl.Recoverability;
     using ServiceControl.Transports;
     using static ServiceControl.Recoverability.RecoverabilityComponent;
@@ -98,6 +100,7 @@
                     new TestTransportCustomization()),
                 retryManager,
                 new Lazy<IMessageDispatcher>(() => sender),
+                new RecordingMessageActionAuditLog(),
                 NullLogger<RetryProcessor>.Instance);
 
             // Needs index RetryBatches_ByStatus_ReduceInitialBatchSize
@@ -124,6 +127,7 @@
                     new TestTransportCustomization()),
                 retryManager,
                 new Lazy<IMessageDispatcher>(() => sender),
+                new RecordingMessageActionAuditLog(),
                 NullLogger<RetryProcessor>.Instance);
 
             await processor.ProcessBatches();
@@ -143,7 +147,7 @@
             var sender = new TestSender();
 
             var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance), ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
 
             await processor.ProcessBatches(); // mark ready
             await processor.ProcessBatches();
@@ -173,7 +177,7 @@
             };
 
             var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance), ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
 
             bool c;
             do
@@ -213,7 +217,7 @@
 
             var sender = new TestSender();
 
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()), retryManager, new Lazy<IMessageDispatcher>(() => sender), NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()), retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
 
             CompleteDatabaseOperation();
 
@@ -224,12 +228,93 @@
             Assert.That(status.RetryState, Is.EqualTo(RetryState.Forwarding));
         }
 
+        [Test]
+        public async Task When_a_selection_is_staged_each_message_is_audited_as_a_batch()
+        {
+            var domainEvents = new FakeDomainEvents();
+            var retryManager = new RetryingManager(domainEvents, NullLogger<RetryingManager>.Instance);
+            var user = new AuditUser("alice-sub", "Alice");
+            const string operationId = "op-sel";
+            var ids = new[] { "A", "B" };
+
+            var messages = ids.Select(id => new FailedMessage
+            {
+                Id = FailedMessageIdGenerator.MakeDocumentId(id),
+                UniqueMessageId = id,
+                Status = FailedMessageStatus.Unresolved,
+                ProcessingAttempts =
+                [
+                    new FailedMessage.ProcessingAttempt
+                    {
+                        AttemptedAt = DateTime.UtcNow,
+                        MessageMetadata = [],
+                        FailureDetails = new FailureDetails(),
+                        Headers = []
+                    }
+                ]
+            }).ToArray();
+
+            await ErrorStore.StoreFailedMessagesForTestsOnly(messages);
+            CompleteDatabaseOperation();
+
+            var gateway = new CustomRetriesGateway(true, RetryStore, retryManager);
+            await gateway.StartRetryForMessageSelection(ids, user, operationId);
+            CompleteDatabaseOperation();
+
+            var audit = new RecordingMessageActionAuditLog();
+            var sender = new TestSender();
+            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance), ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
+
+            await processor.ProcessBatches(); // stage
+            await processor.ProcessBatches(); // forward
+
+            Assert.That(audit.Messages.Select(m => m.MessageId), Is.EquivalentTo(ids));
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(audit.Messages, Has.All.Matches<RecordingMessageActionAuditLog.MessageEntry>(m => m.OperationId == operationId));
+                Assert.That(audit.Messages, Has.All.Matches<RecordingMessageActionAuditLog.MessageEntry>(m => m.Kind == MessageActionKind.Retry));
+                Assert.That(audit.Messages, Has.All.Matches<RecordingMessageActionAuditLog.MessageEntry>(m => m.Scope == MessageActionScope.Batch));
+            }
+        }
+
+        [Test]
+        public async Task When_a_group_is_staged_each_message_is_audited_with_the_initiating_user()
+        {
+            var domainEvents = new FakeDomainEvents();
+            var retryManager = new RetryingManager(domainEvents, NullLogger<RetryingManager>.Instance);
+            var user = new AuditUser("alice-sub", "Alice");
+            const string operationId = "op-abc";
+
+            await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, user, operationId, "A", "B");
+
+            var audit = new RecordingMessageActionAuditLog();
+            var sender = new TestSender();
+            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance), ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
+
+            await processor.ProcessBatches(); // stage (emits per-message audit)
+            await processor.ProcessBatches(); // forward
+
+            Assert.That(audit.Messages.Select(m => m.MessageId), Is.EquivalentTo(new[] { "A", "B" }));
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(audit.Messages, Has.All.Matches<RecordingMessageActionAuditLog.MessageEntry>(m => m.User.Equals(user)));
+                Assert.That(audit.Messages, Has.All.Matches<RecordingMessageActionAuditLog.MessageEntry>(m => m.OperationId == operationId));
+                Assert.That(audit.Messages, Has.All.Matches<RecordingMessageActionAuditLog.MessageEntry>(m => m.Kind == MessageActionKind.Retry));
+                Assert.That(audit.Messages, Has.All.Matches<RecordingMessageActionAuditLog.MessageEntry>(m => m.Scope == MessageActionScope.Group));
+            }
+        }
+
         Task CreateAFailedMessageAndMarkAsPartOfRetryBatch(RetryingManager retryManager, string groupId, bool progressToStaged, int numberOfMessages)
         {
             return CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, groupId, progressToStaged, Enumerable.Range(0, numberOfMessages).Select(i => Guid.NewGuid().ToString()).ToArray());
         }
 
-        async Task CreateAFailedMessageAndMarkAsPartOfRetryBatch(RetryingManager retryManager, string groupId, bool progressToStaged, params string[] messageIds)
+        Task CreateAFailedMessageAndMarkAsPartOfRetryBatch(RetryingManager retryManager, string groupId, bool progressToStaged, params string[] messageIds) =>
+            CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, groupId, progressToStaged, null, null, messageIds);
+
+        async Task CreateAFailedMessageAndMarkAsPartOfRetryBatch(RetryingManager retryManager, string groupId, bool progressToStaged, AuditUser? initiatedBy, string operationId, params string[] messageIds)
         {
             var messages = messageIds.Select(id => new FailedMessage
             {
@@ -266,7 +351,7 @@
             var documentManager = new CustomRetryDocumentManager(progressToStaged, RetryStore, retryManager);
             var gateway = new CustomRetriesGateway(progressToStaged, RetryStore, retryManager);
 
-            gateway.EnqueueRetryForFailureGroup(new RetriesGateway.RetryForFailureGroup(groupId, "Test-Context", groupType: null, DateTime.UtcNow));
+            gateway.EnqueueRetryForFailureGroup(new RetriesGateway.RetryForFailureGroup(groupId, "Test-Context", groupType: null, DateTime.UtcNow, initiatedBy, operationId));
 
             CompleteDatabaseOperation();
 

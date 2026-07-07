@@ -1,6 +1,7 @@
 namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
 {
     using System.Net.Http;
+    using System.Security.Claims;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.OpenIdConnect;
@@ -35,6 +36,7 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
             configuration = new OpenIdConnectTestConfiguration(ServiceControlInstanceType.Primary)
                 .WithConfigurationValidationDisabled()
                 .WithAuthenticationEnabled()
+                .WithRoleBasedAuthorizationEnabled()
                 .WithAuthority(mockOidcServer.Authority)
                 .WithAudience(TestAudience)
                 .WithServicePulseClientId(TestClientId)
@@ -124,7 +126,10 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
             _ = await Define<Context>()
                 .Done(async ctx =>
                 {
-                    var validToken = mockOidcServer.GenerateToken();
+                    // The "reader" role grants every :view permission, including error:messages:view
+                    // required by /api/errors. Without a role-bearing claim the request would be 403.
+                    var validToken = mockOidcServer.GenerateToken(
+                        additionalClaims: new[] { new Claim("roles", "reader") });
                     response = await OpenIdConnectAssertions.SendRequestWithBearerToken(
                         HttpClient,
                         HttpMethod.Get,

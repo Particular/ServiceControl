@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Persistence;
 using ServiceBus.Management.Infrastructure.Settings;
@@ -25,6 +27,7 @@ public class EndpointsSettingsController(
     IEndpointSettingsStore dataStore, Settings settings)
     : ControllerBase
 {
+    [Authorize(Policy = Permissions.ErrorEndpointsView)]
     [Route("endpointssettings")]
     [HttpGet]
     public async IAsyncEnumerable<SettingsData> Endpoints([EnumeratorCancellation] CancellationToken token)
@@ -49,6 +52,7 @@ public class EndpointsSettingsController(
         }
     }
 
+    [Authorize(Policy = Permissions.ErrorEndpointsManage)]
     [Route("endpointssettings/{endpointName?}")]
     [HttpPatch]
     public async Task<IActionResult>

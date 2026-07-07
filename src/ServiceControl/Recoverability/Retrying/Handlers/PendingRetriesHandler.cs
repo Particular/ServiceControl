@@ -2,6 +2,7 @@ namespace ServiceControl.Recoverability
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Infrastructure.Auth;
     using MessageFailures.InternalMessages;
     using NServiceBus;
     using Persistence;
@@ -27,7 +28,7 @@ namespace ServiceControl.Recoverability
                 messageIds.Add(id);
             }
 
-            await context.SendLocal(new RetryMessagesById { MessageUniqueIds = messageIds.ToArray() });
+            await SendRetryMessagesById(context, messageIds.ToArray());
         }
 
         public async Task Handle(RetryPendingMessagesById message, IMessageHandlerContext context)
@@ -37,7 +38,21 @@ namespace ServiceControl.Recoverability
                 await dataStore.RemoveFailedMessageRetryDocument(messageUniqueId);
             }
 
-            await context.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = message.MessageUniqueIds);
+            await SendRetryMessagesById(context, message.MessageUniqueIds);
+        }
+
+        // The per-message audit entries are emitted at staging time (RetryProcessor.AuditStagedMessages),
+        // once a message is really retried — a message resolved here may still never be staged. The audit
+        // headers are re-stamped on the follow-up command so the staged batch carries the attribution.
+        static Task SendRetryMessagesById(IMessageHandlerContext context, string[] messageUniqueIds)
+        {
+            var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
+
+            var sendOptions = new SendOptions();
+            sendOptions.RouteToThisEndpoint();
+            AuditHeaders.Stamp(sendOptions, user, operationId);
+
+            return context.Send(new RetryMessagesById { MessageUniqueIds = messageUniqueIds }, sendOptions);
         }
 
         readonly IErrorMessageDataStore dataStore;
