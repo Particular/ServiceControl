@@ -205,6 +205,31 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
             OpenIdConnectAssertions.AssertUnauthorized(response);
         }
 
+        [Test]
+        public async Task Should_forbid_authenticated_user_lacking_required_permission()
+        {
+            HttpResponseMessage response = null;
+
+            _ = await Define<Context>()
+                .Done(async ctx =>
+                {
+                    // The "reader" role grants every :view permission but none of the operate ones.
+                    // Retrying messages requires error:messages:retry (writer/admin only), so an
+                    // authenticated reader must be forbidden (403), not merely unauthenticated (401).
+                    var readerToken = mockOidcServer.GenerateToken(
+                        additionalClaims: new[] { new Claim("roles", "reader") });
+                    response = await OpenIdConnectAssertions.SendRequestWithBearerToken(
+                        HttpClient,
+                        HttpMethod.Post,
+                        "/api/errors/retry/all",
+                        readerToken);
+                    return response != null;
+                })
+                .Run();
+
+            OpenIdConnectAssertions.AssertForbidden(response);
+        }
+
         class Context : ScenarioContext;
     }
 }

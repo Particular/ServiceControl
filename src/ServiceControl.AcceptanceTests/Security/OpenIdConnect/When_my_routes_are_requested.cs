@@ -63,5 +63,41 @@ class When_my_routes_are_requested : AcceptanceTest
         OpenIdConnectAssertions.AssertUnauthorized(response);
     }
 
+    [Test]
+    public async Task Should_return_only_the_routes_the_callers_role_permits()
+    {
+        HttpResponseMessage response = null;
+
+        _ = await Define<Context>()
+            .Done(async ctx =>
+            {
+                // A reader holds every :view permission but none of the operate ones. The manifest is
+                // the projection of exactly what the server enforces, so it must advertise a view route
+                // the reader may call and omit a retry route it may not.
+                var readerToken = mockOidcServer.GenerateToken(
+                    additionalClaims: new[] { new Claim("roles", "reader") });
+                response = await OpenIdConnectAssertions.SendRequestWithBearerToken(
+                    HttpClient, HttpMethod.Get, "/api/my/routes", readerToken);
+                return response != null;
+            })
+            .Run();
+
+        OpenIdConnectAssertions.AssertAuthenticated(response);
+
+        var root = JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
+
+        var roles = root.GetProperty("roles").EnumerateArray().Select(role => role.GetString());
+        Assert.That(roles, Does.Contain("reader"));
+
+        var routes = root.GetProperty("routes").EnumerateArray()
+            .Select(entry => $"{entry.GetProperty("method").GetString()} {entry.GetProperty("url_template").GetString()}")
+            .ToArray();
+
+        Assert.That(routes, Does.Contain("GET /api/errors"),
+            "Reader holds error:messages:view, so the errors list route must be advertised.");
+        Assert.That(routes, Does.Not.Contain("POST /api/errors/retry/all"),
+            "Reader lacks error:messages:retry, so the retry route must be filtered out.");
+    }
+
     class Context : ScenarioContext;
 }
