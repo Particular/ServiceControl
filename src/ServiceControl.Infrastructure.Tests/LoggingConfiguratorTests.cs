@@ -102,7 +102,17 @@ public class LoggingConfiguratorTests
             Assert.That(deny.GetProperty("event").GetProperty("type")[0].GetString(), Is.EqualTo("denied"));
             Assert.That(deny.GetProperty("event").GetProperty("outcome").GetString(), Is.EqualTo("failure"));
             Assert.That(deny.GetProperty("user").GetProperty("id").GetString(), Is.EqualTo("bob-sub-002"));
-            Assert.That(deny.GetProperty("servicecontrol").GetProperty("resource").ValueKind, Is.EqualTo(JsonValueKind.Null), "absent resource should be JSON null");
+            Assert.That(deny.GetProperty("servicecontrol").TryGetProperty("resource", out _), Is.False, "absent resource should be omitted from the JSON entirely, not present as null");
         });
+    }
+
+    [Test]
+    public void Message_action_subcategory_is_captured_by_the_audit_rule()
+    {
+        var config = BuildConfig();
+        var auditRule = config.LoggingRules.Single(r => r.LoggerNamePattern == AuditPattern);
+
+        Assert.That(auditRule.NameMatches(ServiceControl.Infrastructure.Auth.MessageActionAuditLog.MessageCategory), Is.True);
+        Assert.That(auditRule.NameMatches(ServiceControl.Infrastructure.Auth.MessageActionAuditLog.OperationCategory), Is.True);
     }
 }

@@ -7,11 +7,13 @@
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />
     <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
+    <ProjectReference Include="..\ServiceControl.Hosting\ServiceControl.Hosting.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="GitHubActionsTestLogger" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NServiceBus.Testing" />
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit.Analyzers" />
     <PackageReference Include="NUnit3TestAdapter" />

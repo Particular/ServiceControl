@@ -82,6 +82,11 @@
             await ArchiveMessages.ArchiveAllInGroup(groupIdA);
 
             await ArchiveMessages.ArchiveAllInGroup(groupIdB);
+
+            // Let ArchivedGroupsViewIndex catch up with the archive, or the unarchive silently
+            // no-ops ("No messages to unarchive") and message B wrongly expires.
+            CompleteDatabaseOperation();
+
             await ArchiveMessages.UnarchiveAllInGroup(groupIdB);
 
             await EnableExpiration();

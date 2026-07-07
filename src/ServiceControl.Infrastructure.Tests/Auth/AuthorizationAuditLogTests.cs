@@ -45,7 +45,7 @@ public class AuthorizationAuditLogTests
         Assert.That(ecs.GetProperty("event").GetProperty("type")[0].GetString(), Is.EqualTo("denied"));
         Assert.That(ecs.GetProperty("event").GetProperty("outcome").GetString(), Is.EqualTo("failure"));
         Assert.That(ecs.GetProperty("user").GetProperty("id").GetString(), Is.EqualTo("bob-sub-002"));
-        Assert.That(ecs.GetProperty("servicecontrol").GetProperty("resource").ValueKind, Is.EqualTo(JsonValueKind.Null));
+        Assert.That(ecs.GetProperty("servicecontrol").TryGetProperty("resource", out _), Is.False, "null resource should be omitted");
         Assert.That(entries[0].Level, Is.EqualTo(LogLevel.Warning));
     }
 

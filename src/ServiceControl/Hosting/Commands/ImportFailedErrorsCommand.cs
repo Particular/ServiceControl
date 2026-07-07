@@ -19,18 +19,7 @@
     {
         public override async Task Execute(HostArguments args, Settings settings)
         {
-            settings.IngestErrorMessages = false;
-            settings.RunRetryProcessor = false;
-            settings.DisableHealthChecks = true;
-
-            var endpointConfiguration = new EndpointConfiguration(settings.InstanceName);
-            var assemblyScanner = endpointConfiguration.AssemblyScanner();
-            assemblyScanner.Disable = true;
-
-            var hostBuilder = Host.CreateApplicationBuilder();
-            hostBuilder.AddServiceControl(settings, endpointConfiguration, new RecoverabilityComponent());
-
-            using var app = hostBuilder.Build();
+            using var app = BuildHost(settings);
             await app.StartAsync();
 
             var importFailedErrors = app.Services.GetRequiredService<ImportFailedErrors>();
@@ -50,6 +39,22 @@
             {
                 await app.StopAsync(CancellationToken.None);
             }
+        }
+
+        internal static IHost BuildHost(Settings settings)
+        {
+            settings.IngestErrorMessages = false;
+            settings.RunRetryProcessor = false;
+            settings.DisableHealthChecks = true;
+
+            var endpointConfiguration = new EndpointConfiguration(settings.InstanceName);
+            var assemblyScanner = endpointConfiguration.AssemblyScanner();
+            assemblyScanner.Disable = true;
+
+            var hostBuilder = Host.CreateApplicationBuilder();
+            hostBuilder.AddServiceControl(settings, endpointConfiguration, new RecoverabilityComponent());
+
+            return hostBuilder.Build();
         }
     }
 }

@@ -5,21 +5,23 @@ using System;
 using System.Collections.Generic;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
 /// Default <see cref="IAuthorizationAuditLog"/> that emits every decision as a structured log entry on
 /// the stable category <c>ServiceControl.Audit</c>. Sinks filter on the category, not on the type name.
 /// </summary>
-public sealed partial class AuthorizationAuditLog(ILoggerFactory loggerFactory) : IAuthorizationAuditLog
+public sealed class AuthorizationAuditLog(ILoggerFactory loggerFactory) : IAuthorizationAuditLog
 {
     public const string AuditCategory = "ServiceControl.Audit"; // Logger name is used in logging configuration to write audit entries to a separate file.
 
     readonly ILogger logger = loggerFactory.CreateLogger(AuditCategory);
 
     // Relaxed escaping keeps the JSON readable for log sinks (no \uXXXX for '+', '<', accented names, …);
-    // the HTML-safe default only matters in a browser context, which an audit log is not.
-    static readonly JsonSerializerOptions EcsJsonOptions = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+    // the HTML-safe default only matters in a browser context, which an audit log is not. Shared with
+    // MessageActionAuditLog so both ECS streams keep the same serialization contract.
+    internal static readonly JsonSerializerOptions EcsJsonOptions = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
     public void Decision(string subjectId, string subjectName, string permission, string? resource, bool allowed, string reason)
     {
@@ -28,16 +30,14 @@ public sealed partial class AuthorizationAuditLog(ILoggerFactory loggerFactory) 
         ArgumentException.ThrowIfNullOrEmpty(permission);
         ArgumentException.ThrowIfNullOrEmpty(reason);
 
-        var auditEvent = BuildEcsEvent(subjectId, subjectName, permission, resource, allowed, reason);
+        var level = allowed ? LogLevel.Information : LogLevel.Warning;
+        if (!logger.IsEnabled(level))
+        {
+            return;
+        }
 
-        if (allowed)
-        {
-            LogAllow(logger, auditEvent);
-        }
-        else
-        {
-            LogDeny(logger, auditEvent);
-        }
+        var auditEvent = BuildEcsEvent(subjectId, subjectName, permission, resource, allowed, reason);
+        logger.Log(level, allowed ? AllowEventId : DenyEventId, auditEvent, null, IdentityFormatter);
     }
 
     // Serialises one authorization decision as an Elastic Common Schema (ECS) document so it ingests into
@@ -73,11 +73,10 @@ public sealed partial class AuthorizationAuditLog(ILoggerFactory loggerFactory) 
         return JsonSerializer.Serialize(ecs, EcsJsonOptions);
     }
 
-    // Source-generated structured log methods — the audit event is the pre-rendered ECS JSON document. Allow
-    // and deny differ only by level so sinks can alert on denies (Warning) without parsing the payload.
-    [LoggerMessage(EventId = 1001, Level = LogLevel.Information, Message = "{AuditEvent}")]
-    static partial void LogAllow(ILogger logger, string auditEvent);
-
-    [LoggerMessage(EventId = 1002, Level = LogLevel.Warning, Message = "{AuditEvent}")]
-    static partial void LogDeny(ILogger logger, string auditEvent);
+    // The audit event is the pre-rendered ECS JSON document, logged as a plain-string state so it is
+    // exported over OTLP as the record body (see MessageActionAuditLog for the full rationale). Allow
+    // and deny differ by level so sinks can alert on denies (Warning) without parsing the payload.
+    static readonly EventId AllowEventId = new(1001);
+    static readonly EventId DenyEventId = new(1002);
+    static readonly Func<string, Exception?, string> IdentityFormatter = static (state, _) => state;
 }

@@ -50,6 +50,13 @@ public static class PermissionAuthorizationExtensions
         services.AddSingleton<IAuthorizationAuditLog, AuthorizationAuditLog>();
         services.AddSingleton<IAuthorizationHandler, PermissionVerbHandler>();
 
+        // Resolves the acting user for controllers. Registered unconditionally (independent of OIDC
+        // being enabled) so message actions are attributed even without authentication (AuditUser.Anonymous).
+        // Note: IMessageActionAuditLog is deliberately NOT registered here — message handlers depend on it,
+        // so it must be available in every host that consumes the input queue (e.g. --import-failed-errors),
+        // not only in hosts that serve HTTP. The primary instance registers it in AddServiceControl.
+        services.AddSingleton<ICurrentUserAccessor, CurrentUserAccessor>();
+
         // Backs the my/routes manifest: a singleton table projected from the wired endpoints. Reuses
         // the EndpointDataSource the framework registers, so it sees exactly the routes that are served.
         services.AddSingleton<RouteAuthorizationTable>();

@@ -5,7 +5,7 @@
     using System.Linq;
     using Contracts;
     using Contracts.Operations;
-    using MessageFailures;
+    using ServiceControl.MessageFailures;
     using NUnit.Framework;
     using ServiceControl.Operations;
     using ServiceControl.Recoverability.ExternalIntegration;

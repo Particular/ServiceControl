@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
+    using Infrastructure.WebApi;
     using InternalMessages;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,7 @@
 
     [ApiController]
     [Route("api")]
-    public class UnArchiveMessagesController(IMessageSession session) : ControllerBase
+    public class UnArchiveMessagesController(IMessageSession session, ICurrentUserAccessor userAccessor, IMessageActionAuditLog auditLog) : ControllerBase
     {
         [Authorize(Policy = Permissions.ErrorMessagesUnarchive)]
         [Route("errors/unarchive")]
@@ -24,9 +25,11 @@
                 return BadRequest();
             }
 
-            var request = new UnArchiveMessages { FailedMessageIds = ids };
-
-            await session.SendLocal(request);
+            var user = userAccessor.Resolve(User);
+            var operationId = this.AuditOperationId();
+            await auditLog.AuditedOperation(user, MessageActionKind.Unarchive, Permissions.ErrorMessagesUnarchive, MessageActionScope.Batch,
+                resource: null, count: ids.Length, operationId: operationId,
+                () => session.Send(new UnArchiveMessages { FailedMessageIds = ids }, AuditHeaders.LocalSendOptions(user, operationId)));
 
             return Accepted();
         }
@@ -48,7 +51,11 @@
                 return BadRequest();
             }
 
-            await session.SendLocal(new UnArchiveMessagesByRange { From = fromDateTime, To = toDateTime });
+            var user = userAccessor.Resolve(User);
+            var operationId = this.AuditOperationId();
+            await auditLog.AuditedOperation(user, MessageActionKind.Unarchive, Permissions.ErrorMessagesUnarchive, MessageActionScope.Range,
+                resource: $"{from}...{to}", count: null, operationId: operationId,
+                () => session.Send(new UnArchiveMessagesByRange { From = fromDateTime, To = toDateTime }, AuditHeaders.LocalSendOptions(user, operationId)));
 
             return Accepted();
         }

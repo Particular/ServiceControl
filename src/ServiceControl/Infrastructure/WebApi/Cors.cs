@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Infrastructure.WebApi
 {
     using Microsoft.AspNetCore.Cors.Infrastructure;
+    using ServiceControl.Hosting.RequestId;
 
     /// <summary>
     /// Provides CORS (Cross-Origin Resource Sharing) policy configuration for the ServiceControl API.
@@ -25,7 +26,7 @@
             }
 
             // Expose custom headers that clients need to read from responses
-            builder.WithExposedHeaders(["ETag", "Last-Modified", "Link", "Total-Count", "X-Particular-Version", "Content-Disposition"]);
+            builder.WithExposedHeaders(["ETag", "Last-Modified", "Link", "Total-Count", "X-Particular-Version", "Content-Disposition", RequestIdHeader.HeaderName]);
             // Allow standard headers required for API requests
             builder.WithHeaders(["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"]);
             // Allow all HTTP methods used by the ServiceControl API

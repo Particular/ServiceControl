@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using ServiceControl.Infrastructure.Auth;
     using ServiceControl.Recoverability;
 
     /// <summary>
@@ -9,8 +10,8 @@
     /// </summary>
     public interface IArchiveMessages
     {
-        Task ArchiveAllInGroup(string groupId);
-        Task UnarchiveAllInGroup(string groupId);
+        Task ArchiveAllInGroup(string groupId, AuditUser? initiatedBy = null, string operationId = null);
+        Task UnarchiveAllInGroup(string groupId, AuditUser? initiatedBy = null, string operationId = null);
 
         bool IsOperationInProgressFor(string groupId, ArchiveType archiveType);
 

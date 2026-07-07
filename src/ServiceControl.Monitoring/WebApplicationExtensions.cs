@@ -3,12 +3,14 @@ namespace ServiceControl.Monitoring.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using ServiceControl.Hosting.ForwardedHeaders;
 using ServiceControl.Hosting.Https;
+using ServiceControl.Hosting.RequestId;
 using ServiceControl.Infrastructure;
 
 public static class WebApplicationExtensions
 {
     public static void UseServiceControlMonitoring(this WebApplication appBuilder, ForwardedHeadersSettings forwardedHeadersSettings, HttpsSettings httpsSettings, CorsSettings corsSettings)
     {
+        appBuilder.UseRequestIdHeader();
         appBuilder.UseServiceControlForwardedHeaders(forwardedHeadersSettings);
         appBuilder.UseServiceControlHttps(httpsSettings);
 
@@ -30,7 +32,7 @@ public static class WebApplicationExtensions
             }
 
             // Headers exposed to the client in the response (accessible via JavaScript)
-            policyBuilder.WithExposedHeaders(["ETag", "Last-Modified", "Link", "Total-Count", "X-Particular-Version"]);
+            policyBuilder.WithExposedHeaders(["ETag", "Last-Modified", "Link", "Total-Count", "X-Particular-Version", RequestIdHeader.HeaderName]);
             // Headers allowed in the request from the client
             policyBuilder.WithHeaders(["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"]);
             // HTTP methods allowed for cross-origin requests
