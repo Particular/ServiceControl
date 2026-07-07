@@ -139,11 +139,10 @@ public class OpenIdConnectSettings
     public string ServicePulseApiScopes { get; }
 
     /// <summary>
-    /// Path within the JWT where the user's role values live. Defaults to <c>realm_access.roles</c>
-    /// to match Keycloak's out-of-box token shape. A flat claim name like <c>roles</c> is used when
-    /// the identity provider emits role values as top-level claims (Keycloak with a "User Realm Role"
-    /// mapper, Microsoft Entra ID app roles, AWS Cognito groups, etc.). The dotted form navigates
-    /// into a nested JSON object claim.
+    /// Path within the JWT where the user's role values live. Defaults to the flat <c>roles</c>
+    /// claim, as emitted by Microsoft Entra ID app roles or Keycloak with a "User Realm Role" mapper.
+    /// A dotted path navigates into a nested JSON object claim: set it to <c>realm_access.roles</c>
+    /// for Keycloak's out-of-box token shape, or <c>cognito:groups</c> for AWS Cognito.
     /// </summary>
     public string RolesClaim { get; }
 

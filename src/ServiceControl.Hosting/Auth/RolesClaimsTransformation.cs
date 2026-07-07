@@ -11,9 +11,10 @@ using ServiceControl.Infrastructure.Auth;
 /// <summary>
 /// Normalises per-IdP role claim shapes into a flat set of <c>roles</c> claims that
 /// <see cref="PermissionVerbHandler"/> can read directly. The source path is configured via
-/// <c>Authentication.RolesClaim</c> (default <c>realm_access.roles</c> — the Keycloak out-of-box
-/// shape). Flat claim names work too (<c>roles</c> for Keycloak with a "User Realm Role" mapper or
-/// Microsoft Entra ID app roles, <c>cognito:groups</c> for AWS Cognito).
+/// <c>Authentication.RolesClaim</c> (default <c>roles</c> — a flat top-level claim, as emitted by
+/// Microsoft Entra ID app roles or Keycloak with a "User Realm Role" mapper). A dotted path reaches
+/// into a nested JSON object claim: <c>realm_access.roles</c> for Keycloak's out-of-box shape, or
+/// <c>cognito:groups</c> for AWS Cognito.
 /// <para>
 /// ASP.NET may invoke <see cref="TransformAsync"/> multiple times for the same principal; a sentinel
 /// claim makes the transformation idempotent and returns the same principal on subsequent calls.
