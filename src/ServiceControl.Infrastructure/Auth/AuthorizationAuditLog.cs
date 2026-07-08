@@ -16,6 +16,12 @@ public sealed class AuthorizationAuditLog(ILoggerFactory loggerFactory) : IAutho
 {
     public const string AuditCategory = "ServiceControl.Audit"; // Logger name is used in logging configuration to write audit entries to a separate file.
 
+    // The ECS version the emitted documents conform to, surfaced as the ecs.version field so downstream
+    // pipelines can pick the matching mappings. 8.11.0 is the latest ECS schema release; the fields used
+    // here (event.category/type/outcome, user.*) are stable across the 8.x line. Shared with
+    // MessageActionAuditLog so both streams declare the same version.
+    internal const string EcsVersion = "8.11.0";
+
     readonly ILogger logger = loggerFactory.CreateLogger(AuditCategory);
 
     // Relaxed escaping keeps the JSON readable for log sinks (no \uXXXX for '+', '<', accented names, …);
@@ -49,6 +55,7 @@ public sealed class AuthorizationAuditLog(ILoggerFactory loggerFactory) : IAutho
         var ecs = new Dictionary<string, object?>
         {
             ["@timestamp"] = DateTimeOffset.UtcNow.ToString("O"),
+            ["ecs"] = new { version = EcsVersion },
             ["event"] = new
             {
                 kind = "event",
