@@ -23,7 +23,7 @@ public sealed class AuthorizationAuditLog(ILoggerFactory loggerFactory) : IAutho
     // MessageActionAuditLog so both ECS streams keep the same serialization contract.
     internal static readonly JsonSerializerOptions EcsJsonOptions = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
-    public void Decision(string subjectId, string subjectName, string permission, string? resource, bool allowed, string reason)
+    public void Decision(string subjectId, string subjectName, string permission, string? resource, bool allowed, string reason, IReadOnlyCollection<string>? roles = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(subjectId);
         ArgumentException.ThrowIfNullOrEmpty(subjectName);
@@ -36,7 +36,7 @@ public sealed class AuthorizationAuditLog(ILoggerFactory loggerFactory) : IAutho
             return;
         }
 
-        var auditEvent = BuildEcsEvent(subjectId, subjectName, permission, resource, allowed, reason);
+        var auditEvent = BuildEcsEvent(subjectId, subjectName, permission, resource, allowed, reason, roles);
         logger.Log(level, allowed ? AllowEventId : DenyEventId, auditEvent, null, IdentityFormatter);
     }
 
@@ -44,7 +44,7 @@ public sealed class AuthorizationAuditLog(ILoggerFactory loggerFactory) : IAutho
     // Elastic/Kibana — and most SIEMs — with no custom mapping. The schema is owned here, in the domain,
     // rather than in logging configuration. event.type/outcome carry the allow/deny; servicecontrol.* is the
     // app-specific namespace ECS reserves for custom fields.
-    static string BuildEcsEvent(string subjectId, string subjectName, string permission, string? resource, bool allowed, string reason)
+    static string BuildEcsEvent(string subjectId, string subjectName, string permission, string? resource, bool allowed, string reason, IReadOnlyCollection<string>? roles)
     {
         var ecs = new Dictionary<string, object?>
         {
@@ -60,7 +60,9 @@ public sealed class AuthorizationAuditLog(ILoggerFactory loggerFactory) : IAutho
             ["user"] = new
             {
                 id = subjectId,
-                name = subjectName
+                name = subjectName,
+                // Omitted (WhenWritingNull) when the principal has no roles, e.g. a denied request.
+                roles = roles is { Count: > 0 } ? roles : null
             },
             ["servicecontrol"] = new
             {

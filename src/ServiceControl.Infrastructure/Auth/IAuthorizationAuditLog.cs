@@ -1,6 +1,8 @@
 #nullable enable
 namespace ServiceControl.Infrastructure.Auth;
 
+using System.Collections.Generic;
+
 /// <summary>
 /// Records every authorization allow/deny decision so the platform can demonstrate, after the fact,
 /// who attempted what and how the system responded. Both allow and deny outcomes are captured —
@@ -21,5 +23,6 @@ public interface IAuthorizationAuditLog
     /// <param name="resource">The specific resource checked, or <see langword="null"/> for verb-level checks.</param>
     /// <param name="allowed"><see langword="true"/> if the decision was allow; <see langword="false"/> for deny.</param>
     /// <param name="reason">A human-readable explanation (e.g. which role granted the permission, or why nothing matched).</param>
-    void Decision(string subjectId, string subjectName, string permission, string? resource, bool allowed, string reason);
+    /// <param name="roles">The roles the principal held at decision time, emitted as the ECS <c>user.roles</c> array so SIEMs can facet on them. Omitted from the document when null or empty.</param>
+    void Decision(string subjectId, string subjectName, string permission, string? resource, bool allowed, string reason, IReadOnlyCollection<string>? roles = null);
 }
