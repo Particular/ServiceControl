@@ -27,6 +27,7 @@ public class AuthorizationAuditLogTests
         Assert.That(ecs.GetProperty("user").GetProperty("id").GetString(), Is.EqualTo("alice-sub-001"));
         Assert.That(ecs.GetProperty("user").GetProperty("name").GetString(), Is.EqualTo("Alice Smith"));
         Assert.That(ecs.GetProperty("event").GetProperty("action").GetString(), Is.EqualTo("error:messages:retry"));
+        Assert.That(ecs.GetProperty("ecs").GetProperty("version").GetString(), Is.EqualTo("8.11.0"));
         Assert.That(entries[0].Level, Is.EqualTo(LogLevel.Information));
     }
 
