@@ -41,6 +41,7 @@ public class MessageActionAuditLogTests
         Assert.That(ecs.GetProperty("servicecontrol").GetProperty("resource").GetString(), Is.EqualTo("group-1"));
         Assert.That(ecs.GetProperty("servicecontrol").GetProperty("count").GetInt32(), Is.EqualTo(42));
         Assert.That(ecs.GetProperty("servicecontrol").GetProperty("operation").GetProperty("id").GetString(), Is.EqualTo("op-1"));
+        Assert.That(ecs.GetProperty("ecs").GetProperty("version").GetString(), Is.EqualTo("8.11.0"));
     }
 
     [Test]

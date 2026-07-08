@@ -66,6 +66,7 @@ public sealed class MessageActionAuditLog : IMessageActionAuditLog
         var ecs = new Dictionary<string, object?>
         {
             ["@timestamp"] = DateTimeOffset.UtcNow.ToString("O"),
+            ["ecs"] = new { version = AuthorizationAuditLog.EcsVersion },
             ["event"] = new
             {
                 kind = "event",
