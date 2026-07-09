@@ -23,6 +23,13 @@ static class ThroughputDataExtensions
         return 0;
     }
 
+    // Daily throughput for an endpoint. When multiple sources have data for the same day,
+    // the maximum value is used, since all sources measure the same messages.
+    public static IEnumerable<EndpointDailyThroughput> DailyThroughput(this List<ThroughputData> throughputs) => throughputs
+        .SelectMany(td => td)
+        .GroupBy(kvp => kvp.Key)
+        .Select(group => new EndpointDailyThroughput(group.Key, group.Max(kvp => kvp.Value)));
+
     public static MonthlyThroughput[] MonthlyThroughput(this List<ThroughputData> throughputs) => [.. throughputs
             .SelectMany(data => data)
             .GroupBy(kvp => $"{kvp.Key:yyyy-MM}")

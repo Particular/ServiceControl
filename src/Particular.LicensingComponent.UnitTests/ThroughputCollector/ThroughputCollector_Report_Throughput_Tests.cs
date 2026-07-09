@@ -147,8 +147,34 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(195), $"Incorrect TotalThroughput recorded");
+            Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(185), $"Incorrect TotalThroughput recorded");
             Assert.That(report.ReportData.TotalQueues, Is.EqualTo(3), $"Incorrect TotalQueues recorded");
+        }
+    }
+
+    [Test]
+    public async Task Should_report_total_throughput_as_maximum_daily_throughput_across_all_endpoints()
+    {
+        // Arrange - endpoints peak on different days; TotalThroughput is the best single day
+        // of the organization-wide sum, not the sum of each endpoint's individual peak
+        var startDate = new DateOnly(2024, 4, 24);
+
+        await DataStore.CreateBuilder()
+            .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker]).WithThroughput(startDate: startDate, data: [100, 10])
+            .AddEndpoint("Endpoint2", sources: [ThroughputSource.Broker]).WithThroughput(startDate: startDate, data: [20, 100])
+            .Build();
+
+        // Act
+        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+
+        // Assert
+        Assert.That(report, Is.Not.Null);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(report.ReportData.Queues.First(w => w.QueueName == "Endpoint1").Throughput, Is.EqualTo(100), $"Incorrect Throughput recorded for Endpoint1");
+            Assert.That(report.ReportData.Queues.First(w => w.QueueName == "Endpoint2").Throughput, Is.EqualTo(100), $"Incorrect Throughput recorded for Endpoint2");
+            Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(120), $"TotalThroughput should be the maximum daily throughput across all endpoints, not the sum of each endpoint's maximum");
         }
     }
 

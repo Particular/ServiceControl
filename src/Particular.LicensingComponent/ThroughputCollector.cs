@@ -119,6 +119,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
 
         var queueThroughputs = new List<QueueThroughput>();
         List<string> ignoredQueueNames = [];
+        var dailyThroughputTotals = new Dictionary<DateOnly, long>();
 
         await foreach (var endpointData in GetDistinctEndpointData(cancellationToken))
         {
@@ -140,6 +141,11 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
             };
 
             queueThroughputs.Add(queueThroughput);
+
+            foreach (var (date, messageCount) in endpointData.ThroughputData.DailyThroughput())
+            {
+                dailyThroughputTotals[date] = dailyThroughputTotals.GetValueOrDefault(date) + messageCount;
+            }
         }
 
         var auditServiceMetadata = await dataStore.GetAuditServiceMetadata(cancellationToken);
@@ -161,7 +167,8 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
             IgnoredQueues = [.. ignoredQueueNames],
             Queues = [.. queueThroughputs],
             TotalQueues = queueThroughputs.Count,
-            TotalThroughput = queueThroughputs.Sum(q => q.Throughput ?? 0),
+            //the maximum number of messages processed across all endpoints in a single day
+            TotalThroughput = dailyThroughputTotals.Count > 0 ? dailyThroughputTotals.Values.Max() : 0,
             EnvironmentInformation = new EnvironmentInformation { AuditServicesData = new AuditServicesData(auditServiceMetadata.Versions, auditServiceMetadata.Transports), EnvironmentData = brokerMetaData.Data }
         };
 

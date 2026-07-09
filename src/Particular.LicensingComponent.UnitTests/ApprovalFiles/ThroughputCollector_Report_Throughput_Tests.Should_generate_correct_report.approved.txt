@@ -141,7 +141,7 @@
         "DailyThroughputFromMonitoring": []
       }
     ],
-    "TotalThroughput": 249,
+    "TotalThroughput": 238,
     "TotalQueues": 5,
     "IgnoredQueues": [],
     "EnvironmentInformation": {
