@@ -2,6 +2,7 @@
 namespace ServiceControl.Infrastructure.Tests.Auth;
 
 using System;
+using System.Linq;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
@@ -48,6 +49,33 @@ public class AuthorizationAuditLogTests
         Assert.That(ecs.GetProperty("user").GetProperty("id").GetString(), Is.EqualTo("bob-sub-002"));
         Assert.That(ecs.GetProperty("servicecontrol").TryGetProperty("resource", out _), Is.False, "null resource should be omitted");
         Assert.That(entries[0].Level, Is.EqualTo(LogLevel.Warning));
+    }
+
+    [Test]
+    public void Decision_includes_user_roles_when_supplied()
+    {
+        var provider = new RecordingLoggerProvider();
+        var factory = LoggerFactory.Create(b => b.AddProvider(provider));
+        var auditLog = new AuthorizationAuditLog(factory);
+
+        auditLog.Decision("alice-sub-001", "Alice Smith", "error:messages:retry", null, allowed: true, reason: "granted", roles: ["writer", "reader"]);
+
+        var user = JsonDocument.Parse(provider.EntriesFor("ServiceControl.Audit")[0].Message).RootElement.GetProperty("user");
+        var roles = user.GetProperty("roles").EnumerateArray().Select(r => r.GetString()).ToArray();
+        Assert.That(roles, Is.EqualTo(new[] { "writer", "reader" }));
+    }
+
+    [Test]
+    public void Decision_omits_user_roles_when_none()
+    {
+        var provider = new RecordingLoggerProvider();
+        var factory = LoggerFactory.Create(b => b.AddProvider(provider));
+        var auditLog = new AuthorizationAuditLog(factory);
+
+        auditLog.Decision("bob-sub-002", "Bob Jones", "error:messages:retry", null, allowed: false, reason: "no roles", roles: []);
+
+        var user = JsonDocument.Parse(provider.EntriesFor("ServiceControl.Audit")[0].Message).RootElement.GetProperty("user");
+        Assert.That(user.TryGetProperty("roles", out _), Is.False, "empty roles should be omitted");
     }
 
     [Test]
