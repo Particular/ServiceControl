@@ -154,6 +154,13 @@ public class OpenIdConnectSettings
 
     void Validate(bool requireServicePulseSettings)
     {
+        if (!Enabled && RoleBasedAuthorizationEnabled)
+        {
+            var message = "Authentication.RoleBasedAuthorizationEnabled cannot be true when Authentication.Enabled is false. Role-based authorization requires authentication to be enabled.";
+            logger.LogCritical(message);
+            throw new Exception(message);
+        }
+
         if (Enabled)
         {
             ValidateRequiredSettings(requireServicePulseSettings);

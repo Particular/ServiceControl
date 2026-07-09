@@ -16,6 +16,12 @@ public sealed class AuthorizationAuditLog(ILoggerFactory loggerFactory) : IAutho
 {
     public const string AuditCategory = "ServiceControl.Audit"; // Logger name is used in logging configuration to write audit entries to a separate file.
 
+    // The ECS version the emitted documents conform to, surfaced as the ecs.version field so downstream
+    // pipelines can pick the matching mappings. 8.11.0 is the latest ECS schema release; the fields used
+    // here (event.category/type/outcome, user.*) are stable across the 8.x line. Shared with
+    // MessageActionAuditLog so both streams declare the same version.
+    internal const string EcsVersion = "8.11.0";
+
     readonly ILogger logger = loggerFactory.CreateLogger(AuditCategory);
 
     // Relaxed escaping keeps the JSON readable for log sinks (no \uXXXX for '+', '<', accented names, …);
@@ -23,7 +29,7 @@ public sealed class AuthorizationAuditLog(ILoggerFactory loggerFactory) : IAutho
     // MessageActionAuditLog so both ECS streams keep the same serialization contract.
     internal static readonly JsonSerializerOptions EcsJsonOptions = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
-    public void Decision(string subjectId, string subjectName, string permission, string? resource, bool allowed, string reason)
+    public void Decision(string subjectId, string subjectName, string permission, string? resource, bool allowed, string reason, IReadOnlyCollection<string>? roles = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(subjectId);
         ArgumentException.ThrowIfNullOrEmpty(subjectName);
@@ -36,7 +42,7 @@ public sealed class AuthorizationAuditLog(ILoggerFactory loggerFactory) : IAutho
             return;
         }
 
-        var auditEvent = BuildEcsEvent(subjectId, subjectName, permission, resource, allowed, reason);
+        var auditEvent = BuildEcsEvent(subjectId, subjectName, permission, resource, allowed, reason, roles);
         logger.Log(level, allowed ? AllowEventId : DenyEventId, auditEvent, null, IdentityFormatter);
     }
 
@@ -44,11 +50,12 @@ public sealed class AuthorizationAuditLog(ILoggerFactory loggerFactory) : IAutho
     // Elastic/Kibana — and most SIEMs — with no custom mapping. The schema is owned here, in the domain,
     // rather than in logging configuration. event.type/outcome carry the allow/deny; servicecontrol.* is the
     // app-specific namespace ECS reserves for custom fields.
-    static string BuildEcsEvent(string subjectId, string subjectName, string permission, string? resource, bool allowed, string reason)
+    static string BuildEcsEvent(string subjectId, string subjectName, string permission, string? resource, bool allowed, string reason, IReadOnlyCollection<string>? roles)
     {
         var ecs = new Dictionary<string, object?>
         {
             ["@timestamp"] = DateTimeOffset.UtcNow.ToString("O"),
+            ["ecs"] = new { version = EcsVersion },
             ["event"] = new
             {
                 kind = "event",
@@ -60,7 +67,9 @@ public sealed class AuthorizationAuditLog(ILoggerFactory loggerFactory) : IAutho
             ["user"] = new
             {
                 id = subjectId,
-                name = subjectName
+                name = subjectName,
+                // Omitted (WhenWritingNull) when the principal has no roles, e.g. a denied request.
+                roles = roles is { Count: > 0 } ? roles : null
             },
             ["servicecontrol"] = new
             {

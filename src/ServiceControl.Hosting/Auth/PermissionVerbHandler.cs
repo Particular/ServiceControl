@@ -52,7 +52,7 @@ public sealed class PermissionVerbHandler(
                 allowed: true,
                 reason: roles.Length == 0
                     ? $"User holds '{permission}'"
-                    : $"User holds '{permission}' via role(s) [{string.Join(", ", roles)}]");
+                    : $"User holds '{permission}' via role(s) [{string.Join(", ", roles)}]", roles: roles);
 
             context.Succeed(requirement);
             return Task.CompletedTask;
@@ -66,7 +66,7 @@ public sealed class PermissionVerbHandler(
             allowed: false,
             reason: roles.Length == 0
                 ? $"User has no roles granting '{permission}'"
-                : $"None of the user's role(s) [{string.Join(", ", roles)}] grants '{permission}'");
+                : $"None of the user's role(s) [{string.Join(", ", roles)}] grants '{permission}'", roles: roles);
 
         // Leave the requirement unmet → the framework forbids (403).
         return Task.CompletedTask;
