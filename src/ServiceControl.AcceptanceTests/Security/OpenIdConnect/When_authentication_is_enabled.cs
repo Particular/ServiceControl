@@ -74,7 +74,8 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                 expectedEnabled: true,
                 expectedClientId: TestClientId,
                 expectedAudience: TestAudience,
-                expectedApiScopes: TestApiScopes);
+                expectedApiScopes: TestApiScopes,
+                expectedRoleBasedAuthorizationEnabled: true);
         }
 
         [Test]

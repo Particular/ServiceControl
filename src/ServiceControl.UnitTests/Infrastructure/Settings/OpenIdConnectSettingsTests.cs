@@ -29,6 +29,7 @@ public class OpenIdConnectSettingsTests
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_VALIDATELIFETIME", null);
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_VALIDATEISSUERSIGNINGKEY", null);
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_REQUIREHTTPSMETADATA", null);
+        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_ROLEBASEDAUTHORIZATIONENABLED", null);
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID", null);
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES", null);
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY", null);
@@ -49,6 +50,7 @@ public class OpenIdConnectSettingsTests
             Assert.That(settings.ValidateLifetime, Is.True);
             Assert.That(settings.ValidateIssuerSigningKey, Is.True);
             Assert.That(settings.RequireHttpsMetadata, Is.True);
+            Assert.That(settings.RoleBasedAuthorizationEnabled, Is.False);
             Assert.That(settings.ServicePulseClientId, Is.Null);
             Assert.That(settings.ServicePulseApiScopes, Is.Null);
             Assert.That(settings.ServicePulseAuthority, Is.Null);
@@ -263,6 +265,16 @@ public class OpenIdConnectSettingsTests
             Assert.That(settings.Authority, Is.EqualTo("https://login.example.com"));
             Assert.That(settings.Audience, Is.EqualTo("my-audience"));
         }
+    }
+
+    [Test]
+    public void Should_throw_when_role_based_authorization_enabled_without_authentication_enabled()
+    {
+        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_ROLEBASEDAUTHORIZATIONENABLED", "true");
+
+        var ex = Assert.Throws<Exception>(() => new OpenIdConnectSettings(TestNamespace, validateConfiguration: true, requireServicePulseSettings: false));
+
+        Assert.That(ex.Message, Does.Contain("RoleBasedAuthorizationEnabled cannot be true when Authentication.Enabled is false"));
     }
 
     [Test]
