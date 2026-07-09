@@ -17,6 +17,7 @@
             var info = new AuthConfig
             {
                 Enabled = settings.OpenIdConnectSettings.Enabled,
+                RoleBasedAuthorizationEnabled = settings.OpenIdConnectSettings.RoleBasedAuthorizationEnabled,
                 ClientId = settings.OpenIdConnectSettings.ServicePulseClientId,
                 Authority = settings.OpenIdConnectSettings.ServicePulseAuthority,
                 Audience = settings.OpenIdConnectSettings.Audience,
@@ -34,6 +35,7 @@
     public class AuthConfig
     {
         public bool Enabled { get; set; }
+        public bool RoleBasedAuthorizationEnabled { get; set; }
         public string ClientId { get; set; }
         public string Authority { get; set; }
         public string Audience { get; set; }

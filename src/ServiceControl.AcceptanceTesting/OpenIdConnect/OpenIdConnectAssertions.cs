@@ -105,7 +105,8 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
             string expectedClientId = null,
             string expectedAuthority = null,
             string expectedAudience = null,
-            string expectedApiScopes = null)
+            string expectedApiScopes = null,
+            bool expectedRoleBasedAuthorizationEnabled = false)
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK),
                 "Authentication configuration endpoint should return 200 OK");
@@ -120,6 +121,11 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
                             "Response should contain 'enabled' property");
                 Assert.That(enabledProperty.GetBoolean(), Is.EqualTo(expectedEnabled),
                     $"'enabled' should be {expectedEnabled}");
+
+                Assert.That(root.TryGetProperty("role_based_authorization_enabled", out var roleBasedAuthorizationEnabledProperty), Is.True,
+                            "Response should contain 'role_based_authorization_enabled' property");
+                Assert.That(roleBasedAuthorizationEnabledProperty.GetBoolean(), Is.EqualTo(expectedRoleBasedAuthorizationEnabled),
+                    $"'role_based_authorization_enabled' should be {expectedRoleBasedAuthorizationEnabled}");
             }
 
             // Note: API uses snake_case JSON serialization (client_id, api_scopes)
