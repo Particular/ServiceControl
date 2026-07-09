@@ -23,10 +23,10 @@
         protected abstract Task NotifyForIncompatibleUpgradeVersion(UpgradeInfo upgradeInfo);
         protected abstract Task NotifyError(string title, string message);
 
-        public async Task<bool> CanAddInstance()
+        public async Task<bool> CanAddInstance(bool allowExpiredLicense = false)
         {
             // Check for license
-            if (!await IsLicenseOk().ConfigureAwait(false))
+            if (!allowExpiredLicense && !await IsLicenseOk().ConfigureAwait(false))
             {
                 return false;
             }

@@ -184,7 +184,7 @@ namespace ServiceControl.Management.PowerShell
             try
             {
                 var checks = new PowerShellCommandChecks(this, Acknowledgements);
-                if (!checks.CanAddInstance().GetAwaiter().GetResult())
+                if (!checks.CanAddInstance(true).GetAwaiter().GetResult())
                 {
                     return;
                 }
