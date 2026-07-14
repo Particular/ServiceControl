@@ -222,11 +222,9 @@
                 return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
             }
 
-            var releaseDate = LicenseManager.GetReleaseDate();
-
-            if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
+            if (license.Details.Status.Contains("InvalidDueToUpgradeProtectionNoLongerBeingSupported", StringComparison.OrdinalIgnoreCase))
             {
-                return new CheckLicenseResult(false, "License does not cover this release of ServiceControl Monitoring. Upgrade protection expired.");
+                return new CheckLicenseResult(false, "Licenses with upgrade protection are no longer supported.");
             }
 
             return new CheckLicenseResult(true);
@@ -241,6 +239,7 @@
             }
 
             public bool Valid { get; private set; }
+
             public string Message { get; private set; }
         }
     }
