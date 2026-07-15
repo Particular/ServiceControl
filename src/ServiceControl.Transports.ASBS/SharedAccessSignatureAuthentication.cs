@@ -9,8 +9,10 @@
 
         public string ConnectionString { get; }
 
-        public override ServiceBusAdministrationClient BuildManagementClient()
-            => new ServiceBusAdministrationClient(ConnectionString);
+        public override ServiceBusAdministrationClient BuildManagementClient(ServiceBusAdministrationClientOptions options = null)
+            => options is null
+                ? new ServiceBusAdministrationClient(ConnectionString)
+                : new ServiceBusAdministrationClient(ConnectionString, options);
 
         public override AzureServiceBusTransport CreateTransportDefinition(ConnectionSettings connectionSettings, TopicTopology topology)
             => new AzureServiceBusTransport(ConnectionString, topology);

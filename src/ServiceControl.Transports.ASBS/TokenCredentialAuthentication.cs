@@ -27,7 +27,10 @@ namespace ServiceControl.Transports.ASBS
 
         public string? ClientId { get; }
 
-        public override ServiceBusAdministrationClient BuildManagementClient() => new(FullyQualifiedNamespace, Credential);
+        public override ServiceBusAdministrationClient BuildManagementClient(ServiceBusAdministrationClientOptions? options = null)
+            => options is null
+                ? new(FullyQualifiedNamespace, Credential)
+                : new(FullyQualifiedNamespace, Credential, options);
 
         public override AzureServiceBusTransport CreateTransportDefinition(ConnectionSettings connectionSettings, TopicTopology topology)
         {
