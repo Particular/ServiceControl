@@ -30,6 +30,12 @@
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.7.0" />
     <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.19.1" />
     <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.19.1" />
+    <!-- EF Core patch version must not exceed RuntimeFrameworkVersion (Custom.Build.props), which pins the Microsoft.Extensions.* packages -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
     <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
     <PackageVersion Include="Mindscape.Raygun4Net.NetCore" Version="11.2.5" />

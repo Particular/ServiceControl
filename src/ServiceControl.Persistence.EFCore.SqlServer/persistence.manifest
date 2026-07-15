@@ -1,0 +1,25 @@
+{
+  "Name": "SqlServer",
+  "DisplayName": "SQL Server",
+  "Description": "SQL Server ServiceControl persister",
+  "AssemblyName": "ServiceControl.Persistence.EFCore.SqlServer",
+  "TypeName": "ServiceControl.Persistence.EFCore.SqlServer.SqlServerPersistenceConfiguration, ServiceControl.Persistence.EFCore.SqlServer",
+  "Settings": [
+    {
+      "Name": "ServiceControl/Database/ConnectionString",
+      "Mandatory": true
+    },
+    {
+      "Name": "ServiceControl/Database/CommandTimeout",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/StoragePath",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/MinCompressionSize",
+      "Mandatory": false
+    }
+  ]
+}
