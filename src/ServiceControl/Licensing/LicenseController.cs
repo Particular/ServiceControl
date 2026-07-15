@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Licensing
 {
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
@@ -44,6 +45,16 @@
             return licenseInfo;
         }
 
+        [Authorize(Policy = Permissions.ErrorLicensingView)]
+        [HttpGet]
+        [Route("license/details")]
+        public async Task<ActionResult<LicensedEndpointDetails>> LicenseDetails()
+        {
+            var fileContents = await System.IO.File.ReadAllTextAsync(@"C:\Projects\ServicePulse\src\Frontend\src\views\throughputreport\licenseDetails\sample.json");
+            var result = JsonSerializer.Deserialize<LicensedEndpointDetails>(fileContents, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            return result;
+        }
+
         public class LicenseInfo
         {
             public bool TrialLicense { get; set; }
@@ -67,6 +78,35 @@
             public string LicenseStatus { get; set; }
 
             public string LicenseExtensionUrl { get; set; }
+        }
+
+        public class LicensedEndpointDetails
+        {
+            public LicensedEndpoint[] Endpoints { get; set; }
+            public QueueIdentity[] InfrastructureQueues { get; set; }
+            public QueueIdentity[] ExcludedQueues { get; set; }
+            public string ServiceEndDate { get; set; }
+            public Product[] Products { get; set; }
+        }
+
+        public class Product
+        {
+            public string ProductCode { get; set; }
+            public int? MonthlyThroughput { get; set; }
+        }
+
+        public class QueueIdentity
+        {
+            public string NameHash { get; set; }
+            public string Scope { get; set; }
+        }
+
+        public class LicensedEndpoint
+        {
+            public string Name { get; set; }
+            public int Classification { get; set; }
+            public string EndpointSize { get; set; }
+            public QueueIdentity[] Queues { get; set; }
         }
     }
 }
