@@ -8,24 +8,35 @@
     public class LicenseDetails
     {
         public DateTime? ExpirationDate { get; private init; }
+
         public DateTime? UpgradeProtectionExpiration { get; private init; }
 
         public bool IsTrialLicense { get; private init; }
+
         public bool IsCommercialLicense { get; private init; }
+
         public bool IsExtendedTrial { get; private init; }
+
         public string LicenseType { get; private init; }
+
         public string Edition { get; private init; }
+
         public string RegisteredTo { get; private init; }
+
         public bool ValidForServiceControl { get; private init; }
+
         public int? DaysUntilSubscriptionExpires { get; private init; }
-        public int? DaysUntilUpgradeProtectionExpires { get; private init; }
+
         public bool WarnUserTrialIsExpiring { get; private init; }
+
         public bool WarnUserTrialHasExpired { get; private init; }
+
         public bool WarnUserSubscriptionIsExpiring { get; private init; }
+
         public bool WarnUserSubscriptionHasExpired { get; private init; }
-        public bool WarnUserUpgradeProtectionIsExpiring { get; private init; }
-        public bool WarnUserUpgradeProtectionHasExpired { get; private init; }
+
         public string Status { get; private init; }
+
         public LicensedProduct[] Products { get; private init; }
 
         public static LicenseDetails TrialFromEndDate(DateOnly endDate)
@@ -71,11 +82,8 @@
                 Products = license.LicensedEndpoints?.Select(le => new LicensedProduct(le.Size.EndsWith("U") ? "Unlimited" : Regex.Replace(le.Size, @"^\D*", ""), le.Quantity)).ToArray(),
                 ValidForServiceControl = license.ValidForApplication("ServiceControl"),
                 DaysUntilSubscriptionExpires = license.GetDaysUntilLicenseExpires(),
-                DaysUntilUpgradeProtectionExpires = license.GetDaysUntilUpgradeProtectionExpires(),
-                WarnUserUpgradeProtectionHasExpired = licenseStatus is LicenseStatus.ValidWithExpiredUpgradeProtection or LicenseStatus.InvalidDueToExpiredUpgradeProtection,
                 WarnUserTrialIsExpiring = licenseStatus == LicenseStatus.ValidWithExpiringTrial,
                 WarnUserSubscriptionIsExpiring = licenseStatus == LicenseStatus.ValidWithExpiringSubscription,
-                WarnUserUpgradeProtectionIsExpiring = licenseStatus == LicenseStatus.ValidWithExpiringUpgradeProtection,
                 WarnUserTrialHasExpired = licenseStatus == LicenseStatus.InvalidDueToExpiredTrial,
                 WarnUserSubscriptionHasExpired = licenseStatus == LicenseStatus.InvalidDueToExpiredSubscription,
                 Status = licenseStatus.ToString()
@@ -84,9 +92,6 @@
         }
 
         public bool HasLicenseExpired() => ExpirationDate.HasValue && HasLicenseDateExpired(ExpirationDate.Value);
-
-        public bool ReleaseNotCoveredByMaintenance(DateTime buildTimeStamp) =>
-            buildTimeStamp > UpgradeProtectionExpiration;
 
         static bool HasLicenseDateExpired(DateTime licenseDate)
         {

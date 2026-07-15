@@ -8,7 +8,7 @@
         public static DetectedLicense FindLicense()
         {
             var sources = LicenseSource.GetStandardLicenseSources();
-            var result = ActiveLicense.Find("ServiceControl", sources.ToArray());
+            var result = ActiveLicense.Find("ServiceControl", [.. sources]);
 
             var detectedLicense = new DetectedLicense(result.Location, LicenseDetails.FromLicense(result.License))
             {
@@ -50,7 +50,5 @@
             errorMessage = null;
             return true;
         }
-
-        public static DateTime GetReleaseDate() => ReleaseDateReader.GetReleaseDate();
     }
 }
