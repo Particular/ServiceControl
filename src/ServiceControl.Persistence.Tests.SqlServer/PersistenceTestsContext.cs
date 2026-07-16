@@ -8,18 +8,17 @@ using Microsoft.Extensions.Hosting;
 
 public class PersistenceTestsContext : IPersistenceTestsContext
 {
-    public Task Setup(IHostApplicationBuilder hostBuilder)
+    public async Task Setup(IHostApplicationBuilder hostBuilder)
     {
-        PersistenceSettings = new SqlServerPersisterSettings()
+        PersistenceSettings = new SqlServerPersisterSettings
         {
-            ConnectionString = "Server=localhost;Database=ServiceControl;User=sa;Password=Password1!;TrustServerCertificate=True"
+            ConnectionString = await SqlServerSharedContainer.GetConnectionStringAsync()
         };
 
         var persistence = new SqlServerPersistenceConfiguration().Create(PersistenceSettings);
 
         persistence.AddPersistence(hostBuilder.Services);
         persistence.AddInstaller(hostBuilder.Services);
-        return Task.CompletedTask;
     }
 
     public async Task PostSetup(IHost host)

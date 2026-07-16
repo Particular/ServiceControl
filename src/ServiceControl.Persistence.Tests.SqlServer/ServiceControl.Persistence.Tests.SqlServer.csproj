@@ -21,6 +21,7 @@
     <PackageReference Include="NUnit3TestAdapter" />
     <PackageReference Include="Particular.Approvals" />
     <PackageReference Include="PublicApiGenerator" />
+    <PackageReference Include="Testcontainers.MsSql" />
   </ItemGroup>
 
   <ItemGroup>

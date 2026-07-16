@@ -15,6 +15,6 @@ public class ScratchTestDbLoading : PersistenceTestBase
         var db = scope.ServiceProvider.GetRequiredService<SqlServerServiceControlDbContext>();
 
         var result = await db.Database.ExecuteSqlAsync($"SELECT 1 as Hello");
-        Assert.That(result, Is.EqualTo(1));
+        Assert.That(result, Is.EqualTo(-1));
     }
 }

@@ -8,18 +8,17 @@ using Microsoft.Extensions.Hosting;
 
 public class PersistenceTestsContext : IPersistenceTestsContext
 {
-    public Task Setup(IHostApplicationBuilder hostBuilder)
+    public async Task Setup(IHostApplicationBuilder hostBuilder)
     {
-        PersistenceSettings = new PostgreSqlPersisterSettings()
+        PersistenceSettings = new PostgreSqlPersisterSettings
         {
-            ConnectionString = "Host=localhost;Database=ServiceControl;Username=postgres;Password=postgres"
+            ConnectionString = await PostgreSqlSharedContainer.GetConnectionStringAsync()
         };
 
         var persistence = new PostgreSqlPersistenceConfiguration().Create(PersistenceSettings);
 
         persistence.AddPersistence(hostBuilder.Services);
         persistence.AddInstaller(hostBuilder.Services);
-        return Task.CompletedTask;
     }
 
     public async Task PostSetup(IHost host)

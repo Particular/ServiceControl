@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest]
-        test-category: [ Default, SqlServer, AzureServiceBus, RabbitMQ, AzureStorageQueues, MSMQ, SQS, PrimaryRavenAcceptance, PrimaryRavenPersistence, PostgreSQL, IBMMQ ]
+        test-category: [ Default, SqlServer, AzureServiceBus, RabbitMQ, AzureStorageQueues, MSMQ, SQS, PrimaryRavenAcceptance, PrimaryRavenPersistence, PostgreSQL, IBMMQ, PrimarySqlServerPersistence, PrimaryPostgreSqlPersistence ]
         include:
           - os: windows-latest
             os-name: Windows
@@ -29,6 +29,8 @@ jobs:
             test-category: MSMQ
           - os: windows-latest
             test-category: IBMMQ
+          - os: windows-latest
+            test-category: PrimaryPostgreSqlPersistence
       fail-fast: false
     steps:
       - name: Check for secrets
@@ -75,6 +77,12 @@ jobs:
         with:
           connection-string-env-var: ServiceControl_TransportTests_SQL_ConnectionString
           catalog: nservicebus
+      - name: Setup SQL Server (persistence)
+        uses: Particular/install-sql-server-action@v1.4.0
+        if: matrix.test-category == 'PrimarySqlServerPersistence'
+        with:
+          connection-string-env-var: ServiceControl_Persistence_SqlServer_ConnectionString
+          catalog: ServiceControl
       - name: Setup PostgreSQL
         uses: Particular/setup-postgres-action@v1.1.0
         if: matrix.test-category == 'PostgreSQL'
