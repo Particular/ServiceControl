@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.EFCore.PostgreSQL;
+namespace ServiceControl.Persistence.EFCore.PostgreSql;
 
 using Microsoft.EntityFrameworkCore;
 using ServiceControl.Persistence.EFCore.DbContexts;

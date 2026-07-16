@@ -2,8 +2,8 @@
   "Name": "PostgreSQL",
   "DisplayName": "PostgreSQL",
   "Description": "PostgreSQL ServiceControl persister",
-  "AssemblyName": "ServiceControl.Persistence.EFCore.PostgreSQL",
-  "TypeName": "ServiceControl.Persistence.EFCore.PostgreSQL.PostgreSqlPersistenceConfiguration, ServiceControl.Persistence.EFCore.PostgreSQL",
+  "AssemblyName": "ServiceControl.Persistence.EFCore.PostgreSql",
+  "TypeName": "ServiceControl.Persistence.EFCore.PostgreSql.PostgreSqlPersistenceConfiguration, ServiceControl.Persistence.EFCore.PostgreSql",
   "Settings": [
     {
       "Name": "ServiceControl/Database/ConnectionString",

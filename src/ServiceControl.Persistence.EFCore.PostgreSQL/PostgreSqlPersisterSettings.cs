@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.EFCore.PostgreSQL;
+namespace ServiceControl.Persistence.EFCore.PostgreSql;
 
 using ServiceControl.Persistence.EFCore.Abstractions;
 

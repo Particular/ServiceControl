@@ -1,5 +1,5 @@
 {
-  "Name": "SqlServer",
+  "Name": "SQLServer",
   "DisplayName": "SQL Server",
   "Description": "SQL Server ServiceControl persister",
   "AssemblyName": "ServiceControl.Persistence.EFCore.SqlServer",
