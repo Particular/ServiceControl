@@ -2,5 +2,5 @@
   "PostgreSQL: PostgreSQL",
   "RavenDB: RavenDB",
   "RavenDB35: RavenDB 3.5 (Legacy)",
-  "SqlServer: SqlServer"
+  "SQLServer: SQL Server"
 ]
