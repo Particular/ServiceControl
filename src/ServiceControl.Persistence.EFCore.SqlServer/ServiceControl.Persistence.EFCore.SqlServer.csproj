@@ -33,5 +33,9 @@
   <ItemGroup>
     <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl/Persisters/SQLServer" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.Persistence.Tests.SqlServer" />
+  </ItemGroup>
 
 </Project>

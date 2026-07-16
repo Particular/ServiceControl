@@ -8,6 +8,7 @@ using ServiceControl.Persistence.Tests.InMemory;
 public class PersistenceTestsContext : IPersistenceTestsContext
 {
     public PersistenceSettings PersistenceSettings { get; private set; }
+    public string GenerateFailedMessageRecordId(string messageId) => throw new System.NotImplementedException();
 
     public Task Setup(IHostApplicationBuilder hostBuilder)
     {

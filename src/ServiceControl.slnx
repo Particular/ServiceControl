@@ -51,6 +51,7 @@
     <Project Path="ServiceControl.AcceptanceTests.RavenDB/ServiceControl.AcceptanceTests.RavenDB.csproj" />
     <Project Path="ServiceControl.Persistence.Tests.InMemory/ServiceControl.Persistence.Tests.InMemory.csproj" />
     <Project Path="ServiceControl.Persistence.Tests.RavenDB/ServiceControl.Persistence.Tests.RavenDB.csproj" />
+    <Project Path="ServiceControl.Persistence.Tests.SqlServer/ServiceControl.Persistence.Tests.SqlServer.csproj" />
     <Project Path="ServiceControl.UnitTests/ServiceControl.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Instances/Shared/">
