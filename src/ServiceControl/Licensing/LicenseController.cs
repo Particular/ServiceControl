@@ -1,19 +1,26 @@
-﻿namespace ServiceControl.Licensing
+﻿#nullable enable
+namespace ServiceControl.Licensing
 {
+    using System;
+    using System.IO;
+    using System.IO.Compression;
+    using System.Text;
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Monitoring.HeartbeatMonitoring;
+    using Particular.LicensingComponent.Contracts;
+    using Particular.LicensingComponent.Persistence;
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.LicenseManagement;
 
     [ApiController]
     [Route("api")]
-    public class LicenseController(ActiveLicense activeLicense, Settings settings, MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus) : ControllerBase
+    public class LicenseController(ActiveLicense activeLicense, Settings settings, MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus, ILicensingDataStore dataStore) : ControllerBase
     {
         [Authorize(Policy = Permissions.ErrorLicensingView)]
         [HttpGet]
@@ -48,65 +55,30 @@
         [Authorize(Policy = Permissions.ErrorLicensingView)]
         [HttpGet]
         [Route("license/details")]
-        public async Task<ActionResult<LicensedEndpointDetails>> LicenseDetails()
+        public async Task<ActionResult<LicensedEndpointDetails?>> LicenseDetails(CancellationToken cancellationToken)
         {
-            var fileContents = await System.IO.File.ReadAllTextAsync(@"C:\Projects\ServicePulse\src\Frontend\src\views\throughputreport\licenseDetails\sample.json");
-            var result = JsonSerializer.Deserialize<LicensedEndpointDetails>(fileContents, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            return result;
+            return await dataStore.GetLicensedEndpointDetails(cancellationToken);
         }
 
-        public class LicenseInfo
+        [Authorize(Policy = Permissions.ErrorLicensingManage)]
+        [HttpPost]
+        [Route("license/detailsUpload")]
+        public async Task UploadLicenseDetails([FromForm] IFormFile file, CancellationToken cancellationToken)
         {
-            public bool TrialLicense { get; set; }
+            //perform date and license id checks
+            using var fileStream = file.OpenReadStream();
+            using var fileStreamReader = new StreamReader(fileStream);
+            var compressed = await fileStreamReader.ReadToEndAsync(cancellationToken);
+            var compressedData = Convert.FromBase64String(compressed);
+            using var memoryStream = new MemoryStream(compressedData);
+            using var brotliStream = new BrotliStream(memoryStream, CompressionMode.Decompress);
+            using var reader = new StreamReader(brotliStream, Encoding.UTF8);
 
-            public string Edition { get; set; }
-
-            public string RegisteredTo { get; set; }
-
-            public string UpgradeProtectionExpiration { get; set; }
-
-            public string ExpirationDate { get; set; }
-
-            public string Status { get; set; }
-
-            public LicensedProduct[] Products { get; set; }
-
-            public string LicenseType { get; set; }
-
-            public string InstanceName { get; set; }
-
-            public string LicenseStatus { get; set; }
-
-            public string LicenseExtensionUrl { get; set; }
-        }
-
-        public class LicensedEndpointDetails
-        {
-            public LicensedEndpoint[] Endpoints { get; set; }
-            public QueueIdentity[] InfrastructureQueues { get; set; }
-            public QueueIdentity[] ExcludedQueues { get; set; }
-            public string ServiceEndDate { get; set; }
-            public Product[] Products { get; set; }
-        }
-
-        public class Product
-        {
-            public string ProductCode { get; set; }
-            public int? MonthlyThroughput { get; set; }
-        }
-
-        public class QueueIdentity
-        {
-            public string NameHash { get; set; }
-            public string Scope { get; set; }
-        }
-
-        public class LicensedEndpoint
-        {
-            public string Name { get; set; }
-            public int Classification { get; set; }
-            public string EndpointSize { get; set; }
-            public QueueIdentity[] Queues { get; set; }
+            var fileContents = reader.ReadToEnd();
+            var result = JsonSerializer.Deserialize<LicensedEndpointDetails>(fileContents, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                ?? throw new InvalidDataException("File contents cannot be deserialized");
+            //persist
+            await dataStore.SaveLicensedEndpointDetails(result, cancellationToken);
         }
     }
 }

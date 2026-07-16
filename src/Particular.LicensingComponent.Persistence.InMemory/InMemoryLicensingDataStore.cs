@@ -170,6 +170,10 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         return Task.CompletedTask;
     }
 
+    public Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(CancellationToken cancellationToken) => throw new NotImplementedException();
+
+    public Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken) => throw new NotImplementedException();
+
     class EndpointCollection : KeyedCollection<EndpointIdentifier, Endpoint>
     {
         protected override EndpointIdentifier GetKeyForItem(Endpoint item) => item.Id;
