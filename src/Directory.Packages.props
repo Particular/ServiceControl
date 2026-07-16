@@ -98,6 +98,8 @@
     <PackageVersion Include="System.IO.Hashing" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.Threading.RateLimiting" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.1.5" />
+    <PackageVersion Include="Azure.Core" Version="1.53.0" />
   </ItemGroup>
   <ItemGroup>
     <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="6.1.63" />
