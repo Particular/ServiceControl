@@ -1,1 +1,1 @@
-﻿[assembly: IncludeInTestCategory("PrimaryPostgreSqlPersistence")]
+﻿[assembly: IncludeInTestCategory("PostgreSQL")]

@@ -1,1 +1,1 @@
-﻿[assembly: IncludeInTestCategory("PrimarySqlServerPersistence")]
+﻿[assembly: IncludeInTestCategory("SqlServer")]
