@@ -41,6 +41,9 @@
     <Project Path="ServiceControl/ServiceControl.csproj" />
   </Folder>
   <Folder Name="/Instances/Primary/Persistence/">
+    <Project Path="ServiceControl.Persistence.EFCore/ServiceControl.Persistence.EFCore.csproj" />
+    <Project Path="ServiceControl.Persistence.EFCore.PostgreSql/ServiceControl.Persistence.EFCore.PostgreSql.csproj" />
+    <Project Path="ServiceControl.Persistence.EFCore.SqlServer/ServiceControl.Persistence.EFCore.SqlServer.csproj" />
     <Project Path="ServiceControl.Persistence.RavenDB/ServiceControl.Persistence.RavenDB.csproj" />
     <Project Path="ServiceControl.Persistence/ServiceControl.Persistence.csproj" />
   </Folder>

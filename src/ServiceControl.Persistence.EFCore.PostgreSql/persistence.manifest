@@ -1,0 +1,25 @@
+{
+  "Name": "PostgreSQL",
+  "DisplayName": "PostgreSQL",
+  "Description": "PostgreSQL ServiceControl persister",
+  "AssemblyName": "ServiceControl.Persistence.EFCore.PostgreSql",
+  "TypeName": "ServiceControl.Persistence.EFCore.PostgreSql.PostgreSqlPersistenceConfiguration, ServiceControl.Persistence.EFCore.PostgreSql",
+  "Settings": [
+    {
+      "Name": "ServiceControl/Database/ConnectionString",
+      "Mandatory": true
+    },
+    {
+      "Name": "ServiceControl/Database/CommandTimeout",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/StoragePath",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/MinCompressionSize",
+      "Mandatory": false
+    }
+  ]
+}

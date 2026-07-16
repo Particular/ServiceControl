@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Private=false & ExcludeAssets=runtime prevent repeatedly including binary dependencies of ServiceControl.Persistence and its dependencies in each persister directory -->
+    <ProjectReference Include="../ServiceControl.Configuration/ServiceControl.Configuration.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="../ServiceControl.Infrastructure/ServiceControl.Infrastructure.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="../ServiceControl.Persistence/ServiceControl.Persistence.csproj" Private="false" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Not Private=false or ExcludeAssets because the shared EF Core assembly ships inside this persister's folder -->
+    <ProjectReference Include="../ServiceControl.Persistence.EFCore/ServiceControl.Persistence.EFCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Design-time only, for dotnet-ef tooling. Debug-only so it (and its Roslyn dependency tail) stays out of the shipped Release artifact -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" Condition="'$(Configuration)' == 'Debug'" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="persistence.manifest" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl/Persisters/SQLServer" />
+  </ItemGroup>
+
+</Project>
