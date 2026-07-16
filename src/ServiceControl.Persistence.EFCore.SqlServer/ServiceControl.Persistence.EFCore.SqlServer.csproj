@@ -31,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl/Persisters/SqlServer" />
+    <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl/Persisters/SQLServer" />
   </ItemGroup>
 
 </Project>
