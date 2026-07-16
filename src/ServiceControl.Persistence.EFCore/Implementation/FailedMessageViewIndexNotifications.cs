@@ -13,8 +13,8 @@ public class FailedMessageViewIndexNotifications : IFailedMessageViewIndexNotifi
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-       //todo:
-       return Task.CompletedTask;
+        //todo:
+        return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
