@@ -75,11 +75,6 @@ jobs:
         with:
           connection-string-env-var: ServiceControl_TransportTests_SQL_ConnectionString
           catalog: nservicebus
-      - name: Alias SQL Server connection string for persistence tests
-        if: matrix.test-category == 'SqlServer'
-        run: |
-          $connStr = $env:ServiceControl_TransportTests_SQL_ConnectionString -replace '(?i)(Initial Catalog|Database)=[^;]+', 'Initial Catalog=ServiceControl'
-          echo "ServiceControl_Persistence_SqlServer_ConnectionString=$connStr" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
       - name: Setup PostgreSQL
         uses: Particular/setup-postgres-action@v1.1.0
         if: matrix.test-category == 'PostgreSQL'
@@ -88,9 +83,6 @@ jobs:
           tag: ServiceControl
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Alias PostgreSQL connection string for persistence tests
-        if: matrix.test-category == 'PostgreSQL'
-        run: echo "ServiceControl_Persistence_PostgreSql_ConnectionString=$env:ServiceControl_TransportTests_PostgreSQL_ConnectionString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
       - name: Setup RabbitMQ
         uses: Particular/setup-rabbitmq-action@v1.7.1
         if: matrix.test-category == 'RabbitMQ'
