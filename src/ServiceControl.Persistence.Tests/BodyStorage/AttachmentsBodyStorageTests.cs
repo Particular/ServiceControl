@@ -44,7 +44,7 @@
             };
 
             using (var cancellationSource = new CancellationTokenSource())
-            using (var uow = await ingestionFactory.StartNew())
+            await using (var uow = await ingestionFactory.StartNew())
             {
                 var context = new MessageContext(messageId, headers, body, new TransportTransaction(), "receiveAddress", new NServiceBus.Extensibility.ContextBag());
                 var processingAttempt = new FailedMessage.ProcessingAttempt

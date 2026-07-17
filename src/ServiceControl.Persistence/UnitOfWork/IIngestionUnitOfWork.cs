@@ -4,7 +4,7 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    public interface IIngestionUnitOfWork : IDisposable
+    public interface IIngestionUnitOfWork : IAsyncDisposable
     {
         IMonitoringIngestionUnitOfWork Monitoring { get; }
         IRecoverabilityIngestionUnitOfWork Recoverability { get; }
