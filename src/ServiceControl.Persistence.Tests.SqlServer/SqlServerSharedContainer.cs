@@ -3,6 +3,7 @@ namespace ServiceControl.Persistence.Tests;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using DotNet.Testcontainers.Builders;
 using Testcontainers.MsSql;
 
 static class SqlServerSharedContainer
@@ -36,8 +37,7 @@ static class SqlServerSharedContainer
 
     static async Task<MsSqlContainer> StartContainerAsync(CancellationToken ct)
     {
-        var c = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2025-latest")
-            .Build();
+        var c = new MsSqlBuilder("particular/servicecontrol-testing-sqlserver:latest").Build();
         await c.StartAsync(ct);
         return c;
     }
