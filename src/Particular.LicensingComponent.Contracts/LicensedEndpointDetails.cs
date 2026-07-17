@@ -2,11 +2,13 @@
 {
     public class LicensedEndpointDetails
     {
+        public string? LicenseId { get; set; }
         public LicensedEndpoint[] Endpoints { get; set; } = [];
         public QueueIdentity[] InfrastructureQueues { get; set; } = [];
         public QueueIdentity[] ExcludedQueues { get; set; } = [];
         public string? ServiceEndDate { get; set; }
         public Product[] Products { get; set; } = [];
+        public bool ValidId { get; set; }
     }
 
     public class Product

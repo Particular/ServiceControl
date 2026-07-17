@@ -57,7 +57,14 @@ namespace ServiceControl.Licensing
         [Route("license/details")]
         public async Task<ActionResult<LicensedEndpointDetails?>> LicenseDetails(CancellationToken cancellationToken)
         {
-            return await dataStore.GetLicensedEndpointDetails(cancellationToken);
+            var licenseDetails = await dataStore.GetLicensedEndpointDetails(cancellationToken);
+            if (licenseDetails is null)
+            {
+                return (LicensedEndpointDetails?)null;
+            }
+
+            licenseDetails.ValidId = licenseDetails.LicenseId == activeLicense.Details.Id;
+            return licenseDetails;
         }
 
         [Authorize(Policy = Permissions.ErrorLicensingManage)]
