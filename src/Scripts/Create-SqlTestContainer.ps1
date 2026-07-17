@@ -1,2 +1,2 @@
 # Temporarily here to build the container for testing until we settle on whether this will get published
-docker buildx build --tag particular/servicecontrol-testing-sqlserver:latest $PSScriptRoot/Docker/servicecontrol-testing-sqlserver
+docker buildx build --tag particular/servicecontrol-testing-sqlserver:latest $PSScriptRoot/Docker/servicecontrol-testing-sqlserver --platform=linux/amd64
