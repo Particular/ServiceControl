@@ -131,7 +131,7 @@
                 EndpointDetails = new EndpointDetails { Host = "Host1", HostId = Guid.NewGuid(), Name = "Endpoint" }
             };
 
-            using (var unitOfWork = await UnitOfWorkFactory.StartNew())
+            await using (var unitOfWork = await UnitOfWorkFactory.StartNew())
             {
                 await unitOfWork.Monitoring.RecordKnownEndpoint(knownEndpoint);
 

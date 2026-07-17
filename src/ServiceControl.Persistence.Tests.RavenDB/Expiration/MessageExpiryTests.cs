@@ -34,7 +34,7 @@
         {
             var (context, attempt) = CreateMessageContext();
 
-            using (var uow = await IngestionUnitOfWorkFactory.StartNew())
+            await using (var uow = await IngestionUnitOfWorkFactory.StartNew())
             {
                 await uow.Recoverability.RecordFailedProcessingAttempt(context, attempt, []);
 
@@ -63,7 +63,7 @@
             var (contextA, attemptA) = CreateMessageContext();
             var (contextB, attemptB) = CreateMessageContext();
 
-            using (var uow = await IngestionUnitOfWorkFactory.StartNew())
+            await using (var uow = await IngestionUnitOfWorkFactory.StartNew())
             {
                 await uow.Recoverability.RecordFailedProcessingAttempt(contextA, attemptA, [new FailedMessage.FailureGroup { Id = groupIdA }]);
                 await uow.Recoverability.RecordFailedProcessingAttempt(contextB, attemptB, [new FailedMessage.FailureGroup { Id = groupIdB }]);
@@ -100,7 +100,7 @@
             var groupId = Guid.NewGuid().ToString();
             var (context, attempt) = CreateMessageContext();
 
-            using (var uow = await IngestionUnitOfWorkFactory.StartNew())
+            await using (var uow = await IngestionUnitOfWorkFactory.StartNew())
             {
                 await uow.Recoverability.RecordFailedProcessingAttempt(context, attempt, [new FailedMessage.FailureGroup { Id = groupId }]);
 
@@ -123,7 +123,7 @@
         {
             var (context, attempt) = CreateMessageContext();
 
-            using (var uow = await IngestionUnitOfWorkFactory.StartNew())
+            await using (var uow = await IngestionUnitOfWorkFactory.StartNew())
             {
                 await uow.Recoverability.RecordFailedProcessingAttempt(context, attempt, []);
 
@@ -146,7 +146,7 @@
         {
             var (context, attempt) = CreateMessageContext();
 
-            using (var uow = await IngestionUnitOfWorkFactory.StartNew())
+            await using (var uow = await IngestionUnitOfWorkFactory.StartNew())
             {
                 await uow.Recoverability.RecordFailedProcessingAttempt(context, attempt, []);
 
@@ -159,7 +159,7 @@
 
             Assert.That(errors.Results, Has.Count.EqualTo(1), "Failed message should be available to query after ingestion");
 
-            using (var uow = await IngestionUnitOfWorkFactory.StartNew())
+            await using (var uow = await IngestionUnitOfWorkFactory.StartNew())
             {
                 await uow.Recoverability.RecordSuccessfulRetry(errors.Results.First().Id);
 
