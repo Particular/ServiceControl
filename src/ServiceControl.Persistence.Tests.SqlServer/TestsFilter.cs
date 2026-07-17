@@ -1,0 +1,1 @@
+﻿[assembly: IncludeInTestCategory("SqlServerPersistence")]

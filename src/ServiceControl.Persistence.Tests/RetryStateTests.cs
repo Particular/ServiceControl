@@ -239,7 +239,7 @@
 
             var messages = ids.Select(id => new FailedMessage
             {
-                Id = FailedMessageIdGenerator.MakeDocumentId(id),
+                Id = PersistenceTestsContext.GenerateFailedMessageRecordId(id),
                 UniqueMessageId = id,
                 Status = FailedMessageStatus.Unresolved,
                 ProcessingAttempts =
@@ -318,7 +318,7 @@
         {
             var messages = messageIds.Select(id => new FailedMessage
             {
-                Id = FailedMessageIdGenerator.MakeDocumentId(id),
+                Id = PersistenceTestsContext.GenerateFailedMessageRecordId(id),
                 UniqueMessageId = id,
                 FailureGroups =
                 [

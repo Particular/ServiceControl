@@ -91,7 +91,7 @@ sealed class EditHandlerAuditTests : PersistenceTestBase
         var failedMessage = new FailedMessage
         {
             UniqueMessageId = failedMessageId,
-            Id = FailedMessageIdGenerator.MakeDocumentId(failedMessageId),
+            Id = PersistenceTestsContext.GenerateFailedMessageRecordId(failedMessageId),
             Status = FailedMessageStatus.Unresolved,
             ProcessingAttempts =
                 [

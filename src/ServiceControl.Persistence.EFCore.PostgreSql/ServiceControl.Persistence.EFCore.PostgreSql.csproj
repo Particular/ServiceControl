@@ -33,5 +33,8 @@
   <ItemGroup>
     <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl/Persisters/PostgreSQL" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.Persistence.Tests.PostgreSql" />
+  </ItemGroup>
 
 </Project>
