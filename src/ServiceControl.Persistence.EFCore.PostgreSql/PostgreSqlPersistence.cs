@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
+using ServiceControl.Persistence.EFCore.PostgreSql.Infrastructure;
 
 class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersistence, IPersistence
 {
@@ -12,6 +13,8 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersiste
         RegisterSettings(services);
         ConfigureDbContext(services);
         RegisterDataStores(services);
+
+        services.AddHostedService<KnownEndpointsReconciler>();
     }
 
     public void AddInstaller(IServiceCollection services)

@@ -122,6 +122,83 @@
             Assert.That(endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host), Is.EqualTo(0));
         }
 
+        // NOTE: some persistence test suites share a single database/container across the whole
+        // test run (no per-test isolation), so assertions below filter GetAllKnownEndpoints() down
+        // to the HostId values this test created, rather than asserting the table's total count.
+        [Test]
+        public async Task GetAllKnownEndpoints_returns_created_endpoints()
+        {
+            var endpointInstanceMonitoring = new EndpointInstanceMonitoring(new FakeDomainEvents(), NullLogger<EndpointInstanceMonitor>.Instance);
+            var endpoint1 = new EndpointDetails() { HostId = Guid.NewGuid(), Host = "Host1", Name = "Name1" };
+            var endpoint2 = new EndpointDetails() { HostId = Guid.NewGuid(), Host = "Host2", Name = "Name2" };
+            await MonitoringDataStore.CreateIfNotExists(endpoint1);
+            await MonitoringDataStore.CreateOrUpdate(endpoint2, endpointInstanceMonitoring);
+
+            CompleteDatabaseOperation();
+            var knownEndpoints = await MonitoringDataStore.GetAllKnownEndpoints();
+
+            var known1 = knownEndpoints.Single(e => e.EndpointDetails.HostId == endpoint1.HostId);
+            var known2 = knownEndpoints.Single(e => e.EndpointDetails.HostId == endpoint2.HostId);
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(known1.EndpointDetails.Name, Is.EqualTo(endpoint1.Name));
+                Assert.That(known1.EndpointDetails.Host, Is.EqualTo(endpoint1.Host));
+                Assert.That(known1.HostDisplayName, Is.EqualTo(endpoint1.Host));
+                Assert.That(known1.Monitored, Is.False, "Endpoints created via CreateIfNotExists should not be monitored");
+                Assert.That(known2.Monitored, Is.True, "Endpoints created via CreateOrUpdate should be monitored");
+            }
+        }
+
+        [Test]
+        public async Task Delete_removes_only_target_endpoint()
+        {
+            var endpoint1 = new EndpointDetails() { HostId = Guid.NewGuid(), Host = "Host1", Name = "Name1" };
+            var endpoint2 = new EndpointDetails() { HostId = Guid.NewGuid(), Host = "Host2", Name = "Name2" };
+            await MonitoringDataStore.CreateIfNotExists(endpoint1);
+            await MonitoringDataStore.CreateIfNotExists(endpoint2);
+
+            await MonitoringDataStore.Delete(endpoint1.GetDeterministicId());
+
+            CompleteDatabaseOperation();
+            var knownEndpoints = await MonitoringDataStore.GetAllKnownEndpoints();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(knownEndpoints.Any(e => e.EndpointDetails.HostId == endpoint1.HostId), Is.False);
+                Assert.That(knownEndpoints.Any(e => e.EndpointDetails.HostId == endpoint2.HostId), Is.True);
+            }
+        }
+
+        [Test]
+        public async Task Concurrent_creates_result_in_single_endpoint()
+        {
+            var endpoint1 = new EndpointDetails() { HostId = Guid.NewGuid(), Host = "Host1", Name = "Name1" };
+
+            await Task.WhenAll(Enumerable.Range(0, 20)
+                .Select(_ => Task.Run(() => MonitoringDataStore.CreateIfNotExists(endpoint1))));
+
+            CompleteDatabaseOperation();
+            var knownEndpoints = await MonitoringDataStore.GetAllKnownEndpoints();
+
+            Assert.That(knownEndpoints.Count(e => e.EndpointDetails.HostId == endpoint1.HostId), Is.EqualTo(1));
+        }
+
+        [Test]
+        public async Task Concurrent_create_or_updates_result_in_single_endpoint()
+        {
+            var endpointInstanceMonitoring = new EndpointInstanceMonitoring(new FakeDomainEvents(), NullLogger<EndpointInstanceMonitor>.Instance);
+            var endpoint1 = new EndpointDetails() { HostId = Guid.NewGuid(), Host = "Host1", Name = "Name1" };
+
+            await Task.WhenAll(Enumerable.Range(0, 20)
+                .Select(_ => Task.Run(() => MonitoringDataStore.CreateOrUpdate(endpoint1, endpointInstanceMonitoring))));
+
+            CompleteDatabaseOperation();
+            var knownEndpoints = await MonitoringDataStore.GetAllKnownEndpoints();
+
+            Assert.That(knownEndpoints.Count(e => e.EndpointDetails.HostId == endpoint1.HostId), Is.EqualTo(1));
+        }
+
         [Test]
         public async Task Unit_of_work_detects_endpoint()
         {
