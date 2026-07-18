@@ -9,15 +9,11 @@
     using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Auditing.MessagesView;
     using ServiceControl.Audit.Infrastructure;
-    using ServiceControl.Audit.Monitoring;
-    using ServiceControl.Audit.Persistence.Infrastructure;
-    using ServiceControl.Audit.Persistence.Monitoring;
     using ServiceControl.SagaAudit;
 
     class InMemoryAuditDataStore : IAuditDataStore
     {
         IBodyStorage bodyStorage;
-        public List<KnownEndpoint> knownEndpoints;
         public List<FailedAuditImport> failedAuditImports;
 
         public InMemoryAuditDataStore(IBodyStorage bodyStorage)
@@ -26,7 +22,6 @@
             sagaHistories = [];
             messageViews = [];
             processedMessages = [];
-            knownEndpoints = [];
             failedAuditImports = [];
         }
 
@@ -174,25 +169,6 @@
             }
 
             return Task.FromResult(MessageBodyView.FromString(body, contentType, bodySize, string.Empty));
-        }
-
-        public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints(CancellationToken cancellationToken)
-        {
-            var knownEndpointsView = knownEndpoints
-                .Select(x => new KnownEndpointsView
-                {
-                    Id = DeterministicGuid.MakeId(x.Name, x.HostId.ToString()),
-                    EndpointDetails = new EndpointDetails
-                    {
-                        Host = x.Host,
-                        HostId = x.HostId,
-                        Name = x.Name
-                    },
-                    HostDisplayName = x.Host
-                })
-                .ToList();
-
-            return await Task.FromResult(new QueryResult<IList<KnownEndpointsView>>(knownEndpointsView, new QueryStatsInfo(string.Empty, knownEndpointsView.Count)));
         }
 
         public Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName, CancellationToken cancellationToken)

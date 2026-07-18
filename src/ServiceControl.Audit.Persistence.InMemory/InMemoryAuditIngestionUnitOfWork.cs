@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
     using ServiceControl.Audit.Auditing;
-    using ServiceControl.Audit.Persistence.Monitoring;
     using ServiceControl.Audit.Persistence.UnitOfWork;
     using ServiceControl.SagaAudit;
 
@@ -15,12 +14,6 @@
         : IAuditIngestionUnitOfWork
     {
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
-
-        public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint, CancellationToken cancellationToken)
-        {
-            dataStore.knownEndpoints.Add(knownEndpoint);
-            return Task.CompletedTask;
-        }
 
         public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
         {

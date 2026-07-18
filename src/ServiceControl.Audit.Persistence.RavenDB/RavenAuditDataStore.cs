@@ -8,12 +8,9 @@
     using Auditing.MessagesView;
     using Extensions;
     using Indexes;
-    using Monitoring;
     using Raven.Client.Documents;
     using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Infrastructure;
-    using ServiceControl.Audit.Monitoring;
-    using ServiceControl.Audit.Persistence.Infrastructure;
     using ServiceControl.SagaAudit;
     using Transformers;
 
@@ -125,27 +122,6 @@
             );
         }
 
-        public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints(CancellationToken cancellationToken)
-        {
-            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            var endpoints = await session.Advanced.LoadStartingWithAsync<KnownEndpoint>(KnownEndpoint.CollectionName, pageSize: 1024, token: cancellationToken);
-
-            var knownEndpoints = endpoints
-                .Select(x => new KnownEndpointsView
-                {
-                    Id = DeterministicGuid.MakeId(x.Name, x.HostId.ToString()),
-                    EndpointDetails = new EndpointDetails
-                    {
-                        Host = x.Host,
-                        HostId = x.HostId,
-                        Name = x.Name
-                    },
-                    HostDisplayName = x.Host
-                })
-                .ToList();
-
-            return new QueryResult<IList<KnownEndpointsView>>(knownEndpoints, new QueryStatsInfo(string.Empty, knownEndpoints.Count));
-        }
 
         public async Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName, CancellationToken cancellationToken)
         {
