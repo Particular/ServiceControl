@@ -26,6 +26,15 @@
 
   <ItemGroup>
     <Compile Include="..\ServiceControl.Persistence.Tests\**\*.cs" LinkBase="Shared" />
+
+    <!-- as features get implemented remove these exclusions -->
+    <Compile Remove="..\ServiceControl.Persistence.Tests\BodyStorage\**\*.cs" />
+    <Compile Remove="..\ServiceControl.Persistence.Tests\Recoverability\**\*.cs" />
+    <Compile Remove="..\ServiceControl.Persistence.Tests\Throughput\**\*.cs" />
+    <Compile Remove="..\ServiceControl.Persistence.Tests\CustomCheck*.cs" />
+    <Compile Remove="..\ServiceControl.Persistence.Tests\EnsureSettingsInContainer.cs" />
+    <Compile Remove="..\ServiceControl.Persistence.Tests\Monitoring*.cs" />
+    <Compile Remove="..\ServiceControl.Persistence.Tests\RetryState*.cs" />
   </ItemGroup>
 
 </Project>
