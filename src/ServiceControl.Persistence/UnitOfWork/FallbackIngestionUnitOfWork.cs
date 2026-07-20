@@ -25,12 +25,16 @@
                 fallback.Complete(cancellationToken)
             );
 
-        protected override void Dispose(bool disposing)
+        protected override async ValueTask DisposeAsyncCore()
         {
-            if (disposing)
+            if (primary != null)
             {
-                primary?.Dispose();
-                fallback?.Dispose();
+                await primary.DisposeAsync();
+            }
+
+            if (fallback != null)
+            {
+                await fallback.DisposeAsync();
             }
         }
     }

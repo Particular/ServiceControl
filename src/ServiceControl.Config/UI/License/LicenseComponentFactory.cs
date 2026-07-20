@@ -6,7 +6,6 @@
 
     static class LicenseComponentFactory
     {
-        const string UpgradeProtectionLicenseText = "Please extend your upgrade protection so that we can continue to provide you with support and new versions of the Particular Service Platform.";
         const string SubscriptionLicenseText = "Please extend your license to continue using the Particular Service Platform.";
 
         static readonly CountInflector DaysInflector = new()
@@ -74,31 +73,6 @@
 
         static LicenseComponent UpgradeProtectionExpiryComponent(LicenseDetails details)
         {
-            if (details.WarnUserUpgradeProtectionHasExpired)
-            {
-                return new LicenseComponent
-                {
-                    Label = "Upgrade protection expiry date:",
-                    Value = $"{details.UpgradeProtectionExpiration:d} - expired",
-                    Importance = Importance.Warning,
-                    ShortText = "Platform license expired",
-                    WarningText = UpgradeProtectionLicenseText
-                };
-            }
-
-            if (details.WarnUserUpgradeProtectionIsExpiring)
-            {
-                var daysRemain = DaysInflector.Inflect(details.DaysUntilUpgradeProtectionExpires ?? 0);
-                return new LicenseComponent
-                {
-                    Label = "Upgrade protection expiry date:",
-                    Value = $"{details.UpgradeProtectionExpiration:d} - {daysRemain} left",
-                    Importance = Importance.Warning,
-                    ShortText = $"Warning: Upgrade protection expiring in {daysRemain}",
-                    WarningText = UpgradeProtectionLicenseText
-                };
-            }
-
             return new LicenseComponent
             {
                 Label = "Upgrade protection expiry date:",

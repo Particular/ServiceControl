@@ -60,7 +60,9 @@
   <ItemGroup>
     <InternalsVisibleTo Include="ServiceControl.AcceptanceTests.RavenDB" />
     <InternalsVisibleTo Include="ServiceControl.MultiInstance.AcceptanceTests" />
+    <InternalsVisibleTo Include="ServiceControl.Persistence.Tests.PostgreSql" />
     <InternalsVisibleTo Include="ServiceControl.Persistence.Tests.RavenDB" />
+    <InternalsVisibleTo Include="ServiceControl.Persistence.Tests.SqlServer" />
     <InternalsVisibleTo Include="ServiceControl.UnitTests" />
   </ItemGroup>
 

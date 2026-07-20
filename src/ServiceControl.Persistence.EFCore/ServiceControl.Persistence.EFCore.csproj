@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Private=false & ExcludeAssets=runtime prevent repeatedly including binary dependencies of ServiceControl.Persistence and its dependencies in each persister directory -->
+    <ProjectReference Include="../Particular.LicensingComponent.Contracts/Particular.LicensingComponent.Contracts.csproj" />
+    <ProjectReference Include="../Particular.LicensingComponent.Persistence/Particular.LicensingComponent.Persistence.csproj" />
+    <ProjectReference Include="../ServiceControl.DomainEvents/ServiceControl.DomainEvents.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="../ServiceControl.Configuration/ServiceControl.Configuration.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="../ServiceControl.Infrastructure/ServiceControl.Infrastructure.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="../ServiceControl.Persistence/ServiceControl.Persistence.csproj" Private="false" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+  </ItemGroup>
+
+</Project>

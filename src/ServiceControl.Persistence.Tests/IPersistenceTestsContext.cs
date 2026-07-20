@@ -14,4 +14,6 @@ public interface IPersistenceTestsContext
     void CompleteDatabaseOperation();
 
     PersistenceSettings PersistenceSettings { get; }
+
+    string GenerateFailedMessageRecordId(string messageId);
 }

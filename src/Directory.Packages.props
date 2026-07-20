@@ -30,6 +30,12 @@
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.7.0" />
     <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.19.1" />
     <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.19.1" />
+    <!-- EF Core patch version must not exceed RuntimeFrameworkVersion (Custom.Build.props), which pins the Microsoft.Extensions.* packages -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
     <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
     <PackageVersion Include="Mindscape.Raygun4Net.NetCore" Version="11.2.5" />
@@ -61,7 +67,7 @@
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.16.0" />
     <PackageVersion Include="Particular.Approvals" Version="2.0.1" />
     <PackageVersion Include="Particular.LicensingComponent.Report" Version="1.1.1" />
-    <PackageVersion Include="Particular.Licensing.Sources" Version="6.2.1" />
+    <PackageVersion Include="Particular.Licensing.Sources" Version="7.3.0" />
     <PackageVersion Include="Particular.Obsoletes" Version="1.1.0" />
     <PackageVersion Include="Particular.ServicePulse.Core" Version="2.9.1" />
     <PackageVersion Include="Polly.Core" Version="8.7.0" />
@@ -69,6 +75,8 @@
     <PackageVersion Include="PropertyChanging.Fody" Version="1.31.0" />
     <PackageVersion Include="PublicApiGenerator" Version="11.5.4" />
     <PackageVersion Include="RavenDB.Embedded" Version="6.2.17" />
+    <PackageVersion Include="Testcontainers.MsSql" Version="4.13.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.13.0" />
     <PackageVersion Include="ReactiveUI.WPF" Version="22.3.1" />
     <PackageVersion Include="Seq.Extensions.Logging" Version="9.0.0" />
     <PackageVersion Include="ServiceControl.Contracts" Version="5.1.0" />
@@ -92,6 +100,8 @@
     <PackageVersion Include="System.IO.Hashing" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.Threading.RateLimiting" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.1.5" />
+    <PackageVersion Include="Azure.Core" Version="1.53.0" />
   </ItemGroup>
   <ItemGroup>
     <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="6.1.63" />
