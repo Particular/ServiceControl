@@ -10,6 +10,8 @@
         public string LogPath { get; } = logPath;
         public string LogsMode { get; } = logsMode;
 
+        public bool RunInMemory { get; set; }
+
         public Func<string, BlittableJsonReaderObject, string> FindClrType { get; init; }
     }
 }
