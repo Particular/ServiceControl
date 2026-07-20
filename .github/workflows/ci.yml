@@ -64,6 +64,14 @@ jobs:
       - name: Smoke test PowerShell module import
         if: matrix.os-name == 'Windows'
         run: Import-Module ./deploy/PowerShellModules/Particular.ServiceControl.Management
+      # there is an issue with az cli and python 3.14, so for now we need to pin it
+      # once the issue is resolved it should be able to be re-floated
+      # https://github.com/Azure/azure-cli/issues/32980
+      - name: Pin Azure CLI
+        uses: azure/setup-azure-cli@v3
+        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ' || matrix.test-category == 'PostgreSQL'
+        with:
+          version: 2.64.0
       - name: Azure login
         uses: azure/login@v3.0.0
         if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ' || matrix.test-category == 'PostgreSQL'
