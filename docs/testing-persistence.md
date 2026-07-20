@@ -20,16 +20,10 @@ SQL Server persistence tests use [Testcontainers](https://testcontainers.com/) a
 Build that image locally before running SQL Server persistence tests:
 
 ```shell
-docker buildx build --tag particular/servicecontrol-testing-sqlserver:latest ./src/Scripts/Docker/servicecontrol-testing-sqlserver
+docker buildx build --platform=linux/amd64 --tag particular/servicecontrol-testing-sqlserver:latest ./src/Scripts/Docker/servicecontrol-testing-sqlserver
 ```
 
-If you want to use an existing SQL Server instance instead of a test container, set:
-
-```shell
-ServiceControl_Persistence_SqlServer_ConnectionString
-```
-
-to a valid SQL Server connection string.
+If you want to use an existing SQL Server instance instead of a test container, set the `ServiceControl_Persistence_SqlServer_ConnectionString` environment variable to a valid SQL Server connection string.
 
 ## PostgreSQL
 
