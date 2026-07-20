@@ -52,6 +52,8 @@ Running all tests all the times takes a lot of resources. Tests are filtered bas
 - `MSMQ`
 - `RabbitMQ`
 - `SqlServer`
+- `SqlServerPersistence`
+- `PostgresSqlPersistence`
 - `SQS`
 
 NOTE: If no variable is defined all tests will be executed.
@@ -71,6 +73,7 @@ Local testing guides:
 - [Reverse Proxy Testing](docs/reverseproxy-testing.md)
 - [Forward Headers Testing](docs/forward-headers-testing.md)
 - [Authentication Testing](docs/authentication-testing.md)
+- [Persistence Tests](docs/testing-persistence.md)
 
 ## How to developer test the PowerShell Module
 

@@ -8,6 +8,8 @@ using Testcontainers.MsSql;
 
 static class SqlServerSharedContainer
 {
+    const string docsPath = "docs/testing-persistence.md#sql-server";
+
     public static async Task<string> GetConnectionStringAsync(CancellationToken ct = default)
     {
         var envConnStr = Environment.GetEnvironmentVariable("ServiceControl_Persistence_SqlServer_ConnectionString");
@@ -38,7 +40,17 @@ static class SqlServerSharedContainer
     static async Task<MsSqlContainer> StartContainerAsync(CancellationToken ct)
     {
         var c = new MsSqlBuilder("particular/servicecontrol-testing-sqlserver:latest").Build();
-        await c.StartAsync(ct);
+        try
+        {
+            await c.StartAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                $"Failed to start SQL Server persistence test container. See {docsPath} for setup instructions.",
+                ex);
+        }
+
         return c;
     }
 
