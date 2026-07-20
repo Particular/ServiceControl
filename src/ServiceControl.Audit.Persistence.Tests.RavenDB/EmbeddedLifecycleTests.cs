@@ -4,6 +4,7 @@
     using System.IO;
     using System.Threading.Tasks;
     using NUnit.Framework;
+    using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Persistence.RavenDB;
     using TestHelper;
 
@@ -35,7 +36,7 @@
         [Test]
         public async Task Verify_embedded_database()
         {
-            await DataStore.QueryKnownEndpoints(TestContext.CurrentContext.CancellationToken);
+            await DataStore.GetMessages(false, new PagingInfo(), new SortInfo("Id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

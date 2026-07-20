@@ -12,7 +12,6 @@
     using NServiceBus.Transport;
     using Persistence.UnitOfWork;
     using ServiceControl.Audit.Persistence.Infrastructure;
-    using ServiceControl.Audit.Persistence.Monitoring;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
     using ServiceControl.Infrastructure;
     using ServiceControl.SagaAudit;
@@ -39,8 +38,6 @@
 
                 await Task.WhenAll(inserts);
 
-                var knownEndpoints = new Dictionary<string, KnownEndpoint>();
-
                 foreach (var context in contexts)
                 {
                     // Any message context that failed during processing will have a faulted task and should be skipped
@@ -51,16 +48,6 @@
 
                     if (context.Extensions.TryGet(out ProcessedMessage processedMessage)) //Message was an audit message
                     {
-                        if (context.Extensions.TryGet("SendingEndpoint", out EndpointDetails sendingEndpoint))
-                        {
-                            RecordKnownEndpoints(sendingEndpoint, knownEndpoints, processedMessage);
-                        }
-
-                        if (context.Extensions.TryGet("ReceivingEndpoint", out EndpointDetails receivingEndpoint))
-                        {
-                            RecordKnownEndpoints(receivingEndpoint, knownEndpoints, processedMessage);
-                        }
-
                         await unitOfWork.RecordProcessedMessage(processedMessage, context.Body, cancellationToken);
                     }
                     else if (context.Extensions.TryGet(out SagaSnapshot sagaSnapshot))
@@ -69,13 +56,6 @@
                     }
 
                     storedContexts.Add(context);
-                }
-
-                foreach (var endpoint in knownEndpoints.Values)
-                {
-                    logger.LogDebug("Adding known endpoint '{EndpointName}' for bulk storage", endpoint.Name);
-
-                    await unitOfWork.RecordKnownEndpoint(endpoint, cancellationToken);
                 }
             }
             catch (Exception e)
@@ -107,25 +87,6 @@
             }
 
             return storedContexts;
-        }
-
-        static void RecordKnownEndpoints(EndpointDetails observedEndpoint, Dictionary<string, KnownEndpoint> observedEndpoints, ProcessedMessage processedMessage)
-        {
-            var uniqueEndpointId = $"{observedEndpoint.Name}{observedEndpoint.HostId}";
-            if (!observedEndpoints.TryGetValue(uniqueEndpointId, out var knownEndpoint))
-            {
-                knownEndpoint = new KnownEndpoint
-                {
-                    Host = observedEndpoint.Host,
-                    HostId = observedEndpoint.HostId,
-                    LastSeen = processedMessage.ProcessedAt,
-                    Name = observedEndpoint.Name,
-                    Id = KnownEndpoint.MakeDocumentId(observedEndpoint.Name, observedEndpoint.HostId),
-                };
-                observedEndpoints.Add(uniqueEndpointId, knownEndpoint);
-            }
-
-            knownEndpoint.LastSeen = processedMessage.ProcessedAt > knownEndpoint.LastSeen ? processedMessage.ProcessedAt : knownEndpoint.LastSeen;
         }
 
         async Task ProcessMessage(MessageContext context)

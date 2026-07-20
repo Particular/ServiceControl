@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Auditing;
-    using Monitoring;
     using NServiceBus;
     using NUnit.Framework;
     using SagaAudit;
@@ -40,36 +39,6 @@
             using (Assert.EnterMultipleScope())
             {
                 Assert.That(queryResultBeforeExpiration.Results[0].MessageId, Is.EqualTo("MyMessageId"));
-                Assert.That(queryResultAfterExpiration.Results.Count, Is.EqualTo(0));
-            }
-        }
-
-        [Test]
-        public async Task KnownEndpointRetention()
-        {
-            var knownEndpoint = new KnownEndpoint()
-            {
-                Host = "Myself",
-                HostId = Guid.NewGuid(),
-                Id = "KnownEndpoints/1234123",
-                LastSeen = DateTime.UtcNow,
-                Name = "Wazowsky"
-            };
-
-            await IngestKnownEndpoints(
-                knownEndpoint
-            );
-
-            var queryResultBeforeExpiration = await DataStore.QueryKnownEndpoints(TestContext.CurrentContext.CancellationToken);
-
-            await Task.Delay(4000);
-
-            var queryResultAfterExpiration = await DataStore.QueryKnownEndpoints(TestContext.CurrentContext.CancellationToken);
-
-            Assert.That(queryResultBeforeExpiration.Results, Has.Count.EqualTo(1));
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(queryResultBeforeExpiration.Results[0].EndpointDetails.Name, Is.EqualTo("Wazowsky"));
                 Assert.That(queryResultAfterExpiration.Results.Count, Is.EqualTo(0));
             }
         }
@@ -142,17 +111,6 @@
             foreach (var processedMessage in processedMessages)
             {
                 await unitOfWork.RecordProcessedMessage(processedMessage);
-            }
-            await unitOfWork.DisposeAsync();
-            await configuration.CompleteDBOperation();
-        }
-
-        async Task IngestKnownEndpoints(params KnownEndpoint[] knownEndpoints)
-        {
-            var unitOfWork = await StartAuditUnitOfWork(knownEndpoints.Length);
-            foreach (var knownEndpoint in knownEndpoints)
-            {
-                await unitOfWork.RecordKnownEndpoint(knownEndpoint);
             }
             await unitOfWork.DisposeAsync();
             await configuration.CompleteDBOperation();

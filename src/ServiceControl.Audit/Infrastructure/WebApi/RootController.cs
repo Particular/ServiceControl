@@ -74,7 +74,7 @@
                     settings.AuditQueue,
                     settings.ForwardAuditMessages
                 },
-                Peristence = new
+                Persistence = new
                 {
                     settings.PersistenceType
                 },
