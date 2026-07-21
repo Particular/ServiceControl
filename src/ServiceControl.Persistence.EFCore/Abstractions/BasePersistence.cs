@@ -15,6 +15,7 @@ public abstract class BasePersistence
     protected static void RegisterDataStores(IServiceCollection services)
     {
         services.AddSingleton(TimeProvider.System);
+        services.AddSingleton<MinimumRequiredStorageState>();
 
         services.AddSingleton<IServiceControlSubscriptionStorage, SubscriptionStorage>();
         services.AddSingleton<ISubscriptionStorage>(p => p.GetRequiredService<IServiceControlSubscriptionStorage>());

@@ -6,7 +6,6 @@
     using System.Threading.Tasks;
     using Auditing;
     using Auditing.BodyStorage;
-    using Monitoring;
     using NServiceBus;
     using Persistence.UnitOfWork;
     using Raven.Client;
@@ -49,9 +48,6 @@
 
         public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken)
             => bulkInsert.StoreAsync(sagaSnapshot, GetExpirationMetadata());
-
-        public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint, CancellationToken cancellationToken)
-            => bulkInsert.StoreAsync(knownEndpoint, GetExpirationMetadata());
 
         public async ValueTask DisposeAsync()
         {

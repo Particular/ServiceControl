@@ -3,11 +3,9 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using CompositeViews.Messages;
     using Infrastructure.Auth;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Primitives;
     using Persistence;
@@ -22,7 +20,6 @@
     [Route("api")]
     public class EndpointsMonitoringController(
         IEndpointInstanceMonitoring monitoring,
-        GetKnownEndpointsApi knownEndpointsApi,
         IMonitoringDataStore dataStore)
         : ControllerBase
     {
@@ -66,13 +63,12 @@
         [Authorize(Policy = Permissions.ErrorEndpointsView)]
         [Route("endpoints/known")]
         [HttpGet]
-        public async Task<IList<KnownEndpointsView>> KnownEndpoints([FromQuery] PagingInfo pagingInfo)
+        public IList<KnownEndpointsView> KnownEndpoints([FromQuery] PagingInfo pagingInfo)
         {
-            QueryResult<IList<KnownEndpointsView>> result =
-                await knownEndpointsApi.Execute(new ScatterGatherContext(pagingInfo), Request.GetEncodedPathAndQuery());
+            var knownEndpoints = monitoring.GetKnownEndpoints();
 
-            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
-            return result.Results;
+            Response.WithQueryStatsAndPagingInfo(new QueryStatsInfo(string.Empty, knownEndpoints.Count, isStale: false), pagingInfo);
+            return knownEndpoints;
         }
 
         [Authorize(Policy = Permissions.ErrorEndpointsManage)]
@@ -80,6 +76,11 @@
         [HttpPatch]
         public async Task<IActionResult> Monitoring(Guid endpointId, [FromBody] EndpointUpdateModel data)
         {
+            if (!monitoring.HasEndpoint(endpointId))
+            {
+                return NotFound();
+            }
+
             if (data.MonitorHeartbeat)
             {
                 await monitoring.EnableMonitoring(endpointId);

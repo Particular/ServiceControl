@@ -116,7 +116,7 @@
 
             try
             {
-                using var unitOfWork = await unitOfWorkFactory.StartNew();
+                await using var unitOfWork = await unitOfWorkFactory.StartNew();
                 var storedFailedMessageContexts = await errorProcessor.Process(failedMessageContexts, unitOfWork);
                 await retryConfirmationProcessor.Process(retriedMessageContexts, unitOfWork);
 

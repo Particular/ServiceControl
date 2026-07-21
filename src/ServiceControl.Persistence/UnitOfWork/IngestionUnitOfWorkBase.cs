@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.UnitOfWork
+namespace ServiceControl.Persistence.UnitOfWork
 {
     using System;
     using System.Threading;
@@ -6,17 +6,13 @@
 
     public abstract class IngestionUnitOfWorkBase : IIngestionUnitOfWork
     {
-        protected virtual void Dispose(bool disposing)
-        {
-        }
+        protected virtual ValueTask DisposeAsyncCore() => ValueTask.CompletedTask;
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            Dispose(true);
+            await DisposeAsyncCore();
             GC.SuppressFinalize(this);
         }
-
-        ~IngestionUnitOfWorkBase() => Dispose(false);
 
         public IMonitoringIngestionUnitOfWork Monitoring { get; protected set; }
         public IRecoverabilityIngestionUnitOfWork Recoverability { get; protected set; }
