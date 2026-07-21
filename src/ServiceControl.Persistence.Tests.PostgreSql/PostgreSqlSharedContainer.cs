@@ -7,6 +7,8 @@ using Testcontainers.PostgreSql;
 
 static class PostgreSqlSharedContainer
 {
+    const string docsPath = "docs/testing-persistence.md#postgresql";
+
     public static async Task<string> GetConnectionStringAsync(CancellationToken ct = default)
     {
         var envConnStr = Environment.GetEnvironmentVariable("ServiceControl_Persistence_PostgreSql_ConnectionString");
@@ -38,7 +40,17 @@ static class PostgreSqlSharedContainer
     {
         var c = new PostgreSqlBuilder("postgres:16-alpine")
             .Build();
-        await c.StartAsync(ct);
+        try
+        {
+            await c.StartAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                $"Failed to start PostgreSQL persistence test container. See {docsPath} for setup instructions.",
+                ex);
+        }
+
         return c;
     }
 

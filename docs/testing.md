@@ -23,6 +23,7 @@ Installation engine tests run partial installations and checks:
 ## Persistence tests
 
 Persistence tests check assumptions at the persistence seam level by exercising each persister.
+For local setup details, see [Local Testing of Persistence Providers](testing-persistence.md).
 
 ## Transport tests
 

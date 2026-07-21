@@ -69,6 +69,13 @@ namespace ServiceControl.RavenDB
             }
 
             logger.LogInformation("Loading RavenDB license from {LicenseFileName}", licenseFileNameAndServerDirectory.LicenseFileName);
+
+            List<string> optionalArgs = [];
+            if (databaseConfiguration.RunInMemory)
+            {
+                optionalArgs.Add("--RunInMemory=true");
+            }
+
             var serverOptions = new ServerOptions
             {
                 CommandLineArgs =
@@ -76,7 +83,8 @@ namespace ServiceControl.RavenDB
                     $"--Logs.Mode={databaseConfiguration.LogsMode}",
                     // HINT: If this is not set, then Raven will pick a default location relative to the server binaries
                     // See https://github.com/ravendb/ravendb/issues/15694
-                    $"--Indexing.NuGetPackagesPath=\"{nugetPackagesPath}\""
+                    $"--Indexing.NuGetPackagesPath=\"{nugetPackagesPath}\"",
+                    ..optionalArgs
                 ],
                 DataDirectory = databaseConfiguration.DbPath,
                 ServerUrl = databaseConfiguration.ServerUrl,

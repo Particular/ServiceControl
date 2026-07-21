@@ -5,15 +5,11 @@ using ServiceControl.ExternalIntegrations;
 
 public class ExternalIntegrationRequestsDataStore : IExternalIntegrationRequestsDataStore, IHostedService
 {
-    public void Subscribe(Func<object[], Task> callback) =>
-        throw new NotImplementedException();
+    public void Subscribe(Func<object[], Task> callback) { }
 
-    public Task StoreDispatchRequest(IEnumerable<ExternalIntegrationDispatchRequest> dispatchRequests) =>
-        throw new NotImplementedException();
+    public Task StoreDispatchRequest(IEnumerable<ExternalIntegrationDispatchRequest> dispatchRequests) => Task.CompletedTask;
 
-    public Task StartAsync(CancellationToken cancellationToken) =>
-        throw new NotImplementedException();
+    public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    public Task StopAsync(CancellationToken cancellationToken) =>
-        throw new NotImplementedException();
+    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }
