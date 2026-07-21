@@ -18,7 +18,20 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest]
-        test-category: [ Default, SqlServer, AzureServiceBus, RabbitMQ, AzureStorageQueues, MSMQ, SQS, PrimaryRavenAcceptance, PrimaryRavenPersistence, PostgreSQL, IBMMQ ]
+        test-category: [ `
+          Default, 
+          SqlServer, 
+          SqlServerPersistence, 
+          AzureServiceBus, 
+          RabbitMQ, 
+          AzureStorageQueues, 
+          MSMQ, 
+          SQS, 
+          PrimaryRavenAcceptance, 
+          PrimaryRavenPersistence, 
+          PostgreSQL, 
+          PostgreSQLPersistence,
+          IBMMQ]
         include:
           - os: windows-latest
             os-name: Windows
@@ -83,12 +96,12 @@ jobs:
 
       - name: Azure login
         uses: azure/login@v3.0.0
-        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ' || matrix.test-category == 'PostgreSQL'
+        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ' || matrix.test-category == 'PostgreSQL' || matrix.test-category == 'PostgreSQLPersistence'
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup SQL Server
         uses: Particular/install-sql-server-action@v1.4.0
-        if: matrix.test-category == 'SqlServer'
+        if: matrix.test-category == 'SqlServer' || matrix.test-category == 'SqlServerPersistence'
         with:
           connection-string-env-var: ServiceControl_TransportTests_SQL_ConnectionString
           catalog: nservicebus
@@ -148,6 +161,7 @@ jobs:
         uses: Particular/run-tests-action@v1.7.0
         env:
           ServiceControl_TESTS_FILTER: ${{ matrix.test-category }}
+          ServiceControl_Persistence_SqlServer_ConnectionString : ${{ env.ServiceControl_TransportTests_SQL_ConnectionString }}
           PARTICULARSOFTWARE_LICENSE: ${{ secrets.LICENSETEXT }}
           AZURE_ACI_CREDENTIALS: ${{ secrets.AZURE_ACI_CREDENTIALS }}
 
