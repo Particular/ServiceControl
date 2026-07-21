@@ -36,7 +36,13 @@ public class MonitoringDataStore(IServiceScopeFactory scopeFactory) : DataStoreB
             }
             catch (DbUpdateException)
             {
-                // A concurrent insert with the same deterministic id may have won the race
+                // A concurrent insert with the same deterministic id may have won the race.
+                // Anything else is a genuine failure.
+                dbContext.Entry(knownEndpoint).State = EntityState.Detached;
+                if (!await dbContext.KnownEndpoints.AnyAsync(e => e.Id == id))
+                {
+                    throw;
+                }
             }
         });
     }

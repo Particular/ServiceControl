@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <!-- Design-time only, for dotnet-ef tooling. Debug-only so it (and its Roslyn dependency tail) stays out of the shipped Release artifact -->
+    <PackageReference Include="EFCore.NamingConventions" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" Condition="'$(Configuration)' == 'Debug'" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>

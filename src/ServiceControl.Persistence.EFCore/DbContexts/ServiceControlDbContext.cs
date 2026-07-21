@@ -20,9 +20,5 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
 
         modelBuilder.ApplyConfiguration(new KnownEndpointConfiguration());
         modelBuilder.ApplyConfiguration(new KnownEndpointInsertOnlyConfiguration());
-
-        OnModelCreatingProvider(modelBuilder);
     }
-
-    protected abstract void OnModelCreatingProvider(ModelBuilder modelBuilder);
 }
