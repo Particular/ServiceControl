@@ -1,6 +1,7 @@
 namespace ServiceControl.Persistence.EFCore.Implementation;
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using DbContexts;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,32 @@ public abstract class DataStoreBase(IServiceScopeFactory scopeFactory)
         await using var scope = scopeFactory.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
         await operation(dbContext);
+    }
+
+    /// <summary>
+    /// Executes an operation with a scoped DbContext, without returning a result
+    /// </summary>
+    protected async IAsyncEnumerable<T> ExecuteWithDbContext<T>(Func<ServiceControlDbContext, IAsyncEnumerable<T>> operation)
+    {
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+        await foreach (var row in operation(dbContext))
+        {
+            yield return row;
+        }
+    }
+    
+    /// <summary>
+    /// Executes an operation with a scoped DbContext, without returning a result
+    /// </summary>
+    protected async IAsyncEnumerable<T> ExecuteWithDbContext<T>(Func<ServiceControlDbContext, IAsyncEnumerable<T>> operation, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+        await foreach (var row in operation(dbContext).WithCancellation(cancellationToken))
+        {
+            yield return row;
+        }
     }
 
     /// <summary>

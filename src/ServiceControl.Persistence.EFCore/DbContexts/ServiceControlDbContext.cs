@@ -6,6 +6,7 @@ using ServiceControl.Persistence.EFCore.EntityConfigurations;
 
 public abstract class ServiceControlDbContext(DbContextOptions options) : DbContext(options)
 {
+    public DbSet<EndpointSettingsEntity> EndpointSettings { get; set; }
     public DbSet<KnownEndpointEntity> KnownEndpoints { get; set; }
     public DbSet<FailedMessageEntity> FailedMessages { get; set; }
     public DbSet<FailedMessageGroupEntity> FailedMessageGroups { get; set; }
