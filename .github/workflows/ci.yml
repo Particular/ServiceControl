@@ -18,20 +18,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest]
-        test-category: [ `
-          Default, 
-          SqlServer, 
-          SqlServerPersistence, 
-          AzureServiceBus, 
-          RabbitMQ, 
-          AzureStorageQueues, 
-          MSMQ, 
-          SQS, 
-          PrimaryRavenAcceptance, 
-          PrimaryRavenPersistence, 
-          PostgreSQL, 
-          PostgreSQLPersistence,
-          IBMMQ]
+        test-category: [ Default, SqlServer, SqlServerPersistence, AzureServiceBus, RabbitMQ, AzureStorageQueues, MSMQ, SQS, PrimaryRavenAcceptance, PrimaryRavenPersistence, PostgreSQL, PostgreSQLPersistence, IBMMQ ]
         include:
           - os: windows-latest
             os-name: Windows
@@ -101,15 +88,29 @@ jobs:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup SQL Server
         uses: Particular/install-sql-server-action@v1.4.0
-        if: matrix.test-category == 'SqlServer' || matrix.test-category == 'SqlServerPersistence'
+        if: matrix.test-category == 'SqlServer'
         with:
           connection-string-env-var: ServiceControl_TransportTests_SQL_ConnectionString
           catalog: nservicebus
+      - name: Setup SQL Server persistence
+        uses: Particular/install-sql-server-action@v1.4.0
+        if: matrix.test-category == 'SqlServerPersistence'
+        with:
+          connection-string-env-var: ServiceControl_Persistence_SqlServer_ConnectionString
+          catalog: ServiceControl
       - name: Setup PostgreSQL
         uses: Particular/setup-postgres-action@v1.1.0
         if: matrix.test-category == 'PostgreSQL'
         with:
           connection-string-name: ServiceControl_TransportTests_PostgreSQL_ConnectionString
+          tag: ServiceControl
+          registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Setup PostgreSQL persistence
+        uses: Particular/setup-postgres-action@v1.1.0
+        if: matrix.test-category == 'PostgreSQLPersistence'
+        with:
+          connection-string-name: ServiceControl_Persistence_PostgreSql_ConnectionString
           tag: ServiceControl
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -161,7 +162,6 @@ jobs:
         uses: Particular/run-tests-action@v1.7.0
         env:
           ServiceControl_TESTS_FILTER: ${{ matrix.test-category }}
-          ServiceControl_Persistence_SqlServer_ConnectionString : ${{ env.ServiceControl_TransportTests_SQL_ConnectionString }}
           PARTICULARSOFTWARE_LICENSE: ${{ secrets.LICENSETEXT }}
           AZURE_ACI_CREDENTIALS: ${{ secrets.AZURE_ACI_CREDENTIALS }}
 
