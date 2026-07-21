@@ -15,6 +15,7 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
     BrokerMetadata brokerMetadata = new(null, []);
     AuditServiceMetadata auditServiceMetadata = new([], []);
     List<string> reportMasks = [];
+    LicensedEndpointDetails? endpointDetails = null;
 
     public Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken)
     {
@@ -170,9 +171,13 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         return Task.CompletedTask;
     }
 
-    public Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(CancellationToken cancellationToken) => throw new NotImplementedException();
+    public Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(CancellationToken cancellationToken) => Task.FromResult(endpointDetails);
 
-    public Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken) => throw new NotImplementedException();
+    public Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken)
+    {
+        endpointDetails = result;
+        return Task.CompletedTask;
+    }
 
     class EndpointCollection : KeyedCollection<EndpointIdentifier, Endpoint>
     {
