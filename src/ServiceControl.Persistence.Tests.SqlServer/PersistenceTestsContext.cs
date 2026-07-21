@@ -2,20 +2,22 @@
 namespace ServiceControl.Persistence.Tests;
 
 using System;
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
 using EFCore.SqlServer;
-using EFCore.SqlServer.Infrastructure;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using ServiceControl.Persistence.EFCore.DbContexts;
+using Microsoft.Extensions.Time.Testing;
+using ServiceControl.Persistence.EFCore.Infrastructure;
 
 public class PersistenceTestsContext : IPersistenceTestsContext
 {
     IHost host;
     string databaseName;
+
+    public FakeTimeProvider FakeTime { get; } = new();
 
     public async Task Setup(IHostApplicationBuilder hostBuilder)
     {
@@ -35,6 +37,8 @@ public class PersistenceTestsContext : IPersistenceTestsContext
 
         persistence.AddPersistence(hostBuilder.Services);
         persistence.AddInstaller(hostBuilder.Services);
+
+        hostBuilder.Services.AddSingleton<TimeProvider>(FakeTime);
     }
 
     public async Task PostSetup(IHost host)
@@ -46,9 +50,6 @@ public class PersistenceTestsContext : IPersistenceTestsContext
         await db.Database.EnsureCreatedAsync();
     }
 
-    // Dropped via a separate admin connection to master: SQL Server refuses to drop a database
-    // that the issuing connection (or any other session) is still attached to, so we force
-    // everyone off with SINGLE_USER ROLLBACK IMMEDIATE first.
     public async Task TearDown()
     {
         await using var connection = new SqlConnection(await SqlServerSharedContainer.GetConnectionStringAsync());
@@ -64,24 +65,13 @@ public class PersistenceTestsContext : IPersistenceTestsContext
         await command.ExecuteNonQueryAsync();
     }
 
-    // Reconcile the insert-only tables so that ingested data is visible to the data stores,
-    // without waiting for the reconciler background services' timers
-    public Task CompleteDatabaseOperation() => DrainInsertOnlyTables();
-
-    async Task DrainInsertOnlyTables()
+    // Drain every insert-only reconciler so that ingested data is visible to the data stores,
+    // without waiting for the reconciler background services' timers.
+    public async Task CompleteDatabaseOperation()
     {
-        using var scope = host.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
-
-        while (await dbContext.KnownEndpointsInsertOnly.AnyAsync())
+        foreach (var reconciler in host.Services.GetServices<IHostedService>().OfType<InsertOnlyTableReconciler>())
         {
-            var strategy = dbContext.Database.CreateExecutionStrategy();
-            await strategy.ExecuteAsync(async () =>
-            {
-                await using var transaction = await dbContext.Database.BeginTransactionAsync();
-                await KnownEndpointsReconciler.ReconcileBatch(dbContext, batchSize: 1000, CancellationToken.None);
-                await transaction.CommitAsync();
-            });
+            await reconciler.ReconcileNow();
         }
     }
 

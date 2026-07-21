@@ -6,13 +6,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ServiceControl.Persistence.EFCore.DbContexts;
 
-public abstract class InsertOnlyTableReconciler<TInsertOnly, TTarget>(
+public abstract class InsertOnlyTableReconciler(
     ILogger logger,
     TimeProvider timeProvider,
     IServiceScopeFactory serviceScopeFactory,
     string serviceName) : BackgroundService
-    where TInsertOnly : class
-    where TTarget : class
 {
     protected const int BatchSize = 1000;
 
@@ -22,7 +20,7 @@ public abstract class InsertOnlyTableReconciler<TInsertOnly, TTarget>(
 
         try
         {
-            await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(30), timeProvider, stoppingToken);
 
             using PeriodicTimer timer = new(TimeSpan.FromSeconds(30), timeProvider);
 
@@ -30,7 +28,7 @@ public abstract class InsertOnlyTableReconciler<TInsertOnly, TTarget>(
             {
                 try
                 {
-                    await Reconcile(stoppingToken);
+                    await Reconcile(pace: true, stoppingToken);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
@@ -44,9 +42,13 @@ public abstract class InsertOnlyTableReconciler<TInsertOnly, TTarget>(
         }
     }
 
-    async Task Reconcile(CancellationToken stoppingToken)
+    // Drains all pending rows immediately, bypassing the background timer and the inter-batch pacing.
+    // Intended for tests that need reconciled data visible without waiting for the timer loop.
+    public Task ReconcileNow(CancellationToken cancellationToken = default) => Reconcile(pace: false, cancellationToken);
+
+    async Task Reconcile(bool pace, CancellationToken cancellationToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
+        while (!cancellationToken.IsCancellationRequested)
         {
             using var scope = serviceScopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
@@ -60,14 +62,17 @@ public abstract class InsertOnlyTableReconciler<TInsertOnly, TTarget>(
                 var rows = await ReconcileBatch(context, ct);
                 await transaction.CommitAsync(ct);
                 return rows;
-            }, stoppingToken);
+            }, cancellationToken);
 
             if (rowsAffected < BatchSize)
             {
                 break;
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
+            if (pace)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2), timeProvider, cancellationToken);
+            }
         }
     }
 

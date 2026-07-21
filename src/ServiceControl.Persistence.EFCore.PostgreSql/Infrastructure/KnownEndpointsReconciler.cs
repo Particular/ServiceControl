@@ -4,14 +4,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ServiceControl.Persistence.EFCore.DbContexts;
-using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
 class KnownEndpointsReconciler(
     ILogger<KnownEndpointsReconciler> logger,
     TimeProvider timeProvider,
     IServiceScopeFactory serviceScopeFactory)
-    : InsertOnlyTableReconciler<KnownEndpointInsertOnlyEntity, KnownEndpointEntity>(
+    : InsertOnlyTableReconciler(
         logger, timeProvider, serviceScopeFactory, nameof(KnownEndpointsReconciler))
 {
     protected override Task<int> ReconcileBatch(ServiceControlDbContext dbContext, CancellationToken stoppingToken) =>
