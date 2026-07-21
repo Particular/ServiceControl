@@ -72,7 +72,7 @@ public abstract class PersistenceTestBase
 
     protected Action<IServiceCollection> RegisterServices { get; set; } = _ => { };
 
-    protected void CompleteDatabaseOperation() => PersistenceTestsContext.CompleteDatabaseOperation();
+    protected Task CompleteDatabaseOperation() => PersistenceTestsContext.CompleteDatabaseOperation();
 
     protected static async Task WaitUntil(Func<Task<bool>> conditionChecker, string condition, TimeSpan timeout = default)
     {

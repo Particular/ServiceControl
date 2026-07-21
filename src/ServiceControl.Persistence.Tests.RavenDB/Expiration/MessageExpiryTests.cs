@@ -41,7 +41,7 @@
                 await uow.Complete(TestContext.CurrentContext.CancellationToken);
             }
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var error = await GetAllMessages();
 
@@ -71,7 +71,7 @@
                 await uow.Complete(TestContext.CurrentContext.CancellationToken);
             }
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var error = await GetAllMessages();
 
@@ -85,7 +85,7 @@
 
             // Let ArchivedGroupsViewIndex catch up with the archive, or the unarchive silently
             // no-ops ("No messages to unarchive") and message B wrongly expires.
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             await ArchiveMessages.UnarchiveAllInGroup(groupIdB);
 
@@ -107,7 +107,7 @@
                 await uow.Complete(TestContext.CurrentContext.CancellationToken);
             }
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var error = await GetAllMessages();
 
@@ -130,7 +130,7 @@
                 await uow.Complete(TestContext.CurrentContext.CancellationToken);
             }
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var errors = await GetAllMessages();
 
@@ -153,7 +153,7 @@
                 await uow.Complete(TestContext.CurrentContext.CancellationToken);
             }
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var errors = await GetAllMessages();
 
@@ -191,7 +191,7 @@
 
             await ErrorStore.StoreEventLogItem(new EventLogItem());
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var (logItems, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(1, 1));
 

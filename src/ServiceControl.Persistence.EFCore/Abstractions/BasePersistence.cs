@@ -6,6 +6,7 @@ using Particular.LicensingComponent.Persistence;
 using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence.EFCore.Implementation;
 using ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
+using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.MessageRedirects;
 using ServiceControl.Persistence.Recoverability;
 using ServiceControl.Persistence.UnitOfWork;
@@ -47,5 +48,7 @@ public abstract class BasePersistence
         services.AddSingleton<ITrialLicenseDataProvider, TrialLicenseDataProvider>();
 
         services.AddSingleton<ILicensingDataStore, LicensingDataStore>();
+
+        services.AddSingleton<IBodyStoragePersistence, FakeBodyStoragePersistence>();
     }
 }

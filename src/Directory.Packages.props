@@ -12,6 +12,7 @@
     <PackageVersion Include="ByteSize" Version="2.1.2" />
     <PackageVersion Include="Caliburn.Micro" Version="5.0.258" />
     <PackageVersion Include="DnsClient" Version="1.8.0" />
+    <PackageVersion Include="EFCore.NamingConventions" Version="10.0.1" />
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="Fody" Version="6.9.3" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.4" />
