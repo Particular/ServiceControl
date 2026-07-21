@@ -122,9 +122,6 @@
             Assert.That(endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host), Is.EqualTo(0));
         }
 
-        // NOTE: some persistence test suites share a single database/container across the whole
-        // test run (no per-test isolation), so assertions below filter GetAllKnownEndpoints() down
-        // to the HostId values this test created, rather than asserting the table's total count.
         [Test]
         public async Task GetAllKnownEndpoints_returns_created_endpoints()
         {
