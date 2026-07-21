@@ -47,7 +47,7 @@ public class PersistenceTestsContext : IPersistenceTestsContext
         DocumentStore = await host.Services.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore();
         SessionProvider = host.Services.GetRequiredService<IRavenSessionProvider>();
 
-        CompleteDatabaseOperation();
+        await CompleteDatabaseOperation();
     }
 
     public async Task TearDown() => await embeddedServer.DeleteDatabase(databaseName);
@@ -59,7 +59,11 @@ public class PersistenceTestsContext : IPersistenceTestsContext
 
     public IRavenSessionProvider SessionProvider { get; private set; }
 
-    public void CompleteDatabaseOperation() => DocumentStore.WaitForIndexing();
+    public Task CompleteDatabaseOperation()
+    {
+        DocumentStore.WaitForIndexing();
+        return Task.CompletedTask;
+    }
 
     [Conditional("DEBUG")]
     public void BlockToInspectDatabase()

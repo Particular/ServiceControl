@@ -59,7 +59,7 @@ public class PersistenceTestsContext : IPersistenceTestsContext
 
     // Reconcile the insert-only tables so that ingested data is visible to the data stores,
     // without waiting for the reconciler background services' timers
-    public void CompleteDatabaseOperation() => DrainInsertOnlyTables().GetAwaiter().GetResult();
+    public Task CompleteDatabaseOperation() => DrainInsertOnlyTables();
 
     async Task DrainInsertOnlyTables()
     {

@@ -50,7 +50,7 @@
 
             var orphanage = new AdoptOrphanBatchesFromPreviousSessionHostedService(documentManager, new AsyncTimer(), NullLogger<AdoptOrphanBatchesFromPreviousSessionHostedService>.Instance);
             await orphanage.AdoptOrphanedBatchesAsync();
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
             Assert.That(status.Failed, Is.True);
@@ -104,7 +104,7 @@
                 NullLogger<RetryProcessor>.Instance);
 
             // Needs index RetryBatches_ByStatus_ReduceInitialBatchSize
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             await processor.ProcessBatches(); // mark ready
 
@@ -219,7 +219,7 @@
 
             var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()), retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             await processor.ProcessBatches(); // mark ready
             await processor.ProcessBatches();
@@ -255,11 +255,11 @@
             }).ToArray();
 
             await ErrorStore.StoreFailedMessagesForTestsOnly(messages);
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var gateway = new CustomRetriesGateway(true, RetryStore, retryManager);
             await gateway.StartRetryForMessageSelection(ids, user, operationId);
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var audit = new RecordingMessageActionAuditLog();
             var sender = new TestSender();
@@ -346,19 +346,19 @@
 
             // Needs index FailedMessages_ByGroup
             // Needs index FailedMessages_UniqueMessageIdAndTimeOfFailures
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var documentManager = new CustomRetryDocumentManager(progressToStaged, RetryStore, retryManager);
             var gateway = new CustomRetriesGateway(progressToStaged, RetryStore, retryManager);
 
             gateway.EnqueueRetryForFailureGroup(new RetriesGateway.RetryForFailureGroup(groupId, "Test-Context", groupType: null, DateTime.UtcNow, initiatedBy, operationId));
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             await gateway.ProcessNextBulkRetry();
 
             // Wait for indexes to catch up
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
         }
 
         class CustomRetriesGateway : RetriesGateway

@@ -18,7 +18,7 @@
             var endpoint1 = new EndpointDetails() { HostId = Guid.NewGuid(), Host = "Host1", Name = "Name1" };
             await MonitoringDataStore.CreateIfNotExists(endpoint1);
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
 
             Assert.That(endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host), Is.EqualTo(1));
@@ -32,7 +32,7 @@
             await MonitoringDataStore.CreateIfNotExists(endpoint1);
             await MonitoringDataStore.CreateIfNotExists(endpoint1);
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
 
             Assert.That(endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host), Is.EqualTo(1));
@@ -46,7 +46,7 @@
             await MonitoringDataStore.CreateIfNotExists(endpoint1);
             await MonitoringDataStore.CreateOrUpdate(endpoint1, endpointInstanceMonitoring);
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
 
             Assert.That(endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host), Is.EqualTo(1));
@@ -61,7 +61,7 @@
             await MonitoringDataStore.CreateIfNotExists(endpoint1);
             await MonitoringDataStore.CreateIfNotExists(endpoint2);
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
 
             Assert.That(endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host || w.HostDisplayName == endpoint2.Host), Is.EqualTo(2));
@@ -76,7 +76,7 @@
             await MonitoringDataStore.CreateIfNotExists(endpoint1);
             await MonitoringDataStore.CreateOrUpdate(endpoint2, endpointInstanceMonitoring);
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
 
             Assert.That(endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host || w.HostDisplayName == endpoint2.Host), Is.EqualTo(2));
@@ -89,14 +89,14 @@
             var endpoint1 = new EndpointDetails() { HostId = Guid.NewGuid(), Host = "Host1", Name = "Name1" };
             await MonitoringDataStore.CreateIfNotExists(endpoint1);
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
             Assert.That(endpointInstanceMonitoring.IsMonitored(endpointInstanceMonitoring.GetEndpoints()[0].Id), Is.False);
 
             await MonitoringDataStore.UpdateEndpointMonitoring(endpoint1, true);
             endpointInstanceMonitoring = new EndpointInstanceMonitoring(new FakeDomainEvents(), NullLogger<EndpointInstanceMonitor>.Instance);
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
             Assert.That(endpointInstanceMonitoring.IsMonitored(endpointInstanceMonitoring.GetEndpoints()[0].Id), Is.True);
         }
@@ -109,7 +109,7 @@
             var endpoint1 = new EndpointDetails() { HostId = Guid.NewGuid(), Host = "Host1", Name = "Name1" };
             await MonitoringDataStore.CreateIfNotExists(endpoint1);
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
             Assert.That(endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host), Is.EqualTo(1));
 
@@ -117,7 +117,7 @@
 
             endpointInstanceMonitoring = new EndpointInstanceMonitoring(new FakeDomainEvents(), NullLogger<EndpointInstanceMonitor>.Instance);
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
             await MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring);
             Assert.That(endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host), Is.EqualTo(0));
         }
@@ -134,7 +134,7 @@
             await MonitoringDataStore.CreateIfNotExists(endpoint1);
             await MonitoringDataStore.CreateOrUpdate(endpoint2, endpointInstanceMonitoring);
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
             var knownEndpoints = await MonitoringDataStore.GetAllKnownEndpoints();
 
             var known1 = knownEndpoints.Single(e => e.EndpointDetails.HostId == endpoint1.HostId);
@@ -160,7 +160,7 @@
 
             await MonitoringDataStore.Delete(endpoint1.GetDeterministicId());
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
             var knownEndpoints = await MonitoringDataStore.GetAllKnownEndpoints();
 
             using (Assert.EnterMultipleScope())
@@ -178,7 +178,7 @@
             await Task.WhenAll(Enumerable.Range(0, 20)
                 .Select(_ => Task.Run(() => MonitoringDataStore.CreateIfNotExists(endpoint1))));
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
             var knownEndpoints = await MonitoringDataStore.GetAllKnownEndpoints();
 
             Assert.That(knownEndpoints.Count(e => e.EndpointDetails.HostId == endpoint1.HostId), Is.EqualTo(1));
@@ -193,7 +193,7 @@
             await Task.WhenAll(Enumerable.Range(0, 20)
                 .Select(_ => Task.Run(() => MonitoringDataStore.CreateOrUpdate(endpoint1, endpointInstanceMonitoring))));
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
             var knownEndpoints = await MonitoringDataStore.GetAllKnownEndpoints();
 
             Assert.That(knownEndpoints.Count(e => e.EndpointDetails.HostId == endpoint1.HostId), Is.EqualTo(1));
@@ -215,7 +215,7 @@
                 await unitOfWork.Complete(TestContext.CurrentContext.CancellationToken);
             }
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var knownEndpoints = await MonitoringDataStore.GetAllKnownEndpoints();
 

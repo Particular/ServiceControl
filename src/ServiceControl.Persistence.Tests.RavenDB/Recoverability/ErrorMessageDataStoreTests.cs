@@ -59,7 +59,7 @@
             await Task.Yield();
             await GenerateAndSaveFailedMessage();
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             store = ServiceProvider.GetRequiredService<IErrorMessageDataStore>();
         }
