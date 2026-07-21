@@ -86,7 +86,7 @@
     <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
     <PackageVersion Include="System.Management" Version="$(RuntimeFrameworkVersion)" />
-    <PackageVersion Include="System.Management.Automation" Version="7.6.3" />
+    <PackageVersion Include="System.Management.Automation" Version="7.6.4" />
     <PackageVersion Include="System.Reactive" Version="6.1.0" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="$(RuntimeFrameworkVersion)" />
