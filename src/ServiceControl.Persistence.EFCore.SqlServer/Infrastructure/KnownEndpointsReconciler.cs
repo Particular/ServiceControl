@@ -50,7 +50,7 @@ class KnownEndpointsReconciler(
                 FROM ranked
                 WHERE rn = 1
             )
-            MERGE INTO KnownEndpoints AS target
+            MERGE INTO KnownEndpoints WITH (HOLDLOCK) AS target
             USING aggregated AS source
             ON target.Id = source.KnownEndpointId
             WHEN NOT MATCHED THEN

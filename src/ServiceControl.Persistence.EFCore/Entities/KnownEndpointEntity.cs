@@ -7,7 +7,7 @@ public class KnownEndpointEntity
 
     public Guid HostId { get; set; }
 
-    public string? Host { get; set; }
+    public required string Host { get; set; }
 
     public bool Monitored { get; set; }
 }
