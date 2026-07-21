@@ -57,6 +57,23 @@ jobs:
         uses: actions/setup-dotnet@v6.0.0
         with:
           global-json-file: global.json
+
+      # there is an issue with az cli and python 3.14, so for now we need to pin it
+      # once the issue is resolved it should be able to be re-floated
+      # https://github.com/Azure/azure-cli/issues/32980
+      - name: Set Python 3.13 (Linux)
+        if: matrix.name == 'asb'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install pinned Azure CLI on Python 3.13 (Linux)
+        if: matrix.name == 'asb'
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --user "azure-cli==2.64.0"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
       - name: Run MinVer
         uses: Particular/run-minver-action@v1.0.0
       - name: Log in to GitHub container registry
