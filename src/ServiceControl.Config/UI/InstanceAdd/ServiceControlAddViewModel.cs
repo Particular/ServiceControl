@@ -55,7 +55,19 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
         public string ServiceControlQueueAddress
         {
-            get => InstallErrorInstance ? ErrorInstanceName : serviceControlQueueAddress;
+            get
+            {
+                if (InstallErrorInstance)
+                {
+                    return ErrorInstanceName;
+                }
+
+                var installedErrorInstanceNames = GetInstalledErrorInstanceNames();
+
+                return installedErrorInstanceNames.Length == 1
+                    ? installedErrorInstanceNames[0]
+                    : serviceControlQueueAddress;
+            }
             set => serviceControlQueueAddress = value;
         }
 
