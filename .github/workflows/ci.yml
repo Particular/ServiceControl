@@ -100,7 +100,7 @@ jobs:
           catalog: ServiceControl
           enable-full-text-search: true
       - name: Setup PostgreSQL
-        uses: Particular/setup-postgres-action@v1.1.0
+        uses: Particular/setup-postgres-action@v1.2.0
         if: matrix.test-category == 'PostgreSQL'
         with:
           connection-string-name: ServiceControl_TransportTests_PostgreSQL_ConnectionString
@@ -108,7 +108,7 @@ jobs:
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Setup PostgreSQL persistence
-        uses: Particular/setup-postgres-action@v1.1.0
+        uses: Particular/setup-postgres-action@v1.2.0
         if: matrix.test-category == 'PostgreSQLPersistence'
         with:
           connection-string-name: ServiceControl_Persistence_PostgreSql_ConnectionString
