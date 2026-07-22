@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Config.UI.InstanceAdd
+namespace ServiceControl.Config.UI.InstanceAdd
 {
     using System;
     using System.Collections.Generic;
@@ -8,6 +8,7 @@
     using System.Windows.Input;
     using PropertyChanged;
     using ServiceControl.Config.Extensions;
+    using ServiceControlInstaller.Engine.Instances;
     using Validar;
     using Xaml.Controls;
 
@@ -18,6 +19,7 @@
         {
             DisplayName = "ADD SERVICECONTROL";
             GetWindowsServiceNames = () => ServiceController.GetServices().Select(windowsService => windowsService.ServiceName).ToArray();
+            GetInstalledErrorInstanceNames = () => InstanceFinder.ServiceControlInstances().Select(instance => instance.Name).ToArray();
             ConventionName = "Particular.ServiceControl";
             OnConventionNameChanged();
 
@@ -46,6 +48,20 @@
         }
 
         public Func<string[]> GetWindowsServiceNames { get; set; }
+
+        public Func<string[]> GetInstalledErrorInstanceNames { get; set; }
+
+        public string[] ServiceControlQueueAddressOptions => null;
+
+        public string ServiceControlQueueAddress
+        {
+            get => InstallErrorInstance ? ErrorInstanceName : serviceControlQueueAddress;
+            set => serviceControlQueueAddress = value;
+        }
+
+        string serviceControlQueueAddress;
+
+        public bool ShowServiceControlQueueAddressSelection => false;
 
         public string ConventionName { get; set; }
 
