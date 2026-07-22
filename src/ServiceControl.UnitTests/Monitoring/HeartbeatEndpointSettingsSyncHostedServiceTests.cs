@@ -242,7 +242,7 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
 
     class MockEndpointSettingsStore(EndpointSettings[] settings) : IEndpointSettingsStore
     {
-        public IAsyncEnumerable<EndpointSettings> GetAllEndpointSettings() => settings.ToAsyncEnumerable();
+        public IAsyncEnumerable<EndpointSettings> GetAllEndpointSettings(CancellationToken token) => settings.ToAsyncEnumerable();
 
         public Task UpdateEndpointSettings(EndpointSettings settings, CancellationToken token)
         {

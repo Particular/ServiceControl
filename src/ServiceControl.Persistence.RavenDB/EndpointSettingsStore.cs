@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.RavenDB;
 
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Infrastructure;
@@ -12,14 +13,14 @@ class EndpointSettingsStore(IRavenSessionProvider sessionProvider) : IEndpointSe
     static string MakeDocumentId(string name) =>
         $"{EndpointSettings.CollectionName}/{DeterministicGuid.MakeId(name)}";
 
-    public async IAsyncEnumerable<EndpointSettings> GetAllEndpointSettings()
+    public async IAsyncEnumerable<EndpointSettings> GetAllEndpointSettings([EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        using IAsyncDocumentSession session = await sessionProvider.OpenSession();
+        using IAsyncDocumentSession session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
         await using IAsyncEnumerator<StreamResult<EndpointSettings>> enumerator = await session
             .Advanced
-            .StreamAsync<EndpointSettings>($"{EndpointSettings.CollectionName}/");
+            .StreamAsync<EndpointSettings>($"{EndpointSettings.CollectionName}/", token: cancellationToken);
 
-        while (await enumerator.MoveNextAsync())
+        while (await enumerator.MoveNextAsync() && !cancellationToken.IsCancellationRequested)
         {
             yield return enumerator.Current.Document;
         }
