@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest]
-        test-category: [ Default, SqlServer, AzureServiceBus, RabbitMQ, AzureStorageQueues, MSMQ, SQS, PrimaryRavenAcceptance, PrimaryRavenPersistence, PostgreSQL, IBMMQ ]
+        test-category: [ Default, SqlServer, SqlServerPersistence, AzureServiceBus, RabbitMQ, AzureStorageQueues, MSMQ, SQS, PrimaryRavenAcceptance, PrimaryRavenPersistence, PostgreSQL, PostgreSQLPersistence, IBMMQ ]
         include:
           - os: windows-latest
             os-name: Windows
@@ -83,7 +83,7 @@ jobs:
 
       - name: Azure login
         uses: azure/login@v3.0.0
-        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ' || matrix.test-category == 'PostgreSQL'
+        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ' || matrix.test-category == 'PostgreSQL' || matrix.test-category == 'PostgreSQLPersistence'
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup SQL Server
@@ -92,11 +92,26 @@ jobs:
         with:
           connection-string-env-var: ServiceControl_TransportTests_SQL_ConnectionString
           catalog: nservicebus
+      - name: Setup SQL Server persistence
+        uses: Particular/install-sql-server-action@v1.5.0
+        if: matrix.test-category == 'SqlServerPersistence'
+        with:
+          connection-string-env-var: ServiceControl_Persistence_SqlServer_ConnectionString
+          catalog: ServiceControl
+          enable-full-text-search: true
       - name: Setup PostgreSQL
         uses: Particular/setup-postgres-action@v1.1.0
         if: matrix.test-category == 'PostgreSQL'
         with:
           connection-string-name: ServiceControl_TransportTests_PostgreSQL_ConnectionString
+          tag: ServiceControl
+          registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Setup PostgreSQL persistence
+        uses: Particular/setup-postgres-action@v1.1.0
+        if: matrix.test-category == 'PostgreSQLPersistence'
+        with:
+          connection-string-name: ServiceControl_Persistence_PostgreSql_ConnectionString
           tag: ServiceControl
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
