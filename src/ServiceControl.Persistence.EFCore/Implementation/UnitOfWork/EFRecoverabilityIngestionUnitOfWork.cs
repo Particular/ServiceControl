@@ -50,6 +50,7 @@ public class EFRecoverabilityIngestionUnitOfWork(EFIngestionUnitOfWork parentUni
             ReceivingEndpointHost = receivingEndpoint?.Host,
             ExceptionType = processingAttempt.FailureDetails.Exception?.ExceptionType,
             ExceptionMessage = processingAttempt.FailureDetails.Exception?.Message,
+            FailingEndpointAddress = processingAttempt.FailureDetails.AddressOfFailingEndpoint,
             IsSystemMessage = GetMetadata<bool>(processingAttempt, "IsSystemMessage"),
             BodyText = bodyText,
             BodyStoredExternally = storeExternally,

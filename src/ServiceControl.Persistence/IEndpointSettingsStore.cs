@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 public interface IEndpointSettingsStore
 {
-    IAsyncEnumerable<EndpointSettings> GetAllEndpointSettings(CancellationToken cancellationToken);
+    IAsyncEnumerable<EndpointSettings> GetAllEndpointSettings(CancellationToken cancellationToken = default);
 
     Task UpdateEndpointSettings(EndpointSettings settings, CancellationToken token);
     Task Delete(string name, CancellationToken cancellationToken);

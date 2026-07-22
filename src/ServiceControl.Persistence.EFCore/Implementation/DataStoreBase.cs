@@ -36,20 +36,7 @@ public abstract class DataStoreBase(IServiceScopeFactory scopeFactory)
     /// <summary>
     /// Executes an operation with a scoped DbContext, without returning a result
     /// </summary>
-    protected async IAsyncEnumerable<T> ExecuteWithDbContext<T>(Func<ServiceControlDbContext, IAsyncEnumerable<T>> operation)
-    {
-        await using var scope = scopeFactory.CreateAsyncScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
-        await foreach (var row in operation(dbContext))
-        {
-            yield return row;
-        }
-    }
-    
-    /// <summary>
-    /// Executes an operation with a scoped DbContext, without returning a result
-    /// </summary>
-    protected async IAsyncEnumerable<T> ExecuteWithDbContext<T>(Func<ServiceControlDbContext, IAsyncEnumerable<T>> operation, [EnumeratorCancellation] CancellationToken cancellationToken)
+    protected async IAsyncEnumerable<T> ExecuteWithDbContext<T>(Func<ServiceControlDbContext, IAsyncEnumerable<T>> operation, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         await using var scope = scopeFactory.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();

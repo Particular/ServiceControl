@@ -24,4 +24,8 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.Persistence.Tests.SqlServer" />
+    <InternalsVisibleTo Include="ServiceControl.Persistence.Tests.PostgreSql" />
+  </ItemGroup>
 </Project>

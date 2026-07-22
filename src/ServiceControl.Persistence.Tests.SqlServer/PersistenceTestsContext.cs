@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using EFCore.SqlServer;
+using MessageFailures;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,7 +13,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Time.Testing;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
-public class PersistenceTestsContext : IPersistenceTestsContext
+public partial class PersistenceTestsContext : IPersistenceTestsContext
 {
     IHost host;
     string databaseName;
@@ -78,4 +79,6 @@ public class PersistenceTestsContext : IPersistenceTestsContext
     public PersistenceSettings PersistenceSettings { get; set; }
 
     public string GenerateFailedMessageRecordId(string messageId) => messageId;
+
+    public Task InsertFailedMessages(params FailedMessage[] messages) => InsertFailedMessagesDirect(host.Services, messages);
 }

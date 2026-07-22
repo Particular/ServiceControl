@@ -134,7 +134,8 @@ class RetentionSweepTests : ErrorIngestionTestBase
             IsSystemMessage = false,
             HeadersJson = "{}",
             BodyStoredExternally = bodyStoredExternally,
-            BodySize = 0
+            BodySize = 0,
+            FailingEndpointAddress = "Shipping"
         });
 
         return id;
