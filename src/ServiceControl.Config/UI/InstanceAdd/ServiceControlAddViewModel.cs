@@ -32,6 +32,18 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
             ServiceControl.PropertyChanged += ServiceControl_PropertyChanged;
             ServiceControlAudit.PropertyChanged += ServiceControl_PropertyChanged;
+            PropertyChanged += (_, e) =>
+            {
+                // InstallErrorInstance/InstallAuditInstance live on the base class, so Fody
+                // cannot infer that these derived computed properties depend on them
+                if (e.PropertyName is nameof(InstallErrorInstance) or nameof(InstallAuditInstance))
+                {
+                    NotifyOfPropertyChange(nameof(ServiceControlQueueAddress));
+                    NotifyOfPropertyChange(nameof(ServiceControlQueueAddressOptions));
+                    NotifyOfPropertyChange(nameof(ShowServiceControlQueueAddressSelection));
+                    NotifyOfPropertyChange(nameof(ShowNoErrorInstanceFoundWarning));
+                }
+            };
         }
 
         void ServiceControl_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -77,6 +89,11 @@ namespace ServiceControl.Config.UI.InstanceAdd
             InstallAuditInstance
             && !InstallErrorInstance
             && GetInstalledErrorInstanceNames().Length > 1;
+
+        public bool ShowNoErrorInstanceFoundWarning =>
+            InstallAuditInstance
+            && !InstallErrorInstance
+            && GetInstalledErrorInstanceNames().Length == 0;
 
         public string ConventionName { get; set; }
 

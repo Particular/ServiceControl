@@ -100,7 +100,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 auditNewInstance.AuditRetentionPeriod = viewModel.ServiceControlAudit.AuditRetentionPeriod;
                 auditNewInstance.ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount;
                 auditNewInstance.ServiceAccountPwd = viewModel.ServiceControlAudit.Password;
-                auditNewInstance.ServiceControlQueueAddress = serviceControlNewInstance == null ? string.Empty : serviceControlNewInstance.InstanceName;
+                auditNewInstance.ServiceControlQueueAddress = viewModel.ServiceControlQueueAddress;
                 auditNewInstance.EnableFullTextSearchOnBodies = viewModel.ServiceControlAudit.EnableFullTextSearchOnBodies.Value;
             }
 
