@@ -8,6 +8,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
 {
     public DbSet<KnownEndpointEntity> KnownEndpoints { get; set; }
     public DbSet<KnownEndpointInsertOnlyEntity> KnownEndpointsInsertOnly { get; set; }
+    public DbSet<EventLogItemEntity> EventLogItems { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -20,5 +21,6 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
 
         modelBuilder.ApplyConfiguration(new KnownEndpointConfiguration());
         modelBuilder.ApplyConfiguration(new KnownEndpointInsertOnlyConfiguration());
+        modelBuilder.ApplyConfiguration(new EventLogItemConfiguration());
     }
 }
