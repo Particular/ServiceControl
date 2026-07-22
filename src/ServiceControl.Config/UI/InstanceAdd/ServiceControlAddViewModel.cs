@@ -15,10 +15,13 @@ namespace ServiceControl.Config.UI.InstanceAdd
     [InjectValidation]
     public class ServiceControlAddViewModel : ServiceControlEditorViewModel
     {
-        public ServiceControlAddViewModel()
+        // The constructor runs the unique-name convention against the machine's Windows
+        // services, so tests inject a fake here to stay environment-independent; the
+        // GetWindowsServiceNames property seam is set too late for construction-time logic
+        public ServiceControlAddViewModel(Func<string[]> getWindowsServiceNames = null)
         {
             DisplayName = "ADD SERVICECONTROL";
-            GetWindowsServiceNames = () => ServiceController.GetServices().Select(windowsService => windowsService.ServiceName).ToArray();
+            GetWindowsServiceNames = getWindowsServiceNames ?? (() => ServiceController.GetServices().Select(windowsService => windowsService.ServiceName).ToArray());
             GetInstalledErrorInstanceNames = () => InstanceFinder.ServiceControlInstances().Select(instance => instance.Name).ToArray();
             ConventionName = "Particular.ServiceControl";
             OnConventionNameChanged();
