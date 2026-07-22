@@ -8,7 +8,6 @@ class KnownEndpointConfiguration : IEntityTypeConfiguration<KnownEndpointEntity>
 {
     public void Configure(EntityTypeBuilder<KnownEndpointEntity> builder)
     {
-        builder.ToTable("KnownEndpoints");
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id).ValueGeneratedNever();
         builder.Property(e => e.Name).IsRequired();
