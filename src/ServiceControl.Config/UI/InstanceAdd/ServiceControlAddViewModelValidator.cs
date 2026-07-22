@@ -150,6 +150,11 @@ namespace ServiceControl.Config.UI.InstanceAdd
                     .WithMessage("Audit instance name is already in use")
                 .When(viewModel => viewModel.InstallAuditInstance);
 
+            RuleFor(viewModel => viewModel.ServiceControlQueueAddress)
+                .NotEmpty()
+                    .WithMessage("An existing error instance must be selected to receive audit data")
+                .When(viewModel => viewModel.InstallAuditInstance && !viewModel.InstallErrorInstance);
+
             RuleFor(x => x.AuditServiceAccount)
                 .NotEmpty()
                 .When(x => x.InstallAuditInstance && x.SubmitAttempted);

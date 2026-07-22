@@ -51,7 +51,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
         public Func<string[]> GetInstalledErrorInstanceNames { get; set; }
 
-        public string[] ServiceControlQueueAddressOptions => null;
+        public string[] ServiceControlQueueAddressOptions => GetInstalledErrorInstanceNames();
 
         public string ServiceControlQueueAddress
         {
@@ -73,7 +73,10 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
         string serviceControlQueueAddress;
 
-        public bool ShowServiceControlQueueAddressSelection => false;
+        public bool ShowServiceControlQueueAddressSelection =>
+            InstallAuditInstance
+            && !InstallErrorInstance
+            && GetInstalledErrorInstanceNames().Length > 1;
 
         public string ConventionName { get; set; }
 
