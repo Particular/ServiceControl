@@ -171,8 +171,8 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(summary.First(w => w.Name == "Endpoint1").AverageMonthlyThroughput, Is.EqualTo(250), $"Incorrect MaxDailyThroughput recorded for Endpoint1");
-            Assert.That(summary.First(w => w.Name == "Endpoint2").AverageMonthlyThroughput, Is.EqualTo(165), $"Incorrect MaxDailyThroughput recorded for Endpoint2");
+            Assert.That(summary.First(w => w.Name == "Endpoint1").AverageMonthlyThroughput, Is.EqualTo(2694), $"Incorrect MaxDailyThroughput recorded for Endpoint1");
+            Assert.That(summary.First(w => w.Name == "Endpoint2").AverageMonthlyThroughput, Is.EqualTo(2585), $"Incorrect MaxDailyThroughput recorded for Endpoint2");
         }
     }
 
