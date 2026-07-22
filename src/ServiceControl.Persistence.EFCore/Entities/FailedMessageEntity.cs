@@ -57,4 +57,6 @@ public class FailedMessageEntity
     public int BodySize { get; set; }
 
     public string? BodyContentType { get; set; }
+
+    public required string FailingEndpointAddress { get; set; }
 }

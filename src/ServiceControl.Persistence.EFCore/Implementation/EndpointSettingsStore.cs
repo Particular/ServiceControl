@@ -25,20 +25,21 @@ public class EndpointSettingsStore(IServiceScopeFactory scopeFactory) : DataStor
                 await context.SaveChangesAsync(token);
                 return;
             }
-            catch (someexception e) when (condition)
+            catch (DbUpdateException)
             {
-                //this failed because of key conflict so it's a race!
+                //this probably failed because of key conflict so try again
             }
 
             await context.Entry(entity).ReloadAsync(token);
-            entity.TrackInstances = settings.TrackInstances;
-            await context.SaveChangesAsync(token);
         }
+
+        entity.TrackInstances = settings.TrackInstances;
+        await context.SaveChangesAsync(token);
     });
 
     public Task Delete(string name, CancellationToken cancellationToken) => ExecuteWithDbContext(async context =>
     {
-        context.KnownEndpoints.RemoveRange(context.KnownEndpoints.Where(x => x.Name == name));
+        context.EndpointSettings.RemoveRange(context.EndpointSettings.Where(x => x.Name == name));
         await context.SaveChangesAsync(cancellationToken);
     });
 }
