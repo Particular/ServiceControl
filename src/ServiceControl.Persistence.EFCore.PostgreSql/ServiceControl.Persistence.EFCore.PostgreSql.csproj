@@ -45,5 +45,8 @@
   <ItemGroup>
     <InternalsVisibleTo Include="ServiceControl.Persistence.Tests.PostgreSql" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ApprovalFiles\" />
+  </ItemGroup>
 
 </Project>

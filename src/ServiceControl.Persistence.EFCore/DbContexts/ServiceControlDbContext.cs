@@ -6,6 +6,7 @@ using ServiceControl.Persistence.EFCore.EntityConfigurations;
 
 public abstract class ServiceControlDbContext(DbContextOptions options) : DbContext(options)
 {
+    public DbSet<CustomCheckEntity> CustomChecks { get; set; }
     public DbSet<EndpointSettingsEntity> EndpointSettings { get; set; }
     public DbSet<KnownEndpointEntity> KnownEndpoints { get; set; }
     public DbSet<FailedMessageEntity> FailedMessages { get; set; }
@@ -23,6 +24,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.ApplyConfiguration(new CustomCheckConfiguration());
         modelBuilder.ApplyConfiguration(new EndpointSettingsConfiguration());
         modelBuilder.ApplyConfiguration(new FailedErrorImportConfiguration());
         modelBuilder.ApplyConfiguration(new FailedMessageConfiguration());
