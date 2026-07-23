@@ -93,11 +93,11 @@
             const string AttemptedAt = nameof(FailedMessage.ProcessingAttempt.AttemptedAt);
 
             //HINT: RavenDB 4.2 removed Lodash utility functions, but supports ECMAScript 5.1 and some 6.0 features like arrow functions and array primitive functions
-            return new PatchCommandData(documentId, null, new PatchRequest
+            var existingDocPatch = new PatchRequest
             {
                 Script = $@"this.{nameof(FailedMessage.Status)} = args.status;
                                 this.{nameof(FailedMessage.FailureGroups)} = args.failureGroups;
-                                
+
                                 var newAttempts = this.{nameof(FailedMessage.ProcessingAttempts)};
 
                                 //De-duplicate attempts by AttemptedAt value
@@ -109,7 +109,7 @@
 
                                 //Trim to the latest MaxProcessingAttempts
                                 newAttempts.sort((a, b) => a.{AttemptedAt} > b.{AttemptedAt} ? 1 : -1);
-                                
+
                                 if(newAttempts.length > {MaxProcessingAttempts})
                                 {{
                                     newAttempts = newAttempts.slice(newAttempts.length - {MaxProcessingAttempts}, newAttempts.length);
@@ -123,7 +123,13 @@
                         {"failureGroups", groups},
                         {"attempt", processingAttempt}
                     },
-            },
+            };
+
+            // A message re-failing must not keep an @expires stamp set by an earlier
+            // resolve/archive/retry, otherwise it can be silently deleted while still Unresolved.
+            expirationManager.CancelExpiration(existingDocPatch);
+
+            return new PatchCommandData(documentId, null, existingDocPatch,
                 patchIfMissing: new PatchRequest
                 {
                     Script = $@"this.{nameof(FailedMessage.Status)} = args.status;

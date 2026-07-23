@@ -227,5 +227,67 @@
                 Assert.That(fromStorage.Monitored, Is.EqualTo(knownEndpoint.Monitored), "Monitored should match");
             }
         }
+
+        [Test]
+        public async Task Ingesting_a_known_endpoint_does_not_reset_monitored_flag()
+        {
+            var endpointDetails = new EndpointDetails { Host = "Host1", HostId = Guid.NewGuid(), Name = "Endpoint" };
+
+            await MonitoringDataStore.CreateIfNotExists(endpointDetails);
+            await MonitoringDataStore.UpdateEndpointMonitoring(endpointDetails, true);
+
+            await CompleteDatabaseOperation();
+
+            // Error ingestion always records endpoints it observes with Monitored = false
+            // (ErrorProcessor.RecordKnownEndpoints), regardless of the endpoint's current
+            // monitored state. Recording it again must not stomp a user-set Monitored = true.
+            var observedAgain = new KnownEndpoint
+            {
+                HostDisplayName = endpointDetails.Host,
+                EndpointDetails = endpointDetails,
+                Monitored = false
+            };
+
+            await using (var unitOfWork = await UnitOfWorkFactory.StartNew())
+            {
+                await unitOfWork.Monitoring.RecordKnownEndpoint(observedAgain);
+
+                await unitOfWork.Complete(TestContext.CurrentContext.CancellationToken);
+            }
+
+            await CompleteDatabaseOperation();
+
+            var knownEndpoints = await MonitoringDataStore.GetAllKnownEndpoints();
+            var fromStorage = knownEndpoints.Single(e => e.EndpointDetails.HostId == endpointDetails.HostId);
+
+            Assert.That(fromStorage.Monitored, Is.True, "Ingestion must not reset an existing endpoint's Monitored flag back to false");
+        }
+
+        [Test]
+        public async Task Ingesting_a_previously_unknown_endpoint_creates_it_unmonitored()
+        {
+            var endpointDetails = new EndpointDetails { Host = "Host1", HostId = Guid.NewGuid(), Name = "Endpoint" };
+
+            var observed = new KnownEndpoint
+            {
+                HostDisplayName = endpointDetails.Host,
+                EndpointDetails = endpointDetails,
+                Monitored = false
+            };
+
+            await using (var unitOfWork = await UnitOfWorkFactory.StartNew())
+            {
+                await unitOfWork.Monitoring.RecordKnownEndpoint(observed);
+
+                await unitOfWork.Complete(TestContext.CurrentContext.CancellationToken);
+            }
+
+            await CompleteDatabaseOperation();
+
+            var knownEndpoints = await MonitoringDataStore.GetAllKnownEndpoints();
+            var fromStorage = knownEndpoints.Single(e => e.EndpointDetails.HostId == endpointDetails.HostId);
+
+            Assert.That(fromStorage.Monitored, Is.False, "A newly discovered endpoint should be created unmonitored");
+        }
     }
 }
