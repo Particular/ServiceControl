@@ -6,10 +6,6 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
 {
-    // Indexed and short-by-nature values get a length so that SQL Server can index them,
-    // nvarchar(max) columns cannot be index key columns.
-    public const int ShortTextLength = 450;
-
     public void Configure(EntityTypeBuilder<FailedMessageEntity> builder)
     {
         builder.HasKey(e => e.UniqueMessageId);
@@ -23,14 +19,14 @@ class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
         builder.Property(e => e.LastTimeOfFailure).IsRequired();
         builder.Property(e => e.LastAttemptedAt).IsRequired();
 
-        builder.Property(e => e.MessageId).HasMaxLength(ShortTextLength);
-        builder.Property(e => e.ConversationId).HasMaxLength(ShortTextLength);
-        builder.Property(e => e.QueueAddress).HasMaxLength(ShortTextLength);
-        builder.Property(e => e.SendingEndpointName).HasMaxLength(ShortTextLength);
-        builder.Property(e => e.SendingEndpointHost).HasMaxLength(ShortTextLength);
-        builder.Property(e => e.ReceivingEndpointName).HasMaxLength(ShortTextLength);
-        builder.Property(e => e.ReceivingEndpointHost).HasMaxLength(ShortTextLength);
-        builder.Property(e => e.BodyContentType).HasMaxLength(ShortTextLength);
+        builder.Property(e => e.MessageId).HasMaxLength(ColumnLengths.ShortTextLength);
+        builder.Property(e => e.ConversationId).HasMaxLength(ColumnLengths.ShortTextLength);
+        builder.Property(e => e.QueueAddress).HasMaxLength(ColumnLengths.ShortTextLength);
+        builder.Property(e => e.SendingEndpointName).HasMaxLength(ColumnLengths.ShortTextLength);
+        builder.Property(e => e.SendingEndpointHost).HasMaxLength(ColumnLengths.ShortTextLength);
+        builder.Property(e => e.ReceivingEndpointName).HasMaxLength(ColumnLengths.ShortTextLength);
+        builder.Property(e => e.ReceivingEndpointHost).HasMaxLength(ColumnLengths.ShortTextLength);
+        builder.Property(e => e.BodyContentType).HasMaxLength(ColumnLengths.ShortTextLength);
 
         builder.Property(e => e.IsSystemMessage).IsRequired();
         builder.Property(e => e.HeadersJson).IsRequired();

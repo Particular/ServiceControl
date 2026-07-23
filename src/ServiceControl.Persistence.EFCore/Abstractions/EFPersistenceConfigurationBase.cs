@@ -14,15 +14,13 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
     const string ErrorRetentionPeriodKey = "ErrorRetentionPeriod";
     const string EnableFullTextSearchOnBodiesKey = "EnableFullTextSearchOnBodies";
 
-    const int MaxBodySizeToStoreDefault = 102400; //100 kb
-
     public PersistenceSettings CreateSettings(SettingsRootNamespace settingsRootNamespace)
     {
         var settings = CreateSettings(GetRequiredSetting<string>(settingsRootNamespace, ConnectionStringKey));
 
-        settings.CommandTimeout = SettingsReader.Read(settingsRootNamespace, CommandTimeoutKey, 30);
+        settings.CommandTimeout = SettingsReader.Read(settingsRootNamespace, CommandTimeoutKey, EFPersisterSettings.DefaultCommandTimeout);
         settings.MessageBodyStoragePath = SettingsReader.Read<string>(settingsRootNamespace, MessageBodyStoragePathKey);
-        settings.MinBodySizeForCompression = SettingsReader.Read(settingsRootNamespace, MinBodySizeForCompressionKey, 4096);
+        settings.MinBodySizeForCompression = SettingsReader.Read(settingsRootNamespace, MinBodySizeForCompressionKey, EFPersisterSettings.DefaultMinBodySizeForCompression);
         settings.MaxBodySizeToStore = ReadMaxBodySizeToStore(settingsRootNamespace);
         settings.ErrorRetentionPeriod = GetRequiredSetting<TimeSpan>(settingsRootNamespace, ErrorRetentionPeriodKey);
         settings.EnableFullTextSearchOnBodies = SettingsReader.Read(settingsRootNamespace, EnableFullTextSearchOnBodiesKey, true);
@@ -36,14 +34,14 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
 
     static int ReadMaxBodySizeToStore(SettingsRootNamespace settingsRootNamespace)
     {
-        var maxBodySizeToStore = SettingsReader.Read(settingsRootNamespace, MaxBodySizeToStoreKey, MaxBodySizeToStoreDefault);
+        var maxBodySizeToStore = SettingsReader.Read(settingsRootNamespace, MaxBodySizeToStoreKey, EFPersisterSettings.DefaultMaxBodySizeToStore);
 
         if (maxBodySizeToStore <= 0)
         {
             LoggerUtil.CreateStaticLogger<EFPersistenceConfigurationBase>()
-                .LogError("MaxBodySizeToStore setting is invalid, 1 is the minimum value. Defaulting to {MaxBodySizeToStoreDefault}", MaxBodySizeToStoreDefault);
+                .LogError("MaxBodySizeToStore setting is invalid, 1 is the minimum value. Defaulting to {MaxBodySizeToStoreDefault}", EFPersisterSettings.DefaultMaxBodySizeToStore);
 
-            return MaxBodySizeToStoreDefault;
+            return EFPersisterSettings.DefaultMaxBodySizeToStore;
         }
 
         return maxBodySizeToStore;

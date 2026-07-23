@@ -10,6 +10,6 @@ class FailedMessageRetryConfiguration : IEntityTypeConfiguration<FailedMessageRe
     {
         builder.HasKey(e => e.UniqueMessageId);
         builder.Property(e => e.UniqueMessageId).ValueGeneratedNever();
-        builder.Property(e => e.RetryId).HasMaxLength(FailedMessageConfiguration.ShortTextLength);
+        builder.Property(e => e.RetryId).HasMaxLength(ColumnLengths.ShortTextLength);
     }
 }
