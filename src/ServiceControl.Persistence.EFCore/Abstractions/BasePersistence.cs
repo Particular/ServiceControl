@@ -32,6 +32,9 @@ public abstract class BasePersistence
         services.AddSingleton<IExternalIntegrationRequestsDataStore>(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
         services.AddHostedService(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
 
+        services.AddSingleton<RetentionSweeper>();
+        services.AddHostedService(p => p.GetRequiredService<RetentionSweeper>());
+
         services.AddSingleton<IArchiveMessages, MessageArchiver>();
         services.AddSingleton<ICustomChecksDataStore, CustomCheckDataStore>();
         services.AddSingleton<IErrorMessageDataStore, ErrorMessagesDataStore>();

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
@@ -86,6 +87,9 @@ abstract class ErrorIngestionTestBase : PersistenceTestBase
     protected Task<int> CountRetryRows(Guid uniqueMessageId) =>
         Query(dbContext => dbContext.FailedMessageRetries.AsNoTracking().CountAsync(r => r.UniqueMessageId == uniqueMessageId));
 
+    protected Task RunRetentionSweep() =>
+        ServiceProvider.GetServices<IHostedService>().OfType<RetentionSweeper>().Single().SweepNow(TestContext.CurrentContext.CancellationToken);
+
     async Task<T> Query<T>(Func<ServiceControlDbContext, Task<T>> query)
     {
         using var scope = ServiceProvider.CreateScope();
@@ -97,6 +101,10 @@ abstract class ErrorIngestionTestBase : PersistenceTestBase
     protected class RecordingBodyStoragePersistence : IBodyStoragePersistence
     {
         readonly List<StoredBody> written = [];
+        readonly List<string> deleted = [];
+
+        // Body ids whose deletion should throw, to exercise the sweep's tolerate-missing handling.
+        public HashSet<string> FailDeleteFor { get; } = [];
 
         public IReadOnlyList<StoredBody> Written
         {
@@ -105,6 +113,17 @@ abstract class ErrorIngestionTestBase : PersistenceTestBase
                 lock (written)
                 {
                     return [.. written];
+                }
+            }
+        }
+
+        public IReadOnlyList<string> Deleted
+        {
+            get
+            {
+                lock (deleted)
+                {
+                    return [.. deleted];
                 }
             }
         }
@@ -122,8 +141,20 @@ abstract class ErrorIngestionTestBase : PersistenceTestBase
         public Task<MessageBodyFileResult> ReadBody(string bodyId, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
-        public Task DeleteBody(string bodyId, CancellationToken cancellationToken = default) =>
-            throw new NotImplementedException();
+        public Task DeleteBody(string bodyId, CancellationToken cancellationToken = default)
+        {
+            if (FailDeleteFor.Contains(bodyId))
+            {
+                throw new InvalidOperationException($"Simulated missing body for {bodyId}");
+            }
+
+            lock (deleted)
+            {
+                deleted.Add(bodyId);
+            }
+
+            return Task.CompletedTask;
+        }
 
         public record StoredBody(string BodyId, byte[] Body, string ContentType);
     }
