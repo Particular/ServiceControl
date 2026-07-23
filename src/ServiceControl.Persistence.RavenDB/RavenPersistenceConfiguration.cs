@@ -8,9 +8,8 @@
     using Particular.LicensingComponent.Contracts;
     using ServiceControl.Infrastructure;
 
-    class RavenPersistenceConfiguration : IPersistenceConfiguration
+    class RavenPersistenceConfiguration : PersistenceConfiguration, IPersistenceConfiguration
     {
-        public const string DataSpaceRemainingThresholdKey = "DataSpaceRemainingThreshold";
         const string AuditRetentionPeriodKey = "AuditRetentionPeriod";
         const string ErrorRetentionPeriodKey = "ErrorRetentionPeriod";
         const string EventsRetentionPeriodKey = "EventsRetentionPeriod";
@@ -19,41 +18,30 @@
 
         public PersistenceSettings CreateSettings(SettingsRootNamespace settingsRootNamespace)
         {
-            static T GetRequiredSetting<T>(SettingsRootNamespace settingsRootNamespace, string key)
-            {
-                if (SettingsReader.TryRead<T>(settingsRootNamespace, key, out var value))
-                {
-                    return value;
-                }
-
-                throw new Exception($"Setting {key} of type {typeof(T)} is required");
-            }
-
             var ravenDbLogLevel = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.RavenDbLogLevelKey, "Warn");
             var logsMode = RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel, LoggerUtil.CreateStaticLogger<RavenPersistenceConfiguration>());
 
-            var settings = new RavenPersisterSettings
-            {
-                ConnectionString = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.ConnectionStringKey),
-                ClientCertificatePath = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.ClientCertificatePathKey),
-                ClientCertificateBase64 = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.ClientCertificateBase64Key),
-                ClientCertificatePassword = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.ClientCertificatePasswordKey),
-                DatabaseName = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.DatabaseNameKey, RavenPersisterSettings.DatabaseNameDefault),
-                DatabasePath = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.DatabasePathKey, DefaultDatabaseLocation()),
-                DatabaseMaintenancePort = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.DatabaseMaintenancePortKey, RavenPersisterSettings.DatabaseMaintenancePortDefault),
-                ExpirationProcessTimerInSeconds = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.ExpirationProcessTimerInSecondsKey, 600),
-                MinimumStorageLeftRequiredForIngestion = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, CheckMinimumStorageRequiredForIngestion.MinimumStorageLeftRequiredForIngestionDefault),
-                DataSpaceRemainingThreshold = SettingsReader.Read(settingsRootNamespace, DataSpaceRemainingThresholdKey, CheckFreeDiskSpace.DataSpaceRemainingThresholdDefault),
-                ErrorRetentionPeriod = GetRequiredSetting<TimeSpan>(settingsRootNamespace, ErrorRetentionPeriodKey),
-                EventsRetentionPeriod = SettingsReader.Read(settingsRootNamespace, EventsRetentionPeriodKey, TimeSpan.FromDays(14)),
-                AuditRetentionPeriod = SettingsReader.Read(settingsRootNamespace, AuditRetentionPeriodKey, TimeSpan.Zero),
-                ExternalIntegrationsDispatchingBatchSize = SettingsReader.Read(settingsRootNamespace, ExternalIntegrationsDispatchingBatchSizeKey, 100),
-                MaintenanceMode = SettingsReader.Read(settingsRootNamespace, MaintenanceModeKey, false),
-                LogPath = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.LogsPathKey, DefaultLogLocation()),
-                LogsMode = logsMode,
-                EnableFullTextSearchOnBodies = SettingsReader.Read(settingsRootNamespace, "EnableFullTextSearchOnBodies", true),
-                ThroughputDatabaseName = SettingsReader.Read(ThroughputSettings.SettingsNamespace, ThroughputSettings.DatabaseNameKey, ThroughputSettings.DefaultDatabaseName)
-            };
+            var settings = new RavenPersisterSettings();
+
+            LoadCommonConfiguration(settings, settingsRootNamespace);
+
+            settings.ConnectionString = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.ConnectionStringKey, settings.ConnectionString);
+            settings.ClientCertificatePath = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.ClientCertificatePathKey);
+            settings.ClientCertificateBase64 = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.ClientCertificateBase64Key);
+            settings.ClientCertificatePassword = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.ClientCertificatePasswordKey);
+            settings.DatabaseName = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.DatabaseNameKey, RavenPersisterSettings.DatabaseNameDefault);
+            settings.DatabasePath = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.DatabasePathKey, DefaultDatabaseLocation());
+            settings.DatabaseMaintenancePort = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.DatabaseMaintenancePortKey, RavenPersisterSettings.DatabaseMaintenancePortDefault);
+            settings.ExpirationProcessTimerInSeconds = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.ExpirationProcessTimerInSecondsKey, 600);
+            settings.ErrorRetentionPeriod = GetRequiredSetting<TimeSpan>(settingsRootNamespace, ErrorRetentionPeriodKey);
+            settings.EventsRetentionPeriod = SettingsReader.Read(settingsRootNamespace, EventsRetentionPeriodKey, TimeSpan.FromDays(14));
+            settings.AuditRetentionPeriod = SettingsReader.Read(settingsRootNamespace, AuditRetentionPeriodKey, TimeSpan.Zero);
+            settings.ExternalIntegrationsDispatchingBatchSize = SettingsReader.Read(settingsRootNamespace, ExternalIntegrationsDispatchingBatchSizeKey, 100);
+            settings.MaintenanceMode = SettingsReader.Read(settingsRootNamespace, MaintenanceModeKey, false);
+            settings.LogPath = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.LogsPathKey, DefaultLogLocation());
+            settings.LogsMode = logsMode;
+            settings.EnableFullTextSearchOnBodies = SettingsReader.Read(settingsRootNamespace, "EnableFullTextSearchOnBodies", true);
+            settings.ThroughputDatabaseName = SettingsReader.Read(ThroughputSettings.SettingsNamespace, ThroughputSettings.DatabaseNameKey, ThroughputSettings.DefaultDatabaseName);
 
             CheckFreeDiskSpace.Validate(settings);
             CheckMinimumStorageRequiredForIngestion.Validate(settings);

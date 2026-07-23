@@ -1,15 +1,12 @@
 ﻿using System;
 using Particular.LicensingComponent.Contracts;
 using ServiceControl.Persistence;
-using ServiceControl.Persistence.RavenDB.CustomChecks;
 using ServiceControl.RavenDB;
 
 class RavenPersisterSettings : PersistenceSettings, IRavenClientCertificateInfo
 {
     public int DatabaseMaintenancePort { get; set; } = DatabaseMaintenancePortDefault;
     public int ExpirationProcessTimerInSeconds { get; set; } = ExpirationProcessTimerInSecondsDefault;
-    public int MinimumStorageLeftRequiredForIngestion { get; set; } = CheckMinimumStorageRequiredForIngestion.MinimumStorageLeftRequiredForIngestionDefault;
-    public int DataSpaceRemainingThreshold { get; set; } = CheckFreeDiskSpace.DataSpaceRemainingThresholdDefault;
     public TimeSpan ErrorRetentionPeriod { get; set; }
     public TimeSpan EventsRetentionPeriod { get; set; }
     public TimeSpan? AuditRetentionPeriod { get; set; }
