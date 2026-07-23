@@ -28,7 +28,23 @@
 
             var docId = RavenMonitoringDataStore.MakeDocumentId(endpoint.EndpointDetails.GetDeterministicId());
 
-            var request = new PatchRequest
+            // Ingestion always observes endpoints with Monitored = false, so patching an
+            // already-known endpoint must not stomp a user-set Monitored = true flag back to false.
+            var existingDocPatch = new PatchRequest
+            {
+                Script = @$"
+                    var insert = {document};
+
+                    for(var key in insert) {{
+                        if(insert.hasOwnProperty(key) && key !== '{nameof(KnownEndpoint.Monitored)}') {{
+                            this[key] = insert[key];
+                        }}
+                    }}"
+            };
+
+            // A newly discovered endpoint has no existing Monitored value to preserve, so it
+            // still gets the full document, including Monitored = false.
+            var patchIfMissing = new PatchRequest
             {
                 Script = @$"
                     var insert = {document};
@@ -40,7 +56,7 @@
                     }}"
             };
 
-            return new PatchCommandData(docId, null, request, request);
+            return new PatchCommandData(docId, null, existingDocPatch, patchIfMissing);
         }
 
         static RavenMonitoringIngestionUnitOfWork()
