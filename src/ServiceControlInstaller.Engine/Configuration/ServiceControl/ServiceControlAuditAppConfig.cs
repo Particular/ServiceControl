@@ -36,8 +36,18 @@
             // Windows via SCMU or PowerShell
             settings.Set(AuditInstanceSettingsList.ShutdownTimeout, "00:02:00", version);
 
+            //ServiceControl.Audit.Persistence.RavenDB.RavenPersistenceConfiguration.ConnectionStringKey
+            var hasOnlyRemoteRavenDbConnection = settings.AllKeys.Contains("RavenDB/ConnectionString")
+                                                 && !settings.AllKeys.Contains(AuditInstanceSettingsList.DBPath.Name);
+
             foreach (var manifestSetting in instance.PersistenceManifest.Settings)
             {
+                if (manifestSetting.Name == AuditInstanceSettingsList.DBPath.Name
+                    && hasOnlyRemoteRavenDbConnection)
+                {
+                    continue;
+                }
+
                 if (!settings.AllKeys.Contains(manifestSetting.Name))
                 {
                     var value = manifestSetting.DefaultValue;
