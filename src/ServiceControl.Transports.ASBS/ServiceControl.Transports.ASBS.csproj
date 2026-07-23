@@ -11,6 +11,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.Transports.ASBS.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Azure.ResourceManager.Monitor" />
     <PackageReference Include="Azure.ResourceManager.ServiceBus" />
