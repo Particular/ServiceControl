@@ -75,6 +75,7 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                 expectedClientId: TestClientId,
                 expectedAudience: TestAudience,
                 expectedApiScopes: TestApiScopes,
+                expectedScopes: $"{TestApiScopes} openid profile email offline_access",
                 expectedRoleBasedAuthorizationEnabled: true);
         }
 

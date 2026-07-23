@@ -282,11 +282,12 @@ curl http://localhost:33633/api/authentication/configuration | json
   "enabled": true,
   "clientId": "test-client-id",
   "audience": "api://servicecontrol-test",
-  "apiScopes": "[\"api://servicecontrol-test/access_as_user\"]"
+  "apiScopes": "[\"api://servicecontrol-test/access_as_user\"]",
+  "scopes": "[\"api://servicecontrol-test/access_as_user\"] openid profile email offline_access"
 }
 ```
 
-The authentication configuration endpoint is accessible without authentication and returns the configuration that clients need to authenticate. The `authority` field is omitted when `ServicePulse.Authority` is not explicitly set (it defaults to the main Authority for ServicePulse clients). The `audience` field is copied from the `ServiceControl/Authentication.Audience` value.
+The authentication configuration endpoint is accessible without authentication and returns the configuration that clients need to authenticate. The `authority` field is omitted when `ServicePulse.Authority` is not explicitly set (it defaults to the main Authority for ServicePulse clients). The `audience` field is copied from the `ServiceControl/Authentication.Audience` value. The `scopes` field is the complete scope string ServicePulse should request, composed by ServiceControl from `apiScopes` plus the fixed `openid profile email` scopes and `offline_access` unless `ServiceControl/Authentication.ServicePulse.OfflineAccessScopeEnabled` is set to `false`.
 
 ### Scenario 3: Authentication with Invalid Token
 

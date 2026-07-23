@@ -160,6 +160,16 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
         }
 
         /// <summary>
+        /// Configures whether ServicePulse should request the <c>offline_access</c> scope.
+        /// Default is true. Set to false to simulate an identity provider that disallows the scope.
+        /// </summary>
+        public OpenIdConnectTestConfiguration WithServicePulseOfflineAccessScopeEnabled(bool enabled)
+        {
+            SetEnvironmentVariable("AUTHENTICATION_SERVICEPULSE_OFFLINEACCESSSCOPEENABLED", enabled.ToString().ToLowerInvariant());
+            return this;
+        }
+
+        /// <summary>
         /// Clears all OpenID Connect environment variables.
         /// Called automatically on Dispose.
         /// </summary>
@@ -176,6 +186,7 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
             ClearEnvironmentVariable("AUTHENTICATION_SERVICEPULSE_CLIENTID");
             ClearEnvironmentVariable("AUTHENTICATION_SERVICEPULSE_APISCOPES");
             ClearEnvironmentVariable("AUTHENTICATION_SERVICEPULSE_AUTHORITY");
+            ClearEnvironmentVariable("AUTHENTICATION_SERVICEPULSE_OFFLINEACCESSSCOPEENABLED");
             ClearEnvironmentVariable("AUTHENTICATION_ROLEBASEDAUTHORIZATIONENABLED");
             ClearEnvironmentVariable("VALIDATECONFIG");
         }

@@ -49,6 +49,7 @@ public class OpenIdConnectSettings
             ServicePulseClientId = SettingsReader.Read<string>(rootNamespace, "Authentication.ServicePulse.ClientId");
             ServicePulseApiScopes = SettingsReader.Read<string>(rootNamespace, "Authentication.ServicePulse.ApiScopes");
             ServicePulseAuthority = SettingsReader.Read<string>(rootNamespace, "Authentication.ServicePulse.Authority");
+            ServicePulseOfflineAccessScopeEnabled = SettingsReader.Read(rootNamespace, "Authentication.ServicePulse.OfflineAccessScopeEnabled", true);
         }
 
         if (validateConfiguration)
@@ -137,6 +138,24 @@ public class OpenIdConnectSettings
     /// Required on the primary ServiceControl instance when authentication is enabled.
     /// </summary>
     public string ServicePulseApiScopes { get; }
+
+    /// <summary>
+    /// Whether ServicePulse should request the <c>offline_access</c> scope. Defaults to <c>true</c>
+    /// to preserve existing behaviour. Some identity providers reject authorization requests that
+    /// include a scope they don't permit, so operators can disable it here rather than have
+    /// ServicePulse hard-code it into every request.
+    /// </summary>
+    public bool ServicePulseOfflineAccessScopeEnabled { get; }
+
+    /// <summary>
+    /// The complete, space-separated scope string ServicePulse should request, composed from
+    /// <see cref="ServicePulseApiScopes"/> plus the fixed <c>openid profile email</c> scopes required
+    /// to establish an OIDC session, and <c>offline_access</c> unless
+    /// <see cref="ServicePulseOfflineAccessScopeEnabled"/> is <c>false</c>.
+    /// </summary>
+    public string ServicePulseScopes => ServicePulseApiScopes is null
+        ? null
+        : $"{ServicePulseApiScopes} openid profile email{(ServicePulseOfflineAccessScopeEnabled ? " offline_access" : "")}";
 
     /// <summary>
     /// Path within the JWT where the user's role values live. Defaults to the flat <c>roles</c>
@@ -231,9 +250,10 @@ public class OpenIdConnectSettings
         var servicePulseClientIdDisplay = requireServicePulseSettings ? (ServicePulseClientId ?? "(not configured)") : "(n/a)";
         var servicePulseAuthorityDisplay = requireServicePulseSettings ? (ServicePulseAuthority ?? "(not configured)") : "(n/a)";
         var servicePulseApiScopesDisplay = requireServicePulseSettings ? (ServicePulseApiScopes ?? "(not configured)") : "(n/a)";
+        var servicePulseOfflineAccessScopeEnabledDisplay = requireServicePulseSettings ? ServicePulseOfflineAccessScopeEnabled.ToString() : "(n/a)";
 
-        logger.LogInformation("Authentication settings: Enabled={Enabled}, Authority={Authority}, Audience={Audience}, ValidateIssuer={ValidateIssuer}, ValidateAudience={ValidateAudience}, ValidateLifetime={ValidateLifetime}, ValidateIssuerSigningKey={ValidateIssuerSigningKey}, RequireHttpsMetadata={RequireHttpsMetadata}, RolesClaim={RolesClaim}, SubjectIdClaim={SubjectIdClaim}, SubjectNameClaim={SubjectNameClaim}, ServicePulseClientId={ServicePulseClientId}, ServicePulseAuthority={ServicePulseAuthority}, ServicePulseApiScopes={ServicePulseApiScopes}",
-            Enabled, authorityDisplay, audienceDisplay, ValidateIssuer, ValidateAudience, ValidateLifetime, ValidateIssuerSigningKey, RequireHttpsMetadata, RolesClaim, SubjectIdClaim, SubjectNameClaim, servicePulseClientIdDisplay, servicePulseAuthorityDisplay, servicePulseApiScopesDisplay);
+        logger.LogInformation("Authentication settings: Enabled={Enabled}, Authority={Authority}, Audience={Audience}, ValidateIssuer={ValidateIssuer}, ValidateAudience={ValidateAudience}, ValidateLifetime={ValidateLifetime}, ValidateIssuerSigningKey={ValidateIssuerSigningKey}, RequireHttpsMetadata={RequireHttpsMetadata}, RolesClaim={RolesClaim}, SubjectIdClaim={SubjectIdClaim}, SubjectNameClaim={SubjectNameClaim}, ServicePulseClientId={ServicePulseClientId}, ServicePulseAuthority={ServicePulseAuthority}, ServicePulseApiScopes={ServicePulseApiScopes}, ServicePulseOfflineAccessScopeEnabled={ServicePulseOfflineAccessScopeEnabled}",
+            Enabled, authorityDisplay, audienceDisplay, ValidateIssuer, ValidateAudience, ValidateLifetime, ValidateIssuerSigningKey, RequireHttpsMetadata, RolesClaim, SubjectIdClaim, SubjectNameClaim, servicePulseClientIdDisplay, servicePulseAuthorityDisplay, servicePulseApiScopesDisplay, servicePulseOfflineAccessScopeEnabledDisplay);
 
         // Warn about potential misconfigurations
         var hasAuthConfig = !string.IsNullOrWhiteSpace(Authority) || !string.IsNullOrWhiteSpace(Audience);

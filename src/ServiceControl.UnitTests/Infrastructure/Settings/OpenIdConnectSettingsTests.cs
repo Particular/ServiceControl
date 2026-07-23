@@ -33,6 +33,7 @@ public class OpenIdConnectSettingsTests
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID", null);
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES", null);
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY", null);
+        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_OFFLINEACCESSSCOPEENABLED", null);
     }
 
     [Test]
@@ -54,6 +55,8 @@ public class OpenIdConnectSettingsTests
             Assert.That(settings.ServicePulseClientId, Is.Null);
             Assert.That(settings.ServicePulseApiScopes, Is.Null);
             Assert.That(settings.ServicePulseAuthority, Is.Null);
+            Assert.That(settings.ServicePulseOfflineAccessScopeEnabled, Is.True);
+            Assert.That(settings.ServicePulseScopes, Is.Null);
         }
     }
 
@@ -112,6 +115,35 @@ public class OpenIdConnectSettingsTests
             Assert.That(settings.ServicePulseClientId, Is.EqualTo("my-client-id"));
             Assert.That(settings.ServicePulseApiScopes, Is.EqualTo("api://my-api/.default"));
             Assert.That(settings.ServicePulseAuthority, Is.EqualTo("https://pulse-auth.example.com"));
+        }
+    }
+
+    [Test]
+    public void Should_compose_service_pulse_scopes_with_offline_access_by_default()
+    {
+        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES", "api://my-api/.default");
+
+        var settings = new OpenIdConnectSettings(TestNamespace, validateConfiguration: false, requireServicePulseSettings: true);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(settings.ServicePulseOfflineAccessScopeEnabled, Is.True);
+            Assert.That(settings.ServicePulseScopes, Is.EqualTo("api://my-api/.default openid profile email offline_access"));
+        }
+    }
+
+    [Test]
+    public void Should_compose_service_pulse_scopes_without_offline_access_when_disabled()
+    {
+        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES", "api://my-api/.default");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_OFFLINEACCESSSCOPEENABLED", "false");
+
+        var settings = new OpenIdConnectSettings(TestNamespace, validateConfiguration: false, requireServicePulseSettings: true);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(settings.ServicePulseOfflineAccessScopeEnabled, Is.False);
+            Assert.That(settings.ServicePulseScopes, Is.EqualTo("api://my-api/.default openid profile email"));
         }
     }
 

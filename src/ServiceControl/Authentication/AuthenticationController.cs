@@ -21,7 +21,8 @@
                 ClientId = settings.OpenIdConnectSettings.ServicePulseClientId,
                 Authority = settings.OpenIdConnectSettings.ServicePulseAuthority,
                 Audience = settings.OpenIdConnectSettings.Audience,
-                ApiScopes = settings.OpenIdConnectSettings.ServicePulseApiScopes
+                ApiScopes = settings.OpenIdConnectSettings.ServicePulseApiScopes,
+                Scopes = settings.OpenIdConnectSettings.ServicePulseScopes
             };
 
             return Ok(info);
@@ -40,5 +41,14 @@
         public string Authority { get; set; }
         public string Audience { get; set; }
         public string ApiScopes { get; set; }
+
+        /// <summary>
+        /// The complete, space-separated scope string ServicePulse should request, composed by
+        /// ServiceControl from <see cref="ApiScopes"/> plus the fixed <c>openid profile email</c>
+        /// scopes and <c>offline_access</c> unless disabled via
+        /// <c>Authentication.ServicePulse.OfflineAccessScopeEnabled</c>. Older ServicePulse builds
+        /// that predate this field ignore it and fall back to assembling their own scope string.
+        /// </summary>
+        public string Scopes { get; set; }
     }
 }
