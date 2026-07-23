@@ -55,6 +55,11 @@
                 {
                     await databaseMigrator.ApplyMigrations();
                 }
+
+                if (scope.ServiceProvider.GetService<IBodyStorageInstaller>() is { } bodyStorageInstaller)
+                {
+                    await bodyStorageInstaller.Provision();
+                }
             }
 
             await host.StopAsync();

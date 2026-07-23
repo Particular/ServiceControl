@@ -12,7 +12,7 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
     {
         RegisterSettings(services);
         ConfigureDbContext(services);
-        RegisterDataStores(services);
+        RegisterDataStores(services, settings);
 
         services.AddSingleton<IIngestionSqlDialect, SqlServerIngestionSqlDialect>();
     }
@@ -23,6 +23,7 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
         ConfigureDbContext(services);
 
         services.AddScoped<IDatabaseMigrator, SqlServerDatabaseMigrator>();
+        RegisterBodyStorageInstaller(services, settings);
     }
 
     void RegisterSettings(IServiceCollection services)

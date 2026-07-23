@@ -8,6 +8,7 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
 {
     const string ConnectionStringKey = "Database/ConnectionString";
     const string CommandTimeoutKey = "Database/CommandTimeout";
+    const string BodyStorageTypeKey = "MessageBody/StorageType";
     const string MessageBodyStoragePathKey = "MessageBody/StoragePath";
     const string MinBodySizeForCompressionKey = "MessageBody/MinCompressionSize";
     const string MaxBodySizeToStoreKey = "MaxBodySizeToStore";
@@ -19,11 +20,12 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
         var settings = CreateSettings(GetRequiredSetting<string>(settingsRootNamespace, ConnectionStringKey));
 
         settings.CommandTimeout = SettingsReader.Read(settingsRootNamespace, CommandTimeoutKey, EFPersisterSettings.DefaultCommandTimeout);
-        settings.MessageBodyStoragePath = SettingsReader.Read<string>(settingsRootNamespace, MessageBodyStoragePathKey);
         settings.MinBodySizeForCompression = SettingsReader.Read(settingsRootNamespace, MinBodySizeForCompressionKey, EFPersisterSettings.DefaultMinBodySizeForCompression);
         settings.MaxBodySizeToStore = ReadMaxBodySizeToStore(settingsRootNamespace);
         settings.ErrorRetentionPeriod = GetRequiredSetting<TimeSpan>(settingsRootNamespace, ErrorRetentionPeriodKey);
         settings.EnableFullTextSearchOnBodies = SettingsReader.Read(settingsRootNamespace, EnableFullTextSearchOnBodiesKey, true);
+
+        ConfigureBodyStorage(settings, settingsRootNamespace);
 
         return settings;
     }
@@ -31,6 +33,33 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
     public abstract IPersistence Create(PersistenceSettings settings);
 
     protected abstract EFPersisterSettings CreateSettings(string connectionString);
+
+    static void ConfigureBodyStorage(EFPersisterSettings settings, SettingsRootNamespace settingsRootNamespace)
+    {
+        settings.BodyStorageType = ReadBodyStorageType(settingsRootNamespace);
+
+        if (settings.BodyStorageType == BodyStorageType.FileSystem)
+        {
+            settings.MessageBodyStoragePath = GetRequiredSetting<string>(settingsRootNamespace, MessageBodyStoragePathKey);
+        }
+    }
+
+    static BodyStorageType ReadBodyStorageType(SettingsRootNamespace settingsRootNamespace)
+    {
+        var raw = SettingsReader.Read<string>(settingsRootNamespace, BodyStorageTypeKey);
+
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            throw new Exception($"Setting {BodyStorageTypeKey} is required. Valid values: {string.Join(", ", Enum.GetNames<BodyStorageType>())}.");
+        }
+
+        if (!Enum.TryParse<BodyStorageType>(raw, ignoreCase: true, out var value) || !Enum.IsDefined(value))
+        {
+            throw new Exception($"Setting {BodyStorageTypeKey} value '{raw}' is not valid. Valid values: {string.Join(", ", Enum.GetNames<BodyStorageType>())}.");
+        }
+
+        return value;
+    }
 
     static int ReadMaxBodySizeToStore(SettingsRootNamespace settingsRootNamespace)
     {

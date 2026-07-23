@@ -12,7 +12,7 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersiste
     {
         RegisterSettings(services);
         ConfigureDbContext(services);
-        RegisterDataStores(services);
+        RegisterDataStores(services, settings);
 
         services.AddSingleton<IIngestionSqlDialect, PostgreSqlIngestionSqlDialect>();
     }
@@ -23,6 +23,7 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersiste
         ConfigureDbContext(services);
 
         services.AddScoped<IDatabaseMigrator, PostgreSqlDatabaseMigrator>();
+        RegisterBodyStorageInstaller(services, settings);
     }
 
     void RegisterSettings(IServiceCollection services)
