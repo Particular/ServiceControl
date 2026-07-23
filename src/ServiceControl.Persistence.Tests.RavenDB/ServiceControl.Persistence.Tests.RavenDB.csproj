@@ -25,6 +25,9 @@
 
   <ItemGroup>
     <Compile Include="..\ServiceControl.Persistence.Tests\**\*.cs" LinkBase="Shared" />
+
+    <!-- Tests of behaviour specific to the EF Core persisters, shared by their two test projects only -->
+    <Compile Remove="..\ServiceControl.Persistence.Tests\EFCore\**\*.cs" />
   </ItemGroup>
 
 </Project>
