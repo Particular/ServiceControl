@@ -25,8 +25,10 @@ repeatedly keeps a single row that records:
 
 This is a deliberate difference from the document-database persister, which retained an array of
 attempts. The read side only ever consumed the last attempt plus the count, so storing the full
-history earned nothing and cost write amplification. One consequence: `NumberOfProcessingAttempts`
-is no longer capped, whereas the document store capped the retained array at ten.
+history earned nothing and cost write amplification. It is also an improvement: because the count
+is a column rather than the length of a capped array, `NumberOfProcessingAttempts` always reports
+the true number of attempts, where Raven's implementation silently stopped counting once the
+retained array hit its cap of ten.
 
 ### Stored source data vs derived columns
 
@@ -138,11 +140,13 @@ follow:
 
 - **Insert races.** Both writers see the row as absent and both insert, colliding on the primary
   key.
-- **Lost updates.** A read-modify-write done in application code (read the row, add to the count,
-  write it back) can lose one writer's increment.
+- **Read-modify-write cost.** EF's optimistic concurrency (a rowversion/xmin token) would catch a
+  conflicting write instead of silently losing it, but only via a read before every write and a
+  retry loop per message, the per-row round trip reason 3 rules out, and it still can't express the
+  conditional merge from reason 1.
 
-Closing both requires the database's own concurrency-safe upsert primitive, and those are
-**provider-specific**:
+Closing the insert race requires the database's own concurrency-safe upsert primitive, and those
+are **provider-specific**:
 
 - PostgreSQL: `INSERT ... ON CONFLICT (unique_message_id) DO UPDATE`. The conflict clause makes a
   concurrent insert fall through to the update instead of failing, and the whole statement is
