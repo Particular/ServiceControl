@@ -29,8 +29,8 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.7.0" />
-    <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.19.2" />
-    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.19.2" />
+    <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.21.0" />
+    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.21.0" />
     <!-- EF Core patch version must not exceed RuntimeFrameworkVersion (Custom.Build.props), which pins the Microsoft.Extensions.* packages -->
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="$(RuntimeFrameworkVersion)" />
@@ -84,7 +84,7 @@
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="$(RuntimeFrameworkVersion)" />
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.19.2" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.21.0" />
     <PackageVersion Include="System.Management" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.Management.Automation" Version="7.6.3" />
     <PackageVersion Include="System.Reactive" Version="6.1.0" />
@@ -96,7 +96,7 @@
   </ItemGroup>
   <ItemGroup Label="Versions to pin transitive references">
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(RuntimeFrameworkVersion)" />
-    <PackageVersion Include="Microsoft.IdentityModel.Abstractions" Version="8.19.2" />
+    <PackageVersion Include="Microsoft.IdentityModel.Abstractions" Version="8.21.0" />
     <PackageVersion Include="System.Formats.Cbor" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.IO.Hashing" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="$(RuntimeFrameworkVersion)" />
