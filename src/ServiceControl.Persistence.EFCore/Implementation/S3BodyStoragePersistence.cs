@@ -1,8 +1,10 @@
 namespace ServiceControl.Persistence.EFCore.Implementation;
 
+using System.IO.Compression;
 using System.Net;
 using Amazon.S3;
 using Amazon.S3.Model;
+using ServiceControl.Infrastructure;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
@@ -35,11 +37,12 @@ public class S3BodyStoragePersistence : IBodyStoragePersistence
 
         var compressed = body.Length >= minBodySizeForCompression ? BodyCompression.TryCompress(body) : null;
 
+        var payload = compressed is null ? body : compressed.AsMemory();
         var request = new PutObjectRequest
         {
             BucketName = bucketName,
             Key = key,
-            InputStream = new MemoryStream(compressed ?? body.ToArray()),
+            InputStream = new ReadOnlyStream(payload),
             ContentType = contentType
         };
         request.Metadata.Add("format-version", FormatVersion);
@@ -53,31 +56,36 @@ public class S3BodyStoragePersistence : IBodyStoragePersistence
     {
         try
         {
-            using var response = await client.GetObjectAsync(bucketName, Key(bodyId), cancellationToken);
-            var metadata = response.Metadata;
-
-            var version = metadata["format-version"];
-            if (!string.IsNullOrEmpty(version) && version != FormatVersion)
+            var response = await client.GetObjectAsync(bucketName, Key(bodyId), cancellationToken);
+            try
             {
-                throw new InvalidOperationException($"Unsupported object format version {version} for {bodyId}.");
+                var metadata = response.Metadata;
+
+                var version = metadata["format-version"];
+                if (!string.IsNullOrEmpty(version) && version != FormatVersion)
+                {
+                    throw new InvalidOperationException($"Unsupported object format version {version} for {bodyId}.");
+                }
+
+                var bodySize = int.TryParse(metadata["body-size"], out var size) ? size : 0;
+                var isCompressed = bool.TryParse(metadata["is-compressed"], out var compressed) && compressed;
+                var contentType = response.Headers.ContentType ?? "application/octet-stream";
+                Stream stream = isCompressed
+                    ? new ExpectedLengthStream(new BrotliStream(response.ResponseStream, CompressionMode.Decompress), bodySize)
+                    : response.ResponseStream;
+
+                return new MessageBodyFileResult
+                {
+                    Stream = new OwnedStream(stream, response),
+                    ContentType = contentType,
+                    BodySize = bodySize
+                };
             }
-
-            var bodySize = int.TryParse(metadata["body-size"], out var size) ? size : 0;
-            var isCompressed = bool.TryParse(metadata["is-compressed"], out var compressed) && compressed;
-            var contentType = response.Headers.ContentType ?? "application/octet-stream";
-
-            using var buffer = new MemoryStream();
-            await response.ResponseStream.CopyToAsync(buffer, cancellationToken);
-            var bytes = buffer.ToArray();
-
-            var payload = isCompressed ? BodyCompression.Decompress(bytes, bodySize) : bytes;
-
-            return new MessageBodyFileResult
+            catch
             {
-                Stream = new MemoryStream(payload, writable: false),
-                ContentType = contentType,
-                BodySize = bodySize
-            };
+                response.Dispose();
+                throw;
+            }
         }
         catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {

@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.Implementation;
 
+using System.IO.Compression;
 using System.Net;
 using Azure;
 using Azure.Storage.Blobs;
@@ -56,28 +57,35 @@ public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
 
         try
         {
-            var content = (await blob.DownloadContentAsync(cancellationToken)).Value;
-            var metadata = content.Details.Metadata;
-
-            if (metadata.TryGetValue("FormatVersion", out var version) && version != FormatVersion)
+            var content = (await blob.DownloadStreamingAsync(cancellationToken: cancellationToken)).Value;
+            try
             {
-                throw new InvalidOperationException($"Unsupported blob format version {version} for {bodyId}.");
+                var metadata = content.Details.Metadata;
+
+                if (metadata.TryGetValue("FormatVersion", out var version) && version != FormatVersion)
+                {
+                    throw new InvalidOperationException($"Unsupported blob format version {version} for {bodyId}.");
+                }
+
+                var contentType = metadata.TryGetValue("ContentType", out var ct) ? Uri.UnescapeDataString(ct) : "application/octet-stream";
+                var bodySize = metadata.TryGetValue("BodySize", out var sizeText) && int.TryParse(sizeText, out var size) ? size : 0;
+                var isCompressed = metadata.TryGetValue("IsCompressed", out var compressedText) && bool.TryParse(compressedText, out var compressed) && compressed;
+                Stream stream = isCompressed
+                    ? new ExpectedLengthStream(new BrotliStream(content.Content, CompressionMode.Decompress), bodySize)
+                    : content.Content;
+
+                return new MessageBodyFileResult
+                {
+                    Stream = stream,
+                    ContentType = contentType,
+                    BodySize = bodySize
+                };
             }
-
-            var contentType = metadata.TryGetValue("ContentType", out var ct) ? Uri.UnescapeDataString(ct) : "application/octet-stream";
-            var bodySize = metadata.TryGetValue("BodySize", out var sizeText) && int.TryParse(sizeText, out var size) ? size : 0;
-            var isCompressed = metadata.TryGetValue("IsCompressed", out var compressedText) && bool.TryParse(compressedText, out var compressed) && compressed;
-
-            Stream stream = isCompressed
-                ? new MemoryStream(BodyCompression.Decompress(content.Content.ToMemory().Span, bodySize), writable: false)
-                : content.Content.ToStream();
-
-            return new MessageBodyFileResult
+            catch
             {
-                Stream = stream,
-                ContentType = contentType,
-                BodySize = bodySize
-            };
+                content.Dispose();
+                throw;
+            }
         }
         catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.NotFound)
         {

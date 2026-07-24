@@ -19,7 +19,11 @@ class AzureBlobBodyStorageTests
     [OneTimeSetUp]
     public async Task StartAzurite()
     {
-        azurite = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:latest").Build();
+        azurite = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:latest")
+            // We need this because the Azurite image is not yet compatible with the latest Azure SDK, 
+            // see https://github.com/Azure/Azurite/issues/2623
+            .WithCommand("--skipApiVersionCheck")
+            .Build();
         await azurite.StartAsync();
     }
 

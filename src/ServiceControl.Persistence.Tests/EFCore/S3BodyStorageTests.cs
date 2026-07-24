@@ -19,7 +19,8 @@ class S3BodyStorageTests
     [OneTimeSetUp]
     public async Task StartLocalStack()
     {
-        localStack = new LocalStackBuilder("localstack/localstack:latest").Build();
+        // We need to pin the tag to 4.4.0 because after that version LocalStack has become a paid service for commercial use.
+        localStack = new LocalStackBuilder("localstack/localstack:4.4.0").Build();
         await localStack.StartAsync();
     }
 
