@@ -2,3 +2,7 @@
 
 # Justification: Test project
 dotnet_diagnostic.CA2007.severity = none
+
+# Justification: Executable specifications intentionally assign properties after the
+# object initializer to mirror user interaction order (e.g. typing a name after load)
+dotnet_diagnostic.IDE0017.severity = none

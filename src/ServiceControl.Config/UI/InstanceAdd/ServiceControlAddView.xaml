@@ -299,6 +299,21 @@
 
                                 <controls:FormTextBox Header="NAME / WINDOWS SERVICE NAME" Text="{Binding AuditInstanceName}" />
 
+                                <controls:FormComboBox HorizontalAlignment="Stretch"
+                                                       Header="ERROR INSTANCE"
+                                                       ItemsSource="{Binding ServiceControlQueueAddressOptions}"
+                                                       SelectedItem="{Binding ServiceControlQueueAddress}"
+                                                       Visibility="{Binding ShowServiceControlQueueAddressSelection,
+                                                                            Converter={StaticResource boolToVis}}" />
+
+                                <TextBlock Padding="0,0,0,10"
+                                           FontSize="13px"
+                                           Foreground="{StaticResource ErrorBrush}"
+                                           Text="No error instance was found on this machine. The audit instance needs one to send messages to. Also install the error instance above, or add one first."
+                                           TextWrapping="Wrap"
+                                           Visibility="{Binding ShowNoErrorInstanceFoundWarning,
+                                                                Converter={StaticResource boolToVis}}" />
+
                                 <GroupBox Header="USER ACCOUNT">
                                     <StackPanel>
                                         <RadioButton IsChecked="{Binding AuditUseSystemAccount}">

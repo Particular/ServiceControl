@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Config.UI.InstanceAdd
+namespace ServiceControl.Config.UI.InstanceAdd
 {
     using System;
     using System.Collections.Generic;
@@ -8,16 +8,21 @@
     using System.Windows.Input;
     using PropertyChanged;
     using ServiceControl.Config.Extensions;
+    using ServiceControlInstaller.Engine.Instances;
     using Validar;
     using Xaml.Controls;
 
     [InjectValidation]
     public class ServiceControlAddViewModel : ServiceControlEditorViewModel
     {
-        public ServiceControlAddViewModel()
+        // The constructor runs the unique-name convention against the machine's Windows
+        // services, so tests inject a fake here to stay environment-independent; the
+        // GetWindowsServiceNames property seam is set too late for construction-time logic
+        public ServiceControlAddViewModel(Func<string[]> getWindowsServiceNames = null)
         {
             DisplayName = "ADD SERVICECONTROL";
-            GetWindowsServiceNames = () => ServiceController.GetServices().Select(windowsService => windowsService.ServiceName).ToArray();
+            GetWindowsServiceNames = getWindowsServiceNames ?? (() => ServiceController.GetServices().Select(windowsService => windowsService.ServiceName).ToArray());
+            GetInstalledErrorInstanceNames = () => InstanceFinder.ServiceControlInstances().Select(instance => instance.Name).ToArray();
             ConventionName = "Particular.ServiceControl";
             OnConventionNameChanged();
 
@@ -30,6 +35,18 @@
 
             ServiceControl.PropertyChanged += ServiceControl_PropertyChanged;
             ServiceControlAudit.PropertyChanged += ServiceControl_PropertyChanged;
+            PropertyChanged += (_, e) =>
+            {
+                // InstallErrorInstance/InstallAuditInstance live on the base class, so Fody
+                // cannot infer that these derived computed properties depend on them
+                if (e.PropertyName is nameof(InstallErrorInstance) or nameof(InstallAuditInstance))
+                {
+                    NotifyOfPropertyChange(nameof(ServiceControlQueueAddress));
+                    NotifyOfPropertyChange(nameof(ServiceControlQueueAddressOptions));
+                    NotifyOfPropertyChange(nameof(ShowServiceControlQueueAddressSelection));
+                    NotifyOfPropertyChange(nameof(ShowNoErrorInstanceFoundWarning));
+                }
+            };
         }
 
         void ServiceControl_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -46,6 +63,40 @@
         }
 
         public Func<string[]> GetWindowsServiceNames { get; set; }
+
+        public Func<string[]> GetInstalledErrorInstanceNames { get; set; }
+
+        public string[] ServiceControlQueueAddressOptions => GetInstalledErrorInstanceNames();
+
+        public string ServiceControlQueueAddress
+        {
+            get
+            {
+                if (InstallErrorInstance)
+                {
+                    return ErrorInstanceName;
+                }
+
+                var installedErrorInstanceNames = GetInstalledErrorInstanceNames();
+
+                return installedErrorInstanceNames.Length == 1
+                    ? installedErrorInstanceNames[0]
+                    : serviceControlQueueAddress;
+            }
+            set => serviceControlQueueAddress = value;
+        }
+
+        string serviceControlQueueAddress;
+
+        public bool ShowServiceControlQueueAddressSelection =>
+            InstallAuditInstance
+            && !InstallErrorInstance
+            && GetInstalledErrorInstanceNames().Length > 1;
+
+        public bool ShowNoErrorInstanceFoundWarning =>
+            InstallAuditInstance
+            && !InstallErrorInstance
+            && GetInstalledErrorInstanceNames().Length == 0;
 
         public string ConventionName { get; set; }
 
