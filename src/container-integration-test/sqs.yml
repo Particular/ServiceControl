@@ -1,7 +1,8 @@
 services:
 
   localstack:
-    image: localstack/localstack:3
+    # We need to pin the tag to 4.4.0 because after that version LocalStack has become a paid service for commercial use.
+    image: localstack/localstack:4.4.0
     ports:
       - '4566-4597:4566-4597'
       - "8000:5000"
