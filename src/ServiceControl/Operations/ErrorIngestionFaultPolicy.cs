@@ -57,7 +57,7 @@
                     Body = errorContext.Body.ToArray()
                 },
                 ExceptionInfo = errorContext.Exception.ToFriendlyString(),
-                Id = Guid.NewGuid().ToString()
+                Id = Guid.CreateVersion7().ToString()
             };
 
             try
