@@ -11,14 +11,14 @@ using Raven.Client.Documents.Session;
 class EndpointSettingsStore(IRavenSessionProvider sessionProvider) : IEndpointSettingsStore
 {
     static string MakeDocumentId(string name) =>
-        $"{EndpointSettings.CollectionName}/{DeterministicGuid.MakeId(name)}";
+        $"{CollectionName}/{DeterministicGuid.MakeId(name)}";
 
     public async IAsyncEnumerable<EndpointSettings> GetAllEndpointSettings([EnumeratorCancellation] CancellationToken cancellationToken)
     {
         using IAsyncDocumentSession session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
         await using IAsyncEnumerator<StreamResult<EndpointSettings>> enumerator = await session
             .Advanced
-            .StreamAsync<EndpointSettings>($"{EndpointSettings.CollectionName}/", token: cancellationToken);
+            .StreamAsync<EndpointSettings>($"{CollectionName}/", token: cancellationToken);
 
         while (await enumerator.MoveNextAsync() && !cancellationToken.IsCancellationRequested)
         {
@@ -46,4 +46,6 @@ class EndpointSettingsStore(IRavenSessionProvider sessionProvider) : IEndpointSe
 
         await session.SaveChangesAsync(cancellationToken);
     }
+
+    const string CollectionName = "EndpointSettings";
 }

@@ -5,6 +5,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using MessageFailures;
+    using MessageRedirects;
     using Persistence.MessageRedirects;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Session;
@@ -39,7 +40,7 @@
 
         public async Task<RetryBatchNowForwarding> GetRetryBatchNowForwarding() =>
             await Session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
-                .LoadAsync<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
+                .LoadAsync<RetryBatchNowForwarding>(RetryDocumentDataStore.NowForwardingDocumentId);
 
         public async Task<RetryBatch> GetRetryBatch(string retryBatchId, CancellationToken cancellationToken) =>
             await Session.LoadAsync<RetryBatch>(retryBatchId, cancellationToken);
@@ -52,11 +53,11 @@
         }
 
         public async Task Store(RetryBatchNowForwarding retryBatchNowForwarding) =>
-            await Session.StoreAsync(retryBatchNowForwarding, RetryBatchNowForwarding.Id);
+            await Session.StoreAsync(retryBatchNowForwarding, RetryDocumentDataStore.NowForwardingDocumentId);
 
         public async Task<MessageRedirectsCollection> GetOrCreateMessageRedirectsCollection()
         {
-            var redirects = await Session.LoadAsync<MessageRedirectsCollection>(MessageRedirectsCollection.DefaultId);
+            var redirects = await Session.LoadAsync<MessageRedirectsCollection>(MessageRedirectsDataStore.CollectionId);
 
             if (redirects != null)
             {

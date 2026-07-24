@@ -7,23 +7,8 @@
     public class RetryHistory
     {
         public string Id { get; set; }
-        public List<HistoricRetryOperation> HistoricOperations { get; set; }
-        public List<UnacknowledgedRetryOperation> UnacknowledgedOperations { get; set; }
-
-        public static string MakeId()
-        {
-            return "RetryOperations/History";
-        }
-
-        public static RetryHistory CreateNew()
-        {
-            return new RetryHistory
-            {
-                HistoricOperations = [],
-                UnacknowledgedOperations = [],
-                Id = MakeId()
-            };
-        }
+        public List<HistoricRetryOperation> HistoricOperations { get; set; } = [];
+        public List<UnacknowledgedRetryOperation> UnacknowledgedOperations { get; set; } = [];
 
         public void AddToHistory(HistoricRetryOperation historicOperation, int historyDepth)
         {

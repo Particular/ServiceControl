@@ -54,7 +54,7 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            var failedMessageRetryIds = messageIds.Select(FailedMessageRetry.MakeDocumentId).ToArray();
+            var failedMessageRetryIds = messageIds.ToArray();
 
             var batchDocumentId = await store.CreateBatchDocument(RetryDocumentManager.RetrySessionId, requestId, retryType, failedMessageRetryIds, originator, startTime, last, batchName, classifier, initiatedBy?.Id, initiatedBy?.Name, operationId);
 

@@ -80,7 +80,7 @@
         public async Task DeleteFailedMessageRetry(string uniqueMessageId)
         {
             using var session = await sessionProvider.OpenSession();
-            await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null), session.Advanced.Context);
+            await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(uniqueMessageId), null), session.Advanced.Context);
         }
     }
 }
