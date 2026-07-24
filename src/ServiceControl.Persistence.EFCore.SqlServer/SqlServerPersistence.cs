@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
-using ServiceControl.Persistence.EFCore.SqlServer.Infrastructure;
+using ServiceControl.Persistence.EFCore.Infrastructure;
 
 class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistence, IPersistence
 {
@@ -14,7 +14,7 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
         ConfigureDbContext(services);
         RegisterDataStores(services);
 
-        services.AddHostedService<KnownEndpointsReconciler>();
+        services.AddSingleton<IIngestionSqlDialect, SqlServerIngestionSqlDialect>();
     }
 
     public void AddInstaller(IServiceCollection services)

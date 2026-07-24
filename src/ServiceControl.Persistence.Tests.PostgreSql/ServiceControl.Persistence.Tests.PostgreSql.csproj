@@ -33,15 +33,12 @@
     <Compile Remove="..\ServiceControl.Persistence.Tests\Recoverability\EditHandlerAuditTests.cs" />
     <Compile Remove="..\ServiceControl.Persistence.Tests\Recoverability\EditMessageTests.cs" />
     <Compile Remove="..\ServiceControl.Persistence.Tests\Recoverability\RetryConfirmationProcessorTests.cs" />
-    <Compile Remove="..\ServiceControl.Persistence.Tests\Recoverability\ReturnToSenderDequeuerTests.cs" />
     <Compile Remove="..\ServiceControl.Persistence.Tests\Throughput\AuditServiceMetadataTests.cs" />
     <Compile Remove="..\ServiceControl.Persistence.Tests\Throughput\BrokerMetadataTests.cs" />
     <Compile Remove="..\ServiceControl.Persistence.Tests\Throughput\EndpointsTests.cs" />
     <Compile Remove="..\ServiceControl.Persistence.Tests\Throughput\ReportMasksTests.cs" />
     <Compile Remove="..\ServiceControl.Persistence.Tests\CustomChecksDataStoreTests.cs" />
     <Compile Remove="..\ServiceControl.Persistence.Tests\CustomCheckTests.cs" />
-    <Compile Remove="..\ServiceControl.Persistence.Tests\EnsureSettingsInContainer.cs" />
-    <Compile Remove="..\ServiceControl.Persistence.Tests\MonitoringDataStoreTests.cs" />
     <Compile Remove="..\ServiceControl.Persistence.Tests\RetryStateTests.cs" />
   </ItemGroup>
 

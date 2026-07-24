@@ -8,12 +8,11 @@ class KnownEndpointConfiguration : IEntityTypeConfiguration<KnownEndpointEntity>
 {
     public void Configure(EntityTypeBuilder<KnownEndpointEntity> builder)
     {
-        builder.ToTable("KnownEndpoints");
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id).ValueGeneratedNever();
-        builder.Property(e => e.Name).IsRequired();
+        builder.Property(e => e.Name).IsRequired().HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.HostId).IsRequired();
-        builder.Property(e => e.Host).IsRequired();
+        builder.Property(e => e.Host).IsRequired().HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.Monitored).IsRequired();
     }
 }

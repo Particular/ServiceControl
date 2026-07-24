@@ -6,9 +6,11 @@ using ServiceControl.Recoverability;
 
 public class MessageArchiver : IArchiveMessages
 {
+    // must set StatusChangedAt + LastModified
     public Task ArchiveAllInGroup(string groupId, AuditUser? initiatedBy = null, string? operationId = null) =>
         throw new NotImplementedException();
 
+    // must set StatusChangedAt + LastModified
     public Task UnarchiveAllInGroup(string groupId, AuditUser? initiatedBy = null, string? operationId = null) =>
         throw new NotImplementedException();
 
