@@ -21,7 +21,8 @@
                 ClientId = settings.OpenIdConnectSettings.ServicePulseClientId,
                 Authority = settings.OpenIdConnectSettings.ServicePulseAuthority,
                 Audience = settings.OpenIdConnectSettings.Audience,
-                ApiScopes = settings.OpenIdConnectSettings.ServicePulseApiScopes
+                ApiScopes = settings.OpenIdConnectSettings.ServicePulseApiScopes,
+                Scopes = settings.OpenIdConnectSettings.ServicePulseScopes
             };
 
             return Ok(info);
@@ -40,5 +41,13 @@
         public string Authority { get; set; }
         public string Audience { get; set; }
         public string ApiScopes { get; set; }
+
+        /// <summary>
+        /// The complete, space-separated scope string ServicePulse should request. Carries the value of
+        /// <c>OpenIdConnectSettings.ServicePulseScopes</c> (see there for how it is composed). Added as an
+        /// additive, non-breaking field; ServicePulse builds that don't recognize it fall back to
+        /// composing the scope string themselves from <see cref="ApiScopes"/>.
+        /// </summary>
+        public string Scopes { get; set; }
     }
 }

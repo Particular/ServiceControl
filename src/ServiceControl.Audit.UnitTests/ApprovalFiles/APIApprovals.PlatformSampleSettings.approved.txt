@@ -17,6 +17,8 @@
     "ServicePulseAuthority": null,
     "ServicePulseClientId": null,
     "ServicePulseApiScopes": null,
+    "ServicePulseOfflineAccessScopeEnabled": true,
+    "ServicePulseScopes": null,
     "RolesClaim": "roles",
     "RoleBasedAuthorizationEnabled": false
   },

@@ -1,6 +1,7 @@
 namespace ServiceControl.Infrastructure;
 
 using System;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using ServiceControl.Configuration;
 
@@ -49,6 +50,7 @@ public class OpenIdConnectSettings
             ServicePulseClientId = SettingsReader.Read<string>(rootNamespace, "Authentication.ServicePulse.ClientId");
             ServicePulseApiScopes = SettingsReader.Read<string>(rootNamespace, "Authentication.ServicePulse.ApiScopes");
             ServicePulseAuthority = SettingsReader.Read<string>(rootNamespace, "Authentication.ServicePulse.Authority");
+            ServicePulseOfflineAccessScopeEnabled = SettingsReader.Read(rootNamespace, "Authentication.ServicePulse.OfflineAccessScopeEnabled", true);
         }
 
         if (validateConfiguration)
@@ -133,10 +135,40 @@ public class OpenIdConnectSettings
     public string ServicePulseClientId { get; }
 
     /// <summary>
-    /// Space-separated list of API scopes that ServicePulse should request during authentication.
+    /// JSON array of API scopes that ServicePulse should request during authentication
+    /// (e.g. <c>["api://my-api/access_as_user"]</c>) — the format ServicePulse parses.
     /// Required on the primary ServiceControl instance when authentication is enabled.
     /// </summary>
     public string ServicePulseApiScopes { get; }
+
+    /// <summary>
+    /// Whether ServicePulse should request the <c>offline_access</c> scope. Defaults to <c>true</c>
+    /// to preserve existing behaviour. Some identity providers reject authorization requests that
+    /// include a scope they don't permit, so operators can disable it here rather than have
+    /// ServicePulse hard-code it into every request.
+    /// </summary>
+    public bool ServicePulseOfflineAccessScopeEnabled { get; } = true;
+
+    /// <summary>
+    /// The complete, space-separated scope string ServicePulse should request, composed by parsing the
+    /// <see cref="ServicePulseApiScopes"/> JSON array and appending the fixed <c>openid profile email</c>
+    /// scopes required to establish an OIDC session, plus <c>offline_access</c> unless
+    /// <see cref="ServicePulseOfflineAccessScopeEnabled"/> is <c>false</c>. Returns <c>null</c> when no
+    /// API scopes are configured (e.g. on non-primary instances).
+    /// </summary>
+    public string ServicePulseScopes
+    {
+        get
+        {
+            if (!TryParseApiScopes(ServicePulseApiScopes, out var apiScopes))
+            {
+                return null;
+            }
+
+            var offlineAccessScope = ServicePulseOfflineAccessScopeEnabled ? " offline_access" : "";
+            return $"{apiScopes} openid profile email{offlineAccessScope}";
+        }
+    }
 
     /// <summary>
     /// Path within the JWT where the user's role values live. Defaults to the flat <c>roles</c>
@@ -215,12 +247,50 @@ public class OpenIdConnectSettings
                 throw new Exception(message);
             }
 
+            if (!TryParseApiScopes(ServicePulseApiScopes, out _))
+            {
+                var message = $"Authentication.ServicePulse.ApiScopes must be a non-empty JSON array of scope strings (e.g. [\"api://my-api/access_as_user\"]). Current value: '{ServicePulseApiScopes}'";
+                logger.LogCritical(message);
+                throw new Exception(message);
+            }
+
             if (ServicePulseAuthority != null && !Uri.TryCreate(ServicePulseAuthority, UriKind.Absolute, out _))
             {
                 var message = $"Authentication.ServicePulse.Authority must be a valid absolute URI. Current value: '{ServicePulseAuthority}'";
                 logger.LogCritical(message);
                 throw new Exception(message);
             }
+        }
+    }
+
+    /// <summary>
+    /// Parses the <c>ServicePulse.ApiScopes</c> setting. A JSON array of scope strings, the format
+    /// ServicePulse expects, into a single space-separated scope string. Returns <c>false</c> for a
+    /// null/blank, malformed, or empty value.
+    /// </summary>
+    static bool TryParseApiScopes(string apiScopes, out string spaceSeparatedScopes)
+    {
+        spaceSeparatedScopes = null;
+
+        if (string.IsNullOrWhiteSpace(apiScopes))
+        {
+            return false;
+        }
+
+        try
+        {
+            var scopes = JsonSerializer.Deserialize<string[]>(apiScopes);
+            if (scopes is null || scopes.Length == 0)
+            {
+                return false;
+            }
+
+            spaceSeparatedScopes = string.Join(' ', scopes);
+            return true;
+        }
+        catch (JsonException)
+        {
+            return false;
         }
     }
 
@@ -231,9 +301,10 @@ public class OpenIdConnectSettings
         var servicePulseClientIdDisplay = requireServicePulseSettings ? (ServicePulseClientId ?? "(not configured)") : "(n/a)";
         var servicePulseAuthorityDisplay = requireServicePulseSettings ? (ServicePulseAuthority ?? "(not configured)") : "(n/a)";
         var servicePulseApiScopesDisplay = requireServicePulseSettings ? (ServicePulseApiScopes ?? "(not configured)") : "(n/a)";
+        var servicePulseOfflineAccessScopeEnabledDisplay = requireServicePulseSettings ? ServicePulseOfflineAccessScopeEnabled.ToString() : "(n/a)";
 
-        logger.LogInformation("Authentication settings: Enabled={Enabled}, Authority={Authority}, Audience={Audience}, ValidateIssuer={ValidateIssuer}, ValidateAudience={ValidateAudience}, ValidateLifetime={ValidateLifetime}, ValidateIssuerSigningKey={ValidateIssuerSigningKey}, RequireHttpsMetadata={RequireHttpsMetadata}, RolesClaim={RolesClaim}, SubjectIdClaim={SubjectIdClaim}, SubjectNameClaim={SubjectNameClaim}, ServicePulseClientId={ServicePulseClientId}, ServicePulseAuthority={ServicePulseAuthority}, ServicePulseApiScopes={ServicePulseApiScopes}",
-            Enabled, authorityDisplay, audienceDisplay, ValidateIssuer, ValidateAudience, ValidateLifetime, ValidateIssuerSigningKey, RequireHttpsMetadata, RolesClaim, SubjectIdClaim, SubjectNameClaim, servicePulseClientIdDisplay, servicePulseAuthorityDisplay, servicePulseApiScopesDisplay);
+        logger.LogInformation("Authentication settings: Enabled={Enabled}, Authority={Authority}, Audience={Audience}, ValidateIssuer={ValidateIssuer}, ValidateAudience={ValidateAudience}, ValidateLifetime={ValidateLifetime}, ValidateIssuerSigningKey={ValidateIssuerSigningKey}, RequireHttpsMetadata={RequireHttpsMetadata}, RolesClaim={RolesClaim}, SubjectIdClaim={SubjectIdClaim}, SubjectNameClaim={SubjectNameClaim}, ServicePulseClientId={ServicePulseClientId}, ServicePulseAuthority={ServicePulseAuthority}, ServicePulseApiScopes={ServicePulseApiScopes}, ServicePulseOfflineAccessScopeEnabled={ServicePulseOfflineAccessScopeEnabled}",
+            Enabled, authorityDisplay, audienceDisplay, ValidateIssuer, ValidateAudience, ValidateLifetime, ValidateIssuerSigningKey, RequireHttpsMetadata, RolesClaim, SubjectIdClaim, SubjectNameClaim, servicePulseClientIdDisplay, servicePulseAuthorityDisplay, servicePulseApiScopesDisplay, servicePulseOfflineAccessScopeEnabledDisplay);
 
         // Warn about potential misconfigurations
         var hasAuthConfig = !string.IsNullOrWhiteSpace(Authority) || !string.IsNullOrWhiteSpace(Audience);
