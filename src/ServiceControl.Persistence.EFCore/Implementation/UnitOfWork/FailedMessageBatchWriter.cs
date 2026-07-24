@@ -92,7 +92,8 @@ class FailedMessageBatchWriter(ServiceControlDbContext dbContext, IIngestionSqlD
                 BodyText = last.BodyText,
                 BodyStoredExternally = last.BodyStoredExternally,
                 BodySize = last.BodySize,
-                BodyContentType = last.BodyContentType
+                BodyContentType = last.BodyContentType,
+                FailingEndpointAddress = last.FailingEndpointAddress
             });
 
             groups.AddRange(last.Groups

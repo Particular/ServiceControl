@@ -26,6 +26,7 @@ class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
         builder.Property(e => e.SendingEndpointHost).HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.ReceivingEndpointName).HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.ReceivingEndpointHost).HasMaxLength(ColumnLengths.ShortTextLength);
+        builder.Property(e => e.FailingEndpointAddress).HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.BodyContentType).HasMaxLength(ColumnLengths.ShortTextLength);
 
         builder.Property(e => e.IsSystemMessage).IsRequired();
@@ -35,6 +36,7 @@ class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
 
         builder.HasIndex(e => new { e.Status, e.LastModified });
         builder.HasIndex(e => e.ReceivingEndpointName);
+        builder.HasIndex(e => e.FailingEndpointAddress);
         builder.HasIndex(e => e.ConversationId);
         builder.HasIndex(e => e.TimeSent);
         builder.HasIndex(e => e.QueueAddress);

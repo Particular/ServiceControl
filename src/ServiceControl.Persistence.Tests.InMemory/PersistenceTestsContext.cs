@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.Tests;
 
 using System.Threading.Tasks;
+using MessageFailures;
 using Microsoft.Extensions.Hosting;
 using Particular.LicensingComponent.Persistence.InMemory;
 using ServiceControl.Persistence.Tests.InMemory;
@@ -9,6 +10,7 @@ public class PersistenceTestsContext : IPersistenceTestsContext
 {
     public PersistenceSettings PersistenceSettings { get; private set; }
     public string GenerateFailedMessageRecordId(string messageId) => throw new System.NotImplementedException();
+    public Task InsertFailedMessages(params FailedMessage[] messages) => throw new System.NotImplementedException();
 
     public Task Setup(IHostApplicationBuilder hostBuilder)
     {

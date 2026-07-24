@@ -243,8 +243,6 @@
 
             public Task<byte[]> FetchFromFailedMessage(string bodyId) => Task.FromResult(Encoding.UTF8.GetBytes(bodyId));
             public Task StoreEventLogItem(EventLogItem logItem) => throw new NotImplementedException();
-
-            public Task StoreFailedMessagesForTestsOnly(params FailedMessage[] failedMessages) => throw new NotImplementedException();
         }
     }
 }

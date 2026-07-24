@@ -663,16 +663,5 @@
 
             await session.SaveChangesAsync();
         }
-
-        public async Task StoreFailedMessagesForTestsOnly(params FailedMessage[] failedMessages)
-        {
-            using var session = await sessionProvider.OpenSession();
-            foreach (var message in failedMessages)
-            {
-                await session.StoreAsync(message);
-            }
-
-            await session.SaveChangesAsync();
-        }
     }
 }

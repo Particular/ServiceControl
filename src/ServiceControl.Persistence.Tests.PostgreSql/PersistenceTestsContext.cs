@@ -1,10 +1,12 @@
 // ReSharper disable once CheckNamespace
+
 namespace ServiceControl.Persistence.Tests;
 
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using EFCore.PostgreSql;
+using MessageFailures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -12,7 +14,7 @@ using Microsoft.Extensions.Time.Testing;
 using Npgsql;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
-public class PersistenceTestsContext : IPersistenceTestsContext
+public partial class PersistenceTestsContext : IPersistenceTestsContext
 {
     IHost host;
     string databaseName;
@@ -23,15 +25,9 @@ public class PersistenceTestsContext : IPersistenceTestsContext
     {
         databaseName = $"sc_test_{Guid.NewGuid():n}";
 
-        var connectionStringBuilder = new NpgsqlConnectionStringBuilder(await PostgreSqlSharedContainer.GetConnectionStringAsync())
-        {
-            Database = databaseName
-        };
+        var connectionStringBuilder = new NpgsqlConnectionStringBuilder(await PostgreSqlSharedContainer.GetConnectionStringAsync()) { Database = databaseName };
 
-        PersistenceSettings = new PostgreSqlPersisterSettings
-        {
-            ConnectionString = connectionStringBuilder.ConnectionString
-        };
+        PersistenceSettings = new PostgreSqlPersisterSettings { ConnectionString = connectionStringBuilder.ConnectionString };
 
         var persistence = new PostgreSqlPersistenceConfiguration().Create(PersistenceSettings);
 
@@ -72,4 +68,7 @@ public class PersistenceTestsContext : IPersistenceTestsContext
     public PersistenceSettings PersistenceSettings { get; set; }
 
     public string GenerateFailedMessageRecordId(string messageId) => messageId;
+
+    public Task InsertFailedMessages(params FailedMessage[] messages) => InsertFailedMessagesDirect(host.Services, messages);
+
 }

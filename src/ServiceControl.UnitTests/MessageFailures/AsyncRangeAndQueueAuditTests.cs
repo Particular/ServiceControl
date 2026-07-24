@@ -192,6 +192,5 @@ public class AsyncRangeAndQueueAuditTests
         public Task RevertRetry(string messageUniqueId) => throw new NotImplementedException();
         public Task<byte[]> FetchFromFailedMessage(string uniqueMessageId) => throw new NotImplementedException();
         public Task StoreEventLogItem(EventLogItem logItem) => throw new NotImplementedException();
-        public Task StoreFailedMessagesForTestsOnly(params FailedMessage[] failedMessages) => throw new NotImplementedException();
     }
 }

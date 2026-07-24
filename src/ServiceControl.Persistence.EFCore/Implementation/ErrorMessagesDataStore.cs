@@ -1,5 +1,8 @@
 namespace ServiceControl.Persistence.EFCore.Implementation;
 
+using Entities;
+using Microsoft.Extensions.DependencyInjection;
+using Persistence.UnitOfWork;
 using ServiceControl.CompositeViews.Messages;
 using ServiceControl.EventLog;
 using ServiceControl.MessageFailures;
@@ -8,7 +11,7 @@ using ServiceControl.Operations;
 using ServiceControl.Persistence.Infrastructure;
 using ServiceControl.Recoverability;
 
-public class ErrorMessagesDataStore : IErrorMessageDataStore
+public class ErrorMessagesDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IErrorMessageDataStore
 {
     public Task<QueryResult<IList<MessagesView>>> GetAllMessages(PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages, DateTimeRange? timeSentRange = null) =>
         throw new NotImplementedException();
@@ -109,8 +112,5 @@ public class ErrorMessagesDataStore : IErrorMessageDataStore
         throw new NotImplementedException();
 
     public Task StoreEventLogItem(EventLogItem logItem) =>
-        throw new NotImplementedException();
-
-    public Task StoreFailedMessagesForTestsOnly(params FailedMessage[] failedMessages) =>
         throw new NotImplementedException();
 }
