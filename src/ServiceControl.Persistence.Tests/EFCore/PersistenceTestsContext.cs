@@ -1,3 +1,4 @@
+#nullable enable
 namespace ServiceControl.Persistence.Tests;
 
 using System;
