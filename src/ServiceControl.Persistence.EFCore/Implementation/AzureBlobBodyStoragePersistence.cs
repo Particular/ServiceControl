@@ -1,7 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.Implementation;
 
-using System.Buffers;
-using System.IO.Compression;
+using System.Net;
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
@@ -24,59 +23,30 @@ public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
     public async Task WriteBody(string bodyId, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default)
     {
         var blob = container.GetBlobClient(bodyId);
-        var shouldCompress = body.Length >= minBodySizeForCompression;
 
-        BinaryData data;
-        byte[]? rentedBuffer = null;
+        var compressed = body.Length >= minBodySizeForCompression ? BodyCompression.TryCompress(body) : null;
+        var data = compressed is null ? BinaryData.FromBytes(body) : BinaryData.FromBytes(compressed);
+
+        var options = new BlobUploadOptions
+        {
+            // Bodies are immutable, so create the blob only if it does not already exist.
+            Conditions = new BlobRequestConditions { IfNoneMatch = ETag.All },
+            Metadata = new Dictionary<string, string>
+            {
+                ["FormatVersion"] = FormatVersion,
+                ["ContentType"] = Uri.EscapeDataString(contentType),
+                ["BodySize"] = body.Length.ToString(),
+                ["IsCompressed"] = (compressed is not null).ToString()
+            }
+        };
+
         try
         {
-            if (shouldCompress)
-            {
-                rentedBuffer = ArrayPool<byte>.Shared.Rent(BrotliEncoder.GetMaxCompressedLength(body.Length));
-
-                if (BrotliEncoder.TryCompress(body.Span, rentedBuffer, out var bytesWritten, quality: 1, window: 22))
-                {
-                    data = BinaryData.FromBytes(new ReadOnlyMemory<byte>(rentedBuffer, 0, bytesWritten));
-                }
-                else
-                {
-                    data = BinaryData.FromBytes(body);
-                    shouldCompress = false;
-                }
-            }
-            else
-            {
-                data = BinaryData.FromBytes(body);
-            }
-
-            var options = new BlobUploadOptions
-            {
-                // Bodies are immutable, so create the blob only if it does not already exist.
-                Conditions = new BlobRequestConditions { IfNoneMatch = ETag.All },
-                Metadata = new Dictionary<string, string>
-                {
-                    ["FormatVersion"] = FormatVersion,
-                    ["ContentType"] = Uri.EscapeDataString(contentType),
-                    ["BodySize"] = body.Length.ToString(),
-                    ["IsCompressed"] = shouldCompress.ToString()
-                }
-            };
-
-            try
-            {
-                await blob.UploadAsync(data, options, cancellationToken);
-            }
-            catch (RequestFailedException ex) when (ex.Status is 409 or 412)
-            {
-                // A blob for this immutable body already exists.
-            }
+            await blob.UploadAsync(data, options, cancellationToken);
         }
-        finally
+        catch (RequestFailedException ex) when (ex.Status is (int)HttpStatusCode.Conflict or (int)HttpStatusCode.PreconditionFailed)
         {
-            if (rentedBuffer != null)
-            {
-                ArrayPool<byte>.Shared.Return(rentedBuffer);
-            }
+            // A blob for this immutable body already exists.
         }
     }
 
@@ -98,21 +68,9 @@ public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
             var bodySize = metadata.TryGetValue("BodySize", out var sizeText) && int.TryParse(sizeText, out var size) ? size : 0;
             var isCompressed = metadata.TryGetValue("IsCompressed", out var compressedText) && bool.TryParse(compressedText, out var compressed) && compressed;
 
-            Stream stream;
-            if (isCompressed)
-            {
-                var decompressed = new byte[bodySize];
-                if (!BrotliDecoder.TryDecompress(content.Content.ToMemory().Span, decompressed, out var written) || written != bodySize)
-                {
-                    throw new InvalidOperationException($"Failed to decompress body for {bodyId}.");
-                }
-
-                stream = new MemoryStream(decompressed, writable: false);
-            }
-            else
-            {
-                stream = content.Content.ToStream();
-            }
+            Stream stream = isCompressed
+                ? new MemoryStream(BodyCompression.Decompress(content.Content.ToMemory().Span, bodySize), writable: false)
+                : content.Content.ToStream();
 
             return new MessageBodyFileResult
             {
@@ -121,7 +79,7 @@ public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
                 BodySize = bodySize
             };
         }
-        catch (RequestFailedException ex) when (ex.Status == 404)
+        catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.NotFound)
         {
             return null;
         }

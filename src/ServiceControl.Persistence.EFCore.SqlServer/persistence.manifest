@@ -42,6 +42,30 @@
       "Mandatory": false
     },
     {
+      "Name": "ServiceControl/MessageBody/S3/BucketName",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/S3/KeyPrefix",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/S3/Region",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/S3/ServiceUrl",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/S3/AccessKeyId",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/S3/SecretAccessKey",
+      "Mandatory": false
+    },
+    {
       "Name": "ServiceControl/MessageBody/MinCompressionSize",
       "Mandatory": false
     }

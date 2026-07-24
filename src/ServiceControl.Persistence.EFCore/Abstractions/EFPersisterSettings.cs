@@ -18,6 +18,12 @@ public abstract class EFPersisterSettings : PersistenceSettings
     public string? AzureBlobManagedIdentityClientId { get; set; }
     public string? AzureBlobAuthorityHost { get; set; }
     public string AzureBlobContainerName { get; set; } = "error-bodies";
+    public string? S3BucketName { get; set; }
+    public string S3KeyPrefix { get; set; } = "error-bodies/";
+    public string? S3Region { get; set; }
+    public string? S3ServiceUrl { get; set; }
+    public string? S3AccessKeyId { get; set; }
+    public string? S3SecretAccessKey { get; set; }
     public int MinBodySizeForCompression { get; set; } = DefaultMinBodySizeForCompression;
     public int MaxBodySizeToStore { get; set; } = DefaultMaxBodySizeToStore;
     public int MaxRetryCount { get; set; } = 5;
