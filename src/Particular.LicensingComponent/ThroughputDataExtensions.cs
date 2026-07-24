@@ -25,23 +25,29 @@ static class ThroughputDataExtensions
 
     public static MonthlyThroughput[] MonthlyThroughput(this List<ThroughputData> throughputs) => [.. throughputs
             .SelectMany(data => data)
-            .GroupBy(kvp => $"{kvp.Key:yyyy-MM}")
-            .Select(group => new MonthlyThroughput(group.Key, group.Sum(kvp => kvp.Value)))];
+            // Older SQL Reports could return a negative value for daily throughput. These are not valid. See https://github.com/Particular/ServiceControl/pull/5404
+            .Where(x => x.Value >= 0)
+            .GroupBy(x => x.Key, x => x.Value)
+            .ToLookup(x => x.Key, x => x.Max())
+            .GroupBy(kvp => $"{kvp.Key:yyyy-MM}", x => x.Sum())
+            .Select(group => new MonthlyThroughput(group.Key, group.Sum()))];
 
-    public static long MaxMonthlyThroughput(this List<ThroughputData> throughputs)
+    public static long AverageMonthlyThroughput(this List<ThroughputData> throughputs)
     {
-        var monthlySums = throughputs
-            .SelectMany(data => data)
-            .GroupBy(kvp => $"{kvp.Key.Year}-{kvp.Key.Month}")
-            .Select(group => group.Sum(kvp => kvp.Value))
-            .ToArray();
-
-        if (monthlySums.Any())
+        if (!throughputs.Any(x => x.Any()))
         {
-            return monthlySums.Max();
+            return 0;
         }
 
-        return 0;
+        // keep this in sync with the internal licensing calculation
+        var maxDailyThroughput = throughputs
+            .SelectMany(x => x)
+            .Where(x => x.Value >= 0)
+            .GroupBy(x => x.Key, x => x.Value)
+            .ToLookup(x => x.Key, x => x.Max())
+            .ToDictionary(x => x.Key, x => x.Sum());
+
+        return (long)Math.Truncate(maxDailyThroughput.Sum(x => x.Value) / (decimal)maxDailyThroughput.Count * 365 / 12);
     }
 
     public static bool HasDataFromSource(this IDictionary<string, IEnumerable<ThroughputData>> throughputPerQueue, ThroughputSource source) =>
