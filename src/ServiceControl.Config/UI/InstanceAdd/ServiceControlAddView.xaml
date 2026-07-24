@@ -300,7 +300,7 @@
                                 <controls:FormTextBox Header="NAME / WINDOWS SERVICE NAME" Text="{Binding AuditInstanceName}" />
 
                                 <controls:FormComboBox HorizontalAlignment="Stretch"
-                                                       Header="FORWARD FAILED AUDIT IMPORTS TO SERVICECONTROL INSTANCE"
+                                                       Header="ERROR INSTANCE"
                                                        ItemsSource="{Binding ServiceControlQueueAddressOptions}"
                                                        SelectedItem="{Binding ServiceControlQueueAddress}"
                                                        Visibility="{Binding ShowServiceControlQueueAddressSelection,
@@ -309,7 +309,7 @@
                                 <TextBlock Padding="0,0,0,10"
                                            FontSize="13px"
                                            Foreground="{StaticResource ErrorBrush}"
-                                           Text="No ServiceControl (error) instance was found on this machine. The audit instance needs one to send messages to. Also install the ServiceControl instance above, or add one first."
+                                           Text="No error instance was found on this machine. The audit instance needs one to send messages to. Also install the error instance above, or add one first."
                                            TextWrapping="Wrap"
                                            Visibility="{Binding ShowNoErrorInstanceFoundWarning,
                                                                 Converter={StaticResource boolToVis}}" />
