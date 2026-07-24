@@ -18,6 +18,7 @@
           "KnownEndpoint"
         ],
         "Scope": "",
+        "ScopeHash": "",
         "DailyThroughputFromBroker": [
           {
             "DateUTC": "2024-04-24",
@@ -48,6 +49,7 @@
           "KnownEndpoint"
         ],
         "Scope": "",
+        "ScopeHash": "",
         "DailyThroughputFromBroker": [
           {
             "DateUTC": "2024-04-24",
@@ -78,6 +80,7 @@
           "KnownEndpoint"
         ],
         "Scope": "",
+        "ScopeHash": "",
         "DailyThroughputFromBroker": [
           {
             "DateUTC": "2024-04-24",
@@ -116,6 +119,7 @@
         "EndpointIndicators": [],
         "UserIndicator": "PlannedToDecommission",
         "Scope": "",
+        "ScopeHash": "",
         "DailyThroughputFromBroker": [
           {
             "DateUTC": "2024-04-24",
@@ -136,6 +140,7 @@
         "EndpointIndicators": [],
         "UserIndicator": "NotNServiceBusEndpoint",
         "Scope": "",
+        "ScopeHash": "",
         "DailyThroughputFromBroker": [],
         "DailyThroughputFromAudit": [],
         "DailyThroughputFromMonitoring": []
