@@ -63,7 +63,7 @@
         {
             KnownEndpointMetadata = JObject.Parse($@"
                                     {{
-                                        ""@collection"": ""{KnownEndpoint.CollectionName}"",
+                                        ""@collection"": ""{RavenMonitoringDataStore.KnownEndpointsCollectionName}"",
                                         ""Raven-Clr-Type"": ""{typeof(KnownEndpoint).AssemblyQualifiedName}""
                                     }}");
         }

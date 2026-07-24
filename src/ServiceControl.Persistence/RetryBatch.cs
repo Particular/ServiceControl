@@ -26,7 +26,5 @@ namespace ServiceControl.Persistence
         public string InitiatedById { get; set; }
         public string InitiatedByName { get; set; }
         public string OperationId { get; set; }
-
-        public static string MakeDocumentId(string messageUniqueId) => "RetryBatches/" + messageUniqueId;
     }
 }

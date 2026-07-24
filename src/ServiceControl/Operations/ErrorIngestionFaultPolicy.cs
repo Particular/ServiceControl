@@ -57,7 +57,7 @@
                     Body = errorContext.Body.ToArray()
                 },
                 ExceptionInfo = errorContext.Exception.ToFriendlyString(),
-                Id = FailedErrorImport.MakeDocumentId(FailedErrorImport.DeriveKey(errorContext.Headers, errorContext.MessageId))
+                Id = FailedErrorImport.DeriveKey(errorContext.Headers, errorContext.MessageId)
             };
 
             try
@@ -80,7 +80,7 @@
             if (!AppEnvironment.RunningInContainer)
             {
                 // Write to Log Path
-                string filePath = Path.Combine(logPath, $"{failure.Id.Replace("/", "_")}.txt");
+                string filePath = Path.Combine(logPath, $"FailedErrorImports_{failure.Id.Replace("/", "_")}.txt");
                 await File.WriteAllTextAsync(filePath, failure.ExceptionInfo, cancellationToken);
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
