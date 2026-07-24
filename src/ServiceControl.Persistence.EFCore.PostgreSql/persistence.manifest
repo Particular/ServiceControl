@@ -22,6 +22,26 @@
       "Mandatory": false
     },
     {
+      "Name": "ServiceControl/MessageBody/Azure/ConnectionString",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/Azure/ServiceUri",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/Azure/ManagedIdentityClientId",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/Azure/AuthorityHost",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/Azure/ContainerName",
+      "Mandatory": false
+    },
+    {
       "Name": "ServiceControl/MessageBody/MinCompressionSize",
       "Mandatory": false
     }

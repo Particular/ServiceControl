@@ -62,6 +62,8 @@ public abstract class BasePersistence
                 services.AddSingleton<IBodyStoragePersistence, FileSystemBodyStoragePersistence>();
                 break;
             case BodyStorageType.AzureBlob:
+                services.AddSingleton<IBodyStoragePersistence, AzureBlobBodyStoragePersistence>();
+                break;
             case BodyStorageType.S3:
                 throw new NotImplementedException($"{settings.BodyStorageType} body storage is not yet implemented.");
             default:
@@ -77,8 +79,10 @@ public abstract class BasePersistence
             case BodyStorageType.FileSystem:
                 services.AddScoped<IBodyStorageInstaller, FileSystemBodyStorageInstaller>();
                 break;
-            // Azure Blob and S3 will register their own installer once implemented.
             case BodyStorageType.AzureBlob:
+                services.AddScoped<IBodyStorageInstaller, AzureBlobBodyStorageInstaller>();
+                break;
+            // S3 will register its own installer once implemented.
             case BodyStorageType.S3:
                 break;
             default:

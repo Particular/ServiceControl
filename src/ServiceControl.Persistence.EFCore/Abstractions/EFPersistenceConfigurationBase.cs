@@ -10,6 +10,11 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
     const string CommandTimeoutKey = "Database/CommandTimeout";
     const string BodyStorageTypeKey = "MessageBody/StorageType";
     const string MessageBodyStoragePathKey = "MessageBody/StoragePath";
+    const string AzureConnectionStringKey = "MessageBody/Azure/ConnectionString";
+    const string AzureServiceUriKey = "MessageBody/Azure/ServiceUri";
+    const string AzureManagedIdentityClientIdKey = "MessageBody/Azure/ManagedIdentityClientId";
+    const string AzureAuthorityHostKey = "MessageBody/Azure/AuthorityHost";
+    const string AzureContainerNameKey = "MessageBody/Azure/ContainerName";
     const string MinBodySizeForCompressionKey = "MessageBody/MinCompressionSize";
     const string MaxBodySizeToStoreKey = "MaxBodySizeToStore";
     const string ErrorRetentionPeriodKey = "ErrorRetentionPeriod";
@@ -42,6 +47,49 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
         {
             settings.MessageBodyStoragePath = GetRequiredSetting<string>(settingsRootNamespace, MessageBodyStoragePathKey);
         }
+        else if (settings.BodyStorageType == BodyStorageType.AzureBlob)
+        {
+            ConfigureAzureBlob(settings, settingsRootNamespace);
+        }
+    }
+
+    static void ConfigureAzureBlob(EFPersisterSettings settings, SettingsRootNamespace settingsRootNamespace)
+    {
+        var connectionString = SettingsReader.Read<string>(settingsRootNamespace, AzureConnectionStringKey);
+        var serviceUri = SettingsReader.Read<string>(settingsRootNamespace, AzureServiceUriKey);
+
+        var hasConnectionString = !string.IsNullOrWhiteSpace(connectionString);
+        var hasServiceUri = !string.IsNullOrWhiteSpace(serviceUri);
+
+        // A connection string carries shared-key/SAS auth; a service URI uses managed identity. They
+        // are mutually exclusive, and exactly one must be provided.
+        if (hasConnectionString == hasServiceUri)
+        {
+            throw new Exception($"Azure Blob body storage requires exactly one of {AzureConnectionStringKey} (shared key / SAS) or {AzureServiceUriKey} (managed identity). {(hasConnectionString ? "Both were set." : "Neither was set.")}");
+        }
+
+        settings.AzureBlobConnectionString = hasConnectionString ? connectionString : null;
+        settings.AzureBlobServiceUri = hasServiceUri ? serviceUri : null;
+        settings.AzureBlobManagedIdentityClientId = SettingsReader.Read<string>(settingsRootNamespace, AzureManagedIdentityClientIdKey);
+        settings.AzureBlobAuthorityHost = ReadAzureAuthorityHost(settingsRootNamespace);
+        settings.AzureBlobContainerName = SettingsReader.Read(settingsRootNamespace, AzureContainerNameKey, settings.AzureBlobContainerName);
+    }
+
+    static string? ReadAzureAuthorityHost(SettingsRootNamespace settingsRootNamespace)
+    {
+        var raw = SettingsReader.Read<string>(settingsRootNamespace, AzureAuthorityHostKey);
+
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return null;
+        }
+
+        if (!Uri.TryCreate(raw, UriKind.Absolute, out _))
+        {
+            throw new Exception($"Setting {AzureAuthorityHostKey} value '{raw}' is not a valid absolute URI.");
+        }
+
+        return raw;
     }
 
     static BodyStorageType ReadBodyStorageType(SettingsRootNamespace settingsRootNamespace)
