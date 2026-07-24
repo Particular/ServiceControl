@@ -3,7 +3,6 @@ namespace ServiceControl.Persistence.Tests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +19,7 @@ abstract class ErrorIngestionTestBase : PersistenceTestBase
     protected ErrorIngestionTestBase() =>
         RegisterServices = services => services.AddSingleton<IBodyStoragePersistence>(RecordedBodies);
 
-    protected RecordingBodyStoragePersistence RecordedBodies { get; } = new();
+    protected InMemoryBodyStoragePersistence RecordedBodies { get; } = new();
 
     protected EFPersisterSettings EFSettings => (EFPersisterSettings)PersistenceSettings;
 
@@ -96,66 +95,5 @@ abstract class ErrorIngestionTestBase : PersistenceTestBase
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
 
         return await query(dbContext);
-    }
-
-    protected class RecordingBodyStoragePersistence : IBodyStoragePersistence
-    {
-        readonly List<StoredBody> written = [];
-        readonly List<string> deleted = [];
-
-        // Body ids whose deletion should throw, to exercise the sweep's tolerate-missing handling.
-        public HashSet<string> FailDeleteFor { get; } = [];
-
-        public IReadOnlyList<StoredBody> Written
-        {
-            get
-            {
-                lock (written)
-                {
-                    return [.. written];
-                }
-            }
-        }
-
-        public IReadOnlyList<string> Deleted
-        {
-            get
-            {
-                lock (deleted)
-                {
-                    return [.. deleted];
-                }
-            }
-        }
-
-        public Task WriteBody(string bodyId, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default)
-        {
-            lock (written)
-            {
-                written.Add(new StoredBody(bodyId, body.ToArray(), contentType));
-            }
-
-            return Task.CompletedTask;
-        }
-
-        public Task<MessageBodyFileResult> ReadBody(string bodyId, CancellationToken cancellationToken = default) =>
-            throw new NotImplementedException();
-
-        public Task DeleteBody(string bodyId, CancellationToken cancellationToken = default)
-        {
-            if (FailDeleteFor.Contains(bodyId))
-            {
-                throw new InvalidOperationException($"Simulated missing body for {bodyId}");
-            }
-
-            lock (deleted)
-            {
-                deleted.Add(bodyId);
-            }
-
-            return Task.CompletedTask;
-        }
-
-        public record StoredBody(string BodyId, byte[] Body, string ContentType);
     }
 }

@@ -13,7 +13,7 @@ using ServiceControl.Persistence.UnitOfWork;
 
 public abstract class BasePersistence
 {
-    protected static void RegisterDataStores(IServiceCollection services)
+    protected static void RegisterDataStores(IServiceCollection services, EFPersisterSettings settings)
     {
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<MinimumRequiredStorageState>();
@@ -51,6 +51,43 @@ public abstract class BasePersistence
 
         services.AddSingleton<ILicensingDataStore, LicensingDataStore>();
 
-        services.AddSingleton<IBodyStoragePersistence, FakeBodyStoragePersistence>();
+        RegisterBodyStorage(services, settings);
+    }
+
+    static void RegisterBodyStorage(IServiceCollection services, EFPersisterSettings settings)
+    {
+        switch (settings.BodyStorageType)
+        {
+            case BodyStorageType.FileSystem:
+                services.AddSingleton<IBodyStoragePersistence, FileSystemBodyStoragePersistence>();
+                break;
+            case BodyStorageType.AzureBlob:
+                services.AddSingleton<IBodyStoragePersistence, AzureBlobBodyStoragePersistence>();
+                break;
+            case BodyStorageType.S3:
+                services.AddSingleton<IBodyStoragePersistence, S3BodyStoragePersistence>();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(settings), settings.BodyStorageType, "Unknown body storage type.");
+        }
+    }
+
+    // Only stores needing setup-time provisioning register an installer; SetupCommand skips when none is.
+    protected static void RegisterBodyStorageInstaller(IServiceCollection services, EFPersisterSettings settings)
+    {
+        switch (settings.BodyStorageType)
+        {
+            case BodyStorageType.FileSystem:
+                services.AddScoped<IBodyStorageInstaller, FileSystemBodyStorageInstaller>();
+                break;
+            case BodyStorageType.AzureBlob:
+                services.AddScoped<IBodyStorageInstaller, AzureBlobBodyStorageInstaller>();
+                break;
+            case BodyStorageType.S3:
+                services.AddScoped<IBodyStorageInstaller, S3BodyStorageInstaller>();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(settings), settings.BodyStorageType, "Unknown body storage type.");
+        }
     }
 }

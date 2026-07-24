@@ -22,6 +22,8 @@
     <PackageReference Include="NUnit3TestAdapter" />
     <PackageReference Include="Particular.Approvals" />
     <PackageReference Include="PublicApiGenerator" />
+    <PackageReference Include="Testcontainers.Azurite" />
+    <PackageReference Include="Testcontainers.LocalStack" />
     <PackageReference Include="Testcontainers.PostgreSql" />
   </ItemGroup>
 
