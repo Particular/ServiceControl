@@ -10,6 +10,6 @@ public class EndpointSettingsConfiguration : IEntityTypeConfiguration<EndpointSe
     {
         builder.ToTable("EndpointSettings");
         builder.HasKey(x => x.Name);
-        builder.Property(x => x.Name).HasMaxLength(200).IsRequired();
+        builder.Property(x => x.Name).HasMaxLength(ColumnLengths.ShortTextLength).IsRequired();
     }
 }
