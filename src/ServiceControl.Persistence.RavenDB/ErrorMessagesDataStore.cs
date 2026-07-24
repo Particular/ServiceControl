@@ -15,6 +15,7 @@
     using Raven.Client.Documents.Queries;
     using Raven.Client.Documents.Queries.Facets;
     using Raven.Client.Documents.Session;
+    using Recoverability;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.EventLog;
     using ServiceControl.MessageFailures;
@@ -172,6 +173,13 @@
         public async Task StoreFailedErrorImport(FailedErrorImport failure)
         {
             using var session = await sessionProvider.OpenSession();
+            // This object's ID is generated externally, but is not in the RavenDB format
+            // Check that's true to make sure that if it already is that it doesn't get double-formatted
+            if (!failure.Id.StartsWith(CollectionName))
+            {
+                failure.Id = MakeDocumentId(failure.Id);
+            }
+            failure.Id = MakeDocumentId(failure.Id);
             await session.StoreAsync(failure);
 
             await session.SaveChangesAsync();
@@ -392,8 +400,8 @@
         {
             using var session = await sessionProvider.OpenSession();
             var groupComment =
-                await session.LoadAsync<GroupComment>(GroupComment.MakeId(groupId))
-                ?? new GroupComment { Id = GroupComment.MakeId(groupId) };
+                await session.LoadAsync<GroupComment>(GroupsDataStore.MakeId(groupId))
+                ?? new GroupComment { Id = GroupsDataStore.MakeId(groupId) };
 
             groupComment.Comment = comment;
 
@@ -404,7 +412,7 @@
         public async Task DeleteComment(string groupId)
         {
             using var session = await sessionProvider.OpenSession();
-            session.Delete(GroupComment.MakeId(groupId));
+            session.Delete(GroupsDataStore.MakeId(groupId));
             await session.SaveChangesAsync();
         }
 
@@ -512,11 +520,6 @@
             }
         }
 
-        class DocumentPatchResult
-        {
-            public string Document { get; set; }
-        }
-
         public async Task<string[]> UnArchiveMessagesByRange(DateTime from, DateTime to)
         {
             const int Unresolved = (int)FailedMessageStatus.Unresolved;
@@ -595,7 +598,7 @@
             failedMessage?.Status = FailedMessageStatus.Unresolved;
 
             var failedMessageRetry = await session
-                .LoadAsync<FailedMessageRetry>(FailedMessageRetry.MakeDocumentId(messageUniqueId));
+                .LoadAsync<FailedMessageRetry>(RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(messageUniqueId));
             if (failedMessageRetry != null)
             {
                 session.Delete(failedMessageRetry);
@@ -607,7 +610,7 @@
         public async Task RemoveFailedMessageRetryDocument(string uniqueMessageId)
         {
             using var session = await sessionProvider.OpenSession();
-            await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null), session.Advanced.Context);
+            await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(uniqueMessageId), null), session.Advanced.Context);
         }
 
         public async Task<string[]> GetRetryPendingMessages(DateTime from, DateTime to, string queueAddress)
@@ -674,5 +677,8 @@
 
             await session.SaveChangesAsync();
         }
+
+        public static string MakeDocumentId(string id) => string.Join("/", CollectionName, id);
+        public const string CollectionName = "FailedErrorImports";
     }
 }

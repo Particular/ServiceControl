@@ -7,7 +7,5 @@
         public string HostDisplayName { get; set; }
         public bool Monitored { get; set; }
         public EndpointDetails EndpointDetails { get; set; }
-
-        public const string CollectionName = "KnownEndpoints";
     }
 }

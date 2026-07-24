@@ -2,6 +2,7 @@
 {
     using System;
     using NUnit.Framework;
+    using Persistence.RavenDB;
     using ServiceControl.Recoverability;
 
     [TestFixture]
@@ -13,9 +14,9 @@
             var messageId = Guid.NewGuid().ToString();
             var failedMessageId = FailedMessageIdGenerator.MakeDocumentId(messageId);
 
-            var extractedFailedMessageRetryId = FailedMessageRetry.MakeDocumentId(FailedMessageIdGenerator.GetMessageIdFromDocumentId(failedMessageId));
+            var extractedFailedMessageRetryId = RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(FailedMessageIdGenerator.GetMessageIdFromDocumentId(failedMessageId));
 
-            Assert.That(extractedFailedMessageRetryId, Is.EqualTo(FailedMessageRetry.MakeDocumentId(messageId)));
+            Assert.That(extractedFailedMessageRetryId, Is.EqualTo(RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(messageId)));
         }
     }
 }

@@ -10,7 +10,7 @@
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 
-            var document = await session.LoadAsync<TrialMetadata>(TrialMetadata.TrialMetadataId, cancellationToken);
+            var document = await session.LoadAsync<TrialMetadata>(TrialMetadataId, cancellationToken);
 
             return document?.TrialEndDate;
         }
@@ -19,8 +19,10 @@
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 
-            await session.StoreAsync(new TrialMetadata { TrialEndDate = trialEndDate }, TrialMetadata.TrialMetadataId, cancellationToken);
+            await session.StoreAsync(new TrialMetadata { TrialEndDate = trialEndDate }, TrialMetadataId, cancellationToken);
             await session.SaveChangesAsync(cancellationToken);
         }
+
+        static string TrialMetadataId = "metadata/trialinformation";
     }
 }

@@ -15,7 +15,5 @@
         public MessageRedirect this[Guid id] => Redirects.SingleOrDefault(r => r.MessageRedirectId == id);
 
         public List<MessageRedirect> Redirects { get; set; } = [];
-
-        public const string DefaultId = "messageredirects";
     }
 }

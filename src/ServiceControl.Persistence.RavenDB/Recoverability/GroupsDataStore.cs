@@ -25,13 +25,13 @@
                 .Take(200)
                 .ToListAsync();
 
-            var commentIds = groups.Select(x => GroupComment.MakeId(x.Id)).ToArray();
+            var commentIds = groups.Select(x => MakeId(x.Id)).ToArray();
             var comments = await session.Query<GroupComment, GroupCommentIndex>().Where(x => x.Id.In(commentIds))
                 .ToListAsync(CancellationToken.None);
 
             foreach (var group in groups)
             {
-                group.Comment = comments.FirstOrDefault(x => x.Id == GroupComment.MakeId(group.Id))?.Comment;
+                group.Comment = comments.FirstOrDefault(x => x.Id == MakeId(group.Id))?.Comment;
             }
 
             return groups;
@@ -41,9 +41,11 @@
         {
             using var session = await sessionProvider.OpenSession();
             var nowForwarding = await session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
-                .LoadAsync<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
+                .LoadAsync<RetryBatchNowForwarding>(RetryDocumentDataStore.NowForwardingDocumentId);
 
             return nowForwarding == null ? null : await session.LoadAsync<RetryBatch>(nowForwarding.RetryBatchId);
         }
+
+        public static string MakeId(string groupId) => $"GroupComment/{groupId}";
     }
 }

@@ -57,7 +57,8 @@
             DateTime startTime, DateTime? last = null, string batchName = null, string classifier = null,
             string initiatedById = null, string initiatedByName = null, string operationId = null)
         {
-            var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
+            var batchDocumentId = MakeDocumentId(Guid.NewGuid().ToString());
+            failedMessageRetryIds = failedMessageRetryIds.Select(MakeFailedMessageRetriesDocumentId).ToArray();
             using var session = await sessionProvider.OpenSession();
             await session.StoreAsync(new RetryBatch
             {
@@ -117,7 +118,7 @@
                 }
             };
 
-            return new PatchCommandData(FailedMessageRetry.MakeDocumentId(messageId), null, patch: new PatchRequest { Script = "" }, patchIfMissing: patchRequest);
+            return new PatchCommandData(MakeFailedMessageRetriesDocumentId(messageId), null, patch: new PatchRequest { Script = "" }, patchIfMissing: patchRequest);
         }
 
         public async Task GetBatchesForAll(DateTime cutoff, Func<string, DateTime, Task> callback)
@@ -206,5 +207,11 @@
                 .FirstOrDefaultAsync(x => x.Id == groupId);
             return group;
         }
+
+        public static string MakeDocumentId(string messageUniqueId) => "RetryBatches/" + messageUniqueId;
+
+        public static string MakeFailedMessageRetriesDocumentId(string messageUniqueId) => "FailedMessageRetries/" + messageUniqueId;
+
+        public static readonly string NowForwardingDocumentId = MakeDocumentId("NowForwarding");
     }
 }
