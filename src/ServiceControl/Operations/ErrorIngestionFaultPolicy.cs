@@ -57,7 +57,7 @@
                     Body = errorContext.Body.ToArray()
                 },
                 ExceptionInfo = errorContext.Exception.ToFriendlyString(),
-                Id = FailedErrorImport.DeriveKey(errorContext.Headers, errorContext.MessageId)
+                Id = FailedErrorImport.DeriveKey(errorContext.Headers, errorContext.MessageId).ToString()
             };
 
             try

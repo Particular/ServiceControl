@@ -173,6 +173,12 @@
         public async Task StoreFailedErrorImport(FailedErrorImport failure)
         {
             using var session = await sessionProvider.OpenSession();
+            // This object's ID is generated externally, but is not in the RavenDB format
+            // Check that's true to make sure that if it already is that it doesn't get double-formatted
+            if (!failure.Id.StartsWith(CollectionName))
+            {
+                failure.Id = MakeDocumentId(failure.Id);
+            }
             failure.Id = MakeDocumentId(failure.Id);
             await session.StoreAsync(failure);
 
@@ -514,11 +520,6 @@
             }
         }
 
-        class DocumentPatchResult
-        {
-            public string Document { get; set; }
-        }
-
         public async Task<string[]> UnArchiveMessagesByRange(DateTime from, DateTime to)
         {
             const int Unresolved = (int)FailedMessageStatus.Unresolved;
@@ -677,6 +678,7 @@
             await session.SaveChangesAsync();
         }
 
-        public static string MakeDocumentId(string id) => $"FailedErrorImports/{id}";
+        public static string MakeDocumentId(string id) => string.Join("/", CollectionName, id);
+        public const string CollectionName = "FailedErrorImports";
     }
 }
