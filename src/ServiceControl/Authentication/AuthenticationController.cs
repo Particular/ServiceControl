@@ -43,11 +43,10 @@
         public string ApiScopes { get; set; }
 
         /// <summary>
-        /// The complete, space-separated scope string ServicePulse should request, composed by
-        /// ServiceControl from <see cref="ApiScopes"/> plus the fixed <c>openid profile email</c>
-        /// scopes and <c>offline_access</c> unless disabled via
-        /// <c>Authentication.ServicePulse.OfflineAccessScopeEnabled</c>. Older ServicePulse builds
-        /// that predate this field ignore it and fall back to assembling their own scope string.
+        /// The complete, space-separated scope string ServicePulse should request. Carries the value of
+        /// <c>OpenIdConnectSettings.ServicePulseScopes</c> (see there for how it is composed). Added as an
+        /// additive, non-breaking field; ServicePulse builds that don't recognize it fall back to
+        /// composing the scope string themselves from <see cref="ApiScopes"/>.
         /// </summary>
         public string Scopes { get; set; }
     }

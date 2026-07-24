@@ -204,6 +204,7 @@ set SERVICECONTROL_AUTHENTICATION_AUDIENCE=api://servicecontrol-test
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID=test-client-id
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY=https://login.microsoftonline.com/common/v2.0
 set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES=["api://servicecontrol-test/access_as_user"]
+set SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_OFFLINEACCESSSCOPEENABLED=
 set SERVICECONTROL_AUTHENTICATION_REQUIREHTTPSMETADATA=
 set SERVICECONTROL_AUTHENTICATION_VALIDATEISSUER=
 set SERVICECONTROL_AUTHENTICATION_VALIDATEAUDIENCE=
@@ -283,11 +284,11 @@ curl http://localhost:33633/api/authentication/configuration | json
   "clientId": "test-client-id",
   "audience": "api://servicecontrol-test",
   "apiScopes": "[\"api://servicecontrol-test/access_as_user\"]",
-  "scopes": "[\"api://servicecontrol-test/access_as_user\"] openid profile email offline_access"
+  "scopes": "api://servicecontrol-test/access_as_user openid profile email offline_access"
 }
 ```
 
-The authentication configuration endpoint is accessible without authentication and returns the configuration that clients need to authenticate. The `authority` field is omitted when `ServicePulse.Authority` is not explicitly set (it defaults to the main Authority for ServicePulse clients). The `audience` field is copied from the `ServiceControl/Authentication.Audience` value. The `scopes` field is the complete scope string ServicePulse should request, composed by ServiceControl from `apiScopes` plus the fixed `openid profile email` scopes and `offline_access` unless `ServiceControl/Authentication.ServicePulse.OfflineAccessScopeEnabled` is set to `false`.
+The authentication configuration endpoint is accessible without authentication and returns the configuration that clients need to authenticate. The `authority` field is omitted when `ServicePulse.Authority` is not explicitly set (it defaults to the main Authority for ServicePulse clients). The `audience` field is copied from the `ServiceControl/Authentication.Audience` value. The `apiScopes` field is the raw JSON array as configured. The `scopes` field is the complete, space-separated scope string ServicePulse should request, composed by ServiceControl by parsing the `apiScopes` JSON array and adding the fixed `openid profile email` scopes plus `offline_access` unless `ServiceControl/Authentication.ServicePulse.OfflineAccessScopeEnabled` is set to `false`.
 
 ### Scenario 3: Authentication with Invalid Token
 

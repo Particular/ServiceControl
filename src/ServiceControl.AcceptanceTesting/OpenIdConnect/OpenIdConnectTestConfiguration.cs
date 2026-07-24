@@ -141,7 +141,7 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
         /// Configures the API scopes that ServicePulse should request.
         /// Required on the primary ServiceControl instance when authentication is enabled.
         /// </summary>
-        /// <param name="scopes">Space-separated list of API scopes</param>
+        /// <param name="scopes">JSON array of API scopes (e.g. <c>["api://my-api/access_as_user"]</c>)</param>
         public OpenIdConnectTestConfiguration WithServicePulseApiScopes(string scopes)
         {
             SetEnvironmentVariable("AUTHENTICATION_SERVICEPULSE_APISCOPES", scopes);

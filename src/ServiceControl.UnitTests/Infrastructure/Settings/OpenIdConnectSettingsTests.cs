@@ -105,7 +105,7 @@ public class OpenIdConnectSettingsTests
     public void Should_read_service_pulse_settings_when_required()
     {
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID", "my-client-id");
-        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES", "api://my-api/.default");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES", "[\"api://my-api/.default\"]");
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY", "https://pulse-auth.example.com");
 
         var settings = new OpenIdConnectSettings(TestNamespace, validateConfiguration: false, requireServicePulseSettings: true);
@@ -113,7 +113,7 @@ public class OpenIdConnectSettingsTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(settings.ServicePulseClientId, Is.EqualTo("my-client-id"));
-            Assert.That(settings.ServicePulseApiScopes, Is.EqualTo("api://my-api/.default"));
+            Assert.That(settings.ServicePulseApiScopes, Is.EqualTo("[\"api://my-api/.default\"]"));
             Assert.That(settings.ServicePulseAuthority, Is.EqualTo("https://pulse-auth.example.com"));
         }
     }
@@ -121,7 +121,7 @@ public class OpenIdConnectSettingsTests
     [Test]
     public void Should_compose_service_pulse_scopes_with_offline_access_by_default()
     {
-        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES", "api://my-api/.default");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES", "[\"api://my-api/.default\"]");
 
         var settings = new OpenIdConnectSettings(TestNamespace, validateConfiguration: false, requireServicePulseSettings: true);
 
@@ -135,7 +135,7 @@ public class OpenIdConnectSettingsTests
     [Test]
     public void Should_compose_service_pulse_scopes_without_offline_access_when_disabled()
     {
-        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES", "api://my-api/.default");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES", "[\"api://my-api/.default\"]");
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_OFFLINEACCESSSCOPEENABLED", "false");
 
         var settings = new OpenIdConnectSettings(TestNamespace, validateConfiguration: false, requireServicePulseSettings: true);
@@ -148,10 +148,23 @@ public class OpenIdConnectSettingsTests
     }
 
     [Test]
+    public void Should_compose_service_pulse_scopes_from_json_array_with_multiple_scopes()
+    {
+        // ApiScopes is a JSON array (the format ServicePulse parses); the composed scope string
+        // must be the space-separated scopes, not the raw JSON array text.
+        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES", "[\"api://my-api/scope1\", \"api://my-api/scope2\"]");
+
+        var settings = new OpenIdConnectSettings(TestNamespace, validateConfiguration: false, requireServicePulseSettings: true);
+
+        Assert.That(settings.ServicePulseScopes, Is.EqualTo("api://my-api/scope1 api://my-api/scope2 openid profile email offline_access"));
+    }
+
+    [Test]
     public void Should_not_read_service_pulse_settings_when_not_required()
     {
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID", "my-client-id");
-        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES", "api://my-api/.default");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES", "[\"api://my-api/.default\"]");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_OFFLINEACCESSSCOPEENABLED", "false");
 
         var settings = new OpenIdConnectSettings(TestNamespace, validateConfiguration: false, requireServicePulseSettings: false);
 
@@ -159,6 +172,11 @@ public class OpenIdConnectSettingsTests
         {
             Assert.That(settings.ServicePulseClientId, Is.Null);
             Assert.That(settings.ServicePulseApiScopes, Is.Null);
+            // The offline_access toggle is only read on the primary instance. When ServicePulse
+            // settings aren't required the env var is ignored and the property keeps its default,
+            // so ServicePulseScopes has no API scopes to compose from and stays null.
+            Assert.That(settings.ServicePulseOfflineAccessScopeEnabled, Is.True);
+            Assert.That(settings.ServicePulseScopes, Is.Null);
         }
     }
 
@@ -247,13 +265,28 @@ public class OpenIdConnectSettingsTests
     }
 
     [Test]
+    public void Should_throw_when_service_pulse_api_scopes_not_a_json_array()
+    {
+        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_ENABLED", "true");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_AUTHORITY", "https://login.example.com");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_AUDIENCE", "my-audience");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID", "my-client-id");
+        // A bare scope string rather than the required JSON array (e.g. ["api://my-api/.default"])
+        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES", "api://my-api/.default");
+
+        var ex = Assert.Throws<Exception>(() => new OpenIdConnectSettings(TestNamespace, validateConfiguration: true, requireServicePulseSettings: true));
+
+        Assert.That(ex.Message, Does.Contain("ServicePulse.ApiScopes must be a non-empty JSON array"));
+    }
+
+    [Test]
     public void Should_throw_when_service_pulse_authority_is_invalid()
     {
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_ENABLED", "true");
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_AUTHORITY", "https://login.example.com");
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_AUDIENCE", "my-audience");
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID", "my-client-id");
-        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES", "api://my-api/.default");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES", "[\"api://my-api/.default\"]");
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_AUTHORITY", "not-a-valid-uri");
 
         var ex = Assert.Throws<Exception>(() => new OpenIdConnectSettings(TestNamespace, validateConfiguration: true, requireServicePulseSettings: true));
@@ -268,7 +301,7 @@ public class OpenIdConnectSettingsTests
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_AUTHORITY", "https://login.example.com");
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_AUDIENCE", "my-audience");
         Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_CLIENTID", "my-client-id");
-        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES", "api://my-api/.default");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_SERVICEPULSE_APISCOPES", "[\"api://my-api/.default\"]");
 
         var settings = new OpenIdConnectSettings(TestNamespace, validateConfiguration: true, requireServicePulseSettings: true);
 
@@ -278,7 +311,7 @@ public class OpenIdConnectSettingsTests
             Assert.That(settings.Authority, Is.EqualTo("https://login.example.com"));
             Assert.That(settings.Audience, Is.EqualTo("my-audience"));
             Assert.That(settings.ServicePulseClientId, Is.EqualTo("my-client-id"));
-            Assert.That(settings.ServicePulseApiScopes, Is.EqualTo("api://my-api/.default"));
+            Assert.That(settings.ServicePulseApiScopes, Is.EqualTo("[\"api://my-api/.default\"]"));
         }
     }
 
