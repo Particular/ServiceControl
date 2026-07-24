@@ -5,19 +5,18 @@ namespace ServiceControl.Config.Tests.AddInstance
     using ServiceControl.Config.UI.InstanceAdd;
 
     /// <summary>
-    /// Executable specification for docs/specs/audit-instance-servicecontrol-queue-address.md
+    /// Executable specification for the audit instance ServiceControl queue address feature
     /// (bug https://github.com/Particular/ServiceControl/issues/4753).
     ///
     /// Organized as feature > rule > examples:
     /// - this outer class is the feature,
-    /// - each nested fixture is one rule from the spec,
-    /// - each test is one example, named with the spec's "The one where ..." language.
+    /// - each nested fixture is one rule,
+    /// - each test is one example, named with "The one where ..." language.
     ///
-    /// These tests are the OUTER loop of a double-loop TDD process. They observe the view
-    /// model and its validator through INotifyDataErrorInfo - the same mechanism the UI
-    /// uses to block Save - and reference members that do not exist yet:
-    ///   GetInstalledErrorInstanceNames, ServiceControlQueueAddress,
-    ///   ServiceControlQueueAddressOptions, ShowServiceControlQueueAddressSelection.
+    /// The tests observe the view model and its validator through INotifyDataErrorInfo -
+    /// the same mechanism the UI uses to block Save - and substitute the
+    /// GetInstalledErrorInstanceNames seam to simulate the error instances installed on
+    /// the machine.
     /// </summary>
     public class AuditInstanceServiceControlQueueAddress
     {

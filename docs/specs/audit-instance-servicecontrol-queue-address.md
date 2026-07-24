@@ -1,5 +1,10 @@
 # Feature: Audit Instance ServiceControl Queue Address
 
+> [!WARNING]
+> **This document is a working artifact for the development of this feature and is
+> meant to be DELETED before merging the PR.** Do not reference it from code or docs
+> that will outlive the PR.
+
 **As an operator adding instances through ServiceControl Management Utility (SCMU), I want every audit instance to be connected to a ServiceControl (error) instance so that messages the audit instance sends to the error instance always have a valid destination.**
 
 > Bug: [#4753 — SCMU does not set ServiceControlQueueAddress when only adding audit instances](https://github.com/Particular/ServiceControl/issues/4753).
