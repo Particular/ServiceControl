@@ -78,7 +78,7 @@
     <PackageVersion Include="RavenDB.Embedded" Version="6.2.17" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.13.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.13.0" />
-    <PackageVersion Include="ReactiveUI.WPF" Version="22.3.1" />
+    <PackageVersion Include="ReactiveUI.WPF" Version="23.2.28" />
     <PackageVersion Include="Seq.Extensions.Logging" Version="9.0.0" />
     <PackageVersion Include="ServiceControl.Contracts" Version="5.1.0" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="$(RuntimeFrameworkVersion)" />
