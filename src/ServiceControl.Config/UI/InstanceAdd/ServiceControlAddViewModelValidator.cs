@@ -152,7 +152,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
             RuleFor(viewModel => viewModel.ServiceControlQueueAddress)
                 .NotEmpty()
-                    .WithMessage("An existing error instance must be selected to receive audit data")
+                    .WithMessage("An existing error instance must be selected for the audit instance to send messages to")
                 .When(viewModel => viewModel.InstallAuditInstance && !viewModel.InstallErrorInstance);
 
             RuleFor(x => x.AuditServiceAccount)
