@@ -4,6 +4,7 @@
     using System.Configuration;
     using System.Data.Common;
     using System.IO;
+    using System.Linq;
     using Instances;
     using NuGet.Versioning;
 
@@ -21,6 +22,9 @@
 
             var settings = Config.AppSettings.Settings;
             var version = details.Version;
+            //ServiceControl.Audit.Persistence.RavenDB.RavenPersistenceConfiguration.ConnectionStringKey
+            var hasOnlyRemoteRavenDbConnection = settings.AllKeys.Contains("RavenDB/ConnectionString")
+                                                 && !settings.AllKeys.Contains(AuditInstanceSettingsList.DBPath.Name);
 
             settings.Set(ServiceControlSettings.InstanceName, details.InstanceName, version);
             settings.Set(ServiceControlSettings.VirtualDirectory, details.VirtualDirectory);
@@ -28,7 +32,10 @@
             settings.Set(ServiceControlSettings.DatabaseMaintenancePort, details.DatabaseMaintenancePort.ToString(), version);
             settings.Set(ServiceControlSettings.HostName, details.HostName);
             settings.Set(ServiceControlSettings.LogPath, details.LogPath);
-            settings.Set(ServiceControlSettings.DBPath, details.DBPath);
+            if (hasOnlyRemoteRavenDbConnection)
+            {
+                settings.Set(ServiceControlSettings.DBPath, details.DBPath);
+            }
             settings.Set(ServiceControlSettings.ForwardErrorMessages, details.ForwardErrorMessages.ToString(), version);
             settings.Set(ServiceControlSettings.TransportType, details.TransportPackage.Name, version);
             settings.Set(ServiceControlSettings.PersistenceType, details.PersistenceManifest.Name); // TODO: Why is it set here AND at ServiceControlInstance.ApplySettingsChanges 🤬
