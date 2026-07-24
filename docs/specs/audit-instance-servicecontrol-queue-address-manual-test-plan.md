@@ -1,5 +1,10 @@
 # Manual Test Plan: Audit Instance ServiceControl Queue Address (SCMU)
 
+> [!WARNING]
+> **This document is a working artifact for the manual validation of this feature and
+> is meant to be DELETED before merging the PR.** Record the test results here (or in
+> a copy) while the PR is open.
+
 **Spec:** [audit-instance-servicecontrol-queue-address.md](audit-instance-servicecontrol-queue-address.md)
 **Bug:** [#4753 — SCMU does not set ServiceControlQueueAddress when only adding audit instances](https://github.com/Particular/ServiceControl/issues/4753)
 
