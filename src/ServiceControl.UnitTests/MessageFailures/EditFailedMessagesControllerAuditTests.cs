@@ -97,6 +97,5 @@ public class EditFailedMessagesControllerAuditTests
         public Task<string[]> GetRetryPendingMessages(DateTime from, DateTime to, string queueAddress) => throw new NotImplementedException();
         public Task<byte[]> FetchFromFailedMessage(string uniqueMessageId) => throw new NotImplementedException();
         public Task StoreEventLogItem(EventLogItem logItem) => throw new NotImplementedException();
-        public Task StoreFailedMessagesForTestsOnly(params FailedMessage[] failedMessages) => throw new NotImplementedException();
     }
 }
