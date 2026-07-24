@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="ServiceControl.Persistence.Tests.SqlServer" />
     <InternalsVisibleTo Include="ServiceControl.Persistence.Tests.PostgreSql" />
+    <InternalsVisibleTo Include="ServiceControl.Persistence.Tests.SqlServer" />
   </ItemGroup>
 </Project>
