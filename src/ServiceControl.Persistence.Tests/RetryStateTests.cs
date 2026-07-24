@@ -254,7 +254,7 @@
                 ]
             }).ToArray();
 
-            await ErrorStore.StoreFailedMessagesForTestsOnly(messages);
+            await PersistenceTestsContext.InsertFailedMessages(messages);
             await CompleteDatabaseOperation();
 
             var gateway = new CustomRetriesGateway(true, RetryStore, retryManager);
@@ -342,7 +342,7 @@
                 ]
             }).ToArray();
 
-            await ErrorStore.StoreFailedMessagesForTestsOnly(messages);
+            await PersistenceTestsContext.InsertFailedMessages(messages);
 
             // Needs index FailedMessages_ByGroup
             // Needs index FailedMessages_UniqueMessageIdAndTimeOfFailures

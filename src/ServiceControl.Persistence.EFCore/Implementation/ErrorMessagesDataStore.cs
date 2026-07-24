@@ -113,7 +113,4 @@ public class ErrorMessagesDataStore(IServiceScopeFactory scopeFactory) : DataSto
 
     public Task StoreEventLogItem(EventLogItem logItem) =>
         throw new NotImplementedException();
-
-    public Task StoreFailedMessagesForTestsOnly(params FailedMessage[] failedMessages)
-        => throw new NotImplementedException("EF Tests Use the Ingestion pathway to populate this data");
 }

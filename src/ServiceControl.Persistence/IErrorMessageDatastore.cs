@@ -71,7 +71,5 @@
 
         // AuditEventLogWriter
         Task StoreEventLogItem(EventLogItem logItem);
-
-        Task StoreFailedMessagesForTestsOnly(params FailedMessage[] failedMessages);
     }
 }
