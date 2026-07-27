@@ -18,7 +18,8 @@
             await session.SaveChangesAsync();
         }
 
-        public async Task<(IList<EventLogItem>, long, string)> GetEventLogItems(PagingInfo pagingInfo)
+        public async Task<(IList<EventLogItem>, long, string)> GetEventLogItems(
+            PagingInfo pagingInfo, string knownVersion = null)
         {
             using var session = await sessionProvider.OpenSession();
             var results = await session
@@ -28,7 +29,12 @@
                 .Paging(pagingInfo)
                 .ToListAsync();
 
-            return (results, stats.TotalResults, stats.ResultEtag.ToString());
+            var version = stats.ResultEtag.ToString();
+
+            // For robustness and consistency. Decide 304s at the controller level. 
+            var unchanged = knownVersion is not null && knownVersion == version;
+
+            return (unchanged ? null : results, stats.TotalResults, version);
         }
     }
 }

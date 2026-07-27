@@ -157,6 +157,63 @@ class EventLogDataStoreTests : PersistenceTestBase
         Assert.That(secondRead, Is.EqualTo(firstRead));
     }
 
+    [Test]
+    public async Task Matching_known_version_reports_no_items()
+    {
+        await AddItems(3);
+        var (_, _, version) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+
+        var (items, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(), version);
+
+        Assert.That(items, Is.Null, "a caller already holding the current version must be told so, not handed the page again");
+    }
+
+    [Test]
+    public async Task Matching_known_version_still_reports_total_and_version()
+    {
+        await AddItems(3);
+        var (_, _, version) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+
+        var (_, total, versionAgain) = await EventLogDataStore.GetEventLogItems(new PagingInfo(), version);
+
+        using (Assert.EnterMultipleScope())
+        {
+            // The controller sets Total-Count and ETag on the 304, so neither may be dropped
+            // just because the page was not fetched.
+            Assert.That(total, Is.EqualTo(3));
+            Assert.That(versionAgain, Is.EqualTo(version));
+        }
+    }
+
+    [Test]
+    public async Task Stale_known_version_returns_the_page()
+    {
+        await AddItems(2);
+        var (_, _, staleVersion) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+
+        await AddItems(1);
+
+        var (items, total, freshVersion) = await EventLogDataStore.GetEventLogItems(new PagingInfo(), staleVersion);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(items, Is.Not.Null);
+            Assert.That(items, Has.Count.EqualTo(3));
+            Assert.That(total, Is.EqualTo(3));
+            Assert.That(freshVersion, Is.Not.EqualTo(staleVersion));
+        }
+    }
+
+    [Test]
+    public async Task Unrecognised_known_version_returns_the_page()
+    {
+        await AddItems(2);
+
+        var (items, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(), "not-a-version-this-store-ever-issued");
+
+        Assert.That(items, Is.Not.Null, "an unrecognised validator must be treated as a cache miss, never as a match");
+    }
+
     async Task AddItems(int count)
     {
         var baseTime = new DateTime(2026, 7, 22, 8, 0, 0, DateTimeKind.Utc);
