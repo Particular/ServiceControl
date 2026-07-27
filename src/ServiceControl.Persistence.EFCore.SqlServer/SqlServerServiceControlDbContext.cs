@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.SqlServer;
 
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using ServiceControl.MessageFailures;
 using ServiceControl.Persistence.EFCore.DbContexts;
@@ -14,5 +15,17 @@ public class SqlServerServiceControlDbContext(DbContextOptions<SqlServerServiceC
         modelBuilder.Entity<FailedMessageEntity>()
             .HasIndex(e => e.StatusChangedAt)
             .HasFilter($"[Status] IN ({(int)FailedMessageStatus.Resolved}, {(int)FailedMessageStatus.Archived})");
+    }
+    
+    public override bool IsDuplicateKeyException(DbUpdateException exception)
+    {
+        for (var inner = exception.InnerException; inner != null; inner = inner.InnerException)
+        {
+            if (inner is SqlException { Number: 2601 or 2627 })
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
