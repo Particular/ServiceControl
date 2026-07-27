@@ -1,17 +1,27 @@
 namespace ServiceControl.Persistence.EFCore.Implementation;
 
+using System.Text.Json;
 using Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using NServiceBus;
 using Persistence.UnitOfWork;
 using ServiceControl.CompositeViews.Messages;
 using ServiceControl.EventLog;
 using ServiceControl.MessageFailures;
 using ServiceControl.MessageFailures.Api;
 using ServiceControl.Operations;
+using ServiceControl.Persistence.EFCore.Abstractions;
+using ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
+using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.Infrastructure;
 using ServiceControl.Recoverability;
 
-public class ErrorMessagesDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IErrorMessageDataStore
+public class ErrorMessagesDataStore(
+    IServiceScopeFactory scopeFactory,
+    IBodyStoragePersistence bodyStorage,
+    BodyStorageSettings bodyStorageSettings,
+    TimeProvider timeProvider) : DataStoreBase(scopeFactory), IErrorMessageDataStore
 {
     public Task<QueryResult<IList<MessagesView>>> GetAllMessages(PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages, DateTimeRange? timeSentRange = null) =>
         throw new NotImplementedException();
@@ -35,8 +45,67 @@ public class ErrorMessagesDataStore(IServiceScopeFactory scopeFactory) : DataSto
     public Task<FailedMessage[]> FailedMessagesFetch(Guid[] ids) =>
         throw new NotImplementedException();
 
+    // Update-first, then insert. The dedupe key is deterministic, so a repeat failure updates the
+    // existing row and concurrent writers that both miss it race only on the insert. The loser of
+    // that race confirms the row is now present (the winner stored the same logical failure) and
+    // otherwise rethrows, so the caller never treats a message as stored when it is not.
     public Task StoreFailedErrorImport(FailedErrorImport failure) =>
-        throw new NotImplementedException();
+        ExecuteWithDbContext(async dbContext =>
+        {
+            var uniqueMessageId = FailedErrorImport.DeriveKey(failure.Message.Headers, failure.Message.Id);
+            var body = failure.Message.Body ?? [];
+            var storeExternally = body.Length > bodyStorageSettings.MaxBodySizeToStore;
+
+            if (storeExternally)
+            {
+                var contentType = failure.Message.Headers.GetValueOrDefault(Headers.ContentType) ?? "application/octet-stream";
+                await bodyStorage.WriteBody(FailedErrorImportEntity.ExternalBodyId(uniqueMessageId), body, contentType);
+            }
+
+            var failedAt = timeProvider.GetUtcNow().UtcDateTime;
+            var headersJson = JsonSerializer.Serialize(failure.Message.Headers, HeadersJsonContext.Default.DictionaryStringString);
+            byte[] storedBody = storeExternally ? [] : body;
+
+            var updated = await dbContext.FailedErrorImports
+                .Where(import => import.UniqueMessageId == uniqueMessageId)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(import => import.FailedAt, failedAt)
+                    .SetProperty(import => import.MessageId, failure.Message.Id)
+                    .SetProperty(import => import.HeadersJson, headersJson)
+                    .SetProperty(import => import.Body, storedBody)
+                    .SetProperty(import => import.BodyStoredExternally, storeExternally)
+                    .SetProperty(import => import.ExceptionInfo, failure.ExceptionInfo));
+
+            if (updated > 0)
+            {
+                return;
+            }
+
+            dbContext.FailedErrorImports.Add(new FailedErrorImportEntity
+            {
+                UniqueMessageId = uniqueMessageId,
+                FailedAt = failedAt,
+                MessageId = failure.Message.Id,
+                HeadersJson = headersJson,
+                Body = storedBody,
+                BodyStoredExternally = storeExternally,
+                ExceptionInfo = failure.ExceptionInfo
+            });
+
+            try
+            {
+                await dbContext.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                // Either a concurrent writer already inserted this key, or the insert genuinely
+                // failed. Only the former is safe to ignore, so rethrow unless the row is present.
+                if (!await dbContext.FailedErrorImports.AnyAsync(import => import.UniqueMessageId == uniqueMessageId))
+                {
+                    throw;
+                }
+            }
+        });
 
     public Task<IEditFailedMessagesManager> CreateEditFailedMessageManager() =>
         throw new NotImplementedException();
