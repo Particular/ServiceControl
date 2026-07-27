@@ -1,11 +1,11 @@
 ﻿namespace ServiceControl.Persistence.EFCore.SqlServer.CustomChecks
 {
     using System;
-    using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
     using DbContexts;
-    using Microsoft.EntityFrameworkCore;using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using NServiceBus.CustomChecks;
     using ServiceControl.Infrastructure;
@@ -16,10 +16,6 @@
         public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             logger.LogDebug("Check ServiceControl data drive space remaining custom check starting. Threshold {PercentageThreshold:P0}", percentageThreshold);
-            if (dataPathRoot is null)
-            {
-                throw new Exception($"Unable to find the root of the data path {settings.DatabasePath}");
-            }
 
             var databaseSpace = await TryGetDatabaseSpace(cancellationToken);
             if (databaseSpace == null)
@@ -84,7 +80,7 @@
                 command.CommandText = """
                                       SELECT
                                           SUM(size) * 8.0 / 1024 AS CurrentSizeMB,
-                                          SUM(CASE WHEN max_size = -1 THEN CAST(size AS BIGINT) ELSE CAST(max_size AS BIGINT) END) / 1048576.0 AS MaxSizeMB
+                                          SUM(CASE WHEN max_size = -1 THEN CAST(size AS BIGINT) ELSE CAST(max_size AS BIGINT) END) * 8.0 / 1024 AS MaxSizeMB
                                       FROM sys.database_files
                                       WHERE type_desc = 'ROWS';
                                       """;
@@ -107,7 +103,6 @@
             }
         }
 
-        readonly string dataPathRoot = Path.GetPathRoot(settings.DatabasePath) ?? throw new Exception("Could not resolve root path");
         readonly decimal percentageThreshold = settings.DataSpaceRemainingThreshold / 100m;
     }
 }

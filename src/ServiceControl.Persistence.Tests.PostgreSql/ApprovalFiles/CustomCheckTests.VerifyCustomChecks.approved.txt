@@ -1,0 +1,2 @@
+ServiceControl Health: Message Ingestion Process
+Storage space: ServiceControl database

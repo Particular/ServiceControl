@@ -19,7 +19,14 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
         {
             if (customCheck == null)
             {
-                customCheck = new CustomCheckEntity() { Id = detail.GetDeterministicId() };
+                customCheck = new CustomCheckEntity
+                {
+                    Id = detail.GetDeterministicId(),
+                    CustomCheckId = detail.CustomCheckId,
+                    Category = detail.Category,
+                    OriginatingEndpointName = detail.OriginatingEndpoint.Name,
+                    OriginatingEndpointHost = detail.OriginatingEndpoint.Host
+                };
                 context.CustomChecks.Add(customCheck);
             }
 

@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.PostgreSql;
 
+using CustomChecks;
 using Microsoft.Extensions.Logging;
 using ServiceControl.Infrastructure;
 using ServiceControl.Persistence.EFCore.Abstractions;
@@ -12,7 +13,12 @@ class PostgreSqlPersistenceConfiguration : EFPersistenceConfigurationBase
         LoggerUtil.CreateStaticLogger<PostgreSqlPersistenceConfiguration>()
             .LogError("The PostgreSQL persistence is still under development and is not ready for use");
 
-        return new PostgreSqlPersistence((PostgreSqlPersisterSettings)settings);
+        var postgresSettings = (PostgreSqlPersisterSettings)settings;
+
+        CheckFreeDiskSpace.Validate(postgresSettings);
+        CheckMinimumStorageRequiredForIngestion.Validate(postgresSettings);
+
+        return new PostgreSqlPersistence(postgresSettings);
     }
 
     protected override EFPersisterSettings CreateSettings(string connectionString, BodyStorageSettings bodyStorage) =>
