@@ -7,11 +7,11 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 
 // Bodies are immutable and keyed by bodyId alone, so a re-failure resolves to the same file and an
 // existing one is left untouched. 
-public class FileSystemBodyStoragePersistence(EFPersisterSettings settings) : IBodyStoragePersistence
+public class FileSystemBodyStoragePersistence(FileSystemBodyStorageSettings settings) : IBodyStoragePersistence
 {
     const int FormatVersion = 1;
 
-    string StoragePath => settings.MessageBodyStoragePath!;
+    string StoragePath => settings.StoragePath;
 
     public async Task WriteBody(string bodyId, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default)
     {
@@ -30,7 +30,7 @@ public class FileSystemBodyStoragePersistence(EFPersisterSettings settings) : IB
             var fileStream = new FileStream(tempFilePath, FileMode.CreateNew, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
             await using (fileStream.ConfigureAwait(false))
             {
-                var shouldCompress = body.Length >= settings.MinBodySizeForCompression;
+                var shouldCompress = body.Length >= settings.MinCompressionSize;
 
                 using (var writer = new BinaryWriter(fileStream, Encoding.UTF8, leaveOpen: true))
                 {
@@ -100,10 +100,13 @@ public class FileSystemBodyStoragePersistence(EFPersisterSettings settings) : IB
             var bodySize = reader.ReadInt32();
             var isCompressed = reader.ReadBoolean();
 
-            // The returned stream owns fileStream and is disposed by the caller.
+            // The returned stream owns fileStream and is disposed by the caller. Both branches are
+            // wrapped so the body is never exposed as a seekable stream: fileStream is positioned
+            // past the header, but its Length still counts the header, and ASP.NET Core would set
+            // Content-Length from that and then write only the bytes after the current position.
             Stream bodyStream = isCompressed
-                ? new BrotliStream(fileStream, CompressionMode.Decompress, leaveOpen: false)
-                : fileStream;
+                ? new ExpectedLengthStream(new BrotliStream(fileStream, CompressionMode.Decompress, leaveOpen: false), bodySize)
+                : new ExpectedLengthStream(fileStream, bodySize);
 
             return Task.FromResult<MessageBodyFileResult?>(new MessageBodyFileResult
             {

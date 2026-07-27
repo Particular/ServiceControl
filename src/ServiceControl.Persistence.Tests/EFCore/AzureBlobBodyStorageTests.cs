@@ -19,9 +19,11 @@ class AzureBlobBodyStorageTests
     [OneTimeSetUp]
     public async Task StartAzurite()
     {
-        azurite = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:latest")
-            // We need this because the Azurite image is not yet compatible with the latest Azure SDK, 
-            // see https://github.com/Azure/Azurite/issues/2623
+        // Azurite 3.36.0 does not implement the service version the current Azure.Storage.Blobs
+        // package negotiates, so the API version check has to be skipped. Support is milestoned for
+        // Azurite 3.37.0 (https://github.com/Azure/Azurite/issues/2623); when that ships, move the
+        // tag forward and drop --skipApiVersionCheck together.
+        azurite = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.36.0")
             .WithCommand("--skipApiVersionCheck")
             .Build();
         await azurite.StartAsync();
@@ -39,13 +41,11 @@ class AzureBlobBodyStorageTests
     [SetUp]
     public async Task CreateContainer()
     {
-        var settings = new TestSettings
+        var settings = new AzureBlobBodyStorageSettings
         {
-            ConnectionString = "not-used",
-            BodyStorageType = BodyStorageType.AzureBlob,
-            AzureBlobConnectionString = azurite.GetConnectionString(),
-            AzureBlobContainerName = $"bodies-{Guid.NewGuid():n}",
-            MinBodySizeForCompression = 64
+            MinCompressionSize = 64,
+            Authentication = new AzureBlobSharedKeyAuthentication { ConnectionString = azurite.GetConnectionString() },
+            ContainerName = $"bodies-{Guid.NewGuid():n}"
         };
 
         await new AzureBlobBodyStorageInstaller(settings).Provision();
@@ -137,6 +137,4 @@ class AzureBlobBodyStorageTests
         stream.CopyTo(buffer);
         return buffer.ToArray();
     }
-
-    sealed class TestSettings : EFPersisterSettings;
 }

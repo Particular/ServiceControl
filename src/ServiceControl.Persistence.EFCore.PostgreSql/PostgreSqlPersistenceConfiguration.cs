@@ -15,6 +15,6 @@ class PostgreSqlPersistenceConfiguration : EFPersistenceConfigurationBase
         return new PostgreSqlPersistence((PostgreSqlPersisterSettings)settings);
     }
 
-    protected override EFPersisterSettings CreateSettings(string connectionString) =>
-        new PostgreSqlPersisterSettings { ConnectionString = connectionString };
+    protected override EFPersisterSettings CreateSettings(string connectionString, BodyStorageSettings bodyStorage) =>
+        new PostgreSqlPersisterSettings { ConnectionString = connectionString, BodyStorage = bodyStorage };
 }

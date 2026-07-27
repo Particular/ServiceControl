@@ -17,12 +17,12 @@ public class S3BodyStoragePersistence : IBodyStoragePersistence
     readonly string keyPrefix;
     readonly int minBodySizeForCompression;
 
-    public S3BodyStoragePersistence(EFPersisterSettings settings)
+    public S3BodyStoragePersistence(S3BodyStorageSettings settings)
     {
         client = S3ClientFactory.Create(settings);
-        bucketName = settings.S3BucketName!;
-        keyPrefix = settings.S3KeyPrefix;
-        minBodySizeForCompression = settings.MinBodySizeForCompression;
+        bucketName = settings.BucketName;
+        keyPrefix = settings.KeyPrefix;
+        minBodySizeForCompression = settings.MinCompressionSize;
     }
 
     public async Task WriteBody(string bodyId, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default)

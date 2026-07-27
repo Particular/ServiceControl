@@ -1,6 +1,7 @@
 namespace ServiceControl.Persistence.EFCore.Abstractions;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
 using Particular.LicensingComponent.Persistence;
 using ServiceControl.Operations.BodyStorage;
@@ -54,40 +55,47 @@ public abstract class BasePersistence
         RegisterBodyStorage(services, settings);
     }
 
+    // Settings are registered under their concrete type so each store resolves only what it can act on.
     static void RegisterBodyStorage(IServiceCollection services, EFPersisterSettings settings)
     {
-        switch (settings.BodyStorageType)
+        switch (settings.BodyStorage)
         {
-            case BodyStorageType.FileSystem:
+            case FileSystemBodyStorageSettings fileSystem:
+                services.TryAddSingleton(fileSystem);
                 services.AddSingleton<IBodyStoragePersistence, FileSystemBodyStoragePersistence>();
                 break;
-            case BodyStorageType.AzureBlob:
+            case AzureBlobBodyStorageSettings azureBlob:
+                services.TryAddSingleton(azureBlob);
                 services.AddSingleton<IBodyStoragePersistence, AzureBlobBodyStoragePersistence>();
                 break;
-            case BodyStorageType.S3:
+            case S3BodyStorageSettings s3:
+                services.TryAddSingleton(s3);
                 services.AddSingleton<IBodyStoragePersistence, S3BodyStoragePersistence>();
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(settings), settings.BodyStorageType, "Unknown body storage type.");
+                throw new ArgumentOutOfRangeException(nameof(settings), settings.BodyStorage, "Unknown body storage type.");
         }
     }
 
     // Only stores needing setup-time provisioning register an installer; SetupCommand skips when none is.
     protected static void RegisterBodyStorageInstaller(IServiceCollection services, EFPersisterSettings settings)
     {
-        switch (settings.BodyStorageType)
+        switch (settings.BodyStorage)
         {
-            case BodyStorageType.FileSystem:
+            case FileSystemBodyStorageSettings fileSystem:
+                services.TryAddSingleton(fileSystem);
                 services.AddScoped<IBodyStorageInstaller, FileSystemBodyStorageInstaller>();
                 break;
-            case BodyStorageType.AzureBlob:
+            case AzureBlobBodyStorageSettings azureBlob:
+                services.TryAddSingleton(azureBlob);
                 services.AddScoped<IBodyStorageInstaller, AzureBlobBodyStorageInstaller>();
                 break;
-            case BodyStorageType.S3:
+            case S3BodyStorageSettings s3:
+                services.TryAddSingleton(s3);
                 services.AddScoped<IBodyStorageInstaller, S3BodyStorageInstaller>();
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(settings), settings.BodyStorageType, "Unknown body storage type.");
+                throw new ArgumentOutOfRangeException(nameof(settings), settings.BodyStorage, "Unknown body storage type.");
         }
     }
 }

@@ -7,27 +7,28 @@ using ServiceControl.Persistence.EFCore.Abstractions;
 
 static class AzureBlobClientFactory
 {
-    public static BlobContainerClient CreateContainerClient(EFPersisterSettings settings)
+    public static BlobContainerClient CreateContainerClient(AzureBlobBodyStorageSettings settings)
     {
-        var serviceClient = settings.AzureBlobConnectionString is { Length: > 0 } connectionString
-            ? new BlobServiceClient(connectionString)
-            : new BlobServiceClient(new Uri(settings.AzureBlobServiceUri!), CreateCredential(settings));
+        var serviceClient = settings.Authentication switch
+        {
+            AzureBlobSharedKeyAuthentication sharedKey => new BlobServiceClient(sharedKey.ConnectionString),
+            AzureBlobManagedIdentityAuthentication managedIdentity => new BlobServiceClient(managedIdentity.ServiceUri, CreateCredential(managedIdentity)),
+            _ => throw new ArgumentOutOfRangeException(nameof(settings), settings.Authentication, "Unknown Azure Blob authentication.")
+        };
 
-        return serviceClient.GetBlobContainerClient(settings.AzureBlobContainerName);
+        return serviceClient.GetBlobContainerClient(settings.ContainerName);
     }
 
-    static TokenCredential CreateCredential(EFPersisterSettings settings)
+    static TokenCredential CreateCredential(AzureBlobManagedIdentityAuthentication authentication)
     {
         var options = new DefaultAzureCredentialOptions();
 
-        // Steers the login endpoint for sovereign clouds; when unset the SDK honours the
-        // AZURE_AUTHORITY_HOST environment variable.
-        if (settings.AzureBlobAuthorityHost is { Length: > 0 } authorityHost)
+        if (authentication.AuthorityHost is { } authorityHost)
         {
-            options.AuthorityHost = new Uri(authorityHost);
+            options.AuthorityHost = authorityHost;
         }
 
-        if (settings.AzureBlobManagedIdentityClientId is { Length: > 0 } clientId)
+        if (authentication.ClientId is { Length: > 0 } clientId)
         {
             options.ManagedIdentityClientId = clientId;
         }

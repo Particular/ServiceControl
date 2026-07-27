@@ -5,27 +5,11 @@ public abstract class EFPersisterSettings : PersistenceSettings
     public static readonly TimeSpan MigrationCommandTimeout = TimeSpan.FromMinutes(40);
 
     public const int DefaultCommandTimeout = 30;
-    public const int DefaultMinBodySizeForCompression = 4096;
-    public const int DefaultMaxBodySizeToStore = 102400; // 100 kb
 
     public required string ConnectionString { get; set; }
     public int CommandTimeout { get; set; } = DefaultCommandTimeout;
     public TimeSpan ErrorRetentionPeriod { get; set; }
-    public BodyStorageType BodyStorageType { get; set; }
-    public string? MessageBodyStoragePath { get; set; }
-    public string? AzureBlobConnectionString { get; set; }
-    public string? AzureBlobServiceUri { get; set; }
-    public string? AzureBlobManagedIdentityClientId { get; set; }
-    public string? AzureBlobAuthorityHost { get; set; }
-    public string AzureBlobContainerName { get; set; } = "error-bodies";
-    public string? S3BucketName { get; set; }
-    public string S3KeyPrefix { get; set; } = "error-bodies/";
-    public string? S3Region { get; set; }
-    public string? S3ServiceUrl { get; set; }
-    public string? S3AccessKeyId { get; set; }
-    public string? S3SecretAccessKey { get; set; }
-    public int MinBodySizeForCompression { get; set; } = DefaultMinBodySizeForCompression;
-    public int MaxBodySizeToStore { get; set; } = DefaultMaxBodySizeToStore;
+    public required BodyStorageSettings BodyStorage { get; set; }
     public int MaxRetryCount { get; set; } = 5;
     public int MaxRetryDelayInSeconds { get; set; } = 30;
     public bool EnableSensitiveDataLogging { get; set; }

@@ -3,11 +3,11 @@ namespace ServiceControl.Persistence.EFCore.Implementation;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.EFCore.Abstractions;
 
-public class FileSystemBodyStorageInstaller(EFPersisterSettings settings) : IBodyStorageInstaller
+public class FileSystemBodyStorageInstaller(FileSystemBodyStorageSettings settings) : IBodyStorageInstaller
 {
     public Task Provision(CancellationToken cancellationToken = default)
     {
-        Directory.CreateDirectory(settings.MessageBodyStoragePath!);
+        Directory.CreateDirectory(settings.StoragePath);
 
         return Task.CompletedTask;
     }

@@ -35,11 +35,10 @@ class BodyStoragePersistenceTests
     IBodyStoragePersistence CreateStore(string kind) => kind switch
     {
         InMemory => new InMemoryBodyStoragePersistence(),
-        FileSystem => new FileSystemBodyStoragePersistence(new TestSettings
+        FileSystem => new FileSystemBodyStoragePersistence(new FileSystemBodyStorageSettings
         {
-            ConnectionString = "not-used",
-            MessageBodyStoragePath = tempDir,
-            MinBodySizeForCompression = 64
+            StoragePath = tempDir,
+            MinCompressionSize = 64
         }),
         _ => throw new ArgumentOutOfRangeException(nameof(kind))
     };
@@ -141,18 +140,42 @@ class BodyStoragePersistenceTests
         }
     }
 
+    [TestCase(InMemory, 11)]
+    [TestCase(InMemory, 100_000)]
+    [TestCase(FileSystem, 11)]
+    [TestCase(FileSystem, 100_000)]
+    public async Task Returned_stream_never_counts_bytes_it_will_not_yield(string kind, int bodyLength)
+    {
+        var store = CreateStore(kind);
+        var bodyId = Guid.NewGuid().ToString();
+        var body = Encoding.UTF8.GetBytes(new string('a', bodyLength));
+
+        await store.WriteBody(bodyId, body, "text/plain");
+
+        var result = await store.ReadBody(bodyId);
+
+        Assert.That(result, Is.Not.Null);
+        using (result.Stream)
+        {
+            if (result.Stream.CanSeek)
+            {
+                // ASP.NET Core sets the response Content-Length from Stream.Length outright, but
+                // copies only from the current position onwards, so anything ahead of the position
+                // is promised to the client and never sent.
+                Assert.That(result.Stream.Length, Is.EqualTo(body.Length));
+            }
+
+            Assert.That(ReadAll(result.Stream), Is.EqualTo(body));
+        }
+    }
+
     [Test]
     public async Task Provisioning_creates_the_filesystem_storage_directory()
     {
         var path = Path.Combine(tempDir, "nested", "bodies");
         Assert.That(Directory.Exists(path), Is.False);
 
-        await new FileSystemBodyStorageInstaller(new TestSettings
-        {
-            ConnectionString = "not-used",
-            BodyStorageType = BodyStorageType.FileSystem,
-            MessageBodyStoragePath = path
-        }).Provision();
+        await new FileSystemBodyStorageInstaller(new FileSystemBodyStorageSettings { StoragePath = path }).Provision();
 
         Assert.That(Directory.Exists(path), Is.True);
     }
@@ -163,6 +186,4 @@ class BodyStoragePersistenceTests
         stream.CopyTo(buffer);
         return buffer.ToArray();
     }
-
-    sealed class TestSettings : EFPersisterSettings;
 }

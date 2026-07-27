@@ -15,6 +15,6 @@ class SqlServerPersistenceConfiguration : EFPersistenceConfigurationBase
         return new SqlServerPersistence((SqlServerPersisterSettings)settings);
     }
 
-    protected override EFPersisterSettings CreateSettings(string connectionString) =>
-        new SqlServerPersisterSettings { ConnectionString = connectionString };
+    protected override EFPersisterSettings CreateSettings(string connectionString, BodyStorageSettings bodyStorage) =>
+        new SqlServerPersisterSettings { ConnectionString = connectionString, BodyStorage = bodyStorage };
 }

@@ -19,7 +19,7 @@ public class EFRecoverabilityIngestionUnitOfWork(EFIngestionUnitOfWork parentUni
         var uniqueMessageId = context.Headers.UniqueId();
         var contentType = context.Headers.GetValueOrDefault(Headers.ContentType, "text/plain");
         var bodySize = context.Body.Length;
-        var (bodyText, storeExternally) = MessageBodyClassifier.Classify(context.Headers, context.Body, settings.MaxBodySizeToStore);
+        var (bodyText, storeExternally) = MessageBodyClassifier.Classify(context.Headers, context.Body, settings.BodyStorage.MaxBodySizeToStore);
 
         if (storeExternally)
         {

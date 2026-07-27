@@ -36,16 +36,13 @@ class S3BodyStorageTests
     [SetUp]
     public async Task CreateBucket()
     {
-        var settings = new TestSettings
+        var settings = new S3BodyStorageSettings
         {
-            ConnectionString = "not-used",
-            BodyStorageType = BodyStorageType.S3,
-            S3ServiceUrl = localStack.GetConnectionString(),
-            S3Region = "us-east-1",
-            S3AccessKeyId = "test",
-            S3SecretAccessKey = "test",
-            S3BucketName = $"bodies-{Guid.NewGuid():n}",
-            MinBodySizeForCompression = 64
+            MinCompressionSize = 64,
+            ServiceUrl = localStack.GetConnectionString(),
+            Region = "us-east-1",
+            Credentials = new S3StaticCredentials { AccessKeyId = "test", SecretAccessKey = "test" },
+            BucketName = $"bodies-{Guid.NewGuid():n}"
         };
 
         await new S3BodyStorageInstaller(settings).Provision();
@@ -137,6 +134,4 @@ class S3BodyStorageTests
         stream.CopyTo(buffer);
         return buffer.ToArray();
     }
-
-    sealed class TestSettings : EFPersisterSettings;
 }

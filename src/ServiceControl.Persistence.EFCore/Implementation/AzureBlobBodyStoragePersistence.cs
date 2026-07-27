@@ -15,10 +15,10 @@ public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
     readonly BlobContainerClient container;
     readonly int minBodySizeForCompression;
 
-    public AzureBlobBodyStoragePersistence(EFPersisterSettings settings)
+    public AzureBlobBodyStoragePersistence(AzureBlobBodyStorageSettings settings)
     {
         container = AzureBlobClientFactory.CreateContainerClient(settings);
-        minBodySizeForCompression = settings.MinBodySizeForCompression;
+        minBodySizeForCompression = settings.MinCompressionSize;
     }
 
     public async Task WriteBody(string bodyId, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default)
