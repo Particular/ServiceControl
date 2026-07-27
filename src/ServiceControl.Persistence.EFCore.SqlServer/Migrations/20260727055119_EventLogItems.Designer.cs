@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ServiceControl.Persistence.EFCore.SqlServer;
 
@@ -11,9 +12,11 @@ using ServiceControl.Persistence.EFCore.SqlServer;
 namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerServiceControlDbContext))]
-    partial class SqlServerServiceControlDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260727055119_EventLogItems")]
+    partial class EventLogItems
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,55 +24,6 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.EndpointSettingsEntity", b =>
-                {
-                    b.Property<string>("Name")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<bool>("TrackInstances")
-                        .HasColumnType("bit");
-
-                    b.HasKey("Name");
-
-                    b.ToTable("EndpointSettings");
-                });
-
-            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedErrorImportEntity", b =>
-                {
-                    b.Property<Guid>("UniqueMessageId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<byte[]>("Body")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<bool>("BodyStoredExternally")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("ExceptionInfo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("FailedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("HeadersJson")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MessageId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("UniqueMessageId");
-
-                    b.HasIndex("FailedAt");
-
-                    b.ToTable("FailedErrorImports");
-                });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.EventLogItemEntity", b =>
                 {
@@ -146,11 +100,6 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.Property<string>("ExceptionType")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("FailingEndpointAddress")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTime>("FirstTimeOfFailure")
                         .HasColumnType("datetime2");
 
@@ -218,8 +167,6 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.HasKey("UniqueMessageId");
 
                     b.HasIndex("ConversationId");
-
-                    b.HasIndex("FailingEndpointAddress");
 
                     b.HasIndex("QueueAddress");
 
@@ -298,48 +245,6 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("KnownEndpoints");
-                });
-
-            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.SubscriptionEntity", b =>
-                {
-                    b.Property<string>("MessageType")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("TransportAddress")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Endpoint")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("MessageType", "TransportAddress");
-
-                    b.ToTable("Subscriptions");
-                });
-
-            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.TrialMetadataEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateOnly?>("TrialEndDate")
-                        .HasColumnType("date");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TrialMetadata");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1
-                        });
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageGroupEntity", b =>

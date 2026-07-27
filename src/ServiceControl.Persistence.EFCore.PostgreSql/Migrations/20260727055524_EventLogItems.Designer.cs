@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServiceControl.Persistence.EFCore.PostgreSql;
@@ -12,9 +13,11 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    partial class PostgreSqlServiceControlDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260727055524_EventLogItems")]
+    partial class EventLogItems
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,23 +25,6 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.EndpointSettingsEntity", b =>
-                {
-                    b.Property<string>("Name")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("name");
-
-                    b.Property<bool>("TrackInstances")
-                        .HasColumnType("boolean")
-                        .HasColumnName("track_instances");
-
-                    b.HasKey("Name")
-                        .HasName("pk_endpoint_settings");
-
-                    b.ToTable("endpoint_settings", (string)null);
-                });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.EventLogItemEntity", b =>
                 {
@@ -97,50 +83,6 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.ToTable("EventLogItems", (string)null);
                 });
 
-            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedErrorImportEntity", b =>
-                {
-                    b.Property<Guid>("UniqueMessageId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("unique_message_id");
-
-                    b.Property<byte[]>("Body")
-                        .IsRequired()
-                        .HasColumnType("bytea")
-                        .HasColumnName("body");
-
-                    b.Property<bool>("BodyStoredExternally")
-                        .HasColumnType("boolean")
-                        .HasColumnName("body_stored_externally");
-
-                    b.Property<string>("ExceptionInfo")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("exception_info");
-
-                    b.Property<DateTime>("FailedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("failed_at");
-
-                    b.Property<string>("HeadersJson")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("headers_json");
-
-                    b.Property<string>("MessageId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("message_id");
-
-                    b.HasKey("UniqueMessageId")
-                        .HasName("pk_failed_error_imports");
-
-                    b.HasIndex("FailedAt")
-                        .HasDatabaseName("ix_failed_error_imports_failed_at");
-
-                    b.ToTable("failed_error_imports", (string)null);
-                });
-
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageEntity", b =>
                 {
                     b.Property<Guid>("UniqueMessageId")
@@ -176,12 +118,6 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.Property<string>("ExceptionType")
                         .HasColumnType("text")
                         .HasColumnName("exception_type");
-
-                    b.Property<string>("FailingEndpointAddress")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("failing_endpoint_address");
 
                     b.Property<DateTime>("FirstTimeOfFailure")
                         .HasColumnType("timestamp with time zone")
@@ -271,9 +207,6 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 
                     b.HasIndex("ConversationId")
                         .HasDatabaseName("ix_failed_messages_conversation_id");
-
-                    b.HasIndex("FailingEndpointAddress")
-                        .HasDatabaseName("ix_failed_messages_failing_endpoint_address");
 
                     b.HasIndex("QueueAddress")
                         .HasDatabaseName("ix_failed_messages_queue_address");
@@ -372,55 +305,6 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasName("pk_known_endpoints");
 
                     b.ToTable("known_endpoints", (string)null);
-                });
-
-            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.SubscriptionEntity", b =>
-                {
-                    b.Property<string>("MessageType")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("message_type");
-
-                    b.Property<string>("TransportAddress")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("transport_address");
-
-                    b.Property<string>("Endpoint")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("endpoint");
-
-                    b.HasKey("MessageType", "TransportAddress")
-                        .HasName("pk_subscriptions");
-
-                    b.ToTable("subscriptions", (string)null);
-                });
-
-            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.TrialMetadataEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateOnly?>("TrialEndDate")
-                        .HasColumnType("date")
-                        .HasColumnName("trial_end_date");
-
-                    b.HasKey("Id")
-                        .HasName("pk_trial_metadata");
-
-                    b.ToTable("trial_metadata", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1
-                        });
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageGroupEntity", b =>
