@@ -12,7 +12,7 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    [Migration("20260724055936_AddConfiguration")]
+    [Migration("20260727041318_AddConfiguration")]
     partial class AddConfiguration
     {
         /// <inheritdoc />
@@ -39,7 +39,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.HasKey("Name")
                         .HasName("pk_endpoint_settings");
 
-                    b.ToTable("EndpointSettings", (string)null);
+                    b.ToTable("endpoint_settings", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageEntity", b =>

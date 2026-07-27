@@ -36,7 +36,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.HasKey("Name")
                         .HasName("pk_endpoint_settings");
 
-                    b.ToTable("EndpointSettings", (string)null);
+                    b.ToTable("endpoint_settings", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageEntity", b =>

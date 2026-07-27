@@ -21,7 +21,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                 defaultValue: "");
 
             migrationBuilder.CreateTable(
-                name: "EndpointSettings",
+                name: "endpoint_settings",
                 columns: table => new
                 {
                     name = table.Column<string>(type: "character varying(450)", maxLength: 450, nullable: false),
@@ -60,7 +60,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "EndpointSettings");
+                name: "endpoint_settings");
 
             migrationBuilder.DropTable(
                 name: "trial_metadata");
