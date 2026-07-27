@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.EventLog
 {
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Net;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
     using Infrastructure.WebApi;
@@ -16,14 +18,25 @@
         [Authorize(Policy = Permissions.ErrorEventLogView)]
         [Route("eventlogitems")]
         [HttpGet]
-        public async Task<IList<EventLogItem>> Items([FromQuery] PagingInfo pagingInfo)
+        public async Task<ActionResult<IList<EventLogItem>>> Items([FromQuery] PagingInfo pagingInfo)
         {
-            var (results, totalCount, version) = await logDataStore.GetEventLogItems(pagingInfo);
+
+            // The Trim handles both ETag formats (quoted and unquoted) deliberately.
+            var knownVersion = Request.Headers.IfNoneMatch.FirstOrDefault()?.Trim('"');
+
+            // Passing knownVersion lets the persister skip work it would otherwise waste
+            var (results, totalCount, version) = await logDataStore.GetEventLogItems(pagingInfo, knownVersion);
 
             Response.WithPagingLinksAndTotalCount(pagingInfo, totalCount);
             Response.WithEtag(version);
 
-            return results;
+            // Null items means "you already hold this version"
+            if (results is null)
+            {
+                return StatusCode((int)HttpStatusCode.NotModified);
+            }
+
+            return Ok(results);
         }
     }
 }

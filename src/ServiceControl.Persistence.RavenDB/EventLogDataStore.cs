@@ -13,6 +13,8 @@
             using var session = await sessionProvider.OpenSession();
             await session.StoreAsync(logItem);
 
+            // Retention on RavenDB is per-document expiry metadata stamped at write time, not a
+            // sweep. It has to be set here, on the only write path, or items never expire.
             expirationManager.EnableExpiration(session, logItem);
 
             await session.SaveChangesAsync();

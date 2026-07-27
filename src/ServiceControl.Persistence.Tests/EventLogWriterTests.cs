@@ -1,0 +1,61 @@
+namespace ServiceControl.Persistence.Tests;
+
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using NUnit.Framework;
+using ServiceControl.EventLog;
+using ServiceControl.Infrastructure.DomainEvents;
+using ServiceControl.Persistence.Infrastructure;
+
+// This exercises writer -> store -> row -> readable on every persister, using a test-local domain
+// event and mapping rather than borrowing a production contract, so it pins the writer mechanism
+// rather than the shape of MessageFailed.
+class EventLogWriterTests : PersistenceTestBase
+{
+    [Test]
+    public async Task A_mapped_domain_event_is_persisted_and_can_be_read_back()
+    {
+        var writer = CreateWriter();
+
+        await writer.Handle(new SomethingHappened { What = "it happened" }, CancellationToken.None);
+        await CompleteDatabaseOperation();
+
+        var (items, total, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(total, Is.EqualTo(1));
+            Assert.That(items.Single().Description, Is.EqualTo("it happened"));
+            Assert.That(items.Single().EventType, Is.EqualTo(nameof(SomethingHappened)));
+        }
+    }
+
+    [Test]
+    public async Task An_unmapped_domain_event_is_ignored()
+    {
+        var writer = CreateWriter();
+
+        await writer.Handle(new NothingMapsThis(), CancellationToken.None);
+        await CompleteDatabaseOperation();
+
+        var (_, total, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+
+        Assert.That(total, Is.Zero, "only events with a mapping under EventLog\\Definitions are recorded");
+    }
+
+    AuditEventLogWriter CreateWriter() =>
+        new(EventLogDataStore, new EventLogMappings([new SomethingHappenedDefinition()]));
+
+    class SomethingHappened : IDomainEvent
+    {
+        public string What { get; set; }
+    }
+
+    class NothingMapsThis : IDomainEvent;
+
+    class SomethingHappenedDefinition : EventLogMappingDefinition<SomethingHappened>
+    {
+        public SomethingHappenedDefinition() => Description(m => m.What);
+    }
+}
