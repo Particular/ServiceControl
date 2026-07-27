@@ -14,10 +14,9 @@ public class TrialLicenseDataProvider(IServiceScopeFactory scopeFactory) : DataS
         });
 
     public Task StoreTrialEndDate(DateOnly trialEndDate, CancellationToken cancellationToken)
-        => ExecuteWithDbContext(async context =>
-        {
-            var trialMetadata = await context.TrialMetadata.SingleAsync(t => t.Id == TrialMetadataEntity.TrialMetadataId, cancellationToken);
-            trialMetadata.TrialEndDate = trialEndDate;
-            await (Task)context.SaveChangesAsync(cancellationToken);
-        });
+        => ExecuteWithDbContext(context =>
+            context.TrialMetadata
+                .Where(t => t.Id == TrialMetadataEntity.TrialMetadataId)
+                .ExecuteUpdateAsync(e => e.SetProperty(p => p.TrialEndDate, trialEndDate), cancellationToken: cancellationToken)
+        );
 }

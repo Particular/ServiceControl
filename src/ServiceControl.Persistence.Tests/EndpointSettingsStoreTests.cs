@@ -42,14 +42,5 @@ class EndpointSettingsStoreTests : PersistenceTestBase
         }
     }
 
-    async Task<IReadOnlyList<EndpointSettings>> GetAllEndpointSettings()
-    {
-        var settings = new List<EndpointSettings>();
-        await foreach (var setting in EndpointSettingsStore.GetAllEndpointSettings())
-        {
-            settings.Add(setting);
-        }
-
-        return settings;
-    }
+    async Task<IReadOnlyList<EndpointSettings>> GetAllEndpointSettings() => await EndpointSettingsStore.GetAllEndpointSettings().ToListAsync();
 }

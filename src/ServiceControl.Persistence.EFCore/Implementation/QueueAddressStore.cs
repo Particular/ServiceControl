@@ -11,8 +11,6 @@ public class QueueAddressStore(IServiceScopeFactory scopeFactory) : DataStoreBas
         ExecuteWithDbContext(async context =>
         {
             var query = context.FailedMessages
-                .Select(fm => new { fm.UniqueMessageId, fm.FailingEndpointAddress })
-                .Distinct()
                 .GroupBy(failure => failure.FailingEndpointAddress)
                 .OrderBy(failuresByEndpoint => failuresByEndpoint.Key)
                 .Select(failuresByEndpoint => new QueueAddress
