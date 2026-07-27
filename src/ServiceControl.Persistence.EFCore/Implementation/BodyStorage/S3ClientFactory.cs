@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.EFCore.Implementation;
+namespace ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
 
 using Amazon;
 using Amazon.Runtime;

@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.EFCore.Implementation;
+namespace ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
 
 using System.Linq.Expressions;
 using System.Text;
@@ -9,9 +9,14 @@ using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
-// A body is stored inline in BodyText (small text) or in external storage (binary, or large text
-// where BodyText keeps only a search prefix). External storage is authoritative, so check it first.
-// bodyId is usually a UniqueMessageId (a Guid) but may be a plain MessageId.
+/// <summary>
+/// Resolves a message body from wherever it was stored.
+/// </summary>
+/// <remarks>
+/// A body is stored inline in BodyText (small text) or in external storage (binary, or large text
+/// where BodyText keeps only a search prefix). External storage is authoritative, so check it first.
+/// bodyId is usually a UniqueMessageId (a Guid) but may be a plain MessageId.
+/// </remarks>
 public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersistence storagePersistence) : DataStoreBase(scopeFactory), IBodyStorage
 {
     public async Task<MessageBodyStreamResult?> TryFetch(string bodyId)

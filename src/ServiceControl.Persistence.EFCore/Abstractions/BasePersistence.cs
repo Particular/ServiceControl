@@ -6,6 +6,7 @@ using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
 using Particular.LicensingComponent.Persistence;
 using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence.EFCore.Implementation;
+using ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
 using ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.MessageRedirects;

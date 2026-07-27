@@ -68,7 +68,7 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
         new()
         {
             BucketName = GetRequiredSetting<string>(settingsRootNamespace, S3BucketNameKey),
-            KeyPrefix = SettingsReader.Read(settingsRootNamespace, S3KeyPrefixKey, "error-bodies/"),
+            KeyPrefix = SettingsReader.Read(settingsRootNamespace, S3KeyPrefixKey, S3BodyStorageSettings.DefaultKeyPrefix),
             Region = SettingsReader.Read<string>(settingsRootNamespace, S3RegionKey),
             ServiceUrl = SettingsReader.Read<string>(settingsRootNamespace, S3ServiceUrlKey),
             Credentials = ReadS3Credentials(settingsRootNamespace)
@@ -95,7 +95,7 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
         new()
         {
             Authentication = ReadAzureBlobAuthentication(settingsRootNamespace),
-            ContainerName = SettingsReader.Read(settingsRootNamespace, AzureContainerNameKey, "error-bodies")
+            ContainerName = SettingsReader.Read(settingsRootNamespace, AzureContainerNameKey, AzureBlobBodyStorageSettings.DefaultContainerName)
         };
 
     static AzureBlobAuthentication ReadAzureBlobAuthentication(SettingsRootNamespace settingsRootNamespace)

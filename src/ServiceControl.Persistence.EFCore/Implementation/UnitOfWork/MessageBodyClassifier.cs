@@ -3,8 +3,13 @@ namespace ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
 using System.Text;
 using ServiceControl.Persistence.Infrastructure;
 
-// Bodies are always stored. MaxBodySizeToStore only decides where: inline in BodyText, or in
-// external storage with at most a search prefix left inline.
+/// <summary>
+/// Decides whether a body lives inline in the database or in external storage.
+/// </summary>
+/// <remarks>
+/// Bodies are always stored. MaxBodySizeToStore only decides where: inline in BodyText, or in
+/// external storage with at most a search prefix left inline.
+/// </remarks>
 static class MessageBodyClassifier
 {
     public static (string? BodyText, bool StoreExternally) Classify(IReadOnlyDictionary<string, string> headers, ReadOnlyMemory<byte> body, int maxBodySizeToStore)

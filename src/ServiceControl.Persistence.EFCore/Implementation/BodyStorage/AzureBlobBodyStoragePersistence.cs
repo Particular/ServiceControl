@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.EFCore.Implementation;
+namespace ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
 
 using System.IO.Compression;
 using System.Net;

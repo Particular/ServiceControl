@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using ServiceControl.Persistence.EFCore.Abstractions;
-using ServiceControl.Persistence.EFCore.Implementation;
+using ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
 [TestFixture]

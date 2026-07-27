@@ -2,8 +2,10 @@ namespace ServiceControl.Persistence.EFCore.Abstractions;
 
 public sealed class AzureBlobBodyStorageSettings : BodyStorageSettings
 {
+    public const string DefaultContainerName = "error-bodies";
+
     public required AzureBlobAuthentication Authentication { get; set; }
-    public string ContainerName { get; set; } = "error-bodies";
+    public string ContainerName { get; set; } = DefaultContainerName;
 }
 
 // Shared-key and managed-identity auth are mutually exclusive, and the managed identity options are

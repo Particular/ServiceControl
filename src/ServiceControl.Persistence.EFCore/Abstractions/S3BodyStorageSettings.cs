@@ -2,8 +2,10 @@ namespace ServiceControl.Persistence.EFCore.Abstractions;
 
 public sealed class S3BodyStorageSettings : BodyStorageSettings
 {
+    public const string DefaultKeyPrefix = "error-bodies/";
+
     public required string BucketName { get; set; }
-    public string KeyPrefix { get; set; } = "error-bodies/";
+    public string KeyPrefix { get; set; } = DefaultKeyPrefix;
     public string? Region { get; set; }
     public string? ServiceUrl { get; set; }
 

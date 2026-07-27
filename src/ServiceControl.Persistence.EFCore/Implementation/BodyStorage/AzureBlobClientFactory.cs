@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.EFCore.Implementation;
+namespace ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
 
 using Azure.Core;
 using Azure.Identity;

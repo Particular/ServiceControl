@@ -1,12 +1,17 @@
-namespace ServiceControl.Persistence.EFCore.Implementation;
+namespace ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
 
 using System.IO.Compression;
 using System.Text;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
-// Bodies are immutable and keyed by bodyId alone, so a re-failure resolves to the same file and an
-// existing one is left untouched. 
+/// <summary>
+/// Stores message bodies as files, each one a small header followed by the body.
+/// </summary>
+/// <remarks>
+/// Bodies are immutable and keyed by bodyId alone, so a re-failure resolves to the same file and an
+/// existing one is left untouched.
+/// </remarks>
 public class FileSystemBodyStoragePersistence(FileSystemBodyStorageSettings settings) : IBodyStoragePersistence
 {
     const int FormatVersion = 1;

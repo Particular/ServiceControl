@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.EFCore.Implementation;
+namespace ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
 
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.EFCore.Abstractions;
