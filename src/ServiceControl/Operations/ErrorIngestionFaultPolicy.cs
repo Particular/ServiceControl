@@ -57,7 +57,7 @@
                     Body = errorContext.Body.ToArray()
                 },
                 ExceptionInfo = errorContext.Exception.ToFriendlyString(),
-                Id = FailedErrorImport.MakeDocumentId(Guid.NewGuid())
+                Id = FailedErrorImport.MakeDocumentId(FailedErrorImport.DeriveKey(errorContext.Headers, errorContext.MessageId))
             };
 
             try
