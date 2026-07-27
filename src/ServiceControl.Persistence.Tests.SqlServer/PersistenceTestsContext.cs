@@ -2,6 +2,7 @@
 namespace ServiceControl.Persistence.Tests;
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using EFCore.SqlServer;
@@ -10,12 +11,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Time.Testing;
+using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
 public class PersistenceTestsContext : IPersistenceTestsContext
 {
     IHost host;
     string databaseName;
+    string bodyStoragePath;
 
     public FakeTimeProvider FakeTime { get; } = new();
 
@@ -28,9 +31,12 @@ public class PersistenceTestsContext : IPersistenceTestsContext
             InitialCatalog = databaseName
         };
 
+        bodyStoragePath = Directory.CreateTempSubdirectory("sc_test_bodies_").FullName;
+
         PersistenceSettings = new SqlServerPersisterSettings
         {
-            ConnectionString = connectionStringBuilder.ConnectionString
+            ConnectionString = connectionStringBuilder.ConnectionString,
+            BodyStorage = new FileSystemBodyStorageSettings { StoragePath = bodyStoragePath }
         };
 
         var persistence = new SqlServerPersistenceConfiguration().Create(PersistenceSettings);
@@ -52,6 +58,8 @@ public class PersistenceTestsContext : IPersistenceTestsContext
 
     public async Task TearDown()
     {
+        DeleteBodyStorage();
+
         await using var connection = new SqlConnection(await SqlServerSharedContainer.GetConnectionStringAsync());
         await connection.OpenAsync();
         await using var command = connection.CreateCommand();
@@ -78,4 +86,15 @@ public class PersistenceTestsContext : IPersistenceTestsContext
     public PersistenceSettings PersistenceSettings { get; set; }
 
     public string GenerateFailedMessageRecordId(string messageId) => messageId;
+
+    void DeleteBodyStorage()
+    {
+        try
+        {
+            Directory.Delete(bodyStoragePath, recursive: true);
+        }
+        catch (DirectoryNotFoundException)
+        {
+        }
+    }
 }

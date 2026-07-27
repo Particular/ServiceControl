@@ -13,7 +13,7 @@ class ErrorIngestionBodyTests : ErrorIngestionTestBase
     const int Cap = 64;
 
     [SetUp]
-    public void ShrinkTheBodyCap() => EFSettings.MaxBodySizeToStore = Cap;
+    public void ShrinkTheBodyCap() => EFSettings.BodyStorage.MaxBodySizeToStore = Cap;
 
     [Test]
     public async Task Text_within_the_cap_is_stored_inline()

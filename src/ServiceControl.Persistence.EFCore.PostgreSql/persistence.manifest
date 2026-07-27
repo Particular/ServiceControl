@@ -14,7 +14,55 @@
       "Mandatory": false
     },
     {
+      "Name": "ServiceControl/MessageBody/StorageType",
+      "Mandatory": true
+    },
+    {
       "Name": "ServiceControl/MessageBody/StoragePath",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/Azure/ConnectionString",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/Azure/ServiceUri",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/Azure/ManagedIdentityClientId",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/Azure/AuthorityHost",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/Azure/ContainerName",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/S3/BucketName",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/S3/KeyPrefix",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/S3/Region",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/S3/ServiceUrl",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/S3/AccessKeyId",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/S3/SecretAccessKey",
       "Mandatory": false
     },
     {
