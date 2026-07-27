@@ -179,7 +179,6 @@
             {
                 failure.Id = MakeDocumentId(failure.Id);
             }
-            failure.Id = MakeDocumentId(failure.Id);
             await session.StoreAsync(failure);
 
             await session.SaveChangesAsync();
