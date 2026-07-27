@@ -16,7 +16,7 @@ public class SqlServerServiceControlDbContext(DbContextOptions<SqlServerServiceC
             .HasIndex(e => e.StatusChangedAt)
             .HasFilter($"[Status] IN ({(int)FailedMessageStatus.Resolved}, {(int)FailedMessageStatus.Archived})");
     }
-    
+
     public override bool IsDuplicateKeyException(DbUpdateException exception)
     {
         for (var inner = exception.InnerException; inner != null; inner = inner.InnerException)

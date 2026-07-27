@@ -39,11 +39,7 @@ public class EFCoreExtensionMethodTests : PersistenceTestBase
                 () =>
                 {
                     state = Result.Insert;
-                    return new FailedMessageEntity
-                    {
-                        UniqueMessageId = key,
-                        HeadersJson = "blah"
-                    };
+                    return new FailedMessageEntity { UniqueMessageId = key, HeadersJson = "blah" };
                 },
                 es =>
                 {
@@ -54,8 +50,8 @@ public class EFCoreExtensionMethodTests : PersistenceTestBase
             return state;
         }
     }
-       
-    public enum Result
+
+    enum Result
     {
         Insert,
         Update,
