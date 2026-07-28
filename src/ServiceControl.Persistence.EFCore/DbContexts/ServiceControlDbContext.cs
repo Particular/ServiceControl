@@ -25,4 +25,6 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
         modelBuilder.ApplyConfiguration(new FailedMessageGroupConfiguration());
         modelBuilder.ApplyConfiguration(new FailedMessageRetryConfiguration());
     }
+
+    public abstract bool IsDuplicateKeyException(DbUpdateException exception);
 }
