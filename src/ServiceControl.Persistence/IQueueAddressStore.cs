@@ -8,6 +8,5 @@
     public interface IQueueAddressStore
     {
         Task<QueryResult<IList<QueueAddress>>> GetAddresses(PagingInfo pagingInfo);
-        Task<QueryResult<IList<QueueAddress>>> GetAddressesBySearchTerm(string search, PagingInfo pagingInfo);
     }
 }

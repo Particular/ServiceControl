@@ -240,47 +240,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             Assert.That(searchResults.Count, Is.EqualTo(1), "Result count did not match");
         }
 
-        [Test]
-        public async Task Should_only_return_queueaddresses_that_startswith_search()
-        {
-            var searchResults = new List<QueueAddress>();
-            const string searchTerm = "another";
-            const string searchEndpointName = "AnotherFailingEndpoint";
-
-            await Define<QueueSearchContext>()
-                .WithEndpoint<FailingEndpoint>(b =>
-                {
-                    b.DoNotFailOnErrorMessages();
-                    b.When(bus => bus.SendLocal(new MyMessage()));
-                })
-                .WithEndpoint<FailingEndpoint>(b =>
-                {
-                    b.DoNotFailOnErrorMessages();
-                    b.CustomConfig(configuration => configuration.GetSettings().Set("NServiceBus.Routing.EndpointName", searchEndpointName));
-                    b.When(bus => bus.SendLocal(new MyMessage()));
-                })
-                .WithEndpoint<FailingEndpoint>(b =>
-                {
-                    b.DoNotFailOnErrorMessages();
-                    b.CustomConfig(configuration => configuration.GetSettings().Set("NServiceBus.Routing.EndpointName", "YetAnotherEndpoint"));
-                    b.When(bus => bus.SendLocal(new MyMessage()));
-                }).Done(async c =>
-                {
-                    if (c.FailedMessageCount < 3)
-                    {
-                        return false;
-                    }
-
-                    var result = await this.TryGetMany<QueueAddress>($"/api/errors/queues/addresses/search/{searchTerm}");
-                    searchResults = result;
-                    return result;
-                })
-                .Run();
-
-            Assert.That(searchResults.Count, Is.EqualTo(1), "Result count did not match");
-            Assert.That(searchResults[0].PhysicalAddress.StartsWith(searchEndpointName, StringComparison.InvariantCultureIgnoreCase), Is.True);
-        }
-
         public class EndpointThatUsesSignalR : EndpointConfigurationBuilder
         {
             public EndpointThatUsesSignalR() =>
