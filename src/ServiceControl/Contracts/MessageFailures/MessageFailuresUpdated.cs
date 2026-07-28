@@ -2,9 +2,8 @@
 {
     using System;
     using Infrastructure.DomainEvents;
-    using Infrastructure.SignalR;
 
-    public class MessageFailuresUpdated : IDomainEvent, IUserInterfaceEvent
+    public class MessageFailuresUpdated : IDomainEvent
     {
         public MessageFailuresUpdated()
         {

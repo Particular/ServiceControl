@@ -6,7 +6,6 @@ This guide provides scenario-based tests for ServiceControl instances behind an 
 - Forwarded headers handling (`X-Forwarded-For`, `X-Forwarded-Proto`, `X-Forwarded-Host`)
 - HTTP to HTTPS redirection
 - HSTS (HTTP Strict Transport Security)
-- WebSocket support (SignalR)
 
 ## Instance Reference
 

@@ -2,9 +2,8 @@
 {
     using System;
     using Infrastructure.DomainEvents;
-    using Infrastructure.SignalR;
 
-    public class MessageRedirectCreated : IDomainEvent, IUserInterfaceEvent
+    public class MessageRedirectCreated : IDomainEvent
     {
         public Guid MessageRedirectId { get; set; }
         public string FromPhysicalAddress { get; set; }

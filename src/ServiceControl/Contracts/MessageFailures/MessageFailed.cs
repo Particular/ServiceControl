@@ -1,11 +1,10 @@
 ﻿namespace ServiceControl.Contracts.MessageFailures
 {
     using Infrastructure.DomainEvents;
-    using Infrastructure.SignalR;
     using NServiceBus;
     using ServiceControl.Contracts.Operations;
 
-    public class MessageFailed : IDomainEvent, IMessage, IUserInterfaceEvent
+    public class MessageFailed : IDomainEvent, IMessage
     {
         public string EndpointId { get; set; }
         public FailureDetails FailureDetails { get; set; }
