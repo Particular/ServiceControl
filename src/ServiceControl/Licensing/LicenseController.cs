@@ -73,15 +73,10 @@ namespace ServiceControl.Licensing
         public async Task UploadLicenseDetails([FromForm] IFormFile file, CancellationToken cancellationToken)
         {
             //perform date and license id checks
-            using var fileStream = file.OpenReadStream();
-            using var fileStreamReader = new StreamReader(fileStream);
-            var compressed = await fileStreamReader.ReadToEndAsync(cancellationToken);
-            var compressedData = Convert.FromBase64String(compressed);
-            using var memoryStream = new MemoryStream(compressedData);
-            using var brotliStream = new BrotliStream(memoryStream, CompressionMode.Decompress);
+            using var brotliStream = new BrotliStream(file.OpenReadStream(), CompressionMode.Decompress);
             using var reader = new StreamReader(brotliStream, Encoding.UTF8);
 
-            var fileContents = reader.ReadToEnd();
+            var fileContents = await reader.ReadToEndAsync(cancellationToken);
             var result = JsonSerializer.Deserialize<LicensedEndpointDetails>(fileContents, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
                 ?? throw new InvalidDataException("File contents cannot be deserialized");
             //persist
