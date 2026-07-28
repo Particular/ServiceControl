@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
 using Particular.LicensingComponent.Persistence;
+using ServiceControl.CustomChecks;
 using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence.EFCore.Implementation;
 using ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
@@ -64,6 +65,8 @@ public abstract class BasePersistence
             case FileSystemBodyStorageSettings fileSystem:
                 services.TryAddSingleton(fileSystem);
                 services.AddSingleton<IBodyStoragePersistence, FileSystemBodyStoragePersistence>();
+                services.AddSingleton<IDriveSpaceProvider, DriveInfoSpaceProvider>();
+                services.AddCustomCheck<FileSystemBodyStorageCustomCheck>();
                 break;
             case AzureBlobBodyStorageSettings azureBlob:
                 services.TryAddSingleton(azureBlob);

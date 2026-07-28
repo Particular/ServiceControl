@@ -19,7 +19,8 @@ class BodyStorageConfigurationTests
         "SERVICECONTROL_DATABASE_CONNECTIONSTRING",
         "SERVICECONTROL_ERRORRETENTIONPERIOD",
         "SERVICECONTROL_MESSAGEBODY_STORAGETYPE",
-        "SERVICECONTROL_MESSAGEBODY_STORAGEPATH",
+        "SERVICECONTROL_MESSAGEBODY_FILESYSTEM_STORAGEPATH",
+        "SERVICECONTROL_MESSAGEBODY_FILESYSTEM_DATASPACEREMAININGTHRESHOLD",
         "SERVICECONTROL_MESSAGEBODY_MINCOMPRESSIONSIZE",
         "SERVICECONTROL_MESSAGEBODY_AZURE_CONNECTIONSTRING",
         "SERVICECONTROL_MESSAGEBODY_AZURE_SERVICEURI",
@@ -48,12 +49,39 @@ class BodyStorageConfigurationTests
     public void File_system_storage_yields_a_populated_path()
     {
         Set("SERVICECONTROL_MESSAGEBODY_STORAGETYPE", "FileSystem");
-        Set("SERVICECONTROL_MESSAGEBODY_STORAGEPATH", "/var/bodies");
+        Set("SERVICECONTROL_MESSAGEBODY_FILESYSTEM_STORAGEPATH", "/var/bodies");
 
         var bodyStorage = CreateBodyStorageSettings();
 
         Assert.That(bodyStorage, Is.TypeOf<FileSystemBodyStorageSettings>());
-        Assert.That(((FileSystemBodyStorageSettings)bodyStorage).StoragePath, Is.EqualTo("/var/bodies"));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(((FileSystemBodyStorageSettings)bodyStorage).StoragePath, Is.EqualTo("/var/bodies"));
+            Assert.That(((FileSystemBodyStorageSettings)bodyStorage).DataSpaceRemainingThreshold, Is.EqualTo(FileSystemBodyStorageSettings.DefaultDataSpaceRemainingThreshold));
+        }
+    }
+
+    [Test]
+    public void File_system_storage_reads_the_data_space_remaining_threshold()
+    {
+        Set("SERVICECONTROL_MESSAGEBODY_STORAGETYPE", "FileSystem");
+        Set("SERVICECONTROL_MESSAGEBODY_FILESYSTEM_STORAGEPATH", "/var/bodies");
+        Set("SERVICECONTROL_MESSAGEBODY_FILESYSTEM_DATASPACEREMAININGTHRESHOLD", "30");
+
+        var bodyStorage = (FileSystemBodyStorageSettings)CreateBodyStorageSettings();
+
+        Assert.That(bodyStorage.DataSpaceRemainingThreshold, Is.EqualTo(30));
+    }
+
+    [TestCase("-1")]
+    [TestCase("101")]
+    public void A_data_space_remaining_threshold_outside_the_percentage_range_is_rejected(string threshold)
+    {
+        Set("SERVICECONTROL_MESSAGEBODY_STORAGETYPE", "FileSystem");
+        Set("SERVICECONTROL_MESSAGEBODY_FILESYSTEM_STORAGEPATH", "/var/bodies");
+        Set("SERVICECONTROL_MESSAGEBODY_FILESYSTEM_DATASPACEREMAININGTHRESHOLD", threshold);
+
+        Assert.That(CreateBodyStorageSettings, Throws.Exception.With.Message.Contains("MessageBody/FileSystem/DataSpaceRemainingThreshold"));
     }
 
     [Test]
@@ -137,7 +165,7 @@ class BodyStorageConfigurationTests
     {
         Set("SERVICECONTROL_MESSAGEBODY_STORAGETYPE", "FileSystem");
 
-        Assert.That(CreateBodyStorageSettings, Throws.Exception.With.Message.Contains("MessageBody/StoragePath"));
+        Assert.That(CreateBodyStorageSettings, Throws.Exception.With.Message.Contains("MessageBody/FileSystem/StoragePath"));
     }
 
     [Test]

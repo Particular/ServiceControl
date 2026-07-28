@@ -9,7 +9,8 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
     const string ConnectionStringKey = "Database/ConnectionString";
     const string CommandTimeoutKey = "Database/CommandTimeout";
     const string BodyStorageTypeKey = "MessageBody/StorageType";
-    const string MessageBodyStoragePathKey = "MessageBody/StoragePath";
+    const string FileSystemStoragePathKey = "MessageBody/FileSystem/StoragePath";
+    const string FileSystemDataSpaceRemainingThresholdKey = "MessageBody/FileSystem/DataSpaceRemainingThreshold";
     const string AzureConnectionStringKey = "MessageBody/Azure/ConnectionString";
     const string AzureServiceUriKey = "MessageBody/Azure/ServiceUri";
     const string AzureManagedIdentityClientIdKey = "MessageBody/Azure/ManagedIdentityClientId";
@@ -51,7 +52,8 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
         {
             BodyStorageType.FileSystem => new FileSystemBodyStorageSettings
             {
-                StoragePath = GetRequiredSetting<string>(settingsRootNamespace, MessageBodyStoragePathKey)
+                StoragePath = GetRequiredSetting<string>(settingsRootNamespace, FileSystemStoragePathKey),
+                DataSpaceRemainingThreshold = ReadDataSpaceRemainingThreshold(settingsRootNamespace)
             },
             BodyStorageType.AzureBlob => CreateAzureBlobSettings(settingsRootNamespace),
             BodyStorageType.S3 => CreateS3Settings(settingsRootNamespace),
@@ -158,6 +160,18 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
         }
 
         return value;
+    }
+
+    static int ReadDataSpaceRemainingThreshold(SettingsRootNamespace settingsRootNamespace)
+    {
+        var threshold = SettingsReader.Read(settingsRootNamespace, FileSystemDataSpaceRemainingThresholdKey, FileSystemBodyStorageSettings.DefaultDataSpaceRemainingThreshold);
+
+        if (threshold is < 0 or > 100)
+        {
+            throw new Exception($"Setting {FileSystemDataSpaceRemainingThresholdKey} value '{threshold}' is not valid. The value is a percentage between 0 and 100.");
+        }
+
+        return threshold;
     }
 
     static int ReadMaxBodySizeToStore(SettingsRootNamespace settingsRootNamespace)

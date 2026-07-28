@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.Tests
+namespace ServiceControl.Persistence.Tests.RavenDB
 {
     using System;
     using System.Linq;
