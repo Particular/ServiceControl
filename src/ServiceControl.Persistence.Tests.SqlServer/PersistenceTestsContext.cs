@@ -89,7 +89,7 @@ public partial class PersistenceTestsContext : IPersistenceTestsContext
     public string GenerateFailedMessageRecordId(string messageId) => messageId;
 
     public Task InsertFailedMessages(params FailedMessage[] messages) => InsertFailedMessagesDirect(host.Services, messages);
-	
+
     void DeleteBodyStorage()
     {
         try

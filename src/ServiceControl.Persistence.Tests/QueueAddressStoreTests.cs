@@ -24,7 +24,7 @@ class QueueAddressStoreTests : PersistenceTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.QueryStats.TotalCount, Is.EqualTo(4));
-            Assert.That(physicalAddresses, Is.EqualTo(new[] { "alpha", "alpha-child", "beta", "gamma" }));
+            Assert.That(physicalAddresses, Is.EqualTo(["alpha", "alpha-child", "beta", "gamma"]));
             Assert.That(addresses.Single(address => address.PhysicalAddress == "alpha").FailedMessageCount, Is.EqualTo(2));
             Assert.That(addresses.Single(address => address.PhysicalAddress == "alpha-child").FailedMessageCount, Is.EqualTo(1));
             Assert.That(addresses.Single(address => address.PhysicalAddress == "beta").FailedMessageCount, Is.EqualTo(1));
@@ -46,7 +46,7 @@ class QueueAddressStoreTests : PersistenceTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.QueryStats.TotalCount, Is.EqualTo(2));
-            Assert.That(physicalAddresses, Is.EqualTo(new[] { "alpha", "alpha-child" }));
+            Assert.That(physicalAddresses, Is.EqualTo(["alpha", "alpha-child"]));
             Assert.That(addresses.Sum(address => address.FailedMessageCount), Is.EqualTo(3));
         }
     }
