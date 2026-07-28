@@ -13,6 +13,7 @@ public class EditFailedMessagesManager : IEditFailedMessagesManager
     public Task SetCurrentEditingRequestId(string editingMessageId) =>
         throw new NotImplementedException();
 
+    // must set StatusChangedAt + LastModified
     public Task SetFailedMessageAsResolved() =>
         throw new NotImplementedException();
 

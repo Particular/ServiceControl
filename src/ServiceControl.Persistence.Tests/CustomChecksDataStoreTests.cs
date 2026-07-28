@@ -30,7 +30,7 @@ namespace ServiceControl.Persistence.Tests
 
             var status = await CustomChecks.UpdateCustomCheckStatus(checkDetails);
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
             var stats = await CustomChecks.GetStats(new PagingInfo());
 
             Assert.That(stats.Results, Has.Count.EqualTo(1));
@@ -61,7 +61,7 @@ namespace ServiceControl.Persistence.Tests
             var statusInitial = await CustomChecks.UpdateCustomCheckStatus(checkDetails);
             var statusUpdate = await CustomChecks.UpdateCustomCheckStatus(checkDetails);
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             using (Assert.EnterMultipleScope())
             {
@@ -89,7 +89,7 @@ namespace ServiceControl.Persistence.Tests
 
             var _ = await CustomChecks.UpdateCustomCheckStatus(checkDetails);
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var stats = await CustomChecks.GetStats(new PagingInfo(), "pass");
 
@@ -116,11 +116,11 @@ namespace ServiceControl.Persistence.Tests
 
             var _ = await CustomChecks.UpdateCustomCheckStatus(checkDetails);
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             await CustomChecks.DeleteCustomCheck(checkId);
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var storedChecks = await CustomChecks.GetStats(new PagingInfo());
             var check = storedChecks.Results.Where(c => c.Id == checkId.ToString()).ToList();

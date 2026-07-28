@@ -11,7 +11,7 @@ public interface IPersistenceTestsContext
 
     Task TearDown();
 
-    void CompleteDatabaseOperation();
+    Task CompleteDatabaseOperation();
 
     PersistenceSettings PersistenceSettings { get; }
 

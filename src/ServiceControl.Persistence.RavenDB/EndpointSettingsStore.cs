@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.RavenDB;
 
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Infrastructure;
@@ -10,16 +11,16 @@ using Raven.Client.Documents.Session;
 class EndpointSettingsStore(IRavenSessionProvider sessionProvider) : IEndpointSettingsStore
 {
     static string MakeDocumentId(string name) =>
-        $"{EndpointSettings.CollectionName}/{DeterministicGuid.MakeId(name)}";
+        $"{CollectionName}/{DeterministicGuid.MakeId(name)}";
 
-    public async IAsyncEnumerable<EndpointSettings> GetAllEndpointSettings()
+    public async IAsyncEnumerable<EndpointSettings> GetAllEndpointSettings([EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        using IAsyncDocumentSession session = await sessionProvider.OpenSession();
+        using IAsyncDocumentSession session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
         await using IAsyncEnumerator<StreamResult<EndpointSettings>> enumerator = await session
             .Advanced
-            .StreamAsync<EndpointSettings>($"{EndpointSettings.CollectionName}/");
+            .StreamAsync<EndpointSettings>($"{CollectionName}/", token: cancellationToken);
 
-        while (await enumerator.MoveNextAsync())
+        while (await enumerator.MoveNextAsync() && !cancellationToken.IsCancellationRequested)
         {
             yield return enumerator.Current.Document;
         }
@@ -45,4 +46,6 @@ class EndpointSettingsStore(IRavenSessionProvider sessionProvider) : IEndpointSe
 
         await session.SaveChangesAsync(cancellationToken);
     }
+
+    const string CollectionName = "EndpointSettings";
 }

@@ -41,7 +41,7 @@
                 await uow.Complete(TestContext.CurrentContext.CancellationToken);
             }
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var error = await GetAllMessages();
 
@@ -71,7 +71,7 @@
                 await uow.Complete(TestContext.CurrentContext.CancellationToken);
             }
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var error = await GetAllMessages();
 
@@ -85,7 +85,7 @@
 
             // Let ArchivedGroupsViewIndex catch up with the archive, or the unarchive silently
             // no-ops ("No messages to unarchive") and message B wrongly expires.
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             await ArchiveMessages.UnarchiveAllInGroup(groupIdB);
 
@@ -107,7 +107,7 @@
                 await uow.Complete(TestContext.CurrentContext.CancellationToken);
             }
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var error = await GetAllMessages();
 
@@ -130,7 +130,7 @@
                 await uow.Complete(TestContext.CurrentContext.CancellationToken);
             }
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var errors = await GetAllMessages();
 
@@ -139,6 +139,56 @@
             await ErrorStore.MarkMessageAsResolved(errors.Results.First().Id);
 
             await WaitUntil(async () => (await GetAllMessages()).Results.Count == 0, "Archived message should be removed after archiving.");
+        }
+
+        [Test]
+        public async Task MessageFailingAgainAfterRetryShouldNotKeepExpiration()
+        {
+            var (context, attempt) = CreateMessageContext();
+            var uniqueMessageId = context.Headers.UniqueId();
+
+            await DisableExpiration();
+
+            await using (var uow = await IngestionUnitOfWorkFactory.StartNew())
+            {
+                await uow.Recoverability.RecordFailedProcessingAttempt(context, attempt, []);
+
+                await uow.Complete(TestContext.CurrentContext.CancellationToken);
+            }
+
+            await CompleteDatabaseOperation();
+
+            // Successful retry stamps @expires on the FailedMessage document.
+            await using (var uow = await IngestionUnitOfWorkFactory.StartNew())
+            {
+                await uow.Recoverability.RecordSuccessfulRetry(uniqueMessageId);
+
+                await uow.Complete(TestContext.CurrentContext.CancellationToken);
+            }
+
+            await CompleteDatabaseOperation();
+
+            // The same logical message fails again before the retention period elapses.
+            var (context2, attempt2) = CreateMessageContext(uniqueMessageId);
+
+            await using (var uow = await IngestionUnitOfWorkFactory.StartNew())
+            {
+                await uow.Recoverability.RecordFailedProcessingAttempt(context2, attempt2, []);
+
+                await uow.Complete(TestContext.CurrentContext.CancellationToken);
+            }
+
+            await CompleteDatabaseOperation();
+
+            var documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueMessageId);
+
+            using var session = DocumentStore.OpenAsyncSession();
+            var failedMessage = await session.LoadAsync<FailedMessage>(documentId);
+            var metadata = session.Advanced.GetMetadataFor(failedMessage);
+
+            Assert.That(failedMessage.Status, Is.EqualTo(FailedMessageStatus.Unresolved));
+            Assert.That(metadata.ContainsKey(Raven.Client.Constants.Documents.Metadata.Expires), Is.False,
+                "A message that fails again after being resolved should not retain its previous @expires stamp.");
         }
 
         [Test]
@@ -153,7 +203,7 @@
                 await uow.Complete(TestContext.CurrentContext.CancellationToken);
             }
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var errors = await GetAllMessages();
 
@@ -169,13 +219,20 @@
             await WaitUntil(async () => (await GetAllMessages()).Results.Count == 0, "Retry confirmation should cause message removal.");
         }
 
-        static (MessageContext, FailedMessage.ProcessingAttempt) CreateMessageContext()
+        static (MessageContext, FailedMessage.ProcessingAttempt) CreateMessageContext(string forceUniqueMessageId = null)
         {
             var headers = new Dictionary<string, string>
             {
                 {Headers.ProcessingEndpoint, "SomeEndpoint"},
                 {Headers.MessageId, Guid.NewGuid().ToString() }
             };
+
+            // Forces context.Headers.UniqueId() to resolve to a specific, already-known
+            // UniqueMessageId, so a test can simulate the same logical message failing again.
+            if (forceUniqueMessageId != null)
+            {
+                headers["ServiceControl.Retry.UniqueMessageId"] = forceUniqueMessageId;
+            }
 
             var attempt = FailedMessageBuilder.Minimal().ProcessingAttempts.First();
 
@@ -191,7 +248,7 @@
 
             await ErrorStore.StoreEventLogItem(new EventLogItem());
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var (logItems, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(1, 1));
 

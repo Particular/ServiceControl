@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
+using ServiceControl.Persistence.EFCore.Infrastructure;
 
 class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistence, IPersistence
 {
@@ -11,7 +12,9 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
     {
         RegisterSettings(services);
         ConfigureDbContext(services);
-        RegisterDataStores(services);
+        RegisterDataStores(services, settings);
+
+        services.AddSingleton<IIngestionSqlDialect, SqlServerIngestionSqlDialect>();
     }
 
     public void AddInstaller(IServiceCollection services)
@@ -20,6 +23,7 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
         ConfigureDbContext(services);
 
         services.AddScoped<IDatabaseMigrator, SqlServerDatabaseMigrator>();
+        RegisterBodyStorageInstaller(services, settings);
     }
 
     void RegisterSettings(IServiceCollection services)

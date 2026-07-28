@@ -2,7 +2,7 @@ namespace ServiceControl.Persistence.EFCore.Implementation;
 
 public class EndpointSettingsStore : IEndpointSettingsStore
 {
-    public IAsyncEnumerable<EndpointSettings> GetAllEndpointSettings() =>
+    public IAsyncEnumerable<EndpointSettings> GetAllEndpointSettings(CancellationToken cancellationToken) =>
         throw new NotImplementedException();
 
     public Task UpdateEndpointSettings(EndpointSettings settings, CancellationToken token) =>

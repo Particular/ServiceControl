@@ -73,7 +73,7 @@
                 await uow.Complete(cancellationSource.Token);
             }
 
-            CompleteDatabaseOperation();
+            await CompleteDatabaseOperation();
 
             var fetchById = getIdToQuery(headers);
 

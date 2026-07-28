@@ -67,8 +67,7 @@ public class HeartbeatEndpointSettingsSyncHostedService(
         ILookup<string, Guid> monitorEndpointsLookup = endpointsViews
             .Where(view => !view.IsSendingHeartbeats)
             .ToLookup(view => view.Name, view => view.Id);
-        await foreach (EndpointSettings endpointSetting in endpointSettingsStore.GetAllEndpointSettings()
-                           .WithCancellation(cancellationToken))
+        await foreach (EndpointSettings endpointSetting in endpointSettingsStore.GetAllEndpointSettings(cancellationToken))
         {
             if (!endpointSetting.TrackInstances)
             {
@@ -94,8 +93,7 @@ public class HeartbeatEndpointSettingsSyncHostedService(
         HashSet<string> settingsNames = [];
 
         // Delete any endpoints data that no longer exists
-        await foreach (EndpointSettings endpointSetting in endpointSettingsStore.GetAllEndpointSettings()
-                           .WithCancellation(cancellationToken))
+        await foreach (EndpointSettings endpointSetting in endpointSettingsStore.GetAllEndpointSettings(cancellationToken))
         {
             if (endpointSetting.Name == string.Empty)
             {

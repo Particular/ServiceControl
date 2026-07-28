@@ -23,7 +23,5 @@ public class PersistenceTestsContext : IPersistenceTestsContext
 
     public Task TearDown() => Task.CompletedTask;
 
-    public void CompleteDatabaseOperation()
-    {
-    }
+    public Task CompleteDatabaseOperation() => Task.CompletedTask;
 }

@@ -25,6 +25,7 @@ public class ErrorMessagesDataStore : IErrorMessageDataStore
     public Task<QueryResult<IList<MessagesView>>> SearchEndpointMessages(string endpointName, string searchKeyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null) =>
         throw new NotImplementedException();
 
+    // must set StatusChangedAt + LastModified
     public Task FailedMessageMarkAsArchived(string failedMessageId) =>
         throw new NotImplementedException();
 
@@ -79,18 +80,22 @@ public class ErrorMessagesDataStore : IErrorMessageDataStore
     public Task<QueryResult<IList<FailureGroupView>>> GetGroup(string groupId, string status, string modified) =>
         throw new NotImplementedException();
 
+    // must set StatusChangedAt + LastModified
     public Task<bool> MarkMessageAsResolved(string failedMessageId) =>
         throw new NotImplementedException();
 
     public Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, Task> processCallback) =>
         throw new NotImplementedException();
 
+    // must set StatusChangedAt + LastModified
     public Task<string[]> UnArchiveMessagesByRange(DateTime from, DateTime to) =>
         throw new NotImplementedException();
 
+    // must set StatusChangedAt + LastModified
     public Task<string[]> UnArchiveMessages(IEnumerable<string> failedMessageIds) =>
         throw new NotImplementedException();
 
+    // must set StatusChangedAt + LastModified
     public Task RevertRetry(string messageUniqueId) =>
         throw new NotImplementedException();
 

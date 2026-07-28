@@ -33,7 +33,7 @@ public class EndpointsSettingsController(
     public async IAsyncEnumerable<SettingsData> Endpoints([EnumeratorCancellation] CancellationToken token)
     {
         await using IAsyncEnumerator<EndpointSettings> enumerator =
-            dataStore.GetAllEndpointSettings().GetAsyncEnumerator(token);
+            dataStore.GetAllEndpointSettings(token).GetAsyncEnumerator(token);
         bool noResults = true;
         while (await enumerator.MoveNextAsync())
         {

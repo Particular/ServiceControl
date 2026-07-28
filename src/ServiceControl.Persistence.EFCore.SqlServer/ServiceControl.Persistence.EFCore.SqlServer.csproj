@@ -8,11 +8,19 @@
     <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
   </PropertyGroup>
 
-  <ItemGroup>
-    <!-- Private=false & ExcludeAssets=runtime prevent repeatedly including binary dependencies of ServiceControl.Persistence and its dependencies in each persister directory -->
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <!-- Private=false & ExcludeAssets=runtime prevent repeatedly including binary dependencies of ServiceControl.Persistence
+         and its dependencies in each persister directory. Release-only: the host loads these via PluginAssemblyLoadContext,
+         which falls back to the host's own copy. Debug needs them copied locally for dotnet-ef design-time tooling. -->
     <ProjectReference Include="../ServiceControl.Configuration/ServiceControl.Configuration.csproj" Private="false" ExcludeAssets="runtime" />
     <ProjectReference Include="../ServiceControl.Infrastructure/ServiceControl.Infrastructure.csproj" Private="false" ExcludeAssets="runtime" />
     <ProjectReference Include="../ServiceControl.Persistence/ServiceControl.Persistence.csproj" Private="false" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' != 'Release'">
+    <ProjectReference Include="../ServiceControl.Configuration/ServiceControl.Configuration.csproj" />
+    <ProjectReference Include="../ServiceControl.Infrastructure/ServiceControl.Infrastructure.csproj" />
+    <ProjectReference Include="../ServiceControl.Persistence/ServiceControl.Persistence.csproj" />
   </ItemGroup>
 
   <ItemGroup>

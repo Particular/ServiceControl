@@ -1,38 +1,100 @@
 // ReSharper disable once CheckNamespace
 namespace ServiceControl.Persistence.Tests;
 
+using System;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using EFCore.SqlServer;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Time.Testing;
+using ServiceControl.Persistence.EFCore.Abstractions;
+using ServiceControl.Persistence.EFCore.Infrastructure;
 
 public class PersistenceTestsContext : IPersistenceTestsContext
 {
+    IHost host;
+    string databaseName;
+    string bodyStoragePath;
+
+    public FakeTimeProvider FakeTime { get; } = new();
+
     public async Task Setup(IHostApplicationBuilder hostBuilder)
     {
+        databaseName = $"sc_test_{Guid.NewGuid():n}";
+
+        var connectionStringBuilder = new SqlConnectionStringBuilder(await SqlServerSharedContainer.GetConnectionStringAsync())
+        {
+            InitialCatalog = databaseName
+        };
+
+        bodyStoragePath = Directory.CreateTempSubdirectory("sc_test_bodies_").FullName;
+
         PersistenceSettings = new SqlServerPersisterSettings
         {
-            ConnectionString = await SqlServerSharedContainer.GetConnectionStringAsync()
+            ConnectionString = connectionStringBuilder.ConnectionString,
+            BodyStorage = new FileSystemBodyStorageSettings { StoragePath = bodyStoragePath }
         };
 
         var persistence = new SqlServerPersistenceConfiguration().Create(PersistenceSettings);
 
         persistence.AddPersistence(hostBuilder.Services);
         persistence.AddInstaller(hostBuilder.Services);
+
+        hostBuilder.Services.AddSingleton<TimeProvider>(FakeTime);
     }
 
     public async Task PostSetup(IHost host)
     {
+        this.host = host;
+
         using var scope = host.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SqlServerServiceControlDbContext>();
-        await db.Database.EnsureCreatedAsync();
+        await db.Database.MigrateAsync();
     }
 
-    public Task TearDown() => Task.CompletedTask;
+    public async Task TearDown()
+    {
+        DeleteBodyStorage();
 
-    public void CompleteDatabaseOperation() { }
+        await using var connection = new SqlConnection(await SqlServerSharedContainer.GetConnectionStringAsync());
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = $"""
+            IF DB_ID('{databaseName}') IS NOT NULL
+            BEGIN
+                ALTER DATABASE [{databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+                DROP DATABASE [{databaseName}];
+            END
+            """;
+        await command.ExecuteNonQueryAsync();
+    }
+
+    // Drain every insert-only reconciler so that ingested data is visible to the data stores,
+    // without waiting for the reconciler background services' timers.
+    public async Task CompleteDatabaseOperation()
+    {
+        foreach (var reconciler in host.Services.GetServices<IHostedService>().OfType<InsertOnlyTableReconciler>())
+        {
+            await reconciler.ReconcileNow();
+        }
+    }
 
     public PersistenceSettings PersistenceSettings { get; set; }
 
     public string GenerateFailedMessageRecordId(string messageId) => messageId;
+
+    void DeleteBodyStorage()
+    {
+        try
+        {
+            Directory.Delete(bodyStoragePath, recursive: true);
+        }
+        catch (DirectoryNotFoundException)
+        {
+        }
+    }
 }
