@@ -33,7 +33,6 @@ GET /errors/groups/{classifier?} => ServiceControl.MessageFailures.Api.ArchiveMe
 GET /errors/last/{failedMessageId:required:minlength(1)} => ServiceControl.MessageFailures.Api.GetErrorByIdController:ErrorLastBy(String failedMessageId)
 POST /errors/queues/{queueAddress:required:minlength(1)}/retry => ServiceControl.MessageFailures.Api.RetryMessagesController:RetryAllBy(String queueAddress)
 GET /errors/queues/addresses => ServiceControl.MessageFailures.Api.QueueAddressController:GetAddresses(PagingInfo pagingInfo)
-GET /errors/queues/addresses/search/{search} => ServiceControl.MessageFailures.Api.QueueAddressController:GetAddressesBySearchTerm(PagingInfo pagingInfo, String search)
 POST /errors/retry => ServiceControl.MessageFailures.Api.RetryMessagesController:RetryAllBy(List<String> messageIds)
 POST /errors/retry/all => ServiceControl.MessageFailures.Api.RetryMessagesController:RetryAll()
 GET /errors/summary => ServiceControl.MessageFailures.Api.GetAllErrorsController:ErrorsSummary()

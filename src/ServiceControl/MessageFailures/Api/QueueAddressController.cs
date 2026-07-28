@@ -1,45 +1,27 @@
-﻿namespace ServiceControl.MessageFailures.Api
+﻿namespace ServiceControl.MessageFailures.Api;
+
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Infrastructure.Auth;
+using Infrastructure.WebApi;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Persistence.Infrastructure;
+using ServiceControl.Persistence;
+
+[ApiController]
+[Route("api")]
+public class QueueAddressController(IQueueAddressStore store) : ControllerBase
 {
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using Infrastructure.Auth;
-    using Infrastructure.WebApi;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Mvc;
-    using Persistence.Infrastructure;
-    using ServiceControl.Persistence;
-
-    [ApiController]
-    [Route("api")]
-    public class QueueAddressController(IQueueAddressStore store) : ControllerBase
+    [Authorize(Policy = Permissions.ErrorQueuesView)]
+    [Route("errors/queues/addresses")]
+    [HttpGet]
+    public async Task<IList<QueueAddress>> GetAddresses([FromQuery] PagingInfo pagingInfo)
     {
-        [Authorize(Policy = Permissions.ErrorQueuesView)]
-        [Route("errors/queues/addresses")]
-        [HttpGet]
-        public async Task<IList<QueueAddress>> GetAddresses([FromQuery] PagingInfo pagingInfo)
-        {
-            var result = await store.GetAddresses(pagingInfo);
+        var result = await store.GetAddresses(pagingInfo);
 
-            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+        Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
 
-            return result.Results;
-        }
-
-        [Authorize(Policy = Permissions.ErrorQueuesView)]
-        [Route("errors/queues/addresses/search/{search}")]
-        [HttpGet]
-        public async Task<ActionResult<IList<QueueAddress>>> GetAddressesBySearchTerm([FromQuery] PagingInfo pagingInfo, string search = null)
-        {
-            if (string.IsNullOrWhiteSpace(search))
-            {
-                return BadRequest();
-            }
-
-            var result = await store.GetAddressesBySearchTerm(search, pagingInfo);
-
-            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
-
-            return Ok(result.Results);
-        }
+        return result.Results;
     }
 }

@@ -22,20 +22,5 @@
             var result = new QueryResult<IList<QueueAddress>>(addresses, stats.ToQueryStatsInfo());
             return result;
         }
-
-        public async Task<QueryResult<IList<QueueAddress>>> GetAddressesBySearchTerm(string search, PagingInfo pagingInfo)
-        {
-            using var session = await sessionProvider.OpenSession();
-            var failedMessageQueues = await session
-                    .Query<QueueAddress, QueueAddressIndex>()
-                    .Statistics(out var stats)
-                    .Paging(pagingInfo)
-                    .Where(q => q.PhysicalAddress.StartsWith(search))
-                    .OrderBy(q => q.PhysicalAddress)
-                    .ToListAsync();
-
-            var result = new QueryResult<IList<QueueAddress>>(failedMessageQueues, stats.ToQueryStatsInfo());
-            return result;
-        }
     }
 }
