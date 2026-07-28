@@ -23,6 +23,7 @@ class LicensingDataStore(
     const string AuditServiceMetadataDocumentId = "AuditServiceMetadata";
     const string BrokerMetadataDocumentId = "BrokerMetadata";
     const string ReportMasksDocumentId = "ReportMasks";
+    const string LicencedEndpointDetailsDocumentId = "LicensedEndpointDetails";
 
     static readonly AuditServiceMetadata DefaultAuditServiceMetadata = new([], []);
     static readonly BrokerMetadata DefaultBrokerMetadata = new(null, []);
@@ -314,6 +315,23 @@ class LicensingDataStore(
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
         await session.StoreAsync(new ReportConfigurationDocument { MaskedStrings = reportMasks }, ReportMasksDocumentId, cancellationToken);
+        await session.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(CancellationToken cancellationToken)
+    {
+        var store = await storeProvider.GetDocumentStore(cancellationToken);
+        using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
+
+        return await session.LoadAsync<LicensedEndpointDetails>(LicencedEndpointDetailsDocumentId, cancellationToken);
+    }
+
+    public async Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken)
+    {
+        var store = await storeProvider.GetDocumentStore(cancellationToken);
+        using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
+
+        await session.StoreAsync(result, LicencedEndpointDetailsDocumentId, cancellationToken);
         await session.SaveChangesAsync(cancellationToken);
     }
 }

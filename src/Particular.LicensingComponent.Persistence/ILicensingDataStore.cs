@@ -36,4 +36,7 @@ public interface ILicensingDataStore
     Task SaveAuditServiceMetadata(AuditServiceMetadata auditServiceMetadata, CancellationToken cancellationToken);
     Task<List<string>> GetReportMasks(CancellationToken cancellationToken);
     Task SaveReportMasks(List<string> reportMasks, CancellationToken cancellationToken);
+
+    Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(CancellationToken cancellationToken);
+    Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken);
 }

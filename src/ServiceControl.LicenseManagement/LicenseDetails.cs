@@ -7,6 +7,7 @@
 
     public class LicenseDetails
     {
+        public string Id { get; private init; }
         public DateTime? ExpirationDate { get; private init; }
 
         public DateTime? UpgradeProtectionExpiration { get; private init; }
@@ -67,6 +68,7 @@
 
             var details = new LicenseDetails
             {
+                Id = license.LicenseId,
                 UpgradeProtectionExpiration = license.UpgradeProtectionExpiration,
                 //If expiration date is greater that 50 years treat is as no expiration date
                 ExpirationDate = license.ExpirationDate.HasValue

@@ -70,11 +70,14 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
             var endpointSummary = new EndpointThroughputSummary
             {
                 Name = endpointData.Name,
+                NameHash = OneWayHasher.CalculateOneWayHash(endpointData.Name),
+                Scope = endpointData.Scope,
+                ScopeHash = string.IsNullOrEmpty(endpointData.Scope) ? null : OneWayHasher.CalculateOneWayHash(endpointData.Scope),
                 UserIndicator = endpointData.UserIndicator ?? (endpointData.IsKnownEndpoint ? Contracts.UserIndicator.NServiceBusEndpoint.ToString() : string.Empty),
                 IsKnownEndpoint = endpointData.IsKnownEndpoint,
                 MaxDailyThroughput = endpointData.ThroughputData.MaxDailyThroughput(),
                 MonthlyThroughput = endpointData.ThroughputData.MonthlyThroughput(),
-                MaxMonthlyThroughput = endpointData.ThroughputData.MaxMonthlyThroughput()
+                AverageMonthlyThroughput = endpointData.ThroughputData.AverageMonthlyThroughput()
             };
 
             endpointSummaries.Add(endpointSummary);
