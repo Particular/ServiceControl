@@ -20,8 +20,9 @@ public class QueueAddressStore(IServiceScopeFactory scopeFactory) : DataStoreBas
                 });
 
             var items = await query.Skip(pagingInfo.Offset).Take(pagingInfo.PageSize).ToListAsync();
+            var eTag = DeterministicGuid.MakeId($"{items.Count}|{string.Join(",", items.Select(x => x.PhysicalAddress))}").ToString();
 
-            return new QueryResult<IList<QueueAddress>>(items, new QueryStatsInfo("", query.Count(), false));
+            return new QueryResult<IList<QueueAddress>>(items, new QueryStatsInfo(eTag, query.Count(), false));
         });
 
     public Task<QueryResult<IList<QueueAddress>>> GetAddressesBySearchTerm(string search, PagingInfo pagingInfo) =>
