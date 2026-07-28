@@ -74,10 +74,8 @@ namespace ServiceControl.Licensing
         {
             //perform date and license id checks
             using var brotliStream = new BrotliStream(file.OpenReadStream(), CompressionMode.Decompress);
-            using var reader = new StreamReader(brotliStream, Encoding.UTF8);
 
-            var fileContents = await reader.ReadToEndAsync(cancellationToken);
-            var result = JsonSerializer.Deserialize<LicensedEndpointDetails>(fileContents, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+            var result = JsonSerializer.Deserialize<LicensedEndpointDetails>(brotliStream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
                 ?? throw new InvalidDataException("File contents cannot be deserialized");
             //persist
             await dataStore.SaveLicensedEndpointDetails(result, cancellationToken);
