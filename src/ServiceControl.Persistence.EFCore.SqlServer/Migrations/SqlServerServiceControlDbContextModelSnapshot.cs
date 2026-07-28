@@ -33,7 +33,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasKey("Name");
 
-                    b.ToTable("EndpointSettings", (string)null);
+                    b.ToTable("EndpointSettings");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedErrorImportEntity", b =>

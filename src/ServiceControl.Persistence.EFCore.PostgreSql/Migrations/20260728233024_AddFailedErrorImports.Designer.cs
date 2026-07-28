@@ -12,7 +12,7 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    [Migration("20260727055109_AddFailedErrorImports")]
+    [Migration("20260728233024_AddFailedErrorImports")]
     partial class AddFailedErrorImports
     {
         /// <inheritdoc />
@@ -24,6 +24,23 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.EndpointSettingsEntity", b =>
+                {
+                    b.Property<string>("Name")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("name");
+
+                    b.Property<bool>("TrackInstances")
+                        .HasColumnType("boolean")
+                        .HasColumnName("track_instances");
+
+                    b.HasKey("Name")
+                        .HasName("pk_endpoint_settings");
+
+                    b.ToTable("endpoint_settings", (string)null);
+                });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedErrorImportEntity", b =>
                 {
@@ -104,6 +121,12 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.Property<string>("ExceptionType")
                         .HasColumnType("text")
                         .HasColumnName("exception_type");
+
+                    b.Property<string>("FailingEndpointAddress")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("failing_endpoint_address");
 
                     b.Property<DateTime>("FirstTimeOfFailure")
                         .HasColumnType("timestamp with time zone")
@@ -193,6 +216,9 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 
                     b.HasIndex("ConversationId")
                         .HasDatabaseName("ix_failed_messages_conversation_id");
+
+                    b.HasIndex("FailingEndpointAddress")
+                        .HasDatabaseName("ix_failed_messages_failing_endpoint_address");
 
                     b.HasIndex("QueueAddress")
                         .HasDatabaseName("ix_failed_messages_queue_address");
@@ -291,6 +317,31 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasName("pk_known_endpoints");
 
                     b.ToTable("known_endpoints", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.TrialMetadataEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly?>("TrialEndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("trial_end_date");
+
+                    b.HasKey("Id")
+                        .HasName("pk_trial_metadata");
+
+                    b.ToTable("trial_metadata", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1
+                        });
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageGroupEntity", b =>
