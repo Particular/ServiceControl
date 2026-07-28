@@ -40,7 +40,6 @@
     <Compile Remove="..\ServiceControl.Persistence.Tests\Throughput\EndpointsTests.cs" />
     <Compile Remove="..\ServiceControl.Persistence.Tests\Throughput\ReportMasksTests.cs" />
     <Compile Remove="..\ServiceControl.Persistence.Tests\CustomChecksDataStoreTests.cs" />
-    <Compile Remove="..\ServiceControl.Persistence.Tests\CustomCheckTests.cs" />
     <Compile Remove="..\ServiceControl.Persistence.Tests\RetryStateTests.cs" />
   </ItemGroup>
 

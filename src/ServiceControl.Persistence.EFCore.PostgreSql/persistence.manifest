@@ -18,7 +18,11 @@
       "Mandatory": true
     },
     {
-      "Name": "ServiceControl/MessageBody/StoragePath",
+      "Name": "ServiceControl/MessageBody/FileSystem/StoragePath",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl/MessageBody/FileSystem/DataSpaceRemainingThreshold",
       "Mandatory": false
     },
     {
