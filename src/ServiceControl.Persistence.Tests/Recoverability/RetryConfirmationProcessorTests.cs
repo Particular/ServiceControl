@@ -25,7 +25,7 @@
 
             Handler = new LegacyMessageFailureResolvedHandler(ErrorMessageDataStore, domainEvents);
 
-            await ErrorMessageDataStore.StoreFailedMessagesForTestsOnly(
+            await PersistenceTestsContext.InsertFailedMessages(
                 new FailedMessage
                 {
                     Id = MessageId,

@@ -262,7 +262,7 @@
                         }
                     ]
             };
-            await ErrorMessageDataStore.StoreFailedMessagesForTestsOnly(new[] { failedMessage });
+            await PersistenceTestsContext.InsertFailedMessages(failedMessage);
             return failedMessage;
         }
     }

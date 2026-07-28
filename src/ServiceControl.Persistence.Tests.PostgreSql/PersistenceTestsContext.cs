@@ -1,4 +1,5 @@
 // ReSharper disable once CheckNamespace
+
 namespace ServiceControl.Persistence.Tests;
 
 using System;
@@ -6,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using EFCore.PostgreSql;
+using MessageFailures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -14,7 +16,7 @@ using Npgsql;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
-public class PersistenceTestsContext : IPersistenceTestsContext
+public partial class PersistenceTestsContext : IPersistenceTestsContext
 {
     IHost host;
     string databaseName;
@@ -80,6 +82,8 @@ public class PersistenceTestsContext : IPersistenceTestsContext
     public PersistenceSettings PersistenceSettings { get; set; }
 
     public string GenerateFailedMessageRecordId(string messageId) => messageId;
+
+    public Task InsertFailedMessages(params FailedMessage[] messages) => InsertFailedMessagesDirect(host.Services, messages);
 
     void DeleteBodyStorage()
     {

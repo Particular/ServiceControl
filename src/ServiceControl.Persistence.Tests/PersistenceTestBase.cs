@@ -107,4 +107,6 @@ public abstract class PersistenceTestBase
     protected IEventLogDataStore EventLogDataStore => ServiceProvider.GetRequiredService<IEventLogDataStore>();
     protected IRetryDocumentDataStore RetryDocumentDataStore => ServiceProvider.GetRequiredService<IRetryDocumentDataStore>();
     protected ILicensingDataStore LicensingDataStore => ServiceProvider.GetRequiredService<ILicensingDataStore>();
+    protected IQueueAddressStore QueueAddressStore => ServiceProvider.GetRequiredService<IQueueAddressStore>();
+    protected IEndpointSettingsStore EndpointSettingsStore => ServiceProvider.GetRequiredService<IEndpointSettingsStore>();
 }

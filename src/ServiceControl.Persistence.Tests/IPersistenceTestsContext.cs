@@ -1,6 +1,7 @@
 namespace ServiceControl.Persistence.Tests;
 
 using System.Threading.Tasks;
+using MessageFailures;
 using Microsoft.Extensions.Hosting;
 
 public interface IPersistenceTestsContext
@@ -16,4 +17,5 @@ public interface IPersistenceTestsContext
     PersistenceSettings PersistenceSettings { get; }
 
     string GenerateFailedMessageRecordId(string messageId);
+    Task InsertFailedMessages(params FailedMessage[] messages);
 }

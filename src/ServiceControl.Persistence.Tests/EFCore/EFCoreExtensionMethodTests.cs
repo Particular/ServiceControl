@@ -39,7 +39,7 @@ public class EFCoreExtensionMethodTests : PersistenceTestBase
                 () =>
                 {
                     state = Result.Insert;
-                    return new FailedMessageEntity { UniqueMessageId = key, HeadersJson = "blah" };
+                    return new FailedMessageEntity { UniqueMessageId = key, HeadersJson = "blah", FailingEndpointAddress = "endpoints/sales" };
                 },
                 es =>
                 {

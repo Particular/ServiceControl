@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
 using Raven.Client.Documents;
+using ServiceControl.Contracts.Operations;
+using ServiceControl.MessageFailures;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.RavenDB;
 using ServiceControl.RavenDB;
@@ -54,6 +56,15 @@ public class PersistenceTestsContext : IPersistenceTestsContext
 
     public PersistenceSettings PersistenceSettings { get; private set; }
     public string GenerateFailedMessageRecordId(string messageId) => FailedMessageIdGenerator.MakeDocumentId(messageId);
+    public async Task InsertFailedMessages(params FailedMessage[] messages)
+    {
+        using var session = await SessionProvider.OpenSession();
+        foreach (var message in messages)
+        {
+            await session.StoreAsync(message);
+        }
+        await session.SaveChangesAsync();
+    }
 
     public IDocumentStore DocumentStore { get; private set; }
 
