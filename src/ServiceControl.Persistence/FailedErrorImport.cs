@@ -10,8 +10,6 @@ namespace ServiceControl.Operations
         public FailedTransportMessage Message { get; set; }
         public string ExceptionInfo { get; set; }
 
-        public static string MakeDocumentId(Guid id) => $"FailedErrorImports/{id}";
-
         public static Guid DeriveKey(IReadOnlyDictionary<string, string> headers, string nativeMessageId)
         {
             try

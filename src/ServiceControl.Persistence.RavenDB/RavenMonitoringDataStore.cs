@@ -9,7 +9,7 @@
 
     class RavenMonitoringDataStore(IRavenSessionProvider sessionProvider) : IMonitoringDataStore
     {
-        public static string MakeDocumentId(Guid id) => $"{KnownEndpoint.CollectionName}/{id}";
+        public static string MakeDocumentId(Guid id) => $"{KnownEndpointsCollectionName}/{id}";
 
         public async Task CreateIfNotExists(EndpointDetails endpoint)
         {
@@ -111,5 +111,7 @@
 
             return knownEndpoints;
         }
+
+        public const string KnownEndpointsCollectionName = "KnownEndpoints";
     }
 }

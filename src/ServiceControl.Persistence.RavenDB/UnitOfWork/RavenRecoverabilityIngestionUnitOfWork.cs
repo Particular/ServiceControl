@@ -69,7 +69,7 @@
         public Task RecordSuccessfulRetry(string retriedMessageUniqueId)
         {
             var failedMessageDocumentId = FailedMessageIdGenerator.MakeDocumentId(retriedMessageUniqueId);
-            var failedMessageRetryDocumentId = FailedMessageRetry.MakeDocumentId(retriedMessageUniqueId);
+            var failedMessageRetryDocumentId = RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(retriedMessageUniqueId);
 
             var patchRequest = new PatchRequest
             {

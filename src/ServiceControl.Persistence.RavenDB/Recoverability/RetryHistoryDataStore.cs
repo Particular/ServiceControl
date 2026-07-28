@@ -6,13 +6,15 @@
 
     class RetryHistoryDataStore(IRavenSessionProvider sessionProvider) : IRetryHistoryDataStore
     {
+        const string DocumentId = "RetryOperations/History";
+
         public async Task<RetryHistory> GetRetryHistory()
         {
             using var session = await sessionProvider.OpenSession();
-            var id = RetryHistory.MakeId();
+            var id = DocumentId;
             var retryHistory = await session.LoadAsync<RetryHistory>(id);
 
-            retryHistory ??= RetryHistory.CreateNew();
+            retryHistory ??= new() { Id = DocumentId };
 
             return retryHistory;
         }
@@ -21,7 +23,7 @@
             string originator, string classifier, bool messageFailed, int numberOfMessagesProcessed, DateTime lastProcessed, int retryHistoryDepth)
         {
             using var session = await sessionProvider.OpenSession();
-            var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()) ?? RetryHistory.CreateNew();
+            var retryHistory = await session.LoadAsync<RetryHistory>(DocumentId) ?? new() { Id = DocumentId };
 
             retryHistory.AddToUnacknowledged(new UnacknowledgedRetryOperation
             {
@@ -54,7 +56,7 @@
         public async Task<bool> AcknowledgeRetryGroup(string groupId)
         {
             using var session = await sessionProvider.OpenSession();
-            var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId());
+            var retryHistory = await session.LoadAsync<RetryHistory>(DocumentId);
             if (retryHistory != null)
             {
                 if (retryHistory.Acknowledge(groupId, RetryType.FailureGroup))

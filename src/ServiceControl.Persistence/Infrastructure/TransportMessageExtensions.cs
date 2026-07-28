@@ -102,15 +102,9 @@
 
             return true;
         }
-        static string ReplyToAddress(this IReadOnlyDictionary<string, string> headers)
-        {
-            return headers.TryGetValue(Headers.ReplyToAddress, out var destination) ? destination : null;
-        }
+        static string ReplyToAddress(this IReadOnlyDictionary<string, string> headers) => headers.GetValueOrDefault(Headers.ReplyToAddress);
 
-        static string ProcessingStarted(this IReadOnlyDictionary<string, string> headers)
-        {
-            return headers.TryGetValue(Headers.ProcessingStarted, out var processingStarted) ? processingStarted : null;
-        }
+        static string ProcessingStarted(this IReadOnlyDictionary<string, string> headers) => headers.GetValueOrDefault(Headers.ProcessingStarted);
 
         static string ExtractQueue(string address)
         {
