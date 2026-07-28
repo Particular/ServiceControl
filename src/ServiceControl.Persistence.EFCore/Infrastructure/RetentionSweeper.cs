@@ -12,8 +12,6 @@ using ServiceControl.Persistence.EFCore.Entities;
 // Deletes rows once they age past their retention period.
 // Runs hourly, in bounded batches so it never holds a large delete, and recomputes the cutoffs on
 // every run so a changed retention setting takes effect without rewriting any row.
-//
-// RavenDB has no equivalent: it stamps per-document expiry metadata at write time instead.
 public class RetentionSweeper(
     ILogger<RetentionSweeper> logger,
     TimeProvider timeProvider,
@@ -64,8 +62,8 @@ public class RetentionSweeper(
         await SweepEventLogItems(pace, cancellationToken);
     }
 
-    // Event log items are insert-only and carry no external bodies, so this is a straight batched
-    // delete by age, no per-row work, no re-asserted predicate, nothing to clean up first.
+    // Event log items are insert-only and carry no external bodies, so each batch is a single
+    // ordered DELETE.
     async Task SweepEventLogItems(bool pace, CancellationToken cancellationToken)
     {
         var cutoff = timeProvider.GetUtcNow().UtcDateTime - settings.EventsRetentionPeriod;
@@ -75,24 +73,13 @@ public class RetentionSweeper(
             using var scope = serviceScopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
 
-            var expired = await dbContext.EventLogItems
-                .AsNoTracking()
+            var deleted = await dbContext.EventLogItems
                 .Where(eventLogItem => eventLogItem.RaisedAt < cutoff)
                 .OrderBy(eventLogItem => eventLogItem.RaisedAt)
                 .Take(BatchSize)
-                .Select(eventLogItem => eventLogItem.Id)
-                .ToListAsync(cancellationToken);
-
-            if (expired.Count == 0)
-            {
-                break;
-            }
-
-            await dbContext.EventLogItems
-                .Where(eventLogItem => expired.Contains(eventLogItem.Id))
                 .ExecuteDeleteAsync(cancellationToken);
 
-            if (expired.Count < BatchSize)
+            if (deleted < BatchSize)
             {
                 break;
             }

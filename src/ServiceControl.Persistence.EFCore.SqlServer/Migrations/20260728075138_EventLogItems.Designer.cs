@@ -12,7 +12,7 @@ using ServiceControl.Persistence.EFCore.SqlServer;
 namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerServiceControlDbContext))]
-    [Migration("20260727055119_EventLogItems")]
+    [Migration("20260728075138_EventLogItems")]
     partial class EventLogItems
     {
         /// <inheritdoc />
@@ -59,10 +59,8 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Severity")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<int>("Severity")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

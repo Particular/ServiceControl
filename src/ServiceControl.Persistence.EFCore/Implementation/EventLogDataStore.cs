@@ -17,8 +17,6 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
                 Description = logItem.Description,
                 Severity = logItem.Severity,
                 RaisedAt = logItem.RaisedAt,
-                // The column is non-null. The API model allows null and the SignalR broadcast path
-                // deliberately empties it, so normalise rather than reject.
                 RelatedTo = logItem.RelatedTo ?? [],
                 Category = logItem.Category,
                 EventType = logItem.EventType
@@ -33,9 +31,15 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
         {
             var query = dbContext.EventLogItems.AsNoTracking();
 
-            var total = await query.LongCountAsync();
-            var newest = await query.MaxAsync(e => (DateTime?)e.RaisedAt);
-            var version = Version(total, newest);
+            // Both aggregates in one round trip. Grouping on a constant collapses the table to a
+            // single row, and an empty table yields no rows at all, hence the null coalescing.
+            var stats = await query
+                .GroupBy(_ => 1)
+                .Select(g => new { Total = g.LongCount(), Newest = g.Max(e => (DateTime?)e.RaisedAt) })
+                .FirstOrDefaultAsync();
+
+            var total = stats?.Total ?? 0;
+            var version = Version(total, stats?.Newest);
 
             // The point of knownVersion. Everything above is index work.
             // If the caller already has the latest version, skip the rest of the query.
@@ -67,8 +71,7 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
             return (items, total, version);
         });
 
-    // Raven returns the query's ResultEtag but there is no relational equivalent, so it is synthesised
-    // using total count and the newest item's RaisedAt timestamp.
+    // Synthesised version ID to be used for an ETag, using total count and the newest item's RaisedAt timestamp.
     static string Version(long total, DateTime? newest) =>
         DeterministicGuid.MakeId($"{total}|{newest?.Ticks ?? 0}").ToString();
 }

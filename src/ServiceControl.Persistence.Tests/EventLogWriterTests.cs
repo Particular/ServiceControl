@@ -8,9 +8,6 @@ using ServiceControl.EventLog;
 using ServiceControl.Infrastructure.DomainEvents;
 using ServiceControl.Persistence.Infrastructure;
 
-// This exercises writer -> store -> row -> readable on every persister, using a test-local domain
-// event and mapping rather than borrowing a production contract, so it pins the writer mechanism
-// rather than the shape of MessageFailed.
 class EventLogWriterTests : PersistenceTestBase
 {
     [Test]

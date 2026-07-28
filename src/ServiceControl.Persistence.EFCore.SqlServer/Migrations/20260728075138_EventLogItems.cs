@@ -19,7 +19,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     EventLogItemId = table.Column<string>(type: "nvarchar(600)", maxLength: 600, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Severity = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Severity = table.Column<int>(type: "int", nullable: false),
                     RaisedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     RelatedTo = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Category = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),

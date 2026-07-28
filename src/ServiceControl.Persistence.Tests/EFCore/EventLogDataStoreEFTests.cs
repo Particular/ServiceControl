@@ -11,8 +11,6 @@ using ServiceControl.EventLog;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.Infrastructure;
 
-// Behaviour only the EF Core persisters guarantee, so it cannot live in the shared root folder.
-// RavenDB orders event log items by RaisedAt alone.
 class EventLogDataStoreEFTests : PersistenceTestBase
 {
     // All ten items share one RaisedAt. Without the key as a tiebreaker in both the index and the

@@ -81,10 +81,8 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnType("text[]")
                         .HasColumnName("related_to");
 
-                    b.Property<string>("Severity")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
+                    b.Property<int>("Severity")
+                        .HasColumnType("integer")
                         .HasColumnName("severity");
 
                     b.HasKey("Id")

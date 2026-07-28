@@ -53,8 +53,6 @@ Register both sources once, from an **elevated** PowerShell prompt:
 
 Use the .NET API as shown rather than `New-EventLog`, which is not available in PowerShell 7. Afterwards the tests run normally without elevation, because the lookup finds the registered source before it needs to read `Security`.
 
-Despite mentioning "event logs", this is unrelated to ServiceControl's own event log feature.
-
 ## Multi-instance tests
 
 Multi-instance tests validate the interaction between different ServiceControl instances. ServiceControl instances are run in-memory in the same process. LearningTransport is used for all tests.

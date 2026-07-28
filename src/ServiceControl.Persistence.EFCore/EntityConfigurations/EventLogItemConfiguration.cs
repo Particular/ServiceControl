@@ -15,7 +15,7 @@ class EventLogItemConfiguration : IEntityTypeConfiguration<EventLogItemEntity>
         // indexed and not unique. Nothing looks an item up by it, and each id embeds a fresh Guid.
         builder.Property(e => e.EventLogItemId).IsRequired().HasMaxLength(600);
         builder.Property(e => e.Description).IsRequired();
-        builder.Property(e => e.Severity).IsRequired().HasConversion<string>().HasMaxLength(50);
+        builder.Property(e => e.Severity).IsRequired();
         builder.Property(e => e.RaisedAt).IsRequired();
         // RelatedTo is only ever returned to the API, never queried, so it does not warrant a child table.
         builder.Property(e => e.RelatedTo).IsRequired();

@@ -105,10 +105,8 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Severity")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<int>("Severity")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
