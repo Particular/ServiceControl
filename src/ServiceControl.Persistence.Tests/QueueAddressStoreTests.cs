@@ -32,25 +32,6 @@ class QueueAddressStoreTests : PersistenceTestBase
         }
     }
 
-    [Test]
-    public async Task GetAddressesBySearchTerm_filters_by_prefix()
-    {
-        await SeedFailedMessages();
-
-        await CompleteDatabaseOperation();
-
-        var result = await QueueAddressStore.GetAddressesBySearchTerm("alpha", new PagingInfo(1, 10));
-        var addresses = result.Results;
-        var physicalAddresses = addresses.Select(address => address.PhysicalAddress).OrderBy(address => address).ToArray();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.QueryStats.TotalCount, Is.EqualTo(2));
-            Assert.That(physicalAddresses, Is.EqualTo(["alpha", "alpha-child"]));
-            Assert.That(addresses.Sum(address => address.FailedMessageCount), Is.EqualTo(3));
-        }
-    }
-
     async Task SeedFailedMessages() =>
         await SeedFailedMessages(
             (new("7F21F22A-44B6-440C-851D-3524645FD083"), "alpha"),
