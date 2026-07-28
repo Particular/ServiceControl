@@ -20,7 +20,7 @@
     public class QueueIdentity
     {
         public string? NameHash { get; set; }
-        public string? Scope { get; set; }
+        public string? ScopeHash { get; set; }
     }
 
     public class LicensedEndpoint

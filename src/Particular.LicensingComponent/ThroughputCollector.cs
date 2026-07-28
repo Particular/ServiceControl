@@ -71,6 +71,8 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
             {
                 Name = endpointData.Name,
                 NameHash = OneWayHasher.CalculateOneWayHash(endpointData.Name),
+                Scope = endpointData.Scope,
+                ScopeHash = string.IsNullOrEmpty(endpointData.Scope) ? null : OneWayHasher.CalculateOneWayHash(endpointData.Scope),
                 UserIndicator = endpointData.UserIndicator ?? (endpointData.IsKnownEndpoint ? Contracts.UserIndicator.NServiceBusEndpoint.ToString() : string.Empty),
                 IsKnownEndpoint = endpointData.IsKnownEndpoint,
                 MaxDailyThroughput = endpointData.ThroughputData.MaxDailyThroughput(),

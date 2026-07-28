@@ -5,6 +5,8 @@ public class EndpointThroughputSummary
 {
     public string Name { get; set; }
     public string NameHash { get; set; }
+    public string? Scope { get; set; }
+    public string? ScopeHash { get; set; }
     public bool IsKnownEndpoint { get; set; }
     public string UserIndicator { get; set; }
     public long MaxDailyThroughput { get; set; }
