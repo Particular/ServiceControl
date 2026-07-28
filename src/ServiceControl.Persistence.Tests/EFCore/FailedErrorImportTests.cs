@@ -221,6 +221,33 @@ class FailedErrorImportTests : ErrorIngestionTestBase
         }
     }
 
+    [Test]
+    public async Task A_missing_external_body_fails_the_re_import_without_blocking_the_others()
+    {
+        var headers = WellFormedHeaders();
+        var externalId = FailedErrorImportEntity.ExternalBodyId(FailedErrorImport.DeriveKey(headers, "native-1"));
+
+        var otherHeaders = WellFormedHeaders();
+        otherHeaders[Headers.MessageId] = "m2";
+
+        await StoreImport(headers, LargeBody(), nativeId: "native-1");
+        await StoreImport(otherHeaders, Encoding.UTF8.GetBytes("intact"), nativeId: "native-2");
+
+        RecordedBodies.Evict(externalId);
+
+        var replayed = await Replay();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(replayed.Select(message => message.Id), Is.EqualTo(new[] { "native-2" }));
+            Assert.That(await FailedImportStore.QueryContainsFailedImports(), Is.True);
+        }
+
+        var secondRun = await Replay();
+
+        Assert.That(secondRun, Is.Empty, "the row with the missing body is retried and fails again");
+    }
+
     IFailedErrorImportDataStore FailedImportStore => ServiceProvider.GetRequiredService<IFailedErrorImportDataStore>();
 
     Task StoreImport(Dictionary<string, string> headers, byte[] body, string exceptionInfo = "boom", string nativeId = null)

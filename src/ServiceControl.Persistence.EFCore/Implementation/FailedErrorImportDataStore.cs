@@ -114,12 +114,9 @@ public class FailedErrorImportDataStore(
 
     async Task<byte[]> ReadExternalBody(Guid uniqueMessageId, CancellationToken cancellationToken)
     {
-        var stored = await bodyStorage.ReadBody(FailedErrorImportEntity.ExternalBodyId(uniqueMessageId), cancellationToken);
-
-        if (stored is null)
-        {
-            return [];
-        }
+        var bodyId = FailedErrorImportEntity.ExternalBodyId(uniqueMessageId);
+        var stored = await bodyStorage.ReadBody(bodyId, cancellationToken)
+            ?? throw new InvalidOperationException($"The body for failed error import {uniqueMessageId} was not found in body storage under {bodyId}.");
 
         await using var stream = stored.Stream;
         using var buffer = new MemoryStream(stored.BodySize);

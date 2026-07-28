@@ -71,6 +71,14 @@ class InMemoryBodyStoragePersistence : IBodyStoragePersistence
         return Task.FromResult(result);
     }
 
+    public void Evict(string bodyId)
+    {
+        lock (gate)
+        {
+            store.Remove(bodyId);
+        }
+    }
+
     public Task DeleteBody(string bodyId, CancellationToken cancellationToken = default)
     {
         if (FailDeleteFor.Contains(bodyId))
