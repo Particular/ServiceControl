@@ -2,7 +2,6 @@ namespace ServiceControl.Persistence.EFCore.Implementation;
 
 using System.Text.Json;
 using Entities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NServiceBus;
 using Persistence.UnitOfWork;
@@ -66,22 +65,7 @@ public class ErrorMessagesDataStore(
             var headersJson = JsonSerializer.Serialize(failure.Message.Headers, HeadersJsonContext.Default.DictionaryStringString);
             byte[] storedBody = storeExternally ? [] : body;
 
-            var updated = await dbContext.FailedErrorImports
-                .Where(import => import.UniqueMessageId == uniqueMessageId)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(import => import.FailedAt, failedAt)
-                    .SetProperty(import => import.MessageId, failure.Message.Id)
-                    .SetProperty(import => import.HeadersJson, headersJson)
-                    .SetProperty(import => import.Body, storedBody)
-                    .SetProperty(import => import.BodyStoredExternally, storeExternally)
-                    .SetProperty(import => import.ExceptionInfo, failure.ExceptionInfo));
-
-            if (updated > 0)
-            {
-                return;
-            }
-
-            dbContext.FailedErrorImports.Add(new FailedErrorImportEntity
+            await dbContext.UpsertAsync([uniqueMessageId], () => new FailedErrorImportEntity
             {
                 UniqueMessageId = uniqueMessageId,
                 FailedAt = failedAt,
@@ -90,21 +74,15 @@ public class ErrorMessagesDataStore(
                 Body = storedBody,
                 BodyStoredExternally = storeExternally,
                 ExceptionInfo = failure.ExceptionInfo
+            }, (entity) =>
+            {
+                entity.FailedAt = failedAt;
+                entity.MessageId = failure.Message.Id;
+                entity.HeadersJson = headersJson;
+                entity.Body = storedBody;
+                entity.BodyStoredExternally = storeExternally;
+                entity.ExceptionInfo = failure.ExceptionInfo;
             });
-
-            try
-            {
-                await dbContext.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                // Either a concurrent writer already inserted this key, or the insert genuinely
-                // failed. Only the former is safe to ignore, so rethrow unless the row is present.
-                if (!await dbContext.FailedErrorImports.AnyAsync(import => import.UniqueMessageId == uniqueMessageId))
-                {
-                    throw;
-                }
-            }
         });
 
     public Task<IEditFailedMessagesManager> CreateEditFailedMessageManager() =>
