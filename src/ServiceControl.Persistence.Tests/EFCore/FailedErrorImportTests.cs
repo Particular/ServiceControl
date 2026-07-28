@@ -229,7 +229,7 @@ class FailedErrorImportTests : ErrorIngestionTestBase
 
         return ErrorStore.StoreFailedErrorImport(new FailedErrorImport
         {
-            Id = FailedErrorImport.MakeDocumentId(FailedErrorImport.DeriveKey(headers, nativeId)),
+            Id = FailedErrorImport.DeriveKey(headers, nativeId).ToString(),
             Message = new FailedTransportMessage { Id = nativeId, Headers = headers, Body = body },
             ExceptionInfo = exceptionInfo
         });
