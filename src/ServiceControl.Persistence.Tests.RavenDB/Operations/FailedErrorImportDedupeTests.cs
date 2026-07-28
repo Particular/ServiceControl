@@ -37,7 +37,7 @@ namespace ServiceControl.Persistence.Tests.RavenDB.Operations
         Task StoreFailure(IReadOnlyDictionary<string, string> headers, string exceptionInfo) =>
             ErrorStore.StoreFailedErrorImport(new FailedErrorImport
             {
-                Id = FailedErrorImport.MakeDocumentId(FailedErrorImport.DeriveKey(headers, "native-1")),
+                Id = FailedErrorImport.DeriveKey(headers, "native-1").ToString(),
                 Message = new FailedTransportMessage
                 {
                     Id = "native-1",
