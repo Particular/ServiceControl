@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using Connection;
     using Contracts;
-    using Contracts.MessageFailures;
     using CustomChecks;
     using EventLog;
     using ExternalIntegration;
@@ -17,7 +16,6 @@
     using Microsoft.Extensions.Logging;
     using Operations;
     using Particular.ServiceControl;
-    using Persistence;
     using Retrying;
     using ServiceBus.Management.Infrastructure.Settings;
     using Transports;
@@ -104,9 +102,6 @@
                 services.AddHostedService<ProcessRetryBatchesHostedService>();
             }
 
-            //Failed messages
-            services.AddHostedService<FailedMessageNotificationsHostedService>();
-
             //Health checks
             services.AddCustomCheck<ErrorIngestionCustomCheck>();
             services.AddCustomCheck<FailedErrorImportCustomCheck>();
@@ -136,43 +131,6 @@
             services.AddEventLogMapping<MessageSubmittedForRetryDefinition>();
             services.AddEventLogMapping<MessagesSubmittedForRetryDefinition>();
             services.AddEventLogMapping<MessagesSubmittedForRetryFailedDefinition>();
-        }
-
-        class FailedMessageNotificationsHostedService : IHostedService
-        {
-            public FailedMessageNotificationsHostedService(
-                IDomainEvents domainEvents,
-                IFailedMessageViewIndexNotifications store
-                )
-            {
-                this.domainEvents = domainEvents;
-                this.store = store;
-            }
-
-            public Task StartAsync(CancellationToken cancellationToken)
-            {
-                subscription = store.Subscribe(Callback);
-                return Task.FromResult(true);
-            }
-
-            Task Callback(FailedMessageTotals message)
-            {
-                return domainEvents.Raise(new MessageFailuresUpdated
-                {
-                    UnresolvedTotal = message.UnresolvedTotal,
-                    ArchivedTotal = message.UnresolvedTotal
-                });
-            }
-
-            public Task StopAsync(CancellationToken cancellationToken)
-            {
-                subscription.Dispose();
-                return Task.FromResult(true);
-            }
-
-            readonly IDomainEvents domainEvents;
-            IFailedMessageViewIndexNotifications store;
-            IDisposable subscription;
         }
 
         class BulkRetryBatchCreationHostedService : IHostedService
