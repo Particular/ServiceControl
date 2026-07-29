@@ -16,12 +16,12 @@
 
     class ErrorIngestionFaultPolicy
     {
-        IErrorMessageDataStore store;
+        IFailedErrorImportDataStore store;
         string logPath;
 
         ImportFailureCircuitBreaker failureCircuitBreaker;
 
-        public ErrorIngestionFaultPolicy(IErrorMessageDataStore store, LoggingSettings loggingSettings, Func<string, Exception, Task> onCriticalError, ILogger logger)
+        public ErrorIngestionFaultPolicy(IFailedErrorImportDataStore store, LoggingSettings loggingSettings, Func<string, Exception, Task> onCriticalError, ILogger logger)
         {
             this.store = store;
             this.logger = logger;

@@ -13,7 +13,7 @@
     /// </summary>
     class AuditEventLogWriter : IDomainHandler<IDomainEvent>
     {
-        public AuditEventLogWriter(GlobalEventHandler broadcaster, IErrorMessageDataStore dataStore, EventLogMappings mappings)
+        public AuditEventLogWriter(GlobalEventHandler broadcaster, IEventLogDataStore dataStore, EventLogMappings mappings)
         {
             this.broadcaster = broadcaster;
             this.dataStore = dataStore;
@@ -29,7 +29,7 @@
 
             var logItem = mappings.ApplyMapping(message);
 
-            await dataStore.StoreEventLogItem(logItem);
+            await dataStore.Add(logItem);
 
             await broadcaster.Broadcast(new EventLogItemAdded
             {
@@ -46,7 +46,7 @@
         }
 
         readonly GlobalEventHandler broadcaster;
-        readonly IErrorMessageDataStore dataStore;
+        readonly IEventLogDataStore dataStore;
         readonly EventLogMappings mappings;
     }
 }

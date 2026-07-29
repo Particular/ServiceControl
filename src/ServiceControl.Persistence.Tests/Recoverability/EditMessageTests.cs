@@ -55,9 +55,9 @@
             var message = CreateEditMessage(failedMessageId);
             await handler.Handle(message, new TestableMessageHandlerContext());
 
-            var failedMessage = await ErrorMessageDataStore.ErrorBy(failedMessageId);
+            var failedMessage = await FailedMessageQueryStore.GetFailedMessage(failedMessageId);
 
-            var editFailedMessagesManager = await ErrorMessageDataStore.CreateEditFailedMessageManager();
+            var editFailedMessagesManager = await EditFailedMessagesStore.CreateEditFailedMessageManager();
             var editOperation = await editFailedMessagesManager.GetCurrentEditingRequestId(failedMessageId);
 
             using (Assert.EnterMultipleScope())
@@ -76,7 +76,7 @@
 
             _ = await CreateAndStoreFailedMessage(failedMessageId);
 
-            using (var editFailedMessagesManager = await ErrorMessageDataStore.CreateEditFailedMessageManager())
+            using (var editFailedMessagesManager = await EditFailedMessagesStore.CreateEditFailedMessageManager())
             {
                 _ = await editFailedMessagesManager.GetFailedMessage(failedMessageId);
                 await editFailedMessagesManager.SetCurrentEditingRequestId(previousEdit);
@@ -88,7 +88,7 @@
             // Act
             await handler.Handle(message, new TestableMessageHandlerContext());
 
-            using (var editFailedMessagesManagerAssert = await ErrorMessageDataStore.CreateEditFailedMessageManager())
+            using (var editFailedMessagesManagerAssert = await EditFailedMessagesStore.CreateEditFailedMessageManager())
             {
                 var failedMessage = await editFailedMessagesManagerAssert.GetFailedMessage(failedMessageId);
                 var editId = await editFailedMessagesManagerAssert.GetCurrentEditingRequestId(failedMessageId);
@@ -125,7 +125,7 @@
                 Assert.That(dispatchedMessage.Item1.Message.Headers["someKey"], Is.EqualTo("someValue"));
             }
 
-            using (var x = await ErrorMessageDataStore.CreateEditFailedMessageManager())
+            using (var x = await EditFailedMessagesStore.CreateEditFailedMessageManager())
             {
                 var failedMessage2 = await x.GetFailedMessage(failedMessage.UniqueMessageId);
                 Assert.That(failedMessage2, Is.Not.Null, "Edited failed message");

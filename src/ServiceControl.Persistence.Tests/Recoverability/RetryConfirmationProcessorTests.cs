@@ -23,7 +23,7 @@
             var domainEvents = new FakeDomainEvents();
             Processor = new RetryConfirmationProcessor(domainEvents);
 
-            Handler = new LegacyMessageFailureResolvedHandler(ErrorMessageDataStore, domainEvents);
+            Handler = new LegacyMessageFailureResolvedHandler(FailedMessageRetryStore, FailedMessageLifecycleStore, domainEvents);
 
             await PersistenceTestsContext.InsertFailedMessages(
                 new FailedMessage

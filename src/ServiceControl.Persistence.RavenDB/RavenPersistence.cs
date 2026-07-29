@@ -1,6 +1,7 @@
 namespace ServiceControl.Persistence.RavenDB;
 
 using CustomChecks;
+using Editing;
 using MessageFailures;
 using MessageRedirects;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,7 +57,13 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
 
         services.AddSingleton<IArchiveMessages, MessageArchiver>();
         services.AddSingleton<ICustomChecksDataStore, RavenCustomCheckDataStore>();
-        services.AddSingleton<IErrorMessageDataStore, ErrorMessagesDataStore>();
+        services.AddSingleton<ErrorMessagesDataStore>();
+        services.AddSingleton<IMessagesViewDataStore>(p => p.GetRequiredService<ErrorMessagesDataStore>());
+        services.AddSingleton<IFailedMessageQueryDataStore>(p => p.GetRequiredService<ErrorMessagesDataStore>());
+        services.AddSingleton<IFailedMessageLifecycleDataStore>(p => p.GetRequiredService<ErrorMessagesDataStore>());
+        services.AddSingleton<IFailedMessageRetryDataStore>(p => p.GetRequiredService<ErrorMessagesDataStore>());
+        services.AddSingleton<IEditFailedMessagesDataStore, EditFailedMessagesDataStore>();
+        services.AddSingleton<INotificationsDataStore, NotificationsDataStore>();
         services.AddSingleton<IEventLogDataStore, EventLogDataStore>();
         services.AddSingleton<IFailedErrorImportDataStore, FailedErrorImportDataStore>();
         services.AddSingleton<IGroupsDataStore, GroupsDataStore>();

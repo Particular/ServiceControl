@@ -9,7 +9,7 @@
     using ServiceBus.Management.Infrastructure.Settings;
 
     [Handler]
-    class SendEmailNotificationHandler(IErrorMessageDataStore store, Settings settings, EmailThrottlingState throttlingState, EmailSender emailSender, ILogger<SendEmailNotificationHandler> logger)
+    class SendEmailNotificationHandler(INotificationsDataStore store, Settings settings, EmailThrottlingState throttlingState, EmailSender emailSender, ILogger<SendEmailNotificationHandler> logger)
         : IHandleMessages<SendEmailNotification>
     {
         public async Task Handle(SendEmailNotification message, IMessageHandlerContext context)

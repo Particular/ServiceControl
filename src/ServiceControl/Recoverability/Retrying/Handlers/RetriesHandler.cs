@@ -8,7 +8,7 @@ namespace ServiceControl.Recoverability
     using ServiceControl.Persistence;
 
     [Handler]
-    class RetriesHandler(RetriesGateway retries, IErrorMessageDataStore dataStore) : IHandleMessages<RequestRetryAll>,
+    class RetriesHandler(RetriesGateway retries, IFailedMessageRetryDataStore dataStore) : IHandleMessages<RequestRetryAll>,
         IHandleMessages<RetryMessagesById>,
         IHandleMessages<RetryMessage>,
         IHandleMessages<MessageFailed>,
@@ -22,7 +22,7 @@ namespace ServiceControl.Recoverability
         {
             if (message.RepeatedFailure)
             {
-                return dataStore.RemoveFailedMessageRetryDocument(message.FailedMessageId);
+                return dataStore.RemoveFailedMessageRetry(message.FailedMessageId);
             }
 
             return Task.CompletedTask;

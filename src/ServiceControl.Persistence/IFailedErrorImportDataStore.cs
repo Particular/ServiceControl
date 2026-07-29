@@ -7,6 +7,7 @@
 
     public interface IFailedErrorImportDataStore
     {
+        Task StoreFailedErrorImport(FailedErrorImport failure);
         Task ProcessFailedErrorImports(Func<FailedTransportMessage, Task> processMessage, CancellationToken cancellationToken);
         Task<bool> QueryContainsFailedImports();
     }

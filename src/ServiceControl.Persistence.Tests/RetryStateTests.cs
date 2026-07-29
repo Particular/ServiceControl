@@ -71,7 +71,7 @@
 
             var transportCustomization = new TestTransportCustomization { TransportInfrastructure = transportInfrastructure };
 
-            var testReturnToSenderDequeuer = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance), ErrorStore, domainEvents, "TestEndpoint",
+            var testReturnToSenderDequeuer = new TestReturnToSenderDequeuer(new ReturnToSender(FailedMessageRetryStore, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint",
                 errorQueueNameCache, transportCustomization);
 
             await testReturnToSenderDequeuer.StartAsync(new CancellationToken());
@@ -92,8 +92,8 @@
                 RetryBatchesStore,
                 domainEvents,
                 new TestReturnToSenderDequeuer(
-                    new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance),
-                    ErrorStore,
+                    new ReturnToSender(FailedMessageRetryStore, NullLogger<ReturnToSender>.Instance),
+                    FailedMessageLifecycleStore,
                     domainEvents,
                     "TestEndpoint",
                     new ErrorQueueNameCache(),
@@ -119,8 +119,8 @@
                 RetryBatchesStore,
                 domainEvents,
                 new TestReturnToSenderDequeuer(
-                    new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance),
-                    ErrorStore,
+                    new ReturnToSender(FailedMessageRetryStore, NullLogger<ReturnToSender>.Instance),
+                    FailedMessageLifecycleStore,
                     domainEvents,
                     "TestEndpoint",
                     new ErrorQueueNameCache(),
@@ -146,7 +146,7 @@
 
             var sender = new TestSender();
 
-            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance), ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
+            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(FailedMessageRetryStore, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
             var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
 
             await processor.ProcessBatches(); // mark ready
@@ -176,7 +176,7 @@
                 }
             };
 
-            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance), ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
+            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(FailedMessageRetryStore, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
             var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
 
             bool c;
@@ -213,11 +213,11 @@
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, 1001);
 
-            var returnToSender = new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance);
+            var returnToSender = new ReturnToSender(FailedMessageRetryStore, NullLogger<ReturnToSender>.Instance);
 
             var sender = new TestSender();
 
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()), retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()), retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
 
             await CompleteDatabaseOperation();
 
@@ -263,7 +263,7 @@
 
             var audit = new RecordingMessageActionAuditLog();
             var sender = new TestSender();
-            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance), ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
+            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(FailedMessageRetryStore, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
             var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
 
             await processor.ProcessBatches(); // stage
@@ -290,7 +290,7 @@
 
             var audit = new RecordingMessageActionAuditLog();
             var sender = new TestSender();
-            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance), ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
+            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(FailedMessageRetryStore, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
             var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
 
             await processor.ProcessBatches(); // stage (emits per-message audit)
@@ -416,7 +416,7 @@
 
         class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
         {
-            public TestReturnToSenderDequeuer(ReturnToSender returnToSender, IErrorMessageDataStore store, IDomainEvents domainEvents, string endpointName,
+            public TestReturnToSenderDequeuer(ReturnToSender returnToSender, IFailedMessageLifecycleDataStore store, IDomainEvents domainEvents, string endpointName,
                 ErrorQueueNameCache cache, ITransportCustomization transportCustomization)
                 : base(returnToSender, store, domainEvents, transportCustomization, null, new Settings { InstanceName = endpointName }, cache, NullLogger<ReturnToSenderDequeuer>.Instance)
             {

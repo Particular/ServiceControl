@@ -85,7 +85,7 @@ public class AsyncRangeAndQueueAuditTests
     {
         var audit = new RecordingMessageActionAuditLog();
         var store = new StubErrorMessageDataStore { ErrorByResult = new FailedMessage { Status = FailedMessageStatus.Unresolved } };
-        var handler = new ArchiveMessageHandler(store, new FakeDomainEvents(), audit);
+        var handler = new ArchiveMessageHandler(store, store, new FakeDomainEvents(), audit);
 
         var context = new TestableMessageHandlerContext { MessageHeaders = StampedHeaders("op-a") };
         await handler.Handle(new ArchiveMessage { FailedMessageId = "m-1" }, context);
@@ -105,7 +105,7 @@ public class AsyncRangeAndQueueAuditTests
     {
         var audit = new RecordingMessageActionAuditLog();
         var store = new StubErrorMessageDataStore { ErrorByResult = new FailedMessage { Status = FailedMessageStatus.Archived } };
-        var handler = new ArchiveMessageHandler(store, new FakeDomainEvents(), audit);
+        var handler = new ArchiveMessageHandler(store, store, new FakeDomainEvents(), audit);
 
         var context = new TestableMessageHandlerContext { MessageHeaders = StampedHeaders("op-a") };
         await handler.Handle(new ArchiveMessage { FailedMessageId = "m-1" }, context);
@@ -152,7 +152,7 @@ public class AsyncRangeAndQueueAuditTests
         }
     }
 
-    internal sealed class StubErrorMessageDataStore : IErrorMessageDataStore
+    internal sealed class StubErrorMessageDataStore : IFailedMessageQueryDataStore, IFailedMessageLifecycleDataStore, IFailedMessageRetryDataStore
     {
         public string[] RetryPendingMessagesResult { get; set; } = [];
         public string[] UnArchiveByRangeResult { get; set; } = [];
@@ -160,37 +160,21 @@ public class AsyncRangeAndQueueAuditTests
         public FailedMessage ErrorByResult { get; set; } = new();
 
         public Task<string[]> GetRetryPendingMessages(DateTime from, DateTime to, string queueAddress) => Task.FromResult(RetryPendingMessagesResult);
-        public Task RemoveFailedMessageRetryDocument(string uniqueMessageId) => Task.CompletedTask;
+        public Task RemoveFailedMessageRetry(string uniqueMessageId) => Task.CompletedTask;
         public Task<string[]> UnArchiveMessagesByRange(DateTime from, DateTime to) => Task.FromResult(UnArchiveByRangeResult);
         public Task<string[]> UnArchiveMessages(IEnumerable<string> failedMessageIds) => Task.FromResult(UnArchiveMessagesResult);
-        public Task<FailedMessage> ErrorBy(string failedMessageId) => Task.FromResult(ErrorByResult);
-        public Task FailedMessageMarkAsArchived(string failedMessageId) => Task.CompletedTask;
+        public Task<FailedMessage> GetFailedMessage(string failedMessageId) => Task.FromResult(ErrorByResult);
+        public Task MarkAsArchived(string failedMessageId) => Task.CompletedTask;
 
-        public Task<QueryResult<IList<MessagesView>>> GetAllMessages(PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages, DateTimeRange? timeSentRange = null) => throw new NotImplementedException();
-        public Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages, DateTimeRange? timeSentRange = null) => throw new NotImplementedException();
-        public Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages) => throw new NotImplementedException();
-        public Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(string searchTerms, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null) => throw new NotImplementedException();
-        public Task<QueryResult<IList<MessagesView>>> SearchEndpointMessages(string endpointName, string searchKeyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null) => throw new NotImplementedException();
-        public Task<FailedMessage[]> FailedMessagesFetch(Guid[] ids) => throw new NotImplementedException();
-        public Task StoreFailedErrorImport(FailedErrorImport failure) => throw new NotImplementedException();
-        public Task<IEditFailedMessagesManager> CreateEditFailedMessageManager() => throw new NotImplementedException();
-        public Task<QueryResult<FailureGroupView>> GetFailureGroupView(string groupId, string status, string modified) => throw new NotImplementedException();
-        public Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier) => throw new NotImplementedException();
-        public Task<QueryResult<IList<FailedMessageView>>> ErrorGet(string status, string modified, string queueAddress, PagingInfo pagingInfo, SortInfo sortInfo) => throw new NotImplementedException();
-        public Task<QueryStatsInfo> ErrorsHead(string status, string modified, string queueAddress) => throw new NotImplementedException();
-        public Task<QueryResult<IList<FailedMessageView>>> ErrorsByEndpointName(string status, string endpointName, string modified, PagingInfo pagingInfo, SortInfo sortInfo) => throw new NotImplementedException();
-        public Task<IDictionary<string, object>> ErrorsSummary() => throw new NotImplementedException();
-        public Task<FailedMessageView> ErrorLastBy(string failedMessageId) => throw new NotImplementedException();
-        public Task<INotificationsManager> CreateNotificationsManager() => throw new NotImplementedException();
-        public Task EditComment(string groupId, string comment) => throw new NotImplementedException();
-        public Task DeleteComment(string groupId) => throw new NotImplementedException();
-        public Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(string groupId, string status, string modified, SortInfo sortInfo, PagingInfo pagingInfo) => throw new NotImplementedException();
-        public Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string status, string modified) => throw new NotImplementedException();
-        public Task<QueryResult<IList<FailureGroupView>>> GetGroup(string groupId, string status, string modified) => throw new NotImplementedException();
-        public Task<bool> MarkMessageAsResolved(string failedMessageId) => throw new NotImplementedException();
+        public Task<FailedMessage[]> GetFailedMessagesByIds(Guid[] ids) => throw new NotImplementedException();
+        public Task<QueryResult<IList<FailedMessageView>>> GetFailedMessages(string status, string modified, string queueAddress, PagingInfo pagingInfo, SortInfo sortInfo) => throw new NotImplementedException();
+        public Task<QueryStatsInfo> GetFailedMessagesStats(string status, string modified, string queueAddress) => throw new NotImplementedException();
+        public Task<QueryResult<IList<FailedMessageView>>> GetFailedMessagesByEndpoint(string status, string endpointName, string modified, PagingInfo pagingInfo, SortInfo sortInfo) => throw new NotImplementedException();
+        public Task<IDictionary<string, object>> GetFailedMessagesSummary() => throw new NotImplementedException();
+        public Task<FailedMessageView> GetLatestFailedMessageView(string failedMessageId) => throw new NotImplementedException();
+        public Task<bool> MarkAsResolved(string failedMessageId) => throw new NotImplementedException();
         public Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, Task> processCallback) => throw new NotImplementedException();
         public Task RevertRetry(string messageUniqueId) => throw new NotImplementedException();
-        public Task<byte[]> FetchFromFailedMessage(string uniqueMessageId) => throw new NotImplementedException();
-        public Task StoreEventLogItem(EventLogItem logItem) => throw new NotImplementedException();
+        public Task<byte[]> GetFailedMessageBody(string uniqueMessageId) => throw new NotImplementedException();
     }
 }

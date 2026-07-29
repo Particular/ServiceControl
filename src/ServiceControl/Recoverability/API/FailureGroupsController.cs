@@ -16,7 +16,7 @@
     public class FailureGroupsController(
         IEnumerable<IFailureClassifier> classifiers,
         GroupFetcher fetcher,
-        IErrorMessageDataStore store,
+        IGroupsDataStore store,
         IRetryHistoryDataStore retryStore)
         : ControllerBase
     {

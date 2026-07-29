@@ -16,9 +16,9 @@ namespace ServiceControl.CompositeViews.Messages
         DateTimeRange TimeSentRange = null)
         : ScatterGatherApiMessageViewContext(PagingInfo, SortInfo, TimeSentRange);
 
-    public class SearchApi : ScatterGatherApiMessageView<IErrorMessageDataStore, SearchApiContext>
+    public class SearchApi : ScatterGatherApiMessageView<IMessagesViewDataStore, SearchApiContext>
     {
-        public SearchApi(IErrorMessageDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<SearchApi> logger)
+        public SearchApi(IMessagesViewDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<SearchApi> logger)
             : base(dataStore, settings, httpClientFactory, httpContextAccessor, logger)
         {
         }

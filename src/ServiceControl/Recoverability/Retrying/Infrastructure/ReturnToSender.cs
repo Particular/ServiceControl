@@ -9,7 +9,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Transport;
     using ServiceControl.Persistence;
 
-    class ReturnToSender(IErrorMessageDataStore errorMessageStore, ILogger<ReturnToSender> logger)
+    class ReturnToSender(IFailedMessageRetryDataStore errorMessageStore, ILogger<ReturnToSender> logger)
     {
         public virtual async Task HandleMessage(MessageContext message, IMessageDispatcher sender, string errorQueueTransportAddress, CancellationToken cancellationToken = default)
         {
@@ -59,7 +59,7 @@ namespace ServiceControl.Recoverability
         async Task<byte[]> FetchFromFailedMessage(Dictionary<string, string> outgoingHeaders, string messageId, string attemptMessageId)
         {
             var uniqueMessageId = outgoingHeaders["ServiceControl.Retry.UniqueMessageId"];
-            byte[] body = await errorMessageStore.FetchFromFailedMessage(uniqueMessageId);
+            byte[] body = await errorMessageStore.GetFailedMessageBody(uniqueMessageId);
 
             if (body == null)
             {

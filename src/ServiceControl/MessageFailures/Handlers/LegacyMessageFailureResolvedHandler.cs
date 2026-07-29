@@ -11,7 +11,7 @@
     /// This class handles legacy messages that mark a failed message as successfully retried. For further details go to message definitions.
     /// </summary>
     [Handler]
-    class LegacyMessageFailureResolvedHandler(IErrorMessageDataStore store, IDomainEvents domainEvents) :
+    class LegacyMessageFailureResolvedHandler(IFailedMessageRetryDataStore retryStore, IFailedMessageLifecycleDataStore lifecycleStore, IDomainEvents domainEvents) :
         IHandleMessages<MarkMessageFailureResolvedByRetry>,
         IHandleMessages<MessageFailureResolvedByRetry>
     {
@@ -38,9 +38,9 @@
 
         async Task MarkAsResolvedByRetry(string primaryId, string[] messageAlternativeFailedMessageIds)
         {
-            await store.RemoveFailedMessageRetryDocument(primaryId);
+            await retryStore.RemoveFailedMessageRetry(primaryId);
 
-            var primaryUpdated = await store.MarkMessageAsResolved(primaryId);
+            var primaryUpdated = await lifecycleStore.MarkAsResolved(primaryId);
 
             if (primaryUpdated)
             {
@@ -54,9 +54,9 @@
 
             foreach (var alternative in messageAlternativeFailedMessageIds.Where(x => x != primaryId))
             {
-                await store.RemoveFailedMessageRetryDocument(alternative);
+                await retryStore.RemoveFailedMessageRetry(alternative);
 
-                var alternativeUpdated = await store.MarkMessageAsResolved(alternative);
+                var alternativeUpdated = await lifecycleStore.MarkAsResolved(alternative);
 
                 if (alternativeUpdated)
                 {

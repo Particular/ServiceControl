@@ -39,7 +39,12 @@ public abstract class BasePersistence
 
         services.AddSingleton<IArchiveMessages, MessageArchiver>();
         services.AddSingleton<ICustomChecksDataStore, CustomCheckDataStore>();
-        services.AddSingleton<IErrorMessageDataStore, ErrorMessagesDataStore>();
+        services.AddSingleton<IMessagesViewDataStore, MessagesViewDataStore>();
+        services.AddSingleton<IFailedMessageQueryDataStore, FailedMessageQueryDataStore>();
+        services.AddSingleton<IFailedMessageLifecycleDataStore, FailedMessageLifecycleDataStore>();
+        services.AddSingleton<IFailedMessageRetryDataStore, FailedMessageRetryDataStore>();
+        services.AddSingleton<IEditFailedMessagesDataStore, EditFailedMessagesDataStore>();
+        services.AddSingleton<INotificationsDataStore, NotificationsDataStore>();
         services.AddSingleton<IEventLogDataStore, EventLogDataStore>();
         services.AddSingleton<IFailedErrorImportDataStore, FailedErrorImportDataStore>();
         services.AddSingleton<IGroupsDataStore, GroupsDataStore>();

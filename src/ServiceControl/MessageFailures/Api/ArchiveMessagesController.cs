@@ -14,7 +14,7 @@ namespace ServiceControl.MessageFailures.Api
 
     [ApiController]
     [Route("api")]
-    public class ArchiveMessagesController(IMessageSession messageSession, IErrorMessageDataStore dataStore, ICurrentUserAccessor userAccessor, IMessageActionAuditLog auditLog) : ControllerBase
+    public class ArchiveMessagesController(IMessageSession messageSession, IGroupsDataStore dataStore, ICurrentUserAccessor userAccessor, IMessageActionAuditLog auditLog) : ControllerBase
     {
         [Authorize(Policy = Permissions.ErrorMessagesArchive)]
         [Route("errors/archive")]
@@ -47,7 +47,7 @@ namespace ServiceControl.MessageFailures.Api
         [HttpGet]
         public async Task<IActionResult> GetArchiveMessageGroups(string classifier = "Exception Type and Stack Trace")
         {
-            var results = await dataStore.GetFailureGroupsByClassifier(classifier);
+            var results = await dataStore.GetArchivedFailureGroupsByClassifier(classifier);
 
             Response.WithDeterministicEtag(EtagHelper.CalculateEtag(results));
 

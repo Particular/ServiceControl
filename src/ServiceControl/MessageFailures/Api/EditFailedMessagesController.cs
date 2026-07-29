@@ -19,7 +19,8 @@
     [Route("api")]
     public class EditFailedMessagesController(
         Settings settings,
-        IErrorMessageDataStore store,
+        IFailedMessageQueryDataStore store,
+        IEditFailedMessagesDataStore editStore,
         IMessageSession session,
         ILogger<EditFailedMessagesController> logger,
         ICurrentUserAccessor userAccessor,
@@ -43,7 +44,7 @@
             }
 
             //HINT: This validation is the first one because we want to minimize the chance of two users concurrently execute an edit-retry.
-            var editManager = await store.CreateEditFailedMessageManager();
+            var editManager = await editStore.CreateEditFailedMessageManager();
             var editId = await editManager.GetCurrentEditingRequestId(failedMessageId);
             if (editId != null)
             {
@@ -52,7 +53,7 @@
                 return Ok(new EditRetryResponse { EditIgnored = true });
             }
 
-            var failedMessage = await store.ErrorBy(failedMessageId);
+            var failedMessage = await store.GetFailedMessage(failedMessageId);
 
             if (failedMessage == null)
             {

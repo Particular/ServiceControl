@@ -248,13 +248,12 @@ class FailedErrorImportTests : ErrorIngestionTestBase
         Assert.That(secondRun, Is.Empty, "the row with the missing body is retried and fails again");
     }
 
-    IFailedErrorImportDataStore FailedImportStore => ServiceProvider.GetRequiredService<IFailedErrorImportDataStore>();
 
     Task StoreImport(Dictionary<string, string> headers, byte[] body, string exceptionInfo = "boom", string nativeId = null)
     {
         nativeId ??= Guid.NewGuid().ToString();
 
-        return ErrorStore.StoreFailedErrorImport(new FailedErrorImport
+        return FailedImportStore.StoreFailedErrorImport(new FailedErrorImport
         {
             Id = FailedErrorImport.DeriveKey(headers, nativeId).ToString(),
             Message = new FailedTransportMessage { Id = nativeId, Headers = headers, Body = body },

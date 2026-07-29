@@ -37,7 +37,7 @@
             {
                 await session.StoreAsync(new FailedErrorImport
                 {
-                    Id = ServiceControl.Persistence.RavenDB.ErrorMessagesDataStore.MakeDocumentId(Guid.NewGuid().ToString())
+                    Id = ServiceControl.Persistence.RavenDB.FailedErrorImportDataStore.MakeDocumentId(Guid.NewGuid().ToString())
                 });
 
                 BlockToInspectDatabase();

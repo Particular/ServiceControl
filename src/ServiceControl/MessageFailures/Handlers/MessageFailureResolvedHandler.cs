@@ -8,7 +8,7 @@
     using Persistence;
 
     [Handler]
-    class MessageFailureResolvedHandler(IErrorMessageDataStore dataStore, IDomainEvents domainEvents) :
+    class MessageFailureResolvedHandler(IFailedMessageRetryDataStore retryStore, IFailedMessageLifecycleDataStore lifecycleStore, IDomainEvents domainEvents) :
         IHandleMessages<MarkPendingRetryAsResolved>,
         IHandleMessages<MarkPendingRetriesAsResolved>
     {
@@ -24,7 +24,7 @@
                 return context.Send<MarkPendingRetryAsResolved>(m => m.FailedMessageId = id, sendOptions);
             }
 
-            return dataStore.ProcessPendingRetries(
+            return retryStore.ProcessPendingRetries(
                 message.PeriodFrom,
                 message.PeriodTo,
                 message.QueueAddress,
@@ -34,7 +34,7 @@
 
         public async Task Handle(MarkPendingRetryAsResolved message, IMessageHandlerContext context)
         {
-            _ = await dataStore.MarkMessageAsResolved(message.FailedMessageId);
+            _ = await lifecycleStore.MarkAsResolved(message.FailedMessageId);
 
             await domainEvents.Raise(new MessageFailureResolvedManually
             {
