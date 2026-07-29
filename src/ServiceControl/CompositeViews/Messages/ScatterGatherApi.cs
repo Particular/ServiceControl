@@ -5,6 +5,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Http;
@@ -15,8 +16,23 @@ namespace ServiceControl.CompositeViews.Messages
 
     interface IApi;
 
-    // used to hoist the static jsonSerializer field across the generic instances
-    public abstract class ScatterGatherApiBase;
+    // Non-generic, so statics live once rather than once per closed generic instantiation.
+    public abstract class ScatterGatherApiBase
+    {
+        internal static string ReadEtag(HttpResponseHeaders headers)
+        {
+            // Read raw rather than through headers.ETag. An instance predating the quoted validator
+            // sends a bare token, which EntityTagHeaderValue fails to parse and discards silently.
+            if (!headers.TryGetValues("ETag", out var values))
+            {
+                return null;
+            }
+
+            var etag = values.FirstOrDefault();
+
+            return etag?.Length > 1 && etag[0] == '"' && etag[^1] == '"' ? etag[1..^1] : etag;
+        }
+    }
 
     public record ScatterGatherContext(PagingInfo PagingInfo);
 
@@ -169,16 +185,9 @@ namespace ServiceControl.CompositeViews.Messages
                 totalCount = int.Parse(totalCounts.ElementAt(0));
             }
 
-            string etag = responseMessage.Headers.ETag?.Tag;
-            if (etag != null)
-            {
-                // Strip quotes from Etag, checking for " which isn't really needed as Etag always has quotes but not 100% certain.
-                // Later the value is joined into a new Etag when the results are aggregated and returned
-                if (etag.StartsWith("\""))
-                {
-                    etag = etag.Substring(1, etag.Length - 2);
-                }
-            }
+            // Unquoted, because AggregateStats concatenates it with the other instances' values and
+            // the result is re-tagged before it goes back on the wire.
+            var etag = ReadEtag(responseMessage.Headers);
 
             return new QueryResult<TOut>(remoteResults, new QueryStatsInfo(etag, totalCount, isStale: false));
         }

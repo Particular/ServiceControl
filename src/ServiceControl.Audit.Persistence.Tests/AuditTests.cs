@@ -116,6 +116,28 @@
         }
 
         [Test]
+        public async Task Message_body_validator_is_stable_across_reads()
+        {
+            var unitOfWork = await StartAuditUnitOfWork(1);
+
+            var body = new byte[100];
+            Random.Shared.NextBytes(body);
+            var processedMessage = MakeMessage();
+
+            await unitOfWork.RecordProcessedMessage(processedMessage, body);
+
+            await unitOfWork.DisposeAsync();
+
+            var bodyId = GetBodyId(processedMessage);
+
+            var first = await DataStore.GetMessageBody(bodyId, TestContext.CurrentContext.CancellationToken);
+            var second = await DataStore.GetMessageBody(bodyId, TestContext.CurrentContext.CancellationToken);
+
+            Assert.That(first.ETag, Is.Not.Null.And.Not.Empty, "a body with no validator cannot be revalidated, so conditional GET is dead on it");
+            Assert.That(second.ETag, Is.EqualTo(first.ETag), "the body did not change, so neither may its validator");
+        }
+
+        [Test]
         public async Task Does_respect_max_message_body()
         {
             var unitOfWork = await StartAuditUnitOfWork(1);

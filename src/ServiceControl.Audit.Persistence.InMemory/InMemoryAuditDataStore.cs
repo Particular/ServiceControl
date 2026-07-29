@@ -168,7 +168,7 @@
                 return Task.FromResult(MessageBodyView.NotFound());
             }
 
-            return Task.FromResult(MessageBodyView.FromString(body, contentType, bodySize, string.Empty));
+            return Task.FromResult(MessageBodyView.FromString(body, contentType, bodySize, messageId));
         }
 
         public Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName, CancellationToken cancellationToken)
