@@ -94,6 +94,37 @@ class EventLogDataStoreEFTests : PersistenceTestBase
         }
     }
 
+    [Test]
+    public async Task Version_changes_when_a_retention_delete_and_a_backdated_insert_cancel_out()
+    {
+        var baseTime = new DateTime(2026, 7, 27, 12, 0, 0, DateTimeKind.Utc);
+
+        for (var i = 0; i < 3; i++)
+        {
+            await EventLogDataStore.Add(CreateLogItem($"Event{i}", baseTime.AddMinutes(i)), Guid.CreateVersion7());
+        }
+
+        await CompleteDatabaseOperation();
+
+        var before = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+
+        await DeleteOldest();
+
+        // Older than every surviving row, which is routine: RaisedAt is a domain timestamp, so a
+        // failure reported late carries an old value.
+        await EventLogDataStore.Add(CreateLogItem("Backdated", baseTime.AddYears(-1)), Guid.CreateVersion7());
+        await CompleteDatabaseOperation();
+
+        var after = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(after.QueryStats.TotalCount, Is.EqualTo(before.QueryStats.TotalCount), "the setup only bites while the count is unchanged");
+            Assert.That(after.Results.Max(i => i.RaisedAt), Is.EqualTo(before.Results.Max(i => i.RaisedAt)), "and while the newest RaisedAt is unchanged");
+            Assert.That(after.QueryStats.ETag, Is.Not.EqualTo(before.QueryStats.ETag), "the page changed, so the validator must too");
+        }
+    }
+
     async Task DeleteOldest()
     {
         using var scope = ServiceProvider.CreateScope();

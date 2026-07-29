@@ -31,15 +31,20 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
         {
             var query = dbContext.EventLogItems.AsNoTracking();
 
-            // Both aggregates in one round trip. Grouping on a constant collapses the table to a
+            // All three aggregates in one round trip. Grouping on a constant collapses the table to a
             // single row, and an empty table yields no rows at all, hence the null coalescing.
             var stats = await query
                 .GroupBy(_ => 1)
-                .Select(g => new { Total = g.LongCount(), Newest = g.Max(e => (DateTime?)e.RaisedAt) })
+                .Select(g => new
+                {
+                    Total = g.LongCount(),
+                    Newest = g.Max(e => (DateTime?)e.RaisedAt),
+                    HighestId = g.Max(e => (long?)e.Id)
+                })
                 .FirstOrDefaultAsync();
 
             var total = stats?.Total ?? 0;
-            var version = Version(total, stats?.Newest);
+            var version = Version(total, stats?.Newest, stats?.HighestId);
             var queryStats = new QueryStatsInfo(version, total, isStale: false);
 
             // The point of knownVersion. Everything above is index work.
@@ -75,7 +80,8 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
             return new QueryResult<IList<EventLogItemView>>(items, queryStats);
         });
 
-    // Synthesised version ID to be used for an ETag, using total count and the newest item's RaisedAt timestamp.
-    static string Version(long total, DateTime? newest) =>
-        DeterministicGuid.MakeId($"{total}|{newest?.Ticks ?? 0}").ToString();
+    // Synthesised version ID to be used for an ETag. The highest key is the monotonic term: identity
+    // values gap but never repeat, so an insert moves the version whatever its RaisedAt says.
+    static string Version(long total, DateTime? newest, long? highestId) =>
+        DeterministicGuid.MakeId($"{total}|{newest?.Ticks ?? 0}|{highestId ?? 0}").ToString();
 }
