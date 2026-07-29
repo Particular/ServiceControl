@@ -36,41 +36,6 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.ToTable("EndpointSettings");
                 });
 
-            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedErrorImportEntity", b =>
-                {
-                    b.Property<Guid>("UniqueMessageId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<byte[]>("Body")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<bool>("BodyStoredExternally")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("ExceptionInfo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("FailedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("HeadersJson")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MessageId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("UniqueMessageId");
-
-                    b.HasIndex("FailedAt");
-
-                    b.ToTable("FailedErrorImports");
-                });
-
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.EventLogItemEntity", b =>
                 {
                     b.Property<long>("Id")
@@ -115,6 +80,41 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                         .IsDescending();
 
                     b.ToTable("EventLogItems", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedErrorImportEntity", b =>
+                {
+                    b.Property<Guid>("UniqueMessageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("Body")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<bool>("BodyStoredExternally")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ExceptionInfo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("FailedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("HeadersJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MessageId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("UniqueMessageId");
+
+                    b.HasIndex("FailedAt");
+
+                    b.ToTable("FailedErrorImports");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageEntity", b =>

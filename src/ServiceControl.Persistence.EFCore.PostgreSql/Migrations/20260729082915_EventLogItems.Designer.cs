@@ -13,7 +13,7 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    [Migration("20260729064621_EventLogItems")]
+    [Migration("20260729082915_EventLogItems")]
     partial class EventLogItems
     {
         /// <inheritdoc />
@@ -98,6 +98,50 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasDatabaseName("ix_event_log_items_raised_at_id");
 
                     b.ToTable("EventLogItems", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedErrorImportEntity", b =>
+                {
+                    b.Property<Guid>("UniqueMessageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("unique_message_id");
+
+                    b.Property<byte[]>("Body")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("body");
+
+                    b.Property<bool>("BodyStoredExternally")
+                        .HasColumnType("boolean")
+                        .HasColumnName("body_stored_externally");
+
+                    b.Property<string>("ExceptionInfo")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("exception_info");
+
+                    b.Property<DateTime>("FailedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("failed_at");
+
+                    b.Property<string>("HeadersJson")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("headers_json");
+
+                    b.Property<string>("MessageId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("message_id");
+
+                    b.HasKey("UniqueMessageId")
+                        .HasName("pk_failed_error_imports");
+
+                    b.HasIndex("FailedAt")
+                        .HasDatabaseName("ix_failed_error_imports_failed_at");
+
+                    b.ToTable("failed_error_imports", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageEntity", b =>
