@@ -34,7 +34,7 @@ class EventLogDataStoreEFTests : PersistenceTestBase
         var paged = new List<string>();
         for (var page = 1; page <= 5; page++)
         {
-            var (items, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(page: page, pageSize: 2));
+            var items = (await EventLogDataStore.GetEventLogItems(new PagingInfo(page: page, pageSize: 2))).Results;
             paged.AddRange(items.Select(i => i.Id));
         }
 
@@ -58,8 +58,8 @@ class EventLogDataStoreEFTests : PersistenceTestBase
 
         await CompleteDatabaseOperation();
 
-        var (first, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 1, pageSize: 6));
-        var (second, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 1, pageSize: 6));
+        var first = (await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 1, pageSize: 6))).Results;
+        var second = (await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 1, pageSize: 6))).Results;
 
         Assert.That(second.Select(i => i.Id), Is.EqualTo(first.Select(i => i.Id)).AsCollection);
     }
@@ -78,19 +78,19 @@ class EventLogDataStoreEFTests : PersistenceTestBase
 
         await CompleteDatabaseOperation();
 
-        var (_, totalBefore, versionBefore) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
-        Assert.That(totalBefore, Is.EqualTo(3));
+        var before = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+        Assert.That(before.QueryStats.TotalCount, Is.EqualTo(3));
 
-        // Delete the OLDEST row — the one a retention sweep would take. A rowversion or MAX(RaisedAt)
+        // Delete the OLDEST row, the one a retention sweep would take. A rowversion or MAX(RaisedAt)
         // scheme would be entirely blind to this; only the count term catches it.
         await DeleteOldest();
 
-        var (_, totalAfter, versionAfter) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+        var after = await EventLogDataStore.GetEventLogItems(new PagingInfo());
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(totalAfter, Is.EqualTo(2));
-            Assert.That(versionAfter, Is.Not.EqualTo(versionBefore), "a delete must invalidate the client's cached page");
+            Assert.That(after.QueryStats.TotalCount, Is.EqualTo(2));
+            Assert.That(after.QueryStats.ETag, Is.Not.EqualTo(before.QueryStats.ETag), "a delete must invalidate the client's cached page");
         }
     }
 

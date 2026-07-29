@@ -21,7 +21,7 @@ class EventLogDataStoreTests : PersistenceTestBase
         await EventLogDataStore.Add(logItem, Guid.CreateVersion7());
         await CompleteDatabaseOperation();
 
-        var (items, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+        var items = (await EventLogDataStore.GetEventLogItems(new PagingInfo())).Results;
 
         Assert.That(items, Has.Count.EqualTo(1));
         var stored = items[0];
@@ -45,7 +45,7 @@ class EventLogDataStoreTests : PersistenceTestBase
         await EventLogDataStore.Add(logItem, eventId);
         await CompleteDatabaseOperation();
 
-        var (items, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+        var items = (await EventLogDataStore.GetEventLogItems(new PagingInfo())).Results;
 
         // Not equality: Different persisters may return the event id in different formats.
         Assert.That(items[0].Id, Does.Contain(eventId.ToString()));
@@ -60,7 +60,7 @@ class EventLogDataStoreTests : PersistenceTestBase
         await EventLogDataStore.Add(logItem, Guid.CreateVersion7());
         await CompleteDatabaseOperation();
 
-        var (items, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+        var items = (await EventLogDataStore.GetEventLogItems(new PagingInfo())).Results;
 
         Assert.That(items[0].RelatedTo, Is.Empty);
     }
@@ -74,20 +74,32 @@ class EventLogDataStoreTests : PersistenceTestBase
         await EventLogDataStore.Add(CreateLogItem("Middle", baseTime.AddMinutes(1)), Guid.CreateVersion7());
         await CompleteDatabaseOperation();
 
-        var (items, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+        var items = (await EventLogDataStore.GetEventLogItems(new PagingInfo())).Results;
 
-        Assert.That(items.Select(i => i.EventType), Is.EqualTo(new[] { "Newest", "Middle", "Oldest" }));
+        Assert.That(items.Select(i => i.EventType), Is.EqualTo(["Newest", "Middle", "Oldest"]));
     }
 
     [Test]
     public async Task Empty_store_returns_no_items()
     {
-        var (items, total, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo());
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(items, Is.Empty);
-            Assert.That(total, Is.Zero);
+            Assert.That(result.Results, Is.Empty);
+            Assert.That(result.QueryStats.TotalCount, Is.Zero);
+        }
+    }
+
+    [Test]
+    public async Task Empty_store_is_a_page_of_nothing_rather_than_not_modified()
+    {
+        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.NotModified, Is.False, "an empty store still has a representation to return");
+            Assert.That(result.Results, Is.Not.Null);
         }
     }
 
@@ -96,12 +108,12 @@ class EventLogDataStoreTests : PersistenceTestBase
     {
         await AddItems(5);
 
-        var (items, total, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 1, pageSize: 2));
+        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 1, pageSize: 2));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(items, Has.Count.EqualTo(2));
-            Assert.That(total, Is.EqualTo(5));
+            Assert.That(result.Results, Has.Count.EqualTo(2));
+            Assert.That(result.QueryStats.TotalCount, Is.EqualTo(5));
         }
     }
 
@@ -110,8 +122,8 @@ class EventLogDataStoreTests : PersistenceTestBase
     {
         await AddItems(5);
 
-        var (firstPage, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 1, pageSize: 2));
-        var (secondPage, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 2, pageSize: 2));
+        var firstPage = (await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 1, pageSize: 2))).Results;
+        var secondPage = (await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 2, pageSize: 2))).Results;
 
         using (Assert.EnterMultipleScope())
         {
@@ -125,12 +137,12 @@ class EventLogDataStoreTests : PersistenceTestBase
     {
         await AddItems(5);
 
-        var (items, total, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 3, pageSize: 2));
+        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 3, pageSize: 2));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(items, Has.Count.EqualTo(1));
-            Assert.That(total, Is.EqualTo(5));
+            Assert.That(result.Results, Has.Count.EqualTo(1));
+            Assert.That(result.QueryStats.TotalCount, Is.EqualTo(5));
         }
     }
 
@@ -139,12 +151,12 @@ class EventLogDataStoreTests : PersistenceTestBase
     {
         await AddItems(2);
 
-        var (items, total, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 5, pageSize: 2));
+        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 5, pageSize: 2));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(items, Is.Empty);
-            Assert.That(total, Is.EqualTo(2));
+            Assert.That(result.Results, Is.Empty);
+            Assert.That(result.QueryStats.TotalCount, Is.EqualTo(2));
         }
     }
 
@@ -152,10 +164,10 @@ class EventLogDataStoreTests : PersistenceTestBase
     public async Task Version_changes_when_an_item_is_added()
     {
         await AddItems(1);
-        var (_, _, versionBefore) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+        var versionBefore = await CurrentVersion();
 
         await AddItems(1);
-        var (_, _, versionAfter) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+        var versionAfter = await CurrentVersion();
 
         Assert.That(versionAfter, Is.Not.EqualTo(versionBefore));
     }
@@ -165,37 +177,41 @@ class EventLogDataStoreTests : PersistenceTestBase
     {
         await AddItems(2);
 
-        var (_, _, firstRead) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
-        var (_, _, secondRead) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+        var firstRead = await CurrentVersion();
+        var secondRead = await CurrentVersion();
 
         Assert.That(secondRead, Is.EqualTo(firstRead));
     }
 
     [Test]
-    public async Task Matching_known_version_reports_no_items()
+    public async Task Matching_known_version_reports_not_modified()
     {
         await AddItems(3);
-        var (_, _, version) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+        var version = await CurrentVersion();
 
-        var (items, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(), version);
+        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo(), version);
 
-        Assert.That(items, Is.Null, "a caller already holding the current version must be told so, not handed the page again");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.NotModified, Is.True, "a caller already holding the current version must be told so, not handed the page again");
+            Assert.That(result.Results, Is.Null, "a not-modified result carries no page");
+        }
     }
 
     [Test]
     public async Task Matching_known_version_still_reports_total_and_version()
     {
         await AddItems(3);
-        var (_, _, version) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+        var version = await CurrentVersion();
 
-        var (_, total, versionAgain) = await EventLogDataStore.GetEventLogItems(new PagingInfo(), version);
+        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo(), version);
 
         using (Assert.EnterMultipleScope())
         {
             // The controller sets Total-Count and ETag on the 304, so neither may be dropped
             // just because the page was not fetched.
-            Assert.That(total, Is.EqualTo(3));
-            Assert.That(versionAgain, Is.EqualTo(version));
+            Assert.That(result.QueryStats.TotalCount, Is.EqualTo(3));
+            Assert.That(result.QueryStats.ETag, Is.EqualTo(version));
         }
     }
 
@@ -203,18 +219,18 @@ class EventLogDataStoreTests : PersistenceTestBase
     public async Task Stale_known_version_returns_the_page()
     {
         await AddItems(2);
-        var (_, _, staleVersion) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+        var staleVersion = await CurrentVersion();
 
         await AddItems(1);
 
-        var (items, total, freshVersion) = await EventLogDataStore.GetEventLogItems(new PagingInfo(), staleVersion);
+        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo(), staleVersion);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(items, Is.Not.Null);
-            Assert.That(items, Has.Count.EqualTo(3));
-            Assert.That(total, Is.EqualTo(3));
-            Assert.That(freshVersion, Is.Not.EqualTo(staleVersion));
+            Assert.That(result.NotModified, Is.False);
+            Assert.That(result.Results, Has.Count.EqualTo(3));
+            Assert.That(result.QueryStats.TotalCount, Is.EqualTo(3));
+            Assert.That(result.QueryStats.ETag, Is.Not.EqualTo(staleVersion));
         }
     }
 
@@ -223,10 +239,17 @@ class EventLogDataStoreTests : PersistenceTestBase
     {
         await AddItems(2);
 
-        var (items, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(), "not-a-version-this-store-ever-issued");
+        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo(), "not-a-version-this-store-ever-issued");
 
-        Assert.That(items, Is.Not.Null, "an unrecognised validator must be treated as a cache miss, never as a match");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.NotModified, Is.False, "an unrecognised validator must be treated as a cache miss, never as a match");
+            Assert.That(result.Results, Is.Not.Null);
+        }
     }
+
+    async Task<string> CurrentVersion() =>
+        (await EventLogDataStore.GetEventLogItems(new PagingInfo())).QueryStats.ETag;
 
     async Task AddItems(int count)
     {

@@ -18,13 +18,13 @@ class EventLogWriterTests : PersistenceTestBase
         await writer.Handle(new SomethingHappened { What = "it happened" }, CancellationToken.None);
         await CompleteDatabaseOperation();
 
-        var (items, total, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo());
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(total, Is.EqualTo(1));
-            Assert.That(items.Single().Description, Is.EqualTo("it happened"));
-            Assert.That(items.Single().EventType, Is.EqualTo(nameof(SomethingHappened)));
+            Assert.That(result.QueryStats.TotalCount, Is.EqualTo(1));
+            Assert.That(result.Results.Single().Description, Is.EqualTo("it happened"));
+            Assert.That(result.Results.Single().EventType, Is.EqualTo(nameof(SomethingHappened)));
         }
     }
 
@@ -36,9 +36,9 @@ class EventLogWriterTests : PersistenceTestBase
         await writer.Handle(new NothingMapsThis(), CancellationToken.None);
         await CompleteDatabaseOperation();
 
-        var (_, total, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo());
 
-        Assert.That(total, Is.Zero, "only events with a mapping under EventLog\\Definitions are recorded");
+        Assert.That(result.QueryStats.TotalCount, Is.Zero, "only events with a mapping under EventLog\\Definitions are recorded");
     }
 
     AuditEventLogWriter CreateWriter() =>

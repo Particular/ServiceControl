@@ -25,18 +25,17 @@
             var knownVersion = Request.Headers.IfNoneMatch.FirstOrDefault()?.Trim('"');
 
             // Passing knownVersion lets the persister skip work it would otherwise waste
-            var (results, totalCount, version) = await logDataStore.GetEventLogItems(pagingInfo, knownVersion);
+            var result = await logDataStore.GetEventLogItems(pagingInfo, knownVersion);
 
-            Response.WithPagingLinksAndTotalCount(pagingInfo, totalCount);
-            Response.WithEtag(version);
+            Response.WithPagingLinksAndTotalCount(pagingInfo, result.QueryStats.TotalCount);
+            Response.WithEtag(result.QueryStats.ETag);
 
-            // Null items means "you already hold this version"
-            if (results is null)
+            if (result.NotModified)
             {
                 return StatusCode((int)HttpStatusCode.NotModified);
             }
 
-            return Ok(results);
+            return Ok(result.Results);
         }
     }
 }

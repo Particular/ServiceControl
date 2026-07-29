@@ -23,7 +23,7 @@
             await session.SaveChangesAsync();
         }
 
-        public async Task<(IList<EventLogItemView>, long, string)> GetEventLogItems(
+        public async Task<QueryResult<IList<EventLogItemView>>> GetEventLogItems(
             PagingInfo pagingInfo, string knownVersion = null)
         {
             using var session = await sessionProvider.OpenSession();
@@ -34,18 +34,16 @@
                 .Paging(pagingInfo)
                 .ToListAsync();
 
-            var version = stats.ResultEtag.ToString();
+            var queryStats = stats.ToQueryStatsInfo();
 
-            // For robustness and consistency. Decide 304s at the controller level.
-            var unchanged = knownVersion is not null && knownVersion == version;
-
-            if (unchanged)
+            // The validator comes off the query statistics, so the page cannot be
+            // skipped. Only the projection below is saved.
+            if (knownVersion is not null && knownVersion == queryStats.ETag)
             {
-                return (null, stats.TotalResults, version);
+                return QueryResult<IList<EventLogItemView>>.Unchanged(queryStats);
             }
 
-            // The id lives in document metadata rather than on the document, so it has to be read
-            // from the session while it is still open.
+            // The id lives in document metadata rather than on the document
             var items = documents.ConvertAll(document => new EventLogItemView
             {
                 Id = session.Advanced.GetDocumentId(document),
@@ -57,7 +55,7 @@
                 EventType = document.EventType
             });
 
-            return (items, stats.TotalResults, version);
+            return new QueryResult<IList<EventLogItemView>>(items, queryStats);
         }
     }
 }

@@ -186,17 +186,17 @@ class RetentionSweepTests : ErrorIngestionTestBase
         await Store(EventLogRow("expired", Now.AddDays(-15)));
         await Store(EventLogRow("fresh", Now.AddDays(-1)));
 
-        var (_, _, versionBefore) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+        var versionBefore = (await EventLogDataStore.GetEventLogItems(new PagingInfo())).QueryStats.ETag;
 
         await RunRetentionSweep();
 
-        var (_, total, versionAfter) = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+        var after = await EventLogDataStore.GetEventLogItems(new PagingInfo());
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(total, Is.EqualTo(1));
+            Assert.That(after.QueryStats.TotalCount, Is.EqualTo(1));
             // The count term of the version exists precisely so that retention invalidates client caches.
-            Assert.That(versionAfter, Is.Not.EqualTo(versionBefore));
+            Assert.That(after.QueryStats.ETag, Is.Not.EqualTo(versionBefore));
         }
     }
 
@@ -213,7 +213,7 @@ class RetentionSweepTests : ErrorIngestionTestBase
 
     async Task<List<string>> GetRemainingMarkers()
     {
-        var (items, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 1, pageSize: 100));
+        var items = (await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 1, pageSize: 100))).Results;
         return [.. items.Select(i => i.Description)];
     }
 }

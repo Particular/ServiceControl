@@ -25,9 +25,9 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
             await dbContext.SaveChangesAsync();
         });
 
-    public Task<(IList<EventLogItemView>? items, long total, string version)> GetEventLogItems(
+    public Task<QueryResult<IList<EventLogItemView>>> GetEventLogItems(
         PagingInfo pagingInfo, string? knownVersion = null) =>
-        ExecuteWithDbContext<(IList<EventLogItemView>? items, long total, string version)>(async dbContext =>
+        ExecuteWithDbContext(async dbContext =>
         {
             var query = dbContext.EventLogItems.AsNoTracking();
 
@@ -40,13 +40,14 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
 
             var total = stats?.Total ?? 0;
             var version = Version(total, stats?.Newest);
+            var queryStats = new QueryStatsInfo(version, total, isStale: false);
 
             // The point of knownVersion. Everything above is index work.
             // If the caller already has the latest version, skip the rest of the query.
             // No database round trip is needed. No response body is needed.
             if (knownVersion is not null && knownVersion == version)
             {
-                return (null, total, version);
+                return QueryResult<IList<EventLogItemView>>.Unchanged(queryStats);
             }
 
             var rows = await query
@@ -71,7 +72,7 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
                 EventType = e.EventType
             }).ToList();
 
-            return (items, total, version);
+            return new QueryResult<IList<EventLogItemView>>(items, queryStats);
         });
 
     // Synthesised version ID to be used for an ETag, using total count and the newest item's RaisedAt timestamp.

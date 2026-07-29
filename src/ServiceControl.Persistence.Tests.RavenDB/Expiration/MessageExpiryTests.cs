@@ -252,7 +252,7 @@
 
             await CompleteDatabaseOperation();
 
-            var (logItems, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(1, 1));
+            var logItems = (await EventLogDataStore.GetEventLogItems(new PagingInfo(1, 1))).Results;
 
             Assert.That(logItems, Has.Count.EqualTo(1), "Event log items should be available to query.");
 
@@ -260,7 +260,7 @@
 
             await WaitUntil(async () =>
             {
-                var (items, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(1, 1));
+                var items = (await EventLogDataStore.GetEventLogItems(new PagingInfo(1, 1))).Results;
 
                 return items.Count == 0;
             }, "Event log items should be removed after expiration period elapses.");
