@@ -106,6 +106,7 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
             string expectedAuthority = null,
             string expectedAudience = null,
             string expectedApiScopes = null,
+            string expectedScopes = null,
             bool expectedRoleBasedAuthorizationEnabled = false)
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK),
@@ -170,6 +171,17 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
                                     "Response should contain 'api_scopes' property");
                     Assert.That(apiScopesProperty.GetString(), Is.EqualTo(expectedApiScopes),
                         $"'api_scopes' should be '{expectedApiScopes}'");
+                }
+            }
+
+            if (expectedScopes != null)
+            {
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(root.TryGetProperty("scopes", out var scopesProperty), Is.True,
+                                    "Response should contain 'scopes' property");
+                    Assert.That(scopesProperty.GetString(), Is.EqualTo(expectedScopes),
+                        $"'scopes' should be '{expectedScopes}'");
                 }
             }
         }
