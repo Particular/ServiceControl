@@ -12,10 +12,8 @@
         public EventLogItem Apply(IDomainEvent @event)
         {
             var eventMessage = (T)@event;
-            var eventId = Guid.NewGuid().ToString();
             var item = new EventLogItem
             {
-                Id = $"EventLogItem/{Category}/{typeof(T).Name}/{eventId}",
                 Category = Category,
                 RaisedAt = raisedAtFunc(eventMessage),
                 Description = descriptionFunc(eventMessage),

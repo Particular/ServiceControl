@@ -17,13 +17,13 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    EventLogItemId = table.Column<string>(type: "nvarchar(600)", maxLength: 600, nullable: false),
+                    UniqueEventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Severity = table.Column<int>(type: "int", nullable: false),
                     RaisedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     RelatedTo = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Category = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    EventType = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
+                    Category = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    EventType = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -35,6 +35,12 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                 table: "EventLogItems",
                 columns: new[] { "RaisedAt", "Id" },
                 descending: new bool[0]);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EventLogItems_UniqueEventId",
+                table: "EventLogItems",
+                column: "UniqueEventId",
+                unique: true);
         }
 
         /// <inheritdoc />

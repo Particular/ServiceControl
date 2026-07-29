@@ -13,7 +13,7 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    [Migration("20260728090710_EventLogItems")]
+    [Migration("20260729064621_EventLogItems")]
     partial class EventLogItems
     {
         /// <inheritdoc />
@@ -54,8 +54,8 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 
                     b.Property<string>("Category")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
                         .HasColumnName("category");
 
                     b.Property<string>("Description")
@@ -63,16 +63,10 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
-                    b.Property<string>("EventLogItemId")
-                        .IsRequired()
-                        .HasMaxLength(600)
-                        .HasColumnType("character varying(600)")
-                        .HasColumnName("event_log_item_id");
-
                     b.Property<string>("EventType")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
                         .HasColumnName("event_type");
 
                     b.Property<DateTime>("RaisedAt")
@@ -88,8 +82,16 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("severity");
 
+                    b.Property<Guid>("UniqueEventId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("unique_event_id");
+
                     b.HasKey("Id")
                         .HasName("pk_event_log_items");
+
+                    b.HasIndex("UniqueEventId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_event_log_items_unique_event_id");
 
                     b.HasIndex("RaisedAt", "Id")
                         .IsDescending()

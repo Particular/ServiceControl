@@ -8,12 +8,12 @@ using ServiceControl.Persistence.EFCore.Entities;
 
 public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IEventLogDataStore
 {
-    public Task Add(EventLogItem logItem) =>
+    public Task Add(EventLogItem logItem, Guid eventId) =>
         ExecuteWithDbContext(async dbContext =>
         {
             dbContext.EventLogItems.Add(new EventLogItemEntity
             {
-                EventLogItemId = logItem.Id,
+                UniqueEventId = eventId,
                 Description = logItem.Description,
                 Severity = logItem.Severity,
                 RaisedAt = logItem.RaisedAt,
@@ -25,9 +25,9 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
             await dbContext.SaveChangesAsync();
         });
 
-    public Task<(IList<EventLogItem>? items, long total, string version)> GetEventLogItems(
+    public Task<(IList<EventLogItemView>? items, long total, string version)> GetEventLogItems(
         PagingInfo pagingInfo, string? knownVersion = null) =>
-        ExecuteWithDbContext<(IList<EventLogItem>? items, long total, string version)>(async dbContext =>
+        ExecuteWithDbContext<(IList<EventLogItemView>? items, long total, string version)>(async dbContext =>
         {
             var query = dbContext.EventLogItems.AsNoTracking();
 
@@ -49,24 +49,27 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
                 return (null, total, version);
             }
 
-            var items = await query
+            var rows = await query
                 // The key breaks ties so that items sharing a RaisedAt cannot shuffle between
                 // pages. IX_EventLogItems_RaisedAt_Id is declared in exactly this order.
                 .OrderByDescending(e => e.RaisedAt)
                 .ThenByDescending(e => e.Id)
                 .Skip(pagingInfo.Offset)
                 .Take(pagingInfo.PageSize)
-                .Select(e => new EventLogItem
-                {
-                    Id = e.EventLogItemId,
-                    Description = e.Description,
-                    Severity = e.Severity,
-                    RaisedAt = e.RaisedAt,
-                    RelatedTo = e.RelatedTo,
-                    Category = e.Category,
-                    EventType = e.EventType
-                })
                 .ToListAsync();
+
+            // The id is stringified here, not in the query: SQL Server converts uniqueidentifier
+            // to uppercase hex, while Guid.ToString() and PostgreSQL both produce lowercase.
+            var items = rows.Select(e => new EventLogItemView
+            {
+                Id = e.UniqueEventId.ToString(),
+                Description = e.Description,
+                Severity = e.Severity,
+                RaisedAt = e.RaisedAt,
+                RelatedTo = e.RelatedTo,
+                Category = e.Category,
+                EventType = e.EventType
+            }).ToList();
 
             return (items, total, version);
         });

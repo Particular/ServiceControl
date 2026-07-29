@@ -155,7 +155,7 @@ class RetentionSweepTests : ErrorIngestionTestBase
 
         await RunRetentionSweep();
 
-        var remaining = await GetEventLogItemIds();
+        var remaining = await GetRemainingMarkers();
 
         using (Assert.EnterMultipleScope())
         {
@@ -175,7 +175,7 @@ class RetentionSweepTests : ErrorIngestionTestBase
 
         await RunRetentionSweep();
 
-        Assert.That(await GetEventLogItemIds(), Does.Not.Contain("old-event"));
+        Assert.That(await GetRemainingMarkers(), Does.Not.Contain("old-event"));
     }
 
     [Test]
@@ -200,10 +200,10 @@ class RetentionSweepTests : ErrorIngestionTestBase
         }
     }
 
-    static EventLogItemEntity EventLogRow(string id, DateTime raisedAt) => new()
+    static EventLogItemEntity EventLogRow(string marker, DateTime raisedAt) => new()
     {
-        EventLogItemId = id,
-        Description = "swept",
+        UniqueEventId = Guid.CreateVersion7(),
+        Description = marker,
         Severity = Severity.Info,
         RaisedAt = raisedAt,
         RelatedTo = [],
@@ -211,9 +211,9 @@ class RetentionSweepTests : ErrorIngestionTestBase
         EventType = "MessageFailed"
     };
 
-    async Task<List<string>> GetEventLogItemIds()
+    async Task<List<string>> GetRemainingMarkers()
     {
         var (items, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 1, pageSize: 100));
-        return [.. items.Select(i => i.Id)];
+        return [.. items.Select(i => i.Description)];
     }
 }

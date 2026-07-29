@@ -81,22 +81,17 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.Property<string>("Category")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("EventLogItemId")
-                        .IsRequired()
-                        .HasMaxLength(600)
-                        .HasColumnType("nvarchar(600)");
-
                     b.Property<string>("EventType")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("RaisedAt")
                         .HasColumnType("datetime2");
@@ -108,7 +103,13 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.Property<int>("Severity")
                         .HasColumnType("int");
 
+                    b.Property<Guid>("UniqueEventId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UniqueEventId")
+                        .IsUnique();
 
                     b.HasIndex("RaisedAt", "Id")
                         .IsDescending();

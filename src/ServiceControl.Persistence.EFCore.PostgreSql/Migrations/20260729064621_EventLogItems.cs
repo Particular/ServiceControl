@@ -19,13 +19,13 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    event_log_item_id = table.Column<string>(type: "character varying(600)", maxLength: 600, nullable: false),
+                    unique_event_id = table.Column<Guid>(type: "uuid", nullable: false),
                     description = table.Column<string>(type: "text", nullable: false),
                     severity = table.Column<int>(type: "integer", nullable: false),
                     raised_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     related_to = table.Column<List<string>>(type: "text[]", nullable: false),
-                    category = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    event_type = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false)
+                    category = table.Column<string>(type: "character varying(450)", maxLength: 450, nullable: false),
+                    event_type = table.Column<string>(type: "character varying(450)", maxLength: 450, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -37,6 +37,12 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                 table: "EventLogItems",
                 columns: new[] { "raised_at", "id" },
                 descending: new bool[0]);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_event_log_items_unique_event_id",
+                table: "EventLogItems",
+                column: "unique_event_id",
+                unique: true);
         }
 
         /// <inheritdoc />

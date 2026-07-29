@@ -24,9 +24,9 @@ class EventLogDataStoreEFTests : PersistenceTestBase
 
         for (var i = 0; i < 10; i++)
         {
-            var item = CreateLogItem($"Collision{i}", sameInstant);
-            expected.Add(item.Id);
-            await EventLogDataStore.Add(item);
+            var eventId = Guid.CreateVersion7();
+            expected.Add(eventId.ToString());
+            await EventLogDataStore.Add(CreateLogItem($"Collision{i}", sameInstant), eventId);
         }
 
         await CompleteDatabaseOperation();
@@ -53,7 +53,7 @@ class EventLogDataStoreEFTests : PersistenceTestBase
 
         for (var i = 0; i < 6; i++)
         {
-            await EventLogDataStore.Add(CreateLogItem($"Collision{i}", sameInstant));
+            await EventLogDataStore.Add(CreateLogItem($"Collision{i}", sameInstant), Guid.CreateVersion7());
         }
 
         await CompleteDatabaseOperation();
@@ -73,7 +73,7 @@ class EventLogDataStoreEFTests : PersistenceTestBase
 
         for (var i = 0; i < 3; i++)
         {
-            await EventLogDataStore.Add(CreateLogItem($"Event{i}", baseTime.AddMinutes(i)));
+            await EventLogDataStore.Add(CreateLogItem($"Event{i}", baseTime.AddMinutes(i)), Guid.CreateVersion7());
         }
 
         await CompleteDatabaseOperation();
@@ -110,7 +110,6 @@ class EventLogDataStoreEFTests : PersistenceTestBase
 
     static EventLogItem CreateLogItem(string eventType, DateTime raisedAt) => new()
     {
-        Id = $"EventLogItem/Recoverability/{eventType}/{Guid.NewGuid()}",
         Category = "Recoverability",
         EventType = eventType,
         Description = $"{eventType} occurred",

@@ -18,7 +18,7 @@
         [Authorize(Policy = Permissions.ErrorEventLogView)]
         [Route("eventlogitems")]
         [HttpGet]
-        public async Task<ActionResult<IList<EventLogItem>>> Items([FromQuery] PagingInfo pagingInfo)
+        public async Task<ActionResult<IList<EventLogItemView>>> Items([FromQuery] PagingInfo pagingInfo)
         {
 
             // The Trim handles both ETag formats (quoted and unquoted) deliberately.
