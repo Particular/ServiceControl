@@ -11,6 +11,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
     public DbSet<FailedMessageEntity> FailedMessages { get; set; }
     public DbSet<FailedMessageGroupEntity> FailedMessageGroups { get; set; }
     public DbSet<FailedMessageRetryEntity> FailedMessageRetries { get; set; }
+    public DbSet<FailedErrorImportEntity> FailedErrorImports { get; set; }
     public DbSet<TrialMetadataEntity> TrialMetadata { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -21,6 +22,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.ApplyConfiguration(new EndpointSettingsConfiguration());
+        modelBuilder.ApplyConfiguration(new FailedErrorImportConfiguration());
         modelBuilder.ApplyConfiguration(new FailedMessageConfiguration());
         modelBuilder.ApplyConfiguration(new FailedMessageGroupConfiguration());
         modelBuilder.ApplyConfiguration(new FailedMessageRetryConfiguration());

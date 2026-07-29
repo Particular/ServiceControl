@@ -60,6 +60,8 @@ public abstract class BasePersistence
     // Settings are registered under their concrete type so each store resolves only what it can act on.
     static void RegisterBodyStorage(IServiceCollection services, EFPersisterSettings settings)
     {
+        services.AddSingleton(settings.BodyStorage);
+
         switch (settings.BodyStorage)
         {
             case FileSystemBodyStorageSettings fileSystem:
