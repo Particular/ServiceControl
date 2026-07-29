@@ -203,8 +203,6 @@
 
                     c.RegisterStartupTask(new SendMessageAtStart());
 
-                    c.ReportSuccessfulRetriesToServiceControl();
-
                     c.NoRetries();
                 });
 
