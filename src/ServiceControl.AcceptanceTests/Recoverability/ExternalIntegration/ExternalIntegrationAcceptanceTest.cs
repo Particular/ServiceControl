@@ -21,7 +21,6 @@
                 {
                     c.EnableFeature<SendFailedMessages>();
                     c.NoDelayedRetries();
-                    c.ReportSuccessfulRetriesToServiceControl();
                 });
 
             [Handler]

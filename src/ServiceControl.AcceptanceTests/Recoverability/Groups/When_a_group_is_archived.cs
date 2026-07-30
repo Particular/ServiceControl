@@ -231,7 +231,6 @@
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoDelayedRetries();
-                    c.ReportSuccessfulRetriesToServiceControl();
                 });
 
             [Handler]

@@ -8,11 +8,6 @@
 
     public static class EndpointConfigurationExtensions
     {
-        public static void ReportSuccessfulRetriesToServiceControl(this EndpointConfiguration configuration)
-        {
-            configuration.Pipeline.Register(typeof(ReportSuccessfulRetryToServiceControl), "Simulate that the audit instance detects and reports successfull retries");
-        }
-
         public static void CustomizeServiceControlEndpointTesting(this EndpointConfiguration configuration, ScenarioContext context)
         {
             configuration.GetSettings().Set("SC.ScenarioContext", context);

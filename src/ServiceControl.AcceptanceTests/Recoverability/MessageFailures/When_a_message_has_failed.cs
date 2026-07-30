@@ -227,7 +227,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoRetries();
-                    c.ReportSuccessfulRetriesToServiceControl();
                 });
 
             [Handler]
@@ -253,7 +252,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoRetries();
-                    c.ReportSuccessfulRetriesToServiceControl();
                     c.UseSerialization<MySuperSerializer>();
                 });
 

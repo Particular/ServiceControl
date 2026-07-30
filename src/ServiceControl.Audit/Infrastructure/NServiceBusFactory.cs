@@ -5,7 +5,6 @@ namespace ServiceControl.Audit.Infrastructure
     using System.Threading.Tasks;
     using Auditing;
     using Contracts.EndpointControl;
-    using Contracts.MessageFailures;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using Plugins;
@@ -46,7 +45,6 @@ namespace ServiceControl.Audit.Infrastructure
 
                 var routing = new RoutingSettings(configuration.GetSettings());
                 routing.RouteToEndpoint(typeof(RegisterNewEndpoint), serviceControlLogicalQueue);
-                routing.RouteToEndpoint(typeof(MarkMessageFailureResolvedByRetry), serviceControlLogicalQueue);
 
                 configuration.AddCustomCheck<AuditIngestionCustomCheck>();
                 configuration.AddCustomCheck<FailedAuditImportCustomCheck>();

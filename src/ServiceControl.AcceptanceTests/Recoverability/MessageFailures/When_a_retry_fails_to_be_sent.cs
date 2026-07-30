@@ -84,7 +84,6 @@
                 {
                     c.EnableFeature<SendFailedMessage>();
                     c.NoRetries();
-                    c.ReportSuccessfulRetriesToServiceControl();
                 });
 
             [Handler]

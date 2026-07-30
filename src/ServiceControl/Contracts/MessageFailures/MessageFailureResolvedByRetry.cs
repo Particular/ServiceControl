@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Contracts.MessageFailures
+namespace ServiceControl.Contracts.MessageFailures
 {
     using Infrastructure.DomainEvents;
 

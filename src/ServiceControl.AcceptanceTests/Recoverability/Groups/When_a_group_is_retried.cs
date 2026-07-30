@@ -96,7 +96,6 @@
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.Recoverability().Delayed(x => x.NumberOfRetries(0));
-                    c.ReportSuccessfulRetriesToServiceControl();
                 });
 
             [Handler]

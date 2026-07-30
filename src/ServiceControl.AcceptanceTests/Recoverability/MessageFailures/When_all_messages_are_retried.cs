@@ -96,7 +96,6 @@
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoRetries();
-                    c.ReportSuccessfulRetriesToServiceControl();
                 });
 
             [Handler]
