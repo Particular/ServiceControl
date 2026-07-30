@@ -25,6 +25,8 @@ class LicensingDataStore(
     const string ReportMasksDocumentId = "ReportMasks";
     const string LicencedEndpointDetailsDocumentId = "LicensedEndpointDetails";
 
+    const int ThroughputPeriodMonths = 14;
+
     static readonly AuditServiceMetadata DefaultAuditServiceMetadata = new([], []);
     static readonly BrokerMetadata DefaultBrokerMetadata = new(null, []);
     static readonly ReportConfigurationDocument DefaultReportConfiguration = new();
@@ -121,6 +123,19 @@ class LicensingDataStore(
         await session.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task RemoveEndpoints(EndpointIdentifier[] endpointIds, CancellationToken cancellationToken)
+    {
+        var documentIds = endpointIds.Select(id => id.GenerateDocumentId());
+
+        var store = await storeProvider.GetDocumentStore(cancellationToken);
+        using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
+
+        foreach (var documentId in documentIds) {
+            session.Delete(documentId);
+        }
+        await session.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, CancellationToken cancellationToken)
     {
         var results = queueNames.ToDictionary(queueName => queueName, _ => new List<ThroughputData>() as IEnumerable<ThroughputData>);
@@ -128,7 +143,7 @@ class LicensingDataStore(
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
-        var from = DateTime.UtcNow.AddMonths(-14);
+        var from = DateTime.UtcNow.AddMonths(-ThroughputPeriodMonths);
         var query = session.Query<EndpointDocument>()
             .Where(document => document.SanitizedName.In(queueNames))
             .Include(builder => builder.IncludeTimeSeries(ThroughputTimeSeriesName, from));

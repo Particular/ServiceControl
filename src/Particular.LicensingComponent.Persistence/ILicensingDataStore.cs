@@ -15,6 +15,8 @@ public interface ILicensingDataStore
 
     Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken);
 
+    Task RemoveEndpoints(EndpointIdentifier[] endpointIds, CancellationToken cancellationToken);
+
     Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, CancellationToken cancellationToken);
 
     Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, DateOnly date, long messageCount, CancellationToken cancellationToken) =>
