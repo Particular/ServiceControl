@@ -2,7 +2,6 @@ namespace ServiceControl.Persistence.RavenDB;
 
 using CustomChecks;
 using Editing;
-using MessageFailures;
 using MessageRedirects;
 using Microsoft.Extensions.DependencyInjection;
 using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
