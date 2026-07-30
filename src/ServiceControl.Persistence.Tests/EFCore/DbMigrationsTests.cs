@@ -14,6 +14,7 @@ public class DbMigrationsTests
         var hostBuilder = new HostApplicationBuilder();
         await ctx.Setup(hostBuilder);
         var host = hostBuilder.Build();
-        await host.Services.GetRequiredService<IDatabaseMigrator>().ApplyMigrations();
+        var scope = host.Services.CreateAsyncScope();
+        await scope.ServiceProvider.GetRequiredService<IDatabaseMigrator>().ApplyMigrations();
     }
 }
