@@ -2,9 +2,8 @@
 {
     using System;
     using Infrastructure.DomainEvents;
-    using Infrastructure.SignalR;
 
-    public class ArchiveOperationCompleted : IDomainEvent, IUserInterfaceEvent
+    public class ArchiveOperationCompleted : IDomainEvent
     {
         public string RequestId { get; set; }
         public string GroupName { get; set; }

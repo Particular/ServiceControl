@@ -2,9 +2,8 @@ namespace ServiceControl.Recoverability
 {
     using System;
     using Infrastructure.DomainEvents;
-    using Infrastructure.SignalR;
 
-    public class UnarchiveOperationStarting : IDomainEvent, IUserInterfaceEvent
+    public class UnarchiveOperationStarting : IDomainEvent
     {
         public string RequestId { get; set; }
         public ArchiveType ArchiveType { get; set; }

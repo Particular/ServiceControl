@@ -26,7 +26,6 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         public JsonSerializerOptions SerializerOptions => runner.SerializerOptions;
         public Settings Settings => runner.Settings;
         public IDomainEvents DomainEvents => runner.DomainEvents;
-        public Func<HttpMessageHandler> HttpMessageHandlerFactory => runner.HttpMessageHandlerFactory;
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {

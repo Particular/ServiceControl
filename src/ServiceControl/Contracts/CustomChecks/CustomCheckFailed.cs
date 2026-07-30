@@ -2,10 +2,9 @@
 {
     using System;
     using Infrastructure.DomainEvents;
-    using Infrastructure.SignalR;
     using ServiceControl.Operations;
 
-    public class CustomCheckFailed : IDomainEvent, IUserInterfaceEvent
+    public class CustomCheckFailed : IDomainEvent
     {
         public string CustomCheckId { get; set; }
         public string Category { get; set; }

@@ -22,7 +22,6 @@
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(RuntimeFrameworkVersion)" />
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="$(RuntimeFrameworkVersion)" />

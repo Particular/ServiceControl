@@ -2,9 +2,8 @@
 {
     using System;
     using Infrastructure.DomainEvents;
-    using Infrastructure.SignalR;
 
-    class HeartbeatsUpdated : IDomainEvent, IUserInterfaceEvent
+    class HeartbeatsUpdated : IDomainEvent
     {
         public HeartbeatsUpdated()
         {

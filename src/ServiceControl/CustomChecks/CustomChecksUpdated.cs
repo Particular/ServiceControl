@@ -2,9 +2,8 @@
 {
     using System;
     using Infrastructure.DomainEvents;
-    using Infrastructure.SignalR;
 
-    public class CustomChecksUpdated : IDomainEvent, IUserInterfaceEvent
+    public class CustomChecksUpdated : IDomainEvent
     {
         public CustomChecksUpdated()
         {
