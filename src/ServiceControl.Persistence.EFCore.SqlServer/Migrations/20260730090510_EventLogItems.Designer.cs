@@ -12,7 +12,7 @@ using ServiceControl.Persistence.EFCore.SqlServer;
 namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerServiceControlDbContext))]
-    [Migration("20260729082911_EventLogItems")]
+    [Migration("20260730090510_EventLogItems")]
     partial class EventLogItems
     {
         /// <inheritdoc />
@@ -71,13 +71,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.Property<int>("Severity")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("UniqueEventId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("UniqueEventId")
-                        .IsUnique();
 
                     b.HasIndex("RaisedAt", "Id")
                         .IsDescending();

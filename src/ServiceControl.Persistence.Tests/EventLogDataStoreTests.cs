@@ -18,7 +18,7 @@ class EventLogDataStoreTests : PersistenceTestBase
         logItem.Description = "Message processing failed";
         logItem.RelatedTo = ["/message/abc123", "/endpoint/Sales"];
 
-        await EventLogDataStore.Add(logItem, Guid.CreateVersion7());
+        await EventLogDataStore.Add(logItem);
         await CompleteDatabaseOperation();
 
         var items = (await EventLogDataStore.GetEventLogItems(new PagingInfo())).Results;
@@ -37,18 +37,23 @@ class EventLogDataStoreTests : PersistenceTestBase
     }
 
     [Test]
-    public async Task The_supplied_event_id_is_recoverable_from_the_stored_item()
+    public async Task Every_returned_item_carries_its_own_id()
     {
-        var eventId = Guid.CreateVersion7();
-        var logItem = CreateLogItem("MessageFailed", new DateTime(2026, 7, 22, 10, 30, 0, DateTimeKind.Utc));
+        var raisedAt = new DateTime(2026, 7, 22, 10, 30, 0, DateTimeKind.Utc);
 
-        await EventLogDataStore.Add(logItem, eventId);
+        await EventLogDataStore.Add(CreateLogItem("MessageFailed", raisedAt));
+        await EventLogDataStore.Add(CreateLogItem("EndpointStarted", raisedAt));
         await CompleteDatabaseOperation();
 
         var items = (await EventLogDataStore.GetEventLogItems(new PagingInfo())).Results;
 
-        // Not equality: Different persisters may return the event id in different formats.
-        Assert.That(items[0].Id, Does.Contain(eventId.ToString()));
+        Assert.That(items, Has.Count.EqualTo(2));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(items[0].Id, Is.Not.Null.And.Not.Empty);
+            Assert.That(items[1].Id, Is.Not.Null.And.Not.Empty);
+            Assert.That(items[0].Id, Is.Not.EqualTo(items[1].Id));
+        }
     }
 
     [Test]
@@ -57,7 +62,7 @@ class EventLogDataStoreTests : PersistenceTestBase
         var logItem = CreateLogItem("EndpointStarted", DateTime.UtcNow);
         logItem.RelatedTo = [];
 
-        await EventLogDataStore.Add(logItem, Guid.CreateVersion7());
+        await EventLogDataStore.Add(logItem);
         await CompleteDatabaseOperation();
 
         var items = (await EventLogDataStore.GetEventLogItems(new PagingInfo())).Results;
@@ -69,9 +74,9 @@ class EventLogDataStoreTests : PersistenceTestBase
     public async Task Items_are_returned_most_recently_raised_first()
     {
         var baseTime = new DateTime(2026, 7, 22, 9, 0, 0, DateTimeKind.Utc);
-        await EventLogDataStore.Add(CreateLogItem("Oldest", baseTime), Guid.CreateVersion7());
-        await EventLogDataStore.Add(CreateLogItem("Newest", baseTime.AddMinutes(2)), Guid.CreateVersion7());
-        await EventLogDataStore.Add(CreateLogItem("Middle", baseTime.AddMinutes(1)), Guid.CreateVersion7());
+        await EventLogDataStore.Add(CreateLogItem("Oldest", baseTime));
+        await EventLogDataStore.Add(CreateLogItem("Newest", baseTime.AddMinutes(2)));
+        await EventLogDataStore.Add(CreateLogItem("Middle", baseTime.AddMinutes(1)));
         await CompleteDatabaseOperation();
 
         var items = (await EventLogDataStore.GetEventLogItems(new PagingInfo())).Results;
@@ -257,7 +262,7 @@ class EventLogDataStoreTests : PersistenceTestBase
 
         for (var i = 0; i < count; i++)
         {
-            await EventLogDataStore.Add(CreateLogItem($"Event{i}", baseTime.AddMinutes(i)), Guid.CreateVersion7());
+            await EventLogDataStore.Add(CreateLogItem($"Event{i}", baseTime.AddMinutes(i)));
         }
 
         await CompleteDatabaseOperation();

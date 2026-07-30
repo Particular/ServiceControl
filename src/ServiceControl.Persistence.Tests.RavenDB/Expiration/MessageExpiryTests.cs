@@ -247,8 +247,7 @@
             await DisableExpiration();
 
             await EventLogDataStore.Add(
-                new EventLogItem { Category = "Recoverability", EventType = "MessageFailed" },
-                Guid.CreateVersion7());
+                new EventLogItem { Category = "Recoverability", EventType = "MessageFailed" });
 
             await CompleteDatabaseOperation();
 

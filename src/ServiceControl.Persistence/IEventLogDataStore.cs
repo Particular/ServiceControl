@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Persistence
 {
-    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using EventLog;
@@ -17,14 +16,11 @@
     public interface IEventLogDataStore
     {
         /// <summary>
-        /// Persists a single event log item.
+        /// Persists a single event log item. Identity is the persister's to assign, and is surfaced
+        /// on <see cref="EventLogItemView.Id"/> when the item is read back.
         /// </summary>
         /// <param name="logItem">The item to store.</param>
-        /// <param name="eventId">
-        /// The item's portable/global identity, minted by the caller, and survives a
-        /// move between persisters.
-        /// </param>
-        Task Add(EventLogItem logItem, Guid eventId);
+        Task Add(EventLogItem logItem);
 
         /// <summary>
         /// Returns one page of event log items, newest <c>RaisedAt</c> first.

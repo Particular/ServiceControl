@@ -13,7 +13,7 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    [Migration("20260729082915_EventLogItems")]
+    [Migration("20260730090531_EventLogItems")]
     partial class EventLogItems
     {
         /// <inheritdoc />
@@ -82,16 +82,8 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("severity");
 
-                    b.Property<Guid>("UniqueEventId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("unique_event_id");
-
                     b.HasKey("Id")
                         .HasName("pk_event_log_items");
-
-                    b.HasIndex("UniqueEventId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_event_log_items_unique_event_id");
 
                     b.HasIndex("RaisedAt", "Id")
                         .IsDescending()

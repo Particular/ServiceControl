@@ -68,13 +68,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.Property<int>("Severity")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("UniqueEventId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("UniqueEventId")
-                        .IsUnique();
 
                     b.HasIndex("RaisedAt", "Id")
                         .IsDescending();

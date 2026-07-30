@@ -9,7 +9,7 @@ namespace ServiceControl.EventLog
     public class EventLogItemView
     {
         /// <summary>
-        /// Assigned by whichever persister stored the item
+        /// Assigned by whichever persister stored the item, and opaque.
         /// </summary>
         public string Id { get; set; }
         public string Description { get; set; }

@@ -9,12 +9,15 @@
 
     class EventLogDataStore(IRavenSessionProvider sessionProvider, ExpirationManager expirationManager) : IEventLogDataStore
     {
-        public async Task Add(EventLogItem logItem, Guid eventId)
+        public async Task Add(EventLogItem logItem)
         {
             using var session = await sessionProvider.OpenSession();
+
+            // Version 7 rather than a random GUID so the final segment is time-ordered, which keeps
+            // documents written together adjacent in the id index.
             await session.StoreAsync(
                 logItem,
-                EventLogItemIdGenerator.MakeDocumentId(logItem.Category, logItem.EventType, eventId));
+                EventLogItemIdGenerator.MakeDocumentId(logItem.Category, logItem.EventType, Guid.CreateVersion7()));
 
             // Retention on RavenDB is per-document expiry metadata stamped at write time, not a
             // sweep. It has to be set here, on the only write path, or items never expire.

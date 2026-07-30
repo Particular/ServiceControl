@@ -19,7 +19,6 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    unique_event_id = table.Column<Guid>(type: "uuid", nullable: false),
                     description = table.Column<string>(type: "text", nullable: false),
                     severity = table.Column<int>(type: "integer", nullable: false),
                     raised_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -37,12 +36,6 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                 table: "EventLogItems",
                 columns: new[] { "raised_at", "id" },
                 descending: new bool[0]);
-
-            migrationBuilder.CreateIndex(
-                name: "ix_event_log_items_unique_event_id",
-                table: "EventLogItems",
-                column: "unique_event_id",
-                unique: true);
         }
 
         /// <inheritdoc />

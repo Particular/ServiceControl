@@ -24,9 +24,8 @@ class EventLogDataStoreEFTests : PersistenceTestBase
 
         for (var i = 0; i < 10; i++)
         {
-            var eventId = Guid.CreateVersion7();
-            expected.Add(eventId.ToString());
-            await EventLogDataStore.Add(CreateLogItem($"Collision{i}", sameInstant), eventId);
+            expected.Add($"Collision{i}");
+            await EventLogDataStore.Add(CreateLogItem($"Collision{i}", sameInstant));
         }
 
         await CompleteDatabaseOperation();
@@ -35,7 +34,7 @@ class EventLogDataStoreEFTests : PersistenceTestBase
         for (var page = 1; page <= 5; page++)
         {
             var items = (await EventLogDataStore.GetEventLogItems(new PagingInfo(page: page, pageSize: 2))).Results;
-            paged.AddRange(items.Select(i => i.Id));
+            paged.AddRange(items.Select(i => i.EventType));
         }
 
         using (Assert.EnterMultipleScope())
@@ -53,7 +52,7 @@ class EventLogDataStoreEFTests : PersistenceTestBase
 
         for (var i = 0; i < 6; i++)
         {
-            await EventLogDataStore.Add(CreateLogItem($"Collision{i}", sameInstant), Guid.CreateVersion7());
+            await EventLogDataStore.Add(CreateLogItem($"Collision{i}", sameInstant));
         }
 
         await CompleteDatabaseOperation();
@@ -73,7 +72,7 @@ class EventLogDataStoreEFTests : PersistenceTestBase
 
         for (var i = 0; i < 3; i++)
         {
-            await EventLogDataStore.Add(CreateLogItem($"Event{i}", baseTime.AddMinutes(i)), Guid.CreateVersion7());
+            await EventLogDataStore.Add(CreateLogItem($"Event{i}", baseTime.AddMinutes(i)));
         }
 
         await CompleteDatabaseOperation();
@@ -101,7 +100,7 @@ class EventLogDataStoreEFTests : PersistenceTestBase
 
         for (var i = 0; i < 3; i++)
         {
-            await EventLogDataStore.Add(CreateLogItem($"Event{i}", baseTime.AddMinutes(i)), Guid.CreateVersion7());
+            await EventLogDataStore.Add(CreateLogItem($"Event{i}", baseTime.AddMinutes(i)));
         }
 
         await CompleteDatabaseOperation();
@@ -112,7 +111,7 @@ class EventLogDataStoreEFTests : PersistenceTestBase
 
         // Older than every surviving row, which is routine: RaisedAt is a domain timestamp, so a
         // failure reported late carries an old value.
-        await EventLogDataStore.Add(CreateLogItem("Backdated", baseTime.AddYears(-1)), Guid.CreateVersion7());
+        await EventLogDataStore.Add(CreateLogItem("Backdated", baseTime.AddYears(-1)));
         await CompleteDatabaseOperation();
 
         var after = await EventLogDataStore.GetEventLogItems(new PagingInfo());

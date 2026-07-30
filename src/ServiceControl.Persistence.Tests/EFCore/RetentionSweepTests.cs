@@ -202,7 +202,6 @@ class RetentionSweepTests : ErrorIngestionTestBase
 
     static EventLogItemEntity EventLogRow(string marker, DateTime raisedAt) => new()
     {
-        UniqueEventId = Guid.CreateVersion7(),
         Description = marker,
         Severity = Severity.Info,
         RaisedAt = raisedAt,

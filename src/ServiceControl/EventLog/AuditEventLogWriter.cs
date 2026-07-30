@@ -1,6 +1,5 @@
 namespace ServiceControl.EventLog
 {
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
@@ -26,9 +25,8 @@ namespace ServiceControl.EventLog
             }
 
             var logItem = mappings.ApplyMapping(message);
-            var eventId = Guid.CreateVersion7();
 
-            await dataStore.Add(logItem, eventId);
+            await dataStore.Add(logItem);
         }
 
         readonly IEventLogDataStore dataStore;

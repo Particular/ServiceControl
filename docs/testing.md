@@ -42,7 +42,7 @@ System.Security.SecurityException : The source ServiceControl was not found on c
 but some or all event logs could not be searched.  Inaccessible logs: Security.
 ```
 
-Setup registers a Windows event source, and checking whether one already exists enumerates every event log — including `Security`, which a process without administrator rights cannot read.
+Setup registers a Windows event source, and checking whether one already exists enumerates every event log, including `Security`, which a process without administrator rights cannot read.
 
 Register both sources once, from an **elevated** PowerShell prompt:
 

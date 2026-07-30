@@ -8,12 +8,11 @@ using ServiceControl.Persistence.EFCore.Entities;
 
 public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IEventLogDataStore
 {
-    public Task Add(EventLogItem logItem, Guid eventId) =>
+    public Task Add(EventLogItem logItem) =>
         ExecuteWithDbContext(async dbContext =>
         {
             dbContext.EventLogItems.Add(new EventLogItemEntity
             {
-                UniqueEventId = eventId,
                 Description = logItem.Description,
                 Severity = logItem.Severity,
                 RaisedAt = logItem.RaisedAt,
@@ -55,27 +54,24 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
                 return QueryResult<IList<EventLogItemView>>.Unchanged(queryStats);
             }
 
-            var rows = await query
+            var items = await query
                 // The key breaks ties so that items sharing a RaisedAt cannot shuffle between
                 // pages. IX_EventLogItems_RaisedAt_Id is declared in exactly this order.
                 .OrderByDescending(e => e.RaisedAt)
                 .ThenByDescending(e => e.Id)
                 .Skip(pagingInfo.Offset)
                 .Take(pagingInfo.PageSize)
+                .Select(e => new EventLogItemView
+                {
+                    Id = e.Id.ToString(),
+                    Description = e.Description,
+                    Severity = e.Severity,
+                    RaisedAt = e.RaisedAt,
+                    RelatedTo = e.RelatedTo,
+                    Category = e.Category,
+                    EventType = e.EventType
+                })
                 .ToListAsync();
-
-            // The id is stringified here, not in the query: SQL Server converts uniqueidentifier
-            // to uppercase hex, while Guid.ToString() and PostgreSQL both produce lowercase.
-            var items = rows.Select(e => new EventLogItemView
-            {
-                Id = e.UniqueEventId.ToString(),
-                Description = e.Description,
-                Severity = e.Severity,
-                RaisedAt = e.RaisedAt,
-                RelatedTo = e.RelatedTo,
-                Category = e.Category,
-                EventType = e.EventType
-            }).ToList();
 
             return new QueryResult<IList<EventLogItemView>>(items, queryStats);
         });

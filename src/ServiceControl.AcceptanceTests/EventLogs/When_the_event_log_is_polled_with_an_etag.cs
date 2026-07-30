@@ -80,7 +80,7 @@ namespace ServiceControl.AcceptanceTests.EventLogs
                     "a client holding the current version must be told so, not handed the page again");
 
                 Assert.That(unknownEtagStatus, Is.EqualTo(HttpStatusCode.OK),
-                    "an unrecognised validator is a cache miss — this is what stops an unconditional 304 passing");
+                    "an unrecognised validator is a cache miss: this is what stops an unconditional 304 passing");
 
                 Assert.That(unknownEtagReturnedItems, Is.True,
                     "a cache miss must carry the items, not an empty body with a 200");
