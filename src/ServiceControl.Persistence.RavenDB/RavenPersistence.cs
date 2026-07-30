@@ -2,7 +2,6 @@ namespace ServiceControl.Persistence.RavenDB;
 
 using CustomChecks;
 using Editing;
-using MessageFailures;
 using MessageRedirects;
 using Microsoft.Extensions.DependencyInjection;
 using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
@@ -37,10 +36,6 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddSingleton<ExpirationManager>();
         services.AddSingleton<MinimumRequiredStorageState>();
         services.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
-
-        services.AddSingleton<FailedMessageViewIndexNotifications>();
-        services.AddSingleton<IFailedMessageViewIndexNotifications>(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
-        services.AddHostedService(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
 
         services.AddSingleton<ExternalIntegrationRequestsDataStore>();
         services.AddSingleton<IExternalIntegrationRequestsDataStore>(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());

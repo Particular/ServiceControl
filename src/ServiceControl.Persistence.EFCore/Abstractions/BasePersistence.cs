@@ -27,10 +27,6 @@ public abstract class BasePersistence
         services.AddUnitOfWorkFactory<EFIngestionUnitOfWorkFactory>();
         services.AddSingleton<IBodyStorage, BodyStorage>();
 
-        services.AddSingleton<FailedMessageViewIndexNotifications>();
-        services.AddSingleton<IFailedMessageViewIndexNotifications>(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
-        services.AddHostedService(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
-
         services.AddSingleton<ExternalIntegrationRequestsDataStore>();
         services.AddSingleton<IExternalIntegrationRequestsDataStore>(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
         services.AddHostedService(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
