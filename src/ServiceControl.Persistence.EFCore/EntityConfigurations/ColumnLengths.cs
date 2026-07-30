@@ -5,4 +5,8 @@ static class ColumnLengths
     // Indexed and short-by-nature values get a length so that SQL Server can index them,
     // nvarchar(max) columns cannot be index key columns.
     public const int ShortTextLength = 450;
+
+    // The subscriptions key spans two columns and SQL Server caps a clustered index key at 900 bytes,
+    // so both have to stay well under ShortTextLength. Matches NServiceBus.Persistence.Sql.
+    public const int SubscriptionKeyLength = 200;
 }
