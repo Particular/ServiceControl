@@ -21,7 +21,6 @@ class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
 
         builder.Property(e => e.MessageId).HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.ConversationId).HasMaxLength(ColumnLengths.ShortTextLength);
-        builder.Property(e => e.QueueAddress).HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.SendingEndpointName).HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.SendingEndpointHost).HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.ReceivingEndpointName).HasMaxLength(ColumnLengths.ShortTextLength);
@@ -39,7 +38,6 @@ class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
         builder.HasIndex(e => e.FailingEndpointAddress);
         builder.HasIndex(e => e.ConversationId);
         builder.HasIndex(e => e.TimeSent);
-        builder.HasIndex(e => e.QueueAddress);
 
         // Drives the retention sweep. The index is restricted to the statuses the sweep deletes
         // (Resolved and Archived) by a provider specific filter, applied in the provider DbContext.

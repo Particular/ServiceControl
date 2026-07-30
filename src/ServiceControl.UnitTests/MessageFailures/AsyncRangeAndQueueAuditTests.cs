@@ -163,15 +163,15 @@ public class AsyncRangeAndQueueAuditTests
         public Task RemoveFailedMessageRetry(string uniqueMessageId) => Task.CompletedTask;
         public Task<string[]> UnArchiveMessagesByRange(DateTime from, DateTime to) => Task.FromResult(UnArchiveByRangeResult);
         public Task<string[]> UnArchiveMessages(IEnumerable<string> failedMessageIds) => Task.FromResult(UnArchiveMessagesResult);
-        public Task<FailedMessage> GetFailedMessage(string failedMessageId) => Task.FromResult(ErrorByResult);
+        public Task<FailedMessage?> GetFailedMessage(string failedMessageId) => Task.FromResult<FailedMessage?>(ErrorByResult);
         public Task MarkAsArchived(string failedMessageId) => Task.CompletedTask;
 
         public Task<FailedMessage[]> GetFailedMessagesByIds(Guid[] ids) => throw new NotImplementedException();
-        public Task<QueryResult<IList<FailedMessageView>>> GetFailedMessages(string status, string modified, string queueAddress, PagingInfo pagingInfo, SortInfo sortInfo) => throw new NotImplementedException();
-        public Task<QueryStatsInfo> GetFailedMessagesStats(string status, string modified, string queueAddress) => throw new NotImplementedException();
-        public Task<QueryResult<IList<FailedMessageView>>> GetFailedMessagesByEndpoint(string status, string endpointName, string modified, PagingInfo pagingInfo, SortInfo sortInfo) => throw new NotImplementedException();
+        public Task<QueryResult<IList<FailedMessageView>>> GetFailedMessages(string? status, string? modified, string? queueAddress, PagingInfo pagingInfo, SortInfo sortInfo) => throw new NotImplementedException();
+        public Task<QueryStatsInfo> GetFailedMessagesStats(string? status, string? modified, string? queueAddress) => throw new NotImplementedException();
+        public Task<QueryResult<IList<FailedMessageView>>> GetFailedMessagesByEndpoint(string? status, string endpointName, string? modified, PagingInfo pagingInfo, SortInfo sortInfo) => throw new NotImplementedException();
         public Task<IDictionary<string, object>> GetFailedMessagesSummary() => throw new NotImplementedException();
-        public Task<FailedMessageView> GetLatestFailedMessageView(string failedMessageId) => throw new NotImplementedException();
+        public Task<FailedMessageView?> GetLatestFailedMessageView(string failedMessageId) => throw new NotImplementedException();
         public Task<bool> MarkAsResolved(string failedMessageId) => throw new NotImplementedException();
         public Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, Task> processCallback) => throw new NotImplementedException();
         public Task RevertRetry(string messageUniqueId) => throw new NotImplementedException();

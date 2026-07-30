@@ -31,7 +31,7 @@ class ErrorIngestionTests : ErrorIngestionTestBase
             Assert.That(row.MessageType, Is.EqualTo(failure.MessageType));
             Assert.That(row.TimeSent, Is.EqualTo(failure.TimeSent));
             Assert.That(row.ConversationId, Is.EqualTo(failure.ConversationId));
-            Assert.That(row.QueueAddress, Is.EqualTo(failure.QueueAddress));
+            Assert.That(row.FailingEndpointAddress, Is.EqualTo(failure.QueueAddress));
             Assert.That(row.SendingEndpointName, Is.EqualTo(failure.SendingEndpoint.Name));
             Assert.That(row.SendingEndpointHostId, Is.EqualTo(failure.SendingEndpoint.HostId));
             Assert.That(row.SendingEndpointHost, Is.EqualTo(failure.SendingEndpoint.Host));

@@ -46,7 +46,6 @@ public partial class PersistenceTestsContext
                 MessageType = GetMetadata<string>(attempt, "MessageType"),
                 TimeSent = GetMetadata<DateTime?>(attempt, "TimeSent"),
                 ConversationId = GetMetadata<string>(attempt, "ConversationId"),
-                QueueAddress = attempt.Headers.GetValueOrDefault(NServiceBus.Faults.FaultsHeaderKeys.FailedQ),
                 SendingEndpointName = sendingEndpoint?.Name,
                 SendingEndpointHostId = sendingEndpoint?.HostId,
                 SendingEndpointHost = sendingEndpoint?.Host,
@@ -66,6 +65,19 @@ public partial class PersistenceTestsContext
                 LastModified = now,
                 NumberOfProcessingAttempts = ordered.Select(pa => pa.AttemptedAt).Distinct().Count(),
             });
+
+            // RavenDB carries the failure groups inside the document, so seeding them has to be
+            // explicit here for the two persisters to start from the same state.
+            db.FailedMessageGroups.AddRange(failedMessage.FailureGroups
+                .Where(group => group.Id != null)
+                .DistinctBy(group => group.Id)
+                .Select(group => new FailedMessageGroupEntity
+                {
+                    FailedMessageUniqueId = Guid.Parse(failedMessage.UniqueMessageId),
+                    GroupId = group.Id,
+                    Title = group.Title ?? string.Empty,
+                    Type = group.Type ?? string.Empty
+                }));
         }
 
         await db.SaveChangesAsync();

@@ -90,7 +90,7 @@ class PostgreSqlIngestionSqlDialect : IIngestionSqlDialect
     // The columns the newer attempt wins wholesale
     static readonly string[] PayloadColumns =
     [
-        "message_id", "message_type", "time_sent", "conversation_id", "queue_address",
+        "message_id", "message_type", "time_sent", "conversation_id", "failing_endpoint_address",
         "sending_endpoint_name", "sending_endpoint_host_id", "sending_endpoint_host",
         "receiving_endpoint_name", "receiving_endpoint_host_id", "receiving_endpoint_host",
         "exception_type", "exception_message", "is_system_message",
@@ -109,7 +109,7 @@ class PostgreSqlIngestionSqlDialect : IIngestionSqlDialect
     [
         row.UniqueMessageId, (int)row.Status, row.StatusChangedAt, row.LastModified,
         row.NumberOfProcessingAttempts, row.FirstTimeOfFailure, row.LastTimeOfFailure, row.LastAttemptedAt,
-        row.MessageId, row.MessageType, row.TimeSent, row.ConversationId, row.QueueAddress,
+        row.MessageId, row.MessageType, row.TimeSent, row.ConversationId, row.FailingEndpointAddress,
         row.SendingEndpointName, row.SendingEndpointHostId, row.SendingEndpointHost,
         row.ReceivingEndpointName, row.ReceivingEndpointHostId, row.ReceivingEndpointHost,
         row.ExceptionType, row.ExceptionMessage, row.IsSystemMessage,
