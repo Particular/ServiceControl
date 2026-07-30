@@ -25,7 +25,6 @@ namespace ServiceControl.AcceptanceTests
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
         public JsonSerializerOptions SerializerOptions => serviceControlRunnerBehavior.SerializerOptions;
         public Settings Settings => serviceControlRunnerBehavior.Settings;
-        public Func<HttpMessageHandler> HttpMessageHandlerFactory => serviceControlRunnerBehavior.HttpMessageHandlerFactory;
 
         [SetUp]
         public void Setup()

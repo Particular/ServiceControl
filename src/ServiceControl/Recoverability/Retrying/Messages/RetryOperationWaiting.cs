@@ -2,10 +2,9 @@
 {
     using System;
     using Infrastructure.DomainEvents;
-    using Infrastructure.SignalR;
     using ServiceControl.Persistence;
 
-    public class RetryOperationWaiting : IDomainEvent, IUserInterfaceEvent
+    public class RetryOperationWaiting : IDomainEvent
     {
         public string RequestId { get; set; }
         public RetryType RetryType { get; set; }

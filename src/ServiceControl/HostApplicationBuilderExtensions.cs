@@ -10,7 +10,6 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.Metrics;
-    using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Infrastructure.WebApi;
     using global::ServiceControl.Notifications.Email;
     using global::ServiceControl.Persistence;
@@ -66,7 +65,6 @@ namespace Particular.ServiceControl
             // wires up authorization.
             services.AddSingleton<IMessageActionAuditLog, MessageActionAuditLog>();
 
-            services.AddSingleton<MessageStreamerHub>();
             services.AddSingleton(settings);
             services.AddEnvironmentDataProvider<ServiceControlErrorInstanceEnvironmentDataProvider>();
 

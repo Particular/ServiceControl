@@ -24,7 +24,9 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
 
         const string TestAudience = "api://test-audience";
         const string TestClientId = "test-client-id";
-        const string TestApiScopes = "api://test-audience/.default";
+        const string TestApiScope = "api://test-audience/.default";
+        // ApiScopes is configured as a JSON array (the format ServicePulse parses)
+        const string TestApiScopes = "[\"api://test-audience/.default\"]";
 
         [SetUp]
         public void ConfigureAuth()
@@ -75,6 +77,7 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                 expectedClientId: TestClientId,
                 expectedAudience: TestAudience,
                 expectedApiScopes: TestApiScopes,
+                expectedScopes: $"{TestApiScope} openid profile email offline_access",
                 expectedRoleBasedAuthorizationEnabled: true);
         }
 

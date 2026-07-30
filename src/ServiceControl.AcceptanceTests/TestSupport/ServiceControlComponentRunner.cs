@@ -45,7 +45,6 @@
         public Settings Settings { get; private set; }
         public HttpClient HttpClient { get; private set; }
         public JsonSerializerOptions SerializerOptions => Infrastructure.WebApi.SerializerOptions.Default;
-        public Func<HttpMessageHandler> HttpMessageHandlerFactory { get; private set; }
         public IDomainEvents DomainEvents { get; private set; }
 
         public Task Initialize(RunDescriptor run) => InitializeServiceControl(run.ScenarioContext);
@@ -147,7 +146,6 @@
                 DomainEvents = host.Services.GetRequiredService<IDomainEvents>();
                 // Bring this back and look into the base address of the client
                 HttpClient = host.GetTestServer().CreateClient();
-                HttpMessageHandlerFactory = () => host.GetTestServer().CreateHandler();
             }
         }
 

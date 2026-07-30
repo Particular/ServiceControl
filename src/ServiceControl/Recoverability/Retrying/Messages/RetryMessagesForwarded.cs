@@ -2,10 +2,9 @@
 {
     using System;
     using Infrastructure.DomainEvents;
-    using Infrastructure.SignalR;
     using ServiceControl.Persistence;
 
-    public class RetryMessagesForwarded : IDomainEvent, IUserInterfaceEvent
+    public class RetryMessagesForwarded : IDomainEvent
     {
         public string RequestId { get; set; }
         public RetryType RetryType { get; set; }

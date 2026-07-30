@@ -141,7 +141,7 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
         /// Configures the API scopes that ServicePulse should request.
         /// Required on the primary ServiceControl instance when authentication is enabled.
         /// </summary>
-        /// <param name="scopes">Space-separated list of API scopes</param>
+        /// <param name="scopes">JSON array of API scopes (e.g. <c>["api://my-api/access_as_user"]</c>)</param>
         public OpenIdConnectTestConfiguration WithServicePulseApiScopes(string scopes)
         {
             SetEnvironmentVariable("AUTHENTICATION_SERVICEPULSE_APISCOPES", scopes);
@@ -156,6 +156,16 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
         public OpenIdConnectTestConfiguration WithServicePulseAuthority(string authority)
         {
             SetEnvironmentVariable("AUTHENTICATION_SERVICEPULSE_AUTHORITY", authority);
+            return this;
+        }
+
+        /// <summary>
+        /// Configures whether ServicePulse should request the <c>offline_access</c> scope.
+        /// Default is true. Set to false to simulate an identity provider that disallows the scope.
+        /// </summary>
+        public OpenIdConnectTestConfiguration WithServicePulseOfflineAccessScopeEnabled(bool enabled)
+        {
+            SetEnvironmentVariable("AUTHENTICATION_SERVICEPULSE_OFFLINEACCESSSCOPEENABLED", enabled.ToString().ToLowerInvariant());
             return this;
         }
 
@@ -176,6 +186,7 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
             ClearEnvironmentVariable("AUTHENTICATION_SERVICEPULSE_CLIENTID");
             ClearEnvironmentVariable("AUTHENTICATION_SERVICEPULSE_APISCOPES");
             ClearEnvironmentVariable("AUTHENTICATION_SERVICEPULSE_AUTHORITY");
+            ClearEnvironmentVariable("AUTHENTICATION_SERVICEPULSE_OFFLINEACCESSSCOPEENABLED");
             ClearEnvironmentVariable("AUTHENTICATION_ROLEBASEDAUTHORIZATIONENABLED");
             ClearEnvironmentVariable("VALIDATECONFIG");
         }

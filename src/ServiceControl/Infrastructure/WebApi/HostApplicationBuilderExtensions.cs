@@ -38,11 +38,6 @@
             controllers.AddApplicationPart(typeof(LicensingController).Assembly);
             controllers.AddApplicationPart(typeof(ServiceControl.Hosting.Auth.MyRoutesController).Assembly);
             controllers.AddJsonOptions(options => options.JsonSerializerOptions.CustomizeDefaults());
-
-            var signalR = builder.Services.AddSignalR();
-            signalR.AddJsonProtocol(options => options.PayloadSerializerOptions.CustomizeDefaults());
-
-            builder.AddServicePulseSignalRNotifier();
         }
 
         static void RegisterApiTypes(this IServiceCollection serviceCollection, Assembly assembly)
