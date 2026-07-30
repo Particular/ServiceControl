@@ -72,7 +72,7 @@
             using (Assert.EnterMultipleScope())
             {
                 Assert.That(body, Is.EqualTo(context.MessageBody), "Body bytes mismatch");
-                Assert.That(response.Headers.GetValues("ETag").SingleOrDefault(), Is.Not.Null, "Etag not set");
+                Assert.That(response.Headers.ETag, Is.Not.Null, "Etag not set, or not a well formed entity-tag");
             }
         }
 

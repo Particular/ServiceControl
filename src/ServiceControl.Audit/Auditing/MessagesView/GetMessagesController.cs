@@ -68,7 +68,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
                 throw new Exception($"Metadata for message '{id}' indicated that a body was present but no content could be found in storage");
             }
 
-            Response.Headers.ETag = result.ETag;
+            Response.WithEtag(result.ETag);
             var contentType = result.ContentType ?? "text/*";
             return result.StringContent != null ? Content(result.StringContent, contentType) : File(result.StreamContent, contentType);
         }
