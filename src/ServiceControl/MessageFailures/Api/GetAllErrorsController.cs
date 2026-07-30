@@ -11,14 +11,14 @@
 
     [ApiController]
     [Route("api")]
-    public class GetAllErrorsController(IErrorMessageDataStore store) : ControllerBase
+    public class GetAllErrorsController(IFailedMessageQueryDataStore store) : ControllerBase
     {
         [Authorize(Policy = Permissions.ErrorMessagesView)]
         [Route("errors")]
         [HttpGet]
         public async Task<IList<FailedMessageView>> ErrorsGet([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string status, string modified, string queueAddress)
         {
-            var results = await store.ErrorGet(
+            var results = await store.GetFailedMessages(
                     status: status,
                     modified: modified,
                     queueAddress: queueAddress,
@@ -36,7 +36,7 @@
         [HttpHead]
         public async Task ErrorsHead(string status, string modified, string queueAddress)
         {
-            var queryResult = await store.ErrorsHead(
+            var queryResult = await store.GetFailedMessagesStats(
                     status: status,
                     modified: modified,
                     queueAddress: queueAddress
@@ -50,7 +50,7 @@
         [HttpGet]
         public async Task<IList<FailedMessageView>> ErrorsByEndpointName([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string status, string modified, string endpointName)
         {
-            var results = await store.ErrorsByEndpointName(
+            var results = await store.GetFailedMessagesByEndpoint(
                 status: status,
                 endpointName: endpointName,
                 modified: modified,
@@ -66,6 +66,6 @@
         [Authorize(Policy = Permissions.ErrorMessagesView)]
         [Route("errors/summary")]
         [HttpGet]
-        public async Task<IDictionary<string, object>> ErrorsSummary() => await store.ErrorsSummary();
+        public async Task<IDictionary<string, object>> ErrorsSummary() => await store.GetFailedMessagesSummary();
     }
 }

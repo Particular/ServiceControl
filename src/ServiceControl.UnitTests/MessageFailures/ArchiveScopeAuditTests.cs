@@ -51,7 +51,7 @@ public class ArchiveScopeAuditTests
     {
         var audit = new RecordingMessageActionAuditLog();
         var store = new AsyncRangeAndQueueAuditTests.StubErrorMessageDataStore { ErrorByResult = new FailedMessage { Status = FailedMessageStatus.Unresolved } };
-        var handler = new ArchiveMessageHandler(store, new FakeDomainEvents(), audit);
+        var handler = new ArchiveMessageHandler(store, store, new FakeDomainEvents(), audit);
 
         var context = new TestableMessageHandlerContext
         {

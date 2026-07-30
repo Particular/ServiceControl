@@ -12,7 +12,7 @@
 
     [ApiController]
     [Route("api")]
-    public class NotificationsController(IErrorMessageDataStore store, Settings settings, EmailSender emailSender) : ControllerBase
+    public class NotificationsController(INotificationsDataStore store, Settings settings, EmailSender emailSender) : ControllerBase
     {
         [Authorize(Policy = Permissions.ErrorNotificationsView)]
         [Route("notifications/email")]

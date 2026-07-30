@@ -31,7 +31,7 @@
         IBodyStorage bodyStorage,
         ExpirationManager expirationManager,
         ILogger<ErrorMessagesDataStore> logger)
-        : IErrorMessageDataStore
+        : IMessagesViewDataStore, IFailedMessageQueryDataStore, IFailedMessageLifecycleDataStore, IFailedMessageRetryDataStore
     {
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessages(
             PagingInfo pagingInfo,
@@ -147,7 +147,7 @@
             return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
-        public async Task FailedMessageMarkAsArchived(string failedMessageId)
+        public async Task MarkAsArchived(string failedMessageId)
         {
             using var session = await sessionProvider.OpenSession();
             var failedMessage = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
@@ -162,7 +162,7 @@
             await session.SaveChangesAsync();
         }
 
-        public async Task<FailedMessage[]> FailedMessagesFetch(Guid[] ids)
+        public async Task<FailedMessage[]> GetFailedMessagesByIds(Guid[] ids)
         {
             using var session = await sessionProvider.OpenSession();
             var docIds = ids.Select(g => FailedMessageIdGenerator.MakeDocumentId(g.ToString()));
@@ -170,54 +170,7 @@
             return results.Values.Where(x => x != null).ToArray();
         }
 
-        public async Task StoreFailedErrorImport(FailedErrorImport failure)
-        {
-            using var session = await sessionProvider.OpenSession();
-            // This object's ID is generated externally, but is not in the RavenDB format
-            // Check that's true to make sure that if it already is that it doesn't get double-formatted
-            if (!failure.Id.StartsWith(CollectionName))
-            {
-                failure.Id = MakeDocumentId(failure.Id);
-            }
-            await session.StoreAsync(failure);
-
-            await session.SaveChangesAsync();
-        }
-
-        public async Task<IEditFailedMessagesManager> CreateEditFailedMessageManager() =>
-            // the edit failed message manager manages the lifetime of the session
-            new EditFailedMessageManager(await sessionProvider.OpenSession(), expirationManager);
-
-        public async Task<QueryResult<FailureGroupView>> GetFailureGroupView(string groupId, string status, string modified)
-        {
-            using var session = await sessionProvider.OpenSession();
-            var document = await session.Advanced
-                .AsyncDocumentQuery<FailureGroupView, ArchivedGroupsViewIndex>()
-                .Statistics(out var stats)
-                .WhereEquals(group => group.Id, groupId)
-                .FilterByStatusWhere(status)
-                .FilterByLastModifiedRange(modified)
-                .FirstOrDefaultAsync();
-
-            return new QueryResult<FailureGroupView>(document, stats.ToQueryStatsInfo());
-        }
-
-        public async Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier)
-        {
-            using var session = await sessionProvider.OpenSession();
-            var groups = session
-                .Query<FailureGroupView, ArchivedGroupsViewIndex>()
-                .Where(v => v.Type == classifier);
-
-            var results = await groups
-                .OrderByDescending(x => x.Last)
-                .Take(200) // only show 200 groups
-                .ToListAsync();
-
-            return results;
-        }
-
-        public async Task<QueryResult<IList<FailedMessageView>>> ErrorGet(
+        public async Task<QueryResult<IList<FailedMessageView>>> GetFailedMessages(
             string status,
             string modified,
             string queueAddress,
@@ -244,7 +197,7 @@
             return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
         }
 
-        public async Task<QueryStatsInfo> ErrorsHead(
+        public async Task<QueryStatsInfo> GetFailedMessagesStats(
             string status,
             string modified,
             string queueAddress
@@ -261,7 +214,7 @@
             return stats.ToQueryStatsInfo();
         }
 
-        public async Task<QueryResult<IList<FailedMessageView>>> ErrorsByEndpointName(
+        public async Task<QueryResult<IList<FailedMessageView>>> GetFailedMessagesByEndpoint(
             string status,
             string endpointName,
             string modified,
@@ -289,7 +242,7 @@
             return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
         }
 
-        public async Task<IDictionary<string, object>> ErrorsSummary()
+        public async Task<IDictionary<string, object>> GetFailedMessagesSummary()
         {
             using var session = await sessionProvider.OpenSession();
             var facetResults = await session.Query<FailedMessage, FailedMessageFacetsIndex>()
@@ -321,20 +274,14 @@
             return results;
         }
 
-        public Task<FailedMessage> ErrorBy(string failedMessageId) => ErrorByDocumentId(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
-
-        async Task<FailedMessage> ErrorByDocumentId(string documentId)
+        public async Task<FailedMessage> GetFailedMessage(string failedMessageId)
         {
             using var session = await sessionProvider.OpenSession();
-            var message = await session.LoadAsync<FailedMessage>(documentId);
+            var message = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
             return message;
         }
 
-        public async Task<INotificationsManager> CreateNotificationsManager() =>
-            // the notifications manager manages the lifetime of the session
-            new NotificationsManager(await sessionProvider.OpenSession());
-
-        public async Task<FailedMessageView> ErrorLastBy(string failedMessageId)
+        public async Task<FailedMessageView> GetLatestFailedMessageView(string failedMessageId)
         {
             using var session = await sessionProvider.OpenSession();
             var message = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
@@ -395,81 +342,7 @@
         }
 
 
-        public async Task EditComment(string groupId, string comment)
-        {
-            using var session = await sessionProvider.OpenSession();
-            var groupComment =
-                await session.LoadAsync<GroupComment>(GroupsDataStore.MakeId(groupId))
-                ?? new GroupComment { Id = GroupsDataStore.MakeId(groupId) };
-
-            groupComment.Comment = comment;
-
-            await session.StoreAsync(groupComment);
-            await session.SaveChangesAsync();
-        }
-
-        public async Task DeleteComment(string groupId)
-        {
-            using var session = await sessionProvider.OpenSession();
-            session.Delete(GroupsDataStore.MakeId(groupId));
-            await session.SaveChangesAsync();
-        }
-
-        public async Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(
-            string groupId,
-            string status,
-            string modified,
-            SortInfo sortInfo,
-            PagingInfo pagingInfo
-            )
-        {
-            using var session = await sessionProvider.OpenSession();
-            var query = session.Advanced
-                .AsyncDocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
-                .Statistics(out var stats)
-                .WhereEquals(view => view.FailureGroupId, groupId)
-                .FilterByStatusWhere(status)
-                .FilterByLastModifiedRange(modified)
-                .Sort(sortInfo)
-                .Paging(pagingInfo)
-                .SelectFields<FailedMessage>()
-                .ToQueryable()
-                .TransformToFailedMessageView();
-
-            var results = await query
-                .ToListAsync();
-
-            return results.ToQueryResult(stats);
-        }
-
-        public async Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string status, string modified)
-        {
-            using var session = await sessionProvider.OpenSession();
-            var queryResult = await session.Advanced
-                .AsyncDocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
-                .WhereEquals(view => view.FailureGroupId, groupId)
-                .FilterByStatusWhere(status)
-                .FilterByLastModifiedRange(modified)
-                .GetQueryResultAsync();
-
-            return queryResult.ToQueryStatsInfo();
-        }
-
-        public async Task<QueryResult<IList<FailureGroupView>>> GetGroup(string groupId, string status, string modified)
-        {
-            using var session = await sessionProvider.OpenSession();
-            var queryResult = await session.Advanced
-                .AsyncDocumentQuery<FailureGroupView, FailureGroupsViewIndex>()
-                .Statistics(out var stats)
-                .WhereEquals(group => group.Id, groupId)
-                .FilterByStatusWhere(status)
-                .FilterByLastModifiedRange(modified)
-                .ToListAsync();
-
-            return queryResult.ToQueryResult(stats);
-        }
-
-        public async Task<bool> MarkMessageAsResolved(string failedMessageId)
+        public async Task<bool> MarkAsResolved(string failedMessageId)
         {
             var documentId = FailedMessageIdGenerator.MakeDocumentId(failedMessageId);
 
@@ -606,7 +479,7 @@
             await session.SaveChangesAsync();
         }
 
-        public async Task RemoveFailedMessageRetryDocument(string uniqueMessageId)
+        public async Task RemoveFailedMessageRetry(string uniqueMessageId)
         {
             using var session = await sessionProvider.OpenSession();
             await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(uniqueMessageId), null), session.Advanced.Context);
@@ -632,7 +505,7 @@
 
         record struct FailedMessageProjection(string UniqueMessageId);
 
-        public async Task<byte[]> FetchFromFailedMessage(string uniqueMessageId)
+        public async Task<byte[]> GetFailedMessageBody(string uniqueMessageId)
         {
             byte[] body = null;
             var result = await bodyStorage.TryFetch(uniqueMessageId)
@@ -655,18 +528,5 @@
             }
             return body;
         }
-
-        public async Task StoreEventLogItem(EventLogItem logItem)
-        {
-            using var session = await sessionProvider.OpenSession();
-            await session.StoreAsync(logItem);
-
-            expirationManager.EnableExpiration(session, logItem);
-
-            await session.SaveChangesAsync();
-        }
-
-        public static string MakeDocumentId(string id) => string.Join("/", CollectionName, id);
-        public const string CollectionName = "FailedErrorImports";
     }
 }

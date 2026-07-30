@@ -5,7 +5,9 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NServiceBus;
 using ServiceControl.Operations;
+using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
@@ -14,12 +16,55 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 public class FailedErrorImportDataStore(
     IServiceScopeFactory scopeFactory,
     IBodyStoragePersistence bodyStorage,
+    BodyStorageSettings bodyStorageSettings,
+    TimeProvider timeProvider,
     ILogger<FailedErrorImportDataStore> logger) : DataStoreBase(scopeFactory), IFailedErrorImportDataStore
 {
     const int BatchSize = 100;
 
     public Task<bool> QueryContainsFailedImports() =>
         ExecuteWithDbContext(dbContext => dbContext.FailedErrorImports.AsNoTracking().AnyAsync());
+
+    // Update-first, then insert. The dedupe key is deterministic, so a repeat failure updates the
+    // existing row and concurrent writers that both miss it race only on the insert. The loser of
+    // that race confirms the row is now present (the winner stored the same logical failure) and
+    // otherwise rethrows, so the caller never treats a message as stored when it is not.
+    public Task StoreFailedErrorImport(FailedErrorImport failure) =>
+        ExecuteWithDbContext(async dbContext =>
+        {
+            var uniqueMessageId = FailedErrorImport.DeriveKey(failure.Message.Headers, failure.Message.Id);
+            var body = failure.Message.Body ?? [];
+            var storeExternally = body.Length > bodyStorageSettings.MaxBodySizeToStore;
+
+            if (storeExternally)
+            {
+                var contentType = failure.Message.Headers.GetValueOrDefault(Headers.ContentType) ?? "application/octet-stream";
+                await bodyStorage.WriteBody(FailedErrorImportEntity.ExternalBodyId(uniqueMessageId), body, contentType);
+            }
+
+            var failedAt = timeProvider.GetUtcNow().UtcDateTime;
+            var headersJson = JsonSerializer.Serialize(failure.Message.Headers, HeadersJsonContext.Default.DictionaryStringString);
+            byte[] storedBody = storeExternally ? [] : body;
+
+            await dbContext.UpsertAsync([uniqueMessageId], () => new FailedErrorImportEntity
+            {
+                UniqueMessageId = uniqueMessageId,
+                FailedAt = failedAt,
+                MessageId = failure.Message.Id,
+                HeadersJson = headersJson,
+                Body = storedBody,
+                BodyStoredExternally = storeExternally,
+                ExceptionInfo = failure.ExceptionInfo
+            }, (entity) =>
+            {
+                entity.FailedAt = failedAt;
+                entity.MessageId = failure.Message.Id;
+                entity.HeadersJson = headersJson;
+                entity.Body = storedBody;
+                entity.BodyStoredExternally = storeExternally;
+                entity.ExceptionInfo = failure.ExceptionInfo;
+            });
+        });
 
     // Replays oldest-first. Successful imports delete their row; failures are left in place, so the
     // count of failures so far is exactly the offset to the next unseen row. This walks the whole

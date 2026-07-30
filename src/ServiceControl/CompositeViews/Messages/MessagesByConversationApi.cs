@@ -16,9 +16,9 @@ namespace ServiceControl.CompositeViews.Messages
         string ConversationId)
         : ScatterGatherApiMessageViewWithSystemMessagesContext(PagingInfo, SortInfo, IncludeSystemMessages);
 
-    public class MessagesByConversationApi : ScatterGatherApiMessageView<IErrorMessageDataStore, MessagesByConversationContext>
+    public class MessagesByConversationApi : ScatterGatherApiMessageView<IMessagesViewDataStore, MessagesByConversationContext>
     {
-        public MessagesByConversationApi(IErrorMessageDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<MessagesByConversationApi> logger)
+        public MessagesByConversationApi(IMessagesViewDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<MessagesByConversationApi> logger)
             : base(dataStore, settings, httpClientFactory, httpContextAccessor, logger)
         {
         }

@@ -17,9 +17,9 @@ namespace ServiceControl.CompositeViews.Messages
         DateTimeRange TimeSentRange = null)
         : ScatterGatherApiMessageViewWithSystemMessagesContext(PagingInfo, SortInfo, IncludeSystemMessages, TimeSentRange);
 
-    public class GetAllMessagesForEndpointApi : ScatterGatherApiMessageView<IErrorMessageDataStore, AllMessagesForEndpointContext>
+    public class GetAllMessagesForEndpointApi : ScatterGatherApiMessageView<IMessagesViewDataStore, AllMessagesForEndpointContext>
     {
-        public GetAllMessagesForEndpointApi(IErrorMessageDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<GetAllMessagesForEndpointApi> logger)
+        public GetAllMessagesForEndpointApi(IMessagesViewDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<GetAllMessagesForEndpointApi> logger)
             : base(dataStore, settings, httpClientFactory, httpContextAccessor, logger)
         {
         }

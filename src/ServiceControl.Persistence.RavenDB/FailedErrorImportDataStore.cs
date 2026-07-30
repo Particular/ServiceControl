@@ -9,6 +9,20 @@
 
     class FailedErrorImportDataStore(IRavenSessionProvider sessionProvider, ILogger<FailedErrorImportDataStore> logger) : IFailedErrorImportDataStore
     {
+        public async Task StoreFailedErrorImport(FailedErrorImport failure)
+        {
+            using var session = await sessionProvider.OpenSession();
+            // This object's ID is generated externally, but is not in the RavenDB format
+            // Check that's true to make sure that if it already is that it doesn't get double-formatted
+            if (!failure.Id.StartsWith(CollectionName))
+            {
+                failure.Id = MakeDocumentId(failure.Id);
+            }
+            await session.StoreAsync(failure);
+
+            await session.SaveChangesAsync();
+        }
+
         public async Task ProcessFailedErrorImports(Func<FailedTransportMessage, Task> processMessage, CancellationToken cancellationToken)
         {
             var succeeded = 0;
@@ -57,5 +71,8 @@
             await using var ie = await session.Advanced.StreamAsync(query);
             return await ie.MoveNextAsync();
         }
+
+        public static string MakeDocumentId(string id) => string.Join("/", CollectionName, id);
+        public const string CollectionName = "FailedErrorImports";
     }
 }

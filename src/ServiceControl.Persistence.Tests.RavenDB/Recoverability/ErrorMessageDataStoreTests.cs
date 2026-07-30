@@ -15,13 +15,14 @@
     [TestFixture]
     class ErrorMessageDataStoreTests : RavenPersistenceTestBase
     {
-        IErrorMessageDataStore store;
+        IMessagesViewDataStore messagesViewStore;
+        IFailedMessageQueryDataStore queryStore;
         FailedMessage processedMessage1, processedMessage2;
 
         [Test]
         public async Task GetAllMessages()
         {
-            var result = await store.GetAllMessages(new PagingInfo(1, 50), new SortInfo("", ""), false);
+            var result = await messagesViewStore.GetAllMessages(new PagingInfo(1, 50), new SortInfo("", ""), false);
             Assert.That(result.Results, Is.Not.Empty);
         }
 
@@ -34,7 +35,7 @@
         [TestCase("critical_time", "dsc", "b")]
         public async Task GetAllMessagesForEndpoint(string sort, string direction, string id)
         {
-            var result = await store.GetAllMessagesForEndpoint(
+            var result = await messagesViewStore.GetAllMessagesForEndpoint(
                 "RamonAndTomek",
                 new PagingInfo(1, 1),
                 new SortInfo(sort, direction),
@@ -49,7 +50,7 @@
         [Test]
         public async Task ErrorGet()
         {
-            var result = await store.ErrorGet(null, null, null, new PagingInfo(1, 50), new SortInfo("", ""));
+            var result = await queryStore.GetFailedMessages(null, null, null, new PagingInfo(1, 50), new SortInfo("", ""));
             Assert.That(result.Results, Is.Not.Empty);
         }
 
@@ -61,7 +62,8 @@
 
             await CompleteDatabaseOperation();
 
-            store = ServiceProvider.GetRequiredService<IErrorMessageDataStore>();
+            messagesViewStore = ServiceProvider.GetRequiredService<IMessagesViewDataStore>();
+            queryStore = ServiceProvider.GetRequiredService<IFailedMessageQueryDataStore>();
         }
 
         async Task GenerateAndSaveFailedMessage()

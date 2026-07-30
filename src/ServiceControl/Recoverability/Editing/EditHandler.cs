@@ -16,7 +16,7 @@
     using ServiceControl.Persistence.MessageRedirects;
 
     [Handler]
-    class EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IMessageDispatcher dispatcher, ErrorQueueNameCache errorQueueNameCache, IDomainEvents domainEvents, IMessageActionAuditLog auditLog, ILogger<EditHandler> logger)
+    class EditHandler(IEditFailedMessagesDataStore store, IMessageRedirectsDataStore redirectsStore, IMessageDispatcher dispatcher, ErrorQueueNameCache errorQueueNameCache, IDomainEvents domainEvents, IMessageActionAuditLog auditLog, ILogger<EditHandler> logger)
         : IHandleMessages<EditAndSend>
     {
         public async Task Handle(EditAndSend message, IMessageHandlerContext context)

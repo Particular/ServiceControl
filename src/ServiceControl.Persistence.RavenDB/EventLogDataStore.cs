@@ -6,12 +6,15 @@
     using Persistence.Infrastructure;
     using Raven.Client.Documents;
 
-    class EventLogDataStore(IRavenSessionProvider sessionProvider) : IEventLogDataStore
+    class EventLogDataStore(IRavenSessionProvider sessionProvider, ExpirationManager expirationManager) : IEventLogDataStore
     {
         public async Task Add(EventLogItem logItem)
         {
             using var session = await sessionProvider.OpenSession();
             await session.StoreAsync(logItem);
+
+            expirationManager.EnableExpiration(session, logItem);
+
             await session.SaveChangesAsync();
         }
 

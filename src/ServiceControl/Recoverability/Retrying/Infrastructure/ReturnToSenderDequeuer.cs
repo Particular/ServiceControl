@@ -16,7 +16,7 @@ class ReturnToSenderDequeuer : IHostedService
 {
     public ReturnToSenderDequeuer(
         ReturnToSender returnToSender,
-        IErrorMessageDataStore dataStore,
+        IFailedMessageLifecycleDataStore dataStore,
         IDomainEvents domainEvents,
         ITransportCustomization transportCustomization,
         TransportSettings transportSettings,
@@ -180,7 +180,7 @@ class ReturnToSenderDequeuer : IHostedService
 
     class CaptureIfMessageSendingFails
     {
-        public CaptureIfMessageSendingFails(IErrorMessageDataStore dataStore, IDomainEvents domainEvents, Action executeOnFailure, ILogger logger)
+        public CaptureIfMessageSendingFails(IFailedMessageLifecycleDataStore dataStore, IDomainEvents domainEvents, Action executeOnFailure, ILogger logger)
         {
             this.dataStore = dataStore;
             this.executeOnFailure = executeOnFailure;
@@ -234,7 +234,7 @@ class ReturnToSenderDequeuer : IHostedService
         }
 
         readonly Action executeOnFailure;
-        readonly IErrorMessageDataStore dataStore;
+        readonly IFailedMessageLifecycleDataStore dataStore;
         readonly IDomainEvents domainEvents;
         readonly ILogger logger;
     }

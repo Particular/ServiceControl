@@ -8,14 +8,14 @@
 
     [ApiController]
     [Route("api")]
-    public class GetErrorByIdController(IErrorMessageDataStore store) : ControllerBase
+    public class GetErrorByIdController(IFailedMessageQueryDataStore store) : ControllerBase
     {
         [Authorize(Policy = Permissions.ErrorMessagesView)]
         [Route("errors/{failedMessageId:required:minlength(1)}")]
         [HttpGet]
         public async Task<ActionResult<FailedMessage>> ErrorBy(string failedMessageId)
         {
-            var result = await store.ErrorBy(failedMessageId);
+            var result = await store.GetFailedMessage(failedMessageId);
 
             return result == null ? NotFound() : result;
         }
@@ -25,7 +25,7 @@
         [HttpGet]
         public async Task<ActionResult<FailedMessageView>> ErrorLastBy(string failedMessageId)
         {
-            var result = await store.ErrorLastBy(failedMessageId);
+            var result = await store.GetLatestFailedMessageView(failedMessageId);
 
             return result == null ? NotFound() : result;
         }

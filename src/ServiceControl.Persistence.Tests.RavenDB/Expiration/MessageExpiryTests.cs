@@ -47,12 +47,12 @@
 
             Assert.That(error.Results, Has.Count.EqualTo(1), "Failed message should be available to query after ingestion");
 
-            await ErrorStore.FailedMessageMarkAsArchived(error.Results.First().Id);
+            await FailedMessageLifecycleStore.MarkAsArchived(error.Results.First().Id);
 
             await WaitUntil(async () => (await GetAllMessages()).Results.Count == 0, "Archived message should be removed after archiving.");
         }
 
-        async Task<QueryResult<IList<MessagesView>>> GetAllMessages() => await ErrorStore.GetAllMessages(new PagingInfo(1, 10), new SortInfo(null, null), false);
+        async Task<QueryResult<IList<MessagesView>>> GetAllMessages() => await MessagesViewStore.GetAllMessages(new PagingInfo(1, 10), new SortInfo(null, null), false);
 
         [Test]
         public async Task AllMessagesInUnArchivedGroupShouldNotExpire()
@@ -136,7 +136,7 @@
 
             Assert.That(errors.Results, Has.Count.EqualTo(1), "Failed message should be available to query after ingestion");
 
-            await ErrorStore.MarkMessageAsResolved(errors.Results.First().Id);
+            await FailedMessageLifecycleStore.MarkAsResolved(errors.Results.First().Id);
 
             await WaitUntil(async () => (await GetAllMessages()).Results.Count == 0, "Archived message should be removed after archiving.");
         }
@@ -246,7 +246,7 @@
         {
             await DisableExpiration();
 
-            await ErrorStore.StoreEventLogItem(new EventLogItem());
+            await EventLogDataStore.Add(new EventLogItem());
 
             await CompleteDatabaseOperation();
 

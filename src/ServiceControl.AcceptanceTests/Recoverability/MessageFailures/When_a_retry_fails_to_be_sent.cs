@@ -31,7 +31,7 @@
 
             CustomizeHostBuilder = hostBuilder =>
             {
-                hostBuilder.Services.AddSingleton<ReturnToSender>(provider => new FakeReturnToSender(provider.GetRequiredService<IErrorMessageDataStore>(), provider.GetRequiredService<MyContext>()));
+                hostBuilder.Services.AddSingleton<ReturnToSender>(provider => new FakeReturnToSender(provider.GetRequiredService<IFailedMessageRetryDataStore>(), provider.GetRequiredService<MyContext>()));
             };
 
             await Define<MyContext>()
@@ -149,7 +149,7 @@
 
         public class MessageThatWillFail : ICommand;
 
-        public class FakeReturnToSender(IErrorMessageDataStore errorMessageStore, MyContext myContext)
+        public class FakeReturnToSender(IFailedMessageRetryDataStore errorMessageStore, MyContext myContext)
             : ReturnToSender(errorMessageStore, NullLogger<ReturnToSender>.Instance)
         {
             public override Task HandleMessage(MessageContext message, IMessageDispatcher sender, string errorQueueTransportAddress, CancellationToken cancellationToken = default)

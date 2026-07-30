@@ -60,11 +60,11 @@
             }
         }
 
-        class SetupNotificationSettings(IErrorMessageDataStore errorMessageDataStore) : IHostedService
+        class SetupNotificationSettings(INotificationsDataStore notificationsDataStore) : IHostedService
         {
             public async Task StartAsync(CancellationToken cancellationToken)
             {
-                using var notificationsManager = await errorMessageDataStore.CreateNotificationsManager();
+                using var notificationsManager = await notificationsDataStore.CreateNotificationsManager();
 
                 var settings = await notificationsManager.LoadSettings();
                 settings.Email = new EmailNotifications

@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.EventLog
+namespace ServiceControl.EventLog
 {
     using System.Threading;
     using System.Threading.Tasks;
@@ -11,7 +11,7 @@
     /// </summary>
     class AuditEventLogWriter : IDomainHandler<IDomainEvent>
     {
-        public AuditEventLogWriter(IErrorMessageDataStore dataStore, EventLogMappings mappings)
+        public AuditEventLogWriter(IEventLogDataStore dataStore, EventLogMappings mappings)
         {
             this.dataStore = dataStore;
             this.mappings = mappings;
@@ -26,10 +26,10 @@
 
             var logItem = mappings.ApplyMapping(message);
 
-            await dataStore.StoreEventLogItem(logItem);
+            await dataStore.Add(logItem);
         }
 
-        readonly IErrorMessageDataStore dataStore;
+        readonly IEventLogDataStore dataStore;
         readonly EventLogMappings mappings;
     }
 }

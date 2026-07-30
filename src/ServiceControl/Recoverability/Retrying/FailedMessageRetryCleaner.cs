@@ -8,9 +8,9 @@ namespace ServiceControl.Recoverability
 
     class FailedMessageRetryCleaner : IDomainHandler<MessageFailed>
     {
-        readonly IErrorMessageDataStore dataStore;
+        readonly IFailedMessageRetryDataStore dataStore;
 
-        public FailedMessageRetryCleaner(IErrorMessageDataStore dataStore)
+        public FailedMessageRetryCleaner(IFailedMessageRetryDataStore dataStore)
         {
             this.dataStore = dataStore;
         }
@@ -19,7 +19,7 @@ namespace ServiceControl.Recoverability
         {
             if (message.RepeatedFailure)
             {
-                return dataStore.RemoveFailedMessageRetryDocument(message.FailedMessageId);
+                return dataStore.RemoveFailedMessageRetry(message.FailedMessageId);
             }
 
             return Task.CompletedTask;

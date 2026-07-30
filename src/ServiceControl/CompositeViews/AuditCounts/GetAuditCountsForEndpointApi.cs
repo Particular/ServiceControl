@@ -19,12 +19,12 @@
     public record AuditCountsForEndpointContext(PagingInfo PagingInfo, string Endpoint) : ScatterGatherContext(PagingInfo);
 
     public class GetAuditCountsForEndpointApi(
-        IErrorMessageDataStore dataStore,
+        IMessagesViewDataStore dataStore,
         Settings settings,
         IHttpClientFactory httpClientFactory,
         IHttpContextAccessor httpContextAccessor,
         ILogger<GetAuditCountsForEndpointApi> logger)
-        : ScatterGatherApi<IErrorMessageDataStore, AuditCountsForEndpointContext, IList<AuditCount>>(dataStore, settings, httpClientFactory, httpContextAccessor, logger)
+        : ScatterGatherApi<IMessagesViewDataStore, AuditCountsForEndpointContext, IList<AuditCount>>(dataStore, settings, httpClientFactory, httpContextAccessor, logger)
     {
         static readonly IList<AuditCount> Empty = new List<AuditCount>(0).AsReadOnly();
 

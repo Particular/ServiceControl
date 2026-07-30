@@ -26,7 +26,7 @@
             ITransportCustomization transportCustomization,
             TransportSettings transportSettings,
             Metrics metrics,
-            IErrorMessageDataStore dataStore,
+            IFailedErrorImportDataStore dataStore,
             ErrorIngestionCustomCheck.State ingestionState,
             ErrorIngestor ingestor,
             IIngestionUnitOfWorkFactory unitOfWorkFactory,

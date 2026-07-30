@@ -10,7 +10,7 @@
     using Persistence;
 
     [Handler]
-    class UnArchiveMessagesHandler(IErrorMessageDataStore store, IDomainEvents domainEvents, IMessageActionAuditLog auditLog)
+    class UnArchiveMessagesHandler(IFailedMessageLifecycleDataStore store, IDomainEvents domainEvents, IMessageActionAuditLog auditLog)
         : IHandleMessages<UnArchiveMessages>
     {
         public async Task Handle(UnArchiveMessages messages, IMessageHandlerContext context)
