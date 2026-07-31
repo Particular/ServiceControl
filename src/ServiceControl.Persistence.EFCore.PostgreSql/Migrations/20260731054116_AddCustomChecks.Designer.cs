@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServiceControl.Persistence.EFCore.PostgreSql;
@@ -12,9 +13,11 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    partial class PostgreSqlServiceControlDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260731054116_AddCustomChecks")]
+    partial class AddCustomChecks
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -218,6 +221,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnName("exception_type");
 
                     b.Property<string>("FailingEndpointAddress")
+                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)")
                         .HasColumnName("failing_endpoint_address");

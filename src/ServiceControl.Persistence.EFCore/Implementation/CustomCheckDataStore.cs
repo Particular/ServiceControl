@@ -57,15 +57,13 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
             _ => query
         };
 
-        var totalResults = await query.CountAsync();
-        var page = query
+        var page = await query
             .OrderBy(c => c.ReportedAt)
             .Skip(paging.Offset)
-            .Take(paging.PageSize);
+            .Take(paging.PageSize)
+            .ToListAsync();
 
-        var results = await page.ToListAsync();
-
-        return new QueryResult<IList<CustomCheck>>(results.Select(c => new CustomCheck
+        return new QueryResult<IList<CustomCheck>>(page.Select(c => new CustomCheck
         {
             Id = c.Id.ToString(),
             CustomCheckId = c.CustomCheckId,
@@ -73,7 +71,7 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
             Status = c.Status,
             ReportedAt = c.ReportedAt,
             FailureReason = c.FailureReason
-        }).ToList(), new QueryStatsInfo(results.Max(x => (uint?)x.RowVersion)?.ToString(), totalResults, false));
+        }).ToList(), new QueryStatsInfo("", page.Count, false));
     });
 
     public Task DeleteCustomCheck(Guid id) => ExecuteWithDbContext(async context =>
