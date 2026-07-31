@@ -130,7 +130,8 @@ class LicensingDataStore(
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
-        foreach (var documentId in documentIds) {
+        foreach (var documentId in documentIds)
+        {
             session.Delete(documentId);
         }
         await session.SaveChangesAsync(cancellationToken);
