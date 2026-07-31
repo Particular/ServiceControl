@@ -13,14 +13,12 @@ using ServiceControl.Persistence.Infrastructure;
 public class FailedMessageQueryDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IFailedMessageQueryDataStore
 {
     public Task<QueryResult<IList<FailedMessageView>>> GetFailedMessages(string? status, string? modified, string? queueAddress, PagingInfo pagingInfo, SortInfo sortInfo) =>
-        ExecuteWithDbContext(dbContext => Page(
-            dbContext.FailedMessages
-                .AsNoTracking()
-                .FilterByStatus(status)
-                .FilterByLastModifiedRange(modified)
-                .FilterByQueueAddress(queueAddress),
-            pagingInfo,
-            sortInfo));
+        ExecuteWithDbContext(dbContext => dbContext.FailedMessages
+            .AsNoTracking()
+            .FilterByStatus(status)
+            .FilterByLastModifiedRange(modified)
+            .FilterByQueueAddress(queueAddress)
+            .ToPagedResult(pagingInfo, sortInfo));
 
     public Task<QueryStatsInfo> GetFailedMessagesStats(string? status, string? modified, string? queueAddress) =>
         ExecuteWithDbContext(dbContext => dbContext.FailedMessages
@@ -31,14 +29,12 @@ public class FailedMessageQueryDataStore(IServiceScopeFactory scopeFactory) : Da
             .ToQueryStatsInfo());
 
     public Task<QueryResult<IList<FailedMessageView>>> GetFailedMessagesByEndpoint(string? status, string endpointName, string? modified, PagingInfo pagingInfo, SortInfo sortInfo) =>
-        ExecuteWithDbContext(dbContext => Page(
-            dbContext.FailedMessages
-                .AsNoTracking()
-                .Where(message => message.ReceivingEndpointName == endpointName)
-                .FilterByStatus(status)
-                .FilterByLastModifiedRange(modified),
-            pagingInfo,
-            sortInfo));
+        ExecuteWithDbContext(dbContext => dbContext.FailedMessages
+            .AsNoTracking()
+            .Where(message => message.ReceivingEndpointName == endpointName)
+            .FilterByStatus(status)
+            .FilterByLastModifiedRange(modified)
+            .ToPagedResult(pagingInfo, sortInfo));
 
     public Task<IDictionary<string, object>> GetFailedMessagesSummary() =>
         ExecuteWithDbContext(async dbContext =>
@@ -109,20 +105,6 @@ public class FailedMessageQueryDataStore(IServiceScopeFactory scopeFactory) : Da
 
             return [.. entities.Select(entity => entity.ToFailedMessage(groups.GetValueOrDefault(entity.UniqueMessageId, [])))];
         });
-
-    static async Task<QueryResult<IList<FailedMessageView>>> Page(IQueryable<FailedMessageEntity> query, PagingInfo pagingInfo, SortInfo sortInfo)
-    {
-        var stats = await query.ToQueryStatsInfo();
-
-        var entities = await query
-            .Sort(sortInfo)
-            .Page(pagingInfo)
-            .ToListAsync();
-
-        IList<FailedMessageView> results = [.. entities.Select(entity => entity.ToFailedMessageView())];
-
-        return new QueryResult<IList<FailedMessageView>>(results, stats);
-    }
 
     static async Task<Dictionary<string, object>> CountBy(ServiceControlDbContext dbContext, Expression<Func<FailedMessageEntity, string?>> selector) =>
         await dbContext.FailedMessages
