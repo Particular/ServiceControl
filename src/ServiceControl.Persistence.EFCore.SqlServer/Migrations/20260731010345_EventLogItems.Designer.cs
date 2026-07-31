@@ -12,7 +12,7 @@ using ServiceControl.Persistence.EFCore.SqlServer;
 namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerServiceControlDbContext))]
-    [Migration("20260730090510_EventLogItems")]
+    [Migration("20260731010345_EventLogItems")]
     partial class EventLogItems
     {
         /// <inheritdoc />
@@ -294,6 +294,26 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("KnownEndpoints");
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.SubscriptionEntity", b =>
+                {
+                    b.Property<string>("MessageType")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("TransportAddress")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Endpoint")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("MessageType", "TransportAddress");
+
+                    b.ToTable("Subscriptions");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.TrialMetadataEntity", b =>

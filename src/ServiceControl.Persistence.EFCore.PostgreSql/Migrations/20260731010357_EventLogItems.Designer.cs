@@ -13,7 +13,7 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    [Migration("20260730090531_EventLogItems")]
+    [Migration("20260731010357_EventLogItems")]
     partial class EventLogItems
     {
         /// <inheritdoc />
@@ -367,6 +367,30 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasName("pk_known_endpoints");
 
                     b.ToTable("known_endpoints", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.SubscriptionEntity", b =>
+                {
+                    b.Property<string>("MessageType")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("message_type");
+
+                    b.Property<string>("TransportAddress")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("transport_address");
+
+                    b.Property<string>("Endpoint")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("endpoint");
+
+                    b.HasKey("MessageType", "TransportAddress")
+                        .HasName("pk_subscriptions");
+
+                    b.ToTable("subscriptions", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.TrialMetadataEntity", b =>
