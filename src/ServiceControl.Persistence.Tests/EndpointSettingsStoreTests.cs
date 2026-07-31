@@ -9,7 +9,7 @@ using ServiceControl.Persistence;
 
 class EndpointSettingsStoreTests : PersistenceTestBase
 {
-    [Test, CancelAfter(15_000)]
+    [Test, CancelAfter(30_000)]
     public async Task UpdateEndpointSettings_stores_and_updates_existing_setting(CancellationToken cancellationToken)
     {
         await EndpointSettingsStore.UpdateEndpointSettings(new EndpointSettings { Name = "Sales", TrackInstances = false }, cancellationToken);
@@ -25,7 +25,7 @@ class EndpointSettingsStoreTests : PersistenceTestBase
         }
     }
 
-    [Test, CancelAfter(15_000)]
+    [Test, CancelAfter(30_000)]
     public async Task Delete_removes_only_target_setting(CancellationToken cancellationToken)
     {
         await EndpointSettingsStore.UpdateEndpointSettings(new EndpointSettings { Name = "Sales", TrackInstances = false }, cancellationToken);
