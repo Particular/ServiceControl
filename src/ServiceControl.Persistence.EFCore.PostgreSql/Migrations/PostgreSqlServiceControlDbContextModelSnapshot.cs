@@ -23,6 +23,60 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.CustomCheckEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("category");
+
+                    b.Property<string>("CustomCheckId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("custom_check_id");
+
+                    b.Property<string>("FailureReason")
+                        .HasColumnType("text")
+                        .HasColumnName("failure_reason");
+
+                    b.Property<string>("OriginatingEndpointHost")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("originating_endpoint_host");
+
+                    b.Property<Guid>("OriginatingEndpointHostId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("originating_endpoint_host_id");
+
+                    b.Property<string>("OriginatingEndpointName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("originating_endpoint_name");
+
+                    b.Property<DateTime>("ReportedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reported_at");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_custom_checks");
+
+                    b.ToTable("custom_checks", (string)null);
+                });
+
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.EndpointSettingsEntity", b =>
                 {
                     b.Property<string>("Name")

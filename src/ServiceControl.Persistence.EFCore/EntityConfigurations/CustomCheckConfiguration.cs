@@ -10,6 +10,7 @@ public class CustomCheckConfiguration : IEntityTypeConfiguration<CustomCheckEnti
     {
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id).ValueGeneratedNever();
+        builder.Property(e => e.RowVersion).IsRowVersion();
         builder.Property(e => e.CustomCheckId).IsRequired();
         builder.Property(e => e.Category).IsRequired();
         builder.Property(e => e.Status).IsRequired();

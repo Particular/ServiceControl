@@ -1,9 +1,7 @@
 namespace ServiceControl.Persistence.EFCore.PostgreSql;
 
-using CustomChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using ServiceControl.CustomChecks;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Infrastructure;
@@ -15,9 +13,6 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersiste
         RegisterSettings(services);
         ConfigureDbContext(services);
         RegisterDataStores(services, settings);
-
-        services.AddCustomCheck<CheckFreeDiskSpace>();
-        services.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
 
         services.AddSingleton<IIngestionSqlDialect, PostgreSqlIngestionSqlDialect>();
     }

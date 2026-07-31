@@ -14,4 +14,6 @@ public class CustomCheckEntity
     public Guid OriginatingEndpointHostId { get; set; }
 
     public required string OriginatingEndpointHost { get; set; }
+
+    public uint RowVersion { get; set; }
 }

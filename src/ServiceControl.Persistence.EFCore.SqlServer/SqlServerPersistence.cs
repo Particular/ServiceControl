@@ -16,9 +16,6 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
         ConfigureDbContext(services);
         RegisterDataStores(services, settings);
 
-        services.AddCustomCheck<CheckFreeDiskSpace>();
-        services.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
-
         services.AddSingleton<IIngestionSqlDialect, SqlServerIngestionSqlDialect>();
     }
 

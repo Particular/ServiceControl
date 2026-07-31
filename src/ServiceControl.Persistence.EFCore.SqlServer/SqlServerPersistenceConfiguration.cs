@@ -15,9 +15,6 @@ class SqlServerPersistenceConfiguration : EFPersistenceConfigurationBase
 
         var sqlSettings = (SqlServerPersisterSettings)settings;
 
-        CheckFreeDiskSpace.Validate(sqlSettings);
-        CheckMinimumStorageRequiredForIngestion.Validate(sqlSettings);
-
         return new SqlServerPersistence(sqlSettings);
     }
 

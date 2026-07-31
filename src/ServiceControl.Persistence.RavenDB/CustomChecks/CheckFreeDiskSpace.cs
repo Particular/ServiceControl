@@ -58,5 +58,7 @@
 
         readonly string dataPathRoot = Path.GetPathRoot(settings.DatabasePath);
         readonly decimal percentageThreshold = settings.DataSpaceRemainingThreshold / 100m;
+
+        public const int DataSpaceRemainingThresholdDefault = 20;
     }
 }

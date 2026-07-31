@@ -8,6 +8,7 @@
     using NServiceBus.CustomChecks;
     using ServiceControl.Infrastructure;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.RavenDB;
 
     class CheckMinimumStorageRequiredForIngestion(MinimumRequiredStorageState stateHolder, RavenPersisterSettings settings, ILogger<CheckMinimumStorageRequiredForIngestion> logger) : CustomCheck("Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
     {
@@ -46,9 +47,9 @@
                 dataDriveInfo.RootDirectory,
                 Environment.MachineName,
                 percentageThreshold,
-                PersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey);
+                RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey);
             stateHolder.CanIngestMore = false;
-            return CheckResult.Failed($"Error message ingestion stopped! {percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'. This is less than {percentageThreshold}% - the minimal required space configured. The threshold can be set using the {PersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} configuration setting.");
+            return CheckResult.Failed($"Error message ingestion stopped! {percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'. This is less than {percentageThreshold}% - the minimal required space configured. The threshold can be set using the {RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} configuration setting.");
         }
 
         public static void Validate(RavenPersisterSettings settings)
@@ -58,17 +59,18 @@
 
             if (threshold < 0)
             {
-                logger.LogCritical("{RavenBootstrapperMinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0", PersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey);
-                throw new Exception($"{PersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.");
+                logger.LogCritical("{RavenBootstrapperMinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0", RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey);
+                throw new Exception($"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.");
             }
 
             if (threshold > 100)
             {
-                logger.LogCritical("{RavenBootstrapperMinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100", PersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey);
-                throw new Exception($"{PersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.");
+                logger.LogCritical("{RavenBootstrapperMinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100", RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey);
+                throw new Exception($"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.");
             }
         }
 
+        public const int MinimumStorageLeftRequiredForIngestionDefault = 5;
         static readonly Task<CheckResult> SuccessResult = Task.FromResult(CheckResult.Pass);
     }
 }

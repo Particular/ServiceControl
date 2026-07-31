@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.Implementation;
 
+using System.Text;
 using Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -57,11 +58,12 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
         };
 
         var totalResults = await query.CountAsync();
-        var results = await query
+        var page = query
             .OrderBy(c => c.ReportedAt)
             .Skip(paging.Offset)
-            .Take(paging.PageSize)
-            .ToListAsync();
+            .Take(paging.PageSize);
+
+        var results = await page.ToListAsync();
 
         return new QueryResult<IList<CustomCheck>>(results.Select(c => new CustomCheck
         {
@@ -71,7 +73,7 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
             Status = c.Status,
             ReportedAt = c.ReportedAt,
             FailureReason = c.FailureReason
-        }).ToList(), new QueryStatsInfo($"", totalResults, false));
+        }).ToList(), new QueryStatsInfo(results.Max(x => (uint?)x.RowVersion)?.ToString(), totalResults, false));
     });
 
     public Task DeleteCustomCheck(Guid id) => ExecuteWithDbContext(async context =>
