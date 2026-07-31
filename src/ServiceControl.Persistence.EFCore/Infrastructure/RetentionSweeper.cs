@@ -9,9 +9,9 @@ using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
 
-// Deletes resolved and archived failed messages once they age past the retention period. Runs
-// hourly, in bounded batches so it never holds a large delete, and recomputes the cutoff on every
-// run so a changed retention setting takes effect without rewriting any row.
+// Deletes rows once they age past their retention period.
+// Runs hourly, in bounded batches so it never holds a large delete, and recomputes the cutoffs on
+// every run so a changed retention setting takes effect without rewriting any row.
 public class RetentionSweeper(
     ILogger<RetentionSweeper> logger,
     TimeProvider timeProvider,
@@ -26,7 +26,7 @@ public class RetentionSweeper(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("Starting error retention sweep");
+        logger.LogInformation("Starting retention sweep");
 
         try
         {
@@ -42,13 +42,13 @@ public class RetentionSweeper(
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
-                    logger.LogError(ex, "Error during error retention sweep");
+                    logger.LogError(ex, "Error during retention sweep");
                 }
             } while (await timer.WaitForNextTickAsync(stoppingToken));
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
-            logger.LogInformation("Stopping error retention sweep");
+            logger.LogInformation("Stopping retention sweep");
         }
     }
 
@@ -57,6 +57,41 @@ public class RetentionSweeper(
     public Task SweepNow(CancellationToken cancellationToken = default) => Sweep(pace: false, cancellationToken);
 
     async Task Sweep(bool pace, CancellationToken cancellationToken)
+    {
+        await SweepFailedMessages(pace, cancellationToken);
+        await SweepEventLogItems(pace, cancellationToken);
+    }
+
+    // Event log items are insert-only and carry no external bodies, so each batch is a single
+    // ordered DELETE.
+    async Task SweepEventLogItems(bool pace, CancellationToken cancellationToken)
+    {
+        var cutoff = timeProvider.GetUtcNow().UtcDateTime - settings.EventsRetentionPeriod;
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            using var scope = serviceScopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+
+            var deleted = await dbContext.EventLogItems
+                .Where(eventLogItem => eventLogItem.RaisedAt < cutoff)
+                .OrderBy(eventLogItem => eventLogItem.RaisedAt)
+                .Take(BatchSize)
+                .ExecuteDeleteAsync(cancellationToken);
+
+            if (deleted < BatchSize)
+            {
+                break;
+            }
+
+            if (pace)
+            {
+                await Task.Delay(BatchPause, timeProvider, cancellationToken);
+            }
+        }
+    }
+
+    async Task SweepFailedMessages(bool pace, CancellationToken cancellationToken)
     {
         var cutoff = timeProvider.GetUtcNow().UtcDateTime - settings.ErrorRetentionPeriod;
 

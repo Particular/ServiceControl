@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.EventLog
 {
     using System.Collections.Generic;
+    using System.Net;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
     using Infrastructure.WebApi;
@@ -16,14 +17,20 @@
         [Authorize(Policy = Permissions.ErrorEventLogView)]
         [Route("eventlogitems")]
         [HttpGet]
-        public async Task<IList<EventLogItem>> Items([FromQuery] PagingInfo pagingInfo)
+        public async Task<ActionResult<IList<EventLogItemView>>> Items([FromQuery] PagingInfo pagingInfo)
         {
-            var (results, totalCount, version) = await logDataStore.GetEventLogItems(pagingInfo);
+            // Passing knownVersion lets the persister skip work it would otherwise waste
+            var result = await logDataStore.GetEventLogItems(pagingInfo, Request.GetKnownVersion());
 
-            Response.WithPagingLinksAndTotalCount(pagingInfo, totalCount);
-            Response.WithEtag(version);
+            Response.WithPagingLinksAndTotalCount(pagingInfo, result.QueryStats.TotalCount);
+            Response.WithEtag(result.QueryStats.ETag);
 
-            return results;
+            if (result.NotModified)
+            {
+                return StatusCode((int)HttpStatusCode.NotModified);
+            }
+
+            return Ok(result.Results);
         }
     }
 }

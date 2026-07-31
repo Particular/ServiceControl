@@ -33,6 +33,26 @@ Transport tests are done by executing the transport test suite for each transpor
 
 Run ServiceControl full version and use the HTTP API to validate results. LearningTransport is used for all tests.
 
+### Windows prerequisite: register the event sources
+
+On Windows, every acceptance test fails on first run with:
+
+```
+System.Security.SecurityException : The source ServiceControl was not found on computer .,
+but some or all event logs could not be searched.  Inaccessible logs: Security.
+```
+
+Setup registers a Windows event source, and checking whether one already exists enumerates every event log, including `Security`, which a process without administrator rights cannot read.
+
+Register both sources once, from an **elevated** PowerShell prompt:
+
+```powershell
+[System.Diagnostics.EventLog]::CreateEventSource('ServiceControl', 'Application')
+[System.Diagnostics.EventLog]::CreateEventSource('ServiceControl.Audit', 'Application')
+```
+
+Use the .NET API as shown rather than `New-EventLog`, which is not available in PowerShell 7. Afterwards the tests run normally without elevation, because the lookup finds the registered source before it needs to read `Security`.
+
 ## Multi-instance tests
 
 Multi-instance tests validate the interaction between different ServiceControl instances. ServiceControl instances are run in-memory in the same process. LearningTransport is used for all tests.

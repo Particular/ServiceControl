@@ -25,6 +25,7 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
     const string MinBodySizeForCompressionKey = "MessageBody/MinCompressionSize";
     const string MaxBodySizeToStoreKey = "MaxBodySizeToStore";
     const string ErrorRetentionPeriodKey = "ErrorRetentionPeriod";
+    const string EventsRetentionPeriodKey = "EventsRetentionPeriod";
     const string EnableFullTextSearchOnBodiesKey = "EnableFullTextSearchOnBodies";
     const string SubscriptionCacheDurationKey = "SubscriptionCacheDuration";
 
@@ -36,6 +37,7 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
 
         settings.CommandTimeout = SettingsReader.Read(settingsRootNamespace, CommandTimeoutKey, EFPersisterSettings.DefaultCommandTimeout);
         settings.ErrorRetentionPeriod = GetRequiredSetting<TimeSpan>(settingsRootNamespace, ErrorRetentionPeriodKey);
+        settings.EventsRetentionPeriod = SettingsReader.Read(settingsRootNamespace, EventsRetentionPeriodKey, EFPersisterSettings.DefaultEventsRetentionPeriod);
         settings.EnableFullTextSearchOnBodies = SettingsReader.Read(settingsRootNamespace, EnableFullTextSearchOnBodiesKey, true);
         settings.SubscriptionCacheDuration = SettingsReader.Read(settingsRootNamespace, SubscriptionCacheDurationKey, EFPersisterSettings.DefaultSubscriptionCacheDuration);
 

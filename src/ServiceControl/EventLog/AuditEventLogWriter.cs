@@ -6,8 +6,8 @@ namespace ServiceControl.EventLog
     using ServiceControl.Persistence;
 
     /// <summary>
-    /// Only for events that have been defined (under EventLog\Definitions), a logentry item will
-    /// be saved in Raven.
+    /// Only for events with an <see cref="IEventLogMappingDefinition"/> registered via
+    /// AddEventLogMapping is a log entry item persisted.
     /// </summary>
     class AuditEventLogWriter : IDomainHandler<IDomainEvent>
     {

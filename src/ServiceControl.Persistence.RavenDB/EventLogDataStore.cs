@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Persistence.RavenDB
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using EventLog;
@@ -11,24 +12,53 @@
         public async Task Add(EventLogItem logItem)
         {
             using var session = await sessionProvider.OpenSession();
-            await session.StoreAsync(logItem);
 
+            // Version 7 rather than a random GUID so the final segment is time-ordered, which keeps
+            // documents written together adjacent in the id index.
+            await session.StoreAsync(
+                logItem,
+                EventLogItemIdGenerator.MakeDocumentId(logItem.Category, logItem.EventType, Guid.CreateVersion7()));
+
+            // Retention on RavenDB is per-document expiry metadata stamped at write time, not a
+            // sweep. It has to be set here, on the only write path, or items never expire.
             expirationManager.EnableExpiration(session, logItem);
 
             await session.SaveChangesAsync();
         }
 
-        public async Task<(IList<EventLogItem>, long, string)> GetEventLogItems(PagingInfo pagingInfo)
+        public async Task<QueryResult<IList<EventLogItemView>>> GetEventLogItems(
+            PagingInfo pagingInfo, string knownVersion = null)
         {
             using var session = await sessionProvider.OpenSession();
-            var results = await session
+            var documents = await session
                 .Query<EventLogItem>()
                 .Statistics(out var stats)
                 .OrderByDescending(p => p.RaisedAt)
                 .Paging(pagingInfo)
                 .ToListAsync();
 
-            return (results, stats.TotalResults, stats.ResultEtag.ToString());
+            var queryStats = stats.ToQueryStatsInfo();
+
+            // The validator comes off the query statistics, so the page cannot be
+            // skipped. Only the projection below is saved.
+            if (knownVersion is not null && knownVersion == queryStats.ETag)
+            {
+                return QueryResult<IList<EventLogItemView>>.Unchanged(queryStats);
+            }
+
+            // The id lives in document metadata rather than on the document
+            var items = documents.ConvertAll(document => new EventLogItemView
+            {
+                Id = session.Advanced.GetDocumentId(document),
+                Description = document.Description,
+                Severity = document.Severity,
+                RaisedAt = document.RaisedAt,
+                RelatedTo = document.RelatedTo,
+                Category = document.Category,
+                EventType = document.EventType
+            });
+
+            return new QueryResult<IList<EventLogItemView>>(items, queryStats);
         }
     }
 }

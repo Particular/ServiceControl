@@ -14,6 +14,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
     public DbSet<FailedErrorImportEntity> FailedErrorImports { get; set; }
     public DbSet<TrialMetadataEntity> TrialMetadata { get; set; }
     public DbSet<SubscriptionEntity> Subscriptions { get; set; }
+    public DbSet<EventLogItemEntity> EventLogItems { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.EnableDetailedErrors();
@@ -30,6 +31,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
         modelBuilder.ApplyConfiguration(new KnownEndpointConfiguration());
         modelBuilder.ApplyConfiguration(new SubscriptionConfiguration());
         modelBuilder.ApplyConfiguration(new TrialMetadataConfiguration());
+        modelBuilder.ApplyConfiguration(new EventLogItemConfiguration());
     }
 
     public abstract bool IsDuplicateKeyException(DbUpdateException exception);

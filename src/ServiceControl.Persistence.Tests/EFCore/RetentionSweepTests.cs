@@ -1,10 +1,14 @@
 namespace ServiceControl.Persistence.Tests;
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using ServiceControl.EventLog;
 using ServiceControl.MessageFailures;
 using ServiceControl.Persistence.EFCore.Entities;
+using ServiceControl.Persistence.Infrastructure;
 
 class RetentionSweepTests : ErrorIngestionTestBase
 {
@@ -139,5 +143,76 @@ class RetentionSweepTests : ErrorIngestionTestBase
         });
 
         return id;
+    }
+
+    [Test]
+    public async Task Deletes_event_log_items_past_the_events_cutoff()
+    {
+        EFSettings.EventsRetentionPeriod = TimeSpan.FromDays(14);
+
+        await Store(EventLogRow("expired", Now.AddDays(-15)));
+        await Store(EventLogRow("fresh", Now.AddDays(-13)));
+
+        await RunRetentionSweep();
+
+        var remaining = await GetRemainingMarkers();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(remaining, Does.Not.Contain("expired"));
+            Assert.That(remaining, Does.Contain("fresh"));
+        }
+    }
+
+    [Test]
+    public async Task Event_log_retention_is_independent()
+    {
+        // A 30 day error retention must not keep a 1 day event log item alive.
+        EFSettings.ErrorRetentionPeriod = TimeSpan.FromDays(30);
+        EFSettings.EventsRetentionPeriod = TimeSpan.FromDays(1);
+
+        await Store(EventLogRow("old-event", Now.AddDays(-2)));
+
+        await RunRetentionSweep();
+
+        Assert.That(await GetRemainingMarkers(), Does.Not.Contain("old-event"));
+    }
+
+    [Test]
+    public async Task Sweeping_event_log_items_changes_the_version()
+    {
+        EFSettings.EventsRetentionPeriod = TimeSpan.FromDays(14);
+
+        await Store(EventLogRow("expired", Now.AddDays(-15)));
+        await Store(EventLogRow("fresh", Now.AddDays(-1)));
+
+        var versionBefore = (await EventLogDataStore.GetEventLogItems(new PagingInfo())).QueryStats.ETag;
+
+        await RunRetentionSweep();
+
+        var after = await EventLogDataStore.GetEventLogItems(new PagingInfo());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(after.QueryStats.TotalCount, Is.EqualTo(1));
+            // The count term of the version exists precisely so that retention invalidates client caches.
+            Assert.That(after.QueryStats.ETag, Is.Not.EqualTo(versionBefore));
+        }
+    }
+
+    static EventLogItemEntity EventLogRow(string marker, DateTime raisedAt) => new()
+    {
+        Description = marker,
+        Severity = Severity.Info,
+        RaisedAt = raisedAt,
+        RelatedTo = [],
+        Category = "Recoverability",
+        EventType = "MessageFailed"
+    };
+
+    async Task<List<string>> GetRemainingMarkers()
+    {
+        var items = (await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 1, pageSize: 100))).Results;
+        return [.. items.Select(i => i.Description)];
     }
 }
