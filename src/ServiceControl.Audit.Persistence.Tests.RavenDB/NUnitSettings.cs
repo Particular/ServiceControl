@@ -1,4 +1,4 @@
 using NUnit.Framework;
 
 [assembly: Parallelizable(ParallelScope.Fixtures)]
-[assembly: LevelOfParallelism(7)]
+[assembly: LevelOfParallelism(4)]

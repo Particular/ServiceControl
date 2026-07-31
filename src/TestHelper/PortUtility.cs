@@ -1,26 +1,36 @@
 ﻿namespace TestHelper
 {
-    using System.Linq;
-    using System.Net.NetworkInformation;
+    using System;
+    using System.Net;
+    using System.Net.Sockets;
 
     public static class PortUtility
     {
         public static int FindAvailablePort(int startPort)
         {
-            var activeTcpListeners = IPGlobalProperties
-                .GetIPGlobalProperties()
-                .GetActiveTcpListeners();
+            const int searchRange = 1024;
 
-            for (var port = startPort; port < startPort + 1024; port++)
+            // Multiple test hosts can start embedded RavenDB instances at the same time in CI.
+            // Offset the initial probe per process to reduce cross-process collisions.
+            var processOffset = Environment.ProcessId % searchRange;
+
+            for (var attempt = 0; attempt < searchRange; attempt++)
             {
-                var portCopy = port;
-                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
+                var port = startPort + ((processOffset + attempt) % searchRange);
+
+                try
                 {
-                    return port;
+                    using var listener = new TcpListener(IPAddress.Loopback, port);
+                    listener.Start();
+                    return ((IPEndPoint)listener.LocalEndpoint).Port;
+                }
+                catch (SocketException)
+                {
+                    // Port is not currently available, try the next one.
                 }
             }
 
-            return startPort;
+            return startPort + processOffset;
         }
     }
 }
