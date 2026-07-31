@@ -70,11 +70,11 @@ machines, each machine needs this setup.
 | 3 | Rule 2 | Add audit alone, one existing error instance → auto-detected, no dropdown | 1 |
 | 4 | Rule 3 | Add audit alone, two existing error instances → dropdown offers both | 2 |
 | 5 | Rule 3 | Save blocked until a dropdown choice is made, unblocked after | 2 |
-| 6 | Rule 4 | Add audit alone, no error instance → warning shown, install blocked | 0 |
+| 6 | Rule 4 | Add audit alone, no error instance → required entry field, save blocked until a valid address is entered | 0 |
 | 7 | Rule 4 (counter) | Add error instance alone → no queue-address validation raised | 0 |
 
 Suggested split for three testers: A = 1, 2 (both-together flows); B = 3, 6, 7
-(auto-detect and blocking); C = 4, 5 (multiple-instance dropdown). Scenarios 2, 4 and 5
+(auto-detect and manual entry); C = 4, 5 (multiple-instance dropdown). Scenarios 2, 4 and 5
 share the same precondition (two error instances installed), so grouping them on one
 machine saves setup time.
 
@@ -93,12 +93,12 @@ machine saves setup time.
 2. Keep **both** checkboxes ticked (ServiceControl and ServiceControl Audit).
 3. Note the error instance name (default `Particular.ServiceControl`).
 4. Fill in transport, connection string, ports, and paths as needed.
-5. Observe the audit section: no "ERROR INSTANCE" dropdown and no red
-   "No error instance was found..." warning should be visible.
+5. Observe the audit section: no "ERROR INSTANCE" dropdown and no
+   "ERROR INSTANCE QUEUE ADDRESS" entry field should be visible.
 6. Click Add and let the installation finish.
 
 **Pass criteria**
-- [ ] No dropdown and no warning were shown in the audit section.
+- [ ] No dropdown and no entry field were shown in the audit section.
 - [ ] Installation completes; both instances appear in SCMU and start.
 - [ ] `ServiceControl.Audit.exe.config` contains
       `ServiceControl.Audit/ServiceControlQueueAddress` = the error instance name from step 3.
@@ -150,12 +150,12 @@ machine saves setup time.
 **Steps**
 1. Open the Add screen.
 2. **Untick** the ServiceControl checkbox; keep only ServiceControl Audit ticked.
-3. Observe the audit section: no "ERROR INSTANCE" dropdown and no warning should be
-   visible — detection is silent.
+3. Observe the audit section: no "ERROR INSTANCE" dropdown and no
+   "ERROR INSTANCE QUEUE ADDRESS" entry field should be visible — detection is silent.
 4. Fill in the remaining fields and click Add.
 
 **Pass criteria**
-- [ ] No dropdown and no warning were shown; Save was not blocked by the queue address.
+- [ ] No dropdown and no entry field were shown; Save was not blocked by the queue address.
 - [ ] `ServiceControl.Audit.exe.config` contains
       `ServiceControlQueueAddress` = the name of the pre-existing error instance.
 - [ ] Audit instance starts and stays running.
@@ -220,9 +220,10 @@ machine saves setup time.
 
 ---
 
-## Scenario 6 — Rule 4: install blocked when no error instance exists
+## Scenario 6 — Rule 4: manual queue address entry when no error instance exists
 
-**Rule:** Must block installation when no error instance exists to connect to.
+**Rule:** Must require a manually entered queue address when no error instance is detected
+(supports multi-VM topologies where the error instance lives on another machine).
 
 **Preconditions**
 - **No** error instances installed (audit instances, if any, removed as well for a
@@ -233,16 +234,28 @@ machine saves setup time.
 1. Open the Add screen.
 2. Untick the ServiceControl checkbox; keep only ServiceControl Audit ticked.
 3. Observe the audit GENERAL section.
-4. Fill in all required audit fields and click Add.
+4. Fill in all required audit fields but leave the "ERROR INSTANCE QUEUE ADDRESS"
+   entry field empty, and click Add.
+5. Expect a validation error on the entry field; the installation must not start.
+6. Enter a value containing whitespace (e.g. `Particular ServiceControl`) and click
+   Add again — expect a validation error; the installation must not start.
+7. Enter a valid queue address (e.g. `Particular.ServiceControl.OnAnotherVM`; ideally
+   an error instance queue that actually exists on the transport) and click Add.
 
 **Pass criteria**
-- [ ] The red warning is shown: "No error instance was found on this machine. The
-      audit instance needs one to send messages to. Also install the error instance
-      above, or add one first."
+- [ ] The "ERROR INSTANCE QUEUE ADDRESS" entry field is shown, with the explanatory
+      text about entering the address of an error instance, e.g. one hosted on
+      another machine.
 - [ ] No "ERROR INSTANCE" dropdown is shown (there is nothing to choose from).
-- [ ] Clicking Add does not install anything; a validation error blocks the save.
-- [ ] Bonus check: ticking the ServiceControl checkbox again makes the warning
-      disappear (the error instance in the same session satisfies the requirement).
+- [ ] Step 4: install did not proceed with an empty entry field.
+- [ ] Step 6: install did not proceed with a whitespace-containing address.
+- [ ] Step 7: install proceeded; `ServiceControl.Audit.exe.config` contains
+      `ServiceControlQueueAddress` = exactly the entered value.
+- [ ] Runtime note: the audit instance can only start cleanly if the entered queue
+      actually exists on the transport — if you entered a placeholder address, do not
+      log startup failures as a bug (reachability is an accepted limitation in the spec).
+- [ ] Bonus check: ticking the ServiceControl checkbox again hides the entry field
+      (the error instance in the same session satisfies the requirement).
 
 **Result:** ☐ Pass ☐ Fail — Tester: ______ Date: ______ Notes: ______
 
@@ -278,5 +291,8 @@ machine saves setup time.
   - The new audit instance is *not* registered as a remote of a pre-existing error
     instance (`AddRemoteInstance` only runs when both are installed together) —
     tracked as a follow-up candidate in the spec.
+  - When local error instances ARE detected (Scenarios 3-5), there is no way to enter
+    a remote address instead — the dropdown offers only detected instances. Tracked
+    as a follow-up candidate in the spec.
   - PowerShell (`New-ServiceControlAuditInstance`) already enforces the parameter as
     mandatory and is not covered by this plan.

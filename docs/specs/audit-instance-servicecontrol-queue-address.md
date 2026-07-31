@@ -46,15 +46,22 @@ this case.
 
 ---
 
-### Rule 4: Must block installation when no error instance exists to connect to
+### Rule 4: Must require a manually entered queue address when no error instance is detected
 
-An audit instance without a reachable error instance is misconfigured by definition;
-SCMU must not produce it.
+Detection only sees instances installed on the local machine, but the error instance
+may legitimately live elsewhere — e.g. several VMs each hosting an audit instance that
+feeds one central error instance for load balancing. When nothing is detected locally,
+the user must supply the queue address of the (possibly remote) error instance; Save
+stays blocked until a value is entered so a config entry is always written.
 
-- **Example:** The one where no error instance exists, the user adds an audit instance
-  alone, and a validation error prevents the installation from proceeding.
+- **Example:** The one where no error instance is detected and Save is blocked until
+  the user enters the remote error instance's address, then unblocked once entered
+  and the entered value is used as the queue address.
+- **Example:** The one where the entered address contains whitespace and is rejected
+  (instance names — and therefore their queue addresses — never contain whitespace).
 - **Counter-example:** The one where only an error instance is being installed — the
-  queue address does not apply and no validation error is raised.
+  queue address does not apply, no entry field is shown, and no validation error is
+  raised.
 
 ## Resolved decisions (for implementation)
 
@@ -64,8 +71,10 @@ SCMU must not produce it.
   `GetWindowsServiceNames` pattern) so tests can substitute it.
 - **Multiple instances found:** user must choose from a dropdown that is visible only
   when adding an audit instance alone **and** more than one error instance is detected.
-- **No instance found:** Save is blocked by a validation error; deploying with
-  PowerShell remains the path for advanced scenarios.
+- **No instance found:** a required free-text field is shown (only when adding an
+  audit instance alone **and** nothing is detected); Save is blocked by a validation
+  error until a whitespace-free address is entered. Reachability of the entered
+  address cannot be validated — a typo only surfaces at runtime (accepted limitation).
 - **Acceptance tier:** view model + validator observed through `INotifyDataErrorInfo`
   — the same mechanism the UI uses to block Save. A full SCMU end-to-end test (install
   a Windows service, inspect the written config file) is not automatable in this
@@ -73,3 +82,6 @@ SCMU must not produce it.
 - **Out of scope:** registering the new audit instance as a remote of the existing
   error instance (`AddRemoteInstance` is only called when both instances are installed
   together) — candidate for a follow-up issue.
+- **Out of scope:** overriding auto-detection with a remote address when local error
+  instances ARE detected (Rules 2–3 offer only detected instances). A unified editable
+  ComboBox would remove that asymmetry — candidate for a follow-up issue.
