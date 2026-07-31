@@ -7,6 +7,7 @@
     using System.Threading.Tasks;
     using NUnit.Framework;
 
+    [NonParallelizable]
     class LicenseTest : PersistenceTestFixture
     {
         [Test]

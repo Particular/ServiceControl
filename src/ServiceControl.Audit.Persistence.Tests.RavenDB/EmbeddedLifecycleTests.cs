@@ -9,6 +9,7 @@
     using TestHelper;
 
     [TestFixture]
+    [NonParallelizable]
     class EmbeddedLifecycleTests : PersistenceTestFixture
     {
         string logPath;

@@ -54,7 +54,7 @@ public partial class PersistenceTestsContext : IPersistenceTestsContext
 
         using var scope = host.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SqlServerServiceControlDbContext>();
-        await db.Database.EnsureCreatedAsync();
+        await db.Database.MigrateAsync();
     }
 
     public async Task TearDown()

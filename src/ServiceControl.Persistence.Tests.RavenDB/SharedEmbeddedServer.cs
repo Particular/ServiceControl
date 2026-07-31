@@ -25,6 +25,11 @@
 
             try
             {
+                if (embeddedDatabase != null)
+                {
+                    return embeddedDatabase;
+                }
+
                 var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "PrimaryData");
                 var logPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs", "Primary");
                 var logsMode = "Operations";

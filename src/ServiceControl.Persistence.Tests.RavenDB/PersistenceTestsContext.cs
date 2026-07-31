@@ -52,7 +52,15 @@ public class PersistenceTestsContext : IPersistenceTestsContext
         await CompleteDatabaseOperation();
     }
 
-    public async Task TearDown() => await embeddedServer.DeleteDatabase(databaseName);
+    public async Task TearDown()
+    {
+        if (embeddedServer == null)
+        {
+            return;
+        }
+
+        await embeddedServer.DeleteDatabase(databaseName);
+    }
 
     public PersistenceSettings PersistenceSettings { get; private set; }
     public string GenerateFailedMessageRecordId(string messageId) => FailedMessageIdGenerator.MakeDocumentId(messageId);
