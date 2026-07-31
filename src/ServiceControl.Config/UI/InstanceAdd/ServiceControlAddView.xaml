@@ -306,13 +306,16 @@
                                                        Visibility="{Binding ShowServiceControlQueueAddressSelection,
                                                                             Converter={StaticResource boolToVis}}" />
 
-                                <TextBlock Padding="0,0,0,10"
-                                           FontSize="13px"
-                                           Foreground="{StaticResource ErrorBrush}"
-                                           Text="No error instance was found on this machine. The audit instance needs one to send messages to. Also install the error instance above, or add one first."
-                                           TextWrapping="Wrap"
-                                           Visibility="{Binding ShowNoErrorInstanceFoundWarning,
-                                                                Converter={StaticResource boolToVis}}" />
+                                <StackPanel Visibility="{Binding ShowServiceControlQueueAddressEntry,
+                                                                 Converter={StaticResource boolToVis}}">
+                                    <controls:FormTextBox Header="ERROR INSTANCE QUEUE ADDRESS"
+                                                          Text="{Binding ServiceControlQueueAddress, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Padding="0,0,0,10"
+                                               FontSize="13px"
+                                               Foreground="{StaticResource Gray60Brush}"
+                                               Text="No error instance was found on this machine. Enter the queue address of the error instance the audit instance sends messages to, e.g. one hosted on another machine."
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
 
                                 <GroupBox Header="USER ACCOUNT">
                                     <StackPanel>
