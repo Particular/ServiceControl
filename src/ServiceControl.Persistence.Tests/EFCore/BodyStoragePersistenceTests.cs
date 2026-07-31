@@ -10,6 +10,7 @@ using ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
 [TestFixture]
+[FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
 class BodyStoragePersistenceTests
 {
     const string FileSystem = nameof(FileSystem);

@@ -1,4 +1,4 @@
-namespace DefaultNamespace;
+namespace ServiceControl.Persistence.Tests;
 
 using System;
 using System.Threading;
