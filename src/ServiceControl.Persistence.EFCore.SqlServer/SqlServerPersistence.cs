@@ -1,9 +1,7 @@
 namespace ServiceControl.Persistence.EFCore.SqlServer;
 
-using CustomChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using ServiceControl.CustomChecks;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Infrastructure;
