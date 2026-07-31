@@ -44,7 +44,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                     NotifyOfPropertyChange(nameof(ServiceControlQueueAddress));
                     NotifyOfPropertyChange(nameof(ServiceControlQueueAddressOptions));
                     NotifyOfPropertyChange(nameof(ShowServiceControlQueueAddressSelection));
-                    NotifyOfPropertyChange(nameof(ShowNoErrorInstanceFoundWarning));
+                    NotifyOfPropertyChange(nameof(ShowServiceControlQueueAddressEntry));
                 }
             };
         }
@@ -93,7 +93,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
             && !InstallErrorInstance
             && GetInstalledErrorInstanceNames().Length > 1;
 
-        public bool ShowNoErrorInstanceFoundWarning =>
+        public bool ShowServiceControlQueueAddressEntry =>
             InstallAuditInstance
             && !InstallErrorInstance
             && GetInstalledErrorInstanceNames().Length == 0;

@@ -153,6 +153,8 @@ namespace ServiceControl.Config.UI.InstanceAdd
             RuleFor(viewModel => viewModel.ServiceControlQueueAddress)
                 .NotEmpty()
                     .WithMessage("An existing error instance must be selected for the audit instance to send messages to")
+                .MustNotContainWhitespace()
+                    .WithMessage(string.Format(Validation.Validations.MSG_CANTCONTAINWHITESPACE, "Error instance queue address"))
                 .When(viewModel => viewModel.InstallAuditInstance && !viewModel.InstallErrorInstance);
 
             RuleFor(x => x.AuditServiceAccount)

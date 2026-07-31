@@ -145,10 +145,10 @@ namespace ServiceControl.Config.Tests.AddInstance
         }
 
         [TestFixture]
-        public class Rule_4_Must_block_installation_when_no_error_instance_exists_to_connect_to
+        public class Rule_4_Must_require_a_manually_entered_queue_address_when_no_error_instance_is_detected
         {
             [Test]
-            public void The_one_where_no_error_instance_exists_and_a_validation_error_prevents_the_installation_from_proceeding()
+            public void The_one_where_no_error_instance_is_detected_and_save_is_blocked_until_the_remote_address_is_entered()
             {
                 var viewModel = new ServiceControlAddViewModel
                 {
@@ -162,13 +162,43 @@ namespace ServiceControl.Config.Tests.AddInstance
 
                 var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
+                // Nothing entered yet: must be blocked
                 using (Assert.EnterMultipleScope())
                 {
-                    Assert.That(viewModel.ServiceControlQueueAddress, Is.Null.Or.Empty);
+                    Assert.That(viewModel.ShowServiceControlQueueAddressEntry, Is.True,
+                        "The entry field must be shown so the user can supply the address of a remote error instance");
                     Assert.That(viewModel.ShowServiceControlQueueAddressSelection, Is.False);
                     Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlQueueAddress)), Is.Not.Empty,
-                        "A validation error is expected so the user cannot proceed without an existing error instance to connect to");
+                        "A validation error is expected until the user enters the error instance's queue address");
                 }
+
+                // User types the address of the error instance hosted on another machine
+                viewModel.ServiceControlQueueAddress = "Particular.ServiceControl.OnAnotherVM";
+
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(viewModel.ServiceControlQueueAddress, Is.EqualTo("Particular.ServiceControl.OnAnotherVM"));
+                    Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlQueueAddress)), Is.Empty);
+                }
+            }
+
+            [Test]
+            public void The_one_where_the_entered_address_contains_whitespace_and_is_rejected()
+            {
+                var viewModel = new ServiceControlAddViewModel
+                {
+                    InstallErrorInstance = false,
+                    InstallAuditInstance = true,
+                    SubmitAttempted = true,
+                    GetInstalledErrorInstanceNames = () => new string[0]
+                };
+
+                viewModel.ServiceControlQueueAddress = "Particular ServiceControl";
+
+                var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+
+                Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlQueueAddress)), Is.Not.Empty,
+                    "Instance names never contain whitespace, so a queue address with whitespace must be rejected");
             }
 
             [Test]
@@ -186,7 +216,11 @@ namespace ServiceControl.Config.Tests.AddInstance
 
                 var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-                Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlQueueAddress)), Is.Empty);
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(viewModel.ShowServiceControlQueueAddressEntry, Is.False);
+                    Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlQueueAddress)), Is.Empty);
+                }
             }
         }
 
