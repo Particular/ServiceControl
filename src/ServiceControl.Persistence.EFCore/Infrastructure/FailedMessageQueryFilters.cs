@@ -99,7 +99,7 @@ static class FailedMessageQueryFilters
         var address = queueAddress.ToLowerInvariant();
 
         // The ToLower() here causes a full table scan!
-        return source.Where(message => message.FailingEndpointAddress.ToLower() == address);
+        return source.Where(message => message.FailingEndpointAddress != null && message.FailingEndpointAddress.ToLower() == address);
     }
 
     public static IQueryable<FailedMessageEntity> Sort(this IQueryable<FailedMessageEntity> source, SortInfo? sortInfo)
