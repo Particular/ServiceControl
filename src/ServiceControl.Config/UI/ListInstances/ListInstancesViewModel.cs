@@ -169,7 +169,20 @@
             }
             Instances.RemoveMany(toRemove);
 
-            var missingInstances = InstanceFinder.AllInstances().Where(i => !Instances.Any(existingInstance => existingInstance.Name == i.Name));
+            // Get fresh instances from disk (with updated configurations)
+            var allFreshInstances = InstanceFinder.AllInstances();
+
+            // Update existing instances with fresh configuration data
+            foreach (var existingInstance in Instances)
+            {
+                var freshInstance = allFreshInstances.FirstOrDefault(i => i.Name == existingInstance.Name);
+                if (freshInstance != null)
+                {
+                    existingInstance.UpdateServiceInstance(freshInstance);
+                }
+            }
+
+            var missingInstances = allFreshInstances.Where(i => !Instances.Any(existingInstance => existingInstance.Name == i.Name));
 
             foreach (var item in missingInstances)
             {

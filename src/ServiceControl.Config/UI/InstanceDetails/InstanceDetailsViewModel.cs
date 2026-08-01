@@ -34,8 +34,6 @@
             StartCommand = Command.Create(() => StartService());
             StopCommand = Command.Create(() => StopService());
 
-            ServiceInstance = instance;
-
             if (instance.GetType() == typeof(ServiceControlInstance))
             {
                 ServiceControlInstance = (ServiceControlInstance)instance;
@@ -72,7 +70,32 @@
             throw new Exception("Unknown instance type");
         }
 
-        public BaseService ServiceInstance { get; }
+        public void UpdateServiceInstance(BaseService updatedInstance)
+        {
+            if (updatedInstance.Name != ServiceInstance.Name)
+            {
+                throw new ArgumentException("Cannot update with an instance of a different name");
+            }
+
+            // Update the internal reference based on type
+            if (updatedInstance.GetType() == typeof(ServiceControlInstance))
+            {
+                ServiceControlInstance = (ServiceControlInstance)updatedInstance;
+            }
+            else if (updatedInstance.GetType() == typeof(MonitoringInstance))
+            {
+                MonitoringInstance = (MonitoringInstance)updatedInstance;
+            }
+            else if (updatedInstance.GetType() == typeof(ServiceControlAuditInstance))
+            {
+                ServiceControlAuditInstance = (ServiceControlAuditInstance)updatedInstance;
+            }
+        }
+
+        public BaseService ServiceInstance =>
+            (BaseService)ServiceControlInstance ??
+            (BaseService)MonitoringInstance ??
+            ServiceControlAuditInstance;
 
         public bool InMaintenanceMode =>
             ServiceControlInstance?.InMaintenanceMode == true ||
@@ -355,6 +378,12 @@
             NotifyOfPropertyChange("Transport");
             NotifyOfPropertyChange("BrowsableUrl");
             NotifyOfPropertyChange("UrlHeading");
+            NotifyOfPropertyChange(nameof(HasConfigurationError));
+            NotifyOfPropertyChange(nameof(AllowEdit));
+            NotifyOfPropertyChange(nameof(ConfigurationErrorMessage));
+            NotifyOfPropertyChange(nameof(ConfigurationLoadError));
+            NotifyOfPropertyChange(nameof(ConfigurationErrorLogPath));
+            NotifyOfPropertyChange(nameof(ConfigurationFilePath));
             return Task.CompletedTask;
         }
 
