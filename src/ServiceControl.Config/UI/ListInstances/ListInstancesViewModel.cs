@@ -2,10 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Windows.Input;
     using Caliburn.Micro;
     using DynamicData;
     using Events;
@@ -25,12 +28,76 @@
 
             Instances = [];
 
+            // TEMP DEBUG: Log to desktop to verify this view model is created
+            var debugLog = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "UI_Debug.txt");
+            File.AppendAllText(debugLog, $"[{DateTime.Now:HH:mm:ss}] ListInstancesViewModel constructor called\r\n");
+
             AddAndRemoveInstances();
+
+            OpenLogFileCommand = new RelayCommand(OpenLogFile, CanOpenLogFile);
+
+            File.AppendAllText(debugLog, $"[{DateTime.Now:HH:mm:ss}] ListInstancesViewModel constructor completed. Instance count: {Instances.Count}\r\n");
+
+            // Log instance details for debugging
+            foreach (var instance in Instances)
+            {
+                var hasError = !string.IsNullOrEmpty(instance.ConfigurationLoadError);
+                File.AppendAllText(debugLog, $"  - {instance.Name}: HasError={hasError}, Error={instance.ConfigurationLoadError ?? "(none)"}\r\n");
+            }
         }
+
+        public ICommand OpenLogFileCommand { get; }
 
         public BindableCollection<InstanceDetailsViewModel> OrderedInstances => [.. Instances.OrderBy(x => x.Name)];
 
-        [AlsoNotifyFor(nameof(OrderedInstances))]
+        public bool HasConfigurationErrors
+        {
+            get
+            {
+                var hasErrors = Instances.Any(i => !string.IsNullOrEmpty(i.ConfigurationLoadError));
+
+                // TEMP DEBUG: Log access
+                var debugLog = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "UI_Debug.txt");
+                File.AppendAllText(debugLog, $"[{DateTime.Now:HH:mm:ss}] HasConfigurationErrors accessed - returning {hasErrors}, Instance count: {Instances.Count}\r\n");
+                foreach (var instance in Instances)
+                {
+                    var err = instance.ConfigurationLoadError;
+                    File.AppendAllText(debugLog, $"  - {instance.Name}: Error={err ?? "(null)"}, IsEmpty={string.IsNullOrEmpty(err)}\r\n");
+                }
+
+                return hasErrors;
+            }
+        }
+
+        public string ConfigurationErrorMessage
+        {
+            get
+            {
+                var errorInstances = Instances.Where(i => !string.IsNullOrEmpty(i.ConfigurationLoadError)).ToList();
+
+                // TEMP DEBUG: Log access
+                var debugLog = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "UI_Debug.txt");
+                File.AppendAllText(debugLog, $"[{DateTime.Now:HH:mm:ss}] ConfigurationErrorMessage accessed - error instance count: {errorInstances.Count}\r\n");
+
+                if (errorInstances.Count == 0)
+                {
+                    return null;
+                }
+
+                if (errorInstances.Count == 1)
+                {
+                    var instance = errorInstances[0];
+                    return $"{instance.Name} instance cannot be loaded due to XML configuration error.";
+                }
+
+                var names = string.Join(", ", errorInstances.Select(i => i.Name));
+                return $"Multiple instances ({names}) cannot be loaded due to XML configuration errors.";
+            }
+        }
+
+        public IEnumerable<InstanceDetailsViewModel> InstancesWithConfigErrors => Instances.Where(i => !string.IsNullOrEmpty(i.ConfigurationLoadError));
+
+        [AlsoNotifyFor(nameof(OrderedInstances), nameof(HasConfigurationErrors), nameof(ConfigurationErrorMessage), nameof(InstancesWithConfigErrors))]
         IList<InstanceDetailsViewModel> Instances { get; }
 
         public Task HandleAsync(LicenseUpdated licenseUpdatedEvent, CancellationToken cancellationToken)
@@ -90,7 +157,7 @@
             {
                 Instances.Add(instanceDetailsFunc(item));
             }
-            NotifyOfPropertyChange(nameof(OrderedInstances));
+            NotifyOfPropertyChange(nameof(Instances));
         }
 
         async void AddAndRemoveInstances()
@@ -111,9 +178,71 @@
 
             Validations.RefreshInstances();
 
-            NotifyOfPropertyChange(nameof(OrderedInstances));
+            NotifyOfPropertyChange(nameof(Instances));
+        }
+
+        void OpenLogFile(object parameter)
+        {
+            if (parameter is string logFilePath && !string.IsNullOrEmpty(logFilePath))
+            {
+                try
+                {
+                    if (File.Exists(logFilePath))
+                    {
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = logFilePath,
+                            UseShellExecute = true
+                        });
+                    }
+                    else
+                    {
+                        // If the log file doesn't exist, try to open the directory
+                        var directory = Path.GetDirectoryName(logFilePath);
+                        if (Directory.Exists(directory))
+                        {
+                            Process.Start(new ProcessStartInfo
+                            {
+                                FileName = directory,
+                                UseShellExecute = true
+                            });
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore errors opening the file
+                }
+            }
+        }
+
+        bool CanOpenLogFile(object parameter)
+        {
+            return parameter is string logFilePath && !string.IsNullOrEmpty(logFilePath);
         }
 
         readonly Func<BaseService, InstanceDetailsViewModel> instanceDetailsFunc;
+
+        class RelayCommand : ICommand
+        {
+            readonly Action<object> execute;
+            readonly Func<object, bool> canExecute;
+
+            public RelayCommand(Action<object> execute, Func<object, bool> canExecute = null)
+            {
+                this.execute = execute ?? throw new ArgumentNullException(nameof(execute));
+                this.canExecute = canExecute;
+            }
+
+            public bool CanExecute(object parameter) => canExecute == null || canExecute(parameter);
+
+            public void Execute(object parameter) => execute(parameter);
+
+            public event EventHandler CanExecuteChanged
+            {
+                add { }
+                remove { }
+            }
+        }
     }
 }

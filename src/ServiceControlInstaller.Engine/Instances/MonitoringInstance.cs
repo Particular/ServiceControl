@@ -3,6 +3,7 @@
     using System;
     using System.Configuration;
     using System.IO;
+    using System.Linq;
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Threading.Tasks;
@@ -20,8 +21,25 @@
         public MonitoringInstance(WindowsServiceController service)
         {
             Service = service;
+
+            // Set the config file path so it's available if loading fails
+            ConfigurationFilePath = Path.Combine(InstallPath, $"{Constants.MonitoringExe}.config");
+
             AppConfig = new AppConfig(this);
-            Reload();
+            try
+            {
+                Reload();
+            }
+            catch (Exception ex)
+            {
+                ConfigurationLoadError = $"Failed to load configuration: {ex.Message}";
+                InstanceName = Name;
+                ReportCard = new ReportCard();
+                ReportCard.Errors.Add(ConfigurationLoadError);
+
+                // Log the error to the instance log file
+                LogConfigurationError(ex);
+            }
         }
 
         public AppConfig AppConfig { get; set; }
@@ -64,6 +82,12 @@
             Service.Refresh();
 
             AppConfig = new AppConfig(this);
+
+            // If config failed to load, throw exception to be caught by constructor
+            if (AppConfig.Config == null)
+            {
+                throw new Exception($"Failed to load configuration from {ConfigurationFilePath}: {AppConfig.ConfigLoadException?.Message ?? "Unknown error"}");
+            }
 
             InstanceName = AppConfig.Read(SettingsList.InstanceName, Name);
             HostName = AppConfig.Read(SettingsList.HostName, "localhost");
@@ -268,6 +292,60 @@
 
             var config = new AppConfig(this);
             config.Save();
+        }
+
+        void LogConfigurationError(Exception ex)
+        {
+            try
+            {
+                // Check if we already logged to NServiceBus log file during AppConfig creation
+                if (AppConfig != null && !string.IsNullOrEmpty(AppConfig.ConfigErrorLogPath))
+                {
+                    // Store the log path so the UI can link to it
+                    ConfigurationErrorLogPath = AppConfig.ConfigErrorLogPath;
+                    return;
+                }
+
+                // Fallback: Write to instance log directory if AppConfig failed before NServiceBus logging
+                var logPath = DefaultLogPath() ?? Path.Combine(Path.GetTempPath(), "ServiceControl", "logs");
+
+                // Ensure directory exists
+                Directory.CreateDirectory(logPath);
+
+                // Try to find existing NServiceBus log file or create new one
+                var today = DateTime.Now;
+                var logFilePattern = $"nsb_log_{today:yyyy-MM-dd}_*.txt";
+                var existingLogs = Directory.GetFiles(logPath, logFilePattern).OrderByDescending(f => f).ToList();
+
+                string logFile;
+                if (existingLogs.Count > 0)
+                {
+                    logFile = existingLogs[0];
+                }
+                else
+                {
+                    logFile = Path.Combine(logPath, $"nsb_log_{today:yyyy-MM-dd}_0.txt");
+                }
+
+                ConfigurationErrorLogPath = logFile;
+
+                // Write the error to the log file
+                var logMessage = $@"
+================================================================================
+[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] CONFIGURATION LOAD ERROR - {Name}
+================================================================================
+Error: {ex.Message}
+
+Exception Details:
+{ex}
+================================================================================
+";
+                File.AppendAllText(logFile, logMessage);
+            }
+            catch
+            {
+                // If logging fails, don't throw - we already have the error captured in ReportCard
+            }
         }
     }
 }

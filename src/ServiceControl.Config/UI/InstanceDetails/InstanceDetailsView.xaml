@@ -58,8 +58,38 @@
                        Text="{Binding InstanceTypeDisplayName}" />
 
         </StackPanel>
+
+        <!-- Configuration Error Display -->
+        <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Margin="0 0 0 10"
+                    Visibility="{Binding HasConfigurationError, Converter={StaticResource boolToVis}}">
+            <Border Background="#FFF4E5" BorderBrush="#FFA500" BorderThickness="1" Padding="10" CornerRadius="3">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="⚠" FontSize="16" Foreground="#FFA500" VerticalAlignment="Top" Margin="0,0,8,0"/>
+                    <StackPanel>
+                        <TextBlock Text="CONFIGURATION ERROR" 
+                                   FontWeight="Bold" 
+                                   Foreground="#D84315" 
+                                   FontSize="13" 
+                                   Margin="0,0,0,5"/>
+                        <TextBlock Text="{Binding ConfigurationErrorMessage}" 
+                                   TextWrapping="Wrap" 
+                                   Foreground="#5D4037" 
+                                   FontSize="12"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
         <StackPanel Grid.Row="2" Grid.Column="1" Margin="0 0 0 10">
             <StackPanel Orientation="Horizontal">
+                <!-- Show warning icon for configuration errors -->
+                <TextBlock Margin="0,0,3,0"
+                           VerticalAlignment="Center"
+                           FontSize="16px"
+                           Foreground="#FFA500"
+                           Text="⚠"
+                           Visibility="{Binding HasConfigurationError, Converter={StaticResource boolToVis}}" />
+
                 <ContentControl Margin="0,0,0,0"
                                 VerticalAlignment="Center"
                                 Template="{StaticResource RunningIcon}"
@@ -75,8 +105,19 @@
                 <TextBlock Margin="3,0,0,0"
                            VerticalAlignment="Center"
                            FontSize="13px"
-                           Foreground="{StaticResource Gray40Brush}"
-                           Text="{Binding Status}" />
+                           Text="{Binding Status}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="{StaticResource Gray40Brush}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasConfigurationError}" Value="True">
+                                    <Setter Property="Foreground" Value="#D84315" />
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
 
                 <TextBlock  Margin="3,0,0,0"
                             VerticalAlignment="Center"
@@ -107,12 +148,14 @@
                     Command="{Binding EditCommand}"
                     CommandParameter="{Binding DataContext,
                                                ElementName=root}"
-                    Style="{StaticResource ConfigurationButton}" />
+                    Style="{StaticResource ConfigurationButton}"
+                    Visibility="{Binding AllowEdit, Converter={StaticResource boolToVis}}" />
             <Button Margin="5,0"
                     Command="{Binding AdvancedOptionsCommand}"
                     CommandParameter="{Binding DataContext,
                                                ElementName=root}"
-                    Style="{StaticResource AdvancedOptionsButton}" />
+                    Style="{StaticResource AdvancedOptionsButton}"
+                    Visibility="{Binding AllowEdit, Converter={StaticResource boolToVis}}" />
         </StackPanel>
 
         <GroupBox Grid.Row="4" Header="VERSION" Margin="0 5 0 0">

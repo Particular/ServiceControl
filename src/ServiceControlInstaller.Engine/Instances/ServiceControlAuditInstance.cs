@@ -16,7 +16,34 @@ namespace ServiceControlInstaller.Engine.Instances
     {
         public ServiceControlAuditInstance(IWindowsServiceController service) : base(service)
         {
-            Reload();
+            // Set the config file path so it's available if loading fails
+            ConfigurationFilePath = Path.Combine(InstallPath, $"{Constants.ServiceControlAuditExe}.config");
+
+            // Check if config loading failed in base constructor
+            if (ConfigurationLoadException != null)
+            {
+                ConfigurationLoadError = $"Failed to load configuration: {ConfigurationLoadException.Message}";
+                InstanceName = Name;
+                ReportCard = new ReportCard.ReportCard();
+                ReportCard.Errors.Add(ConfigurationLoadError);
+                LogConfigurationError(ConfigurationLoadException);
+                return;
+            }
+
+            try
+            {
+                Reload();
+            }
+            catch (Exception ex)
+            {
+                ConfigurationLoadError = $"Failed to load configuration: {ex.Message}";
+                InstanceName = Name;
+                ReportCard = new ReportCard.ReportCard();
+                ReportCard.Errors.Add(ConfigurationLoadError);
+
+                // Log the error to the instance log file
+                LogConfigurationError(ex);
+            }
         }
 
         public TimeSpan AuditRetentionPeriod { get; set; }
@@ -71,6 +98,12 @@ namespace ServiceControlInstaller.Engine.Instances
             Service.Refresh();
 
             AppConfig = CreateAppConfig();
+
+            // If config failed to load, throw exception to be caught by constructor
+            if (AppConfig.Config == null)
+            {
+                throw new Exception($"Failed to load configuration from {ConfigurationFilePath}: {AppConfig.ConfigLoadException?.Message ?? "Unknown error"}");
+            }
 
             InstanceName = AppConfig.Read(AuditInstanceSettingsList.InternalQueueName, Name);
             InstanceName = AppConfig.Read(AuditInstanceSettingsList.InstanceName, InstanceName);

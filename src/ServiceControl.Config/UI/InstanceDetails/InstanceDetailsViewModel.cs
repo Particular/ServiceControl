@@ -165,20 +165,25 @@
 
         public bool HasNewVersion => Version < NewVersion;
 
-        public TransportInfo Transport => ((ITransportConfig)ServiceInstance).TransportPackage;
+        public TransportInfo Transport => HasConfigurationError ? null : ((ITransportConfig)ServiceInstance).TransportPackage;
 
         public string Persister
         {
             get
             {
+                if (HasConfigurationError)
+                {
+                    return string.Empty; // Leave blank for corrupt instances
+                }
+
                 if (ServiceInstance is IServiceControlInstance primaryInstance)
                 {
-                    return primaryInstance.PersistenceManifest.DisplayName;
+                    return primaryInstance.PersistenceManifest?.DisplayName ?? "Unknown";
                 }
 
                 if (ServiceInstance is IServiceControlAuditInstance auditInstance)
                 {
-                    return auditInstance.PersistenceManifest.DisplayName;
+                    return auditInstance.PersistenceManifest?.DisplayName ?? "Unknown";
                 }
 
                 if (ServiceInstance is IMonitoringInstance)
@@ -194,6 +199,12 @@
         {
             get
             {
+                // If there's a configuration error, show that instead of service status
+                if (HasConfigurationError)
+                {
+                    return "CONFIGURATION ERROR";
+                }
+
                 try
                 {
                     return ServiceInstance.Service.Status.ToString().ToUpperInvariant();
@@ -209,6 +220,12 @@
         {
             get
             {
+                // If there's a configuration error, don't show running icon
+                if (HasConfigurationError)
+                {
+                    return false;
+                }
+
                 try
                 {
                     return ServiceInstance.Service.Status != ServiceControllerStatus.Stopped;
@@ -224,6 +241,12 @@
         {
             get
             {
+                // If there's a configuration error, don't show stopped icon either
+                if (HasConfigurationError)
+                {
+                    return false;
+                }
+
                 try
                 {
                     return ServiceInstance.Service.Status == ServiceControllerStatus.Stopped;
@@ -239,6 +262,12 @@
         {
             get
             {
+                // Don't allow start for instances with configuration errors
+                if (HasConfigurationError)
+                {
+                    return false;
+                }
+
                 try
                 {
                     var dontAllowStartOn = new[]
@@ -260,6 +289,12 @@
         {
             get
             {
+                // Don't allow stop for instances with configuration errors
+                if (HasConfigurationError)
+                {
+                    return false;
+                }
+
                 try
                 {
                     var dontAllowStopOn = new[]
@@ -276,6 +311,18 @@
                 }
             }
         }
+
+        public bool HasConfigurationError => !string.IsNullOrEmpty(ServiceInstance?.ConfigurationLoadError);
+
+        public bool AllowEdit => !HasConfigurationError; // Disable edit for corrupt instances
+
+        public string ConfigurationErrorMessage => ServiceInstance?.ConfigurationLoadError;
+
+        public string ConfigurationLoadError => ServiceInstance?.ConfigurationLoadError;
+
+        public string ConfigurationErrorLogPath => ServiceInstance?.ConfigurationErrorLogPath;
+
+        public string ConfigurationFilePath => ServiceInstance?.ConfigurationFilePath;
 
         public ICommand OpenUrl { get; private set; }
 
@@ -376,7 +423,20 @@
 
         void UpdateServiceProperties()
         {
-            ServiceInstance.Reload();
+            try
+            {
+                ServiceInstance.Reload();
+            }
+            catch (Exception ex)
+            {
+                // Handle reload failure gracefully - configuration error will be shown in UI
+                ServiceInstance.ConfigurationLoadError = $"Failed to load configuration: {ex.Message}";
+                // Ensure basic properties are set so UI can still display the instance
+                if (string.IsNullOrEmpty(ServiceInstance.InstanceName))
+                {
+                    ServiceInstance.InstanceName = ServiceInstance.Name;
+                }
+            }
 
             NotifyOfPropertyChange("Status");
             NotifyOfPropertyChange("AllowStop");

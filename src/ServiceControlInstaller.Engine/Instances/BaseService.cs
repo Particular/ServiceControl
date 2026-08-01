@@ -32,6 +32,12 @@
 
         public TransportInfo TransportPackage { get; set; }
 
+        public string ConfigurationLoadError { get; set; }
+
+        public string ConfigurationErrorLogPath { get; set; }
+
+        public string ConfigurationFilePath { get; set; }
+
         public SemanticVersion Version
         {
             get
@@ -180,6 +186,54 @@
         }
 
         public abstract void Reload();
+
+        protected void LogConfigurationError(Exception ex)
+        {
+            try
+            {
+                // Determine the log directory
+                string logDirectory;
+
+                // Try to use LogPath if this instance implements IServicePaths (MonitoringInstance, ServiceControlBaseService)
+                if (this is IServicePaths pathsInstance && !string.IsNullOrEmpty(pathsInstance.LogPath))
+                {
+                    logDirectory = pathsInstance.LogPath;
+                }
+                else
+                {
+                    // Fallback to InstallPath if LogPath isn't available
+                    logDirectory = InstallPath;
+                }
+
+                // Ensure directory exists
+                if (!Directory.Exists(logDirectory))
+                {
+                    Directory.CreateDirectory(logDirectory);
+                }
+
+                var logFilePath = Path.Combine(logDirectory, "config-error.txt");
+                ConfigurationErrorLogPath = logFilePath;
+
+                // Write the error to the log file
+                var logMessage = $@"
+================================================================================
+[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] CONFIGURATION LOAD ERROR - SCMU
+================================================================================
+Instance: {Name}
+Configuration file: {ConfigurationFilePath}
+Error: {ex.Message}
+
+Exception Details:
+{ex}
+================================================================================
+";
+                File.AppendAllText(logFilePath, logMessage);
+            }
+            catch
+            {
+                // If logging fails, don't throw - the configuration error is still captured in ConfigurationLoadError property
+            }
+        }
 
 
         public void UpgradeFiles(string zipFilePath)
