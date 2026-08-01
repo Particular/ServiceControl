@@ -60,6 +60,20 @@ public class RetentionSweeper(
     {
         await SweepFailedMessages(pace, cancellationToken);
         await SweepEventLogItems(pace, cancellationToken);
+        await SweepOrphanedGroupComments(cancellationToken);
+    }
+
+    // Once the last message of a group has been swept the group cannot be displayed at all, so its
+    // comment is unreachable. Leaving it behind would both accumulate invisible rows and, because
+    // group ids are deterministic, reattach a stale comment if the same failure ever recurs.
+    async Task SweepOrphanedGroupComments(CancellationToken cancellationToken)
+    {
+        using var scope = serviceScopeFactory.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+
+        await dbContext.GroupComments
+            .Where(comment => !dbContext.FailedMessageGroups.Any(group => group.GroupId == comment.GroupId))
+            .ExecuteDeleteAsync(cancellationToken);
     }
 
     // Event log items are insert-only and carry no external bodies, so each batch is a single

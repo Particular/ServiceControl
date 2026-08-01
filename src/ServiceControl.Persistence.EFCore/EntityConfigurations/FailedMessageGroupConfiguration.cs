@@ -10,8 +10,7 @@ class FailedMessageGroupConfiguration : IEntityTypeConfiguration<FailedMessageGr
     {
         builder.HasKey(e => new { e.FailedMessageUniqueId, e.GroupId });
 
-        // Group ids are deterministic Guid strings
-        builder.Property(e => e.GroupId).HasMaxLength(64).IsRequired();
+        builder.Property(e => e.GroupId).HasMaxLength(ColumnLengths.GroupIdLength).IsRequired();
         builder.Property(e => e.Title).IsRequired();
         builder.Property(e => e.Type).HasMaxLength(255).IsRequired();
 
