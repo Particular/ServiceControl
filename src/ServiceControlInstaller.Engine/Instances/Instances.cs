@@ -70,27 +70,19 @@
             var services = WindowsServiceController.FindInstancesByExe(Constants.ServiceControlAuditExe);
             var instances = new List<ServiceControlAuditInstance>();
 
-            var debugLog = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "SCMU_Debug.txt");
-            File.AppendAllText(debugLog, $"[{DateTime.Now:HH:mm:ss}] Found {services.Count()} audit service(s)\r\n");
-
             foreach (var service in services.Where(p => File.Exists(p.ExePath)))
             {
-                File.AppendAllText(debugLog, $"[{DateTime.Now:HH:mm:ss}] Attempting to load audit instance: {service.ServiceName}\r\n");
                 try
                 {
                     var instance = new ServiceControlAuditInstance(service);
                     instances.Add(instance);
-                    File.AppendAllText(debugLog, $"[{DateTime.Now:HH:mm:ss}] Successfully loaded instance: {service.ServiceName}, HasError: {!string.IsNullOrEmpty(instance.ConfigurationLoadError)}\r\n");
                 }
                 catch (Exception ex)
                 {
                     // Log the error but continue loading other instances
-                    File.AppendAllText(debugLog, $"[{DateTime.Now:HH:mm:ss}] EXCEPTION loading {service.ServiceName}: {ex.Message}\r\n{ex.StackTrace}\r\n");
                     LogInstanceLoadError("Audit", service.ServiceName, ex);
                 }
             }
-
-            File.AppendAllText(debugLog, $"[{DateTime.Now:HH:mm:ss}] Total audit instances loaded: {instances.Count}\r\n\r\n");
 
             return new ReadOnlyCollection<ServiceControlAuditInstance>(instances);
         }

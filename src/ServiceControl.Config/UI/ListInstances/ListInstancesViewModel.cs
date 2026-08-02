@@ -28,22 +28,9 @@
 
             Instances = [];
 
-            // TEMP DEBUG: Log to desktop to verify this view model is created
-            var debugLog = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "UI_Debug.txt");
-            File.AppendAllText(debugLog, $"[{DateTime.Now:HH:mm:ss}] ListInstancesViewModel constructor called\r\n");
-
             AddAndRemoveInstances();
 
             OpenLogFileCommand = new RelayCommand(OpenLogFile, CanOpenLogFile);
-
-            File.AppendAllText(debugLog, $"[{DateTime.Now:HH:mm:ss}] ListInstancesViewModel constructor completed. Instance count: {Instances.Count}\r\n");
-
-            // Log instance details for debugging
-            foreach (var instance in Instances)
-            {
-                var hasError = !string.IsNullOrEmpty(instance.ConfigurationLoadError);
-                File.AppendAllText(debugLog, $"  - {instance.Name}: HasError={hasError}, Error={instance.ConfigurationLoadError ?? "(none)"}\r\n");
-            }
         }
 
         public ICommand OpenLogFileCommand { get; }
@@ -55,16 +42,6 @@
             get
             {
                 var hasErrors = Instances.Any(i => !string.IsNullOrEmpty(i.ConfigurationLoadError));
-
-                // TEMP DEBUG: Log access
-                var debugLog = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "UI_Debug.txt");
-                File.AppendAllText(debugLog, $"[{DateTime.Now:HH:mm:ss}] HasConfigurationErrors accessed - returning {hasErrors}, Instance count: {Instances.Count}\r\n");
-                foreach (var instance in Instances)
-                {
-                    var err = instance.ConfigurationLoadError;
-                    File.AppendAllText(debugLog, $"  - {instance.Name}: Error={err ?? "(null)"}, IsEmpty={string.IsNullOrEmpty(err)}\r\n");
-                }
-
                 return hasErrors;
             }
         }
@@ -74,10 +51,6 @@
             get
             {
                 var errorInstances = Instances.Where(i => !string.IsNullOrEmpty(i.ConfigurationLoadError)).ToList();
-
-                // TEMP DEBUG: Log access
-                var debugLog = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "UI_Debug.txt");
-                File.AppendAllText(debugLog, $"[{DateTime.Now:HH:mm:ss}] ConfigurationErrorMessage accessed - error instance count: {errorInstances.Count}\r\n");
 
                 if (errorInstances.Count == 0)
                 {
