@@ -2,7 +2,6 @@
 {
     using System;
     using System.Configuration;
-    using System.IO;
     using System.Linq;
 
     public class AppConfigWrapper
@@ -18,41 +17,8 @@
             }
             catch (ConfigurationErrorsException ex)
             {
-                // Log the XML parsing error to the NServiceBus log file
                 ConfigLoadException = ex;
-                LogXmlConfigurationError(ex);
                 // Don't re-throw - let the caller handle the error via ConfigLoadException
-            }
-        }
-
-        void LogXmlConfigurationError(Exception ex)
-        {
-            try
-            {
-                // Write error to config-error.txt in the same directory as the config file
-                // This follows the same pattern as NLog but with a dedicated file for config errors
-                var configDirectory = Path.GetDirectoryName(ConfigFilePath);
-                var logFilePath = Path.Combine(configDirectory, "config-error.txt");
-
-                ConfigErrorLogPath = logFilePath;
-
-                // Write the error to the log file
-                var logMessage = $@"
-================================================================================
-[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] CONFIGURATION XML PARSING ERROR
-================================================================================
-Configuration file: {ConfigFilePath}
-Error: {ex.Message}
-
-Exception Details:
-{ex}
-================================================================================
-";
-                File.AppendAllText(logFilePath, logMessage);
-            }
-            catch
-            {
-                // If logging fails, don't throw - the main exception will still be propagated
             }
         }
 
@@ -89,7 +55,6 @@ Exception Details:
 
         public Configuration Config;
         public string ConfigFilePath;
-        public string ConfigErrorLogPath;
         public Exception ConfigLoadException;
     }
 }

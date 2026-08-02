@@ -36,9 +36,6 @@
                 InstanceName = Name;
                 ReportCard = new ReportCard();
                 ReportCard.Errors.Add(ConfigurationLoadError);
-
-                // Log the error to the instance log file
-                LogConfigurationError(ex);
             }
         }
 
@@ -292,60 +289,6 @@
 
             var config = new AppConfig(this);
             config.Save();
-        }
-
-        void LogConfigurationError(Exception ex)
-        {
-            try
-            {
-                // Check if we already logged to NServiceBus log file during AppConfig creation
-                if (AppConfig != null && !string.IsNullOrEmpty(AppConfig.ConfigErrorLogPath))
-                {
-                    // Store the log path so the UI can link to it
-                    ConfigurationErrorLogPath = AppConfig.ConfigErrorLogPath;
-                    return;
-                }
-
-                // Fallback: Write to instance log directory if AppConfig failed before NServiceBus logging
-                var logPath = DefaultLogPath() ?? Path.Combine(Path.GetTempPath(), "ServiceControl", "logs");
-
-                // Ensure directory exists
-                Directory.CreateDirectory(logPath);
-
-                // Try to find existing NServiceBus log file or create new one
-                var today = DateTime.Now;
-                var logFilePattern = $"nsb_log_{today:yyyy-MM-dd}_*.txt";
-                var existingLogs = Directory.GetFiles(logPath, logFilePattern).OrderByDescending(f => f).ToList();
-
-                string logFile;
-                if (existingLogs.Count > 0)
-                {
-                    logFile = existingLogs[0];
-                }
-                else
-                {
-                    logFile = Path.Combine(logPath, $"nsb_log_{today:yyyy-MM-dd}_0.txt");
-                }
-
-                ConfigurationErrorLogPath = logFile;
-
-                // Write the error to the log file
-                var logMessage = $@"
-================================================================================
-[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] CONFIGURATION LOAD ERROR - {Name}
-================================================================================
-Error: {ex.Message}
-
-Exception Details:
-{ex}
-================================================================================
-";
-                File.AppendAllText(logFile, logMessage);
-            }
-            catch
-            {
-                // If logging fails, don't throw - we already have the error captured in ReportCard
-            }
         }
     }
 }

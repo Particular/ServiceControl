@@ -26,7 +26,6 @@ namespace ServiceControlInstaller.Engine.Instances
                 InstanceName = Name;
                 ReportCard = new ReportCard.ReportCard();
                 ReportCard.Errors.Add(ConfigurationLoadError);
-                LogConfigurationError(ConfigurationLoadException);
                 return;
             }
 
@@ -40,9 +39,6 @@ namespace ServiceControlInstaller.Engine.Instances
                 InstanceName = Name;
                 ReportCard = new ReportCard.ReportCard();
                 ReportCard.Errors.Add(ConfigurationLoadError);
-
-                // Log the error to the instance log file
-                LogConfigurationError(ex);
             }
         }
 

@@ -343,8 +343,6 @@
 
         public string ConfigurationLoadError => ServiceInstance?.ConfigurationLoadError;
 
-        public string ConfigurationErrorLogPath => ServiceInstance?.ConfigurationErrorLogPath;
-
         public string ConfigurationFilePath => ServiceInstance?.ConfigurationFilePath;
 
         public ICommand OpenUrl { get; private set; }
@@ -382,7 +380,6 @@
             NotifyOfPropertyChange(nameof(AllowEdit));
             NotifyOfPropertyChange(nameof(ConfigurationErrorMessage));
             NotifyOfPropertyChange(nameof(ConfigurationLoadError));
-            NotifyOfPropertyChange(nameof(ConfigurationErrorLogPath));
             NotifyOfPropertyChange(nameof(ConfigurationFilePath));
             return Task.CompletedTask;
         }
