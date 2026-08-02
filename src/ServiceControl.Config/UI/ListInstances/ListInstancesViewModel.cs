@@ -2,13 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.IO;
     using System.Linq;
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Windows.Input;
     using Caliburn.Micro;
     using DynamicData;
     using Events;
@@ -29,11 +26,7 @@
             Instances = [];
 
             AddAndRemoveInstances();
-
-            OpenLogFileCommand = new RelayCommand(OpenLogFile, CanOpenLogFile);
         }
-
-        public ICommand OpenLogFileCommand { get; }
 
         public BindableCollection<InstanceDetailsViewModel> OrderedInstances => [.. Instances.OrderBy(x => x.Name)];
 
@@ -167,68 +160,6 @@
             NotifyOfPropertyChange(nameof(Instances));
         }
 
-        void OpenLogFile(object parameter)
-        {
-            if (parameter is string logFilePath && !string.IsNullOrEmpty(logFilePath))
-            {
-                try
-                {
-                    if (File.Exists(logFilePath))
-                    {
-                        Process.Start(new ProcessStartInfo
-                        {
-                            FileName = logFilePath,
-                            UseShellExecute = true
-                        });
-                    }
-                    else
-                    {
-                        // If the log file doesn't exist, try to open the directory
-                        var directory = Path.GetDirectoryName(logFilePath);
-                        if (Directory.Exists(directory))
-                        {
-                            Process.Start(new ProcessStartInfo
-                            {
-                                FileName = directory,
-                                UseShellExecute = true
-                            });
-                        }
-                    }
-                }
-                catch
-                {
-                    // Ignore errors opening the file
-                }
-            }
-        }
-
-        bool CanOpenLogFile(object parameter)
-        {
-            return parameter is string logFilePath && !string.IsNullOrEmpty(logFilePath);
-        }
-
         readonly Func<BaseService, InstanceDetailsViewModel> instanceDetailsFunc;
-
-        class RelayCommand : ICommand
-        {
-            readonly Action<object> execute;
-            readonly Func<object, bool> canExecute;
-
-            public RelayCommand(Action<object> execute, Func<object, bool> canExecute = null)
-            {
-                this.execute = execute ?? throw new ArgumentNullException(nameof(execute));
-                this.canExecute = canExecute;
-            }
-
-            public bool CanExecute(object parameter) => canExecute == null || canExecute(parameter);
-
-            public void Execute(object parameter) => execute(parameter);
-
-            public event EventHandler CanExecuteChanged
-            {
-                add { }
-                remove { }
-            }
-        }
     }
 }
