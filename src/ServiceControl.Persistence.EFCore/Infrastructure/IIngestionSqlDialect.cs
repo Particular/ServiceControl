@@ -27,4 +27,10 @@ public interface IIngestionSqlDialect
     /// Insert if absent, never update: existing endpoints keep their Monitored flag.
     /// </summary>
     Task InsertMissingKnownEndpoints(ServiceControlDbContext dbContext, IReadOnlyList<KnownEndpointEntity> rows, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Insert if absent, never update: a message already claimed stays with the batch that claimed
+    /// it first, so two retry requests covering the same message cannot both stage it.
+    /// </summary>
+    Task InsertMissingRetryClaims(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageRetryEntity> rows, CancellationToken cancellationToken);
 }
