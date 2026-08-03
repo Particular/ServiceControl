@@ -8,7 +8,7 @@
     using Particular.LicensingComponent.Contracts;
     using ServiceControl.Infrastructure;
 
-    class RavenPersistenceConfiguration : IPersistenceConfiguration
+    class RavenPersistenceConfiguration : PersistenceConfiguration, IPersistenceConfiguration
     {
         public const string DataSpaceRemainingThresholdKey = "DataSpaceRemainingThreshold";
         const string AuditRetentionPeriodKey = "AuditRetentionPeriod";
@@ -19,16 +19,6 @@
 
         public PersistenceSettings CreateSettings(SettingsRootNamespace settingsRootNamespace)
         {
-            static T GetRequiredSetting<T>(SettingsRootNamespace settingsRootNamespace, string key)
-            {
-                if (SettingsReader.TryRead<T>(settingsRootNamespace, key, out var value))
-                {
-                    return value;
-                }
-
-                throw new Exception($"Setting {key} of type {typeof(T)} is required");
-            }
-
             var ravenDbLogLevel = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.RavenDbLogLevelKey, "Warn");
             var logsMode = RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel, LoggerUtil.CreateStaticLogger<RavenPersistenceConfiguration>());
 

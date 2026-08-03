@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using ServiceControl.Configuration;
 using ServiceControl.Infrastructure;
 
-public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
+public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration, IPersistenceConfiguration
 {
     const string ConnectionStringKey = "Database/ConnectionString";
     const string CommandTimeoutKey = "Database/CommandTimeout";
@@ -191,15 +191,5 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
         }
 
         return maxBodySizeToStore;
-    }
-
-    static T GetRequiredSetting<T>(SettingsRootNamespace settingsRootNamespace, string key)
-    {
-        if (SettingsReader.TryRead<T>(settingsRootNamespace, key, out var value))
-        {
-            return value;
-        }
-
-        throw new Exception($"Setting {key} of type {typeof(T)} is required");
     }
 }
