@@ -1,6 +1,5 @@
 namespace ServiceControl.Persistence.EFCore.Implementation;
 
-using System.Text;
 using Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,37 +11,39 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
     public Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail) => ExecuteWithDbContext(async context =>
     {
         var status = CheckStateChange.Unchanged;
-        var customCheck = await context.CustomChecks.FindAsync(detail.GetDeterministicId());
 
-        if (customCheck == null ||
-            (customCheck.Status == Status.Fail && !detail.HasFailed) ||
-            (customCheck.Status == Status.Pass && detail.HasFailed))
-        {
-            if (customCheck == null)
+        await context.UpsertAsync([detail.GetDeterministicId()],
+            () =>
             {
-                customCheck = new CustomCheckEntity
+                status = CheckStateChange.Changed;
+                return new CustomCheckEntity
                 {
                     Id = detail.GetDeterministicId(),
                     CustomCheckId = detail.CustomCheckId,
-                    Category = detail.Category,
                     OriginatingEndpointName = detail.OriginatingEndpoint.Name,
-                    OriginatingEndpointHost = detail.OriginatingEndpoint.Host
+                    OriginatingEndpointHost = detail.OriginatingEndpoint.Host,
+                    OriginatingEndpointHostId = detail.OriginatingEndpoint.HostId,
+                    Status = detail.HasFailed ? Status.Fail : Status.Pass,
+                    Category = detail.Category,
+                    ReportedAt = detail.ReportedAt,
+                    FailureReason = detail.FailureReason,
                 };
-                context.CustomChecks.Add(customCheck);
-            }
-
-            status = CheckStateChange.Changed;
-        }
-
-        customCheck.CustomCheckId = detail.CustomCheckId;
-        customCheck.Category = detail.Category;
-        customCheck.Status = detail.HasFailed ? Status.Fail : Status.Pass;
-        customCheck.ReportedAt = detail.ReportedAt;
-        customCheck.FailureReason = detail.FailureReason;
-        customCheck.OriginatingEndpointHost = detail.OriginatingEndpoint.Host;
-        customCheck.OriginatingEndpointHostId = detail.OriginatingEndpoint.HostId;
-        customCheck.OriginatingEndpointName = detail.OriginatingEndpoint.Name;
-        await context.SaveChangesAsync();
+            },
+            entity =>
+            {
+                status = (entity.Status, detail.HasFailed) switch
+                {
+                    (Status.Fail, false) => CheckStateChange.Changed,
+                    (Status.Pass, true) => CheckStateChange.Changed,
+                    _ => CheckStateChange.Unchanged
+                };
+                //No need to update OriginatingEndpointName, OriginatingEndpointHostId, CustomCheckId
+                //as they are used to generate the guid key
+                entity.Status = detail.HasFailed ? Status.Fail : Status.Pass;
+                entity.Category = detail.Category;
+                entity.ReportedAt = detail.ReportedAt;
+                entity.FailureReason = detail.FailureReason;
+            });
         return status;
     });
 
@@ -50,7 +51,7 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
     {
         var query = context.CustomChecks.AsQueryable();
 
-        query = status switch
+        query = status?.ToLowerInvariant() switch
         {
             "pass" => query.Where(c => c.Status == Status.Pass),
             "fail" => query.Where(c => c.Status == Status.Fail),
@@ -74,15 +75,7 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
         }).ToList(), new QueryStatsInfo("", page.Count, false));
     });
 
-    public Task DeleteCustomCheck(Guid id) => ExecuteWithDbContext(async context =>
-    {
-        var customCheck = await context.CustomChecks.FindAsync(id);
-        if (customCheck != null)
-        {
-            context.CustomChecks.Remove(customCheck);
-            await context.SaveChangesAsync();
-        }
-    });
+    public Task DeleteCustomCheck(Guid id) => ExecuteWithDbContext(async context => await context.CustomChecks.Where(cc => cc.Id == id).ExecuteDeleteAsync());
 
     public Task<int> GetNumberOfFailedChecks() => ExecuteWithDbContext(async context => await context.CustomChecks.CountAsync(p => p.Status == Status.Fail));
 }

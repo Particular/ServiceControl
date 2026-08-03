@@ -1,6 +1,5 @@
 namespace ServiceControl.Persistence.EFCore.SqlServer;
 
-using CustomChecks;
 using Microsoft.Extensions.Logging;
 using ServiceControl.Infrastructure;
 using ServiceControl.Persistence.EFCore.Abstractions;
