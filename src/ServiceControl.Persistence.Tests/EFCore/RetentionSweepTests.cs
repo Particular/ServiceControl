@@ -121,6 +121,47 @@ class RetentionSweepTests : ErrorIngestionTestBase
         }
     }
 
+    [Test]
+    public async Task Deletes_comments_of_groups_that_no_longer_have_messages()
+    {
+        var expired = await SeedFailedMessage(FailedMessageStatus.Archived, Now.AddDays(-31));
+        var groupId = await SeedGroup(expired);
+
+        await GroupsStore.EditComment(groupId, "Raised with the shipping team");
+
+        await RunRetentionSweep();
+
+        Assert.That(await FindGroupComment(groupId), Is.Null);
+    }
+
+    [Test]
+    public async Task Keeps_comments_of_groups_that_still_have_messages()
+    {
+        var live = await SeedFailedMessage(FailedMessageStatus.Unresolved, Now);
+        var groupId = await SeedGroup(live);
+
+        await GroupsStore.EditComment(groupId, "Raised with the shipping team");
+
+        await RunRetentionSweep();
+
+        Assert.That(await FindGroupComment(groupId), Is.Not.Null);
+    }
+
+    async Task<string> SeedGroup(Guid uniqueMessageId)
+    {
+        var groupId = Guid.NewGuid().ToString();
+
+        await Store(new FailedMessageGroupEntity
+        {
+            FailedMessageUniqueId = uniqueMessageId,
+            GroupId = groupId,
+            Title = "ShippingFailed",
+            Type = "Message Type"
+        });
+
+        return groupId;
+    }
+
     async Task<Guid> SeedFailedMessage(FailedMessageStatus status, DateTime statusChangedAt, bool bodyStoredExternally = false)
     {
         var id = Guid.NewGuid();

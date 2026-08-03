@@ -64,6 +64,9 @@ abstract class ErrorIngestionTestBase : PersistenceTestBase
     protected Task<FailedMessageEntity> FindFailedMessage(Guid uniqueMessageId) =>
         Query(dbContext => dbContext.FailedMessages.AsNoTracking().SingleOrDefaultAsync(m => m.UniqueMessageId == uniqueMessageId));
 
+    protected Task<GroupCommentEntity> FindGroupComment(string groupId) =>
+        Query(dbContext => dbContext.GroupComments.AsNoTracking().SingleOrDefaultAsync(c => c.GroupId == groupId));
+
     protected Task<List<FailedMessageGroupEntity>> GetGroups(Guid uniqueMessageId) =>
         Query(dbContext => dbContext.FailedMessageGroups
             .AsNoTracking()

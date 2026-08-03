@@ -13,7 +13,7 @@ using ServiceControl.Recoverability;
 public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IGroupsDataStore
 {
     public Task<IList<FailureGroupView>> GetUnresolvedGroupsByClassifier(string classifier, string classifierFilter) =>
-        ExecuteWithDbContext(dbContext =>
+        ExecuteWithDbContext(async dbContext =>
         {
             var groups = ByClassifier(dbContext, classifier);
 
@@ -22,7 +22,11 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
                 groups = groups.Where(group => group.Title == classifierFilter);
             }
 
-            return MostRecent(groups.AggregateGroups(WithStatus(dbContext, FailedMessageStatus.Unresolved)));
+            var views = await MostRecent(groups.AggregateGroups(WithStatus(dbContext, FailedMessageStatus.Unresolved)));
+
+            await AttachComments(dbContext, views);
+
+            return views;
         });
 
     public Task<IList<FailureGroupView>> GetArchivedGroupsByClassifier(string classifier) =>
@@ -42,10 +46,26 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
         ExecuteWithDbContext(dbContext => InGroup(dbContext, groupId, status, modified).ToQueryStatsInfo());
 
     public Task EditComment(string groupId, string comment) =>
-        throw new NotImplementedException();
+        ExecuteWithDbContext(async dbContext =>
+        {
+            if (string.IsNullOrWhiteSpace(comment))
+            {
+                await RemoveComment(dbContext, groupId);
+                return;
+            }
+
+            await dbContext.UpsertAsync([groupId],
+                () => new GroupCommentEntity { GroupId = groupId, Comment = comment },
+                entity => entity.Comment = comment);
+        });
 
     public Task DeleteComment(string groupId) =>
-        throw new NotImplementedException();
+        ExecuteWithDbContext(dbContext => RemoveComment(dbContext, groupId));
+
+    static Task<int> RemoveComment(ServiceControlDbContext dbContext, string groupId) =>
+        dbContext.GroupComments
+            .Where(groupComment => groupComment.GroupId == groupId)
+            .ExecuteDeleteAsync();
 
     static IQueryable<FailedMessageGroupEntity> ByClassifier(ServiceControlDbContext dbContext, string classifier) =>
         dbContext.FailedMessageGroups
@@ -76,6 +96,26 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
             .Where(message => dbContext.FailedMessageGroups.Any(group => group.GroupId == groupId && group.FailedMessageUniqueId == message.UniqueMessageId))
             .FilterByStatus(status)
             .FilterByLastModifiedRange(modified);
+
+    static async Task AttachComments(ServiceControlDbContext dbContext, IList<FailureGroupView> groups)
+    {
+        if (groups.Count == 0)
+        {
+            return;
+        }
+
+        var groupIds = groups.Select(group => group.Id).ToArray();
+
+        var comments = await dbContext.GroupComments
+            .AsNoTracking()
+            .Where(groupComment => groupIds.Contains(groupComment.GroupId))
+            .ToDictionaryAsync(groupComment => groupComment.GroupId, groupComment => groupComment.Comment);
+
+        foreach (var group in groups)
+        {
+            group.Comment = comments.GetValueOrDefault(group.Id);
+        }
+    }
 
     static async Task<IList<FailureGroupView>> MostRecent(IQueryable<FailureGroupView> groups) =>
         await groups

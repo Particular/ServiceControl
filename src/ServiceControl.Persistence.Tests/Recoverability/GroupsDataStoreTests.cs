@@ -226,6 +226,99 @@ class GroupsDataStoreTests : PersistenceTestBase
         Assert.That(stats.TotalCount, Is.EqualTo(2));
     }
 
+    [Test]
+    public async Task Stores_a_comment_on_a_group()
+    {
+        var group = NewGroup("OrderPlaced");
+
+        await Insert(InGroup(group));
+        await EditComment(group.Id, "Waiting on the payment team");
+
+        Assert.That(await CommentFor(group), Is.EqualTo("Waiting on the payment team"));
+    }
+
+    [Test]
+    public async Task Overwrites_an_existing_comment()
+    {
+        var group = NewGroup("OrderPlaced");
+
+        await Insert(InGroup(group));
+        await EditComment(group.Id, "First");
+        await EditComment(group.Id, "Second");
+
+        Assert.That(await CommentFor(group), Is.EqualTo("Second"));
+    }
+
+    [Test]
+    public async Task Deletes_a_comment()
+    {
+        var group = NewGroup("OrderPlaced");
+
+        await Insert(InGroup(group));
+        await EditComment(group.Id, "No longer relevant");
+
+        await DeleteComment(group.Id);
+
+        Assert.That(await CommentFor(group), Is.Null);
+    }
+
+    [Test]
+    public async Task Removes_the_comment_when_it_is_cleared()
+    {
+        var group = NewGroup("OrderPlaced");
+
+        await Insert(InGroup(group));
+        await EditComment(group.Id, "No longer relevant");
+
+        await EditComment(group.Id, string.Empty);
+
+        Assert.That(await CommentFor(group), Is.Null.Or.Empty);
+    }
+
+    [Test]
+    public async Task Ignores_deleting_a_comment_that_is_not_there()
+    {
+        var group = NewGroup("OrderPlaced");
+
+        await Insert(InGroup(group));
+
+        await DeleteComment(group.Id);
+
+        Assert.That(await CommentFor(group), Is.Null);
+    }
+
+    [Test]
+    public async Task Leaves_archived_groups_without_their_comment()
+    {
+        var group = NewGroup("OrderPlaced");
+
+        await Insert(InGroup(group).ToFailedMessage(FailedMessageStatus.Archived));
+        await EditComment(group.Id, "Only shown on the open group");
+
+        var view = (await GroupsStore.GetArchivedGroupsByClassifier(Classifier)).Single();
+
+        Assert.That(view.Comment, Is.Null);
+    }
+
+    async Task<string> CommentFor(FailedMessage.FailureGroup group)
+    {
+        var groups = await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, null);
+
+        return groups.Single(view => view.Id == group.Id).Comment;
+    }
+
+    async Task EditComment(string groupId, string comment)
+    {
+        await GroupsStore.EditComment(groupId, comment);
+        await CompleteDatabaseOperation();
+    }
+
+    async Task DeleteComment(string groupId)
+    {
+        await GroupsStore.DeleteComment(groupId);
+        await CompleteDatabaseOperation();
+    }
+
     static FailedMessage.FailureGroup NewGroup(string title, string type = Classifier) =>
         new() { Id = Guid.NewGuid().ToString(), Title = title, Type = type };
 
