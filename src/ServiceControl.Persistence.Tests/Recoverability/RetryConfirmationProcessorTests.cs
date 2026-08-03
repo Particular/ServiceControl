@@ -27,8 +27,8 @@ namespace ServiceControl.Persistence.Tests.Recoverability
                 }
             );
 
-            var batchDocumentId = Guid.NewGuid().ToString();
-            await RetryDocumentDataStore.StageRetryByUniqueMessageIds(batchDocumentId, new[] { MessageId });
+            var batchId = Guid.NewGuid().ToString();
+            await RetryBatchStore.AssignMessagesToBatch(batchId, new[] { MessageId });
         }
 
         [Test]

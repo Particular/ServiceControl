@@ -55,20 +55,6 @@
         public async Task Store(RetryBatchNowForwarding retryBatchNowForwarding) =>
             await Session.StoreAsync(retryBatchNowForwarding, RetryDocumentDataStore.NowForwardingDocumentId);
 
-        public async Task<MessageRedirectsCollection> GetOrCreateMessageRedirectsCollection()
-        {
-            var redirects = await Session.LoadAsync<MessageRedirectsCollection>(MessageRedirectsDataStore.CollectionId);
-
-            if (redirects != null)
-            {
-                redirects.ETag = Session.Advanced.GetChangeVectorFor(redirects);
-                redirects.LastModified = Session.Advanced.GetLastModifiedFor(redirects)!.Value;
-                return redirects;
-            }
-
-            return new MessageRedirectsCollection();
-        }
-
         public Task CancelExpiration(FailedMessage failedMessage)
         {
             expirationManager.CancelExpiration(Session, failedMessage);

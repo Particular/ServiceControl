@@ -15,15 +15,15 @@
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Recoverability;
 
-    class RetryDocumentDataStore(IRavenSessionProvider sessionProvider, IRavenDocumentStoreProvider documentStoreProvider, ILogger<RetryDocumentDataStore> logger) : IRetryDocumentDataStore
+    class RetryDocumentDataStore(IRavenSessionProvider sessionProvider, IRavenDocumentStoreProvider documentStoreProvider, ILogger<RetryDocumentDataStore> logger) : IRetryBatchStore
     {
-        public async Task StageRetryByUniqueMessageIds(string batchDocumentId, string[] messageIds)
+        public async Task AssignMessagesToBatch(string batchId, string[] messageIds)
         {
             var commands = new ICommandData[messageIds.Length];
 
             for (var i = 0; i < messageIds.Length; i++)
             {
-                commands[i] = CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
+                commands[i] = CreateFailedMessageRetryDocument(batchId, messageIds[i]);
             }
 
             using var session = await sessionProvider.OpenSession();
@@ -32,12 +32,12 @@
             await session.Advanced.RequestExecutor.ExecuteAsync(batch, session.Advanced.Context);
         }
 
-        public async Task MoveBatchToStaging(string batchDocumentId)
+        public async Task MoveBatchToStaging(string batchId)
         {
             try
             {
                 var documentStore = await documentStoreProvider.GetDocumentStore();
-                await documentStore.Operations.SendAsync(new PatchOperation(batchDocumentId, null, new PatchRequest
+                await documentStore.Operations.SendAsync(new PatchOperation(batchId, null, new PatchRequest
                 {
                     Script = @"this.Status = args.Status",
                     Values =
@@ -48,21 +48,21 @@
             }
             catch (ConcurrencyException)
             {
-                logger.LogDebug("Ignoring concurrency exception while moving batch to staging {BatchDocumentId}", batchDocumentId);
+                logger.LogDebug("Ignoring concurrency exception while moving batch to staging {BatchDocumentId}", batchId);
             }
         }
 
-        public async Task<string> CreateBatchDocument(string retrySessionId, string requestId, RetryType retryType, string[] failedMessageRetryIds,
+        public async Task<string> CreateBatch(string retrySessionId, string requestId, RetryType retryType, string[] failedMessageRetryIds,
             string originator,
             DateTime startTime, DateTime? last = null, string batchName = null, string classifier = null,
             string initiatedById = null, string initiatedByName = null, string operationId = null)
         {
-            var batchDocumentId = MakeDocumentId(Guid.NewGuid().ToString());
+            var batchId = MakeDocumentId(Guid.NewGuid().ToString());
             failedMessageRetryIds = failedMessageRetryIds.Select(MakeFailedMessageRetriesDocumentId).ToArray();
             using var session = await sessionProvider.OpenSession();
             await session.StoreAsync(new RetryBatch
             {
-                Id = batchDocumentId,
+                Id = batchId,
                 Context = batchName,
                 RequestId = requestId,
                 RetryType = retryType,
@@ -80,10 +80,10 @@
             });
             await session.SaveChangesAsync();
 
-            return batchDocumentId;
+            return batchId;
         }
 
-        public async Task<QueryResult<IList<RetryBatch>>> QueryOrphanedBatches(string retrySessionId)
+        public async Task<QueryResult<IList<RetryBatch>>> GetOrphanedBatches(string retrySessionId)
         {
             using var session = await sessionProvider.OpenSession();
             var orphanedBatches = await session
@@ -96,7 +96,7 @@
             return orphanedBatches.ToQueryResult(stats);
         }
 
-        public async Task<IList<RetryBatchGroup>> QueryAvailableBatches()
+        public async Task<IList<RetryBatchGroup>> GetAvailableBatchGroups()
         {
             using var session = await sessionProvider.OpenSession();
             var results = await session.Query<RetryBatchGroup, RetryBatches_ByStatus_ReduceInitialBatchSize>()
@@ -105,7 +105,7 @@
             return results;
         }
 
-        static ICommandData CreateFailedMessageRetryDocument(string batchDocumentId, string messageId)
+        static ICommandData CreateFailedMessageRetryDocument(string batchId, string messageId)
         {
             var patchRequest = new PatchRequest
             {
@@ -114,14 +114,14 @@
                 Values =
                 {
                     { "MessageId", FailedMessageIdGenerator.MakeDocumentId(messageId) },
-                    { "BatchDocumentId", batchDocumentId }
+                    { "BatchDocumentId", batchId }
                 }
             };
 
             return new PatchCommandData(MakeFailedMessageRetriesDocumentId(messageId), null, patch: new PatchRequest { Script = "" }, patchIfMissing: patchRequest);
         }
 
-        public async Task GetBatchesForAll(DateTime cutoff, Func<string, DateTime, Task> callback)
+        public async Task ForEachUnresolvedMessage(Func<string, DateTime, Task> callback)
         {
             using var session = await sessionProvider.OpenSession();
             var query = session.Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
@@ -140,7 +140,7 @@
             }
         }
 
-        public async Task GetBatchesForEndpoint(DateTime cutoff, string endpoint, Func<string, DateTime, Task> callback)
+        public async Task ForEachUnresolvedMessageForEndpoint(string endpoint, Func<string, DateTime, Task> callback)
         {
             using var session = await sessionProvider.OpenSession();
             var query = session.Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
@@ -160,7 +160,7 @@
             }
         }
 
-        public async Task GetBatchesForFailedQueueAddress(DateTime cutoff, string failedQueueAddress, FailedMessageStatus status, Func<string, DateTime, Task> callback)
+        public async Task ForEachMessageForQueueAddress(string failedQueueAddress, FailedMessageStatus status, Func<string, DateTime, Task> callback)
         {
             using var session = await sessionProvider.OpenSession();
             var query = session.Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
@@ -180,7 +180,7 @@
             }
         }
 
-        public async Task GetBatchesForFailureGroup(string groupId, string groupTitle, string groupType, DateTime cutoff, Func<string, DateTime, Task> callback)
+        public async Task ForEachUnresolvedMessageInGroup(string groupId, Func<string, DateTime, Task> callback)
         {
             using var session = await sessionProvider.OpenSession();
             var query = session.Query<FailureGroupMessageView, FailedMessages_ByGroup>()
@@ -200,12 +200,22 @@
             }
         }
 
-        public async Task<FailureGroupView> QueryFailureGroupViewOnGroupId(string groupId)
+        public async Task<ForwardingRetryBatch> GetCurrentForwardingBatch()
         {
             using var session = await sessionProvider.OpenSession();
-            var group = await session.Query<FailureGroupView, FailureGroupsViewIndex>()
-                .FirstOrDefaultAsync(x => x.Id == groupId);
-            return group;
+            var nowForwarding = await session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
+                .LoadAsync<RetryBatchNowForwarding>(NowForwardingDocumentId);
+
+            if (nowForwarding == null)
+            {
+                return null;
+            }
+
+            var batch = await session.LoadAsync<RetryBatch>(nowForwarding.RetryBatchId);
+
+            return batch == null
+                ? null
+                : new ForwardingRetryBatch(batch.RequestId, batch.RetryType, batch.Originator, batch.Classifier);
         }
 
         public static string MakeDocumentId(string messageUniqueId) => "RetryBatches/" + messageUniqueId;

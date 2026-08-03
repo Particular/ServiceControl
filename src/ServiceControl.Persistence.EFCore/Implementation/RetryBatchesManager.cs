@@ -33,9 +33,6 @@ public class RetryBatchesManager : IRetryBatchesManager
     public Task Store(RetryBatchNowForwarding retryBatchNowForwarding) =>
         throw new NotImplementedException();
 
-    public Task<MessageRedirectsCollection> GetOrCreateMessageRedirectsCollection() =>
-        throw new NotImplementedException();
-
     public Task CancelExpiration(FailedMessage failedMessage) =>
         throw new NotImplementedException();
 

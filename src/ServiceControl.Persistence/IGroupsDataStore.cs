@@ -8,12 +8,11 @@ namespace ServiceControl.Persistence
 
     public interface IGroupsDataStore
     {
-        Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier, string classifierFilter);
-        Task<IList<FailureGroupView>> GetArchivedFailureGroupsByClassifier(string classifier);
-        Task<RetryBatch> GetCurrentForwardingBatch();
+        Task<IList<FailureGroupView>> GetUnresolvedGroupsByClassifier(string classifier, string classifierFilter);
+        Task<IList<FailureGroupView>> GetArchivedGroupsByClassifier(string classifier);
 
-        Task<QueryResult<IList<FailureGroupView>>> GetGroup(string groupId, string status, string modified);
-        Task<QueryResult<FailureGroupView>> GetFailureGroupView(string groupId, string status, string modified);
+        Task<QueryResult<FailureGroupView>> GetUnresolvedGroup(string groupId, string status, string modified);
+        Task<QueryResult<FailureGroupView>> GetArchivedGroup(string groupId, string status, string modified);
         Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(string groupId, string status, string modified, SortInfo sortInfo, PagingInfo pagingInfo);
         Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string status, string modified);
 

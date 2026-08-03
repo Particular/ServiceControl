@@ -175,13 +175,11 @@
             var failedMessage = await CreateAndStoreFailedMessage();
             var message = CreateEditMessage(failedMessage.UniqueMessageId);
 
-            var redirects = await MessageRedirectsDataStore.GetOrCreate();
-            redirects.Redirects.Add(new MessageRedirect
+            await MessageRedirectsDataStore.AddRedirect(new MessageRedirect
             {
                 FromPhysicalAddress = failedMessage.ProcessingAttempts.Last().FailureDetails.AddressOfFailingEndpoint,
                 ToPhysicalAddress = redirectAddress
             });
-            await MessageRedirectsDataStore.Save(redirects);
 
             await handler.Handle(message, new TestableInvokeHandlerContext());
 

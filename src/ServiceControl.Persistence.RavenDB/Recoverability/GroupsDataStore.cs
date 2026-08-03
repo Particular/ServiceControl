@@ -14,7 +14,7 @@ namespace ServiceControl.Persistence.RavenDB.Recoverability
 
     class GroupsDataStore(IRavenSessionProvider sessionProvider) : IGroupsDataStore
     {
-        public async Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier, string classifierFilter)
+        public async Task<IList<FailureGroupView>> GetUnresolvedGroupsByClassifier(string classifier, string classifierFilter)
         {
             using var session = await sessionProvider.OpenSession();
             var query = Queryable.Where(session.Query<FailureGroupView, FailureGroupsViewIndex>(), v => v.Type == classifier);
@@ -40,7 +40,7 @@ namespace ServiceControl.Persistence.RavenDB.Recoverability
             return groups;
         }
 
-        public async Task<IList<FailureGroupView>> GetArchivedFailureGroupsByClassifier(string classifier)
+        public async Task<IList<FailureGroupView>> GetArchivedGroupsByClassifier(string classifier)
         {
             using var session = await sessionProvider.OpenSession();
             var groups = session
@@ -55,30 +55,21 @@ namespace ServiceControl.Persistence.RavenDB.Recoverability
             return results;
         }
 
-        public async Task<RetryBatch> GetCurrentForwardingBatch()
+        public async Task<QueryResult<FailureGroupView>> GetUnresolvedGroup(string groupId, string status, string modified)
         {
             using var session = await sessionProvider.OpenSession();
-            var nowForwarding = await session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
-                .LoadAsync<RetryBatchNowForwarding>(RetryDocumentDataStore.NowForwardingDocumentId);
-
-            return nowForwarding == null ? null : await session.LoadAsync<RetryBatch>(nowForwarding.RetryBatchId);
-        }
-
-        public async Task<QueryResult<IList<FailureGroupView>>> GetGroup(string groupId, string status, string modified)
-        {
-            using var session = await sessionProvider.OpenSession();
-            var queryResult = await session.Advanced
+            var document = await session.Advanced
                 .AsyncDocumentQuery<FailureGroupView, FailureGroupsViewIndex>()
                 .Statistics(out var stats)
                 .WhereEquals(group => group.Id, groupId)
                 .FilterByStatusWhere(status)
                 .FilterByLastModifiedRange(modified)
-                .ToListAsync();
+                .FirstOrDefaultAsync();
 
-            return queryResult.ToQueryResult(stats);
+            return new QueryResult<FailureGroupView>(document, stats.ToQueryStatsInfo());
         }
 
-        public async Task<QueryResult<FailureGroupView>> GetFailureGroupView(string groupId, string status, string modified)
+        public async Task<QueryResult<FailureGroupView>> GetArchivedGroup(string groupId, string status, string modified)
         {
             using var session = await sessionProvider.OpenSession();
             var document = await session.Advanced

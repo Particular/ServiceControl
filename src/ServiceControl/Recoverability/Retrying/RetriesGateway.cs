@@ -13,7 +13,7 @@ namespace ServiceControl.Recoverability
 
     class RetriesGateway
     {
-        public RetriesGateway(IRetryDocumentDataStore store, RetryingManager operationManager, ILogger<RetriesGateway> logger)
+        public RetriesGateway(IRetryBatchStore store, RetryingManager operationManager, ILogger<RetriesGateway> logger)
         {
             this.store = store;
             this.operationManager = operationManager;
@@ -29,7 +29,7 @@ namespace ServiceControl.Recoverability
             var numberOfMessages = 1;
 
             await operationManager.Preparing(requestId, retryType, numberOfMessages);
-            await StageRetryByUniqueMessageIds(requestId, retryType, new[] { uniqueMessageId }, DateTime.UtcNow, initiatedBy: initiatedBy, operationId: operationId);
+            await AssignMessagesToBatch(requestId, retryType, new[] { uniqueMessageId }, DateTime.UtcNow, initiatedBy: initiatedBy, operationId: operationId);
             await operationManager.PreparedBatch(requestId, retryType, numberOfMessages);
         }
 
@@ -42,11 +42,11 @@ namespace ServiceControl.Recoverability
             var numberOfMessages = uniqueMessageIds.Length;
 
             await operationManager.Preparing(requestId, retryType, numberOfMessages);
-            await StageRetryByUniqueMessageIds(requestId, retryType, uniqueMessageIds, DateTime.UtcNow, initiatedBy: initiatedBy, operationId: operationId);
+            await AssignMessagesToBatch(requestId, retryType, uniqueMessageIds, DateTime.UtcNow, initiatedBy: initiatedBy, operationId: operationId);
             await operationManager.PreparedBatch(requestId, retryType, numberOfMessages);
         }
 
-        async Task StageRetryByUniqueMessageIds(string requestId, RetryType retryType, string[] messageIds, DateTime startTime, DateTime? last = null, string originator = null, string batchName = null, string classifier = null, AuditUser? initiatedBy = null, string operationId = null)
+        async Task AssignMessagesToBatch(string requestId, RetryType retryType, string[] messageIds, DateTime startTime, DateTime? last = null, string originator = null, string batchName = null, string classifier = null, AuditUser? initiatedBy = null, string operationId = null)
         {
             if (messageIds == null || !messageIds.Any())
             {
@@ -56,19 +56,19 @@ namespace ServiceControl.Recoverability
 
             var failedMessageRetryIds = messageIds.ToArray();
 
-            var batchDocumentId = await store.CreateBatchDocument(RetryDocumentManager.RetrySessionId, requestId, retryType, failedMessageRetryIds, originator, startTime, last, batchName, classifier, initiatedBy?.Id, initiatedBy?.Name, operationId);
+            var batchId = await store.CreateBatch(RetryDocumentManager.RetrySessionId, requestId, retryType, failedMessageRetryIds, originator, startTime, last, batchName, classifier, initiatedBy?.Id, initiatedBy?.Name, operationId);
 
-            logger.LogInformation("Created Batch '{BatchDocumentId}' with {BatchMessageCount} messages for '{BatchName}'", batchDocumentId, messageIds.Length, batchName);
+            logger.LogInformation("Created Batch '{BatchDocumentId}' with {BatchMessageCount} messages for '{BatchName}'", batchId, messageIds.Length, batchName);
 
-            await store.StageRetryByUniqueMessageIds(batchDocumentId, messageIds);
+            await store.AssignMessagesToBatch(batchId, messageIds);
 
-            await MoveBatchToStaging(batchDocumentId);
+            await MoveBatchToStaging(batchId);
 
-            logger.LogInformation("Moved Batch '{BatchDocumentId}' to Staging", batchDocumentId);
+            logger.LogInformation("Moved Batch '{BatchDocumentId}' to Staging", batchId);
         }
 
         // Needs to be overridable by a test
-        protected virtual Task MoveBatchToStaging(string batchDocumentId) => store.MoveBatchToStaging(batchDocumentId);
+        protected virtual Task MoveBatchToStaging(string batchId) => store.MoveBatchToStaging(batchId);
 
 
         public async Task<bool> ProcessNextBulkRetry()  // Invoked from BulkRetryBatchCreationHostedService in schedule
@@ -95,7 +95,7 @@ namespace ServiceControl.Recoverability
 
                 for (var i = 0; i < batches.Count; i++)
                 {
-                    await StageRetryByUniqueMessageIds(request.RequestId, request.RetryType, batches[i], request.StartTime, latestAttempt, request.Originator, GetBatchName(i + 1, batches.Count, request.Originator), request.Classifier, request.InitiatedBy, request.OperationId);
+                    await AssignMessagesToBatch(request.RequestId, request.RetryType, batches[i], request.StartTime, latestAttempt, request.Originator, GetBatchName(i + 1, batches.Count, request.Originator), request.Classifier, request.InitiatedBy, request.OperationId);
                     numberOfMessagesAdded += batches[i].Length;
 
                     await operationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded);
@@ -140,7 +140,7 @@ namespace ServiceControl.Recoverability
             bulkRequests.Enqueue(item);
         }
 
-        readonly IRetryDocumentDataStore store;
+        readonly IRetryBatchStore store;
         readonly RetryingManager operationManager;
         readonly ConcurrentQueue<BulkRetryRequest> bulkRequests = new ConcurrentQueue<BulkRetryRequest>();
         const int BatchSize = 1000;
@@ -174,9 +174,9 @@ namespace ServiceControl.Recoverability
                 OperationId = operationId;
             }
 
-            protected abstract Task Invoke(IRetryDocumentDataStore store, Func<string, DateTime, Task> callback);
+            protected abstract Task Invoke(IRetryBatchStore store, Func<string, DateTime, Task> callback);
 
-            public async Task<Tuple<List<string[]>, DateTime>> GetRequestedBatches(IRetryDocumentDataStore store)
+            public async Task<Tuple<List<string[]>, DateTime>> GetRequestedBatches(IRetryBatchStore store)
             {
                 var response = new List<string[]>();
                 var currentBatch = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -220,9 +220,9 @@ namespace ServiceControl.Recoverability
             {
             }
 
-            protected override Task Invoke(IRetryDocumentDataStore store, Func<string, DateTime, Task> callback)
+            protected override Task Invoke(IRetryBatchStore store, Func<string, DateTime, Task> callback)
             {
-                return store.GetBatchesForAll(StartTime, callback);
+                return store.ForEachUnresolvedMessage(callback);
             }
         }
 
@@ -235,9 +235,9 @@ namespace ServiceControl.Recoverability
                 Endpoint = endpoint;
             }
 
-            protected override Task Invoke(IRetryDocumentDataStore store, Func<string, DateTime, Task> callback)
+            protected override Task Invoke(IRetryBatchStore store, Func<string, DateTime, Task> callback)
             {
-                return store.GetBatchesForEndpoint(StartTime, Endpoint, callback);
+                return store.ForEachUnresolvedMessageForEndpoint(Endpoint, callback);
             }
         }
 
@@ -254,15 +254,9 @@ namespace ServiceControl.Recoverability
                 GroupTitle = groupTitle;
             }
 
-            protected override Task Invoke(IRetryDocumentDataStore store, Func<string, DateTime, Task> callback)
+            protected override Task Invoke(IRetryBatchStore store, Func<string, DateTime, Task> callback)
             {
-                return store.GetBatchesForFailureGroup(
-                    groupId: GroupId,
-                    groupTitle: GroupTitle,
-                    groupType: GroupType,
-                    cutoff: StartTime,
-                    callback
-                    );
+                return store.ForEachUnresolvedMessageInGroup(GroupId, callback);
             }
         }
 
@@ -283,9 +277,9 @@ namespace ServiceControl.Recoverability
                 Status = status;
             }
 
-            protected override Task Invoke(IRetryDocumentDataStore store, Func<string, DateTime, Task> callback)
+            protected override Task Invoke(IRetryBatchStore store, Func<string, DateTime, Task> callback)
             {
-                return store.GetBatchesForFailedQueueAddress(StartTime, FailedQueueAddress, Status, callback);
+                return store.ForEachMessageForQueueAddress(FailedQueueAddress, Status, callback);
             }
         }
     }

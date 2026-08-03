@@ -4,9 +4,15 @@ using ServiceControl.Persistence.MessageRedirects;
 
 public class MessageRedirectsDataStore : IMessageRedirectsDataStore
 {
-    public Task<MessageRedirectsCollection> GetOrCreate() =>
+    public Task<IReadOnlyList<MessageRedirect>> GetRedirects() =>
         throw new NotImplementedException();
 
-    public Task Save(MessageRedirectsCollection redirects) =>
+    public Task AddRedirect(MessageRedirect redirect) =>
+        throw new NotImplementedException();
+
+    public Task UpdateRedirect(MessageRedirect redirect) =>
+        throw new NotImplementedException();
+
+    public Task RemoveRedirect(MessageRedirect redirect) =>
         throw new NotImplementedException();
 }
