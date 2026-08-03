@@ -23,6 +23,70 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.ArchiveOperationEntity", b =>
+                {
+                    b.Property<string>("RequestId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("request_id");
+
+                    b.Property<int>("ArchiveType")
+                        .HasColumnType("integer")
+                        .HasColumnName("archive_type");
+
+                    b.Property<bool>("IsArchive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_archive");
+
+                    b.Property<int>("CurrentBatch")
+                        .HasColumnType("integer")
+                        .HasColumnName("current_batch");
+
+                    b.Property<string>("GroupName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("group_name");
+
+                    b.Property<string>("InitiatedById")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("initiated_by_id");
+
+                    b.Property<string>("InitiatedByName")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("initiated_by_name");
+
+                    b.Property<int>("NumberOfBatches")
+                        .HasColumnType("integer")
+                        .HasColumnName("number_of_batches");
+
+                    b.Property<int>("NumberOfMessagesProcessed")
+                        .HasColumnType("integer")
+                        .HasColumnName("number_of_messages_processed");
+
+                    b.Property<string>("OperationId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("operation_id");
+
+                    b.Property<DateTime>("Started")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started");
+
+                    b.Property<int>("TotalNumberOfMessages")
+                        .HasColumnType("integer")
+                        .HasColumnName("total_number_of_messages");
+
+                    b.HasKey("RequestId", "ArchiveType", "IsArchive")
+                        .HasName("pk_archive_operations");
+
+                    b.HasIndex("Started")
+                        .HasDatabaseName("ix_archive_operations_started");
+
+                    b.ToTable("ArchiveOperations", (string)null);
+                });
+
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.CustomCheckEntity", b =>
                 {
                     b.Property<Guid>("Id")

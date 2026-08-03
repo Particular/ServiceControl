@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     /// <inheritdoc />
-    public partial class AddArchiveOperations : Migration
+    public partial class AddArchive : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

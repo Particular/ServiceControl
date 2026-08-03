@@ -15,7 +15,8 @@ static class ArchiveQueryHelper
     {
         var query =
             from fmg in dbContext.FailedMessageGroups
-            join fm in dbContext.FailedMessages on fmg.FailedMessageUniqueId equals fm.UniqueMessageId
+            join fm in dbContext.FailedMessages
+                on fmg.FailedMessageUniqueId equals fm.UniqueMessageId
             where fmg.GroupId == groupId && fm.Status == status
             select new { fmg.Title, fm.UniqueMessageId };
 

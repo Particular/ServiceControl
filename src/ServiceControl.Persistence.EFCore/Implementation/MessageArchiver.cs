@@ -222,7 +222,7 @@ public class MessageArchiver : IArchiveMessages
             else
             {
                 // New operation: get group details
-                var (count, groupName) = await ArchiveQueryHelper.GetGroupDetails(dbContext, groupId, FailedMessageStatus.Archived, (CancellationToken)default);
+                var (count, groupName) = await ArchiveQueryHelper.GetGroupDetails(dbContext, groupId, FailedMessageStatus.Archived);
 
                 if (count == 0)
                 {
