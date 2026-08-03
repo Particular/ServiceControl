@@ -49,7 +49,7 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
 
     public Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string? status = null) => ExecuteWithDbContext(async context =>
     {
-        var query = context.CustomChecks.AsQueryable();
+        var query = context.CustomChecks.AsQueryable().AsNoTracking();
 
         query = status?.ToLowerInvariant() switch
         {
@@ -75,7 +75,7 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
         }).ToList(), new QueryStatsInfo("", page.Count, false));
     });
 
-    public Task DeleteCustomCheck(Guid id) => ExecuteWithDbContext(async context => await context.CustomChecks.Where(cc => cc.Id == id).ExecuteDeleteAsync());
+    public Task DeleteCustomCheck(Guid id) => ExecuteWithDbContext(async context => await context.CustomChecks.AsNoTracking().Where(cc => cc.Id == id).ExecuteDeleteAsync());
 
-    public Task<int> GetNumberOfFailedChecks() => ExecuteWithDbContext(async context => await context.CustomChecks.CountAsync(p => p.Status == Status.Fail));
+    public Task<int> GetNumberOfFailedChecks() => ExecuteWithDbContext(async context => await context.CustomChecks.AsNoTracking().CountAsync(p => p.Status == Status.Fail));
 }
