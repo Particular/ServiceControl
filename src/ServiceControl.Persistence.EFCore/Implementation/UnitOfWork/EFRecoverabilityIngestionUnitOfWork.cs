@@ -41,7 +41,6 @@ public class EFRecoverabilityIngestionUnitOfWork(EFIngestionUnitOfWork parentUni
             MessageType = GetMetadata<string>(processingAttempt, "MessageType"),
             TimeSent = GetMetadata<DateTime?>(processingAttempt, "TimeSent"),
             ConversationId = GetMetadata<string>(processingAttempt, "ConversationId"),
-            QueueAddress = context.Headers.GetValueOrDefault(NServiceBus.Faults.FaultsHeaderKeys.FailedQ),
             SendingEndpointName = sendingEndpoint?.Name,
             SendingEndpointHostId = sendingEndpoint?.HostId,
             SendingEndpointHost = sendingEndpoint?.Host,

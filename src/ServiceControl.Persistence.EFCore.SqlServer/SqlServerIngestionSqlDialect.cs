@@ -109,7 +109,7 @@ class SqlServerIngestionSqlDialect : IIngestionSqlDialect
     // The columns the newer attempt wins wholesale
     static readonly string[] PayloadColumns =
     [
-        "MessageId", "MessageType", "TimeSent", "ConversationId", "QueueAddress",
+        "MessageId", "MessageType", "TimeSent", "ConversationId", "FailingEndpointAddress",
         "SendingEndpointName", "SendingEndpointHostId", "SendingEndpointHost",
         "ReceivingEndpointName", "ReceivingEndpointHostId", "ReceivingEndpointHost",
         "ExceptionType", "ExceptionMessage", "IsSystemMessage",
@@ -128,7 +128,7 @@ class SqlServerIngestionSqlDialect : IIngestionSqlDialect
     [
         row.UniqueMessageId, (int)row.Status, row.StatusChangedAt, row.LastModified,
         row.NumberOfProcessingAttempts, row.FirstTimeOfFailure, row.LastTimeOfFailure, row.LastAttemptedAt,
-        row.MessageId, row.MessageType, row.TimeSent, row.ConversationId, row.QueueAddress,
+        row.MessageId, row.MessageType, row.TimeSent, row.ConversationId, row.FailingEndpointAddress,
         row.SendingEndpointName, row.SendingEndpointHostId, row.SendingEndpointHost,
         row.ReceivingEndpointName, row.ReceivingEndpointHostId, row.ReceivingEndpointHost,
         row.ExceptionType, row.ExceptionMessage, row.IsSystemMessage,

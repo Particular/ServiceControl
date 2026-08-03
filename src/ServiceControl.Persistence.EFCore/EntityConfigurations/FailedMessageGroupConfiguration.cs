@@ -17,6 +17,9 @@ class FailedMessageGroupConfiguration : IEntityTypeConfiguration<FailedMessageGr
 
         builder.HasIndex(e => e.GroupId);
 
+        // Drives the per-classifier group aggregate, which filters on Type and groups by GroupId.
+        builder.HasIndex(e => new { e.Type, e.GroupId });
+
         builder.HasOne<FailedMessageEntity>()
             .WithMany()
             .HasForeignKey(e => e.FailedMessageUniqueId)

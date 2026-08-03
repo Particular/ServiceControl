@@ -78,7 +78,6 @@ class FailedMessageBatchWriter(ServiceControlDbContext dbContext, IIngestionSqlD
                 MessageType = last.MessageType,
                 TimeSent = last.TimeSent,
                 ConversationId = last.ConversationId,
-                QueueAddress = last.QueueAddress,
                 SendingEndpointName = last.SendingEndpointName,
                 SendingEndpointHostId = last.SendingEndpointHostId,
                 SendingEndpointHost = last.SendingEndpointHost,

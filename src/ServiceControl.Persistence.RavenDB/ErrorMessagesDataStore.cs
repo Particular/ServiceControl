@@ -245,34 +245,28 @@
         public async Task<IDictionary<string, object>> GetFailedMessagesSummary()
         {
             using var session = await sessionProvider.OpenSession();
+
+            // The facets are named after the index fields and renamed afterwards. Setting
+            // DisplayFieldName instead makes the server resolve the field by that name, which then
+            // fails with "Field Endpoints not found in Index".
             var facetResults = await session.Query<FailedMessage, FailedMessageFacetsIndex>()
                 .AggregateBy(new List<Facet>
                 {
-                    new Facet
-                    {
-                        FieldName = "Name",
-                        DisplayFieldName = "Endpoints"
-                    },
-                    new Facet
-                    {
-                        FieldName = "Host",
-                        DisplayFieldName = "Hosts"
-                    },
-                    new Facet
-                    {
-                        FieldName = "MessageType",
-                        DisplayFieldName = "Message types"
-                    }
+                    new Facet { FieldName = "Name" },
+                    new Facet { FieldName = "Host" },
+                    new Facet { FieldName = "MessageType" }
                 }).ExecuteAsync();
 
-            var results = facetResults
-                .ToDictionary(
-                    x => x.Key,
-                    x => (object)x.Value
-                );
-
-            return results;
+            return new Dictionary<string, object>
+            {
+                [FailedMessageSummaryKeys.Endpoints] = Counts(facetResults, "Name"),
+                [FailedMessageSummaryKeys.Hosts] = Counts(facetResults, "Host"),
+                [FailedMessageSummaryKeys.MessageTypes] = Counts(facetResults, "MessageType")
+            };
         }
+
+        static Dictionary<string, object> Counts(Dictionary<string, FacetResult> facetResults, string fieldName) =>
+            facetResults[fieldName].Values.ToDictionary(value => value.Range, value => (object)value.Count);
 
         public async Task<FailedMessage> GetFailedMessage(string failedMessageId)
         {
