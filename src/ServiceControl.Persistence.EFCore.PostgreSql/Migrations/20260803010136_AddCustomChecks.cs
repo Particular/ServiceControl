@@ -29,6 +29,16 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                 {
                     table.PrimaryKey("pk_custom_checks", x => x.id);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_custom_checks_reported_at",
+                table: "custom_checks",
+                column: "reported_at");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_custom_checks_status_reported_at",
+                table: "custom_checks",
+                columns: new[] { "status", "reported_at" });
         }
 
         /// <inheritdoc />

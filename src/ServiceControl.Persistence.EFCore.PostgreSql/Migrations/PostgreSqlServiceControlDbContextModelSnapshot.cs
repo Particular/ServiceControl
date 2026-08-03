@@ -68,6 +68,12 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.HasKey("Id")
                         .HasName("pk_custom_checks");
 
+                    b.HasIndex("ReportedAt")
+                        .HasDatabaseName("ix_custom_checks_reported_at");
+
+                    b.HasIndex("Status", "ReportedAt")
+                        .HasDatabaseName("ix_custom_checks_status_reported_at");
+
                     b.ToTable("custom_checks", (string)null);
                 });
 

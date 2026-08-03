@@ -13,7 +13,7 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    [Migration("20260731054116_AddCustomChecks")]
+    [Migration("20260803010136_AddCustomChecks")]
     partial class AddCustomChecks
     {
         /// <inheritdoc />
@@ -70,6 +70,12 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_custom_checks");
+
+                    b.HasIndex("ReportedAt")
+                        .HasDatabaseName("ix_custom_checks_reported_at");
+
+                    b.HasIndex("Status", "ReportedAt")
+                        .HasDatabaseName("ix_custom_checks_status_reported_at");
 
                     b.ToTable("custom_checks", (string)null);
                 });
@@ -221,7 +227,6 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnName("exception_type");
 
                     b.Property<string>("FailingEndpointAddress")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)")
                         .HasColumnName("failing_endpoint_address");

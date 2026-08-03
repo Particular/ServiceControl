@@ -12,7 +12,7 @@ using ServiceControl.Persistence.EFCore.SqlServer;
 namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerServiceControlDbContext))]
-    [Migration("20260731054124_AddCustomChecks")]
+    [Migration("20260803010143_AddCustomChecks")]
     partial class AddCustomChecks
     {
         /// <inheritdoc />
@@ -59,6 +59,10 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ReportedAt");
+
+                    b.HasIndex("Status", "ReportedAt");
 
                     b.ToTable("CustomChecks");
                 });
@@ -181,7 +185,6 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FailingEndpointAddress")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 

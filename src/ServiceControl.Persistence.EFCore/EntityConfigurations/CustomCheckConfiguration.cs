@@ -18,5 +18,8 @@ public class CustomCheckConfiguration : IEntityTypeConfiguration<CustomCheckEnti
         builder.Property(e => e.OriginatingEndpointName).IsRequired();
         builder.Property(e => e.OriginatingEndpointHostId).IsRequired();
         builder.Property(e => e.OriginatingEndpointHost).IsRequired();
+
+        builder.HasIndex(e => new { e.ReportedAt });
+        builder.HasIndex(e => new { e.Status, e.ReportedAt });
     }
 }

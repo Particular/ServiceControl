@@ -29,6 +29,16 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                 {
                     table.PrimaryKey("PK_CustomChecks", x => x.Id);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CustomChecks_ReportedAt",
+                table: "CustomChecks",
+                column: "ReportedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CustomChecks_Status_ReportedAt",
+                table: "CustomChecks",
+                columns: new[] { "Status", "ReportedAt" });
         }
 
         /// <inheritdoc />

@@ -57,6 +57,10 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ReportedAt");
+
+                    b.HasIndex("Status", "ReportedAt");
+
                     b.ToTable("CustomChecks");
                 });
 
