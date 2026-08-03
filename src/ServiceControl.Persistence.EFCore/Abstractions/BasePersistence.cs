@@ -48,7 +48,7 @@ public abstract class BasePersistence
         services.AddSingleton<IMonitoringDataStore, MonitoringDataStore>();
         services.AddSingleton<IQueueAddressStore, QueueAddressStore>();
         services.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
-        services.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
+        services.AddSingleton<IRetryBatchStore, RetryBatchStore>();
         services.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
         services.AddSingleton<IEndpointSettingsStore, EndpointSettingsStore>();
         services.AddSingleton<ITrialLicenseDataProvider, TrialLicenseDataProvider>();

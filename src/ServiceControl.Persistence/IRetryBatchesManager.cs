@@ -18,7 +18,6 @@
         Task<RetryBatch> GetRetryBatch(string retryBatchId, CancellationToken cancellationToken);
         Task<RetryBatch> GetStagingBatch();
         Task Store(RetryBatchNowForwarding retryBatchNowForwarding);
-        Task<MessageRedirectsCollection> GetOrCreateMessageRedirectsCollection();
         Task CancelExpiration(FailedMessage failedMessage);
     }
 }

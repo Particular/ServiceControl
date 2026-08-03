@@ -47,7 +47,7 @@ namespace ServiceControl.MessageFailures.Api
         [HttpGet]
         public async Task<IActionResult> GetArchiveMessageGroups(string classifier = "Exception Type and Stack Trace")
         {
-            var results = await dataStore.GetArchivedFailureGroupsByClassifier(classifier);
+            var results = await dataStore.GetArchivedGroupsByClassifier(classifier);
 
             Response.WithDeterministicEtag(EtagHelper.CalculateEtag(results));
 
@@ -74,11 +74,11 @@ namespace ServiceControl.MessageFailures.Api
         [HttpGet]
         public async Task<ActionResult<FailureGroupView>> GetGroup(string groupId, string status = default, string modified = default)
         {
-            var result = await dataStore.GetFailureGroupView(groupId, status, modified);
+            var result = await dataStore.GetArchivedGroup(groupId, status, modified);
 
             Response.WithEtag(result.QueryStats.ETag);
 
-            return result.Results;
+            return result.Results == null ? NotFound() : result.Results;
         }
     }
 }

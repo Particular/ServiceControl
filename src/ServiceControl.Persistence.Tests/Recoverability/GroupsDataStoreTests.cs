@@ -25,7 +25,7 @@ class GroupsDataStoreTests : PersistenceTestBase
             InGroup(group, failedAt: Noon),
             InGroup(group, failedAt: Noon.AddHours(2)));
 
-        var view = (await GroupsStore.GetFailureGroupsByClassifier(Classifier, null)).Single();
+        var view = (await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, null)).Single();
 
         using (Assert.EnterMultipleScope())
         {
@@ -46,7 +46,7 @@ class GroupsDataStoreTests : PersistenceTestBase
 
         await Insert(InGroup(requested), InGroup(other));
 
-        var groups = await GroupsStore.GetFailureGroupsByClassifier(Classifier, null);
+        var groups = await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, null);
 
         Assert.That(groups.Select(group => group.Id), Is.EqualTo(new[] { requested.Id }));
     }
@@ -59,7 +59,7 @@ class GroupsDataStoreTests : PersistenceTestBase
 
         await Insert(InGroup(matching), InGroup(other));
 
-        var groups = await GroupsStore.GetFailureGroupsByClassifier(Classifier, "OrderPlaced");
+        var groups = await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, "OrderPlaced");
 
         Assert.That(groups.Select(group => group.Id), Is.EqualTo(new[] { matching.Id }));
     }
@@ -74,7 +74,7 @@ class GroupsDataStoreTests : PersistenceTestBase
             InGroup(group).ToFailedMessage(FailedMessageStatus.Archived),
             InGroup(group).ToFailedMessage(FailedMessageStatus.Resolved));
 
-        var view = (await GroupsStore.GetFailureGroupsByClassifier(Classifier, null)).Single();
+        var view = (await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, null)).Single();
 
         Assert.That(view.Count, Is.EqualTo(1));
     }
@@ -88,7 +88,7 @@ class GroupsDataStoreTests : PersistenceTestBase
             InGroup(group).ToFailedMessage(),
             InGroup(group).ToFailedMessage(FailedMessageStatus.Archived));
 
-        var view = (await GroupsStore.GetArchivedFailureGroupsByClassifier(Classifier)).Single();
+        var view = (await GroupsStore.GetArchivedGroupsByClassifier(Classifier)).Single();
 
         using (Assert.EnterMultipleScope())
         {
@@ -109,7 +109,7 @@ class GroupsDataStoreTests : PersistenceTestBase
             InGroup(newest, failedAt: Noon.AddHours(4)),
             InGroup(middle, failedAt: Noon.AddHours(2)));
 
-        var groups = await GroupsStore.GetFailureGroupsByClassifier(Classifier, null);
+        var groups = await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, null);
 
         Assert.That(groups.Select(group => group.Title), Is.EqualTo(new[] { "Newest", "Middle", "Oldest" }));
     }
@@ -121,9 +121,9 @@ class GroupsDataStoreTests : PersistenceTestBase
 
         await Insert(InGroup(requested), InGroup(NewGroup("OrderCancelled")));
 
-        var result = await GroupsStore.GetGroup(requested.Id, null, null);
+        var result = await GroupsStore.GetUnresolvedGroup(requested.Id, null, null);
 
-        var view = result.Results.Single();
+        var view = result.Results;
 
         using (Assert.EnterMultipleScope())
         {
@@ -137,9 +137,9 @@ class GroupsDataStoreTests : PersistenceTestBase
     {
         await Insert(InGroup(NewGroup("OrderPlaced")));
 
-        var result = await GroupsStore.GetGroup(Guid.NewGuid().ToString(), null, null);
+        var result = await GroupsStore.GetUnresolvedGroup(Guid.NewGuid().ToString(), null, null);
 
-        Assert.That(result.Results, Is.Empty);
+        Assert.That(result.Results, Is.Null);
     }
 
     [Test]
@@ -149,7 +149,7 @@ class GroupsDataStoreTests : PersistenceTestBase
 
         await Insert(InGroup(group).ToFailedMessage(FailedMessageStatus.Archived));
 
-        var result = await GroupsStore.GetFailureGroupView(group.Id, null, null);
+        var result = await GroupsStore.GetArchivedGroup(group.Id, null, null);
 
         using (Assert.EnterMultipleScope())
         {
@@ -163,7 +163,7 @@ class GroupsDataStoreTests : PersistenceTestBase
     {
         await Insert(InGroup(NewGroup("OrderPlaced")).ToFailedMessage(FailedMessageStatus.Archived));
 
-        var result = await GroupsStore.GetFailureGroupView(Guid.NewGuid().ToString(), null, null);
+        var result = await GroupsStore.GetArchivedGroup(Guid.NewGuid().ToString(), null, null);
 
         Assert.That(result.Results, Is.Null);
     }

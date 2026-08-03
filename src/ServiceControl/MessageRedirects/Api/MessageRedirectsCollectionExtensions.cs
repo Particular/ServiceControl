@@ -6,9 +6,9 @@ namespace ServiceControl.MessageRedirects.Api
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Persistence.MessageRedirects;
 
-    static class MessageRedirectsCollectionExtensions
+    static class MessageRedirectsSortingExtensions
     {
-        public static IOrderedEnumerable<MessageRedirect> Sort(this MessageRedirectsCollection source, string sort, string direction, string defaultSortDirection = "desc")
+        public static IOrderedEnumerable<MessageRedirect> Sort(this IReadOnlyList<MessageRedirect> source, string sort, string direction, string defaultSortDirection = "desc")
         {
             if (string.IsNullOrWhiteSpace(direction))
             {
@@ -32,10 +32,10 @@ namespace ServiceControl.MessageRedirects.Api
 
             if (sort == "to_physical_address")
             {
-                return direction == "asc" ? source.Redirects.OrderBy(r => r.ToPhysicalAddress) : source.Redirects.OrderByDescending(r => r.ToPhysicalAddress);
+                return direction == "asc" ? source.OrderBy(r => r.ToPhysicalAddress) : source.OrderByDescending(r => r.ToPhysicalAddress);
             }
 
-            return direction == "asc" ? source.Redirects.OrderBy(r => r.FromPhysicalAddress) : source.Redirects.OrderByDescending(r => r.FromPhysicalAddress);
+            return direction == "asc" ? source.OrderBy(r => r.FromPhysicalAddress) : source.OrderByDescending(r => r.FromPhysicalAddress);
         }
 
         public static IEnumerable<MessageRedirect> Paging(this IEnumerable<MessageRedirect> source, PagingInfo pagingInfo) => source.Skip(pagingInfo.Offset).Take(pagingInfo.PageSize);

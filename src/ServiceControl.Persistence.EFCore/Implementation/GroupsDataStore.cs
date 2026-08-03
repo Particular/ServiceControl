@@ -12,7 +12,7 @@ using ServiceControl.Recoverability;
 
 public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IGroupsDataStore
 {
-    public Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier, string classifierFilter) =>
+    public Task<IList<FailureGroupView>> GetUnresolvedGroupsByClassifier(string classifier, string classifierFilter) =>
         ExecuteWithDbContext(dbContext =>
         {
             var groups = ByClassifier(dbContext, classifier);
@@ -25,30 +25,15 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
             return MostRecent(groups.AggregateGroups(WithStatus(dbContext, FailedMessageStatus.Unresolved)));
         });
 
-    public Task<IList<FailureGroupView>> GetArchivedFailureGroupsByClassifier(string classifier) =>
+    public Task<IList<FailureGroupView>> GetArchivedGroupsByClassifier(string classifier) =>
         ExecuteWithDbContext(dbContext => MostRecent(
             ByClassifier(dbContext, classifier).AggregateGroups(WithStatus(dbContext, FailedMessageStatus.Archived))));
 
-    // Implemented once retry batches are persisted, together with IRetryDocumentDataStore.
-    public Task<RetryBatch> GetCurrentForwardingBatch() =>
-        throw new NotImplementedException();
+    public Task<QueryResult<FailureGroupView>> GetUnresolvedGroup(string groupId, string status, string modified) =>
+        ExecuteWithDbContext(dbContext => SingleGroup(dbContext, groupId, FailedMessageStatus.Unresolved, status, modified));
 
-    public Task<QueryResult<IList<FailureGroupView>>> GetGroup(string groupId, string status, string modified) =>
-        ExecuteWithDbContext(async dbContext =>
-        {
-            var groups = await ById(dbContext, groupId, FailedMessageStatus.Unresolved, status, modified).ToListAsync();
-
-            return new QueryResult<IList<FailureGroupView>>(groups, groups.ToQueryStatsInfo());
-        });
-
-    public Task<QueryResult<FailureGroupView>> GetFailureGroupView(string groupId, string status, string modified) =>
-        ExecuteWithDbContext(async dbContext =>
-        {
-            var groups = await ById(dbContext, groupId, FailedMessageStatus.Archived, status, modified).ToListAsync();
-
-            // A missing group is reported as a null result, the same as the RavenDB persister does.
-            return new QueryResult<FailureGroupView>(groups.FirstOrDefault()!, groups.ToQueryStatsInfo());
-        });
+    public Task<QueryResult<FailureGroupView>> GetArchivedGroup(string groupId, string status, string modified) =>
+        ExecuteWithDbContext(dbContext => SingleGroup(dbContext, groupId, FailedMessageStatus.Archived, status, modified));
 
     public Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(string groupId, string status, string modified, SortInfo sortInfo, PagingInfo pagingInfo) =>
         ExecuteWithDbContext(dbContext => InGroup(dbContext, groupId, status, modified).ToPagedResult(pagingInfo, sortInfo));
@@ -67,18 +52,18 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
             .AsNoTracking()
             .Where(group => group.Type == classifier);
 
-    /// <summary>
-    /// The status a group is read at, before the caller's own status and modified filters narrow it
-    /// further. RavenDB reads open groups out of an unresolved-only index and archived groups out of
-    /// an archived-only one, which is what <paramref name="baseline" /> stands in for here.
-    /// </summary>
-    static IQueryable<FailureGroupView> ById(ServiceControlDbContext dbContext, string groupId, FailedMessageStatus baseline, string status, string modified) =>
-        dbContext.FailedMessageGroups
+    static async Task<QueryResult<FailureGroupView>> SingleGroup(ServiceControlDbContext dbContext, string groupId, FailedMessageStatus baseline, string status, string modified)
+    {
+        var groups = await dbContext.FailedMessageGroups
             .AsNoTracking()
             .Where(group => group.GroupId == groupId)
             .AggregateGroups(WithStatus(dbContext, baseline)
                 .FilterByStatus(status)
-                .FilterByLastModifiedRange(modified));
+                .FilterByLastModifiedRange(modified))
+            .ToListAsync();
+
+        return new QueryResult<FailureGroupView>(groups.FirstOrDefault()!, groups.ToQueryStatsInfo());
+    }
 
     static IQueryable<FailedMessageEntity> WithStatus(ServiceControlDbContext dbContext, FailedMessageStatus status) =>
         dbContext.FailedMessages

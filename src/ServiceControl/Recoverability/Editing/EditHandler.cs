@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Recoverability.Editing
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
@@ -58,7 +59,7 @@
                 await session.SaveChanges();
             }
 
-            var redirects = await redirectsStore.GetOrCreate();
+            var redirects = await redirectsStore.GetRedirects();
 
             var attempt = failedMessage.ProcessingAttempts.Last();
 
@@ -102,9 +103,9 @@
             return outgoingMessage;
         }
 
-        static string ApplyRedirect(string addressOfFailingEndpoint, MessageRedirectsCollection redirects)
+        static string ApplyRedirect(string addressOfFailingEndpoint, IReadOnlyList<MessageRedirect> redirects)
         {
-            var redirect = redirects[addressOfFailingEndpoint];
+            var redirect = redirects.FindByAddress(addressOfFailingEndpoint);
             if (redirect != null)
             {
                 addressOfFailingEndpoint = redirect.ToPhysicalAddress;

@@ -46,7 +46,7 @@
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", false, 1);
 
-            var documentManager = new CustomRetryDocumentManager(false, RetryStore, retryManager);
+            var documentManager = new CustomRetryDocumentManager(false, RetryBatchStore, retryManager);
 
             var orphanage = new AdoptOrphanBatchesFromPreviousSessionHostedService(documentManager, new AsyncTimer(), NullLogger<AdoptOrphanBatchesFromPreviousSessionHostedService>.Instance);
             await orphanage.AdoptOrphanedBatchesAsync();
@@ -90,6 +90,7 @@
             var sender = new TestSender();
             var processor = new RetryProcessor(
                 RetryBatchesStore,
+                MessageRedirectsDataStore,
                 domainEvents,
                 new TestReturnToSenderDequeuer(
                     new ReturnToSender(FailedMessageRetryStore, NullLogger<ReturnToSender>.Instance),
@@ -111,12 +112,13 @@
             // Simulate SC restart
             retryManager = new RetryingManager(domainEvents, NullLogger<RetryingManager>.Instance);
 
-            var documentManager = new CustomRetryDocumentManager(false, RetryStore, retryManager);
+            var documentManager = new CustomRetryDocumentManager(false, RetryBatchStore, retryManager);
 
             await documentManager.RebuildRetryOperationState();
 
             processor = new RetryProcessor(
                 RetryBatchesStore,
+                MessageRedirectsDataStore,
                 domainEvents,
                 new TestReturnToSenderDequeuer(
                     new ReturnToSender(FailedMessageRetryStore, NullLogger<ReturnToSender>.Instance),
@@ -147,7 +149,7 @@
             var sender = new TestSender();
 
             var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(FailedMessageRetryStore, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryBatchesStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
 
             await processor.ProcessBatches(); // mark ready
             await processor.ProcessBatches();
@@ -177,7 +179,7 @@
             };
 
             var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(FailedMessageRetryStore, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryBatchesStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
 
             bool c;
             do
@@ -217,7 +219,7 @@
 
             var sender = new TestSender();
 
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()), retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryBatchesStore, MessageRedirectsDataStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()), retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
 
             await CompleteDatabaseOperation();
 
@@ -257,14 +259,14 @@
             await PersistenceTestsContext.InsertFailedMessages(messages);
             await CompleteDatabaseOperation();
 
-            var gateway = new CustomRetriesGateway(true, RetryStore, retryManager);
+            var gateway = new CustomRetriesGateway(true, RetryBatchStore, retryManager);
             await gateway.StartRetryForMessageSelection(ids, user, operationId);
             await CompleteDatabaseOperation();
 
             var audit = new RecordingMessageActionAuditLog();
             var sender = new TestSender();
             var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(FailedMessageRetryStore, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryBatchesStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
 
             await processor.ProcessBatches(); // stage
             await processor.ProcessBatches(); // forward
@@ -291,7 +293,7 @@
             var audit = new RecordingMessageActionAuditLog();
             var sender = new TestSender();
             var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(FailedMessageRetryStore, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryBatchesStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
 
             await processor.ProcessBatches(); // stage (emits per-message audit)
             await processor.ProcessBatches(); // forward
@@ -348,8 +350,8 @@
             // Needs index FailedMessages_UniqueMessageIdAndTimeOfFailures
             await CompleteDatabaseOperation();
 
-            var documentManager = new CustomRetryDocumentManager(progressToStaged, RetryStore, retryManager);
-            var gateway = new CustomRetriesGateway(progressToStaged, RetryStore, retryManager);
+            var documentManager = new CustomRetryDocumentManager(progressToStaged, RetryBatchStore, retryManager);
+            var gateway = new CustomRetriesGateway(progressToStaged, RetryBatchStore, retryManager);
 
             gateway.EnqueueRetryForFailureGroup(new RetriesGateway.RetryForFailureGroup(groupId, "Test-Context", groupType: null, DateTime.UtcNow, initiatedBy, operationId));
 
@@ -363,17 +365,17 @@
 
         class CustomRetriesGateway : RetriesGateway
         {
-            public CustomRetriesGateway(bool progressToStaged, IRetryDocumentDataStore store, RetryingManager retryManager)
+            public CustomRetriesGateway(bool progressToStaged, IRetryBatchStore store, RetryingManager retryManager)
                 : base(store, retryManager, NullLogger<RetriesGateway>.Instance)
             {
                 this.progressToStaged = progressToStaged;
             }
 
-            protected override Task MoveBatchToStaging(string batchDocumentId)
+            protected override Task MoveBatchToStaging(string batchId)
             {
                 if (progressToStaged)
                 {
-                    return base.MoveBatchToStaging(batchDocumentId);
+                    return base.MoveBatchToStaging(batchId);
                 }
 
                 return Task.CompletedTask;
@@ -384,18 +386,18 @@
 
         class CustomRetryDocumentManager : RetryDocumentManager
         {
-            public CustomRetryDocumentManager(bool progressToStaged, IRetryDocumentDataStore retryStore, RetryingManager retryManager)
+            public CustomRetryDocumentManager(bool progressToStaged, IRetryBatchStore retryStore, RetryingManager retryManager)
                 : base(new FakeApplicationLifetime(), retryStore, retryManager, NullLogger<RetryDocumentManager>.Instance)
             {
                 RetrySessionId = Guid.NewGuid().ToString();
                 this.progressToStaged = progressToStaged;
             }
 
-            public override Task MoveBatchToStaging(string batchDocumentId)
+            public override Task MoveBatchToStaging(string batchId)
             {
                 if (progressToStaged)
                 {
-                    return base.MoveBatchToStaging(batchDocumentId);
+                    return base.MoveBatchToStaging(batchId);
                 }
 
                 return Task.CompletedTask;

@@ -9,7 +9,7 @@ namespace ServiceControl.Recoverability
 
     class RetryDocumentManager
     {
-        public RetryDocumentManager(IHostApplicationLifetime applicationLifetime, IRetryDocumentDataStore store, RetryingManager operationManager, ILogger<RetryDocumentManager> logger)
+        public RetryDocumentManager(IHostApplicationLifetime applicationLifetime, IRetryBatchStore store, RetryingManager operationManager, ILogger<RetryDocumentManager> logger)
         {
             this.store = store;
             applicationLifetime?.ApplicationStopping.Register(() => { abort = true; });
@@ -19,7 +19,7 @@ namespace ServiceControl.Recoverability
 
         public async Task<bool> AdoptOrphanedBatches()
         {
-            var orphanedBatches = await store.QueryOrphanedBatches(RetrySessionId);
+            var orphanedBatches = await store.GetOrphanedBatches(RetrySessionId);
 
             logger.LogInformation("Found {OrphanedBatchCount} orphaned retry batches from previous sessions", orphanedBatches.Results.Count);
 
@@ -46,11 +46,11 @@ namespace ServiceControl.Recoverability
             return orphanedBatches.QueryStats.IsStale || orphanedBatches.Results.Any();
         }
 
-        public virtual Task MoveBatchToStaging(string batchDocumentId) => store.MoveBatchToStaging(batchDocumentId);
+        public virtual Task MoveBatchToStaging(string batchId) => store.MoveBatchToStaging(batchId);
 
         public async Task RebuildRetryOperationState()
         {
-            var stagingBatchGroups = await store.QueryAvailableBatches();
+            var stagingBatchGroups = await store.GetAvailableBatchGroups();
 
             foreach (var group in stagingBatchGroups)
             {
@@ -64,7 +64,7 @@ namespace ServiceControl.Recoverability
         }
 
         readonly RetryingManager operationManager;
-        readonly IRetryDocumentDataStore store;
+        readonly IRetryBatchStore store;
         bool abort;
         public static string RetrySessionId = Guid.NewGuid().ToString();
 

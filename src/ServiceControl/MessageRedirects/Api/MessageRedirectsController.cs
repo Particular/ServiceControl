@@ -41,12 +41,12 @@
             {
                 FromPhysicalAddress = request.FromPhysicalAddress,
                 ToPhysicalAddress = request.ToPhysicalAddress,
-                LastModifiedTicks = DateTime.UtcNow.Ticks
+                LastModified = DateTime.UtcNow
             };
 
-            var collection = await store.GetOrCreate();
+            var redirects = await store.GetRedirects();
 
-            var existing = collection[messageRedirect.MessageRedirectId];
+            var existing = redirects.FindById(messageRedirect.MessageRedirectId);
 
             if (existing != null)
             {
@@ -61,7 +61,7 @@
                 return StatusCode((int)HttpStatusCode.Conflict, existing);
             }
 
-            var dependents = collection.Redirects.Where(r => r.ToPhysicalAddress == request.FromPhysicalAddress).ToList();
+            var dependents = redirects.Where(r => r.ToPhysicalAddress == request.FromPhysicalAddress).ToList();
 
             if (dependents.Any())
             {
@@ -71,9 +71,7 @@
                 return StatusCode((int)HttpStatusCode.Conflict, dependents);
             }
 
-            collection.Redirects.Add(messageRedirect);
-
-            await store.Save(collection);
+            await store.AddRedirect(messageRedirect);
 
             await events.Raise(new MessageRedirectCreated
             {
@@ -106,9 +104,9 @@
                 return BadRequest();
             }
 
-            var redirects = await store.GetOrCreate();
+            var redirects = await store.GetRedirects();
 
-            var messageRedirect = redirects[messageRedirectId];
+            var messageRedirect = redirects.FindById(messageRedirectId);
 
             if (messageRedirect == null)
             {
@@ -117,7 +115,7 @@
 
             var toMessageRedirectId = DeterministicGuid.MakeId(request.ToPhysicalAddress);
 
-            if (redirects[toMessageRedirectId] != null)
+            if (redirects.FindById(toMessageRedirectId) != null)
             {
                 return Conflict();
             }
@@ -130,9 +128,9 @@
                 ToPhysicalAddress = messageRedirect.ToPhysicalAddress = request.ToPhysicalAddress
             };
 
-            messageRedirect.LastModifiedTicks = DateTime.UtcNow.Ticks;
+            messageRedirect.LastModified = DateTime.UtcNow;
 
-            await store.Save(redirects);
+            await store.UpdateRedirect(messageRedirect);
 
             await events.Raise(messageRedirectChanged);
 
@@ -144,18 +142,16 @@
         [HttpDelete]
         public async Task<IActionResult> DeleteRedirect(Guid messageRedirectId)
         {
-            var redirects = await store.GetOrCreate();
+            var redirects = await store.GetRedirects();
 
-            var messageRedirect = redirects[messageRedirectId];
+            var messageRedirect = redirects.FindById(messageRedirectId);
 
             if (messageRedirect == null)
             {
                 return NoContent();
             }
 
-            redirects.Redirects.Remove(messageRedirect);
-
-            await store.Save(redirects);
+            await store.RemoveRedirect(messageRedirect);
 
             await events.Raise(new MessageRedirectRemoved
             {
@@ -172,10 +168,10 @@
         [HttpHead]
         public async Task CountRedirects()
         {
-            var redirects = await store.GetOrCreate();
+            var redirects = await store.GetRedirects();
 
-            Response.WithEtag(redirects.ETag);
-            Response.WithTotalCount(redirects.Redirects.Count);
+            Response.WithDeterministicEtag(EtagHelper.CalculateEtag(redirects));
+            Response.WithTotalCount(redirects.Count);
         }
 
         [Authorize(Policy = Permissions.ErrorRedirectsView)]
@@ -183,7 +179,7 @@
         [HttpGet]
         public async Task<IEnumerable<RedirectsQueryResult>> Redirects(string sort, string direction, [FromQuery] PagingInfo pagingInfo)
         {
-            var redirects = await store.GetOrCreate();
+            var redirects = await store.GetRedirects();
 
             var queryResult = redirects
                 .Sort(sort, direction)
@@ -193,11 +189,11 @@
                     r.MessageRedirectId,
                     r.FromPhysicalAddress,
                     r.ToPhysicalAddress,
-                    new DateTime(r.LastModifiedTicks)
+                    r.LastModified
                 ));
 
-            Response.WithEtag(redirects.ETag);
-            Response.WithPagingLinksAndTotalCount(pagingInfo, redirects.Redirects.Count);
+            Response.WithDeterministicEtag(EtagHelper.CalculateEtag(redirects));
+            Response.WithPagingLinksAndTotalCount(pagingInfo, redirects.Count);
 
             return queryResult;
         }

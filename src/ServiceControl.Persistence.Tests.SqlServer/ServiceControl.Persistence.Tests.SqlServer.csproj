@@ -32,6 +32,7 @@
     
     <!-- as features get implemented remove these exclusions -->
     <Compile Remove="..\ServiceControl.Persistence.Tests\BodyStorage\AttachmentsBodyStorageTests.cs" />
+    <Compile Remove="..\ServiceControl.Persistence.Tests\MessageRedirects\MessageRedirectsDataStoreTests.cs" />
     <Compile Remove="..\ServiceControl.Persistence.Tests\Recoverability\EditHandlerAuditTests.cs" />
     <Compile Remove="..\ServiceControl.Persistence.Tests\Recoverability\EditMessageTests.cs" />
     <Compile Remove="..\ServiceControl.Persistence.Tests\Recoverability\RetryConfirmationProcessorTests.cs" />

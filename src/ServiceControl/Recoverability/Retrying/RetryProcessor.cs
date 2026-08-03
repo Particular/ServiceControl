@@ -19,6 +19,7 @@ namespace ServiceControl.Recoverability
     {
         public RetryProcessor(
             IRetryBatchesDataStore store,
+            IMessageRedirectsDataStore redirectsStore,
             IDomainEvents domainEvents,
             ReturnToSenderDequeuer returnToSender,
             RetryingManager retryingManager,
@@ -27,6 +28,7 @@ namespace ServiceControl.Recoverability
             ILogger<RetryProcessor> logger)
         {
             this.store = store;
+            this.redirectsStore = redirectsStore;
             this.returnToSender = returnToSender;
             this.retryingManager = retryingManager;
             this.domainEvents = domainEvents;
@@ -66,7 +68,7 @@ namespace ServiceControl.Recoverability
                 if (stagingBatch != null)
                 {
                     logger.LogInformation("Staging batch {StagingBatchId}", stagingBatch.Id);
-                    redirects = await manager.GetOrCreateMessageRedirectsCollection();
+                    redirects = await redirectsStore.GetRedirects();
                     var stagedMessages = await Stage(stagingBatch, manager);
                     var skippedMessages = stagingBatch.InitialBatchSize - stagedMessages;
                     await retryingManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages);
@@ -347,7 +349,7 @@ namespace ServiceControl.Recoverability
 
             var addressOfFailingEndpoint = attempt.FailureDetails.AddressOfFailingEndpoint;
 
-            var redirect = redirects[addressOfFailingEndpoint];
+            var redirect = redirects.FindByAddress(addressOfFailingEndpoint);
 
             if (redirect != null)
             {
@@ -367,11 +369,12 @@ namespace ServiceControl.Recoverability
 
         readonly IDomainEvents domainEvents;
         readonly IRetryBatchesDataStore store;
+        readonly IMessageRedirectsDataStore redirectsStore;
         readonly ReturnToSenderDequeuer returnToSender;
         readonly RetryingManager retryingManager;
         readonly Lazy<IMessageDispatcher> messageDispatcher;
         readonly IMessageActionAuditLog auditLog;
-        MessageRedirectsCollection redirects;
+        IReadOnlyList<MessageRedirect> redirects;
         bool isRecoveringFromPrematureShutdown = true;
         CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
         protected internal const int MaxStagingAttempts = 5;

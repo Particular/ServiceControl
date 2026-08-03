@@ -107,13 +107,13 @@
         [Authorize(Policy = Permissions.ErrorRecoverabilityGroupsView)]
         [Route("recoverability/groups/id/{groupId:required:minlength(1)}")]
         [HttpGet]
-        public async Task<FailureGroupView> GetGroup(string groupId, string status = default, string modified = default)
+        public async Task<ActionResult<FailureGroupView>> GetGroup(string groupId, string status = default, string modified = default)
         {
-            var result = await store.GetGroup(groupId, status, modified);
+            var result = await store.GetUnresolvedGroup(groupId, status, modified);
 
             Response.WithEtag(result.QueryStats.ETag);
 
-            return result.Results.FirstOrDefault();
+            return result.Results == null ? NotFound() : result.Results;
         }
     }
 }

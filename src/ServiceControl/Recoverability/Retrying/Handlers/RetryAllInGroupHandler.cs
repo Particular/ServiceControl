@@ -9,7 +9,7 @@ namespace ServiceControl.Recoverability
     using ServiceControl.Persistence.Recoverability;
 
     [Handler]
-    class RetryAllInGroupHandler(RetriesGateway retries, RetryingManager retryingManager, IArchiveMessages archiver, IRetryDocumentDataStore dataStore, ILogger<RetryAllInGroupHandler> logger)
+    class RetryAllInGroupHandler(RetriesGateway retries, RetryingManager retryingManager, IArchiveMessages archiver, IGroupsDataStore dataStore, ILogger<RetryAllInGroupHandler> logger)
         : IHandleMessages<RetryAllInGroup>
     {
         public async Task Handle(RetryAllInGroup message, IMessageHandlerContext context)
@@ -27,7 +27,7 @@ namespace ServiceControl.Recoverability
             }
 
 
-            var group = await dataStore.QueryFailureGroupViewOnGroupId(message.GroupId);
+            var group = (await dataStore.GetUnresolvedGroup(message.GroupId, null, null)).Results;
 
             string originator = null;
             if (group?.Title != null)
