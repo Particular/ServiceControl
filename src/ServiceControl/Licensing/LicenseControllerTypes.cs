@@ -18,6 +18,8 @@
 
         public LicensedProduct[] Products { get; set; }
 
+        public bool HasEndpointMetadata { get; set; }
+
         public string LicenseType { get; set; }
 
         public string InstanceName { get; set; }

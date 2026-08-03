@@ -44,6 +44,7 @@ namespace ServiceControl.Licensing
                 InstanceName = settings.InstanceName ?? string.Empty,
                 LicenseStatus = activeLicense.Details.Status,
                 Products = activeLicense.Details.Products,
+                HasEndpointMetadata = activeLicense.Details.HasEndpointMetadata,
                 LicenseExtensionUrl = connectorHeartbeatStatus.LastHeartbeat == null
                     ? $"https://particular.net/extend-your-trial?p={clientName}"
                     : $"https://particular.net/license/mt?p={clientName}&t={(activeLicense.IsEvaluation ? 0 : 1)}"
@@ -57,6 +58,11 @@ namespace ServiceControl.Licensing
         [Route("license/details")]
         public async Task<ActionResult<LicensedEndpointDetails?>> LicenseDetails(CancellationToken cancellationToken)
         {
+            if (activeLicense.Details.Edition != "Endpoint Size" || !activeLicense.Details.HasEndpointMetadata)
+            {
+                return (LicensedEndpointDetails?)null;
+            }
+
             var licenseDetails = await dataStore.GetLicensedEndpointDetails(cancellationToken);
             if (licenseDetails is null)
             {

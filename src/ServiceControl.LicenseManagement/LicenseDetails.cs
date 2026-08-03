@@ -40,6 +40,8 @@
 
         public LicensedProduct[] Products { get; private init; }
 
+        public bool HasEndpointMetadata { get; private init; }
+
         public static LicenseDetails TrialFromEndDate(DateOnly endDate)
         {
             return FromLicense(new License
@@ -82,6 +84,7 @@
                 Edition = license.Edition,
                 //strip any internal prefix from what gets displayed to the customer
                 Products = license.LicensedEndpoints?.Select(le => new LicensedProduct(le.Size.EndsWith("U") ? "Unlimited" : Regex.Replace(le.Size, @"^\D*", ""), le.Quantity)).ToArray(),
+                HasEndpointMetadata = license.Capabilities.Contains("EndpointMetadataFile"),
                 ValidForServiceControl = license.ValidForApplication("ServiceControl"),
                 DaysUntilSubscriptionExpires = license.GetDaysUntilLicenseExpires(),
                 WarnUserTrialIsExpiring = licenseStatus == LicenseStatus.ValidWithExpiringTrial,
