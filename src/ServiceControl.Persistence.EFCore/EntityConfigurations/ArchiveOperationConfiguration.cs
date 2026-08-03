@@ -10,10 +10,9 @@ class ArchiveOperationConfiguration : IEntityTypeConfiguration<ArchiveOperationE
     {
         builder.ToTable("ArchiveOperations");
 
-        builder.HasKey(e => e.Id);
-        builder.Property(e => e.Id)
-            .HasMaxLength(200)
-            .ValueGeneratedNever();
+        // Composite primary key — the natural key that distinguishes one operation from another.
+        // This also serves as the uniqueness constraint: one operation per (RequestId, ArchiveType, IsArchive).
+        builder.HasKey(e => new { e.RequestId, e.ArchiveType, e.IsArchive });
 
         builder.Property(e => e.RequestId).HasMaxLength(64).IsRequired();
         builder.Property(e => e.GroupName).IsRequired();
@@ -28,10 +27,6 @@ class ArchiveOperationConfiguration : IEntityTypeConfiguration<ArchiveOperationE
         builder.Property(e => e.InitiatedById).HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.InitiatedByName).HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.OperationId).HasMaxLength(ColumnLengths.ShortTextLength);
-
-        // Enforce one operation per (RequestId, ArchiveType, IsArchive) at a time
-        builder.HasIndex(e => new { e.RequestId, e.ArchiveType, e.IsArchive })
-            .IsUnique();
 
         // Non-unique index for cleanup / diagnostics queries
         builder.HasIndex(e => e.Started);

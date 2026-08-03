@@ -15,11 +15,10 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                 name: "ArchiveOperations",
                 columns: table => new
                 {
-                    id = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     request_id = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    group_name = table.Column<string>(type: "text", nullable: false),
                     archive_type = table.Column<int>(type: "integer", nullable: false),
                     is_archive = table.Column<bool>(type: "boolean", nullable: false),
+                    group_name = table.Column<string>(type: "text", nullable: false),
                     total_number_of_messages = table.Column<int>(type: "integer", nullable: false),
                     number_of_messages_processed = table.Column<int>(type: "integer", nullable: false),
                     number_of_batches = table.Column<int>(type: "integer", nullable: false),
@@ -31,14 +30,8 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_archive_operations", x => x.id);
+                    table.PrimaryKey("pk_archive_operations", x => new { x.request_id, x.archive_type, x.is_archive });
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "ix_archive_operations_request_id_archive_type_is_archive",
-                table: "ArchiveOperations",
-                columns: new[] { "request_id", "archive_type", "is_archive" },
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_archive_operations_started",

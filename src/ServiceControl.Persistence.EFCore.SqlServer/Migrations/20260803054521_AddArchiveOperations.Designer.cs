@@ -12,7 +12,7 @@ using ServiceControl.Persistence.EFCore.SqlServer;
 namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerServiceControlDbContext))]
-    [Migration("20260803050232_AddArchiveOperations")]
+    [Migration("20260803054521_AddArchiveOperations")]
     partial class AddArchiveOperations
     {
         /// <inheritdoc />
@@ -27,12 +27,15 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.ArchiveOperationEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                    b.Property<string>("RequestId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<int>("ArchiveType")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsArchive")
+                        .HasColumnType("bit");
 
                     b.Property<int>("CurrentBatch")
                         .HasColumnType("int");
@@ -49,9 +52,6 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<bool>("IsArchive")
-                        .HasColumnType("bit");
-
                     b.Property<int>("NumberOfBatches")
                         .HasColumnType("int");
 
@@ -62,23 +62,15 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("RequestId")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
                     b.Property<DateTime>("Started")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("TotalNumberOfMessages")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("RequestId", "ArchiveType", "IsArchive");
 
                     b.HasIndex("Started");
-
-                    b.HasIndex("RequestId", "ArchiveType", "IsArchive")
-                        .IsUnique();
 
                     b.ToTable("ArchiveOperations", (string)null);
                 });

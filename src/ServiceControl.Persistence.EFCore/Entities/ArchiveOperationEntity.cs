@@ -4,14 +4,11 @@ using ServiceControl.Recoverability;
 
 /// <summary>
 /// Persisted record of an in-progress archive or unarchive operation, enabling resume-after-crash.
-/// A single row per (RequestId, ArchiveType, IsArchive) combination; the unique index prevents
-/// duplicate concurrent operations.
+/// The composite primary key (RequestId, ArchiveType, IsArchive) enforces one operation per
+/// group/type/direction at a time — no separate unique index is needed.
 /// </summary>
 public class ArchiveOperationEntity
 {
-    /// <summary>Deterministic string PK (e.g. <c>ArchiveOperations/2/{groupId}</c>).</summary>
-    public string Id { get; set; } = null!;
-
     /// <summary>The group id (or other request id) being archived/unarchived.</summary>
     public string RequestId { get; set; } = null!;
 
@@ -47,13 +44,4 @@ public class ArchiveOperationEntity
 
     /// <summary>Audit attribution: the operation id used to correlate per-message audit entries.</summary>
     public string? OperationId { get; set; }
-
-    /// <summary>
-    /// Builds a deterministic primary key for the operation row.
-    /// </summary>
-    public static string MakeId(string requestId, ArchiveType archiveType, bool isArchive)
-    {
-        var prefix = isArchive ? "ArchiveOperations" : "UnarchiveOperations";
-        return $"{prefix}/{(int)archiveType}/{requestId}";
-    }
 }

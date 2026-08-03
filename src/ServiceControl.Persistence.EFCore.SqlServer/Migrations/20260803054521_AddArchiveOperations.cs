@@ -15,11 +15,10 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                 name: "ArchiveOperations",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     RequestId = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
-                    GroupName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ArchiveType = table.Column<int>(type: "int", nullable: false),
                     IsArchive = table.Column<bool>(type: "bit", nullable: false),
+                    GroupName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TotalNumberOfMessages = table.Column<int>(type: "int", nullable: false),
                     NumberOfMessagesProcessed = table.Column<int>(type: "int", nullable: false),
                     NumberOfBatches = table.Column<int>(type: "int", nullable: false),
@@ -31,14 +30,8 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ArchiveOperations", x => x.Id);
+                    table.PrimaryKey("PK_ArchiveOperations", x => new { x.RequestId, x.ArchiveType, x.IsArchive });
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ArchiveOperations_RequestId_ArchiveType_IsArchive",
-                table: "ArchiveOperations",
-                columns: new[] { "RequestId", "ArchiveType", "IsArchive" },
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ArchiveOperations_Started",

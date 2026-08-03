@@ -40,13 +40,12 @@ public class MessageArchiver : IArchiveMessages
         string? auditOperationId;
 
         // ── Load-or-create operation row ──
-        var operationId_str = ArchiveOperationEntity.MakeId(groupId, ArchiveType.FailureGroup, isArchive: true);
-
-        using (var scope = scopeFactory.CreateAsyncScope())
+        await using (var scope = scopeFactory.CreateAsyncScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
 
-            operationEntity = await dbContext.ArchiveOperations.FindAsync(operationId_str);
+            operationEntity = await dbContext.ArchiveOperations
+                .FindAsync(groupId, ArchiveType.FailureGroup, true);
 
             if (operationEntity != null)
             {
@@ -56,7 +55,7 @@ public class MessageArchiver : IArchiveMessages
             else
             {
                 // New operation: get group details
-                var (count, groupName) = await ArchiveQueryHelper.GetGroupDetailsForArchive(dbContext, groupId);
+                var (count, groupName) = await ArchiveQueryHelper.GetGroupDetails(dbContext, groupId, FailedMessageStatus.Unresolved);
 
                 if (count == 0)
                 {
@@ -66,7 +65,6 @@ public class MessageArchiver : IArchiveMessages
 
                 operationEntity = new ArchiveOperationEntity
                 {
-                    Id = operationId_str,
                     RequestId = groupId,
                     GroupName = groupName,
                     ArchiveType = ArchiveType.FailureGroup,
@@ -91,7 +89,8 @@ public class MessageArchiver : IArchiveMessages
                 catch (DbUpdateException ex) when (dbContext.IsDuplicateKeyException(ex))
                 {
                     // Another handler beat us to it — load the existing operation
-                    operationEntity = await dbContext.ArchiveOperations.FindAsync(operationId_str);
+                    operationEntity = await dbContext.ArchiveOperations
+                        .FindAsync(groupId, ArchiveType.FailureGroup, true);
                     logger.LogInformation("Archive operation for group {GroupId} already in progress, resuming at batch {CurrentBatch}/{NumberOfBatches}", groupId, operationEntity!.CurrentBatch, operationEntity.NumberOfBatches);
                 }
             }
@@ -105,77 +104,66 @@ public class MessageArchiver : IArchiveMessages
         await archivingManager.StartArchiving(operationEntity!);
 
         // ── Batch loop ──
-        var lastProcessedId = Guid.Empty;
+        // Each iteration queries the first batchSize messages that still have Status = Unresolved.
+        // Archiving them sets Status = Archived, so the next query naturally skips them — the
+        // status change IS the cursor. No lastProcessedId needed. On resume after a crash, the
+        // loop simply starts again; already-archived messages don't match the status filter.
+        // The loop terminates when a query returns fewer than batchSize messages (the last
+        // partial batch) or zero (nothing left).
 
-        // If resuming, try to reconstruct lastProcessedId from the number of already-processed messages.
-        // We can't know the exact IDs that were already processed, so we start from the beginning.
-        // The re-asserted Status == Unresolved filter ensures already-archived messages are skipped.
-        // This is safe because already-archived messages have Status = Archived and won't match the filter.
-
-        while (operationEntity!.CurrentBatch < operationEntity!.NumberOfBatches)
+        while (true)
         {
             using var batchScope = scopeFactory.CreateAsyncScope();
             var batchDbContext = batchScope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
 
             var batchIds = await ArchiveQueryHelper.GetNextBatchOfMessageIds(
-                batchDbContext, groupId, FailedMessageStatus.Unresolved, lastProcessedId, batchSize);
+                batchDbContext, groupId, FailedMessageStatus.Unresolved, batchSize);
 
             if (batchIds.Count == 0)
             {
-                // All messages already archived or group changed
-                logger.LogWarning("Attempting to archive a batch ({CurrentBatch}/{NumberOfBatches}) which appears to already have been archived", operationEntity!.CurrentBatch, operationEntity!.NumberOfBatches);
-            }
-            else
-            {
-                logger.LogInformation("Archiving {MessageCount} messages from group {GroupId} starting", batchIds.Count, groupId);
-
-                var now = DateTime.UtcNow;
-
-                // Bulk status change with re-asserted status filter
-                var affectedCount = await batchDbContext.FailedMessages
-                    .Where(fm => batchIds.Contains(fm.UniqueMessageId) && fm.Status == FailedMessageStatus.Unresolved)
-                    .ExecuteUpdateAsync(s => s
-                        .SetProperty(fm => fm.Status, FailedMessageStatus.Archived)
-                        .SetProperty(fm => fm.StatusChangedAt, now)
-                        .SetProperty(fm => fm.LastModified, now));
-
-                lastProcessedId = batchIds[^1];
-
-                await archivingManager.BatchArchived(groupId, ArchiveType.FailureGroup, affectedCount);
-
-                // Update persisted operation entity
-                var persistedEntity = await batchDbContext.ArchiveOperations.FindAsync(operationId_str);
-                if (persistedEntity != null)
-                {
-                    persistedEntity.CurrentBatch++;
-                    persistedEntity.NumberOfMessagesProcessed += affectedCount;
-                    await batchDbContext.SaveChangesAsync();
-                    operationEntity = persistedEntity;
-                }
-
-                // Raise batch domain event
-                var messageIds = batchIds.Select(id => id.ToString()).ToArray();
-                await domainEvents.Raise(new FailedMessageGroupBatchArchived
-                {
-                    FailedMessagesIds = messageIds
-                });
-
-                // Per-message audit
-                AuditArchivedMessages(MessageActionKind.Archive, Permissions.ErrorRecoverabilityGroupsArchive, auditUser, auditOperationId, messageIds);
-
-                logger.LogInformation("Archiving of {MessageCount} messages from group {GroupId} completed", batchIds.Count, groupId);
+                break; // No more unresolved messages in the group
             }
 
-            // If batch was empty, still increment to avoid infinite loop
-            if (batchIds.Count == 0)
+            logger.LogInformation("Archiving {MessageCount} messages from group {GroupId} starting", batchIds.Count, groupId);
+
+            var now = DateTime.UtcNow;
+
+            // Bulk status change with re-asserted status filter
+            var affectedCount = await batchDbContext.FailedMessages
+                .Where(fm => batchIds.Contains(fm.UniqueMessageId) && fm.Status == FailedMessageStatus.Unresolved)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(fm => fm.Status, FailedMessageStatus.Archived)
+                    .SetProperty(fm => fm.StatusChangedAt, now)
+                    .SetProperty(fm => fm.LastModified, now));
+
+            await archivingManager.BatchArchived(groupId, ArchiveType.FailureGroup, affectedCount);
+
+            // Update persisted operation entity for progress tracking
+            var persistedEntity = await batchDbContext.ArchiveOperations
+                .FindAsync(groupId, ArchiveType.FailureGroup, true);
+            if (persistedEntity != null)
             {
-                var persistedEntity = await batchDbContext.ArchiveOperations.FindAsync(operationId_str);
-                if (persistedEntity != null)
-                {
-                    persistedEntity.CurrentBatch++;
-                    await batchDbContext.SaveChangesAsync();
-                    operationEntity = persistedEntity;
-                }
+                persistedEntity.CurrentBatch++;
+                persistedEntity.NumberOfMessagesProcessed += affectedCount;
+                await batchDbContext.SaveChangesAsync();
+                operationEntity = persistedEntity;
+            }
+
+            // Raise batch domain event
+            var messageIds = batchIds.Select(id => id.ToString()).ToArray();
+            await domainEvents.Raise(new FailedMessageGroupBatchArchived
+            {
+                FailedMessagesIds = messageIds
+            });
+
+            // Per-message audit
+            AuditArchivedMessages(MessageActionKind.Archive, Permissions.ErrorRecoverabilityGroupsArchive, auditUser, auditOperationId, messageIds);
+
+            logger.LogInformation("Archiving of {MessageCount} messages from group {GroupId} completed", batchIds.Count, groupId);
+
+            if (batchIds.Count < batchSize)
+            {
+                break; // Last partial batch — no more messages after these
             }
         }
 
@@ -191,7 +179,8 @@ public class MessageArchiver : IArchiveMessages
         using (var finalizeScope = scopeFactory.CreateAsyncScope())
         {
             var finalizeDbContext = finalizeScope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
-            var entity = await finalizeDbContext.ArchiveOperations.FindAsync(operationId_str);
+            var entity = await finalizeDbContext.ArchiveOperations
+                .FindAsync(groupId, ArchiveType.FailureGroup, true);
             if (entity != null)
             {
                 finalizeDbContext.ArchiveOperations.Remove(entity);
@@ -218,13 +207,12 @@ public class MessageArchiver : IArchiveMessages
         string? auditOperationId;
 
         // ── Load-or-create operation row ──
-        var operationId_str = ArchiveOperationEntity.MakeId(groupId, ArchiveType.FailureGroup, isArchive: false);
-
         using (var scope = scopeFactory.CreateAsyncScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
 
-            operationEntity = await dbContext.ArchiveOperations.FindAsync(operationId_str);
+            operationEntity = await dbContext.ArchiveOperations
+                .FindAsync(groupId, ArchiveType.FailureGroup, false);
 
             if (operationEntity != null)
             {
@@ -234,7 +222,7 @@ public class MessageArchiver : IArchiveMessages
             else
             {
                 // New operation: get group details
-                var (count, groupName) = await ArchiveQueryHelper.GetGroupDetailsForUnarchive(dbContext, groupId);
+                var (count, groupName) = await ArchiveQueryHelper.GetGroupDetails(dbContext, groupId, FailedMessageStatus.Archived, (CancellationToken)default);
 
                 if (count == 0)
                 {
@@ -244,7 +232,6 @@ public class MessageArchiver : IArchiveMessages
 
                 operationEntity = new ArchiveOperationEntity
                 {
-                    Id = operationId_str,
                     RequestId = groupId,
                     GroupName = groupName,
                     ArchiveType = ArchiveType.FailureGroup,
@@ -269,7 +256,8 @@ public class MessageArchiver : IArchiveMessages
                 catch (DbUpdateException ex) when (dbContext.IsDuplicateKeyException(ex))
                 {
                     // Another handler beat us to it — load the existing operation
-                    operationEntity = await dbContext.ArchiveOperations.FindAsync(operationId_str);
+                    operationEntity = await dbContext.ArchiveOperations
+                        .FindAsync(groupId, ArchiveType.FailureGroup, false);
                     logger.LogInformation("Unarchive operation for group {GroupId} already in progress, resuming at batch {CurrentBatch}/{NumberOfBatches}", groupId, operationEntity!.CurrentBatch, operationEntity.NumberOfBatches);
                 }
             }
@@ -283,71 +271,66 @@ public class MessageArchiver : IArchiveMessages
         await unarchivingManager.StartUnarchiving(operationEntity!);
 
         // ── Batch loop ──
-        var lastProcessedId = Guid.Empty;
+        // Each iteration queries the first batchSize messages that still have Status = Archived.
+        // Unarchiving them sets Status = Unresolved, so the next query naturally skips them — the
+        // status change IS the cursor. No lastProcessedId needed. On resume after a crash, the
+        // loop simply starts again; already-unarchived messages don't match the status filter.
+        // The loop terminates when a query returns fewer than batchSize messages (the last
+        // partial batch) or zero (nothing left).
 
-        while (operationEntity!.CurrentBatch < operationEntity!.NumberOfBatches)
+        while (true)
         {
             using var batchScope = scopeFactory.CreateAsyncScope();
             var batchDbContext = batchScope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
 
             var batchIds = await ArchiveQueryHelper.GetNextBatchOfMessageIds(
-                batchDbContext, groupId, FailedMessageStatus.Archived, lastProcessedId, batchSize);
+                batchDbContext, groupId, FailedMessageStatus.Archived, batchSize);
 
             if (batchIds.Count == 0)
             {
-                logger.LogWarning("Attempting to unarchive a batch ({CurrentBatch}/{NumberOfBatches}) which appears to already have been unarchived", operationEntity!.CurrentBatch, operationEntity!.NumberOfBatches);
-            }
-            else
-            {
-                logger.LogInformation("Unarchiving {MessageCount} messages from group {GroupId} starting", batchIds.Count, groupId);
-
-                var now = DateTime.UtcNow;
-
-                // Bulk status change with re-asserted status filter
-                var affectedCount = await batchDbContext.FailedMessages
-                    .Where(fm => batchIds.Contains(fm.UniqueMessageId) && fm.Status == FailedMessageStatus.Archived)
-                    .ExecuteUpdateAsync(s => s
-                        .SetProperty(fm => fm.Status, FailedMessageStatus.Unresolved)
-                        .SetProperty(fm => fm.StatusChangedAt, now)
-                        .SetProperty(fm => fm.LastModified, now));
-
-                lastProcessedId = batchIds[^1];
-
-                await unarchivingManager.BatchUnarchived(groupId, ArchiveType.FailureGroup, affectedCount);
-
-                // Update persisted operation entity
-                var persistedEntity = await batchDbContext.ArchiveOperations.FindAsync(operationId_str);
-                if (persistedEntity != null)
-                {
-                    persistedEntity.CurrentBatch++;
-                    persistedEntity.NumberOfMessagesProcessed += affectedCount;
-                    await batchDbContext.SaveChangesAsync();
-                    operationEntity = persistedEntity;
-                }
-
-                // Raise batch domain event
-                var messageIds = batchIds.Select(id => id.ToString()).ToArray();
-                await domainEvents.Raise(new FailedMessageGroupBatchUnarchived
-                {
-                    FailedMessagesIds = messageIds
-                });
-
-                // Per-message audit
-                AuditArchivedMessages(MessageActionKind.Unarchive, Permissions.ErrorRecoverabilityGroupsUnarchive, auditUser, auditOperationId, messageIds);
-
-                logger.LogInformation("Unarchiving of {MessageCount} messages from group {GroupId} completed", batchIds.Count, groupId);
+                break; // No more archived messages in the group
             }
 
-            // If batch was empty, still increment to avoid infinite loop
-            if (batchIds.Count == 0)
+            logger.LogInformation("Unarchiving {MessageCount} messages from group {GroupId} starting", batchIds.Count, groupId);
+
+            var now = DateTime.UtcNow;
+
+            // Bulk status change with re-asserted status filter
+            var affectedCount = await batchDbContext.FailedMessages
+                .Where(fm => batchIds.Contains(fm.UniqueMessageId) && fm.Status == FailedMessageStatus.Archived)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(fm => fm.Status, FailedMessageStatus.Unresolved)
+                    .SetProperty(fm => fm.StatusChangedAt, now)
+                    .SetProperty(fm => fm.LastModified, now));
+
+            await unarchivingManager.BatchUnarchived(groupId, ArchiveType.FailureGroup, affectedCount);
+
+            // Update persisted operation entity for progress tracking
+            var persistedEntity = await batchDbContext.ArchiveOperations
+                .FindAsync(groupId, ArchiveType.FailureGroup, false);
+            if (persistedEntity != null)
             {
-                var persistedEntity = await batchDbContext.ArchiveOperations.FindAsync(operationId_str);
-                if (persistedEntity != null)
-                {
-                    persistedEntity.CurrentBatch++;
-                    await batchDbContext.SaveChangesAsync();
-                    operationEntity = persistedEntity;
-                }
+                persistedEntity.CurrentBatch++;
+                persistedEntity.NumberOfMessagesProcessed += affectedCount;
+                await batchDbContext.SaveChangesAsync();
+                operationEntity = persistedEntity;
+            }
+
+            // Raise batch domain event
+            var messageIds = batchIds.Select(id => id.ToString()).ToArray();
+            await domainEvents.Raise(new FailedMessageGroupBatchUnarchived
+            {
+                FailedMessagesIds = messageIds
+            });
+
+            // Per-message audit
+            AuditArchivedMessages(MessageActionKind.Unarchive, Permissions.ErrorRecoverabilityGroupsUnarchive, auditUser, auditOperationId, messageIds);
+
+            logger.LogInformation("Unarchiving of {MessageCount} messages from group {GroupId} completed", batchIds.Count, groupId);
+
+            if (batchIds.Count < batchSize)
+            {
+                break; // Last partial batch — no more messages after these
             }
         }
 
@@ -363,7 +346,8 @@ public class MessageArchiver : IArchiveMessages
         using (var finalizeScope = scopeFactory.CreateAsyncScope())
         {
             var finalizeDbContext = finalizeScope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
-            var entity = await finalizeDbContext.ArchiveOperations.FindAsync(operationId_str);
+            var entity = await finalizeDbContext.ArchiveOperations
+                .FindAsync(groupId, ArchiveType.FailureGroup, false);
             if (entity != null)
             {
                 finalizeDbContext.ArchiveOperations.Remove(entity);

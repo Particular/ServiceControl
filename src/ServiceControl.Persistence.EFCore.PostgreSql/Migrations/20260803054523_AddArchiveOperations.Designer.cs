@@ -13,7 +13,7 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    [Migration("20260803050237_AddArchiveOperations")]
+    [Migration("20260803054523_AddArchiveOperations")]
     partial class AddArchiveOperations
     {
         /// <inheritdoc />
@@ -28,14 +28,18 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.ArchiveOperationEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("id");
+                    b.Property<string>("RequestId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("request_id");
 
                     b.Property<int>("ArchiveType")
                         .HasColumnType("integer")
                         .HasColumnName("archive_type");
+
+                    b.Property<bool>("IsArchive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_archive");
 
                     b.Property<int>("CurrentBatch")
                         .HasColumnType("integer")
@@ -56,10 +60,6 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnType("character varying(450)")
                         .HasColumnName("initiated_by_name");
 
-                    b.Property<bool>("IsArchive")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_archive");
-
                     b.Property<int>("NumberOfBatches")
                         .HasColumnType("integer")
                         .HasColumnName("number_of_batches");
@@ -73,12 +73,6 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnType("character varying(450)")
                         .HasColumnName("operation_id");
 
-                    b.Property<string>("RequestId")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("request_id");
-
                     b.Property<DateTime>("Started")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("started");
@@ -87,15 +81,11 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("total_number_of_messages");
 
-                    b.HasKey("Id")
+                    b.HasKey("RequestId", "ArchiveType", "IsArchive")
                         .HasName("pk_archive_operations");
 
                     b.HasIndex("Started")
                         .HasDatabaseName("ix_archive_operations_started");
-
-                    b.HasIndex("RequestId", "ArchiveType", "IsArchive")
-                        .IsUnique()
-                        .HasDatabaseName("ix_archive_operations_request_id_archive_type_is_archive");
 
                     b.ToTable("ArchiveOperations", (string)null);
                 });
