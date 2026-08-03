@@ -13,6 +13,7 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.MessageRedirects;
 using ServiceControl.Persistence.Recoverability;
 using ServiceControl.Persistence.UnitOfWork;
+using ServiceControl.Recoverability;
 
 public abstract class BasePersistence
 {
@@ -33,6 +34,7 @@ public abstract class BasePersistence
 
         services.AddHostedService<RetentionSweeper>();
 
+        services.AddSingleton<OperationsManager>();
         services.AddSingleton<IArchiveMessages, MessageArchiver>();
         services.AddSingleton<ICustomChecksDataStore, CustomCheckDataStore>();
         services.AddSingleton<IMessagesViewDataStore, MessagesViewDataStore>();

@@ -1,0 +1,81 @@
+namespace ServiceControl.Persistence.EFCore.Implementation;
+
+using ServiceControl.Infrastructure.DomainEvents;
+using ServiceControl.Persistence.EFCore.Entities;
+using ServiceControl.Recoverability;
+
+/// <summary>
+/// EFCore equivalent of the RavenDB <see cref="UnarchivingManager"/>. Wraps the shared
+/// <see cref="OperationsManager"/> singleton to manage in-memory unarchive progress state.
+/// </summary>
+class EFCoreUnarchivingManager(IDomainEvents domainEvents, OperationsManager operationsManager)
+{
+    InMemoryUnarchive GetOrCreate(ArchiveType archiveType, string requestId)
+    {
+        var id = InMemoryUnarchive.MakeId(requestId, archiveType);
+        if (!operationsManager.UnarchiveOperations.TryGetValue(id, out var summary))
+        {
+            summary = new InMemoryUnarchive(requestId, archiveType, domainEvents);
+            operationsManager.UnarchiveOperations[id] = summary;
+        }
+
+        return summary;
+    }
+
+    public Task StartUnarchiving(ArchiveOperationEntity operation)
+    {
+        var summary = GetOrCreate(operation.ArchiveType, operation.RequestId);
+
+        summary.TotalNumberOfMessages = operation.TotalNumberOfMessages;
+        summary.NumberOfMessagesUnarchived = operation.NumberOfMessagesProcessed;
+        summary.Started = operation.Started;
+        summary.GroupName = operation.GroupName;
+        summary.NumberOfBatches = operation.NumberOfBatches;
+        summary.CurrentBatch = operation.CurrentBatch;
+
+        return summary.Start();
+    }
+
+    public Task StartUnarchiving(string requestId, ArchiveType archiveType)
+    {
+        var summary = GetOrCreate(archiveType, requestId);
+
+        summary.TotalNumberOfMessages = 0;
+        summary.NumberOfMessagesUnarchived = 0;
+        summary.Started = DateTime.UtcNow;
+        summary.GroupName = "Undefined";
+        summary.NumberOfBatches = 0;
+        summary.CurrentBatch = 0;
+
+        return summary.Start();
+    }
+
+    public InMemoryUnarchive? GetStatusForUnarchiveOperation(string requestId, ArchiveType archiveType)
+    {
+        operationsManager.UnarchiveOperations.TryGetValue(InMemoryUnarchive.MakeId(requestId, archiveType), out var summary);
+        return summary;
+    }
+
+    public Task BatchUnarchived(string requestId, ArchiveType archiveType, int numberOfMessagesUnarchivedInBatch)
+    {
+        var summary = GetOrCreate(archiveType, requestId);
+        return summary.BatchUnarchived(numberOfMessagesUnarchivedInBatch);
+    }
+
+    public Task UnarchiveOperationFinalizing(string requestId, ArchiveType archiveType)
+    {
+        var summary = GetOrCreate(archiveType, requestId);
+        return summary.FinalizeUnarchive();
+    }
+
+    public Task UnarchiveOperationCompleted(string requestId, ArchiveType archiveType)
+    {
+        var summary = GetOrCreate(archiveType, requestId);
+        return summary.Complete();
+    }
+
+    public void DismissUnarchiveOperation(string requestId, ArchiveType archiveType)
+    {
+        operationsManager.UnarchiveOperations.Remove(InMemoryUnarchive.MakeId(requestId, archiveType));
+    }
+}
