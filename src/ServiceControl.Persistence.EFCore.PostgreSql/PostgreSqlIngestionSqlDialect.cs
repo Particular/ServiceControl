@@ -65,6 +65,23 @@ class PostgreSqlIngestionSqlDialect : IIngestionSqlDialect
         }
     }
 
+    public async Task InsertMissingRetryClaims(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageRetryEntity> rows, CancellationToken cancellationToken)
+    {
+        foreach (var chunk in rows.Chunk(MaxRowsPerStatement))
+        {
+            await Execute(
+                dbContext,
+                $"""
+                 INSERT INTO failed_message_retries (unique_message_id, retry_batch_id, stage_attempts)
+                 VALUES
+                 {ParameterRows(chunk.Length, 3)}
+                 ON CONFLICT (unique_message_id) DO NOTHING
+                 """,
+                chunk.Select(retry => new object?[] { retry.UniqueMessageId, retry.RetryBatchId, retry.StageAttempts }),
+                cancellationToken);
+        }
+    }
+
     static async Task Execute(ServiceControlDbContext dbContext, string sql, IEnumerable<object?[]> rows, CancellationToken cancellationToken)
     {
         await using var command = dbContext.Database.GetDbConnection().CreateCommand();

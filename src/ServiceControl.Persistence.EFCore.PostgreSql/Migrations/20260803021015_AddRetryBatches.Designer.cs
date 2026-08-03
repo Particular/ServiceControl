@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServiceControl.Persistence.EFCore.PostgreSql;
@@ -12,9 +13,11 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    partial class PostgreSqlServiceControlDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260803021015_AddRetryBatches")]
+    partial class AddRetryBatches
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,60 +25,6 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.CustomCheckEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("category");
-
-                    b.Property<string>("CustomCheckId")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("custom_check_id");
-
-                    b.Property<string>("FailureReason")
-                        .HasColumnType("text")
-                        .HasColumnName("failure_reason");
-
-                    b.Property<string>("OriginatingEndpointHost")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("originating_endpoint_host");
-
-                    b.Property<Guid>("OriginatingEndpointHostId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("originating_endpoint_host_id");
-
-                    b.Property<string>("OriginatingEndpointName")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("originating_endpoint_name");
-
-                    b.Property<DateTime>("ReportedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("reported_at");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer")
-                        .HasColumnName("status");
-
-                    b.HasKey("Id")
-                        .HasName("pk_custom_checks");
-
-                    b.HasIndex("ReportedAt")
-                        .HasDatabaseName("ix_custom_checks_reported_at");
-
-                    b.HasIndex("Status", "ReportedAt")
-                        .HasDatabaseName("ix_custom_checks_status_reported_at");
-
-                    b.ToTable("custom_checks", (string)null);
-                });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.EndpointSettingsEntity", b =>
                 {

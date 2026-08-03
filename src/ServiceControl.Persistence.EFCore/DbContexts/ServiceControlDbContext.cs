@@ -13,6 +13,8 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
     public DbSet<FailedMessageGroupEntity> FailedMessageGroups { get; set; }
     public DbSet<GroupCommentEntity> GroupComments { get; set; }
     public DbSet<MessageRedirectEntity> MessageRedirects { get; set; }
+    public DbSet<RetryBatchEntity> RetryBatches { get; set; }
+    public DbSet<RetryBatchNowForwardingEntity> RetryBatchNowForwarding { get; set; }
     public DbSet<FailedMessageRetryEntity> FailedMessageRetries { get; set; }
     public DbSet<FailedErrorImportEntity> FailedErrorImports { get; set; }
     public DbSet<TrialMetadataEntity> TrialMetadata { get; set; }
@@ -34,6 +36,8 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
         modelBuilder.ApplyConfiguration(new FailedMessageRetryConfiguration());
         modelBuilder.ApplyConfiguration(new GroupCommentConfiguration());
         modelBuilder.ApplyConfiguration(new MessageRedirectConfiguration());
+        modelBuilder.ApplyConfiguration(new RetryBatchConfiguration());
+        modelBuilder.ApplyConfiguration(new RetryBatchNowForwardingConfiguration());
         modelBuilder.ApplyConfiguration(new KnownEndpointConfiguration());
         modelBuilder.ApplyConfiguration(new SubscriptionConfiguration());
         modelBuilder.ApplyConfiguration(new TrialMetadataConfiguration());

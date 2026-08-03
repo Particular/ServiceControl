@@ -218,7 +218,7 @@ class ErrorIngestionTests : ErrorIngestionTestBase
     {
         var failure = new IngestedFailure();
         await Ingest(failure);
-        await Store(new FailedMessageRetryEntity { UniqueMessageId = failure.UniqueMessageId, RetryId = "RetryBatches/1" });
+        await Store(new FailedMessageRetryEntity { UniqueMessageId = failure.UniqueMessageId, RetryBatchId = Guid.NewGuid() });
 
         await ConfirmRetry(failure.UniqueMessageIdString);
 
