@@ -259,9 +259,9 @@
 
             return new Dictionary<string, object>
             {
-                ["Endpoints"] = Counts(facetResults, "Name"),
-                ["Hosts"] = Counts(facetResults, "Host"),
-                ["Message types"] = Counts(facetResults, "MessageType")
+                [FailedMessageSummaryKeys.Endpoints] = Counts(facetResults, "Name"),
+                [FailedMessageSummaryKeys.Hosts] = Counts(facetResults, "Host"),
+                [FailedMessageSummaryKeys.MessageTypes] = Counts(facetResults, "MessageType")
             };
         }
 

@@ -49,9 +49,9 @@ public class FailedMessageQueryDataStore(IServiceScopeFactory scopeFactory) : Da
 
             return (IDictionary<string, object>)new Dictionary<string, object>
             {
-                ["Endpoints"] = endpoints,
-                ["Hosts"] = hosts,
-                ["Message types"] = messageTypes
+                [FailedMessageSummaryKeys.Endpoints] = endpoints,
+                [FailedMessageSummaryKeys.Hosts] = hosts,
+                [FailedMessageSummaryKeys.MessageTypes] = messageTypes
             };
         });
 

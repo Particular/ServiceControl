@@ -14,7 +14,7 @@ class ErrorIngestionTests : ErrorIngestionTestBase
     [Test]
     public async Task First_failure_stores_the_message()
     {
-        var failure = new IngestedFailure();
+        var failure = new IngestedFailure { FailingEndpointAddress = "Sales@MACHINE" };
 
         await Ingest(failure);
 
@@ -31,7 +31,7 @@ class ErrorIngestionTests : ErrorIngestionTestBase
             Assert.That(row.MessageType, Is.EqualTo(failure.MessageType));
             Assert.That(row.TimeSent, Is.EqualTo(failure.TimeSent));
             Assert.That(row.ConversationId, Is.EqualTo(failure.ConversationId));
-            Assert.That(row.FailingEndpointAddress, Is.EqualTo(failure.QueueAddress));
+            Assert.That(row.FailingEndpointAddress, Is.EqualTo(failure.FailingEndpointAddress));
             Assert.That(row.SendingEndpointName, Is.EqualTo(failure.SendingEndpoint.Name));
             Assert.That(row.SendingEndpointHostId, Is.EqualTo(failure.SendingEndpoint.HostId));
             Assert.That(row.SendingEndpointHost, Is.EqualTo(failure.SendingEndpoint.Host));

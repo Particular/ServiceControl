@@ -31,11 +31,8 @@ static class FailedMessageQueryFilters
                 {
                     excludes.Add(excluded);
                 }
-
-                continue;
             }
-
-            if (Enum.TryParse<FailedMessageStatus>(filter, true, out var included))
+            else if (Enum.TryParse<FailedMessageStatus>(filter, true, out var included))
             {
                 includes.Add(included);
             }
@@ -46,11 +43,9 @@ static class FailedMessageQueryFilters
             source = source.Where(message => includes.Contains(message.Status));
         }
 
-        foreach (var exclude in excludes)
+        if (excludes.Count > 0)
         {
-            // Captured per iteration so each exclusion closes over its own value.
-            var excluded = exclude;
-            source = source.Where(message => message.Status != excluded);
+            source = source.Where(message => !excludes.Contains(message.Status));
         }
 
         return source;
@@ -105,14 +100,9 @@ static class FailedMessageQueryFilters
     public static IQueryable<FailedMessageEntity> Sort(this IQueryable<FailedMessageEntity> source, SortInfo? sortInfo)
     {
         var descending = sortInfo?.Direction != "asc";
-        var sort = sortInfo?.Sort;
 
-        if (sort == null || !SortInfo.AllowedSortOptions.Contains(sort))
-        {
-            sort = "time_sent";
-        }
-
-        return sort switch
+        // Anything the API does not sort by, including null, falls through to time_sent.
+        return sortInfo?.Sort switch
         {
             "id" or "message_id" => source.OrderBy(message => message.MessageId, descending),
             "message_type" => source.OrderBy(message => message.MessageType, descending),
