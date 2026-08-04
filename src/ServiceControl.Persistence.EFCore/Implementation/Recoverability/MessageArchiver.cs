@@ -201,6 +201,24 @@ public class MessageArchiver : IArchiveMessages
         logger.LogInformation("Unarchiving of group {GroupId} completed", groupId);
     }
 
+    public bool IsOperationInProgressFor(string groupId, ArchiveType archiveType)
+        => operationsManager.IsOperationInProgressFor(groupId, archiveType);
+
+    public bool IsArchiveInProgressFor(string groupId)
+        => archivingManager.IsArchiveInProgressFor(groupId);
+
+    public void DismissArchiveOperation(string groupId, ArchiveType archiveType)
+        => archivingManager.DismissArchiveOperation(groupId, archiveType);
+
+    public Task StartArchiving(string groupId, ArchiveType archiveType)
+        => archivingManager.StartArchiving(groupId, archiveType);
+
+    public Task StartUnarchiving(string groupId, ArchiveType archiveType)
+        => unarchivingManager.StartUnarchiving(groupId, archiveType);
+
+    public IEnumerable<InMemoryArchive> GetArchivalOperations()
+        => archivingManager.GetArchivalOperations();
+
     async Task<ArchiveOperationEntity?> GetOrCreateOperation(ServiceControlDbContext dbContext, string groupId, ArchiveOperationType operation, AuditUser? initiatedBy, string? operationId)
     {
         ArchiveOperationEntity? operationEntity = await dbContext.ArchiveOperations.FindAsync(groupId, ArchiveType.FailureGroup, false);
@@ -267,24 +285,6 @@ public class MessageArchiver : IArchiveMessages
             auditLog.MessageAction(user, kind, permission, MessageActionScope.Group, messageId, operationId);
         }
     }
-
-    public bool IsOperationInProgressFor(string groupId, ArchiveType archiveType)
-        => operationsManager.IsOperationInProgressFor(groupId, archiveType);
-
-    public bool IsArchiveInProgressFor(string groupId)
-        => archivingManager.IsArchiveInProgressFor(groupId);
-
-    public void DismissArchiveOperation(string groupId, ArchiveType archiveType)
-        => archivingManager.DismissArchiveOperation(groupId, archiveType);
-
-    public Task StartArchiving(string groupId, ArchiveType archiveType)
-        => archivingManager.StartArchiving(groupId, archiveType);
-
-    public Task StartUnarchiving(string groupId, ArchiveType archiveType)
-        => unarchivingManager.StartUnarchiving(groupId, archiveType);
-
-    public IEnumerable<InMemoryArchive> GetArchivalOperations()
-        => archivingManager.GetArchivalOperations();
 
     async Task<string[]> UpdateGroupStatusAsync(ServiceControlDbContext dbContext, string groupId, FailedMessageStatus fromStatus, FailedMessageStatus toStatus, int batchSize, CancellationToken cancellationToken = default)
     {
