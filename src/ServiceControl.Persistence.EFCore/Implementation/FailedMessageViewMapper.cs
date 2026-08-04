@@ -6,6 +6,7 @@ using ServiceControl.MessageFailures;
 using ServiceControl.MessageFailures.Api;
 using ServiceControl.Operations;
 using ServiceControl.Persistence.EFCore.Entities;
+using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
 
 static class FailedMessageViewMapper
@@ -147,6 +148,5 @@ static class FailedMessageViewMapper
                 HostId = entity.ReceivingEndpointHostId ?? Guid.Empty
             };
 
-    static Dictionary<string, string> ReadHeaders(this FailedMessageEntity entity) =>
-        JsonSerializer.Deserialize(entity.HeadersJson, HeadersJsonContext.Default.DictionaryStringString) ?? [];
+    static Dictionary<string, string> ReadHeaders(this FailedMessageEntity entity) => MessageHeaders.Read(entity.HeadersJson);
 }
