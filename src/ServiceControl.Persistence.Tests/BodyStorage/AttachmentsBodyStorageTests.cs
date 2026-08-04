@@ -86,7 +86,10 @@
             }
 
             var buffer = new byte[retrieved.BodySize];
-            retrieved.Stream.Read(buffer, 0, retrieved.BodySize);
+            await using (retrieved.Stream)
+            {
+                retrieved.Stream.ReadExactly(buffer);
+            }
 
             Assert.That(buffer, Is.EqualTo(body));
         }
