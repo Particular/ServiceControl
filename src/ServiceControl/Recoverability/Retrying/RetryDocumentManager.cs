@@ -54,12 +54,9 @@ namespace ServiceControl.Recoverability
 
             foreach (var group in stagingBatchGroups)
             {
-                if (!string.IsNullOrWhiteSpace(group.RequestId))
-                {
-                    logger.LogDebug("Rebuilt retry operation status for {RetryType}/{RetryRequestId}. Aggregated batchsize: {RetryBatchSize}", group.RetryType, group.RequestId, group.InitialBatchSize);
+                logger.LogDebug("Rebuilt retry operation status for {RetryType}/{RetryRequestId}. Aggregated batchsize: {RetryBatchSize}", group.RetryType, group.RequestId, group.InitialBatchSize);
 
-                    await operationManager.PreparedAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator, group.Classifier, group.StartTime, group.Last);
-                }
+                await operationManager.PreparedAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator, group.Classifier, group.StartTime, group.Last);
             }
         }
 
