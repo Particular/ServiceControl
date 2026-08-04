@@ -17,8 +17,13 @@
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
-    using TestSupport;
 
+    /// <summary>
+    /// This test gets run first and serially, this is to allow the non-threadsafe onetime setup to
+    /// happen without lifting it into a setup fixture.
+    /// </summary>
+    [Order(1)]
+    [NonParallelizable]
     class When_a_failed_message_is_retried : AcceptanceTest
     {
         [Test]
