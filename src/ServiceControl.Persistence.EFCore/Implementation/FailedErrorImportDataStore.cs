@@ -43,7 +43,7 @@ public class FailedErrorImportDataStore(
             }
 
             var failedAt = timeProvider.GetUtcNow().UtcDateTime;
-            var headersJson = JsonSerializer.Serialize(failure.Message.Headers, HeadersJsonContext.Default.DictionaryStringString);
+            var headersJson = MessageHeaders.Write(failure.Message.Headers);
             byte[] storedBody = storeExternally ? [] : body;
 
             await dbContext.UpsertAsync([uniqueMessageId], () => new FailedErrorImportEntity
@@ -143,7 +143,7 @@ public class FailedErrorImportDataStore(
 
     async Task<FailedTransportMessage> ToTransportMessage(FailedErrorImportEntity import, CancellationToken cancellationToken)
     {
-        var headers = JsonSerializer.Deserialize(import.HeadersJson, HeadersJsonContext.Default.DictionaryStringString) ?? [];
+        var headers = MessageHeaders.Read(import.HeadersJson);
 
         var body = import.BodyStoredExternally
             ? await ReadExternalBody(import.UniqueMessageId, cancellationToken)

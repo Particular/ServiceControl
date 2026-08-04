@@ -8,7 +8,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using EFCore.DbContexts;
 using EFCore.Entities;
-using EFCore.Implementation.UnitOfWork;
+using EFCore.Infrastructure;
 using MessageFailures;
 using Microsoft.Extensions.DependencyInjection;
 using NServiceBus;
@@ -41,7 +41,7 @@ public partial class PersistenceTestsContext
                 FirstTimeOfFailure = ordered.Min(pa => pa.FailureDetails.TimeOfFailure),
                 LastTimeOfFailure = ordered.Max(pa => pa.FailureDetails.TimeOfFailure),
                 LastAttemptedAt = attempt.AttemptedAt,
-                HeadersJson = JsonSerializer.Serialize(attempt.Headers, HeadersJsonContext.Default.DictionaryStringString),
+                HeadersJson = MessageHeaders.Write(attempt.Headers),
                 MessageId = attempt.MessageId,
                 MessageType = GetMetadata<string>(attempt, "MessageType"),
                 TimeSent = GetMetadata<DateTime?>(attempt, "TimeSent"),

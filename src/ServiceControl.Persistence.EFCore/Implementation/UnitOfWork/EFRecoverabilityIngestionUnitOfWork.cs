@@ -36,7 +36,7 @@ public class EFRecoverabilityIngestionUnitOfWork(EFIngestionUnitOfWork parentUni
             AttemptedAt = processingAttempt.AttemptedAt,
             TimeOfFailure = processingAttempt.FailureDetails.TimeOfFailure,
             Groups = groups,
-            HeadersJson = JsonSerializer.Serialize(processingAttempt.Headers, HeadersJsonContext.Default.DictionaryStringString),
+            HeadersJson = MessageHeaders.Write(processingAttempt.Headers),
             MessageId = processingAttempt.MessageId,
             MessageType = GetMetadata<string>(processingAttempt, "MessageType"),
             TimeSent = GetMetadata<DateTime?>(processingAttempt, "TimeSent"),
