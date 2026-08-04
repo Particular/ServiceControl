@@ -10,7 +10,7 @@
     {
         public Task Configure()
         {
-            basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".transporttests");
+            basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $".transporttests{Guid.NewGuid():N}");
 
             if (Directory.Exists(basePath))
             {
