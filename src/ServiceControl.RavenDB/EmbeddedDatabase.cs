@@ -176,11 +176,6 @@ namespace ServiceControl.RavenDB
                 SkipCreatingDatabase = true
             };
 
-            if (configuration.FindClrType != null)
-            {
-                dbOptions.Conventions.FindClrType += configuration.FindClrType;
-            }
-
             var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions, cancellationToken);
             return store;
         }
