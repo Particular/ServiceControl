@@ -48,13 +48,11 @@ namespace ServiceControl.Persistence.RavenDB
 
             var messages = await session.LoadAsync<FailedMessage>(claims.Select(claim => claim.FailedMessageId));
 
-            return
-            [
-                .. claims
-                    .Select(claim => new { Claim = claim, Message = messages[claim.FailedMessageId] })
-                    .Where(row => row.Message != null)
-                    .Select(row => ToStagingMessage(row.Message, row.Claim.StageAttempts))
-            ];
+            return claims
+                .Select(claim => new { Claim = claim, Message = messages[claim.FailedMessageId] })
+                .Where(row => row.Message != null)
+                .Select(row => ToStagingMessage(row.Message, row.Claim.StageAttempts))
+                .ToArray();
         }
 
         static StagingMessage ToStagingMessage(FailedMessage message, int stageAttempts)
