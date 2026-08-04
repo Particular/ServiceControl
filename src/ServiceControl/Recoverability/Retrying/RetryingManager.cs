@@ -18,11 +18,6 @@
 
         public Task Wait(string requestId, RetryType retryType, DateTime started, string originator = null, string classifier = null, DateTime? last = null)
         {
-            if (requestId == null) //legacy support for batches created before operations were introduced
-            {
-                return Task.CompletedTask;
-            }
-
             var summary = GetOrCreate(retryType, requestId);
 
             return summary.Wait(started, originator, classifier, last);
@@ -45,11 +40,6 @@
 
         public async Task Preparing(string requestId, RetryType retryType, int totalNumberOfMessages)
         {
-            if (requestId == null) //legacy support for batches created before operations were introduced
-            {
-                return;
-            }
-
             var summary = GetOrCreate(retryType, requestId);
 
             await summary.Prepare(totalNumberOfMessages);
@@ -57,11 +47,6 @@
 
         public async Task PreparedAdoptedBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages, string originator, string classifier, DateTime startTime, DateTime last)
         {
-            if (requestId == null) //legacy support for batches created before operations were introduced
-            {
-                return;
-            }
-
             var summary = GetOrCreate(retryType, requestId);
 
             await summary.Prepare(totalNumberOfMessages);
@@ -70,11 +55,6 @@
 
         public async Task PreparedBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared)
         {
-            if (requestId == null) //legacy support for batches created before operations were introduced
-            {
-                return;
-            }
-
             var summary = GetOrCreate(retryType, requestId);
 
             await summary.PrepareBatch(numberOfMessagesPrepared);
@@ -82,11 +62,6 @@
 
         public async Task Forwarding(string requestId, RetryType retryType)
         {
-            if (requestId == null) //legacy support for batches created before operations were introduced
-            {
-                return;
-            }
-
             var summary = GetOrCreate(retryType, requestId);
 
             await summary.Forwarding();
@@ -94,11 +69,6 @@
 
         public async Task ForwardedBatch(string requestId, RetryType retryType, int numberOfMessagesForwarded)
         {
-            if (requestId == null) //legacy support for batches created before operations were introduced
-            {
-                return;
-            }
-
             var summary = GetOrCreate(retryType, requestId);
 
             await summary.BatchForwarded(numberOfMessagesForwarded);
@@ -106,11 +76,6 @@
 
         public void Fail(RetryType retryType, string requestId)
         {
-            if (requestId == null) //legacy support for batches created before operations were introduced
-            {
-                return;
-            }
-
             var summary = GetOrCreate(retryType, requestId);
 
             summary.Fail();
@@ -118,17 +83,14 @@
 
         public async Task Skip(string requestId, RetryType retryType, int numberOfMessagesSkipped)
         {
-            if (requestId == null) //legacy support for batches created before operations were introduced
-            {
-                return;
-            }
-
             var summary = GetOrCreate(retryType, requestId);
             await summary.Skip(numberOfMessagesSkipped);
         }
 
         InMemoryRetry GetOrCreate(RetryType retryType, string requestId)
         {
+            ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
+
             var key = InMemoryRetry.MakeOperationId(requestId, retryType);
             return retryOperations.GetOrAdd(key, _ => new InMemoryRetry(requestId, retryType, domainEvents, logger));
         }
