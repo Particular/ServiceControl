@@ -106,9 +106,9 @@ public class RetryBatchStore(IServiceScopeFactory scopeFactory, IIngestionSqlDia
                 .Where(batch => batch.Status == RetryBatchStatus.MarkingDocuments && batch.RetrySessionId != retrySessionId)
                 .ToListAsync();
 
-            var membership = await ReadMembership(dbContext, [.. orphaned.Select(batch => batch.Id)]);
+            var messageCounts = await CountMessages(dbContext, [.. orphaned.Select(batch => batch.Id)]);
 
-            IList<RetryBatch> batches = [.. orphaned.Select(batch => batch.ToRetryBatch(membership.GetValueOrDefault(batch.Id, [])))];
+            IList<RetryBatch> batches = [.. orphaned.Select(batch => batch.ToRetryBatch(messageCounts.GetValueOrDefault(batch.Id)))];
 
             return new QueryResult<IList<RetryBatch>>(batches, new QueryStatsInfo(string.Empty, batches.Count, false));
         });
@@ -202,21 +202,18 @@ public class RetryBatchStore(IServiceScopeFactory scopeFactory, IIngestionSqlDia
         }
     }
 
-    static async Task<Dictionary<Guid, List<string>>> ReadMembership(ServiceControlDbContext dbContext, Guid[] batchIds)
+    static async Task<Dictionary<Guid, int>> CountMessages(ServiceControlDbContext dbContext, Guid[] batchIds)
     {
         if (batchIds.Length == 0)
         {
             return [];
         }
 
-        var rows = await dbContext.FailedMessageRetries
+        return await dbContext.FailedMessageRetries
             .AsNoTracking()
             .Where(retry => batchIds.Contains(retry.RetryBatchId))
-            .Select(retry => new { retry.RetryBatchId, retry.UniqueMessageId })
-            .ToListAsync();
-
-        return rows
-            .GroupBy(row => row.RetryBatchId)
-            .ToDictionary(group => group.Key, group => group.Select(row => row.UniqueMessageId.ToString()).ToList());
+            .GroupBy(retry => retry.RetryBatchId)
+            .Select(group => new { RetryBatchId = group.Key, MessageCount = group.Count() })
+            .ToDictionaryAsync(row => row.RetryBatchId, row => row.MessageCount);
     }
 }

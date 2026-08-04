@@ -26,7 +26,7 @@ namespace ServiceControl.Recoverability
             // let's leave Task.Run for now due to sync sends
             await Task.WhenAll(orphanedBatches.Results.Select(b => Task.Run(async () =>
             {
-                logger.LogInformation("Adopting retry batch {BatchId} with {BatchMessageCount} messages", b.Id, b.FailureRetries.Count);
+                logger.LogInformation("Adopting retry batch {BatchId} with {BatchMessageCount} messages", b.Id, b.MessageCount);
                 await MoveBatchToStaging(b.Id);
             })));
 

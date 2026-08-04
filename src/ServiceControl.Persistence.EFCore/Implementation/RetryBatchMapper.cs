@@ -4,12 +4,11 @@ using ServiceControl.Persistence.EFCore.Entities;
 
 static class RetryBatchMapper
 {
-    public static RetryBatch ToRetryBatch(this RetryBatchEntity entity, IList<string> failureRetries) =>
+    public static RetryBatch ToRetryBatch(this RetryBatchEntity entity, int messageCount) =>
         new()
         {
             Id = entity.Id.ToString(),
             Status = entity.Status,
-            RetrySessionId = entity.RetrySessionId,
             RequestId = entity.RequestId,
             RetryType = entity.RetryType,
             InitialBatchSize = entity.InitialBatchSize,
@@ -22,6 +21,6 @@ static class RetryBatchMapper
             InitiatedById = entity.InitiatedById,
             InitiatedByName = entity.InitiatedByName,
             OperationId = entity.OperationId,
-            FailureRetries = failureRetries
+            MessageCount = messageCount
         };
 }

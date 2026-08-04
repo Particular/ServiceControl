@@ -92,7 +92,7 @@ abstract class ErrorIngestionTestBase : PersistenceTestBase
     protected Task RunRetentionSweep() =>
         ServiceProvider.GetServices<IHostedService>().OfType<RetentionSweeper>().Single().SweepNow(TestContext.CurrentContext.CancellationToken);
 
-    async Task<T> Query<T>(Func<ServiceControlDbContext, Task<T>> query)
+    protected async Task<T> Query<T>(Func<ServiceControlDbContext, Task<T>> query)
     {
         using var scope = ServiceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();

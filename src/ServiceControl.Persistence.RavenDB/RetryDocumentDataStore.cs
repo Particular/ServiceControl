@@ -83,7 +83,7 @@
             return batchId;
         }
 
-        public async Task<QueryResult<IList<RetryBatch>>> GetOrphanedBatches(string retrySessionId)
+        public async Task<QueryResult<IList<Persistence.RetryBatch>>> GetOrphanedBatches(string retrySessionId)
         {
             using var session = await sessionProvider.OpenSession();
             var orphanedBatches = await session
@@ -93,7 +93,7 @@
                 .Statistics(out var stats)
                 .ToListAsync();
 
-            return orphanedBatches.ToQueryResult(stats);
+            return orphanedBatches.Select(batch => batch.ToContract()).ToList().ToQueryResult(stats);
         }
 
         public async Task<IList<RetryBatchGroup>> GetAvailableBatchGroups()

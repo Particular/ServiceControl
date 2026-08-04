@@ -89,7 +89,7 @@
 
             var sender = new TestSender();
             var processor = new RetryProcessor(
-                RetryBatchesStore,
+                RetryStagingStore,
                 MessageRedirectsDataStore,
                 domainEvents,
                 new TestReturnToSenderDequeuer(
@@ -117,7 +117,7 @@
             await documentManager.RebuildRetryOperationState();
 
             processor = new RetryProcessor(
-                RetryBatchesStore,
+                RetryStagingStore,
                 MessageRedirectsDataStore,
                 domainEvents,
                 new TestReturnToSenderDequeuer(
@@ -149,13 +149,48 @@
             var sender = new TestSender();
 
             var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(FailedMessageRetryStore, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
-            var processor = new RetryProcessor(RetryBatchesStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
 
             await processor.ProcessBatches(); // mark ready
             await processor.ProcessBatches();
 
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
             Assert.That(status.RetryState, Is.EqualTo(RetryState.Completed));
+        }
+
+        [Test]
+        public async Task When_a_staged_batch_has_nothing_left_to_stage_it_is_discarded()
+        {
+            var batchId = await StageBatchWithoutMessages();
+
+            var processor = CreateProcessor(new FakeDomainEvents(), new TestSender());
+
+            await processor.ProcessBatches();
+            await CompleteDatabaseOperation();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(await RetryStagingStore.GetStagingBatch(), Is.Null);
+                Assert.That(await RetryStagingStore.GetBatch(batchId, CancellationToken.None), Is.Null);
+                Assert.That(await RetryStagingStore.GetForwardingBatchId(), Is.Null);
+            }
+        }
+
+        [Test]
+        public async Task When_the_batch_being_forwarded_is_gone_the_forwarding_pointer_is_cleared()
+        {
+            var batchId = await StageBatchWithoutMessages();
+
+            await RetryStagingStore.MarkBatchAsForwarding(batchId, "staging-1", []);
+            await RetryStagingStore.DiscardBatch(batchId);
+            await CompleteDatabaseOperation();
+
+            var processor = CreateProcessor(new FakeDomainEvents(), new TestSender());
+
+            await processor.ProcessBatches();
+            await CompleteDatabaseOperation();
+
+            Assert.That(await RetryStagingStore.GetForwardingBatchId(), Is.Null);
         }
 
         [Test]
@@ -179,7 +214,7 @@
             };
 
             var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(FailedMessageRetryStore, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
-            var processor = new RetryProcessor(RetryBatchesStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
 
             bool c;
             do
@@ -219,7 +254,7 @@
 
             var sender = new TestSender();
 
-            var processor = new RetryProcessor(RetryBatchesStore, MessageRedirectsDataStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()), retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()), retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
 
             await CompleteDatabaseOperation();
 
@@ -266,7 +301,7 @@
             var audit = new RecordingMessageActionAuditLog();
             var sender = new TestSender();
             var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(FailedMessageRetryStore, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
-            var processor = new RetryProcessor(RetryBatchesStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
 
             await processor.ProcessBatches(); // stage
             await processor.ProcessBatches(); // forward
@@ -293,7 +328,7 @@
             var audit = new RecordingMessageActionAuditLog();
             var sender = new TestSender();
             var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(FailedMessageRetryStore, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
-            var processor = new RetryProcessor(RetryBatchesStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
 
             await processor.ProcessBatches(); // stage (emits per-message audit)
             await processor.ProcessBatches(); // forward
@@ -307,6 +342,31 @@
                 Assert.That(audit.Messages, Has.All.Matches<RecordingMessageActionAuditLog.MessageEntry>(m => m.Scope == MessageActionScope.Group));
             }
         }
+
+        // Claims messages that have no failed message behind them, which is what a batch looks like once
+        // every message it covered has been claimed by an earlier batch or has aged out of retention.
+        async Task<string> StageBatchWithoutMessages()
+        {
+            string[] messageIds = [Guid.NewGuid().ToString()];
+
+            var batchId = await RetryBatchStore.CreateBatch(RetryDocumentManager.RetrySessionId, "Test-group", RetryType.FailureGroup, messageIds, "Test-group", DateTime.UtcNow);
+
+            await RetryBatchStore.AssignMessagesToBatch(batchId, messageIds);
+            await RetryBatchStore.MoveBatchToStaging(batchId);
+            await CompleteDatabaseOperation();
+
+            return batchId;
+        }
+
+        RetryProcessor CreateProcessor(IDomainEvents domainEvents, TestSender sender) =>
+            new(RetryStagingStore,
+                MessageRedirectsDataStore,
+                domainEvents,
+                new TestReturnToSenderDequeuer(new ReturnToSender(FailedMessageRetryStore, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()),
+                new RetryingManager(domainEvents, NullLogger<RetryingManager>.Instance),
+                new Lazy<IMessageDispatcher>(() => sender),
+                new RecordingMessageActionAuditLog(),
+                NullLogger<RetryProcessor>.Instance);
 
         Task CreateAFailedMessageAndMarkAsPartOfRetryBatch(RetryingManager retryManager, string groupId, bool progressToStaged, int numberOfMessages)
         {

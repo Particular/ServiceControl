@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence
+namespace ServiceControl.Persistence.RavenDB
 {
     public class RetryBatchNowForwarding
     {
