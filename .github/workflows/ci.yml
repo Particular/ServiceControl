@@ -82,7 +82,7 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Azure login
-        uses: azure/login@v3.0.0
+        uses: azure/login@v3.0.1
         if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ' || matrix.test-category == 'PostgreSQL' || matrix.test-category == 'PostgreSQLPersistence'
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
