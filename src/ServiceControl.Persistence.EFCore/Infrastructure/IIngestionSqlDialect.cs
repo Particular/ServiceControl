@@ -18,8 +18,8 @@ public interface IIngestionSqlDialect
     Task UpsertFailedMessages(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageEntity> rows, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Insert if absent. The caller has already deleted the batch's messages' group rows in the
-    /// same transaction; if-absent keeps a concurrent writer's identical row from failing us.
+    /// Insert if absent. The caller has already deleted these messages' group rows in the same
+    /// transaction; if-absent keeps a concurrent writer's identical row from failing us.
     /// </summary>
     Task InsertGroups(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageGroupEntity> rows, CancellationToken cancellationToken);
 
