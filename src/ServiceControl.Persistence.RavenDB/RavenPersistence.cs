@@ -65,7 +65,7 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddSingleton<IMessageRedirectsDataStore, MessageRedirectsDataStore>();
         services.AddSingleton<IMonitoringDataStore, RavenMonitoringDataStore>();
         services.AddSingleton<IQueueAddressStore, QueueAddressStore>();
-        services.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
+        services.AddSingleton<IRetryStagingStore, RetryStagingStore>();
         services.AddSingleton<IRetryBatchStore, RetryDocumentDataStore>();
         services.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
         services.AddSingleton<IEndpointSettingsStore, EndpointSettingsStore>();

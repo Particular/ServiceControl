@@ -47,7 +47,7 @@ public abstract class BasePersistence
         services.AddSingleton<IMessageRedirectsDataStore, MessageRedirectsDataStore>();
         services.AddSingleton<IMonitoringDataStore, MonitoringDataStore>();
         services.AddSingleton<IQueueAddressStore, QueueAddressStore>();
-        services.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
+        services.AddSingleton<IRetryStagingStore, RetryStagingStore>();
         services.AddSingleton<IRetryBatchStore, RetryBatchStore>();
         services.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
         services.AddSingleton<IEndpointSettingsStore, EndpointSettingsStore>();

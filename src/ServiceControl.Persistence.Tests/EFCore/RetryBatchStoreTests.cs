@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Recoverability;
@@ -66,7 +67,11 @@ class RetryBatchStoreTests : ErrorIngestionTestBase
 
         var batch = (await Orphaned()).Single();
 
-        Assert.That(batch.FailureRetries, Is.EquivalentTo(new[] { first.ToString(), second.ToString() }));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(await ClaimedBy(batchId), Is.EquivalentTo(new[] { first.ToString(), second.ToString() }));
+            Assert.That(batch.MessageCount, Is.EqualTo(2));
+        }
     }
 
     [Test]
@@ -79,12 +84,10 @@ class RetryBatchStoreTests : ErrorIngestionTestBase
         await RetryBatchStore.AssignMessagesToBatch(firstBatch, [shared]);
         await RetryBatchStore.AssignMessagesToBatch(secondBatch, [shared]);
 
-        var batches = (await Orphaned()).ToDictionary(batch => batch.Id);
-
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(batches[firstBatch].FailureRetries, Is.EquivalentTo(new[] { shared }));
-            Assert.That(batches[secondBatch].FailureRetries, Is.Empty);
+            Assert.That(await ClaimedBy(firstBatch), Is.EquivalentTo(new[] { shared }));
+            Assert.That(await ClaimedBy(secondBatch), Is.Empty);
         }
     }
 
@@ -99,8 +102,7 @@ class RetryBatchStoreTests : ErrorIngestionTestBase
             RetryBatchStore.AssignMessagesToBatch(firstBatch, shared),
             RetryBatchStore.AssignMessagesToBatch(secondBatch, shared));
 
-        var batches = (await Orphaned()).ToDictionary(batch => batch.Id);
-        var claimed = batches[firstBatch].FailureRetries.Concat(batches[secondBatch].FailureRetries);
+        var claimed = (await ClaimedBy(firstBatch)).Concat(await ClaimedBy(secondBatch));
 
         Assert.That(claimed, Is.EquivalentTo(shared));
     }
@@ -223,6 +225,19 @@ class RetryBatchStoreTests : ErrorIngestionTestBase
             classifier: "Message Type");
 
     async Task<IList<RetryBatch>> Orphaned() => (await RetryBatchStore.GetOrphanedBatches(OtherSession)).Results;
+
+    async Task<List<string>> ClaimedBy(string batchId)
+    {
+        var batch = Guid.Parse(batchId);
+
+        var claimed = await Query(dbContext => dbContext.FailedMessageRetries
+            .AsNoTracking()
+            .Where(retry => retry.RetryBatchId == batch)
+            .Select(retry => retry.UniqueMessageId)
+            .ToListAsync());
+
+        return [.. claimed.Select(uniqueMessageId => uniqueMessageId.ToString())];
+    }
 
     static async Task<List<string>> Collect(Func<Func<string, DateTime, Task>, Task> stream)
     {

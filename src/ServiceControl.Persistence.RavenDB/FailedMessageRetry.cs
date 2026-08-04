@@ -1,4 +1,4 @@
-namespace ServiceControl.Recoverability
+namespace ServiceControl.Persistence.RavenDB
 {
     public class FailedMessageRetry
     {

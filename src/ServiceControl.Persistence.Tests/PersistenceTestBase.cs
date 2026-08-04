@@ -94,7 +94,7 @@ public abstract class PersistenceTestBase
     }
 
     protected IBodyStorage BodyStorage => ServiceProvider.GetRequiredService<IBodyStorage>();
-    protected IRetryBatchesDataStore RetryBatchesStore => ServiceProvider.GetRequiredService<IRetryBatchesDataStore>();
+    protected IRetryStagingStore RetryStagingStore => ServiceProvider.GetRequiredService<IRetryStagingStore>();
     protected IFailedMessageQueryDataStore FailedMessageQueryStore => ServiceProvider.GetRequiredService<IFailedMessageQueryDataStore>();
     protected IFailedMessageLifecycleDataStore FailedMessageLifecycleStore => ServiceProvider.GetRequiredService<IFailedMessageLifecycleDataStore>();
     protected IFailedMessageRetryDataStore FailedMessageRetryStore => ServiceProvider.GetRequiredService<IFailedMessageRetryDataStore>();
