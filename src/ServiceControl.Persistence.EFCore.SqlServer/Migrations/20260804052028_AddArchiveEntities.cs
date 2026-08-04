@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 {
     /// <inheritdoc />
-    public partial class AddArchive : Migration
+    public partial class AddArchiveEntities : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,7 +17,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                 {
                     RequestId = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
                     ArchiveType = table.Column<int>(type: "int", nullable: false),
-                    IsArchive = table.Column<bool>(type: "bit", nullable: false),
+                    OperationType = table.Column<int>(type: "int", nullable: false),
                     GroupName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TotalNumberOfMessages = table.Column<int>(type: "int", nullable: false),
                     NumberOfMessagesProcessed = table.Column<int>(type: "int", nullable: false),
@@ -30,13 +30,42 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ArchiveOperations", x => new { x.RequestId, x.ArchiveType, x.IsArchive });
+                    table.PrimaryKey("PK_ArchiveOperations", x => new { x.RequestId, x.ArchiveType, x.OperationType });
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CustomChecks",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CustomCheckId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    ReportedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FailureReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    OriginatingEndpointName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    OriginatingEndpointHostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OriginatingEndpointHost = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CustomChecks", x => x.Id);
                 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_ArchiveOperations_Started",
                 table: "ArchiveOperations",
                 column: "Started");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CustomChecks_ReportedAt",
+                table: "CustomChecks",
+                column: "ReportedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CustomChecks_Status_ReportedAt",
+                table: "CustomChecks",
+                columns: new[] { "Status", "ReportedAt" });
         }
 
         /// <inheritdoc />
@@ -44,6 +73,9 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
         {
             migrationBuilder.DropTable(
                 name: "ArchiveOperations");
+
+            migrationBuilder.DropTable(
+                name: "CustomChecks");
         }
     }
 }

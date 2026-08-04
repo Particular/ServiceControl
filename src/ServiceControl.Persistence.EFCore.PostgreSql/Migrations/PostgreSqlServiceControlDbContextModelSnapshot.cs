@@ -34,9 +34,9 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("archive_type");
 
-                    b.Property<bool>("IsArchive")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_archive");
+                    b.Property<int>("OperationType")
+                        .HasColumnType("integer")
+                        .HasColumnName("operation_type");
 
                     b.Property<int>("CurrentBatch")
                         .HasColumnType("integer")
@@ -78,13 +78,13 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("total_number_of_messages");
 
-                    b.HasKey("RequestId", "ArchiveType", "IsArchive")
+                    b.HasKey("RequestId", "ArchiveType", "OperationType")
                         .HasName("pk_archive_operations");
 
                     b.HasIndex("Started")
                         .HasDatabaseName("ix_archive_operations_started");
 
-                    b.ToTable("ArchiveOperations", (string)null);
+                    b.ToTable("archive_operations", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.CustomCheckEntity", b =>

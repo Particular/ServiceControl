@@ -18,8 +18,8 @@ public class ArchiveOperationEntity
     /// <summary>The type of archive operation (FailureGroup, SingleMessage, etc.).</summary>
     public ArchiveType ArchiveType { get; set; }
 
-    /// <summary>Distinguishes archive (<c>true</c>) from unarchive (<c>false</c>).</summary>
-    public bool IsArchive { get; set; }
+    /// <summary>Distinguishes archive from unarchive.</summary>
+    public ArchiveOperationType OperationType { get; set; }
 
     /// <summary>Total number of messages in the group at operation start.</summary>
     public int TotalNumberOfMessages { get; set; }

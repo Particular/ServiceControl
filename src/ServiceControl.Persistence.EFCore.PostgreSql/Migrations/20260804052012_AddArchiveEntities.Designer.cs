@@ -13,8 +13,8 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    [Migration("20260803010136_AddCustomChecks")]
-    partial class AddCustomChecks
+    [Migration("20260804052012_AddArchiveEntities")]
+    partial class AddArchiveEntities
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,6 +25,70 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.ArchiveOperationEntity", b =>
+                {
+                    b.Property<string>("RequestId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("request_id");
+
+                    b.Property<int>("ArchiveType")
+                        .HasColumnType("integer")
+                        .HasColumnName("archive_type");
+
+                    b.Property<int>("OperationType")
+                        .HasColumnType("integer")
+                        .HasColumnName("operation_type");
+
+                    b.Property<int>("CurrentBatch")
+                        .HasColumnType("integer")
+                        .HasColumnName("current_batch");
+
+                    b.Property<string>("GroupName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("group_name");
+
+                    b.Property<string>("InitiatedById")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("initiated_by_id");
+
+                    b.Property<string>("InitiatedByName")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("initiated_by_name");
+
+                    b.Property<int>("NumberOfBatches")
+                        .HasColumnType("integer")
+                        .HasColumnName("number_of_batches");
+
+                    b.Property<int>("NumberOfMessagesProcessed")
+                        .HasColumnType("integer")
+                        .HasColumnName("number_of_messages_processed");
+
+                    b.Property<string>("OperationId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("operation_id");
+
+                    b.Property<DateTime>("Started")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started");
+
+                    b.Property<int>("TotalNumberOfMessages")
+                        .HasColumnType("integer")
+                        .HasColumnName("total_number_of_messages");
+
+                    b.HasKey("RequestId", "ArchiveType", "OperationType")
+                        .HasName("pk_archive_operations");
+
+                    b.HasIndex("Started")
+                        .HasDatabaseName("ix_archive_operations_started");
+
+                    b.ToTable("archive_operations", (string)null);
+                });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.CustomCheckEntity", b =>
                 {
@@ -269,11 +333,6 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("number_of_processing_attempts");
 
-                    b.Property<string>("QueueAddress")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("queue_address");
-
                     b.Property<string>("ReceivingEndpointHost")
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)")
@@ -323,9 +382,6 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.HasIndex("FailingEndpointAddress")
                         .HasDatabaseName("ix_failed_messages_failing_endpoint_address");
 
-                    b.HasIndex("QueueAddress")
-                        .HasDatabaseName("ix_failed_messages_queue_address");
-
                     b.HasIndex("ReceivingEndpointName")
                         .HasDatabaseName("ix_failed_messages_receiving_endpoint_name");
 
@@ -370,6 +426,9 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.HasIndex("GroupId")
                         .HasDatabaseName("ix_failed_message_groups_group_id");
 
+                    b.HasIndex("Type", "GroupId")
+                        .HasDatabaseName("ix_failed_message_groups_type_group_id");
+
                     b.ToTable("failed_message_groups", (string)null);
                 });
 
@@ -379,15 +438,39 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("unique_message_id");
 
-                    b.Property<string>("RetryId")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("retry_id");
+                    b.Property<Guid>("RetryBatchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("retry_batch_id");
+
+                    b.Property<int>("StageAttempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("stage_attempts");
 
                     b.HasKey("UniqueMessageId")
                         .HasName("pk_failed_message_retries");
 
+                    b.HasIndex("RetryBatchId")
+                        .HasDatabaseName("ix_failed_message_retries_retry_batch_id");
+
                     b.ToTable("failed_message_retries", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.GroupCommentEntity", b =>
+                {
+                    b.Property<string>("GroupId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("group_id");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("comment");
+
+                    b.HasKey("GroupId")
+                        .HasName("pk_group_comments");
+
+                    b.ToTable("group_comments", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.KnownEndpointEntity", b =>
@@ -420,6 +503,123 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasName("pk_known_endpoints");
 
                     b.ToTable("known_endpoints", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.MessageRedirectEntity", b =>
+                {
+                    b.Property<string>("FromPhysicalAddress")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("from_physical_address");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified");
+
+                    b.Property<string>("ToPhysicalAddress")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("to_physical_address");
+
+                    b.HasKey("FromPhysicalAddress")
+                        .HasName("pk_message_redirects");
+
+                    b.ToTable("message_redirects", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.RetryBatchEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Classifier")
+                        .HasColumnType("text")
+                        .HasColumnName("classifier");
+
+                    b.Property<string>("Context")
+                        .HasColumnType("text")
+                        .HasColumnName("context");
+
+                    b.Property<int>("InitialBatchSize")
+                        .HasColumnType("integer")
+                        .HasColumnName("initial_batch_size");
+
+                    b.Property<string>("InitiatedById")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("initiated_by_id");
+
+                    b.Property<string>("InitiatedByName")
+                        .HasColumnType("text")
+                        .HasColumnName("initiated_by_name");
+
+                    b.Property<DateTime?>("Last")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last");
+
+                    b.Property<string>("OperationId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("operation_id");
+
+                    b.Property<string>("Originator")
+                        .HasColumnType("text")
+                        .HasColumnName("originator");
+
+                    b.Property<string>("RequestId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("request_id");
+
+                    b.Property<string>("RetrySessionId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("retry_session_id");
+
+                    b.Property<int>("RetryType")
+                        .HasColumnType("integer")
+                        .HasColumnName("retry_type");
+
+                    b.Property<string>("StagingId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("staging_id");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("start_time");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_retry_batches");
+
+                    b.HasIndex("Status", "RetrySessionId")
+                        .HasDatabaseName("ix_retry_batches_status_retry_session_id");
+
+                    b.ToTable("retry_batches", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.RetryBatchNowForwardingEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("RetryBatchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("retry_batch_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_retry_batch_now_forwarding");
+
+                    b.ToTable("retry_batch_now_forwarding", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.SubscriptionEntity", b =>

@@ -31,8 +31,8 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.Property<int>("ArchiveType")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsArchive")
-                        .HasColumnType("bit");
+                    b.Property<int>("OperationType")
+                        .HasColumnType("int");
 
                     b.Property<int>("CurrentBatch")
                         .HasColumnType("int");
@@ -65,11 +65,11 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.Property<int>("TotalNumberOfMessages")
                         .HasColumnType("int");
 
-                    b.HasKey("RequestId", "ArchiveType", "IsArchive");
+                    b.HasKey("RequestId", "ArchiveType", "OperationType");
 
                     b.HasIndex("Started");
 
-                    b.ToTable("ArchiveOperations", (string)null);
+                    b.ToTable("ArchiveOperations");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.CustomCheckEntity", b =>
