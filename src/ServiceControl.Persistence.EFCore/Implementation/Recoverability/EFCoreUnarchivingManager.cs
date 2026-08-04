@@ -50,12 +50,6 @@ class EFCoreUnarchivingManager(IDomainEvents domainEvents, OperationsManager ope
         return summary.Start();
     }
 
-    public InMemoryUnarchive? GetStatusForUnarchiveOperation(string requestId, ArchiveType archiveType)
-    {
-        operationsManager.UnarchiveOperations.TryGetValue(InMemoryUnarchive.MakeId(requestId, archiveType), out var summary);
-        return summary;
-    }
-
     public Task BatchUnarchived(string requestId, ArchiveType archiveType, int numberOfMessagesUnarchivedInBatch)
     {
         var summary = GetOrCreate(archiveType, requestId);
@@ -72,10 +66,5 @@ class EFCoreUnarchivingManager(IDomainEvents domainEvents, OperationsManager ope
     {
         var summary = GetOrCreate(archiveType, requestId);
         return summary.Complete();
-    }
-
-    public void DismissUnarchiveOperation(string requestId, ArchiveType archiveType)
-    {
-        operationsManager.UnarchiveOperations.Remove(InMemoryUnarchive.MakeId(requestId, archiveType));
     }
 }
