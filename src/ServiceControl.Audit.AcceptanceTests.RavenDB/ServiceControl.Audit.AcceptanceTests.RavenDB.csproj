@@ -27,6 +27,8 @@
     <Compile Include="..\ServiceControl.Audit.Persistence.Tests.RavenDB\SharedEmbeddedServer.cs" />
     <Compile Include="..\ServiceControl.Audit.Persistence.Tests.RavenDB\StopSharedDatabase.cs" />
     <Compile Remove="..\ServiceControl.Audit.AcceptanceTests\TestsFilter.cs" />
+    <Compile Remove="..\ServiceControl.Audit.AcceptanceTests\NUnitSettings.cs" />
+    <!-- NUnitSettings.cs is excluded because the embedded RavenDB server does not support concurrent database create/delete/index operations reliably -->
   </ItemGroup>
 
 </Project>

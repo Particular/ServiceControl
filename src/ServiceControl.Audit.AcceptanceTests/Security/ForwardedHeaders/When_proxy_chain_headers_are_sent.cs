@@ -11,6 +11,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
     /// When TrustAllProxies is true and X-Forwarded-For contains multiple IPs (proxy chain),
     /// the original client IP (first in the chain) should be returned.
     /// </summary>
+    [NonParallelizable]
     class When_proxy_chain_headers_are_sent : AcceptanceTest
     {
         [Test]

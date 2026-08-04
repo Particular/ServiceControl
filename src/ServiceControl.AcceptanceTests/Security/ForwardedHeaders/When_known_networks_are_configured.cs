@@ -10,6 +10,7 @@ namespace ServiceControl.AcceptanceTests.Security.ForwardedHeaders
     /// Known Networks (CIDR)
     /// When KnownNetworks are configured and the caller IP falls within, headers should be applied.
     /// </summary>
+    [NonParallelizable]
     class When_known_networks_are_configured : AcceptanceTest
     {
         ForwardedHeadersTestConfiguration configuration;

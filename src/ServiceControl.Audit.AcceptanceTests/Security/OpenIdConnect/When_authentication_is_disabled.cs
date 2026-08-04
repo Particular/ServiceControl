@@ -12,6 +12,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.OpenIdConnect
     /// When Authentication.Enabled is false (default), all API endpoints should be accessible
     /// without authentication. Requests should not require Bearer tokens.
     /// </summary>
+    [NonParallelizable]
     class When_authentication_is_disabled : AcceptanceTest
     {
         OpenIdConnectTestConfiguration configuration;

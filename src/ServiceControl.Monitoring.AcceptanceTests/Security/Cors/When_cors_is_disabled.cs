@@ -12,6 +12,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.Cors
     /// When AllowAnyOrigin is false and no AllowedOrigins are configured, CORS is effectively disabled.
     /// No Access-Control-Allow-Origin header should be returned for any origin.
     /// </summary>
+    [NonParallelizable]
     class When_cors_is_disabled : AcceptanceTest
     {
         CorsTestConfiguration configuration;

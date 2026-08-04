@@ -13,6 +13,7 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
     /// endpoint should return the overridden authority for ServicePulse to use instead of the
     /// main authority URL.
     /// </summary>
+    [NonParallelizable]
     class When_service_pulse_authority_override_is_configured : AcceptanceTest
     {
         OpenIdConnectTestConfiguration configuration;

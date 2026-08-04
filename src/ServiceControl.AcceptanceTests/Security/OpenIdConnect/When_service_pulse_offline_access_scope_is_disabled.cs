@@ -13,6 +13,7 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
     /// string returned by the authentication configuration endpoint should omit offline_access,
     /// so ServicePulse does not request a scope the identity provider disallows.
     /// </summary>
+    [NonParallelizable]
     class When_service_pulse_offline_access_scope_is_disabled : AcceptanceTest
     {
         OpenIdConnectTestConfiguration configuration;

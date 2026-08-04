@@ -11,6 +11,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
     /// When TrustAllProxies is true and headers contain multiple values (proxy chain),
     /// the original (leftmost) values should be returned.
     /// </summary>
+    [NonParallelizable]
     class When_multiple_header_values_are_sent : AcceptanceTest
     {
         [Test]

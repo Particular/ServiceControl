@@ -10,6 +10,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
     /// Default Behavior with Headers
     /// When forwarded headers are sent and TrustAllProxies is true (default), headers should be applied.
     /// </summary>
+    [NonParallelizable]
     class When_forwarded_headers_are_sent : AcceptanceTest
     {
         [Test]
