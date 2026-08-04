@@ -22,11 +22,12 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
             return batch?.ToRetryBatch(await CountMessages(dbContext, batch.Id));
         });
 
-    public Task<StagingMessage[]> GetMessagesToStage(string batchId) =>
-        ExecuteWithDbContext(async dbContext =>
-        {
-            var batch = ParseBatchId(batchId);
+    public Task<StagingMessage[]> GetMessagesToStage(string batchId)
+    {
+        var batch = ParseBatchId(batchId);
 
+        return ExecuteWithDbContext(async dbContext =>
+        {
             // A message claimed by an earlier batch is not claimed by this one, and a claim whose
             // message is gone drops out of the join, which is what leaves it out of the staging.
             var rows = await dbContext.FailedMessageRetries
@@ -53,15 +54,16 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
                 MessageHeaders.Read(row.HeadersJson),
                 row.StageAttempts)).ToArray();
         });
+    }
 
-    public Task MarkBatchAsForwarding(string batchId, string stagingId, IReadOnlyCollection<string> stagedMessageIds) =>
-        ExecuteWithDbContext(async dbContext =>
-        {
-            var batch = ParseBatchId(batchId);
-            var staged = ParseMessageIds(stagedMessageIds);
-            var now = timeProvider.GetUtcNow().UtcDateTime;
+    public Task MarkBatchAsForwarding(string batchId, string stagingId, IReadOnlyCollection<string> stagedMessageIds)
+    {
+        var batch = ParseBatchId(batchId);
+        var staged = ParseMessageIds(stagedMessageIds);
+        var now = timeProvider.GetUtcNow().UtcDateTime;
 
-            await InTransaction(dbContext, async () =>
+        return ExecuteWithDbContext(dbContext =>
+            InTransaction(dbContext, async () =>
             {
                 await dbContext.RetryBatches
                     .Where(row => row.Id == batch)
@@ -83,15 +85,15 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
                         .SetProperty(row => row.LastModified, now));
 
                 await PointForwarderAt(dbContext, batch);
-            });
-        });
+            }));
+    }
 
-    public Task DiscardBatch(string batchId) =>
-        ExecuteWithDbContext(async dbContext =>
-        {
-            var batch = ParseBatchId(batchId);
+    public Task DiscardBatch(string batchId)
+    {
+        var batch = ParseBatchId(batchId);
 
-            await InTransaction(dbContext, async () =>
+        return ExecuteWithDbContext(dbContext =>
+            InTransaction(dbContext, async () =>
             {
                 // Nothing was staged, so every claim of this batch is of a message that is gone.
                 await dbContext.FailedMessageRetries
@@ -101,8 +103,8 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
                 await dbContext.RetryBatches
                     .Where(row => row.Id == batch)
                     .ExecuteDeleteAsync();
-            });
-        });
+            }));
+    }
 
     public Task<string?> GetForwardingBatchId() =>
         ExecuteWithDbContext(async dbContext =>
@@ -114,24 +116,26 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
             return nowForwarding?.RetryBatchId.ToString();
         });
 
-    public Task<RetryBatch?> GetBatch(string batchId, CancellationToken cancellationToken) =>
-        ExecuteWithDbContext(async dbContext =>
-        {
-            var batch = ParseBatchId(batchId);
+    public Task<RetryBatch?> GetBatch(string batchId, CancellationToken cancellationToken)
+    {
+        var batch = ParseBatchId(batchId);
 
+        return ExecuteWithDbContext(async dbContext =>
+        {
             var entity = await dbContext.RetryBatches
                 .AsNoTracking()
                 .SingleOrDefaultAsync(row => row.Id == batch, cancellationToken);
 
             return entity?.ToRetryBatch(await CountMessages(dbContext, batch, cancellationToken));
         });
+    }
 
-    public Task CompleteForwarding(string batchId) =>
-        ExecuteWithDbContext(async dbContext =>
-        {
-            var batch = ParseBatchId(batchId);
+    public Task CompleteForwarding(string batchId)
+    {
+        var batch = ParseBatchId(batchId);
 
-            await InTransaction(dbContext, async () =>
+        return ExecuteWithDbContext(dbContext =>
+            InTransaction(dbContext, async () =>
             {
                 // The claims outlive the batch: they are what stops a message being staged again
                 // before its retry is confirmed.
@@ -142,8 +146,8 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
                 await dbContext.RetryBatchNowForwarding
                     .Where(row => row.RetryBatchId == batch)
                     .ExecuteDeleteAsync();
-            });
-        });
+            }));
+    }
 
     public Task RecordStagingFailure(IReadOnlyCollection<string> uniqueMessageIds)
     {
@@ -206,8 +210,10 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
             await transaction.CommitAsync();
         });
 
-    // Message ids reach this from the API, so an id that is not a message id cannot match a stored
-    // message and is left out rather than thrown at.
+    /// <summary>
+    /// Message ids reach this from the API, so an id that is not a message id cannot match a stored
+    /// message and is left out rather than thrown at.
+    /// </summary>
     static HashSet<Guid> ParseMessageIds(IReadOnlyCollection<string> uniqueMessageIds)
     {
         var parsed = new HashSet<Guid>(uniqueMessageIds.Count);
@@ -223,7 +229,9 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
         return parsed;
     }
 
-    // Batch ids only ever come from CreateBatch, so anything else is a programming error.
+    /// <summary>
+    /// Batch ids only ever come from CreateBatch, so anything else is a programming error.
+    /// </summary>
     static Guid ParseBatchId(string batchId) =>
         Guid.TryParse(batchId, out var parsed)
             ? parsed
