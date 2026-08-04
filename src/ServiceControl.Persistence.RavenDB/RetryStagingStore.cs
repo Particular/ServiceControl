@@ -53,8 +53,21 @@ namespace ServiceControl.Persistence.RavenDB
                 .. claims
                     .Select(claim => new { Claim = claim, Message = messages[claim.FailedMessageId] })
                     .Where(row => row.Message != null)
-                    .Select(row => new StagingMessage(row.Message, row.Claim.StageAttempts))
+                    .Select(row => ToStagingMessage(row.Message, row.Claim.StageAttempts))
             ];
+        }
+
+        static StagingMessage ToStagingMessage(FailedMessage message, int stageAttempts)
+        {
+            var attempt = message.ProcessingAttempts.Last();
+
+            return new StagingMessage(
+                message.Id,
+                message.UniqueMessageId,
+                attempt.MessageId,
+                attempt.FailureDetails.AddressOfFailingEndpoint,
+                attempt.Headers,
+                stageAttempts);
         }
 
         public async Task MarkBatchAsForwarding(string batchId, string stagingId, IReadOnlyCollection<string> stagedMessageIds)

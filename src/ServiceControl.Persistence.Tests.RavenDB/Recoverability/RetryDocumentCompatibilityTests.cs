@@ -129,7 +129,7 @@ namespace ServiceControl.Persistence.Tests.RavenDB.Recoverability
 
             var messagesToStage = await RetryStagingStore.GetMessagesToStage(batchId);
 
-            Assert.That(messagesToStage.Single().Message.UniqueMessageId, Is.EqualTo(failure.UniqueMessageIdString));
+            Assert.That(messagesToStage.Single().UniqueMessageId, Is.EqualTo(failure.UniqueMessageIdString));
         }
 
         static void StoredAs(IAsyncDocumentSession session, object document, string collection, string clrType)

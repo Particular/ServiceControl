@@ -168,26 +168,25 @@ namespace ServiceControl.Recoverability
                 return 0;
             }
 
-            var messages = messagesToStage.Select(messageToStage => messageToStage.Message).ToArray();
-            var stageAttemptsById = messagesToStage.ToDictionary(messageToStage => messageToStage.Message.UniqueMessageId, messageToStage => messageToStage.StageAttempts);
+            var stageAttemptsById = messagesToStage.ToDictionary(messageToStage => messageToStage.UniqueMessageId, messageToStage => messageToStage.StageAttempts);
 
-            logger.LogInformation("Staging {MessageCount} messages for retry batch {RetryBatchId} with staging attempt Id {StagingId}", messages.Length, stagingBatch.Id, stagingId);
+            logger.LogInformation("Staging {MessageCount} messages for retry batch {RetryBatchId} with staging attempt Id {StagingId}", messagesToStage.Length, stagingBatch.Id, stagingId);
 
             var previousAttemptFailed = messagesToStage.Any(messageToStage => messageToStage.StageAttempts > 0);
-            var transportOperations = new TransportOperation[messages.Length];
+            var transportOperations = new TransportOperation[messagesToStage.Length];
             var current = 0;
-            foreach (var failedMessage in messages)
+            foreach (var messageToStage in messagesToStage)
             {
-                transportOperations[current++] = ToTransportOperation(failedMessage, stagingId);
+                transportOperations[current++] = ToTransportOperation(messageToStage, stagingId);
             }
 
-            await TryDispatch(stagingBatch.Id, transportOperations, messages, stageAttemptsById, previousAttemptFailed);
+            await TryDispatch(stagingBatch.Id, transportOperations, messagesToStage, stageAttemptsById, previousAttemptFailed);
 
-            AuditStagedMessages(stagingBatch, messages);
+            AuditStagedMessages(stagingBatch, messagesToStage);
 
             if (stagingBatch.RetryType != RetryType.FailureGroup) //FailureGroup published on completion of entire group
             {
-                var failedIds = messages.Select(x => x.UniqueMessageId).ToArray();
+                var failedIds = messagesToStage.Select(x => x.UniqueMessageId).ToArray();
                 await domainEvents.Raise(new MessagesSubmittedForRetry
                 {
                     FailedMessageIds = failedIds,
@@ -198,15 +197,15 @@ namespace ServiceControl.Recoverability
 
             await store.MarkBatchAsForwarding(stagingBatch.Id, stagingId, [.. stageAttemptsById.Keys]);
 
-            logger.LogInformation("Retry batch {RetryBatchId} staged with Staging Id {StagingId} and {RetryFailureCount} matching failure retries", stagingBatch.Id, stagingId, messages.Length);
-            return messages.Length;
+            logger.LogInformation("Retry batch {RetryBatchId} staged with Staging Id {StagingId} and {RetryFailureCount} matching failure retries", stagingBatch.Id, stagingId, messagesToStage.Length);
+            return messagesToStage.Length;
         }
 
         // Emits one per-message audit entry for each message actually staged for retry, for every retry
         // type: the API emits the operation-level entry, this emits the per-message entries, correlated by
         // OperationId. Skipped for batches without an OperationId (legacy in-flight commands sent without
         // the audit headers).
-        void AuditStagedMessages(RetryBatch stagingBatch, IReadOnlyCollection<FailedMessage> messages)
+        void AuditStagedMessages(RetryBatch stagingBatch, IReadOnlyCollection<StagingMessage> messages)
         {
             if (string.IsNullOrEmpty(stagingBatch.OperationId))
             {
@@ -229,13 +228,13 @@ namespace ServiceControl.Recoverability
                 ? Permissions.ErrorRecoverabilityGroupsRetry
                 : Permissions.ErrorMessagesRetry;
 
-            foreach (var failedMessage in messages)
+            foreach (var message in messages)
             {
-                auditLog.MessageAction(user, MessageActionKind.Retry, permission, scope, failedMessage.UniqueMessageId, stagingBatch.OperationId);
+                auditLog.MessageAction(user, MessageActionKind.Retry, permission, scope, message.UniqueMessageId, stagingBatch.OperationId);
             }
         }
 
-        Task TryDispatch(string batchId, TransportOperation[] transportOperations, IReadOnlyCollection<FailedMessage> messages,
+        Task TryDispatch(string batchId, TransportOperation[] transportOperations, IReadOnlyCollection<StagingMessage> messages,
             IReadOnlyDictionary<string, int> stageAttemptsById, bool previousAttemptFailed)
         {
             return previousAttemptFailed ? ConcurrentDispatchToTransport(transportOperations, stageAttemptsById) :
@@ -252,7 +251,7 @@ namespace ServiceControl.Recoverability
             return Task.WhenAll(tasks);
         }
 
-        async Task BatchDispatchToTransport(string batchId, TransportOperation[] transportOperations, IReadOnlyCollection<FailedMessage> messages)
+        async Task BatchDispatchToTransport(string batchId, TransportOperation[] transportOperations, IReadOnlyCollection<StagingMessage> messages)
         {
             try
             {
@@ -262,7 +261,7 @@ namespace ServiceControl.Recoverability
             {
                 logger.LogWarning(e, "Attempt 1 of {MaxStagingAttempts} to stage the {MessageCount} messages of retry batch {RetryBatchId} failed", MaxStagingAttempts, messages.Count, batchId);
 
-                await store.RecordStagingFailure([.. messages.Select(failedMessage => failedMessage.UniqueMessageId)]);
+                await store.RecordStagingFailure([.. messages.Select(message => message.UniqueMessageId)]);
 
                 throw new RetryStagingException(e);
             }
@@ -302,13 +301,11 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        TransportOperation ToTransportOperation(FailedMessage message, string stagingId)
+        TransportOperation ToTransportOperation(StagingMessage message, string stagingId)
         {
-            var attempt = message.ProcessingAttempts.Last();
+            var headersToRetryWith = HeaderFilter.RemoveErrorMessageHeaders(message.Headers);
 
-            var headersToRetryWith = HeaderFilter.RemoveErrorMessageHeaders(attempt.Headers);
-
-            var addressOfFailingEndpoint = attempt.FailureDetails.AddressOfFailingEndpoint;
+            var addressOfFailingEndpoint = message.FailingEndpointAddress;
 
             var redirect = redirects.FindByAddress(addressOfFailingEndpoint);
 
@@ -320,7 +317,7 @@ namespace ServiceControl.Recoverability
             headersToRetryWith["ServiceControl.TargetEndpointAddress"] = addressOfFailingEndpoint;
             headersToRetryWith["ServiceControl.Retry.UniqueMessageId"] = message.UniqueMessageId;
             headersToRetryWith["ServiceControl.Retry.StagingId"] = stagingId;
-            headersToRetryWith["ServiceControl.Retry.Attempt.MessageId"] = attempt.MessageId;
+            headersToRetryWith["ServiceControl.Retry.Attempt.MessageId"] = message.AttemptMessageId;
 
             corruptedReplyToHeaderStrategy.FixCorruptedReplyToHeader(headersToRetryWith);
 

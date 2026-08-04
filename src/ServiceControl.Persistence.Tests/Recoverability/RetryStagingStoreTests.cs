@@ -56,7 +56,7 @@ class RetryStagingStoreTests : PersistenceTestBase
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(messages.Select(message => message.Message.UniqueMessageId), Is.EquivalentTo(new[] { first, second }));
+            Assert.That(messages.Select(message => message.UniqueMessageId), Is.EquivalentTo(new[] { first, second }));
             Assert.That(messages.Select(message => message.StageAttempts), Is.All.Zero);
         }
     }
@@ -81,7 +81,7 @@ class RetryStagingStoreTests : PersistenceTestBase
 
         var messages = await RetryStagingStore.GetMessagesToStage(batchId);
 
-        Assert.That(messages.Single().Message.UniqueMessageId, Is.EqualTo(failure));
+        Assert.That(messages.Single().UniqueMessageId, Is.EqualTo(failure));
     }
 
     [Test]
@@ -222,7 +222,7 @@ class RetryStagingStoreTests : PersistenceTestBase
 
         var messages = await RetryStagingStore.GetMessagesToStage(batchId);
 
-        Assert.That(messages.Single().Message.UniqueMessageId, Is.EqualTo(kept));
+        Assert.That(messages.Single().UniqueMessageId, Is.EqualTo(kept));
     }
 
     async Task<string> Insert(IngestedFailure failure)
