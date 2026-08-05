@@ -138,6 +138,9 @@
                 .OrderBy(m => m.ProcessedAt)
                 .FirstOrDefaultAsync(token: cancellationToken);
 
+            var hasSent = await session.Query<MessagesViewIndex.SortAndFilterOptions>(indexName)
+                .AnyAsync(m => m.SendingEndpointName == endpointName, token: cancellationToken);
+
             if (oldestMsg != null)
             {
                 var endDate = DateTime.UtcNow.Date.AddDays(1);
@@ -165,6 +168,14 @@
                         });
                     }
                 }
+            }
+            else if (hasSent)
+            {
+                results.Add(new AuditCount
+                {
+                    UtcDate = DateTime.UtcNow.Date,
+                    Count = 0
+                });
             }
 
             return new QueryResult<IList<AuditCount>>(results, QueryStatsInfo.Zero);
