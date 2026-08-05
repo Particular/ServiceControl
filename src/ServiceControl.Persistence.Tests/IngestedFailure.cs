@@ -105,7 +105,7 @@ class IngestedFailure
         }
     };
 
-    public IngestedFailure NextAttempt(DateTime attemptedAt) => new()
+    public IngestedFailure NextAttempt(DateTime attemptedAt, List<FailedMessage.FailureGroup> groups = null) => new()
     {
         MessageId = MessageId,
         EndpointName = EndpointName,
@@ -126,7 +126,7 @@ class IngestedFailure
         SendingEndpoint = SendingEndpoint,
         ReceivingEndpoint = ReceivingEndpoint,
         TimeSent = TimeSent,
-        Groups = Groups
+        Groups = groups ?? Groups
     };
 
     /// <summary>
