@@ -77,6 +77,8 @@ between instances.
   instance returns to normal (service status shown, edit allowed).
 - **Counter-example:** The one where a refresh tries to apply data from a
   differently-named instance and is rejected.
+- **Counter-example:** The one where a refresh tries to apply data from an instance
+  of a different type (same name) and is rejected.
 
 ## Resolved decisions (for implementation)
 
@@ -106,6 +108,9 @@ between instances.
 - **Error message names the file** (Rule 2): `ConfigurationLoadError` is formatted as
   `Failed to load configuration file '<path>': <reason>`, so both banners tell the
   operator exactly which file to fix.
+- **Refresh never swaps state between instances** (Rule 4): `UpdateServiceInstance`
+  rejects an update whose name *or* type differs from the instance the view model
+  wraps, instead of silently ignoring it.
 
 ## Gaps not covered by the current implementation
 
@@ -119,5 +124,3 @@ between instances.
    `InstanceFinder.AllInstances()` in its constructor, so the banner/refresh logic
    cannot be driven by tests without enumerating real Windows services. Needs a seam
    (same pattern as `GetInstalledErrorInstanceNames` in PR #5637).
-3. **`UpdateServiceInstance` silently ignores type changes.** If the fresh instance
-   has the same name but a different type, the update is dropped without error.

@@ -230,6 +230,18 @@ namespace ServiceControl.Config.Tests.InstanceDetails
 
                 Assert.That(() => viewModel.UpdateServiceInstance(differentInstance), Throws.ArgumentException);
             }
+
+            [Test]
+            public void The_one_where_a_refresh_tries_to_apply_data_from_an_instance_of_a_different_type_and_is_rejected()
+            {
+                WriteErrorInstanceConfig(CorruptXml);
+                var viewModel = DetailsFor(LoadErrorInstance());
+
+                WriteAuditInstanceConfig(CorruptXml);
+                var differentTypeInstance = LoadAuditInstance(); // same service name, different instance type
+
+                Assert.That(() => viewModel.UpdateServiceInstance(differentTypeInstance), Throws.ArgumentException);
+            }
         }
     }
 

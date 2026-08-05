@@ -77,6 +77,11 @@
                 throw new ArgumentException("Cannot update with an instance of a different name");
             }
 
+            if (updatedInstance.GetType() != ServiceInstance.GetType())
+            {
+                throw new ArgumentException("Cannot update with an instance of a different type");
+            }
+
             // Update the internal reference based on type
             if (updatedInstance.GetType() == typeof(ServiceControlInstance))
             {
@@ -341,10 +346,6 @@
 
         public string ConfigurationErrorMessage => ServiceInstance?.ConfigurationLoadError;
 
-        public string ConfigurationLoadError => ServiceInstance?.ConfigurationLoadError;
-
-        public string ConfigurationFilePath => ServiceInstance?.ConfigurationFilePath;
-
         public ICommand OpenUrl { get; private set; }
 
         public ICommand CopyToClipboard { get; private set; }
@@ -379,8 +380,6 @@
             NotifyOfPropertyChange(nameof(HasConfigurationError));
             NotifyOfPropertyChange(nameof(AllowEdit));
             NotifyOfPropertyChange(nameof(ConfigurationErrorMessage));
-            NotifyOfPropertyChange(nameof(ConfigurationLoadError));
-            NotifyOfPropertyChange(nameof(ConfigurationFilePath));
             return Task.CompletedTask;
         }
 
@@ -456,7 +455,7 @@
             catch (Exception ex)
             {
                 // Handle reload failure gracefully - configuration error will be shown in UI
-                ServiceInstance.ConfigurationLoadError = $"Failed to load configuration: {ex.Message}";
+                ServiceInstance.ConfigurationLoadError = $"Failed to load configuration file '{ServiceInstance.ConfigurationFilePath}': {ex.Message}";
                 // Ensure basic properties are set so UI can still display the instance
                 if (string.IsNullOrEmpty(ServiceInstance.InstanceName))
                 {
