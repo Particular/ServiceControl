@@ -56,12 +56,10 @@ public class MessageArchiver : IArchiveMessages
 
         // ── Start in-memory tracking ──
         await archivingManager.StartArchiving(operationEntity);
-
         // ── Batch loop ──
         string[] batchIds;
         do
         {
-            logger.LogInformation("Archiving messages from group {GroupId} starting", groupId);
 
             await using var batchScope = scopeFactory.CreateAsyncScope();
             var batchDbContext = batchScope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
@@ -148,7 +146,6 @@ public class MessageArchiver : IArchiveMessages
             await using var batchScope = scopeFactory.CreateAsyncScope();
             var batchDbContext = batchScope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
 
-            logger.LogInformation("Unarchiving messages from group {GroupId} starting", groupId);
             batchIds = await UpdateGroupStatusAsync(batchDbContext, groupId, FailedMessageStatus.Archived, FailedMessageStatus.Unresolved, batchSize);
 
             await unarchivingManager.BatchUnarchived(groupId, ArchiveType.FailureGroup, batchIds.Length);

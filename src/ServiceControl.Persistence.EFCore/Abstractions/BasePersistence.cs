@@ -1,6 +1,5 @@
 namespace ServiceControl.Persistence.EFCore.Abstractions;
 
-using Implementation.Recoverability;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
@@ -9,6 +8,7 @@ using ServiceControl.CustomChecks;
 using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence.EFCore.Implementation;
 using ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
+using ServiceControl.Persistence.EFCore.Implementation.Recoverability;
 using ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.MessageRedirects;

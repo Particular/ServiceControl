@@ -10,10 +10,10 @@ using ServiceControl.Recoverability;
 public class ArchiveOperationEntity
 {
     /// <summary>The group id (or other request id) being archived/unarchived.</summary>
-    public string RequestId { get; set; } = null!;
+    public required string RequestId { get; set; }
 
     /// <summary>Display name of the group, captured at operation start.</summary>
-    public string GroupName { get; set; } = null!;
+    public required string GroupName { get; set; }
 
     /// <summary>The type of archive operation (FailureGroup, SingleMessage, etc.).</summary>
     public ArchiveType ArchiveType { get; set; }
