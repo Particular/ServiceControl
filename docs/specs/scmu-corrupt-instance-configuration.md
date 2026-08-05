@@ -29,6 +29,8 @@ be read from is unreadable).
   instance still loads, flagged with a configuration error.
 - **Example:** The one where the audit instance's config XML is corrupt and the
   instance still loads, flagged with a configuration error.
+- **Example:** The one where the monitoring instance's config XML is corrupt and the
+  instance still loads, flagged with a configuration error.
 - **Counter-example:** The one where the configuration is valid and no configuration
   error is flagged.
 
@@ -91,6 +93,10 @@ between instances.
   `ConfigurationLoadError`, fall back to the service name, and record the error on
   the `ReportCard`. Both paths are covered by Rule 1 regardless of whether
   `ConfigurationManager` throws eagerly (at open) or lazily (at first read).
+- **All three instance types are protected the same way** (Rule 1):
+  `MonitoringInstance` takes the `IWindowsServiceController` seam like the other two
+  and creates its `AppConfig` inside the same try/catch, so a corrupt monitoring
+  config is caught and testable identically.
 - **No silent skip** (Rule 1): the enumeration in `InstanceFinder` does not wrap
   instance construction in a try/catch that omits failing instances (and does not
   write ad-hoc logs to `%TEMP%`). The constructors themselves never throw for config
@@ -109,12 +115,8 @@ between instances.
    `InstanceFinder.AllInstances()` in its constructor, so the banner/refresh logic
    cannot be driven by tests without enumerating real Windows services. Needs a seam
    (same pattern as `GetInstalledErrorInstanceNames` in PR #5637).
-3. **Monitoring instances are not protected.** `MonitoringInstance`'s constructor
-   takes the concrete `WindowsServiceController` (not the interface), so its corrupt
-   config path has no automated coverage; its error flow also differs from the other
-   two instance types (`AppConfig` is created outside the try/catch).
-4. **Unused details-VM property.** `InstanceDetailsViewModel.ConfigurationFilePath`
+3. **Unused details-VM property.** `InstanceDetailsViewModel.ConfigurationFilePath`
    is referenced by nothing; the banner text also never tells the operator *which
    file* to fix, although the path is captured.
-5. **`UpdateServiceInstance` silently ignores type changes.** If the fresh instance
+4. **`UpdateServiceInstance` silently ignores type changes.** If the fresh instance
    has the same name but a different type, the update is dropped without error.

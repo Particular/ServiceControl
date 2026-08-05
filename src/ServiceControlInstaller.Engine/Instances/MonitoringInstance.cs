@@ -18,16 +18,16 @@
 
     public class MonitoringInstance : BaseService, IMonitoringInstance
     {
-        public MonitoringInstance(WindowsServiceController service)
+        public MonitoringInstance(IWindowsServiceController service)
         {
             Service = service;
 
             // Set the config file path so it's available if loading fails
             ConfigurationFilePath = Path.Combine(InstallPath, $"{Constants.MonitoringExe}.config");
 
-            AppConfig = new AppConfig(this);
             try
             {
+                AppConfig = new AppConfig(this);
                 Reload();
             }
             catch (Exception ex)

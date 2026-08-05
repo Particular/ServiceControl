@@ -62,6 +62,23 @@ namespace ServiceControl.Config.Tests.InstanceDetails
             }
 
             [Test]
+            public void The_one_where_the_monitoring_instance_config_xml_is_corrupt_and_the_instance_still_loads_flagged_with_the_error()
+            {
+                WriteMonitoringInstanceConfig(CorruptXml);
+
+                var instance = LoadMonitoringInstance();
+
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(instance.ConfigurationLoadError, Is.Not.Null.And.Not.Empty,
+                        "A corrupt config must be reported as a configuration load error");
+                    Assert.That(instance.InstanceName, Is.EqualTo(ServiceName),
+                        "The instance name must fall back to the Windows service name when the config cannot be read");
+                    Assert.That(instance.ReportCard.Errors, Is.Not.Empty);
+                }
+            }
+
+            [Test]
             public void The_one_where_the_configuration_is_valid_and_no_error_is_flagged()
             {
                 WriteErrorInstanceConfig(ValidErrorInstanceXml);
@@ -252,11 +269,17 @@ namespace ServiceControl.Config.Tests.InstanceDetails
         protected void WriteAuditInstanceConfig(string contents) =>
             File.WriteAllText(Path.Combine(InstallPath, $"{Constants.ServiceControlAuditExe}.config"), contents);
 
+        protected void WriteMonitoringInstanceConfig(string contents) =>
+            File.WriteAllText(Path.Combine(InstallPath, $"{Constants.MonitoringExe}.config"), contents);
+
         protected ServiceControlInstance LoadErrorInstance(string serviceName = ServiceName) =>
             new(new FakeWindowsServiceController(Path.Combine(InstallPath, Constants.ServiceControlExe), serviceName));
 
         protected ServiceControlAuditInstance LoadAuditInstance(string serviceName = ServiceName) =>
             new(new FakeWindowsServiceController(Path.Combine(InstallPath, Constants.ServiceControlAuditExe), serviceName));
+
+        protected MonitoringInstance LoadMonitoringInstance(string serviceName = ServiceName) =>
+            new(new FakeWindowsServiceController(Path.Combine(InstallPath, Constants.MonitoringExe), serviceName));
 
         internal static InstanceDetailsViewModel DetailsFor(BaseService instance) =>
             new(instance, null, null, null, null, null, null, null, null);
