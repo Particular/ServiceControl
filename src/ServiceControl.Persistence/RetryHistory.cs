@@ -6,7 +6,6 @@
 
     public class RetryHistory
     {
-        public string Id { get; set; }
         public List<HistoricRetryOperation> HistoricOperations { get; set; } = [];
         public List<UnacknowledgedRetryOperation> UnacknowledgedOperations { get; set; } = [];
 

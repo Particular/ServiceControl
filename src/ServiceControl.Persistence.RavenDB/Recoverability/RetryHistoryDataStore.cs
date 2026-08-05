@@ -11,10 +11,9 @@
         public async Task<RetryHistory> GetRetryHistory()
         {
             using var session = await sessionProvider.OpenSession();
-            var id = DocumentId;
-            var retryHistory = await session.LoadAsync<RetryHistory>(id);
+            var retryHistory = await session.LoadAsync<RetryHistory>(DocumentId);
 
-            retryHistory ??= new() { Id = DocumentId };
+            retryHistory ??= new();
 
             return retryHistory;
         }
@@ -23,7 +22,7 @@
             string originator, string classifier, bool messageFailed, int numberOfMessagesProcessed, DateTime lastProcessed, int retryHistoryDepth)
         {
             using var session = await sessionProvider.OpenSession();
-            var retryHistory = await session.LoadAsync<RetryHistory>(DocumentId) ?? new() { Id = DocumentId };
+            var retryHistory = await session.LoadAsync<RetryHistory>(DocumentId) ?? new();
 
             retryHistory.AddToUnacknowledged(new UnacknowledgedRetryOperation
             {
@@ -49,7 +48,7 @@
                 NumberOfMessagesProcessed = numberOfMessagesProcessed
             }, retryHistoryDepth);
 
-            await session.StoreAsync(retryHistory);
+            await session.StoreAsync(retryHistory, DocumentId);
             await session.SaveChangesAsync();
         }
 
@@ -61,7 +60,7 @@
             {
                 if (retryHistory.Acknowledge(groupId, RetryType.FailureGroup))
                 {
-                    await session.StoreAsync(retryHistory);
+                    await session.StoreAsync(retryHistory, DocumentId);
                     await session.SaveChangesAsync();
 
                     return true;
