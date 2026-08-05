@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using ServiceControl.Audit.Persistence.RavenDB;
     using ServiceControl.Audit.Persistence.Tests;
@@ -9,6 +10,10 @@
 
     public class AcceptanceTestStorageConfiguration
     {
+        // Serializes database create/delete operations across parallel tests because the
+        // embedded RavenDB server does not support concurrent database lifecycle operations.
+        public static readonly SemaphoreSlim DatabaseLifecycleLock = new(1, 1);
+
         public string PersistenceType { get; } = "RavenDB";
 
         EmbeddedDatabase databaseInstance;
@@ -32,7 +37,16 @@
             {
                 return;
             }
-            await databaseInstance.DeleteDatabase(databaseName);
+
+            await DatabaseLifecycleLock.WaitAsync();
+            try
+            {
+                await databaseInstance.DeleteDatabase(databaseName);
+            }
+            finally
+            {
+                DatabaseLifecycleLock.Release();
+            }
         }
     }
 }
