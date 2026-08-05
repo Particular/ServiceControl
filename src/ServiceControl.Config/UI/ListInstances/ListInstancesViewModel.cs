@@ -155,6 +155,8 @@
             Validations.RefreshInstances();
 
             NotifyOfPropertyChange(nameof(Instances));
+            NotifyOfPropertyChange(nameof(HasConfigurationErrors));
+            NotifyOfPropertyChange(nameof(ConfigurationErrorMessage));
         }
 
         readonly Func<BaseService, InstanceDetailsViewModel> instanceDetailsFunc;

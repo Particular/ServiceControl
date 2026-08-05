@@ -230,7 +230,7 @@
                 // If there's a configuration error, show that instead of service status
                 if (HasConfigurationError)
                 {
-                    return "CONFIGURATION ERROR";
+                    return "ERROR";
                 }
 
                 try
