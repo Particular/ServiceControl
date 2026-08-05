@@ -16,6 +16,26 @@ instead of being locked out of the tool entirely.**
 > startup. The only workaround is fixing the file blind or falling back to the
 > PowerShell module.
 
+## Vocabulary
+
+- **SCMU** = ServiceControl Management Utility (`ServiceControl.Config`), the Windows
+  desktop tool used to install and manage instances.
+- **Instance** = an installed ServiceControl Windows service; three types exist:
+  **error instance** ("ServiceControl"), **audit instance** ("ServiceControl Audit"),
+  and **monitoring instance** ("ServiceControl Monitoring").
+- **Configuration file** = the instance's `<exe name>.exe.config` in its install path
+  (e.g. `ServiceControl.exe.config`), read by SCMU to display and edit settings.
+- **Corrupt configuration** = a configuration file that cannot be loaded — typically
+  invalid XML; loading it throws instead of returning settings.
+- **Configuration error state** = how a corrupt instance is presented: loaded and
+  listed, but flagged with a `CONFIGURATION ERROR` status, its settings unavailable
+  and config-dependent actions blocked.
+- **DEPLOYED INSTANCES screen** = SCMU's main screen listing all installed instances.
+- **Per-instance banner** = the error banner on an instance's card; **summary
+  banner** = the banner above the instance list naming all corrupt instances.
+- **Refresh** = the DEPLOYED INSTANCES action that re-reads every instance's
+  configuration from disk and updates each instance card in place.
+
 ## Rules and Examples
 
 ### Rule 1: Must load every installed instance even when its configuration file is corrupt
