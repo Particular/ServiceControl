@@ -91,6 +91,11 @@ between instances.
   `ConfigurationLoadError`, fall back to the service name, and record the error on
   the `ReportCard`. Both paths are covered by Rule 1 regardless of whether
   `ConfigurationManager` throws eagerly (at open) or lazily (at first read).
+- **No silent skip** (Rule 1): the enumeration in `InstanceFinder` does not wrap
+  instance construction in a try/catch that omits failing instances (and does not
+  write ad-hoc logs to `%TEMP%`). The constructors themselves never throw for config
+  errors — they load the instance in the error state instead. An instance that fails
+  to load must be visible, not missing.
 
 ## Gaps not covered by the current implementation
 
@@ -108,13 +113,8 @@ between instances.
    takes the concrete `WindowsServiceController` (not the interface), so its corrupt
    config path has no automated coverage; its error flow also differs from the other
    two instance types (`AppConfig` is created outside the try/catch).
-4. **Silent skip contradicts Rule 1.** `Instances.LogInstanceLoadError` catches any
-   remaining constructor failure by *omitting* the instance from the list and
-   appending to an ad-hoc log file in `%TEMP%\ServiceControl\SCMU_Logs`. An instance
-   that fails this way silently disappears — the very symptom the bug report
-   complains about, minus the crash.
-5. **Unused details-VM property.** `InstanceDetailsViewModel.ConfigurationFilePath`
+4. **Unused details-VM property.** `InstanceDetailsViewModel.ConfigurationFilePath`
    is referenced by nothing; the banner text also never tells the operator *which
    file* to fix, although the path is captured.
-6. **`UpdateServiceInstance` silently ignores type changes.** If the fresh instance
+5. **`UpdateServiceInstance` silently ignores type changes.** If the fresh instance
    has the same name but a different type, the update is dropped without error.

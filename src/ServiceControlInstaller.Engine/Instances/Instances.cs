@@ -12,23 +12,7 @@
         public static ReadOnlyCollection<MonitoringInstance> MonitoringInstances()
         {
             var services = WindowsServiceController.FindInstancesByExe(Constants.MonitoringExe);
-            var instances = new List<MonitoringInstance>();
-
-            foreach (var service in services.Where(p => File.Exists(p.ExePath)))
-            {
-                try
-                {
-                    var instance = new MonitoringInstance(service);
-                    instances.Add(instance);
-                }
-                catch (Exception ex)
-                {
-                    // Log the error but continue loading other instances
-                    LogInstanceLoadError("Monitoring", service.ServiceName, ex);
-                }
-            }
-
-            return new ReadOnlyCollection<MonitoringInstance>(instances);
+            return new ReadOnlyCollection<MonitoringInstance>(services.Where(p => File.Exists(p.ExePath)).Select(p => new MonitoringInstance(p)).ToList());
         }
 
         public static MonitoringInstance FindMonitoringInstance(string instanceName)
@@ -46,45 +30,13 @@
         public static ReadOnlyCollection<ServiceControlInstance> ServiceControlInstances()
         {
             var services = WindowsServiceController.FindInstancesByExe(Constants.ServiceControlExe);
-            var instances = new List<ServiceControlInstance>();
-
-            foreach (var service in services.Where(p => File.Exists(p.ExePath)))
-            {
-                try
-                {
-                    var instance = new ServiceControlInstance(service);
-                    instances.Add(instance);
-                }
-                catch (Exception ex)
-                {
-                    // Log the error but continue loading other instances
-                    LogInstanceLoadError("ServiceControl", service.ServiceName, ex);
-                }
-            }
-
-            return new ReadOnlyCollection<ServiceControlInstance>(instances);
+            return new ReadOnlyCollection<ServiceControlInstance>(services.Where(p => File.Exists(p.ExePath)).Select(p => new ServiceControlInstance(p)).ToList());
         }
 
         public static ReadOnlyCollection<ServiceControlAuditInstance> ServiceControlAuditInstances()
         {
             var services = WindowsServiceController.FindInstancesByExe(Constants.ServiceControlAuditExe);
-            var instances = new List<ServiceControlAuditInstance>();
-
-            foreach (var service in services.Where(p => File.Exists(p.ExePath)))
-            {
-                try
-                {
-                    var instance = new ServiceControlAuditInstance(service);
-                    instances.Add(instance);
-                }
-                catch (Exception ex)
-                {
-                    // Log the error but continue loading other instances
-                    LogInstanceLoadError("Audit", service.ServiceName, ex);
-                }
-            }
-
-            return new ReadOnlyCollection<ServiceControlAuditInstance>(instances);
+            return new ReadOnlyCollection<ServiceControlAuditInstance>(services.Where(p => File.Exists(p.ExePath)).Select(p => new ServiceControlAuditInstance(p)).ToList());
         }
 
         public static T FindInstanceByName<T>(string instanceName) where T : ServiceControlBaseService
@@ -120,25 +72,6 @@
             services.AddRange(ServiceControlAuditInstances());
             services.AddRange(MonitoringInstances());
             return new ReadOnlyCollection<BaseService>(services.OrderBy(o => o.Name).ToList());
-        }
-
-        static void LogInstanceLoadError(string instanceType, string serviceName, Exception ex)
-        {
-            try
-            {
-                var logPath = Path.Combine(Path.GetTempPath(), "ServiceControl", "SCMU_Logs");
-                Directory.CreateDirectory(logPath);
-
-                var logFile = Path.Combine(logPath, "InstanceLoadErrors.log");
-                var logMessage = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Failed to load {instanceType} instance '{serviceName}':\r\n{ex}\r\n\r\n";
-
-                File.AppendAllText(logFile, logMessage);
-            }
-            catch
-            {
-                // If logging fails, just continue - the error is already captured in the instance's ReportCard
-                System.Diagnostics.Debug.WriteLine($"Failed to write to instance load error log: {ex.Message}");
-            }
         }
     }
 }
