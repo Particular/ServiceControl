@@ -123,18 +123,11 @@ healthy.
 - **Error message names the file** (Rule 2): `ConfigurationLoadError` is formatted as
   `Failed to load configuration file '<path>': <reason>`, so both banners tell the
   operator exactly which file to fix.
+- **List-level banner** (Rule 5): `ListInstancesView` binds a summary banner to
+  `ListInstancesViewModel.HasConfigurationErrors` / `ConfigurationErrorMessage`.
+  The view model takes a `getAllInstances` seam (internal constructor overload,
+  defaulting to `InstanceFinder.AllInstances`) so the banner logic is testable
+  without enumerating real Windows services.
 - **Refresh never swaps state between instances** (Rule 4): `UpdateServiceInstance`
   rejects an update whose name *or* type differs from the instance the view model
   wraps, instead of silently ignoring it.
-- **List banner logic is testable** (Rule 5): `ListInstancesViewModel` takes a
-  `getAllInstances` seam (internal constructor overload, defaulting to
-  `InstanceFinder.AllInstances`) so the banner logic is testable without enumerating
-  real Windows services.
-
-## Gaps not covered by the current implementation
-
-1. **Dead list-level banner.** `ListInstancesViewModel.HasConfigurationErrors` and
-   `ConfigurationErrorMessage` are bound to nothing — no XAML references them (the
-   only banner shipped is the per-instance one in `InstanceDetailsView`). The
-   `BoolToVisibilityConverter` resource added to `ListInstancesView.xaml` is likewise
-   unused. Either wire a list-level banner or delete the dead code.

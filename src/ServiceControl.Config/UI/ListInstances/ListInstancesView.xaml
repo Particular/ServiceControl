@@ -11,10 +11,31 @@
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+        <!-- Configuration Error Summary -->
+        <Border Grid.Row="0" Margin="60,10,60,10"
+                Background="#FFF4E5" BorderBrush="#FFA500" BorderThickness="1" Padding="10" CornerRadius="3"
+                Visibility="{Binding HasConfigurationErrors, Converter={StaticResource BoolToVisibilityConverter}}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="⚠" FontSize="16" Foreground="#FFA500" VerticalAlignment="Top" Margin="0,0,8,0" />
+                <StackPanel>
+                    <TextBlock Text="CONFIGURATION ERROR"
+                               FontWeight="Bold"
+                               Foreground="#D84315"
+                               FontSize="13"
+                               Margin="0,0,0,5" />
+                    <TextBlock Text="{Binding ConfigurationErrorMessage}"
+                               TextWrapping="Wrap"
+                               Foreground="#5D4037"
+                               FontSize="12" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <ItemsControl x:Name="OrderedInstances" Margin="60,0" AlternationCount="{Binding Path=Items.Count}" />
         </ScrollViewer>
     </Grid>
