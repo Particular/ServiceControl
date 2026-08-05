@@ -5,6 +5,7 @@ namespace ServiceControl.Config.Tests.InstanceDetails
     using System.ServiceProcess;
     using NUnit.Framework;
     using ServiceControl.Config.UI.InstanceDetails;
+    using ServiceControl.Config.UI.ListInstances;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Services;
 
@@ -243,6 +244,52 @@ namespace ServiceControl.Config.Tests.InstanceDetails
                 Assert.That(() => viewModel.UpdateServiceInstance(differentTypeInstance), Throws.ArgumentException);
             }
         }
+
+        [TestFixture]
+        public class Rule_5_Must_summarize_configuration_errors_above_the_instance_list : CorruptInstanceConfigurationFixture
+        {
+            [Test]
+            public void The_one_where_a_single_instance_is_corrupt_and_the_banner_names_it()
+            {
+                WriteErrorInstanceConfig(CorruptXml);
+                WriteAuditInstanceConfig(ValidAuditInstanceXml);
+
+                var list = ListFor(LoadErrorInstance(), LoadAuditInstance("Particular.ServiceControl.Audit"));
+
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(list.HasConfigurationErrors, Is.True);
+                    Assert.That(list.ConfigurationErrorMessage,
+                        Is.EqualTo("Particular.ServiceControl instance cannot be loaded due to XML configuration error."));
+                }
+            }
+
+            [Test]
+            public void The_one_where_multiple_instances_are_corrupt_and_the_banner_lists_all_of_them()
+            {
+                WriteErrorInstanceConfig(CorruptXml);
+                WriteAuditInstanceConfig(CorruptXml);
+
+                var list = ListFor(LoadErrorInstance(), LoadAuditInstance("Particular.ServiceControl.Audit"));
+
+                Assert.That(list.ConfigurationErrorMessage,
+                    Is.EqualTo("Multiple instances (Particular.ServiceControl, Particular.ServiceControl.Audit) cannot be loaded due to XML configuration errors."));
+            }
+
+            [Test]
+            public void The_one_where_all_configurations_are_valid_and_no_banner_is_shown()
+            {
+                WriteErrorInstanceConfig(ValidErrorInstanceXml);
+
+                var list = ListFor(LoadErrorInstance());
+
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(list.HasConfigurationErrors, Is.False);
+                    Assert.That(list.ConfigurationErrorMessage, Is.Null);
+                }
+            }
+        }
     }
 
     public abstract class CorruptInstanceConfigurationFixture
@@ -262,6 +309,15 @@ namespace ServiceControl.Config.Tests.InstanceDetails
             <configuration>
               <appSettings>
                 <add key="ServiceControl/TransportType" value="LearningTransport" />
+              </appSettings>
+            </configuration>
+            """;
+
+        protected const string ValidAuditInstanceXml = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <configuration>
+              <appSettings>
+                <add key="ServiceControl.Audit/TransportType" value="LearningTransport" />
               </appSettings>
             </configuration>
             """;
@@ -298,6 +354,9 @@ namespace ServiceControl.Config.Tests.InstanceDetails
 
         internal static InstanceDetailsViewModel DetailsFor(BaseService instance) =>
             new(instance, null, null, null, null, null, null, null, null);
+
+        internal static ListInstancesViewModel ListFor(params BaseService[] instances) =>
+            new(DetailsFor, () => instances);
 
         class FakeWindowsServiceController(string exePath, string serviceName) : IWindowsServiceController
         {

@@ -80,6 +80,21 @@ between instances.
 - **Counter-example:** The one where a refresh tries to apply data from an instance
   of a different type (same name) and is rejected.
 
+---
+
+### Rule 5: Must summarize configuration errors above the instance list
+
+The per-instance banner can be far below the fold in a long list. A summary banner at
+the top of the DEPLOYED INSTANCES screen names the corrupt instance(s) so the operator
+sees at a glance that something needs fixing, and disappears when everything is
+healthy.
+
+- **Example:** The one where a single instance is corrupt and the banner names it.
+- **Example:** The one where multiple instances are corrupt and the banner lists all
+  of them.
+- **Counter-example:** The one where all configurations are valid and no banner is
+  shown.
+
 ## Resolved decisions (for implementation)
 
 - **Acceptance tier:** `InstanceDetailsViewModel` observed over real
@@ -111,16 +126,15 @@ between instances.
 - **Refresh never swaps state between instances** (Rule 4): `UpdateServiceInstance`
   rejects an update whose name *or* type differs from the instance the view model
   wraps, instead of silently ignoring it.
+- **List banner logic is testable** (Rule 5): `ListInstancesViewModel` takes a
+  `getAllInstances` seam (internal constructor overload, defaulting to
+  `InstanceFinder.AllInstances`) so the banner logic is testable without enumerating
+  real Windows services.
 
 ## Gaps not covered by the current implementation
 
-1. **Dead list-level banner.** `ListInstancesViewModel.HasConfigurationErrors`,
-   `ConfigurationErrorMessage`, and `InstancesWithConfigErrors` are bound to nothing —
-   no XAML references them (the only banner shipped is the per-instance one in
-   `InstanceDetailsView`). The `BoolToVisibilityConverter` resource added to
-   `ListInstancesView.xaml` is likewise unused. Either wire a list-level banner or
-   delete the dead code.
-2. **List view model is untestable.** `ListInstancesViewModel` calls the static
-   `InstanceFinder.AllInstances()` in its constructor, so the banner/refresh logic
-   cannot be driven by tests without enumerating real Windows services. Needs a seam
-   (same pattern as `GetInstalledErrorInstanceNames` in PR #5637).
+1. **Dead list-level banner.** `ListInstancesViewModel.HasConfigurationErrors` and
+   `ConfigurationErrorMessage` are bound to nothing — no XAML references them (the
+   only banner shipped is the per-instance one in `InstanceDetailsView`). The
+   `BoolToVisibilityConverter` resource added to `ListInstancesView.xaml` is likewise
+   unused. Either wire a list-level banner or delete the dead code.

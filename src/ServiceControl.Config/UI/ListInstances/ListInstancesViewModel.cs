@@ -19,8 +19,14 @@
     class ListInstancesViewModel : RxScreen, IHandle<RefreshInstances>, IHandle<ResetInstances>, IHandle<LicenseUpdated>
     {
         public ListInstancesViewModel(Func<BaseService, InstanceDetailsViewModel> instanceDetailsFunc)
+            : this(instanceDetailsFunc, InstanceFinder.AllInstances)
+        {
+        }
+
+        internal ListInstancesViewModel(Func<BaseService, InstanceDetailsViewModel> instanceDetailsFunc, Func<IEnumerable<BaseService>> getAllInstances)
         {
             this.instanceDetailsFunc = instanceDetailsFunc;
+            this.getAllInstances = getAllInstances;
             DisplayName = "DEPLOYED INSTANCES";
 
             Instances = [];
@@ -30,14 +36,7 @@
 
         public BindableCollection<InstanceDetailsViewModel> OrderedInstances => [.. Instances.OrderBy(x => x.Name)];
 
-        public bool HasConfigurationErrors
-        {
-            get
-            {
-                var hasErrors = Instances.Any(i => i.HasConfigurationError);
-                return hasErrors;
-            }
-        }
+        public bool HasConfigurationErrors => Instances.Any(i => i.HasConfigurationError);
 
         public string ConfigurationErrorMessage
         {
@@ -61,9 +60,7 @@
             }
         }
 
-        public IEnumerable<InstanceDetailsViewModel> InstancesWithConfigErrors => Instances.Where(i => i.HasConfigurationError);
-
-        [AlsoNotifyFor(nameof(OrderedInstances), nameof(HasConfigurationErrors), nameof(ConfigurationErrorMessage), nameof(InstancesWithConfigErrors))]
+        [AlsoNotifyFor(nameof(OrderedInstances), nameof(HasConfigurationErrors), nameof(ConfigurationErrorMessage))]
         IList<InstanceDetailsViewModel> Instances { get; }
 
         public Task HandleAsync(LicenseUpdated licenseUpdatedEvent, CancellationToken cancellationToken)
@@ -119,7 +116,7 @@
 
             Instances.Clear();
 
-            foreach (var item in InstanceFinder.AllInstances().OrderBy(i => i.Name))
+            foreach (var item in getAllInstances().OrderBy(i => i.Name))
             {
                 Instances.Add(instanceDetailsFunc(item));
             }
@@ -136,7 +133,7 @@
             Instances.RemoveMany(toRemove);
 
             // Get fresh instances from disk (with updated configurations)
-            var allFreshInstances = InstanceFinder.AllInstances();
+            var allFreshInstances = getAllInstances().ToList();
 
             // Update existing instances with fresh configuration data
             foreach (var existingInstance in Instances)
@@ -161,5 +158,6 @@
         }
 
         readonly Func<BaseService, InstanceDetailsViewModel> instanceDetailsFunc;
+        readonly Func<IEnumerable<BaseService>> getAllInstances;
     }
 }
