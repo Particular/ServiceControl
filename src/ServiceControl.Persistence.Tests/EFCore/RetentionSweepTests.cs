@@ -161,6 +161,10 @@ class RetentionSweepTests : ErrorIngestionTestBase
         Assert.That(archived!.Status, Is.EqualTo(FailedMessageStatus.Archived));
         Assert.That(archived.StatusChangedAt, Is.EqualTo(Now), "the archiver should stamp the current fake time");
 
+        // The archiver reset the timestamp to Now, so the message is back inside the retention window.
+        // Only after the clock advances past the retention period can the sweeper remove it.
+        AdvanceClock(TimeSpan.FromDays(31));
+
         await RunRetentionSweep();
 
         Assert.That(await FindFailedMessage(messageId), Is.Null);
