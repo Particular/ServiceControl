@@ -112,7 +112,7 @@ namespace ServiceControl.Config.Tests.InstanceDetails
                 using (Assert.EnterMultipleScope())
                 {
                     Assert.That(viewModel.HasConfigurationError, Is.True);
-                    Assert.That(viewModel.Status, Is.EqualTo("CONFIGURATION ERROR"));
+                    Assert.That(viewModel.Status, Is.EqualTo("ERROR"));
                     Assert.That(viewModel.IsRunning, Is.False, "No running indicator for a corrupt instance");
                     Assert.That(viewModel.IsStopped, Is.False, "No stopped indicator for a corrupt instance");
                 }
@@ -240,7 +240,7 @@ namespace ServiceControl.Config.Tests.InstanceDetails
                 using (Assert.EnterMultipleScope())
                 {
                     Assert.That(viewModel.HasConfigurationError, Is.True);
-                    Assert.That(viewModel.Status, Is.EqualTo("CONFIGURATION ERROR"));
+                    Assert.That(viewModel.Status, Is.EqualTo("ERROR"));
                     Assert.That(viewModel.ConfigurationErrorMessage, Does.Contain(instance.ConfigurationFilePath));
                 }
             }
