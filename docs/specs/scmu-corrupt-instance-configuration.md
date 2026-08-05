@@ -75,6 +75,11 @@ between instances.
 
 - **Example:** The one where the config file is fixed on disk, refresh runs, and the
   instance returns to normal (service status shown, edit allowed).
+- **Example:** The one where the config file becomes corrupt after loading and the
+  next refresh flags the error.
+- **Example:** The one where the fix is picked up through the DEPLOYED INSTANCES
+  refresh flow (the same path the UI triggers), not just by updating a single
+  instance directly.
 - **Counter-example:** The one where a refresh tries to apply data from a
   differently-named instance and is rejected.
 - **Counter-example:** The one where a refresh tries to apply data from an instance

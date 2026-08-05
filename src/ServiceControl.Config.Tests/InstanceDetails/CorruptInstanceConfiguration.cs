@@ -3,7 +3,11 @@ namespace ServiceControl.Config.Tests.InstanceDetails
     using System;
     using System.IO;
     using System.ServiceProcess;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Caliburn.Micro;
     using NUnit.Framework;
+    using ServiceControl.Config.Events;
     using ServiceControl.Config.UI.InstanceDetails;
     using ServiceControl.Config.UI.ListInstances;
     using ServiceControlInstaller.Engine.Instances;
@@ -218,6 +222,47 @@ namespace ServiceControl.Config.Tests.InstanceDetails
                     Assert.That(viewModel.HasConfigurationError, Is.False);
                     Assert.That(viewModel.Status, Is.EqualTo("STOPPED"));
                     Assert.That(viewModel.AllowEdit, Is.True);
+                }
+            }
+
+            [Test]
+            public async Task The_one_where_the_config_file_becomes_corrupt_after_loading_and_the_next_refresh_flags_the_error()
+            {
+                WriteErrorInstanceConfig(ValidErrorInstanceXml);
+                var instance = LoadErrorInstance();
+                var viewModel = DetailsFor(instance);
+                Assert.That(viewModel.HasConfigurationError, Is.False, "Precondition: the instance starts out healthy");
+
+                // The file is corrupted while SCMU is running, then a refresh reloads it
+                WriteErrorInstanceConfig(CorruptXml);
+                await viewModel.HandleAsync(new PostRefreshInstances(), CancellationToken.None);
+
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(viewModel.HasConfigurationError, Is.True);
+                    Assert.That(viewModel.Status, Is.EqualTo("CONFIGURATION ERROR"));
+                    Assert.That(viewModel.ConfigurationErrorMessage, Does.Contain(instance.ConfigurationFilePath));
+                }
+            }
+
+            [Test]
+            public async Task The_one_where_the_fix_is_picked_up_through_the_deployed_instances_refresh_flow()
+            {
+                WriteErrorInstanceConfig(CorruptXml);
+                var list = new ListInstancesViewModel(DetailsFor, () => [LoadErrorInstance()])
+                {
+                    EventAggregator = new EventAggregator()
+                };
+                Assert.That(list.HasConfigurationErrors, Is.True, "Precondition: the list starts out with a corrupt instance");
+
+                // The operator fixes the file, then triggers the refresh the UI uses
+                WriteErrorInstanceConfig(ValidErrorInstanceXml);
+                await list.HandleAsync(new RefreshInstances(), CancellationToken.None);
+
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(list.HasConfigurationErrors, Is.False);
+                    Assert.That(list.ConfigurationErrorMessage, Is.Null);
                 }
             }
 
