@@ -114,13 +114,16 @@ namespace ServiceControl.Config.Tests.InstanceDetails
             }
 
             [Test]
-            public void The_one_where_the_error_banner_explains_that_the_configuration_failed_to_load()
+            public void The_one_where_the_error_banner_explains_that_the_configuration_failed_to_load_and_names_the_file()
             {
                 WriteErrorInstanceConfig(CorruptXml);
 
-                var viewModel = DetailsFor(LoadErrorInstance());
+                var instance = LoadErrorInstance();
+                var viewModel = DetailsFor(instance);
 
-                Assert.That(viewModel.ConfigurationErrorMessage, Does.Contain("Failed to load configuration"));
+                Assert.That(viewModel.ConfigurationErrorMessage,
+                    Does.Contain("Failed to load configuration file").And.Contain(instance.ConfigurationFilePath),
+                    "The banner must point the operator at the file that needs fixing");
             }
 
             [Test]

@@ -34,7 +34,7 @@
         {
             get
             {
-                var hasErrors = Instances.Any(i => !string.IsNullOrEmpty(i.ConfigurationLoadError));
+                var hasErrors = Instances.Any(i => i.HasConfigurationError);
                 return hasErrors;
             }
         }
@@ -43,7 +43,7 @@
         {
             get
             {
-                var errorInstances = Instances.Where(i => !string.IsNullOrEmpty(i.ConfigurationLoadError)).ToList();
+                var errorInstances = Instances.Where(i => i.HasConfigurationError).ToList();
 
                 if (errorInstances.Count == 0)
                 {
@@ -61,7 +61,7 @@
             }
         }
 
-        public IEnumerable<InstanceDetailsViewModel> InstancesWithConfigErrors => Instances.Where(i => !string.IsNullOrEmpty(i.ConfigurationLoadError));
+        public IEnumerable<InstanceDetailsViewModel> InstancesWithConfigErrors => Instances.Where(i => i.HasConfigurationError);
 
         [AlsoNotifyFor(nameof(OrderedInstances), nameof(HasConfigurationErrors), nameof(ConfigurationErrorMessage), nameof(InstancesWithConfigErrors))]
         IList<InstanceDetailsViewModel> Instances { get; }

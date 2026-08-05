@@ -32,7 +32,7 @@
             }
             catch (Exception ex)
             {
-                ConfigurationLoadError = $"Failed to load configuration: {ex.Message}";
+                ConfigurationLoadError = $"Failed to load configuration file '{ConfigurationFilePath}': {ex.Message}";
                 InstanceName = Name;
                 ReportCard = new ReportCard();
                 ReportCard.Errors.Add(ConfigurationLoadError);
@@ -83,7 +83,7 @@
             // If config failed to load, throw exception to be caught by constructor
             if (AppConfig.Config == null)
             {
-                throw new Exception($"Failed to load configuration from {ConfigurationFilePath}: {AppConfig.ConfigLoadException?.Message ?? "Unknown error"}");
+                throw new Exception(AppConfig.ConfigLoadException?.Message ?? "Unknown error", AppConfig.ConfigLoadException);
             }
 
             InstanceName = AppConfig.Read(SettingsList.InstanceName, Name);

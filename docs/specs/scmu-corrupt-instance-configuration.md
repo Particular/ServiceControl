@@ -40,12 +40,13 @@ be read from is unreadable).
 
 The affected instance must be visibly broken in the UI: the status line reads
 `CONFIGURATION ERROR` instead of the Windows service status, neither the running nor
-the stopped indicator is shown, and the error banner explains what failed.
+the stopped indicator is shown, and the error banner explains what failed and names
+the file the operator has to fix.
 
 - **Example:** The one where the status reads CONFIGURATION ERROR and neither the
   running nor the stopped indicator is shown.
 - **Example:** The one where the error banner explains that the configuration failed
-  to load.
+  to load and names the config file.
 - **Counter-example:** The one where the configuration is valid and the Windows
   service status is shown as usual.
 
@@ -102,6 +103,9 @@ between instances.
   write ad-hoc logs to `%TEMP%`). The constructors themselves never throw for config
   errors — they load the instance in the error state instead. An instance that fails
   to load must be visible, not missing.
+- **Error message names the file** (Rule 2): `ConfigurationLoadError` is formatted as
+  `Failed to load configuration file '<path>': <reason>`, so both banners tell the
+  operator exactly which file to fix.
 
 ## Gaps not covered by the current implementation
 
@@ -115,8 +119,5 @@ between instances.
    `InstanceFinder.AllInstances()` in its constructor, so the banner/refresh logic
    cannot be driven by tests without enumerating real Windows services. Needs a seam
    (same pattern as `GetInstalledErrorInstanceNames` in PR #5637).
-3. **Unused details-VM property.** `InstanceDetailsViewModel.ConfigurationFilePath`
-   is referenced by nothing; the banner text also never tells the operator *which
-   file* to fix, although the path is captured.
-4. **`UpdateServiceInstance` silently ignores type changes.** If the fresh instance
+3. **`UpdateServiceInstance` silently ignores type changes.** If the fresh instance
    has the same name but a different type, the update is dropped without error.
