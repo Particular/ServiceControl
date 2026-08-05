@@ -12,6 +12,7 @@
     using ServiceControl.Operations;
 
     [TestFixture]
+    [NonParallelizable]
     class When_a_critical_error_is_triggered : AcceptanceTest
     {
         [Test]
