@@ -18,12 +18,14 @@ public class MessageArchiver : IArchiveMessages
         OperationsManager operationsManager,
         IDomainEvents domainEvents,
         IMessageActionAuditLog auditLog,
+        TimeProvider timeProvider,
         ILogger<MessageArchiver> logger
     )
     {
         this.scopeFactory = scopeFactory;
         this.operationsManager = operationsManager;
         this.auditLog = auditLog;
+        this.timeProvider = timeProvider;
         this.logger = logger;
         this.domainEvents = domainEvents;
 
@@ -243,7 +245,7 @@ public class MessageArchiver : IArchiveMessages
                 NumberOfMessagesProcessed = 0,
                 NumberOfBatches = (int)Math.Ceiling(count / (float)batchSize),
                 CurrentBatch = 0,
-                Started = DateTime.UtcNow,
+                Started = timeProvider.GetUtcNow().DateTime,
                 InitiatedById = initiatedBy?.Id,
                 InitiatedByName = initiatedBy?.Name,
                 OperationId = operationId
@@ -291,7 +293,7 @@ public class MessageArchiver : IArchiveMessages
 
         if (batchIds.Count > 0)
         {
-            var now = DateTime.UtcNow;
+            var now = timeProvider.GetUtcNow().DateTime;
 
             // Bulk status change with re-asserted status filter
             await dbContext.FailedMessages
@@ -338,6 +340,7 @@ public class MessageArchiver : IArchiveMessages
     readonly OperationsManager operationsManager;
     readonly IDomainEvents domainEvents;
     readonly IMessageActionAuditLog auditLog;
+    readonly TimeProvider timeProvider;
     readonly EFCoreArchivingManager archivingManager;
     readonly EFCoreUnarchivingManager unarchivingManager;
     readonly ILogger<MessageArchiver> logger;
