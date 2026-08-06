@@ -67,6 +67,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="⚠" FontSize="16" Foreground="#FFA500" VerticalAlignment="Top" Margin="0,0,8,0"/>
                     <StackPanel Grid.Column="1">
@@ -79,10 +80,13 @@
                                    TextWrapping="Wrap" 
                                    Foreground="#5D4037" 
                                    FontSize="12"/>
-                        <TextBlock Margin="0,5,0,0" FontSize="12">
-                            <Hyperlink Command="{Binding CopyToClipboard}" CommandParameter="{Binding ConfigurationErrorMessage}">Copy error message</Hyperlink>
-                        </TextBlock>
                     </StackPanel>
+                    <Button Grid.Column="2" Padding="0" Background="Transparent" BorderThickness="0"
+                            VerticalAlignment="Top" Margin="8,0,0,0"
+                            Command="{Binding CopyToClipboard}" CommandParameter="{Binding ConfigurationErrorMessage}"
+                            ToolTip="Copy error message" Cursor="Hand">
+                        <ContentControl Template="{StaticResource CopyIcon}" Foreground="#5D4037" Width="14" Height="14" />
+                    </Button>
                 </Grid>
             </Border>
         </StackPanel>
