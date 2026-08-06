@@ -24,7 +24,4 @@ public class QueueAddressStore(IServiceScopeFactory scopeFactory) : DataStoreBas
 
             return new QueryResult<IList<QueueAddress>>(items, new QueryStatsInfo(eTag, query.Count(), false));
         });
-
-    public Task<QueryResult<IList<QueueAddress>>> GetAddressesBySearchTerm(string search, PagingInfo pagingInfo) =>
-        throw new NotImplementedException();
 }
