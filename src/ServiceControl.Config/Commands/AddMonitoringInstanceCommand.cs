@@ -17,7 +17,7 @@
 
         public override async Task ExecuteAsync(object obj)
         {
-            if (!await commandChecks.CanAddInstance(true))
+            if (!await commandChecks.CanAddInstance())
             {
                 return;
             }
