@@ -22,6 +22,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
     public DbSet<EventLogItemEntity> EventLogItems { get; set; }
     public DbSet<HistoricRetryOperationEntity> HistoricRetryOperations { get; set; }
     public DbSet<UnacknowledgedRetryOperationEntity> UnacknowledgedRetryOperations { get; set; }
+    public DbSet<ArchiveOperationEntity> ArchiveOperations { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.EnableDetailedErrors();
@@ -46,6 +47,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
         modelBuilder.ApplyConfiguration(new EventLogItemConfiguration());
         modelBuilder.ApplyConfiguration(new HistoricRetryOperationConfiguration());
         modelBuilder.ApplyConfiguration(new UnacknowledgedRetryOperationConfiguration());
+        modelBuilder.ApplyConfiguration(new ArchiveOperationConfiguration());
     }
 
     public abstract bool IsDuplicateKeyException(DbUpdateException exception);

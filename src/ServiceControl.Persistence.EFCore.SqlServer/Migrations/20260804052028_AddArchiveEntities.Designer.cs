@@ -12,8 +12,8 @@ using ServiceControl.Persistence.EFCore.SqlServer;
 namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerServiceControlDbContext))]
-    [Migration("20260803010143_AddCustomChecks")]
-    partial class AddCustomChecks
+    [Migration("20260804052028_AddArchiveEntities")]
+    partial class AddArchiveEntities
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,56 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.ArchiveOperationEntity", b =>
+                {
+                    b.Property<string>("RequestId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int>("ArchiveType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OperationType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CurrentBatch")
+                        .HasColumnType("int");
+
+                    b.Property<string>("GroupName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("InitiatedById")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("InitiatedByName")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("NumberOfBatches")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NumberOfMessagesProcessed")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OperationId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Started")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TotalNumberOfMessages")
+                        .HasColumnType("int");
+
+                    b.HasKey("RequestId", "ArchiveType", "OperationType");
+
+                    b.HasIndex("Started");
+
+                    b.ToTable("ArchiveOperations");
+                });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.CustomCheckEntity", b =>
                 {
@@ -217,10 +267,6 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.Property<int>("NumberOfProcessingAttempts")
                         .HasColumnType("int");
 
-                    b.Property<string>("QueueAddress")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("ReceivingEndpointHost")
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
@@ -258,8 +304,6 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasIndex("FailingEndpointAddress");
 
-                    b.HasIndex("QueueAddress");
-
                     b.HasIndex("ReceivingEndpointName");
 
                     b.HasIndex("StatusChangedAt")
@@ -294,6 +338,8 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasIndex("GroupId");
 
+                    b.HasIndex("Type", "GroupId");
+
                     b.ToTable("FailedMessageGroups");
                 });
 
@@ -302,13 +348,32 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.Property<Guid>("UniqueMessageId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("RetryId")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("RetryBatchId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("StageAttempts")
+                        .HasColumnType("int");
 
                     b.HasKey("UniqueMessageId");
 
+                    b.HasIndex("RetryBatchId");
+
                     b.ToTable("FailedMessageRetries");
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.GroupCommentEntity", b =>
+                {
+                    b.Property<string>("GroupId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("GroupId");
+
+                    b.ToTable("GroupComments");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.KnownEndpointEntity", b =>
@@ -335,6 +400,99 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("KnownEndpoints");
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.MessageRedirectEntity", b =>
+                {
+                    b.Property<string>("FromPhysicalAddress")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ToPhysicalAddress")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("FromPhysicalAddress");
+
+                    b.ToTable("MessageRedirects");
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.RetryBatchEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Classifier")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Context")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("InitialBatchSize")
+                        .HasColumnType("int");
+
+                    b.Property<string>("InitiatedById")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("InitiatedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Last")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OperationId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Originator")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RequestId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RetrySessionId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("RetryType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StagingId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status", "RetrySessionId");
+
+                    b.ToTable("RetryBatches");
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.RetryBatchNowForwardingEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("RetryBatchId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RetryBatchNowForwarding");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.SubscriptionEntity", b =>

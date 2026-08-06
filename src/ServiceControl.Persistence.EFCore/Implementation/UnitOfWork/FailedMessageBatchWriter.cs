@@ -122,21 +122,56 @@ class FailedMessageBatchWriter(ServiceControlDbContext dbContext, IIngestionSqlD
             })
             .DistinctBy(endpoint => endpoint.Id)];
 
-    // Group rows are replaced wholesale on every attempt. When two concurrent writers process the
-    // same message their delete/insert pairs can interleave into a transient union of both
-    // attempts' groups; that is accepted, the next attempt replaces it.
+    // A message's groups are whatever its newest attempt classified it as, so they are replaced
+    // rather than merged. Only the messages this batch is now the newest attempt for take part: an
+    // older attempt arriving late from a concurrent writer already lost the payload columns in the
+    // upsert, and leaving it the groups would describe one failure in the row and another in the
+    // group rows. The upsert holds a row lock on every message in the batch until the transaction
+    // commits, so no competing writer can act on these messages between the delete and the insert.
     async Task ReplaceGroups(List<FailedMessageEntity> failedMessages, List<FailedMessageGroupEntity> groups, CancellationToken cancellationToken)
+    {
+        var newestAttemptFor = await FindMessagesThisBatchIsNewestFor(failedMessages, cancellationToken);
+
+        if (newestAttemptFor.Count == 0)
+        {
+            return;
+        }
+
+        await dbContext.FailedMessageGroups
+            .Where(group => newestAttemptFor.Contains(group.FailedMessageUniqueId))
+            .ExecuteDeleteAsync(cancellationToken);
+
+        var replacements = groups.Where(group => newestAttemptFor.Contains(group.FailedMessageUniqueId)).ToList();
+
+        if (replacements.Count > 0)
+        {
+            await dialect.InsertGroups(dbContext, replacements, cancellationToken);
+        }
+    }
+
+    // The upsert has just stored the later of the incoming and the already stored attempt, so this
+    // batch is the newest attempt for exactly those messages whose stored value it now matches.
+    //
+    // Reading the value back rather than comparing against what the batch sent is what keeps this
+    // in step with the upsert's own guard on a provider whose column precision is coarser than
+    // DateTime: it truncates the stored value, which is why the comparison is <= and not ==.
+    async Task<HashSet<Guid>> FindMessagesThisBatchIsNewestFor(List<FailedMessageEntity> failedMessages, CancellationToken cancellationToken)
     {
         var messageIds = failedMessages.Select(message => message.UniqueMessageId).ToArray();
 
-        await dbContext.FailedMessageGroups
-            .Where(group => messageIds.Contains(group.FailedMessageUniqueId))
-            .ExecuteDeleteAsync(cancellationToken);
+        var storedAttempts = await dbContext.FailedMessages
+            .AsNoTracking()
+            .Where(message => messageIds.Contains(message.UniqueMessageId))
+            .Select(message => new { message.UniqueMessageId, message.LastAttemptedAt })
+            .ToDictionaryAsync(row => row.UniqueMessageId, row => row.LastAttemptedAt, cancellationToken);
 
-        if (groups.Count > 0)
-        {
-            await dialect.InsertGroups(dbContext, groups, cancellationToken);
-        }
+        return
+        [
+            .. failedMessages
+                .Where(message => storedAttempts.TryGetValue(message.UniqueMessageId, out var storedAttempt)
+                                  && storedAttempt <= message.LastAttemptedAt)
+                .Select(message => message.UniqueMessageId)
+        ];
     }
 
     async Task ResolveRetried(Guid[] retries, DateTime now, CancellationToken cancellationToken)
