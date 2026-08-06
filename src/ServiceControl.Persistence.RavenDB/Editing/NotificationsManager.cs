@@ -14,21 +14,18 @@
         {
             using var aggressivelyCacheFor = await Session.Advanced.DocumentStore.AggressivelyCacheForAsync(cacheTimeout ?? CacheTimeoutDefault);
             var settings = await Session
-                .LoadAsync<NotificationsSettings>(SingleDocumentId);
+                .LoadAsync<NotificationsSettingsDocument>(SingleDocumentId);
 
-            if (settings != null)
+            if (settings == null)
             {
-                return settings;
+                settings = new NotificationsSettingsDocument { Id = SingleDocumentId };
+                await Session.StoreAsync(settings);
             }
 
-            settings = new NotificationsSettings
+            return new NotificationsSettings()
             {
-                Id = SingleDocumentId
+                Email = settings.Email
             };
-
-            await Session.StoreAsync(settings);
-
-            return settings;
         }
     }
 }
