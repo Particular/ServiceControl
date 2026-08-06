@@ -179,6 +179,15 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         return Task.CompletedTask;
     }
 
+    public Task RemoveEndpoints(EndpointIdentifier[] endpointIds, CancellationToken cancellationToken)
+    {
+        foreach (var id in endpointIds)
+        {
+            endpoints.Remove(id);
+        }
+        return Task.CompletedTask;
+    }
+
     class EndpointCollection : KeyedCollection<EndpointIdentifier, Endpoint>
     {
         protected override EndpointIdentifier GetKeyForItem(Endpoint item) => item.Id;

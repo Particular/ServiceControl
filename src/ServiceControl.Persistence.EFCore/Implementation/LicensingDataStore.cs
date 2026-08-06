@@ -14,6 +14,7 @@ class LicensingDataStore : ILicensingDataStore
     public Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken) => throw new NotImplementedException();
     public Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, bool includeToday, CancellationToken cancellationToken) => throw new NotImplementedException();
     public Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IList<EndpointDailyThroughput> throughput, CancellationToken cancellationToken) => throw new NotImplementedException();
+    public Task RemoveEndpoints(EndpointIdentifier[] endpointIds, CancellationToken cancellationToken) => throw new NotImplementedException();
     public Task SaveAuditServiceMetadata(AuditServiceMetadata auditServiceMetadata, CancellationToken cancellationToken) => throw new NotImplementedException();
     public Task SaveBrokerMetadata(BrokerMetadata brokerMetadata, CancellationToken cancellationToken) => throw new NotImplementedException();
     public Task SaveEndpoint(Particular.LicensingComponent.Contracts.Endpoint endpoint, CancellationToken cancellationToken) => throw new NotImplementedException();

@@ -203,6 +203,48 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         }
     }
 
+    [Test]
+    public async Task Should_only_create_new_endpoint_when_audit_counts_exist()
+    {
+        // Arrange
+        using var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        var token = tokenSource.Token;
+        var fakeTimeProvider = new FakeTimeProvider();
+
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1));
+        var auditQuery = new AuditQuery_WithTwoEndpointsAndSelectiveCounts(
+            endpointWithoutCounts: "EndpointNoData",
+            endpointWithCounts: "EndpointWithData",
+            throughputDate: date,
+            throughputCount: 5);
+
+        using var auditThroughputCollectorHostedService = new AuditThroughputCollectorHostedService(
+            NullLogger<AuditThroughputCollectorHostedService>.Instance, configuration.ThroughputSettings, DataStore,
+            auditQuery, fakeTimeProvider)
+        { DelayStart = TimeSpan.Zero };
+
+        // Act
+        await auditThroughputCollectorHostedService.StartAsync(token);
+        await Task.Run(async () =>
+        {
+            do
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(50));
+            } while (!token.IsCancellationRequested);
+        });
+        await auditThroughputCollectorHostedService.StopAsync(token);
+
+        var endpointWithoutCounts = await DataStore.GetEndpoint("EndpointNoData", ThroughputSource.Audit, default);
+        var endpointWithCounts = await DataStore.GetEndpoint("EndpointWithData", ThroughputSource.Audit, default);
+
+        // Assert
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(endpointWithoutCounts, Is.Null, "Endpoint with empty auditCounts should not be created");
+            Assert.That(endpointWithCounts, Is.Not.Null, "Endpoint with auditCounts should be created");
+        }
+    }
+
     class AuditQuery_NoAuditRemotes : IAuditQuery
     {
         public SemanticVersion MinAuditCountsVersion => new(4, 29, 0);
@@ -334,5 +376,51 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         }
 
         public string SanitizedEndpointNameCleanser(string endpointName) => endpointName;
+    }
+
+    class AuditQuery_WithTwoEndpointsAndSelectiveCounts : IAuditQuery
+    {
+        public AuditQuery_WithTwoEndpointsAndSelectiveCounts(
+            string endpointWithoutCounts,
+            string endpointWithCounts,
+            DateOnly throughputDate,
+            long throughputCount)
+        {
+            this.endpointWithoutCounts = endpointWithoutCounts;
+            this.endpointWithCounts = endpointWithCounts;
+            this.throughputDate = throughputDate;
+            this.throughputCount = throughputCount;
+        }
+
+        public SemanticVersion MinAuditCountsVersion => new(4, 29, 0);
+        public Func<RemoteInstanceInformation, bool> ValidRemoteInstances => _ => true;
+
+        public Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken) =>
+            Task.FromResult<IEnumerable<ServiceControlEndpoint>>(
+            [
+                new ServiceControlEndpoint { Name = endpointWithoutCounts, HeartbeatsEnabled = true },
+                new ServiceControlEndpoint { Name = endpointWithCounts, HeartbeatsEnabled = true }
+            ]);
+
+        public Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName, CancellationToken cancellationToken)
+        {
+            if (endpointUrlName == endpointWithCounts)
+            {
+                return Task.FromResult<IEnumerable<AuditCount>>([new AuditCount { UtcDate = throughputDate, Count = throughputCount }]);
+            }
+
+            return Task.FromResult<IEnumerable<AuditCount>>([]);
+        }
+
+        public Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken) =>
+            Task.FromResult<List<RemoteInstanceInformation>>([]);
+
+        public Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken) =>
+            Task.FromResult(new ConnectionSettingsTestResult { ConnectionSuccessful = true, ConnectionErrorMessages = [] });
+
+        readonly string endpointWithoutCounts;
+        readonly string endpointWithCounts;
+        readonly DateOnly throughputDate;
+        readonly long throughputCount;
     }
 }

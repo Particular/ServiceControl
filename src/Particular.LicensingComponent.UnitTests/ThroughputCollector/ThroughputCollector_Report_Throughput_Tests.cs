@@ -194,7 +194,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
     public async Task Should_return_correct_throughput_in_report_when_endpoint_has_no_throughput()
     {
         // Arrange
-        await DataStore.CreateBuilder().AddEndpoint().Build();
+        await DataStore.CreateBuilder().AddEndpoint().WithThroughput(ThroughputSource.Broker, data: [0]).Build();
 
         // Act
         var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
@@ -209,6 +209,20 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(0), $"Incorrect TotalThroughput recorded");
             Assert.That(report.ReportData.TotalQueues, Is.EqualTo(1), $"Incorrect TotalQueues recorded");
         }
+    }
+
+    [Test]
+    public async Task Should_not_return_endpoint_in_report_when_endpoint_has_no_throughput()
+    {
+        // Arrange
+        await DataStore.CreateBuilder().AddEndpoint().Build();
+
+        // Act
+        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+
+        // Assert
+        Assert.That(report, Is.Not.Null);
+        Assert.That(report.ReportData.Queues.Count, Is.Zero, "Invalid number of endpoints in throughput report");
     }
 
     [Test]

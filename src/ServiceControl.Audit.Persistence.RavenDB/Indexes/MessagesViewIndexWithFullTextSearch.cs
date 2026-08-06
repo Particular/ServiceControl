@@ -21,14 +21,15 @@ namespace ServiceControl.Audit.Persistence.RavenDB.Indexes
                     TimeSent = (DateTime)message.MessageMetadata["TimeSent"],
                     ProcessedAt = message.ProcessedAt,
                     ReceivingEndpointName = ((EndpointDetails)message.MessageMetadata["ReceivingEndpoint"]).Name,
+                    SendingEndpointName = ((EndpointDetails)message.MessageMetadata["SendingEndpoint"]).Name,
                     CriticalTime = (TimeSpan?)message.MessageMetadata["CriticalTime"],
                     ProcessingTime = (TimeSpan?)message.MessageMetadata["ProcessingTime"],
                     DeliveryTime = (TimeSpan?)message.MessageMetadata["DeliveryTime"],
                     Query = message.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[]
                     {
-                                    string.Join(" ", message.Headers.Select(x => x.Value)),
-                                    LoadAttachment(message, "body").GetContentAsString()
-                                }).ToArray(),
+                        string.Join(" ", message.Headers.Select(x => x.Value)),
+                        LoadAttachment(message, "body").GetContentAsString()
+                    }).ToArray(),
                     ConversationId = (string)message.MessageMetadata["ConversationId"]
                 };
 
