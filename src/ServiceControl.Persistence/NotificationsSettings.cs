@@ -2,6 +2,6 @@
 {
     public class NotificationsSettings
     {
-        public EmailNotifications Email { get; set; } = new EmailNotifications();
+        public EmailNotifications Email { get; init; } = new EmailNotifications();
     }
 }
