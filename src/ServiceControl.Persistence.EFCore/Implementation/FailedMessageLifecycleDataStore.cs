@@ -109,7 +109,7 @@ public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory) 
             }
 
             await dbContext.FailedMessages
-                .Where(fm => unarchivableIds.Contains(fm.UniqueMessageId) && fm.Status == FailedMessageStatus.Archived)
+                .Where(fm => unarchivableIds.Contains(fm.UniqueMessageId))
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(fm => fm.Status, FailedMessageStatus.Unresolved)
                     .SetProperty(fm => fm.StatusChangedAt, now)

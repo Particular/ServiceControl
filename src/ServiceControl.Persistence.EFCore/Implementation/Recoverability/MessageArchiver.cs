@@ -288,7 +288,7 @@ public class MessageArchiver : IArchiveMessages
 
             // Bulk status change with re-asserted status filter
             await dbContext.FailedMessages
-                .Where(fm => batchIds.Contains(fm.UniqueMessageId) && fm.Status == fromStatus)
+                .Where(fm => batchIds.Contains(fm.UniqueMessageId))
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(fm => fm.Status, toStatus)
                     .SetProperty(fm => fm.StatusChangedAt, now)
