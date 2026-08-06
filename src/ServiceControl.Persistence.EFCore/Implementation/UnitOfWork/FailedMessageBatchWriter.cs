@@ -10,7 +10,7 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 // differ on (the upserts) come from the injected dialect; everything portable stays here as
 // set-based EF operations. Statement order matters: a message that fails and is retry-confirmed
 // in the same batch must end Resolved.
-class FailedMessageBatchWriter(ServiceControlDbContext dbContext, IIngestionSqlDialect dialect)
+class FailedMessageBatchWriter(ServiceControlDbContext dbContext, IFailedMessageIngestionSqlDialect dialect)
 {
     public async Task Write(
         IReadOnlyCollection<RecordedFailedProcessingAttempt> attempts,

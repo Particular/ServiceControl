@@ -12,14 +12,14 @@ public class EFIngestionUnitOfWork : IIngestionUnitOfWork
 {
     readonly ServiceControlDbContext dbContext;
     readonly IAsyncDisposable scope;
-    readonly IIngestionSqlDialect dialect;
+    readonly IFailedMessageIngestionSqlDialect dialect;
     readonly TimeProvider timeProvider;
     readonly ConcurrentQueue<RecordedFailedProcessingAttempt> failedProcessingAttempts = new();
     readonly ConcurrentQueue<Task> bodyWrites = new();
     readonly ConcurrentQueue<KnownEndpoint> knownEndpoints = new();
     readonly ConcurrentQueue<Guid> confirmedRetries = new();
 
-    public EFIngestionUnitOfWork(IAsyncDisposable scope, ServiceControlDbContext dbContext, IBodyStoragePersistence storagePersistence, EFPersisterSettings settings, IIngestionSqlDialect dialect, TimeProvider timeProvider)
+    public EFIngestionUnitOfWork(IAsyncDisposable scope, ServiceControlDbContext dbContext, IBodyStoragePersistence storagePersistence, EFPersisterSettings settings, IFailedMessageIngestionSqlDialect dialect, TimeProvider timeProvider)
     {
         this.scope = scope;
         this.dbContext = dbContext;

@@ -4,11 +4,12 @@ using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
 
 /// <summary>
-/// The provider specific SQL of the error ingestion batch. Implementations run on the DbContext
-/// connection inside the transaction the caller has already opened, and every statement must stay
-/// correct under concurrent writers: a same-key race between two instances may not fail the batch.
+/// The provider-specific SQL of the failed-message ingestion batch. Implementations run on the
+/// DbContext connection inside the transaction the caller has already opened, and every statement
+/// must stay correct under concurrent writers: a same-key race between two instances may not fail
+/// the batch.
 /// </summary>
-public interface IIngestionSqlDialect
+public interface IFailedMessageIngestionSqlDialect
 {
     /// <summary>
     /// One row per message, distinct by UniqueMessageId. Inserts new rows; for existing rows the
@@ -27,10 +28,4 @@ public interface IIngestionSqlDialect
     /// Insert if absent, never update: existing endpoints keep their Monitored flag.
     /// </summary>
     Task InsertMissingKnownEndpoints(ServiceControlDbContext dbContext, IReadOnlyList<KnownEndpointEntity> rows, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Insert if absent, never update: a message already claimed stays with the batch that claimed
-    /// it first, so two retry requests covering the same message cannot both stage it.
-    /// </summary>
-    Task InsertMissingRetryClaims(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageRetryEntity> rows, CancellationToken cancellationToken);
 }

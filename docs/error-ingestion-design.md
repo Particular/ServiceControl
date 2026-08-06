@@ -11,7 +11,9 @@ ordinary change-tracked entity saves.
 The unit of ingestion is a **batch**: the transport hands the ingester up to `MaximumConcurrency`
 messages at a time, and the whole batch is written in a single database transaction. The relevant
 types are `EFIngestionUnitOfWork` (accumulation), `FailedMessageBatchWriter` (the write), and the
-per-provider `IIngestionSqlDialect` implementations (the statements that differ by provider).
+per-provider `IFailedMessageIngestionSqlDialect` implementations (the statements that differ by
+provider). Retry claim insertion is a separate persistence capability behind
+`IRetryBatchSqlDialect`; it is used by `RetryBatchStore`, not by the ingestion unit of work.
 
 ## Data model
 
@@ -108,8 +110,8 @@ The order matters: a message that both fails and is retry-confirmed in the same 
 Most of ServiceControl prefers standard abstractions, and the portable parts of this write path do
 use them: the group delete and the retry resolution are ordinary set-based EF operations
 (`ExecuteDelete`/`ExecuteUpdate`). The **upserts** are hand-written SQL, per provider, behind the
-`IIngestionSqlDialect` seam. Three requirements together force that, and no ORM-level API satisfies
-all three at once.
+`IFailedMessageIngestionSqlDialect` seam. Three requirements together force that, and no ORM-level
+API satisfies all three at once.
 
 ### 1. The upsert is a conditional merge, not a save
 
@@ -169,10 +171,14 @@ that the database can cache a plan for, with no per-row round trips and no tempo
 ### What stays portable
 
 Only the genuinely divergent statements are raw. The retry resolution and the group delete are set
-based and identical across providers, so they remain EF operations in the shared writer. The raw
-SQL is confined to the two dialect classes, one per provider, each responsible only for the
-upserts. The guard semantics are kept identical between the two dialects; the shared test suite
-runs every ingestion test against both providers to keep them from drifting.
+based and identical across providers, so they remain EF operations in the shared writer. Failed
+message upserts and insert-if-absent group and endpoint writes are owned by each provider's
+`IFailedMessageIngestionSqlDialect` implementation. Insert-if-absent retry claims belong to the
+separate retry-batch persistence seam, `IRetryBatchSqlDialect`. Provider-local base classes share
+only parameter and transaction plumbing between those capabilities; each capability class still
+owns its SQL and domain semantics. The guard semantics are kept identical between providers, and
+the shared test suite runs every ingestion and retry-batch test against both providers to keep them
+from drifting.
 
 ## Transactions and retries
 
