@@ -147,6 +147,29 @@ class RetentionSweepTests : ErrorIngestionTestBase
         Assert.That(await FindGroupComment(groupId), Is.Not.Null);
     }
 
+    [Test]
+    public async Task Archived_messages_are_swept_after_the_archiver_updates_the_timestamp()
+    {
+        var groupId = Guid.NewGuid().ToString();
+        var messageId = await SeedFailedMessage(FailedMessageStatus.Unresolved, Now.AddDays(-40));
+        await Store(new FailedMessageGroupEntity { FailedMessageUniqueId = messageId, GroupId = groupId, Title = "t", Type = "Message Type" });
+
+        await ArchiveMessages.ArchiveAllInGroup(groupId);
+
+        var archived = await FindFailedMessage(messageId);
+        Assert.That(archived, Is.Not.Null);
+        Assert.That(archived!.Status, Is.EqualTo(FailedMessageStatus.Archived));
+        Assert.That(archived.StatusChangedAt, Is.EqualTo(Now), "the archiver should stamp the current fake time");
+
+        // The archiver reset the timestamp to Now, so the message is back inside the retention window.
+        // Only after the clock advances past the retention period can the sweeper remove it.
+        AdvanceClock(TimeSpan.FromDays(31));
+
+        await RunRetentionSweep();
+
+        Assert.That(await FindFailedMessage(messageId), Is.Null);
+    }
+
     async Task<string> SeedGroup(Guid uniqueMessageId)
     {
         var groupId = Guid.NewGuid().ToString();

@@ -20,6 +20,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
     public DbSet<TrialMetadataEntity> TrialMetadata { get; set; }
     public DbSet<SubscriptionEntity> Subscriptions { get; set; }
     public DbSet<EventLogItemEntity> EventLogItems { get; set; }
+    public DbSet<ArchiveOperationEntity> ArchiveOperations { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.EnableDetailedErrors();
@@ -42,6 +43,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
         modelBuilder.ApplyConfiguration(new SubscriptionConfiguration());
         modelBuilder.ApplyConfiguration(new TrialMetadataConfiguration());
         modelBuilder.ApplyConfiguration(new EventLogItemConfiguration());
+        modelBuilder.ApplyConfiguration(new ArchiveOperationConfiguration());
     }
 
     public abstract bool IsDuplicateKeyException(DbUpdateException exception);

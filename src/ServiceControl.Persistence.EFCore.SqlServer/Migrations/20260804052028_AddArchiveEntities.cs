@@ -6,11 +6,33 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 {
     /// <inheritdoc />
-    public partial class AddCustomChecks : Migration
+    public partial class AddArchiveEntities : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "ArchiveOperations",
+                columns: table => new
+                {
+                    RequestId = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    ArchiveType = table.Column<int>(type: "int", nullable: false),
+                    OperationType = table.Column<int>(type: "int", nullable: false),
+                    GroupName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TotalNumberOfMessages = table.Column<int>(type: "int", nullable: false),
+                    NumberOfMessagesProcessed = table.Column<int>(type: "int", nullable: false),
+                    NumberOfBatches = table.Column<int>(type: "int", nullable: false),
+                    CurrentBatch = table.Column<int>(type: "int", nullable: false),
+                    Started = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    InitiatedById = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: true),
+                    InitiatedByName = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: true),
+                    OperationId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ArchiveOperations", x => new { x.RequestId, x.ArchiveType, x.OperationType });
+                });
+
             migrationBuilder.CreateTable(
                 name: "CustomChecks",
                 columns: table => new
@@ -31,6 +53,11 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_ArchiveOperations_Started",
+                table: "ArchiveOperations",
+                column: "Started");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CustomChecks_ReportedAt",
                 table: "CustomChecks",
                 column: "ReportedAt");
@@ -44,6 +71,9 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "ArchiveOperations");
+
             migrationBuilder.DropTable(
                 name: "CustomChecks");
         }
