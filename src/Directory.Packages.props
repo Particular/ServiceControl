@@ -81,7 +81,7 @@
     <PackageVersion Include="Testcontainers.LocalStack" Version="4.13.0" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.13.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.13.0" />
-    <PackageVersion Include="ReactiveUI.WPF" Version="22.3.1" />
+    <PackageVersion Include="ReactiveUI.WPF" Version="24.1.0" />
     <PackageVersion Include="Seq.Extensions.Logging" Version="9.0.0" />
     <PackageVersion Include="ServiceControl.Contracts" Version="5.1.0" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="$(RuntimeFrameworkVersion)" />
