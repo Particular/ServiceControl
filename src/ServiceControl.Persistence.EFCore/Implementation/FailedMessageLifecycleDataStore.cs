@@ -41,7 +41,7 @@ public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory) 
             var now = DateTime.UtcNow;
 
             var affected = await dbContext.FailedMessages
-                .Where(fm => fm.UniqueMessageId == uniqueMessageId && fm.Status == FailedMessageStatus.Unresolved)
+                .Where(fm => fm.UniqueMessageId == uniqueMessageId && fm.Status != FailedMessageStatus.Resolved)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(fm => fm.Status, FailedMessageStatus.Resolved)
                     .SetProperty(fm => fm.StatusChangedAt, now)
