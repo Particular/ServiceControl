@@ -63,9 +63,13 @@
         <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Margin="0 0 0 10"
                     Visibility="{Binding HasConfigurationError, Converter={StaticResource boolToVis}}">
             <Border Background="#FFF4E5" BorderBrush="#FFA500" BorderThickness="1" Padding="10" CornerRadius="3">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="⚠" FontSize="16" Foreground="#FFA500" VerticalAlignment="Top" Margin="0,0,8,0"/>
-                    <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="⚠" FontSize="16" Foreground="#FFA500" VerticalAlignment="Top" Margin="0,0,8,0"/>
+                    <StackPanel Grid.Column="1">
                         <TextBlock Text="CONFIGURATION ERROR" 
                                    FontWeight="Bold" 
                                    Foreground="#D84315" 
@@ -76,7 +80,7 @@
                                    Foreground="#5D4037" 
                                    FontSize="12"/>
                     </StackPanel>
-                </StackPanel>
+                </Grid>
             </Border>
         </StackPanel>
 

@@ -19,9 +19,13 @@
         <Border Grid.Row="0" Margin="60,10,60,10"
                 Background="#FFF4E5" BorderBrush="#FFA500" BorderThickness="1" Padding="10" CornerRadius="3"
                 Visibility="{Binding HasConfigurationErrors, Converter={StaticResource BoolToVisibilityConverter}}">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="⚠" FontSize="16" Foreground="#FFA500" VerticalAlignment="Top" Margin="0,0,8,0" />
-                <StackPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="⚠" FontSize="16" Foreground="#FFA500" VerticalAlignment="Top" Margin="0,0,8,0" />
+                <StackPanel Grid.Column="1">
                     <TextBlock Text="CONFIGURATION ERROR"
                                FontWeight="Bold"
                                Foreground="#D84315"
@@ -32,7 +36,7 @@
                                Foreground="#5D4037"
                                FontSize="12" />
                 </StackPanel>
-            </StackPanel>
+            </Grid>
         </Border>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
