@@ -125,7 +125,8 @@
 
         async void AddAndRemoveInstances()
         {
-            var toRemove = Instances.Where(instance => !instance.Exists());
+            // Remove instances that no longer exist on disk
+            var toRemove = Instances.Where(instance => !instance.Exists()).ToList();
             foreach (var instance in toRemove)
             {
                 await instance.TryCloseAsync();
@@ -136,7 +137,7 @@
             var allFreshInstances = getAllInstances().ToList();
 
             // Update existing instances with fresh configuration data
-            foreach (var existingInstance in Instances)
+            foreach (var existingInstance in Instances.ToList())
             {
                 var freshInstance = allFreshInstances.FirstOrDefault(i => i.Name == existingInstance.Name);
                 if (freshInstance != null)
@@ -145,6 +146,7 @@
                 }
             }
 
+            // Add new instances that weren't in the list before
             var missingInstances = allFreshInstances.Where(i => !Instances.Any(existingInstance => existingInstance.Name == i.Name));
 
             foreach (var item in missingInstances)
@@ -154,7 +156,7 @@
 
             Validations.RefreshInstances();
 
-            NotifyOfPropertyChange(nameof(Instances));
+            NotifyOfPropertyChange(nameof(OrderedInstances));
             NotifyOfPropertyChange(nameof(HasConfigurationErrors));
             NotifyOfPropertyChange(nameof(ConfigurationErrorMessage));
         }
