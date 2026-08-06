@@ -67,7 +67,36 @@
             }, ScrubDates);
         }
 
-        ProcessedMessage MakeMessage(string processingEndpoint, DateTime processedAt, bool systemMessage)
+        [Test]
+        public async Task Should_return_zero_throughput_entry_when_SendOnly()
+        {
+            // Arrange
+            var today = DateTime.UtcNow.Date;
+            const string sendOnlyEndpoint = "SendOnlyEndpoint";
+
+            var messages = new[]
+            {
+                // Endpoint sent a message, but did not receive any
+                MakeMessage("SomeOtherEndpoint", sendOnlyEndpoint, today, false)
+            };
+
+            await IngestProcessedMessagesAudits(messages);
+
+            // Act
+            var result = (await DataStore.QueryAuditCounts(sendOnlyEndpoint, TestContext.CurrentContext.CancellationToken)).Results;
+
+            // Assert
+            Assert.That(result, Is.Not.Empty, "Expected non-empty result for endpoint that only sent messages");
+            Assert.That(result, Has.Count.EqualTo(1), "Expected single audit count for send-only endpoint");
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(result[0].UtcDate, Is.EqualTo(today), "Expected today's date placeholder");
+                Assert.That(result[0].Count, Is.Zero, "Expected zero throughput count for send-only endpoint");
+            }
+        }
+
+        static ProcessedMessage MakeMessage(string processingEndpoint, DateTime processedAt, bool systemMessage) => MakeMessage(processingEndpoint, null, processedAt, systemMessage);
+        static ProcessedMessage MakeMessage(string processingEndpoint, string sendingEndpoint, DateTime processedAt, bool systemMessage)
         {
             var messageId = Guid.NewGuid().ToString();
             var messageType = "MyMessageType";
@@ -85,8 +114,12 @@
                 { "MessageType", messageType },
                 { "IsRetried", false },
                 { "ConversationId", messageId },
-                { "ReceivingEndpoint", new EndpointDetails { Name = processingEndpoint } }
+                { "ReceivingEndpoint", new EndpointDetails { Name = processingEndpoint } },
             };
+            if (!string.IsNullOrEmpty(sendingEndpoint))
+            {
+                metadata.Add("SendingEndpoint", new EndpointDetails { Name = sendingEndpoint });
+            }
 
             var headers = new Dictionary<string, string>
             {

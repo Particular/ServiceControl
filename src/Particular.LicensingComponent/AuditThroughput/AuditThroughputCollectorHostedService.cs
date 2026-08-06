@@ -81,7 +81,7 @@ public class AuditThroughputCollectorHostedService(
             }
             else if (endpoint is null)
             {
-                return;
+                continue;
             }
 
             var missingAuditThroughput = auditCounts
