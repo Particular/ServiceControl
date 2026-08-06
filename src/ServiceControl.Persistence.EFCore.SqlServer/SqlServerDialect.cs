@@ -8,8 +8,6 @@ using ServiceControl.Persistence.EFCore.DbContexts;
 
 abstract class SqlServerDialect
 {
-    const int MaxSqlParameters = 2100;
-
     protected static async Task Execute(ServiceControlDbContext dbContext, string sql, IEnumerable<object?[]> rows, CancellationToken cancellationToken)
     {
         await using var command = dbContext.Database.GetDbConnection().CreateCommand();
@@ -64,5 +62,6 @@ abstract class SqlServerDialect
         return sql.ToString();
     }
 
-    protected static int MaxRowsPerStatement(int columns) => MaxSqlParameters/columns;
+    protected static int MaxRowsPerStatement(int columns) => MaxSqlParameters / columns;
+    const int MaxSqlParameters = 2100;
 }
