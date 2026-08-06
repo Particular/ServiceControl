@@ -5,7 +5,6 @@
     using System.Threading;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
-    using NServiceBus.Logging;
     using NUnit.Framework;
     using NUnit.Framework.Internal;
 

@@ -7,6 +7,7 @@
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting.Internal;
     using Microsoft.Extensions.Logging.Abstractions;
+    using Nito.Disposables;
     using NUnit.Framework;
     using Persistence.RavenDB;
     using Raven.Client.ServerWide.Operations;

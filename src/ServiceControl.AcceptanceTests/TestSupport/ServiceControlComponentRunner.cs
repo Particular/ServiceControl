@@ -25,6 +25,8 @@
     using NServiceBus.AcceptanceTesting.Support;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
+    using Persistence.Tests;
+    using RavenDB;
     using RavenDB.Shared;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
@@ -47,9 +49,13 @@
         public JsonSerializerOptions SerializerOptions => Infrastructure.WebApi.SerializerOptions.Default;
         public IDomainEvents DomainEvents { get; private set; }
 
-        public Task Initialize(RunDescriptor run) => InitializeServiceControl(run.ScenarioContext);
+        public async Task Initialize(RunDescriptor run)
+        {
+            using var _ = await AcceptanceTestStorageConfiguration.UseDatabaseLifecycleLock();
+            await InitializeServiceControlCore(run.ScenarioContext);
+        }
 
-        async Task InitializeServiceControl(ScenarioContext context)
+        async Task InitializeServiceControlCore(ScenarioContext context)
         {
             var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(logPath);

@@ -49,15 +49,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             // 1. ConfigurationManager.AppSettings is process-global and not thread-safe
             // 2. The embedded RavenDB server does not support concurrent database create/delete/index operations
             // The test scenario execution (after this method returns) still runs in parallel.
-            await AcceptanceTestStorageConfiguration.DatabaseLifecycleLock.WaitAsync();
-            try
-            {
-                await InitializeServiceControlCore(context);
-            }
-            finally
-            {
-                AcceptanceTestStorageConfiguration.DatabaseLifecycleLock.Release();
-            }
+            using var _ = await AcceptanceTestStorageConfiguration.UseDatabaseLifecycleLock();
+            await InitializeServiceControlCore(context);
         }
 
         async Task InitializeServiceControlCore(ScenarioContext context)
