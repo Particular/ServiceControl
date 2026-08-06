@@ -79,7 +79,7 @@ public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory) 
             }
 
             await dbContext.FailedMessages
-                .Where(fm => unarchivableIds.Contains(fm.UniqueMessageId) && fm.Status == FailedMessageStatus.Archived)
+                .Where(fm => unarchivableIds.Contains(fm.UniqueMessageId))
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(fm => fm.Status, FailedMessageStatus.Unresolved)
                     .SetProperty(fm => fm.StatusChangedAt, now)
@@ -98,8 +98,8 @@ public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory) 
             // Query which messages will be unarchived (must be Archived and within the date range)
             var unarchivableIds = await dbContext.FailedMessages
                 .Where(fm => fm.Status == FailedMessageStatus.Archived
-                    && fm.LastTimeOfFailure >= from
-                    && fm.LastTimeOfFailure <= to)
+                    && fm.LastModified >= from
+                    && fm.LastModified <= to)
                 .Select(fm => fm.UniqueMessageId)
                 .ToListAsync();
 
