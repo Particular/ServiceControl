@@ -35,6 +35,9 @@
                                TextWrapping="Wrap"
                                Foreground="#5D4037"
                                FontSize="12" />
+                    <TextBlock Margin="0,5,0,0" FontSize="12">
+                        <Hyperlink Command="{Binding CopyToClipboard}" CommandParameter="{Binding ConfigurationErrorMessage}">Copy error message</Hyperlink>
+                    </TextBlock>
                 </StackPanel>
             </Grid>
         </Border>

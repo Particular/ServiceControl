@@ -7,6 +7,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Caliburn.Micro;
+    using Commands;
     using DynamicData;
     using Events;
     using Framework.Rx;
@@ -28,11 +29,14 @@
             this.instanceDetailsFunc = instanceDetailsFunc;
             this.getAllInstances = getAllInstances;
             DisplayName = "DEPLOYED INSTANCES";
+            CopyToClipboard = new CopyToClipboardCommand();
 
             Instances = [];
 
             AddAndRemoveInstances();
         }
+
+        public CopyToClipboardCommand CopyToClipboard { get; }
 
         public BindableCollection<InstanceDetailsViewModel> OrderedInstances => [.. Instances.OrderBy(x => x.Name)];
 
