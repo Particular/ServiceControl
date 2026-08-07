@@ -10,10 +10,5 @@ public class NotificationsManager : INotificationsManager
     public Task SaveChanges() =>
         throw new NotImplementedException();
 
-    public ValueTask DisposeAsync()
-    {
-        // Nothing to dispose yet
-        GC.SuppressFinalize(this);
-        return ValueTask.CompletedTask;
-    }
+    public ValueTask DisposeAsync() => default;
 }
