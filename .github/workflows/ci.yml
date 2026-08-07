@@ -104,7 +104,6 @@ jobs:
         if: matrix.test-category == 'PostgreSQL'
         with:
           connection-string-name: ServiceControl_TransportTests_PostgreSQL_ConnectionString
-          tag: ServiceControl
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Setup PostgreSQL persistence
@@ -112,7 +111,6 @@ jobs:
         if: matrix.test-category == 'PostgreSQLPersistence'
         with:
           connection-string-name: ServiceControl_Persistence_PostgreSql_ConnectionString
-          tag: ServiceControl
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Setup RabbitMQ
