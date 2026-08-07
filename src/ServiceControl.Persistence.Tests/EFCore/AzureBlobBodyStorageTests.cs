@@ -13,10 +13,10 @@ using Testcontainers.Azurite;
 [Platform(Exclude = "Win", Reason = "Azurite has no Windows container image")]
 class AzureBlobBodyStorageTests
 {
-    AzuriteContainer azurite;
+    static AzuriteContainer azurite;
 
     [OneTimeSetUp]
-    public async Task StartAzurite()
+    public static async Task StartAzurite()
     {
         // Azurite 3.36.0 does not implement the service version the current Azure.Storage.Blobs
         // package negotiates, so the API version check has to be skipped. Support is milestoned for
@@ -29,7 +29,7 @@ class AzureBlobBodyStorageTests
     }
 
     [OneTimeTearDown]
-    public async Task StopAzurite()
+    public static async Task StopAzurite()
     {
         if (azurite != null)
         {
