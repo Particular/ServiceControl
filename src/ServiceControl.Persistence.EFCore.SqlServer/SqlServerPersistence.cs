@@ -16,6 +16,7 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
 
         services.AddSingleton<IFailedMessageIngestionSqlDialect, SqlServerFailedMessageIngestionSqlDialect>();
         services.AddSingleton<IRetryBatchSqlDialect, SqlServerRetryBatchSqlDialect>();
+        services.AddSingleton<IFullTextSearchDialect, SqlServerFullTextSearchDialect>();
     }
 
     public void AddInstaller(IServiceCollection services)
