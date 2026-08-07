@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
 using NUnit.Framework;
 using ServiceControl.Infrastructure.WebApi;
+using ServiceControl.Persistence.Infrastructure;
 
 [TestFixture]
 public class ConditionalGetTests
@@ -86,6 +87,28 @@ public class ConditionalGetTests
         var httpContext = new DefaultHttpContext();
 
         httpContext.Response.WithEtag(value);
+
+        Assert.That(httpContext.Response.Headers.ContainsKey("ETag"), Is.False,
+            "an empty entity-tag is well formed, so it would match itself and answer 304 for unrelated payloads");
+    }
+
+    [Test]
+    public void A_data_version_emits_the_same_header_the_string_overload_did()
+    {
+        var httpContext = new DefaultHttpContext();
+
+        httpContext.Response.WithEtag(DataVersion.FromToken("A:2-abc"));
+
+        // The marking arrives in a later task. This one only changes who holds the value.
+        Assert.That(httpContext.Response.Headers.ETag.ToString(), Is.EqualTo("\"A:2-abc\""));
+    }
+
+    [Test]
+    public void An_absent_data_version_emits_no_header()
+    {
+        var httpContext = new DefaultHttpContext();
+
+        httpContext.Response.WithEtag(DataVersion.None);
 
         Assert.That(httpContext.Response.Headers.ContainsKey("ETag"), Is.False,
             "an empty entity-tag is well formed, so it would match itself and answer 304 for unrelated payloads");

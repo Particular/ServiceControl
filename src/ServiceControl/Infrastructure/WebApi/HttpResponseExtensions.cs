@@ -27,6 +27,18 @@ namespace ServiceControl.Infrastructure.WebApi
             response.Headers.ETag = $"\"{validator}\"";
         }
 
+        public static void WithEtag(this HttpResponse response, DataVersion version)
+        {
+            if (!version.HasValue)
+            {
+                return;
+            }
+
+            // RFC 9110 requires an entity-tag to be a quoted string. Unquoted, EntityTagHeaderValue
+            // cannot parse it and NotModifiedStatusHttpHandler never matches a client's If-None-Match.
+            response.Headers.ETag = $"\"{version}\"";
+        }
+
         public static void WithQueryStatsInfo(this HttpResponse response, QueryStatsInfo queryStatsInfo)
         {
             response.WithTotalCount(queryStatsInfo.TotalCount);

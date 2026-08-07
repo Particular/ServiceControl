@@ -8,6 +8,8 @@ using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
+using ServiceControl.Persistence.Infrastructure;
+using ServiceControl.Persistence.Infrastructure;
 
 /// <summary>
 /// Resolves a message body from wherever it was stored.
@@ -46,7 +48,7 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
                 return MessageBodyResult.Empty();
             }
 
-            return MessageBodyResult.Available(new MessageBodyStreamContent(external.Stream, external.ContentType, external.BodySize, uniqueMessageId));
+            return MessageBodyResult.Available(new MessageBodyStreamContent(external.Stream, external.ContentType, external.BodySize, DataVersion.FromToken(uniqueMessageId)));
         }
 
         if (row.BodyText != null)
@@ -62,7 +64,7 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
                 new MemoryStream(bytes, writable: false),
                 row.BodyContentType ?? "text/plain",
                 bytes.Length,
-                uniqueMessageId));
+                DataVersion.FromToken(uniqueMessageId)));
         }
 
         if (row.BodySize == 0)
