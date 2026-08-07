@@ -2,6 +2,7 @@
 {
     using System.IO;
     using System.Threading.Tasks;
+    using ServiceControl.Persistence.Infrastructure;
 
     public interface IBodyStorage
     {
@@ -14,6 +15,6 @@
         public Stream Stream; // Intentional, other streams could require a context
         public string ContentType;
         public int BodySize;
-        public string Etag;
+        public DataVersion Version;
     }
 }
