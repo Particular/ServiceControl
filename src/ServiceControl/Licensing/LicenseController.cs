@@ -1,10 +1,8 @@
 ﻿#nullable enable
 namespace ServiceControl.Licensing
 {
-    using System;
     using System.IO;
     using System.IO.Compression;
-    using System.Text;
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
@@ -53,7 +51,7 @@ namespace ServiceControl.Licensing
             return licenseInfo;
         }
 
-        [Authorize(Policy = Permissions.ErrorLicensingView)]
+        [Authorize(Policy = Permissions.ErrorThroughputView)]
         [HttpGet]
         [Route("license/details")]
         public async Task<ActionResult<LicensedEndpointDetails?>> LicenseDetails(CancellationToken cancellationToken)
@@ -73,7 +71,7 @@ namespace ServiceControl.Licensing
             return licenseDetails;
         }
 
-        [Authorize(Policy = Permissions.ErrorLicensingManage)]
+        [Authorize(Policy = Permissions.ErrorThroughputManage)]
         [HttpPost]
         [Route("license/detailsUpload")]
         public async Task UploadLicenseDetails([FromForm] IFormFile file, CancellationToken cancellationToken)
