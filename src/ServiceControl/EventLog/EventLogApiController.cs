@@ -24,7 +24,7 @@
             var result = await logDataStore.GetEventLogItems(pagingInfo, Request.GetKnownVersion(), cancellationToken);
 
             Response.WithPagingLinksAndTotalCount(pagingInfo, result.QueryStats.TotalCount);
-            Response.WithEtag(result.QueryStats.ETag);
+            Response.WithEtag(result.QueryStats.Version);
 
             if (result.NotModified)
             {

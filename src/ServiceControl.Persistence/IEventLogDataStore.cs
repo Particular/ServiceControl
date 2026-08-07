@@ -28,19 +28,18 @@
         /// </summary>
         /// <param name="pagingInfo">Which page to return.</param>
         /// <param name="knownVersion">
-        /// The version the caller already holds, or <c>null</c> if it holds none. When it matches, the
-        /// result is <see cref="QueryResult{TOut}.NotModified"/> and carries no page.
+        /// The version the caller already holds, or <see cref="DataVersion.None"/> if it holds none.
+        /// When it matches, the result is <see cref="QueryResult{TOut}.NotModified"/> and carries no page.
         /// </param>
         /// <returns>
         /// <see cref="QueryResult{TOut}.Results"/>: the requested page, which may be empty.
         /// <see cref="QueryStatsInfo.TotalCount"/>: the number of items in the store, independent of the
         /// page size, and populated even when nothing was modified.
-        /// <see cref="QueryStatsInfo.ETag"/>: an opaque cache validator surfaced <b>verbatim</b> as the
-        /// <c>ETag</c> response header, so whatever a client echoes back arrives here as
-        /// <paramref name="knownVersion"/>. It must change when retention removes items, not only when
-        /// one is added, since nothing else tells a client its cached page is now wrong.
+        /// <see cref="QueryStatsInfo.Version"/>: an opaque cache validator. It must change when retention
+        /// removes items, not only when one is added, since nothing else tells a client its cached page
+        /// is now wrong.
         /// </returns>
         Task<QueryResult<IList<EventLogItemView>>> GetEventLogItems(
-            PagingInfo pagingInfo, string? knownVersion = null, CancellationToken cancellationToken = default);
+            PagingInfo pagingInfo, DataVersion knownVersion = default, CancellationToken cancellationToken = default);
     }
 }

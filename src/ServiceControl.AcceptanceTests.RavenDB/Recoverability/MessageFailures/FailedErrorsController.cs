@@ -5,6 +5,7 @@
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Mvc;
     using Operations;
+    using Persistence.Infrastructure;
     using Persistence.RavenDB;
     using Raven.Client.Documents;
 
@@ -28,7 +29,7 @@
 
             var count = await query.CountAsync(cancellationToken);
 
-            Response.WithEtag(stats.ResultEtag.ToString());
+            Response.WithEtag(DataVersion.FromToken(stats.ResultEtag.ToString()));
 
             return new FailedErrorsCountReponse { Count = count };
         }

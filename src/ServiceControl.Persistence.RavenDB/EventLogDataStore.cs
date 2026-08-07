@@ -29,7 +29,7 @@
         }
 
         public async Task<QueryResult<IList<EventLogItemView>>> GetEventLogItems(
-            PagingInfo pagingInfo, string knownVersion = null, CancellationToken cancellationToken = default)
+            PagingInfo pagingInfo, DataVersion knownVersion = default, CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var documents = await session
@@ -43,7 +43,7 @@
 
             // The validator comes off the query statistics, so the page cannot be
             // skipped. Only the projection below is saved.
-            if (knownVersion is not null && knownVersion == queryStats.ETag)
+            if (knownVersion.Matches(queryStats.Version))
             {
                 return QueryResult<IList<EventLogItemView>>.Unchanged(queryStats);
             }

@@ -13,20 +13,6 @@ namespace ServiceControl.Infrastructure.WebApi
     {
         public static void WithTotalCount(this HttpResponse response, long totalCount) => response.WithHeader("Total-Count", totalCount.ToString(CultureInfo.InvariantCulture));
 
-        public static void WithEtag(this HttpResponse response, StringValues value)
-        {
-            var validator = value.ToString();
-
-            if (string.IsNullOrEmpty(validator))
-            {
-                return;
-            }
-
-            // RFC 9110 requires an entity-tag to be a quoted string. Unquoted, EntityTagHeaderValue
-            // cannot parse it and NotModifiedStatusHttpHandler never matches a client's If-None-Match.
-            response.Headers.ETag = $"\"{validator}\"";
-        }
-
         public static void WithEtag(this HttpResponse response, DataVersion version)
         {
             if (!version.HasValue)
@@ -42,18 +28,17 @@ namespace ServiceControl.Infrastructure.WebApi
         public static void WithQueryStatsInfo(this HttpResponse response, QueryStatsInfo queryStatsInfo)
         {
             response.WithTotalCount(queryStatsInfo.TotalCount);
-            response.WithEtag(queryStatsInfo.ETag);
+            response.WithEtag(queryStatsInfo.Version);
         }
 
-        public static void WithDeterministicEtag(this HttpResponse response, string data)
+        public static void WithDeterministicEtag(this HttpResponse response, DataVersion version)
         {
-            if (string.IsNullOrEmpty(data))
+            if (!version.HasValue)
             {
                 return;
             }
 
-            var guid = DeterministicGuid.MakeId(data);
-            response.WithEtag(guid.ToString());
+            response.WithEtag(DataVersion.FromToken(DeterministicGuid.MakeId(version.ToString()).ToString()));
         }
 
         static void WithHeader(this HttpResponse response, string header, StringValues value) => response.Headers.Append(header, value);
@@ -115,7 +100,7 @@ namespace ServiceControl.Infrastructure.WebApi
         public static void WithQueryStatsAndPagingInfo(this HttpResponse response, QueryStatsInfo queryStats, PagingInfo pagingInfo)
         {
             response.WithPagingLinksAndTotalCount(pagingInfo, queryStats.TotalCount, queryStats.HighestTotalCountOfAllTheInstances);
-            response.WithDeterministicEtag(queryStats.ETag);
+            response.WithDeterministicEtag(queryStats.Version);
         }
 
         public static void WithPagingLinksAndTotalCount(this HttpResponse response,

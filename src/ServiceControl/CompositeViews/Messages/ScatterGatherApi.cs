@@ -20,19 +20,12 @@ namespace ServiceControl.CompositeViews.Messages
     // Non-generic, so statics live once rather than once per closed generic instantiation.
     public abstract class ScatterGatherApiBase
     {
-        internal static string ReadEtag(HttpResponseHeaders headers)
-        {
-            // Read raw rather than through headers.ETag. An instance predating the quoted validator
-            // sends a bare token, which EntityTagHeaderValue fails to parse and discards silently.
-            if (!headers.TryGetValues("ETag", out var values))
-            {
-                return null;
-            }
-
-            var etag = values.FirstOrDefault();
-
-            return etag?.Length > 1 && etag[0] == '"' && etag[^1] == '"' ? etag[1..^1] : etag;
-        }
+        // Read raw rather than through headers.ETag. An instance predating the quoted validator
+        // sends a bare token, which EntityTagHeaderValue fails to parse and discards silently.
+        internal static DataVersion ReadEtag(HttpResponseHeaders headers) =>
+            headers.TryGetValues("ETag", out var values)
+                ? DataVersion.FromClient(values.FirstOrDefault())
+                : DataVersion.None;
     }
 
     public record ScatterGatherContext(PagingInfo PagingInfo);
@@ -108,7 +101,7 @@ namespace ServiceControl.CompositeViews.Messages
             var infos = results.Select(x => x.QueryStats).ToArray();
 
             return new QueryStatsInfo(
-                string.Concat(infos.OrderBy(x => x.ETag).Select(x => x.ETag)),
+                DataVersion.Combine(infos.Select(x => x.Version)),
                 infos.Sum(x => x.TotalCount),
                 isStale: infos.Any(x => x.IsStale),
                 infos.Max(x => x.HighestTotalCountOfAllTheInstances)
@@ -191,8 +184,6 @@ namespace ServiceControl.CompositeViews.Messages
                 totalCount = int.Parse(totalCounts.ElementAt(0));
             }
 
-            // Unquoted, because AggregateStats concatenates it with the other instances' values and
-            // the result is re-tagged before it goes back on the wire.
             var etag = ReadEtag(responseMessage.Headers);
 
             return new QueryResult<TOut>(remoteResults, new QueryStatsInfo(etag, totalCount, isStale: false));
