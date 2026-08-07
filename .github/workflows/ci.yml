@@ -39,12 +39,15 @@ jobs:
         uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v6.0.0
-        with:
-          global-json-file: global.json
-      - name: Download RavenDB Server
-        run: ./tools/download-ravendb-server.ps1
+      - parallel:
+        - name: Setup WSL
+          uses: Particular/setup-wsl-action@7379e61a7d51f5b69b57156a98146b6938f0f5c2
+        - name: Setup .NET SDK
+          uses: actions/setup-dotnet@v6.0.0
+          with:
+            global-json-file: global.json
+        - name: Download RavenDB Server
+          run: ./tools/download-ravendb-server.ps1
       - name: Build
         run: dotnet build src --configuration Release -graph
       - name: Zip PowerShell module
@@ -86,33 +89,34 @@ jobs:
         if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ' || matrix.test-category == 'PostgreSQL' || matrix.test-category == 'PostgreSQLPersistence'
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
-      - name: Setup SQL Server
-        uses: Particular/install-sql-server-action@v2.0.0
-        if: matrix.test-category == 'SqlServer'
-        with:
-          connection-string-env-var: ServiceControl_TransportTests_SQL_ConnectionString
-          catalog: nservicebus
-      - name: Setup SQL Server persistence
-        uses: Particular/install-sql-server-action@4842cb123743242057dc5ce7534a82091b2286e6
-        if: matrix.test-category == 'SqlServerPersistence'
-        with:
-          connection-string-env-var: ServiceControl_Persistence_SqlServer_ConnectionString
-          catalog: ServiceControl
-          enable-full-text-search: true
-      - name: Setup PostgreSQL
-        uses: Particular/setup-postgres-action@7f4ffa6a53c47b8ae6bac444151ef60512d94565
-        if: matrix.test-category == 'PostgreSQL'
-        with:
-          connection-string-name: ServiceControl_TransportTests_PostgreSQL_ConnectionString
-          registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
-          registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Setup PostgreSQL persistence
-        uses: Particular/setup-postgres-action@7f4ffa6a53c47b8ae6bac444151ef60512d94565
-        if: matrix.test-category == 'PostgreSQLPersistence'
-        with:
-          connection-string-name: ServiceControl_Persistence_PostgreSql_ConnectionString
-          registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
-          registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - parallel:
+        - name: Setup SQL Server
+          uses: Particular/install-sql-server-action@f7a459a07241cd9a66efdb99f3494cf1f04a3801
+          if: matrix.test-category == 'SqlServer'
+          with:
+            connection-string-env-var: ServiceControl_TransportTests_SQL_ConnectionString
+            catalog: nservicebus
+        - name: Setup SQL Server persistence
+          uses: Particular/install-sql-server-action@f7a459a07241cd9a66efdb99f3494cf1f04a3801
+          if: matrix.test-category == 'SqlServerPersistence'
+          with:
+            connection-string-env-var: ServiceControl_Persistence_SqlServer_ConnectionString
+            catalog: ServiceControl
+            enable-full-text-search: true
+        - name: Setup PostgreSQL
+          uses: Particular/setup-postgres-action@31a965bb0d7a1d713e5cfadb154683584c1fbb1f
+          if: matrix.test-category == 'PostgreSQL'
+          with:
+            connection-string-name: ServiceControl_TransportTests_PostgreSQL_ConnectionString
+            registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
+            registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
+        - name: Setup PostgreSQL persistence
+          uses: Particular/setup-postgres-action@31a965bb0d7a1d713e5cfadb154683584c1fbb1f
+          if: matrix.test-category == 'PostgreSQLPersistence'
+          with:
+            connection-string-name: ServiceControl_Persistence_PostgreSql_ConnectionString
+            registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
+            registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Setup RabbitMQ
         uses: Particular/setup-rabbitmq-action@v1.7.1
         if: matrix.test-category == 'RabbitMQ'
