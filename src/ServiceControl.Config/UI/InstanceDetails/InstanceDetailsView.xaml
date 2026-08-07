@@ -95,17 +95,16 @@
             <StackPanel Orientation="Horizontal">
                 <!-- Show warning icon for configuration errors -->
                 <TextBlock Margin="0,0,3,0"
-            VerticalAlignment="Center"
-            FontSize="16px"
-            Foreground="#FFA500"
-            Text="⚠"
-            Visibility="{Binding HasConfigurationError, Converter={StaticResource boolToVis}}" />
+                    VerticalAlignment="Center"
+                    FontSize="16px"
+                    Foreground="#FFA500"
+                    Text="⚠"
+                    Visibility="{Binding HasConfigurationError, Converter={StaticResource boolToVis}}" />
 
                 <ContentControl Margin="0,0,0,0"
-                 VerticalAlignment="Center"
-                 Template="{StaticResource RunningIcon}"
-                 Visibility="{Binding IsRunning,
-                                  Converter={StaticResource boolToVis}}" />
+                     VerticalAlignment="Center"
+                     Template="{StaticResource RunningIcon}"
+                     Visibility="{Binding IsRunning, Converter={StaticResource boolToVis}}" />
 
                 <ContentControl Margin="0,0,0,0"
                                 VerticalAlignment="Center"
