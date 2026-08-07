@@ -10,7 +10,7 @@ public class EFIngestionUnitOfWorkFactory(
     IServiceProvider serviceProvider,
     MinimumRequiredStorageState storageState,
     IBodyStoragePersistence storagePersistence,
-    IIngestionSqlDialect dialect,
+    IFailedMessageIngestionSqlDialect dialect,
     TimeProvider timeProvider) : IIngestionUnitOfWorkFactory
 {
     public ValueTask<IIngestionUnitOfWork> StartNew()

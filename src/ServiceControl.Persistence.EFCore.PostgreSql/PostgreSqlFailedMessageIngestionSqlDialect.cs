@@ -1,18 +1,16 @@
 namespace ServiceControl.Persistence.EFCore.PostgreSql;
 
 using System.Text;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using ServiceControl.MessageFailures;
-using ServiceControl.Persistence.EFCore.DbContexts;
-using ServiceControl.Persistence.EFCore.Entities;
-using ServiceControl.Persistence.EFCore.Infrastructure;
+using MessageFailures;
+using DbContexts;
+using Entities;
+using Infrastructure;
 
 // INSERT ... ON CONFLICT rather than MERGE: PostgreSQL's MERGE can fail with unique_violation
 // when two writers insert the same key concurrently, ON CONFLICT cannot. All references to the
 // target table inside DO UPDATE read the pre-update row, so the guards are consistent within one
 // atomic statement. Rows are chunked to keep statement texts down to a few reusable shapes.
-class PostgreSqlIngestionSqlDialect : IIngestionSqlDialect
+class PostgreSqlFailedMessageIngestionSqlDialect : PostgreSqlDialect, IFailedMessageIngestionSqlDialect
 {
     public async Task UpsertFailedMessages(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageEntity> rows, CancellationToken cancellationToken)
     {
@@ -63,45 +61,6 @@ class PostgreSqlIngestionSqlDialect : IIngestionSqlDialect
                 chunk.Select(endpoint => new object?[] { endpoint.Id, endpoint.Name, endpoint.HostId, endpoint.Host, endpoint.Monitored }),
                 cancellationToken);
         }
-    }
-
-    public async Task InsertMissingRetryClaims(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageRetryEntity> rows, CancellationToken cancellationToken)
-    {
-        foreach (var chunk in rows.Chunk(MaxRowsPerStatement))
-        {
-            await Execute(
-                dbContext,
-                $"""
-                 INSERT INTO failed_message_retries (unique_message_id, retry_batch_id, stage_attempts)
-                 VALUES
-                 {ParameterRows(chunk.Length, 3)}
-                 ON CONFLICT (unique_message_id) DO NOTHING
-                 """,
-                chunk.Select(retry => new object?[] { retry.UniqueMessageId, retry.RetryBatchId, retry.StageAttempts }),
-                cancellationToken);
-        }
-    }
-
-    static async Task Execute(ServiceControlDbContext dbContext, string sql, IEnumerable<object?[]> rows, CancellationToken cancellationToken)
-    {
-        await using var command = dbContext.Database.GetDbConnection().CreateCommand();
-        command.Transaction = (dbContext.Database.CurrentTransaction
-            ?? throw new InvalidOperationException("Ingestion statements must run inside the batch transaction")).GetDbTransaction();
-        command.CommandText = sql;
-
-        var index = 0;
-        foreach (var row in rows)
-        {
-            foreach (var value in row)
-            {
-                var parameter = command.CreateParameter();
-                parameter.ParameterName = $"@p{index++}";
-                parameter.Value = value ?? DBNull.Value;
-                command.Parameters.Add(parameter);
-            }
-        }
-
-        await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
     // The columns the newer attempt wins wholesale
@@ -163,30 +122,4 @@ class PostgreSqlIngestionSqlDialect : IIngestionSqlDialect
 
         return sql.ToString();
     }
-
-    static string ParameterRows(int rowCount, int columnCount)
-    {
-        var sql = new StringBuilder();
-
-        for (var row = 0; row < rowCount; row++)
-        {
-            sql.Append(row == 0 ? "(" : ",\n(");
-
-            for (var column = 0; column < columnCount; column++)
-            {
-                if (column > 0)
-                {
-                    sql.Append(", ");
-                }
-
-                sql.Append("@p").Append((row * columnCount) + column);
-            }
-
-            sql.Append(')');
-        }
-
-        return sql.ToString();
-    }
-
-    const int MaxRowsPerStatement = 50;
 }

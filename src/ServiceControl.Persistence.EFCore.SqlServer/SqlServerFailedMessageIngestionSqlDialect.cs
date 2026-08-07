@@ -1,23 +1,21 @@
 namespace ServiceControl.Persistence.EFCore.SqlServer;
 
-using System.Data;
 using System.Text;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using ServiceControl.MessageFailures;
-using ServiceControl.Persistence.EFCore.DbContexts;
-using ServiceControl.Persistence.EFCore.Entities;
-using ServiceControl.Persistence.EFCore.Infrastructure;
+using MessageFailures;
+using DbContexts;
+using Entities;
+using Infrastructure;
 
 // MERGE WITH (HOLDLOCK) over an inline VALUES source. HOLDLOCK closes the race where two writers
 // both miss a key and collide on the insert, and the single statement keeps every guard reading
 // the same row state. Rows are chunked to stay clear of the 2100 parameter limit while keeping
 // statement texts down to a few reusable shapes.
-class SqlServerIngestionSqlDialect : IIngestionSqlDialect
+class SqlServerFailedMessageIngestionSqlDialect : SqlServerDialect, IFailedMessageIngestionSqlDialect
 {
     public async Task UpsertFailedMessages(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageEntity> rows, CancellationToken cancellationToken)
     {
-        foreach (var chunk in rows.Chunk(MaxRowsPerStatement))
+        var maxRowsPerStatement = MaxRowsPerStatement(FailedMessageColumns.Length);
+        foreach (var chunk in rows.Chunk(maxRowsPerStatement))
         {
             await Execute(
                 dbContext,
@@ -38,7 +36,8 @@ class SqlServerIngestionSqlDialect : IIngestionSqlDialect
 
     public async Task InsertGroups(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageGroupEntity> rows, CancellationToken cancellationToken)
     {
-        foreach (var chunk in rows.Chunk(MaxRowsPerStatement))
+        var maxRowsPerStatement = MaxRowsPerStatement(4);
+        foreach (var chunk in rows.Chunk(maxRowsPerStatement))
         {
             await Execute(
                 dbContext,
@@ -58,7 +57,8 @@ class SqlServerIngestionSqlDialect : IIngestionSqlDialect
 
     public async Task InsertMissingKnownEndpoints(ServiceControlDbContext dbContext, IReadOnlyList<KnownEndpointEntity> rows, CancellationToken cancellationToken)
     {
-        foreach (var chunk in rows.Chunk(MaxRowsPerStatement))
+        var maxRowsPerStatement = MaxRowsPerStatement(5);
+        foreach (var chunk in rows.Chunk(maxRowsPerStatement))
         {
             await Execute(
                 dbContext,
@@ -74,56 +74,6 @@ class SqlServerIngestionSqlDialect : IIngestionSqlDialect
                 chunk.Select(endpoint => new object?[] { endpoint.Id, endpoint.Name, endpoint.HostId, endpoint.Host, endpoint.Monitored }),
                 cancellationToken);
         }
-    }
-
-    public async Task InsertMissingRetryClaims(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageRetryEntity> rows, CancellationToken cancellationToken)
-    {
-        foreach (var chunk in rows.Chunk(MaxRowsPerStatement))
-        {
-            await Execute(
-                dbContext,
-                $"""
-                 MERGE [FailedMessageRetries] WITH (HOLDLOCK) AS t
-                 USING (VALUES
-                 {ParameterRows(chunk.Length, 3)}
-                 ) AS s ([UniqueMessageId], [RetryBatchId], [StageAttempts])
-                 ON t.[UniqueMessageId] = s.[UniqueMessageId]
-                 WHEN NOT MATCHED THEN INSERT ([UniqueMessageId], [RetryBatchId], [StageAttempts])
-                 VALUES (s.[UniqueMessageId], s.[RetryBatchId], s.[StageAttempts]);
-                 """,
-                chunk.Select(retry => new object?[] { retry.UniqueMessageId, retry.RetryBatchId, retry.StageAttempts }),
-                cancellationToken);
-        }
-    }
-
-    static async Task Execute(ServiceControlDbContext dbContext, string sql, IEnumerable<object?[]> rows, CancellationToken cancellationToken)
-    {
-        await using var command = dbContext.Database.GetDbConnection().CreateCommand();
-        command.Transaction = (dbContext.Database.CurrentTransaction
-            ?? throw new InvalidOperationException("Ingestion statements must run inside the batch transaction")).GetDbTransaction();
-        command.CommandText = sql;
-
-        var index = 0;
-        foreach (var row in rows)
-        {
-            foreach (var value in row)
-            {
-                var parameter = command.CreateParameter();
-                parameter.ParameterName = $"@p{index++}";
-                parameter.Value = value ?? DBNull.Value;
-
-                // Attempt de-duplication compares LastAttemptedAt for equality, so datetime
-                // parameters must keep datetime2 precision instead of the datetime default.
-                if (value is DateTime)
-                {
-                    parameter.DbType = DbType.DateTime2;
-                }
-
-                command.Parameters.Add(parameter);
-            }
-        }
-
-        await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
     // The columns the newer attempt wins wholesale
@@ -187,31 +137,4 @@ class SqlServerIngestionSqlDialect : IIngestionSqlDialect
 
         return sql.ToString();
     }
-
-    static string ParameterRows(int rowCount, int columnCount)
-    {
-        var sql = new StringBuilder();
-
-        for (var row = 0; row < rowCount; row++)
-        {
-            sql.Append(row == 0 ? "(" : ",\n(");
-
-            for (var column = 0; column < columnCount; column++)
-            {
-                if (column > 0)
-                {
-                    sql.Append(", ");
-                }
-
-                sql.Append("@p").Append((row * columnCount) + column);
-            }
-
-            sql.Append(')');
-        }
-
-        return sql.ToString();
-    }
-
-    // 27 columns * 50 rows stays well below the 2100 parameter limit
-    const int MaxRowsPerStatement = 50;
 }

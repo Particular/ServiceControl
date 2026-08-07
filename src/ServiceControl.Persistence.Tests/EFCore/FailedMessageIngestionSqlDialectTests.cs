@@ -11,7 +11,7 @@ using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
-class IngestionSqlDialectTests : ErrorIngestionTestBase
+class FailedMessageIngestionSqlDialectTests : ErrorIngestionTestBase
 {
     [Test]
     public async Task Writes_every_mapped_column_of_a_failed_message()
@@ -84,7 +84,7 @@ class IngestionSqlDialectTests : ErrorIngestionTestBase
     {
         using var scope = ServiceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
-        var dialect = scope.ServiceProvider.GetRequiredService<IIngestionSqlDialect>();
+        var dialect = scope.ServiceProvider.GetRequiredService<IFailedMessageIngestionSqlDialect>();
 
         var strategy = dbContext.Database.CreateExecutionStrategy();
 
