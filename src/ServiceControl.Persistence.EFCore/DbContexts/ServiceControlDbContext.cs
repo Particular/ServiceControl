@@ -23,6 +23,8 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
     public DbSet<HistoricRetryOperationEntity> HistoricRetryOperations { get; set; }
     public DbSet<UnacknowledgedRetryOperationEntity> UnacknowledgedRetryOperations { get; set; }
     public DbSet<ArchiveOperationEntity> ArchiveOperations { get; set; }
+    public DbSet<LicensingEndpointEntity> LicensingEndpoints { get; set; }
+    public DbSet<LicensingEndpointThroughputEntity> LicensingEndpointThroughput { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.EnableDetailedErrors();
@@ -48,6 +50,8 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
         modelBuilder.ApplyConfiguration(new HistoricRetryOperationConfiguration());
         modelBuilder.ApplyConfiguration(new UnacknowledgedRetryOperationConfiguration());
         modelBuilder.ApplyConfiguration(new ArchiveOperationConfiguration());
+        modelBuilder.ApplyConfiguration(new LicensingEndpointConfiguration());
+        modelBuilder.ApplyConfiguration(new LicensingEndpointThroughputConfiguration());
     }
 
     public abstract bool IsDuplicateKeyException(DbUpdateException exception);

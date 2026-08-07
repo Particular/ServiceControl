@@ -17,4 +17,10 @@ static class ColumnLengths
     // put it over SQL Server's 900 byte limit. 800 + 4 fits, with room for the queue addresses that
     // ByQueueAddress retries use as their request id.
     public const int RetryRequestIdLength = 400;
+
+    // Applies to both the licensing endpoint name and the normalized name computed from it, which
+    // therefore has to hold anything the name can. The key is this column plus the ThroughputSource
+    // int, and the throughput key adds a date on top, so ShortTextLength would exceed SQL Server's
+    // 900 byte index key limit.
+    public const int LicensingEndpointNameLength = 300;
 }
