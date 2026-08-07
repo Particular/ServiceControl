@@ -113,6 +113,55 @@ static class FailedMessageQueryFilters
         };
     }
 
+    public static IQueryable<FailedMessageEntity> FilterBySentTimeRange(this IQueryable<FailedMessageEntity> source, DateTimeRange? timeSentRange)
+    {
+        if (timeSentRange?.From is { } from)
+        {
+            source = source.Where(message => message.TimeSent >= from);
+        }
+
+        if (timeSentRange?.To is { } to)
+        {
+            source = source.Where(message => message.TimeSent <= to);
+        }
+
+        return source;
+    }
+
+    public static IQueryable<FailedMessageEntity> IncludeSystemMessagesWhere(this IQueryable<FailedMessageEntity> source, bool includeSystemMessages) =>
+        includeSystemMessages ? source : source.Where(message => !message.IsSystemMessage);
+
+    /// <summary>
+    /// The sort options of the message endpoints, which differ from the failed message endpoints.
+    /// </summary>
+    public static IQueryable<FailedMessageEntity> SortMessages(this IQueryable<FailedMessageEntity> source, SortInfo? sortInfo)
+    {
+        var descending = sortInfo?.Direction != "asc";
+
+        // critical_time, delivery_time and processing_time are accepted but fall through to
+        // time_sent: the error instance never enriches those statistics, so every message reports
+        // zero and sorting by them is meaningless here. RavenDB behaves the same way, its index
+        // fields for them are always null.
+        return sortInfo?.Sort switch
+        {
+            "id" or "message_id" => source.OrderBy(message => message.MessageId, descending),
+            "message_type" => source.OrderBy(message => message.MessageType, descending),
+            "processed_at" => source.OrderBy(message => message.LastAttemptedAt, descending),
+            // Ordering follows the status the view reports, not the one the column stores.
+            "status" => source.OrderBy(message =>
+                message.Status == FailedMessageStatus.Resolved
+                    ? MessageStatus.ResolvedSuccessfully
+                    : message.Status == FailedMessageStatus.RetryIssued
+                        ? MessageStatus.RetryIssued
+                        : message.Status == FailedMessageStatus.Archived
+                            ? MessageStatus.ArchivedFailure
+                            : message.NumberOfProcessingAttempts == 1
+                                ? MessageStatus.Failed
+                                : MessageStatus.RepeatedFailure, descending),
+            _ => source.OrderBy(message => message.TimeSent, descending)
+        };
+    }
+
     public static IQueryable<FailedMessageEntity> Page(this IQueryable<FailedMessageEntity> source, PagingInfo pagingInfo) =>
         source.Skip(pagingInfo.Offset).Take(pagingInfo.Next);
 

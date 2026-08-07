@@ -10,6 +10,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql(FullTextSearchSql.RequireFullTextSearch, suppressTransaction: true);
             migrationBuilder.Sql(FullTextSearchSql.CreateCatalog, suppressTransaction: true);
             migrationBuilder.Sql(FullTextSearchSql.CreateIndex, suppressTransaction: true);
         }

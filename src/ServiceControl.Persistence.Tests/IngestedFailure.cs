@@ -3,6 +3,7 @@ namespace ServiceControl.Persistence.Tests;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using NServiceBus;
 using NServiceBus.Extensibility;
 using NServiceBus.Transport;
 using ServiceControl.Contracts.Operations;
@@ -18,7 +19,8 @@ class IngestedFailure
     public byte[] Body { get; init; } = Encoding.UTF8.GetBytes("<order>1</order>");
     public DateTime AttemptedAt { get; init; } = new(2026, 7, 22, 10, 0, 0, DateTimeKind.Utc);
     public DateTime TimeOfFailure { get; init; } = new(2026, 7, 22, 10, 0, 0, DateTimeKind.Utc);
-    public DateTime TimeSent { get; init; } = new(2026, 7, 22, 9, 59, 0, DateTimeKind.Utc);
+    public DateTime? TimeSent { get; init; } = new(2026, 7, 22, 9, 59, 0, DateTimeKind.Utc);
+    public MessageIntent MessageIntent { get; init; } = MessageIntent.Send;
     public string MessageType { get; init; } = "MyCompany.Sales.OrderPlaced";
     public string ConversationId { get; init; } = Guid.NewGuid().ToString();
     public string QueueAddress { get; init; } = "error";
@@ -46,6 +48,7 @@ class IngestedFailure
             [NServiceBus.Headers.ProcessingEndpoint] = EndpointName,
             [NServiceBus.Headers.ContentType] = ContentType,
             [NServiceBus.Headers.EnclosedMessageTypes] = MessageType,
+            [NServiceBus.Headers.MessageIntent] = MessageIntent.ToString(),
             ["NServiceBus.FailedQ"] = QueueAddress,
             ["NServiceBus.ExceptionInfo.ExceptionType"] = ExceptionType,
             ["NServiceBus.ExceptionInfo.Message"] = ExceptionMessage

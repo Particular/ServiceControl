@@ -15,6 +15,7 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersiste
         RegisterDataStores(services, settings);
 
         services.AddSingleton<IIngestionSqlDialect, PostgreSqlIngestionSqlDialect>();
+        services.AddSingleton<IFullTextSearchDialect, PostgreSqlFullTextSearchDialect>();
     }
 
     public void AddInstaller(IServiceCollection services)
