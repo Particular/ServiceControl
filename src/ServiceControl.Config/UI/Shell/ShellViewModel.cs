@@ -15,7 +15,7 @@
     using NuGet.Versioning;
     using ServiceControlInstaller.Engine.Instances;
 
-    class ShellViewModel : RxConductor<RxScreen>.OneActive, IHandle<PostRefreshInstances>
+    class ShellViewModel : RxConductor<RxScreen>.OneActive, IHandle<PostRefreshInstances>, IHandle<ResetInstances>
     {
         public ShellViewModel(
             NoInstancesViewModel noInstances,
@@ -88,6 +88,8 @@
 
         public Task HandleAsync(PostRefreshInstances message, CancellationToken cancellationToken) => RefreshInstances();
 
+        public Task HandleAsync(ResetInstances message, CancellationToken cancellationToken) => RefreshInstances();
+
         protected override Task OnInitialize() => RefreshInstances();
 
         protected override async Task OnActivate()
@@ -99,20 +101,18 @@
 
         public async Task RefreshInstances()
         {
-            if (ActiveItem != null && !(ActiveItem == listInstances || ActiveItem == noInstances))
-            {
-                return;
-            }
-
             HasInstances = InstanceFinder.AllInstances().Any();
 
-            if (HasInstances)
+            if (ActiveItem == null || ActiveItem == listInstances || ActiveItem == noInstances)
             {
-                await ActivateItem(listInstances);
-            }
-            else
-            {
-                await ActivateItem(noInstances);
+                if (HasInstances)
+                {
+                    await ActivateItem(listInstances);
+                }
+                else
+                {
+                    await ActivateItem(noInstances);
+                }
             }
         }
 

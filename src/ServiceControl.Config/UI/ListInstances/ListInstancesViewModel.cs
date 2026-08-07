@@ -7,6 +7,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Caliburn.Micro;
+    using Commands;
     using DynamicData;
     using Events;
     using Framework.Rx;
@@ -19,18 +20,51 @@
     class ListInstancesViewModel : RxScreen, IHandle<RefreshInstances>, IHandle<ResetInstances>, IHandle<LicenseUpdated>
     {
         public ListInstancesViewModel(Func<BaseService, InstanceDetailsViewModel> instanceDetailsFunc)
+            : this(instanceDetailsFunc, InstanceFinder.AllInstances)
+        {
+        }
+
+        internal ListInstancesViewModel(Func<BaseService, InstanceDetailsViewModel> instanceDetailsFunc, Func<IEnumerable<BaseService>> getAllInstances)
         {
             this.instanceDetailsFunc = instanceDetailsFunc;
+            this.getAllInstances = getAllInstances;
             DisplayName = "DEPLOYED INSTANCES";
+            CopyToClipboard = new CopyToClipboardCommand();
 
             Instances = [];
 
             AddAndRemoveInstances();
         }
 
+        public CopyToClipboardCommand CopyToClipboard { get; }
+
         public BindableCollection<InstanceDetailsViewModel> OrderedInstances => [.. Instances.OrderBy(x => x.Name)];
 
-        [AlsoNotifyFor(nameof(OrderedInstances))]
+        public bool HasConfigurationErrors => Instances.Any(i => i.HasConfigurationError);
+
+        public string ConfigurationErrorMessage
+        {
+            get
+            {
+                var errorInstances = Instances.Where(i => i.HasConfigurationError).ToList();
+
+                if (errorInstances.Count == 0)
+                {
+                    return null;
+                }
+
+                if (errorInstances.Count == 1)
+                {
+                    var instance = errorInstances[0];
+                    return $"{instance.Name} instance cannot be loaded due to XML configuration error.";
+                }
+
+                var names = string.Join(", ", errorInstances.Select(i => i.Name));
+                return $"Multiple instances ({names}) cannot be loaded due to XML configuration errors.";
+            }
+        }
+
+        [AlsoNotifyFor(nameof(OrderedInstances), nameof(HasConfigurationErrors), nameof(ConfigurationErrorMessage))]
         IList<InstanceDetailsViewModel> Instances { get; }
 
         public Task HandleAsync(LicenseUpdated licenseUpdatedEvent, CancellationToken cancellationToken)
@@ -86,23 +120,38 @@
 
             Instances.Clear();
 
-            foreach (var item in InstanceFinder.AllInstances().OrderBy(i => i.Name))
+            foreach (var item in getAllInstances().OrderBy(i => i.Name))
             {
                 Instances.Add(instanceDetailsFunc(item));
             }
-            NotifyOfPropertyChange(nameof(OrderedInstances));
+            NotifyOfPropertyChange(nameof(Instances));
         }
 
         async void AddAndRemoveInstances()
         {
-            var toRemove = Instances.Where(instance => !instance.Exists());
+            // Remove instances that no longer exist on disk
+            var toRemove = Instances.Where(instance => !instance.Exists()).ToList();
             foreach (var instance in toRemove)
             {
                 await instance.TryCloseAsync();
             }
             Instances.RemoveMany(toRemove);
 
-            var missingInstances = InstanceFinder.AllInstances().Where(i => !Instances.Any(existingInstance => existingInstance.Name == i.Name));
+            // Get fresh instances from disk (with updated configurations)
+            var allFreshInstances = getAllInstances().ToList();
+
+            // Update existing instances with fresh configuration data
+            foreach (var existingInstance in Instances.ToList())
+            {
+                var freshInstance = allFreshInstances.FirstOrDefault(i => i.Name == existingInstance.Name);
+                if (freshInstance != null)
+                {
+                    existingInstance.UpdateServiceInstance(freshInstance);
+                }
+            }
+
+            // Add new instances that weren't in the list before
+            var missingInstances = allFreshInstances.Where(i => !Instances.Any(existingInstance => existingInstance.Name == i.Name));
 
             foreach (var item in missingInstances)
             {
@@ -112,8 +161,11 @@
             Validations.RefreshInstances();
 
             NotifyOfPropertyChange(nameof(OrderedInstances));
+            NotifyOfPropertyChange(nameof(HasConfigurationErrors));
+            NotifyOfPropertyChange(nameof(ConfigurationErrorMessage));
         }
 
         readonly Func<BaseService, InstanceDetailsViewModel> instanceDetailsFunc;
+        readonly Func<IEnumerable<BaseService>> getAllInstances;
     }
 }
