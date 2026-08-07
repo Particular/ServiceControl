@@ -18,7 +18,7 @@
 
             await using (var manager = await store.CreateNotificationsManager())
             {
-                notifications = await manager.LoadSettings(cacheTimeout);
+                notifications = await manager.LoadSettings();
             }
 
             logger.LogInformation("Processing email notification. Subject: {Subject}, Body: {Body}", message.Subject, message.Body);
@@ -85,7 +85,6 @@
 
         static readonly TimeSpan spinDelay = TimeSpan.FromSeconds(1);
         static readonly TimeSpan throttlingDelay = TimeSpan.FromSeconds(30);
-        static readonly TimeSpan cacheTimeout = TimeSpan.FromMinutes(5);
 
         public static RecoverabilityAction RecoverabilityPolicy(RecoverabilityConfig config, ErrorContext context)
         {
