@@ -93,7 +93,7 @@ jobs:
           connection-string-env-var: ServiceControl_TransportTests_SQL_ConnectionString
           catalog: nservicebus
       - name: Setup SQL Server persistence
-        uses: Particular/install-sql-server-action@v2.0.0
+        uses: Particular/install-sql-server-action@4842cb123743242057dc5ce7534a82091b2286e6
         if: matrix.test-category == 'SqlServerPersistence'
         with:
           connection-string-env-var: ServiceControl_Persistence_SqlServer_ConnectionString
