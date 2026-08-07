@@ -17,7 +17,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
     public DbSet<RetryBatchNowForwardingEntity> RetryBatchNowForwarding { get; set; }
     public DbSet<FailedMessageRetryEntity> FailedMessageRetries { get; set; }
     public DbSet<FailedErrorImportEntity> FailedErrorImports { get; set; }
-    public DbSet<TrialMetadataEntity> TrialMetadata { get; set; }
+    public DbSet<SettingEntity> Settings { get; set; }
     public DbSet<SubscriptionEntity> Subscriptions { get; set; }
     public DbSet<EventLogItemEntity> EventLogItems { get; set; }
     public DbSet<HistoricRetryOperationEntity> HistoricRetryOperations { get; set; }
@@ -43,7 +43,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
         modelBuilder.ApplyConfiguration(new RetryBatchNowForwardingConfiguration());
         modelBuilder.ApplyConfiguration(new KnownEndpointConfiguration());
         modelBuilder.ApplyConfiguration(new SubscriptionConfiguration());
-        modelBuilder.ApplyConfiguration(new TrialMetadataConfiguration());
+        modelBuilder.ApplyConfiguration(new SettingConfiguration());
         modelBuilder.ApplyConfiguration(new EventLogItemConfiguration());
         modelBuilder.ApplyConfiguration(new HistoricRetryOperationConfiguration());
         modelBuilder.ApplyConfiguration(new UnacknowledgedRetryOperationConfiguration());

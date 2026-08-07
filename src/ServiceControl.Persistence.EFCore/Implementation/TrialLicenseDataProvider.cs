@@ -1,22 +1,15 @@
 namespace ServiceControl.Persistence.EFCore.Implementation;
 
-using Entities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using ServiceControl.Persistence.EFCore.Infrastructure;
 
 public class TrialLicenseDataProvider(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), ITrialLicenseDataProvider
 {
     public Task<DateOnly?> GetTrialEndDate(CancellationToken cancellationToken)
-        => ExecuteWithDbContext(async context =>
-        {
-            var trialMetadata = await context.TrialMetadata.SingleAsync(t => t.Id == TrialMetadataEntity.TrialMetadataId, cancellationToken);
-            return trialMetadata.TrialEndDate;
-        });
+        => ExecuteWithDbContext(context =>
+            context.GetSetting<DateOnly?>(SettingKeys.TrialEndDate, cancellationToken));
 
     public Task StoreTrialEndDate(DateOnly trialEndDate, CancellationToken cancellationToken)
         => ExecuteWithDbContext(context =>
-            context.TrialMetadata
-                .Where(t => t.Id == TrialMetadataEntity.TrialMetadataId)
-                .ExecuteUpdateAsync(e => e.SetProperty(p => p.TrialEndDate, trialEndDate), cancellationToken: cancellationToken)
-        );
+            context.StoreSetting(SettingKeys.TrialEndDate, trialEndDate, cancellationToken));
 }
