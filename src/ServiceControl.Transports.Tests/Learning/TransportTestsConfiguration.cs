@@ -10,7 +10,7 @@
     {
         public Task Configure()
         {
-            basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".transporttests");
+            basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $".test{Path.GetRandomFileName()}");
 
             if (Directory.Exists(basePath))
             {

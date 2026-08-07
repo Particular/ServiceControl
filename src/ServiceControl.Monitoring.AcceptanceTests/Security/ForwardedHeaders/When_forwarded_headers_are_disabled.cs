@@ -9,6 +9,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
     /// <summary>
     /// When forwarded headers processing is disabled, headers should be ignored regardless of trust.
     /// </summary>
+    [NonParallelizable]
     class When_forwarded_headers_are_disabled : AcceptanceTest
     {
         ForwardedHeadersTestConfiguration configuration;

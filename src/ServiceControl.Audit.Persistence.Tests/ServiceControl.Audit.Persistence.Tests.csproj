@@ -22,4 +22,7 @@
     <PackageReference Include="Particular.Approvals" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.UnitTests\NUnitParallelRunnerSettings.cs" />
+  </ItemGroup>
 </Project>

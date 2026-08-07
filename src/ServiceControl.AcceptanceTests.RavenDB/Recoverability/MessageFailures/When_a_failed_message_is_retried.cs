@@ -17,7 +17,6 @@
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
-    using TestSupport;
 
     class When_a_failed_message_is_retried : AcceptanceTest
     {

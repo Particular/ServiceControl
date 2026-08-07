@@ -13,6 +13,7 @@ namespace ServiceControl.AcceptanceTests.Security.Https
     /// In acceptance tests (which run in Development mode), HSTS headers are not sent.
     /// This test verifies that HSTS is correctly NOT applied in development mode.
     /// </summary>
+    [NonParallelizable]
     class When_hsts_is_configured_in_development_mode : AcceptanceTest
     {
         HttpsTestConfiguration configuration;

@@ -17,6 +17,7 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
     /// This test uses a mock OIDC server to provide discovery endpoints and signing keys,
     /// allowing full testing of the JWT Bearer authentication flow.
     /// </summary>
+    [NonParallelizable]
     class When_authentication_is_enabled : AcceptanceTest
     {
         OpenIdConnectTestConfiguration configuration;

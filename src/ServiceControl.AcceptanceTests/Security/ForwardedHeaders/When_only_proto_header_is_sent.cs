@@ -10,6 +10,7 @@ namespace ServiceControl.AcceptanceTests.Security.ForwardedHeaders
     /// Partial Headers (Proto Only)
     /// When only X-Forwarded-Proto is sent, only scheme should change.
     /// </summary>
+    [NonParallelizable]
     class When_only_proto_header_is_sent : AcceptanceTest
     {
         [Test]

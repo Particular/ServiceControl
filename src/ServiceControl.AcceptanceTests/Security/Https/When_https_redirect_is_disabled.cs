@@ -11,6 +11,7 @@ namespace ServiceControl.AcceptanceTests.Security.Https
     /// HTTPS Redirect Disabled (Default)
     /// When RedirectHttpToHttps is false (default), HTTP requests should not be redirected.
     /// </summary>
+    [NonParallelizable]
     class When_https_redirect_is_disabled : AcceptanceTest
     {
         HttpsTestConfiguration configuration;

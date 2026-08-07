@@ -9,6 +9,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
+    using RavenDB;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider

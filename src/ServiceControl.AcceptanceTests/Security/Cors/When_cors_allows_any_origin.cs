@@ -12,6 +12,7 @@ namespace ServiceControl.AcceptanceTests.Security.Cors
     /// When AllowAnyOrigin is true (default for backwards compatibility), requests from any origin should be allowed.
     /// The Access-Control-Allow-Origin header should be "*".
     /// </summary>
+    [NonParallelizable]
     class When_cors_allows_any_origin : AcceptanceTest
     {
         CorsTestConfiguration configuration;

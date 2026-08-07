@@ -13,10 +13,10 @@ using Testcontainers.LocalStack;
 [Platform(Exclude = "Win", Reason = "LocalStack has no Windows container image")]
 class S3BodyStorageTests
 {
-    LocalStackContainer localStack;
+    static LocalStackContainer localStack;
 
     [OneTimeSetUp]
-    public async Task StartLocalStack()
+    public static async Task StartLocalStack()
     {
         // We need to pin the tag to 4.4.0 because after that version LocalStack has become a paid service for commercial use.
         localStack = new LocalStackBuilder("localstack/localstack:4.4.0").Build();
@@ -24,7 +24,7 @@ class S3BodyStorageTests
     }
 
     [OneTimeTearDown]
-    public async Task StopLocalStack()
+    public static async Task StopLocalStack()
     {
         if (localStack != null)
         {
