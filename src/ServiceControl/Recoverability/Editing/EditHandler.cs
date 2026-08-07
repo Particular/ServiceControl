@@ -24,7 +24,7 @@
         {
             FailedMessage failedMessage;
             string editId;
-            using (var session = await store.CreateEditFailedMessageManager())
+            await using (var session = await store.CreateEditFailedMessageManager())
             {
                 failedMessage = await session.GetFailedMessage(message.FailedMessageId);
 

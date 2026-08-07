@@ -8,6 +8,10 @@
         protected IAsyncDocumentSession Session { get; } = session;
 
         public Task SaveChanges() => Session.SaveChangesAsync();
-        public void Dispose() => Session.Dispose();
+        public ValueTask DisposeAsync()
+        {
+            Session.Dispose();
+            return ValueTask.CompletedTask;
+        }
     }
 }

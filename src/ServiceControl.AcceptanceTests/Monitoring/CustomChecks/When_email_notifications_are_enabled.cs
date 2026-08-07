@@ -64,7 +64,7 @@
         {
             public async Task StartAsync(CancellationToken cancellationToken)
             {
-                using var notificationsManager = await notificationsDataStore.CreateNotificationsManager();
+                await using var notificationsManager = await notificationsDataStore.CreateNotificationsManager();
 
                 var settings = await notificationsManager.LoadSettings();
                 settings.Email.Enabled = true;

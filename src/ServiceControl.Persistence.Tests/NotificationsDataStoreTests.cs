@@ -8,7 +8,7 @@ class NotificationsDataStoreTests : PersistenceTestBase
     [Test, CancelAfter(30_000)]
     public async Task LoadSettings_returns_defaults_when_no_settings_exist()
     {
-        using var manager = await NotificationsStore.CreateNotificationsManager();
+        await using var manager = await NotificationsStore.CreateNotificationsManager();
 
         var settings = await manager.LoadSettings();
 
@@ -30,7 +30,7 @@ class NotificationsDataStoreTests : PersistenceTestBase
     [Test, CancelAfter(30_000)]
     public async Task SaveChanges_persists_email_settings_round_trip()
     {
-        using (var manager = await NotificationsStore.CreateNotificationsManager())
+        await using (var manager = await NotificationsStore.CreateNotificationsManager())
         {
             var settings = await manager.LoadSettings();
 
@@ -48,7 +48,7 @@ class NotificationsDataStoreTests : PersistenceTestBase
 
         await CompleteDatabaseOperation();
 
-        using var verifyManager = await NotificationsStore.CreateNotificationsManager();
+        await using var verifyManager = await NotificationsStore.CreateNotificationsManager();
         var loaded = await verifyManager.LoadSettings();
 
         using (Assert.EnterMultipleScope())
@@ -67,7 +67,7 @@ class NotificationsDataStoreTests : PersistenceTestBase
     [Test, CancelAfter(30_000)]
     public async Task Toggling_enabled_is_persisted()
     {
-        using (var manager = await NotificationsStore.CreateNotificationsManager())
+        await using (var manager = await NotificationsStore.CreateNotificationsManager())
         {
             var settings = await manager.LoadSettings();
             settings.Email.Enabled = true;
@@ -76,7 +76,7 @@ class NotificationsDataStoreTests : PersistenceTestBase
 
         await CompleteDatabaseOperation();
 
-        using (var manager = await NotificationsStore.CreateNotificationsManager())
+        await using (var manager = await NotificationsStore.CreateNotificationsManager())
         {
             var settings = await manager.LoadSettings();
             Assert.That(settings.Email.Enabled, Is.True);
@@ -87,7 +87,7 @@ class NotificationsDataStoreTests : PersistenceTestBase
 
         await CompleteDatabaseOperation();
 
-        using var verifyManager = await NotificationsStore.CreateNotificationsManager();
+        await using var verifyManager = await NotificationsStore.CreateNotificationsManager();
         var final = await verifyManager.LoadSettings();
         Assert.That(final.Email.Enabled, Is.False);
     }
@@ -95,7 +95,7 @@ class NotificationsDataStoreTests : PersistenceTestBase
     [Test, CancelAfter(30_000)]
     public async Task LoadSettings_returns_previously_saved_settings()
     {
-        using (var manager = await NotificationsStore.CreateNotificationsManager())
+        await using (var manager = await NotificationsStore.CreateNotificationsManager())
         {
             var settings = await manager.LoadSettings();
             settings.Email.SmtpServer = "configured.server";
@@ -105,7 +105,7 @@ class NotificationsDataStoreTests : PersistenceTestBase
 
         await CompleteDatabaseOperation();
 
-        using var manager2 = await NotificationsStore.CreateNotificationsManager();
+        await using var manager2 = await NotificationsStore.CreateNotificationsManager();
         var loaded = await manager2.LoadSettings();
 
         using (Assert.EnterMultipleScope())
@@ -121,7 +121,7 @@ class NotificationsDataStoreTests : PersistenceTestBase
     [Test, CancelAfter(30_000)]
     public async Task Updating_individual_fields_preserves_others()
     {
-        using (var manager = await NotificationsStore.CreateNotificationsManager())
+        await using (var manager = await NotificationsStore.CreateNotificationsManager())
         {
             var settings = await manager.LoadSettings();
             settings.Email.Enabled = true;
@@ -137,7 +137,7 @@ class NotificationsDataStoreTests : PersistenceTestBase
 
         await CompleteDatabaseOperation();
 
-        using (var manager = await NotificationsStore.CreateNotificationsManager())
+        await using (var manager = await NotificationsStore.CreateNotificationsManager())
         {
             var settings = await manager.LoadSettings();
             settings.Email.SmtpServer = "updated.smtp";
@@ -147,7 +147,7 @@ class NotificationsDataStoreTests : PersistenceTestBase
 
         await CompleteDatabaseOperation();
 
-        using var verifyManager = await NotificationsStore.CreateNotificationsManager();
+        await using var verifyManager = await NotificationsStore.CreateNotificationsManager();
         var loaded = await verifyManager.LoadSettings();
 
         using (Assert.EnterMultipleScope())

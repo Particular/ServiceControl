@@ -16,7 +16,7 @@
         {
             NotificationsSettings notifications;
 
-            using (var manager = await store.CreateNotificationsManager())
+            await using (var manager = await store.CreateNotificationsManager())
             {
                 notifications = await manager.LoadSettings(cacheTimeout);
             }
