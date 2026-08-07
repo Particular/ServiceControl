@@ -43,8 +43,11 @@ jobs:
         uses: actions/setup-dotnet@v6.0.0
         with:
           global-json-file: global.json
-      - name: Download RavenDB Server
-        run: ./tools/download-ravendb-server.ps1
+      - parallel:
+        - name: Setup WSL
+          uses: Particular/setup-wsl-action@v1.0.0
+        - name: Download RavenDB Server
+          run: ./tools/download-ravendb-server.ps1
       - name: Build
         run: dotnet build src --configuration Release -graph
       - name: Zip PowerShell module
@@ -87,27 +90,27 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup SQL Server
-        uses: Particular/install-sql-server-action@v2.0.0
+        uses: Particular/install-sql-server-action@v3.0.0
         if: matrix.test-category == 'SqlServer'
         with:
           connection-string-env-var: ServiceControl_TransportTests_SQL_ConnectionString
           catalog: nservicebus
       - name: Setup SQL Server persistence
-        uses: Particular/install-sql-server-action@v2.0.0
+        uses: Particular/install-sql-server-action@v3.0.0
         if: matrix.test-category == 'SqlServerPersistence'
         with:
           connection-string-env-var: ServiceControl_Persistence_SqlServer_ConnectionString
           catalog: ServiceControl
           enable-full-text-search: true
       - name: Setup PostgreSQL
-        uses: Particular/setup-postgres-action@v2.0.0
+        uses: Particular/setup-postgres-action@v3.0.0
         if: matrix.test-category == 'PostgreSQL'
         with:
           connection-string-name: ServiceControl_TransportTests_PostgreSQL_ConnectionString
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Setup PostgreSQL persistence
-        uses: Particular/setup-postgres-action@v2.0.0
+        uses: Particular/setup-postgres-action@v3.0.0
         if: matrix.test-category == 'PostgreSQLPersistence'
         with:
           connection-string-name: ServiceControl_Persistence_PostgreSql_ConnectionString
