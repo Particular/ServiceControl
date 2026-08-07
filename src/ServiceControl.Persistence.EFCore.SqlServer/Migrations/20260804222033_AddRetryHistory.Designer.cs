@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ServiceControl.Persistence.EFCore.SqlServer;
 
@@ -11,9 +12,11 @@ using ServiceControl.Persistence.EFCore.SqlServer;
 namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerServiceControlDbContext))]
-    partial class SqlServerServiceControlDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260804222033_AddRetryHistory")]
+    partial class AddRetryHistory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,56 +24,6 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.ArchiveOperationEntity", b =>
-                {
-                    b.Property<string>("RequestId")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<int>("ArchiveType")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OperationType")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CurrentBatch")
-                        .HasColumnType("int");
-
-                    b.Property<string>("GroupName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("InitiatedById")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("InitiatedByName")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("NumberOfBatches")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NumberOfMessagesProcessed")
-                        .HasColumnType("int");
-
-                    b.Property<string>("OperationId")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("Started")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("TotalNumberOfMessages")
-                        .HasColumnType("int");
-
-                    b.HasKey("RequestId", "ArchiveType", "OperationType");
-
-                    b.HasIndex("Started");
-
-                    b.ToTable("ArchiveOperations");
-                });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.CustomCheckEntity", b =>
                 {

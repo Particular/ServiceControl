@@ -12,4 +12,9 @@ static class ColumnLengths
     // The subscriptions key spans two columns and SQL Server caps a clustered index key at 900 bytes,
     // so both have to stay well under ShortTextLength. Matches NServiceBus.Persistence.Sql.
     public const int SubscriptionKeyLength = 200;
+
+    // The unacknowledged retry key is this column plus the RetryType int, and ShortTextLength would
+    // put it over SQL Server's 900 byte limit. 800 + 4 fits, with room for the queue addresses that
+    // ByQueueAddress retries use as their request id.
+    public const int RetryRequestIdLength = 400;
 }
