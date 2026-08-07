@@ -3,7 +3,7 @@
     using System;
     using System.Threading.Tasks;
 
-    public interface IDataSessionManager : IDisposable
+    public interface IDataSessionManager : IAsyncDisposable
     {
         Task SaveChanges();
     }

@@ -20,9 +20,5 @@ public class EditFailedMessagesManager : IEditFailedMessagesManager
     public Task SaveChanges() =>
         throw new NotImplementedException();
 
-    public void Dispose()
-    {
-        // Nothing to dispose yet
-        GC.SuppressFinalize(this);
-    }
+    public ValueTask DisposeAsync() => default;
 }

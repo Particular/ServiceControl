@@ -64,16 +64,12 @@
         {
             public async Task StartAsync(CancellationToken cancellationToken)
             {
-                using var notificationsManager = await notificationsDataStore.CreateNotificationsManager();
+                await using var notificationsManager = await notificationsDataStore.CreateNotificationsManager();
 
                 var settings = await notificationsManager.LoadSettings();
-                settings.Email = new EmailNotifications
-                {
-                    Enabled = true,
-                    From = "YouServiceControl@particular.net",
-                    To = "WhoeverMightBeConcerned@particular.net",
-                };
-
+                settings.Email.Enabled = true;
+                settings.Email.From = "YouServiceControl@particular.net";
+                settings.Email.To = "WhoeverMightBeConcerned@particular.net";
                 await notificationsManager.SaveChanges();
             }
 

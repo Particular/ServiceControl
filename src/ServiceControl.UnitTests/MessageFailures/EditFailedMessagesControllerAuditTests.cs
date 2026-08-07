@@ -48,15 +48,13 @@ public class EditFailedMessagesControllerAuditTests
     {
         public string? CurrentEditingRequestId { get; set; }
 
-        public void Dispose()
-        {
-        }
-
         public Task SaveChanges() => Task.CompletedTask;
         public Task<FailedMessage?> GetFailedMessage(string failedMessageId) => Task.FromResult<FailedMessage?>(null);
         public Task<string?> GetCurrentEditingRequestId(string failedMessageId) => Task.FromResult(CurrentEditingRequestId);
         public Task SetCurrentEditingRequestId(string editingMessageId) => Task.CompletedTask;
         public Task SetFailedMessageAsResolved() => Task.CompletedTask;
+
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }
 
     sealed class StubErrorMessageDataStore : IFailedMessageQueryDataStore, IEditFailedMessagesDataStore

@@ -8,27 +8,24 @@
     class NotificationsManager(IAsyncDocumentSession session) : AbstractSessionManager(session), INotificationsManager
     {
         const string SingleDocumentId = "NotificationsSettings/All";
-        static readonly TimeSpan CacheTimeoutDefault = TimeSpan.FromMinutes(5); // Raven requires this to be at least 1 second
+        static readonly TimeSpan CacheTimeout = TimeSpan.FromMinutes(5); // Raven requires this to be at least 1 second
 
-        public async Task<NotificationsSettings> LoadSettings(TimeSpan? cacheTimeout = null)
+        public async Task<NotificationsSettings> LoadSettings()
         {
-            using var aggressivelyCacheFor = await Session.Advanced.DocumentStore.AggressivelyCacheForAsync(cacheTimeout ?? CacheTimeoutDefault);
+            using var aggressivelyCacheFor = await Session.Advanced.DocumentStore.AggressivelyCacheForAsync(CacheTimeout);
             var settings = await Session
-                .LoadAsync<NotificationsSettings>(SingleDocumentId);
+                .LoadAsync<NotificationsSettingsDocument>(SingleDocumentId);
 
-            if (settings != null)
+            if (settings == null)
             {
-                return settings;
+                settings = new NotificationsSettingsDocument { Id = SingleDocumentId };
+                await Session.StoreAsync(settings);
             }
 
-            settings = new NotificationsSettings
+            return new NotificationsSettings()
             {
-                Id = SingleDocumentId
+                Email = settings.Email
             };
-
-            await Session.StoreAsync(settings);
-
-            return settings;
         }
     }
 }

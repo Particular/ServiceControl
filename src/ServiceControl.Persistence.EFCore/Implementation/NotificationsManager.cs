@@ -4,15 +4,11 @@ using ServiceControl.Notifications;
 
 public class NotificationsManager : INotificationsManager
 {
-    public Task<NotificationsSettings> LoadSettings(TimeSpan? cacheTimeout = null) =>
+    public Task<NotificationsSettings> LoadSettings() =>
         throw new NotImplementedException();
 
     public Task SaveChanges() =>
         throw new NotImplementedException();
 
-    public void Dispose()
-    {
-        // Nothing to dispose yet
-        GC.SuppressFinalize(this);
-    }
+    public ValueTask DisposeAsync() => default;
 }
