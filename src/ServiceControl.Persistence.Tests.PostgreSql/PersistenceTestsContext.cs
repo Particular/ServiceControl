@@ -22,7 +22,7 @@ public partial class PersistenceTestsContext : IPersistenceTestsContext
     string databaseName;
     string bodyStoragePath;
 
-    public FakeTimeProvider FakeTime { get; } = new();
+    public FakeTimeProvider FakeTime { get; } = new(DateTimeOffset.UtcNow);
 
     public async Task Setup(IHostApplicationBuilder hostBuilder)
     {
