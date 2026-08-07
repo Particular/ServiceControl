@@ -45,7 +45,7 @@ jobs:
           global-json-file: global.json
       - parallel:
         - name: Setup WSL
-          uses: Particular/setup-wsl-action@7379e61a7d51f5b69b57156a98146b6938f0f5c2
+          uses: Particular/setup-wsl-action@v1.0.0
         - name: Download RavenDB Server
           run: ./tools/download-ravendb-server.ps1
       - name: Build
@@ -90,27 +90,27 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup SQL Server
-        uses: Particular/install-sql-server-action@f7a459a07241cd9a66efdb99f3494cf1f04a3801
+        uses: Particular/install-sql-server-action@v3.0.0
         if: matrix.test-category == 'SqlServer'
         with:
           connection-string-env-var: ServiceControl_TransportTests_SQL_ConnectionString
           catalog: nservicebus
       - name: Setup SQL Server persistence
-        uses: Particular/install-sql-server-action@f7a459a07241cd9a66efdb99f3494cf1f04a3801
+        uses: Particular/install-sql-server-action@v3.0.0
         if: matrix.test-category == 'SqlServerPersistence'
         with:
           connection-string-env-var: ServiceControl_Persistence_SqlServer_ConnectionString
           catalog: ServiceControl
           enable-full-text-search: true
       - name: Setup PostgreSQL
-        uses: Particular/setup-postgres-action@31a965bb0d7a1d713e5cfadb154683584c1fbb1f
+        uses: Particular/setup-postgres-action@3.0.0
         if: matrix.test-category == 'PostgreSQL'
         with:
           connection-string-name: ServiceControl_TransportTests_PostgreSQL_ConnectionString
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Setup PostgreSQL persistence
-        uses: Particular/setup-postgres-action@31a965bb0d7a1d713e5cfadb154683584c1fbb1f
+        uses: Particular/setup-postgres-action@v3.0.0
         if: matrix.test-category == 'PostgreSQLPersistence'
         with:
           connection-string-name: ServiceControl_Persistence_PostgreSql_ConnectionString
