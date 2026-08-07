@@ -32,6 +32,10 @@
 
         public TransportInfo TransportPackage { get; set; }
 
+        public string ConfigurationLoadError { get; set; }
+
+        public string ConfigurationFilePath { get; set; }
+
         public SemanticVersion Version
         {
             get

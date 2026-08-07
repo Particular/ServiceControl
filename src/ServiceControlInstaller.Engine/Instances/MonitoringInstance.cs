@@ -3,6 +3,7 @@
     using System;
     using System.Configuration;
     using System.IO;
+    using System.Linq;
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Threading.Tasks;
@@ -17,11 +18,25 @@
 
     public class MonitoringInstance : BaseService, IMonitoringInstance
     {
-        public MonitoringInstance(WindowsServiceController service)
+        public MonitoringInstance(IWindowsServiceController service)
         {
             Service = service;
-            AppConfig = new AppConfig(this);
-            Reload();
+
+            // Set the config file path so it's available if loading fails
+            ConfigurationFilePath = Path.Combine(InstallPath, $"{Constants.MonitoringExe}.config");
+
+            try
+            {
+                AppConfig = new AppConfig(this);
+                Reload();
+            }
+            catch (Exception ex)
+            {
+                ConfigurationLoadError = $"Failed to load configuration file '{ConfigurationFilePath}': {ex.Message}";
+                InstanceName = Name;
+                ReportCard = new ReportCard();
+                ReportCard.Errors.Add(ConfigurationLoadError);
+            }
         }
 
         public AppConfig AppConfig { get; set; }
@@ -64,6 +79,12 @@
             Service.Refresh();
 
             AppConfig = new AppConfig(this);
+
+            // If config failed to load, throw exception to be caught by constructor
+            if (AppConfig.Config == null)
+            {
+                throw new Exception(AppConfig.ConfigLoadException?.Message ?? "Unknown error", AppConfig.ConfigLoadException);
+            }
 
             InstanceName = AppConfig.Read(SettingsList.InstanceName, Name);
             HostName = AppConfig.Read(SettingsList.HostName, "localhost");

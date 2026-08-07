@@ -3,9 +3,51 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:ServiceControl.Config.Xaml.Converters"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300">
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <ItemsControl x:Name="OrderedInstances" Margin="60,0" AlternationCount="{Binding Path=Items.Count}" />
-    </ScrollViewer>
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Configuration Error Summary -->
+        <Border Grid.Row="0" Margin="60,10,60,10"
+                Background="#FFF4E5" BorderBrush="#FFA500" BorderThickness="1" Padding="10" CornerRadius="3"
+                Visibility="{Binding HasConfigurationErrors, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="⚠" FontSize="16" Foreground="#FFA500" VerticalAlignment="Top" Margin="0,0,8,0" />
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="CONFIGURATION ERROR"
+                               FontWeight="Bold"
+                               Foreground="#D84315"
+                               FontSize="13"
+                               Margin="0,0,0,5" />
+                    <TextBlock Text="{Binding ConfigurationErrorMessage}"
+                               TextWrapping="Wrap"
+                               Foreground="#5D4037"
+                               FontSize="12" />
+                </StackPanel>
+                <Button Grid.Column="2" Padding="0" Background="Transparent" BorderThickness="0"
+                        VerticalAlignment="Top" Margin="8,0,0,0"
+                        Command="{Binding CopyToClipboard}" CommandParameter="{Binding ConfigurationErrorMessage}"
+                        ToolTip="Copy error message" Cursor="Hand">
+                    <ContentControl Template="{StaticResource CopyIcon}" Foreground="#5D4037" Width="14" Height="14" />
+                </Button>
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <ItemsControl x:Name="OrderedInstances" Margin="60,0" AlternationCount="{Binding Path=Items.Count}" />
+        </ScrollViewer>
+    </Grid>
 </UserControl>
