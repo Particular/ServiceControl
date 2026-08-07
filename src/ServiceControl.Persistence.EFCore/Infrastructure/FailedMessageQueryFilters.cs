@@ -124,9 +124,8 @@ static class FailedMessageQueryFilters
             .SingleOrDefaultAsync(cancellationToken);
 
         var count = stats?.Count ?? 0;
-        var latest = stats?.Latest ?? DateTime.MinValue;
 
-        return new QueryStatsInfo($"{count}-{latest.Ticks}", count, false);
+        return new QueryStatsInfo(DataVersion.Compose(("failures", count), ("lastModified", stats?.Latest)), count, false);
     }
 
     static IOrderedQueryable<FailedMessageEntity> OrderBy<TKey>(this IQueryable<FailedMessageEntity> source, System.Linq.Expressions.Expression<Func<FailedMessageEntity, TKey>> keySelector, bool descending) =>

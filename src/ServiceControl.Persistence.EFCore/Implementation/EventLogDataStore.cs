@@ -25,7 +25,7 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
         });
 
     public Task<QueryResult<IList<EventLogItemView>>> GetEventLogItems(
-        PagingInfo pagingInfo, string? knownVersion = null) =>
+        PagingInfo pagingInfo, DataVersion knownVersion = default) =>
         ExecuteWithDbContext(async dbContext =>
         {
             var query = dbContext.EventLogItems.AsNoTracking();
@@ -49,7 +49,7 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
             // The point of knownVersion. Everything above is index work.
             // If the caller already has the latest version, skip the rest of the query.
             // No database round trip is needed. No response body is needed.
-            if (knownVersion is not null && knownVersion == version)
+            if (knownVersion.Matches(version))
             {
                 return QueryResult<IList<EventLogItemView>>.Unchanged(queryStats);
             }
@@ -76,8 +76,8 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
             return new QueryResult<IList<EventLogItemView>>(items, queryStats);
         });
 
-    // Synthesised version ID to be used for an ETag. The highest key is the monotonic term: identity
+    // Synthesised version for an append-only table. The highest key is the monotonic term: identity
     // values gap but never repeat, so an insert moves the version whatever its RaisedAt says.
-    static string Version(long total, DateTime? newest, long? highestId) =>
-        DeterministicGuid.MakeId($"{total}|{newest?.Ticks ?? 0}|{highestId ?? 0}").ToString();
+    static DataVersion Version(long total, DateTime? newest, long? highestId) =>
+        DataVersion.Compose(("total", total), ("newest", newest), ("highestId", highestId));
 }

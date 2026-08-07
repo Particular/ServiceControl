@@ -4,6 +4,7 @@
     using System.Threading.Tasks;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Mvc;
+    using Persistence.Infrastructure;
     using Persistence.RavenDB;
     using Raven.Client.Documents;
     using ServiceControl.Recoverability;
@@ -24,7 +25,7 @@
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             await session.Query<FailedMessageRetry>().Statistics(out var stats).ToListAsync(cancellationToken);
 
-            Response.WithEtag(stats.ResultEtag.ToString());
+            Response.WithEtag(DataVersion.FromToken(stats.ResultEtag.ToString()));
 
             return new FailedMessageRetriesCountReponse { Count = stats.TotalResults };
         }

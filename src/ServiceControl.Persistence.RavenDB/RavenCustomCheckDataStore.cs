@@ -56,7 +56,7 @@
                 .Paging(paging)
                 .ToListAsync();
 
-            return new QueryResult<IList<CustomCheck>>(results, new QueryStatsInfo($"{stats.ResultEtag}", stats.TotalResults, stats.IsStale));
+            return new QueryResult<IList<CustomCheck>>(results, stats.ToQueryStatsInfo());
         }
 
         public async Task DeleteCustomCheck(Guid id)

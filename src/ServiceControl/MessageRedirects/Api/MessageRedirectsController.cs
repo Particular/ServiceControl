@@ -170,7 +170,7 @@
         {
             var redirects = await store.GetRedirects();
 
-            Response.WithDeterministicEtag(EtagHelper.CalculateEtag(redirects));
+            Response.WithDeterministicEtag(DataVersion.FromToken(EtagHelper.CalculateEtag(redirects)));
             Response.WithTotalCount(redirects.Count);
         }
 
@@ -192,7 +192,7 @@
                     r.LastModified
                 ));
 
-            Response.WithDeterministicEtag(EtagHelper.CalculateEtag(redirects));
+            Response.WithDeterministicEtag(DataVersion.FromToken(EtagHelper.CalculateEtag(redirects)));
             Response.WithPagingLinksAndTotalCount(pagingInfo, redirects.Count);
 
             return queryResult;

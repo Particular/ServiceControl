@@ -27,6 +27,6 @@ static class FailureGroupQueries
     {
         var latest = groups.Count == 0 ? DateTime.MinValue : groups.Max(group => group.Last);
 
-        return new QueryStatsInfo($"{groups.Count}-{latest.Ticks}", groups.Count, false);
+        return new QueryStatsInfo(DataVersion.Compose(("groups", groups.Count), ("last", latest)), groups.Count, false);
     }
 }

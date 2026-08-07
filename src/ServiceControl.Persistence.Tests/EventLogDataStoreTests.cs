@@ -216,7 +216,7 @@ class EventLogDataStoreTests : PersistenceTestBase
             // The controller sets Total-Count and ETag on the 304, so neither may be dropped
             // just because the page was not fetched.
             Assert.That(result.QueryStats.TotalCount, Is.EqualTo(3));
-            Assert.That(result.QueryStats.ETag, Is.EqualTo(version));
+            Assert.That(result.QueryStats.Version.Matches(version), Is.True);
         }
     }
 
@@ -235,7 +235,7 @@ class EventLogDataStoreTests : PersistenceTestBase
             Assert.That(result.NotModified, Is.False);
             Assert.That(result.Results, Has.Count.EqualTo(3));
             Assert.That(result.QueryStats.TotalCount, Is.EqualTo(3));
-            Assert.That(result.QueryStats.ETag, Is.Not.EqualTo(staleVersion));
+            Assert.That(result.QueryStats.Version.Matches(staleVersion), Is.False);
         }
     }
 
@@ -244,7 +244,7 @@ class EventLogDataStoreTests : PersistenceTestBase
     {
         await AddItems(2);
 
-        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo(), "not-a-version-this-store-ever-issued");
+        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo(), DataVersion.FromToken("not-a-version-this-store-ever-issued"));
 
         using (Assert.EnterMultipleScope())
         {
@@ -253,8 +253,8 @@ class EventLogDataStoreTests : PersistenceTestBase
         }
     }
 
-    async Task<string> CurrentVersion() =>
-        (await EventLogDataStore.GetEventLogItems(new PagingInfo())).QueryStats.ETag;
+    async Task<DataVersion> CurrentVersion() =>
+        (await EventLogDataStore.GetEventLogItems(new PagingInfo())).QueryStats.Version;
 
     async Task AddItems(int count)
     {

@@ -72,7 +72,8 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
             Status = c.Status,
             ReportedAt = c.ReportedAt,
             FailureReason = c.FailureReason
-        }).ToList(), new QueryStatsInfo("", page.Count, false));
+            // No version: this store has no aggregate that moves when a check's status does.
+        }).ToList(), new QueryStatsInfo(DataVersion.None, page.Count, false));
     });
 
     public Task DeleteCustomCheck(Guid id) => ExecuteWithDbContext(async context => await context.CustomChecks.AsNoTracking().Where(cc => cc.Id == id).ExecuteDeleteAsync());

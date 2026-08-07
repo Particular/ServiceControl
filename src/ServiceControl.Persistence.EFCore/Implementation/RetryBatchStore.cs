@@ -110,7 +110,8 @@ public class RetryBatchStore(IServiceScopeFactory scopeFactory, IIngestionSqlDia
 
             IList<RetryBatch> batches = [.. orphaned.Select(batch => batch.ToRetryBatch(messageCounts.GetValueOrDefault(batch.Id)))];
 
-            return new QueryResult<IList<RetryBatch>>(batches, new QueryStatsInfo(string.Empty, batches.Count, false));
+            // No version: orphaned batches are consumed by the retry session, never by a caching client.
+            return new QueryResult<IList<RetryBatch>>(batches, new QueryStatsInfo(DataVersion.None, batches.Count, false));
         });
 
     public Task<IList<RetryBatchGroup>> GetAvailableBatchGroups() =>

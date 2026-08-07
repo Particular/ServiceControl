@@ -67,7 +67,9 @@
         {
             var knownEndpoints = monitoring.GetKnownEndpoints();
 
-            Response.WithQueryStatsAndPagingInfo(new QueryStatsInfo(string.Empty, knownEndpoints.Count, isStale: false), pagingInfo);
+            // No version: the monitored-endpoints list is assembled in the controller from several sources,
+            // none of which exposes an aggregate that moves when one of them does.
+            Response.WithQueryStatsAndPagingInfo(new QueryStatsInfo(DataVersion.None, knownEndpoints.Count, isStale: false), pagingInfo);
             return knownEndpoints;
         }
 

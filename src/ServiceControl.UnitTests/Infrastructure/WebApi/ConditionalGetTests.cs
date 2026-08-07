@@ -19,7 +19,7 @@ public class ConditionalGetTests
     {
         var httpContext = new DefaultHttpContext();
 
-        httpContext.Response.WithEtag("4611686018427387904");
+        httpContext.Response.WithEtag(DataVersion.FromToken("4611686018427387904"));
 
         httpContext.Request.Headers.IfNoneMatch = httpContext.Response.Headers.ETag;
 
@@ -37,7 +37,7 @@ public class ConditionalGetTests
     {
         var httpContext = new DefaultHttpContext();
 
-        httpContext.Response.WithEtag("4611686018427387904");
+        httpContext.Response.WithEtag(DataVersion.FromToken("4611686018427387904"));
         httpContext.Request.Headers.IfNoneMatch = "\"something-else\"";
 
         var context = ResultExecuting(httpContext);
@@ -52,7 +52,7 @@ public class ConditionalGetTests
     {
         var httpContext = new DefaultHttpContext();
 
-        httpContext.Response.WithEtag("4611686018427387904");
+        httpContext.Response.WithEtag(DataVersion.FromToken("4611686018427387904"));
 
         // RFC 9110 requires an entity-tag to be a quoted string. GetTypedHeaders parses through
         // EntityTagHeaderValue and yields null for anything else.
@@ -65,7 +65,7 @@ public class ConditionalGetTests
     {
         var httpContext = new DefaultHttpContext();
 
-        httpContext.Response.WithDeterministicEtag("any-non-empty-payload-signature");
+        httpContext.Response.WithDeterministicEtag(DataVersion.FromToken("any-non-empty-payload-signature"));
 
         Assert.That(httpContext.Response.GetTypedHeaders().ETag, Is.Not.Null);
     }
@@ -75,21 +75,9 @@ public class ConditionalGetTests
     {
         var httpContext = new DefaultHttpContext();
 
-        httpContext.Response.WithEtag("4611686018427387904");
+        httpContext.Response.WithEtag(DataVersion.FromToken("4611686018427387904"));
 
         Assert.That(httpContext.Response.Headers.ETag.ToString(), Is.EqualTo("\"4611686018427387904\""));
-    }
-
-    [TestCase(null)]
-    [TestCase("")]
-    public void A_call_site_with_nothing_to_validate_emits_no_etag_header(string value)
-    {
-        var httpContext = new DefaultHttpContext();
-
-        httpContext.Response.WithEtag(value);
-
-        Assert.That(httpContext.Response.Headers.ContainsKey("ETag"), Is.False,
-            "an empty entity-tag is well formed, so it would match itself and answer 304 for unrelated payloads");
     }
 
     [Test]

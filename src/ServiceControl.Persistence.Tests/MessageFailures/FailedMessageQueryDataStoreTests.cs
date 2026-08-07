@@ -311,7 +311,7 @@ class FailedMessageQueryDataStoreTests : PersistenceTestBase
         {
             Assert.That(stats.TotalCount, Is.EqualTo(1));
             Assert.That(stats.TotalCount, Is.EqualTo(query.QueryStats.TotalCount));
-            Assert.That(stats.ETag, Is.EqualTo(query.QueryStats.ETag));
+            Assert.That(stats.Version.Matches(query.QueryStats.Version), Is.True);
         }
     }
 
@@ -323,7 +323,7 @@ class FailedMessageQueryDataStoreTests : PersistenceTestBase
         var first = await FailedMessageQueryStore.GetFailedMessagesStats(null, null, null);
         var second = await FailedMessageQueryStore.GetFailedMessagesStats(null, null, null);
 
-        Assert.That(second.ETag, Is.EqualTo(first.ETag));
+        Assert.That(second.Version.Matches(first.Version), Is.True);
     }
 
     [Test]
@@ -337,7 +337,7 @@ class FailedMessageQueryDataStoreTests : PersistenceTestBase
 
         var after = await FailedMessageQueryStore.GetFailedMessagesStats(null, null, null);
 
-        Assert.That(after.ETag, Is.Not.EqualTo(before.ETag));
+        Assert.That(after.Version.Matches(before.Version), Is.False);
     }
 
 

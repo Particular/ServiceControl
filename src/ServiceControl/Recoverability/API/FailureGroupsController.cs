@@ -66,7 +66,7 @@
             }
 
             var results = await fetcher.GetGroups(classifier, classifierFilter);
-            Response.WithDeterministicEtag(EtagHelper.CalculateEtag(results));
+            Response.WithDeterministicEtag(DataVersion.FromToken(EtagHelper.CalculateEtag(results)));
             return results;
         }
 
@@ -99,7 +99,7 @@
         {
             var retryHistory = await retryStore.GetRetryHistory();
 
-            Response.WithDeterministicEtag(retryHistory.GetHistoryOperationsUniqueIdentifier());
+            Response.WithDeterministicEtag(DataVersion.FromToken(retryHistory.GetHistoryOperationsUniqueIdentifier()));
 
             return retryHistory;
         }
@@ -111,7 +111,7 @@
         {
             var result = await store.GetUnresolvedGroup(groupId, status, modified);
 
-            Response.WithEtag(result.QueryStats.ETag);
+            Response.WithEtag(result.QueryStats.Version);
 
             return result.Results == null ? NotFound() : result.Results;
         }

@@ -10,6 +10,7 @@ namespace ServiceControl.MessageFailures.Api
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
 
     [ApiController]
@@ -49,7 +50,7 @@ namespace ServiceControl.MessageFailures.Api
         {
             var results = await dataStore.GetArchivedGroupsByClassifier(classifier);
 
-            Response.WithDeterministicEtag(EtagHelper.CalculateEtag(results));
+            Response.WithDeterministicEtag(DataVersion.FromToken(EtagHelper.CalculateEtag(results)));
 
             return Ok(results);
         }
@@ -76,7 +77,7 @@ namespace ServiceControl.MessageFailures.Api
         {
             var result = await dataStore.GetArchivedGroup(groupId, status, modified);
 
-            Response.WithEtag(result.QueryStats.ETag);
+            Response.WithEtag(result.QueryStats.Version);
 
             return result.Results == null ? NotFound() : result.Results;
         }
