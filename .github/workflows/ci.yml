@@ -29,8 +29,6 @@ jobs:
         exclude:
           - os: ubuntu-latest
             test-category: MSMQ
-          - os: windows-latest
-            test-category: IBMMQ
       fail-fast: false
     steps:
       - name: Check for secrets
@@ -61,7 +59,11 @@ jobs:
         id: build
         background: true
         run: dotnet build tests.proj --configuration Release -graph
+      # Provisions the WSL2 Docker host that the SQL Server, PostgreSQL, RabbitMQ and IBM MQ containers
+      # run in on Windows. A no-op on Linux, but still run there so those actions see the same
+      # environment variables on both runners.
       - name: Setup WSL
+        if: startsWith(matrix.test-category, 'RabbitMQ') || contains(fromJSON('["SqlServer", "SqlServerPersistence", "PostgreSql", "PostgreSqlPersistence", "IBMMQ"]'), matrix.test-category)
         uses: Particular/setup-wsl-action@v1.0.0
 
       # there is an issue with az cli and python 3.14, so for now we need to pin it
@@ -80,9 +82,11 @@ jobs:
           python -m pip install --user "azure-cli==2.64.0"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
+      # Only the Azure Service Bus and Azure Storage Queues actions provision cloud resources. RabbitMQ,
+      # PostgreSQL and SQL Server all run as containers now, so they no longer need an Azure session.
       - name: Azure login
         uses: azure/login@v3.0.1
-        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || startsWith(matrix.test-category, 'RabbitMQ') || matrix.test-category == 'PostgreSql' || matrix.test-category == 'PostgreSqlPersistence'
+        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues'
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup SQL Server
@@ -134,17 +138,10 @@ jobs:
           azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
           tag: ServiceControl
       - name: Setup IBM MQ
+        uses: ./.github/actions/setup-ibmmq
         if: matrix.test-category == 'IBMMQ'
-        run: |
-          docker run --name ibmmq -d -p 1414:1414 -p 9443:9443 `
-            --health-cmd "dspmq" --health-interval 10s --health-timeout 5s --health-retries 10 --health-start-period 30s `
-            -e LICENSE=accept -e MQ_QMGR_NAME=QM1 -e MQ_ADMIN_PASSWORD=passw0rd `
-            icr.io/ibm-messaging/mq:latest
-          # Wait for container health check to pass
-          while ((docker inspect --format '{{.State.Health.Status}}' ibmmq) -ne 'healthy') {
-            Start-Sleep -Seconds 2
-          }
-          echo "ServiceControl_TransportTests_IBMMQ_ConnectionString=mq://admin:passw0rd@localhost:1414/QM1?channel=DEV.ADMIN.SVRCONN&topicprefix=DEV" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+        with:
+          connection-string-name: ServiceControl_TransportTests_IBMMQ_ConnectionString
       - name: Setup SQS environment variables
         if: matrix.test-category == 'SQS'
         run: |

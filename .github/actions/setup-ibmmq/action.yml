@@ -1,0 +1,80 @@
+name: Setup IBM MQ
+description: >
+  Runs IBM MQ in a Linux container for the duration of the job. On Linux runners the container runs
+  directly through Docker. On Windows runners it runs inside the WSL2 Docker host provisioned by
+  Particular/setup-wsl-action, which must run first, because the IBM MQ image is Linux-only and Windows
+  runners can otherwise only run Windows containers.
+
+inputs:
+  connection-string-name:
+    description: The name of the environment variable to fill with the IBM MQ connection string.
+    required: true
+  queue-manager:
+    description: The name of the queue manager to create.
+    required: false
+    default: QM1
+  admin-password:
+    description: The password for the admin user.
+    required: false
+    default: passw0rd
+  image:
+    description: The IBM MQ container image to run.
+    required: false
+    default: icr.io/ibm-messaging/mq:latest
+
+runs:
+  using: composite
+  steps:
+    - name: Run IBM MQ container
+      shell: pwsh
+      env:
+        CONNECTION_STRING_NAME: ${{ inputs.connection-string-name }}
+        QUEUE_MANAGER: ${{ inputs.queue-manager }}
+        ADMIN_PASSWORD: ${{ inputs.admin-password }}
+        IMAGE: ${{ inputs.image }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+
+        $onWindows = $Env:RUNNER_OS -eq 'Windows'
+
+        if ($onWindows) {
+          if (-not $Env:WSL_TOOLS_MODULE_PATH) {
+            throw "WSL_TOOLS_MODULE_PATH is not set. Particular/setup-wsl-action must run before this action on Windows."
+          }
+          Import-Module $Env:WSL_TOOLS_MODULE_PATH
+        }
+
+        function Invoke-Docker([string]$Arguments) {
+          if ($onWindows) { Invoke-Wsl -CheckExitCode -Command "docker $Arguments" }
+          else { Invoke-Expression "docker $Arguments" }
+        }
+
+        $containerName = 'ibmmq'
+
+        Write-Output "Starting $($Env:IMAGE) as $containerName"
+        Invoke-Docker ("run --name $containerName --detach --publish 1414:1414 --publish 9443:9443 " +
+          "--health-cmd dspmq --health-interval 10s --health-timeout 5s --health-retries 10 --health-start-period 30s " +
+          "-e LICENSE=accept -e MQ_QMGR_NAME=$($Env:QUEUE_MANAGER) -e MQ_ADMIN_PASSWORD=$($Env:ADMIN_PASSWORD) " +
+          $Env:IMAGE)
+
+        Write-Output "::group::Waiting for container health check"
+
+        # Out-String because the WSL and native paths differ in whether they hand back a string or a
+        # collection of output lines.
+        $deadline = (Get-Date).AddMinutes(5)
+        while ((Invoke-Docker "inspect --format '{{.State.Health.Status}}' $containerName" | Out-String).Trim() -ne 'healthy') {
+          if ((Get-Date) -gt $deadline) {
+            Invoke-Docker "logs $containerName"
+            throw "IBM MQ did not report healthy within 5 minutes."
+          }
+          Start-Sleep -Seconds 2
+        }
+
+        Write-Output "::endgroup::"
+
+        # On Windows the queue manager listens inside the WSL VM, reachable on its gateway address.
+        $mqHost = if ($onWindows) { $Env:WSL_IP } else { 'localhost' }
+        $connectionString = "mq://admin:$($Env:ADMIN_PASSWORD)@${mqHost}:1414/$($Env:QUEUE_MANAGER)?channel=DEV.ADMIN.SVRCONN&topicprefix=DEV"
+
+        Write-Output "IBM MQ is healthy on $mqHost"
+        Write-Output "$($Env:CONNECTION_STRING_NAME)=$connectionString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
