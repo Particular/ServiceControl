@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0-windows</TargetFramework>
-    <TestCategory>Default</TestCategory>
+    <TestCategory>DefaultCore</TestCategory>
   </PropertyGroup>
 
   <ItemGroup>

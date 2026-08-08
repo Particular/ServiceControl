@@ -1,1 +1,1 @@
-﻿[assembly: IncludeInDefaultTests()]
+﻿[assembly: IncludeInTestCategory("DefaultCore")]
