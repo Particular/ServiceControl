@@ -198,29 +198,136 @@ jobs:
           "container=$container" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "sas=$sas" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-  test:
-    name: ${{ matrix.os-name }}-${{ matrix.test-category }}
-    needs: ${{ matrix.os-name == 'Windows' && 'build-windows' || 'build-linux' }}
-    runs-on: ${{ matrix.os }}
+  test-windows:
+    name: Windows-${{ matrix.test-category }}
+    needs: build-windows
+    runs-on: windows-latest
     timeout-minutes: 90
     env:
-      AZURE_CI_ACCOUNT: ${{ needs[format('build-{0}', lower(matrix.os-name))].outputs.account }}
-      AZURE_CI_CONTAINER: ${{ needs[format('build-{0}', lower(matrix.os-name))].outputs.container }}
-      AZURE_CI_SAS: ${{ needs[format('build-{0}', lower(matrix.os-name))].outputs.sas }}
+      AZURE_CI_ACCOUNT: ${{ needs.build-windows.outputs.account }}
+      AZURE_CI_CONTAINER: ${{ needs.build-windows.outputs.container }}
+      AZURE_CI_SAS: ${{ needs.build-windows.outputs.sas }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest]
-        test-category: [ Default, SqlServer, SqlServerPersistence, AzureServiceBus, RabbitMQ, AzureStorageQueues, MSMQ, SQS, PrimaryRavenAcceptance, PrimaryRavenPersistence, PostgreSQL, PostgreSQLPersistence, IBMMQ ]
-        include:
-          - os: windows-latest
-            os-name: Windows
-          - os: ubuntu-latest
-            os-name: Linux
-        exclude:
-          - os: ubuntu-latest
-            test-category: MSMQ
-          - os: windows-latest
-            test-category: IBMMQ
+        test-category: [ Default, SqlServer, SqlServerPersistence, AzureServiceBus, RabbitMQ, AzureStorageQueues, MSMQ, SQS, PrimaryRavenAcceptance, PrimaryRavenPersistence, PostgreSQL, PostgreSQLPersistence ]
+      fail-fast: false
+    steps:
+      - name: Check for secrets
+        env:
+          SECRETS_AVAILABLE: ${{ secrets.SECRETS_AVAILABLE }}
+        run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v6.0.0
+        with:
+          global-json-file: global.json
+      - parallel:
+        - name: Setup WSL
+          uses: Particular/setup-wsl-action@v1.1.0
+        - name: Download RavenDB Server
+          run: ./tools/download-ravendb-server.ps1
+      - name: Download test outputs
+        run: |
+          $projects = ./tools/ci-category-projects.ps1 -Category '${{ matrix.test-category }}'
+          $projects | ForEach-Object {
+            Write-Output "Downloading $_"
+            az storage blob download-batch --account-name $env:AZURE_CI_ACCOUNT --sas-token $env:AZURE_CI_SAS --destination $env:GITHUB_WORKSPACE --source $env:AZURE_CI_CONTAINER --pattern "$_/**" --output none
+            if ($LASTEXITCODE -ne 0) { throw "Download failed for $_" }
+          }
+      - name: Setup SQL Server
+        uses: Particular/install-sql-server-action@v3.0.0
+        if: matrix.test-category == 'SqlServer'
+        with:
+          connection-string-env-var: ServiceControl_TransportTests_SQL_ConnectionString
+          catalog: nservicebus
+      - name: Setup SQL Server persistence
+        uses: Particular/install-sql-server-action@v3.0.0
+        if: matrix.test-category == 'SqlServerPersistence'
+        with:
+          connection-string-env-var: ServiceControl_Persistence_SqlServer_ConnectionString
+          catalog: ServiceControl
+          enable-full-text-search: true
+      - name: Setup PostgreSQL
+        uses: Particular/setup-postgres-action@v3.0.0
+        if: matrix.test-category == 'PostgreSQL'
+        with:
+          connection-string-name: ServiceControl_TransportTests_PostgreSQL_ConnectionString
+          registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Setup PostgreSQL persistence
+        uses: Particular/setup-postgres-action@v3.0.0
+        if: matrix.test-category == 'PostgreSQLPersistence'
+        with:
+          connection-string-name: ServiceControl_Persistence_PostgreSql_ConnectionString
+          registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Setup RabbitMQ
+        uses: Particular/setup-rabbitmq-action@v2.0.0
+        if: matrix.test-category == 'RabbitMQ'
+        with:
+          connection-string-name: ServiceControl_TransportTests_RabbitMQ_ConnectionString
+          registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Setup Azure Service Bus
+        uses: Particular/setup-azureservicebus-action@v2.5.0
+        if: matrix.test-category == 'AzureServiceBus'
+        with:
+          connection-string-name: ServiceControl_TransportTests_ASBS_ConnectionString
+          azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
+          tag: ServiceControl
+      - name: Setup Azure Storage Queues
+        uses: Particular/setup-azurestorage-action@v2.0.0
+        if: matrix.test-category == 'AzureStorageQueues'
+        with:
+          connection-string-name: ServiceControl_TransportTests_ASQ_ConnectionString
+          azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
+          tag: ServiceControl
+      - name: Setup IBM MQ
+        if: matrix.test-category == 'IBMMQ'
+        run: |
+          docker run --name ibmmq -d -p 1414:1414 -p 9443:9443 `
+            --health-cmd "dspmq" --health-interval 10s --health-timeout 5s --health-retries 10 --health-start-period 30s `
+            -e LICENSE=accept -e MQ_QMGR_NAME=QM1 -e MQ_ADMIN_PASSWORD=passw0rd `
+            icr.io/ibm-messaging/mq:latest
+          # Wait for container health check to pass
+          while ((docker inspect --format '{{.State.Health.Status}}' ibmmq) -ne 'healthy') {
+            Start-Sleep -Seconds 2
+          }
+          echo "ServiceControl_TransportTests_IBMMQ_ConnectionString=mq://admin:passw0rd@localhost:1414/QM1?channel=DEV.ADMIN.SVRCONN&topicprefix=DEV" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Setup SQS environment variables
+        if: matrix.test-category == 'SQS'
+        run: |
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+
+          # Cleanup of queues starting with `GHA-` handled by https://github.com/Particular/NServiceBus.AmazonSQS/blob/master/.github/workflows/tests-cleanup.yml
+          $connectString = "AccessKeyId=${{ secrets.AWS_ACCESS_KEY_ID }};SecretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }};Region=${{ secrets.AWS_REGION }};QueueNamePrefix=GHA-${{ github.run_id }}"
+          echo "ServiceControl_TransportTests_SQS_ConnectionString=$connectString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Run tests
+        run: |
+          $projects = ./tools/ci-category-projects.ps1 -Category '${{ matrix.test-category }}'
+          ./tools/run-tests.ps1 -Projects ($projects -join "`n")
+        env:
+          ServiceControl_TESTS_FILTER: ${{ matrix.test-category }}
+          PARTICULARSOFTWARE_LICENSE: ${{ secrets.LICENSETEXT }}
+          AZURE_ACI_CREDENTIALS: ${{ secrets.AZURE_ACI_CREDENTIALS }}
+
+  test-linux:
+    name: Linux-${{ matrix.test-category }}
+    needs: build-linux
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      AZURE_CI_ACCOUNT: ${{ needs.build-linux.outputs.account }}
+      AZURE_CI_CONTAINER: ${{ needs.build-linux.outputs.container }}
+      AZURE_CI_SAS: ${{ needs.build-linux.outputs.sas }}
+    strategy:
+      matrix:
+        test-category: [ Default, SqlServer, SqlServerPersistence, AzureServiceBus, RabbitMQ, AzureStorageQueues, SQS, PrimaryRavenAcceptance, PrimaryRavenPersistence, PostgreSQL, PostgreSQLPersistence, IBMMQ ]
       fail-fast: false
     steps:
       - name: Check for secrets
@@ -253,12 +360,12 @@ jobs:
       # once the issue is resolved it should be able to be re-floated
       # https://github.com/Azure/azure-cli/issues/32980
       - name: Set Python 3.13 (Linux)
-        if: matrix.os-name == 'Linux' && matrix.test-category == 'AzureServiceBus'
+        if: matrix.test-category == 'AzureServiceBus'
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
       - name: Install pinned Azure CLI on Python 3.13 (Linux)
-        if: matrix.os-name == 'Linux' && matrix.test-category == 'AzureServiceBus'
+        if: matrix.test-category == 'AzureServiceBus'
         shell: bash
         run: |
           python -m pip install --upgrade pip
@@ -346,7 +453,7 @@ jobs:
 
   cleanup-artifacts:
     if: always()
-    needs: [ build-windows, build-linux, test ]
+    needs: [ build-windows, build-linux, test-windows, test-linux ]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
