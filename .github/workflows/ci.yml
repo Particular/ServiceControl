@@ -64,7 +64,7 @@ jobs:
       # environment variables on both runners.
       - name: Setup WSL
         if: startsWith(matrix.test-category, 'RabbitMQ') || contains(fromJSON('["SqlServer", "SqlServerPersistence", "PostgreSql", "PostgreSqlPersistence", "IBMMQ"]'), matrix.test-category)
-        uses: Particular/setup-wsl-action@v1.0.0
+        uses: Particular/setup-wsl-action@v1.1.0
         with:
           # The action defaults to 4GB. The runner has 16GB and the build runs concurrently with the
           # container starting up, so give the VM real headroom.
@@ -86,13 +86,6 @@ jobs:
           python -m pip install --user "azure-cli==2.64.0"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-      # Only the Azure Service Bus and Azure Storage Queues actions provision cloud resources. RabbitMQ,
-      # PostgreSQL and SQL Server all run as containers now, so they no longer need an Azure session.
-      - name: Azure login
-        uses: azure/login@v3.0.1
-        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues'
-        with:
-          creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup SQL Server
         uses: Particular/install-sql-server-action@v3.0.0
         if: matrix.test-category == 'SqlServer'
@@ -127,20 +120,6 @@ jobs:
           connection-string-name: ServiceControl_TransportTests_RabbitMQ_ConnectionString
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Setup Azure Service Bus
-        uses: Particular/setup-azureservicebus-action@v2.5.0
-        if: matrix.test-category == 'AzureServiceBus'
-        with:
-          connection-string-name: ServiceControl_TransportTests_ASBS_ConnectionString
-          azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
-          tag: ServiceControl
-      - name: Setup Azure Storage Queues
-        uses: Particular/setup-azurestorage-action@v2.0.0
-        if: matrix.test-category == 'AzureStorageQueues'
-        with:
-          connection-string-name: ServiceControl_TransportTests_ASQ_ConnectionString
-          azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
-          tag: ServiceControl
       - name: Setup IBM MQ
         uses: ./.github/actions/setup-ibmmq
         if: matrix.test-category == 'IBMMQ'
@@ -156,8 +135,32 @@ jobs:
           # Cleanup of queues starting with `GHA-` handled by https://github.com/Particular/NServiceBus.AmazonSQS/blob/master/.github/workflows/tests-cleanup.yml
           $connectString = "AccessKeyId=${{ secrets.AWS_ACCESS_KEY_ID }};SecretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }};Region=${{ secrets.AWS_REGION }};QueueNamePrefix=GHA-${{ github.run_id }}"
           echo "ServiceControl_TransportTests_SQS_ConnectionString=$connectString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+      # Everything above provisions local containers, so it overlaps the build freely. The Azure steps
+      # below create real cloud resources, so they sit behind the wait: a background step only fails the
+      # job at the next wait that includes it, so without this a commit that cannot compile would still
+      # create a Service Bus namespace or storage account and then rely on teardown to remove it. If the
+      # runner is killed that teardown never runs, so nothing is created until the build is known good.
       - name: Wait for build
         wait: build
+      - name: Azure login
+        uses: azure/login@v3.0.1
+        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues'
+        with:
+          creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
+      - name: Setup Azure Service Bus
+        uses: Particular/setup-azureservicebus-action@v2.5.0
+        if: matrix.test-category == 'AzureServiceBus'
+        with:
+          connection-string-name: ServiceControl_TransportTests_ASBS_ConnectionString
+          azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
+          tag: ServiceControl
+      - name: Setup Azure Storage Queues
+        uses: Particular/setup-azurestorage-action@v2.0.0
+        if: matrix.test-category == 'AzureStorageQueues'
+        with:
+          connection-string-name: ServiceControl_TransportTests_ASQ_ConnectionString
+          azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
+          tag: ServiceControl
       - name: Run tests
         run: ./tools/run-tests.ps1 -Projects $Env:TEST_PROJECTS
         env:
