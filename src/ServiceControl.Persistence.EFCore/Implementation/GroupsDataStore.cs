@@ -29,9 +29,18 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
             return views;
         });
 
-    public Task<IList<FailureGroupView>> GetArchivedGroupsByClassifier(string classifier) =>
-        ExecuteWithDbContext(dbContext => MostRecent(
-            ByClassifier(dbContext, classifier).AggregateGroups(WithStatus(dbContext, FailedMessageStatus.Archived))));
+    public Task<QueryResult<IList<FailureGroupView>>> GetArchivedGroupsByClassifier(string classifier) =>
+        ExecuteWithDbContext(async dbContext =>
+        {
+            var groups = ByClassifier(dbContext, classifier);
+            var messages = WithStatus(dbContext, FailedMessageStatus.Archived);
+
+            var views = await MostRecent(groups.AggregateGroups(messages));
+
+            return new QueryResult<IList<FailureGroupView>>(
+                views,
+                new QueryStatsInfo(await SourceVersion(groups, messages), views.Count, false));
+        });
 
     public Task<QueryResult<FailureGroupView>> GetUnresolvedGroup(string groupId, string status, string modified) =>
         ExecuteWithDbContext(dbContext => SingleGroup(dbContext, groupId, FailedMessageStatus.Unresolved, status, modified));
@@ -115,6 +124,28 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
         {
             group.Comment = comments.GetValueOrDefault(group.Id);
         }
+    }
+
+    // Title and Type need no term of their own: a group's id is a hash of both, so changing either makes it a 
+    // different group.
+    static async Task<DataVersion> SourceVersion(IQueryable<FailedMessageGroupEntity> groups, IQueryable<FailedMessageEntity> messages)
+    {
+        var stats = await (from failureGroup in groups
+                           join message in messages on failureGroup.FailedMessageUniqueId equals message.UniqueMessageId
+                           select message)
+            .GroupBy(_ => 1)
+            .Select(aggregate => new
+            {
+                Count = aggregate.Count(),
+                First = aggregate.Min(message => (DateTime?)message.FirstTimeOfFailure),
+                Last = aggregate.Max(message => (DateTime?)message.LastTimeOfFailure)
+            })
+            .SingleOrDefaultAsync();
+
+        return DataVersion.Compose(
+            ("messages", stats?.Count ?? 0),
+            ("first", stats?.First),
+            ("last", stats?.Last));
     }
 
     static async Task<IList<FailureGroupView>> MostRecent(IQueryable<FailureGroupView> groups) =>

@@ -19,8 +19,8 @@ namespace ServiceControl.CompositeViews.Messages
     // Non-generic, so statics live once rather than once per closed generic instantiation.
     public abstract class ScatterGatherApiBase
     {
-        // Read raw rather than through headers.ETag. An instance predating the quoted validator
-        // sends a bare token, which EntityTagHeaderValue fails to parse and discards silently.
+        // Read raw, not via headers.ETag: an older instance sends an unquoted tag that
+        // EntityTagHeaderValue cannot parse and drops without a word.
         internal static DataVersion ReadEtag(HttpResponseHeaders headers) =>
             headers.TryGetValues("ETag", out var values)
                 ? DataVersion.FromClient(values.FirstOrDefault())

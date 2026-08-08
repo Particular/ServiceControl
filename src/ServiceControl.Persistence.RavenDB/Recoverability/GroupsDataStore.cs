@@ -40,11 +40,12 @@ namespace ServiceControl.Persistence.RavenDB.Recoverability
             return groups;
         }
 
-        public async Task<IList<FailureGroupView>> GetArchivedGroupsByClassifier(string classifier)
+        public async Task<QueryResult<IList<FailureGroupView>>> GetArchivedGroupsByClassifier(string classifier)
         {
             using var session = await sessionProvider.OpenSession();
             var groups = session
                 .Query<FailureGroupView, ArchivedGroupsViewIndex>()
+                .Statistics(out var stats)
                 .Where(v => v.Type == classifier);
 
             var results = await groups
@@ -52,7 +53,7 @@ namespace ServiceControl.Persistence.RavenDB.Recoverability
                 .Take(200) // only show 200 groups
                 .ToListAsync();
 
-            return results;
+            return new QueryResult<IList<FailureGroupView>>(results, stats.ToQueryStatsInfo());
         }
 
         public async Task<QueryResult<FailureGroupView>> GetUnresolvedGroup(string groupId, string status, string modified)

@@ -7,16 +7,16 @@ namespace ServiceControl.Persistence.Infrastructure
     using System.Linq;
 
     /// <summary>
-    /// An opaque version of a persisted query result, surfaced to clients as an HTTP entity-tag.
+    /// An opaque version of a query result, sent to clients as an HTTP entity-tag.
     /// <para>
-    /// <see cref="None"/> means the store has no version to offer. It does not <see cref="Matches">match</see> anything, including itself.
-    /// <see cref="Equals(DataVersion)"/> is ordinary value equality and stays reflexive, so the struct remains usable as a dictionary key.
+    /// <see cref="None"/> means there is no version. It matches nothing, not even itself, so two parties
+    /// that both know nothing can never answer 304. <see cref="Equals(DataVersion)"/> is plain equality and
+    /// stays reflexive, so the struct still works as a dictionary key.
     /// </para>
     /// <para>
-    /// A struct, so that <c>default</c> is <see cref="None"/> and no field of this type can ever be
-    /// <c>null</c>. A null would be a second way to say "no version" that <see cref="Matches"/> never
-    /// gets to see. <c>operator ==</c> is deliberately not defined: the only two questions worth asking
-    /// are <see cref="Matches"/> and <see cref="Equals(DataVersion)"/>, and they answer differently.
+    /// A struct, so <c>default</c> is <see cref="None"/> and no field can be null. A null would be a second
+    /// way to say "no version" that <see cref="Matches"/> never sees. <c>operator ==</c> is left undefined on
+    /// purpose: the only two questions worth asking are <see cref="Matches"/> and <see cref="Equals(DataVersion)"/>.
     /// </para>
     /// </summary>
     [DebuggerDisplay("{validator ?? \"None\",nq}")]
@@ -36,16 +36,13 @@ namespace ServiceControl.Persistence.Infrastructure
         public bool HasValue => validator is not null;
 
         /// <summary>
-        /// Whether this version promises byte equivalence, which decides whether it goes on the wire
-        /// marked weak. Only <see cref="FromContent"/> can promise it. Not part of <see cref="Matches"/>,
-        /// because RFC 9110 requires <c>If-None-Match</c> to compare tags without regard to strength.
+        /// Whether this promises the bytes are identical, which decides if it goes out marked weak. Only
+        /// <see cref="FromContent"/> can promise it. <see cref="Matches"/> ignores it, because RFC 9110 says
+        /// <c>If-None-Match</c> compares tags without regard to strength.
         /// </summary>
         public bool IsStrong => strong;
 
-        /// <summary>
-        /// A version the backend produced itself.
-        /// Weak: the backend computed it over a result set, not over the bytes of a representation.
-        /// </summary>
+        /// <summary>A version the backend made itself. Weak: it covers a result set, not the response bytes.</summary>
         public static DataVersion FromToken(string token) =>
             string.IsNullOrEmpty(token) ? None : new DataVersion(token);
 
@@ -53,18 +50,16 @@ namespace ServiceControl.Persistence.Infrastructure
             new(token.ToString(CultureInfo.InvariantCulture));
 
         /// <summary>
-        /// A backend token that moves if and only if the bytes of the representation move, so the
-        /// entity-tag can go out unmarked. Only the caller can know this holds, so only use it where
-        /// it demonstrably does.
+        /// A backend token that moves only when the response bytes move, so the tag goes out unmarked. Only
+        /// the caller can know that holds, so only use it where it demonstrably does.
         /// </summary>
         public static DataVersion FromContent(string token) =>
             string.IsNullOrEmpty(token) ? None : new DataVersion(token, strong: true);
 
         /// <summary>
-        /// A version derived from aggregates over the query that produced the page. The terms must be
-        /// a function of every field the response exposes, computed over the same filtered set, or a
-        /// change to an unnamed field leaves a client holding a page this version claims is current.
-        /// Always weak: a summary of aggregates cannot promise byte equivalence.
+        /// A version built from aggregates over the query behind the page. Name every field the response
+        /// shows, measured over the same filtered set, or a change to an unnamed one leaves a client holding
+        /// a stale page. Always weak: a summary of aggregates cannot promise the bytes.
         /// </summary>
         public static DataVersion Compose(params (string Name, object Value)[] terms) =>
             terms is null || terms.Length == 0
@@ -72,8 +67,8 @@ namespace ServiceControl.Persistence.Infrastructure
                 : new DataVersion(DeterministicGuid.MakeId(Describe(terms)).ToString());
 
         /// <summary>
-        /// One version for a result gathered from several instances. Absent anywhere is absent overall.
-        /// Always weak, whatever went into it: it goes through <see cref="Compose"/>.
+        /// One version for a result gathered from several instances. Missing anywhere means missing overall.
+        /// Always weak, whatever went in, since it goes through <see cref="Compose"/>.
         /// </summary>
         public static DataVersion Combine(IEnumerable<DataVersion> versions)
         {
@@ -101,8 +96,8 @@ namespace ServiceControl.Persistence.Infrastructure
         }
 
         /// <summary>
-        /// A validator a client echoed back, in any shape a current or older instance might send.
-        /// Never trusted for anything but matching.
+        /// A validator a client sent back, in any shape an old or current instance might use. Only ever
+        /// trusted for matching.
         /// </summary>
         public static DataVersion FromClient(string headerValue)
         {
@@ -118,8 +113,8 @@ namespace ServiceControl.Persistence.Infrastructure
                 value = value[2..];
             }
 
-            // Trimming every quote instead would turn a malformed header into a truncated value
-            // rather than into the cache miss it should be.
+            // Only a matching pair. Stripping every quote would truncate a malformed header instead of
+            // treating it as the cache miss it is.
             if (value.Length > 1 && value[0] == '"' && value[^1] == '"')
             {
                 value = value[1..^1];
@@ -129,17 +124,17 @@ namespace ServiceControl.Persistence.Infrastructure
         }
 
         /// <summary>
-        /// Whether a caller holding <paramref name="other"/> already holds this version. The only
-        /// question a store or a conditional-request filter should ask. Ignores <see cref="IsStrong"/>,
-        /// because RFC 9110 requires <c>If-None-Match</c> to use the weak comparison function, and
-        /// because a version round-tripped through <see cref="FromClient"/> has lost its marking anyway.
+        /// Whether a caller holding <paramref name="other"/> already has this version. The only question a
+        /// store or a conditional-request filter should ask. Ignores <see cref="IsStrong"/>: RFC 9110 requires
+        /// the weak comparison, and a version that came back through <see cref="FromClient"/> has lost its
+        /// marking anyway.
         /// </summary>
         public bool Matches(DataVersion other) =>
             HasValue && other.HasValue && string.Equals(validator, other.validator, StringComparison.Ordinal);
 
         /// <summary>
-        /// Ordinary value equality, including <see cref="IsStrong"/>. Never use it to decide whether
-        /// something was modified: it is reflexive, so <see cref="None"/> equals <see cref="None"/>.
+        /// Plain value equality, marking included. Never use it to decide whether something changed: it is
+        /// reflexive, so <see cref="None"/> equals <see cref="None"/>.
         /// </summary>
         public bool Equals(DataVersion other) =>
             strong == other.strong && string.Equals(validator, other.validator, StringComparison.Ordinal);
@@ -148,7 +143,7 @@ namespace ServiceControl.Persistence.Infrastructure
 
         public override int GetHashCode() => HashCode.Combine(validator?.GetHashCode(StringComparison.Ordinal) ?? 0, strong);
 
-        /// <summary>The validator without entity-tag quoting, or an empty string for <see cref="None"/>.</summary>
+        /// <summary>The validator unquoted, or an empty string for <see cref="None"/>.</summary>
         public override string ToString() => validator ?? string.Empty;
 
         static string Describe((string Name, object Value)[] terms) =>

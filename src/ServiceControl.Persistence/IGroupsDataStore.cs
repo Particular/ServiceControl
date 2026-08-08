@@ -9,7 +9,7 @@ namespace ServiceControl.Persistence
     public interface IGroupsDataStore
     {
         Task<IList<FailureGroupView>> GetUnresolvedGroupsByClassifier(string classifier, string classifierFilter);
-        Task<IList<FailureGroupView>> GetArchivedGroupsByClassifier(string classifier);
+        Task<QueryResult<IList<FailureGroupView>>> GetArchivedGroupsByClassifier(string classifier);
 
         Task<QueryResult<FailureGroupView>> GetUnresolvedGroup(string groupId, string status, string modified);
         Task<QueryResult<FailureGroupView>> GetArchivedGroup(string groupId, string status, string modified);

@@ -88,7 +88,7 @@ class GroupsDataStoreTests : PersistenceTestBase
             InGroup(group).ToFailedMessage(),
             InGroup(group).ToFailedMessage(FailedMessageStatus.Archived));
 
-        var view = (await GroupsStore.GetArchivedGroupsByClassifier(Classifier)).Single();
+        var view = (await GroupsStore.GetArchivedGroupsByClassifier(Classifier)).Results.Single();
 
         using (Assert.EnterMultipleScope())
         {
@@ -295,7 +295,7 @@ class GroupsDataStoreTests : PersistenceTestBase
         await Insert(InGroup(group).ToFailedMessage(FailedMessageStatus.Archived));
         await EditComment(group.Id, "Only shown on the open group");
 
-        var view = (await GroupsStore.GetArchivedGroupsByClassifier(Classifier)).Single();
+        var view = (await GroupsStore.GetArchivedGroupsByClassifier(Classifier)).Results.Single();
 
         Assert.That(view.Comment, Is.Null);
     }
