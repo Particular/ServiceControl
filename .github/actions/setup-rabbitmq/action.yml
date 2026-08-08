@@ -1,0 +1,123 @@
+name: Setup RabbitMQ
+description: >
+  Runs RabbitMQ in a Linux container for the duration of the job. On Linux runners the container runs
+  directly through Docker. On Windows runners it runs inside the WSL2 Docker host provisioned by
+  Particular/setup-wsl-action, which must run first.
+
+  This is a local stand-in for Particular/setup-rabbitmq-action, which provisions an Azure Container
+  Instance on Windows. It produces the same connection string, so it can be swapped back out once the
+  shared action gains WSL support.
+
+inputs:
+  connection-string-name:
+    description: The name of the environment variable to fill with the RabbitMQ connection string.
+    required: true
+  host-env-var-name:
+    description: The name of an environment variable to fill with the RabbitMQ host name.
+    required: false
+  image-tag:
+    description: The tag of the rabbitmq container image.
+    required: false
+    default: '3-management'
+  registry-login-server:
+    description: The container registry to log in to, if required.
+    required: false
+    default: index.docker.io
+  registry-username:
+    description: The username for the container registry. No login is attempted if not provided.
+    required: false
+  registry-password:
+    description: The password for the container registry. No login is attempted if not provided.
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Run RabbitMQ container
+      shell: pwsh
+      env:
+        CONNECTION_STRING_NAME: ${{ inputs.connection-string-name }}
+        HOST_ENV_VAR_NAME: ${{ inputs.host-env-var-name }}
+        IMAGE_TAG: ${{ inputs.image-tag }}
+        REGISTRY_LOGIN_SERVER: ${{ inputs.registry-login-server }}
+        REGISTRY_USERNAME: ${{ inputs.registry-username }}
+        REGISTRY_PASSWORD: ${{ inputs.registry-password }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+
+        $onWindows = $Env:RUNNER_OS -eq 'Windows'
+
+        if ($onWindows) {
+          if (-not $Env:WSL_TOOLS_MODULE_PATH) {
+            throw "WSL_TOOLS_MODULE_PATH is not set. Particular/setup-wsl-action must run before this action on Windows."
+          }
+          Import-Module $Env:WSL_TOOLS_MODULE_PATH
+        }
+
+        function Invoke-Docker([string]$Arguments) {
+          if ($onWindows) { Invoke-Wsl -CheckExitCode -Command "docker $Arguments" }
+          else { Invoke-Expression "docker $Arguments" }
+        }
+
+        $containerName = 'servicecontrol-rabbitmq'
+        $image = "rabbitmq:$($Env:IMAGE_TAG)"
+
+        if ($Env:REGISTRY_USERNAME -and $Env:REGISTRY_PASSWORD) {
+          Write-Output "Logging in to $($Env:REGISTRY_LOGIN_SERVER)"
+          Invoke-Docker "login $($Env:REGISTRY_LOGIN_SERVER) --username $($Env:REGISTRY_USERNAME) --password $($Env:REGISTRY_PASSWORD)" | Out-Null
+        }
+        else {
+          Write-Output "No registry credentials supplied, pulling anonymously"
+        }
+
+        Write-Output "Starting $image as $containerName"
+        Invoke-Docker "run --name $containerName --detach --publish 5672:5672 --publish 15672:15672 $image"
+
+        # On Windows the broker listens inside the WSL VM, reachable on its gateway address.
+        $ipAddress = if ($onWindows) { $Env:WSL_IP } else { '127.0.0.1' }
+
+        Write-Output "$($Env:CONNECTION_STRING_NAME)=host=$ipAddress" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+        if (-not [string]::IsNullOrWhiteSpace($Env:HOST_ENV_VAR_NAME)) {
+          Write-Output "$($Env:HOST_ENV_VAR_NAME)=$ipAddress" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+        }
+
+        Write-Output "::group::Testing connection"
+
+        # Explicit header rather than -Credential, which refuses basic auth over plain HTTP in pwsh.
+        $authHeader = @{ Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes('guest:guest')) }
+        $healthUri = "http://${ipAddress}:15672/api/health/checks/virtual-hosts"
+        $deadline = (Get-Date).AddMinutes(5)
+        # The broker occasionally hangs part way through boot inside WSL, logging nothing further. One
+        # restart recovers it, and the log line below makes it visible when that happens.
+        $restartAfter = (Get-Date).AddSeconds(90)
+        $restarted = $false
+        $lastError = 'no attempt made yet'
+
+        while ($true) {
+          try {
+            $response = Invoke-RestMethod -Uri $healthUri -Headers $authHeader -TimeoutSec 5
+            if ($response.status -eq 'ok') { break }
+            $lastError = "health check reported '$($response.status)'"
+          }
+          catch {
+            $lastError = $_.Exception.Message
+          }
+
+          if ((Get-Date) -gt $deadline) {
+            Write-Output "Last probe error: $lastError"
+            Invoke-Docker "ps --all --filter name=$containerName"
+            Invoke-Docker "logs $containerName"
+            throw "RabbitMQ did not become healthy within 5 minutes."
+          }
+
+          if (-not $restarted -and (Get-Date) -gt $restartAfter) {
+            Write-Output "RabbitMQ has not responded after 90 seconds ($lastError). Restarting the container once."
+            Invoke-Docker "restart $containerName"
+            $restarted = $true
+          }
+
+          Start-Sleep -Seconds 5
+        }
+
+        Write-Output "RabbitMQ is healthy on $ipAddress"
+        Write-Output "::endgroup::"

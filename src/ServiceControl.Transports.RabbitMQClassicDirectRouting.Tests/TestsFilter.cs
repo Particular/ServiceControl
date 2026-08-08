@@ -1,1 +1,1 @@
-﻿[assembly: IncludeInRabbitMQTests()]
+﻿[assembly: IncludeInTestCategory("RabbitMQClassicDirect")]
