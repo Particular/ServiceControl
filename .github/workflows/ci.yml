@@ -67,14 +67,21 @@ jobs:
       # as a download, in every test job.
       - name: Report build output size
         run: |
-          $files = Get-ChildItem -Path src/*/bin -Recurse -File -ErrorAction SilentlyContinue
+          # Resolve the bin directories first. `Get-ChildItem -Path src/*/bin -Recurse` does not work:
+          # with a wildcard in the path, PowerShell treats the leaf as a filter and looks for items
+          # *named* bin during recursion, which matches nothing.
+          $binDirs = Get-ChildItem -Path src -Directory | ForEach-Object { Join-Path $_.FullName 'bin' } | Where-Object { Test-Path $_ }
+          $files = Get-ChildItem -Path $binDirs -Recurse -File -ErrorAction SilentlyContinue
           $gb = [math]::Round(($files | Measure-Object -Property Length -Sum).Sum / 1GB, 2)
-          Write-Output "Build output to cache: $gb GB across $($files.Count) files"
+          Write-Output "Build output to cache: $gb GB uncompressed across $($files.Count) files"
       - name: Save build output to cache
         uses: actions/cache/save@v6.1.0
         with:
           path: src/*/bin
           key: ${{ steps.key.outputs.value }}
+          # Required for the Windows test jobs to restore a cache written on Linux. Without it the
+          # archive is platform-specific and every Windows restore misses.
+          enableCrossOsArchive: true
 
   build:
     name: ${{ matrix.os-name }}-${{ matrix.test-category }}
@@ -123,6 +130,8 @@ jobs:
           path: src/*/bin
           key: ${{ needs.compile.outputs.cache-key }}
           fail-on-cache-miss: true
+          # Must match the save side: the cache is written on Linux and restored on both OSes.
+          enableCrossOsArchive: true
       # obj/ is deliberately not cached: it embeds absolute paths into the Linux runner's NuGet cache,
       # so it has to be regenerated for this OS. dotnet test --no-build then uses the cached assemblies
       # without recompiling.
