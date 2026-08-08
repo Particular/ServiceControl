@@ -81,6 +81,12 @@ public class PersistenceTestsContext : IPersistenceTestsContext
 
     public IRavenSessionProvider SessionProvider { get; private set; }
 
+    // Nothing to do: Raven versions come from document and index etags, which move on every write, so
+    // no test needs to push its clock. There is no hook for the server clock anyway.
+    public void AdvanceClock(TimeSpan by)
+    {
+    }
+
     public Task CompleteDatabaseOperation()
     {
         DocumentStore.WaitForIndexing();
