@@ -39,12 +39,23 @@ jobs:
       # ServiceControlInstaller.Packaging's zip targets fail without a self-contained server in deploy/,
       # so the full-solution build needs this and every test job waits behind it. The server is pinned
       # to the RavenDB.Embedded version, so cache it rather than re-downloading ~18s per run.
+      # Keyed on exactly what determines the download: the RavenDB.Embedded version and the OS (the
+      # script fetches a different archive per platform), plus the script itself so a change to how it
+      # extracts invalidates the entry. Hashing Directory.Packages.props instead would re-download on
+      # every unrelated package bump.
+      - name: Read RavenDB version
+        id: raven-version
+        run: |
+          $version = (Select-Xml -Path src/Directory.Packages.props -XPath "/Project/ItemGroup/PackageVersion[@Include='RavenDB.Embedded']/@Version").Node.Value
+          if (-not $version) { throw "Could not read the RavenDB.Embedded version from src/Directory.Packages.props" }
+          Write-Output "RavenDB.Embedded version: $version"
+          echo "value=$version" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf-8 -Append
       - name: Cache RavenDB Server
         id: raven
         uses: actions/cache@v6.1.0
         with:
           path: deploy/RavenDBServer
-          key: ravendb-server-${{ runner.os }}-${{ hashFiles('src/Directory.Packages.props') }}
+          key: ravendb-server-${{ runner.os }}-${{ steps.raven-version.outputs.value }}-${{ hashFiles('tools/download-ravendb-server.ps1') }}
       - name: Download RavenDB Server
         if: steps.raven.outputs.cache-hit != 'true'
         run: ./tools/download-ravendb-server.ps1
@@ -126,7 +137,7 @@ jobs:
       # environment variables on both runners.
       - name: Setup WSL
         if: startsWith(matrix.test-category, 'RabbitMQ') || contains(fromJSON('["SqlServer", "SqlServerPersistence", "PostgreSql", "PostgreSqlPersistence", "IBMMQ"]'), matrix.test-category)
-        uses: Particular/setup-wsl-action@v1.0.0
+        uses: Particular/setup-wsl-action@v1.1.0
         with:
           # The action defaults to 4GB. The runner has 16GB and the build runs concurrently with the
           # container starting up, so give the VM real headroom.
@@ -183,7 +194,7 @@ jobs:
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Setup RabbitMQ
-        uses: ./.github/actions/setup-rabbitmq
+        uses: Particular/setup-rabbitmq-action@v2.0.0
         if: startsWith(matrix.test-category, 'RabbitMQ')
         with:
           connection-string-name: ServiceControl_TransportTests_RabbitMQ_ConnectionString
