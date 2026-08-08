@@ -57,23 +57,36 @@ runs:
           "-e LICENSE=accept -e MQ_QMGR_NAME=$($Env:QUEUE_MANAGER) -e MQ_ADMIN_PASSWORD=$($Env:ADMIN_PASSWORD) " +
           $Env:IMAGE)
 
-        Write-Output "::group::Waiting for container health check"
+        # On Windows the queue manager listens inside the WSL VM, reachable on its gateway address.
+        $mqHost = if ($onWindows) { $Env:WSL_IP } else { 'localhost' }
 
-        # Out-String because the WSL and native paths differ in whether they hand back a string or a
-        # collection of output lines.
+        # Docker's health check runs dspmq inside the container, which reports the queue manager
+        # process rather than whether the listener is reachable through the WSL port forward. Probe
+        # the endpoint the tests actually connect to instead, the way setup-postgres-action does.
+        function Test-Endpoint([string]$TargetHost, [int]$Port) {
+          $client = [System.Net.Sockets.TcpClient]::new()
+          try { return $client.ConnectAsync($TargetHost, $Port).Wait(5000) -and $client.Connected }
+          catch { return $false }
+          finally { $client.Dispose() }
+        }
+
+        Write-Output "::group::Waiting for IBM MQ to accept connections on ${mqHost}:1414"
+
         $deadline = (Get-Date).AddMinutes(5)
-        while ((Invoke-Docker "inspect --format '{{.State.Health.Status}}' $containerName" | Out-String).Trim() -ne 'healthy') {
+        while (-not (Test-Endpoint $mqHost 1414)) {
           if ((Get-Date) -gt $deadline) {
+            # Out-String because the WSL and native paths differ in whether they hand back a string
+            # or a collection of output lines.
+            $status = (Invoke-Docker "inspect --format '{{.State.Status}} {{.State.Health.Status}}' $containerName" | Out-String).Trim()
+            Write-Output "Container state: $status"
+            Invoke-Docker "ps --all --filter name=$containerName"
             Invoke-Docker "logs $containerName"
-            throw "IBM MQ did not report healthy within 5 minutes."
+            throw "IBM MQ did not accept connections on ${mqHost}:1414 within 5 minutes."
           }
           Start-Sleep -Seconds 2
         }
 
         Write-Output "::endgroup::"
-
-        # On Windows the queue manager listens inside the WSL VM, reachable on its gateway address.
-        $mqHost = if ($onWindows) { $Env:WSL_IP } else { 'localhost' }
         $connectionString = "mq://admin:$($Env:ADMIN_PASSWORD)@${mqHost}:1414/$($Env:QUEUE_MANAGER)?channel=DEV.ADMIN.SVRCONN&topicprefix=DEV"
 
         Write-Output "IBM MQ is healthy on $mqHost"
