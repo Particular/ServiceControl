@@ -23,6 +23,8 @@ public partial class PersistenceTestsContext : IPersistenceTestsContext
 
     public FakeTimeProvider FakeTime { get; } = new();
 
+    public void AdvanceClock(TimeSpan by) => FakeTime.Advance(by);
+
     public async Task Setup(IHostApplicationBuilder hostBuilder)
     {
         databaseName = $"sc_test_{Guid.NewGuid():n}";
