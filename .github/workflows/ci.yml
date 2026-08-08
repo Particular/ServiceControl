@@ -6,15 +6,207 @@ on:
       - release-*
   pull_request:
   workflow_dispatch:
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 env:
   DOTNET_NOLOGO: true
 defaults:
   run:
     shell: pwsh
 jobs:
-  build:
+  # Build each OS once and publish the test outputs to Azure blob storage. Every
+  # test job downloads its category's closure instead of rebuilding the solution
+  # 26 times. Because of the `needs:` gates below, a failed build skips all test
+  # jobs, so no broker/cloud resource is ever provisioned for an unbuildable commit.
+  build-windows:
+    name: Windows Build
+    runs-on: windows-latest
+    timeout-minutes: 90
+    env:
+      AZURE_ACI_CREDENTIALS: ${{ secrets.AZURE_ACI_CREDENTIALS }}
+      AZURE_CI_RG: ServiceControl-CI
+      AZURE_CI_ACCOUNT: scpartpciartifacts
+    outputs:
+      account: ${{ steps.publish.outputs.account }}
+      container: ${{ steps.publish.outputs.container }}
+      sas: ${{ steps.publish.outputs.sas }}
+    steps:
+      - name: Check for secrets
+        env:
+          SECRETS_AVAILABLE: ${{ secrets.SECRETS_AVAILABLE }}
+        run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v6.0.0
+        with:
+          global-json-file: global.json
+      # Needed by ServiceControlInstaller.Packaging's zip targets during the build.
+      - name: Download RavenDB Server
+        run: ./tools/download-ravendb-server.ps1
+      - name: Build
+        run: dotnet build src --configuration Release -graph
+      - name: Zip PowerShell module
+        run: |
+          New-Item assets\PowerShellModules -ItemType Directory
+          Compress-Archive -Path deploy\PowerShellModules\Particular.ServiceControl.Management\* -DestinationPath assets\PowerShellModules\Particular.ServiceControl.Management.zip
+      - name: Smoke test PowerShell module import
+        run: Import-Module ./deploy/PowerShellModules/Particular.ServiceControl.Management
+      - name: Upload assets
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: Windows-assets
+          path: |
+            nugets/
+            zip/
+            assets/
+          retention-days: 1
+      - name: Azure login
+        uses: azure/login@v3.0.1
+        with:
+          creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
+      - name: Publish test outputs
+        id: publish
+        run: |
+          Write-Output "Ensuring resource group and storage account"
+          az group create --name $env:AZURE_CI_RG --location westeurope --only-show-errors | Out-Null
+          for ($attempt = 0; $attempt -lt 3; $attempt++) {
+            $exists = az storage account show --name $env:AZURE_CI_ACCOUNT --resource-group $env:AZURE_CI_RG --query name --output tsv 2>$null
+            if ($exists) { break }
+            az storage account create --name $env:AZURE_CI_ACCOUNT --resource-group $env:AZURE_CI_RG --sku Standard_LRS --kind StorageV2 --only-show-errors | Out-Null
+            if ($LASTEXITCODE -eq 0) { break }
+            Start-Sleep -Seconds 15
+          }
+          $key = az storage account keys list --account-name $env:AZURE_CI_ACCOUNT --resource-group $env:AZURE_CI_RG --query "[0].value" --output tsv
+          if (-not $key) { throw 'Could not obtain storage account key' }
+
+          $container = "run-$($env:GITHUB_RUN_ID)-win"
+          az storage container create --account-name $env:AZURE_CI_ACCOUNT --account-key $key --name $container --output none
+
+          $expiry = (Get-Date).ToUniversalTime().AddHours(8).ToString('yyyy-MM-ddTHH:mmZ')
+          $sas = az storage container generate-sas --account-name $env:AZURE_CI_ACCOUNT --account-key $key --name $container --permissions rl --expiry $expiry --output tsv
+
+          $testProjects = Get-ChildItem -Path src -Recurse -Filter 'TestsFilter.cs' -File | ForEach-Object { $_.Directory.Name } | Sort-Object -Unique
+          $staging = Join-Path $env:GITHUB_WORKSPACE '.staging'
+          $staged = 0
+          foreach ($p in $testProjects) {
+            $source = Join-Path 'src' $p
+            if (-not (Test-Path (Join-Path $source 'bin\Release'))) { continue }
+            $dest = Join-Path $staging "src\$p"
+            New-Item -ItemType Directory -Force -Path $dest | Out-Null
+            Copy-Item -Path (Join-Path $source 'bin\Release') -Destination (Join-Path $dest 'bin') -Recurse -Force
+            Copy-Item -Path (Join-Path $source 'obj') -Destination (Join-Path $dest 'obj') -Recurse -Force
+            $staged++
+          }
+          Write-Output "Staged $staged test projects"
+
+          az storage blob upload-batch --account-name $env:AZURE_CI_ACCOUNT --account-key $key --destination $container --source $staging --pattern "**" --only-show-errors
+          if ($LASTEXITCODE -ne 0) { throw 'Blob upload failed' }
+
+          "account=$($env:AZURE_CI_ACCOUNT)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "container=$container" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "sas=$sas" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+  build-linux:
+    name: Linux Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      AZURE_ACI_CREDENTIALS: ${{ secrets.AZURE_ACI_CREDENTIALS }}
+      AZURE_CI_RG: ServiceControl-CI
+      AZURE_CI_ACCOUNT: scpartpciartifacts
+    outputs:
+      account: ${{ steps.publish.outputs.account }}
+      container: ${{ steps.publish.outputs.container }}
+      sas: ${{ steps.publish.outputs.sas }}
+    steps:
+      - name: Check for secrets
+        env:
+          SECRETS_AVAILABLE: ${{ secrets.SECRETS_AVAILABLE }}
+        run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Download RavenDB Server
+        run: ./tools/download-ravendb-server.ps1
+      - name: Build
+        run: dotnet build src --configuration Release -graph
+      - name: Zip PowerShell module
+        run: |
+          New-Item assets\PowerShellModules -ItemType Directory
+          Compress-Archive -Path deploy\PowerShellModules\Particular.ServiceControl.Management\* -DestinationPath assets\PowerShellModules\Particular.ServiceControl.Management.zip
+      - name: Upload assets
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: Linux-assets
+          path: |
+            nugets/
+            zip/
+            assets/
+          retention-days: 1
+      - name: Azure login
+        uses: azure/login@v3.0.1
+        with:
+          creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
+      - name: Publish test outputs
+        id: publish
+        run: |
+          Write-Output "Ensuring resource group and storage account"
+          az group create --name $env:AZURE_CI_RG --location westeurope --only-show-errors | Out-Null
+          for ($attempt = 0; $attempt -lt 3; $attempt++) {
+            $exists = az storage account show --name $env:AZURE_CI_ACCOUNT --resource-group $env:AZURE_CI_RG --query name --output tsv 2>$null
+            if ($exists) { break }
+            az storage account create --name $env:AZURE_CI_ACCOUNT --resource-group $env:AZURE_CI_RG --sku Standard_LRS --kind StorageV2 --only-show-errors | Out-Null
+            if ($LASTEXITCODE -eq 0) { break }
+            Start-Sleep -Seconds 15
+          }
+          $key = az storage account keys list --account-name $env:AZURE_CI_ACCOUNT --resource-group $env:AZURE_CI_RG --query "[0].value" --output tsv
+          if (-not $key) { throw 'Could not obtain storage account key' }
+
+          $container = "run-$($env:GITHUB_RUN_ID)-linux"
+          az storage container create --account-name $env:AZURE_CI_ACCOUNT --account-key $key --name $container --output none
+
+          $expiry = (Get-Date).ToUniversalTime().AddHours(8).ToString('yyyy-MM-ddTHH:mmZ')
+          $sas = az storage container generate-sas --account-name $env:AZURE_CI_ACCOUNT --account-key $key --name $container --permissions rl --expiry $expiry --output tsv
+
+          $testProjects = Get-ChildItem -Path src -Recurse -Filter 'TestsFilter.cs' -File | ForEach-Object { $_.Directory.Name } | Sort-Object -Unique
+          $staging = Join-Path $env:GITHUB_WORKSPACE '.staging'
+          $staged = 0
+          foreach ($p in $testProjects) {
+            $source = Join-Path 'src' $p
+            if (-not (Test-Path (Join-Path $source 'bin/Release'))) { continue }
+            $dest = Join-Path $staging "src/$p"
+            New-Item -ItemType Directory -Force -Path $dest | Out-Null
+            Copy-Item -Path (Join-Path $source 'bin/Release') -Destination (Join-Path $dest 'bin') -Recurse -Force
+            Copy-Item -Path (Join-Path $source 'obj') -Destination (Join-Path $dest 'obj') -Recurse -Force
+            $staged++
+          }
+          Write-Output "Staged $staged test projects"
+
+          az storage blob upload-batch --account-name $env:AZURE_CI_ACCOUNT --account-key $key --destination $container --source $staging --pattern "**" --only-show-errors
+          if ($LASTEXITCODE -ne 0) { throw 'Blob upload failed' }
+
+          "account=$($env:AZURE_CI_ACCOUNT)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "container=$container" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "sas=$sas" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+  test:
     name: ${{ matrix.os-name }}-${{ matrix.test-category }}
+    needs: ${{ matrix.os-name == 'Windows' && 'build-windows' || 'build-linux' }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    env:
+      AZURE_CI_ACCOUNT: ${{ needs[format('build-{0}', lower(matrix.os-name))].outputs.account }}
+      AZURE_CI_CONTAINER: ${{ needs[format('build-{0}', lower(matrix.os-name))].outputs.container }}
+      AZURE_CI_SAS: ${{ needs[format('build-{0}', lower(matrix.os-name))].outputs.sas }}
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest]
@@ -48,25 +240,14 @@ jobs:
           uses: Particular/setup-wsl-action@v1.1.0
         - name: Download RavenDB Server
           run: ./tools/download-ravendb-server.ps1
-      - name: Build
-        run: dotnet build src --configuration Release -graph
-      - name: Zip PowerShell module
+      - name: Download test outputs
         run: |
-          New-Item assets\PowerShellModules -ItemType Directory
-          Compress-Archive -Path deploy\PowerShellModules\Particular.ServiceControl.Management\* -DestinationPath assets\PowerShellModules\Particular.ServiceControl.Management.zip
-      - name: Upload assets
-        uses: actions/upload-artifact@v7.0.1
-        if: matrix.test-category == 'Default'
-        with:
-          name: ${{ matrix.os-name }}-assets
-          path: |
-            nugets/
-            zip/
-            assets/
-          retention-days: 1
-      - name: Smoke test PowerShell module import
-        if: matrix.os-name == 'Windows'
-        run: Import-Module ./deploy/PowerShellModules/Particular.ServiceControl.Management
+          $projects = ./tools/ci-category-projects.ps1 -Category '${{ matrix.test-category }}'
+          $projects | ForEach-Object {
+            Write-Output "Downloading $_"
+            az storage blob download-batch --account-name $env:AZURE_CI_ACCOUNT --sas-token $env:AZURE_CI_SAS --destination $env:GITHUB_WORKSPACE --source $env:AZURE_CI_CONTAINER --pattern "$_/**" --output none
+            if ($LASTEXITCODE -ne 0) { throw "Download failed for $_" }
+          }
 
       # there is an issue with az cli and python 3.14, so for now we need to pin it
       # once the issue is resolved it should be able to be re-floated
@@ -84,11 +265,6 @@ jobs:
           python -m pip install --user "azure-cli==2.64.0"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-      - name: Azure login
-        uses: azure/login@v3.0.1
-        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ' || matrix.test-category == 'PostgreSQL' || matrix.test-category == 'PostgreSQLPersistence'
-        with:
-          creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup SQL Server
         uses: Particular/install-sql-server-action@v3.0.0
         if: matrix.test-category == 'SqlServer'
@@ -148,23 +324,48 @@ jobs:
           while ((docker inspect --format '{{.State.Health.Status}}' ibmmq) -ne 'healthy') {
             Start-Sleep -Seconds 2
           }
-          echo "ServiceControl_TransportTests_IBMMQ_ConnectionString=mq://admin:passw0rd@localhost:1414/QM1?channel=DEV.ADMIN.SVRCONN&topicprefix=DEV" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+          echo "ServiceControl_TransportTests_IBMMQ_ConnectionString=mq://admin:passw0rd@localhost:1414/QM1?channel=DEV.ADMIN.SVRCONN&topicprefix=DEV" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
       - name: Setup SQS environment variables
         if: matrix.test-category == 'SQS'
         run: |
-          echo "AWS_REGION=${{ secrets.AWS_REGION }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
-          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
           # Cleanup of queues starting with `GHA-` handled by https://github.com/Particular/NServiceBus.AmazonSQS/blob/master/.github/workflows/tests-cleanup.yml
           $connectString = "AccessKeyId=${{ secrets.AWS_ACCESS_KEY_ID }};SecretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }};Region=${{ secrets.AWS_REGION }};QueueNamePrefix=GHA-${{ github.run_id }}"
-          echo "ServiceControl_TransportTests_SQS_ConnectionString=$connectString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+          echo "ServiceControl_TransportTests_SQS_ConnectionString=$connectString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
       - name: Run tests
-        uses: Particular/run-tests-action@v1.7.0
+        run: |
+          $projects = ./tools/ci-category-projects.ps1 -Category '${{ matrix.test-category }}'
+          ./tools/run-tests.ps1 -Projects ($projects -join "`n")
         env:
           ServiceControl_TESTS_FILTER: ${{ matrix.test-category }}
           PARTICULARSOFTWARE_LICENSE: ${{ secrets.LICENSETEXT }}
           AZURE_ACI_CREDENTIALS: ${{ secrets.AZURE_ACI_CREDENTIALS }}
+
+  cleanup-artifacts:
+    if: always()
+    needs: [ build-windows, build-linux, test ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      AZURE_ACI_CREDENTIALS: ${{ secrets.AZURE_ACI_CREDENTIALS }}
+      AZURE_CI_RG: ServiceControl-CI
+      AZURE_CI_ACCOUNT: scpartpciartifacts
+    steps:
+      - name: Azure login
+        uses: azure/login@v3.0.1
+        with:
+          creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
+      - name: Delete run containers
+        run: |
+          $key = az storage account keys list --account-name $env:AZURE_CI_ACCOUNT --resource-group $env:AZURE_CI_RG --query "[0].value" --output tsv
+          if (-not $key) { throw 'Could not obtain storage account key' }
+          "run-$($env:GITHUB_RUN_ID)-win", "run-$($env:GITHUB_RUN_ID)-linux" | ForEach-Object {
+            az storage container delete --account-name $env:AZURE_CI_ACCOUNT --account-key $key --name $_ --yes --only-show-errors
+            Write-Output "Deleted container $_"
+          }
 
   windows-installers:
     uses: ./.github/workflows/build-windows.yml
