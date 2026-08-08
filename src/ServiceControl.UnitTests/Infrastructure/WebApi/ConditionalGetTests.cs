@@ -61,16 +61,6 @@ public class ConditionalGetTests
     }
 
     [Test]
-    public void A_deterministic_etag_is_a_well_formed_entity_tag()
-    {
-        var httpContext = new DefaultHttpContext();
-
-        httpContext.Response.WithDeterministicEtag(DataVersion.FromToken("any-non-empty-payload-signature"));
-
-        Assert.That(httpContext.Response.GetTypedHeaders().ETag, Is.Not.Null);
-    }
-
-    [Test]
     public void The_emitted_etag_quotes_the_value_without_altering_it()
     {
         var httpContext = new DefaultHttpContext();
@@ -87,7 +77,7 @@ public class ConditionalGetTests
 
         httpContext.Response.WithEtag(DataVersion.FromToken("A:2-abc"));
 
-        // The marking arrives in a later task. This one only changes who holds the value.
+        // Marking comes later. This change only moves who holds the value.
         Assert.That(httpContext.Response.Headers.ETag.ToString(), Is.EqualTo("\"A:2-abc\""));
     }
 
@@ -100,6 +90,20 @@ public class ConditionalGetTests
 
         Assert.That(httpContext.Response.Headers.ContainsKey("ETag"), Is.False,
             "an empty entity-tag is well formed, so it would match itself and answer 304 for unrelated payloads");
+    }
+
+    [Test]
+    public void A_paged_endpoint_emits_the_store_version_rather_than_a_hash_of_it()
+    {
+        var httpContext = new DefaultHttpContext();
+        var version = DataVersion.FromToken("4611686018427387904");
+
+        httpContext.Response.WithQueryStatsAndPagingInfo(
+            new QueryStatsInfo(version, totalCount: 1, isStale: false),
+            new PagingInfo());
+
+        // A hashed validator matches nothing a store holds, so the endpoint can never skip its query.
+        Assert.That(httpContext.Response.Headers.ETag.ToString(), Does.Contain(version.ToString()));
     }
 
     static ResultExecutingContext ResultExecuting(HttpContext httpContext) =>

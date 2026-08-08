@@ -29,8 +29,7 @@ public class DataVersionTests
     [Test]
     public void Equality_stays_reflexive_so_the_struct_is_safe_in_collections()
     {
-        // `Matches` carries the cache rule. `Equals` must not, or IEquatable is violated and any
-        // dictionary or Distinct over DataVersion misbehaves.
+        // Matches carries the cache rule, Equals must not, or any dictionary or Distinct over it breaks.
         Assert.That(DataVersion.None.Equals(DataVersion.None), Is.True);
     }
 
@@ -167,8 +166,7 @@ public class DataVersionTests
     [Test]
     public void FromClient_leaves_a_malformed_validator_alone_rather_than_truncating_it()
     {
-        // Trimming every quote would turn a malformed header into a truncated value that could
-        // accidentally match, rather than into the cache miss it should be.
+        // Stripping every quote would truncate this into something that might match by accident.
         Assert.That(DataVersion.FromClient("\"abc").ToString(), Is.EqualTo("\"abc"));
     }
 
@@ -202,9 +200,8 @@ public class DataVersionTests
     [Test]
     public void Matching_ignores_the_marking()
     {
-        // RFC 9110 requires If-None-Match to use the weak comparison function, under which the
-        // marking is not part of the test. A client that revalidates gets its version back through
-        // FromClient, which cannot know the marking, so this is the ordinary case not an edge one.
+        // RFC 9110 requires the weak comparison, which ignores the marking. Anything coming back through
+        // FromClient has lost its marking anyway, so this is the normal case and not an edge one.
         Assert.That(DataVersion.FromContent("cv-1").Matches(DataVersion.FromClient("W/\"cv-1\"")), Is.True);
     }
 

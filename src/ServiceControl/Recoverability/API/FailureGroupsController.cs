@@ -67,7 +67,7 @@
             }
 
             var results = await fetcher.GetGroups(classifier, classifierFilter, cancellationToken);
-            Response.WithDeterministicEtag(DataVersion.FromToken(EtagHelper.CalculateEtag(results)));
+            Response.WithEtag(EtagHelper.VersionOf(results));
             return results;
         }
 
@@ -100,7 +100,7 @@
         {
             var retryHistory = await retryStore.GetRetryHistory(cancellationToken);
 
-            Response.WithDeterministicEtag(DataVersion.FromToken(retryHistory.GetHistoryOperationsUniqueIdentifier()));
+            Response.WithEtag(DataVersion.Compose(("operations", retryHistory.GetHistoryOperationsUniqueIdentifier())));
 
             return retryHistory;
         }

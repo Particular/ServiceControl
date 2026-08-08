@@ -76,8 +76,8 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
             return new QueryResult<IList<EventLogItemView>>(items, queryStats);
         }, cancellationToken);
 
-    // Synthesised version for an append-only table. The highest key is the monotonic term: identity
-    // values gap but never repeat, so an insert moves the version whatever its RaisedAt says.
+    // The table is append-only, so the highest key is enough to spot an insert: identity values can gap
+    // but never repeat, whatever RaisedAt says.
     static DataVersion Version(long total, DateTime? newest, long? highestId) =>
         DataVersion.Compose(("total", total), ("newest", newest), ("highestId", highestId));
 }

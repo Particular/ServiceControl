@@ -20,8 +20,8 @@ namespace ServiceControl.Infrastructure.WebApi
                 return;
             }
 
-            // RFC 9110 requires an entity-tag to be a quoted string. Unquoted, EntityTagHeaderValue
-            // cannot parse it and NotModifiedStatusHttpHandler never matches a client's If-None-Match.
+            // Quotes are required by RFC 9110. Without them EntityTagHeaderValue cannot parse the tag and
+            // NotModifiedStatusHttpHandler never matches a client's If-None-Match.
             response.Headers.ETag = $"\"{version}\"";
         }
 
@@ -29,16 +29,6 @@ namespace ServiceControl.Infrastructure.WebApi
         {
             response.WithTotalCount(queryStatsInfo.TotalCount);
             response.WithEtag(queryStatsInfo.Version);
-        }
-
-        public static void WithDeterministicEtag(this HttpResponse response, DataVersion version)
-        {
-            if (!version.HasValue)
-            {
-                return;
-            }
-
-            response.WithEtag(DataVersion.FromToken(DeterministicGuid.MakeId(version.ToString()).ToString()));
         }
 
         static void WithHeader(this HttpResponse response, string header, StringValues value) => response.Headers.Append(header, value);
@@ -100,7 +90,7 @@ namespace ServiceControl.Infrastructure.WebApi
         public static void WithQueryStatsAndPagingInfo(this HttpResponse response, QueryStatsInfo queryStats, PagingInfo pagingInfo)
         {
             response.WithPagingLinksAndTotalCount(pagingInfo, queryStats.TotalCount, queryStats.HighestTotalCountOfAllTheInstances);
-            response.WithDeterministicEtag(queryStats.Version);
+            response.WithEtag(queryStats.Version);
         }
 
         public static void WithPagingLinksAndTotalCount(this HttpResponse response,
