@@ -65,6 +65,10 @@ jobs:
       - name: Setup WSL
         if: startsWith(matrix.test-category, 'RabbitMQ') || contains(fromJSON('["SqlServer", "SqlServerPersistence", "PostgreSql", "PostgreSqlPersistence", "IBMMQ"]'), matrix.test-category)
         uses: Particular/setup-wsl-action@v1.0.0
+        with:
+          # The action defaults to 4GB. The runner has 16GB and the build runs concurrently with the
+          # container starting up, so give the VM real headroom.
+          memory: 8GB
 
       # there is an issue with az cli and python 3.14, so for now we need to pin it
       # once the issue is resolved it should be able to be re-floated

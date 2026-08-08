@@ -87,20 +87,33 @@ runs:
         $authHeader = @{ Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes('guest:guest')) }
         $healthUri = "http://${ipAddress}:15672/api/health/checks/virtual-hosts"
         $deadline = (Get-Date).AddMinutes(5)
+        # The broker occasionally hangs part way through boot inside WSL, logging nothing further. One
+        # restart recovers it, and the log line below makes it visible when that happens.
+        $restartAfter = (Get-Date).AddSeconds(90)
+        $restarted = $false
+        $lastError = 'no attempt made yet'
 
         while ($true) {
           try {
             $response = Invoke-RestMethod -Uri $healthUri -Headers $authHeader -TimeoutSec 5
             if ($response.status -eq 'ok') { break }
-            Write-Output "Health check reported '$($response.status)', retrying..."
+            $lastError = "health check reported '$($response.status)'"
           }
           catch {
-            Write-Output "No response yet, retrying..."
+            $lastError = $_.Exception.Message
           }
 
           if ((Get-Date) -gt $deadline) {
+            Write-Output "Last probe error: $lastError"
+            Invoke-Docker "ps --all --filter name=$containerName"
             Invoke-Docker "logs $containerName"
             throw "RabbitMQ did not become healthy within 5 minutes."
+          }
+
+          if (-not $restarted -and (Get-Date) -gt $restartAfter) {
+            Write-Output "RabbitMQ has not responded after 90 seconds ($lastError). Restarting the container once."
+            Invoke-Docker "restart $containerName"
+            $restarted = $true
           }
 
           Start-Sleep -Seconds 5
