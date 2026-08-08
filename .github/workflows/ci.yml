@@ -18,7 +18,9 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest]
-        test-category: [ Default, SqlServer, SqlServerPersistence, AzureServiceBus, RabbitMQ, AzureStorageQueues, MSMQ, SQS, PrimaryRavenAcceptance, PrimaryRavenPersistence, PostgreSql, PostgreSqlPersistence, IBMMQ ]
+        # Categories are declared by the <TestCategory> property in each test project. Default and
+        # RabbitMQ are split because each was a single job running several slow assemblies back to back.
+        test-category: [ DefaultCore, DefaultAudit, DefaultMonitoring, SqlServer, SqlServerPersistence, AzureServiceBus, RabbitMQClassicConventional, RabbitMQClassicDirect, RabbitMQQuorumConventional, RabbitMQQuorumDirect, AzureStorageQueues, MSMQ, SQS, PrimaryRavenAcceptance, PrimaryRavenPersistence, PostgreSql, PostgreSqlPersistence, IBMMQ ]
         include:
           - os: windows-latest
             os-name: Windows
@@ -46,11 +48,11 @@ jobs:
       - name: Select test projects
         id: select
         run: ./tools/select-test-projects.ps1 -Category ${{ matrix.test-category }}
-      # ServiceControlInstaller.Packaging is only in the Default category's build closure, and its zip
-      # targets fail without a self-contained server in deploy/. Tests never read it: RavenDB.Embedded
-      # supplies its own server into each test project's output directory.
+      # ServiceControlInstaller.Packaging is only in the DefaultCore category's build closure, and its
+      # zip targets fail without a self-contained server in deploy/. Tests never read it:
+      # RavenDB.Embedded supplies its own server into each test project's output directory.
       - name: Download RavenDB Server
-        if: matrix.test-category == 'Default'
+        if: matrix.test-category == 'DefaultCore'
         run: ./tools/download-ravendb-server.ps1
       # Backgrounded so that it overlaps the infrastructure steps below. Those steps are an ordered
       # chain (Setup WSL provisions the Docker host the database actions rely on), so they stay in the
@@ -80,7 +82,7 @@ jobs:
 
       - name: Azure login
         uses: azure/login@v3.0.1
-        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ' || matrix.test-category == 'PostgreSql' || matrix.test-category == 'PostgreSqlPersistence'
+        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || startsWith(matrix.test-category, 'RabbitMQ') || matrix.test-category == 'PostgreSql' || matrix.test-category == 'PostgreSqlPersistence'
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup SQL Server
@@ -112,7 +114,7 @@ jobs:
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Setup RabbitMQ
         uses: Particular/setup-rabbitmq-action@v2.0.0
-        if: matrix.test-category == 'RabbitMQ'
+        if: startsWith(matrix.test-category, 'RabbitMQ')
         with:
           connection-string-name: ServiceControl_TransportTests_RabbitMQ_ConnectionString
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}

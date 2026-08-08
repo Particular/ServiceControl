@@ -46,17 +46,36 @@ Testing using the [CI workflow](/.github/workflows/ci.yml) depends on the follow
 
 Running all tests all the times takes a lot of resources. Tests are filtered based on the `ServiceControl_TESTS_FILTER` environment variable. To run only a subset, e.g., SQS transport tests, define the variable as `ServiceControl_TESTS_FILTER=SQS`. The following list contains all the possible `ServiceControl_TESTS_FILTER` values:
 
-- `Default` - runs only non-transport-specific tests
+Non-transport-specific:
+
+- `DefaultCore`
+- `DefaultAudit`
+- `DefaultMonitoring`
+
+Transports:
+
 - `AzureServiceBus`
 - `AzureStorageQueues`
+- `IBMMQ`
 - `MSMQ`
-- `RabbitMQ`
+- `PostgreSql`
+- `RabbitMQClassicConventional`
+- `RabbitMQClassicDirect`
+- `RabbitMQQuorumConventional`
+- `RabbitMQQuorumDirect`
 - `SqlServer`
-- `SqlServerPersistence`
-- `PostgresSqlPersistence`
 - `SQS`
 
+Persisters:
+
+- `PostgreSqlPersistence`
+- `PrimaryRavenAcceptance`
+- `PrimaryRavenPersistence`
+- `SqlServerPersistence`
+
 NOTE: If no variable is defined all tests will be executed.
+
+Each category is declared by the `<TestCategory>` property in the test project and by the matching assembly-level `IncludeInTestCategory` attribute. CI uses the property to build and run only that category's projects; the attribute is the runtime safety net. Run `./tools/select-test-projects.ps1 -List` to see every category and the projects it selects.
 
 ## Security Configuration
 
