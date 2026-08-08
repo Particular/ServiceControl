@@ -121,7 +121,6 @@ jobs:
         if: matrix.test-category == 'RabbitMQ'
         with:
           connection-string-name: ServiceControl_TransportTests_RabbitMQ_ConnectionString
-          tag: ServiceControl
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Setup Azure Service Bus
