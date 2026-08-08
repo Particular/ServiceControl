@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Persistence.RavenDB.Editing
 {
-    using System;
     using System.Threading.Tasks;
     using Notifications;
     using Raven.Client.Documents.Session;
@@ -8,11 +7,12 @@
     class NotificationsManager(IAsyncDocumentSession session) : AbstractSessionManager(session), INotificationsManager
     {
         const string SingleDocumentId = "NotificationsSettings/All";
-        static readonly TimeSpan CacheTimeout = TimeSpan.FromMinutes(5); // Raven requires this to be at least 1 second
 
         public async Task<NotificationsSettings> LoadSettings()
         {
-            using var aggressivelyCacheFor = await Session.Advanced.DocumentStore.AggressivelyCacheForAsync(CacheTimeout);
+            // Deliberately not aggressively cached. These settings are read rarely and edited by hand,
+            // and aggressive caching invalidates asynchronously via the Changes API, so a read straight
+            // after a save can return the pre-save document.
             var settings = await Session
                 .LoadAsync<NotificationsSettingsDocument>(SingleDocumentId);
 
