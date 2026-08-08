@@ -45,7 +45,7 @@ jobs:
           global-json-file: global.json
       - parallel:
         - name: Setup WSL
-          uses: Particular/setup-wsl-action@v1.0.0
+          uses: Particular/setup-wsl-action@v1.1.0
         - name: Download RavenDB Server
           run: ./tools/download-ravendb-server.ps1
       - name: Build
