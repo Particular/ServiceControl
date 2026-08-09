@@ -73,9 +73,31 @@ Persisters:
 - `PrimaryRavenPersistence`
 - `SqlServerPersistence`
 
-NOTE: If no variable is defined all tests will be executed.
+> [!NOTE]
+> If no variable is defined all tests will be executed.
 
-Each category is declared by the `<TestCategory>` property in the test project and by the matching assembly-level `IncludeInTestCategory` attribute. CI uses the property to build and run only that category's projects; the attribute is the runtime safety net. Run `./tools/select-test-projects.ps1 -List` to see every category and the projects it selects.
+Each category is declared once, by the `<TestCategory>` property in the test project. CI reads that property to build and run only the projects belonging to the category under test, and the build generates the assembly-level `IncludeInTestCategory` attribute from it, which is what `ServiceControl_TESTS_FILTER` matches against at run time.
+
+### Adding a test project
+
+> [!IMPORTANT]
+> Every test project must set `<TestCategory>` in its `.csproj`, alongside `TargetFramework`:
+>
+> ```xml
+> <PropertyGroup>
+>   <TargetFramework>net10.0</TargetFramework>
+>   <TestCategory>DefaultCore</TestCategory>
+> </PropertyGroup>
+> ```
+>
+> CI selects projects by that property alone, so a test project without it is never built and never run. The tests would simply not exist as far as CI is concerned, and nothing would go red. `tools/select-test-projects.ps1` fails the build if a project references `Microsoft.NET.Test.Sdk` without declaring a category, so this cannot be forgotten silently.
+
+Use an existing category from the list above where the tests fit.
+
+> [!WARNING]
+> Introducing a *new* category also means adding it to the `test-category` matrix in [ci.yml](.github/workflows/ci.yml), otherwise no job ever selects it and the tests never run.
+
+Run `./tools/select-test-projects.ps1 -List` to see every category and the projects it selects.
 
 ## Security Configuration
 

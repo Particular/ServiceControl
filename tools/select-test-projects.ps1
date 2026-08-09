@@ -1,6 +1,6 @@
 # Selects the test projects belonging to a test category, so that CI can build and run only those
 # rather than the whole solution. The category is declared by the <TestCategory> property in each test
-# project, which must match the Filter of the assembly-level IncludeIn*Tests attribute in that project.
+# project.
 #
 # Writes the selected project paths to $GITHUB_OUTPUT as 'test-projects', and generates an MSBuild
 # traversal project so that `dotnet build` can build the whole selection in one graph.
@@ -22,6 +22,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $projectsByCategory = @{}
+$uncategorized = New-Object Collections.Generic.List[String]
 
 # -Filter rather than -Include: the provider applies it during traversal, which is dramatically faster
 # on a tree that already contains bin/obj output.
@@ -29,6 +30,12 @@ Get-ChildItem -Path src -Filter '*.csproj' -Recurse -File | ForEach-Object {
     $testCategory = (Select-Xml -Path $_.FullName -XPath "/Project/PropertyGroup/TestCategory").Node.InnerText
 
     if ([string]::IsNullOrWhiteSpace($testCategory)) {
+        # A project referencing the test SDK but declaring no category would never be selected by any
+        # job, so its tests would silently not run rather than fail. Catch that here instead.
+        $isTestProject = $null -ne (Select-Xml -Path $_.FullName -XPath "/Project/ItemGroup/PackageReference[@Include='Microsoft.NET.Test.Sdk']")
+        if ($isTestProject) {
+            $uncategorized.Add((Resolve-Path -Relative $_.FullName))
+        }
         return
     }
 
@@ -37,6 +44,12 @@ Get-ChildItem -Path src -Filter '*.csproj' -Recurse -File | ForEach-Object {
     }
 
     $projectsByCategory[$testCategory].Add((Resolve-Path -Relative $_.FullName))
+}
+
+if ($uncategorized.Count -gt 0) {
+    # Not named $list: PowerShell variables are case-insensitive, so that would overwrite the [switch]$List parameter.
+    $formatted = ($uncategorized | Sort-Object | ForEach-Object { "  $_" }) -join [Environment]::NewLine
+    throw "These test projects declare no <TestCategory>, so CI would never build or run them:$([Environment]::NewLine)$formatted"
 }
 
 if ($List) {
