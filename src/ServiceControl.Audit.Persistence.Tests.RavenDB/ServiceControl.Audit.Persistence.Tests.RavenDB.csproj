@@ -25,7 +25,6 @@
   <ItemGroup>
     <Compile Include="..\ServiceControl.Audit.Persistence.Tests\*.cs" LinkBase="Shared" />
     <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\PersistenceManifestLibraryTests.cs" />
-    <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\TestsFilter.cs" />
   </ItemGroup>
 
 </Project>

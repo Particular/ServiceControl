@@ -26,7 +26,6 @@
   <ItemGroup>
     <Compile Include="..\ServiceControl.Transports.Tests\*.cs" LinkBase="Shared" />
     <Compile Remove="..\ServiceControl.Transports.Tests\TransportManifestLibraryTests.cs" />
-    <Compile Remove="..\ServiceControl.Transports.Tests\TestsFilter.cs" />
   </ItemGroup>
 
 </Project>
