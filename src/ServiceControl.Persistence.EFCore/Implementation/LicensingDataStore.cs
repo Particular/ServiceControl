@@ -10,8 +10,6 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 
 class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timeProvider) : DataStoreBase(scopeFactory), ILicensingDataStore
 {
-    // A report covers the last 14 months, so older throughput is never read.
-    const int ReportedMonths = 14;
     const int MaxRecordAttempts = 5;
 
     static readonly string PlatformEndpointIndicator = EndpointIndicator.PlatformEndpoint.ToString();
@@ -130,7 +128,7 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
             }
 
             var normalizedNames = requestedByNormalizedName.Keys.ToList();
-            var from = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime).AddMonths(-ReportedMonths);
+            var from = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime).AddMonths(-ThroughputReporting.ReportedMonths);
 
             var rows = await context.LicensingEndpoints
                 .AsNoTracking()
