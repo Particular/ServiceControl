@@ -14,6 +14,7 @@ namespace ServiceControl.Config.Framework.Commands
             return CanExecute((T)parameter);
         }
 
+#pragma warning disable PS0027 // ICommand.Execute returns void, so there is nothing to return the task to
         async void ICommand<T>.Execute(T obj)
         {
             using (StartExecuting())
@@ -23,6 +24,7 @@ namespace ServiceControl.Config.Framework.Commands
 
             }
         }
+#pragma warning restore PS0027
 
         void System.Windows.Input.ICommand.Execute(object parameter)
         {

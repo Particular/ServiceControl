@@ -47,7 +47,7 @@
                 }
 
                 //If the trial end date in db has been tampered, invalidate the license
-                if (trialEndDateInDb > DateOnly.FromDateTime(DateTime.Now).AddDays(MaxTrialPeriodInDays))
+                if (trialEndDateInDb > DateOnly.FromDateTime(DateTime.UtcNow).AddDays(MaxTrialPeriodInDays))
                 {
                     return LicenseDetails.TrialExpired();
                 }

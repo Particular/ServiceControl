@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.WindowsServices;
 
-public static class IHostApplicationBuilderExtensions
+public static class HostApplicationBuilderExtensions
 {
     public static void AddWindowsServiceWithRequestTimeout(this IHostApplicationBuilder builder)
     {

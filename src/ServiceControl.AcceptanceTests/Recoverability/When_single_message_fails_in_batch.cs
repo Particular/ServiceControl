@@ -82,7 +82,7 @@
                             [Headers.MessageId] = i == 2 ? context.MessageId : Guid.NewGuid().ToString(),
                             ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(Sendonly)),
                             ["$.diagnostics.hostid"] = Guid.NewGuid().ToString(),
-                            ["NServiceBus.TimeOfFailure"] = DateTimeOffsetHelper.ToWireFormattedString(DateTime.UtcNow)
+                            ["NServiceBus.TimeOfFailure"] = DateTimeOffsetHelper.ToWireFormattedString(DateTimeOffset.UtcNow)
 
                         };
 

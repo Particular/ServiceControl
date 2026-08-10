@@ -157,8 +157,7 @@ namespace ServiceControl.CompositeViews.Messages
                 remoteInstanceSetting.TemporarilyUnavailable = true;
                 logger.LogWarning(
                     httpRequestException,
-                    "An HttpRequestException occurred when querying remote instance at {RemoteInstanceBaseAddress}. The instance at uri: {RemoteInstanceBaseAddress} will be temporarily disabled",
-                    remoteInstanceSetting.BaseAddress,
+                    "An HttpRequestException occurred when querying remote instance at {RemoteInstanceBaseAddress}. The instance will be temporarily disabled",
                     remoteInstanceSetting.BaseAddress);
                 return QueryResult<TOut>.Empty();
             }

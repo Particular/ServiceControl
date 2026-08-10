@@ -84,6 +84,7 @@
             container.InjectProperties(instance);
         }
 
+#pragma warning disable PS0027 // Overrides BootstrapperBase.OnStartup, a void-returning Application.Startup handler
         protected override async void OnStartup(object sender, StartupEventArgs e)
         {
             ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
@@ -99,6 +100,7 @@
                 Application.Current.Shutdown(-1);
             }
         }
+#pragma warning restore PS0027
 
         IContainer container;
     }

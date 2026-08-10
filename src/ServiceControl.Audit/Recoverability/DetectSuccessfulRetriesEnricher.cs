@@ -34,7 +34,7 @@
                 //and did not send the acknowledgment. We send it here to the acknowledgment queue.
                 var ackMessage = new OutgoingMessage(Guid.NewGuid().ToString(), new Dictionary<string, string>
                 {
-                    ["ServiceControl.Retry.Successful"] = DateTimeOffsetHelper.ToWireFormattedString(DateTime.UtcNow),
+                    ["ServiceControl.Retry.Successful"] = DateTimeOffsetHelper.ToWireFormattedString(DateTimeOffset.UtcNow),
                     ["ServiceControl.Retry.UniqueMessageId"] = newRetryMessageId
                 }, Array.Empty<byte>());
                 var ackOperation = new TransportOperation(ackMessage, new UnicastAddressTag(ackQueue));
