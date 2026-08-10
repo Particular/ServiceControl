@@ -1,13 +1,11 @@
 namespace ServiceControl.Persistence.EFCore.Implementation;
 
-using System.Text.Json;
 using ServiceControl.Contracts.Operations;
 using ServiceControl.MessageFailures;
 using ServiceControl.MessageFailures.Api;
 using ServiceControl.Operations;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
-using ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
 
 static class FailedMessageViewMapper
 {
@@ -128,7 +126,7 @@ static class FailedMessageViewMapper
             StackTrace = headers.GetValueOrDefault(ExceptionStackTraceHeader)
         };
 
-    static EndpointDetails? ToSendingEndpoint(this FailedMessageEntity entity) =>
+    public static EndpointDetails? ToSendingEndpoint(this FailedMessageEntity entity) =>
         entity.SendingEndpointName == null
             ? null
             : new EndpointDetails
@@ -138,7 +136,7 @@ static class FailedMessageViewMapper
                 HostId = entity.SendingEndpointHostId ?? Guid.Empty
             };
 
-    static EndpointDetails? ToReceivingEndpoint(this FailedMessageEntity entity) =>
+    public static EndpointDetails? ToReceivingEndpoint(this FailedMessageEntity entity) =>
         entity.ReceivingEndpointName == null
             ? null
             : new EndpointDetails

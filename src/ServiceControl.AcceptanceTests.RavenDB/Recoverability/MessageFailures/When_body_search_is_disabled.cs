@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
+namespace ServiceControl.AcceptanceTests.RavenDB.Recoverability.MessageFailures
 {
     using System;
     using System.Threading.Tasks;
@@ -10,11 +10,15 @@
     using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;
 
-    class When_failed_message_searched_by_body_content : AcceptanceTest
+    // EnableFullTextSearchOnBodies is honoured by the RavenDB persister only: it decides at ingestion
+    // whether the body is indexed. The EF persisters always index it, so this test cannot be shared.
+    class When_body_search_is_disabled : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_found()
+        public async Task Should_not_be_found()
         {
+            SetSettings = settings => settings.PersisterSpecificSettings.EnableFullTextSearchOnBodies = false;
+
             var searchString = "forty-two";
 
             var context = await Define<MyContext>()
@@ -34,12 +38,17 @@
                     {
                         return false;
                     }
+
                     c.MessageFound = await this.TryGetMany<MessagesView>($"/api/messages/search/{searchString}");
                     return true;
                 })
                 .Run();
 
-            Assert.That(context.MessageFound, Is.True);
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(context.MessageIngested, Is.True);
+                Assert.That(context.MessageFound, Is.False);
+            }
         }
 
         public class Sender : EndpointConfigurationBuilder

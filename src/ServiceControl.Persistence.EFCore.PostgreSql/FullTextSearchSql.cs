@@ -12,18 +12,21 @@ static class FullTextSearchSql
 
     // 'simple' rather than 'english': message and header content is technical, stemming and
     // stopword removal do more harm than good.
-    // The default parser reads a dotted name as a single host token, so
-    // "ServiceControl.MessageFailures.MyMessage" would not match a search for "MyMessage". The
-    // message type is therefore also indexed with its separators replaced by spaces, mirroring
-    // the SearchableMessageType that MessageTypeEnricher already produces for RavenDB.
-    public const string Up = $"""
-        CREATE INDEX {IndexName}
-            ON failed_messages
-            USING GIN (to_tsvector('simple',
-                coalesce(headers_json, '') || ' ' ||
-                coalesce(body_text, '') || ' ' ||
-                replace(replace(coalesce(message_type, ''), '.', ' '), '+', ' ')))
-        """;
+    public const string Configuration = "simple";
+
+    // Written the way PostgreSqlFullTextSearchDialect makes EF Core render it, down to the casing
+    // and the redundant looking parentheses: PostgreSQL only uses an expression index when the
+    // query expression parses to the same tree, and a mismatch downgrades search to a sequential
+    // scan silently. FullTextSearchIndexTests fails if the two drift apart.
+    // The message type is indexed a second time with its separators replaced by spaces because the
+    // default parser reads a dotted name as a single host token, so
+    // "ServiceControl.MessageFailures.MyMessage" would not otherwise match a search for
+    // "MyMessage". It mirrors the SearchableMessageType that MessageTypeEnricher produces for
+    // RavenDB, and is not the duplicate of the headers it looks like.
+    public const string IndexedExpression =
+        $"""to_tsvector('{Configuration}', headers_json || ' ' || COALESCE(body_text, '') || ' ' || replace(replace(COALESCE(message_type, ''), '.', ' '), '+', ' '))""";
+
+    public const string Up = $"CREATE INDEX {IndexName} ON failed_messages USING GIN ({IndexedExpression})";
 
     public const string Down = $"DROP INDEX IF EXISTS {IndexName}";
 }
