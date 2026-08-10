@@ -27,8 +27,6 @@ jobs:
         exclude:
           - os: ubuntu-latest
             test-category: MSMQ
-          - os: windows-latest
-            test-category: IBMMQ
       fail-fast: false
     steps:
       - name: Check for secrets
