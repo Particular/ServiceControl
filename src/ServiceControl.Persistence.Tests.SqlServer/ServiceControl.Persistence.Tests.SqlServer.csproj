@@ -36,7 +36,6 @@
     <Compile Remove="..\ServiceControl.Persistence.Tests\Recoverability\EditMessageTests.cs" />
     <Compile Remove="..\ServiceControl.Persistence.Tests\Recoverability\RetryConfirmationProcessorTests.cs" />
     <Compile Remove="..\ServiceControl.Persistence.Tests\RetryStateTests.cs" />
-    <Compile Remove="..\ServiceControl.Persistence.Tests\NotificationsDataStoreTests.cs" />
   </ItemGroup>
 
 </Project>

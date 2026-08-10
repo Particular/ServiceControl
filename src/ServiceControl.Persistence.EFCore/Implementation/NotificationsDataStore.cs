@@ -1,7 +1,14 @@
 namespace ServiceControl.Persistence.EFCore.Implementation;
 
-public class NotificationsDataStore : INotificationsDataStore
+using DbContexts;
+using Microsoft.Extensions.DependencyInjection;
+
+public class NotificationsDataStore(IServiceProvider serviceProvider) : INotificationsDataStore
 {
-    public Task<INotificationsManager> CreateNotificationsManager() =>
-        throw new NotImplementedException();
+    public Task<INotificationsManager> CreateNotificationsManager()
+    {
+        var scope = serviceProvider.CreateAsyncScope();
+        ServiceControlDbContext serviceControlDbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+        return Task.FromResult<INotificationsManager>(new NotificationsManager(scope, serviceControlDbContext));
+    }
 }
