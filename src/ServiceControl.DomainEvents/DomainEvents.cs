@@ -8,7 +8,7 @@
 
     public class DomainEvents(IServiceProvider serviceProvider, ILogger<DomainEvents> logger) : IDomainEvents
     {
-        public async Task Raise<T>(T domainEvent, CancellationToken cancellationToken) where T : IDomainEvent
+        public async Task Raise<T>(T domainEvent, CancellationToken cancellationToken = default) where T : IDomainEvent
         {
             var handlers = serviceProvider.GetServices<IDomainHandler<T>>();
             foreach (var handler in handlers)
@@ -17,6 +17,10 @@
                 {
                     await handler.Handle(domainEvent, cancellationToken)
                         .ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
                 }
                 catch (Exception e)
                 {
@@ -32,6 +36,10 @@
                 {
                     await handler.Handle(domainEvent, cancellationToken)
                     .ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
                 }
                 catch (Exception e)
                 {

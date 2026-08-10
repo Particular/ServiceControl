@@ -4,6 +4,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public static class IntegratedSetup
@@ -11,7 +12,7 @@
         const string SetupAndRunCmd = "--setup-and-run";
         const string SetupCmd = "--setup";
 
-        public static async Task<int> Run()
+        public static async Task<int> Run(CancellationToken cancellationToken = default)
         {
             // Using GetCommandLineArgs instead of the args passed into Main because GetCommandLineArgs provides the entry assembly path
             var args = Environment.GetCommandLineArgs().ToList();
@@ -52,7 +53,7 @@
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
-            await process.WaitForExitAsync().ConfigureAwait(false);
+            await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
             return process.ExitCode;
         }

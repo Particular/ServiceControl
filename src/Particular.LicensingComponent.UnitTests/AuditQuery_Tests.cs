@@ -206,7 +206,7 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
 
     class AuditCountApi_ReturningThreeAuditCounts : IAuditCountApi
     {
-        public async Task<IList<AuditCount>> GetEndpointAuditCounts(string endpoint, CancellationToken token)
+        public async Task<IList<AuditCount>> GetEndpointAuditCounts(string endpoint, CancellationToken cancellationToken)
         {
             var auditCounts = new List<AuditCount>
             {

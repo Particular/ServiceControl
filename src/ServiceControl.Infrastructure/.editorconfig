@@ -1,10 +1,6 @@
-[*.cs]
-
-# Cancellation analyzer debt. These fire because Particular.Analyzers is no longer pinned to 0.9.0.
-# They are scheduled work, not accepted exceptions: remove a line once this project has no
-# violations of that rule left, and never add a rule back to this list.
-dotnet_diagnostic.PS0003.severity = none
+# Cancellation analyzer debt, narrowed to the one file still owed. MessageActionAuditLogExtensions
+# takes a Func<Task> callback that has to become Func<CancellationToken, Task>, which changes the
+# lambda at a dozen controller call sites, so it moves with the controllers in Phase 2.
+[Auth/MessageActionAuditLogExtensions.cs]
 dotnet_diagnostic.PS0013.severity = none
 dotnet_diagnostic.PS0018.severity = none
-dotnet_diagnostic.PS0020.severity = none
-dotnet_diagnostic.PS0021.severity = none

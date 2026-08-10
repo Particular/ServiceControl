@@ -32,7 +32,7 @@
                         await Task.Delay(interval, tokenSource.Token).ConfigureAwait(false);
                     }
                 }
-                catch (OperationCanceledException) when (tokenSource.IsCancellationRequested)
+                catch (OperationCanceledException) when (tokenSource.Token.IsCancellationRequested)
                 {
                     //no-op
                 }
@@ -54,14 +54,14 @@
             }
         }
 
-        public Task Stop()
+        public async Task Stop(CancellationToken cancellationToken = default)
         {
             if (tokenSource == null)
             {
-                return Task.CompletedTask;
+                return;
             }
-            tokenSource.Cancel();
-            return task;
+            await tokenSource.CancelAsync().ConfigureAwait(false);
+            await task.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

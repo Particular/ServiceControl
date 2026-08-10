@@ -32,7 +32,7 @@
         {
             try
             {
-                await reporter.Stop();
+                await reporter.Stop(cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
