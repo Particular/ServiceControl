@@ -128,7 +128,7 @@ class LicensingDataStore(
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
-        var from = DateTime.UtcNow.AddMonths(-14);
+        var from = DateTime.UtcNow.AddMonths(-ThroughputReporting.ReportedMonths);
         var query = session.Query<EndpointDocument>()
             .Where(document => document.SanitizedName.In(queueNames))
             .Include(builder => builder.IncludeTimeSeries(ThroughputTimeSeriesName, from));
