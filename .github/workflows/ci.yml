@@ -57,7 +57,7 @@ jobs:
       # environment variables on both runners.
       - name: Setup WSL
         if: startsWith(matrix.test-category, 'RabbitMQ') || contains(fromJSON('["SqlServer", "SqlServerPersistence", "PostgreSql", "PostgreSqlPersistence", "IBMMQ"]'), matrix.test-category)
-        uses: Particular/setup-wsl-action@v1.1.0
+        uses: Particular/setup-wsl-action@v1.2.0
         with:
           # The action defaults to 4GB. The runner has 16GB and the build runs concurrently with the
           # container starting up, so give the VM real headroom.
@@ -115,7 +115,7 @@ jobs:
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Setup IBM MQ
-        uses: ./.github/actions/setup-ibmmq
+        uses: Particular/setup-ibmmq-action@75b6087748fcdaef474574ca1fbe2b440141f07f
         if: matrix.test-category == 'IBMMQ'
         with:
           connection-string-name: ServiceControl_TransportTests_IBMMQ_ConnectionString
