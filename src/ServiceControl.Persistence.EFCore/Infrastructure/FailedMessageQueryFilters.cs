@@ -149,6 +149,7 @@ static class FailedMessageQueryFilters
             "processed_at" => source.OrderBy(message => message.LastAttemptedAt, descending),
             // Ordering follows the status the view reports, not the one the column stores.
             "status" => source.OrderBy(message =>
+                // Sorry about the ugly nested ternary, but inside a LINQ expression tree, a switch expression is a compile error: CS8514 "An expression tree may not contain a switch expression." 
                 message.Status == FailedMessageStatus.Resolved
                     ? MessageStatus.ResolvedSuccessfully
                     : message.Status == FailedMessageStatus.RetryIssued
