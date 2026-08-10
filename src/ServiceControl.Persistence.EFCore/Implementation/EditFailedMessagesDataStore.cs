@@ -1,7 +1,14 @@
 namespace ServiceControl.Persistence.EFCore.Implementation;
 
-public class EditFailedMessagesDataStore : IEditFailedMessagesDataStore
+using DbContexts;
+using Microsoft.Extensions.DependencyInjection;
+
+public class EditFailedMessagesDataStore(IServiceScopeFactory scopeFactory, TimeProvider timeProvider) : IEditFailedMessagesDataStore
 {
-    public Task<IEditFailedMessagesManager> CreateEditFailedMessageManager() =>
-        throw new NotImplementedException();
+    public Task<IEditFailedMessagesManager> CreateEditFailedMessageManager()
+    {
+        var scope = scopeFactory.CreateAsyncScope();
+        return Task.FromResult<IEditFailedMessagesManager>(
+            new EditFailedMessagesManager(scope, scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>(), timeProvider));
+    }
 }
