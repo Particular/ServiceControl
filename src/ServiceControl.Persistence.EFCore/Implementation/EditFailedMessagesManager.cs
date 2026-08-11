@@ -10,11 +10,11 @@ public class EditFailedMessagesManager(IAsyncDisposable scope, ServiceControlDbC
     FailedMessage? failedMessage;            // cached after GetFailedMessage
     FailedMessageEditEntity? editEntity;     // tracked after GetCurrentEditingRequestId / SetCurrentEditingRequestId
 
-    public async Task<FailedMessage> GetFailedMessage(string failedMessageId)
+    public async Task<FailedMessage?> GetFailedMessage(string failedMessageId)
     {
         if (!Guid.TryParse(failedMessageId, out var uniqueMessageId))
         {
-            return null!;
+            return null;
         }
 
         var entity = await dbContext.FailedMessages
@@ -34,7 +34,7 @@ public class EditFailedMessagesManager(IAsyncDisposable scope, ServiceControlDbC
         return result;
     }
 
-    public async Task<string> GetCurrentEditingRequestId(string failedMessageId)
+    public async Task<string?> GetCurrentEditingRequestId(string failedMessageId)
     {
         if (!Guid.TryParse(failedMessageId, out var uniqueMessageId))
         {
@@ -45,7 +45,7 @@ public class EditFailedMessagesManager(IAsyncDisposable scope, ServiceControlDbC
             .AsNoTracking()
             .SingleOrDefaultAsync(e => e.UniqueMessageId == uniqueMessageId);
 
-        return editEntity is null ? null! : editEntity.EditId;
+        return editEntity?.EditId;
     }
 
     public Task SetCurrentEditingRequestId(string editingMessageId)
@@ -92,5 +92,5 @@ public class EditFailedMessagesManager(IAsyncDisposable scope, ServiceControlDbC
 
     public Task SaveChanges() => dbContext.SaveChangesAsync();
 
-    public async ValueTask DisposeAsync() => await scope.DisposeAsync();
+    public ValueTask DisposeAsync() => scope.DisposeAsync();
 }
