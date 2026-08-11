@@ -9,7 +9,7 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 
 public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider timeProvider) : DataStoreBase(scopeFactory), IRetryStagingStore
 {
-    public Task<RetryBatch?> GetStagingBatch() =>
+    public Task<RetryBatch?> GetStagingBatch(CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async dbContext =>
         {
             var batch = await dbContext.RetryBatches
@@ -17,12 +17,12 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
                 .Where(batch => batch.Status == RetryBatchStatus.Staging)
                 .OrderBy(batch => batch.StartTime)
                 .ThenBy(batch => batch.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
-            return batch?.ToRetryBatch(await CountMessages(dbContext, batch.Id));
+            return batch?.ToRetryBatch(await CountMessages(dbContext, batch.Id, cancellationToken));
         });
 
-    public Task<StagingMessage[]> GetMessagesToStage(string batchId)
+    public Task<StagingMessage[]> GetMessagesToStage(string batchId, CancellationToken cancellationToken = default)
     {
         var batch = ParseBatchId(batchId);
 
@@ -44,7 +44,7 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
                         message.HeadersJson,
                         retry.StageAttempts
                     })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return rows.Select(row => new StagingMessage(
                 row.UniqueMessageId.ToString(),
@@ -56,67 +56,67 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
         });
     }
 
-    public Task MarkBatchAsForwarding(string batchId, string stagingId, IReadOnlyCollection<string> stagedMessageIds)
+    public Task MarkBatchAsForwarding(string batchId, string stagingId, IReadOnlyCollection<string> stagedMessageIds, CancellationToken cancellationToken = default)
     {
         var batch = ParseBatchId(batchId);
         var staged = ParseMessageIds(stagedMessageIds);
         var now = timeProvider.GetUtcNow().UtcDateTime;
 
         return ExecuteWithDbContext(dbContext =>
-            InTransaction(dbContext, async () =>
+            InTransaction(dbContext, async token =>
             {
                 await dbContext.RetryBatches
                     .Where(row => row.Id == batch)
                     .ExecuteUpdateAsync(setters => setters
                         .SetProperty(row => row.Status, RetryBatchStatus.Forwarding)
-                        .SetProperty(row => row.StagingId, stagingId));
+                        .SetProperty(row => row.StagingId, stagingId), token);
 
                 // The batch keeps only what it staged, so its message count is what the forwarder is
                 // told to expect. The claims dropped here are of messages that no longer exist.
                 await dbContext.FailedMessageRetries
                     .Where(row => row.RetryBatchId == batch && !staged.Contains(row.UniqueMessageId))
-                    .ExecuteDeleteAsync();
+                    .ExecuteDeleteAsync(token);
 
                 await dbContext.FailedMessages
                     .Where(row => staged.Contains(row.UniqueMessageId))
                     .ExecuteUpdateAsync(setters => setters
                         .SetProperty(row => row.Status, FailedMessageStatus.RetryIssued)
                         .SetProperty(row => row.StatusChangedAt, now)
-                        .SetProperty(row => row.LastModified, now));
+                        .SetProperty(row => row.LastModified, now), token);
 
-                await PointForwarderAt(dbContext, batch);
-            }));
+                await PointForwarderAt(dbContext, batch, token);
+            }, cancellationToken));
     }
 
-    public Task DiscardBatch(string batchId)
+    public Task DiscardBatch(string batchId, CancellationToken cancellationToken = default)
     {
         var batch = ParseBatchId(batchId);
 
         return ExecuteWithDbContext(dbContext =>
-            InTransaction(dbContext, async () =>
+            InTransaction(dbContext, async token =>
             {
                 // Nothing was staged, so every claim of this batch is of a message that is gone.
                 await dbContext.FailedMessageRetries
                     .Where(row => row.RetryBatchId == batch)
-                    .ExecuteDeleteAsync();
+                    .ExecuteDeleteAsync(token);
 
                 await dbContext.RetryBatches
                     .Where(row => row.Id == batch)
-                    .ExecuteDeleteAsync();
-            }));
+                    .ExecuteDeleteAsync(token);
+            }, cancellationToken));
     }
 
-    public Task<string?> GetForwardingBatchId() =>
+    public Task<string?> GetForwardingBatchId(CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async dbContext =>
         {
             var nowForwarding = await dbContext.RetryBatchNowForwarding
                 .AsNoTracking()
-                .SingleOrDefaultAsync();
+                .SingleOrDefaultAsync(cancellationToken);
 
             return nowForwarding?.RetryBatchId.ToString();
         });
 
-    public Task<RetryBatch?> GetBatch(string batchId, CancellationToken cancellationToken)
+    public Task<RetryBatch?> GetBatch(string batchId, CancellationToken cancellationToken = default)
     {
         var batch = ParseBatchId(batchId);
 
@@ -130,35 +130,35 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
         });
     }
 
-    public Task CompleteForwarding(string batchId)
+    public Task CompleteForwarding(string batchId, CancellationToken cancellationToken = default)
     {
         var batch = ParseBatchId(batchId);
 
         return ExecuteWithDbContext(dbContext =>
-            InTransaction(dbContext, async () =>
+            InTransaction(dbContext, async token =>
             {
                 // The claims outlive the batch: they are what stops a message being staged again
                 // before its retry is confirmed.
                 await dbContext.RetryBatches
                     .Where(row => row.Id == batch)
-                    .ExecuteDeleteAsync();
+                    .ExecuteDeleteAsync(token);
 
                 await dbContext.RetryBatchNowForwarding
                     .Where(row => row.RetryBatchId == batch)
-                    .ExecuteDeleteAsync();
-            }));
+                    .ExecuteDeleteAsync(token);
+            }, cancellationToken));
     }
 
-    public Task RecordStagingFailure(IReadOnlyCollection<string> uniqueMessageIds)
+    public Task RecordStagingFailure(IReadOnlyCollection<string> uniqueMessageIds, CancellationToken cancellationToken = default)
     {
         var failed = ParseMessageIds(uniqueMessageIds);
 
         return ExecuteWithDbContext(dbContext => dbContext.FailedMessageRetries
             .Where(row => failed.Contains(row.UniqueMessageId))
-            .ExecuteUpdateAsync(setters => setters.SetProperty(row => row.StageAttempts, 1)));
+            .ExecuteUpdateAsync(setters => setters.SetProperty(row => row.StageAttempts, 1), cancellationToken));
     }
 
-    public Task IncrementStagingAttempts(string uniqueMessageId)
+    public Task IncrementStagingAttempts(string uniqueMessageId, CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(uniqueMessageId, out var message))
         {
@@ -167,10 +167,10 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
 
         return ExecuteWithDbContext(dbContext => dbContext.FailedMessageRetries
             .Where(row => row.UniqueMessageId == message)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(row => row.StageAttempts, row => row.StageAttempts + 1)));
+            .ExecuteUpdateAsync(setters => setters.SetProperty(row => row.StageAttempts, row => row.StageAttempts + 1), cancellationToken));
     }
 
-    public Task RemoveFromBatch(string uniqueMessageId)
+    public Task RemoveFromBatch(string uniqueMessageId, CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(uniqueMessageId, out var message))
         {
@@ -179,35 +179,35 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
 
         return ExecuteWithDbContext(dbContext => dbContext.FailedMessageRetries
             .Where(row => row.UniqueMessageId == message)
-            .ExecuteDeleteAsync());
+            .ExecuteDeleteAsync(cancellationToken));
     }
 
-    static async Task PointForwarderAt(ServiceControlDbContext dbContext, Guid batch)
+    static async Task PointForwarderAt(ServiceControlDbContext dbContext, Guid batch, CancellationToken cancellationToken)
     {
         var updated = await dbContext.RetryBatchNowForwarding
             .Where(row => row.Id == RetryBatchNowForwardingEntity.SingleRowId)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(row => row.RetryBatchId, batch));
+            .ExecuteUpdateAsync(setters => setters.SetProperty(row => row.RetryBatchId, batch), cancellationToken);
 
         if (updated == 0)
         {
             dbContext.RetryBatchNowForwarding.Add(new RetryBatchNowForwardingEntity { RetryBatchId = batch });
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 
-    static Task<int> CountMessages(ServiceControlDbContext dbContext, Guid batch, CancellationToken cancellationToken = default) =>
+    static Task<int> CountMessages(ServiceControlDbContext dbContext, Guid batch, CancellationToken cancellationToken) =>
         dbContext.FailedMessageRetries
             .AsNoTracking()
             .CountAsync(retry => retry.RetryBatchId == batch, cancellationToken);
 
-    static Task InTransaction(ServiceControlDbContext dbContext, Func<Task> operations) =>
+    static Task InTransaction(ServiceControlDbContext dbContext, Func<CancellationToken, Task> operations, CancellationToken cancellationToken) =>
         dbContext.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
         {
-            await using var transaction = await dbContext.Database.BeginTransactionAsync();
+            await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-            await operations();
+            await operations(cancellationToken);
 
-            await transaction.CommitAsync();
+            await transaction.CommitAsync(cancellationToken);
         });
 
     /// <summary>

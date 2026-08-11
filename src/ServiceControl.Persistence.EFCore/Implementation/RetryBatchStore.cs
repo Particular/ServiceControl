@@ -13,7 +13,8 @@ public class RetryBatchStore(IServiceScopeFactory scopeFactory, IRetryBatchSqlDi
     public Task<string> CreateBatch(string retrySessionId, string requestId, RetryType retryType,
         string[] failedMessageRetryIds, string originator, DateTime startTime, DateTime? last = null,
         string? batchName = null, string? classifier = null,
-        string? initiatedById = null, string? initiatedByName = null, string? operationId = null) =>
+        string? initiatedById = null, string? initiatedByName = null, string? operationId = null,
+        CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async dbContext =>
         {
             var batch = new RetryBatchEntity
@@ -36,7 +37,7 @@ public class RetryBatchStore(IServiceScopeFactory scopeFactory, IRetryBatchSqlDi
 
             dbContext.RetryBatches.Add(batch);
 
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellationToken);
 
             return batch.Id.ToString();
         });
@@ -44,7 +45,7 @@ public class RetryBatchStore(IServiceScopeFactory scopeFactory, IRetryBatchSqlDi
     /// <summary>
     /// Claims the messages for the batch. A message already claimed by another batch keeps that claim, so the batch it is staged with is whichever one got there first.
     /// </summary>
-    public Task AssignMessagesToBatch(string batchId, string[] messageIds) =>
+    public Task AssignMessagesToBatch(string batchId, string[] messageIds, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async dbContext =>
         {
             var batch = ParseBatchId(batchId);
@@ -75,21 +76,21 @@ public class RetryBatchStore(IServiceScopeFactory scopeFactory, IRetryBatchSqlDi
 
             await strategy.ExecuteAsync(async () =>
             {
-                await using var transaction = await dbContext.Database.BeginTransactionAsync();
+                await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
                 await dialect.InsertMissingRetryClaims(dbContext, claims, CancellationToken.None);
 
-                await transaction.CommitAsync();
+                await transaction.CommitAsync(cancellationToken);
             });
         });
 
-    public Task MoveBatchToStaging(string batchId)
+    public Task MoveBatchToStaging(string batchId, CancellationToken cancellationToken = default)
     {
         var batch = ParseBatchId(batchId);
 
         return ExecuteWithDbContext(dbContext => dbContext.RetryBatches
             .Where(row => row.Id == batch)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(row => row.Status, RetryBatchStatus.Staging)));
+            .ExecuteUpdateAsync(setters => setters.SetProperty(row => row.Status, RetryBatchStatus.Staging), cancellationToken));
     }
 
     // Batch ids only ever come from CreateBatch, so anything else is a programming error.
@@ -98,22 +99,22 @@ public class RetryBatchStore(IServiceScopeFactory scopeFactory, IRetryBatchSqlDi
             ? parsed
             : throw new ArgumentException($"'{batchId}' is not a retry batch id issued by this store.", nameof(batchId));
 
-    public Task<QueryResult<IList<RetryBatch>>> GetOrphanedBatches(string retrySessionId) =>
+    public Task<QueryResult<IList<RetryBatch>>> GetOrphanedBatches(string retrySessionId, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async dbContext =>
         {
             var orphaned = await dbContext.RetryBatches
                 .AsNoTracking()
                 .Where(batch => batch.Status == RetryBatchStatus.MarkingDocuments && batch.RetrySessionId != retrySessionId)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
-            var messageCounts = await CountMessages(dbContext, [.. orphaned.Select(batch => batch.Id)]);
+            var messageCounts = await CountMessages(dbContext, [.. orphaned.Select(batch => batch.Id)], cancellationToken);
 
             IList<RetryBatch> batches = [.. orphaned.Select(batch => batch.ToRetryBatch(messageCounts.GetValueOrDefault(batch.Id)))];
 
             return new QueryResult<IList<RetryBatch>>(batches, new QueryStatsInfo(string.Empty, batches.Count, false));
         });
 
-    public Task<IList<RetryBatchGroup>> GetAvailableBatchGroups() =>
+    public Task<IList<RetryBatchGroup>> GetAvailableBatchGroups(CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext<IList<RetryBatchGroup>>(async dbContext =>
         {
             var groups = await dbContext.RetryBatches
@@ -132,7 +133,7 @@ public class RetryBatchStore(IServiceScopeFactory scopeFactory, IRetryBatchSqlDi
                     Originator = group.Max(batch => batch.Originator),
                     Classifier = group.Max(batch => batch.Classifier)
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return [.. groups.Select(group => new RetryBatchGroup
             {
@@ -148,12 +149,12 @@ public class RetryBatchStore(IServiceScopeFactory scopeFactory, IRetryBatchSqlDi
             })];
         });
 
-    public Task<ForwardingRetryBatch?> GetCurrentForwardingBatch() =>
+    public Task<ForwardingRetryBatch?> GetCurrentForwardingBatch(CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async dbContext =>
         {
             var nowForwarding = await dbContext.RetryBatchNowForwarding
                 .AsNoTracking()
-                .SingleOrDefaultAsync();
+                .SingleOrDefaultAsync(cancellationToken);
 
             if (nowForwarding == null)
             {
@@ -164,45 +165,45 @@ public class RetryBatchStore(IServiceScopeFactory scopeFactory, IRetryBatchSqlDi
                 .AsNoTracking()
                 .Where(batch => batch.Id == nowForwarding.RetryBatchId)
                 .Select(batch => new ForwardingRetryBatch(batch.RequestId, batch.RetryType, batch.Originator!, batch.Classifier!))
-                .SingleOrDefaultAsync();
+                .SingleOrDefaultAsync(cancellationToken);
         });
 
-    public Task ForEachUnresolvedMessage(Func<string, DateTime, Task> callback) =>
-        ForEach(Unresolved, callback);
+    public Task ForEachUnresolvedMessage(Func<string, DateTime, CancellationToken, Task> callback, CancellationToken cancellationToken = default) =>
+        ForEach(Unresolved, callback, cancellationToken);
 
-    public Task ForEachUnresolvedMessageForEndpoint(string endpoint, Func<string, DateTime, Task> callback) =>
+    public Task ForEachUnresolvedMessageForEndpoint(string endpoint, Func<string, DateTime, CancellationToken, Task> callback, CancellationToken cancellationToken = default) =>
         ForEach(dbContext => Unresolved(dbContext)
-            .Where(message => message.ReceivingEndpointName == endpoint), callback);
+            .Where(message => message.ReceivingEndpointName == endpoint), callback, cancellationToken);
 
-    public Task ForEachMessageForQueueAddress(string failedQueueAddress, FailedMessageStatus status, Func<string, DateTime, Task> callback) =>
+    public Task ForEachMessageForQueueAddress(string failedQueueAddress, FailedMessageStatus status, Func<string, DateTime, CancellationToken, Task> callback, CancellationToken cancellationToken = default) =>
         ForEach(dbContext => Unresolved(dbContext)
-            .Where(message => message.FailingEndpointAddress == failedQueueAddress && message.Status == status), callback);
+            .Where(message => message.FailingEndpointAddress == failedQueueAddress && message.Status == status), callback, cancellationToken);
 
-    public Task ForEachUnresolvedMessageInGroup(string groupId, Func<string, DateTime, Task> callback) =>
+    public Task ForEachUnresolvedMessageInGroup(string groupId, Func<string, DateTime, CancellationToken, Task> callback, CancellationToken cancellationToken = default) =>
         ForEach(dbContext => Unresolved(dbContext)
-            .Where(message => dbContext.FailedMessageGroups.Any(group => group.GroupId == groupId && group.FailedMessageUniqueId == message.UniqueMessageId)), callback);
+            .Where(message => dbContext.FailedMessageGroups.Any(group => group.GroupId == groupId && group.FailedMessageUniqueId == message.UniqueMessageId)), callback, cancellationToken);
 
-    Task ForEach(Func<ServiceControlDbContext, IQueryable<FailedMessageEntity>> query, Func<string, DateTime, Task> callback) =>
-        ExecuteWithDbContext(dbContext => Stream(query(dbContext), callback));
+    Task ForEach(Func<ServiceControlDbContext, IQueryable<FailedMessageEntity>> query, Func<string, DateTime, CancellationToken, Task> callback, CancellationToken cancellationToken) =>
+        ExecuteWithDbContext(dbContext => Stream(query(dbContext), callback, cancellationToken));
 
     static IQueryable<FailedMessageEntity> Unresolved(ServiceControlDbContext dbContext) =>
         dbContext.FailedMessages
             .AsNoTracking()
             .Where(message => message.Status == FailedMessageStatus.Unresolved);
 
-    static async Task Stream(IQueryable<FailedMessageEntity> messages, Func<string, DateTime, Task> callback)
+    static async Task Stream(IQueryable<FailedMessageEntity> messages, Func<string, DateTime, CancellationToken, Task> callback, CancellationToken cancellationToken)
     {
         var rows = messages
             .Select(message => new { message.UniqueMessageId, message.LastTimeOfFailure })
             .AsAsyncEnumerable();
 
-        await foreach (var row in rows)
+        await foreach (var row in rows.WithCancellation(cancellationToken))
         {
-            await callback(row.UniqueMessageId.ToString(), row.LastTimeOfFailure);
+            await callback(row.UniqueMessageId.ToString(), row.LastTimeOfFailure, cancellationToken);
         }
     }
 
-    static async Task<Dictionary<Guid, int>> CountMessages(ServiceControlDbContext dbContext, Guid[] batchIds)
+    static async Task<Dictionary<Guid, int>> CountMessages(ServiceControlDbContext dbContext, Guid[] batchIds, CancellationToken cancellationToken)
     {
         if (batchIds.Length == 0)
         {
@@ -214,6 +215,6 @@ public class RetryBatchStore(IServiceScopeFactory scopeFactory, IRetryBatchSqlDi
             .Where(retry => batchIds.Contains(retry.RetryBatchId))
             .GroupBy(retry => retry.RetryBatchId)
             .Select(group => new { RetryBatchId = group.Key, MessageCount = group.Count() })
-            .ToDictionaryAsync(row => row.RetryBatchId, row => row.MessageCount);
+            .ToDictionaryAsync(row => row.RetryBatchId, row => row.MessageCount, cancellationToken);
     }
 }

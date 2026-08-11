@@ -98,7 +98,7 @@
         [HttpGet]
         public async Task<RetryHistory> GetRetryHistory(CancellationToken cancellationToken = default)
         {
-            var retryHistory = await retryStore.GetRetryHistory();
+            var retryHistory = await retryStore.GetRetryHistory(cancellationToken);
 
             Response.WithDeterministicEtag(retryHistory.GetHistoryOperationsUniqueIdentifier());
 

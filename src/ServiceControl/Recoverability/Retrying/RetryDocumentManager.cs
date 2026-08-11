@@ -20,7 +20,7 @@ namespace ServiceControl.Recoverability
 
         public async Task<bool> AdoptOrphanedBatches(CancellationToken cancellationToken = default)
         {
-            var orphanedBatches = await store.GetOrphanedBatches(RetrySessionId);
+            var orphanedBatches = await store.GetOrphanedBatches(RetrySessionId, cancellationToken);
 
             logger.LogInformation("Found {OrphanedBatchCount} orphaned retry batches from previous sessions", orphanedBatches.Results.Count);
 
@@ -47,11 +47,11 @@ namespace ServiceControl.Recoverability
             return orphanedBatches.QueryStats.IsStale || orphanedBatches.Results.Any();
         }
 
-        public virtual Task MoveBatchToStaging(string batchId, CancellationToken cancellationToken = default) => store.MoveBatchToStaging(batchId);
+        public virtual Task MoveBatchToStaging(string batchId, CancellationToken cancellationToken = default) => store.MoveBatchToStaging(batchId, cancellationToken);
 
         public async Task RebuildRetryOperationState(CancellationToken cancellationToken = default)
         {
-            var stagingBatchGroups = await store.GetAvailableBatchGroups();
+            var stagingBatchGroups = await store.GetAvailableBatchGroups(cancellationToken);
 
             foreach (var group in stagingBatchGroups)
             {

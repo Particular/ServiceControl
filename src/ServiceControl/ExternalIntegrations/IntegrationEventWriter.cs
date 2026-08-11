@@ -39,7 +39,7 @@
                 DispatchContext = dispatchContext
             }).ToList();
 
-            await store.StoreDispatchRequest(dispatchRequests);
+            await store.StoreDispatchRequest(dispatchRequests, cancellationToken);
         }
 
         readonly IExternalIntegrationRequestsDataStore store;
