@@ -31,7 +31,7 @@
                     Permissions.ErrorRecoverabilityGroupsUnarchive, MessageActionScope.Group,
                     resource: groupId, count: null, operationId: operationId, async ct =>
                     {
-                        await archiver.StartUnarchiving(groupId, ArchiveType.FailureGroup);
+                        await archiver.StartUnarchiving(groupId, ArchiveType.FailureGroup, ct);
                         await bus.Send<UnarchiveAllInGroup>(m => { m.GroupId = groupId; }, AuditHeaders.LocalSendOptions(user, operationId), ct);
                     }, cancellationToken);
             }

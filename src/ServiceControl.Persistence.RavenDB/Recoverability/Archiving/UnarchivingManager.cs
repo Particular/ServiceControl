@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
 
@@ -40,7 +41,7 @@
             return summary;
         }
 
-        public Task StartUnarchiving(UnarchiveOperation archiveOperation)
+        public Task StartUnarchiving(UnarchiveOperation archiveOperation, CancellationToken cancellationToken = default)
         {
             var summary = GetOrCreate(archiveOperation.ArchiveType, archiveOperation.RequestId);
 
@@ -51,10 +52,10 @@
             summary.NumberOfBatches = archiveOperation.NumberOfBatches;
             summary.CurrentBatch = archiveOperation.CurrentBatch;
 
-            return summary.Start();
+            return summary.Start(cancellationToken);
         }
 
-        public Task StartUnarchiving(string requestId, ArchiveType archiveType)
+        public Task StartUnarchiving(string requestId, ArchiveType archiveType, CancellationToken cancellationToken = default)
         {
             var summary = GetOrCreate(archiveType, requestId);
 
@@ -65,7 +66,7 @@
             summary.NumberOfBatches = 0;
             summary.CurrentBatch = 0;
 
-            return summary.Start();
+            return summary.Start(cancellationToken);
         }
 
         public InMemoryUnarchive GetStatusForUnarchiveOperation(string requestId, ArchiveType archiveType)
@@ -75,23 +76,23 @@
             return summary;
         }
 
-        public Task BatchUnarchived(string requestId, ArchiveType archiveType, int numberOfMessagesArchivedInBatch)
+        public Task BatchUnarchived(string requestId, ArchiveType archiveType, int numberOfMessagesArchivedInBatch, CancellationToken cancellationToken = default)
         {
             var summary = GetOrCreate(archiveType, requestId);
 
-            return summary.BatchUnarchived(numberOfMessagesArchivedInBatch);
+            return summary.BatchUnarchived(numberOfMessagesArchivedInBatch, cancellationToken);
         }
 
-        public Task UnarchiveOperationFinalizing(string requestId, ArchiveType archiveType)
+        public Task UnarchiveOperationFinalizing(string requestId, ArchiveType archiveType, CancellationToken cancellationToken = default)
         {
             var summary = GetOrCreate(archiveType, requestId);
-            return summary.FinalizeUnarchive();
+            return summary.FinalizeUnarchive(cancellationToken);
         }
 
-        public Task UnarchiveOperationCompleted(string requestId, ArchiveType archiveType)
+        public Task UnarchiveOperationCompleted(string requestId, ArchiveType archiveType, CancellationToken cancellationToken = default)
         {
             var summary = GetOrCreate(archiveType, requestId);
-            return summary.Complete();
+            return summary.Complete(cancellationToken);
         }
 
         public void DismissArchiveOperation(string requestId, ArchiveType archiveType)

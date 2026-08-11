@@ -41,7 +41,7 @@
             return new UnarchiveProgress(roundedPercentage, TotalNumberOfMessages, NumberOfMessagesUnarchived, remaining);
         }
 
-        public Task Start()
+        public Task Start(CancellationToken cancellationToken = default)
         {
             ArchiveState = ArchiveState.ArchiveStarted;
             CompletionTime = null;
@@ -52,10 +52,10 @@
                 ArchiveType = ArchiveType,
                 Progress = GetProgress(),
                 StartTime = Started
-            }, CancellationToken.None);
+            }, cancellationToken);
         }
 
-        public Task BatchUnarchived(int numberOfMessagesUnarchivedInBatch)
+        public Task BatchUnarchived(int numberOfMessagesUnarchivedInBatch, CancellationToken cancellationToken = default)
         {
             ArchiveState = ArchiveState.ArchiveProgressing;
             NumberOfMessagesUnarchived += numberOfMessagesUnarchivedInBatch;
@@ -69,10 +69,10 @@
                 Progress = GetProgress(),
                 StartTime = Started,
                 Last = Last.Value
-            }, CancellationToken.None);
+            }, cancellationToken);
         }
 
-        public Task FinalizeUnarchive()
+        public Task FinalizeUnarchive(CancellationToken cancellationToken = default)
         {
             ArchiveState = ArchiveState.ArchiveFinalizing;
             NumberOfMessagesUnarchived = TotalNumberOfMessages;
@@ -85,10 +85,10 @@
                 Progress = GetProgress(),
                 StartTime = Started,
                 Last = Last.Value
-            }, CancellationToken.None);
+            }, cancellationToken);
         }
 
-        public Task Complete()
+        public Task Complete(CancellationToken cancellationToken = default)
         {
             ArchiveState = ArchiveState.ArchiveCompleted;
             NumberOfMessagesUnarchived = TotalNumberOfMessages;
@@ -104,7 +104,7 @@
                 Last = Last.Value,
                 CompletionTime = CompletionTime.Value,
                 GroupName = GroupName
-            }, CancellationToken.None);
+            }, cancellationToken);
         }
 
         internal bool NeedsAcknowledgement()
