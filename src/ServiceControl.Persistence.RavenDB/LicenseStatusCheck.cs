@@ -37,9 +37,6 @@ static class LicenseStatusCheck
                 await Task.Delay(200, cts.Token);
             }
         }
-        // Every call inside the try uses the linked cts.Token, so PS0020 cannot see that this filter
-        // tests the right thing: cancellation that is not the caller's is the 30s license-check
-        // timeout, and that is what the friendly message is for.
 #pragma warning disable PS0020
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
