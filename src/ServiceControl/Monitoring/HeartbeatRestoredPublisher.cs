@@ -3,6 +3,7 @@ namespace ServiceControl.Monitoring
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts;
     using Contracts.HeartbeatMonitoring;
@@ -21,7 +22,7 @@ namespace ServiceControl.Monitoring
             };
         }
 
-        protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts)
+        protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(contexts.Select(r => (object)new HeartbeatRestored
             {

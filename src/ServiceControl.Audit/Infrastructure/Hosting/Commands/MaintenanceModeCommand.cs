@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.Hosting.Commands
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Hosting.WindowsServices;
@@ -9,7 +10,7 @@
 
     class MaintenanceModeCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings)
+        public override async Task Execute(HostArguments args, Settings settings, CancellationToken cancellationToken = default)
         {
             var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings);
             var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
@@ -26,7 +27,7 @@
             }
 
             var host = hostBuilder.Build();
-            await host.RunAsync();
+            await host.RunAsync(cancellationToken);
         }
     }
 }

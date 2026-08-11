@@ -16,16 +16,16 @@
     {
         [Route("")]
         [HttpGet]
-        public Task<RootUrls> Urls() => configurationApi.GetUrls(Request.GetDisplayUrl(), default);
+        public Task<RootUrls> Urls(CancellationToken cancellationToken = default) => configurationApi.GetUrls(Request.GetDisplayUrl(), cancellationToken);
 
         [Route("instance-info")]
         [Route("configuration")]
         [HttpGet]
-        public Task<object> Config() => configurationApi.GetConfig(default);
+        public Task<object> Config(CancellationToken cancellationToken = default) => configurationApi.GetConfig(cancellationToken);
 
         [Route("configuration/remotes")]
         [HttpGet]
-        public async Task<IActionResult> RemoteConfig(CancellationToken cancellationToken) =>
+        public async Task<IActionResult> RemoteConfig(CancellationToken cancellationToken = default) =>
             Ok(await configurationApi.GetRemoteConfigs(cancellationToken));
     }
 }

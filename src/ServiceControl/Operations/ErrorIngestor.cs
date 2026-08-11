@@ -51,7 +51,7 @@
             logQueueAddress = new UnicastAddressTag(transportCustomization.ToTransportQualifiedQueueName(this.settings.ErrorLogQueue));
         }
 
-        public async Task Ingest(List<MessageContext> contexts, CancellationToken cancellationToken)
+        public async Task Ingest(List<MessageContext> contexts, CancellationToken cancellationToken = default)
         {
             var failedMessages = new List<MessageContext>(contexts.Count);
             var retriedMessages = new List<MessageContext>(contexts.Count);
@@ -76,11 +76,11 @@
                 var announcerTasks = new List<Task>(contexts.Count);
                 foreach (var context in storedFailed)
                 {
-                    announcerTasks.Add(errorProcessor.Announce(context));
+                    announcerTasks.Add(errorProcessor.Announce(context, cancellationToken));
                 }
                 foreach (var context in retriedMessages)
                 {
-                    announcerTasks.Add(retryConfirmationProcessor.Announce(context));
+                    announcerTasks.Add(retryConfirmationProcessor.Announce(context, cancellationToken));
                 }
 
                 await Task.WhenAll(announcerTasks);
@@ -98,6 +98,10 @@
                 {
                     context.GetTaskCompletionSource().TrySetResult(true);
                 }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {
@@ -117,14 +121,18 @@
             try
             {
                 await using var unitOfWork = await unitOfWorkFactory.StartNew();
-                var storedFailedMessageContexts = await errorProcessor.Process(failedMessageContexts, unitOfWork);
-                await retryConfirmationProcessor.Process(retriedMessageContexts, unitOfWork);
+                var storedFailedMessageContexts = await errorProcessor.Process(failedMessageContexts, unitOfWork, cancellationToken);
+                await retryConfirmationProcessor.Process(retriedMessageContexts, unitOfWork, cancellationToken);
 
                 using (bulkInsertDurationMeter.Measure())
                 {
                     await unitOfWork.Complete(cancellationToken);
                 }
                 return storedFailedMessageContexts;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {
@@ -168,7 +176,7 @@
                 : Task.CompletedTask;
         }
 
-        public async Task VerifyCanReachForwardingAddress(CancellationToken cancellationToken)
+        public async Task VerifyCanReachForwardingAddress(CancellationToken cancellationToken = default)
         {
             try
             {
@@ -181,6 +189,10 @@
                 );
 
                 await messageDispatcher.Value.Dispatch(transportOperations, new TransportTransaction(), cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {

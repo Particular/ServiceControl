@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
     using Infrastructure.WebApi;
@@ -47,7 +48,7 @@
         [Authorize(Policy = Permissions.ErrorEndpointsDelete)]
         [Route("endpoints/{endpointId}")]
         [HttpDelete]
-        public async Task<IActionResult> DeleteEndpoint(Guid endpointId)
+        public async Task<IActionResult> DeleteEndpoint(Guid endpointId, CancellationToken cancellationToken = default)
         {
             if (!monitoring.HasEndpoint(endpointId))
             {
@@ -74,7 +75,7 @@
         [Authorize(Policy = Permissions.ErrorEndpointsManage)]
         [Route("endpoints/{endpointId}")]
         [HttpPatch]
-        public async Task<IActionResult> Monitoring(Guid endpointId, [FromBody] EndpointUpdateModel data)
+        public async Task<IActionResult> Monitoring(Guid endpointId, [FromBody] EndpointUpdateModel data, CancellationToken cancellationToken = default)
         {
             if (!monitoring.HasEndpoint(endpointId))
             {
@@ -83,11 +84,11 @@
 
             if (data.MonitorHeartbeat)
             {
-                await monitoring.EnableMonitoring(endpointId);
+                await monitoring.EnableMonitoring(endpointId, cancellationToken);
             }
             else
             {
-                await monitoring.DisableMonitoring(endpointId);
+                await monitoring.DisableMonitoring(endpointId, cancellationToken);
             }
 
             return Accepted();

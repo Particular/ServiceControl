@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.CustomChecks
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Connection;
     using NServiceBus;
@@ -11,7 +12,7 @@
         public CustomChecksPlatformConnectionDetailsProvider(ReceiveAddresses receiveAddresses)
             => instanceMainQueue = receiveAddresses.MainReceiveAddress;
 
-        public Task ProvideConnectionDetails(PlatformConnectionDetails connection)
+        public Task ProvideConnectionDetails(PlatformConnectionDetails connection, CancellationToken cancellationToken = default)
         {
             connection.Add(
                 "CustomChecks",

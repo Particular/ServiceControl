@@ -4,6 +4,7 @@
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Text.Json.Serialization;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
     using Infrastructure.WebApi;
@@ -19,7 +20,7 @@
         [Authorize(Policy = Permissions.ErrorMessagesRetry)]
         [Route("pendingretries/retry")]
         [HttpPost]
-        public async Task<IActionResult> RetryBy(string[] ids)
+        public async Task<IActionResult> RetryBy(string[] ids, CancellationToken cancellationToken = default)
         {
             if (ids.Any(string.IsNullOrEmpty))
             {
@@ -31,7 +32,7 @@
             var operationId = this.AuditOperationId();
             await auditLog.AuditedOperation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Batch,
                 resource: null, count: ids.Length, operationId: operationId,
-                () => session.Send<RetryPendingMessagesById>(m => m.MessageUniqueIds = ids, AuditHeaders.LocalSendOptions(user, operationId)));
+                ct => session.Send<RetryPendingMessagesById>(m => m.MessageUniqueIds = ids, AuditHeaders.LocalSendOptions(user, operationId), ct), cancellationToken);
 
             return Accepted();
         }
@@ -39,18 +40,18 @@
         [Authorize(Policy = Permissions.ErrorMessagesRetry)]
         [Route("pendingretries/queues/retry")]
         [HttpPost]
-        public async Task<IActionResult> RetryBy(PendingRetryRequest request)
+        public async Task<IActionResult> RetryBy(PendingRetryRequest request, CancellationToken cancellationToken = default)
         {
             var user = userAccessor.Resolve(User);
             var operationId = this.AuditOperationId();
             await auditLog.AuditedOperation(user, MessageActionKind.Retry, Permissions.ErrorMessagesRetry, MessageActionScope.Queue,
                 resource: request.QueueAddress, count: null, operationId: operationId,
-                () => session.Send<RetryPendingMessages>(m =>
+                ct => session.Send<RetryPendingMessages>(m =>
                 {
                     m.QueueAddress = request.QueueAddress;
                     m.PeriodFrom = request.From;
                     m.PeriodTo = request.To;
-                }, AuditHeaders.LocalSendOptions(user, operationId)));
+                }, AuditHeaders.LocalSendOptions(user, operationId), ct), cancellationToken);
 
             return Accepted();
         }

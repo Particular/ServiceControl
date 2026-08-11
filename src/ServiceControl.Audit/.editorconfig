@@ -3,13 +3,14 @@
 # Justification: ServiceControl app has no synchronization context
 dotnet_diagnostic.CA2007.severity = none
 
-# Cancellation analyzer debt. These fire because Particular.Analyzers is no longer pinned to 0.9.0.
-# They are scheduled work, not accepted exceptions: remove a line once this project has no
-# violations of that rule left, and never add a rule back to this list.
-dotnet_diagnostic.PS0003.severity = none
+# Blocked on the transport abstraction. TransportCustomization.CreateTransportInfrastructure takes
+# Func<string, Exception, Task> for onCriticalError, so the critical-error path here cannot carry a
+# token until that signature gains one in the transports phase.
+[{Auditing/AuditIngestion.cs,Auditing/AuditIngestionFaultPolicy.cs,Auditing/ImportFailureCircuitBreaker.cs}]
 dotnet_diagnostic.PS0013.severity = none
-dotnet_diagnostic.PS0017.severity = none
 dotnet_diagnostic.PS0018.severity = none
-dotnet_diagnostic.PS0019.severity = none
+
+# Blocked on IFailedAuditStorage.ProcessFailedMessages, whose callback is handed its own token by the
+# store. The catch filter here correctly tests that one, which PS0020 cannot see.
+[Auditing/ImportFailedAudits.cs]
 dotnet_diagnostic.PS0020.severity = none
-dotnet_diagnostic.PS0021.severity = none

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Net;
+    using System.Threading;
     using System.Threading.Tasks;
     using Email;
     using Infrastructure.Auth;
@@ -17,7 +18,7 @@
         [Authorize(Policy = Permissions.ErrorNotificationsView)]
         [Route("notifications/email")]
         [HttpGet]
-        public async Task<EmailNotifications> GetEmailNotificationsSettings()
+        public async Task<EmailNotifications> GetEmailNotificationsSettings(CancellationToken cancellationToken = default)
         {
             await using var manager = await store.CreateNotificationsManager();
             var notificationsSettings = await manager.LoadSettings();
@@ -28,7 +29,7 @@
         [Authorize(Policy = Permissions.ErrorNotificationsManage)]
         [Route("notifications/email/toggle")]
         [HttpPost]
-        public async Task<IActionResult> ToggleEmailNotifications(ToggleEmailNotifications request)
+        public async Task<IActionResult> ToggleEmailNotifications(ToggleEmailNotifications request, CancellationToken cancellationToken = default)
         {
             await using var manager = await store.CreateNotificationsManager();
             var notificationsSettings = await manager.LoadSettings();
@@ -43,7 +44,7 @@
         [Authorize(Policy = Permissions.ErrorNotificationsManage)]
         [Route("notifications/email")]
         [HttpPost]
-        public async Task<IActionResult> UpdateSettings(UpdateEmailNotificationsSettingsRequest request)
+        public async Task<IActionResult> UpdateSettings(UpdateEmailNotificationsSettingsRequest request, CancellationToken cancellationToken = default)
         {
             await using var manager = await store.CreateNotificationsManager();
             var notificationsSettings = await manager.LoadSettings();
@@ -68,7 +69,7 @@
         [Authorize(Policy = Permissions.ErrorNotificationsTest)]
         [Route("notifications/email/test")]
         [HttpPost]
-        public async Task<IActionResult> SendTestEmail()
+        public async Task<IActionResult> SendTestEmail(CancellationToken cancellationToken = default)
         {
             await using var manager = await store.CreateNotificationsManager();
             var notificationsSettings = await manager.LoadSettings();
@@ -78,7 +79,12 @@
                 await emailSender.Send(
                         notificationsSettings.Email,
                         $"[{settings.InstanceName}] health check notification check successful",
-                        $"[{settings.InstanceName}] health check notification check successful.");
+                        $"[{settings.InstanceName}] health check notification check successful.",
+                        cancellationToken: cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {

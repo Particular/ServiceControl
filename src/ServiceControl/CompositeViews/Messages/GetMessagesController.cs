@@ -3,6 +3,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using Api.Contracts;
     using Infrastructure.Auth;
@@ -41,11 +42,11 @@ namespace ServiceControl.CompositeViews.Messages
         public async Task<IList<MessagesView>> Messages([FromQuery] PagingInfo pagingInfo,
             [FromQuery] SortInfo sortInfo,
             [FromQuery(Name = "include_system_messages")]
-            bool includeSystemMessages)
+            bool includeSystemMessages, CancellationToken cancellationToken = default)
         {
             QueryResult<IList<MessagesView>> result = await allMessagesApi.Execute(
                 new ScatterGatherApiMessageViewWithSystemMessagesContext(pagingInfo, sortInfo, includeSystemMessages),
-                Request.GetEncodedPathAndQuery());
+                Request.GetEncodedPathAndQuery(), cancellationToken);
 
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
@@ -57,11 +58,11 @@ namespace ServiceControl.CompositeViews.Messages
         public async Task<IList<MessagesView>> MessagesForEndpoint([FromQuery] PagingInfo pagingInfo,
             [FromQuery] SortInfo sortInfo,
             [FromQuery(Name = "include_system_messages")]
-            bool includeSystemMessages, string endpoint)
+            bool includeSystemMessages, string endpoint, CancellationToken cancellationToken = default)
         {
             QueryResult<IList<MessagesView>> result = await allMessagesForEndpointApi.Execute(
                 new AllMessagesForEndpointContext(pagingInfo, sortInfo, includeSystemMessages, endpoint),
-                Request.GetEncodedPathAndQuery());
+                Request.GetEncodedPathAndQuery(), cancellationToken);
 
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
@@ -71,10 +72,10 @@ namespace ServiceControl.CompositeViews.Messages
         [Authorize(Policy = Permissions.ErrorMessagesView)]
         [Route("endpoints/{endpoint}/audit-count")]
         [HttpGet]
-        public async Task<IList<AuditCount>> GetEndpointAuditCounts([FromQuery] PagingInfo pagingInfo, string endpoint)
+        public async Task<IList<AuditCount>> GetEndpointAuditCounts([FromQuery] PagingInfo pagingInfo, string endpoint, CancellationToken cancellationToken = default)
         {
             QueryResult<IList<AuditCount>> result = await auditCountsForEndpointApi.Execute(
-                new AuditCountsForEndpointContext(pagingInfo, endpoint), Request.GetEncodedPathAndQuery());
+                new AuditCountsForEndpointContext(pagingInfo, endpoint), Request.GetEncodedPathAndQuery(), cancellationToken);
 
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
@@ -83,7 +84,7 @@ namespace ServiceControl.CompositeViews.Messages
         [Authorize(Policy = Permissions.ErrorMessagesView)]
         [Route("messages/{id}/body")]
         [HttpGet]
-        public async Task<IActionResult> Get(string id, [FromQuery(Name = "instance_id")] string instanceId)
+        public async Task<IActionResult> Get(string id, [FromQuery(Name = "instance_id")] string instanceId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(instanceId) || instanceId == settings.InstanceId)
             {
@@ -114,7 +115,7 @@ namespace ServiceControl.CompositeViews.Messages
             if (forwarderError != ForwarderError.None && HttpContext.GetForwarderErrorFeature()?.Exception is { } exception)
             {
                 logger.LogWarning(exception, "Failed to forward the request to remote instance at {RemoteInstanceUrl}",
-                    remote.BaseAddress + HttpContext.Request.GetEncodedPathAndQuery());
+                    remote.BaseAddress + HttpContext.Request.GetEncodedPathAndQuery(), cancellationToken);
             }
 
             return Empty;
@@ -124,10 +125,10 @@ namespace ServiceControl.CompositeViews.Messages
         [Route("messages/search")]
         [HttpGet]
         public async Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo,
-            string q)
+            string q, CancellationToken cancellationToken = default)
         {
             QueryResult<IList<MessagesView>> result = await api.Execute(new SearchApiContext(pagingInfo, sortInfo, q),
-                Request.GetEncodedPathAndQuery());
+                Request.GetEncodedPathAndQuery(), cancellationToken);
 
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
@@ -137,11 +138,11 @@ namespace ServiceControl.CompositeViews.Messages
         [Route("messages/search/{keyword}")]
         [HttpGet]
         public async Task<IList<MessagesView>> SearchByKeyWord([FromQuery] PagingInfo pagingInfo,
-            [FromQuery] SortInfo sortInfo, string keyword)
+            [FromQuery] SortInfo sortInfo, string keyword, CancellationToken cancellationToken = default)
         {
             QueryResult<IList<MessagesView>> result = await api.Execute(
                 new SearchApiContext(pagingInfo, sortInfo, keyword?.Replace("/", @"\")),
-                Request.GetEncodedPathAndQuery());
+                Request.GetEncodedPathAndQuery(), cancellationToken);
 
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
@@ -151,10 +152,10 @@ namespace ServiceControl.CompositeViews.Messages
         [Route("endpoints/{endpoint}/messages/search")]
         [HttpGet]
         public async Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo,
-            string endpoint, string q)
+            string endpoint, string q, CancellationToken cancellationToken = default)
         {
             QueryResult<IList<MessagesView>> result = await endpointApi.Execute(
-                new SearchEndpointContext(pagingInfo, sortInfo, endpoint, q), Request.GetEncodedPathAndQuery());
+                new SearchEndpointContext(pagingInfo, sortInfo, endpoint, q), Request.GetEncodedPathAndQuery(), cancellationToken);
 
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
@@ -164,10 +165,10 @@ namespace ServiceControl.CompositeViews.Messages
         [Route("endpoints/{endpoint}/messages/search/{keyword}")]
         [HttpGet]
         public async Task<IList<MessagesView>> SearchByKeyword([FromQuery] PagingInfo pagingInfo,
-            [FromQuery] SortInfo sortInfo, string endpoint, string keyword)
+            [FromQuery] SortInfo sortInfo, string endpoint, string keyword, CancellationToken cancellationToken = default)
         {
             QueryResult<IList<MessagesView>> result = await endpointApi.Execute(
-                new SearchEndpointContext(pagingInfo, sortInfo, endpoint, keyword), Request.GetEncodedPathAndQuery());
+                new SearchEndpointContext(pagingInfo, sortInfo, endpoint, keyword), Request.GetEncodedPathAndQuery(), cancellationToken);
 
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;

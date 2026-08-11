@@ -20,7 +20,7 @@
         ILogger<InternalCustomChecksHostedService> logger)
         : IHostedService
     {
-        public Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken = default)
         {
             foreach (var check in customChecks)
             {
@@ -33,11 +33,11 @@
             return Task.CompletedTask;
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
+        public async Task StopAsync(CancellationToken cancellationToken = default)
         {
             if (managers.Any())
             {
-                await Task.WhenAll([.. managers.Select(m => m.Stop())]);
+                await Task.WhenAll([.. managers.Select(m => m.Stop(cancellationToken))]);
             }
         }
 

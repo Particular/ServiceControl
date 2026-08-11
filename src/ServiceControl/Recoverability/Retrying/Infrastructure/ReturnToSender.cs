@@ -25,7 +25,7 @@ namespace ServiceControl.Recoverability
 
             if (outgoingHeaders.TryGetValue("ServiceControl.Retry.Attempt.MessageId", out var attemptMessageId))
             {
-                body = await FetchFromFailedMessage(outgoingHeaders, messageId, attemptMessageId);
+                body = await FetchFromFailedMessage(outgoingHeaders, messageId, attemptMessageId, cancellationToken);
                 outgoingHeaders.Remove("ServiceControl.Retry.Attempt.MessageId");
             }
             else
@@ -56,7 +56,7 @@ namespace ServiceControl.Recoverability
             logger.LogDebug("{MessageId}: Forwarded message to {RetryTo}", messageId, retryTo);
         }
 
-        async Task<byte[]> FetchFromFailedMessage(Dictionary<string, string> outgoingHeaders, string messageId, string attemptMessageId)
+        async Task<byte[]> FetchFromFailedMessage(Dictionary<string, string> outgoingHeaders, string messageId, string attemptMessageId, CancellationToken cancellationToken)
         {
             var uniqueMessageId = outgoingHeaders["ServiceControl.Retry.UniqueMessageId"];
             byte[] body = await errorMessageStore.GetFailedMessageBody(uniqueMessageId);

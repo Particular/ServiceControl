@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
     using Microsoft.AspNetCore.Authorization;
@@ -13,7 +14,7 @@
         [Authorize(Policy = Permissions.ErrorMessagesView)]
         [Route("errors/{failedMessageId:required:minlength(1)}")]
         [HttpGet]
-        public async Task<ActionResult<FailedMessage>> ErrorBy(string failedMessageId)
+        public async Task<ActionResult<FailedMessage>> ErrorBy(string failedMessageId, CancellationToken cancellationToken = default)
         {
             var result = await store.GetFailedMessage(failedMessageId);
 
@@ -23,7 +24,7 @@
         [Authorize(Policy = Permissions.ErrorMessagesView)]
         [Route("errors/last/{failedMessageId:required:minlength(1)}")]
         [HttpGet]
-        public async Task<ActionResult<FailedMessageView>> ErrorLastBy(string failedMessageId)
+        public async Task<ActionResult<FailedMessageView>> ErrorLastBy(string failedMessageId, CancellationToken cancellationToken = default)
         {
             var result = await store.GetLatestFailedMessageView(failedMessageId);
 

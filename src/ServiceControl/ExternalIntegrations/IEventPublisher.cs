@@ -1,6 +1,7 @@
 namespace ServiceControl.ExternalIntegrations
 {
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
 
@@ -9,6 +10,6 @@ namespace ServiceControl.ExternalIntegrations
         bool Handles(IDomainEvent @event);
         object CreateDispatchContext(IDomainEvent @event);
 
-        Task<IEnumerable<object>> PublishEventsForOwnContexts(IEnumerable<object> allContexts);
+        Task<IEnumerable<object>> PublishEventsForOwnContexts(IEnumerable<object> allContexts, CancellationToken cancellationToken = default);
     }
 }

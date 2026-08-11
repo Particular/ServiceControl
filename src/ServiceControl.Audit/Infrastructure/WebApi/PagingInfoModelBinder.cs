@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 public class PagingInfoModelBinder : IModelBinder
 {
+#pragma warning disable PS0018 // IModelBinder declares this without a CancellationToken
     public Task BindModelAsync(ModelBindingContext bindingContext)
     {
         ArgumentNullException.ThrowIfNull(bindingContext);
@@ -28,4 +29,5 @@ public class PagingInfoModelBinder : IModelBinder
         bindingContext.Result = ModelBindingResult.Success(new PagingInfo(page, maxResultsPerPage));
         return Task.CompletedTask;
     }
+#pragma warning restore PS0018
 }

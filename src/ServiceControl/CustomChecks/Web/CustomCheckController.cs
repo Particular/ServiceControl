@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.CustomChecks;
     using Infrastructure.Auth;
@@ -20,7 +21,7 @@
         [Authorize(Policy = Permissions.ErrorCustomChecksView)]
         [Route("customchecks")]
         [HttpGet]
-        public async Task<IList<CustomCheck>> CustomChecks([FromQuery] PagingInfo pagingInfo, string status = null)
+        public async Task<IList<CustomCheck>> CustomChecks([FromQuery] PagingInfo pagingInfo, string status = null, CancellationToken cancellationToken = default)
         {
             var stats = await checksDataStore.GetStats(pagingInfo, status);
 
@@ -33,9 +34,9 @@
         [Authorize(Policy = Permissions.ErrorCustomChecksDelete)]
         [Route("customchecks/{id}")]
         [HttpDelete]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default)
         {
-            await session.SendLocal(new DeleteCustomCheck { Id = id });
+            await session.SendLocal(new DeleteCustomCheck { Id = id }, cancellationToken);
 
             return Accepted();
         }

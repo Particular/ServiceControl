@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Net.Http;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
@@ -12,17 +13,17 @@
     class RemotePlatformConnectionDetailsProvider(Settings settings, IHttpClientFactory clientFactory, IHttpContextAccessor httpContextAccessor, ILogger<RemotePlatformConnectionDetailsProvider> logger)
         : IProvidePlatformConnectionDetails
     {
-        public Task ProvideConnectionDetails(PlatformConnectionDetails connection)
+        public Task ProvideConnectionDetails(PlatformConnectionDetails connection, CancellationToken cancellationToken = default)
         {
             var authorizationHeader = httpContextAccessor.HttpContext?.Request.Headers.Authorization.ToString();
 
             return Task.WhenAll(
                 settings.RemoteInstances
-                    .Select(remote => UpdateFromRemote(remote, connection, authorizationHeader))
+                    .Select(remote => UpdateFromRemote(remote, connection, authorizationHeader, cancellationToken))
             );
         }
 
-        async Task UpdateFromRemote(RemoteInstanceSetting remote, PlatformConnectionDetails connection, string authorizationHeader)
+        async Task UpdateFromRemote(RemoteInstanceSetting remote, PlatformConnectionDetails connection, string authorizationHeader, CancellationToken cancellationToken)
         {
             var client = clientFactory.CreateClient(remote.InstanceId);
             try
@@ -35,15 +36,19 @@
                     request.Headers.TryAddWithoutValidation("Authorization", authorizationHeader);
                 }
 
-                var response = await client.SendAsync(request);
+                var response = await client.SendAsync(request, cancellationToken);
                 response.EnsureSuccessStatusCode();
 
-                await using var stream = await response.Content.ReadAsStreamAsync();
-                var document = await JsonDocument.ParseAsync(stream);
+                await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
                 foreach (var property in document.RootElement.EnumerateObject())
                 {
                     connection.Add(property.Name, property.Value);
                 }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception ex)
             {

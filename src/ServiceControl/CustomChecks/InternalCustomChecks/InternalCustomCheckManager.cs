@@ -63,14 +63,14 @@
                 FailureReason = result.FailureReason
             };
 
-            await checkResultProcessor.ProcessResult(detail);
+            await checkResultProcessor.ProcessResult(detail, cancellationToken);
 
             return check.Interval.HasValue
                 ? TimerJobExecutionResult.ScheduleNextExecution
                 : TimerJobExecutionResult.DoNotContinueExecuting;
         }
 
-        public Task Stop() => timer?.Stop(CancellationToken.None) ?? Task.CompletedTask;
+        public Task Stop(CancellationToken cancellationToken = default) => timer?.Stop(cancellationToken) ?? Task.CompletedTask;
 
         TimerJob timer;
         readonly ICustomCheck check;

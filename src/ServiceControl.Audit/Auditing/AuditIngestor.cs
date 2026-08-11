@@ -45,7 +45,7 @@
             );
         }
 
-        public async Task Ingest(List<MessageContext> contexts, CancellationToken cancellationToken)
+        public async Task Ingest(List<MessageContext> contexts, CancellationToken cancellationToken = default)
         {
             var stored = await auditPersister.Persist(contexts, cancellationToken);
 
@@ -60,6 +60,10 @@
                 {
                     context.GetTaskCompletionSource().TrySetResult(true);
                 }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {
@@ -101,7 +105,7 @@
                 : Task.CompletedTask;
         }
 
-        public async Task VerifyCanReachForwardingAddress(CancellationToken cancellationToken)
+        public async Task VerifyCanReachForwardingAddress(CancellationToken cancellationToken = default)
         {
             if (!settings.ForwardAuditMessages)
             {
@@ -119,6 +123,10 @@
                 );
 
                 await messageDispatcher.Value.Dispatch(transportOperations, new TransportTransaction(), cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {

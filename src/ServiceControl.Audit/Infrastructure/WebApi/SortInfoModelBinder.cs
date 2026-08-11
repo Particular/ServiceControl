@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 public class SortInfoModelBinder : IModelBinder
 {
+#pragma warning disable PS0018 // IModelBinder declares this without a CancellationToken
     public Task BindModelAsync(ModelBindingContext bindingContext)
     {
         ArgumentNullException.ThrowIfNull(bindingContext);
@@ -27,4 +28,5 @@ public class SortInfoModelBinder : IModelBinder
         bindingContext.Result = ModelBindingResult.Success(new SortInfo(sort, direction));
         return Task.CompletedTask;
     }
+#pragma warning restore PS0018
 }

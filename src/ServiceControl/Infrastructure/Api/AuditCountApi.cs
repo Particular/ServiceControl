@@ -10,7 +10,7 @@ using ServiceControl.Api.Contracts;
 
 class AuditCountApi(GetAuditCountsForEndpointApi auditCountsForEndpointApi) : IAuditCountApi
 {
-    public async Task<IList<AuditCount>> GetEndpointAuditCounts(string endpoint, CancellationToken cancellationToken) =>
+    public async Task<IList<AuditCount>> GetEndpointAuditCounts(string endpoint, CancellationToken cancellationToken = default) =>
         (await auditCountsForEndpointApi.Execute(new AuditCountsForEndpointContext(new PagingInfo(), endpoint),
-            $"/api/endpoints/{endpoint}/audit-count")).Results;
+            $"/api/endpoints/{endpoint}/audit-count", cancellationToken)).Results;
 }

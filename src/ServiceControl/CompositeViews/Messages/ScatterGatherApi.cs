@@ -6,6 +6,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Http;
@@ -54,7 +55,7 @@ namespace ServiceControl.CompositeViews.Messages
         IHttpClientFactory HttpClientFactory { get; }
         IHttpContextAccessor HttpContextAccessor { get; }
 
-        public async Task<QueryResult<TOut>> Execute(TIn input, string pathAndQuery)
+        public async Task<QueryResult<TOut>> Execute(TIn input, string pathAndQuery, CancellationToken cancellationToken = default)
         {
             var remotes = Settings.RemoteInstances;
             var instanceId = Settings.InstanceId;
@@ -62,7 +63,7 @@ namespace ServiceControl.CompositeViews.Messages
 
             var tasks = new List<Task<QueryResult<TOut>>>(remotes.Length + 1)
             {
-                LocalCall(input, instanceId)
+                LocalCall(input, instanceId, cancellationToken)
             };
 
             foreach (var remote in remotes)
@@ -72,7 +73,7 @@ namespace ServiceControl.CompositeViews.Messages
                     continue;
                 }
 
-                tasks.Add(RemoteCall(HttpClientFactory.CreateClient(remote.InstanceId), pathAndQuery, remote, authorizationHeader));
+                tasks.Add(RemoteCall(HttpClientFactory.CreateClient(remote.InstanceId), pathAndQuery, remote, authorizationHeader, cancellationToken));
             }
 
             var results = await Task.WhenAll(tasks);
@@ -81,14 +82,14 @@ namespace ServiceControl.CompositeViews.Messages
             return response;
         }
 
-        async Task<QueryResult<TOut>> LocalCall(TIn input, string instanceId)
+        async Task<QueryResult<TOut>> LocalCall(TIn input, string instanceId, CancellationToken cancellationToken)
         {
-            var result = await LocalQuery(input);
+            var result = await LocalQuery(input, cancellationToken);
             result.InstanceId = instanceId;
             return result;
         }
 
-        protected abstract Task<QueryResult<TOut>> LocalQuery(TIn input);
+        protected abstract Task<QueryResult<TOut>> LocalQuery(TIn input, CancellationToken cancellationToken = default);
 
         internal QueryResult<TOut> AggregateResults(TIn input, QueryResult<TOut>[] results)
         {
@@ -114,14 +115,14 @@ namespace ServiceControl.CompositeViews.Messages
             );
         }
 
-        async Task<QueryResult<TOut>> RemoteCall(HttpClient client, string pathAndQuery, RemoteInstanceSetting remoteInstanceSetting, string authorizationHeader)
+        async Task<QueryResult<TOut>> RemoteCall(HttpClient client, string pathAndQuery, RemoteInstanceSetting remoteInstanceSetting, string authorizationHeader, CancellationToken cancellationToken)
         {
-            var fetched = await FetchAndParse(client, pathAndQuery, remoteInstanceSetting, authorizationHeader);
+            var fetched = await FetchAndParse(client, pathAndQuery, remoteInstanceSetting, authorizationHeader, cancellationToken);
             fetched.InstanceId = remoteInstanceSetting.InstanceId;
             return fetched;
         }
 
-        async Task<QueryResult<TOut>> FetchAndParse(HttpClient httpClient, string pathAndQuery, RemoteInstanceSetting remoteInstanceSetting, string authorizationHeader)
+        async Task<QueryResult<TOut>> FetchAndParse(HttpClient httpClient, string pathAndQuery, RemoteInstanceSetting remoteInstanceSetting, string authorizationHeader, CancellationToken cancellationToken)
         {
             try
             {
@@ -135,7 +136,7 @@ namespace ServiceControl.CompositeViews.Messages
                 }
 
                 // Assuming SendAsync returns uncompressed response and the AutomaticDecompression is enabled on the http client.
-                var rawResponse = await httpClient.SendAsync(request);
+                var rawResponse = await httpClient.SendAsync(request, cancellationToken);
 
                 // special case - queried by conversation ID and nothing was found
                 if (rawResponse.StatusCode == HttpStatusCode.NotFound)
@@ -150,7 +151,7 @@ namespace ServiceControl.CompositeViews.Messages
                     return QueryResult<TOut>.Empty();
                 }
 
-                return await ParseResult(rawResponse);
+                return await ParseResult(rawResponse, cancellationToken);
             }
             catch (HttpRequestException httpRequestException)
             {
@@ -160,6 +161,12 @@ namespace ServiceControl.CompositeViews.Messages
                     "An HttpRequestException occurred when querying remote instance at {RemoteInstanceBaseAddress}. The instance will be temporarily disabled",
                     remoteInstanceSetting.BaseAddress);
                 return QueryResult<TOut>.Empty();
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // The caller gave up on the whole scatter-gather, so this is not a per-remote timeout
+                // to be absorbed into an empty result.
+                throw;
             }
             catch (OperationCanceledException) // Intentional, used to gracefully handle timeout
             {
@@ -173,10 +180,10 @@ namespace ServiceControl.CompositeViews.Messages
             }
         }
 
-        static async Task<QueryResult<TOut>> ParseResult(HttpResponseMessage responseMessage)
+        static async Task<QueryResult<TOut>> ParseResult(HttpResponseMessage responseMessage, CancellationToken cancellationToken)
         {
-            await using var responseStream = await responseMessage.Content.ReadAsStreamAsync();
-            var remoteResults = await JsonSerializer.DeserializeAsync<TOut>(responseStream, SerializerOptions.Default);
+            await using var responseStream = await responseMessage.Content.ReadAsStreamAsync(cancellationToken);
+            var remoteResults = await JsonSerializer.DeserializeAsync<TOut>(responseStream, SerializerOptions.Default, cancellationToken);
 
             var totalCount = 0;
             if (responseMessage.Headers.TryGetValues("Total-Count", out var totalCounts))

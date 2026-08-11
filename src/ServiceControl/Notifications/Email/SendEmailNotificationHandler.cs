@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Notifications.Email
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
@@ -51,9 +52,13 @@
                     message.Body += "\n\nWARNING: Your SMTP server was temporarily unavailable. Make sure to check ServicePulse for a full list of health check notifications.";
                 }
 
-                await emailSender.Send(notifications.Email, message.Subject, message.Body, emailDropFolder);
+                await emailSender.Send(notifications.Email, message.Subject, message.Body, emailDropFolder, cancellationToken);
             }
-            catch (Exception e) when (e is not OperationCanceledException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception e)
             {
                 if (message.FailureNotification)
                 {

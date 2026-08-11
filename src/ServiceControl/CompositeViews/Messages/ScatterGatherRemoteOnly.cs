@@ -1,6 +1,7 @@
 namespace ServiceControl.CompositeViews.Messages
 {
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
@@ -12,7 +13,7 @@ namespace ServiceControl.CompositeViews.Messages
         where TIn : ScatterGatherContext
         where TOut : class
     {
-        protected sealed override Task<QueryResult<TOut>> LocalQuery(TIn input) => QueryResult<TOut>.Empty();
+        protected sealed override Task<QueryResult<TOut>> LocalQuery(TIn input, CancellationToken cancellationToken = default) => QueryResult<TOut>.Empty();
     }
 
     public sealed class NoOpStore

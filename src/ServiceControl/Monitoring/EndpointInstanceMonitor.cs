@@ -1,6 +1,7 @@
 namespace ServiceControl.Monitoring
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.HeartbeatMonitoring;
     using EndpointControl.Contracts;
@@ -23,23 +24,23 @@ namespace ServiceControl.Monitoring
 
         public bool Monitored { get; private set; }
 
-        public async Task EnableMonitoring()
+        public async Task EnableMonitoring(CancellationToken cancellationToken = default)
         {
-            await domainEvents.Raise(new MonitoringEnabledForEndpoint { Endpoint = Convert(Id) });
+            await domainEvents.Raise(new MonitoringEnabledForEndpoint { Endpoint = Convert(Id) }, cancellationToken);
             Monitored = true;
         }
 
-        public async Task DisableMonitoring()
+        public async Task DisableMonitoring(CancellationToken cancellationToken = default)
         {
-            await domainEvents.Raise(new MonitoringDisabledForEndpoint { Endpoint = Convert(Id) });
+            await domainEvents.Raise(new MonitoringDisabledForEndpoint { Endpoint = Convert(Id) }, cancellationToken);
             Monitored = false;
         }
 
-        public async Task UpdateStatus(HeartbeatStatus newStatus, DateTime? latestTimestamp)
+        public async Task UpdateStatus(HeartbeatStatus newStatus, DateTime? latestTimestamp, CancellationToken cancellationToken = default)
         {
             if (newStatus != status)
             {
-                await RaiseStateChangeEvents(newStatus, latestTimestamp);
+                await RaiseStateChangeEvents(newStatus, latestTimestamp, cancellationToken);
                 logger.LogDebug("Endpoint {LogicalEndpointName} status updated from {OldHeartbeatStatus} to {NewHeartbeatStatus}", Id.LogicalName, status, newStatus);
             }
 
@@ -47,7 +48,7 @@ namespace ServiceControl.Monitoring
             status = newStatus;
         }
 
-        async Task RaiseStateChangeEvents(HeartbeatStatus newStatus, DateTime? latestTimestamp)
+        async Task RaiseStateChangeEvents(HeartbeatStatus newStatus, DateTime? latestTimestamp, CancellationToken cancellationToken)
         {
             if (newStatus == HeartbeatStatus.Alive)
             {
@@ -60,7 +61,7 @@ namespace ServiceControl.Monitoring
                     {
                         Endpoint = Convert(Id),
                         DetectedAt = latestTimestamp ?? DateTime.UtcNow
-                    });
+                    }, cancellationToken);
                 }
                 else if (status == HeartbeatStatus.Dead && Monitored)
                 {
@@ -68,7 +69,7 @@ namespace ServiceControl.Monitoring
                     {
                         Endpoint = Convert(Id),
                         RestoredAt = latestTimestamp ?? DateTime.UtcNow
-                    });
+                    }, cancellationToken);
                 }
             }
             else if (newStatus == HeartbeatStatus.Dead && Monitored)
@@ -78,7 +79,7 @@ namespace ServiceControl.Monitoring
                     Endpoint = Convert(Id),
                     DetectedAt = DateTime.UtcNow,
                     LastReceivedAt = latestTimestamp ?? DateTime.MinValue
-                });
+                }, cancellationToken);
             }
         }
 

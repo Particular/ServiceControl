@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using Microsoft.Extensions.Logging;
@@ -35,7 +36,7 @@
             return $"{retryType}/{requestId}";
         }
 
-        public Task Wait(DateTime started, string originator = null, string classifier = null, DateTime? last = null)
+        public Task Wait(DateTime started, string originator = null, string classifier = null, DateTime? last = null, CancellationToken cancellationToken = default)
         {
             RetryState = RetryState.Waiting;
             NumberOfMessagesPrepared = 0;
@@ -55,7 +56,7 @@
                 RetryType = retryType,
                 Progress = GetProgress(),
                 StartTime = Started
-            });
+            }, cancellationToken);
         }
 
         public void Fail()
@@ -63,7 +64,7 @@
             Failed = true;
         }
 
-        public Task Prepare(int totalNumberOfMessages)
+        public Task Prepare(int totalNumberOfMessages, CancellationToken cancellationToken = default)
         {
             RetryState = RetryState.Preparing;
             TotalNumberOfMessages = totalNumberOfMessages;
@@ -78,10 +79,10 @@
                 Progress = GetProgress(),
                 IsFailed = Failed,
                 StartTime = Started
-            });
+            }, cancellationToken);
         }
 
-        public Task PrepareBatch(int numberOfMessagesPrepared)
+        public Task PrepareBatch(int numberOfMessagesPrepared, CancellationToken cancellationToken = default)
         {
             NumberOfMessagesPrepared = numberOfMessagesPrepared;
 
@@ -93,20 +94,20 @@
                 Progress = GetProgress(),
                 IsFailed = Failed,
                 StartTime = Started
-            });
+            }, cancellationToken);
         }
 
-        public Task PrepareAdoptedBatch(int numberOfMessagesPrepared, string originator, string classifier, DateTime startTime, DateTime last)
+        public Task PrepareAdoptedBatch(int numberOfMessagesPrepared, string originator, string classifier, DateTime startTime, DateTime last, CancellationToken cancellationToken = default)
         {
             Originator = originator;
             Started = startTime;
             Last = last;
             Classifier = classifier;
 
-            return PrepareBatch(numberOfMessagesPrepared);
+            return PrepareBatch(numberOfMessagesPrepared, cancellationToken);
         }
 
-        public Task Forwarding()
+        public Task Forwarding(CancellationToken cancellationToken = default)
         {
             RetryState = RetryState.Forwarding;
 
@@ -118,10 +119,10 @@
                 Progress = GetProgress(),
                 IsFailed = Failed,
                 StartTime = Started
-            });
+            }, cancellationToken);
         }
 
-        public async Task BatchForwarded(int numberOfMessagesForwarded)
+        public async Task BatchForwarded(int numberOfMessagesForwarded, CancellationToken cancellationToken = default)
         {
             NumberOfMessagesForwarded += numberOfMessagesForwarded;
 
@@ -133,18 +134,18 @@
                 Progress = GetProgress(),
                 IsFailed = Failed,
                 StartTime = Started
-            });
+            }, cancellationToken);
 
-            await CheckForCompletion();
+            await CheckForCompletion(cancellationToken);
         }
 
-        public Task Skip(int numberOfMessagesSkipped)
+        public Task Skip(int numberOfMessagesSkipped, CancellationToken cancellationToken = default)
         {
             NumberOfMessagesSkipped += numberOfMessagesSkipped;
-            return CheckForCompletion();
+            return CheckForCompletion(cancellationToken);
         }
 
-        async Task CheckForCompletion()
+        async Task CheckForCompletion(CancellationToken cancellationToken)
         {
             if (NumberOfMessagesForwarded + NumberOfMessagesSkipped != TotalNumberOfMessages)
             {
@@ -166,7 +167,7 @@
                 NumberOfMessagesProcessed = NumberOfMessagesForwarded,
                 Last = Last ?? DateTime.MaxValue,
                 Classifier = Classifier
-            });
+            }, cancellationToken);
 
             if (retryType == RetryType.FailureGroup)
             {
@@ -175,7 +176,7 @@
                     FailedMessageIds = new string[0],
                     NumberOfFailedMessages = NumberOfMessagesForwarded,
                     Context = Originator
-                });
+                }, cancellationToken);
             }
 
             logger.LogInformation("Retry operation {RequestId} completed. {NumberOfMessagesSkipped} messages skipped, {NumberOfMessagesForwarded} forwarded. Total {TotalNumberOfMessages}",

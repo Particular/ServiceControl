@@ -1,6 +1,0 @@
-# Cancellation analyzer debt, narrowed to the one file still owed. MessageActionAuditLogExtensions
-# takes a Func<Task> callback that has to become Func<CancellationToken, Task>, which changes the
-# lambda at a dozen controller call sites, so it moves with the controllers in Phase 2.
-[Auth/MessageActionAuditLogExtensions.cs]
-dotnet_diagnostic.PS0013.severity = none
-dotnet_diagnostic.PS0018.severity = none

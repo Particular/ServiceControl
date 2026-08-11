@@ -4,6 +4,7 @@ namespace ServiceControl.Recoverability
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.Auth;
@@ -20,7 +21,7 @@ namespace ServiceControl.Recoverability
             this.logger = logger;
         }
 
-        public async Task StartRetryForSingleMessage(string uniqueMessageId, AuditUser? initiatedBy = null, string operationId = null)
+        public async Task StartRetryForSingleMessage(string uniqueMessageId, AuditUser? initiatedBy = null, string operationId = null, CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Retrying a single message {UniqueMessageId}", uniqueMessageId);
 
@@ -28,12 +29,12 @@ namespace ServiceControl.Recoverability
             var retryType = RetryType.SingleMessage;
             var numberOfMessages = 1;
 
-            await operationManager.Preparing(requestId, retryType, numberOfMessages);
-            await AssignMessagesToBatch(requestId, retryType, new[] { uniqueMessageId }, DateTime.UtcNow, initiatedBy: initiatedBy, operationId: operationId);
-            await operationManager.PreparedBatch(requestId, retryType, numberOfMessages);
+            await operationManager.Preparing(requestId, retryType, numberOfMessages, cancellationToken);
+            await AssignMessagesToBatch(requestId, retryType, new[] { uniqueMessageId }, DateTime.UtcNow, initiatedBy: initiatedBy, operationId: operationId, cancellationToken: cancellationToken);
+            await operationManager.PreparedBatch(requestId, retryType, numberOfMessages, cancellationToken);
         }
 
-        public async Task StartRetryForMessageSelection(string[] uniqueMessageIds, AuditUser? initiatedBy = null, string operationId = null)
+        public async Task StartRetryForMessageSelection(string[] uniqueMessageIds, AuditUser? initiatedBy = null, string operationId = null, CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Retrying a selection of {MessageCount} messages", uniqueMessageIds.Length);
 
@@ -41,12 +42,12 @@ namespace ServiceControl.Recoverability
             var retryType = RetryType.MultipleMessages;
             var numberOfMessages = uniqueMessageIds.Length;
 
-            await operationManager.Preparing(requestId, retryType, numberOfMessages);
-            await AssignMessagesToBatch(requestId, retryType, uniqueMessageIds, DateTime.UtcNow, initiatedBy: initiatedBy, operationId: operationId);
-            await operationManager.PreparedBatch(requestId, retryType, numberOfMessages);
+            await operationManager.Preparing(requestId, retryType, numberOfMessages, cancellationToken);
+            await AssignMessagesToBatch(requestId, retryType, uniqueMessageIds, DateTime.UtcNow, initiatedBy: initiatedBy, operationId: operationId, cancellationToken: cancellationToken);
+            await operationManager.PreparedBatch(requestId, retryType, numberOfMessages, cancellationToken);
         }
 
-        async Task AssignMessagesToBatch(string requestId, RetryType retryType, string[] messageIds, DateTime startTime, DateTime? last = null, string originator = null, string batchName = null, string classifier = null, AuditUser? initiatedBy = null, string operationId = null)
+        async Task AssignMessagesToBatch(string requestId, RetryType retryType, string[] messageIds, DateTime startTime, DateTime? last = null, string originator = null, string batchName = null, string classifier = null, AuditUser? initiatedBy = null, string operationId = null, CancellationToken cancellationToken = default)
         {
             if (messageIds == null || !messageIds.Any())
             {
@@ -62,43 +63,43 @@ namespace ServiceControl.Recoverability
 
             await store.AssignMessagesToBatch(batchId, messageIds);
 
-            await MoveBatchToStaging(batchId);
+            await MoveBatchToStaging(batchId, cancellationToken);
 
             logger.LogInformation("Moved Batch '{BatchDocumentId}' to Staging", batchId);
         }
 
         // Needs to be overridable by a test
-        protected virtual Task MoveBatchToStaging(string batchId) => store.MoveBatchToStaging(batchId);
+        protected virtual Task MoveBatchToStaging(string batchId, CancellationToken cancellationToken = default) => store.MoveBatchToStaging(batchId);
 
 
-        public async Task<bool> ProcessNextBulkRetry()  // Invoked from BulkRetryBatchCreationHostedService in schedule
+        public async Task<bool> ProcessNextBulkRetry(CancellationToken cancellationToken = default)  // Invoked from BulkRetryBatchCreationHostedService in schedule
         {
             if (!bulkRequests.TryDequeue(out var request))
             {
                 return false;
             }
 
-            await ProcessRequest(request);
+            await ProcessRequest(request, cancellationToken);
             return true;
         }
 
-        async Task ProcessRequest(BulkRetryRequest request)
+        async Task ProcessRequest(BulkRetryRequest request, CancellationToken cancellationToken)
         {
-            var (batches, latestAttempt) = await request.GetRequestedBatches(store);
+            var (batches, latestAttempt) = await request.GetRequestedBatches(store, cancellationToken);
             var totalMessages = batches.Sum(b => b.Length);
 
             if (!operationManager.IsOperationInProgressFor(request.RequestId, request.RetryType) && totalMessages > 0)
             {
                 var numberOfMessagesAdded = 0;
 
-                await operationManager.Preparing(request.RequestId, request.RetryType, totalMessages);
+                await operationManager.Preparing(request.RequestId, request.RetryType, totalMessages, cancellationToken);
 
                 for (var i = 0; i < batches.Count; i++)
                 {
-                    await AssignMessagesToBatch(request.RequestId, request.RetryType, batches[i], request.StartTime, latestAttempt, request.Originator, GetBatchName(i + 1, batches.Count, request.Originator), request.Classifier, request.InitiatedBy, request.OperationId);
+                    await AssignMessagesToBatch(request.RequestId, request.RetryType, batches[i], request.StartTime, latestAttempt, request.Originator, GetBatchName(i + 1, batches.Count, request.Originator), request.Classifier, request.InitiatedBy, request.OperationId, cancellationToken);
                     numberOfMessagesAdded += batches[i].Length;
 
-                    await operationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded);
+                    await operationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded, cancellationToken);
                 }
             }
         }
@@ -176,7 +177,7 @@ namespace ServiceControl.Recoverability
 
             protected abstract Task Invoke(IRetryBatchStore store, Func<string, DateTime, Task> callback);
 
-            public async Task<Tuple<List<string[]>, DateTime>> GetRequestedBatches(IRetryBatchStore store)
+            public async Task<Tuple<List<string[]>, DateTime>> GetRequestedBatches(IRetryBatchStore store, CancellationToken cancellationToken = default)
             {
                 var response = new List<string[]>();
                 var currentBatch = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

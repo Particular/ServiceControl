@@ -30,10 +30,10 @@ public class EndpointsSettingsController(
     [Authorize(Policy = Permissions.ErrorEndpointsView)]
     [Route("endpointssettings")]
     [HttpGet]
-    public async IAsyncEnumerable<SettingsData> Endpoints([EnumeratorCancellation] CancellationToken token)
+    public async IAsyncEnumerable<SettingsData> Endpoints([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         await using IAsyncEnumerator<EndpointSettings> enumerator =
-            dataStore.GetAllEndpointSettings(token).GetAsyncEnumerator(token);
+            dataStore.GetAllEndpointSettings(cancellationToken).GetAsyncEnumerator(cancellationToken);
         bool noResults = true;
         while (await enumerator.MoveNextAsync())
         {
@@ -56,14 +56,14 @@ public class EndpointsSettingsController(
     [Route("endpointssettings/{endpointName?}")]
     [HttpPatch]
     public async Task<IActionResult>
-        UpdateTrackingSetting(string endpointName, [FromBody] EndpointSettingsUpdateModel data, CancellationToken token)
+        UpdateTrackingSetting(string endpointName, [FromBody] EndpointSettingsUpdateModel data, CancellationToken cancellationToken = default)
     {
         await dataStore.UpdateEndpointSettings(new EndpointSettings
         {
 #pragma warning disable IDE0055
             Name = endpointName ?? string.Empty, TrackInstances = data.TrackInstances
 #pragma warning restore IDE0055
-        }, token);
+        }, cancellationToken);
         return Accepted();
     }
 }

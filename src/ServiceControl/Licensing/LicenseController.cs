@@ -23,7 +23,7 @@ namespace ServiceControl.Licensing
         [Authorize(Policy = Permissions.ErrorLicensingView)]
         [HttpGet]
         [Route("license")]
-        public async Task<ActionResult<LicenseInfo>> License(bool refresh, string clientName, CancellationToken cancellationToken)
+        public async Task<ActionResult<LicenseInfo>> License(bool refresh, string clientName, CancellationToken cancellationToken = default)
         {
             if (refresh)
             {
@@ -54,7 +54,7 @@ namespace ServiceControl.Licensing
         [Authorize(Policy = Permissions.ErrorThroughputView)]
         [HttpGet]
         [Route("license/details")]
-        public async Task<ActionResult<LicensedEndpointDetails?>> LicenseDetails(CancellationToken cancellationToken)
+        public async Task<ActionResult<LicensedEndpointDetails?>> LicenseDetails(CancellationToken cancellationToken = default)
         {
             if (activeLicense.Details.Edition != "Endpoint Size" || !activeLicense.Details.HasEndpointMetadata)
             {
@@ -74,7 +74,7 @@ namespace ServiceControl.Licensing
         [Authorize(Policy = Permissions.ErrorThroughputManage)]
         [HttpPost]
         [Route("license/detailsUpload")]
-        public async Task UploadLicenseDetails([FromForm] IFormFile file, CancellationToken cancellationToken)
+        public async Task UploadLicenseDetails([FromForm] IFormFile file, CancellationToken cancellationToken = default)
         {
             //perform date and license id checks
             using var brotliStream = new BrotliStream(file.OpenReadStream(), CompressionMode.Decompress);

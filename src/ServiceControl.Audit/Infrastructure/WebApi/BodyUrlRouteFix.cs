@@ -8,6 +8,7 @@ namespace ServiceControl.Audit.Infrastructure.WebApi
     // This owin module rewrites incoming urls starting with // to just one /. This avoids breaking existing clients when removing NancyFX.
     class BodyUrlRouteFix(RequestDelegate next)
     {
+#pragma warning disable PS0018 // ASP.NET Core middleware convention takes only the HttpContext
         public Task InvokeAsync(HttpContext context)
         {
             if (context.Request.Path.HasValue)
@@ -21,5 +22,6 @@ namespace ServiceControl.Audit.Infrastructure.WebApi
 
             return next(context);
         }
+#pragma warning restore PS0018
     }
 }

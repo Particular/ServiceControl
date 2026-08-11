@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Text.Json;
     using System.Text.Json.Serialization;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
     using Microsoft.AspNetCore.Authorization;
@@ -18,9 +19,9 @@
         [Authorize(Policy = Permissions.ErrorConnectionsView)]
         [Route("connection")]
         [HttpGet]
-        public async Task<IActionResult> GetConnectionDetails()
+        public async Task<IActionResult> GetConnectionDetails(CancellationToken cancellationToken = default)
         {
-            var platformConnectionDetails = await builder.BuildPlatformConnection();
+            var platformConnectionDetails = await builder.BuildPlatformConnection(cancellationToken);
             return new JsonResult(new ConnectionDetails(new Dictionary<string, object>(platformConnectionDetails.ToDictionary()), [.. platformConnectionDetails.Errors]), JsonSerializerOptions.Default);
         }
 

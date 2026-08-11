@@ -47,13 +47,13 @@ namespace ServiceControl.Recoverability
         public Task Handle(RetryMessage message, IMessageHandlerContext context)
         {
             var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
-            return retries.StartRetryForSingleMessage(message.FailedMessageId, user, operationId);
+            return retries.StartRetryForSingleMessage(message.FailedMessageId, user, operationId, context.CancellationToken);
         }
 
         public Task Handle(RetryMessagesById message, IMessageHandlerContext context)
         {
             var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
-            return retries.StartRetryForMessageSelection(message.MessageUniqueIds, user, operationId);
+            return retries.StartRetryForMessageSelection(message.MessageUniqueIds, user, operationId, context.CancellationToken);
         }
 
         public Task Handle(RetryMessagesByQueueAddress message, IMessageHandlerContext context)

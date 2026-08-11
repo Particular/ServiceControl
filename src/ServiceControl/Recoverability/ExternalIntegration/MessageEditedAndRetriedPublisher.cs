@@ -2,6 +2,7 @@ namespace ServiceControl.Recoverability.ExternalIntegration;
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Contracts.MessageFailures;
 using ExternalIntegrations;
@@ -15,7 +16,7 @@ class MessageEditedAndRetriedPublisher : EventPublisher<MessageEditedAndRetried,
             FailedMessageId = @event.FailedMessageId,
         };
 
-    protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts) =>
+    protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, CancellationToken cancellationToken = default) =>
         Task.FromResult(contexts.Select(x => (object)new Contracts.MessageEditedAndRetried
         {
             FailedMessageId = x.FailedMessageId,

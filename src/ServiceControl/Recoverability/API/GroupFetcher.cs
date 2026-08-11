@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Recoverability;
@@ -17,7 +18,7 @@
             this.archiver = archiver;
         }
 
-        public async Task<GroupOperation[]> GetGroups(string classifier, string classifierFilter)
+        public async Task<GroupOperation[]> GetGroups(string classifier, string classifierFilter, CancellationToken cancellationToken = default)
         {
             var dbGroups = await store.GetUnresolvedGroupsByClassifier(classifier, classifierFilter);
             var retryHistory = await retryStore.GetRetryHistory();

@@ -431,11 +431,11 @@
                 this.progressToStaged = progressToStaged;
             }
 
-            protected override Task MoveBatchToStaging(string batchId)
+            protected override Task MoveBatchToStaging(string batchId, CancellationToken cancellationToken = default)
             {
                 if (progressToStaged)
                 {
-                    return base.MoveBatchToStaging(batchId);
+                    return base.MoveBatchToStaging(batchId, cancellationToken);
                 }
 
                 return Task.CompletedTask;
@@ -453,11 +453,11 @@
                 this.progressToStaged = progressToStaged;
             }
 
-            public override Task MoveBatchToStaging(string batchId)
+            public override Task MoveBatchToStaging(string batchId, CancellationToken cancellationToken = default)
             {
                 if (progressToStaged)
                 {
-                    return base.MoveBatchToStaging(batchId);
+                    return base.MoveBatchToStaging(batchId, cancellationToken);
                 }
 
                 return Task.CompletedTask;

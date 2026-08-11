@@ -1,6 +1,7 @@
 namespace ServiceControl.Recoverability.API
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
     using Infrastructure.WebApi;
@@ -20,7 +21,7 @@ namespace ServiceControl.Recoverability.API
         [Authorize(Policy = Permissions.ErrorRecoverabilityGroupsRetry)]
         [Route("recoverability/groups/{groupId:required:minlength(1)}/errors/retry")]
         [HttpPost]
-        public async Task<IActionResult> ArchiveGroupErrors(string groupId)
+        public async Task<IActionResult> ArchiveGroupErrors(string groupId, CancellationToken cancellationToken = default)
         {
             var started = DateTime.UtcNow;
 
@@ -30,15 +31,15 @@ namespace ServiceControl.Recoverability.API
                 var operationId = this.AuditOperationId();
                 await auditLog.AuditedOperation(user, MessageActionKind.Retry,
                     Permissions.ErrorRecoverabilityGroupsRetry, MessageActionScope.Group,
-                    resource: groupId, count: null, operationId: operationId, async () =>
+                    resource: groupId, count: null, operationId: operationId, async ct =>
                     {
-                        await retryingManager.Wait(groupId, RetryType.FailureGroup, started);
+                        await retryingManager.Wait(groupId, RetryType.FailureGroup, started, cancellationToken: ct);
                         await bus.Send(new RetryAllInGroup
                         {
                             GroupId = groupId,
                             Started = started
-                        }, AuditHeaders.LocalSendOptions(user, operationId));
-                    });
+                        }, AuditHeaders.LocalSendOptions(user, operationId), ct);
+                    }, cancellationToken);
             }
 
             return Accepted();

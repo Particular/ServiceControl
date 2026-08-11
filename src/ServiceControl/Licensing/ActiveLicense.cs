@@ -14,7 +14,7 @@
 
         public LicenseDetails Details { get; set; }
 
-        public async Task Refresh(CancellationToken cancellationToken)
+        public async Task Refresh(CancellationToken cancellationToken = default)
         {
             logger.LogDebug("Refreshing ActiveLicense");
 
@@ -27,7 +27,7 @@
             IsEvaluation = detectedLicense.IsEvaluationLicense;
         }
 
-        internal static async Task<LicenseDetails> ValidateTrialLicense(LicenseDetails licenseDetails, ITrialLicenseDataProvider trialLicenseDataProvider, CancellationToken cancellationToken)
+        internal static async Task<LicenseDetails> ValidateTrialLicense(LicenseDetails licenseDetails, ITrialLicenseDataProvider trialLicenseDataProvider, CancellationToken cancellationToken = default)
         {
             if (licenseDetails.LicenseType.Equals("trial", StringComparison.OrdinalIgnoreCase))
             {

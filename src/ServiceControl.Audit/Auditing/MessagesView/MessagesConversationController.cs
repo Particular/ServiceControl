@@ -17,7 +17,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [Authorize(Policy = Permissions.AuditMessageView)]
         [Route("conversations/{conversationId}")]
         [HttpGet]
-        public async Task<IList<MessagesView>> Get([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string conversationId, CancellationToken cancellationToken)
+        public async Task<IList<MessagesView>> Get([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string conversationId, CancellationToken cancellationToken = default)
         {
             var result = await dataStore.QueryMessagesByConversationId(conversationId, pagingInfo, sortInfo, cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);

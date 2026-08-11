@@ -16,7 +16,7 @@ using ServiceControl.Api.Contracts;
 
 class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFactory httpClientFactory, MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus) : IConfigurationApi
 {
-    public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken)
+    public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken = default)
     {
         if (!baseUrl.EndsWith('/'))
         {
@@ -50,7 +50,7 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
     }
 
 
-    public Task<object> GetConfig(CancellationToken cancellationToken)
+    public Task<object> GetConfig(CancellationToken cancellationToken = default)
     {
         object content = new
         {
@@ -116,6 +116,10 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
                 catch (HttpRequestException ex)
                 {
                     status = ex.StatusCode >= System.Net.HttpStatusCode.InternalServerError ? "error" : "unavailable";
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
                 }
                 catch (Exception)
                 {

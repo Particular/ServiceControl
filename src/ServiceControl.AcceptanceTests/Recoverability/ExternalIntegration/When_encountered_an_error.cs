@@ -3,6 +3,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -79,7 +80,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 
             public object CreateDispatchContext(IDomainEvent @event) => null;
 
-            public Task<IEnumerable<object>> PublishEventsForOwnContexts(IEnumerable<object> allContexts)
+            public Task<IEnumerable<object>> PublishEventsForOwnContexts(IEnumerable<object> allContexts, CancellationToken cancellationToken = default)
             {
                 if (!failed)
                 {

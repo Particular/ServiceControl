@@ -15,7 +15,7 @@ namespace ServiceControl.Recoverability
             this.dataStore = dataStore;
         }
 
-        public Task Handle(MessageFailed message, CancellationToken cancellationToken)
+        public Task Handle(MessageFailed message, CancellationToken cancellationToken = default)
         {
             if (message.RepeatedFailure)
             {
