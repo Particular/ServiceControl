@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
     using ServiceControl.Operations;
@@ -11,14 +12,14 @@
     {
         public static string MakeDocumentId(Guid id) => $"{KnownEndpointsCollectionName}/{id}";
 
-        public async Task CreateIfNotExists(EndpointDetails endpoint)
+        public async Task CreateIfNotExists(EndpointDetails endpoint, CancellationToken cancellationToken = default)
         {
             var id = endpoint.GetDeterministicId();
             var docId = MakeDocumentId(id);
 
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 
-            var knownEndpoint = await session.LoadAsync<KnownEndpoint>(docId);
+            var knownEndpoint = await session.LoadAsync<KnownEndpoint>(docId, cancellationToken);
 
             if (knownEndpoint != null)
             {
@@ -32,19 +33,19 @@
                 Monitored = false
             };
 
-            await session.StoreAsync(knownEndpoint, docId);
+            await session.StoreAsync(knownEndpoint, docId, cancellationToken);
 
-            await session.SaveChangesAsync();
+            await session.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task CreateOrUpdate(EndpointDetails endpoint, IEndpointInstanceMonitoring endpointInstanceMonitoring)
+        public async Task CreateOrUpdate(EndpointDetails endpoint, IEndpointInstanceMonitoring endpointInstanceMonitoring, CancellationToken cancellationToken = default)
         {
             var id = endpoint.GetDeterministicId();
             var docId = MakeDocumentId(id);
 
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 
-            var knownEndpoint = await session.LoadAsync<KnownEndpoint>(docId);
+            var knownEndpoint = await session.LoadAsync<KnownEndpoint>(docId, cancellationToken);
 
             if (knownEndpoint == null)
             {
@@ -55,37 +56,37 @@
                     Monitored = true
                 };
 
-                await session.StoreAsync(knownEndpoint, docId);
+                await session.StoreAsync(knownEndpoint, docId, cancellationToken);
             }
             else
             {
                 knownEndpoint.Monitored = endpointInstanceMonitoring.IsMonitored(id);
             }
 
-            await session.SaveChangesAsync();
+            await session.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored)
+        public async Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored, CancellationToken cancellationToken = default)
         {
             var id = endpoint.GetDeterministicId();
             var docId = MakeDocumentId(id);
 
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 
-            var knownEndpoint = await session.LoadAsync<KnownEndpoint>(docId);
+            var knownEndpoint = await session.LoadAsync<KnownEndpoint>(docId, cancellationToken);
 
             if (knownEndpoint != null)
             {
                 knownEndpoint.Monitored = isMonitored;
 
-                await session.SaveChangesAsync();
+                await session.SaveChangesAsync(cancellationToken);
             }
         }
 
-        public async Task WarmupMonitoringFromPersistence(IEndpointInstanceMonitoring endpointInstanceMonitoring)
+        public async Task WarmupMonitoringFromPersistence(IEndpointInstanceMonitoring endpointInstanceMonitoring, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
-            await using var endpointsEnumerator = await session.Advanced.StreamAsync(session.Query<KnownEndpoint, KnownEndpointIndex>());
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            await using var endpointsEnumerator = await session.Advanced.StreamAsync(session.Query<KnownEndpoint, KnownEndpointIndex>(), cancellationToken);
 
             while (await endpointsEnumerator.MoveNextAsync())
             {
@@ -95,19 +96,19 @@
             }
         }
 
-        public async Task Delete(Guid endpointId)
+        public async Task Delete(Guid endpointId, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             session.Delete(MakeDocumentId(endpointId));
-            await session.SaveChangesAsync();
+            await session.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task<IReadOnlyList<KnownEndpoint>> GetAllKnownEndpoints()
+        public async Task<IReadOnlyList<KnownEndpoint>> GetAllKnownEndpoints(CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 
             var knownEndpoints = await session.Query<KnownEndpoint, KnownEndpointIndex>()
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return knownEndpoints;
         }

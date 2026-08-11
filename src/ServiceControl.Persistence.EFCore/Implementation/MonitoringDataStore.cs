@@ -7,12 +7,12 @@ using ServiceControl.Persistence.EFCore.Entities;
 
 public class MonitoringDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IMonitoringDataStore
 {
-    public Task CreateIfNotExists(EndpointDetails endpoint) =>
+    public Task CreateIfNotExists(EndpointDetails endpoint, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async dbContext =>
         {
             var id = endpoint.GetDeterministicId();
 
-            var exists = await dbContext.KnownEndpoints.AnyAsync(e => e.Id == id);
+            var exists = await dbContext.KnownEndpoints.AnyAsync(e => e.Id == id, cancellationToken);
             if (exists)
             {
                 return;
@@ -31,21 +31,21 @@ public class MonitoringDataStore(IServiceScopeFactory scopeFactory) : DataStoreB
 
             try
             {
-                await dbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync(cancellationToken);
             }
             catch (DbUpdateException)
             {
                 // A concurrent insert with the same deterministic id may have won the race.
                 // Anything else is a genuine failure.
                 dbContext.Entry(knownEndpoint).State = EntityState.Detached;
-                if (!await dbContext.KnownEndpoints.AnyAsync(e => e.Id == id))
+                if (!await dbContext.KnownEndpoints.AnyAsync(e => e.Id == id, cancellationToken))
                 {
                     throw;
                 }
             }
         });
 
-    public Task CreateOrUpdate(EndpointDetails endpoint, IEndpointInstanceMonitoring endpointInstanceMonitoring) =>
+    public Task CreateOrUpdate(EndpointDetails endpoint, IEndpointInstanceMonitoring endpointInstanceMonitoring, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async dbContext =>
         {
             var id = endpoint.GetDeterministicId();
@@ -61,24 +61,25 @@ public class MonitoringDataStore(IServiceScopeFactory scopeFactory) : DataStoreB
                 knownEndpoint =>
                 {
                     knownEndpoint.Monitored = endpointInstanceMonitoring.IsMonitored(id);
-                }
+                },
+                cancellationToken
             );
         });
 
-    public Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored) =>
+    public Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async dbContext =>
         {
             var id = endpoint.GetDeterministicId();
 
             await dbContext.KnownEndpoints
                 .Where(e => e.Id == id)
-                .ExecuteUpdateAsync(setters => setters.SetProperty(e => e.Monitored, isMonitored));
+                .ExecuteUpdateAsync(setters => setters.SetProperty(e => e.Monitored, isMonitored), cancellationToken);
         });
 
-    public Task WarmupMonitoringFromPersistence(IEndpointInstanceMonitoring endpointInstanceMonitoring) =>
+    public Task WarmupMonitoringFromPersistence(IEndpointInstanceMonitoring endpointInstanceMonitoring, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async dbContext =>
         {
-            await foreach (var endpoint in dbContext.KnownEndpoints.AsNoTracking().AsAsyncEnumerable())
+            await foreach (var endpoint in dbContext.KnownEndpoints.AsNoTracking().AsAsyncEnumerable().WithCancellation(cancellationToken))
             {
                 var endpointDetails = new EndpointDetails
                 {
@@ -91,17 +92,17 @@ public class MonitoringDataStore(IServiceScopeFactory scopeFactory) : DataStoreB
             }
         });
 
-    public Task Delete(Guid endpointId)
+    public Task Delete(Guid endpointId, CancellationToken cancellationToken = default)
     {
         return ExecuteWithDbContext(async dbContext =>
         {
             await dbContext.KnownEndpoints
                 .Where(e => e.Id == endpointId)
-                .ExecuteDeleteAsync();
+                .ExecuteDeleteAsync(cancellationToken);
         });
     }
 
-    public Task<IReadOnlyList<KnownEndpoint>> GetAllKnownEndpoints()
+    public Task<IReadOnlyList<KnownEndpoint>> GetAllKnownEndpoints(CancellationToken cancellationToken = default)
     {
         return ExecuteWithDbContext<IReadOnlyList<KnownEndpoint>>(async dbContext =>
             await dbContext.KnownEndpoints
@@ -117,6 +118,6 @@ public class MonitoringDataStore(IServiceScopeFactory scopeFactory) : DataStoreB
                     HostDisplayName = e.Host,
                     Monitored = e.Monitored
                 })
-                .ToListAsync());
+                .ToListAsync(cancellationToken));
     }
 }

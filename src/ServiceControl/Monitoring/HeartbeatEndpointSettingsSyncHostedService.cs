@@ -57,7 +57,7 @@ public class HeartbeatEndpointSettingsSyncHostedService(
 
     async Task PerformSync(CancellationToken cancellationToken)
     {
-        var monitorEndpoints = (await monitoringDataStore.GetAllKnownEndpoints())
+        var monitorEndpoints = (await monitoringDataStore.GetAllKnownEndpoints(cancellationToken))
             .Select(endpoint => endpoint.EndpointDetails.Name).Distinct().ToHashSet();
 
         await InitialiseSettings(monitorEndpoints, cancellationToken);
@@ -82,7 +82,7 @@ public class HeartbeatEndpointSettingsSyncHostedService(
                     foreach (Guid endpointId in monitorEndpointsLookup[endpointSetting.Name].SkipLast(1))
                     {
                         endpointInstanceMonitoring.RemoveEndpoint(endpointId);
-                        await monitoringDataStore.Delete(endpointId);
+                        await monitoringDataStore.Delete(endpointId, cancellationToken);
                         logger.LogInformation("Removed endpoint '{EndpointName}' from monitoring data", endpointSetting.Name);
                     }
                 }

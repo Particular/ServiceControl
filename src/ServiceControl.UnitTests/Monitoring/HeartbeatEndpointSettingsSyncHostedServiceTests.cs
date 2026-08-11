@@ -263,18 +263,18 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
 
     class MockMonitoringDataStore(KnownEndpoint[] knownEndpoints) : IMonitoringDataStore
     {
-        public Task CreateIfNotExists(EndpointDetails endpoint) => throw new NotImplementedException();
+        public Task CreateIfNotExists(EndpointDetails endpoint, CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
-        public Task CreateOrUpdate(EndpointDetails endpoint, IEndpointInstanceMonitoring endpointInstanceMonitoring) =>
+        public Task CreateOrUpdate(EndpointDetails endpoint, IEndpointInstanceMonitoring endpointInstanceMonitoring, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
-        public Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored) =>
+        public Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
-        public Task WarmupMonitoringFromPersistence(IEndpointInstanceMonitoring endpointInstanceMonitoring) =>
+        public Task WarmupMonitoringFromPersistence(IEndpointInstanceMonitoring endpointInstanceMonitoring, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
-        public Task Delete(Guid endpointId)
+        public Task Delete(Guid endpointId, CancellationToken cancellationToken = default)
         {
             Deleted.Add(endpointId);
             return Task.CompletedTask;
@@ -282,7 +282,7 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
 
         public List<Guid> Deleted { get; } = [];
 
-        public Task<IReadOnlyList<KnownEndpoint>> GetAllKnownEndpoints() =>
+        public Task<IReadOnlyList<KnownEndpoint>> GetAllKnownEndpoints(CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<KnownEndpoint>>(knownEndpoints);
     }
 }
