@@ -9,38 +9,38 @@ using ServiceControl.Persistence.Infrastructure;
 
 public class MessagesViewDataStore(IServiceScopeFactory scopeFactory, IFullTextSearchDialect fullTextSearch) : DataStoreBase(scopeFactory), IMessagesViewDataStore
 {
-    public Task<QueryResult<IList<MessagesView>>> GetAllMessages(PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages, DateTimeRange? timeSentRange = null) =>
+    public Task<QueryResult<IList<MessagesView>>> GetAllMessages(PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(dbContext => dbContext.FailedMessages
             .AsNoTracking()
             .IncludeSystemMessagesWhere(includeSystemMessages)
             .FilterBySentTimeRange(timeSentRange)
-            .ToPagedMessagesResult(pagingInfo, sortInfo));
+            .ToPagedMessagesResult(pagingInfo, sortInfo, cancellationToken));
 
-    public Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages, DateTimeRange? timeSentRange = null) =>
+    public Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(dbContext => dbContext.FailedMessages
             .AsNoTracking()
             .Where(message => message.ReceivingEndpointName == endpointName)
             .IncludeSystemMessagesWhere(includeSystemMessages)
             .FilterBySentTimeRange(timeSentRange)
-            .ToPagedMessagesResult(pagingInfo, sortInfo));
+            .ToPagedMessagesResult(pagingInfo, sortInfo, cancellationToken));
 
     // includeSystemMessages is unused here: a conversation is incomplete without the system messages that took part in it.
-    public Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages) =>
+    public Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(dbContext => dbContext.FailedMessages
             .AsNoTracking()
             .Where(message => message.ConversationId == conversationId)
-            .ToPagedMessagesResult(pagingInfo, sortInfo));
+            .ToPagedMessagesResult(pagingInfo, sortInfo, cancellationToken));
 
-    public Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(string searchTerms, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null) =>
+    public Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(string searchTerms, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(dbContext => Search(dbContext.FailedMessages.AsNoTracking(), searchTerms)
             .FilterBySentTimeRange(timeSentRange)
-            .ToPagedMessagesResult(pagingInfo, sortInfo));
+            .ToPagedMessagesResult(pagingInfo, sortInfo, cancellationToken));
 
-    public Task<QueryResult<IList<MessagesView>>> SearchEndpointMessages(string endpointName, string searchKeyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null) =>
+    public Task<QueryResult<IList<MessagesView>>> SearchEndpointMessages(string endpointName, string searchKeyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(dbContext => Search(dbContext.FailedMessages.AsNoTracking(), searchKeyword)
             .Where(message => message.ReceivingEndpointName == endpointName)
             .FilterBySentTimeRange(timeSentRange)
-            .ToPagedMessagesResult(pagingInfo, sortInfo));
+            .ToPagedMessagesResult(pagingInfo, sortInfo, cancellationToken));
 
     // Neither search hides system messages: a caller who searched
     // for something specific is not helped by hiding the message that matched it.

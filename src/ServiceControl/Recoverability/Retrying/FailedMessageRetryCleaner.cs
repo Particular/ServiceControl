@@ -19,7 +19,7 @@ namespace ServiceControl.Recoverability
         {
             if (message.RepeatedFailure)
             {
-                return dataStore.RemoveFailedMessageRetry(message.FailedMessageId);
+                return dataStore.RemoveFailedMessageRetry(message.FailedMessageId, cancellationToken);
             }
 
             return Task.CompletedTask;

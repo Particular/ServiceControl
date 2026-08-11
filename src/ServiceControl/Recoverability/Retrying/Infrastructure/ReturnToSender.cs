@@ -59,7 +59,7 @@ namespace ServiceControl.Recoverability
         async Task<byte[]> FetchFromFailedMessage(Dictionary<string, string> outgoingHeaders, string messageId, string attemptMessageId, CancellationToken cancellationToken)
         {
             var uniqueMessageId = outgoingHeaders["ServiceControl.Retry.UniqueMessageId"];
-            byte[] body = await errorMessageStore.GetFailedMessageBody(uniqueMessageId);
+            byte[] body = await errorMessageStore.GetFailedMessageBody(uniqueMessageId, cancellationToken);
 
             if (body == null)
             {

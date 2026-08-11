@@ -19,7 +19,7 @@ namespace ServiceControl.CompositeViews.Messages
 
         protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(ScatterGatherApiMessageViewWithSystemMessagesContext input, CancellationToken cancellationToken = default)
         {
-            return DataStore.GetAllMessages(input.PagingInfo, input.SortInfo, input.IncludeSystemMessages, input.TimeSentRange);
+            return DataStore.GetAllMessages(input.PagingInfo, input.SortInfo, input.IncludeSystemMessages, input.TimeSentRange, cancellationToken);
         }
     }
 }

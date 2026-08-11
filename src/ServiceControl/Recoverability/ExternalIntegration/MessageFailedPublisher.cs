@@ -29,7 +29,7 @@ namespace ServiceControl.Recoverability.ExternalIntegration
         protected override async Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, CancellationToken cancellationToken = default)
         {
             var ids = contexts.Select(x => x.FailedMessageId).ToArray();
-            var results = await dataStore.GetFailedMessagesByIds(ids);
+            var results = await dataStore.GetFailedMessagesByIds(ids, cancellationToken);
             return results.Select(x => x.ToEvent());
         }
 

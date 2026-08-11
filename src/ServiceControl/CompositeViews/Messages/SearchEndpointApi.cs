@@ -26,6 +26,6 @@ namespace ServiceControl.CompositeViews.Messages
         }
 
         protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(SearchEndpointContext input, CancellationToken cancellationToken = default) =>
-            DataStore.SearchEndpointMessages(input.Endpoint, input.Keyword, input.PagingInfo, input.SortInfo, input.TimeSentRange);
+            DataStore.SearchEndpointMessages(input.Endpoint, input.Keyword, input.PagingInfo, input.SortInfo, input.TimeSentRange, cancellationToken);
     }
 }

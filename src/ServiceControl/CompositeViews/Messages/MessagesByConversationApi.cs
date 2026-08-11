@@ -26,6 +26,6 @@ namespace ServiceControl.CompositeViews.Messages
 
         protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(MessagesByConversationContext input, CancellationToken cancellationToken = default) =>
             DataStore.GetAllMessagesByConversation(input.ConversationId, input.PagingInfo, input.SortInfo,
-                input.IncludeSystemMessages);
+                input.IncludeSystemMessages, cancellationToken);
     }
 }

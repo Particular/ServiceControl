@@ -25,6 +25,6 @@ namespace ServiceControl.CompositeViews.Messages
         {
         }
 
-        protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(AllMessagesForEndpointContext input, CancellationToken cancellationToken = default) => DataStore.GetAllMessagesForEndpoint(input.EndpointName, input.PagingInfo, input.SortInfo, input.IncludeSystemMessages, input.TimeSentRange);
+        protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(AllMessagesForEndpointContext input, CancellationToken cancellationToken = default) => DataStore.GetAllMessagesForEndpoint(input.EndpointName, input.PagingInfo, input.SortInfo, input.IncludeSystemMessages, input.TimeSentRange, cancellationToken);
     }
 }

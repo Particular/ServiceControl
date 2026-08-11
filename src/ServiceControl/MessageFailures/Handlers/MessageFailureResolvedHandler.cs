@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using Infrastructure.DomainEvents;
@@ -14,7 +15,7 @@
     {
         public Task Handle(MarkPendingRetriesAsResolved message, IMessageHandlerContext context)
         {
-            Task ProcessCallback(string id)
+            Task ProcessCallback(string id, CancellationToken cancellationToken)
             {
                 var sendOptions = new SendOptions();
                 sendOptions.RouteToThisEndpoint();
@@ -28,13 +29,14 @@
                 message.PeriodFrom,
                 message.PeriodTo,
                 message.QueueAddress,
-                ProcessCallback
+                ProcessCallback,
+                context.CancellationToken
             );
         }
 
         public async Task Handle(MarkPendingRetryAsResolved message, IMessageHandlerContext context)
         {
-            _ = await lifecycleStore.MarkAsResolved(message.FailedMessageId);
+            _ = await lifecycleStore.MarkAsResolved(message.FailedMessageId, context.CancellationToken);
 
             await domainEvents.Raise(new MessageFailureResolvedManually
             {

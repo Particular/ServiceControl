@@ -2,6 +2,7 @@ namespace ServiceControl.Persistence
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -10,10 +11,10 @@ namespace ServiceControl.Persistence
     /// </summary>
     public interface IFailedMessageLifecycleDataStore
     {
-        Task MarkAsArchived(string failedMessageId);
-        Task<bool> MarkAsResolved(string failedMessageId);
-        Task<string[]> UnArchiveMessages(IEnumerable<string> failedMessageIds);
-        Task<string[]> UnArchiveMessagesByRange(DateTime from, DateTime to);
-        Task RevertRetry(string messageUniqueId);
+        Task MarkAsArchived(string failedMessageId, CancellationToken cancellationToken = default);
+        Task<bool> MarkAsResolved(string failedMessageId, CancellationToken cancellationToken = default);
+        Task<string[]> UnArchiveMessages(IEnumerable<string> failedMessageIds, CancellationToken cancellationToken = default);
+        Task<string[]> UnArchiveMessagesByRange(DateTime from, DateTime to, CancellationToken cancellationToken = default);
+        Task RevertRetry(string messageUniqueId, CancellationToken cancellationToken = default);
     }
 }

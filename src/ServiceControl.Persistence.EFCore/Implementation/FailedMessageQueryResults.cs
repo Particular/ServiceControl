@@ -8,14 +8,14 @@ using ServiceControl.Persistence.Infrastructure;
 
 static class FailedMessageQueryResults
 {
-    public static async Task<QueryResult<IList<FailedMessageView>>> ToPagedResult(this IQueryable<FailedMessageEntity> source, PagingInfo pagingInfo, SortInfo sortInfo)
+    public static async Task<QueryResult<IList<FailedMessageView>>> ToPagedResult(this IQueryable<FailedMessageEntity> source, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken = default)
     {
-        var stats = await source.ToQueryStatsInfo();
+        var stats = await source.ToQueryStatsInfo(cancellationToken);
 
         var entities = await source
             .Sort(sortInfo)
             .Page(pagingInfo)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         IList<FailedMessageView> results = [.. entities.Select(entity => entity.ToFailedMessageView())];
 

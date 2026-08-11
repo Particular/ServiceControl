@@ -14,7 +14,7 @@
     {
         public async Task Handle(UnArchiveMessagesByRange message, IMessageHandlerContext context)
         {
-            var ids = await dataStore.UnArchiveMessagesByRange(message.From, message.To);
+            var ids = await dataStore.UnArchiveMessagesByRange(message.From, message.To, context.CancellationToken);
 
             var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
             if (!string.IsNullOrEmpty(operationId))

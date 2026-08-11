@@ -190,18 +190,13 @@ class ReturnToSenderDequeuer : IHostedService
 
         public async Task<ErrorHandleResult> OnError(ErrorContext errorContext, CancellationToken cancellationToken = default)
         {
-            // We are currently not propagating the cancellation token further since it would require to change
-            // the data store APIs and domain handlers to take a cancellation token. If this is needed it can be done
-            // at a later time.
-            _ = cancellationToken;
-
             try
             {
                 var destination = errorContext.Headers["ServiceControl.TargetEndpointAddress"];
                 var messageUniqueId = errorContext.Headers["ServiceControl.Retry.UniqueMessageId"];
                 logger.LogWarning(errorContext.Exception, "Failed to send '{UniqueMessageId}' message to '{Destination}' for retry. Attempting to revert message status to unresolved so it can be tried again", messageUniqueId, destination);
 
-                await dataStore.RevertRetry(messageUniqueId);
+                await dataStore.RevertRetry(messageUniqueId, cancellationToken);
 
                 string reason;
                 try

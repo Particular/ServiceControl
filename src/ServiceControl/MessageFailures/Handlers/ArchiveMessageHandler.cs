@@ -15,7 +15,7 @@
         {
             var failedMessageId = message.FailedMessageId;
 
-            var failedMessage = await queryStore.GetFailedMessage(failedMessageId);
+            var failedMessage = await queryStore.GetFailedMessage(failedMessageId, context.CancellationToken);
 
             if (failedMessage.Status != FailedMessageStatus.Archived)
             {
@@ -24,7 +24,7 @@
                     FailedMessageId = failedMessageId
                 }, context.CancellationToken);
 
-                await lifecycleStore.MarkAsArchived(failedMessageId);
+                await lifecycleStore.MarkAsArchived(failedMessageId, context.CancellationToken);
 
                 var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
                 if (!string.IsNullOrEmpty(operationId))

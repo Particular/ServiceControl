@@ -22,7 +22,7 @@ namespace ServiceControl.Recoverability
         {
             if (message.RepeatedFailure)
             {
-                return dataStore.RemoveFailedMessageRetry(message.FailedMessageId);
+                return dataStore.RemoveFailedMessageRetry(message.FailedMessageId, context.CancellationToken);
             }
 
             return Task.CompletedTask;

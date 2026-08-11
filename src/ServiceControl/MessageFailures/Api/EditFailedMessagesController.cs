@@ -54,7 +54,7 @@
                 return Ok(new EditRetryResponse { EditIgnored = true });
             }
 
-            var failedMessage = await store.GetFailedMessage(failedMessageId);
+            var failedMessage = await store.GetFailedMessage(failedMessageId, cancellationToken);
 
             if (failedMessage == null)
             {

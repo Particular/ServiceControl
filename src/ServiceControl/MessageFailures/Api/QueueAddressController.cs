@@ -19,7 +19,7 @@ public class QueueAddressController(IQueueAddressStore store) : ControllerBase
     [HttpGet]
     public async Task<IList<QueueAddress>> GetAddresses([FromQuery] PagingInfo pagingInfo, CancellationToken cancellationToken = default)
     {
-        var result = await store.GetAddresses(pagingInfo);
+        var result = await store.GetAddresses(pagingInfo, cancellationToken);
 
         Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
 

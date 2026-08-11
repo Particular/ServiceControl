@@ -24,7 +24,8 @@
                     modified: modified,
                     queueAddress: queueAddress,
                     pagingInfo,
-                    sortInfo
+                    sortInfo,
+                    cancellationToken
                     );
 
             Response.WithQueryStatsAndPagingInfo(results.QueryStats, pagingInfo);
@@ -40,7 +41,8 @@
             var queryResult = await store.GetFailedMessagesStats(
                     status: status,
                     modified: modified,
-                    queueAddress: queueAddress
+                    queueAddress: queueAddress,
+                    cancellationToken: cancellationToken
                     );
 
             Response.WithQueryStatsInfo(queryResult);
@@ -56,7 +58,8 @@
                 endpointName: endpointName,
                 modified: modified,
                 pagingInfo,
-                sortInfo
+                sortInfo,
+                cancellationToken
                 );
 
             Response.WithQueryStatsAndPagingInfo(results.QueryStats, pagingInfo);
@@ -67,6 +70,6 @@
         [Authorize(Policy = Permissions.ErrorMessagesView)]
         [Route("errors/summary")]
         [HttpGet]
-        public async Task<IDictionary<string, object>> ErrorsSummary(CancellationToken cancellationToken = default) => await store.GetFailedMessagesSummary();
+        public async Task<IDictionary<string, object>> ErrorsSummary(CancellationToken cancellationToken = default) => await store.GetFailedMessagesSummary(cancellationToken);
     }
 }
