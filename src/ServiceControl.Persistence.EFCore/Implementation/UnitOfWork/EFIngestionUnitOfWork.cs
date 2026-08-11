@@ -41,7 +41,7 @@ public class EFIngestionUnitOfWork : IIngestionUnitOfWork
 
     internal void RecordConfirmedRetry(Guid uniqueMessageId) => confirmedRetries.Enqueue(uniqueMessageId);
 
-    public async Task Complete(CancellationToken cancellationToken)
+    public async Task Complete(CancellationToken cancellationToken = default)
     {
         // External bodies are written before the rows that point at them
         await Task.WhenAll(bodyWrites);

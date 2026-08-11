@@ -120,7 +120,7 @@
 
             try
             {
-                await using var unitOfWork = await unitOfWorkFactory.StartNew();
+                await using var unitOfWork = await unitOfWorkFactory.StartNew(cancellationToken);
                 var storedFailedMessageContexts = await errorProcessor.Process(failedMessageContexts, unitOfWork, cancellationToken);
                 await retryConfirmationProcessor.Process(retriedMessageContexts, unitOfWork, cancellationToken);
 

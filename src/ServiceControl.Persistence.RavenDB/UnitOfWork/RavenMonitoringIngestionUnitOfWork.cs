@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Persistence.RavenDB
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Newtonsoft.Json.Linq;
     using Raven.Client.Documents.Commands.Batches;
@@ -15,7 +16,7 @@
             this.parentUnitOfWork = parentUnitOfWork;
         }
 
-        public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint)
+        public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint, CancellationToken cancellationToken = default)
         {
             parentUnitOfWork.AddCommand(CreateKnownEndpointsPutCommand(knownEndpoint));
             return Task.CompletedTask;

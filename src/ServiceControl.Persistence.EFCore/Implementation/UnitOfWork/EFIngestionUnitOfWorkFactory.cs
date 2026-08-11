@@ -13,7 +13,7 @@ public class EFIngestionUnitOfWorkFactory(
     IFailedMessageIngestionSqlDialect dialect,
     TimeProvider timeProvider) : IIngestionUnitOfWorkFactory
 {
-    public ValueTask<IIngestionUnitOfWork> StartNew()
+    public ValueTask<IIngestionUnitOfWork> StartNew(CancellationToken cancellationToken = default)
     {
         var scope = serviceProvider.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();

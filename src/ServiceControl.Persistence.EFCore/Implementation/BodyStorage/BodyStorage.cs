@@ -19,9 +19,9 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 /// </remarks>
 public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersistence storagePersistence) : DataStoreBase(scopeFactory), IBodyStorage
 {
-    public async Task<MessageBodyStreamResult?> TryFetch(string bodyId)
+    public async Task<MessageBodyStreamResult?> TryFetch(string bodyId, CancellationToken cancellationToken = default)
     {
-        var row = await ExecuteWithDbContext(dbContext => ResolveBody(dbContext, bodyId));
+        var row = await ExecuteWithDbContext(dbContext => ResolveBody(dbContext, bodyId, cancellationToken));
 
         if (row == null)
         {
@@ -33,7 +33,7 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
 
         if (row.BodyStoredExternally)
         {
-            var external = await storagePersistence.ReadBody(uniqueMessageId);
+            var external = await storagePersistence.ReadBody(uniqueMessageId, cancellationToken);
 
             return external == null
                 ? new MessageBodyStreamResult { HasResult = false }
@@ -64,21 +64,21 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
         return new MessageBodyStreamResult { HasResult = false }; // Message exists but carries no body.
     }
 
-    static async Task<BodyRow?> ResolveBody(ServiceControlDbContext dbContext, string bodyId)
+    static async Task<BodyRow?> ResolveBody(ServiceControlDbContext dbContext, string bodyId, CancellationToken cancellationToken)
     {
         if (Guid.TryParse(bodyId, out var uniqueMessageId))
         {
-            var byUniqueId = await Query(dbContext, message => message.UniqueMessageId == uniqueMessageId);
+            var byUniqueId = await Query(dbContext, message => message.UniqueMessageId == uniqueMessageId, cancellationToken);
             if (byUniqueId != null)
             {
                 return byUniqueId;
             }
         }
 
-        return await Query(dbContext, message => message.MessageId == bodyId);
+        return await Query(dbContext, message => message.MessageId == bodyId, cancellationToken);
     }
 
-    static Task<BodyRow?> Query(ServiceControlDbContext dbContext, Expression<Func<FailedMessageEntity, bool>> predicate) =>
+    static Task<BodyRow?> Query(ServiceControlDbContext dbContext, Expression<Func<FailedMessageEntity, bool>> predicate, CancellationToken cancellationToken) =>
         dbContext.FailedMessages
             .AsNoTracking()
             .Where(predicate)
@@ -90,7 +90,7 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
                 BodyStoredExternally = message.BodyStoredExternally,
                 BodyContentType = message.BodyContentType
             })
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
 
     sealed class BodyRow
     {

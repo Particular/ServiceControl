@@ -125,7 +125,7 @@ class FailedErrorImportTests : ErrorIngestionTestBase
 
         var replayed = new List<string>();
         await FailedImportStore.ProcessFailedErrorImports(
-            message =>
+            (message, _) =>
             {
                 replayed.Add(message.Id);
                 return message.Id == "native-2" ? throw new InvalidOperationException("boom") : Task.CompletedTask;
@@ -140,7 +140,7 @@ class FailedErrorImportTests : ErrorIngestionTestBase
 
         var secondRun = new List<string>();
         await FailedImportStore.ProcessFailedErrorImports(
-            message => { secondRun.Add(message.Id); return Task.CompletedTask; },
+            (message, _) => { secondRun.Add(message.Id); return Task.CompletedTask; },
             TestContext.CurrentContext.CancellationToken);
 
         Assert.That(secondRun, Is.EqualTo(new[] { "native-2" }));
@@ -176,7 +176,7 @@ class FailedErrorImportTests : ErrorIngestionTestBase
         var replayed = new List<string>();
 
         await FailedImportStore.ProcessFailedErrorImports(
-            message =>
+            (message, _) =>
             {
                 replayed.Add(message.Id);
                 cts.Cancel();
@@ -266,7 +266,7 @@ class FailedErrorImportTests : ErrorIngestionTestBase
         var replayed = new List<FailedTransportMessage>();
 
         await FailedImportStore.ProcessFailedErrorImports(
-            message => { replayed.Add(message); return Task.CompletedTask; },
+            (message, _) => { replayed.Add(message); return Task.CompletedTask; },
             TestContext.CurrentContext.CancellationToken);
 
         return replayed;

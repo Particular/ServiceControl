@@ -22,14 +22,14 @@ public class FailedErrorImportDataStore(
 {
     const int BatchSize = 100;
 
-    public Task<bool> QueryContainsFailedImports() =>
+    public Task<bool> QueryContainsFailedImports(CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(dbContext => dbContext.FailedErrorImports.AsNoTracking().AnyAsync());
 
     // Update-first, then insert. The dedupe key is deterministic, so a repeat failure updates the
     // existing row and concurrent writers that both miss it race only on the insert. The loser of
     // that race confirms the row is now present (the winner stored the same logical failure) and
     // otherwise rethrows, so the caller never treats a message as stored when it is not.
-    public Task StoreFailedErrorImport(FailedErrorImport failure) =>
+    public Task StoreFailedErrorImport(FailedErrorImport failure, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async dbContext =>
         {
             var uniqueMessageId = FailedErrorImport.DeriveKey(failure.Message.Headers, failure.Message.Id);
@@ -69,7 +69,7 @@ public class FailedErrorImportDataStore(
     // Replays oldest-first. Successful imports delete their row; failures are left in place, so the
     // count of failures so far is exactly the offset to the next unseen row. This walks the whole
     // set once without retrying a failure within the same run.
-    public async Task ProcessFailedErrorImports(Func<FailedTransportMessage, Task> processMessage, CancellationToken cancellationToken)
+    public async Task ProcessFailedErrorImports(Func<FailedTransportMessage, CancellationToken, Task> processMessage, CancellationToken cancellationToken = default)
     {
         var succeeded = 0;
         var failed = 0;
@@ -94,7 +94,7 @@ public class FailedErrorImportDataStore(
                 {
                     var transportMessage = await ToTransportMessage(import, cancellationToken);
 
-                    await processMessage(transportMessage);
+                    await processMessage(transportMessage, cancellationToken);
 
                     await DeleteImport(import, cancellationToken);
 
@@ -192,10 +192,13 @@ public class FailedErrorImportDataStore(
         {
             await bodyStorage.DeleteBody(FailedErrorImportEntity.ExternalBodyId(uniqueMessageId), cancellationToken);
         }
+#pragma warning disable PS0019 // The filter already excludes OperationCanceledException, so cancellation
+        // propagates; PS0019 only recognises a cancellationToken.IsCancellationRequested guard.
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             // Re-import must not stall on a missing or unavailable body.
             logger.LogWarning(ex, "Could not delete the external body for re-imported failed error {UniqueMessageId}", uniqueMessageId);
         }
+#pragma warning restore PS0019
     }
 }

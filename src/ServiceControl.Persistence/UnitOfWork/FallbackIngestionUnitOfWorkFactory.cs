@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Persistence.UnitOfWork
 {
+    using System.Threading;
     using System.Threading.Tasks;
 
     class FallbackIngestionUnitOfWorkFactory : IIngestionUnitOfWorkFactory
@@ -13,10 +14,10 @@
             this.secondary = secondary;
         }
 
-        public async ValueTask<IIngestionUnitOfWork> StartNew()
+        public async ValueTask<IIngestionUnitOfWork> StartNew(CancellationToken cancellationToken = default)
         {
-            var primaryUnitOfWork = await primary.StartNew();
-            var secondaryUnitOfWork = await secondary.StartNew();
+            var primaryUnitOfWork = await primary.StartNew(cancellationToken);
+            var secondaryUnitOfWork = await secondary.StartNew(cancellationToken);
 
             return new FallbackIngestionUnitOfWork(
                 primaryUnitOfWork,

@@ -8,6 +8,6 @@
     {
         IMonitoringIngestionUnitOfWork Monitoring { get; }
         IRecoverabilityIngestionUnitOfWork Recoverability { get; }
-        Task Complete(CancellationToken cancellationToken);
+        Task Complete(CancellationToken cancellationToken = default);
     }
 }

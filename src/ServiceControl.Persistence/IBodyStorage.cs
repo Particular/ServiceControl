@@ -1,11 +1,12 @@
 ﻿namespace ServiceControl.Operations.BodyStorage
 {
     using System.IO;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public interface IBodyStorage
     {
-        Task<MessageBodyStreamResult> TryFetch(string bodyId);
+        Task<MessageBodyStreamResult> TryFetch(string bodyId, CancellationToken cancellationToken = default);
     }
 
     public class MessageBodyStreamResult

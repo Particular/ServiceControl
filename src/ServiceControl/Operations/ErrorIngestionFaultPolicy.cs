@@ -75,7 +75,7 @@
             logger.LogError(exception, "Failed importing error message");
 
             // Write to data store
-            await store.StoreFailedErrorImport(failure);
+            await store.StoreFailedErrorImport(failure, cancellationToken);
 
             if (!AppEnvironment.RunningInContainer)
             {

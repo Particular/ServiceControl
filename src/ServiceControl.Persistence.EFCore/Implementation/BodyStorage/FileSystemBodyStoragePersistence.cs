@@ -72,11 +72,14 @@ public class FileSystemBodyStoragePersistence(FileSystemBodyStorageSettings sett
                 TryDelete(tempFilePath);
             }
         }
+#pragma warning disable PS0019 // The catch rethrows everything, cancellation included, so splitting
+        // out OperationCanceledException would duplicate the cleanup for no change in behaviour.
         catch
         {
             TryDelete(tempFilePath);
             throw;
         }
+#pragma warning restore PS0019
     }
 
     public Task<MessageBodyFileResult?> ReadBody(string bodyId, CancellationToken cancellationToken = default)

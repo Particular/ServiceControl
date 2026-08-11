@@ -22,7 +22,7 @@
 
         internal void AddCommand(ICommandData command) => commands.Enqueue(command);
 
-        public override async Task Complete(CancellationToken cancellationToken)
+        public override async Task Complete(CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             // not really interested in the batch results since a batch is atomic
