@@ -31,18 +31,6 @@
     <SourceRoot Include="$([MSBuild]::NormalizePath($(MSBuildThisFileDirectory)..\))" />
   </ItemGroup>
 
-  <!--
-    A test project declares its category once, via <TestCategory>. CI reads that property to decide
-    which projects to build and run; this generates the matching assembly attribute so that setting
-    ServiceControl_TESTS_FILTER locally still narrows a run down to one category. Generating it rather
-    than hand-writing a TestsFilter.cs keeps the two from drifting apart.
-  -->
-  <ItemGroup Condition="'$(TestCategory)' != ''">
-    <AssemblyAttribute Include="IncludeInTestCategoryAttribute">
-      <_Parameter1>$(TestCategory)</_Parameter1>
-    </AssemblyAttribute>
-  </ItemGroup>
-
   <ItemGroup>
    <ProjectCapability Include="DynamicFileNestingEnabled" />
   </ItemGroup>
