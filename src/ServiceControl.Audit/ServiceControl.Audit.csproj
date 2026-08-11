@@ -59,6 +59,7 @@
     <InternalsVisibleTo Include="ServiceControl.Audit.AcceptanceTests" />
     <InternalsVisibleTo Include="ServiceControl.Audit.AcceptanceTests.RavenDB" />
     <InternalsVisibleTo Include="ServiceControl.Audit.UnitTests" />
+    <InternalsVisibleTo Include="ServiceControl.MultiInstance.AcceptanceTests" />
   </ItemGroup>
 
 </Project>

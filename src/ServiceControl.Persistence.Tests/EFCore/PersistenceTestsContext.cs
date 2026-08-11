@@ -11,11 +11,24 @@ using EFCore.Entities;
 using EFCore.Infrastructure;
 using MessageFailures;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Time.Testing;
 using NServiceBus;
 using Operations;
 
 public partial class PersistenceTestsContext
 {
+    public FakeTimeProvider FakeTime { get; } = new(StorableUtcNow());
+
+    // PostgreSQL timestamps only keep microseconds, so a clock seeded straight from
+    // DateTimeOffset.UtcNow carries a 100ns tick that no longer compares equal once a
+    // timestamp stamped from it has been through the database.
+    static DateTimeOffset StorableUtcNow()
+    {
+        var now = DateTimeOffset.UtcNow;
+
+        return now.AddTicks(-(now.Ticks % TimeSpan.TicksPerMillisecond));
+    }
+
     static async Task InsertFailedMessagesDirect(IServiceProvider serviceProvider, FailedMessage[] messages)
     {
         await using var scope = serviceProvider.CreateAsyncScope();

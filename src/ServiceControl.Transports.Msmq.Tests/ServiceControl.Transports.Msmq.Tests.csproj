@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0-windows</TargetFramework>
+    <TestCategory>MSMQ</TestCategory>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,7 +27,6 @@
     <Compile Include="..\ServiceControl.Transports.Tests\*.cs" LinkBase="Shared" />
     <Compile Remove="..\ServiceControl.Transports.Tests\NUnitParallelRunnerSettings.cs" />
     <Compile Remove="..\ServiceControl.Transports.Tests\TransportManifestLibraryTests.cs" />
-    <Compile Remove="..\ServiceControl.Transports.Tests\TestsFilter.cs" />
   </ItemGroup>
 
   <ItemGroup>
