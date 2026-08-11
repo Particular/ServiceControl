@@ -5,11 +5,11 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 
 public class TrialLicenseDataProvider(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), ITrialLicenseDataProvider
 {
-    public Task<DateOnly?> GetTrialEndDate(CancellationToken cancellationToken)
+    public Task<DateOnly?> GetTrialEndDate(CancellationToken cancellationToken = default)
         => ExecuteWithDbContext(context =>
             context.GetSetting<DateOnly?>(SettingKeys.TrialEndDate, cancellationToken));
 
-    public Task StoreTrialEndDate(DateOnly trialEndDate, CancellationToken cancellationToken)
+    public Task StoreTrialEndDate(DateOnly trialEndDate, CancellationToken cancellationToken = default)
         => ExecuteWithDbContext(context =>
             context.StoreSetting(SettingKeys.TrialEndDate, trialEndDate, cancellationToken));
 }

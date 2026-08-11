@@ -16,7 +16,7 @@
 
         class PrimeSubscriptions(IServiceControlSubscriptionStorage persister) : FeatureStartupTask
         {
-            protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default) => persister?.Initialize() ?? Task.CompletedTask;
+            protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default) => persister?.Initialize(cancellationToken) ?? Task.CompletedTask;
 
             protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default) => Task.CompletedTask;
         }

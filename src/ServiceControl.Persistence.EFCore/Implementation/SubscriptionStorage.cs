@@ -30,7 +30,7 @@ public class SubscriptionStorage : DataStoreBase, IServiceControlSubscriptionSto
     }
 
     // Subscriptions are read on demand, so there is nothing to prime at startup.
-    public Task Initialize() => Task.CompletedTask;
+    public Task Initialize(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
     public async Task Subscribe(Subscriber subscriber, MessageType messageType, ContextBag context, CancellationToken cancellationToken = default)
     {

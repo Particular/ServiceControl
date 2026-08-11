@@ -13,7 +13,7 @@ class EndpointSettingsStore(IRavenSessionProvider sessionProvider) : IEndpointSe
     static string MakeDocumentId(string name) =>
         $"{CollectionName}/{DeterministicGuid.MakeId(name)}";
 
-    public async IAsyncEnumerable<EndpointSettings> GetAllEndpointSettings([EnumeratorCancellation] CancellationToken cancellationToken)
+    public async IAsyncEnumerable<EndpointSettings> GetAllEndpointSettings([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         using IAsyncDocumentSession session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
         await using IAsyncEnumerator<StreamResult<EndpointSettings>> enumerator = await session
@@ -26,7 +26,7 @@ class EndpointSettingsStore(IRavenSessionProvider sessionProvider) : IEndpointSe
         }
     }
 
-    public async Task Delete(string name, CancellationToken cancellationToken)
+    public async Task Delete(string name, CancellationToken cancellationToken = default)
     {
         string docId = MakeDocumentId(name);
 
@@ -36,7 +36,7 @@ class EndpointSettingsStore(IRavenSessionProvider sessionProvider) : IEndpointSe
         await session.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task UpdateEndpointSettings(EndpointSettings settings, CancellationToken cancellationToken)
+    public async Task UpdateEndpointSettings(EndpointSettings settings, CancellationToken cancellationToken = default)
     {
         string docId = MakeDocumentId(settings.Name);
 
