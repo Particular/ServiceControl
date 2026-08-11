@@ -8,7 +8,7 @@ using ServiceControl.Recoverability;
 
 public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IRetryHistoryDataStore
 {
-    public Task<RetryHistory> GetRetryHistory() =>
+    public Task<RetryHistory> GetRetryHistory(CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async dbContext =>
         {
             var historicOperations = await dbContext.HistoricRetryOperations
@@ -25,7 +25,7 @@ public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStor
                     Failed = operation.Failed,
                     NumberOfMessagesProcessed = operation.NumberOfMessagesProcessed
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             var unacknowledgedOperations = await dbContext.UnacknowledgedRetryOperations
                 .AsNoTracking()
@@ -41,7 +41,7 @@ public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStor
                     Failed = operation.Failed,
                     NumberOfMessagesProcessed = operation.NumberOfMessagesProcessed
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return new RetryHistory
             {
@@ -51,14 +51,15 @@ public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStor
         });
 
     public Task RecordRetryOperationCompleted(string requestId, RetryType retryType, DateTime startTime, DateTime completionTime,
-        string originator, string classifier, bool messageFailed, int numberOfMessagesProcessed, DateTime lastProcessed, int retryHistoryDepth) =>
+        string originator, string classifier, bool messageFailed, int numberOfMessagesProcessed, DateTime lastProcessed, int retryHistoryDepth,
+        CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async dbContext =>
         {
             var strategy = dbContext.Database.CreateExecutionStrategy();
 
             await strategy.ExecuteAsync(async () =>
             {
-                await using var transaction = await dbContext.Database.BeginTransactionAsync();
+                await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
                 dbContext.HistoricRetryOperations.Add(new HistoricRetryOperationEntity
                 {
@@ -74,24 +75,24 @@ public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStor
                 if (NeedsAcknowledgement(retryType))
                 {
                     await RecordUnacknowledged(dbContext, requestId, retryType, startTime, completionTime,
-                        originator, classifier, messageFailed, numberOfMessagesProcessed, lastProcessed);
+                        originator, classifier, messageFailed, numberOfMessagesProcessed, lastProcessed, cancellationToken);
                 }
 
-                await dbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync(cancellationToken);
 
                 // After the insert, so the operation just recorded competes for a place in the history.
-                await TrimHistory(dbContext, retryHistoryDepth);
+                await TrimHistory(dbContext, retryHistoryDepth, cancellationToken);
 
-                await transaction.CommitAsync();
+                await transaction.CommitAsync(cancellationToken);
             });
         });
 
-    public Task<bool> AcknowledgeRetryGroup(string groupId) =>
+    public Task<bool> AcknowledgeRetryGroup(string groupId, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async dbContext =>
         {
             var acknowledged = await dbContext.UnacknowledgedRetryOperations
                 .Where(operation => operation.RequestId == groupId && operation.RetryType == RetryType.FailureGroup)
-                .ExecuteDeleteAsync();
+                .ExecuteDeleteAsync(cancellationToken);
 
             return acknowledged > 0;
         });
@@ -101,10 +102,10 @@ public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStor
 
     static async Task RecordUnacknowledged(ServiceControlDbContext dbContext, string requestId, RetryType retryType,
         DateTime startTime, DateTime completionTime, string originator, string classifier, bool messageFailed,
-        int numberOfMessagesProcessed, DateTime lastProcessed)
+        int numberOfMessagesProcessed, DateTime lastProcessed, CancellationToken cancellationToken)
     {
         var unacknowledged = await dbContext.UnacknowledgedRetryOperations
-            .SingleOrDefaultAsync(operation => operation.RequestId == requestId && operation.RetryType == retryType);
+            .SingleOrDefaultAsync(operation => operation.RequestId == requestId && operation.RetryType == retryType, cancellationToken);
 
         if (unacknowledged == null)
         {
@@ -121,11 +122,11 @@ public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStor
         unacknowledged.NumberOfMessagesProcessed = numberOfMessagesProcessed;
     }
 
-    static async Task TrimHistory(ServiceControlDbContext dbContext, int retryHistoryDepth)
+    static async Task TrimHistory(ServiceControlDbContext dbContext, int retryHistoryDepth, CancellationToken cancellationToken)
     {
         if (retryHistoryDepth <= 0)
         {
-            await dbContext.HistoricRetryOperations.ExecuteDeleteAsync();
+            await dbContext.HistoricRetryOperations.ExecuteDeleteAsync(cancellationToken);
             return;
         }
 
@@ -136,7 +137,7 @@ public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStor
             .ThenByDescending(operation => operation.Id)
             .Skip(retryHistoryDepth - 1)
             .Select(operation => new { operation.CompletionTime, operation.Id })
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (cutoff == null)
         {
@@ -146,6 +147,6 @@ public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStor
         await dbContext.HistoricRetryOperations
             .Where(operation => operation.CompletionTime < cutoff.CompletionTime
                 || (operation.CompletionTime == cutoff.CompletionTime && operation.Id < cutoff.Id))
-            .ExecuteDeleteAsync();
+            .ExecuteDeleteAsync(cancellationToken);
     }
 }

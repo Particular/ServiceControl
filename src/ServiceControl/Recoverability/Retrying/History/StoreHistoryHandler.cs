@@ -26,7 +26,8 @@
                 message.Failed,
                 message.NumberOfMessagesProcessed,
                 message.Last,
-                settings.RetryHistoryDepth);
+                settings.RetryHistoryDepth,
+                cancellationToken);
         }
 
         readonly IRetryHistoryDataStore store;

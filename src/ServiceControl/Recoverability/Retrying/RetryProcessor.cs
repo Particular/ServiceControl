@@ -54,7 +54,7 @@ namespace ServiceControl.Recoverability
 
                 isRecoveringFromPrematureShutdown = false;
 
-                var stagingBatch = await store.GetStagingBatch();
+                var stagingBatch = await store.GetStagingBatch(cancellationToken);
 
                 if (stagingBatch != null)
                 {
@@ -85,7 +85,7 @@ namespace ServiceControl.Recoverability
         {
             logger.LogDebug("Looking for batch to forward");
 
-            var forwardingBatchId = await store.GetForwardingBatchId();
+            var forwardingBatchId = await store.GetForwardingBatchId(cancellationToken);
 
             if (forwardingBatchId == null)
             {
@@ -112,7 +112,7 @@ namespace ServiceControl.Recoverability
 
             logger.LogDebug("Removing forwarding pointer");
 
-            await store.CompleteForwarding(forwardingBatchId);
+            await store.CompleteForwarding(forwardingBatchId, cancellationToken);
             return true;
         }
 
@@ -159,12 +159,12 @@ namespace ServiceControl.Recoverability
         {
             var stagingId = Guid.NewGuid().ToString();
 
-            var messagesToStage = await store.GetMessagesToStage(stagingBatch.Id);
+            var messagesToStage = await store.GetMessagesToStage(stagingBatch.Id, cancellationToken);
 
             if (messagesToStage.Length == 0)
             {
                 logger.LogInformation("Retry batch {RetryBatchId} cancelled as it has no messages left to stage", stagingBatch.Id);
-                await store.DiscardBatch(stagingBatch.Id);
+                await store.DiscardBatch(stagingBatch.Id, cancellationToken);
                 return 0;
             }
 
@@ -195,7 +195,7 @@ namespace ServiceControl.Recoverability
                 }, cancellationToken);
             }
 
-            await store.MarkBatchAsForwarding(stagingBatch.Id, stagingId, [.. stageAttemptsById.Keys]);
+            await store.MarkBatchAsForwarding(stagingBatch.Id, stagingId, [.. stageAttemptsById.Keys], cancellationToken);
 
             logger.LogInformation("Retry batch {RetryBatchId} staged with Staging Id {StagingId} and {RetryFailureCount} matching failure retries", stagingBatch.Id, stagingId, messagesToStage.Length);
             return messagesToStage.Length;
@@ -265,7 +265,7 @@ namespace ServiceControl.Recoverability
             {
                 logger.LogWarning(e, "Attempt 1 of {MaxStagingAttempts} to stage the {MessageCount} messages of retry batch {RetryBatchId} failed", MaxStagingAttempts, messages.Count, batchId);
 
-                await store.RecordStagingFailure([.. messages.Select(message => message.UniqueMessageId)]);
+                await store.RecordStagingFailure([.. messages.Select(message => message.UniqueMessageId)], cancellationToken);
 
                 throw new RetryStagingException(e);
             }
@@ -291,13 +291,13 @@ namespace ServiceControl.Recoverability
                 {
                     logger.LogWarning(e, "Attempt {StagingRetryAttempt} of {StagingRetryLimit} to stage a retry message {RetryMessageId} failed", incrementedAttempts, MaxStagingAttempts, uniqueMessageId);
 
-                    await store.IncrementStagingAttempts(uniqueMessageId);
+                    await store.IncrementStagingAttempts(uniqueMessageId, cancellationToken);
                 }
                 else
                 {
                     logger.LogError(e, "Retry message {RetryMessageId} reached its staging retry limit ({StagingRetryLimit}) and is going to be removed from the batch", uniqueMessageId, MaxStagingAttempts);
 
-                    await store.RemoveFromBatch(uniqueMessageId);
+                    await store.RemoveFromBatch(uniqueMessageId, cancellationToken);
 
                     await domainEvents.Raise(new MessageFailedInStaging
                     {

@@ -30,7 +30,7 @@ namespace ServiceControl.Recoverability
             var numberOfMessages = 1;
 
             await operationManager.Preparing(requestId, retryType, numberOfMessages, cancellationToken);
-            await AssignMessagesToBatch(requestId, retryType, new[] { uniqueMessageId }, DateTime.UtcNow, initiatedBy: initiatedBy, operationId: operationId, cancellationToken: cancellationToken);
+            await AssignMessagesToBatch(requestId, retryType, new[] { uniqueMessageId }, DateTime.UtcNow, cancellationToken, initiatedBy: initiatedBy, operationId: operationId);
             await operationManager.PreparedBatch(requestId, retryType, numberOfMessages, cancellationToken);
         }
 
@@ -43,11 +43,11 @@ namespace ServiceControl.Recoverability
             var numberOfMessages = uniqueMessageIds.Length;
 
             await operationManager.Preparing(requestId, retryType, numberOfMessages, cancellationToken);
-            await AssignMessagesToBatch(requestId, retryType, uniqueMessageIds, DateTime.UtcNow, initiatedBy: initiatedBy, operationId: operationId, cancellationToken: cancellationToken);
+            await AssignMessagesToBatch(requestId, retryType, uniqueMessageIds, DateTime.UtcNow, cancellationToken, initiatedBy: initiatedBy, operationId: operationId);
             await operationManager.PreparedBatch(requestId, retryType, numberOfMessages, cancellationToken);
         }
 
-        async Task AssignMessagesToBatch(string requestId, RetryType retryType, string[] messageIds, DateTime startTime, DateTime? last = null, string originator = null, string batchName = null, string classifier = null, AuditUser? initiatedBy = null, string operationId = null, CancellationToken cancellationToken = default)
+        async Task AssignMessagesToBatch(string requestId, RetryType retryType, string[] messageIds, DateTime startTime, CancellationToken cancellationToken, DateTime? last = null, string originator = null, string batchName = null, string classifier = null, AuditUser? initiatedBy = null, string operationId = null)
         {
             if (messageIds == null || !messageIds.Any())
             {
@@ -57,11 +57,11 @@ namespace ServiceControl.Recoverability
 
             var failedMessageRetryIds = messageIds.ToArray();
 
-            var batchId = await store.CreateBatch(RetryDocumentManager.RetrySessionId, requestId, retryType, failedMessageRetryIds, originator, startTime, last, batchName, classifier, initiatedBy?.Id, initiatedBy?.Name, operationId);
+            var batchId = await store.CreateBatch(RetryDocumentManager.RetrySessionId, requestId, retryType, failedMessageRetryIds, originator, startTime, last, batchName, classifier, initiatedBy?.Id, initiatedBy?.Name, operationId, cancellationToken);
 
             logger.LogInformation("Created Batch '{BatchDocumentId}' with {BatchMessageCount} messages for '{BatchName}'", batchId, messageIds.Length, batchName);
 
-            await store.AssignMessagesToBatch(batchId, messageIds);
+            await store.AssignMessagesToBatch(batchId, messageIds, cancellationToken);
 
             await MoveBatchToStaging(batchId, cancellationToken);
 
@@ -69,7 +69,7 @@ namespace ServiceControl.Recoverability
         }
 
         // Needs to be overridable by a test
-        protected virtual Task MoveBatchToStaging(string batchId, CancellationToken cancellationToken = default) => store.MoveBatchToStaging(batchId);
+        protected virtual Task MoveBatchToStaging(string batchId, CancellationToken cancellationToken = default) => store.MoveBatchToStaging(batchId, cancellationToken);
 
 
         public async Task<bool> ProcessNextBulkRetry(CancellationToken cancellationToken = default)  // Invoked from BulkRetryBatchCreationHostedService in schedule
@@ -96,7 +96,7 @@ namespace ServiceControl.Recoverability
 
                 for (var i = 0; i < batches.Count; i++)
                 {
-                    await AssignMessagesToBatch(request.RequestId, request.RetryType, batches[i], request.StartTime, latestAttempt, request.Originator, GetBatchName(i + 1, batches.Count, request.Originator), request.Classifier, request.InitiatedBy, request.OperationId, cancellationToken);
+                    await AssignMessagesToBatch(request.RequestId, request.RetryType, batches[i], request.StartTime, cancellationToken, latestAttempt, request.Originator, GetBatchName(i + 1, batches.Count, request.Originator), request.Classifier, request.InitiatedBy, request.OperationId);
                     numberOfMessagesAdded += batches[i].Length;
 
                     await operationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded, cancellationToken);
@@ -175,7 +175,7 @@ namespace ServiceControl.Recoverability
                 OperationId = operationId;
             }
 
-            protected abstract Task Invoke(IRetryBatchStore store, Func<string, DateTime, Task> callback);
+            protected abstract Task Invoke(IRetryBatchStore store, Func<string, DateTime, CancellationToken, Task> callback, CancellationToken cancellationToken = default);
 
             public async Task<Tuple<List<string[]>, DateTime>> GetRequestedBatches(IRetryBatchStore store, CancellationToken cancellationToken = default)
             {
@@ -183,7 +183,7 @@ namespace ServiceControl.Recoverability
                 var currentBatch = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 var latestAttempt = DateTime.MinValue;
 
-                Task Process(string uniqueMessageId, DateTime latestTimeOfFailure)
+                Task Process(string uniqueMessageId, DateTime latestTimeOfFailure, CancellationToken cancellationToken)
                 {
                     currentBatch.Add(uniqueMessageId);
 
@@ -203,7 +203,7 @@ namespace ServiceControl.Recoverability
                     return Task.FromResult(response);
                 }
 
-                await Invoke(store, Process);
+                await Invoke(store, Process, cancellationToken);
 
                 if (currentBatch.Count > 0)
                 {
@@ -221,9 +221,9 @@ namespace ServiceControl.Recoverability
             {
             }
 
-            protected override Task Invoke(IRetryBatchStore store, Func<string, DateTime, Task> callback)
+            protected override Task Invoke(IRetryBatchStore store, Func<string, DateTime, CancellationToken, Task> callback, CancellationToken cancellationToken = default)
             {
-                return store.ForEachUnresolvedMessage(callback);
+                return store.ForEachUnresolvedMessage(callback, cancellationToken);
             }
         }
 
@@ -236,9 +236,9 @@ namespace ServiceControl.Recoverability
                 Endpoint = endpoint;
             }
 
-            protected override Task Invoke(IRetryBatchStore store, Func<string, DateTime, Task> callback)
+            protected override Task Invoke(IRetryBatchStore store, Func<string, DateTime, CancellationToken, Task> callback, CancellationToken cancellationToken = default)
             {
-                return store.ForEachUnresolvedMessageForEndpoint(Endpoint, callback);
+                return store.ForEachUnresolvedMessageForEndpoint(Endpoint, callback, cancellationToken);
             }
         }
 
@@ -255,9 +255,9 @@ namespace ServiceControl.Recoverability
                 GroupTitle = groupTitle;
             }
 
-            protected override Task Invoke(IRetryBatchStore store, Func<string, DateTime, Task> callback)
+            protected override Task Invoke(IRetryBatchStore store, Func<string, DateTime, CancellationToken, Task> callback, CancellationToken cancellationToken = default)
             {
-                return store.ForEachUnresolvedMessageInGroup(GroupId, callback);
+                return store.ForEachUnresolvedMessageInGroup(GroupId, callback, cancellationToken);
             }
         }
 
@@ -278,9 +278,9 @@ namespace ServiceControl.Recoverability
                 Status = status;
             }
 
-            protected override Task Invoke(IRetryBatchStore store, Func<string, DateTime, Task> callback)
+            protected override Task Invoke(IRetryBatchStore store, Func<string, DateTime, CancellationToken, Task> callback, CancellationToken cancellationToken = default)
             {
-                return store.ForEachMessageForQueueAddress(FailedQueueAddress, Status, callback);
+                return store.ForEachMessageForQueueAddress(FailedQueueAddress, Status, callback, cancellationToken);
             }
         }
     }

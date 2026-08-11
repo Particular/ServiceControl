@@ -23,7 +23,7 @@
                 return Ok();
             }
 
-            var success = await retryStore.AcknowledgeRetryGroup(groupId);
+            var success = await retryStore.AcknowledgeRetryGroup(groupId, cancellationToken);
 
             if (success)
             {

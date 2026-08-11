@@ -18,35 +18,35 @@ namespace ServiceControl.Persistence.RavenDB
         ExpirationManager expirationManager,
         ILogger<RetryStagingStore> logger) : IRetryStagingStore
     {
-        public async Task<Persistence.RetryBatch> GetStagingBatch()
+        public async Task<Persistence.RetryBatch> GetStagingBatch(CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 
             var batch = await session.Query<RetryBatch>()
-                .FirstOrDefaultAsync(b => b.Status == RetryBatchStatus.Staging);
+                .FirstOrDefaultAsync(b => b.Status == RetryBatchStatus.Staging, cancellationToken);
 
             return batch?.ToContract();
         }
 
-        public async Task<StagingMessage[]> GetMessagesToStage(string batchId)
+        public async Task<StagingMessage[]> GetMessagesToStage(string batchId, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 
-            var batch = await session.LoadAsync<RetryBatch>(batchId);
+            var batch = await session.LoadAsync<RetryBatch>(batchId, cancellationToken);
 
             if (batch == null)
             {
                 return [];
             }
 
-            var retries = await session.LoadAsync<FailedMessageRetry>(batch.FailureRetries);
+            var retries = await session.LoadAsync<FailedMessageRetry>(batch.FailureRetries, cancellationToken);
 
             // A message claimed by an earlier batch keeps that claim, so this batch does not stage it.
             var claims = retries.Values
                 .Where(retry => retry != null && retry.RetryBatchId == batchId)
                 .ToArray();
 
-            var messages = await session.LoadAsync<FailedMessage>(claims.Select(claim => claim.FailedMessageId));
+            var messages = await session.LoadAsync<FailedMessage>(claims.Select(claim => claim.FailedMessageId), cancellationToken);
 
             return claims
                 .Select(claim => new { Claim = claim, Message = messages[claim.FailedMessageId] })
@@ -68,11 +68,11 @@ namespace ServiceControl.Persistence.RavenDB
                 stageAttempts);
         }
 
-        public async Task MarkBatchAsForwarding(string batchId, string stagingId, IReadOnlyCollection<string> stagedMessageIds)
+        public async Task MarkBatchAsForwarding(string batchId, string stagingId, IReadOnlyCollection<string> stagedMessageIds, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 
-            var batch = await session.LoadAsync<RetryBatch>(batchId);
+            var batch = await session.LoadAsync<RetryBatch>(batchId, cancellationToken);
 
             if (batch == null)
             {
@@ -95,30 +95,31 @@ namespace ServiceControl.Persistence.RavenDB
 
             await session.StoreAsync(
                 new RetryBatchNowForwarding { RetryBatchId = batchId },
-                RetryDocumentDataStore.NowForwardingDocumentId);
+                RetryDocumentDataStore.NowForwardingDocumentId,
+                cancellationToken);
 
-            await session.SaveChangesAsync();
+            await session.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task DiscardBatch(string batchId)
+        public async Task DiscardBatch(string batchId, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 
             session.Delete(batchId);
 
-            await session.SaveChangesAsync();
+            await session.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task<string> GetForwardingBatchId()
+        public async Task<string> GetForwardingBatchId(CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 
-            var nowForwarding = await session.LoadAsync<RetryBatchNowForwarding>(RetryDocumentDataStore.NowForwardingDocumentId);
+            var nowForwarding = await session.LoadAsync<RetryBatchNowForwarding>(RetryDocumentDataStore.NowForwardingDocumentId, cancellationToken);
 
             return nowForwarding?.RetryBatchId;
         }
 
-        public async Task<Persistence.RetryBatch> GetBatch(string batchId, CancellationToken cancellationToken)
+        public async Task<Persistence.RetryBatch> GetBatch(string batchId, CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 
@@ -127,17 +128,17 @@ namespace ServiceControl.Persistence.RavenDB
             return batch?.ToContract();
         }
 
-        public async Task CompleteForwarding(string batchId)
+        public async Task CompleteForwarding(string batchId, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 
             session.Delete(batchId);
             session.Delete(RetryDocumentDataStore.NowForwardingDocumentId);
 
-            await session.SaveChangesAsync();
+            await session.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task RecordStagingFailure(IReadOnlyCollection<string> uniqueMessageIds)
+        public async Task RecordStagingFailure(IReadOnlyCollection<string> uniqueMessageIds, CancellationToken cancellationToken = default)
         {
             var commands = uniqueMessageIds
                 .Select(ICommandData (uniqueMessageId) => new PatchCommandData(
@@ -152,11 +153,11 @@ namespace ServiceControl.Persistence.RavenDB
 
             try
             {
-                using var session = await sessionProvider.OpenSession();
-                var documentStore = await documentStoreProvider.GetDocumentStore();
+                using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+                var documentStore = await documentStoreProvider.GetDocumentStore(cancellationToken);
 
                 var batch = new SingleNodeBatchCommand(documentStore.Conventions, session.Advanced.Context, commands);
-                await session.Advanced.RequestExecutor.ExecuteAsync(batch, session.Advanced.Context);
+                await session.Advanced.RequestExecutor.ExecuteAsync(batch, session.Advanced.Context, token: cancellationToken);
             }
             catch (ConcurrencyException)
             {
@@ -164,15 +165,15 @@ namespace ServiceControl.Persistence.RavenDB
             }
         }
 
-        public async Task IncrementStagingAttempts(string uniqueMessageId)
+        public async Task IncrementStagingAttempts(string uniqueMessageId, CancellationToken cancellationToken = default)
         {
             try
             {
-                var documentStore = await documentStoreProvider.GetDocumentStore();
+                var documentStore = await documentStoreProvider.GetDocumentStore(cancellationToken);
                 await documentStore.Operations.SendAsync(new PatchOperation(
                     RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(uniqueMessageId),
                     null,
-                    new PatchRequest { Script = "this.StageAttempts += 1" }));
+                    new PatchRequest { Script = "this.StageAttempts += 1" }), token: cancellationToken);
             }
             catch (ConcurrencyException)
             {
@@ -180,13 +181,13 @@ namespace ServiceControl.Persistence.RavenDB
             }
         }
 
-        public async Task RemoveFromBatch(string uniqueMessageId)
+        public async Task RemoveFromBatch(string uniqueMessageId, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 
             await session.Advanced.RequestExecutor.ExecuteAsync(
                 new DeleteDocumentCommand(RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(uniqueMessageId), null),
-                session.Advanced.Context);
+                session.Advanced.Context, token: cancellationToken);
         }
 
         PatchRequest RetryIssuedPatch()

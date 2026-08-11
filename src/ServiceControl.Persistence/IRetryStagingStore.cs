@@ -14,52 +14,52 @@ namespace ServiceControl.Persistence
         /// <summary>
         /// The batch waiting to be staged, or null when there is nothing to stage.
         /// </summary>
-        Task<RetryBatch?> GetStagingBatch();
+        Task<RetryBatch?> GetStagingBatch(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// The messages the batch still holds. A message that has since been deleted is not returned,
         /// so the result can be shorter than what the batch claimed.
         /// </summary>
-        Task<StagingMessage[]> GetMessagesToStage(string batchId);
+        Task<StagingMessage[]> GetMessagesToStage(string batchId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Hands the batch to the forwarder: the batch keeps only the messages that were staged, those
         /// messages become <see cref="MessageFailures.FailedMessageStatus.RetryIssued"/>, and the batch
         /// becomes the one being forwarded.
         /// </summary>
-        Task MarkBatchAsForwarding(string batchId, string stagingId, IReadOnlyCollection<string> stagedMessageIds);
+        Task MarkBatchAsForwarding(string batchId, string stagingId, IReadOnlyCollection<string> stagedMessageIds, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Drops a batch that has nothing left to stage, because every message it covered was claimed
         /// by an earlier batch.
         /// </summary>
-        Task DiscardBatch(string batchId);
+        Task DiscardBatch(string batchId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// The batch being forwarded, or null when none is. Outlives the batch it names, so the batch
         /// itself can be gone by the time it is asked for.
         /// </summary>
-        Task<string?> GetForwardingBatchId();
+        Task<string?> GetForwardingBatchId(CancellationToken cancellationToken = default);
 
-        Task<RetryBatch?> GetBatch(string batchId, CancellationToken cancellationToken);
+        Task<RetryBatch?> GetBatch(string batchId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Removes the forwarded batch and the pointer to it. Tolerates a batch that is already gone,
         /// so a pointer left behind by a premature shutdown can always be cleared.
         /// </summary>
-        Task CompleteForwarding(string batchId);
+        Task CompleteForwarding(string batchId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Records that the whole batch failed to reach the transport, so the next attempt at these
         /// messages knows it is a retry of a retry.
         /// </summary>
-        Task RecordStagingFailure(IReadOnlyCollection<string> uniqueMessageIds);
+        Task RecordStagingFailure(IReadOnlyCollection<string> uniqueMessageIds, CancellationToken cancellationToken = default);
 
-        Task IncrementStagingAttempts(string uniqueMessageId);
+        Task IncrementStagingAttempts(string uniqueMessageId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Releases the message from its batch, leaving it unresolved for a later retry request.
         /// </summary>
-        Task RemoveFromBatch(string uniqueMessageId);
+        Task RemoveFromBatch(string uniqueMessageId, CancellationToken cancellationToken = default);
     }
 }

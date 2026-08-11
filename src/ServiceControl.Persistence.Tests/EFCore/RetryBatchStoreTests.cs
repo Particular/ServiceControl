@@ -3,6 +3,7 @@ namespace ServiceControl.Persistence.Tests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
@@ -239,11 +240,11 @@ class RetryBatchStoreTests : ErrorIngestionTestBase
         return [.. claimed.Select(uniqueMessageId => uniqueMessageId.ToString())];
     }
 
-    static async Task<List<string>> Collect(Func<Func<string, DateTime, Task>, Task> stream)
+    static async Task<List<string>> Collect(Func<Func<string, DateTime, CancellationToken, Task>, Task> stream)
     {
         var streamed = new List<string>();
 
-        await stream((uniqueMessageId, _) =>
+        await stream((uniqueMessageId, _, _) =>
         {
             streamed.Add(uniqueMessageId);
             return Task.CompletedTask;
