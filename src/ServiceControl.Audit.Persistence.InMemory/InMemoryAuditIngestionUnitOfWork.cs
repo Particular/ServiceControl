@@ -15,15 +15,15 @@
     {
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
-        public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
+        public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default)
         {
             if (!body.IsEmpty)
             {
                 await bodyStorageEnricher.StoreAuditMessageBody(body, processedMessage, cancellationToken);
             }
-            await dataStore.SaveProcessedMessage(processedMessage);
+            await dataStore.SaveProcessedMessage(processedMessage, cancellationToken);
         }
 
-        public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken) => dataStore.SaveSagaSnapshot(sagaSnapshot);
+        public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken = default) => dataStore.SaveSagaSnapshot(sagaSnapshot, cancellationToken);
     }
 }

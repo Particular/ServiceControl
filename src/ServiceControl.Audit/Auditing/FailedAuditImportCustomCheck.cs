@@ -11,7 +11,7 @@ namespace ServiceControl.Audit.Auditing
     {
         public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
-            var count = await store.GetFailedAuditsCount();
+            var count = await store.GetFailedAuditsCount(cancellationToken);
             if (count > 0)
             {
                 logger.LogWarning(message);

@@ -10,7 +10,7 @@ static class LicenseStatusCheck
 {
     record LicenseStatusFragment(string Id, string LicensedTo, string Status, bool Expired);
 
-    public static async Task WaitForLicenseOrThrow(IDocumentStore documentStore, CancellationToken cancellationToken)
+    public static async Task WaitForLicenseOrThrow(IDocumentStore documentStore, CancellationToken cancellationToken = default)
     {
         var ravenConfiguredHttpClient = documentStore.GetRequestExecutor().HttpClient;
         var licenseCheckUrl = documentStore.Urls[0].TrimEnd('/') + "/license/status";
