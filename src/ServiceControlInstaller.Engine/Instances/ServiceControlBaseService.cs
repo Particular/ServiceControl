@@ -20,10 +20,21 @@ namespace ServiceControlInstaller.Engine.Instances
 
     public abstract class ServiceControlBaseService : BaseService
     {
+        protected Exception ConfigurationLoadException { get; set; }
+
         protected ServiceControlBaseService(IWindowsServiceController service)
         {
             Service = service;
-            AppConfig = CreateAppConfig();
+            try
+            {
+                AppConfig = CreateAppConfig();
+            }
+            catch (Exception ex)
+            {
+                // Config loading failed - will be handled by derived class constructor
+                // Store the exception so derived class can log it
+                ConfigurationLoadException = ex;
+            }
         }
 
         public bool InMaintenanceMode { get; set; }

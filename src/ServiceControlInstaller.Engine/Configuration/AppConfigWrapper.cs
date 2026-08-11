@@ -8,8 +8,18 @@
     {
         public AppConfigWrapper(string configFilePath)
         {
-            var mapping = new ExeConfigurationFileMap { ExeConfigFilename = configFilePath };
-            Config = ConfigurationManager.OpenMappedExeConfiguration(mapping, ConfigurationUserLevel.None);
+            ConfigFilePath = configFilePath;
+
+            try
+            {
+                var mapping = new ExeConfigurationFileMap { ExeConfigFilename = configFilePath };
+                Config = ConfigurationManager.OpenMappedExeConfiguration(mapping, ConfigurationUserLevel.None);
+            }
+            catch (ConfigurationErrorsException ex)
+            {
+                ConfigLoadException = ex;
+                // Don't re-throw - let the caller handle the error via ConfigLoadException
+            }
         }
 
         public T Read<T>(SettingInfo keyInfo, T defaultValue)
@@ -19,7 +29,7 @@
 
         public T Read<T>(string key, T defaultValue)
         {
-            if (Config.AppSettings.Settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
+            if (Config?.AppSettings.Settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase) == true)
             {
                 var nonNullableType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
                 return (T)Convert.ChangeType(Config.AppSettings.Settings[key].Value, nonNullableType);
@@ -40,9 +50,11 @@
 
         public bool AppSettingExists(string key)
         {
-            return Config.AppSettings.Settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase);
+            return Config?.AppSettings.Settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase) == true;
         }
 
         public Configuration Config;
+        public string ConfigFilePath;
+        public Exception ConfigLoadException;
     }
 }

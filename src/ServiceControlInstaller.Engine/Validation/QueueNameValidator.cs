@@ -27,8 +27,8 @@ namespace ServiceControlInstaller.Engine.Validation
         {
             var validator = new QueueNameValidator(instance)
             {
-                SCInstances = InstanceFinder.ServiceControlInstances().Where(p => p.Name != instance.Name & p.TransportPackage.Equals(instance.TransportPackage)).AsEnumerable<IServiceControlInstance>().ToList(),
-                AuditInstances = InstanceFinder.ServiceControlAuditInstances().Where(p => p.Name != instance.Name & p.TransportPackage.Equals(instance.TransportPackage)).AsEnumerable<IServiceControlAuditInstance>().ToList(),
+                SCInstances = InstanceFinder.ServiceControlInstances().Where(p => p.Name != instance.Name && p.TransportPackage != null && string.IsNullOrEmpty(p.ConfigurationLoadError) && p.TransportPackage.Equals(instance.TransportPackage)).AsEnumerable<IServiceControlInstance>().ToList(),
+                AuditInstances = InstanceFinder.ServiceControlAuditInstances().Where(p => p.Name != instance.Name && p.TransportPackage != null && string.IsNullOrEmpty(p.ConfigurationLoadError) && p.TransportPackage.Equals(instance.TransportPackage)).AsEnumerable<IServiceControlAuditInstance>().ToList(),
             };
 
             validator.RunValidation();
@@ -38,8 +38,8 @@ namespace ServiceControlInstaller.Engine.Validation
         {
             var validator = new QueueNameValidator(instance)
             {
-                SCInstances = InstanceFinder.ServiceControlInstances().Where(p => p.Name != instance.Name & p.TransportPackage.Equals(instance.TransportPackage)).AsEnumerable<IServiceControlInstance>().ToList(),
-                AuditInstances = InstanceFinder.ServiceControlAuditInstances().Where(p => p.Name != instance.Name & p.TransportPackage.Equals(instance.TransportPackage)).AsEnumerable<IServiceControlAuditInstance>().ToList(),
+                SCInstances = InstanceFinder.ServiceControlInstances().Where(p => p.Name != instance.Name && p.TransportPackage != null && string.IsNullOrEmpty(p.ConfigurationLoadError) && p.TransportPackage.Equals(instance.TransportPackage)).AsEnumerable<IServiceControlInstance>().ToList(),
+                AuditInstances = InstanceFinder.ServiceControlAuditInstances().Where(p => p.Name != instance.Name && p.TransportPackage != null && string.IsNullOrEmpty(p.ConfigurationLoadError) && p.TransportPackage.Equals(instance.TransportPackage)).AsEnumerable<IServiceControlAuditInstance>().ToList(),
             };
 
             validator.RunValidation();
