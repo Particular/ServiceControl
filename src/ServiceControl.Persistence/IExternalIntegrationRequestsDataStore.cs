@@ -8,8 +8,8 @@
 
     public interface IExternalIntegrationRequestsDataStore
     {
-        void Subscribe(Func<object[], Task> callback);
-        Task StoreDispatchRequest(IEnumerable<ExternalIntegrationDispatchRequest> dispatchRequests);
-        Task StopAsync(CancellationToken cancellationToken);
+        void Subscribe(Func<object[], CancellationToken, Task> callback);
+        Task StoreDispatchRequest(IEnumerable<ExternalIntegrationDispatchRequest> dispatchRequests, CancellationToken cancellationToken = default);
+        Task StopAsync(CancellationToken cancellationToken = default);
     }
 }

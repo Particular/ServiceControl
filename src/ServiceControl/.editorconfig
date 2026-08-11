@@ -9,8 +9,3 @@ dotnet_diagnostic.CA2007.severity = none
 [{Operations/ErrorIngestion.cs,Operations/ErrorIngestionFaultPolicy.cs,Operations/ImportFailureCircuitBreaker.cs}]
 dotnet_diagnostic.PS0013.severity = none
 dotnet_diagnostic.PS0018.severity = none
-
-# Blocked on IExternalIntegrationRequestsDataStore.Subscribe, which takes Func<object[], Task>.
-# The dispatch callback gains a token when that interface does, in the persistence phase.
-[ExternalIntegrations/EventDispatcherHostedService.cs]
-dotnet_diagnostic.PS0018.severity = none
