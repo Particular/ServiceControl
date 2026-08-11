@@ -8,7 +8,7 @@ using ServiceControl.Persistence.Infrastructure;
 
 public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), ICustomChecksDataStore
 {
-    public Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail) => ExecuteWithDbContext(async context =>
+    public Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail, CancellationToken cancellationToken = default) => ExecuteWithDbContext(async context =>
     {
         var status = CheckStateChange.Unchanged;
 
@@ -43,11 +43,12 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
                 entity.Category = detail.Category;
                 entity.ReportedAt = detail.ReportedAt;
                 entity.FailureReason = detail.FailureReason;
-            });
+            },
+            cancellationToken);
         return status;
     });
 
-    public Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string? status = null) => ExecuteWithDbContext(async context =>
+    public Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string? status = null, CancellationToken cancellationToken = default) => ExecuteWithDbContext(async context =>
     {
         var query = context.CustomChecks.AsQueryable().AsNoTracking();
 
@@ -62,7 +63,7 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
             .OrderBy(c => c.ReportedAt)
             .Skip(paging.Offset)
             .Take(paging.PageSize)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return new QueryResult<IList<CustomCheck>>(page.Select(c => new CustomCheck
         {
@@ -75,7 +76,7 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
         }).ToList(), new QueryStatsInfo("", page.Count, false));
     });
 
-    public Task DeleteCustomCheck(Guid id) => ExecuteWithDbContext(async context => await context.CustomChecks.AsNoTracking().Where(cc => cc.Id == id).ExecuteDeleteAsync());
+    public Task DeleteCustomCheck(Guid id, CancellationToken cancellationToken = default) => ExecuteWithDbContext(async context => await context.CustomChecks.AsNoTracking().Where(cc => cc.Id == id).ExecuteDeleteAsync(cancellationToken));
 
-    public Task<int> GetNumberOfFailedChecks() => ExecuteWithDbContext(async context => await context.CustomChecks.AsNoTracking().CountAsync(p => p.Status == Status.Fail));
+    public Task<int> GetNumberOfFailedChecks(CancellationToken cancellationToken = default) => ExecuteWithDbContext(async context => await context.CustomChecks.AsNoTracking().CountAsync(p => p.Status == Status.Fail, cancellationToken));
 }

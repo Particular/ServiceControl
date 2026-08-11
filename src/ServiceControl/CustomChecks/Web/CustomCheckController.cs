@@ -23,7 +23,7 @@
         [HttpGet]
         public async Task<IList<CustomCheck>> CustomChecks([FromQuery] PagingInfo pagingInfo, string status = null, CancellationToken cancellationToken = default)
         {
-            var stats = await checksDataStore.GetStats(pagingInfo, status);
+            var stats = await checksDataStore.GetStats(pagingInfo, status, cancellationToken);
 
             Response.WithPagingLinksAndTotalCount(pagingInfo, stats.QueryStats.TotalCount);
             Response.WithEtag(stats.QueryStats.ETag);

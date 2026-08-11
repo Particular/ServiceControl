@@ -21,10 +21,10 @@ namespace ServiceControl.CustomChecks
         {
             try
             {
-                var statusChange = await store.UpdateCustomCheckStatus(checkDetail);
+                var statusChange = await store.UpdateCustomCheckStatus(checkDetail, cancellationToken);
                 await RaiseEvents(statusChange, checkDetail, cancellationToken);
 
-                var numberOfFailedChecks = await store.GetNumberOfFailedChecks();
+                var numberOfFailedChecks = await store.GetNumberOfFailedChecks(cancellationToken);
 
                 if (lastCount == numberOfFailedChecks)
                 {

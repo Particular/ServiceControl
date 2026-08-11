@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using ServiceControl.Persistence.MessageRedirects;
 
@@ -9,32 +10,32 @@
     {
         public const string CollectionId = "messageredirects";
 
-        public async Task<IReadOnlyList<MessageRedirect>> GetRedirects()
+        public async Task<IReadOnlyList<MessageRedirect>> GetRedirects(CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
-            var document = await session.LoadAsync<MessageRedirectsCollection>(CollectionId);
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var document = await session.LoadAsync<MessageRedirectsCollection>(CollectionId, cancellationToken);
 
             return document == null ? [] : document.ToRedirects();
         }
 
-        public Task AddRedirect(MessageRedirect redirect) => Mutate(document => document.Add(redirect));
+        public Task AddRedirect(MessageRedirect redirect, CancellationToken cancellationToken = default) => Mutate(document => document.Add(redirect), cancellationToken);
 
-        public Task UpdateRedirect(MessageRedirect redirect) => Mutate(document => document.Update(redirect));
+        public Task UpdateRedirect(MessageRedirect redirect, CancellationToken cancellationToken = default) => Mutate(document => document.Update(redirect), cancellationToken);
 
-        public Task RemoveRedirect(MessageRedirect redirect) => Mutate(document => document.Remove(redirect));
+        public Task RemoveRedirect(MessageRedirect redirect, CancellationToken cancellationToken = default) => Mutate(document => document.Remove(redirect), cancellationToken);
 
-        async Task Mutate(Action<MessageRedirectsCollection> mutate)
+        async Task Mutate(Action<MessageRedirectsCollection> mutate, CancellationToken cancellationToken)
         {
-            using var session = await sessionProvider.OpenSession();
-            var document = await session.LoadAsync<MessageRedirectsCollection>(CollectionId);
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var document = await session.LoadAsync<MessageRedirectsCollection>(CollectionId, cancellationToken);
             var changeVector = document == null ? null : session.Advanced.GetChangeVectorFor(document);
 
             document ??= new MessageRedirectsCollection();
 
             mutate(document);
 
-            await session.StoreAsync(document, changeVector, CollectionId);
-            await session.SaveChangesAsync();
+            await session.StoreAsync(document, changeVector, CollectionId, cancellationToken);
+            await session.SaveChangesAsync(cancellationToken);
         }
     }
 }

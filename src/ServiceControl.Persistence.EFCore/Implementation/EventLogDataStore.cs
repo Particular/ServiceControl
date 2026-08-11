@@ -8,7 +8,7 @@ using ServiceControl.Persistence.EFCore.Entities;
 
 public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IEventLogDataStore
 {
-    public Task Add(EventLogItem logItem) =>
+    public Task Add(EventLogItem logItem, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async dbContext =>
         {
             dbContext.EventLogItems.Add(new EventLogItemEntity
@@ -21,11 +21,11 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
                 EventType = logItem.EventType
             });
 
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellationToken);
         });
 
     public Task<QueryResult<IList<EventLogItemView>>> GetEventLogItems(
-        PagingInfo pagingInfo, string? knownVersion = null) =>
+        PagingInfo pagingInfo, string? knownVersion = null, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async dbContext =>
         {
             var query = dbContext.EventLogItems.AsNoTracking();
@@ -40,7 +40,7 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
                     Newest = g.Max(e => (DateTime?)e.RaisedAt),
                     HighestId = g.Max(e => (long?)e.Id)
                 })
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             var total = stats?.Total ?? 0;
             var version = Version(total, stats?.Newest, stats?.HighestId);
@@ -71,7 +71,7 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
                     Category = e.Category,
                     EventType = e.EventType
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return new QueryResult<IList<EventLogItemView>>(items, queryStats);
         });

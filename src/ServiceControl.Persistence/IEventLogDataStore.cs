@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence
 {
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using EventLog;
     using Infrastructure;
@@ -20,7 +21,7 @@
         /// on <see cref="EventLogItemView.Id"/> when the item is read back.
         /// </summary>
         /// <param name="logItem">The item to store.</param>
-        Task Add(EventLogItem logItem);
+        Task Add(EventLogItem logItem, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns one page of event log items, newest <c>RaisedAt</c> first.
@@ -40,6 +41,6 @@
         /// one is added, since nothing else tells a client its cached page is now wrong.
         /// </returns>
         Task<QueryResult<IList<EventLogItemView>>> GetEventLogItems(
-            PagingInfo pagingInfo, string knownVersion = null);
+            PagingInfo pagingInfo, string knownVersion = null, CancellationToken cancellationToken = default);
     }
 }
