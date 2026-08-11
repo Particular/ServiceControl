@@ -41,7 +41,7 @@
         [HttpPost]
         public async Task<IActionResult> EditComment(string groupId, string comment, CancellationToken cancellationToken = default)
         {
-            await store.EditComment(groupId, comment);
+            await store.EditComment(groupId, comment, cancellationToken);
 
             return Accepted();
         }
@@ -51,7 +51,7 @@
         [HttpDelete]
         public async Task<IActionResult> DeleteComment(string groupId, CancellationToken cancellationToken = default)
         {
-            await store.DeleteComment(groupId);
+            await store.DeleteComment(groupId, cancellationToken);
 
             return Accepted();
         }
@@ -76,7 +76,7 @@
         [HttpGet]
         public async Task<IList<FailedMessageView>> GetGroupErrors(string groupId, [FromQuery] SortInfo sortInfo, [FromQuery] PagingInfo pagingInfo, string status = default, string modified = default, CancellationToken cancellationToken = default)
         {
-            var results = await store.GetGroupErrors(groupId, status, modified, sortInfo, pagingInfo);
+            var results = await store.GetGroupErrors(groupId, status, modified, sortInfo, pagingInfo, cancellationToken);
 
             Response.WithQueryStatsAndPagingInfo(results.QueryStats, pagingInfo);
             return results.Results;
@@ -88,7 +88,7 @@
         [HttpHead]
         public async Task GetGroupErrorsCount(string groupId, string status = default, string modified = default, CancellationToken cancellationToken = default)
         {
-            var results = await store.GetGroupErrorsCount(groupId, status, modified);
+            var results = await store.GetGroupErrorsCount(groupId, status, modified, cancellationToken);
 
             Response.WithQueryStatsInfo(results);
         }
@@ -110,7 +110,7 @@
         [HttpGet]
         public async Task<ActionResult<FailureGroupView>> GetGroup(string groupId, string status = default, string modified = default, CancellationToken cancellationToken = default)
         {
-            var result = await store.GetUnresolvedGroup(groupId, status, modified);
+            var result = await store.GetUnresolvedGroup(groupId, status, modified, cancellationToken);
 
             Response.WithEtag(result.QueryStats.ETag);
 

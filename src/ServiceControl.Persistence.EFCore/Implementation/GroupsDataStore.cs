@@ -12,7 +12,7 @@ using ServiceControl.Recoverability;
 
 public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IGroupsDataStore
 {
-    public Task<IList<FailureGroupView>> GetUnresolvedGroupsByClassifier(string classifier, string classifierFilter) =>
+    public Task<IList<FailureGroupView>> GetUnresolvedGroupsByClassifier(string classifier, string classifierFilter, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async dbContext =>
         {
             var groups = ByClassifier(dbContext, classifier);
@@ -22,57 +22,58 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
                 groups = groups.Where(group => group.Title == classifierFilter);
             }
 
-            var views = await MostRecent(groups.AggregateGroups(WithStatus(dbContext, FailedMessageStatus.Unresolved)));
+            var views = await MostRecent(groups.AggregateGroups(WithStatus(dbContext, FailedMessageStatus.Unresolved)), cancellationToken);
 
-            await AttachComments(dbContext, views);
+            await AttachComments(dbContext, views, cancellationToken);
 
             return views;
         });
 
-    public Task<IList<FailureGroupView>> GetArchivedGroupsByClassifier(string classifier) =>
+    public Task<IList<FailureGroupView>> GetArchivedGroupsByClassifier(string classifier, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(dbContext => MostRecent(
-            ByClassifier(dbContext, classifier).AggregateGroups(WithStatus(dbContext, FailedMessageStatus.Archived))));
+            ByClassifier(dbContext, classifier).AggregateGroups(WithStatus(dbContext, FailedMessageStatus.Archived)), cancellationToken));
 
-    public Task<QueryResult<FailureGroupView>> GetUnresolvedGroup(string groupId, string status, string modified) =>
-        ExecuteWithDbContext(dbContext => SingleGroup(dbContext, groupId, FailedMessageStatus.Unresolved, status, modified));
+    public Task<QueryResult<FailureGroupView>> GetUnresolvedGroup(string groupId, string status, string modified, CancellationToken cancellationToken = default) =>
+        ExecuteWithDbContext(dbContext => SingleGroup(dbContext, groupId, FailedMessageStatus.Unresolved, status, modified, cancellationToken));
 
-    public Task<QueryResult<FailureGroupView>> GetArchivedGroup(string groupId, string status, string modified) =>
-        ExecuteWithDbContext(dbContext => SingleGroup(dbContext, groupId, FailedMessageStatus.Archived, status, modified));
+    public Task<QueryResult<FailureGroupView>> GetArchivedGroup(string groupId, string status, string modified, CancellationToken cancellationToken = default) =>
+        ExecuteWithDbContext(dbContext => SingleGroup(dbContext, groupId, FailedMessageStatus.Archived, status, modified, cancellationToken));
 
-    public Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(string groupId, string status, string modified, SortInfo sortInfo, PagingInfo pagingInfo) =>
-        ExecuteWithDbContext(dbContext => InGroup(dbContext, groupId, status, modified).ToPagedResult(pagingInfo, sortInfo));
+    public Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(string groupId, string status, string modified, SortInfo sortInfo, PagingInfo pagingInfo, CancellationToken cancellationToken = default) =>
+        ExecuteWithDbContext(dbContext => InGroup(dbContext, groupId, status, modified).ToPagedResult(pagingInfo, sortInfo, cancellationToken));
 
-    public Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string status, string modified) =>
-        ExecuteWithDbContext(dbContext => InGroup(dbContext, groupId, status, modified).ToQueryStatsInfo());
+    public Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string status, string modified, CancellationToken cancellationToken = default) =>
+        ExecuteWithDbContext(dbContext => InGroup(dbContext, groupId, status, modified).ToQueryStatsInfo(cancellationToken));
 
-    public Task EditComment(string groupId, string comment) =>
+    public Task EditComment(string groupId, string comment, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async dbContext =>
         {
             if (string.IsNullOrWhiteSpace(comment))
             {
-                await RemoveComment(dbContext, groupId);
+                await RemoveComment(dbContext, groupId, cancellationToken);
                 return;
             }
 
             await dbContext.UpsertAsync([groupId],
                 () => new GroupCommentEntity { GroupId = groupId, Comment = comment },
-                entity => entity.Comment = comment);
+                entity => entity.Comment = comment,
+                cancellationToken);
         });
 
-    public Task DeleteComment(string groupId) =>
-        ExecuteWithDbContext(dbContext => RemoveComment(dbContext, groupId));
+    public Task DeleteComment(string groupId, CancellationToken cancellationToken = default) =>
+        ExecuteWithDbContext(dbContext => RemoveComment(dbContext, groupId, cancellationToken));
 
-    static Task<int> RemoveComment(ServiceControlDbContext dbContext, string groupId) =>
+    static Task<int> RemoveComment(ServiceControlDbContext dbContext, string groupId, CancellationToken cancellationToken) =>
         dbContext.GroupComments
             .Where(groupComment => groupComment.GroupId == groupId)
-            .ExecuteDeleteAsync();
+            .ExecuteDeleteAsync(cancellationToken);
 
     static IQueryable<FailedMessageGroupEntity> ByClassifier(ServiceControlDbContext dbContext, string classifier) =>
         dbContext.FailedMessageGroups
             .AsNoTracking()
             .Where(group => group.Type == classifier);
 
-    static async Task<QueryResult<FailureGroupView>> SingleGroup(ServiceControlDbContext dbContext, string groupId, FailedMessageStatus baseline, string status, string modified)
+    static async Task<QueryResult<FailureGroupView>> SingleGroup(ServiceControlDbContext dbContext, string groupId, FailedMessageStatus baseline, string status, string modified, CancellationToken cancellationToken)
     {
         var groups = await dbContext.FailedMessageGroups
             .AsNoTracking()
@@ -80,7 +81,7 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
             .AggregateGroups(WithStatus(dbContext, baseline)
                 .FilterByStatus(status)
                 .FilterByLastModifiedRange(modified))
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return new QueryResult<FailureGroupView>(groups.FirstOrDefault()!, groups.ToQueryStatsInfo());
     }
@@ -97,7 +98,7 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
             .FilterByStatus(status)
             .FilterByLastModifiedRange(modified);
 
-    static async Task AttachComments(ServiceControlDbContext dbContext, IList<FailureGroupView> groups)
+    static async Task AttachComments(ServiceControlDbContext dbContext, IList<FailureGroupView> groups, CancellationToken cancellationToken)
     {
         if (groups.Count == 0)
         {
@@ -109,7 +110,7 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
         var comments = await dbContext.GroupComments
             .AsNoTracking()
             .Where(groupComment => groupIds.Contains(groupComment.GroupId))
-            .ToDictionaryAsync(groupComment => groupComment.GroupId, groupComment => groupComment.Comment);
+            .ToDictionaryAsync(groupComment => groupComment.GroupId, groupComment => groupComment.Comment, cancellationToken);
 
         foreach (var group in groups)
         {
@@ -117,9 +118,9 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
         }
     }
 
-    static async Task<IList<FailureGroupView>> MostRecent(IQueryable<FailureGroupView> groups) =>
+    static async Task<IList<FailureGroupView>> MostRecent(IQueryable<FailureGroupView> groups, CancellationToken cancellationToken) =>
         await groups
             .OrderByDescending(group => group.Last)
             .Take(FailureGroupQueries.MaxGroups)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 }
