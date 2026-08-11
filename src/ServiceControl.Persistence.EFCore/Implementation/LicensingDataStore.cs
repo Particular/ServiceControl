@@ -16,7 +16,7 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
     static readonly AuditServiceMetadata DefaultAuditServiceMetadata = new([], []);
     static readonly BrokerMetadata DefaultBrokerMetadata = new(null, []);
 
-    public Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken) =>
+    public Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (context, token) =>
         {
             var query = context.LicensingEndpoints.AsNoTracking();
@@ -51,7 +51,7 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
             return row is null ? null : ToEndpoint(row.Endpoint, row.LastCollectedDate);
         }, cancellationToken);
 
-    public Task<IEnumerable<(EndpointIdentifier Id, Endpoint? Endpoint)>> GetEndpoints(IList<EndpointIdentifier> endpointIds, CancellationToken cancellationToken) =>
+    public Task<IEnumerable<(EndpointIdentifier Id, Endpoint? Endpoint)>> GetEndpoints(IList<EndpointIdentifier> endpointIds, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (context, token) =>
         {
             var normalizedNames = endpointIds.Select(id => Normalize(id.Name)).Distinct().ToList();
@@ -80,7 +80,7 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
                 .AsEnumerable();
         }, cancellationToken);
 
-    public Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken) =>
+    public Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((context, token) =>
         {
             var normalizedName = Normalize(endpoint.Id.Name);
@@ -112,7 +112,7 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
                 token);
         }, cancellationToken);
 
-    public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, CancellationToken cancellationToken) =>
+    public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (context, token) =>
         {
             var results = queueNames.ToDictionary(queueName => queueName, _ => Enumerable.Empty<ThroughputData>());
@@ -161,7 +161,7 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
             return (IDictionary<string, IEnumerable<ThroughputData>>)results;
         }, cancellationToken);
 
-    public async Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IList<EndpointDailyThroughput> throughput, CancellationToken cancellationToken)
+    public async Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IList<EndpointDailyThroughput> throughput, CancellationToken cancellationToken = default)
     {
         if (throughput.Count == 0)
         {
@@ -246,7 +246,7 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
         });
     }
 
-    public Task UpdateUserIndicatorOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken) =>
+    public Task UpdateUserIndicatorOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (context, token) =>
         {
             var updates = userIndicatorUpdates.ToDictionary(update => Normalize(update.Name), update => update.UserIndicator);
@@ -292,10 +292,10 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
             await context.SaveChangesAsync(token);
         }, cancellationToken);
 
-    public Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken) =>
+    public Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken = default) =>
         IsThereThroughput(days, throughputSource: null, includeToday: false, cancellationToken);
 
-    public Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, bool includeToday, CancellationToken cancellationToken) =>
+    public Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, bool includeToday, CancellationToken cancellationToken = default) =>
         IsThereThroughput(days, throughputSource, includeToday, cancellationToken);
 
     Task<bool> IsThereThroughput(int days, ThroughputSource? throughputSource, bool includeToday, CancellationToken cancellationToken) =>
@@ -317,31 +317,31 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
             return query.AnyAsync(token);
         }, cancellationToken);
 
-    public Task<BrokerMetadata> GetBrokerMetadata(CancellationToken cancellationToken) =>
+    public Task<BrokerMetadata> GetBrokerMetadata(CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (context, token) =>
             await context.GetSetting<BrokerMetadata>(SettingKeys.BrokerMetadata, token) ?? DefaultBrokerMetadata, cancellationToken);
 
-    public Task SaveBrokerMetadata(BrokerMetadata brokerMetadata, CancellationToken cancellationToken) =>
+    public Task SaveBrokerMetadata(BrokerMetadata brokerMetadata, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((context, token) => context.StoreSetting(SettingKeys.BrokerMetadata, brokerMetadata, token), cancellationToken);
 
     public Task<AuditServiceMetadata> GetAuditServiceMetadata(CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (context, token) =>
             await context.GetSetting<AuditServiceMetadata>(SettingKeys.AuditServiceMetadata, token) ?? DefaultAuditServiceMetadata, cancellationToken);
 
-    public Task SaveAuditServiceMetadata(AuditServiceMetadata auditServiceMetadata, CancellationToken cancellationToken) =>
+    public Task SaveAuditServiceMetadata(AuditServiceMetadata auditServiceMetadata, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((context, token) => context.StoreSetting(SettingKeys.AuditServiceMetadata, auditServiceMetadata, token), cancellationToken);
 
-    public Task<List<string>> GetReportMasks(CancellationToken cancellationToken) =>
+    public Task<List<string>> GetReportMasks(CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (context, token) =>
             await context.GetSetting<List<string>>(SettingKeys.ReportMasks, token) ?? [], cancellationToken);
 
-    public Task SaveReportMasks(List<string> reportMasks, CancellationToken cancellationToken) =>
+    public Task SaveReportMasks(List<string> reportMasks, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((context, token) => context.StoreSetting(SettingKeys.ReportMasks, reportMasks, token), cancellationToken);
 
-    public Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(CancellationToken cancellationToken) =>
+    public Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((context, token) => context.GetSetting<LicensedEndpointDetails>(SettingKeys.LicensedEndpointDetails, token), cancellationToken);
 
-    public Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken) =>
+    public Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((context, token) => context.StoreSetting(SettingKeys.LicensedEndpointDetails, result, token), cancellationToken);
 
     static Endpoint ToEndpoint(LicensingEndpointEntity row) => ToEndpoint(row, lastCollectedDate: null);

@@ -9,8 +9,3 @@ dotnet_diagnostic.CA2007.severity = none
 dotnet_diagnostic.IDE0040.severity = none
 
 csharp_style_var_elsewhere = true:error
-
-# Cancellation analyzer debt. These fire because Particular.Analyzers is no longer pinned to 0.9.0.
-# They are scheduled work, not accepted exceptions: remove a line once this project has no
-# violations of that rule left, and never add a rule back to this list.
-dotnet_diagnostic.PS0003.severity = none
