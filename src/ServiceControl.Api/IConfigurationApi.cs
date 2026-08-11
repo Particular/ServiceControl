@@ -6,10 +6,10 @@
 
     public interface IConfigurationApi
     {
-        Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken);
+        Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken = default);
 
-        Task<object> GetConfig(CancellationToken cancellationToken);
+        Task<object> GetConfig(CancellationToken cancellationToken = default);
 
-        Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken);
+        Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken = default);
     }
 }

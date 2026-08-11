@@ -22,10 +22,12 @@
             return CanExecute((T)parameter);
         }
 
+#pragma warning disable PS0027 // ICommand.Execute returns void, so there is nothing to return the task to
         async void System.Windows.Input.ICommand.Execute(object parameter)
         {
             await ExecuteAsync((T)parameter);
         }
+#pragma warning restore PS0027
 
         public async Task ExecuteAsync(T parameter)
         {

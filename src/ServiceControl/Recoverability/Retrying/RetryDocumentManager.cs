@@ -2,6 +2,7 @@ namespace ServiceControl.Recoverability
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
@@ -17,7 +18,7 @@ namespace ServiceControl.Recoverability
             this.logger = logger;
         }
 
-        public async Task<bool> AdoptOrphanedBatches()
+        public async Task<bool> AdoptOrphanedBatches(CancellationToken cancellationToken = default)
         {
             var orphanedBatches = await store.GetOrphanedBatches(RetrySessionId);
 
@@ -27,7 +28,7 @@ namespace ServiceControl.Recoverability
             await Task.WhenAll(orphanedBatches.Results.Select(b => Task.Run(async () =>
             {
                 logger.LogInformation("Adopting retry batch {BatchId} with {BatchMessageCount} messages", b.Id, b.MessageCount);
-                await MoveBatchToStaging(b.Id);
+                await MoveBatchToStaging(b.Id, cancellationToken);
             })));
 
             foreach (var batch in orphanedBatches.Results)
@@ -46,9 +47,9 @@ namespace ServiceControl.Recoverability
             return orphanedBatches.QueryStats.IsStale || orphanedBatches.Results.Any();
         }
 
-        public virtual Task MoveBatchToStaging(string batchId) => store.MoveBatchToStaging(batchId);
+        public virtual Task MoveBatchToStaging(string batchId, CancellationToken cancellationToken = default) => store.MoveBatchToStaging(batchId);
 
-        public async Task RebuildRetryOperationState()
+        public async Task RebuildRetryOperationState(CancellationToken cancellationToken = default)
         {
             var stagingBatchGroups = await store.GetAvailableBatchGroups();
 
@@ -56,7 +57,7 @@ namespace ServiceControl.Recoverability
             {
                 logger.LogDebug("Rebuilt retry operation status for {RetryType}/{RetryRequestId}. Aggregated batchsize: {RetryBatchSize}", group.RetryType, group.RequestId, group.InitialBatchSize);
 
-                await operationManager.PreparedAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator, group.Classifier, group.StartTime, group.Last);
+                await operationManager.PreparedAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator, group.Classifier, group.StartTime, group.Last, cancellationToken);
             }
         }
 

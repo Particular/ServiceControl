@@ -17,7 +17,7 @@
                 HostId = message.HostId,
                 Name = message.Endpoint
             };
-            return monitoring.DetectEndpointFromHeartbeatStartup(endpointDetails, message.StartedAt);
+            return monitoring.DetectEndpointFromHeartbeatStartup(endpointDetails, message.StartedAt, context.CancellationToken);
         }
     }
 }

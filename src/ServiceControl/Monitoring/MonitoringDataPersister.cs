@@ -20,22 +20,22 @@
             _endpointInstanceMonitoring = endpointInstanceMonitoring;
         }
 
-        public Task Handle(EndpointDetected domainEvent, CancellationToken cancellationToken)
+        public Task Handle(EndpointDetected domainEvent, CancellationToken cancellationToken = default)
         {
             return _monitoringDataStore.CreateIfNotExists(domainEvent.Endpoint);
         }
 
-        public Task Handle(HeartbeatingEndpointDetected domainEvent, CancellationToken cancellationToken)
+        public Task Handle(HeartbeatingEndpointDetected domainEvent, CancellationToken cancellationToken = default)
         {
             return _monitoringDataStore.CreateOrUpdate(domainEvent.Endpoint, _endpointInstanceMonitoring);
         }
 
-        public Task Handle(MonitoringEnabledForEndpoint domainEvent, CancellationToken cancellationToken)
+        public Task Handle(MonitoringEnabledForEndpoint domainEvent, CancellationToken cancellationToken = default)
         {
             return _monitoringDataStore.UpdateEndpointMonitoring(domainEvent.Endpoint, true);
         }
 
-        public Task Handle(MonitoringDisabledForEndpoint domainEvent, CancellationToken cancellationToken)
+        public Task Handle(MonitoringDisabledForEndpoint domainEvent, CancellationToken cancellationToken = default)
         {
             return _monitoringDataStore.UpdateEndpointMonitoring(domainEvent.Endpoint, false);
         }

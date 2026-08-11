@@ -18,7 +18,7 @@ namespace ServiceControl.Audit.SagaAudit
         [Authorize(Policy = Permissions.AuditSagaView)]
         [Route("sagas/{id}")]
         [HttpGet]
-        public async Task<SagaHistory> Sagas([FromQuery] PagingInfo pagingInfo, Guid id, CancellationToken cancellationToken)
+        public async Task<SagaHistory> Sagas([FromQuery] PagingInfo pagingInfo, Guid id, CancellationToken cancellationToken = default)
         {
             var result = await dataStore.QuerySagaHistoryById(id, cancellationToken);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);

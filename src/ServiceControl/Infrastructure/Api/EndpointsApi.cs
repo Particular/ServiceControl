@@ -9,7 +9,7 @@
 
     class EndpointsApi(IEndpointInstanceMonitoring monitoring) : IEndpointsApi
     {
-        public Task<List<Endpoint>> GetEndpoints(CancellationToken cancellationToken)
+        public Task<List<Endpoint>> GetEndpoints(CancellationToken cancellationToken = default)
         {
             var endpoints = new List<Endpoint>();
             foreach (var endpointsView in monitoring.GetEndpoints())

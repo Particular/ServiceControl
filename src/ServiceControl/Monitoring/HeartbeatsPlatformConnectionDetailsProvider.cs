@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Connection;
     using NServiceBus;
@@ -17,7 +18,7 @@
             instanceMainQueue = receiveAddresses.MainReceiveAddress;
         }
 
-        public Task ProvideConnectionDetails(PlatformConnectionDetails connection)
+        public Task ProvideConnectionDetails(PlatformConnectionDetails connection, CancellationToken cancellationToken = default)
         {
             // NOTE: The default grace period is 40s and the default frequency is 10s.
             // In a low-latency environment, an endpoint would need to miss more than 4 heartbeats to be considered down

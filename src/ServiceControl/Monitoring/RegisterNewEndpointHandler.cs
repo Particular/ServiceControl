@@ -11,8 +11,8 @@
         IHandleMessages<RegisterNewEndpoint>
     {
         // for backward compatibility reasons
-        public Task Handle(NewEndpointDetected message, IMessageHandlerContext context) => endpointInstanceMonitoring.EndpointDetected(message.Endpoint);
+        public Task Handle(NewEndpointDetected message, IMessageHandlerContext context) => endpointInstanceMonitoring.EndpointDetected(message.Endpoint, context.CancellationToken);
 
-        public Task Handle(RegisterNewEndpoint message, IMessageHandlerContext context) => endpointInstanceMonitoring.EndpointDetected(message.Endpoint);
+        public Task Handle(RegisterNewEndpoint message, IMessageHandlerContext context) => endpointInstanceMonitoring.EndpointDetected(message.Endpoint, context.CancellationToken);
     }
 }

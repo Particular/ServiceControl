@@ -59,7 +59,7 @@
                 {
                     var endpointName = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(AnEndpoint));
                     var messageId = Guid.NewGuid().ToString();
-                    var earliestTimeOfFailure = DateTime.UtcNow;
+                    var earliestTimeOfFailure = DateTimeOffset.UtcNow;
 
                     context.UniqueMessageId = DeterministicGuid.MakeId(messageId, endpointName).ToString();
 

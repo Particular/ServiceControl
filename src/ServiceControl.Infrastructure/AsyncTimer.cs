@@ -68,7 +68,7 @@ public class TimerJob
         }, CancellationToken.None);
     }
 
-    public async Task Stop(CancellationToken cancellationToken)
+    public async Task Stop(CancellationToken cancellationToken = default)
     {
         if (tokenSource == null)
         {
@@ -87,9 +87,11 @@ public class TimerJob
         {
             await task.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
-        catch (OperationCanceledException) when (tokenSource.IsCancellationRequested)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            //NOOP
+            // The job's own cancellation is already swallowed inside the loop, so the only way out
+            // here is the caller giving up on waiting. tokenSource is disposed by this point, which
+            // is why the filter must not reach through it for a token.
         }
     }
 

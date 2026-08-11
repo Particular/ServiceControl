@@ -4,6 +4,7 @@ namespace ServiceControl.Monitoring
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.EndpointControl;
     using Contracts.HeartbeatMonitoring;
@@ -28,7 +29,7 @@ namespace ServiceControl.Monitoring
 
         public void RecordHeartbeat(EndpointInstanceId endpointInstanceId, DateTime timestamp) => heartbeats.GetOrAdd(endpointInstanceId, id => new HeartbeatMonitor()).MarkAlive(timestamp);
 
-        public async Task CheckEndpoints(DateTime threshold)
+        public async Task CheckEndpoints(DateTime threshold, CancellationToken cancellationToken = default)
         {
             foreach (var entry in heartbeats)
             {
@@ -36,12 +37,12 @@ namespace ServiceControl.Monitoring
 
                 var endpointInstanceId = entry.Key;
                 var monitor = endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, true, domainEvents, monitorLogger));
-                await monitor.UpdateStatus(recordedHeartbeat.Status, recordedHeartbeat.Timestamp);
+                await monitor.UpdateStatus(recordedHeartbeat.Status, recordedHeartbeat.Timestamp, cancellationToken);
             }
 
             var stats = GetStats();
 
-            await Update(stats);
+            await Update(stats, cancellationToken);
         }
 
         public bool IsNewInstance(EndpointDetails newEndpointDetails)
@@ -51,7 +52,7 @@ namespace ServiceControl.Monitoring
             return endpoints.TryAdd(endpointInstanceId.UniqueId, new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents, monitorLogger));
         }
 
-        public async Task EndpointDetected(EndpointDetails newEndpointDetails)
+        public async Task EndpointDetected(EndpointDetails newEndpointDetails, CancellationToken cancellationToken = default)
         {
             var endpointInstanceId = newEndpointDetails.ToInstanceId();
             if (endpoints.TryAdd(endpointInstanceId.UniqueId, new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents, monitorLogger)))
@@ -60,11 +61,11 @@ namespace ServiceControl.Monitoring
                 {
                     DetectedAt = DateTime.UtcNow,
                     Endpoint = newEndpointDetails
-                });
+                }, cancellationToken);
             }
         }
 
-        public async Task DetectEndpointFromHeartbeatStartup(EndpointDetails newEndpointDetails, DateTime startedAt)
+        public async Task DetectEndpointFromHeartbeatStartup(EndpointDetails newEndpointDetails, DateTime startedAt, CancellationToken cancellationToken = default)
         {
             var endpointInstanceId = newEndpointDetails.ToInstanceId();
             endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, true, domainEvents, monitorLogger));
@@ -73,7 +74,7 @@ namespace ServiceControl.Monitoring
             {
                 EndpointDetails = newEndpointDetails,
                 StartedAt = startedAt
-            });
+            }, cancellationToken);
         }
 
         public void DetectEndpointFromPersistentStore(EndpointDetails endpointDetails, bool monitored)
@@ -82,7 +83,7 @@ namespace ServiceControl.Monitoring
             endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitored, domainEvents, monitorLogger));
         }
 
-        async Task Update(EndpointMonitoringStats stats)
+        async Task Update(EndpointMonitoringStats stats, CancellationToken cancellationToken)
         {
             var previousActive = previousStats?.Active ?? 0;
             var previousDead = previousStats?.Failing ?? 0;
@@ -93,7 +94,7 @@ namespace ServiceControl.Monitoring
                     Active = stats.Active,
                     Failing = stats.Failing,
                     RaisedAt = DateTime.UtcNow
-                });
+                }, cancellationToken);
                 previousStats = stats;
             }
         }
@@ -109,8 +110,8 @@ namespace ServiceControl.Monitoring
             return stats;
         }
 
-        public Task EnableMonitoring(Guid id) => endpoints[id]?.EnableMonitoring();
-        public Task DisableMonitoring(Guid id) => endpoints[id]?.DisableMonitoring();
+        public Task EnableMonitoring(Guid id, CancellationToken cancellationToken = default) => endpoints[id]?.EnableMonitoring(cancellationToken);
+        public Task DisableMonitoring(Guid id, CancellationToken cancellationToken = default) => endpoints[id]?.DisableMonitoring(cancellationToken);
         public bool IsMonitored(Guid id) => endpoints.ContainsKey(id) && endpoints[id].Monitored;
 
         public EndpointsView[] GetEndpoints()

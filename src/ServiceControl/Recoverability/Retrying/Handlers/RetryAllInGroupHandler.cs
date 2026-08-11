@@ -36,7 +36,7 @@ namespace ServiceControl.Recoverability
             }
 
             var started = message.Started ?? DateTime.UtcNow;
-            await retryingManager.Wait(message.GroupId, RetryType.FailureGroup, started, originator, group?.Type, group?.Last);
+            await retryingManager.Wait(message.GroupId, RetryType.FailureGroup, started, originator, group?.Type, group?.Last, context.CancellationToken);
 
             var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
 

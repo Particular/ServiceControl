@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Recoverability.API
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
     using Infrastructure.WebApi;
@@ -20,7 +21,7 @@
         [Authorize(Policy = Permissions.ErrorRecoverabilityGroupsArchive)]
         [Route("recoverability/groups/{groupId:required:minlength(1)}/errors/archive")]
         [HttpPost]
-        public async Task<IActionResult> ArchiveGroupErrors(string groupId)
+        public async Task<IActionResult> ArchiveGroupErrors(string groupId, CancellationToken cancellationToken = default)
         {
             if (!archiver.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
             {
@@ -28,11 +29,11 @@
                 var operationId = this.AuditOperationId();
                 await auditLog.AuditedOperation(user, MessageActionKind.Archive,
                     Permissions.ErrorRecoverabilityGroupsArchive, MessageActionScope.Group,
-                    resource: groupId, count: null, operationId: operationId, async () =>
+                    resource: groupId, count: null, operationId: operationId, async ct =>
                     {
                         await archiver.StartArchiving(groupId, ArchiveType.FailureGroup);
-                        await bus.Send<ArchiveAllInGroup>(m => { m.GroupId = groupId; }, AuditHeaders.LocalSendOptions(user, operationId));
-                    });
+                        await bus.Send<ArchiveAllInGroup>(m => { m.GroupId = groupId; }, AuditHeaders.LocalSendOptions(user, operationId), ct);
+                    }, cancellationToken);
             }
 
             return Accepted();

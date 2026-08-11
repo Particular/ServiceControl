@@ -4,6 +4,7 @@ namespace ServiceControl.UnitTests.MessageFailures;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CompositeViews.Messages;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -63,13 +64,13 @@ public class EditFailedMessagesControllerAuditTests
         public FakeEditFailedMessagesManager EditManager { get; } = new();
 
         public Task<IEditFailedMessagesManager> CreateEditFailedMessageManager() => Task.FromResult<IEditFailedMessagesManager>(EditManager);
-        public Task<FailedMessage?> GetFailedMessage(string failedMessageId) => Task.FromResult(ErrorByResult);
+        public Task<FailedMessage?> GetFailedMessage(string failedMessageId, CancellationToken cancellationToken = default) => Task.FromResult(ErrorByResult);
 
-        public Task<FailedMessage[]> GetFailedMessagesByIds(Guid[] ids) => throw new NotImplementedException();
-        public Task<QueryResult<IList<FailedMessageView>>> GetFailedMessages(string? status, string? modified, string? queueAddress, PagingInfo pagingInfo, SortInfo sortInfo) => throw new NotImplementedException();
-        public Task<QueryStatsInfo> GetFailedMessagesStats(string? status, string? modified, string? queueAddress) => throw new NotImplementedException();
-        public Task<QueryResult<IList<FailedMessageView>>> GetFailedMessagesByEndpoint(string? status, string endpointName, string? modified, PagingInfo pagingInfo, SortInfo sortInfo) => throw new NotImplementedException();
-        public Task<IDictionary<string, object>> GetFailedMessagesSummary() => throw new NotImplementedException();
-        public Task<FailedMessageView?> GetLatestFailedMessageView(string failedMessageId) => throw new NotImplementedException();
+        public Task<FailedMessage[]> GetFailedMessagesByIds(Guid[] ids, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<QueryResult<IList<FailedMessageView>>> GetFailedMessages(string? status, string? modified, string? queueAddress, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<QueryStatsInfo> GetFailedMessagesStats(string? status, string? modified, string? queueAddress, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<QueryResult<IList<FailedMessageView>>> GetFailedMessagesByEndpoint(string? status, string endpointName, string? modified, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<IDictionary<string, object>> GetFailedMessagesSummary(CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<FailedMessageView?> GetLatestFailedMessageView(string failedMessageId, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 }

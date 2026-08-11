@@ -38,15 +38,15 @@ namespace ServiceControl.Recoverability
             corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName, logger);
         }
 
-        Task Enqueue(TransportOperations outgoingMessages)
+        Task Enqueue(TransportOperations outgoingMessages, CancellationToken cancellationToken)
         {
-            return messageDispatcher.Value.Dispatch(outgoingMessages, new TransportTransaction());
+            return messageDispatcher.Value.Dispatch(outgoingMessages, new TransportTransaction(), cancellationToken);
         }
 
         public async Task<bool> ProcessBatches(CancellationToken cancellationToken = default) =>
-            await ForwardCurrentBatch(cancellationToken) || await MoveStagedBatchesToForwardingBatch();
+            await ForwardCurrentBatch(cancellationToken) || await MoveStagedBatchesToForwardingBatch(cancellationToken);
 
-        async Task<bool> MoveStagedBatchesToForwardingBatch()
+        async Task<bool> MoveStagedBatchesToForwardingBatch(CancellationToken cancellationToken)
         {
             try
             {
@@ -60,9 +60,9 @@ namespace ServiceControl.Recoverability
                 {
                     logger.LogInformation("Staging batch {StagingBatchId}", stagingBatch.Id);
                     redirects = await redirectsStore.GetRedirects();
-                    var stagedMessages = await Stage(stagingBatch);
+                    var stagedMessages = await Stage(stagingBatch, cancellationToken);
                     var skippedMessages = stagingBatch.InitialBatchSize - stagedMessages;
-                    await retryingManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages);
+                    await retryingManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages, cancellationToken);
 
                     if (stagedMessages > 0)
                     {
@@ -120,13 +120,13 @@ namespace ServiceControl.Recoverability
         {
             var messageCount = forwardingBatch.MessageCount;
 
-            await retryingManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType);
+            await retryingManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType, cancellationToken);
 
             if (isRecoveringFromPrematureShutdown)
             {
                 logger.LogWarning("Recovering from premature shutdown. Starting forwarder for batch {ForwardingBatchId} in timeout mode", forwardingBatch.Id);
                 await returnToSender.Run(forwardingBatch.Id, IsPartOfStagedBatch(forwardingBatch.StagingId), null, cancellationToken);
-                await retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
+                await retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize, cancellationToken);
             }
             else
             {
@@ -140,7 +140,7 @@ namespace ServiceControl.Recoverability
                     await returnToSender.Run(forwardingBatch.Id, IsPartOfStagedBatch(forwardingBatch.StagingId), messageCount, cancellationToken);
                 }
 
-                await retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, messageCount);
+                await retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, messageCount, cancellationToken);
             }
 
             logger.LogInformation("Done forwarding batch {ForwardingBatchId}", forwardingBatch.Id);
@@ -155,7 +155,7 @@ namespace ServiceControl.Recoverability
             };
         }
 
-        async Task<int> Stage(RetryBatch stagingBatch)
+        async Task<int> Stage(RetryBatch stagingBatch, CancellationToken cancellationToken)
         {
             var stagingId = Guid.NewGuid().ToString();
 
@@ -180,7 +180,7 @@ namespace ServiceControl.Recoverability
                 transportOperations[current++] = ToTransportOperation(messageToStage, stagingId);
             }
 
-            await TryDispatch(stagingBatch.Id, transportOperations, messagesToStage, stageAttemptsById, previousAttemptFailed);
+            await TryDispatch(stagingBatch.Id, transportOperations, messagesToStage, stageAttemptsById, previousAttemptFailed, cancellationToken);
 
             AuditStagedMessages(stagingBatch, messagesToStage);
 
@@ -192,7 +192,7 @@ namespace ServiceControl.Recoverability
                     FailedMessageIds = failedIds,
                     NumberOfFailedMessages = failedIds.Length,
                     Context = stagingBatch.Context
-                });
+                }, cancellationToken);
             }
 
             await store.MarkBatchAsForwarding(stagingBatch.Id, stagingId, [.. stageAttemptsById.Keys]);
@@ -235,27 +235,31 @@ namespace ServiceControl.Recoverability
         }
 
         Task TryDispatch(string batchId, TransportOperation[] transportOperations, IReadOnlyCollection<StagingMessage> messages,
-            IReadOnlyDictionary<string, int> stageAttemptsById, bool previousAttemptFailed)
+            IReadOnlyDictionary<string, int> stageAttemptsById, bool previousAttemptFailed, CancellationToken cancellationToken)
         {
-            return previousAttemptFailed ? ConcurrentDispatchToTransport(transportOperations, stageAttemptsById) :
-                BatchDispatchToTransport(batchId, transportOperations, messages);
+            return previousAttemptFailed ? ConcurrentDispatchToTransport(transportOperations, stageAttemptsById, cancellationToken) :
+                BatchDispatchToTransport(batchId, transportOperations, messages, cancellationToken);
         }
 
-        Task ConcurrentDispatchToTransport(IReadOnlyCollection<TransportOperation> transportOperations, IReadOnlyDictionary<string, int> stageAttemptsById)
+        Task ConcurrentDispatchToTransport(IReadOnlyCollection<TransportOperation> transportOperations, IReadOnlyDictionary<string, int> stageAttemptsById, CancellationToken cancellationToken)
         {
             var tasks = new List<Task>(transportOperations.Count);
             foreach (var transportOperation in transportOperations)
             {
-                tasks.Add(TryStageMessage(transportOperation, stageAttemptsById));
+                tasks.Add(TryStageMessage(transportOperation, stageAttemptsById, cancellationToken));
             }
             return Task.WhenAll(tasks);
         }
 
-        async Task BatchDispatchToTransport(string batchId, TransportOperation[] transportOperations, IReadOnlyCollection<StagingMessage> messages)
+        async Task BatchDispatchToTransport(string batchId, TransportOperation[] transportOperations, IReadOnlyCollection<StagingMessage> messages, CancellationToken cancellationToken)
         {
             try
             {
-                await Enqueue(new TransportOperations(transportOperations));
+                await Enqueue(new TransportOperations(transportOperations), cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {
@@ -267,13 +271,17 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        async Task TryStageMessage(TransportOperation transportOperation, IReadOnlyDictionary<string, int> stageAttemptsById)
+        async Task TryStageMessage(TransportOperation transportOperation, IReadOnlyDictionary<string, int> stageAttemptsById, CancellationToken cancellationToken)
         {
             var uniqueMessageId = transportOperation.Message.Headers["ServiceControl.Retry.UniqueMessageId"];
 
             try
             {
-                await Enqueue(new TransportOperations(transportOperation));
+                await Enqueue(new TransportOperations(transportOperation), cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {
@@ -294,7 +302,7 @@ namespace ServiceControl.Recoverability
                     await domainEvents.Raise(new MessageFailedInStaging
                     {
                         UniqueMessageId = uniqueMessageId
-                    });
+                    }, cancellationToken);
                 }
 
                 throw new RetryStagingException(e);

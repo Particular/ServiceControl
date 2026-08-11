@@ -2,6 +2,7 @@
 namespace ServiceControl.Infrastructure.Auth;
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 public static class MessageActionAuditLogExtensions
@@ -14,12 +15,19 @@ public static class MessageActionAuditLogExtensions
     /// </summary>
     public static async Task AuditedOperation(this IMessageActionAuditLog auditLog, AuditUser user,
         MessageActionKind kind, string permission, MessageActionScope scope, string? resource,
-        int? count, string operationId, Func<Task> action)
+        int? count, string operationId, Func<CancellationToken, Task> action,
+        CancellationToken cancellationToken = default)
     {
         var success = true;
         try
         {
-            await action().ConfigureAwait(false);
+            await action(cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // A cancelled operation did not complete, so it is recorded as a failure like any other.
+            success = false;
+            throw;
         }
         catch
         {

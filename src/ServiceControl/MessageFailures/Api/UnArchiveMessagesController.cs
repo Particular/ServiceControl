@@ -3,6 +3,7 @@
     using System;
     using System.Globalization;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
     using Infrastructure.WebApi;
@@ -18,7 +19,7 @@
         [Authorize(Policy = Permissions.ErrorMessagesUnarchive)]
         [Route("errors/unarchive")]
         [HttpPatch]
-        public async Task<IActionResult> Unarchive(string[] ids)
+        public async Task<IActionResult> Unarchive(string[] ids, CancellationToken cancellationToken = default)
         {
             if (ids.Any(string.IsNullOrEmpty))
             {
@@ -29,7 +30,7 @@
             var operationId = this.AuditOperationId();
             await auditLog.AuditedOperation(user, MessageActionKind.Unarchive, Permissions.ErrorMessagesUnarchive, MessageActionScope.Batch,
                 resource: null, count: ids.Length, operationId: operationId,
-                () => session.Send(new UnArchiveMessages { FailedMessageIds = ids }, AuditHeaders.LocalSendOptions(user, operationId)));
+                ct => session.Send(new UnArchiveMessages { FailedMessageIds = ids }, AuditHeaders.LocalSendOptions(user, operationId), ct), cancellationToken);
 
             return Accepted();
         }
@@ -37,7 +38,7 @@
         [Authorize(Policy = Permissions.ErrorMessagesUnarchive)]
         [Route("errors/{from}...{to}/unarchive")]
         [HttpPatch]
-        public async Task<IActionResult> Unarchive(string from, string to)
+        public async Task<IActionResult> Unarchive(string from, string to, CancellationToken cancellationToken = default)
         {
             DateTime fromDateTime, toDateTime;
 
@@ -55,7 +56,7 @@
             var operationId = this.AuditOperationId();
             await auditLog.AuditedOperation(user, MessageActionKind.Unarchive, Permissions.ErrorMessagesUnarchive, MessageActionScope.Range,
                 resource: $"{from}...{to}", count: null, operationId: operationId,
-                () => session.Send(new UnArchiveMessagesByRange { From = fromDateTime, To = toDateTime }, AuditHeaders.LocalSendOptions(user, operationId)));
+                ct => session.Send(new UnArchiveMessagesByRange { From = fromDateTime, To = toDateTime }, AuditHeaders.LocalSendOptions(user, operationId), ct), cancellationToken);
 
             return Accepted();
         }

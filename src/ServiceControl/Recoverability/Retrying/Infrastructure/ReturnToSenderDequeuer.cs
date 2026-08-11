@@ -33,12 +33,12 @@ class ReturnToSenderDequeuer : IHostedService
         this.errorQueueNameCache = errorQueueNameCache;
         this.logger = logger;
         faultManager = new CaptureIfMessageSendingFails(dataStore, domainEvents, IncrementCounterOrProlongTimer, logger);
-        timer = new Timer(state => StopInternal().GetAwaiter().GetResult());
+        timer = new Timer(state => StopInternal(CancellationToken.None).GetAwaiter().GetResult());
     }
 
     public string InputAddress { get; }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken = default)
     {
         transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(InputAddress, transportSettings, Handle, faultManager.OnError, (_, __) => Task.CompletedTask, TransportTransactionMode.SendsAtomicWithReceive);
         messageReceiver = transportInfrastructure.Receivers[InputAddress];
@@ -48,11 +48,11 @@ class ReturnToSenderDequeuer : IHostedService
         errorQueueNameCache.ResolvedErrorAddress = errorQueueTransportAddress;
     }
 
-    public async Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken = default)
     {
         timer.Dispose();
         endedPrematurely = true;
-        await StopInternal();
+        await StopInternal(cancellationToken);
         await transportInfrastructure.Shutdown(cancellationToken);
     }
 
@@ -99,7 +99,7 @@ class ReturnToSenderDequeuer : IHostedService
             logger.LogDebug("Target count reached. Shutting down forwarder");
 
             // NOTE: This needs to run on a different thread or a deadlock will happen trying to shut down the receiver
-            _ = Task.Run(StopInternal);
+            _ = Task.Run(() => StopInternal(CancellationToken.None), CancellationToken.None);
         }
     }
 
@@ -148,7 +148,7 @@ class ReturnToSenderDequeuer : IHostedService
         }
     }
 
-    async Task StopInternal()
+    async Task StopInternal(CancellationToken cancellationToken)
     {
         logger.LogDebug("Completing forwarding");
 
@@ -190,18 +190,13 @@ class ReturnToSenderDequeuer : IHostedService
 
         public async Task<ErrorHandleResult> OnError(ErrorContext errorContext, CancellationToken cancellationToken = default)
         {
-            // We are currently not propagating the cancellation token further since it would require to change
-            // the data store APIs and domain handlers to take a cancellation token. If this is needed it can be done
-            // at a later time.
-            _ = cancellationToken;
-
             try
             {
                 var destination = errorContext.Headers["ServiceControl.TargetEndpointAddress"];
                 var messageUniqueId = errorContext.Headers["ServiceControl.Retry.UniqueMessageId"];
                 logger.LogWarning(errorContext.Exception, "Failed to send '{UniqueMessageId}' message to '{Destination}' for retry. Attempting to revert message status to unresolved so it can be tried again", messageUniqueId, destination);
 
-                await dataStore.RevertRetry(messageUniqueId);
+                await dataStore.RevertRetry(messageUniqueId, cancellationToken);
 
                 string reason;
                 try
@@ -219,6 +214,10 @@ class ReturnToSenderDequeuer : IHostedService
                     FailedMessageId = messageUniqueId,
                     Destination = destination
                 }, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception ex)
             {

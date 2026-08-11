@@ -206,19 +206,19 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
 
     class MockEndpointInstanceMonitoring(EndpointsView[] endpointsViews) : IEndpointInstanceMonitoring
     {
-        public Task CheckEndpoints(DateTime threshold) => throw new NotImplementedException();
+        public Task CheckEndpoints(DateTime threshold, CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
-        public Task DetectEndpointFromHeartbeatStartup(EndpointDetails newEndpointDetails, DateTime startedAt) =>
+        public Task DetectEndpointFromHeartbeatStartup(EndpointDetails newEndpointDetails, DateTime startedAt, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
         public void DetectEndpointFromPersistentStore(EndpointDetails endpointDetails, bool monitored) =>
             throw new NotImplementedException();
 
-        public Task DisableMonitoring(Guid id) => throw new NotImplementedException();
+        public Task DisableMonitoring(Guid id, CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
-        public Task EnableMonitoring(Guid id) => throw new NotImplementedException();
+        public Task EnableMonitoring(Guid id, CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
-        public Task EndpointDetected(EndpointDetails newEndpointDetails) => throw new NotImplementedException();
+        public Task EndpointDetected(EndpointDetails newEndpointDetails, CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
         public EndpointsView[] GetEndpoints() => endpointsViews;
 

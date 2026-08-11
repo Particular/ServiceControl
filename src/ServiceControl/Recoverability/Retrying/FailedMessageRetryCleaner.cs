@@ -15,11 +15,11 @@ namespace ServiceControl.Recoverability
             this.dataStore = dataStore;
         }
 
-        public Task Handle(MessageFailed message, CancellationToken cancellationToken)
+        public Task Handle(MessageFailed message, CancellationToken cancellationToken = default)
         {
             if (message.RepeatedFailure)
             {
-                return dataStore.RemoveFailedMessageRetry(message.FailedMessageId);
+                return dataStore.RemoveFailedMessageRetry(message.FailedMessageId, cancellationToken);
             }
 
             return Task.CompletedTask;

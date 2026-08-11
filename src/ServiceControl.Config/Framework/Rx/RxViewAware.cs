@@ -18,7 +18,9 @@
         /// <summary>
         /// The view chache for this instance.
         /// </summary>
+#pragma warning disable PS0025 // Keyed by view context identity, so reference equality is what is wanted
         protected IDictionary<object, object> Views { get; }
+#pragma warning restore PS0025
 
         /// <summary>
         /// Raised when a view is attached.

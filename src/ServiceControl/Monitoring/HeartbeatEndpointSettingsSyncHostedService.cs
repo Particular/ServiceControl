@@ -21,7 +21,7 @@ public class HeartbeatEndpointSettingsSyncHostedService(
 {
     public TimeSpan DelayStart { get; set; } = TimeSpan.FromSeconds(20);
 
-    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Starting {ServiceName}", nameof(HeartbeatEndpointSettingsSyncHostedService));
 
@@ -38,7 +38,11 @@ public class HeartbeatEndpointSettingsSyncHostedService(
                     logger.LogInformation("Performing sync for {ServiceName}", nameof(HeartbeatEndpointSettingsSyncHostedService));
                     await PerformSync(cancellationToken);
                 }
-                catch (Exception ex) when (ex is not OperationCanceledException)
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception ex)
                 {
                     logger.LogError(ex,
                         $"Failed to perform sync between data in {nameof(IEndpointInstanceMonitoring)} and {nameof(IEndpointSettingsStore)}");

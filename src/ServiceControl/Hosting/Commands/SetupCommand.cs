@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Hosting.Commands
 {
     using System.Runtime.InteropServices;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -15,7 +16,7 @@
 
     class SetupCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings)
+        public override async Task Execute(HostArguments args, Settings settings, CancellationToken cancellationToken = default)
         {
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.AddServiceControlInstallers(settings);
@@ -34,7 +35,7 @@
                 EventSourceCreator.Create();
             }
 
-            await host.StartAsync();
+            await host.StartAsync(cancellationToken);
 
             if (args.SkipQueueCreation)
             {
@@ -53,16 +54,16 @@
             {
                 if (scope.ServiceProvider.GetService<IDatabaseMigrator>() is { } databaseMigrator)
                 {
-                    await databaseMigrator.ApplyMigrations();
+                    await databaseMigrator.ApplyMigrations(cancellationToken);
                 }
 
                 if (scope.ServiceProvider.GetService<IBodyStorageInstaller>() is { } bodyStorageInstaller)
                 {
-                    await bodyStorageInstaller.Provision();
+                    await bodyStorageInstaller.Provision(cancellationToken);
                 }
             }
 
-            await host.StopAsync();
+            await host.StopAsync(cancellationToken);
         }
     }
 }

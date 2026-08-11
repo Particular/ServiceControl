@@ -1,6 +1,7 @@
 namespace ServiceControl.CompositeViews.Messages;
 
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Infrastructure.Auth;
 using Infrastructure.WebApi;
@@ -27,7 +28,8 @@ public class GetMessages2Controller(
         [FromQuery(Name = "endpoint_name")] string endpointName,
         [FromQuery(Name = "from")] string from,
         [FromQuery(Name = "to")] string to,
-        string q)
+        string q,
+        CancellationToken cancellationToken = default)
     {
         QueryResult<IList<MessagesView>> result;
         var pagingInfo = new PagingInfo(pageSize: pageSize);
@@ -38,13 +40,13 @@ public class GetMessages2Controller(
                 result = await allMessagesApi.Execute(
                     new ScatterGatherApiMessageViewWithSystemMessagesContext(pagingInfo,
                         sortInfo, false, new DateTimeRange(from, to)),
-                    Request.GetEncodedPathAndQuery());
+                    Request.GetEncodedPathAndQuery(), cancellationToken);
             }
             else
             {
                 result = await searchApi.Execute(
                     new SearchApiContext(pagingInfo, sortInfo, q, new DateTimeRange(from, to)),
-                    Request.GetEncodedPathAndQuery());
+                    Request.GetEncodedPathAndQuery(), cancellationToken);
             }
         }
         else
@@ -54,12 +56,12 @@ public class GetMessages2Controller(
                 result = await allMessagesEndpointApi.Execute(
                     new AllMessagesForEndpointContext(pagingInfo, sortInfo, false,
                         endpointName, new DateTimeRange(from, to)),
-                    Request.GetEncodedPathAndQuery());
+                    Request.GetEncodedPathAndQuery(), cancellationToken);
             }
             else
             {
                 result = await searchEndpointApi.Execute(new SearchEndpointContext(pagingInfo, sortInfo, q, endpointName, new DateTimeRange(from, to)),
-                    Request.GetEncodedPathAndQuery());
+                    Request.GetEncodedPathAndQuery(), cancellationToken);
             }
         }
 

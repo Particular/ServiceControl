@@ -2,17 +2,18 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using ServiceControl.Operations;
 
     public interface IEndpointInstanceMonitoring
     {
-        Task CheckEndpoints(DateTime threshold);
-        Task DetectEndpointFromHeartbeatStartup(EndpointDetails newEndpointDetails, DateTime startedAt);
+        Task CheckEndpoints(DateTime threshold, CancellationToken cancellationToken = default);
+        Task DetectEndpointFromHeartbeatStartup(EndpointDetails newEndpointDetails, DateTime startedAt, CancellationToken cancellationToken = default);
         void DetectEndpointFromPersistentStore(EndpointDetails endpointDetails, bool monitored);
-        Task DisableMonitoring(Guid id);
-        Task EnableMonitoring(Guid id);
-        Task EndpointDetected(EndpointDetails newEndpointDetails);
+        Task DisableMonitoring(Guid id, CancellationToken cancellationToken = default);
+        Task EnableMonitoring(Guid id, CancellationToken cancellationToken = default);
+        Task EndpointDetected(EndpointDetails newEndpointDetails, CancellationToken cancellationToken = default);
         EndpointsView[] GetEndpoints();
         List<KnownEndpointsView> GetKnownEndpoints();
         EndpointMonitoringStats GetStats();

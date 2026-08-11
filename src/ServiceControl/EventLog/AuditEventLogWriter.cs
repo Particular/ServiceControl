@@ -17,7 +17,7 @@ namespace ServiceControl.EventLog
             this.mappings = mappings;
         }
 
-        public async Task Handle(IDomainEvent message, CancellationToken cancellationToken)
+        public async Task Handle(IDomainEvent message, CancellationToken cancellationToken = default)
         {
             if (!mappings.HasMapping(message))
             {

@@ -22,7 +22,7 @@
         Lazy<IMessageDispatcher> messageDispatcher,
         ILogger logger)
     {
-        public async Task<IReadOnlyList<MessageContext>> Persist(IReadOnlyList<MessageContext> contexts, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<MessageContext>> Persist(IReadOnlyList<MessageContext> contexts, CancellationToken cancellationToken = default)
         {
             var storedContexts = new List<MessageContext>(contexts.Count);
             IAuditIngestionUnitOfWork unitOfWork = null;
@@ -33,7 +33,7 @@
                 var inserts = new List<Task>(contexts.Count);
                 foreach (var context in contexts)
                 {
-                    inserts.Add(ProcessMessage(context));
+                    inserts.Add(ProcessMessage(context, cancellationToken));
                 }
 
                 await Task.WhenAll(inserts);
@@ -57,6 +57,10 @@
 
                     storedContexts.Add(context);
                 }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {
@@ -89,7 +93,7 @@
             return storedContexts;
         }
 
-        async Task ProcessMessage(MessageContext context)
+        async Task ProcessMessage(MessageContext context, CancellationToken cancellationToken)
         {
             if (context.Headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageType)
                 && messageType == typeof(SagaUpdatedMessage).FullName)
@@ -98,7 +102,7 @@
             }
             else
             {
-                await ProcessAuditMessage(context);
+                await ProcessAuditMessage(context, cancellationToken);
             }
         }
 
@@ -123,7 +127,7 @@
             }
         }
 
-        async Task ProcessAuditMessage(MessageContext context)
+        async Task ProcessAuditMessage(MessageContext context, CancellationToken cancellationToken)
         {
             if (!context.Headers.TryGetValue(Headers.MessageId, out var messageId))
             {
@@ -153,11 +157,11 @@
 
                 foreach (var commandToEmit in commandsToEmit)
                 {
-                    await messageSession.Send(commandToEmit);
+                    await messageSession.Send(commandToEmit, cancellationToken);
                 }
 
                 await messageDispatcher.Value.Dispatch(new TransportOperations(messagesToEmit.ToArray()),
-                    new TransportTransaction()); //Do not hook into the incoming transaction
+                    new TransportTransaction(), cancellationToken); //Do not hook into the incoming transaction
 
                 logger.LogDebug("{CommandsToEmitCount} commands and {MessagesToEmitCount} control messages emitted", commandsToEmit.Count, messagesToEmit.Count);
 
@@ -173,6 +177,10 @@
 
                 context.Extensions.Set("AuditType", "ProcessedMessage");
                 context.Extensions.Set(auditMessage);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {

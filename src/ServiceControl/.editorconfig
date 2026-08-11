@@ -2,3 +2,24 @@
 
 # Justification: ServiceControl app has no synchronization context
 dotnet_diagnostic.CA2007.severity = none
+
+# Blocked on the transport abstraction. TransportCustomization.CreateTransportInfrastructure takes
+# Func<string, Exception, Task> for onCriticalError, so the critical-error path here cannot carry a
+# token until that signature gains one in the transports phase.
+[{Operations/ErrorIngestion.cs,Operations/ErrorIngestionFaultPolicy.cs,Operations/ImportFailureCircuitBreaker.cs}]
+dotnet_diagnostic.PS0013.severity = none
+dotnet_diagnostic.PS0018.severity = none
+
+# Blocked on IExternalIntegrationRequestsDataStore.Subscribe, which takes Func<object[], Task>.
+# The dispatch callback gains a token when that interface does, in the persistence phase.
+[ExternalIntegrations/EventDispatcherHostedService.cs]
+dotnet_diagnostic.PS0018.severity = none
+
+# Blocked on IRetryBatchStore. BulkRetryRequest.Invoke forwards a Func<string, DateTime, Task> straight
+# into ForEachUnresolvedMessage and friends, so the callback gains a token when that interface does.
+# PS0004 is a separate matter: AssignMessagesToBatch is private and would take a required token, but its
+# trailing optional parameters make that illegal, so the default stays until the parameters are reordered.
+[Recoverability/Retrying/RetriesGateway.cs]
+dotnet_diagnostic.PS0004.severity = none
+dotnet_diagnostic.PS0013.severity = none
+dotnet_diagnostic.PS0018.severity = none

@@ -127,6 +127,11 @@
             NotifyOfPropertyChange(nameof(Instances));
         }
 
+        // TODO: this is a genuine async void, not an event handler. Because it returns at the first
+        // await, HandleAsync(RefreshInstances) publishes PostRefreshInstances before the removals have
+        // finished, which is the ordering that method's own remarks say must not happen. Converting it
+        // to async Task needs the constructor call site at the top of this class restructured first.
+#pragma warning disable PS0027
         async void AddAndRemoveInstances()
         {
             // Remove instances that no longer exist on disk
@@ -164,6 +169,7 @@
             NotifyOfPropertyChange(nameof(HasConfigurationErrors));
             NotifyOfPropertyChange(nameof(ConfigurationErrorMessage));
         }
+#pragma warning restore PS0027
 
         readonly Func<BaseService, InstanceDetailsViewModel> instanceDetailsFunc;
         readonly Func<IEnumerable<BaseService>> getAllInstances;

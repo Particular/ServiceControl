@@ -2,6 +2,7 @@ namespace ServiceControl.ExternalIntegrations
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
 
@@ -18,13 +19,13 @@ namespace ServiceControl.ExternalIntegrations
             return CreateDispatchRequest((TEvent)@event);
         }
 
-        public Task<IEnumerable<object>> PublishEventsForOwnContexts(IEnumerable<object> allContexts)
+        public Task<IEnumerable<object>> PublishEventsForOwnContexts(IEnumerable<object> allContexts, CancellationToken cancellationToken = default)
         {
-            return PublishEvents(allContexts.OfType<TDispatchContext>());
+            return PublishEvents(allContexts.OfType<TDispatchContext>(), cancellationToken);
         }
 
         protected abstract TDispatchContext CreateDispatchRequest(TEvent @event);
 
-        protected abstract Task<IEnumerable<object>> PublishEvents(IEnumerable<TDispatchContext> contexts);
+        protected abstract Task<IEnumerable<object>> PublishEvents(IEnumerable<TDispatchContext> contexts, CancellationToken cancellationToken = default);
     }
 }

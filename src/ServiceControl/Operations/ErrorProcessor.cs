@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using Contracts.Operations;
@@ -31,13 +32,13 @@
             failedMessageFactory = new FailedMessageFactory(failedMessageEnrichers);
         }
 
-        public async Task<IReadOnlyList<MessageContext>> Process(IReadOnlyList<MessageContext> contexts, IIngestionUnitOfWork unitOfWork)
+        public async Task<IReadOnlyList<MessageContext>> Process(IReadOnlyList<MessageContext> contexts, IIngestionUnitOfWork unitOfWork, CancellationToken cancellationToken = default)
         {
             var storedContexts = new List<MessageContext>(contexts.Count);
             var tasks = new List<Task>(contexts.Count);
             foreach (var context in contexts)
             {
-                tasks.Add(ProcessMessage(context, unitOfWork));
+                tasks.Add(ProcessMessage(context, unitOfWork, cancellationToken));
             }
 
             await Task.WhenAll(tasks);
@@ -71,7 +72,7 @@
             return storedContexts;
         }
 
-        public Task Announce(MessageContext messageContext)
+        public Task Announce(MessageContext messageContext, CancellationToken cancellationToken = default)
         {
             var failureDetails = messageContext.Extensions.Get<FailureDetails>();
             var headers = messageContext.Headers;
@@ -86,7 +87,7 @@
                     EndpointId = failingEndpointId,
                     FailedMessageId = failedMessageId,
                     RepeatedFailure = true
-                });
+                }, cancellationToken);
             }
 
             return domainEvents.Raise(new MessageFailed
@@ -94,10 +95,10 @@
                 FailureDetails = failureDetails,
                 EndpointId = failingEndpointId,
                 FailedMessageId = headers.UniqueId()
-            });
+            }, cancellationToken);
         }
 
-        async Task ProcessMessage(MessageContext context, IIngestionUnitOfWork unitOfWork)
+        async Task ProcessMessage(MessageContext context, IIngestionUnitOfWork unitOfWork, CancellationToken cancellationToken)
         {
             bool isOriginalMessageId = true;
             if (!context.Headers.TryGetValue(Headers.MessageId, out var messageId))

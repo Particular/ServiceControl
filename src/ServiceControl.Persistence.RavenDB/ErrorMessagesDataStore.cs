@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Editing;
     using Microsoft.Extensions.Logging;
@@ -37,10 +38,11 @@
             PagingInfo pagingInfo,
             SortInfo sortInfo,
             bool includeSystemMessages,
-            DateTimeRange timeSentRange
+            DateTimeRange timeSentRange,
+            CancellationToken cancellationToken = default
             )
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                 .IncludeSystemMessagesWhere(includeSystemMessages)
                 .FilterBySentTimeRange(timeSentRange)
@@ -50,7 +52,7 @@
                 .OfType<FailedMessage>()
                 .TransformToMessageView();
 
-            var results = await query.ToListAsync();
+            var results = await query.ToListAsync(cancellationToken);
 
             return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
@@ -60,10 +62,11 @@
             PagingInfo pagingInfo,
             SortInfo sortInfo,
             bool includeSystemMessages,
-            DateTimeRange timeSentRange
+            DateTimeRange timeSentRange,
+            CancellationToken cancellationToken = default
             )
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                 .IncludeSystemMessagesWhere(includeSystemMessages)
                 .FilterBySentTimeRange(timeSentRange)
@@ -74,7 +77,7 @@
                 .OfType<FailedMessage>()
                 .TransformToMessageView();
 
-            var results = await query.ToListAsync();
+            var results = await query.ToListAsync(cancellationToken);
 
 
             return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
@@ -85,10 +88,11 @@
             string searchKeyword,
             PagingInfo pagingInfo,
             SortInfo sortInfo,
-            DateTimeRange timeSentRange
+            DateTimeRange timeSentRange,
+            CancellationToken cancellationToken = default
             )
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                 .Statistics(out var stats)
                 .Search(x => x.Query, searchKeyword)
@@ -99,7 +103,7 @@
                 .OfType<FailedMessage>()
                 .TransformToMessageView();
 
-            var results = await query.ToListAsync();
+            var results = await query.ToListAsync(cancellationToken);
 
             return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
@@ -108,10 +112,11 @@
             string conversationId,
             PagingInfo pagingInfo,
             SortInfo sortInfo,
-            bool includeSystemMessages
+            bool includeSystemMessages,
+            CancellationToken cancellationToken = default
             )
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                 .Statistics(out var stats)
                 .Where(m => m.ConversationId == conversationId)
@@ -120,7 +125,7 @@
                 .OfType<FailedMessage>()
                 .TransformToMessageView();
 
-            var results = await query.ToListAsync();
+            var results = await query.ToListAsync(cancellationToken);
 
             return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
@@ -129,10 +134,11 @@
             string searchTerms,
             PagingInfo pagingInfo,
             SortInfo sortInfo,
-            DateTimeRange timeSentRange
+            DateTimeRange timeSentRange,
+            CancellationToken cancellationToken = default
             )
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                 .Statistics(out var stats)
                 .Search(x => x.Query, searchTerms)
@@ -142,15 +148,15 @@
                 .OfType<FailedMessage>()
                 .TransformToMessageView();
 
-            var results = await query.ToListAsync();
+            var results = await query.ToListAsync(cancellationToken);
 
             return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
-        public async Task MarkAsArchived(string failedMessageId)
+        public async Task MarkAsArchived(string failedMessageId, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
-            var failedMessage = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var failedMessage = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId), cancellationToken);
 
             if (failedMessage.Status != FailedMessageStatus.Archived)
             {
@@ -159,14 +165,14 @@
                 expirationManager.EnableExpiration(session, failedMessage);
             }
 
-            await session.SaveChangesAsync();
+            await session.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task<FailedMessage[]> GetFailedMessagesByIds(Guid[] ids)
+        public async Task<FailedMessage[]> GetFailedMessagesByIds(Guid[] ids, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var docIds = ids.Select(g => FailedMessageIdGenerator.MakeDocumentId(g.ToString()));
-            var results = await session.LoadAsync<FailedMessage>(docIds);
+            var results = await session.LoadAsync<FailedMessage>(docIds, cancellationToken);
             return results.Values.Where(x => x != null).ToArray();
         }
 
@@ -175,10 +181,11 @@
             string modified,
             string queueAddress,
             PagingInfo pagingInfo,
-            SortInfo sortInfo
+            SortInfo sortInfo,
+            CancellationToken cancellationToken = default
             )
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var query = session.Advanced
                 .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                 .Statistics(out var stats)
@@ -192,7 +199,7 @@
                 .TransformToFailedMessageView();
 
             var results = await query
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
         }
@@ -200,16 +207,17 @@
         public async Task<QueryStatsInfo> GetFailedMessagesStats(
             string status,
             string modified,
-            string queueAddress
+            string queueAddress,
+            CancellationToken cancellationToken = default
             )
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var stats = await session.Advanced
                 .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                 .FilterByStatusWhere(status)
                 .FilterByLastModifiedRange(modified)
                 .FilterByQueueAddress(queueAddress)
-                .GetQueryResultAsync();
+                .GetQueryResultAsync(cancellationToken);
 
             return stats.ToQueryStatsInfo();
         }
@@ -219,10 +227,11 @@
             string endpointName,
             string modified,
             PagingInfo pagingInfo,
-            SortInfo sortInfo
+            SortInfo sortInfo,
+            CancellationToken cancellationToken = default
             )
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var query = session.Advanced
                 .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                 .Statistics(out var stats)
@@ -237,14 +246,14 @@
                 .TransformToFailedMessageView();
 
             var results = await query
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
         }
 
-        public async Task<IDictionary<string, object>> GetFailedMessagesSummary()
+        public async Task<IDictionary<string, object>> GetFailedMessagesSummary(CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 
             // The facets are named after the index fields and renamed afterwards. Setting
             // DisplayFieldName instead makes the server resolve the field by that name, which then
@@ -255,7 +264,7 @@
                     new Facet { FieldName = "Name" },
                     new Facet { FieldName = "Host" },
                     new Facet { FieldName = "MessageType" }
-                }).ExecuteAsync();
+                }).ExecuteAsync(cancellationToken);
 
             return new Dictionary<string, object>
             {
@@ -268,17 +277,17 @@
         static Dictionary<string, object> Counts(Dictionary<string, FacetResult> facetResults, string fieldName) =>
             facetResults[fieldName].Values.ToDictionary(value => value.Range, value => (object)value.Count);
 
-        public async Task<FailedMessage> GetFailedMessage(string failedMessageId)
+        public async Task<FailedMessage> GetFailedMessage(string failedMessageId, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
-            var message = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var message = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId), cancellationToken);
             return message;
         }
 
-        public async Task<FailedMessageView> GetLatestFailedMessageView(string failedMessageId)
+        public async Task<FailedMessageView> GetLatestFailedMessageView(string failedMessageId, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
-            var message = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var message = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId), cancellationToken);
             if (message == null)
             {
                 return null;
@@ -336,14 +345,14 @@
         }
 
 
-        public async Task<bool> MarkAsResolved(string failedMessageId)
+        public async Task<bool> MarkAsResolved(string failedMessageId, CancellationToken cancellationToken = default)
         {
             var documentId = FailedMessageIdGenerator.MakeDocumentId(failedMessageId);
 
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             session.Advanced.UseOptimisticConcurrency = true;
 
-            var failedMessage = await session.LoadAsync<FailedMessage>(documentId);
+            var failedMessage = await session.LoadAsync<FailedMessage>(documentId, cancellationToken);
 
             if (failedMessage == null)
             {
@@ -354,14 +363,14 @@
 
             expirationManager.EnableExpiration(session, failedMessage);
 
-            await session.SaveChangesAsync();
+            await session.SaveChangesAsync(cancellationToken);
 
             return true;
         }
 
-        public async Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, Task> processCallback)
+        public async Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, CancellationToken, Task> processCallback, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var prequery = session.Advanced
                 .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                 .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
@@ -379,14 +388,14 @@
                 .ToQueryable()
                 .TransformToFailedMessageView();
 
-            await using var ie = await session.Advanced.StreamAsync(query);
+            await using var ie = await session.Advanced.StreamAsync(query, cancellationToken);
             while (await ie.MoveNextAsync())
             {
-                await processCallback(ie.Current.Document.Id);
+                await processCallback(ie.Current.Document.Id, cancellationToken);
             }
         }
 
-        public async Task<string[]> UnArchiveMessagesByRange(DateTime from, DateTime to)
+        public async Task<string[]> UnArchiveMessagesByRange(DateTime from, DateTime to, CancellationToken cancellationToken = default)
         {
             const int Unresolved = (int)FailedMessageStatus.Unresolved;
             const int Archived = (int)FailedMessageStatus.Archived;
@@ -418,8 +427,8 @@
                 RetrieveDetails = true
             });
 
-            var documentStore = await documentStoreProvider.GetDocumentStore();
-            var operation = await documentStore.Operations.SendAsync(patch);
+            var documentStore = await documentStoreProvider.GetDocumentStore(cancellationToken);
+            var operation = await documentStore.Operations.SendAsync(patch, token: cancellationToken);
 
             var result = await operation.WaitForCompletionAsync<BulkOperationResult>();
 
@@ -430,16 +439,16 @@
             return ids;
         }
 
-        public async Task<string[]> UnArchiveMessages(IEnumerable<string> failedMessageIds)
+        public async Task<string[]> UnArchiveMessages(IEnumerable<string> failedMessageIds, CancellationToken cancellationToken = default)
         {
             Dictionary<string, FailedMessage> failedMessages;
 
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             session.Advanced.UseOptimisticConcurrency = true;
 
             var documentIds = failedMessageIds.Select(FailedMessageIdGenerator.MakeDocumentId);
 
-            failedMessages = await session.LoadAsync<FailedMessage>(documentIds);
+            failedMessages = await session.LoadAsync<FailedMessage>(documentIds, cancellationToken);
 
             foreach (var failedMessage in failedMessages.Values)
             {
@@ -450,45 +459,45 @@
                 }
             }
 
-            await session.SaveChangesAsync();
+            await session.SaveChangesAsync(cancellationToken);
 
             // Return the unique IDs - the dictionary keys are document ids with a prefix
             return failedMessages.Values.Select(x => x.UniqueMessageId).ToArray();
         }
 
-        public async Task RevertRetry(string messageUniqueId)
+        public async Task RevertRetry(string messageUniqueId, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var failedMessage = await session
-                .LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(messageUniqueId));
+                .LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(messageUniqueId), cancellationToken);
             failedMessage?.Status = FailedMessageStatus.Unresolved;
 
             var failedMessageRetry = await session
-                .LoadAsync<FailedMessageRetry>(RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(messageUniqueId));
+                .LoadAsync<FailedMessageRetry>(RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(messageUniqueId), cancellationToken);
             if (failedMessageRetry != null)
             {
                 session.Delete(failedMessageRetry);
             }
 
-            await session.SaveChangesAsync();
+            await session.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task RemoveFailedMessageRetry(string uniqueMessageId)
+        public async Task RemoveFailedMessageRetry(string uniqueMessageId, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
-            await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(uniqueMessageId), null), session.Advanced.Context);
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(uniqueMessageId), null), session.Advanced.Context, token: cancellationToken);
         }
 
-        public async Task<string[]> GetRetryPendingMessages(DateTime from, DateTime to, string queueAddress)
+        public async Task<string[]> GetRetryPendingMessages(DateTime from, DateTime to, string queueAddress, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var query = session
                 .Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                 .Where(o => o.Status == FailedMessageStatus.RetryIssued && o.LastModified >= from.Ticks && o.LastModified <= to.Ticks && o.QueueAddress == queueAddress)
                 .OfType<FailedMessageProjection>();
 
             int index = 0;
-            await using var streamResults = await session.Advanced.StreamAsync(query, out var streamQueryStatistics);
+            await using var streamResults = await session.Advanced.StreamAsync(query, out var streamQueryStatistics, cancellationToken);
             string[] ids = new string[streamQueryStatistics.TotalResults];
             while (await streamResults.MoveNextAsync())
             {
@@ -499,7 +508,7 @@
 
         record struct FailedMessageProjection(string UniqueMessageId);
 
-        public async Task<byte[]> GetFailedMessageBody(string uniqueMessageId)
+        public async Task<byte[]> GetFailedMessageBody(string uniqueMessageId, CancellationToken cancellationToken = default)
         {
             byte[] body = null;
             var result = await bodyStorage.TryFetch(uniqueMessageId)
@@ -515,7 +524,7 @@
                     // this assumption might change when we stop supporting RavenDB 3.5 but right now this is the most memory efficient way to do things
                     // https://github.com/microsoft/Microsoft.IO.RecyclableMemoryStream#getbuffer-and-toarray
                     using var memoryStream = new MemoryStream();
-                    await result.Stream.CopyToAsync(memoryStream);
+                    await result.Stream.CopyToAsync(memoryStream, cancellationToken);
 
                     body = memoryStream.ToArray();
                 }

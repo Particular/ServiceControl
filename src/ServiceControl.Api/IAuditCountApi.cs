@@ -7,6 +7,6 @@
 
     public interface IAuditCountApi
     {
-        Task<IList<AuditCount>> GetEndpointAuditCounts(string endpoint, CancellationToken token);
+        Task<IList<AuditCount>> GetEndpointAuditCounts(string endpoint, CancellationToken cancellationToken = default);
     }
 }

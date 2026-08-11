@@ -169,13 +169,13 @@
 
         class FakeErrorMessageDataStore : IFailedMessageRetryDataStore
         {
-            public Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, Task> processCallback) => throw new NotImplementedException();
+            public Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, CancellationToken, Task> processCallback, CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
-            public Task<string[]> GetRetryPendingMessages(DateTime from, DateTime to, string queueAddress) => throw new NotImplementedException();
+            public Task<string[]> GetRetryPendingMessages(DateTime from, DateTime to, string queueAddress, CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
-            public Task RemoveFailedMessageRetry(string uniqueMessageId) => throw new NotImplementedException();
+            public Task RemoveFailedMessageRetry(string uniqueMessageId, CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
-            public Task<byte[]> GetFailedMessageBody(string bodyId) => Task.FromResult(Encoding.UTF8.GetBytes(bodyId));
+            public Task<byte[]> GetFailedMessageBody(string bodyId, CancellationToken cancellationToken = default) => Task.FromResult(Encoding.UTF8.GetBytes(bodyId));
         }
     }
 }

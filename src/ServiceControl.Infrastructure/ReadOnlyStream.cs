@@ -38,7 +38,7 @@ public sealed class ReadOnlyStream(ReadOnlyMemory<byte> memory) : Stream
         destination.Write(source);
     }
 
-    public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
+    public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)
         {
@@ -100,7 +100,7 @@ public sealed class ReadOnlyStream(ReadOnlyMemory<byte> memory) : Stream
         return bytesToCopy;
     }
 
-    public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+    public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)
         {
@@ -150,13 +150,13 @@ public sealed class ReadOnlyStream(ReadOnlyMemory<byte> memory) : Stream
 
     public override void WriteByte(byte value) => throw new NotSupportedException();
 
-    public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => throw new NotSupportedException();
+    public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken = default) => throw new NotSupportedException();
 
     public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default) => throw new NotSupportedException();
 
     public override void Write(ReadOnlySpan<byte> buffer) => throw new NotSupportedException();
 
-    public override Task FlushAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
+    public override Task FlushAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
 
     public override void Flush() => throw new NotSupportedException();
 

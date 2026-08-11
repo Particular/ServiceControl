@@ -131,7 +131,7 @@
 
                     headers["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(VerifyHeader));
                     headers["$.diagnostics.hostid"] = Guid.NewGuid().ToString();
-                    headers["NServiceBus.TimeOfFailure"] = DateTimeOffsetHelper.ToWireFormattedString(DateTime.UtcNow);
+                    headers["NServiceBus.TimeOfFailure"] = DateTimeOffsetHelper.ToWireFormattedString(DateTimeOffset.UtcNow);
 
                     var outgoingMessage = new OutgoingMessage(messageId, headers, context.BodyToSend);
 

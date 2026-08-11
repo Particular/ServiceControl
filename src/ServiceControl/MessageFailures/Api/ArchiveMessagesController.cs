@@ -2,6 +2,7 @@ namespace ServiceControl.MessageFailures.Api
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
     using Infrastructure.WebApi;
@@ -20,7 +21,7 @@ namespace ServiceControl.MessageFailures.Api
         [Route("errors/archive")]
         [HttpPost]
         [HttpPatch]
-        public async Task<IActionResult> ArchiveBatch(string[] messageIds)
+        public async Task<IActionResult> ArchiveBatch(string[] messageIds, CancellationToken cancellationToken = default)
         {
             if (messageIds.Any(string.IsNullOrEmpty))
             {
@@ -31,13 +32,13 @@ namespace ServiceControl.MessageFailures.Api
             var user = userAccessor.Resolve(User);
             var operationId = this.AuditOperationId();
             await auditLog.AuditedOperation(user, MessageActionKind.Archive, Permissions.ErrorMessagesArchive, MessageActionScope.Batch,
-                resource: null, count: messageIds.Length, operationId: operationId, async () =>
+                resource: null, count: messageIds.Length, operationId: operationId, async ct =>
                 {
                     foreach (var id in messageIds)
                     {
-                        await messageSession.Send(new ArchiveMessage { FailedMessageId = id, Scope = MessageActionScope.Batch }, AuditHeaders.LocalSendOptions(user, operationId));
+                        await messageSession.Send(new ArchiveMessage { FailedMessageId = id, Scope = MessageActionScope.Batch }, AuditHeaders.LocalSendOptions(user, operationId), ct);
                     }
-                });
+                }, cancellationToken);
 
             return Accepted();
         }
@@ -45,7 +46,7 @@ namespace ServiceControl.MessageFailures.Api
         [Authorize(Policy = Permissions.ErrorMessagesView)]
         [Route("errors/groups/{classifier?}")]
         [HttpGet]
-        public async Task<IActionResult> GetArchiveMessageGroups(string classifier = "Exception Type and Stack Trace")
+        public async Task<IActionResult> GetArchiveMessageGroups(string classifier = "Exception Type and Stack Trace", CancellationToken cancellationToken = default)
         {
             var results = await dataStore.GetArchivedGroupsByClassifier(classifier);
 
@@ -58,13 +59,13 @@ namespace ServiceControl.MessageFailures.Api
         [Route("errors/{messageId:required:minlength(1)}/archive")]
         [HttpPost]
         [HttpPatch]
-        public async Task<IActionResult> Archive(string messageId)
+        public async Task<IActionResult> Archive(string messageId, CancellationToken cancellationToken = default)
         {
             var user = userAccessor.Resolve(User);
             var operationId = this.AuditOperationId();
             await auditLog.AuditedOperation(user, MessageActionKind.Archive, Permissions.ErrorMessagesArchive, MessageActionScope.Single,
                 resource: messageId, count: 1, operationId: operationId,
-                () => messageSession.Send(new ArchiveMessage { FailedMessageId = messageId, Scope = MessageActionScope.Single }, AuditHeaders.LocalSendOptions(user, operationId)));
+                ct => messageSession.Send(new ArchiveMessage { FailedMessageId = messageId, Scope = MessageActionScope.Single }, AuditHeaders.LocalSendOptions(user, operationId), ct), cancellationToken);
 
             return Accepted();
         }
@@ -72,7 +73,7 @@ namespace ServiceControl.MessageFailures.Api
         [Authorize(Policy = Permissions.ErrorMessagesView)]
         [Route("archive/groups/id/{groupId:required:minlength(1)}")]
         [HttpGet]
-        public async Task<ActionResult<FailureGroupView>> GetGroup(string groupId, string status = default, string modified = default)
+        public async Task<ActionResult<FailureGroupView>> GetGroup(string groupId, string status = default, string modified = default, CancellationToken cancellationToken = default)
         {
             var result = await dataStore.GetArchivedGroup(groupId, status, modified);
 

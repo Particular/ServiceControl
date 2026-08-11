@@ -26,7 +26,7 @@
             this.logger = logger;
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken = default)
         {
             store.Subscribe(TryDispatchEventBatch);
 
@@ -72,7 +72,7 @@
             }
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        public Task StopAsync(CancellationToken cancellationToken = default)
         {
             return store.StopAsync(cancellationToken);
         }

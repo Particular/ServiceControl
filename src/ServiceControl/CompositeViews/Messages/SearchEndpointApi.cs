@@ -2,6 +2,7 @@ namespace ServiceControl.CompositeViews.Messages
 {
     using System.Collections.Generic;
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
@@ -24,7 +25,7 @@ namespace ServiceControl.CompositeViews.Messages
         {
         }
 
-        protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(SearchEndpointContext input) =>
-            DataStore.SearchEndpointMessages(input.Endpoint, input.Keyword, input.PagingInfo, input.SortInfo, input.TimeSentRange);
+        protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(SearchEndpointContext input, CancellationToken cancellationToken = default) =>
+            DataStore.SearchEndpointMessages(input.Endpoint, input.Keyword, input.PagingInfo, input.SortInfo, input.TimeSentRange, cancellationToken);
     }
 }

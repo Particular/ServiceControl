@@ -27,6 +27,7 @@ public sealed class RolesClaimsTransformation(OpenIdConnectSettings oidcSettings
     // placeholder is required because a Claim value cannot be null.
     const string SentinelClaimValue = "1";
 
+#pragma warning disable PS0018 // IClaimsTransformation declares this without a CancellationToken
     public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
     {
         var isAuthenticated = principal.Identity?.IsAuthenticated == true;
@@ -49,6 +50,7 @@ public sealed class RolesClaimsTransformation(OpenIdConnectSettings oidcSettings
         transformed.AddIdentity(new ClaimsIdentity(claims));
         return Task.FromResult(transformed);
     }
+#pragma warning restore PS0018
 
     // True once this transformation has stamped its sentinel claim, keeping TransformAsync
     // idempotent across the repeated calls ASP.NET makes for the same principal.

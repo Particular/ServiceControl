@@ -20,11 +20,11 @@ namespace ServiceControl.Recoverability
         {
             var messageIds = new List<string>();
 
-            var ids = await dataStore.GetRetryPendingMessages(message.PeriodFrom, message.PeriodTo, message.QueueAddress);
+            var ids = await dataStore.GetRetryPendingMessages(message.PeriodFrom, message.PeriodTo, message.QueueAddress, context.CancellationToken);
 
             foreach (var id in ids)
             {
-                await dataStore.RemoveFailedMessageRetry(id);
+                await dataStore.RemoveFailedMessageRetry(id, context.CancellationToken);
                 messageIds.Add(id);
             }
 
@@ -35,7 +35,7 @@ namespace ServiceControl.Recoverability
         {
             foreach (var messageUniqueId in message.MessageUniqueIds)
             {
-                await dataStore.RemoveFailedMessageRetry(messageUniqueId);
+                await dataStore.RemoveFailedMessageRetry(messageUniqueId, context.CancellationToken);
             }
 
             await SendRetryMessagesById(context, message.MessageUniqueIds);

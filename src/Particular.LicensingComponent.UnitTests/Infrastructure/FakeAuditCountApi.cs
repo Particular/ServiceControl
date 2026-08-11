@@ -8,6 +8,6 @@
 
     class FakeAuditCountApi : IAuditCountApi
     {
-        public Task<IList<ServiceControl.Api.Contracts.AuditCount>> GetEndpointAuditCounts(string endpoint, CancellationToken token) => throw new NotImplementedException();
+        public Task<IList<ServiceControl.Api.Contracts.AuditCount>> GetEndpointAuditCounts(string endpoint, CancellationToken cancellationToken) => throw new NotImplementedException();
     }
 }

@@ -7,6 +7,7 @@ namespace ServiceControl.MessageFailures.Api
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Text.Json.Serialization;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
     using InternalMessages;
@@ -22,7 +23,7 @@ namespace ServiceControl.MessageFailures.Api
         [Authorize(Policy = Permissions.ErrorMessagesRetry)]
         [Route("pendingretries/resolve")]
         [HttpPatch]
-        public async Task<IActionResult> ResolveBy(UniqueMessageIdsModel request)
+        public async Task<IActionResult> ResolveBy(UniqueMessageIdsModel request, CancellationToken cancellationToken = default)
         {
             if (request.UniqueMessageIds != null)
             {
@@ -34,7 +35,7 @@ namespace ServiceControl.MessageFailures.Api
 
                 foreach (var id in request.UniqueMessageIds)
                 {
-                    await session.SendLocal(new MarkPendingRetryAsResolved { FailedMessageId = id });
+                    await session.SendLocal(new MarkPendingRetryAsResolved { FailedMessageId = id }, cancellationToken);
                 }
 
                 return Accepted();
@@ -59,7 +60,7 @@ namespace ServiceControl.MessageFailures.Api
             {
                 m.PeriodFrom = request.From!.Value;
                 m.PeriodTo = request.To!.Value;
-            });
+            }, cancellationToken);
 
             return Accepted();
         }
@@ -67,14 +68,14 @@ namespace ServiceControl.MessageFailures.Api
         [Authorize(Policy = Permissions.ErrorMessagesRetry)]
         [Route("pendingretries/queues/resolve")]
         [HttpPatch]
-        public async Task<IActionResult> ResolveBy(QueueModel queueModel)
+        public async Task<IActionResult> ResolveBy(QueueModel queueModel, CancellationToken cancellationToken = default)
         {
             await session.SendLocal<MarkPendingRetriesAsResolved>(m =>
             {
                 m.QueueAddress = queueModel.QueueAddress;
                 m.PeriodFrom = queueModel.From;
                 m.PeriodTo = queueModel.To;
-            });
+            }, cancellationToken);
 
             return Accepted();
         }

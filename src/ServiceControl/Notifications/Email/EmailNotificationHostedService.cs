@@ -9,9 +9,9 @@
         EmailThrottlingState throttlingState;
 
         public EmailNotificationHostedService(EmailThrottlingState throttlingState) => this.throttlingState = throttlingState;
-        public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task StartAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        public Task StopAsync(CancellationToken cancellationToken = default)
         {
             throttlingState.CancellationTokenSource.Cancel();
 

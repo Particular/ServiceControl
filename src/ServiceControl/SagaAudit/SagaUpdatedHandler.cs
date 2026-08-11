@@ -20,7 +20,7 @@
 
             if (auditQueueName is null || nextAuditQueueNameRefresh < DateTime.UtcNow)
             {
-                await RefreshAuditQueue();
+                await RefreshAuditQueue(context.CancellationToken);
             }
 
             if (auditQueueName is null)
@@ -35,14 +35,14 @@
             await context.ForwardCurrentMessageTo(auditQueueName);
         }
 
-        async Task RefreshAuditQueue()
+        async Task RefreshAuditQueue(CancellationToken cancellationToken)
         {
             if (nextAuditQueueNameRefresh > DateTime.UtcNow)
             {
                 return;
             }
 
-            await semaphore.WaitAsync();
+            await semaphore.WaitAsync(cancellationToken);
             try
             {
                 if (nextAuditQueueNameRefresh > DateTime.UtcNow)
@@ -50,7 +50,7 @@
                     return;
                 }
 
-                var connectionDetails = await connectionBuilder.BuildPlatformConnection();
+                var connectionDetails = await connectionBuilder.BuildPlatformConnection(cancellationToken);
 
                 // First instance is named `SagaAudit`, following instance `SagaAudit1`..`SagaAuditN`
                 if (connectionDetails.ToDictionary().TryGetValue("SagaAudit", out var sagaAuditObj) && sagaAuditObj is JsonElement sagaAudit)
@@ -60,6 +60,10 @@
                     nextAuditQueueNameRefresh = DateTime.UtcNow.AddMinutes(5);
                     logger.LogInformation("Refreshed audit queue name '{AuditQueueName}' from ServiceControl Audit instance. Will continue to use this value for forwarding saga update messages for the next 5 minutes", auditQueueName);
                 }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception x)
             {

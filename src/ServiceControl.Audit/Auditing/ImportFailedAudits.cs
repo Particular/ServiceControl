@@ -30,6 +30,9 @@ namespace ServiceControl.Audit.Auditing
             var succeeded = 0;
             var failed = 0;
 
+            // The store hands each callback its own token, distinct from this method's, so the catch
+            // filters below deliberately test that one rather than the outer cancellationToken.
+#pragma warning disable PS0021
             await failedAuditStore.ProcessFailedMessages(
                 async (transportMessage, markComplete, token) =>
                     {
@@ -65,6 +68,7 @@ namespace ServiceControl.Audit.Auditing
                         }
 
                     }, cancellationToken);
+#pragma warning restore PS0021
 
             logger.LogInformation("Done re-importing failed audits. Successfully re-imported {SuccessCount} messages. Failed re-importing {FailureCount} messages", succeeded, failed);
 

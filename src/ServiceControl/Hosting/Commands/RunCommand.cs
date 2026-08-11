@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Hosting.Commands
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Builder;
@@ -14,7 +15,7 @@
 
     class RunCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings)
+        public override async Task Execute(HostArguments args, Settings settings, CancellationToken cancellationToken = default)
         {
             var endpointConfiguration = new EndpointConfiguration(settings.InstanceName);
             var assemblyScanner = endpointConfiguration.AssemblyScanner();

@@ -24,7 +24,9 @@
             obj.SetValue(DocumentXamlProperty, value);
         }
 
+#pragma warning disable PS0025 // Tracks which threads are already inside the callback, so reference equality is what is wanted
         static HashSet<Thread> recursionProtection = [];
+#pragma warning restore PS0025
 
         static readonly Regex doubleNewlineRegex = new Regex(@"\r?\n\r?\n", RegexOptions.Compiled);
         static readonly Regex singleNewlineRegex = new Regex(@"\r?\n", RegexOptions.Compiled);
