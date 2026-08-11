@@ -23,6 +23,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
     public DbSet<HistoricRetryOperationEntity> HistoricRetryOperations { get; set; }
     public DbSet<UnacknowledgedRetryOperationEntity> UnacknowledgedRetryOperations { get; set; }
     public DbSet<ArchiveOperationEntity> ArchiveOperations { get; set; }
+    public DbSet<FailedMessageEditEntity> FailedMessageEdits { get; set; }
     public DbSet<LicensingEndpointEntity> LicensingEndpoints { get; set; }
     public DbSet<LicensingEndpointThroughputEntity> LicensingEndpointThroughput { get; set; }
 
@@ -37,6 +38,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
         modelBuilder.ApplyConfiguration(new EndpointSettingsConfiguration());
         modelBuilder.ApplyConfiguration(new FailedErrorImportConfiguration());
         modelBuilder.ApplyConfiguration(new FailedMessageConfiguration());
+        modelBuilder.ApplyConfiguration(new FailedMessageEditConfiguration());
         modelBuilder.ApplyConfiguration(new FailedMessageGroupConfiguration());
         modelBuilder.ApplyConfiguration(new FailedMessageRetryConfiguration());
         modelBuilder.ApplyConfiguration(new GroupCommentConfiguration());
