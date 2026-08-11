@@ -3,10 +3,12 @@
 # Justification: Test project
 dotnet_diagnostic.CA2007.severity = none
 
-# Cancellation analyzer debt. These fire because Particular.Analyzers is no longer pinned to 0.9.0.
-# They are scheduled work, not accepted exceptions: remove a line once this project has no
-# violations of that rule left, and never add a rule back to this list.
-dotnet_diagnostic.PS0003.severity = none
-dotnet_diagnostic.PS0006.severity = none
-dotnet_diagnostic.PS0013.severity = none
-dotnet_diagnostic.PS0018.severity = none
+# Justification: Test project. Demanding a CancellationToken on every [Test] method, and on the
+# helpers they call, buys nothing: a test that hangs fails the run either way, and [CancelAfter]
+# only bites once the code under test honours the token. Persistence integration tests that need a
+# real timeout use [Test, CancelAfter(...)] with an injected token instead, which is the pattern to
+# follow for new tests. These are accepted exceptions, not scheduled work.
+dotnet_diagnostic.PS0003.severity = none  # A parameter of type CancellationToken on a non-private delegate or method should be optional
+dotnet_diagnostic.PS0006.severity = none  # Pass CancellationToken.None instead of the default literal
+dotnet_diagnostic.PS0013.severity = none  # A Func used as a method parameter with a Task return type argument should have a CancellationToken type argument
+dotnet_diagnostic.PS0018.severity = none  # A task-returning method should have a CancellationToken parameter

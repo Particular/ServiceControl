@@ -23,14 +23,14 @@ public class FailedErrorImportDataStore(
     const int BatchSize = 100;
 
     public Task<bool> QueryContainsFailedImports(CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(dbContext => dbContext.FailedErrorImports.AsNoTracking().AnyAsync());
+        ExecuteWithDbContext((dbContext, token) => dbContext.FailedErrorImports.AsNoTracking().AnyAsync(token), cancellationToken);
 
     // Update-first, then insert. The dedupe key is deterministic, so a repeat failure updates the
     // existing row and concurrent writers that both miss it race only on the insert. The loser of
     // that race confirms the row is now present (the winner stored the same logical failure) and
     // otherwise rethrows, so the caller never treats a message as stored when it is not.
     public Task StoreFailedErrorImport(FailedErrorImport failure, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(async dbContext =>
+        ExecuteWithDbContext(async (dbContext, token) =>
         {
             var uniqueMessageId = FailedErrorImport.DeriveKey(failure.Message.Headers, failure.Message.Id);
             var body = failure.Message.Body ?? [];
@@ -39,7 +39,7 @@ public class FailedErrorImportDataStore(
             if (storeExternally)
             {
                 var contentType = failure.Message.Headers.GetValueOrDefault(Headers.ContentType) ?? "application/octet-stream";
-                await bodyStorage.WriteBody(FailedErrorImportEntity.ExternalBodyId(uniqueMessageId), body, contentType);
+                await bodyStorage.WriteBody(FailedErrorImportEntity.ExternalBodyId(uniqueMessageId), body, contentType, token);
             }
 
             var failedAt = timeProvider.GetUtcNow().UtcDateTime;
@@ -63,8 +63,8 @@ public class FailedErrorImportDataStore(
                 entity.Body = storedBody;
                 entity.BodyStoredExternally = storeExternally;
                 entity.ExceptionInfo = failure.ExceptionInfo;
-            });
-        });
+            }, token);
+        }, cancellationToken);
 
     // Replays oldest-first. Successful imports delete their row; failures are left in place, so the
     // count of failures so far is exactly the offset to the next unseen row. This walks the whole

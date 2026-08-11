@@ -23,13 +23,13 @@ public sealed class OwnedStream(Stream stream, IDisposable owner) : Stream
 
     public override void Flush() => stream.Flush();
 
-    public override Task FlushAsync(CancellationToken cancellationToken) => stream.FlushAsync(cancellationToken);
+    public override Task FlushAsync(CancellationToken cancellationToken = default) => stream.FlushAsync(cancellationToken);
 
     public override int Read(byte[] buffer, int offset, int count) => stream.Read(buffer, offset, count);
 
     public override int Read(Span<byte> buffer) => stream.Read(buffer);
 
-    public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) =>
+    public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken = default) =>
         stream.ReadAsync(buffer, offset, count, cancellationToken);
 
     public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) =>
@@ -43,7 +43,7 @@ public sealed class OwnedStream(Stream stream, IDisposable owner) : Stream
 
     public override void Write(ReadOnlySpan<byte> buffer) => stream.Write(buffer);
 
-    public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) =>
+    public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken = default) =>
         stream.WriteAsync(buffer, offset, count, cancellationToken);
 
     public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default) =>

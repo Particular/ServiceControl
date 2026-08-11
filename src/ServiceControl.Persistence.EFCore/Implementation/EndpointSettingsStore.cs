@@ -10,14 +10,14 @@ public class EndpointSettingsStore(IServiceScopeFactory scopeFactory) : DataStor
         => ExecuteWithDbContext(context => context.EndpointSettings.Select(row => new EndpointSettings { Name = row.Name, TrackInstances = row.TrackInstances }).AsAsyncEnumerable(), cancellationToken);
 
     public Task UpdateEndpointSettings(EndpointSettings settings, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(async context =>
+        ExecuteWithDbContext(async (context, token) =>
             await context.UpsertAsync([settings.Name],
                 () => new EndpointSettingsEntity() { Name = settings.Name, TrackInstances = settings.TrackInstances },
                 entity => entity.TrackInstances = settings.TrackInstances,
-                cancellationToken
-            ));
+                token
+            ), cancellationToken);
 
     public Task Delete(string name, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(context => context.EndpointSettings.Where(x => x.Name == name)
-            .ExecuteDeleteAsync(cancellationToken));
+        ExecuteWithDbContext((context, token) => context.EndpointSettings.Where(x => x.Name == name)
+            .ExecuteDeleteAsync(token), cancellationToken);
 }

@@ -29,7 +29,7 @@ namespace ServiceControl.Persistence.RavenDB
             }
         }
 
-        public async Task Initialize(CancellationToken cancellationToken)
+        public async Task Initialize(CancellationToken cancellationToken = default)
         {
             try
             {
@@ -59,7 +59,7 @@ namespace ServiceControl.Persistence.RavenDB
             }
         }
 
-        public Task Stop(CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task Stop(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
         public void Dispose() => documentStore?.Dispose();
 

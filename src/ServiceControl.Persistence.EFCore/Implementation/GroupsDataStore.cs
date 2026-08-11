@@ -13,7 +13,7 @@ using ServiceControl.Recoverability;
 public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IGroupsDataStore
 {
     public Task<IList<FailureGroupView>> GetUnresolvedGroupsByClassifier(string classifier, string classifierFilter, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(async dbContext =>
+        ExecuteWithDbContext(async (dbContext, token) =>
         {
             var groups = ByClassifier(dbContext, classifier);
 
@@ -22,46 +22,46 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
                 groups = groups.Where(group => group.Title == classifierFilter);
             }
 
-            var views = await MostRecent(groups.AggregateGroups(WithStatus(dbContext, FailedMessageStatus.Unresolved)), cancellationToken);
+            var views = await MostRecent(groups.AggregateGroups(WithStatus(dbContext, FailedMessageStatus.Unresolved)), token);
 
-            await AttachComments(dbContext, views, cancellationToken);
+            await AttachComments(dbContext, views, token);
 
             return views;
-        });
+        }, cancellationToken);
 
     public Task<IList<FailureGroupView>> GetArchivedGroupsByClassifier(string classifier, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(dbContext => MostRecent(
-            ByClassifier(dbContext, classifier).AggregateGroups(WithStatus(dbContext, FailedMessageStatus.Archived)), cancellationToken));
+        ExecuteWithDbContext((dbContext, token) => MostRecent(
+            ByClassifier(dbContext, classifier).AggregateGroups(WithStatus(dbContext, FailedMessageStatus.Archived)), token), cancellationToken);
 
     public Task<QueryResult<FailureGroupView>> GetUnresolvedGroup(string groupId, string status, string modified, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(dbContext => SingleGroup(dbContext, groupId, FailedMessageStatus.Unresolved, status, modified, cancellationToken));
+        ExecuteWithDbContext((dbContext, token) => SingleGroup(dbContext, groupId, FailedMessageStatus.Unresolved, status, modified, token), cancellationToken);
 
     public Task<QueryResult<FailureGroupView>> GetArchivedGroup(string groupId, string status, string modified, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(dbContext => SingleGroup(dbContext, groupId, FailedMessageStatus.Archived, status, modified, cancellationToken));
+        ExecuteWithDbContext((dbContext, token) => SingleGroup(dbContext, groupId, FailedMessageStatus.Archived, status, modified, token), cancellationToken);
 
     public Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(string groupId, string status, string modified, SortInfo sortInfo, PagingInfo pagingInfo, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(dbContext => InGroup(dbContext, groupId, status, modified).ToPagedResult(pagingInfo, sortInfo, cancellationToken));
+        ExecuteWithDbContext((dbContext, token) => InGroup(dbContext, groupId, status, modified).ToPagedResult(pagingInfo, sortInfo, token), cancellationToken);
 
     public Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string status, string modified, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(dbContext => InGroup(dbContext, groupId, status, modified).ToQueryStatsInfo(cancellationToken));
+        ExecuteWithDbContext((dbContext, token) => InGroup(dbContext, groupId, status, modified).ToQueryStatsInfo(token), cancellationToken);
 
     public Task EditComment(string groupId, string comment, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(async dbContext =>
+        ExecuteWithDbContext(async (dbContext, token) =>
         {
             if (string.IsNullOrWhiteSpace(comment))
             {
-                await RemoveComment(dbContext, groupId, cancellationToken);
+                await RemoveComment(dbContext, groupId, token);
                 return;
             }
 
             await dbContext.UpsertAsync([groupId],
                 () => new GroupCommentEntity { GroupId = groupId, Comment = comment },
                 entity => entity.Comment = comment,
-                cancellationToken);
-        });
+                token);
+        }, cancellationToken);
 
     public Task DeleteComment(string groupId, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(dbContext => RemoveComment(dbContext, groupId, cancellationToken));
+        ExecuteWithDbContext((dbContext, token) => RemoveComment(dbContext, groupId, token), cancellationToken);
 
     static Task<int> RemoveComment(ServiceControlDbContext dbContext, string groupId, CancellationToken cancellationToken) =>
         dbContext.GroupComments

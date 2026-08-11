@@ -3,11 +3,9 @@
 # Justification: ServiceControl app has no synchronization context
 dotnet_diagnostic.CA2007.severity = none
 
-# Cancellation analyzer debt. These fire because Particular.Analyzers is no longer pinned to 0.9.0.
-# They are scheduled work, not accepted exceptions: remove a line once this project has no
-# violations of that rule left, and never add a rule back to this list.
+# Cancellation analyzer debt, now confined to the licensing data store. ILicensingDataStore belongs to
+# the licensing phase, not the persistence one, so its 17 optional-token additions land with the rest
+# of Particular.LicensingComponent. Delete this block then; nothing else in the project violates a
+# cancellation rule.
+[Throughput/LicensingDataStore.cs]
 dotnet_diagnostic.PS0003.severity = none
-dotnet_diagnostic.PS0013.severity = none
-dotnet_diagnostic.PS0018.severity = none
-dotnet_diagnostic.PS0020.severity = none
-dotnet_diagnostic.PS0021.severity = none

@@ -9,7 +9,7 @@ using ServiceControl.Persistence.EFCore.Entities;
 // written whole, never queried by their contents, so each is stored as a JSON document.
 static class SettingsStore
 {
-    public static async Task<T?> GetSetting<T>(this ServiceControlDbContext dbContext, string key, CancellationToken cancellationToken)
+    public static async Task<T?> GetSetting<T>(this ServiceControlDbContext dbContext, string key, CancellationToken cancellationToken = default)
     {
         var value = await dbContext.Settings
             .AsNoTracking()
@@ -20,7 +20,7 @@ static class SettingsStore
         return value is null ? default : JsonSerializer.Deserialize<T>(value);
     }
 
-    public static Task StoreSetting<T>(this ServiceControlDbContext dbContext, string key, T value, CancellationToken cancellationToken)
+    public static Task StoreSetting<T>(this ServiceControlDbContext dbContext, string key, T value, CancellationToken cancellationToken = default)
     {
         var json = JsonSerializer.Serialize(value);
 

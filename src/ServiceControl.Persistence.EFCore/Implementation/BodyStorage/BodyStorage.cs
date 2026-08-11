@@ -21,7 +21,7 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
 {
     public async Task<MessageBodyStreamResult?> TryFetch(string bodyId, CancellationToken cancellationToken = default)
     {
-        var row = await ExecuteWithDbContext(dbContext => ResolveBody(dbContext, bodyId, cancellationToken));
+        var row = await ExecuteWithDbContext((dbContext, token) => ResolveBody(dbContext, bodyId, token), cancellationToken);
 
         if (row == null)
         {

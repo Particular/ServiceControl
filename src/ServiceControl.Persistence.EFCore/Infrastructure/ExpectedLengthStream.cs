@@ -30,7 +30,7 @@ public sealed class ExpectedLengthStream(Stream stream, long expectedLength) : S
 
     public override int Read(Span<byte> buffer) => ValidateRead(stream.Read(buffer));
 
-    public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) =>
+    public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken = default) =>
         ValidateRead(await stream.ReadAsync(buffer, offset, count, cancellationToken));
 
     public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) =>

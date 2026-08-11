@@ -11,7 +11,7 @@ public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory) 
 {
     public async Task MarkAsArchived(string failedMessageId, CancellationToken cancellationToken = default)
     {
-        await ExecuteWithDbContext(async dbContext =>
+        await ExecuteWithDbContext(async (dbContext, token) =>
         {
             if (!Guid.TryParse(failedMessageId, out var uniqueMessageId))
             {
@@ -25,13 +25,13 @@ public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory) 
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(fm => fm.Status, FailedMessageStatus.Archived)
                     .SetProperty(fm => fm.StatusChangedAt, now)
-                    .SetProperty(fm => fm.LastModified, now), cancellationToken);
-        });
+                    .SetProperty(fm => fm.LastModified, now), token);
+        }, cancellationToken);
     }
 
     public async Task<bool> MarkAsResolved(string failedMessageId, CancellationToken cancellationToken = default)
     {
-        return await ExecuteWithDbContext(async dbContext =>
+        return await ExecuteWithDbContext(async (dbContext, token) =>
         {
             if (!Guid.TryParse(failedMessageId, out var uniqueMessageId))
             {
@@ -45,10 +45,10 @@ public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory) 
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(fm => fm.Status, FailedMessageStatus.Resolved)
                     .SetProperty(fm => fm.StatusChangedAt, now)
-                    .SetProperty(fm => fm.LastModified, now), cancellationToken);
+                    .SetProperty(fm => fm.LastModified, now), token);
 
             return affected > 0;
-        });
+        }, cancellationToken);
     }
 
     public async Task<string[]> UnArchiveMessages(IEnumerable<string> failedMessageIds, CancellationToken cancellationToken = default)
@@ -63,7 +63,7 @@ public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory) 
             return [];
         }
 
-        return await ExecuteWithDbContext(async dbContext =>
+        return await ExecuteWithDbContext(async (dbContext, token) =>
         {
             var now = DateTime.UtcNow;
 
@@ -71,7 +71,7 @@ public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory) 
             var unarchivableIds = await dbContext.FailedMessages
                 .Where(fm => ids.Contains(fm.UniqueMessageId) && fm.Status == FailedMessageStatus.Archived)
                 .Select(fm => fm.UniqueMessageId)
-                .ToListAsync(cancellationToken);
+                .ToListAsync(token);
 
             if (unarchivableIds.Count == 0)
             {
@@ -83,15 +83,15 @@ public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory) 
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(fm => fm.Status, FailedMessageStatus.Unresolved)
                     .SetProperty(fm => fm.StatusChangedAt, now)
-                    .SetProperty(fm => fm.LastModified, now), cancellationToken);
+                    .SetProperty(fm => fm.LastModified, now), token);
 
             return unarchivableIds.Select(id => id.ToString()).ToArray();
-        });
+        }, cancellationToken);
     }
 
     public async Task<string[]> UnArchiveMessagesByRange(DateTime from, DateTime to, CancellationToken cancellationToken = default)
     {
-        return await ExecuteWithDbContext(async dbContext =>
+        return await ExecuteWithDbContext(async (dbContext, token) =>
         {
             var now = DateTime.UtcNow;
 
@@ -101,7 +101,7 @@ public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory) 
                     && fm.LastModified >= from
                     && fm.LastModified <= to)
                 .Select(fm => fm.UniqueMessageId)
-                .ToListAsync(cancellationToken);
+                .ToListAsync(token);
 
             if (unarchivableIds.Count == 0)
             {
@@ -113,15 +113,15 @@ public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory) 
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(fm => fm.Status, FailedMessageStatus.Unresolved)
                     .SetProperty(fm => fm.StatusChangedAt, now)
-                    .SetProperty(fm => fm.LastModified, now), cancellationToken);
+                    .SetProperty(fm => fm.LastModified, now), token);
 
             return unarchivableIds.Select(id => id.ToString()).ToArray();
-        });
+        }, cancellationToken);
     }
 
     public async Task RevertRetry(string messageUniqueId, CancellationToken cancellationToken = default)
     {
-        await ExecuteWithDbContext(async dbContext =>
+        await ExecuteWithDbContext(async (dbContext, token) =>
         {
             if (!Guid.TryParse(messageUniqueId, out var uniqueMessageId))
             {
@@ -135,7 +135,7 @@ public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory) 
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(fm => fm.Status, FailedMessageStatus.Unresolved)
                     .SetProperty(fm => fm.StatusChangedAt, now)
-                    .SetProperty(fm => fm.LastModified, now), cancellationToken);
-        });
+                    .SetProperty(fm => fm.LastModified, now), token);
+        }, cancellationToken);
     }
 }

@@ -10,7 +10,7 @@ static class LicenseStatusCheck
 {
     record LicenseStatusFragment(string Id, string LicensedTo, string Status, bool Expired);
 
-    public static async Task WaitForLicenseOrThrow(IDocumentStore documentStore, CancellationToken cancellationToken)
+    public static async Task WaitForLicenseOrThrow(IDocumentStore documentStore, CancellationToken cancellationToken = default)
     {
         var ravenConfiguredHttpClient = documentStore.GetRequestExecutor().HttpClient;
         var licenseCheckUrl = documentStore.Urls[0].TrimEnd('/') + "/license/status";
@@ -20,10 +20,10 @@ static class LicenseStatusCheck
 
         try
         {
-            while (!cts.IsCancellationRequested)
+            while (!cts.Token.IsCancellationRequested)
             {
-                var httpResponse = await ravenConfiguredHttpClient.GetAsync(licenseCheckUrl, cancellationToken);
-                var licenseStatus = await httpResponse.Content.ReadFromJsonAsync<LicenseStatusFragment>(cancellationToken);
+                var httpResponse = await ravenConfiguredHttpClient.GetAsync(licenseCheckUrl, cts.Token);
+                var licenseStatus = await httpResponse.Content.ReadFromJsonAsync<LicenseStatusFragment>(cts.Token);
                 if (licenseStatus.Expired)
                 {
                     throw new InvalidOperationException("The current RavenDB license is expired. Please, contact support");
@@ -37,9 +37,14 @@ static class LicenseStatusCheck
                 await Task.Delay(200, cts.Token);
             }
         }
+        // Every call inside the try uses the linked cts.Token, so PS0020 cannot see that this filter
+        // tests the right thing: cancellation that is not the caller's is the 30s license-check
+        // timeout, and that is what the friendly message is for.
+#pragma warning disable PS0020
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
             throw new InvalidOperationException("Cannot validate the current RavenDB license. Please, contact support");
         }
+#pragma warning restore PS0020
     }
 }

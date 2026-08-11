@@ -13,35 +13,35 @@ using ServiceControl.Persistence.Infrastructure;
 public class FailedMessageQueryDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IFailedMessageQueryDataStore
 {
     public Task<QueryResult<IList<FailedMessageView>>> GetFailedMessages(string? status, string? modified, string? queueAddress, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(dbContext => dbContext.FailedMessages
+        ExecuteWithDbContext((dbContext, token) => dbContext.FailedMessages
             .AsNoTracking()
             .FilterByStatus(status)
             .FilterByLastModifiedRange(modified)
             .FilterByQueueAddress(queueAddress)
-            .ToPagedResult(pagingInfo, sortInfo, cancellationToken));
+            .ToPagedResult(pagingInfo, sortInfo, token), cancellationToken);
 
     public Task<QueryStatsInfo> GetFailedMessagesStats(string? status, string? modified, string? queueAddress, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(dbContext => dbContext.FailedMessages
+        ExecuteWithDbContext((dbContext, token) => dbContext.FailedMessages
             .AsNoTracking()
             .FilterByStatus(status)
             .FilterByLastModifiedRange(modified)
             .FilterByQueueAddress(queueAddress)
-            .ToQueryStatsInfo(cancellationToken));
+            .ToQueryStatsInfo(token), cancellationToken);
 
     public Task<QueryResult<IList<FailedMessageView>>> GetFailedMessagesByEndpoint(string? status, string endpointName, string? modified, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(dbContext => dbContext.FailedMessages
+        ExecuteWithDbContext((dbContext, token) => dbContext.FailedMessages
             .AsNoTracking()
             .Where(message => message.ReceivingEndpointName == endpointName)
             .FilterByStatus(status)
             .FilterByLastModifiedRange(modified)
-            .ToPagedResult(pagingInfo, sortInfo, cancellationToken));
+            .ToPagedResult(pagingInfo, sortInfo, token), cancellationToken);
 
     public Task<IDictionary<string, object>> GetFailedMessagesSummary(CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(async dbContext =>
+        ExecuteWithDbContext(async (dbContext, token) =>
         {
-            var endpoints = await CountBy(dbContext, message => message.ReceivingEndpointName, cancellationToken);
-            var hosts = await CountBy(dbContext, message => message.ReceivingEndpointHost, cancellationToken);
-            var messageTypes = await CountBy(dbContext, message => message.MessageType, cancellationToken);
+            var endpoints = await CountBy(dbContext, message => message.ReceivingEndpointName, token);
+            var hosts = await CountBy(dbContext, message => message.ReceivingEndpointHost, token);
+            var messageTypes = await CountBy(dbContext, message => message.MessageType, token);
 
             return (IDictionary<string, object>)new Dictionary<string, object>
             {
@@ -49,10 +49,10 @@ public class FailedMessageQueryDataStore(IServiceScopeFactory scopeFactory) : Da
                 [FailedMessageSummaryKeys.Hosts] = hosts,
                 [FailedMessageSummaryKeys.MessageTypes] = messageTypes
             };
-        });
+        }, cancellationToken);
 
     public Task<FailedMessageView?> GetLatestFailedMessageView(string failedMessageId, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(async dbContext =>
+        ExecuteWithDbContext(async (dbContext, token) =>
         {
             if (!Guid.TryParse(failedMessageId, out var uniqueMessageId))
             {
@@ -61,13 +61,13 @@ public class FailedMessageQueryDataStore(IServiceScopeFactory scopeFactory) : Da
 
             var entity = await dbContext.FailedMessages
                 .AsNoTracking()
-                .SingleOrDefaultAsync(message => message.UniqueMessageId == uniqueMessageId, cancellationToken);
+                .SingleOrDefaultAsync(message => message.UniqueMessageId == uniqueMessageId, token);
 
             return entity?.ToFailedMessageView();
-        });
+        }, cancellationToken);
 
     public Task<FailedMessage?> GetFailedMessage(string failedMessageId, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(async dbContext =>
+        ExecuteWithDbContext(async (dbContext, token) =>
         {
             if (!Guid.TryParse(failedMessageId, out var uniqueMessageId))
             {
@@ -76,35 +76,35 @@ public class FailedMessageQueryDataStore(IServiceScopeFactory scopeFactory) : Da
 
             var entity = await dbContext.FailedMessages
                 .AsNoTracking()
-                .SingleOrDefaultAsync(message => message.UniqueMessageId == uniqueMessageId, cancellationToken);
+                .SingleOrDefaultAsync(message => message.UniqueMessageId == uniqueMessageId, token);
 
             if (entity == null)
             {
                 return null;
             }
 
-            var groups = await ReadGroups(dbContext, [uniqueMessageId], cancellationToken);
+            var groups = await ReadGroups(dbContext, [uniqueMessageId], token);
 
             return entity.ToFailedMessage(groups.GetValueOrDefault(uniqueMessageId, []));
-        });
+        }, cancellationToken);
 
     public Task<FailedMessage[]> GetFailedMessagesByIds(Guid[] ids, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext<FailedMessage[]>(async dbContext =>
+        ExecuteWithDbContext<FailedMessage[]>(async (dbContext, token) =>
         {
             var entities = await dbContext.FailedMessages
                 .AsNoTracking()
                 .Where(message => ids.Contains(message.UniqueMessageId))
-                .ToListAsync(cancellationToken);
+                .ToListAsync(token);
 
             if (entities.Count == 0)
             {
                 return [];
             }
 
-            var groups = await ReadGroups(dbContext, [.. entities.Select(entity => entity.UniqueMessageId)], cancellationToken);
+            var groups = await ReadGroups(dbContext, [.. entities.Select(entity => entity.UniqueMessageId)], token);
 
             return [.. entities.Select(entity => entity.ToFailedMessage(groups.GetValueOrDefault(entity.UniqueMessageId, [])))];
-        });
+        }, cancellationToken);
 
     static async Task<Dictionary<string, object>> CountBy(ServiceControlDbContext dbContext, Expression<Func<FailedMessageEntity, string?>> selector, CancellationToken cancellationToken) =>
         await dbContext.FailedMessages
