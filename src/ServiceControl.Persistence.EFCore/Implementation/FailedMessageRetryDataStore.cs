@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.MessageFailures;
 using ServiceControl.Operations.BodyStorage;
-using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
 public class FailedMessageRetryDataStore(IServiceScopeFactory scopeFactory, IBodyStorage bodyStorage)
@@ -48,27 +47,21 @@ public class FailedMessageRetryDataStore(IServiceScopeFactory scopeFactory, IBod
             return ids.ToArray();
         });
 
-    public async Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, CancellationToken, Task> processCallback, CancellationToken cancellationToken)
-    {
-        // The callback is invoked while the DbContext scope is still open, so this method manages
-        // its own scope rather than using ExecuteWithDbContext (which disposes the scope before
-        // the caller can consume an AsAsyncEnumerable result). This mirrors how other streaming
-        // stores in the EFCore persister hold the scope open for the duration of enumeration.
-        await using var scope = scopeFactory.CreateAsyncScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
-
-        var query = dbContext.FailedMessages
-            .AsNoTracking()
-            .Where(m => m.Status == FailedMessageStatus.RetryIssued
-                && m.LastModified >= periodFrom && m.LastModified <= periodTo)
-            .FilterByQueueAddress(queueAddress)
-            .Select(m => m.UniqueMessageId.ToString());
-
-        await foreach (var uniqueMessageId in query.AsAsyncEnumerable().WithCancellation(cancellationToken))
+    public Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, CancellationToken, Task> processCallback, CancellationToken cancellationToken) =>
+        ExecuteWithDbContext(async dbContext =>
         {
-            await processCallback(uniqueMessageId, cancellationToken);
-        }
-    }
+            var query = dbContext.FailedMessages
+                .AsNoTracking()
+                .Where(m => m.Status == FailedMessageStatus.RetryIssued
+                            && m.LastModified >= periodFrom && m.LastModified <= periodTo)
+                .FilterByQueueAddress(queueAddress)
+                .Select(m => m.UniqueMessageId.ToString());
+
+            await foreach (var uniqueMessageId in query.AsAsyncEnumerable().WithCancellation(cancellationToken))
+            {
+                await processCallback(uniqueMessageId, cancellationToken);
+            }
+        });
 
     public async Task<byte[]> GetFailedMessageBody(string uniqueMessageId, CancellationToken cancellationToken)
     {
