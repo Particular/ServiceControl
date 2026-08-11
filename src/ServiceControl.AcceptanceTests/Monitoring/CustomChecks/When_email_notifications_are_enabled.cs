@@ -62,18 +62,18 @@
 
         class SetupNotificationSettings(INotificationsDataStore notificationsDataStore) : IHostedService
         {
-            public async Task StartAsync(CancellationToken cancellationToken)
+            public async Task StartAsync(CancellationToken cancellationToken = default)
             {
-                await using var notificationsManager = await notificationsDataStore.CreateNotificationsManager();
+                await using var notificationsManager = await notificationsDataStore.CreateNotificationsManager(cancellationToken);
 
-                var settings = await notificationsManager.LoadSettings();
+                var settings = await notificationsManager.LoadSettings(cancellationToken);
                 settings.Email.Enabled = true;
                 settings.Email.From = "YouServiceControl@particular.net";
                 settings.Email.To = "WhoeverMightBeConcerned@particular.net";
-                await notificationsManager.SaveChanges();
+                await notificationsManager.SaveChanges(cancellationToken);
             }
 
-            public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task StopAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
         }
 
         public class MyContext : ScenarioContext

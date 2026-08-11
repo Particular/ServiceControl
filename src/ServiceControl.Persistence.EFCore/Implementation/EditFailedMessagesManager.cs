@@ -10,7 +10,7 @@ public class EditFailedMessagesManager(IAsyncDisposable scope, ServiceControlDbC
     FailedMessage? failedMessage;            // cached after GetFailedMessage
     FailedMessageEditEntity? editEntity;     // tracked after GetCurrentEditingRequestId / SetCurrentEditingRequestId
 
-    public async Task<FailedMessage?> GetFailedMessage(string failedMessageId)
+    public async Task<FailedMessage?> GetFailedMessage(string failedMessageId, CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(failedMessageId, out var uniqueMessageId))
         {
@@ -19,7 +19,7 @@ public class EditFailedMessagesManager(IAsyncDisposable scope, ServiceControlDbC
 
         var entity = await dbContext.FailedMessages
             .AsNoTracking()
-            .SingleOrDefaultAsync(message => message.UniqueMessageId == uniqueMessageId);
+            .SingleOrDefaultAsync(message => message.UniqueMessageId == uniqueMessageId, cancellationToken);
 
         if (entity == null)
         {
@@ -34,7 +34,7 @@ public class EditFailedMessagesManager(IAsyncDisposable scope, ServiceControlDbC
         return result;
     }
 
-    public async Task<string?> GetCurrentEditingRequestId(string failedMessageId)
+    public async Task<string?> GetCurrentEditingRequestId(string failedMessageId, CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(failedMessageId, out var uniqueMessageId))
         {
@@ -43,12 +43,12 @@ public class EditFailedMessagesManager(IAsyncDisposable scope, ServiceControlDbC
 
         editEntity = await dbContext.FailedMessageEdits
             .AsNoTracking()
-            .SingleOrDefaultAsync(e => e.UniqueMessageId == uniqueMessageId);
+            .SingleOrDefaultAsync(e => e.UniqueMessageId == uniqueMessageId, cancellationToken);
 
         return editEntity?.EditId;
     }
 
-    public Task SetCurrentEditingRequestId(string editingMessageId)
+    public Task SetCurrentEditingRequestId(string editingMessageId, CancellationToken cancellationToken = default)
     {
         if (failedMessage == null)
         {
@@ -65,7 +65,7 @@ public class EditFailedMessagesManager(IAsyncDisposable scope, ServiceControlDbC
         return Task.CompletedTask;
     }
 
-    public async Task SetFailedMessageAsResolved()
+    public async Task SetFailedMessageAsResolved(CancellationToken cancellationToken = default)
     {
         if (failedMessage == null)
         {
@@ -81,7 +81,7 @@ public class EditFailedMessagesManager(IAsyncDisposable scope, ServiceControlDbC
         // swept immediately.
         var now = timeProvider.GetUtcNow().UtcDateTime;
         var entity = await dbContext.FailedMessages
-            .SingleOrDefaultAsync(m => m.UniqueMessageId == Guid.Parse(message.UniqueMessageId))
+            .SingleOrDefaultAsync(m => m.UniqueMessageId == Guid.Parse(message.UniqueMessageId), cancellationToken)
             ?? throw new InvalidOperationException("Failed message entity not found");
 
         entity.Status = FailedMessageStatus.Resolved;
@@ -90,7 +90,7 @@ public class EditFailedMessagesManager(IAsyncDisposable scope, ServiceControlDbC
         message.Status = FailedMessageStatus.Resolved;
     }
 
-    public Task SaveChanges() => dbContext.SaveChangesAsync();
+    public Task SaveChanges(CancellationToken cancellationToken = default) => dbContext.SaveChangesAsync(cancellationToken);
 
     public ValueTask DisposeAsync() => scope.DisposeAsync();
 }

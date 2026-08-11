@@ -8,19 +8,19 @@ public class NotificationsManager(IAsyncDisposable scope, ServiceControlDbContex
 {
     NotificationsSettings? _settings;
 
-    public Task SaveChanges()
+    public Task SaveChanges(CancellationToken cancellationToken = default)
     {
         if (_settings == null)
         {
             return Task.CompletedTask;
         }
 
-        return dbContext.StoreSetting(SettingKeys.NotificationEmails, _settings.Email, CancellationToken.None);
+        return dbContext.StoreSetting(SettingKeys.NotificationEmails, _settings.Email, cancellationToken);
     }
 
-    public async Task<NotificationsSettings> LoadSettings()
+    public async Task<NotificationsSettings> LoadSettings(CancellationToken cancellationToken = default)
     {
-        var settings = await dbContext.GetSetting<EmailNotifications>(SettingKeys.NotificationEmails, CancellationToken.None);
+        var settings = await dbContext.GetSetting<EmailNotifications>(SettingKeys.NotificationEmails, cancellationToken);
         _settings = new NotificationsSettings() { Email = settings ?? new EmailNotifications() };
         return _settings;
     }

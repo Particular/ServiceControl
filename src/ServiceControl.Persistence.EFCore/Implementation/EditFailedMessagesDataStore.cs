@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 public class EditFailedMessagesDataStore(IServiceScopeFactory scopeFactory, TimeProvider timeProvider) : IEditFailedMessagesDataStore
 {
-    public Task<IEditFailedMessagesManager> CreateEditFailedMessageManager()
+    public Task<IEditFailedMessagesManager> CreateEditFailedMessageManager(CancellationToken cancellationToken = default)
     {
         var scope = scopeFactory.CreateAsyncScope();
         return Task.FromResult<IEditFailedMessagesManager>(

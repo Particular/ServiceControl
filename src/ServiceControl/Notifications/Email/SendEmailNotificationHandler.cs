@@ -17,9 +17,9 @@
         {
             NotificationsSettings notifications;
 
-            await using (var manager = await store.CreateNotificationsManager())
+            await using (var manager = await store.CreateNotificationsManager(context.CancellationToken))
             {
-                notifications = await manager.LoadSettings();
+                notifications = await manager.LoadSettings(context.CancellationToken);
             }
 
             logger.LogInformation("Processing email notification. Subject: {Subject}, Body: {Body}", message.Subject, message.Body);

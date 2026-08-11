@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 public class NotificationsDataStore(IServiceProvider serviceProvider) : INotificationsDataStore
 {
-    public Task<INotificationsManager> CreateNotificationsManager()
+    public Task<INotificationsManager> CreateNotificationsManager(CancellationToken cancellationToken = default)
     {
         var scope = serviceProvider.CreateAsyncScope();
         ServiceControlDbContext serviceControlDbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
