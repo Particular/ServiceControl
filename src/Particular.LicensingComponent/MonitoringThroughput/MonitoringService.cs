@@ -10,7 +10,7 @@ using Shared;
 
 public class MonitoringService(ILicensingDataStore dataStore, IBrokerThroughputQuery? brokerThroughputQuery = null)
 {
-    public async Task RecordMonitoringThroughput(byte[] throughputMessage, CancellationToken cancellationToken)
+    public async Task RecordMonitoringThroughput(byte[] throughputMessage, CancellationToken cancellationToken = default)
     {
         RecordEndpointThroughputData? message;
         using (Stream stream = new MemoryStream(throughputMessage))
@@ -45,7 +45,7 @@ public class MonitoringService(ILicensingDataStore dataStore, IBrokerThroughputQ
         }
     }
 
-    public async Task<ConnectionSettingsTestResult> TestMonitoringConnection(CancellationToken cancellationToken)
+    public async Task<ConnectionSettingsTestResult> TestMonitoringConnection(CancellationToken cancellationToken = default)
     {
         //NOTE can't actually test the monitoring connection apart from seeing if there has been any throughput recorded from Monitoring
 

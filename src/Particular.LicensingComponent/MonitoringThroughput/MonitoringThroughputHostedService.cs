@@ -16,13 +16,17 @@ class MonitoringThroughputHostedService(ITransportCustomization transportCustomi
         {
             await monitoringService.RecordMonitoringThroughput(message.Body.ToArray(), cancellationToken);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error receiving throughput data from Monitoring");
         }
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Starting {ServiceName}", nameof(MonitoringThroughputHostedService));
 
@@ -30,7 +34,7 @@ class MonitoringThroughputHostedService(ITransportCustomization transportCustomi
         await transportInfrastructure.Receivers[ServiceControlSettings.ServiceControlThroughputDataQueue].StartReceive(cancellationToken);
     }
 
-    public async Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Stopping {ServiceName}", nameof(MonitoringThroughputHostedService));
 

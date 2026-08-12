@@ -4,6 +4,7 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using NUnit.Framework;
 
@@ -74,9 +75,9 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
         /// <summary>
         /// Asserts that the response body contains the expected error response format.
         /// </summary>
-        public static async Task AssertAuthErrorResponse(HttpResponseMessage response, string expectedError = "unauthorized")
+        public static async Task AssertAuthErrorResponse(HttpResponseMessage response, string expectedError = "unauthorized", CancellationToken cancellationToken = default)
         {
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
             Assert.That(content, Is.Not.Null.And.Not.Empty, "Response should have a body");
 
             var jsonDoc = JsonDocument.Parse(content);
@@ -107,12 +108,13 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
             string expectedAudience = null,
             string expectedApiScopes = null,
             string expectedScopes = null,
-            bool expectedRoleBasedAuthorizationEnabled = false)
+            bool expectedRoleBasedAuthorizationEnabled = false,
+            CancellationToken cancellationToken = default)
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK),
                 "Authentication configuration endpoint should return 200 OK");
 
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
             var jsonDoc = JsonDocument.Parse(content);
             var root = jsonDoc.RootElement;
 
@@ -201,11 +203,12 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
             HttpClient client,
             HttpMethod method,
             string path,
-            string token)
+            string token,
+            CancellationToken cancellationToken = default)
         {
             using var request = new HttpRequestMessage(method, path);
             request.Headers.Authorization = CreateBearerToken(token);
-            return await client.SendAsync(request);
+            return await client.SendAsync(request, cancellationToken);
         }
 
         /// <summary>
@@ -214,10 +217,11 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
         public static async Task<HttpResponseMessage> SendRequestWithoutAuth(
             HttpClient client,
             HttpMethod method,
-            string path)
+            string path,
+            CancellationToken cancellationToken = default)
         {
             using var request = new HttpRequestMessage(method, path);
-            return await client.SendAsync(request);
+            return await client.SendAsync(request, cancellationToken);
         }
     }
 }

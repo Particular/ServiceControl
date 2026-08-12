@@ -6,7 +6,7 @@ using Infrastructure;
 
 class PostgreSqlRetryBatchSqlDialect : PostgreSqlDialect, IRetryBatchSqlDialect
 {
-    public async Task InsertMissingRetryClaims(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageRetryEntity> rows, CancellationToken cancellationToken)
+    public async Task InsertMissingRetryClaims(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageRetryEntity> rows, CancellationToken cancellationToken = default)
     {
         foreach (var chunk in rows.Chunk(MaxRowsPerStatement))
         {

@@ -19,7 +19,7 @@ public class BrokerThroughputCollectorHostedService(
 {
     public TimeSpan DelayStart { get; set; } = TimeSpan.FromSeconds(40);
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
         static ReadOnlyDictionary<string, string> LoadBrokerSettingValues(IEnumerable<KeyDescriptionPair> brokerKeys)
             => new(brokerKeys.Select(pair => KeyValuePair.Create(pair.Key, SettingsReader.Read<string>(ThroughputSettings.SettingsNamespace, pair.Key)))
@@ -37,7 +37,7 @@ public class BrokerThroughputCollectorHostedService(
 
         try
         {
-            await Task.Delay(DelayStart, stoppingToken);
+            await Task.Delay(DelayStart, cancellationToken);
 
             using PeriodicTimer timer = new(TimeSpan.FromDays(1), timeProvider);
 
@@ -45,28 +45,32 @@ public class BrokerThroughputCollectorHostedService(
             {
                 try
                 {
-                    await GatherThroughput(stoppingToken);
+                    await GatherThroughput(cancellationToken);
                 }
-                catch (Exception ex) when (ex is not OperationCanceledException)
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception ex)
                 {
                     logger.LogError(ex, "Failed to gather throughput from broker");
                 }
-            } while (await timer.WaitForNextTickAsync(stoppingToken));
+            } while (await timer.WaitForNextTickAsync(cancellationToken));
         }
-        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             logger.LogInformation("Stopping {ServiceName}", nameof(BrokerThroughputCollectorHostedService));
         }
     }
 
-    async Task GatherThroughput(CancellationToken stoppingToken)
+    async Task GatherThroughput(CancellationToken cancellationToken)
     {
         logger.LogInformation("Gathering throughput from broker");
 
         var waitingTasks = new List<Task>();
         var postfixGenerator = new PostfixGenerator();
 
-        await foreach (var queueName in brokerThroughputQuery.GetQueueNames(stoppingToken))
+        await foreach (var queueName in brokerThroughputQuery.GetQueueNames(cancellationToken))
         {
             if (PlatformEndpointHelper.IsPlatformEndpoint(queueName.SanitizedName, throughputSettings))
             {
@@ -78,13 +82,13 @@ public class BrokerThroughputCollectorHostedService(
         }
 
         await Task.WhenAll(waitingTasks);
-        await dataStore.SaveBrokerMetadata(new BrokerMetadata(brokerThroughputQuery.ScopeType, brokerThroughputQuery.Data), stoppingToken);
+        await dataStore.SaveBrokerMetadata(new BrokerMetadata(brokerThroughputQuery.ScopeType, brokerThroughputQuery.Data), cancellationToken);
         return;
 
         async Task Exec(IBrokerQueue queueName, string postfix)
         {
             var endpointId = new EndpointIdentifier(queueName.QueueName, ThroughputSource.Broker);
-            var endpoint = await dataStore.GetEndpoint(endpointId, stoppingToken);
+            var endpoint = await dataStore.GetEndpoint(endpointId, cancellationToken);
 
             if (endpoint == null)
             {
@@ -95,14 +99,18 @@ public class BrokerThroughputCollectorHostedService(
                     EndpointIndicators = [.. queueName.EndpointIndicators]
                 };
 
-                await dataStore.SaveEndpoint(endpoint, stoppingToken);
+                await dataStore.SaveEndpoint(endpoint, cancellationToken);
             }
 
-            await foreach (var queueThroughput in brokerThroughputQuery.GetThroughputPerDay(queueName, endpoint.LastCollectedDate.AddDays(1), stoppingToken))
+            await foreach (var queueThroughput in brokerThroughputQuery.GetThroughputPerDay(queueName, endpoint.LastCollectedDate.AddDays(1), cancellationToken))
             {
                 try
                 {
-                    await dataStore.RecordEndpointThroughput(queueName.QueueName, ThroughputSource.Broker, queueThroughput.DateUTC, queueThroughput.TotalThroughput, stoppingToken);
+                    await dataStore.RecordEndpointThroughput(queueName.QueueName, ThroughputSource.Broker, queueThroughput.DateUTC, queueThroughput.TotalThroughput, cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
                 }
                 catch (Exception e)
                 {

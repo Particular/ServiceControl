@@ -3,9 +3,10 @@
 # Justification: Usage is from test projects
 dotnet_diagnostic.CA2007.severity = none
 
-# Cancellation analyzer debt. These fire because Particular.Analyzers is no longer pinned to 0.9.0.
-# They are scheduled work, not accepted exceptions: remove a line once this project has no
-# violations of that rule left, and never add a rule back to this list.
+# These types sit on NServiceBus.AcceptanceTesting's extension points, which drive them without a
+# CancellationToken: IEndpointSetupTemplate, IComponentBehavior/ComponentRunner, and the scenario
+# Done/When callbacks whose delegate shapes the framework fixes. A token added here could only ever
+# be CancellationToken.None. Everything else in this project takes and forwards one.
+[{EndpointTemplates/*.cs,InfrastructureConfig/*.cs,ScenarioWithEndpointBehaviorExtensions.cs,Sequence.cs,DispatchRawMessages.cs}]
 dotnet_diagnostic.PS0013.severity = none
 dotnet_diagnostic.PS0018.severity = none
-dotnet_diagnostic.PS0019.severity = none

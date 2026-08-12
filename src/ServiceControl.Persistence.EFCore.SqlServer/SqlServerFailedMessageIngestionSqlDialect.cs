@@ -12,7 +12,7 @@ using Infrastructure;
 // statement texts down to a few reusable shapes.
 class SqlServerFailedMessageIngestionSqlDialect : SqlServerDialect, IFailedMessageIngestionSqlDialect
 {
-    public async Task UpsertFailedMessages(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageEntity> rows, CancellationToken cancellationToken)
+    public async Task UpsertFailedMessages(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageEntity> rows, CancellationToken cancellationToken = default)
     {
         var maxRowsPerStatement = MaxRowsPerStatement(FailedMessageColumns.Length);
         foreach (var chunk in rows.Chunk(maxRowsPerStatement))
@@ -34,7 +34,7 @@ class SqlServerFailedMessageIngestionSqlDialect : SqlServerDialect, IFailedMessa
         }
     }
 
-    public async Task InsertGroups(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageGroupEntity> rows, CancellationToken cancellationToken)
+    public async Task InsertGroups(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageGroupEntity> rows, CancellationToken cancellationToken = default)
     {
         var maxRowsPerStatement = MaxRowsPerStatement(4);
         foreach (var chunk in rows.Chunk(maxRowsPerStatement))
@@ -55,7 +55,7 @@ class SqlServerFailedMessageIngestionSqlDialect : SqlServerDialect, IFailedMessa
         }
     }
 
-    public async Task InsertMissingKnownEndpoints(ServiceControlDbContext dbContext, IReadOnlyList<KnownEndpointEntity> rows, CancellationToken cancellationToken)
+    public async Task InsertMissingKnownEndpoints(ServiceControlDbContext dbContext, IReadOnlyList<KnownEndpointEntity> rows, CancellationToken cancellationToken = default)
     {
         var maxRowsPerStatement = MaxRowsPerStatement(5);
         foreach (var chunk in rows.Chunk(maxRowsPerStatement))

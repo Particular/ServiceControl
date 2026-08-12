@@ -2,6 +2,7 @@ namespace ServiceControl.AcceptanceTesting.ForwardedHeaders
 {
     using System.Net.Http;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using NUnit.Framework;
 
@@ -20,7 +21,8 @@ namespace ServiceControl.AcceptanceTesting.ForwardedHeaders
             string xForwardedFor = null,
             string xForwardedProto = null,
             string xForwardedHost = null,
-            string testRemoteIp = null)
+            string testRemoteIp = null,
+            CancellationToken cancellationToken = default)
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, "/debug/request-info");
 
@@ -41,10 +43,10 @@ namespace ServiceControl.AcceptanceTesting.ForwardedHeaders
                 request.Headers.Add(TestRemoteIpMiddleware.HeaderName, testRemoteIp);
             }
 
-            var response = await httpClient.SendAsync(request);
+            var response = await httpClient.SendAsync(request, cancellationToken);
             _ = response.EnsureSuccessStatusCode();
 
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
             return JsonSerializer.Deserialize<RequestInfoResponse>(content, serializerOptions);
         }
 

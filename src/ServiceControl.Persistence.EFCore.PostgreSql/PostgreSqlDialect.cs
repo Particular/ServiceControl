@@ -7,7 +7,7 @@ using ServiceControl.Persistence.EFCore.DbContexts;
 
 abstract class PostgreSqlDialect
 {
-    protected static async Task Execute(ServiceControlDbContext dbContext, string sql, IEnumerable<object?[]> rows, CancellationToken cancellationToken)
+    protected static async Task Execute(ServiceControlDbContext dbContext, string sql, IEnumerable<object?[]> rows, CancellationToken cancellationToken = default)
     {
         await using var command = dbContext.Database.GetDbConnection().CreateCommand();
         command.Transaction = (dbContext.Database.CurrentTransaction
