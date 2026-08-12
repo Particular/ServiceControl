@@ -65,6 +65,9 @@
     <!-- The EF custom-check query does not provide an ETag. -->
     <Compile Remove="..\ServiceControl.AcceptanceTests\WebApi\When_a_request_is_repeated_with_its_etag.cs" />
 
+    <!-- The PostgreSQL event-log query does not provide an ETag. -->
+    <Compile Remove="..\ServiceControl.AcceptanceTests\EventLogs\When_the_event_log_is_polled_with_an_etag.cs" />
+
     <!-- The EF DateTime round trip changes the offset expected by this scenario. -->
     <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\MessageFailures\When_ingesting_failed_message_with_missing_headers.cs" />
   </ItemGroup>
