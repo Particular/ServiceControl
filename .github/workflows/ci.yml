@@ -19,7 +19,7 @@ jobs:
       matrix:
         os: [windows-latest, ubuntu-latest]
         # Categories are declared by the <TestCategory> property in each test project.
-        test-category: [ DefaultCore, DefaultAudit, DefaultMonitoring, SqlServer, SqlServerPersistence, AzureServiceBus, RabbitMQClassicConventional, RabbitMQClassicDirect, RabbitMQQuorumConventional, RabbitMQQuorumDirect, AzureStorageQueues, MSMQ, SQS, PrimaryRavenAcceptance, PrimaryRavenPersistence, PostgreSql, PostgreSqlPersistence, IBMMQ ]
+        test-category: [ DefaultCore, DefaultAudit, DefaultMonitoring, SqlServer, SqlServerPersistence, AzureServiceBus, RabbitMQClassicConventional, RabbitMQClassicDirect, RabbitMQQuorumConventional, RabbitMQQuorumDirect, AzureStorageQueues, MSMQ, SQS, PrimaryRavenAcceptance, PrimarySqlServerAcceptance, PrimaryPostgreSqlAcceptance, PrimaryRavenPersistence, PostgreSql, PostgreSqlPersistence, IBMMQ ]
         include:
           - os: windows-latest
             os-name: Windows
@@ -56,7 +56,7 @@ jobs:
       # run in on Windows. A no-op on Linux, but still run there so those actions see the same
       # environment variables on both runners.
       - name: Setup WSL
-        if: startsWith(matrix.test-category, 'RabbitMQ') || contains(fromJSON('["SqlServer", "SqlServerPersistence", "PostgreSql", "PostgreSqlPersistence", "IBMMQ"]'), matrix.test-category)
+        if: startsWith(matrix.test-category, 'RabbitMQ') || contains(fromJSON('["SqlServer", "SqlServerPersistence", "PrimarySqlServerAcceptance", "PostgreSql", "PostgreSqlPersistence", "PrimaryPostgreSqlAcceptance", "IBMMQ"]'), matrix.test-category)
         uses: Particular/setup-wsl-action@v1.2.0
         with:
           # The action defaults to 4GB. The runner has 16GB and the build runs concurrently with the
@@ -88,7 +88,7 @@ jobs:
           catalog: nservicebus
       - name: Setup SQL Server persistence
         uses: Particular/install-sql-server-action@v3.0.0
-        if: matrix.test-category == 'SqlServerPersistence'
+        if: matrix.test-category == 'SqlServerPersistence' || matrix.test-category == 'PrimarySqlServerAcceptance'
         with:
           connection-string-env-var: ServiceControl_Persistence_SqlServer_ConnectionString
           catalog: ServiceControl
@@ -102,7 +102,7 @@ jobs:
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Setup PostgreSQL persistence
         uses: Particular/setup-postgres-action@v3.0.0
-        if: matrix.test-category == 'PostgreSqlPersistence'
+        if: matrix.test-category == 'PostgreSqlPersistence' || matrix.test-category == 'PrimaryPostgreSqlAcceptance'
         with:
           connection-string-name: ServiceControl_Persistence_PostgreSql_ConnectionString
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}

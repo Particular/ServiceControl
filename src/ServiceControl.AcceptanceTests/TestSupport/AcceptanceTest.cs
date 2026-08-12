@@ -14,7 +14,6 @@ namespace ServiceControl.AcceptanceTests
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NUnit.Framework;
-    using RavenDB;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.AcceptanceTesting.InfrastructureConfig;
     using TestSupport;
@@ -95,7 +94,7 @@ namespace ServiceControl.AcceptanceTests
         protected Action<Settings> SetSettings = _ => { };
         protected Action<IHostApplicationBuilder> CustomizeHostBuilder = _ => { };
         protected ITransportIntegration TransportIntegration;
-        protected AcceptanceTestStorageConfiguration StorageConfiguration;
+        protected IAcceptanceTestStorageConfiguration StorageConfiguration;
 
         ServiceControlComponentBehavior serviceControlRunnerBehavior;
         TextWriterTraceListener textWriterTraceListener;

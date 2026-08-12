@@ -5,18 +5,19 @@ using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using ServiceBus.Management.Infrastructure.Settings;
+using ServiceControl.AcceptanceTests.TestSupport;
 using ServiceControl.Persistence.Tests;
 using ServiceControl.RavenDB;
 
-public class AcceptanceTestStorageConfiguration
+public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfiguration
 {
     public string PersistenceType { get; } = "RavenDB";
 
 
-    public async Task CustomizeSettings(Settings settings)
+    public async Task CustomizeSettings(Settings settings, CancellationToken cancellationToken = default)
     {
         databaseName = Guid.NewGuid().ToString("n");
-        databaseInstance = await SharedEmbeddedServer.GetInstance();
+        databaseInstance = await SharedEmbeddedServer.GetInstance(cancellationToken);
 
         settings.PersisterSpecificSettings = new RavenPersisterSettings
         {
@@ -26,13 +27,13 @@ public class AcceptanceTestStorageConfiguration
         };
     }
 
-    public async Task Cleanup()
+    public async Task Cleanup(CancellationToken cancellationToken = default)
     {
         if (databaseInstance == null)
         {
             return;
         }
-        using var _ = await UseDatabaseLifecycleLock();
+        using var _ = await UseDatabaseLifecycleLock(cancellationToken);
         await databaseInstance.DeleteDatabase(databaseName);
     }
 
@@ -40,7 +41,7 @@ public class AcceptanceTestStorageConfiguration
     /// The shared server cannot perform database lifecycle operations in parallel, take this lock when you
     /// need to do one of these operations in a test.
     /// </summary>
-    public static async Task<IDisposable> UseDatabaseLifecycleLock(CancellationToken cancellationToken = default)
+    public async Task<IDisposable> UseDatabaseLifecycleLock(CancellationToken cancellationToken = default)
     {
         await databaseLifecycleLock.WaitAsync(cancellationToken);
         return Disposable.Create(() => databaseLifecycleLock.Release());

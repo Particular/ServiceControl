@@ -26,15 +26,13 @@
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
     using Persistence.Tests;
-    using RavenDB;
-    using RavenDB.Shared;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
     using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
     public class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostApplicationBuilder> hostBuilderCustomization)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, IAcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostApplicationBuilder> hostBuilderCustomization)
         {
             this.transportToUse = transportToUse;
             this.persistenceToUse = persistenceToUse;
@@ -51,7 +49,7 @@
 
         public async Task Initialize(RunDescriptor run)
         {
-            using var _ = await AcceptanceTestStorageConfiguration.UseDatabaseLifecycleLock();
+            using var _ = await persistenceToUse.UseDatabaseLifecycleLock();
             await InitializeServiceControlCore(run.ScenarioContext);
         }
 
@@ -162,13 +160,13 @@
                 await host.StopAsync(cancellationToken);
                 HttpClient.Dispose();
                 await host.DisposeAsync();
-                await persistenceToUse.Cleanup();
+                await persistenceToUse.Cleanup(cancellationToken);
             }
         }
 
         WebApplication host;
         readonly ITransportIntegration transportToUse;
-        readonly AcceptanceTestStorageConfiguration persistenceToUse;
+        readonly IAcceptanceTestStorageConfiguration persistenceToUse;
         readonly Action<Settings> setSettings;
         readonly Action<EndpointConfiguration> customConfiguration;
         readonly Action<IHostApplicationBuilder> hostBuilderCustomization;
