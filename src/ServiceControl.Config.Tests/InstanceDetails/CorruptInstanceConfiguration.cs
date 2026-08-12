@@ -253,6 +253,7 @@ namespace ServiceControl.Config.Tests.InstanceDetails
                 {
                     EventAggregator = new EventAggregator()
                 };
+                await ((IActivate)list).ActivateAsync(TestContext.CurrentContext.CancellationToken);
                 Assert.That(list.HasConfigurationErrors, Is.True, "Precondition: the list starts out with a corrupt instance");
 
                 // The operator fixes the file, then triggers the refresh the UI uses
@@ -294,12 +295,12 @@ namespace ServiceControl.Config.Tests.InstanceDetails
         public class Rule_5_Must_summarize_configuration_errors_above_the_instance_list : CorruptInstanceConfigurationFixture
         {
             [Test]
-            public void The_one_where_a_single_instance_is_corrupt_and_the_banner_names_it()
+            public async Task The_one_where_a_single_instance_is_corrupt_and_the_banner_names_it()
             {
                 WriteErrorInstanceConfig(CorruptXml);
                 WriteAuditInstanceConfig(ValidAuditInstanceXml);
 
-                var list = ListFor(LoadErrorInstance(), LoadAuditInstance("Particular.ServiceControl.Audit"));
+                var list = await ListFor(LoadErrorInstance(), LoadAuditInstance("Particular.ServiceControl.Audit"));
 
                 using (Assert.EnterMultipleScope())
                 {
@@ -310,23 +311,23 @@ namespace ServiceControl.Config.Tests.InstanceDetails
             }
 
             [Test]
-            public void The_one_where_multiple_instances_are_corrupt_and_the_banner_lists_all_of_them()
+            public async Task The_one_where_multiple_instances_are_corrupt_and_the_banner_lists_all_of_them()
             {
                 WriteErrorInstanceConfig(CorruptXml);
                 WriteAuditInstanceConfig(CorruptXml);
 
-                var list = ListFor(LoadErrorInstance(), LoadAuditInstance("Particular.ServiceControl.Audit"));
+                var list = await ListFor(LoadErrorInstance(), LoadAuditInstance("Particular.ServiceControl.Audit"));
 
                 Assert.That(list.ConfigurationErrorMessage,
                     Is.EqualTo("Multiple instances (Particular.ServiceControl, Particular.ServiceControl.Audit) cannot be loaded due to XML configuration errors."));
             }
 
             [Test]
-            public void The_one_where_all_configurations_are_valid_and_no_banner_is_shown()
+            public async Task The_one_where_all_configurations_are_valid_and_no_banner_is_shown()
             {
                 WriteErrorInstanceConfig(ValidErrorInstanceXml);
 
-                var list = ListFor(LoadErrorInstance());
+                var list = await ListFor(LoadErrorInstance());
 
                 using (Assert.EnterMultipleScope())
                 {
@@ -400,8 +401,15 @@ namespace ServiceControl.Config.Tests.InstanceDetails
         internal static InstanceDetailsViewModel DetailsFor(BaseService instance) =>
             new(instance, null, null, null, null, null, null, null, null);
 
-        internal static ListInstancesViewModel ListFor(params BaseService[] instances) =>
-            new(DetailsFor, () => instances);
+        // The list populates in OnInitialize, so it has to be activated before it has anything in it
+#pragma warning disable PS0018 // A params array must be the last parameter, so a trailing CancellationToken cannot be added
+        internal static async Task<ListInstancesViewModel> ListFor(params BaseService[] instances)
+#pragma warning restore PS0018
+        {
+            var list = new ListInstancesViewModel(DetailsFor, () => instances);
+            await ((IActivate)list).ActivateAsync(TestContext.CurrentContext.CancellationToken);
+            return list;
+        }
 
         class FakeWindowsServiceController(string exePath, string serviceName) : IWindowsServiceController
         {
