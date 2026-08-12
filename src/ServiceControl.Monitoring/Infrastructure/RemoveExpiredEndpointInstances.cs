@@ -17,7 +17,7 @@ public class RemoveExpiredEndpointInstances(
 {
     const int IntervalInMinutes = 5;
 
-    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
         logger.LogInformation($"Starting {nameof(RemoveExpiredEndpointInstances)}");
 

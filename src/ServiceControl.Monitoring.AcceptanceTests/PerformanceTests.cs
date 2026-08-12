@@ -64,9 +64,9 @@
             var reporters =
                 new[]
                 {
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => criticalTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => processingTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName)))
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, (e, i) => criticalTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName)), source.Token),
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, (e, i) => processingTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName)), source.Token),
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, (e, i) => retriesStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName)), source.Token)
                 }.SelectMany(i => i).ToArray();
 
             var histogram = CreateTimeHistogram();
@@ -123,9 +123,9 @@
             var reporters =
                 new[]
                 {
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => criticalTimeStore.Store(e, i, getter())),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => processingTimeStore.Store(e, i, getter())),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, getter()))
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, (e, i) => criticalTimeStore.Store(e, i, getter()), source.Token),
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, (e, i) => processingTimeStore.Store(e, i, getter()), source.Token),
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, (e, i) => retriesStore.Store(e, i, getter()), source.Token)
                 }.SelectMany(i => i).ToArray();
 
             var histogram = CreateTimeHistogram();
@@ -149,21 +149,21 @@
             Report("Reporters", reportFinalHistogram, TimeSpan.FromMilliseconds(20));
         }
 
-        static IEnumerable<Task<LongHistogram>> BuildReporters(int sendReportEvery, int numberOfEntriesInReport, EndpointInstanceId[] instances, CancellationTokenSource source, Action<RawMessage.Entry[], EndpointInstanceId> store)
+        static IEnumerable<Task<LongHistogram>> BuildReporters(int sendReportEvery, int numberOfEntriesInReport, EndpointInstanceId[] instances, Action<RawMessage.Entry[], EndpointInstanceId> store, CancellationToken cancellationToken)
         {
             return instances
-                .Select(instance => StartReporter(sendReportEvery, numberOfEntriesInReport, source, instance, store))
+                .Select(instance => StartReporter(sendReportEvery, numberOfEntriesInReport, instance, store, cancellationToken))
                 .ToArray();
         }
 
-        static Task<LongHistogram> StartReporter(int sendReportEvery, int numberOfEntriesInReport, CancellationTokenSource source, EndpointInstanceId instance, Action<RawMessage.Entry[], EndpointInstanceId> store)
+        static Task<LongHistogram> StartReporter(int sendReportEvery, int numberOfEntriesInReport, EndpointInstanceId instance, Action<RawMessage.Entry[], EndpointInstanceId> store, CancellationToken cancellationToken)
         {
             return Task.Run(async () =>
             {
                 var entries = new RawMessage.Entry[numberOfEntriesInReport];
                 var histogram = CreateTimeHistogram();
 
-                while (source.IsCancellationRequested == false)
+                while (cancellationToken.IsCancellationRequested == false)
                 {
                     var now = DateTime.UtcNow;
 
@@ -178,7 +178,9 @@
                     var elapsed = Stopwatch.GetTimestamp() - start;
                     histogram.RecordValue(elapsed);
 
-                    await Task.Delay(sendReportEvery);
+                    // Not cancelled: the loop exits on the next check and the task has to complete
+                    // normally, because MergeHistograms reads the histogram it returns.
+                    await Task.Delay(sendReportEvery, CancellationToken.None);
                 }
 
                 return histogram;
@@ -247,8 +249,8 @@
         {
         }
 
-        public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task StartAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
-        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task StopAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 }

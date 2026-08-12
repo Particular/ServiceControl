@@ -13,7 +13,7 @@
 
     class ReportThroughputHostedService(ILogger<ReportThroughputHostedService> logger, IMessageSession session, IEndpointMetricsApi endpointMetricsApi, Settings settings, TimeProvider timeProvider, ITransportCustomization transportCustomization) : BackgroundService
     {
-        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+        protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
         {
             logger.LogInformation($"Starting {nameof(ReportThroughputHostedService)}");
 
@@ -29,7 +29,10 @@
                     {
                         await ReportOnThroughput(serviceControlThroughputDataQueue, cancellationToken);
                     }
+#pragma warning disable PS0019 // The filter already excludes OperationCanceledException, so cancellation
+                    // is left to the outer handler.
                     catch (Exception ex) when (ex is not OperationCanceledException)
+#pragma warning restore PS0019
                     {
                         if (ex.InnerException is not null and QueueNotFoundException)
                         {
