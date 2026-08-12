@@ -21,7 +21,7 @@
         public async Task<ActionResult<IList<EventLogItemView>>> Items([FromQuery] PagingInfo pagingInfo, CancellationToken cancellationToken = default)
         {
             // Passing knownVersion lets the persister skip work it would otherwise waste
-            var result = await logDataStore.GetEventLogItems(pagingInfo, Request.GetKnownVersion());
+            var result = await logDataStore.GetEventLogItems(pagingInfo, Request.GetKnownVersion(), cancellationToken);
 
             Response.WithPagingLinksAndTotalCount(pagingInfo, result.QueryStats.TotalCount);
             Response.WithEtag(result.QueryStats.ETag);

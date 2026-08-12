@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands;
@@ -13,13 +14,13 @@
 
     class RavenCustomCheckDataStore(IRavenSessionProvider sessionProvider) : ICustomChecksDataStore
     {
-        public async Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail)
+        public async Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail, CancellationToken cancellationToken = default)
         {
             var status = CheckStateChange.Unchanged;
             var id = MakeId(detail.GetDeterministicId());
 
-            using var session = await sessionProvider.OpenSession();
-            var customCheck = await session.LoadAsync<CustomCheck>(id);
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var customCheck = await session.LoadAsync<CustomCheck>(id, cancellationToken);
 
             if (customCheck == null ||
                 (customCheck.Status == Status.Fail && !detail.HasFailed) ||
@@ -36,17 +37,17 @@
             customCheck.ReportedAt = detail.ReportedAt;
             customCheck.FailureReason = detail.FailureReason;
             customCheck.OriginatingEndpoint = detail.OriginatingEndpoint;
-            await session.StoreAsync(customCheck);
-            await session.SaveChangesAsync();
+            await session.StoreAsync(customCheck, cancellationToken);
+            await session.SaveChangesAsync(cancellationToken);
 
             return status;
         }
 
         static string MakeId(Guid id) => $"CustomChecks/{id}";
 
-        public async Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string status = null)
+        public async Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string status = null, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var query =
                 session.Query<CustomCheck, CustomChecksIndex>().Statistics(out var stats);
 
@@ -54,22 +55,22 @@
 
             var results = await query
                 .Paging(paging)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return new QueryResult<IList<CustomCheck>>(results, new QueryStatsInfo($"{stats.ResultEtag}", stats.TotalResults, stats.IsStale));
         }
 
-        public async Task DeleteCustomCheck(Guid id)
+        public async Task DeleteCustomCheck(Guid id, CancellationToken cancellationToken = default)
         {
             var documentId = MakeId(id);
-            using var session = await sessionProvider.OpenSession(new SessionOptions { NoTracking = true, NoCaching = true });
-            await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(documentId, null), session.Advanced.Context);
+            using var session = await sessionProvider.OpenSession(new SessionOptions { NoTracking = true, NoCaching = true }, cancellationToken);
+            await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(documentId, null), session.Advanced.Context, token: cancellationToken);
         }
 
-        public async Task<int> GetNumberOfFailedChecks()
+        public async Task<int> GetNumberOfFailedChecks(CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
-            var failedCustomCheckCount = await session.Query<CustomCheck, CustomChecksIndex>().CountAsync(p => p.Status == Status.Fail);
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var failedCustomCheckCount = await session.Query<CustomCheck, CustomChecksIndex>().CountAsync(p => p.Status == Status.Fail, cancellationToken);
 
             return failedCustomCheckCount;
         }

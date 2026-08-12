@@ -33,7 +33,7 @@ public class MessageArchiver : IArchiveMessages
         unarchivingManager = new EFCoreUnarchivingManager(domainEvents, operationsManager);
     }
 
-    public async Task ArchiveAllInGroup(string groupId, AuditUser? initiatedBy = null, string? operationId = null)
+    public async Task ArchiveAllInGroup(string groupId, AuditUser? initiatedBy = null, string? operationId = null, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Archiving of {GroupId} started", groupId);
 
@@ -45,7 +45,7 @@ public class MessageArchiver : IArchiveMessages
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
 
-            operationEntity = await GetOrCreateOperation(dbContext, groupId, ArchiveOperationType.Archive, initiatedBy, operationId);
+            operationEntity = await GetOrCreateOperation(dbContext, groupId, ArchiveOperationType.Archive, initiatedBy, operationId, cancellationToken);
             if (operationEntity == null)
             {
                 return;
@@ -57,7 +57,7 @@ public class MessageArchiver : IArchiveMessages
         }
 
         // ── Start in-memory tracking ──
-        await archivingManager.StartArchiving(operationEntity);
+        await archivingManager.StartArchiving(operationEntity, cancellationToken);
         // ── Batch loop ──
         string[] batchIds;
         do
@@ -65,19 +65,19 @@ public class MessageArchiver : IArchiveMessages
             await using var batchScope = scopeFactory.CreateAsyncScope();
             var batchDbContext = batchScope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
 
-            operationEntity = await batchDbContext.ArchiveOperations.FindAsync(groupId, ArchiveType.FailureGroup, ArchiveOperationType.Archive)
+            operationEntity = await batchDbContext.ArchiveOperations.FindAsync([groupId, ArchiveType.FailureGroup, ArchiveOperationType.Archive], cancellationToken)
                               ?? throw new InvalidOperationException($"No in progress Archive Operation found for {groupId}");
 
-            batchIds = await UpdateGroupStatusAsync(batchDbContext, groupId, FailedMessageStatus.Unresolved, FailedMessageStatus.Archived, batchSize);
-            await archivingManager.BatchArchived(groupId, ArchiveType.FailureGroup, batchIds.Length);
+            batchIds = await UpdateGroupStatusAsync(batchDbContext, groupId, FailedMessageStatus.Unresolved, FailedMessageStatus.Archived, batchSize, cancellationToken);
+            await archivingManager.BatchArchived(groupId, ArchiveType.FailureGroup, batchIds.Length, cancellationToken);
 
             // Update progress tracking
             operationEntity.CurrentBatch++;
             operationEntity.NumberOfMessagesProcessed += batchIds.Length;
-            await batchDbContext.SaveChangesAsync();
+            await batchDbContext.SaveChangesAsync(cancellationToken);
 
             // Raise batch domain event
-            await domainEvents.Raise(new FailedMessageGroupBatchArchived { FailedMessagesIds = batchIds });
+            await domainEvents.Raise(new FailedMessageGroupBatchArchived { FailedMessagesIds = batchIds }, cancellationToken);
 
             // Per-message audit
             AuditArchivedMessages(MessageActionKind.Archive, Permissions.ErrorRecoverabilityGroupsArchive, auditUser, auditOperationId, batchIds);
@@ -87,8 +87,8 @@ public class MessageArchiver : IArchiveMessages
 
         // ── Finalize ──
         logger.LogInformation("Archiving of group {GroupId} is complete", groupId);
-        await archivingManager.ArchiveOperationFinalizing(groupId, ArchiveType.FailureGroup);
-        await archivingManager.ArchiveOperationCompleted(groupId, ArchiveType.FailureGroup);
+        await archivingManager.ArchiveOperationFinalizing(groupId, ArchiveType.FailureGroup, cancellationToken);
+        await archivingManager.ArchiveOperationCompleted(groupId, ArchiveType.FailureGroup, cancellationToken);
 
         // Delete the operation row
         await using (var finalizeScope = scopeFactory.CreateAsyncScope())
@@ -99,7 +99,7 @@ public class MessageArchiver : IArchiveMessages
                     o.ArchiveType == operationEntity.ArchiveType
                     && o.RequestId == operationEntity.RequestId
                     && o.OperationType == operationEntity.OperationType)
-                .ExecuteDeleteAsync();
+                .ExecuteDeleteAsync(cancellationToken);
         }
 
         await domainEvents.Raise(new FailedMessageGroupArchived
@@ -107,12 +107,12 @@ public class MessageArchiver : IArchiveMessages
             GroupId = groupId,
             GroupName = operationEntity.GroupName,
             MessagesCount = operationEntity.TotalNumberOfMessages
-        });
+        }, cancellationToken);
 
         logger.LogInformation("Archiving of group {GroupId} completed", groupId);
     }
 
-    public async Task UnarchiveAllInGroup(string groupId, AuditUser? initiatedBy = null, string? operationId = null)
+    public async Task UnarchiveAllInGroup(string groupId, AuditUser? initiatedBy = null, string? operationId = null, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Unarchiving of {GroupId} started", groupId);
 
@@ -125,7 +125,7 @@ public class MessageArchiver : IArchiveMessages
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
 
-            operationEntity = await GetOrCreateOperation(dbContext, groupId, ArchiveOperationType.UnArchive, initiatedBy, operationId);
+            operationEntity = await GetOrCreateOperation(dbContext, groupId, ArchiveOperationType.UnArchive, initiatedBy, operationId, cancellationToken);
             if (operationEntity == null)
             {
                 return;
@@ -136,26 +136,26 @@ public class MessageArchiver : IArchiveMessages
             auditOperationId = operationEntity.OperationId;
         }
 
-        await unarchivingManager.StartUnarchiving(operationEntity);
+        await unarchivingManager.StartUnarchiving(operationEntity, cancellationToken);
         string[] batchIds;
         do
         {
             await using var batchScope = scopeFactory.CreateAsyncScope();
             var batchDbContext = batchScope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
-            operationEntity = await batchDbContext.ArchiveOperations.FindAsync(groupId, ArchiveType.FailureGroup, ArchiveOperationType.UnArchive)
+            operationEntity = await batchDbContext.ArchiveOperations.FindAsync([groupId, ArchiveType.FailureGroup, ArchiveOperationType.UnArchive], cancellationToken)
                               ?? throw new InvalidOperationException($"No in progress Unarchive Operation found for {groupId}");
 
-            batchIds = await UpdateGroupStatusAsync(batchDbContext, groupId, FailedMessageStatus.Archived, FailedMessageStatus.Unresolved, batchSize);
+            batchIds = await UpdateGroupStatusAsync(batchDbContext, groupId, FailedMessageStatus.Archived, FailedMessageStatus.Unresolved, batchSize, cancellationToken);
 
-            await unarchivingManager.BatchUnarchived(groupId, ArchiveType.FailureGroup, batchIds.Length);
+            await unarchivingManager.BatchUnarchived(groupId, ArchiveType.FailureGroup, batchIds.Length, cancellationToken);
 
             // Update progress tracking
             operationEntity.CurrentBatch++;
             operationEntity.NumberOfMessagesProcessed += batchIds.Length;
-            await batchDbContext.SaveChangesAsync();
+            await batchDbContext.SaveChangesAsync(cancellationToken);
 
             // Raise batch domain event
-            await domainEvents.Raise(new FailedMessageGroupBatchUnarchived { FailedMessagesIds = batchIds });
+            await domainEvents.Raise(new FailedMessageGroupBatchUnarchived { FailedMessagesIds = batchIds }, cancellationToken);
 
             // Per-message audit
             AuditArchivedMessages(MessageActionKind.Unarchive, Permissions.ErrorRecoverabilityGroupsUnarchive, auditUser, auditOperationId, batchIds);
@@ -165,8 +165,8 @@ public class MessageArchiver : IArchiveMessages
 
         // ── Finalize ──
         logger.LogInformation("Unarchiving of group {GroupId} is complete", groupId);
-        await unarchivingManager.UnarchiveOperationFinalizing(groupId, ArchiveType.FailureGroup);
-        await unarchivingManager.UnarchiveOperationCompleted(groupId, ArchiveType.FailureGroup);
+        await unarchivingManager.UnarchiveOperationFinalizing(groupId, ArchiveType.FailureGroup, cancellationToken);
+        await unarchivingManager.UnarchiveOperationCompleted(groupId, ArchiveType.FailureGroup, cancellationToken);
 
         // Delete the operation row
         await using (var finalizeScope = scopeFactory.CreateAsyncScope())
@@ -177,7 +177,7 @@ public class MessageArchiver : IArchiveMessages
                     o.ArchiveType == operationEntity.ArchiveType
                     && o.RequestId == operationEntity.RequestId
                     && o.OperationType == operationEntity.OperationType)
-                .ExecuteDeleteAsync();
+                .ExecuteDeleteAsync(cancellationToken);
         }
 
         await domainEvents.Raise(new FailedMessageGroupUnarchived
@@ -185,7 +185,7 @@ public class MessageArchiver : IArchiveMessages
             GroupId = groupId,
             GroupName = operationEntity.GroupName,
             MessagesCount = operationEntity.TotalNumberOfMessages
-        });
+        }, cancellationToken);
 
         logger.LogInformation("Unarchiving of group {GroupId} completed", groupId);
     }
@@ -199,18 +199,18 @@ public class MessageArchiver : IArchiveMessages
     public void DismissArchiveOperation(string groupId, ArchiveType archiveType)
         => archivingManager.DismissArchiveOperation(groupId, archiveType);
 
-    public Task StartArchiving(string groupId, ArchiveType archiveType)
-        => archivingManager.StartArchiving(groupId, archiveType);
+    public Task StartArchiving(string groupId, ArchiveType archiveType, CancellationToken cancellationToken = default)
+        => archivingManager.StartArchiving(groupId, archiveType, cancellationToken);
 
-    public Task StartUnarchiving(string groupId, ArchiveType archiveType)
-        => unarchivingManager.StartUnarchiving(groupId, archiveType);
+    public Task StartUnarchiving(string groupId, ArchiveType archiveType, CancellationToken cancellationToken = default)
+        => unarchivingManager.StartUnarchiving(groupId, archiveType, cancellationToken);
 
     public IEnumerable<InMemoryArchive> GetArchivalOperations()
         => archivingManager.GetArchivalOperations();
 
-    async Task<ArchiveOperationEntity?> GetOrCreateOperation(ServiceControlDbContext dbContext, string groupId, ArchiveOperationType operation, AuditUser? initiatedBy, string? operationId)
+    async Task<ArchiveOperationEntity?> GetOrCreateOperation(ServiceControlDbContext dbContext, string groupId, ArchiveOperationType operation, AuditUser? initiatedBy, string? operationId, CancellationToken cancellationToken)
     {
-        ArchiveOperationEntity? operationEntity = await dbContext.ArchiveOperations.FindAsync(groupId, ArchiveType.FailureGroup, operation);
+        ArchiveOperationEntity? operationEntity = await dbContext.ArchiveOperations.FindAsync([groupId, ArchiveType.FailureGroup, operation], cancellationToken);
 
         if (operationEntity != null)
         {
@@ -219,7 +219,7 @@ public class MessageArchiver : IArchiveMessages
         else
         {
             var targetStatus = operation == ArchiveOperationType.Archive ? FailedMessageStatus.Unresolved : FailedMessageStatus.Archived;
-            var (count, groupName) = await GetGroupDetails(dbContext, groupId, targetStatus);
+            var (count, groupName) = await GetGroupDetails(dbContext, groupId, targetStatus, cancellationToken);
             if (count == 0)
             {
                 logger.LogWarning("No messages to {OperationType} in group {GroupId}", operation.ToString(), groupId);
@@ -246,7 +246,7 @@ public class MessageArchiver : IArchiveMessages
 
             try
             {
-                await dbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync(cancellationToken);
                 logger.LogInformation("Group {GroupId} has been split into {NumberOfBatches} batches", groupId, operationEntity.NumberOfBatches);
             }
             catch (DbUpdateException ex) when (dbContext.IsDuplicateKeyException(ex))
@@ -276,7 +276,7 @@ public class MessageArchiver : IArchiveMessages
         }
     }
 
-    async Task<string[]> UpdateGroupStatusAsync(ServiceControlDbContext dbContext, string groupId, FailedMessageStatus fromStatus, FailedMessageStatus toStatus, int batchSize, CancellationToken cancellationToken = default)
+    async Task<string[]> UpdateGroupStatusAsync(ServiceControlDbContext dbContext, string groupId, FailedMessageStatus fromStatus, FailedMessageStatus toStatus, int batchSize, CancellationToken cancellationToken)
     {
         var batchIds = await GetNextBatch(dbContext, groupId, fromStatus, batchSize)
             .Select(x => x.UniqueMessageId)
@@ -299,7 +299,7 @@ public class MessageArchiver : IArchiveMessages
     }
 
     static async Task<(int count, string groupName)> GetGroupDetails(
-        ServiceControlDbContext dbContext, string groupId, FailedMessageStatus status, CancellationToken cancellationToken = default)
+        ServiceControlDbContext dbContext, string groupId, FailedMessageStatus status, CancellationToken cancellationToken)
     {
         var query =
             from fmg in dbContext.FailedMessageGroups

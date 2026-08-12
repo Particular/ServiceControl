@@ -59,7 +59,7 @@ namespace ServiceControl.Recoverability
                 if (stagingBatch != null)
                 {
                     logger.LogInformation("Staging batch {StagingBatchId}", stagingBatch.Id);
-                    redirects = await redirectsStore.GetRedirects();
+                    redirects = await redirectsStore.GetRedirects(cancellationToken);
                     var stagedMessages = await Stage(stagingBatch, cancellationToken);
                     var skippedMessages = stagingBatch.InitialBatchSize - stagedMessages;
                     await retryingManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages, cancellationToken);

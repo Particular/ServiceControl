@@ -45,7 +45,7 @@
                 LastModified = DateTime.UtcNow
             };
 
-            var redirects = await store.GetRedirects();
+            var redirects = await store.GetRedirects(cancellationToken);
 
             var existing = redirects.FindById(messageRedirect.MessageRedirectId);
 
@@ -72,7 +72,7 @@
                 return StatusCode((int)HttpStatusCode.Conflict, dependents);
             }
 
-            await store.AddRedirect(messageRedirect);
+            await store.AddRedirect(messageRedirect, cancellationToken);
 
             await events.Raise(new MessageRedirectCreated
             {
@@ -105,7 +105,7 @@
                 return BadRequest();
             }
 
-            var redirects = await store.GetRedirects();
+            var redirects = await store.GetRedirects(cancellationToken);
 
             var messageRedirect = redirects.FindById(messageRedirectId);
 
@@ -131,7 +131,7 @@
 
             messageRedirect.LastModified = DateTime.UtcNow;
 
-            await store.UpdateRedirect(messageRedirect);
+            await store.UpdateRedirect(messageRedirect, cancellationToken);
 
             await events.Raise(messageRedirectChanged, cancellationToken);
 
@@ -143,7 +143,7 @@
         [HttpDelete]
         public async Task<IActionResult> DeleteRedirect(Guid messageRedirectId, CancellationToken cancellationToken = default)
         {
-            var redirects = await store.GetRedirects();
+            var redirects = await store.GetRedirects(cancellationToken);
 
             var messageRedirect = redirects.FindById(messageRedirectId);
 
@@ -152,7 +152,7 @@
                 return NoContent();
             }
 
-            await store.RemoveRedirect(messageRedirect);
+            await store.RemoveRedirect(messageRedirect, cancellationToken);
 
             await events.Raise(new MessageRedirectRemoved
             {
@@ -169,7 +169,7 @@
         [HttpHead]
         public async Task CountRedirects(CancellationToken cancellationToken = default)
         {
-            var redirects = await store.GetRedirects();
+            var redirects = await store.GetRedirects(cancellationToken);
 
             Response.WithDeterministicEtag(EtagHelper.CalculateEtag(redirects));
             Response.WithTotalCount(redirects.Count);
@@ -180,7 +180,7 @@
         [HttpGet]
         public async Task<IEnumerable<RedirectsQueryResult>> Redirects(string sort, string direction, [FromQuery] PagingInfo pagingInfo, CancellationToken cancellationToken = default)
         {
-            var redirects = await store.GetRedirects();
+            var redirects = await store.GetRedirects(cancellationToken);
 
             var queryResult = redirects
                 .Sort(sort, direction)

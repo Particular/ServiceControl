@@ -26,7 +26,7 @@ namespace ServiceControl.EventLog
 
             var logItem = mappings.ApplyMapping(message);
 
-            await dataStore.Add(logItem);
+            await dataStore.Add(logItem, cancellationToken);
         }
 
         readonly IEventLogDataStore dataStore;

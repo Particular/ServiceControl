@@ -19,7 +19,7 @@ namespace ServiceControl.Recoverability
 
             var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
 
-            await archiver.ArchiveAllInGroup(message.GroupId, user, operationId);
+            await archiver.ArchiveAllInGroup(message.GroupId, user, operationId, context.CancellationToken);
         }
     }
 }

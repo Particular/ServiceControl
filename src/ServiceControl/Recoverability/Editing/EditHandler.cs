@@ -59,7 +59,7 @@
                 await session.SaveChanges();
             }
 
-            var redirects = await redirectsStore.GetRedirects();
+            var redirects = await redirectsStore.GetRedirects(context.CancellationToken);
 
             var attempt = failedMessage.ProcessingAttempts.Last();
 
