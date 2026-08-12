@@ -2,6 +2,7 @@
 {
     using System;
     using System.Management.Automation;
+    using System.Threading;
     using System.Threading.Tasks;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Unattended;
@@ -172,7 +173,7 @@
             {
                 return;
             }
-            if (!checks.ValidateNewInstance(newAuditInstance).GetAwaiter().GetResult())
+            if (!checks.ValidateNewInstance([newAuditInstance]).GetAwaiter().GetResult())
             {
                 return;
             }
@@ -201,7 +202,7 @@
             }
         }
 
-        Task<bool> PromptToProceed(PathInfo pathInfo)
+        Task<bool> PromptToProceed(PathInfo pathInfo, CancellationToken cancellationToken)
         {
             if (!pathInfo.CheckIfEmpty)
             {

@@ -1,6 +1,7 @@
 namespace ServiceControl.Config.Framework.Modules
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Autofac;
     using ServiceControlInstaller.Engine.FileSystem;
@@ -43,7 +44,7 @@ namespace ServiceControl.Config.Framework.Modules
 
     public class ServiceControlInstallerBase : InstallerBase
     {
-        internal async Task<ReportCard> Add(ServiceControlInstallableBase details, IProgress<ProgressDetails> progress, Func<PathInfo, Task<bool>> promptToProceed)
+        internal async Task<ReportCard> Add(ServiceControlInstallableBase details, IProgress<ProgressDetails> progress, Func<PathInfo, CancellationToken, Task<bool>> promptToProceed, CancellationToken cancellationToken = default)
         {
             ZipInfo.ValidateZip();
 
@@ -51,7 +52,7 @@ namespace ServiceControl.Config.Framework.Modules
             instanceInstaller.ReportCard = new ReportCard();
 
             //Validation
-            await instanceInstaller.Validate(promptToProceed);
+            await instanceInstaller.Validate(promptToProceed, cancellationToken);
             if (instanceInstaller.ReportCard.HasErrors || instanceInstaller.ReportCard.CancelRequested)
             {
                 instanceInstaller.ReportCard.Status = Status.FailedValidation;
@@ -148,12 +149,12 @@ namespace ServiceControl.Config.Framework.Modules
             upgradeOptions.ApplyChangesToInstance(instance);
         }
 
-        internal async Task<ReportCard> Update(ServiceControlBaseService instance, bool startService)
+        internal async Task<ReportCard> Update(ServiceControlBaseService instance, bool startService, CancellationToken cancellationToken = default)
         {
             try
             {
                 instance.ReportCard = new ReportCard();
-                await instance.ValidateChanges();
+                await instance.ValidateChanges(cancellationToken);
                 if (instance.ReportCard.HasErrors)
                 {
                     instance.ReportCard.Status = Status.FailedValidation;
@@ -238,7 +239,7 @@ namespace ServiceControl.Config.Framework.Modules
             ZipInfo = new PlatformZipInfo(Constants.MonitoringExe, "ServiceControl Monitoring", "Particular.ServiceControl.Monitoring.zip");
         }
 
-        internal async Task<ReportCard> Add(MonitoringNewInstance details, IProgress<ProgressDetails> progress, Func<PathInfo, Task<bool>> promptToProceed)
+        internal async Task<ReportCard> Add(MonitoringNewInstance details, IProgress<ProgressDetails> progress, Func<PathInfo, CancellationToken, Task<bool>> promptToProceed, CancellationToken cancellationToken = default)
         {
             ZipInfo.ValidateZip();
 
@@ -246,7 +247,7 @@ namespace ServiceControl.Config.Framework.Modules
             instanceInstaller.ReportCard = new ReportCard();
 
             //Validation
-            await instanceInstaller.Validate(promptToProceed);
+            await instanceInstaller.Validate(promptToProceed, cancellationToken);
             if (instanceInstaller.ReportCard.HasErrors || instanceInstaller.ReportCard.CancelRequested)
             {
                 instanceInstaller.ReportCard.Status = Status.FailedValidation;
@@ -332,12 +333,12 @@ namespace ServiceControl.Config.Framework.Modules
             return instance.ReportCard;
         }
 
-        internal async Task<ReportCard> Update(MonitoringInstance instance, bool startService)
+        internal async Task<ReportCard> Update(MonitoringInstance instance, bool startService, CancellationToken cancellationToken = default)
         {
             try
             {
                 instance.ReportCard = new ReportCard();
-                await instance.ValidateChanges();
+                await instance.ValidateChanges(cancellationToken);
                 if (instance.ReportCard.HasErrors)
                 {
                     instance.ReportCard.Status = Status.FailedValidation;

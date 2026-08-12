@@ -1,5 +1,6 @@
 namespace ServiceControl.Config.Framework.Rx
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Caliburn.Micro;
 
@@ -17,15 +18,15 @@ namespace ServiceControl.Config.Framework.Rx
             set { ActiveItem = (T)value; }
         }
 
-        protected virtual async Task ChangeActiveItem(T newItem, bool closePrevious)
+        protected virtual async Task ChangeActiveItem(T newItem, bool closePrevious, CancellationToken cancellationToken = default)
         {
-            await ScreenExtensions.TryDeactivateAsync(activeItem, closePrevious);
+            await ScreenExtensions.TryDeactivateAsync(activeItem, closePrevious, cancellationToken);
 
             newItem = EnsureItem(newItem);
 
             if (IsActive)
             {
-                await ScreenExtensions.TryActivateAsync(newItem);
+                await ScreenExtensions.TryActivateAsync(newItem, cancellationToken);
             }
 
             activeItem = newItem;

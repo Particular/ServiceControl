@@ -362,7 +362,7 @@
 
         public bool Exists() => ServiceInstance.Service.Exists();
 
-        public Task HandleAsync(PostRefreshInstances message, CancellationToken cancellationToken)
+        public Task HandleAsync(PostRefreshInstances message, CancellationToken cancellationToken = default)
         {
             UpdateServiceProperties();
 
@@ -383,7 +383,7 @@
             return Task.CompletedTask;
         }
 
-        public async Task<bool> StartService(IProgressObject progress = null)
+        public async Task<bool> StartService(IProgressObject progress = null, CancellationToken cancellationToken = default)
         {
             var disposeProgress = progress == null;
             var result = false;
@@ -414,7 +414,7 @@
             }
         }
 
-        public async Task<bool> StopService(IProgressObject progress = null)
+        public async Task<bool> StopService(IProgressObject progress = null, CancellationToken cancellationToken = default)
         {
             var disposeProgress = progress == null;
             var result = false;
@@ -431,7 +431,7 @@
                     {
                         ServiceControlInstance.DisableMaintenanceMode();
                     }
-                });
+                }, cancellationToken);
 
                 UpdateServiceProperties();
 

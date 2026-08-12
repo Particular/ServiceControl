@@ -17,12 +17,12 @@
 
         Task IConductor.ActivateItemAsync(object item, CancellationToken cancellationToken)
         {
-            return ActivateItem((T)item);
+            return ActivateItem((T)item, cancellationToken);
         }
 
         Task IConductor.DeactivateItemAsync(object item, bool close, CancellationToken cancellationToken)
         {
-            return DeactivateItem((T)item, close);
+            return DeactivateItem((T)item, close, cancellationToken);
         }
 
         IEnumerable IParent.GetChildren()
@@ -34,9 +34,9 @@
 
         public abstract IEnumerable<T> GetChildren();
 
-        public abstract Task ActivateItem(T item);
+        public abstract Task ActivateItem(T item, CancellationToken cancellationToken = default);
 
-        public abstract Task DeactivateItem(T item, bool close);
+        public abstract Task DeactivateItem(T item, bool close, CancellationToken cancellationToken = default);
 
         protected virtual void OnActivationProcessed(T item, bool success)
         {

@@ -72,13 +72,13 @@
             // constructer of ServiceControlInstanceMetadata extracts version from zip
             details.Version = Constants.CurrentVersion;
 
-            await details.Validate(s => Task.FromResult(false)).ConfigureAwait(false);
+            await details.Validate((s, token) => Task.FromResult(false)).ConfigureAwait(false);
             if (details.ReportCard.HasErrors)
             {
                 throw new Exception($"Validation errors:  {string.Join("\r\n", details.ReportCard.Errors)}");
             }
 
-            Assert.DoesNotThrowAsync(() => installer.Add(details, s => Task.FromResult(false)));
+            Assert.DoesNotThrowAsync(() => installer.Add(details, (s, token) => Task.FromResult(false)));
         }
 
         [Test]

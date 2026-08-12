@@ -1,6 +1,7 @@
 namespace ServiceControl.Config.UI.InstanceAdd
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Caliburn.Micro;
     using Events;
@@ -38,7 +39,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
         bool IsInProgress() => viewModel != null && !viewModel.InProgress;
 
-        async Task Add()
+        async Task Add(CancellationToken cancellationToken)
         {
             viewModel.SubmitAttempted = true;
             if (!viewModel.ValidationTemplate.Validate())
@@ -104,7 +105,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 auditNewInstance.EnableFullTextSearchOnBodies = viewModel.ServiceControlAudit.EnableFullTextSearchOnBodies.Value;
             }
 
-            if (!await commandChecks.ValidateNewInstance(serviceControlNewInstance, auditNewInstance))
+            if (!await commandChecks.ValidateNewInstance([serviceControlNewInstance, auditNewInstance], cancellationToken))
             {
                 viewModel.InProgress = false;
                 return;
@@ -119,7 +120,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
             {
                 using (var progress = viewModel.GetProgressObject("ADDING INSTANCE"))
                 {
-                    var installationCancelled = await InstallInstance(serviceControlNewInstance, progress);
+                    var installationCancelled = await InstallInstance(serviceControlNewInstance, progress, cancellationToken);
                     if (installationCancelled)
                     {
                         return;
@@ -131,7 +132,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
             {
                 using (var progress = viewModel.GetProgressObject("ADDING AUDIT INSTANCE"))
                 {
-                    var installationCancelled = await InstallInstance(auditNewInstance, progress);
+                    var installationCancelled = await InstallInstance(auditNewInstance, progress, cancellationToken);
                     if (installationCancelled)
                     {
                         return;
@@ -141,16 +142,16 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
             await viewModel.TryCloseAsync(true);
 
-            await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
+            await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances(), cancellationToken);
         }
 
-        async Task<bool> InstallInstance(ServiceControlNewInstance instanceData, IProgressObject progress)
+        async Task<bool> InstallInstance(ServiceControlNewInstance instanceData, IProgressObject progress, CancellationToken cancellationToken)
         {
-            var reportCard = await Task.Run(() => serviceControlInstaller.Add(instanceData, progress, PromptToProceed));
+            var reportCard = await Task.Run(() => serviceControlInstaller.Add(instanceData, progress, PromptToProceed, cancellationToken), cancellationToken);
 
             if (reportCard.HasErrors || reportCard.HasWarnings)
             {
-                await windowManager.ShowActionReport(reportCard, "ISSUES ADDING INSTANCE", "Could not add new instance because of the following errors:", "There were some warnings while adding the instance:");
+                await windowManager.ShowActionReport(reportCard, "ISSUES ADDING INSTANCE", "Could not add new instance because of the following errors:", "There were some warnings while adding the instance:", cancellationToken);
                 return true;
             }
 
@@ -162,13 +163,13 @@ namespace ServiceControl.Config.UI.InstanceAdd
             return false;
         }
 
-        async Task<bool> InstallInstance(ServiceControlAuditNewInstance instanceData, IProgressObject progress)
+        async Task<bool> InstallInstance(ServiceControlAuditNewInstance instanceData, IProgressObject progress, CancellationToken cancellationToken)
         {
-            var reportCard = await Task.Run(() => serviceControlAuditInstaller.Add(instanceData, progress, PromptToProceed));
+            var reportCard = await Task.Run(() => serviceControlAuditInstaller.Add(instanceData, progress, PromptToProceed, cancellationToken), cancellationToken);
 
             if (reportCard.HasErrors || reportCard.HasWarnings)
             {
-                await windowManager.ShowActionReport(reportCard, "ISSUES ADDING INSTANCE", "Could not add new instance because of the following errors:", "There were some warnings while adding the instance:");
+                await windowManager.ShowActionReport(reportCard, "ISSUES ADDING INSTANCE", "Could not add new instance because of the following errors:", "There were some warnings while adding the instance:", cancellationToken);
                 return true;
             }
 
@@ -180,11 +181,11 @@ namespace ServiceControl.Config.UI.InstanceAdd
             return false;
         }
 
-        async Task<bool> PromptToProceed(PathInfo pathInfo)
+        async Task<bool> PromptToProceed(PathInfo pathInfo, CancellationToken cancellationToken)
         {
             var result = false;
 
-            await Execute.OnUIThreadAsync(async () => { result = await windowManager.ShowYesNoDialog("ADDING INSTANCE QUESTION - DIRECTORY NOT EMPTY", $"The directory specified as the {pathInfo.Name} is not empty.", $"Are you sure you want to use '{pathInfo.Path}' ?", "Yes use it", "No I want to change it"); });
+            await Execute.OnUIThreadAsync(async () => { result = await windowManager.ShowYesNoDialog("ADDING INSTANCE QUESTION - DIRECTORY NOT EMPTY", $"The directory specified as the {pathInfo.Name} is not empty.", $"Are you sure you want to use '{pathInfo.Path}' ?", "Yes use it", "No I want to change it", cancellationToken); });
 
             return result;
         }

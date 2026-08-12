@@ -2,6 +2,7 @@ namespace ServiceControl.Management.PowerShell
 {
     using System;
     using System.Management.Automation;
+    using System.Threading;
     using System.Threading.Tasks;
     using Cmdlets.Instances;
     using ServiceControlInstaller.Engine.Instances;
@@ -142,7 +143,7 @@ namespace ServiceControl.Management.PowerShell
             {
                 return;
             }
-            if (!checks.ValidateNewInstance(monitoringNewInstance).GetAwaiter().GetResult())
+            if (!checks.ValidateNewInstance([monitoringNewInstance]).GetAwaiter().GetResult())
             {
                 return;
             }
@@ -171,7 +172,7 @@ namespace ServiceControl.Management.PowerShell
             }
         }
 
-        Task<bool> PromptToProceed(PathInfo pathInfo)
+        Task<bool> PromptToProceed(PathInfo pathInfo, CancellationToken cancellationToken)
         {
             if (!pathInfo.CheckIfEmpty)
             {
