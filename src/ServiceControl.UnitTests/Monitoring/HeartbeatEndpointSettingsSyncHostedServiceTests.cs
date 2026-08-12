@@ -17,7 +17,7 @@ using ServiceControl.Operations;
 [TestFixture]
 public class HeartbeatEndpointSettingsSyncHostedServiceTests
 {
-  
+
     static async Task WaitUntilAsync(Func<bool> condition, TimeSpan? timeout = null)
     {
         var deadline = DateTime.UtcNow + (timeout ?? TimeSpan.FromSeconds(10));
