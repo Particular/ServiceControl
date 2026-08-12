@@ -12,7 +12,7 @@
 
     public class BodyStorageEnricher(IBodyStorage bodyStorage, PersistenceSettings settings, ILogger<BodyStorageEnricher> logger)
     {
-        public async ValueTask StoreAuditMessageBody(ReadOnlyMemory<byte> body, ProcessedMessage processedMessage, CancellationToken cancellationToken)
+        public async ValueTask StoreAuditMessageBody(ReadOnlyMemory<byte> body, ProcessedMessage processedMessage, CancellationToken cancellationToken = default)
         {
             var bodySize = body.Length;
             processedMessage.MessageMetadata.Add("ContentLength", bodySize);

@@ -48,7 +48,7 @@ namespace ServiceControl.MessageFailures.Api
         [HttpGet]
         public async Task<IActionResult> GetArchiveMessageGroups(string classifier = "Exception Type and Stack Trace", CancellationToken cancellationToken = default)
         {
-            var results = await dataStore.GetArchivedGroupsByClassifier(classifier);
+            var results = await dataStore.GetArchivedGroupsByClassifier(classifier, cancellationToken);
 
             Response.WithDeterministicEtag(EtagHelper.CalculateEtag(results));
 
@@ -75,7 +75,7 @@ namespace ServiceControl.MessageFailures.Api
         [HttpGet]
         public async Task<ActionResult<FailureGroupView>> GetGroup(string groupId, string status = default, string modified = default, CancellationToken cancellationToken = default)
         {
-            var result = await dataStore.GetArchivedGroup(groupId, status, modified);
+            var result = await dataStore.GetArchivedGroup(groupId, status, modified, cancellationToken);
 
             Response.WithEtag(result.QueryStats.ETag);
 

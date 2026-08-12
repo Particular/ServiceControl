@@ -21,7 +21,7 @@
         IBodyStorage bodyStorage)
         : IAuditIngestionUnitOfWork
     {
-        public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
+        public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default)
         {
             processedMessage.MessageMetadata["ContentLength"] = body.Length;
             if (!body.IsEmpty)
@@ -46,7 +46,7 @@
                 [Constants.Documents.Metadata.Expires] = DateTime.UtcNow.Add(auditRetentionPeriod)
             };
 
-        public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken)
+        public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken = default)
             => bulkInsert.StoreAsync(sagaSnapshot, GetExpirationMetadata());
 
         public async ValueTask DisposeAsync()

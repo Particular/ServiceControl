@@ -5,7 +5,7 @@
 
     public interface IAuditIngestionUnitOfWorkFactory
     {
-        ValueTask<IAuditIngestionUnitOfWork> StartNew(int batchSize, CancellationToken cancellationToken); //Throws if not enough space or some other problem preventing from writing data
+        ValueTask<IAuditIngestionUnitOfWork> StartNew(int batchSize, CancellationToken cancellationToken = default); //Throws if not enough space or some other problem preventing from writing data
         bool CanIngestMore();
     }
 }

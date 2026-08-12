@@ -27,7 +27,7 @@ namespace ServiceControl.Recoverability
             }
 
 
-            var group = (await dataStore.GetUnresolvedGroup(message.GroupId, null, null)).Results;
+            var group = (await dataStore.GetUnresolvedGroup(message.GroupId, null, null, context.CancellationToken)).Results;
 
             string originator = null;
             if (group?.Title != null)

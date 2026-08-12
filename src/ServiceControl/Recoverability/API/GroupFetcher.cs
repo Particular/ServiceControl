@@ -20,7 +20,7 @@
 
         public async Task<GroupOperation[]> GetGroups(string classifier, string classifierFilter, CancellationToken cancellationToken = default)
         {
-            var dbGroups = await store.GetUnresolvedGroupsByClassifier(classifier, classifierFilter);
+            var dbGroups = await store.GetUnresolvedGroupsByClassifier(classifier, classifierFilter, cancellationToken);
             var retryHistory = await retryStore.GetRetryHistory(cancellationToken);
             var unacknowledgedRetries = retryHistory.GetUnacknowledgedByClassifier(classifier);
 

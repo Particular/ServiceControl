@@ -9,8 +9,3 @@ dotnet_diagnostic.CA2007.severity = none
 [{Auditing/AuditIngestion.cs,Auditing/AuditIngestionFaultPolicy.cs,Auditing/ImportFailureCircuitBreaker.cs}]
 dotnet_diagnostic.PS0013.severity = none
 dotnet_diagnostic.PS0018.severity = none
-
-# Blocked on IFailedAuditStorage.ProcessFailedMessages, whose callback is handed its own token by the
-# store. The catch filter here correctly tests that one, which PS0020 cannot see.
-[Auditing/ImportFailedAudits.cs]
-dotnet_diagnostic.PS0020.severity = none

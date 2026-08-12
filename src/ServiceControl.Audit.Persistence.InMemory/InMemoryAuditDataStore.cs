@@ -25,7 +25,7 @@
             failedAuditImports = [];
         }
 
-        public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input, CancellationToken cancellationToken)
+        public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input, CancellationToken cancellationToken = default)
         {
             var sagaHistory = sagaHistories.FirstOrDefault(w => w.SagaId == input);
 
@@ -37,7 +37,7 @@
             return await Task.FromResult(new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo(string.Empty, 1)));
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken)
+        public async Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default)
         {
             var matched = messageViews
                 .Where(w => (!w.IsSystemMessage || includeSystemMessages) &&
@@ -48,7 +48,7 @@
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count)));
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default)
         {
             var messages = GetMessageIdsMatchingQuery(keyword);
 
@@ -60,7 +60,7 @@
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count())));
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default)
         {
             var messages = GetMessageIdsMatchingQuery(keyword);
 
@@ -71,7 +71,7 @@
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count)));
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default)
         {
             var matched = messageViews.Where(w => w.ReceivingEndpoint.Name == endpointName &&
                     (timeSentRange == null || !timeSentRange.From.HasValue || w.TimeSent >= timeSentRange.From.Value) &&
@@ -80,15 +80,15 @@
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count)));
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken = default)
         {
             var matched = messageViews.Where(w => w.ConversationId == conversationId).ToList();
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count)));
         }
 
-        public async Task<MessageBodyView> GetMessageBody(string messageId, CancellationToken cancellationToken)
+        public async Task<MessageBodyView> GetMessageBody(string messageId, CancellationToken cancellationToken = default)
         {
-            var result = await GetMessageBodyFromMetadata(messageId);
+            var result = await GetMessageBodyFromMetadata(messageId, cancellationToken);
 
             if (!result.Found)
             {
@@ -144,7 +144,7 @@
             return MessageBodyView.NotFound();
         }
 
-        Task<MessageBodyView> GetMessageBodyFromMetadata(string messageId)
+        Task<MessageBodyView> GetMessageBodyFromMetadata(string messageId, CancellationToken cancellationToken)
         {
             var message = processedMessages.FirstOrDefault(pm => (pm.MessageMetadata["MessageId"] as string) == messageId);
 
@@ -171,7 +171,7 @@
             return Task.FromResult(MessageBodyView.FromString(body, contentType, bodySize, messageId));
         }
 
-        public Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName, CancellationToken cancellationToken)
+        public Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName, CancellationToken cancellationToken = default)
         {
             var results = messageViews
                 .Where(m => m.ReceivingEndpoint.Name == endpointName && !m.IsSystemMessage)
@@ -187,7 +187,7 @@
             return Task.FromResult(new QueryResult<IList<AuditCount>>(results, QueryStatsInfo.Zero));
         }
 
-        public Task SaveProcessedMessage(ProcessedMessage processedMessage)
+        public Task SaveProcessedMessage(ProcessedMessage processedMessage, CancellationToken cancellationToken = default)
         {
             if (processedMessages.Any(pm => pm.Id == processedMessage.Id))
             {
@@ -200,7 +200,7 @@
             return Task.CompletedTask;
         }
 
-        public Task SaveSagaSnapshot(SagaSnapshot sagaSnapshot)
+        public Task SaveSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken = default)
         {
             var sagaHistory = sagaHistories.SingleOrDefault(sh => sh.SagaId == sagaSnapshot.SagaId);
 
@@ -240,7 +240,7 @@
             return null;
         }
 
-        public Task Setup() => Task.CompletedTask;
+        public Task Setup(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
         List<MessagesView> messageViews;
         List<ProcessedMessage> processedMessages;

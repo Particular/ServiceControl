@@ -84,7 +84,7 @@ class AuditIngestionFaultPolicy
         logger.LogError(exception, "Failed importing error message");
 
         // Write to storage
-        await failedAuditStorage.SaveFailedAuditImport(failure);
+        await failedAuditStorage.SaveFailedAuditImport(failure, cancellationToken);
 
         if (!AppEnvironment.RunningInContainer)
         {

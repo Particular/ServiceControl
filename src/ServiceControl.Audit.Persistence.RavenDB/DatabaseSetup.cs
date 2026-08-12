@@ -19,7 +19,7 @@ using SagaAudit;
 
 class DatabaseSetup(DatabaseConfiguration configuration)
 {
-    public async Task Execute(IDocumentStore documentStore, CancellationToken cancellationToken)
+    public async Task Execute(IDocumentStore documentStore, CancellationToken cancellationToken = default)
     {
         await CreateDatabase(documentStore, configuration.Name, cancellationToken);
 
@@ -66,7 +66,7 @@ class DatabaseSetup(DatabaseConfiguration configuration)
         await documentStore.Maintenance.Server.SendAsync(new ToggleDatabasesStateOperation(databaseName, false), cancellationToken);
     }
 
-    public static async Task DeleteLegacySagaDetailsIndex(IDocumentStore documentStore, CancellationToken cancellationToken)
+    public static async Task DeleteLegacySagaDetailsIndex(IDocumentStore documentStore, CancellationToken cancellationToken = default)
     {
         // If the SagaDetailsIndex exists but does not have a .Take(50000), then we remove the current SagaDetailsIndex and
         // create a new one. If we do not remove the current one, then RavenDB will attempt to do a side-by-side migration.
@@ -82,7 +82,7 @@ class DatabaseSetup(DatabaseConfiguration configuration)
         }
     }
 
-    internal static async Task CreateIndexes(IDocumentStore documentStore, bool enableFreeTextSearch, CancellationToken cancellationToken)
+    internal static async Task CreateIndexes(IDocumentStore documentStore, bool enableFreeTextSearch, CancellationToken cancellationToken = default)
     {
         await DeleteLegacySagaDetailsIndex(documentStore, cancellationToken);
 
