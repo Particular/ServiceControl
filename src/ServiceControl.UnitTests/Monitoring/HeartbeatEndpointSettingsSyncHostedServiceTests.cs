@@ -17,10 +17,7 @@ using ServiceControl.Operations;
 [TestFixture]
 public class HeartbeatEndpointSettingsSyncHostedServiceTests
 {
-    // Background service work happens on the thread pool asynchronously. Waiting a fixed
-    // wall-clock duration before asserting is flaky on slower/loaded CI machines because the
-    // work may not have completed yet. Instead, poll for the expected condition until it is
-    // met or a generous timeout elapses.
+
     static async Task WaitUntilAsync(Func<bool> condition, TimeSpan? timeout = null)
     {
         var deadline = DateTime.UtcNow + (timeout ?? TimeSpan.FromSeconds(10));
