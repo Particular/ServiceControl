@@ -10,23 +10,23 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider timeProvider) : DataStoreBase(scopeFactory), IRetryStagingStore
 {
     public Task<RetryBatch?> GetStagingBatch(CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(async dbContext =>
+        ExecuteWithDbContext(async (dbContext, token) =>
         {
             var batch = await dbContext.RetryBatches
                 .AsNoTracking()
                 .Where(batch => batch.Status == RetryBatchStatus.Staging)
                 .OrderBy(batch => batch.StartTime)
                 .ThenBy(batch => batch.Id)
-                .FirstOrDefaultAsync(cancellationToken);
+                .FirstOrDefaultAsync(token);
 
-            return batch?.ToRetryBatch(await CountMessages(dbContext, batch.Id, cancellationToken));
-        });
+            return batch?.ToRetryBatch(await CountMessages(dbContext, batch.Id, token));
+        }, cancellationToken);
 
     public Task<StagingMessage[]> GetMessagesToStage(string batchId, CancellationToken cancellationToken = default)
     {
         var batch = ParseBatchId(batchId);
 
-        return ExecuteWithDbContext(async dbContext =>
+        return ExecuteWithDbContext(async (dbContext, token) =>
         {
             // A message claimed by an earlier batch is not claimed by this one, and a claim whose
             // message is gone drops out of the join, which is what leaves it out of the staging.
@@ -44,7 +44,7 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
                         message.HeadersJson,
                         retry.StageAttempts
                     })
-                .ToListAsync(cancellationToken);
+                .ToListAsync(token);
 
             return rows.Select(row => new StagingMessage(
                 row.UniqueMessageId.ToString(),
@@ -53,7 +53,7 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
                 row.FailingEndpointAddress,
                 MessageHeaders.Read(row.HeadersJson),
                 row.StageAttempts)).ToArray();
-        });
+        }, cancellationToken);
     }
 
     public Task MarkBatchAsForwarding(string batchId, string stagingId, IReadOnlyCollection<string> stagedMessageIds, CancellationToken cancellationToken = default)
@@ -62,7 +62,7 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
         var staged = ParseMessageIds(stagedMessageIds);
         var now = timeProvider.GetUtcNow().UtcDateTime;
 
-        return ExecuteWithDbContext(dbContext =>
+        return ExecuteWithDbContext((dbContext, token) =>
             InTransaction(dbContext, async token =>
             {
                 await dbContext.RetryBatches
@@ -85,14 +85,14 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
                         .SetProperty(row => row.LastModified, now), token);
 
                 await PointForwarderAt(dbContext, batch, token);
-            }, cancellationToken));
+            }, token), cancellationToken);
     }
 
     public Task DiscardBatch(string batchId, CancellationToken cancellationToken = default)
     {
         var batch = ParseBatchId(batchId);
 
-        return ExecuteWithDbContext(dbContext =>
+        return ExecuteWithDbContext((dbContext, token) =>
             InTransaction(dbContext, async token =>
             {
                 // Nothing was staged, so every claim of this batch is of a message that is gone.
@@ -103,38 +103,38 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
                 await dbContext.RetryBatches
                     .Where(row => row.Id == batch)
                     .ExecuteDeleteAsync(token);
-            }, cancellationToken));
+            }, token), cancellationToken);
     }
 
     public Task<string?> GetForwardingBatchId(CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(async dbContext =>
+        ExecuteWithDbContext(async (dbContext, token) =>
         {
             var nowForwarding = await dbContext.RetryBatchNowForwarding
                 .AsNoTracking()
-                .SingleOrDefaultAsync(cancellationToken);
+                .SingleOrDefaultAsync(token);
 
             return nowForwarding?.RetryBatchId.ToString();
-        });
+        }, cancellationToken);
 
     public Task<RetryBatch?> GetBatch(string batchId, CancellationToken cancellationToken = default)
     {
         var batch = ParseBatchId(batchId);
 
-        return ExecuteWithDbContext(async dbContext =>
+        return ExecuteWithDbContext(async (dbContext, token) =>
         {
             var entity = await dbContext.RetryBatches
                 .AsNoTracking()
-                .SingleOrDefaultAsync(row => row.Id == batch, cancellationToken);
+                .SingleOrDefaultAsync(row => row.Id == batch, token);
 
-            return entity?.ToRetryBatch(await CountMessages(dbContext, batch, cancellationToken));
-        });
+            return entity?.ToRetryBatch(await CountMessages(dbContext, batch, token));
+        }, cancellationToken);
     }
 
     public Task CompleteForwarding(string batchId, CancellationToken cancellationToken = default)
     {
         var batch = ParseBatchId(batchId);
 
-        return ExecuteWithDbContext(dbContext =>
+        return ExecuteWithDbContext((dbContext, token) =>
             InTransaction(dbContext, async token =>
             {
                 // The claims outlive the batch: they are what stops a message being staged again
@@ -146,16 +146,16 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
                 await dbContext.RetryBatchNowForwarding
                     .Where(row => row.RetryBatchId == batch)
                     .ExecuteDeleteAsync(token);
-            }, cancellationToken));
+            }, token), cancellationToken);
     }
 
     public Task RecordStagingFailure(IReadOnlyCollection<string> uniqueMessageIds, CancellationToken cancellationToken = default)
     {
         var failed = ParseMessageIds(uniqueMessageIds);
 
-        return ExecuteWithDbContext(dbContext => dbContext.FailedMessageRetries
+        return ExecuteWithDbContext((dbContext, token) => dbContext.FailedMessageRetries
             .Where(row => failed.Contains(row.UniqueMessageId))
-            .ExecuteUpdateAsync(setters => setters.SetProperty(row => row.StageAttempts, 1), cancellationToken));
+            .ExecuteUpdateAsync(setters => setters.SetProperty(row => row.StageAttempts, 1), token), cancellationToken);
     }
 
     public Task IncrementStagingAttempts(string uniqueMessageId, CancellationToken cancellationToken = default)
@@ -165,9 +165,9 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
             return Task.CompletedTask;
         }
 
-        return ExecuteWithDbContext(dbContext => dbContext.FailedMessageRetries
+        return ExecuteWithDbContext((dbContext, token) => dbContext.FailedMessageRetries
             .Where(row => row.UniqueMessageId == message)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(row => row.StageAttempts, row => row.StageAttempts + 1), cancellationToken));
+            .ExecuteUpdateAsync(setters => setters.SetProperty(row => row.StageAttempts, row => row.StageAttempts + 1), token), cancellationToken);
     }
 
     public Task RemoveFromBatch(string uniqueMessageId, CancellationToken cancellationToken = default)
@@ -177,9 +177,9 @@ public class RetryStagingStore(IServiceScopeFactory scopeFactory, TimeProvider t
             return Task.CompletedTask;
         }
 
-        return ExecuteWithDbContext(dbContext => dbContext.FailedMessageRetries
+        return ExecuteWithDbContext((dbContext, token) => dbContext.FailedMessageRetries
             .Where(row => row.UniqueMessageId == message)
-            .ExecuteDeleteAsync(cancellationToken));
+            .ExecuteDeleteAsync(token), cancellationToken);
     }
 
     static async Task PointForwarderAt(ServiceControlDbContext dbContext, Guid batch, CancellationToken cancellationToken)

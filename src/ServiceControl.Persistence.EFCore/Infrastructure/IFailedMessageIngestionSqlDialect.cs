@@ -16,16 +16,16 @@ public interface IFailedMessageIngestionSqlDialect
     /// attempt counter advances (unless the batch merely redelivered the attempt already stored),
     /// the failure window widens, and the newer attempt supplies every payload column.
     /// </summary>
-    Task UpsertFailedMessages(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageEntity> rows, CancellationToken cancellationToken);
+    Task UpsertFailedMessages(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageEntity> rows, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Insert if absent. The caller has already deleted these messages' group rows in the same
     /// transaction; if-absent keeps a concurrent writer's identical row from failing us.
     /// </summary>
-    Task InsertGroups(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageGroupEntity> rows, CancellationToken cancellationToken);
+    Task InsertGroups(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageGroupEntity> rows, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Insert if absent, never update: existing endpoints keep their Monitored flag.
     /// </summary>
-    Task InsertMissingKnownEndpoints(ServiceControlDbContext dbContext, IReadOnlyList<KnownEndpointEntity> rows, CancellationToken cancellationToken);
+    Task InsertMissingKnownEndpoints(ServiceControlDbContext dbContext, IReadOnlyList<KnownEndpointEntity> rows, CancellationToken cancellationToken = default);
 }

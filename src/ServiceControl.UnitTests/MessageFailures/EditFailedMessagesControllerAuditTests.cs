@@ -49,11 +49,11 @@ public class EditFailedMessagesControllerAuditTests
     {
         public string? CurrentEditingRequestId { get; set; }
 
-        public Task SaveChanges() => Task.CompletedTask;
-        public Task<FailedMessage?> GetFailedMessage(string failedMessageId) => Task.FromResult<FailedMessage?>(null);
-        public Task<string?> GetCurrentEditingRequestId(string failedMessageId) => Task.FromResult(CurrentEditingRequestId);
-        public Task SetCurrentEditingRequestId(string editingMessageId) => Task.CompletedTask;
-        public Task SetFailedMessageAsResolved() => Task.CompletedTask;
+        public Task SaveChanges(CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task<FailedMessage?> GetFailedMessage(string failedMessageId, CancellationToken cancellationToken = default) => Task.FromResult<FailedMessage?>(null);
+        public Task<string?> GetCurrentEditingRequestId(string failedMessageId, CancellationToken cancellationToken = default) => Task.FromResult(CurrentEditingRequestId);
+        public Task SetCurrentEditingRequestId(string editingMessageId, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task SetFailedMessageAsResolved(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }
@@ -63,7 +63,7 @@ public class EditFailedMessagesControllerAuditTests
         public FailedMessage? ErrorByResult { get; set; }
         public FakeEditFailedMessagesManager EditManager { get; } = new();
 
-        public Task<IEditFailedMessagesManager> CreateEditFailedMessageManager() => Task.FromResult<IEditFailedMessagesManager>(EditManager);
+        public Task<IEditFailedMessagesManager> CreateEditFailedMessageManager(CancellationToken cancellationToken = default) => Task.FromResult<IEditFailedMessagesManager>(EditManager);
         public Task<FailedMessage?> GetFailedMessage(string failedMessageId, CancellationToken cancellationToken = default) => Task.FromResult(ErrorByResult);
 
         public Task<FailedMessage[]> GetFailedMessagesByIds(Guid[] ids, CancellationToken cancellationToken = default) => throw new NotImplementedException();

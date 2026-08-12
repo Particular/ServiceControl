@@ -9,7 +9,7 @@ using ServiceControl.Recoverability;
 public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IRetryHistoryDataStore
 {
     public Task<RetryHistory> GetRetryHistory(CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(async dbContext =>
+        ExecuteWithDbContext(async (dbContext, token) =>
         {
             var historicOperations = await dbContext.HistoricRetryOperations
                 .AsNoTracking()
@@ -25,7 +25,7 @@ public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStor
                     Failed = operation.Failed,
                     NumberOfMessagesProcessed = operation.NumberOfMessagesProcessed
                 })
-                .ToListAsync(cancellationToken);
+                .ToListAsync(token);
 
             var unacknowledgedOperations = await dbContext.UnacknowledgedRetryOperations
                 .AsNoTracking()
@@ -41,25 +41,25 @@ public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStor
                     Failed = operation.Failed,
                     NumberOfMessagesProcessed = operation.NumberOfMessagesProcessed
                 })
-                .ToListAsync(cancellationToken);
+                .ToListAsync(token);
 
             return new RetryHistory
             {
                 HistoricOperations = historicOperations,
                 UnacknowledgedOperations = unacknowledgedOperations
             };
-        });
+        }, cancellationToken);
 
     public Task RecordRetryOperationCompleted(string requestId, RetryType retryType, DateTime startTime, DateTime completionTime,
         string originator, string classifier, bool messageFailed, int numberOfMessagesProcessed, DateTime lastProcessed, int retryHistoryDepth,
         CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(async dbContext =>
+        ExecuteWithDbContext(async (dbContext, token) =>
         {
             var strategy = dbContext.Database.CreateExecutionStrategy();
 
             await strategy.ExecuteAsync(async () =>
             {
-                await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+                await using var transaction = await dbContext.Database.BeginTransactionAsync(token);
 
                 dbContext.HistoricRetryOperations.Add(new HistoricRetryOperationEntity
                 {
@@ -75,27 +75,27 @@ public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStor
                 if (NeedsAcknowledgement(retryType))
                 {
                     await RecordUnacknowledged(dbContext, requestId, retryType, startTime, completionTime,
-                        originator, classifier, messageFailed, numberOfMessagesProcessed, lastProcessed, cancellationToken);
+                        originator, classifier, messageFailed, numberOfMessagesProcessed, lastProcessed, token);
                 }
 
-                await dbContext.SaveChangesAsync(cancellationToken);
+                await dbContext.SaveChangesAsync(token);
 
                 // After the insert, so the operation just recorded competes for a place in the history.
-                await TrimHistory(dbContext, retryHistoryDepth, cancellationToken);
+                await TrimHistory(dbContext, retryHistoryDepth, token);
 
-                await transaction.CommitAsync(cancellationToken);
+                await transaction.CommitAsync(token);
             });
-        });
+        }, cancellationToken);
 
     public Task<bool> AcknowledgeRetryGroup(string groupId, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(async dbContext =>
+        ExecuteWithDbContext(async (dbContext, token) =>
         {
             var acknowledged = await dbContext.UnacknowledgedRetryOperations
                 .Where(operation => operation.RequestId == groupId && operation.RetryType == RetryType.FailureGroup)
-                .ExecuteDeleteAsync(cancellationToken);
+                .ExecuteDeleteAsync(token);
 
             return acknowledged > 0;
-        });
+        }, cancellationToken);
 
     static bool NeedsAcknowledgement(RetryType retryType) =>
         retryType is not RetryType.SingleMessage and not RetryType.MultipleMessages;

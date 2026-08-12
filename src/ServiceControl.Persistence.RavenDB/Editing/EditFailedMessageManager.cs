@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.RavenDB
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client.Documents.Session;
     using ServiceControl.MessageFailures;
@@ -19,19 +20,19 @@
             this.expirationManager = expirationManager;
         }
 
-        public async Task<FailedMessage> GetFailedMessage(string failedMessageId)
+        public async Task<FailedMessage> GetFailedMessage(string failedMessageId, CancellationToken cancellationToken = default)
         {
-            failedMessage = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
+            failedMessage = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId), cancellationToken);
             return failedMessage;
         }
 
-        public async Task<string> GetCurrentEditingRequestId(string failedMessageId)
+        public async Task<string> GetCurrentEditingRequestId(string failedMessageId, CancellationToken cancellationToken = default)
         {
-            var edit = await session.LoadAsync<FailedMessageEdit>(FailedMessageEdit.MakeDocumentId(failedMessageId));
+            var edit = await session.LoadAsync<FailedMessageEdit>(FailedMessageEdit.MakeDocumentId(failedMessageId), cancellationToken);
             return edit?.EditId;
         }
 
-        public Task SetCurrentEditingRequestId(string editingMessageId)
+        public Task SetCurrentEditingRequestId(string editingMessageId, CancellationToken cancellationToken = default)
         {
             if (failedMessage == null)
             {
@@ -42,10 +43,10 @@
                 Id = FailedMessageEdit.MakeDocumentId(failedMessage.UniqueMessageId),
                 FailedMessageId = failedMessage.Id,
                 EditId = editingMessageId
-            });
+            }, cancellationToken);
         }
 
-        public Task SetFailedMessageAsResolved()
+        public Task SetFailedMessageAsResolved(CancellationToken cancellationToken = default)
         {
             // Instance is tracked by the document session
             failedMessage.Status = FailedMessageStatus.Resolved;

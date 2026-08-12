@@ -30,7 +30,7 @@ public class SubscriptionStorage : DataStoreBase, IServiceControlSubscriptionSto
     }
 
     // Subscriptions are read on demand, so there is nothing to prime at startup.
-    public Task Initialize() => Task.CompletedTask;
+    public Task Initialize(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
     public async Task Subscribe(Subscriber subscriber, MessageType messageType, ContextBag context, CancellationToken cancellationToken = default)
     {
@@ -44,11 +44,11 @@ public class SubscriptionStorage : DataStoreBase, IServiceControlSubscriptionSto
         //When the subscriber is running V6 and UseLegacyMessageDrivenSubscriptionMode is enabled at the subscriber the 'subscriber.Endpoint' value is null
         var endpoint = subscriber.Endpoint ?? transportAddress.Split('@').First();
 
-        await ExecuteWithDbContext(dbContext => dbContext.UpsertAsync(
+        await ExecuteWithDbContext((dbContext, token) => dbContext.UpsertAsync(
             [typeName, transportAddress],
             () => new SubscriptionEntity { MessageType = typeName, TransportAddress = transportAddress, Endpoint = endpoint },
             entity => entity.Endpoint = endpoint,
-            cancellationToken));
+            token), cancellationToken);
 
         InvalidateCache(typeName);
     }
@@ -58,9 +58,9 @@ public class SubscriptionStorage : DataStoreBase, IServiceControlSubscriptionSto
         var typeName = messageType.TypeName;
         var transportAddress = subscriber.TransportAddress;
 
-        await ExecuteWithDbContext(dbContext => dbContext.Subscriptions
+        await ExecuteWithDbContext((dbContext, token) => dbContext.Subscriptions
             .Where(subscription => subscription.MessageType == typeName && subscription.TransportAddress == transportAddress)
-            .ExecuteDeleteAsync(cancellationToken));
+            .ExecuteDeleteAsync(token), cancellationToken);
 
         InvalidateCache(typeName);
     }
@@ -83,12 +83,12 @@ public class SubscriptionStorage : DataStoreBase, IServiceControlSubscriptionSto
 
     async Task<Subscriber[]> LoadSubscribers(string[] typeNames, CancellationToken cancellationToken)
     {
-        var stored = await ExecuteWithDbContext(dbContext => dbContext.Subscriptions
+        var stored = await ExecuteWithDbContext((dbContext, token) => dbContext.Subscriptions
             .AsNoTracking()
             .Where(subscription => typeNames.Contains(subscription.MessageType))
             .Select(subscription => new { subscription.TransportAddress, subscription.Endpoint })
             .Distinct()
-            .ToArrayAsync(cancellationToken));
+            .ToArrayAsync(token), cancellationToken);
 
         var subscribers = stored.Select(subscription => new Subscriber(subscription.TransportAddress, subscription.Endpoint));
 

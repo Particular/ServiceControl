@@ -12,5 +12,5 @@ public interface IRetryBatchSqlDialect
     /// Insert if absent, never update: a message already claimed stays with the batch that claimed
     /// it first, so two retry requests covering the same message cannot both stage it.
     /// </summary>
-    Task InsertMissingRetryClaims(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageRetryEntity> rows, CancellationToken cancellationToken);
+    Task InsertMissingRetryClaims(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageRetryEntity> rows, CancellationToken cancellationToken = default);
 }

@@ -8,7 +8,7 @@ using ServiceControl.Persistence.Infrastructure;
 public class QueueAddressStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IQueueAddressStore
 {
     public Task<QueryResult<IList<QueueAddress>>> GetAddresses(PagingInfo pagingInfo, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(async context =>
+        ExecuteWithDbContext(async (context, token) =>
         {
             var query = context.FailedMessages
                 .GroupBy(failure => failure.FailingEndpointAddress)
@@ -19,9 +19,9 @@ public class QueueAddressStore(IServiceScopeFactory scopeFactory) : DataStoreBas
                     FailedMessageCount = failuresByEndpoint.Count()
                 });
 
-            var items = await query.Skip(pagingInfo.Offset).Take(pagingInfo.PageSize).ToListAsync(cancellationToken);
+            var items = await query.Skip(pagingInfo.Offset).Take(pagingInfo.PageSize).ToListAsync(token);
             var eTag = DeterministicGuid.MakeId($"{items.Count}|{string.Join(",", items.Select(x => x.PhysicalAddress))}").ToString();
 
             return new QueryResult<IList<QueueAddress>>(items, new QueryStatsInfo(eTag, query.Count(), false));
-        });
+        }, cancellationToken);
 }

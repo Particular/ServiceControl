@@ -21,7 +21,7 @@
         }
         public async Task StartAsync(CancellationToken cancellationToken = default)
         {
-            await persistence.WarmupMonitoringFromPersistence(monitor);
+            await persistence.WarmupMonitoringFromPersistence(monitor, cancellationToken);
             timer = scheduler.Schedule(CheckEndpoints, TimeSpan.Zero, TimeSpan.FromSeconds(5), e => logger.LogError(e, "Exception occurred when monitoring endpoint instances"));
         }
 

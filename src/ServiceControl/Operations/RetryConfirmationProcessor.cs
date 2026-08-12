@@ -23,7 +23,7 @@
             foreach (var context in contexts)
             {
                 var retriedMessageUniqueId = context.Headers[RetryUniqueMessageIdHeader];
-                await unitOfWork.Recoverability.RecordSuccessfulRetry(retriedMessageUniqueId);
+                await unitOfWork.Recoverability.RecordSuccessfulRetry(retriedMessageUniqueId, cancellationToken);
             }
         }
 

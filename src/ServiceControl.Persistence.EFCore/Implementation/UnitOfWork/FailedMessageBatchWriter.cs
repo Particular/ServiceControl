@@ -17,7 +17,7 @@ class FailedMessageBatchWriter(ServiceControlDbContext dbContext, IFailedMessage
         IReadOnlyCollection<KnownEndpoint> knownEndpoints,
         IReadOnlyCollection<Guid> confirmedRetries,
         DateTime now,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         var (failedMessages, groups) = Fold(attempts, now);
         var endpoints = BuildEndpointRows(knownEndpoints);

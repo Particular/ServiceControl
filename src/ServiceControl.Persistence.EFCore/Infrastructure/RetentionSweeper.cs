@@ -24,13 +24,13 @@ public class RetentionSweeper(
     static readonly TimeSpan InitialDelay = TimeSpan.FromMinutes(1);
     static readonly TimeSpan BatchPause = TimeSpan.FromSeconds(1);
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Starting retention sweep");
 
         try
         {
-            await Task.Delay(InitialDelay, timeProvider, stoppingToken);
+            await Task.Delay(InitialDelay, timeProvider, cancellationToken);
 
             using PeriodicTimer timer = new(Interval, timeProvider);
 
@@ -38,15 +38,18 @@ public class RetentionSweeper(
             {
                 try
                 {
-                    await Sweep(pace: true, stoppingToken);
+                    await Sweep(pace: true, cancellationToken);
                 }
+#pragma warning disable PS0019 // The filter already excludes OperationCanceledException, so
+                // cancellation propagates; PS0019 only recognises a cancellationToken guard.
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     logger.LogError(ex, "Error during retention sweep");
                 }
-            } while (await timer.WaitForNextTickAsync(stoppingToken));
+#pragma warning restore PS0019
+            } while (await timer.WaitForNextTickAsync(cancellationToken));
         }
-        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             logger.LogInformation("Stopping retention sweep");
         }
@@ -162,11 +165,13 @@ public class RetentionSweeper(
         {
             await bodyStorage.DeleteBody(uniqueMessageId.ToString(), cancellationToken);
         }
+#pragma warning disable PS0019 // As above: the filter excludes cancellation already.
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             // Retention must not stall on a missing or unavailable body.
             logger.LogWarning(ex, "Could not delete the external body for {UniqueMessageId} during retention", uniqueMessageId);
         }
+#pragma warning restore PS0019
     }
 
     static System.Linq.Expressions.Expression<Func<FailedMessageEntity, bool>> IsExpired(DateTime cutoff) =>

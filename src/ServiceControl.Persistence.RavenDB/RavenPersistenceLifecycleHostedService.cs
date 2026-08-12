@@ -8,8 +8,8 @@ namespace ServiceControl.Persistence.RavenDB
 
     class RavenPersistenceLifecycleHostedService(IRavenPersistenceLifecycle persistenceLifecycle) : IHostedService
     {
-        public Task StartAsync(CancellationToken cancellationToken) => persistenceLifecycle.Initialize(cancellationToken);
+        public Task StartAsync(CancellationToken cancellationToken = default) => persistenceLifecycle.Initialize(cancellationToken);
 
-        public Task StopAsync(CancellationToken cancellationToken) => persistenceLifecycle.Stop(cancellationToken);
+        public Task StopAsync(CancellationToken cancellationToken = default) => persistenceLifecycle.Stop(cancellationToken);
     }
 }

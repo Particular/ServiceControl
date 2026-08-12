@@ -9,7 +9,7 @@ using ServiceControl.Persistence.EFCore.Entities;
 public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IEventLogDataStore
 {
     public Task Add(EventLogItem logItem, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(async dbContext =>
+        ExecuteWithDbContext(async (dbContext, token) =>
         {
             dbContext.EventLogItems.Add(new EventLogItemEntity
             {
@@ -21,12 +21,12 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
                 EventType = logItem.EventType
             });
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-        });
+            await dbContext.SaveChangesAsync(token);
+        }, cancellationToken);
 
     public Task<QueryResult<IList<EventLogItemView>>> GetEventLogItems(
         PagingInfo pagingInfo, string? knownVersion = null, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext(async dbContext =>
+        ExecuteWithDbContext(async (dbContext, token) =>
         {
             var query = dbContext.EventLogItems.AsNoTracking();
 
@@ -40,7 +40,7 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
                     Newest = g.Max(e => (DateTime?)e.RaisedAt),
                     HighestId = g.Max(e => (long?)e.Id)
                 })
-                .FirstOrDefaultAsync(cancellationToken);
+                .FirstOrDefaultAsync(token);
 
             var total = stats?.Total ?? 0;
             var version = Version(total, stats?.Newest, stats?.HighestId);
@@ -71,10 +71,10 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
                     Category = e.Category,
                     EventType = e.EventType
                 })
-                .ToListAsync(cancellationToken);
+                .ToListAsync(token);
 
             return new QueryResult<IList<EventLogItemView>>(items, queryStats);
-        });
+        }, cancellationToken);
 
     // Synthesised version ID to be used for an ETag. The highest key is the monotonic term: identity
     // values gap but never repeat, so an insert moves the version whatever its RaisedAt says.

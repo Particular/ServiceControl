@@ -17,7 +17,7 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
     List<string> reportMasks = [];
     LicensedEndpointDetails? endpointDetails = null;
 
-    public Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken)
+    public Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken = default)
     {
         var filteredEndpoints = includePlatformEndpoints
             ? endpoints
@@ -27,7 +27,7 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         return Task.FromResult(filteredEndpoints);
     }
 
-    public Task<Endpoint?> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken)
+    public Task<Endpoint?> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken = default)
     {
         if (endpoints.TryGetValue(id, out var endpoint))
         {
@@ -39,7 +39,7 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         return Task.FromResult(endpoint);
     }
 
-    public Task<IEnumerable<(EndpointIdentifier, Endpoint?)>> GetEndpoints(IList<EndpointIdentifier> endpointIds, CancellationToken cancellationToken)
+    public Task<IEnumerable<(EndpointIdentifier, Endpoint?)>> GetEndpoints(IList<EndpointIdentifier> endpointIds, CancellationToken cancellationToken = default)
     {
         var endpointLookup = endpointIds.Select(id => (id, endpoints.TryGetValue(id, out var endpoint) ? endpoint : null));
 
@@ -57,7 +57,7 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         return Task.FromResult(endpointLookup);
     }
 
-    public Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken)
+    public Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken = default)
     {
         if (endpoints.TryGetValue(endpoint.Id, out var existingEndpoint))
         {
@@ -68,7 +68,7 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         return Task.CompletedTask;
     }
 
-    public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, CancellationToken cancellationToken)
+    public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, CancellationToken cancellationToken = default)
     {
         var result = endpoints
             .Where(endpoint => queueNames.Contains(endpoint.SanitizedName))
@@ -82,7 +82,7 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         return Task.FromResult((IDictionary<string, IEnumerable<ThroughputData>>)result);
     }
 
-    public async Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IList<EndpointDailyThroughput> throughput, CancellationToken cancellationToken)
+    public async Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IList<EndpointDailyThroughput> throughput, CancellationToken cancellationToken = default)
     {
         var id = new EndpointIdentifier(endpointName, throughputSource);
         if (!endpoints.TryGetValue(id, out _))
@@ -111,7 +111,7 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         await Task.CompletedTask;
     }
 
-    public async Task UpdateUserIndicatorOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken)
+    public async Task UpdateUserIndicatorOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken = default)
     {
         userIndicatorUpdates.ForEach(e =>
         {
@@ -130,12 +130,12 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         await Task.CompletedTask;
     }
 
-    public async Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken) => await Task.FromResult(
+    public async Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken = default) => await Task.FromResult(
         allThroughput.Any(endpointThroughput => endpointThroughput.Value.Any(
             t => t.Key >= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-days) &&
                  t.Key <= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1))));
 
-    public async Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, bool includeToday, CancellationToken cancellationToken)
+    public async Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, bool includeToday, CancellationToken cancellationToken = default)
     {
         var endDate = includeToday ? DateOnly.FromDateTime(DateTime.UtcNow) : DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
 
@@ -147,33 +147,33 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
 
     List<Endpoint> GetAllConnectedEndpoints(string name) => endpoints.Where(w => w.SanitizedName == name || w.Id.Name == name).ToList();
 
-    public Task<BrokerMetadata> GetBrokerMetadata(CancellationToken cancellationToken) => Task.FromResult(brokerMetadata);
+    public Task<BrokerMetadata> GetBrokerMetadata(CancellationToken cancellationToken = default) => Task.FromResult(brokerMetadata);
 
-    public Task SaveBrokerMetadata(BrokerMetadata brokerMetadata, CancellationToken cancellationToken)
+    public Task SaveBrokerMetadata(BrokerMetadata brokerMetadata, CancellationToken cancellationToken = default)
     {
         this.brokerMetadata = brokerMetadata;
         return Task.CompletedTask;
     }
 
-    public Task<AuditServiceMetadata> GetAuditServiceMetadata(CancellationToken cancellationToken) => Task.FromResult(auditServiceMetadata);
+    public Task<AuditServiceMetadata> GetAuditServiceMetadata(CancellationToken cancellationToken = default) => Task.FromResult(auditServiceMetadata);
 
-    public Task SaveAuditServiceMetadata(AuditServiceMetadata auditServiceMetadata, CancellationToken cancellationToken)
+    public Task SaveAuditServiceMetadata(AuditServiceMetadata auditServiceMetadata, CancellationToken cancellationToken = default)
     {
         this.auditServiceMetadata = auditServiceMetadata;
         return Task.CompletedTask;
     }
 
-    public Task<List<string>> GetReportMasks(CancellationToken cancellationToken) => Task.FromResult(reportMasks);
+    public Task<List<string>> GetReportMasks(CancellationToken cancellationToken = default) => Task.FromResult(reportMasks);
 
-    public Task SaveReportMasks(List<string> reportMasks, CancellationToken cancellationToken)
+    public Task SaveReportMasks(List<string> reportMasks, CancellationToken cancellationToken = default)
     {
         this.reportMasks = reportMasks;
         return Task.CompletedTask;
     }
 
-    public Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(CancellationToken cancellationToken) => Task.FromResult(endpointDetails);
+    public Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(CancellationToken cancellationToken = default) => Task.FromResult(endpointDetails);
 
-    public Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken)
+    public Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken = default)
     {
         endpointDetails = result;
         return Task.CompletedTask;

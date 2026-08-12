@@ -9,21 +9,21 @@
 
     class FailedErrorImportDataStore(IRavenSessionProvider sessionProvider, ILogger<FailedErrorImportDataStore> logger) : IFailedErrorImportDataStore
     {
-        public async Task StoreFailedErrorImport(FailedErrorImport failure)
+        public async Task StoreFailedErrorImport(FailedErrorImport failure, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             // This object's ID is generated externally, but is not in the RavenDB format
             // Check that's true to make sure that if it already is that it doesn't get double-formatted
             if (!failure.Id.StartsWith(CollectionName))
             {
                 failure.Id = MakeDocumentId(failure.Id);
             }
-            await session.StoreAsync(failure);
+            await session.StoreAsync(failure, cancellationToken);
 
-            await session.SaveChangesAsync();
+            await session.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task ProcessFailedErrorImports(Func<FailedTransportMessage, Task> processMessage, CancellationToken cancellationToken)
+        public async Task ProcessFailedErrorImports(Func<FailedTransportMessage, CancellationToken, Task> processMessage, CancellationToken cancellationToken = default)
         {
             var succeeded = 0;
             var failed = 0;
@@ -36,7 +36,7 @@
                     var transportMessage = stream.Current.Document.Message;
                     try
                     {
-                        await processMessage(transportMessage);
+                        await processMessage(transportMessage, cancellationToken);
 
                         await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(stream.Current.Id, null), session.Advanced.Context, token: cancellationToken);
 
@@ -64,11 +64,11 @@
             }
         }
 
-        public async Task<bool> QueryContainsFailedImports()
+        public async Task<bool> QueryContainsFailedImports(CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var query = session.Query<FailedErrorImport, FailedErrorImportIndex>();
-            await using var ie = await session.Advanced.StreamAsync(query);
+            await using var ie = await session.Advanced.StreamAsync(query, cancellationToken);
             return await ie.MoveNextAsync();
         }
 

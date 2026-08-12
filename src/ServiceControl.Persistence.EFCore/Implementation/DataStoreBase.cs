@@ -16,21 +16,21 @@ public abstract class DataStoreBase(IServiceScopeFactory scopeFactory)
     /// <summary>
     /// Executes an operation with a scoped DbContext, returning a result
     /// </summary>
-    protected async Task<T> ExecuteWithDbContext<T>(Func<ServiceControlDbContext, Task<T>> operation)
+    protected async Task<T> ExecuteWithDbContext<T>(Func<ServiceControlDbContext, CancellationToken, Task<T>> operation, CancellationToken cancellationToken = default)
     {
         await using var scope = scopeFactory.CreateAsyncScope();// Use CreateAsyncScope for async disposal
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
-        return await operation(dbContext);
+        return await operation(dbContext, cancellationToken);
     }
 
     /// <summary>
     /// Executes an operation with a scoped DbContext, without returning a result
     /// </summary>
-    protected async Task ExecuteWithDbContext(Func<ServiceControlDbContext, Task> operation)
+    protected async Task ExecuteWithDbContext(Func<ServiceControlDbContext, CancellationToken, Task> operation, CancellationToken cancellationToken = default)
     {
         await using var scope = scopeFactory.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
-        await operation(dbContext);
+        await operation(dbContext, cancellationToken);
     }
 
     /// <summary>

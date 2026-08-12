@@ -6,7 +6,7 @@
 
     class TrialLicenseDataProvider(IRavenSessionProvider sessionProvider) : ITrialLicenseDataProvider
     {
-        public async Task<DateOnly?> GetTrialEndDate(CancellationToken cancellationToken)
+        public async Task<DateOnly?> GetTrialEndDate(CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 
@@ -15,7 +15,7 @@
             return document?.TrialEndDate;
         }
 
-        public async Task StoreTrialEndDate(DateOnly trialEndDate, CancellationToken cancellationToken)
+        public async Task StoreTrialEndDate(DateOnly trialEndDate, CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 

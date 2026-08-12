@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Transport;
@@ -30,7 +31,8 @@
         public Task RecordFailedProcessingAttempt(
             MessageContext context,
             FailedMessage.ProcessingAttempt processingAttempt,
-            List<FailedMessage.FailureGroup> groups)
+            List<FailedMessage.FailureGroup> groups,
+            CancellationToken cancellationToken = default)
         {
             var uniqueMessageId = context.Headers.UniqueId();
             var contentType = GetContentType(context.Headers, "text/plain");
@@ -66,7 +68,7 @@
             return Task.CompletedTask;
         }
 
-        public Task RecordSuccessfulRetry(string retriedMessageUniqueId)
+        public Task RecordSuccessfulRetry(string retriedMessageUniqueId, CancellationToken cancellationToken = default)
         {
             var failedMessageDocumentId = FailedMessageIdGenerator.MakeDocumentId(retriedMessageUniqueId);
             var failedMessageRetryDocumentId = RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(retriedMessageUniqueId);

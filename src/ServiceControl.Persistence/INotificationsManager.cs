@@ -1,10 +1,11 @@
 ﻿namespace ServiceControl.Persistence
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Notifications;
 
     public interface INotificationsManager : IDataSessionManager
     {
-        Task<NotificationsSettings> LoadSettings();
+        Task<NotificationsSettings> LoadSettings(CancellationToken cancellationToken = default);
     }
 }

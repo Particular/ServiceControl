@@ -13,7 +13,7 @@ namespace ServiceControl.Persistence.RavenDB
 
     class DatabaseSetup(RavenPersisterSettings settings, IDocumentStore documentStore)
     {
-        public async Task Execute(CancellationToken cancellationToken)
+        public async Task Execute(CancellationToken cancellationToken = default)
         {
             await CreateDatabase(settings.DatabaseName, cancellationToken);
             await CreateDatabase(settings.ThroughputDatabaseName, cancellationToken);

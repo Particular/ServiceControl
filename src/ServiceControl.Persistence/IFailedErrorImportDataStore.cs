@@ -7,8 +7,8 @@
 
     public interface IFailedErrorImportDataStore
     {
-        Task StoreFailedErrorImport(FailedErrorImport failure);
-        Task ProcessFailedErrorImports(Func<FailedTransportMessage, Task> processMessage, CancellationToken cancellationToken);
-        Task<bool> QueryContainsFailedImports();
+        Task StoreFailedErrorImport(FailedErrorImport failure, CancellationToken cancellationToken = default);
+        Task ProcessFailedErrorImports(Func<FailedTransportMessage, CancellationToken, Task> processMessage, CancellationToken cancellationToken = default);
+        Task<bool> QueryContainsFailedImports(CancellationToken cancellationToken = default);
     }
 }

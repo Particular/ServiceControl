@@ -20,8 +20,8 @@
         [HttpGet]
         public async Task<EmailNotifications> GetEmailNotificationsSettings(CancellationToken cancellationToken = default)
         {
-            await using var manager = await store.CreateNotificationsManager();
-            var notificationsSettings = await manager.LoadSettings();
+            await using var manager = await store.CreateNotificationsManager(cancellationToken);
+            var notificationsSettings = await manager.LoadSettings(cancellationToken);
 
             return notificationsSettings.Email;
         }
@@ -31,12 +31,12 @@
         [HttpPost]
         public async Task<IActionResult> ToggleEmailNotifications(ToggleEmailNotifications request, CancellationToken cancellationToken = default)
         {
-            await using var manager = await store.CreateNotificationsManager();
-            var notificationsSettings = await manager.LoadSettings();
+            await using var manager = await store.CreateNotificationsManager(cancellationToken);
+            var notificationsSettings = await manager.LoadSettings(cancellationToken);
 
             notificationsSettings.Email.Enabled = request.Enabled;
 
-            await manager.SaveChanges();
+            await manager.SaveChanges(cancellationToken);
 
             return Ok();
         }
@@ -46,8 +46,8 @@
         [HttpPost]
         public async Task<IActionResult> UpdateSettings(UpdateEmailNotificationsSettingsRequest request, CancellationToken cancellationToken = default)
         {
-            await using var manager = await store.CreateNotificationsManager();
-            var notificationsSettings = await manager.LoadSettings();
+            await using var manager = await store.CreateNotificationsManager(cancellationToken);
+            var notificationsSettings = await manager.LoadSettings(cancellationToken);
 
             var emailSettings = notificationsSettings.Email;
 
@@ -61,7 +61,7 @@
             emailSettings.From = request.From;
             emailSettings.To = request.To;
 
-            await manager.SaveChanges();
+            await manager.SaveChanges(cancellationToken);
 
             return Ok();
         }
@@ -71,8 +71,8 @@
         [HttpPost]
         public async Task<IActionResult> SendTestEmail(CancellationToken cancellationToken = default)
         {
-            await using var manager = await store.CreateNotificationsManager();
-            var notificationsSettings = await manager.LoadSettings();
+            await using var manager = await store.CreateNotificationsManager(cancellationToken);
+            var notificationsSettings = await manager.LoadSettings(cancellationToken);
 
             try
             {

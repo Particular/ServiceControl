@@ -8,6 +8,6 @@ public interface IEndpointSettingsStore
 {
     IAsyncEnumerable<EndpointSettings> GetAllEndpointSettings(CancellationToken cancellationToken = default);
 
-    Task UpdateEndpointSettings(EndpointSettings settings, CancellationToken token);
-    Task Delete(string name, CancellationToken cancellationToken);
+    Task UpdateEndpointSettings(EndpointSettings settings, CancellationToken cancellationToken = default);
+    Task Delete(string name, CancellationToken cancellationToken = default);
 }

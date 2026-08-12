@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Persistence.RavenDB;
     using Raven.Client.Documents;
@@ -13,15 +14,15 @@
     {
         public const string AttachmentName = "body";
 
-        public async Task<MessageBodyStreamResult> TryFetch(string bodyId)
+        public async Task<MessageBodyStreamResult> TryFetch(string bodyId, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 
             // BodyId could be a MessageID or a UniqueID, but if a UniqueID then it will be a DeterministicGuid of MessageID and endpoint name and be Guid-parseable
             // This is preferred, then we know we're getting the correct message body that is attached to the FailedMessage document
             if (Guid.TryParse(bodyId, out _))
             {
-                var result = await ResultForUniqueId(session, bodyId);
+                var result = await ResultForUniqueId(session, bodyId, cancellationToken);
                 if (result != null)
                 {
                     return result;
@@ -34,21 +35,21 @@
                 .OfType<FailedMessage>()
                 .Select(msg => msg.UniqueMessageId);
 
-            var uniqueId = await query.FirstOrDefaultAsync();
+            var uniqueId = await query.FirstOrDefaultAsync(cancellationToken);
 
             if (uniqueId != null)
             {
-                return await ResultForUniqueId(session, uniqueId);
+                return await ResultForUniqueId(session, uniqueId, cancellationToken);
             }
 
             return null;
         }
 
-        async Task<MessageBodyStreamResult> ResultForUniqueId(IAsyncDocumentSession session, string uniqueId)
+        async Task<MessageBodyStreamResult> ResultForUniqueId(IAsyncDocumentSession session, string uniqueId, CancellationToken cancellationToken)
         {
             var documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueId);
 
-            var result = await session.Advanced.Attachments.GetAsync(documentId, AttachmentName);
+            var result = await session.Advanced.Attachments.GetAsync(documentId, AttachmentName, cancellationToken);
 
             if (result == null)
             {

@@ -88,7 +88,7 @@ namespace ServiceControl.CompositeViews.Messages
         {
             if (string.IsNullOrWhiteSpace(instanceId) || instanceId == settings.InstanceId)
             {
-                var result = await bodyStorage.TryFetch(id);
+                var result = await bodyStorage.TryFetch(id, cancellationToken);
 
                 if (result == null)
                 {

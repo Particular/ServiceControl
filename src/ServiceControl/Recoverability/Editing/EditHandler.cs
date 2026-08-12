@@ -24,9 +24,9 @@
         {
             FailedMessage failedMessage;
             string editId;
-            await using (var session = await store.CreateEditFailedMessageManager())
+            await using (var session = await store.CreateEditFailedMessageManager(context.CancellationToken))
             {
-                failedMessage = await session.GetFailedMessage(message.FailedMessageId);
+                failedMessage = await session.GetFailedMessage(message.FailedMessageId, context.CancellationToken);
 
                 if (failedMessage == null)
                 {
@@ -34,7 +34,7 @@
                     return;
                 }
 
-                editId = await session.GetCurrentEditingRequestId(message.FailedMessageId);
+                editId = await session.GetCurrentEditingRequestId(message.FailedMessageId, context.CancellationToken);
                 if (editId == null)
                 {
                     if (failedMessage.Status != FailedMessageStatus.Unresolved)
@@ -44,7 +44,7 @@
                     }
 
                     // create a retries document to prevent concurrent edits
-                    await session.SetCurrentEditingRequestId(context.MessageId);
+                    await session.SetCurrentEditingRequestId(context.MessageId, context.CancellationToken);
                 }
                 else if (editId != context.MessageId)
                 {
@@ -53,10 +53,10 @@
                 }
 
                 // the original failure is marked as resolved as any failures of the edited message are treated as a new message failure.
-                await session.SetFailedMessageAsResolved();
+                await session.SetFailedMessageAsResolved(context.CancellationToken);
 
 
-                await session.SaveChanges();
+                await session.SaveChanges(context.CancellationToken);
             }
 
             var redirects = await redirectsStore.GetRedirects(context.CancellationToken);

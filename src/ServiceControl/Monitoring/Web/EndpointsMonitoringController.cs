@@ -55,7 +55,7 @@
                 return NotFound();
             }
 
-            await dataStore.Delete(endpointId);
+            await dataStore.Delete(endpointId, cancellationToken);
 
             monitoring.RemoveEndpoint(endpointId);
             return NoContent();

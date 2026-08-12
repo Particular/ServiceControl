@@ -511,7 +511,7 @@
         public async Task<byte[]> GetFailedMessageBody(string uniqueMessageId, CancellationToken cancellationToken = default)
         {
             byte[] body = null;
-            var result = await bodyStorage.TryFetch(uniqueMessageId)
+            var result = await bodyStorage.TryFetch(uniqueMessageId, cancellationToken)
                          ?? throw new InvalidOperationException("IBodyStorage.TryFetch result cannot be null");
 
             if (result.HasResult)
