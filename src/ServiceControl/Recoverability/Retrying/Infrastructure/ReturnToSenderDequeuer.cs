@@ -40,7 +40,7 @@ class ReturnToSenderDequeuer : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken = default)
     {
-        transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(InputAddress, transportSettings, Handle, faultManager.OnError, (_, __) => Task.CompletedTask, TransportTransactionMode.SendsAtomicWithReceive);
+        transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(InputAddress, transportSettings, Handle, faultManager.OnError, (_, __, ___) => Task.CompletedTask, TransportTransactionMode.SendsAtomicWithReceive, cancellationToken);
         messageReceiver = transportInfrastructure.Receivers[InputAddress];
         messageDispatcher = transportInfrastructure.Dispatcher;
 

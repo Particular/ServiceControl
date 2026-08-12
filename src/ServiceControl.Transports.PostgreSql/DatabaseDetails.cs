@@ -29,7 +29,7 @@ public class DatabaseDetails
         }
     }
 
-    public async Task<string> TestConnection(CancellationToken cancellationToken)
+    public async Task<string> TestConnection(CancellationToken cancellationToken = default)
     {
         try
         {
@@ -117,7 +117,7 @@ public class DatabaseDetails
         return table;
     }
 
-    async Task<NpgsqlConnection> OpenConnectionAsync(CancellationToken cancellationToken = default)
+    async Task<NpgsqlConnection> OpenConnectionAsync(CancellationToken cancellationToken)
     {
         var conn = new NpgsqlConnection(connectionString);
         await conn.OpenAsync(cancellationToken);

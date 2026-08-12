@@ -66,7 +66,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
         }
     }
 
-    public override async IAsyncEnumerable<IBrokerQueue> GetQueueNames([EnumeratorCancellation] CancellationToken cancellationToken)
+    public override async IAsyncEnumerable<IBrokerQueue> GetQueueNames([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var page = 1;
         bool morePages;
@@ -149,7 +149,7 @@ public class RabbitMQQuery : BrokerThroughputQuery
 
     public override KeyDescriptionPair[] Settings => [];
 
-    protected override async Task<(bool Success, List<string> Errors)> TestConnectionCore(CancellationToken cancellationToken)
+    protected override async Task<(bool Success, List<string> Errors)> TestConnectionCore(CancellationToken cancellationToken = default)
     {
         try
         {

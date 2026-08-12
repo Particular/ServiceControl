@@ -221,7 +221,8 @@
                     OnMessage,
                     errorHandlingPolicy.OnError,
                     OnCriticalError,
-                    TransportTransactionMode.ReceiveOnly
+                    TransportTransactionMode.ReceiveOnly,
+                    cancellationToken
                 );
 
                 messageReceiver = transportInfrastructure.Receivers[errorQueue];
@@ -304,10 +305,10 @@
             await taskCompletionSource.Task;
         }
 
-        Task OnCriticalError(string failure, Exception exception)
+        Task OnCriticalError(string failure, Exception exception, CancellationToken cancellationToken)
         {
             logger.LogCritical(exception, "OnCriticalError. '{FailureMessage}'", failure);
-            return watchdog.OnFailure(failure);
+            return watchdog.OnFailure(failure, cancellationToken);
         }
 
         async Task EnsureStopped(CancellationToken cancellationToken)

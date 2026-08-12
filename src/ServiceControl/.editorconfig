@@ -2,10 +2,3 @@
 
 # Justification: ServiceControl app has no synchronization context
 dotnet_diagnostic.CA2007.severity = none
-
-# Blocked on the transport abstraction. TransportCustomization.CreateTransportInfrastructure takes
-# Func<string, Exception, Task> for onCriticalError, so the critical-error path here cannot carry a
-# token until that signature gains one in the transports phase.
-[{Operations/ErrorIngestion.cs,Operations/ErrorIngestionFaultPolicy.cs,Operations/ImportFailureCircuitBreaker.cs}]
-dotnet_diagnostic.PS0013.severity = none
-dotnet_diagnostic.PS0018.severity = none

@@ -21,7 +21,7 @@
 
         ImportFailureCircuitBreaker failureCircuitBreaker;
 
-        public ErrorIngestionFaultPolicy(IFailedErrorImportDataStore store, LoggingSettings loggingSettings, Func<string, Exception, Task> onCriticalError, ILogger logger)
+        public ErrorIngestionFaultPolicy(IFailedErrorImportDataStore store, LoggingSettings loggingSettings, Func<string, Exception, CancellationToken, Task> onCriticalError, ILogger logger)
         {
             this.store = store;
             this.logger = logger;

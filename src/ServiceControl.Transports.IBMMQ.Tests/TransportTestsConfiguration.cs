@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Transport.Tests;
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Transports;
 using Transports.IBMMQ;
@@ -21,7 +22,7 @@ class TransportTestsConfiguration
 
     public ITransportCustomization TransportCustomization { get; private set; }
 
-    public Task Configure()
+    public Task Configure(CancellationToken cancellationToken = default)
     {
         TransportCustomization = new TestIBMMQTransportCustomization();
         ConnectionString = Environment.GetEnvironmentVariable(ConnectionStringKey)
@@ -35,7 +36,7 @@ class TransportTestsConfiguration
         return Task.CompletedTask;
     }
 
-    public Task Cleanup() => Task.CompletedTask;
+    public Task Cleanup(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
     static string ConnectionStringKey = "ServiceControl_TransportTests_IBMMQ_ConnectionString";
 }

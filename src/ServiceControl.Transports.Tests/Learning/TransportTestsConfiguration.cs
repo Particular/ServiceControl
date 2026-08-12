@@ -2,13 +2,14 @@
 {
     using System;
     using System.IO;
+    using System.Threading;
     using System.Threading.Tasks;
     using ServiceControl.Transports;
     using ServiceControl.Transports.Learning;
 
     partial class TransportTestsConfiguration
     {
-        public Task Configure()
+        public Task Configure(CancellationToken cancellationToken = default)
         {
             basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $".test{Path.GetRandomFileName()}");
 
@@ -29,7 +30,7 @@
 
         public ITransportCustomization TransportCustomization { get; private set; }
 
-        public Task Cleanup()
+        public Task Cleanup(CancellationToken cancellationToken = default)
         {
             if (Directory.Exists(basePath))
             {

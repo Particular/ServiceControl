@@ -33,7 +33,7 @@
                     transportSettings.RunCustomChecks = false;
                     var transportCustomization = TransportFactory.Create(transportSettings);
 
-                    await transportCustomization.ProvisionQueues(transportSettings, additionalQueues);
+                    await transportCustomization.ProvisionQueues(transportSettings, additionalQueues, cancellationToken);
                 }
             }
 

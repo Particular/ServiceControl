@@ -196,7 +196,7 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
 
     public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue,
         DateOnly startDate,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var utcNow = timeProvider.GetUtcNow();
         var today = DateOnly.FromDateTime(utcNow.DateTime);
@@ -306,7 +306,7 @@ public class AmazonSQSQuery(ILogger<AmazonSQSQuery> logger, TimeProvider timePro
     ];
 
     protected override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         await foreach (IBrokerQueue brokerQueue in GetQueueNames(cancellationToken))
         {

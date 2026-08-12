@@ -38,19 +38,19 @@ class QueueLengthProvider : AbstractQueueLengthProvider
         tableSizes.TryAdd(sqlTable, 0);
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
-        while (!stoppingToken.IsCancellationRequested)
+        while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
-                await Task.Delay(QueryDelayInterval, stoppingToken);
+                await Task.Delay(QueryDelayInterval, cancellationToken);
 
-                await QueryTableSizes(stoppingToken);
+                await QueryTableSizes(cancellationToken);
 
                 UpdateQueueLengthStore();
             }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 // no-op
             }

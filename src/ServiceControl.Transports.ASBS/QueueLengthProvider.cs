@@ -27,24 +27,24 @@ namespace ServiceControl.Transports.ASBS
                 (id, old) => queueToTrack.EndpointName
             );
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 try
                 {
                     logger.LogDebug("Waiting for next interval");
-                    await Task.Delay(queryDelayInterval, stoppingToken);
+                    await Task.Delay(queryDelayInterval, cancellationToken);
 
                     logger.LogDebug("Querying management client");
 
-                    var queueRuntimeInfos = await GetQueueList(stoppingToken);
+                    var queueRuntimeInfos = await GetQueueList(cancellationToken);
 
                     logger.LogDebug("Retrieved details of {QueueCount} queues", queueRuntimeInfos.Count);
 
                     UpdateAllQueueLengths(queueRuntimeInfos);
                 }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
                     // no-op
                 }

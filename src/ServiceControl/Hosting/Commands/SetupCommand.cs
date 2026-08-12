@@ -47,7 +47,7 @@
                 transportSettings.RunCustomChecks = false;
                 var transportCustomization = TransportFactory.Create(transportSettings);
 
-                await transportCustomization.ProvisionQueues(transportSettings, componentSetupContext.Queues);
+                await transportCustomization.ProvisionQueues(transportSettings, componentSetupContext.Queues, cancellationToken);
             }
 
             await using (var scope = host.Services.CreateAsyncScope())
