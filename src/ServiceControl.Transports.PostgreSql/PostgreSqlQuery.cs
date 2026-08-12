@@ -89,7 +89,7 @@ public class PostgreSqlQuery(
     ];
 
     protected override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         List<string> errors = [];
 
@@ -98,6 +98,10 @@ public class PostgreSqlQuery(
             try
             {
                 await db.TestConnection(cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception ex)
             {

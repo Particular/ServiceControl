@@ -66,6 +66,10 @@ public class SqlServerQuery(
         {
             startData = await queueTableName.DatabaseDetails.GetSnapshot(queueTableName, cancellationToken);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception e)
         {
             logger.LogError(e, "Failed to query throughput starting snapshot for {QueueName}", queueTableName.QueueName);
@@ -81,6 +85,10 @@ public class SqlServerQuery(
             try
             {
                 endData = await queueTableName.DatabaseDetails.GetSnapshot(queueTableName, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {
@@ -130,7 +138,7 @@ public class SqlServerQuery(
     ];
 
     protected override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         List<string> errors = [];
 
@@ -139,6 +147,10 @@ public class SqlServerQuery(
             try
             {
                 await db.TestConnection(cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception ex)
             {

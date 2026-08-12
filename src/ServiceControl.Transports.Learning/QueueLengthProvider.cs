@@ -22,18 +22,18 @@
         public override void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
             => endpointsHash.AddOrUpdate(queueToTrack, queueToTrack, (_, __) => queueToTrack);
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 try
                 {
                     var queueLengths = GetQueueLengths();
                     UpdateStore(queueLengths);
 
-                    await Task.Delay(QueryDelayInterval, stoppingToken);
+                    await Task.Delay(QueryDelayInterval, cancellationToken);
                 }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
                     // It's OK. We're shutting down
                 }

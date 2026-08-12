@@ -68,10 +68,10 @@
             );
         }
 
-        Task OnCriticalError(string failure, Exception exception)
+        Task OnCriticalError(string failure, Exception exception, CancellationToken cancellationToken)
         {
             logger.LogCritical(exception, "OnCriticalError. '{Failure}'", failure);
-            return watchdog.OnFailure(failure);
+            return watchdog.OnFailure(failure, cancellationToken);
         }
 
         async Task EnsureStarted(CancellationToken cancellationToken)
@@ -137,7 +137,8 @@
                     OnMessage,
                     errorHandlingPolicy.OnError,
                     OnCriticalError,
-                    TransportTransactionMode.ReceiveOnly
+                    TransportTransactionMode.ReceiveOnly,
+                    cancellationToken
                 );
 
                 messageReceiver = transportInfrastructure.Receivers[inputEndpoint];

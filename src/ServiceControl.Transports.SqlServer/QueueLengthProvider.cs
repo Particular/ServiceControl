@@ -53,9 +53,9 @@
             tableSizes.TryAdd(sqlTable, 0);
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 // Time the whole iteration so the pacing delay below can subtract the work already done this
                 // cycle. The effective cadence is then max(currentDelay, iterationDuration) — the query
@@ -66,7 +66,7 @@
 
                 try
                 {
-                    await QueryTableSizes(stoppingToken);
+                    await QueryTableSizes(cancellationToken);
 
                     UpdateQueueLengthStore();
 
@@ -79,7 +79,7 @@
                     var maxObservedLength = tableSizes.IsEmpty ? 0 : tableSizes.Values.Max();
                     currentDelay = NextDelay(currentDelay, baseDelay, maxDelay, maxObservedLength);
                 }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
                     break;
                 }
@@ -97,9 +97,9 @@
                 {
                     try
                     {
-                        await Task.Delay(remaining, stoppingToken);
+                        await Task.Delay(remaining, cancellationToken);
                     }
-                    catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                     {
                         break;
                     }

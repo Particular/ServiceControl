@@ -12,7 +12,7 @@ namespace ServiceControl.Transports
 
         protected string ConnectionString { get; } = settings.ConnectionString;
 
-        public override async Task StartAsync(CancellationToken cancellationToken)
+        public override async Task StartAsync(CancellationToken cancellationToken = default)
         {
             // BackgroundService in .NET awaits the returned task to be completed. Queue providers might be doing
             // some heavy lifting before yielding so we are forcing things to be offloaded here by default.

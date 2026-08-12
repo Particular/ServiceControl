@@ -6,7 +6,7 @@ namespace ServiceControl.Transports
         protected AbstractQueueLengthProvider(ServiceControl.Transports.TransportSettings settings, System.Action<ServiceControl.Transports.QueueLengthEntry[], ServiceControl.Transports.EndpointToQueueMapping> store) { }
         protected string ConnectionString { get; }
         protected System.Action<ServiceControl.Transports.QueueLengthEntry[], ServiceControl.Transports.EndpointToQueueMapping> Store { get; }
-        public override System.Threading.Tasks.Task StartAsync(System.Threading.CancellationToken cancellationToken) { }
+        public override System.Threading.Tasks.Task StartAsync(System.Threading.CancellationToken cancellationToken = default) { }
         public abstract void TrackEndpointInputQueue(ServiceControl.Transports.EndpointToQueueMapping queueToTrack);
     }
     public class EndpointToQueueMapping
@@ -27,11 +27,11 @@ namespace ServiceControl.Transports
         void AddTransportForAudit(Microsoft.Extensions.DependencyInjection.IServiceCollection services, ServiceControl.Transports.TransportSettings transportSettings);
         void AddTransportForMonitoring(Microsoft.Extensions.DependencyInjection.IServiceCollection services, ServiceControl.Transports.TransportSettings transportSettings);
         void AddTransportForPrimary(Microsoft.Extensions.DependencyInjection.IServiceCollection services, ServiceControl.Transports.TransportSettings transportSettings);
-        System.Threading.Tasks.Task<NServiceBus.Transport.TransportInfrastructure> CreateTransportInfrastructure(string name, ServiceControl.Transports.TransportSettings transportSettings, NServiceBus.Transport.OnMessage onMessage = null, NServiceBus.Transport.OnError onError = null, System.Func<string, System.Exception, System.Threading.Tasks.Task> onCriticalError = null, NServiceBus.TransportTransactionMode preferredTransactionMode = 1);
+        System.Threading.Tasks.Task<NServiceBus.Transport.TransportInfrastructure> CreateTransportInfrastructure(string name, ServiceControl.Transports.TransportSettings transportSettings, NServiceBus.Transport.OnMessage onMessage = null, NServiceBus.Transport.OnError onError = null, System.Func<string, System.Exception, System.Threading.CancellationToken, System.Threading.Tasks.Task> onCriticalError = null, NServiceBus.TransportTransactionMode preferredTransactionMode = 1, System.Threading.CancellationToken cancellationToken = default);
         void CustomizeAuditEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         void CustomizeMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         void CustomizePrimaryEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
-        System.Threading.Tasks.Task ProvisionQueues(ServiceControl.Transports.TransportSettings transportSettings, System.Collections.Generic.IEnumerable<string> additionalQueues);
+        System.Threading.Tasks.Task ProvisionQueues(ServiceControl.Transports.TransportSettings transportSettings, System.Collections.Generic.IEnumerable<string> additionalQueues, System.Threading.CancellationToken cancellationToken = default);
         string ToTransportQualifiedQueueName(string queueName);
     }
     public class QueueLengthEntry
@@ -52,14 +52,14 @@ namespace ServiceControl.Transports
         protected virtual void AddTransportForPrimaryCore(Microsoft.Extensions.DependencyInjection.IServiceCollection services, ServiceControl.Transports.TransportSettings transportSettings) { }
         protected void ConfigureDefaultEndpointSettings(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings) { }
         protected abstract TTransport CreateTransport(ServiceControl.Transports.TransportSettings transportSettings, NServiceBus.TransportTransactionMode preferredTransactionMode = 1);
-        public System.Threading.Tasks.Task<NServiceBus.Transport.TransportInfrastructure> CreateTransportInfrastructure(string name, ServiceControl.Transports.TransportSettings transportSettings, NServiceBus.Transport.OnMessage onMessage = null, NServiceBus.Transport.OnError onError = null, System.Func<string, System.Exception, System.Threading.Tasks.Task> onCriticalError = null, NServiceBus.TransportTransactionMode preferredTransactionMode = 1) { }
+        public System.Threading.Tasks.Task<NServiceBus.Transport.TransportInfrastructure> CreateTransportInfrastructure(string name, ServiceControl.Transports.TransportSettings transportSettings, NServiceBus.Transport.OnMessage onMessage = null, NServiceBus.Transport.OnError onError = null, System.Func<string, System.Exception, System.Threading.CancellationToken, System.Threading.Tasks.Task> onCriticalError = null, NServiceBus.TransportTransactionMode preferredTransactionMode = 1, System.Threading.CancellationToken cancellationToken = default) { }
         public void CustomizeAuditEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings) { }
         public void CustomizeMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings) { }
         public void CustomizePrimaryEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings) { }
         protected abstract void CustomizeTransportForAuditEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TTransport transportDefinition, ServiceControl.Transports.TransportSettings transportSettings);
         protected abstract void CustomizeTransportForMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TTransport transportDefinition, ServiceControl.Transports.TransportSettings transportSettings);
         protected abstract void CustomizeTransportForPrimaryEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TTransport transportDefinition, ServiceControl.Transports.TransportSettings transportSettings);
-        public virtual System.Threading.Tasks.Task ProvisionQueues(ServiceControl.Transports.TransportSettings transportSettings, System.Collections.Generic.IEnumerable<string> additionalQueues) { }
+        public virtual System.Threading.Tasks.Task ProvisionQueues(ServiceControl.Transports.TransportSettings transportSettings, System.Collections.Generic.IEnumerable<string> additionalQueues, System.Threading.CancellationToken cancellationToken = default) { }
         public string ToTransportQualifiedQueueName(string queueName) { }
         protected virtual string ToTransportQualifiedQueueNameCore(string queueName) { }
     }
@@ -113,8 +113,8 @@ namespace ServiceControl.Transports.BrokerThroughput
         public string MessageTransport { get; }
         public string? ScopeType { get; set; }
         public abstract ServiceControl.Transports.BrokerThroughput.KeyDescriptionPair[] Settings { get; }
-        public abstract System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.BrokerThroughput.IBrokerQueue> GetQueueNames(System.Threading.CancellationToken cancellationToken);
-        public abstract System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.BrokerThroughput.QueueThroughput> GetThroughputPerDay(ServiceControl.Transports.BrokerThroughput.IBrokerQueue brokerQueue, System.DateOnly startDate, System.Threading.CancellationToken cancellationToken);
+        public abstract System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.BrokerThroughput.IBrokerQueue> GetQueueNames(System.Threading.CancellationToken cancellationToken = default);
+        public abstract System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.BrokerThroughput.QueueThroughput> GetThroughputPerDay(ServiceControl.Transports.BrokerThroughput.IBrokerQueue brokerQueue, System.DateOnly startDate, System.Threading.CancellationToken cancellationToken = default);
         public bool HasInitialisationErrors(out string errorMessage) { }
         public void Initialize(System.Collections.ObjectModel.ReadOnlyDictionary<string, string> settings) { }
         protected abstract void InitializeCore(System.Collections.ObjectModel.ReadOnlyDictionary<string, string> settings);
@@ -124,11 +124,11 @@ namespace ServiceControl.Transports.BrokerThroughput
                 "Success",
                 "Errors",
                 "Diagnostics"})]
-        public System.Threading.Tasks.Task<System.ValueTuple<bool, System.Collections.Generic.List<string>, string>> TestConnection(System.Threading.CancellationToken cancellationToken) { }
+        public System.Threading.Tasks.Task<System.ValueTuple<bool, System.Collections.Generic.List<string>, string>> TestConnection(System.Threading.CancellationToken cancellationToken = default) { }
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
                 "Success",
                 "Errors"})]
-        protected abstract System.Threading.Tasks.Task<System.ValueTuple<bool, System.Collections.Generic.List<string>>> TestConnectionCore(System.Threading.CancellationToken cancellationToken);
+        protected abstract System.Threading.Tasks.Task<System.ValueTuple<bool, System.Collections.Generic.List<string>>> TestConnectionCore(System.Threading.CancellationToken cancellationToken = default);
     }
     public class DefaultBrokerQueue : ServiceControl.Transports.BrokerThroughput.IBrokerQueue
     {
@@ -151,8 +151,8 @@ namespace ServiceControl.Transports.BrokerThroughput
         string MessageTransport { get; }
         string? ScopeType { get; }
         ServiceControl.Transports.BrokerThroughput.KeyDescriptionPair[] Settings { get; }
-        System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.BrokerThroughput.IBrokerQueue> GetQueueNames(System.Threading.CancellationToken cancellationToken);
-        System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.BrokerThroughput.QueueThroughput> GetThroughputPerDay(ServiceControl.Transports.BrokerThroughput.IBrokerQueue brokerQueue, System.DateOnly startDate, System.Threading.CancellationToken cancellationToken);
+        System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.BrokerThroughput.IBrokerQueue> GetQueueNames(System.Threading.CancellationToken cancellationToken = default);
+        System.Collections.Generic.IAsyncEnumerable<ServiceControl.Transports.BrokerThroughput.QueueThroughput> GetThroughputPerDay(ServiceControl.Transports.BrokerThroughput.IBrokerQueue brokerQueue, System.DateOnly startDate, System.Threading.CancellationToken cancellationToken = default);
         bool HasInitialisationErrors(out string errorMessage);
         void Initialize(System.Collections.ObjectModel.ReadOnlyDictionary<string, string> settings);
         string SanitizeEndpointName(string endpointName);
@@ -161,7 +161,7 @@ namespace ServiceControl.Transports.BrokerThroughput
                 "Success",
                 "Errors",
                 "Diagnostics"})]
-        System.Threading.Tasks.Task<System.ValueTuple<bool, System.Collections.Generic.List<string>, string>> TestConnection(System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<System.ValueTuple<bool, System.Collections.Generic.List<string>, string>> TestConnection(System.Threading.CancellationToken cancellationToken = default);
     }
     public readonly struct KeyDescriptionPair
     {

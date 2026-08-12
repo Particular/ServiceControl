@@ -8,6 +8,8 @@
 
     public class BasicEndpointSetup : IEndpointSetupTemplate
     {
+#pragma warning disable PS0018 // IEndpointSetupTemplate declares this without a CancellationToken
+#pragma warning disable PS0013 // IEndpointSetupTemplate declares the callback as Func<EndpointConfiguration, Task>
         public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor,
             EndpointCustomizationConfiguration endpointCustomization,
             Func<EndpointConfiguration, Task> configurationBuilderCustomization)
@@ -27,5 +29,7 @@
 
             return endpointConfiguration;
         }
+#pragma warning restore PS0013
+#pragma warning restore PS0018
     }
 }

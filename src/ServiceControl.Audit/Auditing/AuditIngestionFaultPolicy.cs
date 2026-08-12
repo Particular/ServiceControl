@@ -20,7 +20,7 @@ class AuditIngestionFaultPolicy
     public AuditIngestionFaultPolicy(
         IFailedAuditStorage failedAuditStorage,
         LoggingSettings settings,
-        Func<string, Exception, Task> onCriticalError,
+        Func<string, Exception, CancellationToken, Task> onCriticalError,
         IngestionMetrics metrics,
         ILogger logger)
     {

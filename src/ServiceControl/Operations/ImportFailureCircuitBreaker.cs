@@ -7,7 +7,7 @@
     class ImportFailureCircuitBreaker : IDisposable
     {
 
-        public ImportFailureCircuitBreaker(Func<string, Exception, Task> onCriticalError)
+        public ImportFailureCircuitBreaker(Func<string, Exception, CancellationToken, Task> onCriticalError)
         {
             this.onCriticalError = onCriticalError;
             timer = new Timer(_ => FlushHistory(), null, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(20));
@@ -28,11 +28,13 @@
             var result = Interlocked.Increment(ref failureCount);
             if (result > 50)
             {
-                _ = Task.Run(() => onCriticalError("Failed to import too many times", lastException));
+                // Not cancellable: the notification exists to trigger shutdown, so the token
+                // that shutdown cancels must not be able to suppress it.
+                _ = Task.Run(() => onCriticalError("Failed to import too many times", lastException, CancellationToken.None), CancellationToken.None);
             }
         }
 
-        Func<string, Exception, Task> onCriticalError;
+        Func<string, Exception, CancellationToken, Task> onCriticalError;
         Timer timer;
         long failureCount;
     }

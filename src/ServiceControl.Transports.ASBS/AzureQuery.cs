@@ -201,7 +201,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
 
     public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue,
         DateOnly startDate,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         logger.LogInformation($"Gathering metrics for \"{brokerQueue.QueueName}\" queue");
 
@@ -249,7 +249,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     }
 
     async Task<IReadOnlyList<MonitorMetricValue>> GetMetrics(string queueName, DateOnly startTime, DateOnly endTime,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var options = new ArmResourceGetMonitorMetricsOptions()
         {
@@ -272,7 +272,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     }
 
     public override async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var validNamespaces = await GetValidNamespaceNames(cancellationToken);
 
@@ -310,7 +310,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
         { ArmEnvironment.AzureChina, "servicebus.chinacloudapi.cn" },
     };
 
-    async Task<HashSet<string>> GetValidNamespaceNames(CancellationToken cancellationToken = default)
+    async Task<HashSet<string>> GetValidNamespaceNames(CancellationToken cancellationToken)
     {
         var validNamespaces = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { serviceBusName };
 
@@ -347,7 +347,7 @@ public class AzureQuery(ILogger<AzureQuery> logger, TimeProvider timeProvider, T
     ];
 
     protected override async Task<(bool Success, List<string> Errors)> TestConnectionCore(
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         await foreach (IBrokerQueue brokerQueue in GetQueueNames(cancellationToken))
         {

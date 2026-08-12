@@ -30,7 +30,7 @@
             }
         }
 
-        public async Task<string> TestConnection(CancellationToken cancellationToken)
+        public async Task<string> TestConnection(CancellationToken cancellationToken = default)
         {
             try
             {
@@ -131,7 +131,7 @@
             return table;
         }
 
-        async Task<SqlConnection> OpenConnectionAsync(CancellationToken cancellationToken = default)
+        async Task<SqlConnection> OpenConnectionAsync(CancellationToken cancellationToken)
         {
             var conn = new SqlConnection(connectionString);
             await conn.OpenAsync(cancellationToken);

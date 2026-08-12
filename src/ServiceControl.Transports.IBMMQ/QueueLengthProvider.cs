@@ -29,9 +29,9 @@ class QueueLengthProvider : AbstractQueueLengthProvider
             return queueToTrack.InputQueue;
         });
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
-        while (!stoppingToken.IsCancellationRequested)
+        while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
@@ -39,9 +39,9 @@ class QueueLengthProvider : AbstractQueueLengthProvider
 
                 UpdateQueueLengthStore();
 
-                await Task.Delay(QueryDelayInterval, stoppingToken).ConfigureAwait(false);
+                await Task.Delay(QueryDelayInterval, cancellationToken).ConfigureAwait(false);
             }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 // no-op
             }
@@ -49,7 +49,7 @@ class QueueLengthProvider : AbstractQueueLengthProvider
             {
                 logger.LogError(e, "Queue length query loop failure");
                 CloseConnection();
-                await Task.Delay(ReconnectDelayInterval, stoppingToken).ConfigureAwait(false);
+                await Task.Delay(ReconnectDelayInterval, cancellationToken).ConfigureAwait(false);
             }
         }
 

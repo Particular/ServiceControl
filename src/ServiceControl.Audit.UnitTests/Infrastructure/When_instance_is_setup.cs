@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Reflection;
     using System.Runtime.Loader;
+    using System.Threading;
     using System.Threading.Tasks;
     using Audit.Infrastructure.Hosting;
     using Audit.Infrastructure.Hosting.Commands;
@@ -73,7 +74,7 @@
 
         public void AddTransportForMonitoring(IServiceCollection services, TransportSettings transportSettings) => throw new NotImplementedException();
 
-        public Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues)
+        public Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues, CancellationToken cancellationToken = default)
         {
             QueuesCreated =
             [
@@ -85,8 +86,9 @@
         }
 
         public Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings,
-            OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null,
-            TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly) =>
+            OnMessage onMessage = null, OnError onError = null, Func<string, Exception, CancellationToken, Task> onCriticalError = null,
+            TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly,
+            CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
         public string ToTransportQualifiedQueueName(string queueName) => queueName;
     }

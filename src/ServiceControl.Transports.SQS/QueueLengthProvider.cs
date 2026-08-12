@@ -52,22 +52,22 @@
             sizes.TryAdd(queue, 0);
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
         {
             using var client = clientFactory();
             var cache = new QueueAttributesRequestCache(client);
 
-            while (!stoppingToken.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 try
                 {
-                    await FetchQueueSizes(cache, client, stoppingToken);
+                    await FetchQueueSizes(cache, client, cancellationToken);
 
                     UpdateQueueLengthStore();
 
-                    await Task.Delay(QueryDelayInterval, stoppingToken);
+                    await Task.Delay(QueryDelayInterval, cancellationToken);
                 }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
                     // no-op
                 }

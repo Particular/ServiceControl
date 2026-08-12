@@ -47,9 +47,9 @@ public abstract class BrokerThroughputQuery(ILogger logger, string transport) : 
     protected abstract void InitializeCore(ReadOnlyDictionary<string, string> settings);
 
     public abstract IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken = default);
 
-    public abstract IAsyncEnumerable<IBrokerQueue> GetQueueNames(CancellationToken cancellationToken);
+    public abstract IAsyncEnumerable<IBrokerQueue> GetQueueNames(CancellationToken cancellationToken = default);
 
     public Dictionary<string, string> Data { get; set; } = [];
     public string MessageTransport => transport;
@@ -57,7 +57,7 @@ public abstract class BrokerThroughputQuery(ILogger logger, string transport) : 
     public abstract KeyDescriptionPair[] Settings { get; }
 
     public async Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         var sb = new StringBuilder();
         if (InitialiseErrors.Count > 0)
@@ -97,6 +97,10 @@ public abstract class BrokerThroughputQuery(ILogger logger, string transport) : 
 
             return (success, errors, sb.ToString());
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Test connection failed");
@@ -111,7 +115,7 @@ public abstract class BrokerThroughputQuery(ILogger logger, string transport) : 
     }
 
     protected abstract Task<(bool Success, List<string> Errors)>
-        TestConnectionCore(CancellationToken cancellationToken);
+        TestConnectionCore(CancellationToken cancellationToken = default);
 
     public virtual string SanitizeEndpointName(string endpointName) => endpointName;
 

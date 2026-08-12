@@ -155,7 +155,7 @@ class PostgreSqlQueryTests : TransportTestFixture
                 // Drop the table mid-way while GetThroughputPerDay is waiting for the next hour
                 if (advanceCount == 3)
                 {
-                    await DropQueueTable(brokerQueueTable.QueueAddress.QualifiedTableName);
+                    await DropQueueTable(brokerQueueTable.QueueAddress.QualifiedTableName, token);
                 }
 
                 provider.Advance(TimeSpan.FromHours(1));
@@ -179,12 +179,12 @@ class PostgreSqlQueryTests : TransportTestFixture
         Assert.That(throughputValues, Has.All.Matches<QueueThroughput>(qt => qt.TotalThroughput >= 0));
     }
 
-    async Task DropQueueTable(string qualifiedTableName)
+    async Task DropQueueTable(string qualifiedTableName, CancellationToken cancellationToken)
     {
         await using var conn = new NpgsqlConnection(configuration.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(cancellationToken);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = $"DROP TABLE IF EXISTS {qualifiedTableName} CASCADE;";
-        await cmd.ExecuteNonQueryAsync();
+        await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 }
