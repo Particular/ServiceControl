@@ -269,7 +269,7 @@
 
         public Exception ThrowOnDispatch { get; set; }
 
-        public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, CancellationToken cancellationToken)
+        public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, CancellationToken cancellationToken = default)
         {
             if (ThrowOnDispatch != null)
             {

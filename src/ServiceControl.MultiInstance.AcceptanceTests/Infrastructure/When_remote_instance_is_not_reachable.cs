@@ -49,7 +49,7 @@
 
         class RemoteNotAvailableHandler : HttpMessageHandler
         {
-            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
                 => throw new HttpRequestException(HttpRequestError.ConnectionError);
         }
 

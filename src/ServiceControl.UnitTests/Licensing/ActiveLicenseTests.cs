@@ -70,9 +70,9 @@
 
             public FakeDataProvider(TrialMetadata metadata) => this.metadata = metadata;
 
-            public Task<DateOnly?> GetTrialEndDate(CancellationToken cancellationToken) => Task.FromResult(metadata?.TrialEndDate);
+            public Task<DateOnly?> GetTrialEndDate(CancellationToken cancellationToken = default) => Task.FromResult(metadata?.TrialEndDate);
 
-            public Task StoreTrialEndDate(DateOnly trialEndDate, CancellationToken cancellationToken)
+            public Task StoreTrialEndDate(DateOnly trialEndDate, CancellationToken cancellationToken = default)
             {
                 metadata ??= new TrialMetadata();
                 metadata.TrialEndDate = trialEndDate;

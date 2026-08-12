@@ -146,7 +146,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 
         [Test]
         [CancelAfter(120_000)]
-        public async Task Should_be_listed_in_the_messages_list(CancellationToken cancellationToken)
+        public async Task Should_be_listed_in_the_messages_list(CancellationToken cancellationToken = default)
         {
             var failure = new MessagesView();
 

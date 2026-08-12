@@ -13,7 +13,7 @@ using ServiceControl.Persistence.Tests;
 public class EFCoreExtensionMethodTests : PersistenceTestBase
 {
     [Test, CancelAfter(60_000)]
-    public async Task Insert_until_conflict_should_not_throw_errors(CancellationToken cancellationToken)
+    public async Task Insert_until_conflict_should_not_throw_errors(CancellationToken cancellationToken = default)
     {
         var i = 0;
         while (!cancellationToken.IsCancellationRequested)

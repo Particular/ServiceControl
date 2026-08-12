@@ -3,7 +3,7 @@
 # Justification: Test project
 dotnet_diagnostic.CA2007.severity = none
 
-# Cancellation analyzer debt. These fire because Particular.Analyzers is no longer pinned to 0.9.0.
-# They are scheduled work, not accepted exceptions: remove a line once this project has no
+# Cancellation analyzer debt. PS0018 here is the test helper chain, not [Test] methods
+# (Particular.Analyzers already exempts those). Remove a line once this project has no
 # violations of that rule left, and never add a rule back to this list.
 dotnet_diagnostic.PS0018.severity = none

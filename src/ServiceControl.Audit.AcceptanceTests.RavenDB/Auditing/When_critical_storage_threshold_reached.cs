@@ -50,7 +50,7 @@
 
         [Test]
         [CancelAfter(120_000)]
-        public async Task Should_stop_ingestion_and_resume_when_more_space_is_available(CancellationToken cancellationToken)
+        public async Task Should_stop_ingestion_and_resume_when_more_space_is_available(CancellationToken cancellationToken = default)
         {
             SetStorageConfiguration = static d => d.Add(RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey, "0");
 

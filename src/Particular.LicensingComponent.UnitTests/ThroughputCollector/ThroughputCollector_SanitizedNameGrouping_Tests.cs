@@ -38,7 +38,7 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
         var throughputCollector = new ThroughputCollector(DataStore, configuration.ThroughputSettings, configuration.AuditQuery, configuration.MonitoringService, [], new BrokerThroughputQuery_WithLowerCaseSanitizedNameCleanse());
 
         // Act
-        var summary = await throughputCollector.GetThroughputSummary(default);
+        var summary = await throughputCollector.GetThroughputSummary();
 
         // Assert
         Assert.That(summary, Is.Not.Null);
@@ -64,7 +64,7 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
         var throughputCollector = new ThroughputCollector(DataStore, configuration.ThroughputSettings, configuration.AuditQuery, configuration.MonitoringService, [], new BrokerThroughputQuery_WithLowerCaseSanitizedNameCleanse());
 
         // Act
-        var report = await throughputCollector.GenerateThroughputReport(null, null, default);
+        var report = await throughputCollector.GenerateThroughputReport(null, null);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -91,7 +91,7 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
         var throughputCollector = new ThroughputCollector(DataStore, configuration.ThroughputSettings, configuration.AuditQuery, configuration.MonitoringService, [], new BrokerThroughputQuery_WithNoSanitizedNameCleanse());
 
         // Act
-        var summary = await throughputCollector.GetThroughputSummary(default);
+        var summary = await throughputCollector.GetThroughputSummary();
 
         // Assert
         Assert.That(summary, Is.Not.Null);
@@ -117,7 +117,7 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
         var throughputCollector = new ThroughputCollector(DataStore, configuration.ThroughputSettings, configuration.AuditQuery, configuration.MonitoringService, [], new BrokerThroughputQuery_WithNoSanitizedNameCleanse());
 
         // Act
-        var report = await throughputCollector.GenerateThroughputReport(null, null, default);
+        var report = await throughputCollector.GenerateThroughputReport(null, null);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -136,17 +136,17 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
 
         public KeyDescriptionPair[] Settings => throw new NotImplementedException();
 
-        public IAsyncEnumerable<IBrokerQueue> GetQueueNames(CancellationToken cancellationToken) =>
+        public IAsyncEnumerable<IBrokerQueue> GetQueueNames(CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
         public IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
-            CancellationToken cancellationToken) => throw new NotImplementedException();
+            CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
         public bool HasInitialisationErrors(out string errorMessage) => throw new NotImplementedException();
         public void Initialize(ReadOnlyDictionary<string, string> settings) => throw new NotImplementedException();
 
         public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
-            CancellationToken cancellationToken) => throw new NotImplementedException();
+            CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
         public string SanitizeEndpointName(string endpointName) => endpointName;
 
@@ -163,17 +163,17 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
 
         public KeyDescriptionPair[] Settings => throw new NotImplementedException();
 
-        public IAsyncEnumerable<IBrokerQueue> GetQueueNames(CancellationToken cancellationToken) =>
+        public IAsyncEnumerable<IBrokerQueue> GetQueueNames(CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
         public IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
-            CancellationToken cancellationToken) => throw new NotImplementedException();
+            CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
         public bool HasInitialisationErrors(out string errorMessage) => throw new NotImplementedException();
         public void Initialize(ReadOnlyDictionary<string, string> settings) => throw new NotImplementedException();
 
         public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
-            CancellationToken cancellationToken) => throw new NotImplementedException();
+            CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
         public string SanitizeEndpointName(string endpointName) => endpointName;
 

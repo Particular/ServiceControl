@@ -22,7 +22,7 @@
     {
         [Test]
         [CancelAfter(120_000)]
-        public async Task Should_be_forwarded_to_audit_instance(CancellationToken cancellationToken)
+        public async Task Should_be_forwarded_to_audit_instance(CancellationToken cancellationToken = default)
         {
             string addressOfAuditInstance = null;
 

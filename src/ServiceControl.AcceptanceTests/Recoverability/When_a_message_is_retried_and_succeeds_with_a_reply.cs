@@ -17,7 +17,7 @@
     {
         [Test]
         [CancelAfter(60_000)]
-        public async Task The_reply_should_go_to_the_correct_endpoint(CancellationToken cancellation)
+        public async Task The_reply_should_go_to_the_correct_endpoint(CancellationToken cancellationToken = default)
         {
             var context = await Define<RetryReplyContext>()
                 .WithEndpoint<Originator>(c => c.When(bus => bus.Send(new OriginalMessage())))
@@ -43,7 +43,7 @@
 
                     return !string.IsNullOrWhiteSpace(c.ReplyHandledBy);
                 })
-                .Run(cancellation);
+                .Run(cancellationToken);
 
             Assert.That(context.ReplyHandledBy, Is.EqualTo("Originating Endpoint"), "Reply handled by incorrect endpoint");
         }

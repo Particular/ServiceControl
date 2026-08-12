@@ -184,7 +184,7 @@
 
         class FaultySender : IMessageDispatcher
         {
-            public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, CancellationToken cancellationToken)
+            public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, CancellationToken cancellationToken = default)
             {
                 throw new Exception("Simulated");
             }
@@ -196,7 +196,7 @@
             public string Destination { get; private set; }
 
 
-            public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, CancellationToken cancellationToken)
+            public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, CancellationToken cancellationToken = default)
             {
                 var operation = outgoingMessages.UnicastTransportOperations.Single();
                 Message = operation.Message;

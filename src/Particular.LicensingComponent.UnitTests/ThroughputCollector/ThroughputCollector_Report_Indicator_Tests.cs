@@ -1,6 +1,7 @@
 ﻿namespace Particular.LicensingComponent.UnitTests;
 
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Contracts;
 using Infrastructure;
@@ -31,7 +32,7 @@ class ThroughputCollector_Report_Indicator_Tests : ThroughputCollectorTestFixtur
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -53,7 +54,7 @@ class ThroughputCollector_Report_Indicator_Tests : ThroughputCollectorTestFixtur
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         // Assert
         Assert.That(report, Is.Not.Null);

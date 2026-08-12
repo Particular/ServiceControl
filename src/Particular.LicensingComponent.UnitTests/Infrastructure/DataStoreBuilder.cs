@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Contracts;
 using Persistence;
@@ -122,7 +123,7 @@ class DataStoreBuilder(ILicensingDataStore store)
     {
         foreach (Endpoint endpoint in endpoints)
         {
-            await store.SaveEndpoint(endpoint, default);
+            await store.SaveEndpoint(endpoint);
         }
 
         ;
@@ -132,7 +133,7 @@ class DataStoreBuilder(ILicensingDataStore store)
             foreach (ThroughputData throughput in throughputList)
             {
                 await store.RecordEndpointThroughput(endpointId.Name, throughput.ThroughputSource,
-                    throughput.Select(entry => new EndpointDailyThroughput(entry.Key, entry.Value)).ToList(), default);
+                    throughput.Select(entry => new EndpointDailyThroughput(entry.Key, entry.Value)).ToList());
             }
         }
     }

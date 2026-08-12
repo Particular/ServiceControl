@@ -165,7 +165,7 @@
 
         [Test]
         [CancelAfter(120_000)]
-        public async Task Only_unresolved_issues_should_be_archived(CancellationToken cancellationToken)
+        public async Task Only_unresolved_issues_should_be_archived(CancellationToken cancellationToken = default)
         {
             await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(async bus =>

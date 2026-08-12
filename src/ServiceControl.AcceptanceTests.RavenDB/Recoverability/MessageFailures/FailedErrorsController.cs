@@ -20,7 +20,7 @@
     {
         [Route("failederrors/count")]
         [HttpGet]
-        public async Task<FailedErrorsCountReponse> GetFailedErrorsCount(CancellationToken cancellationToken)
+        public async Task<FailedErrorsCountReponse> GetFailedErrorsCount(CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var query =

@@ -25,7 +25,7 @@
     {
         [Test]
         [CancelAfter(180_000)]
-        public async Task SubsequentBatchesShouldBeProcessed(CancellationToken cancellationToken)
+        public async Task SubsequentBatchesShouldBeProcessed(CancellationToken cancellationToken = default)
         {
             FailedMessage decomissionedFailure = null, successfullyRetried = null;
 

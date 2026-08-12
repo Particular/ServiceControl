@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.Tests.Throughput;
 
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Particular.LicensingComponent.Contracts;
@@ -13,10 +14,10 @@ class BrokerMetadataTests : PersistenceTestBase
     {
         //Arrange
         var expectedBrokerMetadata = new BrokerMetadata("Some scope", new Dictionary<string, string> { ["Some key"] = "Some value" });
-        await LicensingDataStore.SaveBrokerMetadata(expectedBrokerMetadata, default);
+        await LicensingDataStore.SaveBrokerMetadata(expectedBrokerMetadata);
 
         //Act
-        var retrievedBrokerMetadata = await LicensingDataStore.GetBrokerMetadata(default);
+        var retrievedBrokerMetadata = await LicensingDataStore.GetBrokerMetadata();
 
         //Assert
         Assert.That(retrievedBrokerMetadata, Is.Not.Null);
@@ -32,12 +33,12 @@ class BrokerMetadataTests : PersistenceTestBase
     {
         // Arrange
         var oldBrokerMetadata = new BrokerMetadata("Some scope", new Dictionary<string, string> { ["Some key"] = "Some value" });
-        await LicensingDataStore.SaveBrokerMetadata(oldBrokerMetadata, default);
+        await LicensingDataStore.SaveBrokerMetadata(oldBrokerMetadata);
 
         // Act
         var expectedBrokerMetadata = new BrokerMetadata("New scope", new Dictionary<string, string> { ["New key"] = "New value" });
-        await LicensingDataStore.SaveBrokerMetadata(expectedBrokerMetadata, default);
-        var retrievedBrokerMetadata = await LicensingDataStore.GetBrokerMetadata(default);
+        await LicensingDataStore.SaveBrokerMetadata(expectedBrokerMetadata);
+        var retrievedBrokerMetadata = await LicensingDataStore.GetBrokerMetadata();
 
         // Assert
         Assert.That(retrievedBrokerMetadata, Is.Not.Null);

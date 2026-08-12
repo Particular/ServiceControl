@@ -17,7 +17,7 @@
     {
         [Test]
         [CancelAfter(120_000)]
-        public async Task It_should_be_marked_as_unresolved(CancellationToken cancellationToken)
+        public async Task It_should_be_marked_as_unresolved(CancellationToken cancellationToken = default)
         {
             var result = await Define<MyContext>(ctx => { ctx.Succeed = false; })
                 .WithEndpoint<FailureEndpoint>(b =>
@@ -49,7 +49,7 @@
 
         [Test]
         [CancelAfter(120_000)]
-        public async Task It_should_be_able_to_be_retried_successfully(CancellationToken cancellationToken)
+        public async Task It_should_be_able_to_be_retried_successfully(CancellationToken cancellationToken = default)
         {
             var result = await Define<MyContext>(ctx => { ctx.Succeed = false; })
                 .WithEndpoint<FailureEndpoint>(b =>

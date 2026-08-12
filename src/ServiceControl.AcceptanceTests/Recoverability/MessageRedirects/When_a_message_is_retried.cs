@@ -18,7 +18,7 @@
     {
         [Test]
         [CancelAfter(120_000)]
-        public async Task It_should_be_sent_to_the_correct_endpoint(CancellationToken cancellationToken)
+        public async Task It_should_be_sent_to_the_correct_endpoint(CancellationToken cancellationToken = default)
         {
             var context = await Define<Context>()
                 .WithEndpoint<FromEndpoint>(b => b.When(bus => bus.SendLocal(new MessageToRetry()))

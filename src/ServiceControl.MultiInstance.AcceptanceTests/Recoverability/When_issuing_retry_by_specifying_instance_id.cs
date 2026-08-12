@@ -19,7 +19,7 @@
     {
         [Test]
         [CancelAfter(120_000)]
-        public async Task Should_be_work(CancellationToken cancellationToken)
+        public async Task Should_be_work(CancellationToken cancellationToken = default)
         {
             string addressOfItself = null;
 
