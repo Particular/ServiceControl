@@ -9,12 +9,11 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
-    using RavenDB;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostApplicationBuilder> hostBuilderCustomization)
+        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, IAcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostApplicationBuilder> hostBuilderCustomization)
         {
             this.customConfiguration = customConfiguration;
             this.persistenceToUse = persistenceToUse;
@@ -36,7 +35,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         }
 
         readonly ITransportIntegration transportIntegration;
-        readonly AcceptanceTestStorageConfiguration persistenceToUse;
+        readonly IAcceptanceTestStorageConfiguration persistenceToUse;
         readonly Action<Settings> setSettings;
         readonly Action<EndpointConfiguration> customConfiguration;
         readonly Action<IHostApplicationBuilder> hostBuilderCustomization;

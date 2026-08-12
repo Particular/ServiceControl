@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
+namespace ServiceControl.AcceptanceTests.RavenDB.Monitoring.CustomChecks
 {
     using System;
     using System.Linq;
