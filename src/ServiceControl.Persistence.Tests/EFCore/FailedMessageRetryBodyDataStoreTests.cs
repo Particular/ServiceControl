@@ -24,7 +24,7 @@ class FailedMessageRetryBodyDataStoreTests : ErrorIngestionTestBase
     [Test]
     public async Task GetFailedMessageBody_throws_when_the_body_is_unavailable()
     {
-        var id = await SeedFailedMessage();
+        var id = await SeedFailedMessage(bodyStoredExternally: true);
 
         Assert.ThrowsAsync<InvalidOperationException>(() =>
             FailedMessageRetryStore.GetFailedMessageBody(id.ToString()));
@@ -33,8 +33,8 @@ class FailedMessageRetryBodyDataStoreTests : ErrorIngestionTestBase
     [Test]
     public async Task GetFailedMessageBody_returns_external_storage_body_when_BodyStoredExternally()
     {
-        var id = await SeedFailedMessage(bodyStoredExternally: true);
         var expected = Encoding.UTF8.GetBytes("external body payload");
+        var id = await SeedFailedMessage(bodyStoredExternally: true);
 
         await RecordedBodies.WriteBody(id.ToString(), expected, "text/plain");
 

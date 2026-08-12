@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading;
@@ -18,6 +19,7 @@
     using Persistence.Infrastructure;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Operations;
+    using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Recoverability;
 
     [TestFixture]
@@ -67,9 +69,45 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(new FakeErrorMessageDataStore(), NullLogger<ReturnToSender>.Instance).HandleMessage(message, sender, "error");
+            await new ReturnToSender(new FakeBodyStorage(), NullLogger<ReturnToSender>.Instance).HandleMessage(message, sender, "error");
 
             Assert.That(Encoding.UTF8.GetString(sender.Message.Body.ToArray()), Is.EqualTo("MessageBodyId"));
+        }
+
+        [Test]
+        public async Task It_sends_an_empty_body_when_storage_reports_empty()
+        {
+            var sender = new FakeSender();
+            var headers = new Dictionary<string, string>
+            {
+                ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
+                ["ServiceControl.Retry.Attempt.MessageId"] = "MessageBodyId",
+                ["ServiceControl.Retry.UniqueMessageId"] = "MessageBodyId"
+            };
+            var message = CreateMessage(Guid.NewGuid().ToString(), headers);
+
+            await new ReturnToSender(new FakeBodyStorage(MessageBodyState.Empty), NullLogger<ReturnToSender>.Instance).HandleMessage(message, sender, "error");
+
+            Assert.That(sender.Message.Body.ToArray(), Is.Empty);
+        }
+
+        [TestCase(MessageBodyState.NotFound)]
+        [TestCase(MessageBodyState.Unavailable)]
+        public void It_does_not_send_when_the_body_cannot_be_retrieved(MessageBodyState state)
+        {
+            var sender = new FakeSender();
+            var headers = new Dictionary<string, string>
+            {
+                ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
+                ["ServiceControl.Retry.Attempt.MessageId"] = "MessageBodyId",
+                ["ServiceControl.Retry.UniqueMessageId"] = "MessageBodyId"
+            };
+            var message = CreateMessage(Guid.NewGuid().ToString(), headers);
+
+            Assert.ThrowsAsync<InvalidOperationException>(() =>
+                new ReturnToSender(new FakeBodyStorage(state), NullLogger<ReturnToSender>.Instance).HandleMessage(message, sender, "error"));
+
+            Assert.That(sender.Message, Is.Null);
         }
 
         [Test]
@@ -167,15 +205,19 @@
             }
         }
 
-        class FakeErrorMessageDataStore : IFailedMessageRetryDataStore
+        class FakeBodyStorage(MessageBodyState state = MessageBodyState.Available) : IBodyStorage
         {
-            public Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, CancellationToken, Task> processCallback, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<MessageBodyResult> TryFetch(string bodyId, CancellationToken cancellationToken = default) =>
+                Task.FromResult(state switch
+                {
+                    MessageBodyState.NotFound => MessageBodyResult.NotFound(),
+                    MessageBodyState.Empty => MessageBodyResult.Empty(),
+                    MessageBodyState.Unavailable => MessageBodyResult.Unavailable(),
+                    MessageBodyState.Available => MessageBodyResult.Available(Content(Encoding.UTF8.GetBytes(bodyId))),
+                    _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+                });
 
-            public Task<string[]> GetRetryPendingMessages(DateTime from, DateTime to, string queueAddress, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-
-            public Task RemoveFailedMessageRetry(string uniqueMessageId, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-
-            public Task<byte[]> GetFailedMessageBody(string bodyId, CancellationToken cancellationToken = default) => Task.FromResult(Encoding.UTF8.GetBytes(bodyId));
+            static MessageBodyStreamContent Content(byte[] body) => new(new MemoryStream(body), "text/plain", body.Length, "etag");
         }
     }
 }

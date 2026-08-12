@@ -52,8 +52,7 @@
     <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_encountered_an_error.cs" />
     <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\When_edited_message_fails_to_process.cs" />
 
-    <!-- EF body retrieval does not distinguish an empty body from unavailable content. -->
-    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\MessageFailures\When_a_retry_for_a_empty_body_message_is_successful.cs" />
+    <!-- Remaining EF retry scenarios are deferred for separate investigation. -->
     <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\When_a_message_is_retried.cs" />
     <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\When_a_message_is_retried_with_a_replyTo_header.cs" />
     <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\When_a_native_integration_message_is_retried.cs" />

@@ -90,18 +90,18 @@ namespace ServiceControl.CompositeViews.Messages
             {
                 var result = await bodyStorage.TryFetch(id, cancellationToken);
 
-                if (result == null)
+                if (result.State == MessageBodyState.NotFound)
                 {
                     return NotFound();
                 }
 
-                if (!result.HasResult)
+                if (result.State is MessageBodyState.Empty or MessageBodyState.Unavailable)
                 {
                     return NoContent();
                 }
 
-                Response.WithEtag(result.Etag);
-                return File(result.Stream, result.ContentType ?? "text/*");
+                Response.WithEtag(result.Content.Etag);
+                return File(result.Content.Stream, result.Content.ContentType ?? "text/*");
             }
 
             var remote = settings.RemoteInstances.SingleOrDefault(r => r.InstanceId == instanceId);

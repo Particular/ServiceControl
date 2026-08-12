@@ -14,7 +14,7 @@
     {
         public const string AttachmentName = "body";
 
-        public async Task<MessageBodyStreamResult> TryFetch(string bodyId, CancellationToken cancellationToken = default)
+        public async Task<MessageBodyResult> TryFetch(string bodyId, CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 
@@ -23,7 +23,7 @@
             if (Guid.TryParse(bodyId, out _))
             {
                 var result = await ResultForUniqueId(session, bodyId, cancellationToken);
-                if (result != null)
+                if (result.State != MessageBodyState.NotFound)
                 {
                     return result;
                 }
@@ -42,28 +42,37 @@
                 return await ResultForUniqueId(session, uniqueId, cancellationToken);
             }
 
-            return null;
+            return MessageBodyResult.NotFound();
         }
 
-        async Task<MessageBodyStreamResult> ResultForUniqueId(IAsyncDocumentSession session, string uniqueId, CancellationToken cancellationToken)
+        async Task<MessageBodyResult> ResultForUniqueId(IAsyncDocumentSession session, string uniqueId, CancellationToken cancellationToken)
         {
             var documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueId);
+            var failedMessage = await session.LoadAsync<FailedMessage>(documentId, cancellationToken);
+
+            if (failedMessage == null)
+            {
+                return MessageBodyResult.NotFound();
+            }
 
             var result = await session.Advanced.Attachments.GetAsync(documentId, AttachmentName, cancellationToken);
 
             if (result == null)
             {
-                return null;
+                return MessageBodyResult.Unavailable();
             }
 
-            return new MessageBodyStreamResult
+            if (result.Details.Size == 0)
             {
-                HasResult = true,
-                Stream = result.Stream,
-                ContentType = result.Details.ContentType,
-                BodySize = (int)result.Details.Size,
-                Etag = result.Details.ChangeVector
-            };
+                await result.Stream.DisposeAsync();
+                return MessageBodyResult.Empty();
+            }
+
+            return MessageBodyResult.Available(new MessageBodyStreamContent(
+                result.Stream,
+                result.Details.ContentType,
+                (int)result.Details.Size,
+                result.Details.ChangeVector));
         }
     }
 }
