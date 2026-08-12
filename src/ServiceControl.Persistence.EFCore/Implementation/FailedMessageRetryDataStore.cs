@@ -13,34 +13,24 @@ public class FailedMessageRetryDataStore(IServiceScopeFactory scopeFactory, IBod
     public Task RemoveFailedMessageRetry(string uniqueMessageId, CancellationToken cancellationToken) =>
         ExecuteWithDbContext(async dbContext =>
         {
-            if (!Guid.TryParse(uniqueMessageId, out var id))
+            if (Guid.TryParse(uniqueMessageId, out var id))
             {
-                return;
+                await dbContext.FailedMessageRetries
+                    .Where(r => r.UniqueMessageId == id)
+                    .ExecuteDeleteAsync(cancellationToken: cancellationToken);
             }
-
-            // Point delete by primary key. ExecuteDeleteAsync returns the affected row count
-            // (0 when absent), so this is idempotent and never throws on a missing row — matching
-            // the RavenDB behaviour where a DeleteDocumentCommand on a non-existent doc is a no-op.
-            await dbContext.FailedMessageRetries
-                .Where(r => r.UniqueMessageId == id)
-                .ExecuteDeleteAsync(cancellationToken: cancellationToken);
         });
 
     public Task<string[]> GetRetryPendingMessages(DateTime from, DateTime to, string queueAddress, CancellationToken cancellationToken) =>
         ExecuteWithDbContext(async dbContext =>
         {
-            // Pending retries are FailedMessages whose status is RetryIssued and whose LastModified
-            // falls within [from, to]. The RetryStagingStore.MarkBatchAsForwarding sets both
-            // LastModified and StatusChangedAt to "now" when a retry is issued, so LastModified
-            // reflects when the retry was sent — matching the RavenDB reference, which filters on
-            // LastModified for both pending-retry queries.
             var normalizedQueueAddress = queueAddress?.ToLowerInvariant();
             var ids = await dbContext.FailedMessages
                 .AsNoTracking()
                 .Where(m => m.Status == FailedMessageStatus.RetryIssued
-                    && m.LastModified >= from && m.LastModified <= to
-                    && ((m.FailingEndpointAddress == null && normalizedQueueAddress == null)
-                        || (m.FailingEndpointAddress != null && m.FailingEndpointAddress.ToLower() == normalizedQueueAddress)))
+                            && m.LastModified >= from && m.LastModified <= to
+                            && ((m.FailingEndpointAddress == null && normalizedQueueAddress == null)
+                                || (m.FailingEndpointAddress != null && m.FailingEndpointAddress.ToLower() == normalizedQueueAddress)))
                 .Select(m => m.UniqueMessageId.ToString())
                 .ToListAsync(cancellationToken: cancellationToken);
 
