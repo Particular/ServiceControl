@@ -1,16 +1,17 @@
 namespace ServiceControl.Persistence.Tests;
 
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using ServiceControl.Notifications;
 
 class NotificationsDataStoreTests : PersistenceTestBase
 {
     [Test, CancelAfter(30_000)]
     public async Task LoadSettings_returns_defaults_when_no_settings_exist()
     {
-        await using var manager = await NotificationsStore.CreateNotificationsManager();
-
-        var settings = await manager.LoadSettings();
+        var settings = await NotificationsStore.LoadSettings(TestContext.CurrentContext.CancellationToken);
 
         using (Assert.EnterMultipleScope())
         {
@@ -28,140 +29,109 @@ class NotificationsDataStoreTests : PersistenceTestBase
     }
 
     [Test, CancelAfter(30_000)]
-    public async Task SaveChanges_persists_email_settings_round_trip()
+    public void LoadSettings_propagates_cancellation()
     {
-        await using (var manager = await NotificationsStore.CreateNotificationsManager())
-        {
-            var settings = await manager.LoadSettings();
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
 
-            settings.Email.Enabled = true;
-            settings.Email.SmtpServer = "smtp.example.com";
-            settings.Email.SmtpPort = 587;
-            settings.Email.EnableTLS = true;
-            settings.Email.From = "sc@example.com";
-            settings.Email.To = "ops@example.com";
-            settings.Email.AuthenticationAccount = "user";
-            settings.Email.AuthenticationPassword = "p@ssw0rd";
-
-            await manager.SaveChanges();
-        }
-
-        await CompleteDatabaseOperation();
-
-        await using var verifyManager = await NotificationsStore.CreateNotificationsManager();
-        var loaded = await verifyManager.LoadSettings();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(loaded.Email.Enabled, Is.True);
-            Assert.That(loaded.Email.SmtpServer, Is.EqualTo("smtp.example.com"));
-            Assert.That(loaded.Email.SmtpPort, Is.EqualTo(587));
-            Assert.That(loaded.Email.EnableTLS, Is.True);
-            Assert.That(loaded.Email.From, Is.EqualTo("sc@example.com"));
-            Assert.That(loaded.Email.To, Is.EqualTo("ops@example.com"));
-            Assert.That(loaded.Email.AuthenticationAccount, Is.EqualTo("user"));
-            Assert.That(loaded.Email.AuthenticationPassword, Is.EqualTo("p@ssw0rd"));
-        }
+        Assert.That(
+            async () => await NotificationsStore.LoadSettings(cancellation.Token),
+            Throws.InstanceOf<OperationCanceledException>());
     }
 
     [Test, CancelAfter(30_000)]
-    public async Task Toggling_enabled_is_persisted()
+    public void SaveSettings_propagates_cancellation()
     {
-        await using (var manager = await NotificationsStore.CreateNotificationsManager())
-        {
-            var settings = await manager.LoadSettings();
-            settings.Email.Enabled = true;
-            await manager.SaveChanges();
-        }
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
 
-        await CompleteDatabaseOperation();
-
-        await using (var manager = await NotificationsStore.CreateNotificationsManager())
-        {
-            var settings = await manager.LoadSettings();
-            Assert.That(settings.Email.Enabled, Is.True);
-
-            settings.Email.Enabled = false;
-            await manager.SaveChanges();
-        }
-
-        await CompleteDatabaseOperation();
-
-        await using var verifyManager = await NotificationsStore.CreateNotificationsManager();
-        var final = await verifyManager.LoadSettings();
-        Assert.That(final.Email.Enabled, Is.False);
+        Assert.That(
+            async () => await NotificationsStore.SaveSettings(CreateSettings("cancelled.smtp"), cancellation.Token),
+            Throws.InstanceOf<OperationCanceledException>());
     }
 
     [Test, CancelAfter(30_000)]
-    public async Task LoadSettings_returns_previously_saved_settings()
+    public async Task SaveSettings_without_a_prior_load_round_trips_all_values()
     {
-        await using (var manager = await NotificationsStore.CreateNotificationsManager())
-        {
-            var settings = await manager.LoadSettings();
-            settings.Email.SmtpServer = "configured.server";
-            settings.Email.SmtpPort = 2525;
-            await manager.SaveChanges();
-        }
+        var settings = CreateSettings("smtp.example.com");
 
+        await NotificationsStore.SaveSettings(settings, TestContext.CurrentContext.CancellationToken);
         await CompleteDatabaseOperation();
 
-        await using var manager2 = await NotificationsStore.CreateNotificationsManager();
-        var loaded = await manager2.LoadSettings();
+        var loaded = await NotificationsStore.LoadSettings(TestContext.CurrentContext.CancellationToken);
+        AssertSettings(loaded, "smtp.example.com");
+    }
+
+    [Test, CancelAfter(30_000)]
+    public async Task SaveSettings_replaces_the_persisted_snapshot()
+    {
+        await NotificationsStore.SaveSettings(CreateSettings("original.smtp"), TestContext.CurrentContext.CancellationToken);
+
+        var replacement = CreateSettings("replacement.smtp");
+        replacement.Email.Enabled = false;
+        replacement.Email.SmtpPort = 2525;
+        replacement.Email.To = "replacement@example.com";
+        await NotificationsStore.SaveSettings(replacement, TestContext.CurrentContext.CancellationToken);
+
+        replacement.Email.SmtpServer = "mutated.after.save";
+        replacement.Email.To = "mutated@example.com";
+
+        await CompleteDatabaseOperation();
+        var loaded = await NotificationsStore.LoadSettings(TestContext.CurrentContext.CancellationToken);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(loaded.Email.SmtpServer, Is.EqualTo("configured.server"));
-            Assert.That(loaded.Email.SmtpPort, Is.EqualTo(2525));
-            // Untouched fields keep their defaults
+            Assert.That(loaded, Is.Not.SameAs(replacement));
+            Assert.That(loaded.Email, Is.Not.SameAs(replacement.Email));
             Assert.That(loaded.Email.Enabled, Is.False);
-            Assert.That(loaded.Email.EnableTLS, Is.False);
+            Assert.That(loaded.Email.SmtpServer, Is.EqualTo("replacement.smtp"));
+            Assert.That(loaded.Email.SmtpPort, Is.EqualTo(2525));
+            Assert.That(loaded.Email.To, Is.EqualTo("replacement@example.com"));
+            Assert.That(loaded.Email.From, Is.EqualTo("sc@example.com"));
         }
     }
 
     [Test, CancelAfter(30_000)]
-    public async Task Updating_individual_fields_preserves_others()
+    public async Task Repeated_saves_behave_consistently()
     {
-        await using (var manager = await NotificationsStore.CreateNotificationsManager())
-        {
-            var settings = await manager.LoadSettings();
-            settings.Email.Enabled = true;
-            settings.Email.SmtpServer = "original.smtp";
-            settings.Email.SmtpPort = 25;
-            settings.Email.EnableTLS = false;
-            settings.Email.From = "from@orig";
-            settings.Email.To = "to@orig";
-            settings.Email.AuthenticationAccount = "acct";
-            settings.Email.AuthenticationPassword = "secret";
-            await manager.SaveChanges();
-        }
+        var settings = CreateSettings("repeat.smtp");
+
+        await NotificationsStore.SaveSettings(settings, TestContext.CurrentContext.CancellationToken);
+        await NotificationsStore.SaveSettings(settings, TestContext.CurrentContext.CancellationToken);
+        await NotificationsStore.SaveSettings(settings, TestContext.CurrentContext.CancellationToken);
 
         await CompleteDatabaseOperation();
+        var loaded = await NotificationsStore.LoadSettings(TestContext.CurrentContext.CancellationToken);
+        AssertSettings(loaded, "repeat.smtp");
+    }
 
-        await using (var manager = await NotificationsStore.CreateNotificationsManager())
+    static NotificationsSettings CreateSettings(string smtpServer) => new()
+    {
+        Email = new EmailNotifications
         {
-            var settings = await manager.LoadSettings();
-            settings.Email.SmtpServer = "updated.smtp";
-            settings.Email.EnableTLS = true;
-            await manager.SaveChanges();
+            Enabled = true,
+            SmtpServer = smtpServer,
+            SmtpPort = 587,
+            EnableTLS = true,
+            From = "sc@example.com",
+            To = "ops@example.com",
+            AuthenticationAccount = "user",
+            AuthenticationPassword = "p@ssw0rd"
         }
+    };
 
-        await CompleteDatabaseOperation();
-
-        await using var verifyManager = await NotificationsStore.CreateNotificationsManager();
-        var loaded = await verifyManager.LoadSettings();
-
+    static void AssertSettings(NotificationsSettings settings, string smtpServer)
+    {
         using (Assert.EnterMultipleScope())
         {
-            // Updated fields
-            Assert.That(loaded.Email.SmtpServer, Is.EqualTo("updated.smtp"));
-            Assert.That(loaded.Email.EnableTLS, Is.True);
-            // Preserved fields
-            Assert.That(loaded.Email.Enabled, Is.True);
-            Assert.That(loaded.Email.SmtpPort, Is.EqualTo(25));
-            Assert.That(loaded.Email.From, Is.EqualTo("from@orig"));
-            Assert.That(loaded.Email.To, Is.EqualTo("to@orig"));
-            Assert.That(loaded.Email.AuthenticationAccount, Is.EqualTo("acct"));
-            Assert.That(loaded.Email.AuthenticationPassword, Is.EqualTo("secret"));
+            Assert.That(settings.Email.Enabled, Is.True);
+            Assert.That(settings.Email.SmtpServer, Is.EqualTo(smtpServer));
+            Assert.That(settings.Email.SmtpPort, Is.EqualTo(587));
+            Assert.That(settings.Email.EnableTLS, Is.True);
+            Assert.That(settings.Email.From, Is.EqualTo("sc@example.com"));
+            Assert.That(settings.Email.To, Is.EqualTo("ops@example.com"));
+            Assert.That(settings.Email.AuthenticationAccount, Is.EqualTo("user"));
+            Assert.That(settings.Email.AuthenticationPassword, Is.EqualTo("p@ssw0rd"));
         }
     }
 }

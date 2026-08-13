@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Persistence.Tests;
 
+using System.Threading;
 using System.Threading.Tasks;
 using MessageFailures;
 using Microsoft.Extensions.Hosting;

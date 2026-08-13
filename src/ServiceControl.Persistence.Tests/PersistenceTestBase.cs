@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.Tests;
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -12,6 +13,7 @@ using Particular.LicensingComponent.Persistence;
 using ServiceControl.Infrastructure;
 using ServiceControl.Infrastructure.Auth;
 using ServiceControl.Infrastructure.DomainEvents;
+using ServiceControl.MessageFailures;
 using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.MessageRedirects;
@@ -73,6 +75,13 @@ public abstract class PersistenceTestBase
     protected Action<IServiceCollection> RegisterServices { get; set; } = _ => { };
 
     protected Task CompleteDatabaseOperation() => PersistenceTestsContext.CompleteDatabaseOperation();
+
+    protected async Task<FailedMessage> SeedFailedMessage(FailedMessage failedMessage)
+    {
+        failedMessage.Id = PersistenceTestsContext.GenerateFailedMessageRecordId(failedMessage.UniqueMessageId);
+        await PersistenceTestsContext.InsertFailedMessages(failedMessage);
+        return failedMessage;
+    }
 
     protected static async Task WaitUntil(Func<Task<bool>> conditionChecker, string condition, TimeSpan timeout = default)
     {

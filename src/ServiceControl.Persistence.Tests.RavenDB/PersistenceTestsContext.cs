@@ -3,11 +3,13 @@ namespace ServiceControl.Persistence.Tests;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
 using Raven.Client.Documents;
+using Raven.Client.Documents.Session;
 using ServiceControl.Contracts.Operations;
 using ServiceControl.MessageFailures;
 using ServiceControl.Persistence;
@@ -72,6 +74,12 @@ public class PersistenceTestsContext : IPersistenceTestsContext
             await session.StoreAsync(message);
         }
         await session.SaveChangesAsync();
+    }
+
+    public async Task<bool> NotificationSettingsExist(CancellationToken cancellationToken = default)
+    {
+        using var session = await SessionProvider.OpenSession(cancellationToken: cancellationToken);
+        return await session.Advanced.ExistsAsync("NotificationsSettings/All", cancellationToken);
     }
 
     public IDocumentStore DocumentStore { get; private set; }

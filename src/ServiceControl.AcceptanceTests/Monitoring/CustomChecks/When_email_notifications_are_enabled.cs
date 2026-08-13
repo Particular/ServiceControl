@@ -64,13 +64,11 @@
         {
             public async Task StartAsync(CancellationToken cancellationToken = default)
             {
-                await using var notificationsManager = await notificationsDataStore.CreateNotificationsManager(cancellationToken);
-
-                var settings = await notificationsManager.LoadSettings(cancellationToken);
+                var settings = await notificationsDataStore.LoadSettings(cancellationToken);
                 settings.Email.Enabled = true;
                 settings.Email.From = "YouServiceControl@particular.net";
                 settings.Email.To = "WhoeverMightBeConcerned@particular.net";
-                await notificationsManager.SaveChanges(cancellationToken);
+                await notificationsDataStore.SaveSettings(settings, cancellationToken);
             }
 
             public Task StopAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;

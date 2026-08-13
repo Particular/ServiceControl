@@ -5,11 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using EFCore.DbContexts;
 using EFCore.Entities;
 using EFCore.Infrastructure;
 using MessageFailures;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
 using NServiceBus;
@@ -27,6 +29,16 @@ public partial class PersistenceTestsContext
         var now = DateTimeOffset.UtcNow;
 
         return now.AddTicks(-(now.Ticks % TimeSpan.TicksPerMillisecond));
+    }
+
+    public async Task<bool> NotificationSettingsExist(CancellationToken cancellationToken = default)
+    {
+        await using var scope = host.Services.CreateAsyncScope();
+        await using var db = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+
+        return await db.Settings
+            .AsNoTracking()
+            .AnyAsync(setting => setting.Key == "NotificationEmails", cancellationToken);
     }
 
     static async Task InsertFailedMessagesDirect(IServiceProvider serviceProvider, FailedMessage[] messages)
