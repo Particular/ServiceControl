@@ -32,9 +32,9 @@
             CopyToClipboard = new CopyToClipboardCommand();
 
             Instances = [];
-
-            AddAndRemoveInstances();
         }
+
+        protected override Task OnInitialize(CancellationToken cancellationToken = default) => AddAndRemoveInstances(cancellationToken);
 
         public CopyToClipboardCommand CopyToClipboard { get; }
 
@@ -107,7 +107,7 @@
         /// </summary>
         public async Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken = default)
         {
-            AddAndRemoveInstances();
+            await AddAndRemoveInstances(cancellationToken);
             await EventAggregator.PublishOnUIThreadAsync(new PostRefreshInstances(), cancellationToken);
         }
 
@@ -127,12 +127,7 @@
             NotifyOfPropertyChange(nameof(Instances));
         }
 
-        // TODO: this is a genuine async void, not an event handler. Because it returns at the first
-        // await, HandleAsync(RefreshInstances) publishes PostRefreshInstances before the removals have
-        // finished, which is the ordering that method's own remarks say must not happen. Converting it
-        // to async Task needs the constructor call site at the top of this class restructured first.
-#pragma warning disable PS0027
-        async void AddAndRemoveInstances()
+        async Task AddAndRemoveInstances(CancellationToken cancellationToken)
         {
             // Remove instances that no longer exist on disk
             var toRemove = Instances.Where(instance => !instance.Exists()).ToList();
@@ -169,7 +164,6 @@
             NotifyOfPropertyChange(nameof(HasConfigurationErrors));
             NotifyOfPropertyChange(nameof(ConfigurationErrorMessage));
         }
-#pragma warning restore PS0027
 
         readonly Func<BaseService, InstanceDetailsViewModel> instanceDetailsFunc;
         readonly Func<IEnumerable<BaseService>> getAllInstances;
