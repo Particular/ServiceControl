@@ -22,42 +22,29 @@
     {
         public async Task Handle(EditAndSend message, IMessageHandlerContext context)
         {
-            FailedMessage failedMessage;
-            string editId;
-            await using (var session = await store.CreateEditFailedMessageManager(context.CancellationToken))
-            {
-                failedMessage = await session.GetFailedMessage(message.FailedMessageId, context.CancellationToken);
+            var beginEdit = await store.TryBeginEdit(message.FailedMessageId, context.MessageId, context.CancellationToken);
 
-                if (failedMessage == null)
-                {
+            switch (beginEdit.Outcome)
+            {
+                case BeginEditOutcome.MessageNotFound:
                     logger.LogWarning("Discarding edit {MessageId} because no message failure for id {FailedMessageId} has been found", context.MessageId, message.FailedMessageId);
                     return;
-                }
-
-                editId = await session.GetCurrentEditingRequestId(message.FailedMessageId, context.CancellationToken);
-                if (editId == null)
-                {
-                    if (failedMessage.Status != FailedMessageStatus.Unresolved)
-                    {
-                        logger.LogWarning("Discarding edit {MessageId} because message failure {FailedMessageId} doesn't have state 'Unresolved'", context.MessageId, message.FailedMessageId);
-                        return;
-                    }
-
-                    // create a retries document to prevent concurrent edits
-                    await session.SetCurrentEditingRequestId(context.MessageId, context.CancellationToken);
-                }
-                else if (editId != context.MessageId)
-                {
-                    logger.LogWarning("Discarding edit & retry request because the failed message id {FailedMessageId} has already been edited by Message ID {EditedMessageId}", message.FailedMessageId, editId);
+                case BeginEditOutcome.MessageNotUnresolved:
+                    logger.LogWarning("Discarding edit {MessageId} because message failure {FailedMessageId} doesn't have state 'Unresolved'", context.MessageId, message.FailedMessageId);
                     return;
-                }
-
-                // the original failure is marked as resolved as any failures of the edited message are treated as a new message failure.
-                await session.SetFailedMessageAsResolved(context.CancellationToken);
-
-
-                await session.SaveChanges(context.CancellationToken);
+                case BeginEditOutcome.AcquiredByAnotherEdit:
+                    logger.LogWarning("Discarding edit & retry request because the failed message id {FailedMessageId} has already been edited by Message ID {EditedMessageId}", message.FailedMessageId, beginEdit.ExistingEditId);
+                    return;
+                case BeginEditOutcome.Acquired:
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unknown begin-edit outcome: {beginEdit.Outcome}");
             }
+
+            // The store commits resolution of the original failure before returning. Any failure
+            // of the edited message is therefore treated as a new failure, preserving the existing
+            // resolve-before-dispatch behavior.
+            var failedMessage = beginEdit.FailedMessage!;
 
             var redirects = await redirectsStore.GetRedirects(context.CancellationToken);
 
