@@ -34,7 +34,7 @@ public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfigur
             return;
         }
         using var _ = await UseDatabaseLifecycleLock(cancellationToken);
-        await databaseInstance.DeleteDatabase(databaseName);
+        await databaseInstance.DeleteDatabase(databaseName, cancellationToken);
     }
 
     /// <summary>

@@ -37,7 +37,9 @@ static class LicenseStatusCheck
                 await Task.Delay(200, cts.Token);
             }
         }
+#pragma warning disable PS0020 // The try runs on the linked cts.Token, which is always cancelled in the timeout case this maps. Filtering on it instead of the caller's token would make the filter unreachable
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+#pragma warning restore PS0020
         {
             throw new InvalidOperationException("Cannot validate the current RavenDB license. Please, contact support");
         }

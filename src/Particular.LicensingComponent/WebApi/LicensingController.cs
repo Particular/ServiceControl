@@ -24,7 +24,7 @@
         [Authorize(Policy = Permissions.ErrorThroughputView)]
         [Route("endpoints")]
         [HttpGet]
-        public async Task<List<EndpointThroughputSummary>> GetEndpointThroughput(CancellationToken cancellationToken)
+        public async Task<List<EndpointThroughputSummary>> GetEndpointThroughput(CancellationToken cancellationToken = default)
         {
             return await throughputCollector.GetThroughputSummary(cancellationToken);
         }
@@ -32,7 +32,7 @@
         [Authorize(Policy = Permissions.ErrorThroughputManage)]
         [Route("endpoints/update")]
         [HttpPost]
-        public async Task<IActionResult> UpdateUserSelectionOnEndpointThroughput(List<UpdateUserIndicator> updateUserIndicators, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateUserSelectionOnEndpointThroughput(List<UpdateUserIndicator> updateUserIndicators, CancellationToken cancellationToken = default)
         {
             await throughputCollector.UpdateUserIndicatorsOnEndpoints(updateUserIndicators, cancellationToken);
             return Ok();
@@ -41,7 +41,7 @@
         [Authorize(Policy = Permissions.ErrorThroughputView)]
         [Route("report/available")]
         [HttpGet]
-        public async Task<ReportGenerationState> CanThroughputReportBeGenerated(CancellationToken cancellationToken)
+        public async Task<ReportGenerationState> CanThroughputReportBeGenerated(CancellationToken cancellationToken = default)
         {
             return await throughputCollector.GetReportGenerationState(cancellationToken);
         }
@@ -49,7 +49,7 @@
         [Authorize(Policy = Permissions.ErrorThroughputView)]
         [Route("report/file")]
         [HttpGet]
-        public async Task GetThroughputReportFile([FromQuery(Name = "spVersion")] string? spVersion, CancellationToken cancellationToken)
+        public async Task GetThroughputReportFile([FromQuery(Name = "spVersion")] string? spVersion, CancellationToken cancellationToken = default)
         {
             var reportStatus = await CanThroughputReportBeGenerated(cancellationToken);
             if (!reportStatus.ReportCanBeGenerated)
@@ -86,7 +86,7 @@
         [Authorize(Policy = Permissions.ErrorThroughputView)]
         [Route("settings/info")]
         [HttpGet]
-        public async Task<ThroughputConnectionSettings> GetThroughputSettingsInformation(CancellationToken cancellationToken)
+        public async Task<ThroughputConnectionSettings> GetThroughputSettingsInformation(CancellationToken cancellationToken = default)
         {
             return await throughputCollector.GetThroughputConnectionSettingsInformation(cancellationToken);
         }
@@ -94,12 +94,12 @@
         [Authorize(Policy = Permissions.ErrorThroughputView)]
         [Route("settings/test")]
         [HttpGet]
-        public async Task<ConnectionTestResults> TestThroughputConnectionSettings(CancellationToken cancellationToken) => await throughputCollector.TestConnectionSettings(cancellationToken);
+        public async Task<ConnectionTestResults> TestThroughputConnectionSettings(CancellationToken cancellationToken = default) => await throughputCollector.TestConnectionSettings(cancellationToken);
 
         [Authorize(Policy = Permissions.ErrorThroughputView)]
         [Route("settings/masks")]
         [HttpGet]
-        public async Task<List<string>> GetMasks(CancellationToken cancellationToken)
+        public async Task<List<string>> GetMasks(CancellationToken cancellationToken = default)
         {
             return await throughputCollector.GetReportMasks(cancellationToken);
         }
@@ -107,7 +107,7 @@
         [Authorize(Policy = Permissions.ErrorThroughputManage)]
         [Route("settings/masks/update")]
         [HttpPost]
-        public async Task<IActionResult> UpdateMasks(List<string> updateMasks, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateMasks(List<string> updateMasks, CancellationToken cancellationToken = default)
         {
             await throughputCollector.UpdateReportMasks(updateMasks, cancellationToken);
             return Ok();

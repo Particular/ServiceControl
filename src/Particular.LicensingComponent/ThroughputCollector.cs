@@ -16,7 +16,7 @@ using QueueThroughput = Report.QueueThroughput;
 public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettings throughputSettings, IAuditQuery auditQuery, MonitoringService monitoringService, IEnumerable<IEnvironmentDataProvider> environmentDataProviders, IBrokerThroughputQuery? throughputQuery = null)
     : IThroughputCollector
 {
-    public async Task<ThroughputConnectionSettings> GetThroughputConnectionSettingsInformation(CancellationToken cancellationToken)
+    public async Task<ThroughputConnectionSettings> GetThroughputConnectionSettingsInformation(CancellationToken cancellationToken = default)
     {
         var throughputConnectionSettings = new ThroughputConnectionSettings
         {
@@ -27,7 +27,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
         return await Task.FromResult(throughputConnectionSettings);
     }
 
-    public async Task<ConnectionTestResults> TestConnectionSettings(CancellationToken cancellationToken)
+    public async Task<ConnectionTestResults> TestConnectionSettings(CancellationToken cancellationToken = default)
     {
         var tasks = new List<Task>();
         var brokerTask = Task.FromResult(new ConnectionSettingsTestResult { ConnectionSuccessful = false, ConnectionErrorMessages = [] });
@@ -55,13 +55,13 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
         return await Task.FromResult(connectionTestResults);
     }
 
-    public async Task UpdateUserIndicatorsOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken) =>
+    public async Task UpdateUserIndicatorsOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken = default) =>
         await dataStore.UpdateUserIndicatorOnEndpoints(userIndicatorUpdates, cancellationToken);
 
-    public async Task<List<string>> GetReportMasks(CancellationToken cancellationToken) => await dataStore.GetReportMasks(cancellationToken);
-    public async Task UpdateReportMasks(List<string> reportMaskUpdates, CancellationToken cancellationToken) => await dataStore.SaveReportMasks(reportMaskUpdates, cancellationToken);
+    public async Task<List<string>> GetReportMasks(CancellationToken cancellationToken = default) => await dataStore.GetReportMasks(cancellationToken);
+    public async Task UpdateReportMasks(List<string> reportMaskUpdates, CancellationToken cancellationToken = default) => await dataStore.SaveReportMasks(reportMaskUpdates, cancellationToken);
 
-    public async Task<List<EndpointThroughputSummary>> GetThroughputSummary(CancellationToken cancellationToken)
+    public async Task<List<EndpointThroughputSummary>> GetThroughputSummary(CancellationToken cancellationToken = default)
     {
         var endpointSummaries = new List<EndpointThroughputSummary>();
 
@@ -86,7 +86,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
         return endpointSummaries;
     }
 
-    public async Task<ReportGenerationState> GetReportGenerationState(CancellationToken cancellationToken) =>
+    public async Task<ReportGenerationState> GetReportGenerationState(CancellationToken cancellationToken = default) =>
         throughputQuery == null ?
             await GetReportGenerationStateForNonBroker(cancellationToken) :
             await GetReportGenerationStateForBroker(cancellationToken);
@@ -115,7 +115,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
         };
     }
 
-    public async Task<SignedReport> GenerateThroughputReport(string spVersion, DateTime? reportEndDate, CancellationToken cancellationToken)
+    public async Task<SignedReport> GenerateThroughputReport(string spVersion, DateTime? reportEndDate, CancellationToken cancellationToken = default)
     {
         var reportMasks = await dataStore.GetReportMasks(cancellationToken);
         var masker = new Masker([.. reportMasks]);

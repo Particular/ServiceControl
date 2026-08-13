@@ -6,7 +6,7 @@ using Infrastructure;
 
 class SqlServerRetryBatchSqlDialect : SqlServerDialect, IRetryBatchSqlDialect
 {
-    public async Task InsertMissingRetryClaims(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageRetryEntity> rows, CancellationToken cancellationToken)
+    public async Task InsertMissingRetryClaims(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageRetryEntity> rows, CancellationToken cancellationToken = default)
     {
         var maxRowsPerStatement = MaxRowsPerStatement(3);
         foreach (var chunk in rows.Chunk(maxRowsPerStatement))

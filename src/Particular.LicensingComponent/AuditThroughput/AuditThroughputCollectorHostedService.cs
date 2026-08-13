@@ -18,7 +18,7 @@ public class AuditThroughputCollectorHostedService(
     public TimeSpan DelayStart { get; set; } = TimeSpan.FromSeconds(40);
     public static List<string> AuditQueues { get; set; } = [];
 
-    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Starting {ServiceName}", nameof(AuditThroughputCollectorHostedService));
 
@@ -34,7 +34,11 @@ public class AuditThroughputCollectorHostedService(
                 {
                     await GatherThroughput(cancellationToken);
                 }
-                catch (Exception ex) when (ex is not OperationCanceledException)
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception ex)
                 {
                     logger.LogError(ex, "Failed to gather throughput from audit");
                 }

@@ -2,9 +2,3 @@
 
 # Justification: ServiceControl app has no synchronization context
 dotnet_diagnostic.CA2007.severity = none
-
-# WaitForLicenseOrThrow passes only the linked cts.Token into its try, so PS0020 cannot recognise a
-# filter on the caller's token. Removing this needs the license-check exception mapping reworked, not
-# a token added, so it is deliberately scoped to the one file rather than the project.
-[LicenseStatusCheck.cs]
-dotnet_diagnostic.PS0020.severity = none
