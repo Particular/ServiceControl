@@ -45,21 +45,25 @@ namespace ServiceControl.AcceptanceTests.EventLogs
                         return false;
                     }
 
-                    // Raw header: an unquoted value fails EntityTagHeaderValue parsing, and this test
-                    // has to observe that rather than throw on it.
-                    if (!first.Headers.TryGetValues("ETag", out var values))
+                    var currentEtag = ReadEtag(first);
+
+                    if (string.IsNullOrEmpty(currentEtag))
                     {
                         return false;
                     }
 
-                    etag = values.FirstOrDefault();
+                    var current = await Poll(currentEtag);
 
-                    if (string.IsNullOrEmpty(etag))
+                    // The endpoint keeps writing startup events, so a 200 here means either the
+                    // validator went stale between the two requests, or the server ignored
+                    // If-None-Match. Only the second is a failure, and the ETag tells them apart.
+                    if (current.StatusCode == HttpStatusCode.OK && ReadEtag(current) != currentEtag)
                     {
                         return false;
                     }
 
-                    currentEtagStatus = (await Poll(etag)).StatusCode;
+                    etag = currentEtag;
+                    currentEtagStatus = current.StatusCode;
 
                     var unknown = await Poll("\"not-an-etag-this-instance-ever-issued\"");
                     unknownEtagStatus = unknown.StatusCode;
@@ -86,6 +90,11 @@ namespace ServiceControl.AcceptanceTests.EventLogs
                     "a cache miss must carry the items, not an empty body with a 200");
             }
         }
+
+        // Raw header: an unquoted value fails EntityTagHeaderValue parsing, and this test
+        // has to observe that rather than throw on it.
+        static string ReadEtag(HttpResponseMessage response) =>
+            response.Headers.TryGetValues("ETag", out var values) ? values.FirstOrDefault() : null;
 
         Task<HttpResponseMessage> Poll(string ifNoneMatch)
         {
