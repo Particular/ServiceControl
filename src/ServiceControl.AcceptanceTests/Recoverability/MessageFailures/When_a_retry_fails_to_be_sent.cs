@@ -17,7 +17,7 @@
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
-    using ServiceControl.Persistence;
+    using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Recoverability;
     using TestSupport;
 
@@ -31,7 +31,7 @@
 
             CustomizeHostBuilder = hostBuilder =>
             {
-                hostBuilder.Services.AddSingleton<ReturnToSender>(provider => new FakeReturnToSender(provider.GetRequiredService<IFailedMessageRetryDataStore>(), provider.GetRequiredService<MyContext>()));
+                hostBuilder.Services.AddSingleton<ReturnToSender>(provider => new FakeReturnToSender(provider.GetRequiredService<IBodyStorage>(), provider.GetRequiredService<MyContext>()));
             };
 
             await Define<MyContext>()
@@ -148,8 +148,8 @@
 
         public class MessageThatWillFail : ICommand;
 
-        public class FakeReturnToSender(IFailedMessageRetryDataStore errorMessageStore, MyContext myContext)
-            : ReturnToSender(errorMessageStore, NullLogger<ReturnToSender>.Instance)
+        public class FakeReturnToSender(IBodyStorage bodyStorage, MyContext myContext)
+            : ReturnToSender(bodyStorage, NullLogger<ReturnToSender>.Instance)
         {
             public override Task HandleMessage(MessageContext message, IMessageDispatcher sender, string errorQueueTransportAddress, CancellationToken cancellationToken = default)
             {

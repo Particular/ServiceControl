@@ -19,13 +19,13 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 /// </remarks>
 public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersistence storagePersistence) : DataStoreBase(scopeFactory), IBodyStorage
 {
-    public async Task<MessageBodyStreamResult?> TryFetch(string bodyId, CancellationToken cancellationToken = default)
+    public async Task<MessageBodyResult> TryFetch(string bodyId, CancellationToken cancellationToken = default)
     {
         var row = await ExecuteWithDbContext((dbContext, token) => ResolveBody(dbContext, bodyId, token), cancellationToken);
 
         if (row == null)
         {
-            return null; // No such message: the API turns this into a 404.
+            return MessageBodyResult.NotFound();
         }
 
         // Bodies are immutable per message, so the id is a stable ETag.
@@ -35,33 +35,42 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
         {
             var external = await storagePersistence.ReadBody(uniqueMessageId, cancellationToken);
 
-            return external == null
-                ? new MessageBodyStreamResult { HasResult = false }
-                : new MessageBodyStreamResult
-                {
-                    HasResult = true,
-                    Stream = external.Stream,
-                    ContentType = external.ContentType,
-                    BodySize = external.BodySize,
-                    Etag = uniqueMessageId
-                };
+            if (external == null)
+            {
+                return MessageBodyResult.Unavailable();
+            }
+
+            if (external.BodySize == 0)
+            {
+                await external.Stream.DisposeAsync();
+                return MessageBodyResult.Empty();
+            }
+
+            return MessageBodyResult.Available(new MessageBodyStreamContent(external.Stream, external.ContentType, external.BodySize, uniqueMessageId));
         }
 
         if (row.BodyText != null)
         {
             var bytes = Encoding.UTF8.GetBytes(row.BodyText);
 
-            return new MessageBodyStreamResult
+            if (bytes.Length == 0)
             {
-                HasResult = true,
-                Stream = new MemoryStream(bytes, writable: false),
-                ContentType = row.BodyContentType,
-                BodySize = bytes.Length,
-                Etag = uniqueMessageId
-            };
+                return MessageBodyResult.Empty();
+            }
+
+            return MessageBodyResult.Available(new MessageBodyStreamContent(
+                new MemoryStream(bytes, writable: false),
+                row.BodyContentType,
+                bytes.Length,
+                uniqueMessageId));
         }
 
-        return new MessageBodyStreamResult { HasResult = false }; // Message exists but carries no body.
+        if (row.BodySize == 0)
+        {
+            return MessageBodyResult.Empty();
+        }
+
+        return MessageBodyResult.Unavailable();
     }
 
     static async Task<BodyRow?> ResolveBody(ServiceControlDbContext dbContext, string bodyId, CancellationToken cancellationToken)
@@ -88,6 +97,7 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
                 UniqueMessageId = message.UniqueMessageId,
                 BodyText = message.BodyText,
                 BodyStoredExternally = message.BodyStoredExternally,
+                BodySize = message.BodySize,
                 BodyContentType = message.BodyContentType
             })
             .FirstOrDefaultAsync(cancellationToken);
@@ -97,6 +107,7 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
         public Guid UniqueMessageId { get; init; }
         public string? BodyText { get; init; }
         public bool BodyStoredExternally { get; init; }
+        public int BodySize { get; init; }
         public string? BodyContentType { get; init; }
     }
 }

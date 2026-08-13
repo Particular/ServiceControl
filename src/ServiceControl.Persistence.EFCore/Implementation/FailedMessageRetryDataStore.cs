@@ -55,18 +55,27 @@ public class FailedMessageRetryDataStore(IServiceScopeFactory scopeFactory, IBod
 
     public async Task<byte[]> GetFailedMessageBody(string uniqueMessageId, CancellationToken cancellationToken = default)
     {
-        var result = await bodyStorage.TryFetch(uniqueMessageId, cancellationToken)
-                     ?? throw new InvalidOperationException("IBodyStorage.TryFetch result cannot be null");
+        var result = await bodyStorage.TryFetch(uniqueMessageId, cancellationToken);
 
-        if (!result.HasResult)
+        if (result.State == MessageBodyState.NotFound)
+        {
+            throw new InvalidOperationException("IBodyStorage.TryFetch result cannot be null");
+        }
+
+        if (result.State == MessageBodyState.Unavailable)
         {
             throw new InvalidOperationException("IBodyStorage.TryFetch did not return a body");
         }
 
-        await using (result.Stream)
+        if (result.State == MessageBodyState.Empty)
+        {
+            return [];
+        }
+
+        await using (result.Content.Stream)
         {
             using var memoryStream = new MemoryStream();
-            await result.Stream.CopyToAsync(memoryStream, cancellationToken);
+            await result.Content.Stream.CopyToAsync(memoryStream, cancellationToken);
             return memoryStream.ToArray();
         }
     }

@@ -510,26 +510,34 @@
 
         public async Task<byte[]> GetFailedMessageBody(string uniqueMessageId, CancellationToken cancellationToken = default)
         {
-            byte[] body = null;
-            var result = await bodyStorage.TryFetch(uniqueMessageId, cancellationToken)
-                         ?? throw new InvalidOperationException("IBodyStorage.TryFetch result cannot be null");
+            var result = await bodyStorage.TryFetch(uniqueMessageId, cancellationToken);
 
-            if (result.HasResult)
+            if (result.State == MessageBodyState.NotFound)
             {
-                await using (result.Stream) // Not strictly required for MemoryStream but might be different behavior in future .NET versions
-                {
-                    // Unfortunately we can't use the buffer manager here yet because core doesn't allow to set the length property so usage of GetBuffer is not possible
-                    // furthermore call ToArray would neglect many of the benefits of the recyclable stream
-                    // RavenDB always returns a memory stream in ver. 3.5 so there is no need to pretend we need to do buffered reads since the memory is anyway fully allocated already
-                    // this assumption might change when we stop supporting RavenDB 3.5 but right now this is the most memory efficient way to do things
-                    // https://github.com/microsoft/Microsoft.IO.RecyclableMemoryStream#getbuffer-and-toarray
-                    using var memoryStream = new MemoryStream();
-                    await result.Stream.CopyToAsync(memoryStream, cancellationToken);
-
-                    body = memoryStream.ToArray();
-                }
+                throw new InvalidOperationException("IBodyStorage.TryFetch result cannot be null");
             }
-            return body;
+
+            if (result.State == MessageBodyState.Unavailable)
+            {
+                throw new InvalidOperationException("IBodyStorage.TryFetch result cannot be null");
+            }
+
+            if (result.State == MessageBodyState.Empty)
+            {
+                return [];
+            }
+
+            await using (result.Content.Stream) // Not strictly required for MemoryStream but might be different behavior in future .NET versions
+            {
+                // Unfortunately we can't use the buffer manager here yet because core doesn't allow to set the length property so usage of GetBuffer is not possible
+                // furthermore call ToArray would neglect many of the benefits of the recyclable stream
+                // RavenDB always returns a memory stream in ver. 3.5 so there is no need to pretend we need to do buffered reads since the memory is anyway fully allocated already
+                // this assumption might change when we stop supporting RavenDB 3.5 but right now this is the most memory efficient way to do things
+                // https://github.com/microsoft/Microsoft.IO.RecyclableMemoryStream#getbuffer-and-toarray
+                using var memoryStream = new MemoryStream();
+                await result.Content.Stream.CopyToAsync(memoryStream, cancellationToken);
+                return memoryStream.ToArray();
+            }
         }
     }
 }
