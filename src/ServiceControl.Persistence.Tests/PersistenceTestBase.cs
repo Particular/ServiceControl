@@ -76,13 +76,6 @@ public abstract class PersistenceTestBase
 
     protected Task CompleteDatabaseOperation() => PersistenceTestsContext.CompleteDatabaseOperation();
 
-    protected async Task<FailedMessage> SeedFailedMessage(FailedMessage failedMessage)
-    {
-        failedMessage.Id = PersistenceTestsContext.GenerateFailedMessageRecordId(failedMessage.UniqueMessageId);
-        await PersistenceTestsContext.InsertFailedMessages(failedMessage);
-        return failedMessage;
-    }
-
     protected static async Task WaitUntil(Func<Task<bool>> conditionChecker, string condition, TimeSpan timeout = default)
     {
         timeout = timeout == default ? TimeSpan.FromSeconds(10) : timeout;

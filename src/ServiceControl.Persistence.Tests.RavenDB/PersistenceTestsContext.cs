@@ -76,12 +76,6 @@ public class PersistenceTestsContext : IPersistenceTestsContext
         await session.SaveChangesAsync();
     }
 
-    public async Task<bool> NotificationSettingsExist(CancellationToken cancellationToken = default)
-    {
-        using var session = await SessionProvider.OpenSession(cancellationToken: cancellationToken);
-        return await session.Advanced.ExistsAsync("NotificationsSettings/All", cancellationToken);
-    }
-
     public IDocumentStore DocumentStore { get; private set; }
 
     public IRavenSessionProvider SessionProvider { get; private set; }
