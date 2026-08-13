@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.AcceptanceTests.Recoverability
+namespace ServiceControl.AcceptanceTests.Recoverability
 {
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
@@ -17,15 +17,14 @@
     class When_a_messages_fails_multiple_times : AcceptanceTest
     {
         const int NumberOfFailedAttempts = 20;
-        const int MaximalNumberOfStoredFailedAttempts = 10;
-        const string AttemptIdHeaderKey = "testing.failed_attempt_no";
+        const string AttemptNumberHeaderKey = "testing.failed_attempt_no";
 
         [Test]
-        public async Task Should_store_only_the_latest_processing_attempts()
+        public async Task Should_report_the_most_recent_attempt_last()
         {
             FailedMessage result = null;
 
-            var context = await Define<TestContext>()
+            await Define<TestContext>()
                 .WithEndpoint<AnEndpoint>()
                 .Done(async c =>
                 {
@@ -34,19 +33,23 @@
                         return false;
                     }
 
-                    result = await this.TryGet<FailedMessage>($"/api/errors/{c.UniqueMessageId}");
+                    result = await this.TryGet<FailedMessage>(
+                        $"/api/errors/{c.UniqueMessageId}",
+                        m => LatestAttemptNumber(m) == NumberOfFailedAttempts.ToString());
 
-                    var failureTimes = result?.ProcessingAttempts.Select(pa => pa.Headers["NServiceBus.TimeOfFailure"]).ToArray() ?? [];
-
-                    return failureTimes.SequenceEqual([.. c.LatestFailureTimes]);
+                    return result != null;
                 })
                 .Run();
+
+            Assert.That(LatestAttemptNumber(result), Is.EqualTo(NumberOfFailedAttempts.ToString()));
         }
+
+        static string LatestAttemptNumber(FailedMessage message) =>
+            message.ProcessingAttempts[^1].Headers.GetValueOrDefault(AttemptNumberHeaderKey);
 
         class TestContext : ScenarioContext
         {
             public string UniqueMessageId { get; set; }
-            public List<string> LatestFailureTimes { get; set; } = [];
         }
 
         class AnEndpoint : EndpointConfigurationBuilder
@@ -66,29 +69,19 @@
                     var transportOperations = Enumerable.Range(0, NumberOfFailedAttempts)
                         .Select(i =>
                         {
-                            var timeOfFailure = DateTimeOffsetHelper.ToWireFormattedString(earliestTimeOfFailure.Add(TimeSpan.FromMinutes(i)));
-
                             var headers = new Dictionary<string, string>
                             {
                                 [Headers.MessageId] = messageId,
                                 [Headers.EnclosedMessageTypes] = typeof(MyMessage).FullName,
                                 ["NServiceBus.FailedQ"] = endpointName,
                                 ["$.diagnostics.hostid"] = Guid.NewGuid().ToString(),
-                                ["NServiceBus.TimeOfFailure"] = timeOfFailure,
-
-                                [AttemptIdHeaderKey] = (i + 1).ToString()
+                                ["NServiceBus.TimeOfFailure"] = DateTimeOffsetHelper.ToWireFormattedString(earliestTimeOfFailure.Add(TimeSpan.FromMinutes(i))),
+                                [AttemptNumberHeaderKey] = (i + 1).ToString()
                             };
-
-                            context.LatestFailureTimes.Add(timeOfFailure);
 
                             return new TransportOperation(new OutgoingMessage(messageId, headers, Array.Empty<byte>()), new UnicastAddressTag("error"));
                         })
                         .ToArray();
-
-                    context.LatestFailureTimes = context.LatestFailureTimes
-                        .Skip(context.LatestFailureTimes.Count - MaximalNumberOfStoredFailedAttempts)
-                        .Take(MaximalNumberOfStoredFailedAttempts)
-                        .ToList();
 
                     return new TransportOperations(transportOperations);
                 }
