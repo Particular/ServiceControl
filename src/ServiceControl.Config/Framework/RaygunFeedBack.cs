@@ -7,6 +7,7 @@ namespace ServiceControl.Config.Framework
     using System.Net;
     using System.Net.Http;
     using System.Reflection;
+    using System.Threading;
     using System.Threading.Tasks;
     using Extensions;
     using Mindscape.Raygun4Net;
@@ -21,9 +22,9 @@ namespace ServiceControl.Config.Framework
 
             init = Task.Run(async () =>
             {
-                enabled = await TryInitializeRaygunClientWithCredentials() ||
-                          await TryInitializeRaygunClientWithCredentials(CredentialCache.DefaultCredentials) ||
-                          await TryInitializeRaygunClientWithCredentials(CredentialCache.DefaultNetworkCredentials);
+                enabled = await TryInitializeRaygunClientWithCredentials(null, CancellationToken.None) ||
+                          await TryInitializeRaygunClientWithCredentials(CredentialCache.DefaultCredentials, CancellationToken.None) ||
+                          await TryInitializeRaygunClientWithCredentials(CredentialCache.DefaultNetworkCredentials, CancellationToken.None);
                 version = GetVersion();
             });
         }
@@ -45,7 +46,7 @@ namespace ServiceControl.Config.Framework
             return trackingId;
         }
 
-        public Task SendFeedBack(string emailAddress, string message, bool includeSystemInfo)
+        public Task SendFeedBack(string emailAddress, string message, bool includeSystemInfo, CancellationToken cancellationToken = default)
         {
             var userInfo = ((IRaygunUserProvider)this).GetUser()!;
             userInfo.Email = emailAddress;
@@ -62,10 +63,10 @@ namespace ServiceControl.Config.Framework
             }
 
             var m = raygunMessage.Build();
-            return raygunClient.Send(m);
+            return raygunClient.Send(m, cancellationToken);
         }
 
-        public Task SendException(Exception ex, bool includeSystemInfo)
+        public Task SendException(Exception ex, bool includeSystemInfo, CancellationToken cancellationToken = default)
         {
             var userInfo = ((IRaygunUserProvider)this).GetUser()!;
 
@@ -81,7 +82,7 @@ namespace ServiceControl.Config.Framework
             }
 
             var m = raygunMessage.Build();
-            return raygunClient.Send(m);
+            return raygunClient.Send(m, cancellationToken);
         }
 
         RaygunIdentifierMessage IRaygunUserProvider.GetUser() => new(trackingId.BareString())
@@ -102,7 +103,7 @@ namespace ServiceControl.Config.Framework
             }
         }
 
-        async Task<bool> TryInitializeRaygunClientWithCredentials(ICredentials? credentials = default)
+        async Task<bool> TryInitializeRaygunClientWithCredentials(ICredentials? credentials, CancellationToken cancellationToken)
         {
             HttpClient? http = null;
             try
@@ -111,11 +112,16 @@ namespace ServiceControl.Config.Framework
                 {
                     Timeout = TimeSpan.FromSeconds(5)
                 };
-                using var response = await http.GetAsync(RaygunUrl);
+                using var response = await http.GetAsync(RaygunUrl, cancellationToken);
                 response.EnsureSuccessStatusCode();
 
                 raygunClient = new RaygunClient(raygunSettings, http, this);
                 return true;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                http?.Dispose();
+                throw;
             }
             catch
             {

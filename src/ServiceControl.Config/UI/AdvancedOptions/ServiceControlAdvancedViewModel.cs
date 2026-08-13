@@ -140,7 +140,7 @@ namespace ServiceControl.Config.UI.AdvancedOptions
 
         public string ForcedUpgradeBackupLocation => ServiceControlInstance.DatabaseBackupPath;
 
-        public Task HandleAsync(PostRefreshInstances message, CancellationToken cancellationToken)
+        public Task HandleAsync(PostRefreshInstances message, CancellationToken cancellationToken = default)
         {
             NotifyOfPropertyChange("AllowStop");
             NotifyOfPropertyChange("IsRunning");
@@ -149,7 +149,7 @@ namespace ServiceControl.Config.UI.AdvancedOptions
             return Task.CompletedTask;
         }
 
-        public async Task<bool> StartService(IProgressObject progress, bool maintenanceMode)
+        public async Task<bool> StartService(IProgressObject progress, bool maintenanceMode, CancellationToken cancellationToken = default)
         {
             var disposeProgress = progress == null;
             var result = false;
@@ -170,7 +170,7 @@ namespace ServiceControl.Config.UI.AdvancedOptions
                     }
 
                     result = ServiceControlInstance.TryStartService();
-                });
+                }, cancellationToken);
 
                 return result;
             }
@@ -183,7 +183,7 @@ namespace ServiceControl.Config.UI.AdvancedOptions
             }
         }
 
-        public async Task<bool> StopService(IProgressObject progress = null)
+        public async Task<bool> StopService(IProgressObject progress = null, CancellationToken cancellationToken = default)
         {
             var disposeProgress = progress == null;
             var result = false;
@@ -200,7 +200,7 @@ namespace ServiceControl.Config.UI.AdvancedOptions
                     {
                         ServiceControlInstance.DisableMaintenanceMode();
                     }
-                });
+                }, cancellationToken);
 
                 return result;
             }

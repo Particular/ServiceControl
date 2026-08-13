@@ -48,23 +48,23 @@
                 return items;
             }
 
-            public override async Task ActivateItem(T item)
+            public override async Task ActivateItem(T item, CancellationToken cancellationToken = default)
             {
                 if (item != null && item.Equals(ActiveItem))
                 {
                     if (IsActive)
                     {
-                        await ScreenExtensions.TryActivateAsync(item);
+                        await ScreenExtensions.TryActivateAsync(item, cancellationToken);
                         OnActivationProcessed(item, true);
                     }
 
                     return;
                 }
 
-                await ChangeActiveItem(item, false);
+                await ChangeActiveItem(item, false, cancellationToken);
             }
 
-            public override async Task DeactivateItem(T item, bool close)
+            public override async Task DeactivateItem(T item, bool close, CancellationToken cancellationToken = default)
             {
                 if (item == null)
                 {
@@ -73,30 +73,30 @@
 
                 if (!close)
                 {
-                    await ScreenExtensions.TryDeactivateAsync(item, false);
+                    await ScreenExtensions.TryDeactivateAsync(item, false, cancellationToken);
                 }
                 else
                 {
-                    var result = await CloseStrategy.ExecuteAsync(new[] { item });
+                    var result = await CloseStrategy.ExecuteAsync(new[] { item }, cancellationToken);
                     if (result.CloseCanOccur)
                     {
-                        await CloseItemCore(item);
+                        await CloseItemCore(item, cancellationToken);
                     }
                 }
             }
 
-            async Task CloseItemCore(T item)
+            async Task CloseItemCore(T item, CancellationToken cancellationToken)
             {
                 if (item.Equals(ActiveItem))
                 {
                     var index = items.IndexOf(item);
                     var next = DetermineNextItemToActivate(items, index);
 
-                    await ChangeActiveItem(next, true);
+                    await ChangeActiveItem(next, true, cancellationToken);
                 }
                 else
                 {
-                    await ScreenExtensions.TryDeactivateAsync(item, true);
+                    await ScreenExtensions.TryDeactivateAsync(item, true, cancellationToken);
                 }
 
                 items.Remove(item);
@@ -119,7 +119,7 @@
                 return default;
             }
 
-            public override async Task<bool> CanCloseAsync(CancellationToken cancellationToken)
+            public override async Task<bool> CanCloseAsync(CancellationToken cancellationToken = default)
             {
                 var result = await CloseStrategy.ExecuteAsync(items.ToList(), cancellationToken);
                 var canClose = result.CloseCanOccur;
@@ -140,7 +140,7 @@
                         while (closable.Contains(next));
 
                         var previousActive = ActiveItem;
-                        await ChangeActiveItem(next, true);
+                        await ChangeActiveItem(next, true, cancellationToken);
                         items.Remove(previousActive);
 
                         var stillToClose = closable.ToList();
@@ -150,7 +150,7 @@
 
                     await Task.WhenAll(
                         from deactivatable in closable.OfType<IDeactivate>()
-                        select deactivatable.DeactivateAsync(true)
+                        select deactivatable.DeactivateAsync(true, cancellationToken)
                     );
 
                     items.RemoveRange(closable);
@@ -159,9 +159,9 @@
                 return canClose;
             }
 
-            protected override Task OnActivate() => ScreenExtensions.TryActivateAsync(ActiveItem);
+            protected override Task OnActivate(CancellationToken cancellationToken = default) => ScreenExtensions.TryActivateAsync(ActiveItem, cancellationToken);
 
-            protected override async Task OnDeactivate(bool close)
+            protected override async Task OnDeactivate(bool close, CancellationToken cancellationToken = default)
             {
                 if (close)
                 {
@@ -169,14 +169,14 @@
                     {
                         if (item is IDeactivate deactivatable)
                         {
-                            await deactivatable.DeactivateAsync(true);
+                            await deactivatable.DeactivateAsync(true, cancellationToken);
                         }
                     }
                     items.Clear();
                 }
                 else
                 {
-                    await ScreenExtensions.TryDeactivateAsync(ActiveItem, false);
+                    await ScreenExtensions.TryDeactivateAsync(ActiveItem, false, cancellationToken);
                 }
             }
 

@@ -4,6 +4,7 @@ namespace ServiceControl.Management.PowerShell
     using System.IO;
     using System.Linq;
     using System.Management.Automation;
+    using System.Threading;
     using System.Threading.Tasks;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Unattended;
@@ -188,7 +189,7 @@ namespace ServiceControl.Management.PowerShell
                 {
                     return;
                 }
-                if (!checks.ValidateNewInstance(details).GetAwaiter().GetResult())
+                if (!checks.ValidateNewInstance([details]).GetAwaiter().GetResult())
                 {
                     return;
                 }
@@ -228,7 +229,7 @@ namespace ServiceControl.Management.PowerShell
             }
         }
 
-        Task<bool> PromptToProceed(PathInfo pathInfo)
+        Task<bool> PromptToProceed(PathInfo pathInfo, CancellationToken cancellationToken)
         {
             if (!pathInfo.CheckIfEmpty)
             {

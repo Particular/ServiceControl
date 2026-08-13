@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Security.AccessControl;
     using System.Security.Principal;
+    using System.Threading;
     using System.Threading.Tasks;
     using Accounts;
     using Configuration;
@@ -136,11 +137,11 @@
             return transport ?? throw new Exception($"{SettingsList.TransportType.Name} value of '{transportAppSetting}' in app.config is invalid.");
         }
 
-        public async Task ValidateChanges()
+        public async Task ValidateChanges(CancellationToken cancellationToken = default)
         {
             try
             {
-                await new PathsValidator(this).RunValidation(false).ConfigureAwait(false);
+                await new PathsValidator(this).RunValidation(false, cancellationToken).ConfigureAwait(false);
             }
             catch (EngineValidationException ex)
             {

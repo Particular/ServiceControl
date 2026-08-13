@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Config.UI.Upgrades
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Framework;
     using ReactiveUI;
@@ -28,7 +29,7 @@
             viewModel.Continue = ReactiveCommand.CreateFromTask(Continue);
         }
 
-        async Task Continue()
+        async Task Continue(CancellationToken cancellationToken)
         {
             viewModel.SubmitAttempted = true;
 

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Config.Commands
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Caliburn.Micro;
     using Events;
@@ -146,27 +147,27 @@
                 return;
             }
 
-            await UpgradeServiceControlInstance(model, instance, upgradeOptions);
+            await UpgradeServiceControlInstance(model, instance, upgradeOptions, CancellationToken.None);
 
             await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
         }
 
-        async Task UpgradeServiceControlInstance(InstanceDetailsViewModel model, ServiceControlInstance instance, ServiceControlUpgradeOptions upgradeOptions)
+        async Task UpgradeServiceControlInstance(InstanceDetailsViewModel model, ServiceControlInstance instance, ServiceControlUpgradeOptions upgradeOptions, CancellationToken cancellationToken)
         {
             using (var progress = model.GetProgressObject($"UPGRADING {model.Name}"))
             {
                 var reportCard = new ReportCard();
                 var restartAgain = model.IsRunning;
 
-                var stopped = await model.StopService(progress);
+                var stopped = await model.StopService(progress, cancellationToken);
 
                 if (!stopped)
                 {
-                    await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
+                    await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances(), cancellationToken);
 
                     reportCard.Errors.Add("Failed to stop the service");
                     reportCard.SetStatus();
-                    await windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:");
+                    await windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", cancellationToken: cancellationToken);
 
                     return;
                 }
@@ -175,17 +176,17 @@
 
                 if (reportCard.HasErrors || reportCard.HasWarnings)
                 {
-                    await windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", "There were some warnings while upgrading the instance:");
+                    await windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", "There were some warnings while upgrading the instance:", cancellationToken: cancellationToken);
                 }
                 else
                 {
                     if (restartAgain)
                     {
-                        var serviceStarted = await model.StartService(progress);
+                        var serviceStarted = await model.StartService(progress, cancellationToken);
                         if (!serviceStarted)
                         {
                             reportCard.Errors.Add("The Service failed to start. Please consult the ServiceControl logs for this instance");
-                            await windowManager.ShowActionReport(reportCard, "UPGRADE FAILURE", "Instance reported this error after upgrade:");
+                            await windowManager.ShowActionReport(reportCard, "UPGRADE FAILURE", "Instance reported this error after upgrade:", cancellationToken: cancellationToken);
                         }
                     }
                 }

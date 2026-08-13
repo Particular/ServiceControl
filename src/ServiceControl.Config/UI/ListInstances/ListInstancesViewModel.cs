@@ -67,7 +67,7 @@
         [AlsoNotifyFor(nameof(OrderedInstances), nameof(HasConfigurationErrors), nameof(ConfigurationErrorMessage))]
         IList<InstanceDetailsViewModel> Instances { get; }
 
-        public Task HandleAsync(LicenseUpdated licenseUpdatedEvent, CancellationToken cancellationToken)
+        public Task HandleAsync(LicenseUpdated licenseUpdatedEvent, CancellationToken cancellationToken = default)
         {
             // on license change inform each instance to refresh the license (1.23.0 and below don't support this)
             foreach (var instance in Instances)
@@ -105,13 +105,13 @@
         /// before the PostRefreshInstances handlers do all their rebinding. That way, deleting an instance
         /// in PowerShell won't cause an error from a deleted instance viewmodel trying to refresh itself.
         /// </summary>
-        public async Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken)
+        public async Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken = default)
         {
             AddAndRemoveInstances();
             await EventAggregator.PublishOnUIThreadAsync(new PostRefreshInstances(), cancellationToken);
         }
 
-        public async Task HandleAsync(ResetInstances message, CancellationToken cancellationToken)
+        public async Task HandleAsync(ResetInstances message, CancellationToken cancellationToken = default)
         {
             foreach (var instance in Instances)
             {

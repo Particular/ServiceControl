@@ -5,6 +5,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Configuration;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Configuration;
     using Configuration.ServiceControl;
@@ -96,11 +97,11 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        protected override async Task ValidatePaths()
+        protected override async Task ValidatePaths(CancellationToken cancellationToken = default)
         {
             try
             {
-                await new PathsValidator(this).RunValidation(false).ConfigureAwait(false);
+                await new PathsValidator(this).RunValidation(false, cancellationToken).ConfigureAwait(false);
             }
             catch (EngineValidationException ex)
             {

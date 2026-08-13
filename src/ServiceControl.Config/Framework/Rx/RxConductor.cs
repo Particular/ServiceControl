@@ -7,23 +7,23 @@
 
     public partial class RxConductor<T> : RxConductorBaseWithActiveItem<T> where T : class
     {
-        public override async Task ActivateItem(T item)
+        public override async Task ActivateItem(T item, CancellationToken cancellationToken = default)
         {
             if (item != null && item.Equals(ActiveItem))
             {
                 if (IsActive)
                 {
-                    await ScreenExtensions.TryActivateAsync(item);
+                    await ScreenExtensions.TryActivateAsync(item, cancellationToken);
                     OnActivationProcessed(item, true);
                 }
 
                 return;
             }
 
-            var result = await CloseStrategy.ExecuteAsync(new[] { ActiveItem });
+            var result = await CloseStrategy.ExecuteAsync(new[] { ActiveItem }, cancellationToken);
             if (result.CloseCanOccur)
             {
-                await ChangeActiveItem(item, true);
+                await ChangeActiveItem(item, true, cancellationToken);
             }
             else
             {
@@ -31,29 +31,29 @@
             }
         }
 
-        public override async Task DeactivateItem(T item, bool close)
+        public override async Task DeactivateItem(T item, bool close, CancellationToken cancellationToken = default)
         {
             if (item == null || !item.Equals(ActiveItem))
             {
                 return;
             }
 
-            var result = await CloseStrategy.ExecuteAsync(new[] { ActiveItem });
+            var result = await CloseStrategy.ExecuteAsync(new[] { ActiveItem }, cancellationToken);
             if (result.CloseCanOccur)
             {
-                await ChangeActiveItem(default, close);
+                await ChangeActiveItem(default, close, cancellationToken);
             }
         }
 
-        public override async Task<bool> CanCloseAsync(CancellationToken cancellationToken)
+        public override async Task<bool> CanCloseAsync(CancellationToken cancellationToken = default)
         {
             var result = await CloseStrategy.ExecuteAsync(new[] { ActiveItem }, cancellationToken);
             return result.CloseCanOccur;
         }
 
-        protected override Task OnActivate() => ScreenExtensions.TryActivateAsync(ActiveItem);
+        protected override Task OnActivate(CancellationToken cancellationToken = default) => ScreenExtensions.TryActivateAsync(ActiveItem, cancellationToken);
 
-        protected override Task OnDeactivate(bool close) => ScreenExtensions.TryDeactivateAsync(ActiveItem, close);
+        protected override Task OnDeactivate(bool close, CancellationToken cancellationToken = default) => ScreenExtensions.TryDeactivateAsync(ActiveItem, close, cancellationToken);
 
         public override IEnumerable<T> GetChildren()
         {

@@ -1,6 +1,7 @@
 namespace ServiceControl.Config.Commands;
 
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Caliburn.Micro;
 using Events;
@@ -36,34 +37,34 @@ class ForceUpgradePrimaryInstanceCommand : AwaitableAbstractCommand<ServiceContr
             return;
         }
 
-        await UpgradeServiceControlInstance(model, instance);
+        await UpgradeServiceControlInstance(model, instance, CancellationToken.None);
 
         await eventAggregator.PublishOnUIThreadAsync(new ResetInstances());
     }
 
-    async Task UpgradeServiceControlInstance(ServiceControlAdvancedViewModel model, ServiceControlInstance instance)
+    async Task UpgradeServiceControlInstance(ServiceControlAdvancedViewModel model, ServiceControlInstance instance, CancellationToken cancellationToken)
     {
         using (var progress = model.GetProgressObject($"UPGRADING {model.Name}"))
         {
             var reportCard = new ReportCard();
             var restartAgain = model.IsRunning;
 
-            var stopped = await model.StopService(progress);
+            var stopped = await model.StopService(progress, cancellationToken);
 
             if (!stopped)
             {
-                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
+                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances(), cancellationToken);
 
                 reportCard.Errors.Add("Failed to stop the service");
                 reportCard.SetStatus();
-                await windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:");
+                await windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", cancellationToken: cancellationToken);
 
                 return;
             }
 
             if (Directory.Exists(model.ForcedUpgradeBackupLocation))
             {
-                await windowManager.ShowMessage("Cannot make database backup.", $"The target database backup location: {model.ForcedUpgradeBackupLocation} already exists.", hideCancel: true);
+                await windowManager.ShowMessage("Cannot make database backup.", $"The target database backup location: {model.ForcedUpgradeBackupLocation} already exists.", hideCancel: true, cancellationToken: cancellationToken);
 
                 return;
             }
@@ -78,20 +79,20 @@ class ForceUpgradePrimaryInstanceCommand : AwaitableAbstractCommand<ServiceContr
 
             if (reportCard.HasErrors || reportCard.HasWarnings)
             {
-                await windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", "There were some warnings while upgrading the instance:");
+                await windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", "There were some warnings while upgrading the instance:", cancellationToken: cancellationToken);
 
                 return;
             }
 
             if (restartAgain)
             {
-                var serviceStarted = await model.StartService(progress, maintenanceMode: false);
+                var serviceStarted = await model.StartService(progress, maintenanceMode: false, cancellationToken);
                 if (!serviceStarted)
                 {
                     reportCard.Errors.Add(
                         "The Service failed to start. Please consult the ServiceControl logs for this instance");
                     await windowManager.ShowActionReport(reportCard, "UPGRADE FAILURE",
-                        "Instance reported this error after upgrade:");
+                        "Instance reported this error after upgrade:", cancellationToken: cancellationToken);
 
                     return;
                 }
@@ -99,7 +100,7 @@ class ForceUpgradePrimaryInstanceCommand : AwaitableAbstractCommand<ServiceContr
         }
 
         await model.TryCloseAsync(true);
-        await eventAggregator.PublishOnUIThreadAsync(new ResetInstances());
+        await eventAggregator.PublishOnUIThreadAsync(new ResetInstances(), cancellationToken);
     }
 
     readonly IEventAggregator eventAggregator;

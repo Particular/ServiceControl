@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Config.UI.InstanceAdd
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Caliburn.Micro;
     using Events;
@@ -40,7 +41,7 @@
             return viewModel != null && !viewModel.InProgress;
         }
 
-        async Task Add()
+        async Task Add(CancellationToken cancellationToken)
         {
             viewModel.SubmitAttempted = true;
             if (!viewModel.ValidationTemplate.Validate())
@@ -71,7 +72,7 @@
                 ServiceAccountPwd = viewModel.Password
             };
 
-            if (!await commandChecks.ValidateNewInstance(instanceMetadata))
+            if (!await commandChecks.ValidateNewInstance([instanceMetadata], cancellationToken))
             {
                 viewModel.InProgress = false;
                 return;
@@ -79,11 +80,11 @@
 
             using (var progress = viewModel.GetProgressObject("ADDING INSTANCE"))
             {
-                var reportCard = await Task.Run(() => installer.Add(instanceMetadata, progress, PromptToProceed));
+                var reportCard = await Task.Run(() => installer.Add(instanceMetadata, progress, PromptToProceed, cancellationToken), cancellationToken);
 
                 if (reportCard.HasErrors || reportCard.HasWarnings)
                 {
-                    await windowManager.ShowActionReport(reportCard, "ISSUES ADDING INSTANCE", "Could not add new instance because of the following errors:", "There were some warnings while adding the instance:");
+                    await windowManager.ShowActionReport(reportCard, "ISSUES ADDING INSTANCE", "Could not add new instance because of the following errors:", "There were some warnings while adding the instance:", cancellationToken);
                     return;
                 }
 
@@ -95,14 +96,14 @@
 
             await viewModel.TryCloseAsync(true);
 
-            await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
+            await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances(), cancellationToken);
         }
 
-        async Task<bool> PromptToProceed(PathInfo pathInfo)
+        async Task<bool> PromptToProceed(PathInfo pathInfo, CancellationToken cancellationToken)
         {
             var result = false;
 
-            await Execute.OnUIThreadAsync(async () => { result = await windowManager.ShowYesNoDialog("ADDING INSTANCE QUESTION - DIRECTORY NOT EMPTY", $"The directory specified as the {pathInfo.Name} is not empty.", $"Are you sure you want to use '{pathInfo.Path}' ?", "Yes use it", "No I want to change it"); });
+            await Execute.OnUIThreadAsync(async () => { result = await windowManager.ShowYesNoDialog("ADDING INSTANCE QUESTION - DIRECTORY NOT EMPTY", $"The directory specified as the {pathInfo.Name} is not empty.", $"Are you sure you want to use '{pathInfo.Path}' ?", "Yes use it", "No I want to change it", cancellationToken); });
 
             return result;
         }

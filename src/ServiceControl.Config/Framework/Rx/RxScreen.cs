@@ -63,12 +63,12 @@
             if (!IsInitialized)
             {
                 IsInitialized = initialized = true;
-                await OnInitialize();
+                await OnInitialize(cancellationToken);
             }
 
             IsActive = true;
             Log.Info("Activating {0}.", this);
-            await OnActivate();
+            await OnActivate(cancellationToken);
 
             await Activated(this, new ActivationEventArgs
             {
@@ -87,7 +87,7 @@
 
                 IsActive = false;
                 Log.Info("Deactivating {0}.", this);
-                await OnDeactivate(close);
+                await OnDeactivate(close, cancellationToken);
 
                 await Deactivated(this, new DeactivationEventArgs
                 {
@@ -106,14 +106,16 @@
         /// Called to check whether or not this instance can close.
         /// </summary>
         /// <param name="callback">The implementor calls this action with the result of the close check.</param>
-        public virtual Task<bool> CanCloseAsync(CancellationToken cancellationToken) => Task.FromResult(true);
+        public virtual Task<bool> CanCloseAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
 
         /// <summary>
         /// Tries to close this instance by asking its Parent to initiate shutdown or by asking its corresponding view to close.
         /// Also provides an opportunity to pass a dialog result to it's corresponding view.
         /// </summary>
         /// <param name="dialogResult">The dialog result.</param>
+#pragma warning disable PS0018 // Caliburn.Micro's IClose.TryCloseAsync declares no CancellationToken, so one cannot be added here
         public virtual Task TryCloseAsync(bool? dialogResult = null)
+#pragma warning restore PS0018
         {
             Result = dialogResult;
 
@@ -141,18 +143,18 @@
         /// <summary>
         /// Called when initializing.
         /// </summary>
-        protected virtual Task OnInitialize() => Task.CompletedTask;
+        protected virtual Task OnInitialize(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
         /// <summary>
         /// Called when activating.
         /// </summary>
-        protected virtual Task OnActivate() => Task.CompletedTask;
+        protected virtual Task OnActivate(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
         /// <summary>
         /// Called when deactivating.
         /// </summary>
         /// <param name="close">Inidicates whether this instance will be closed.</param>
-        protected virtual Task OnDeactivate(bool close) => Task.CompletedTask;
+        protected virtual Task OnDeactivate(bool close, CancellationToken cancellationToken = default) => Task.CompletedTask;
 
         static readonly ILog Log = LogManager.GetLog(typeof(Screen));
     }

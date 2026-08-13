@@ -37,13 +37,13 @@
         public bool IsSerious { get; private set; }
         public bool HasFocus { get; private set; }
 
-        public Task HandleAsync(FocusChanged message, CancellationToken cancellationToken)
+        public Task HandleAsync(FocusChanged message, CancellationToken cancellationToken = default)
         {
             HasFocus = message.HasFocus;
             return Task.CompletedTask;
         }
 
-        public Task HandleAsync(LicenseUpdated message, CancellationToken cancellationToken)
+        public Task HandleAsync(LicenseUpdated message, CancellationToken cancellationToken = default)
         {
             RefreshStatus(false);
             return Task.CompletedTask;

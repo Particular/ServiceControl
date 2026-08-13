@@ -8,14 +8,15 @@
     using System.Net.Http.Headers;
     using System.Net.Http.Json;
     using System.Text.Json.Serialization;
+    using System.Threading;
     using System.Threading.Tasks;
     using NuGet.Versioning;
 
     public static class VersionCheckerHelper
     {
-        public static async Task<Release> GetLatestRelease(SemanticVersion currentVersion)
+        public static async Task<Release> GetLatestRelease(SemanticVersion currentVersion, CancellationToken cancellationToken = default)
         {
-            List<Release> releases = await GetVersionInformation();
+            List<Release> releases = await GetVersionInformation(cancellationToken);
 
             if (releases != null)
             {
@@ -31,11 +32,15 @@
             return new Release(currentVersion);
         }
 
-        static async Task<List<Release>> GetVersionInformation()
+        static async Task<List<Release>> GetVersionInformation(CancellationToken cancellationToken)
         {
             try
             {
-                return await httpClient.GetFromJsonAsync<List<Release>>("https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt");
+                return await httpClient.GetFromJsonAsync<List<Release>>("https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt", cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch
             {

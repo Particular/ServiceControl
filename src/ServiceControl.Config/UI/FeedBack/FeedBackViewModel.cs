@@ -1,5 +1,7 @@
 ﻿namespace ServiceControl.Config.UI.FeedBack
 {
+    using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Input;
     using Framework;
@@ -15,7 +17,7 @@
             feedBack = raygunFeedBack;
             validationTemplate = new ValidationTemplate(this);
             Cancel = Command.Create(async () => await TryCloseAsync(false));
-            SendFeedBack = Command.Create(async () => await Send());
+            SendFeedBack = Command.Create(async () => await Send(CancellationToken.None));
         }
 
         public string EmailAddress { get; set; }
@@ -30,7 +32,7 @@
 
         public bool SubmitAttempted { get; set; }
 
-        async Task Send()
+        async Task Send(CancellationToken cancellationToken)
         {
             SubmitAttempted = true;
             if (!validationTemplate.Validate())
@@ -42,8 +44,12 @@
 
             try
             {
-                await feedBack.SendFeedBack(EmailAddress, Message, IncludeSystemInfo);
+                await feedBack.SendFeedBack(EmailAddress, Message, IncludeSystemInfo, cancellationToken);
                 Success = true;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch
             {

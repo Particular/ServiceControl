@@ -40,7 +40,7 @@
 
         class FakeEventHandler : IHandle<FakeEvent>
         {
-            public Task HandleAsync(FakeEvent message, CancellationToken cancellationToken) => throw new NotImplementedException();
+            public Task HandleAsync(FakeEvent message, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         }
 
         class FakeNonEventHandler;
@@ -51,11 +51,13 @@
 
             public bool HandlerExistsFor(Type messageType) => throw new NotImplementedException();
 
+#pragma warning disable PS0013 // Caliburn.Micro's IEventAggregator declares the marshal delegate as Func<Func<Task>, Task>
             public void Subscribe(object subscriber, Func<Func<Task>, Task> marshal) => Subscribers.Add(subscriber);
 
             public void Unsubscribe(object subscriber) => throw new NotImplementedException();
 
             public Task PublishAsync(object message, Func<Func<Task>, Task> marshal, CancellationToken cancellationToken = new CancellationToken()) => throw new NotImplementedException();
+#pragma warning restore PS0013
         }
     }
 }

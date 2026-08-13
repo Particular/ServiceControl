@@ -2,6 +2,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
 {
     using System;
     using System.ServiceProcess;
+    using System.Threading;
     using System.Threading.Tasks;
     using Caliburn.Micro;
     using Events;
@@ -28,7 +29,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             viewModel.Cancel = Command.Create(async () =>
             {
                 await viewModel.TryCloseAsync(false);
-                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
+                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances(), CancellationToken.None);
             }, IsInProgress);
         }
 
@@ -37,7 +38,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             return viewModel != null && !viewModel.InProgress;
         }
 
-        async Task Save()
+        async Task Save(CancellationToken cancellationToken)
         {
             viewModel.SubmitAttempted = true;
             if (!viewModel.ValidationTemplate.Validate())
@@ -52,7 +53,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             if (instance.Service.Status == ServiceControllerStatus.Running)
             {
                 var shouldProceed = await windowManager.ShowMessage("STOP INSTANCE AND MODIFY",
-                    $"{instance.Name} needs to be stopped in order to modify the settings. Do you want to proceed.");
+                    $"{instance.Name} needs to be stopped in order to modify the settings. Do you want to proceed.", cancellationToken: cancellationToken);
                 if (!shouldProceed)
                 {
                     return;
@@ -88,7 +89,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
                 if (reportCard.HasErrors || reportCard.HasWarnings)
                 {
-                    await windowManager.ShowActionReport(reportCard, "ISSUES MODIFYING INSTANCE", "Could not modify instance because of the following errors:", "There were some warnings while modifying the instance:");
+                    await windowManager.ShowActionReport(reportCard, "ISSUES MODIFYING INSTANCE", "Could not modify instance because of the following errors:", "There were some warnings while modifying the instance:", cancellationToken: cancellationToken);
                     return;
                 }
 
@@ -97,7 +98,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
             await viewModel.TryCloseAsync(true);
 
-            await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
+            await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances(), cancellationToken);
         }
 
         readonly IServiceControlWindowManager windowManager;
