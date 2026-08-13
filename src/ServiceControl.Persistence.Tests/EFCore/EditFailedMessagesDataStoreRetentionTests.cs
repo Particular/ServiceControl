@@ -14,7 +14,7 @@ using ServiceControl.Persistence.EFCore.Entities;
 /// Server and PostgreSQL persisters and lock in the <see cref="FailedMessageEntity.StatusChangedAt"/>
 /// and <see cref="FailedMessageEntity.LastModified"/> behavior used by the retention sweeper.
 /// </summary>
-class AtomicEditRetentionTests : ErrorIngestionTestBase
+class EditFailedMessagesDataStoreRetentionTests : ErrorIngestionTestBase
 {
     IEditFailedMessagesDataStore EditStore => ServiceProvider.GetRequiredService<IEditFailedMessagesDataStore>();
 
