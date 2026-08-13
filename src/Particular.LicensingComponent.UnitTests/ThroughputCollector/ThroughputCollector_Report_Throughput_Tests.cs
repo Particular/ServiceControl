@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Contracts;
 using Infrastructure;
@@ -37,7 +38,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -67,7 +68,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -94,7 +95,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -112,7 +113,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -132,7 +133,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -170,7 +171,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -197,7 +198,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         await DataStore.CreateBuilder().AddEndpoint().Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -224,7 +225,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -258,7 +259,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -298,18 +299,18 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             .Build();
 
         var expectedReportMasks = new List<string> { "Endpoint1" };
-        await DataStore.SaveReportMasks(expectedReportMasks, default);
+        await DataStore.SaveReportMasks(expectedReportMasks);
 
         var expectedBrokerVersion = "1.2";
         var expectedScopeType = "testingScope";
-        await DataStore.SaveBrokerMetadata(new BrokerMetadata(expectedScopeType, new Dictionary<string, string> { [EnvironmentDataType.BrokerVersion.ToString()] = expectedBrokerVersion }), default);
+        await DataStore.SaveBrokerMetadata(new BrokerMetadata(expectedScopeType, new Dictionary<string, string> { [EnvironmentDataType.BrokerVersion.ToString()] = expectedBrokerVersion }));
 
         var expectedAuditVersionSummary = new Dictionary<string, int> { ["4.3.6"] = 2 };
         var expectedAuditTransportSummary = new Dictionary<string, int> { ["AzureServiceBus"] = 2 };
-        await DataStore.SaveAuditServiceMetadata(new AuditServiceMetadata(expectedAuditVersionSummary, expectedAuditTransportSummary), default);
+        await DataStore.SaveAuditServiceMetadata(new AuditServiceMetadata(expectedAuditVersionSummary, expectedAuditTransportSummary));
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("2.3.1", new DateTime(2024, 4, 25), default);
+        var report = await ThroughputCollector.GenerateThroughputReport("2.3.1", new DateTime(2024, 4, 25));
         var reportString = System.Text.Json.JsonSerializer.Serialize(report, SerializationOptions.IndentedWithNoEscaping);
 
         // Assert

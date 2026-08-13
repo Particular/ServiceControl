@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ServiceControl.AcceptanceTesting;
 using ServiceControl.AcceptanceTests;
@@ -7,10 +8,10 @@ using ServiceControl.MessageFailures.Api;
 
 public static class FailedMessageExtensions
 {
-    internal static async Task<string> GetOnlyFailedUnresolvedMessageId(this AcceptanceTest test)
+    internal static async Task<string> GetOnlyFailedUnresolvedMessageId(this AcceptanceTest test, CancellationToken cancellationToken = default)
     {
         var allFailedMessages =
-            await test.TryGet<IList<FailedMessageView>>($"/api/errors/?status=unresolved");
+            await test.TryGet<IList<FailedMessageView>>($"/api/errors/?status=unresolved", cancellationToken: cancellationToken);
         if (!allFailedMessages.HasResult)
         {
             return null;

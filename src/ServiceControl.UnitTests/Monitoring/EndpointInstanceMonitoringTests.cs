@@ -35,7 +35,7 @@
 
         class FakeDomainEvents : IDomainEvents
         {
-            public Task Raise<T>(T domainEvent, CancellationToken cancellationToken) where T : IDomainEvent
+            public Task Raise<T>(T domainEvent, CancellationToken cancellationToken = default) where T : IDomainEvent
             {
                 return Task.CompletedTask;
             }

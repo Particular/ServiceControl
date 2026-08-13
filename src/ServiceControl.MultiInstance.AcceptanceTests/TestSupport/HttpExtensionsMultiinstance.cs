@@ -4,6 +4,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System.Net;
     using System.Net.Http;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -17,39 +18,39 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 SerializerOptions = providerMultiInstance.SerializerOptions[instanceName],
             };
 
-        public static Task Put<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_INSTANCE_NAME) where T : class
+        public static Task Put<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_INSTANCE_NAME, CancellationToken cancellationToken = default) where T : class
         {
-            return providerMultiInstance.ToHttpExtension(instanceName).Put(url, payload, requestHasFailed);
+            return providerMultiInstance.ToHttpExtension(instanceName).Put(url, payload, requestHasFailed, cancellationToken);
         }
 
-        public static Task<HttpResponseMessage> GetRaw(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, string instanceName = Settings.DEFAULT_INSTANCE_NAME)
+        public static Task<HttpResponseMessage> GetRaw(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, string instanceName = Settings.DEFAULT_INSTANCE_NAME, CancellationToken cancellationToken = default)
         {
-            return providerMultiInstance.ToHttpExtension(instanceName).GetRaw(url);
+            return providerMultiInstance.ToHttpExtension(instanceName).GetRaw(url, cancellationToken);
         }
 
-        public static Task<ManyResult<T>> TryGetMany<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_INSTANCE_NAME) where T : class
+        public static Task<ManyResult<T>> TryGetMany<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_INSTANCE_NAME, CancellationToken cancellationToken = default) where T : class
         {
-            return providerMultiInstance.ToHttpExtension(instanceName).TryGetMany(url, condition);
+            return providerMultiInstance.ToHttpExtension(instanceName).TryGetMany(url, condition, cancellationToken);
         }
 
-        public static Task<HttpStatusCode> Patch<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, T payload = null, string instanceName = Settings.DEFAULT_INSTANCE_NAME) where T : class
+        public static Task<HttpStatusCode> Patch<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, T payload = null, string instanceName = Settings.DEFAULT_INSTANCE_NAME, CancellationToken cancellationToken = default) where T : class
         {
-            return providerMultiInstance.ToHttpExtension(instanceName).Patch(url, payload);
+            return providerMultiInstance.ToHttpExtension(instanceName).Patch(url, payload, cancellationToken);
         }
 
-        public static Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_INSTANCE_NAME) where T : class
+        public static Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_INSTANCE_NAME, CancellationToken cancellationToken = default) where T : class
         {
-            return providerMultiInstance.ToHttpExtension(instanceName).TryGet(url, condition);
+            return providerMultiInstance.ToHttpExtension(instanceName).TryGet(url, condition, cancellationToken);
         }
 
-        public static Task<SingleResult<T>> TryGetSingle<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_INSTANCE_NAME) where T : class
+        public static Task<SingleResult<T>> TryGetSingle<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_INSTANCE_NAME, CancellationToken cancellationToken = default) where T : class
         {
-            return providerMultiInstance.ToHttpExtension(instanceName).TryGetSingle(url, condition);
+            return providerMultiInstance.ToHttpExtension(instanceName).TryGetSingle(url, condition, cancellationToken);
         }
 
-        public static Task Post<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_INSTANCE_NAME) where T : class
+        public static Task Post<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_INSTANCE_NAME, CancellationToken cancellationToken = default) where T : class
         {
-            return providerMultiInstance.ToHttpExtension(instanceName).Post(url, payload, requestHasFailed);
+            return providerMultiInstance.ToHttpExtension(instanceName).Post(url, payload, requestHasFailed, cancellationToken);
         }
 
     }

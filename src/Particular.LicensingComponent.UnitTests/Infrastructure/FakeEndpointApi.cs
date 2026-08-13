@@ -9,6 +9,6 @@
 
     class FakeEndpointApi : IEndpointsApi
     {
-        public Task<List<Endpoint>> GetEndpoints(CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<List<Endpoint>> GetEndpoints(CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 }

@@ -515,7 +515,7 @@
         {
             public Action<UnicastTransportOperation> Callback { get; set; } = m => { };
 
-            public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, CancellationToken cancellationToken)
+            public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, CancellationToken cancellationToken = default)
             {
                 foreach (var operation in outgoingMessages.UnicastTransportOperations)
                 {

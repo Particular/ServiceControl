@@ -16,7 +16,7 @@
     {
         [Test]
         [CancelAfter(180_000)]
-        public async Task Should_import_all_messages(CancellationToken cancellationToken)
+        public async Task Should_import_all_messages(CancellationToken cancellationToken = default)
         {
             await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(bus => Task.WhenAll(Enumerable.Repeat(0, 100).Select(i => bus.SendLocal(new MyMessage())))).DoNotFailOnErrorMessages())

@@ -1,6 +1,7 @@
 ﻿namespace Particular.LicensingComponent.UnitTests;
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Particular.LicensingComponent.Contracts;
@@ -25,7 +26,7 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
             .Build();
 
         // Act
-        var reportGenerationState = await ThroughputCollector.GetReportGenerationState(default);
+        var reportGenerationState = await ThroughputCollector.GetReportGenerationState();
 
         // Assert
         using (Assert.EnterMultipleScope())
@@ -45,7 +46,7 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
             .Build();
 
         // Act
-        var reportGenerationState = await ThroughputCollector.GetReportGenerationState(default);
+        var reportGenerationState = await ThroughputCollector.GetReportGenerationState();
 
         // Assert
         using (Assert.EnterMultipleScope())
@@ -66,7 +67,7 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
             .Build();
 
         // Act
-        var reportGenerationState = await ThroughputCollector.GetReportGenerationState(default);
+        var reportGenerationState = await ThroughputCollector.GetReportGenerationState();
 
         // Assert
         using (Assert.EnterMultipleScope())
@@ -87,7 +88,7 @@ class ThroughputCollector_GenerationStatus_Tests : ThroughputCollectorTestFixtur
             .Build();
 
         // Act
-        var reportGenerationState = await ThroughputCollector.GetReportGenerationState(default);
+        var reportGenerationState = await ThroughputCollector.GetReportGenerationState();
 
         // Assert
         using (Assert.EnterMultipleScope())

@@ -1,6 +1,7 @@
 ﻿namespace Particular.LicensingComponent.UnitTests;
 
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Contracts;
@@ -27,7 +28,7 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -58,7 +59,7 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -82,7 +83,7 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -113,7 +114,7 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -145,7 +146,7 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
 
         // Act
         var spVersion = "5.1";
-        var report = await ThroughputCollector.GenerateThroughputReport(spVersion, null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport(spVersion, null);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -170,14 +171,14 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
 
         var expectedBrokerVersion = "1.2";
         var expectedScopeType = "testingScope";
-        await DataStore.SaveBrokerMetadata(new BrokerMetadata(expectedScopeType, new Dictionary<string, string> { [EnvironmentDataType.BrokerVersion.ToString()] = expectedBrokerVersion }), default);
+        await DataStore.SaveBrokerMetadata(new BrokerMetadata(expectedScopeType, new Dictionary<string, string> { [EnvironmentDataType.BrokerVersion.ToString()] = expectedBrokerVersion }));
 
         var expectedAuditVersionSummary = new Dictionary<string, int> { ["4.3.6"] = 2 };
         var expectedAuditTransportSummary = new Dictionary<string, int> { ["AzureServiceBus"] = 2 };
-        await DataStore.SaveAuditServiceMetadata(new AuditServiceMetadata(expectedAuditVersionSummary, expectedAuditTransportSummary), default);
+        await DataStore.SaveAuditServiceMetadata(new AuditServiceMetadata(expectedAuditVersionSummary, expectedAuditTransportSummary));
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         // Assert
         Assert.That(report, Is.Not.Null);

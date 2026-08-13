@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.Tests.Throughput;
 
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
@@ -12,10 +13,10 @@ class ReportMasksTests : PersistenceTestBase
     {
         //Arrange
         var expectedReportMasks = new List<string> { "secret", "boo" };
-        await LicensingDataStore.SaveReportMasks(expectedReportMasks, default);
+        await LicensingDataStore.SaveReportMasks(expectedReportMasks);
 
         //Act
-        var retrievedReportMasks = await LicensingDataStore.GetReportMasks(default);
+        var retrievedReportMasks = await LicensingDataStore.GetReportMasks();
 
         //Assert
         Assert.That(retrievedReportMasks, Is.Not.Null);
@@ -27,12 +28,12 @@ class ReportMasksTests : PersistenceTestBase
     {
         // Arrange
         var oldReportMasks = new List<string> { "secret", "boo" };
-        await LicensingDataStore.SaveReportMasks(oldReportMasks, default);
+        await LicensingDataStore.SaveReportMasks(oldReportMasks);
 
         // Act
         var expectedReportMasks = new List<string> { "secret", "hello" };
-        await LicensingDataStore.SaveReportMasks(expectedReportMasks, default);
-        var retrievedReportMasks = await LicensingDataStore.GetReportMasks(default);
+        await LicensingDataStore.SaveReportMasks(expectedReportMasks);
+        var retrievedReportMasks = await LicensingDataStore.GetReportMasks();
 
         // Assert
         Assert.That(retrievedReportMasks, Is.Not.Null);

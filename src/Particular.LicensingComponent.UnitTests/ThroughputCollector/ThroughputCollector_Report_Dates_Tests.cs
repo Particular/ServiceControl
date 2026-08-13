@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Particular.LicensingComponent.Contracts;
@@ -41,7 +42,7 @@ class ThroughputCollector_Report_Dates_Tests : ThroughputCollectorTestFixture
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         // Assert
         var minDateInReport = new DateTimeOffset(minDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));

@@ -138,7 +138,7 @@ class BrokerThroughputCollectorHostedServiceTests
         }
 
         public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             GetGetThroughputPerDay++;
 
@@ -148,7 +148,7 @@ class BrokerThroughputCollectorHostedServiceTests
         }
 
         public async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             if (GetQueueNamesCalls++ % 2 == 0)
             {
@@ -168,7 +168,7 @@ class BrokerThroughputCollectorHostedServiceTests
         public KeyDescriptionPair[] Settings { get; } = [];
 
         public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
-            CancellationToken cancellationToken) => throw new NotImplementedException();
+            CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
         public string SanitizeEndpointName(string endpointName) => endpointName;
         public string SanitizedEndpointNameCleanser(string endpointName) => endpointName;
@@ -187,7 +187,7 @@ class BrokerThroughputCollectorHostedServiceTests
         }
 
         public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             await Task.CompletedTask;
 
@@ -195,7 +195,7 @@ class BrokerThroughputCollectorHostedServiceTests
         }
 
         public async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             yield return new DefaultBrokerQueue("sales@one") { SanitizedName = "sales" };
             yield return new DefaultBrokerQueue("sales@two") { SanitizedName = "sales" };
@@ -211,7 +211,7 @@ class BrokerThroughputCollectorHostedServiceTests
         public KeyDescriptionPair[] Settings { get; } = [];
 
         public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
-            CancellationToken cancellationToken) => throw new NotImplementedException();
+            CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
         public string SanitizeEndpointName(string endpointName) => endpointName;
         public string SanitizedEndpointNameCleanser(string endpointName) => endpointName;
@@ -232,7 +232,7 @@ class BrokerThroughputCollectorHostedServiceTests
         }
 
         public async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             await Task.CompletedTask;
 
@@ -242,7 +242,7 @@ class BrokerThroughputCollectorHostedServiceTests
         }
 
         public async IAsyncEnumerable<IBrokerQueue> GetQueueNames(
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             yield return new DefaultBrokerQueue("marketing");
             yield return new DefaultBrokerQueue("customer");
@@ -256,7 +256,7 @@ class BrokerThroughputCollectorHostedServiceTests
         public KeyDescriptionPair[] Settings { get; } = [];
 
         public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
-            CancellationToken cancellationToken) => throw new NotImplementedException();
+            CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
         public string SanitizeEndpointName(string endpointName) => endpointName;
         public string SanitizedEndpointNameCleanser(string endpointName) => endpointName;

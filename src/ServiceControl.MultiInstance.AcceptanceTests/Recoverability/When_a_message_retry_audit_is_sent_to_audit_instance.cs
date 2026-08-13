@@ -18,7 +18,7 @@
     {
         [Test]
         [CancelAfter(120_000)]
-        public async Task Should_mark_as_resolved(CancellationToken cancellationToken)
+        public async Task Should_mark_as_resolved(CancellationToken cancellationToken = default)
         {
             FailedMessage failure;
 

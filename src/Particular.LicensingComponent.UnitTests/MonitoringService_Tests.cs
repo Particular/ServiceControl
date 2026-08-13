@@ -37,12 +37,12 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
         };
 
         byte[] messageBytes = JsonSerializer.SerializeToUtf8Bytes(message);
-        await configuration.MonitoringService.RecordMonitoringThroughput(messageBytes, default);
+        await configuration.MonitoringService.RecordMonitoringThroughput(messageBytes);
 
         // Act
-        Endpoint foundEndpoint = await DataStore.GetEndpoint("Endpoint1", ThroughputSource.Monitoring, default);
+        Endpoint foundEndpoint = await DataStore.GetEndpoint("Endpoint1", ThroughputSource.Monitoring);
         IDictionary<string, IEnumerable<ThroughputData>> foundEndpointThroughput =
-            await DataStore.GetEndpointThroughputByQueueName(["Endpoint1"], default);
+            await DataStore.GetEndpointThroughputByQueueName(["Endpoint1"]);
         ThroughputData[] throughputData = foundEndpointThroughput["Endpoint1"].ToArray();
 
         // Assert
@@ -84,11 +84,11 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
 
         var monitoringService = new MonitoringService(DataStore, new BrokerThroughputQuery_WithSanitization());
         byte[] messageBytes = JsonSerializer.SerializeToUtf8Bytes(message);
-        await monitoringService.RecordMonitoringThroughput(messageBytes, default);
+        await monitoringService.RecordMonitoringThroughput(messageBytes);
         string endpointNameSanitized = "e-ndpoint-1";
 
         // Act
-        Endpoint foundEndpoint = await DataStore.GetEndpoint(endpointName, ThroughputSource.Monitoring, default);
+        Endpoint foundEndpoint = await DataStore.GetEndpoint(endpointName, ThroughputSource.Monitoring);
 
         // Assert        
         Assert.That(foundEndpoint, Is.Not.Null, $"Expected endpoint {endpointName} not found.");
@@ -109,7 +109,7 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
 
         // Act
         ConnectionSettingsTestResult connectionSettingsResult =
-            await configuration.MonitoringService.TestMonitoringConnection(default);
+            await configuration.MonitoringService.TestMonitoringConnection();
 
         // Assert
         Assert.That(connectionSettingsResult, Is.Not.Null, "connectionSettingsResult should be returned");
@@ -139,7 +139,7 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
 
         // Act
         ConnectionSettingsTestResult connectionSettingsResult =
-            await configuration.MonitoringService.TestMonitoringConnection(default);
+            await configuration.MonitoringService.TestMonitoringConnection();
 
         // Assert
         Assert.That(connectionSettingsResult, Is.Not.Null, "connectionSettingsResult should be returned");
@@ -169,17 +169,17 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
 
         public KeyDescriptionPair[] Settings => throw new NotImplementedException();
 
-        public IAsyncEnumerable<IBrokerQueue> GetQueueNames(CancellationToken cancellationToken) =>
+        public IAsyncEnumerable<IBrokerQueue> GetQueueNames(CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
         public IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
-            CancellationToken cancellationToken) => throw new NotImplementedException();
+            CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
         public bool HasInitialisationErrors(out string errorMessage) => throw new NotImplementedException();
         public void Initialize(ReadOnlyDictionary<string, string> settings) => throw new NotImplementedException();
 
         public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
-            CancellationToken cancellationToken) => throw new NotImplementedException();
+            CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
         public string SanitizeEndpointName(string endpointName)
         {

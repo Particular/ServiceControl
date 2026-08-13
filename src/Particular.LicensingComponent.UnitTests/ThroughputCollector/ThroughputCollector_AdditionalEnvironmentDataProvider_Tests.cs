@@ -1,6 +1,7 @@
 ﻿namespace Particular.LicensingComponent.UnitTests;
 
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -22,7 +23,7 @@ class ThroughputCollector_AdditionalEnvironmentDataProvider_Tests : ThroughputCo
     {
         // Arrange
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport(null, null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport(null, null);
         // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData, Is.Not.Null);

@@ -2,6 +2,7 @@ namespace ServiceControl.Persistence.Tests;
 
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Particular.LicensingComponent.Contracts;
@@ -15,8 +16,8 @@ class LicensingDataStoreEFTests : PersistenceTestBase
     {
         await SaveEndpoint("Endpoint", ThroughputSource.Monitoring);
 
-        await LicensingDataStore.RecordEndpointThroughput("Endpoint", ThroughputSource.Monitoring, Today, 30, default);
-        await LicensingDataStore.RecordEndpointThroughput("Endpoint", ThroughputSource.Monitoring, Today, 12, default);
+        await LicensingDataStore.RecordEndpointThroughput("Endpoint", ThroughputSource.Monitoring, Today, 30);
+        await LicensingDataStore.RecordEndpointThroughput("Endpoint", ThroughputSource.Monitoring, Today, 12);
 
         var throughput = await GetThroughput("Endpoint");
 
@@ -32,7 +33,7 @@ class LicensingDataStoreEFTests : PersistenceTestBase
         await SaveEndpoint("Endpoint", ThroughputSource.Monitoring);
 
         var recordings = Enumerable.Range(0, writers)
-            .Select(_ => LicensingDataStore.RecordEndpointThroughput("Endpoint", ThroughputSource.Monitoring, Today, 5, default));
+            .Select(_ => LicensingDataStore.RecordEndpointThroughput("Endpoint", ThroughputSource.Monitoring, Today, 5));
 
         await Task.WhenAll(recordings);
 
@@ -46,9 +47,9 @@ class LicensingDataStoreEFTests : PersistenceTestBase
     {
         await SaveEndpoint("SalesEndpoint", ThroughputSource.Broker);
 
-        await LicensingDataStore.RecordEndpointThroughput("salesendpoint", ThroughputSource.Broker, Today, 7, default);
+        await LicensingDataStore.RecordEndpointThroughput("salesendpoint", ThroughputSource.Broker, Today, 7);
 
-        var endpoint = await LicensingDataStore.GetEndpoint("SALESENDPOINT", ThroughputSource.Broker, default);
+        var endpoint = await LicensingDataStore.GetEndpoint("SALESENDPOINT", ThroughputSource.Broker);
 
         Assert.That(endpoint, Is.Not.Null);
         using (Assert.EnterMultipleScope())
@@ -63,11 +64,11 @@ class LicensingDataStoreEFTests : PersistenceTestBase
     {
         await SaveEndpoint("Endpoint", ThroughputSource.Audit);
 
-        await LicensingDataStore.RecordEndpointThroughput("Endpoint", ThroughputSource.Audit, Today.AddDays(-5), 10, default);
-        await LicensingDataStore.RecordEndpointThroughput("Endpoint", ThroughputSource.Audit, Today.AddDays(-1), 10, default);
-        await LicensingDataStore.RecordEndpointThroughput("Endpoint", ThroughputSource.Audit, Today.AddDays(-3), 10, default);
+        await LicensingDataStore.RecordEndpointThroughput("Endpoint", ThroughputSource.Audit, Today.AddDays(-5), 10);
+        await LicensingDataStore.RecordEndpointThroughput("Endpoint", ThroughputSource.Audit, Today.AddDays(-1), 10);
+        await LicensingDataStore.RecordEndpointThroughput("Endpoint", ThroughputSource.Audit, Today.AddDays(-3), 10);
 
-        var endpoint = await LicensingDataStore.GetEndpoint("Endpoint", ThroughputSource.Audit, default);
+        var endpoint = await LicensingDataStore.GetEndpoint("Endpoint", ThroughputSource.Audit);
 
         Assert.That(endpoint, Is.Not.Null);
         Assert.That(endpoint.LastCollectedDate, Is.EqualTo(Today.AddDays(-1)));
@@ -78,7 +79,7 @@ class LicensingDataStoreEFTests : PersistenceTestBase
     {
         await SaveEndpoint("Endpoint", ThroughputSource.Audit);
 
-        var endpoint = await LicensingDataStore.GetEndpoint("Endpoint", ThroughputSource.Audit, default);
+        var endpoint = await LicensingDataStore.GetEndpoint("Endpoint", ThroughputSource.Audit);
 
         Assert.That(endpoint, Is.Not.Null);
         Assert.That(endpoint.LastCollectedDate, Is.EqualTo(default(DateOnly)));
@@ -98,7 +99,7 @@ class LicensingDataStoreEFTests : PersistenceTestBase
             new EndpointIdentifier("Unknown", ThroughputSource.Audit)
         };
 
-        var results = (await LicensingDataStore.GetEndpoints(requested, default)).ToList();
+        var results = (await LicensingDataStore.GetEndpoints(requested)).ToList();
 
         using (Assert.EnterMultipleScope())
         {
@@ -118,11 +119,11 @@ class LicensingDataStoreEFTests : PersistenceTestBase
             {
                 SanitizedName = "Platform",
                 EndpointIndicators = [EndpointIndicator.PlatformEndpoint.ToString()]
-            }, default);
+            });
         await SaveEndpoint("Regular", ThroughputSource.Broker);
 
-        var withPlatform = await LicensingDataStore.GetAllEndpoints(true, default);
-        var withoutPlatform = await LicensingDataStore.GetAllEndpoints(false, default);
+        var withPlatform = await LicensingDataStore.GetAllEndpoints(true);
+        var withoutPlatform = await LicensingDataStore.GetAllEndpoints(false);
 
         using (Assert.EnterMultipleScope())
         {
@@ -143,9 +144,9 @@ class LicensingDataStoreEFTests : PersistenceTestBase
                 EndpointIndicators = indicators,
                 Scope = "vhost",
                 UserIndicator = UserIndicator.NServiceBusEndpoint.ToString()
-            }, default);
+            });
 
-        var endpoint = await LicensingDataStore.GetEndpoint("Endpoint", ThroughputSource.Broker, default);
+        var endpoint = await LicensingDataStore.GetEndpoint("Endpoint", ThroughputSource.Broker);
 
         Assert.That(endpoint, Is.Not.Null);
         using (Assert.EnterMultipleScope())
@@ -163,8 +164,8 @@ class LicensingDataStoreEFTests : PersistenceTestBase
     {
         await SaveEndpoint("Endpoint", ThroughputSource.Broker);
 
-        await LicensingDataStore.RecordEndpointThroughput("Endpoint", ThroughputSource.Broker, Today.AddMonths(-15), 99, default);
-        await LicensingDataStore.RecordEndpointThroughput("Endpoint", ThroughputSource.Broker, Today.AddDays(-1), 5, default);
+        await LicensingDataStore.RecordEndpointThroughput("Endpoint", ThroughputSource.Broker, Today.AddMonths(-15), 99);
+        await LicensingDataStore.RecordEndpointThroughput("Endpoint", ThroughputSource.Broker, Today.AddDays(-1), 5);
 
         var throughput = await GetThroughput("Endpoint");
 
@@ -178,7 +179,7 @@ class LicensingDataStoreEFTests : PersistenceTestBase
     [Test]
     public async Task Recording_throughput_for_an_unknown_endpoint_throws()
     {
-        Assert.That(async () => await LicensingDataStore.RecordEndpointThroughput("Unknown", ThroughputSource.Broker, Today, 1, default),
+        Assert.That(async () => await LicensingDataStore.RecordEndpointThroughput("Unknown", ThroughputSource.Broker, Today, 1),
             Throws.InstanceOf<InvalidOperationException>());
     }
 
@@ -186,12 +187,12 @@ class LicensingDataStoreEFTests : PersistenceTestBase
     public async Task Saving_an_endpoint_again_replaces_it_and_keeps_its_throughput()
     {
         await SaveEndpoint("Endpoint", ThroughputSource.Broker);
-        await LicensingDataStore.RecordEndpointThroughput("Endpoint", ThroughputSource.Broker, Today, 11, default);
+        await LicensingDataStore.RecordEndpointThroughput("Endpoint", ThroughputSource.Broker, Today, 11);
 
         await LicensingDataStore.SaveEndpoint(
-            new Endpoint("Endpoint", ThroughputSource.Broker) { SanitizedName = "Endpoint", Scope = "updated" }, default);
+            new Endpoint("Endpoint", ThroughputSource.Broker) { SanitizedName = "Endpoint", Scope = "updated" });
 
-        var endpoint = await LicensingDataStore.GetEndpoint("Endpoint", ThroughputSource.Broker, default);
+        var endpoint = await LicensingDataStore.GetEndpoint("Endpoint", ThroughputSource.Broker);
         var throughput = await GetThroughput("Endpoint");
 
         Assert.That(endpoint, Is.Not.Null);
@@ -203,11 +204,11 @@ class LicensingDataStoreEFTests : PersistenceTestBase
     }
 
     Task SaveEndpoint(string name, ThroughputSource source) =>
-        LicensingDataStore.SaveEndpoint(new Endpoint(name, source) { SanitizedName = name }, default);
+        LicensingDataStore.SaveEndpoint(new Endpoint(name, source) { SanitizedName = name });
 
     async Task<ThroughputData> GetThroughput(string queueName)
     {
-        var throughput = await LicensingDataStore.GetEndpointThroughputByQueueName([queueName], default);
+        var throughput = await LicensingDataStore.GetEndpointThroughputByQueueName([queueName]);
 
         return throughput[queueName].Single();
     }

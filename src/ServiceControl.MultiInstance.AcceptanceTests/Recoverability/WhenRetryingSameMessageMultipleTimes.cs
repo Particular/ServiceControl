@@ -27,7 +27,7 @@
         //[TestCase(new[] { RetryType.NoEdit, RetryType.Edit, RetryType.NoEdit, RetryType.Edit })]
         [TestCase(new[] { RetryType.Edit, RetryType.Edit, RetryType.NoEdit })]
         [CancelAfter(30_000)]
-        public async Task WithMixOfRetryTypes(RetryType[] retryTypes, CancellationToken cancellationToken)
+        public async Task WithMixOfRetryTypes(RetryType[] retryTypes, CancellationToken cancellationToken = default)
         {
             CustomServiceControlPrimarySettings = s => { s.AllowMessageEditing = true; };
 

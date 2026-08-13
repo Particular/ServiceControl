@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.Tests.Throughput;
 
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Particular.LicensingComponent.Contracts;
@@ -15,7 +16,7 @@ class AuditServiceMetadataTests : PersistenceTestBase
         var expectedAuditServiceMetadata = new AuditServiceMetadata(
             new Dictionary<string, int> { ["Some version"] = 2 },
             new Dictionary<string, int> { ["Some transport"] = 3 });
-        await LicensingDataStore.SaveAuditServiceMetadata(expectedAuditServiceMetadata, default);
+        await LicensingDataStore.SaveAuditServiceMetadata(expectedAuditServiceMetadata);
 
         //Act
         var retrievedAuditServiceMetadata = await LicensingDataStore.GetAuditServiceMetadata();
@@ -36,13 +37,13 @@ class AuditServiceMetadataTests : PersistenceTestBase
         var oldAuditServiceMetadata = new AuditServiceMetadata(
             new Dictionary<string, int> { ["Some version"] = 2 },
             new Dictionary<string, int> { ["Some transport"] = 3 });
-        await LicensingDataStore.SaveAuditServiceMetadata(oldAuditServiceMetadata, default);
+        await LicensingDataStore.SaveAuditServiceMetadata(oldAuditServiceMetadata);
 
         // Act
         var expectedAuditServiceMetadata = new AuditServiceMetadata(
             new Dictionary<string, int> { ["Some version"] = 2, ["New version"] = 1 },
             new Dictionary<string, int> { ["Some transport"] = 4 });
-        await LicensingDataStore.SaveAuditServiceMetadata(expectedAuditServiceMetadata, default);
+        await LicensingDataStore.SaveAuditServiceMetadata(expectedAuditServiceMetadata);
         var retrievedAuditServiceMetadata = await LicensingDataStore.GetAuditServiceMetadata();
 
         // Assert

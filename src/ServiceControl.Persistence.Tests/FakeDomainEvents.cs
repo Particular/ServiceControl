@@ -13,7 +13,7 @@
     {
         public List<object> RaisedEvents { get; } = [];
 
-        public Task Raise<T>(T domainEvent, CancellationToken cancellationToken) where T : IDomainEvent
+        public Task Raise<T>(T domainEvent, CancellationToken cancellationToken = default) where T : IDomainEvent
         {
             RaisedEvents.Add(domainEvent);
             TestContext.Out.WriteLine($"Raised DomainEvent {typeof(T).Name}:");

@@ -10,7 +10,7 @@ static class SqlServerSharedContainer
 {
     const string docsPath = "docs/testing-persistence.md#sql-server";
 
-    public static async Task<string> GetConnectionStringAsync(CancellationToken ct = default)
+    public static async Task<string> GetConnectionStringAsync(CancellationToken cancellationToken = default)
     {
         var envConnStr = Environment.GetEnvironmentVariable("ServiceControl_Persistence_SqlServer_ConnectionString");
         if (!string.IsNullOrEmpty(envConnStr))
@@ -23,10 +23,10 @@ static class SqlServerSharedContainer
             return container.GetConnectionString();
         }
 
-        await semaphore.WaitAsync(ct);
+        await semaphore.WaitAsync(cancellationToken);
         try
         {
-            container ??= await StartContainerAsync(ct);
+            container ??= await StartContainerAsync(cancellationToken);
             return container.GetConnectionString();
         }
         finally
@@ -35,14 +35,18 @@ static class SqlServerSharedContainer
         }
     }
 
-    public static async Task Stop() => await (container?.DisposeAsync() ?? ValueTask.CompletedTask);
+    public static async Task Stop(CancellationToken cancellationToken = default) => await (container?.DisposeAsync() ?? ValueTask.CompletedTask);
 
-    static async Task<MsSqlContainer> StartContainerAsync(CancellationToken ct)
+    static async Task<MsSqlContainer> StartContainerAsync(CancellationToken cancellationToken)
     {
         var c = new MsSqlBuilder("particular/servicecontrol-testing-sqlserver:latest").Build();
         try
         {
-            await c.StartAsync(ct);
+            await c.StartAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
