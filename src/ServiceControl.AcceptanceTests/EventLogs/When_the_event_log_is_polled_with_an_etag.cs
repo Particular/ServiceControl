@@ -52,12 +52,9 @@ namespace ServiceControl.AcceptanceTests.EventLogs
                         return false;
                     }
 
-                    var current = await Poll(currentEtag);
+                    var current = await PollUntilTheLogGoesQuiet(currentEtag);
 
-                    // The endpoint keeps writing startup events, so a 200 here means either the
-                    // validator went stale between the two requests, or the server ignored
-                    // If-None-Match. Only the second is a failure, and the ETag tells them apart.
-                    if (current.StatusCode == HttpStatusCode.OK && ReadEtag(current) != currentEtag)
+                    if (current == null)
                     {
                         return false;
                     }
@@ -96,6 +93,35 @@ namespace ServiceControl.AcceptanceTests.EventLogs
         static string ReadEtag(HttpResponseMessage response) =>
             response.Headers.TryGetValues("ETag", out var values) ? values.FirstOrDefault() : null;
 
+        // The endpoint keeps writing startup events, so a 200 carrying a *different* ETag only
+        // means the log moved on between the two requests, and says nothing about conditional
+        // GET support. Poll again with the ETag that response handed back, until either the log
+        // stops changing (304, or a 200 repeating the validator we sent, which is the real
+        // failure) or the attempts run out and the caller retries from a fresh read.
+        async Task<HttpResponseMessage> PollUntilTheLogGoesQuiet(string etag)
+        {
+            for (var attempt = 0; attempt < MaxPollAttempts; attempt++)
+            {
+                var response = await Poll(etag);
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    return response;
+                }
+
+                var newEtag = ReadEtag(response);
+
+                if (string.IsNullOrEmpty(newEtag) || newEtag == etag)
+                {
+                    return response;
+                }
+
+                etag = newEtag;
+            }
+
+            return null;
+        }
+
         Task<HttpResponseMessage> Poll(string ifNoneMatch)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "/api/eventlogitems/");
@@ -103,6 +129,8 @@ namespace ServiceControl.AcceptanceTests.EventLogs
 
             return HttpClient.SendAsync(request);
         }
+
+        const int MaxPollAttempts = 5;
 
         public class StartingEndpoint : EndpointConfigurationBuilder
         {
