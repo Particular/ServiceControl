@@ -39,59 +39,61 @@ public class EditFailedMessagesDataStore(IServiceScopeFactory scopeFactory, Time
                     return new BeginEditResult(BeginEditOutcome.MessageNotFound);
                 }
 
+                var existingEditId = await dbContext.FailedMessageEdits
+                    .Where(edit => edit.UniqueMessageId == uniqueMessageId)
+                    .Select(edit => edit.EditId)
+                    .SingleOrDefaultAsync(ct);
+
+                if (existingEditId is not null)
+                {
+                    return existingEditId == editingMessageId
+                        ? new BeginEditResult(BeginEditOutcome.Acquired, entity.ToFailedMessage([]), existingEditId)
+                        : new BeginEditResult(BeginEditOutcome.AcquiredByAnotherEdit, ExistingEditId: existingEditId);
+                }
+
                 if (entity.Status != FailedMessageStatus.Unresolved)
                 {
                     return new BeginEditResult(BeginEditOutcome.MessageNotUnresolved);
                 }
 
-                var editId = await dbContext.FailedMessageEdits
-                    .Where(edit => edit.UniqueMessageId == uniqueMessageId)
-                    .Select(edit => edit.EditId)
-                    .SingleOrDefaultAsync(ct);
+                dbContext.FailedMessageEdits.Add(new FailedMessageEditEntity { UniqueMessageId = uniqueMessageId, EditId = editingMessageId });
 
-                if (editId is null)
+                var now = timeProvider.GetUtcNow().UtcDateTime;
+                entity.Status = FailedMessageStatus.Resolved;
+                entity.StatusChangedAt = now;
+                entity.LastModified = now;
+
+                try
                 {
-                    editId = editingMessageId;
-                    dbContext.FailedMessageEdits.Add(new FailedMessageEditEntity { UniqueMessageId = uniqueMessageId, EditId = editingMessageId });
-
-                    var now = timeProvider.GetUtcNow().UtcDateTime;
-                    entity.Status = FailedMessageStatus.Resolved;
-                    entity.StatusChangedAt = now;
-                    entity.LastModified = now;
-
-                    try
-                    {
-                        await dbContext.SaveChangesAsync(ct);
-                    }
-                    catch (DbUpdateException exception) when (dbContext.IsDuplicateKeyException(exception))
-                    {
-                        dbContext.ChangeTracker.Clear();
-
-                        var winningEditId = await dbContext.FailedMessageEdits
-                            .AsNoTracking()
-                            .Where(edit => edit.UniqueMessageId == uniqueMessageId)
-                            .Select(edit => edit.EditId)
-                            .SingleOrDefaultAsync(ct);
-
-                        if (winningEditId is null)
-                        {
-                            throw;
-                        }
-
-                        entity = await dbContext.FailedMessages
-                            .AsNoTracking()
-                            .SingleAsync(message => message.UniqueMessageId == uniqueMessageId, ct);
-
-                        editId = winningEditId;
-                    }
+                    await dbContext.SaveChangesAsync(ct);
+                    return new BeginEditResult(BeginEditOutcome.Acquired, entity.ToFailedMessage([]));
                 }
-
-                if (editId == editingMessageId)
+                catch (DbUpdateException exception) when (dbContext.IsDuplicateKeyException(exception))
                 {
-                    return new BeginEditResult(BeginEditOutcome.Acquired, entity.ToFailedMessage([]), editId);
-                }
+                    dbContext.ChangeTracker.Clear();
 
-                return new BeginEditResult(BeginEditOutcome.AcquiredByAnotherEdit, ExistingEditId: editId);
+                    var winningEditId = await dbContext.FailedMessageEdits
+                        .AsNoTracking()
+                        .Where(edit => edit.UniqueMessageId == uniqueMessageId)
+                        .Select(edit => edit.EditId)
+                        .SingleOrDefaultAsync(ct);
+
+                    if (winningEditId is null)
+                    {
+                        throw;
+                    }
+
+                    if (winningEditId != editingMessageId)
+                    {
+                        return new BeginEditResult(BeginEditOutcome.AcquiredByAnotherEdit, ExistingEditId: winningEditId);
+                    }
+
+                    entity = await dbContext.FailedMessages
+                        .AsNoTracking()
+                        .SingleAsync(message => message.UniqueMessageId == uniqueMessageId, ct);
+
+                    return new BeginEditResult(BeginEditOutcome.Acquired, entity.ToFailedMessage([]), winningEditId);
+                }
             }, cancellationToken);
     }
 }

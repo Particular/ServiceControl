@@ -19,8 +19,7 @@ public interface IEditFailedMessagesDataStore
     /// modify the failed message.
     /// </summary>
     /// <remarks>
-    /// <para><see cref="BeginEditOutcome.Acquired"/> returns the failed-message snapshot and no existing edit ID.</para>
-    /// <para><see cref="BeginEditOutcome.AlreadyAcquiredByThisEdit"/> returns the failed-message snapshot and the supplied edit ID.</para>
+    /// <para><see cref="BeginEditOutcome.Acquired"/> returns the failed-message snapshot. A new acquisition has no existing edit ID; an idempotent retry returns the supplied edit ID.</para>
     /// <para><see cref="BeginEditOutcome.AcquiredByAnotherEdit"/> returns the winning edit ID and no failed-message snapshot.</para>
     /// <para><see cref="BeginEditOutcome.MessageNotFound"/> and <see cref="BeginEditOutcome.MessageNotUnresolved"/> return neither optional value.</para>
     /// </remarks>
