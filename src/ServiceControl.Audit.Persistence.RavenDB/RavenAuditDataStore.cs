@@ -248,12 +248,6 @@
             // results are then merged in memory. The bucket-mode read/paging tests exercise this
             // routing across multiple buckets.
 
-            // Bucket mode merges per-bucket results in memory, so the number of Raven requests per
-            // session scales with the candidate volume instead of the requested page. No fixed
-            // request budget can be correct here (Raven's default is 30, and any other ceiling just
-            // moves the failure), so the client-side per-session budget is lifted entirely for every
-            // per-bucket session.
-            //
             // Per-bucket queries fan out concurrently in bounded batches of
             // MaxConcurrentBucketQueries, and each concurrent query uses its own session: Raven
             // sessions are not thread-safe and must never be shared across concurrent operations.
@@ -261,7 +255,7 @@
 
             foreach (var batch in buckets.Chunk(MaxConcurrentBucketQueries))
             {
-                var tasks = batch.Select(bucket => QueryBucketMessages(bucket, query, cancellationToken)).ToArray();
+                var tasks = batch.Select(bucket => QueryBucketMessages(bucket, query, pagingInfo, cancellationToken)).ToArray();
                 bucketResults.AddRange(await Task.WhenAll(tasks));
             }
 
@@ -269,6 +263,12 @@
             var totalResults = bucketResults.Sum(r => r.TotalResults);
             var etags = bucketResults.Select(r => r.Etag);
 
+            // Each bucket contributes only its first Offset + PageSize candidates (see
+            // QueryBucketMessages for why that is sufficient for a globally sorted page), so the
+            // merge below is bounded by buckets * (Offset + PageSize), never by the number of
+            // matching documents. The same deterministic in-memory ordering as before is applied, so
+            // the resulting page is identical to the pre-bounded behavior, and the reported total is
+            // the truthful sum of the per-bucket totals.
             var pagedResults = SortInMemory(mergedResults, sortInfo)
                 .Skip(pagingInfo.Offset)
                 .Take(pagingInfo.PageSize)
@@ -280,6 +280,7 @@
         async Task<BucketMessagesResult> QueryBucketMessages(
             AuditRetentionBucket bucket,
             Func<IQueryable<MessagesViewIndex.SortAndFilterOptions>, IQueryable<MessagesViewIndex.SortAndFilterOptions>> query,
+            PagingInfo pagingInfo,
             CancellationToken cancellationToken)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
@@ -287,22 +288,47 @@
 
             var indexName = isFullTextSearchEnabled ? bucket.MessagesViewFullTextIndex : bucket.MessagesViewIndex;
 
-            // The bucket query is composed once and paged with Skip/Take below. RavenDB caps a single
-            // query at BucketQueryPageSize results, so the whole matching candidate set is walked page
-            // by page. This is the documented spike tradeoff: bucket mode fetches every matching
-            // candidate per bucket and merges/sorts/pages them in memory so the requested Skip/Take
-            // page is always complete and the reported total is truthful. A production implementation
-            // would push paging into a shared index or stream per bucket instead.
+            // The bucket query is composed once with the same filter and sort semantics as the final
+            // global result and paged with Skip/Take below.
             var bucketQuery = query(session.Query<MessagesViewIndex.SortAndFilterOptions>(indexName)
                 .Statistics(out var stats));
 
+            // Only the first Offset + PageSize candidates per bucket are read instead of the whole
+            // matching set. Why is that sufficient for a globally sorted page?
+            //
+            // The global result is a sorted merge of the per-bucket sorted results: the in-memory
+            // OrderBy in SortInMemory is stable and per-bucket results arrive in bucket order, which
+            // is exactly a sorted merge under the (sort key, bucket order, in-bucket order) total
+            // ordering. In a sorted merge the element at global position k can only originate from
+            // position <= k within its own bucket: if it sat at position p > k in that bucket, the
+            // p - 1 elements before it there would all precede it in the merge as well, contradicting
+            // position k. Every element that can land in global positions
+            // Offset + 1 .. Offset + PageSize therefore appears within the first Offset + PageSize
+            // candidates of some bucket, and fetching exactly those candidates per bucket, merging,
+            // and applying the same stable in-memory ordering reproduces the exact global page. This
+            // bounds per-bucket reads by Offset + PageSize index entries no matter how many messages
+            // a bucket holds; QueryStatistics.TotalResults is unaffected by Take and still reports
+            // the truthful number of matching documents.
+            var candidateLimit = (long)pagingInfo.Offset + pagingInfo.PageSize;
+
+            if (candidateLimit == 0)
+            {
+                // No candidates are needed for this page; run a zero-take query solely to capture the
+                // truthful total and etag without materializing any documents.
+                _ = await bucketQuery.Take(0).ToArrayAsync(token: cancellationToken);
+                return new BucketMessagesResult([], stats.TotalResults, $"{stats.ResultEtag}");
+            }
+
+            // RavenDB caps a single query at BucketQueryPageSize results, so the candidates are read
+            // in pages of that size, stopping at the candidate limit instead of walking the bucket.
             var messages = new List<MessagesView>();
             var fetched = 0L;
-            while (true)
+            while (fetched < candidateLimit)
             {
+                var take = (int)Math.Min(candidateLimit - fetched, BucketQueryPageSize);
                 var page = await bucketQuery
                     .Skip((int)fetched)
-                    .Take(BucketQueryPageSize)
+                    .Take(take)
                     .ToMessagesView()
                     .ToListAsync(token: cancellationToken);
 
@@ -314,6 +340,8 @@
                 fetched += page.Count;
                 messages.AddRange(page);
 
+                // A bucket holding fewer matches than the candidate limit is exhausted; stop instead
+                // of issuing a trailing empty page query.
                 if (fetched >= stats.TotalResults)
                 {
                     break;
@@ -495,9 +523,9 @@
 
         static string GetIndexName(bool isFullTextSearchEnabled) => isFullTextSearchEnabled ? "MessagesViewIndexWithFullTextSearch" : "MessagesViewIndex";
 
-        // RavenDB caps a single query at this many results. Bucket mode pages through each bucket's
-        // matching candidates in pages of this size before merging in memory, so a bucket holding more
-        // matching messages than this is still fully read.
+        // RavenDB caps a single query at this many results. Bucket mode reads per-bucket candidates
+        // in pages of this size, stopping after Offset + PageSize candidates per bucket instead of
+        // walking the whole matching set.
         const int BucketQueryPageSize = 1024;
 
         // Bounded fan-out across retained buckets: at most this many per-bucket Raven queries run
@@ -506,15 +534,12 @@
         // catalog cannot flood the server with unbounded parallelism.
         const int MaxConcurrentBucketQueries = 8;
 
-        // Bucket mode materializes all matching candidates per bucket and merges them in memory
-        // (fetch-all), which is the documented spike limitation: the per-request work and memory
-        // grow with the matching candidate volume instead of the requested page size. A production
-        // implementation would push paging into a shared index or stream per bucket instead.
-        //
         // The Raven client enforces a per-session request budget (default 30). Bucket mode lifts it
-        // entirely: any fixed ceiling (this spike previously used 10,000) would make a large result
-        // set fail with "maximum number of requests ... reached" and is therefore a correctness bug,
-        // not a performance bound. Results must always be complete pages with truthful totals.
+        // entirely: message reads are now bounded to Offset + PageSize candidates per bucket, but
+        // saga-history and audit-count reads still issue a request per retained bucket per day (the
+        // count path runs up to 31 zero-take queries per bucket), so any fixed ceiling would make
+        // those paths fail with "maximum number of requests ... reached" — a correctness bug, not a
+        // performance bound. Results must always be complete pages with truthful totals.
         static void LiftSessionRequestBudget(IAsyncDocumentSession session) =>
             session.Advanced.MaxNumberOfRequestsPerSession = int.MaxValue;
 

@@ -213,6 +213,135 @@
         }
 
         [Test]
+        public async Task Bucket_mode_first_page_reads_only_bounded_candidates_from_a_large_bucket()
+        {
+            timeProvider.SetUtcNow(new DateTimeOffset(BaseTime));
+
+            // A single bucket holding far more matching messages than any page could need: the
+            // pre-fix implementation walked all 3000 candidates in 1024-row pages, the fix must only
+            // read Offset + PageSize = 50 candidates from this bucket.
+            const int messageCount = 3000;
+            await IngestMessages(Enumerable.Range(0, messageCount)
+                .Select(i => MakeMessage($"msg-{i:D4}", BaseTime.AddSeconds(i)))
+                .ToArray());
+
+            gatedSessionProvider.Probe.Reset();
+
+            var result = await DataStore.GetMessages(
+                includeSystemMessages: true,
+                new PagingInfo(page: 1, pageSize: 50),
+                new SortInfo("time_sent", "desc"),
+                timeSentRange: null,
+                TestContext.CurrentContext.CancellationToken);
+
+            var expected = Enumerable.Range(messageCount - 50, 50).Select(i => $"msg-{i:D4}").Reverse().ToArray();
+
+            Assert.Multiple(() =>
+            {
+                // Global ordering, paging and the truthful total stay correct.
+                Assert.That(result.Results.Select(m => m.MessageId), Is.EqualTo(expected));
+                Assert.That(result.QueryStats.TotalCount, Is.EqualTo(messageCount));
+
+                // Deterministic bounded-read proof: the page only needs Offset + PageSize = 50
+                // candidates per bucket, so no query executed for this read may read beyond that even
+                // though the bucket holds 3000 matching messages. The pre-fix walk-all
+                // implementation issued skip 0 take 1024 / skip 1024 take 1024 / skip 2048 take 1024
+                // (max skip + take = 3072), which fails this bound.
+                var candidateLimit = 50;
+                Assert.That(gatedSessionProvider.Probe.Queries, Is.Not.Empty, "no per-bucket query was recorded");
+                Assert.That(gatedSessionProvider.Probe.MaxSkipPlusTake, Is.LessThanOrEqualTo(candidateLimit),
+                    $"queries: {string.Join(" | ", gatedSessionProvider.Probe.Queries.Select(q => q.Rql))}");
+                Assert.That(gatedSessionProvider.Probe.EntitiesConverted, Is.LessThanOrEqualTo(candidateLimit),
+                    "materialized entities exceed the per-bucket candidate limit");
+            });
+        }
+
+        [Test]
+        public async Task Bucket_mode_later_page_reads_only_bounded_candidates_from_a_large_bucket()
+        {
+            timeProvider.SetUtcNow(new DateTimeOffset(BaseTime));
+
+            const int messageCount = 3000;
+            await IngestMessages(Enumerable.Range(0, messageCount)
+                .Select(i => MakeMessage($"msg-{i:D4}", BaseTime.AddSeconds(i)))
+                .ToArray());
+
+            gatedSessionProvider.Probe.Reset();
+
+            // Page 5 of 50: Offset = 200, so the per-bucket candidate limit is 250.
+            var result = await DataStore.GetMessages(
+                includeSystemMessages: true,
+                new PagingInfo(page: 5, pageSize: 50),
+                new SortInfo("time_sent", "desc"),
+                timeSentRange: null,
+                TestContext.CurrentContext.CancellationToken);
+
+            var expected = Enumerable.Range(messageCount - 250, 50).Select(i => $"msg-{i:D4}").Reverse().ToArray();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Results.Select(m => m.MessageId), Is.EqualTo(expected));
+                Assert.That(result.QueryStats.TotalCount, Is.EqualTo(messageCount));
+
+                var candidateLimit = 250;
+                Assert.That(gatedSessionProvider.Probe.Queries, Is.Not.Empty, "no per-bucket query was recorded");
+                Assert.That(gatedSessionProvider.Probe.MaxSkipPlusTake, Is.LessThanOrEqualTo(candidateLimit),
+                    $"queries: {string.Join(" | ", gatedSessionProvider.Probe.Queries.Select(q => q.Rql))}");
+                Assert.That(gatedSessionProvider.Probe.EntitiesConverted, Is.LessThanOrEqualTo(candidateLimit),
+                    "materialized entities exceed the per-bucket candidate limit");
+            });
+        }
+
+        [Test]
+        public async Task Bucket_mode_bounded_candidates_preserve_global_order_and_totals_across_buckets()
+        {
+            timeProvider.SetUtcNow(new DateTimeOffset(BaseTime));
+
+            const int messageCount = 3000;
+            await IngestMessages(Enumerable.Range(0, messageCount)
+                .Select(i => MakeMessage($"msg-{i:D4}", BaseTime.AddSeconds(i)))
+                .ToArray());
+
+            // A second, newer bucket with a handful of messages: the globally first page must span
+            // the bucket boundary while each bucket is still only read up to its candidate limit.
+            timeProvider.SetUtcNow(new DateTimeOffset(BaseTime.AddHours(2)));
+            await IngestMessages(
+                MakeMessage("msg-b-1", BaseTime.AddHours(2).AddSeconds(1)),
+                MakeMessage("msg-b-2", BaseTime.AddHours(2).AddSeconds(2)),
+                MakeMessage("msg-b-3", BaseTime.AddHours(2).AddSeconds(3)));
+
+            gatedSessionProvider.Probe.Reset();
+
+            var result = await DataStore.GetMessages(
+                includeSystemMessages: true,
+                new PagingInfo(page: 1, pageSize: 50),
+                new SortInfo("time_sent", "desc"),
+                timeSentRange: null,
+                TestContext.CurrentContext.CancellationToken);
+
+            var expected = new[] { "msg-b-3", "msg-b-2", "msg-b-1" }
+                .Concat(Enumerable.Range(messageCount - 47, 47).Select(i => $"msg-{i:D4}").Reverse())
+                .ToArray();
+
+            Assert.Multiple(() =>
+            {
+                // Page 1 crosses the bucket boundary (all of bucket 2 plus the newest bucket-1
+                // candidates) and the total is the truthful sum across buckets.
+                Assert.That(result.Results.Select(m => m.MessageId), Is.EqualTo(expected));
+                Assert.That(result.QueryStats.TotalCount, Is.EqualTo(messageCount + 3));
+
+                // Both per-bucket queries are bounded by Offset + PageSize = 50 even though bucket 1
+                // holds 3000 matching messages.
+                var candidateLimit = 50;
+                Assert.That(gatedSessionProvider.Probe.Queries, Is.Not.Empty, "no per-bucket query was recorded");
+                Assert.That(gatedSessionProvider.Probe.MaxSkipPlusTake, Is.LessThanOrEqualTo(candidateLimit),
+                    $"queries: {string.Join(" | ", gatedSessionProvider.Probe.Queries.Select(q => q.Rql))}");
+                Assert.That(gatedSessionProvider.Probe.EntitiesConverted, Is.LessThanOrEqualTo(candidateLimit * 2),
+                    "materialized entities exceed the aggregate per-bucket candidate limit");
+            });
+        }
+
+        [Test]
         public async Task Bucket_mode_saga_history_merges_changes_across_buckets()
         {
             var sagaId = Guid.NewGuid();
