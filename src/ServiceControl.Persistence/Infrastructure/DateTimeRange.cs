@@ -8,7 +8,7 @@ public class DateTimeRange
     public DateTime? From { get; }
     public DateTime? To { get; }
 
-    public DateTimeRange(string from = null, string to = null)
+    public DateTimeRange(string? from = null, string? to = null)
     {
         if (from != null)
         {

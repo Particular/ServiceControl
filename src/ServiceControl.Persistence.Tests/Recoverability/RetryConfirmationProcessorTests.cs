@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.Tests.Recoverability
+﻿namespace ServiceControl.Persistence.Tests.Recoverability
 {
     using System;
     using System.Collections.Generic;
@@ -23,6 +23,7 @@ namespace ServiceControl.Persistence.Tests.Recoverability
                 new FailedMessage
                 {
                     Id = MessageId,
+                    UniqueMessageId = Guid.NewGuid().ToString(),
                     Status = FailedMessageStatus.Unresolved
                 }
             );

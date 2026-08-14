@@ -1,6 +1,7 @@
 #nullable enable
 namespace ServiceControl.UnitTests.MessageFailures;
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using NServiceBus.Testing;
@@ -50,7 +51,7 @@ public class ArchiveScopeAuditTests
     public async Task Archived_message_is_audited_with_the_scope_of_the_originating_operation()
     {
         var audit = new RecordingMessageActionAuditLog();
-        var store = new AsyncRangeAndQueueAuditTests.StubErrorMessageDataStore { ErrorByResult = new FailedMessage { Status = FailedMessageStatus.Unresolved } };
+        var store = new AsyncRangeAndQueueAuditTests.StubErrorMessageDataStore { ErrorByResult = new FailedMessage { UniqueMessageId = Guid.NewGuid().ToString(), Status = FailedMessageStatus.Unresolved } };
         var handler = new ArchiveMessageHandler(store, store, new FakeDomainEvents(), audit);
 
         var context = new TestableMessageHandlerContext

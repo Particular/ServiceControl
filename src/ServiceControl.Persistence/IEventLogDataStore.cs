@@ -41,6 +41,6 @@
         /// one is added, since nothing else tells a client its cached page is now wrong.
         /// </returns>
         Task<QueryResult<IList<EventLogItemView>>> GetEventLogItems(
-            PagingInfo pagingInfo, string knownVersion = null, CancellationToken cancellationToken = default);
+            PagingInfo pagingInfo, string? knownVersion = null, CancellationToken cancellationToken = default);
     }
 }

@@ -127,22 +127,22 @@ static class FailedMessageViewMapper
         };
 
     public static EndpointDetails? ToSendingEndpoint(this FailedMessageEntity entity) =>
-        entity.SendingEndpointName == null
+        entity.SendingEndpointName == null && entity.SendingEndpointHost == null
             ? null
             : new EndpointDetails
             {
-                Name = entity.SendingEndpointName,
-                Host = entity.SendingEndpointHost,
+                Name = entity.SendingEndpointName ?? "",
+                Host = entity.SendingEndpointHost ?? "",
                 HostId = entity.SendingEndpointHostId ?? Guid.Empty
             };
 
     public static EndpointDetails? ToReceivingEndpoint(this FailedMessageEntity entity) =>
-        entity.ReceivingEndpointName == null
+        entity.ReceivingEndpointName == null && entity.ReceivingEndpointHost == null
             ? null
             : new EndpointDetails
             {
-                Name = entity.ReceivingEndpointName,
-                Host = entity.ReceivingEndpointHost,
+                Name = entity.ReceivingEndpointName ?? "",
+                Host = entity.ReceivingEndpointHost ?? "",
                 HostId = entity.ReceivingEndpointHostId ?? Guid.Empty
             };
 

@@ -6,20 +6,20 @@
 
     public class FailedMessageView
     {
-        public string Id { get; set; }
-        public string MessageType { get; set; }
+        public required string Id { get; set; }
+        public string? MessageType { get; set; }
         public DateTime? TimeSent { get; set; }
         public bool IsSystemMessage { get; set; }
-        public ExceptionDetails Exception { get; set; }
-        public string MessageId { get; set; }
+        public required ExceptionDetails Exception { get; set; }
+        public string? MessageId { get; set; }
         public int NumberOfProcessingAttempts { get; set; }
         public FailedMessageStatus Status { get; set; }
-        public EndpointDetails SendingEndpoint { get; set; }
-        public EndpointDetails ReceivingEndpoint { get; set; }
-        public string QueueAddress { get; set; }
+        public EndpointDetails? SendingEndpoint { get; set; }
+        public EndpointDetails? ReceivingEndpoint { get; set; }
+        public string? QueueAddress { get; set; }
         public DateTime TimeOfFailure { get; set; }
         public DateTime LastModified { get; set; }
         public bool Edited { get; set; }
-        public string EditOf { get; set; }
+        public string? EditOf { get; set; }
     }
 }

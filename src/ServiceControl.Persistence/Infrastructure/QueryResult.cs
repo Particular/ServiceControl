@@ -2,12 +2,12 @@ namespace ServiceControl.Persistence.Infrastructure
 {
     using System.Threading.Tasks;
 
-    public class QueryResult<TOut>(TOut results, QueryStatsInfo queryStatsInfo)
+    public class QueryResult<TOut>(TOut? results, QueryStatsInfo queryStatsInfo)
         where TOut : class
     {
-        public TOut Results { get; } = results;
+        public TOut? Results { get; } = results;
 
-        public string InstanceId { get; set; }
+        public string? InstanceId { get; set; }
 
         public QueryStatsInfo QueryStats { get; } = queryStatsInfo;
 

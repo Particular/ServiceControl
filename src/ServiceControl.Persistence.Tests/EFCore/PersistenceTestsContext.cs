@@ -4,7 +4,6 @@ namespace ServiceControl.Persistence.Tests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using EFCore.DbContexts;
@@ -52,7 +51,7 @@ public partial class PersistenceTestsContext
             var contentType = attempt.Headers.GetValueOrDefault(Headers.ContentType, "text/plain");
             db.FailedMessages.Add(new FailedMessageEntity
             {
-                UniqueMessageId = Guid.Parse(failedMessage.UniqueMessageId),
+                UniqueMessageId = Guid.Parse(failedMessage.UniqueMessageId!),
                 FirstTimeOfFailure = ordered.Min(pa => pa.FailureDetails.TimeOfFailure),
                 LastTimeOfFailure = ordered.Max(pa => pa.FailureDetails.TimeOfFailure),
                 LastAttemptedAt = attempt.AttemptedAt,

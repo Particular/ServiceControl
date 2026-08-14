@@ -12,12 +12,12 @@
             FailureGroups = [];
         }
 
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         public List<ProcessingAttempt> ProcessingAttempts { get; set; }
         public List<FailureGroup> FailureGroups { get; set; }
 
-        public string UniqueMessageId { get; set; }
+        public required string UniqueMessageId { get; set; }
 
         public FailedMessageStatus Status { get; set; }
 
@@ -31,25 +31,25 @@
             }
 
             public Dictionary<string, object> MessageMetadata { get; set; }
-            public FailureDetails FailureDetails { get; set; }
+            public FailureDetails FailureDetails { get; set; } = new();
             public DateTime AttemptedAt { get; set; }
-            public string MessageId { get; set; }
-            public string Body { get; set; }
+            public string? MessageId { get; set; }
+            public string? Body { get; set; }
             public Dictionary<string, string> Headers { get; set; }
         }
 
         public class FailureGroup
         {
-            public string Id { get; set; }
-            public string Title { get; set; }
-            public string Type { get; set; }
+            public required string Id { get; set; }
+            public string? Title { get; set; }
+            public string? Type { get; set; }
         }
     }
 
     public class GroupComment
     {
-        public string Id { get; set; }
-        public string Comment { get; set; }
+        public required string Id { get; set; }
+        public string? Comment { get; set; }
     }
 
     public enum FailedMessageStatus

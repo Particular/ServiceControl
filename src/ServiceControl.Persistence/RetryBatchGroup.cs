@@ -4,7 +4,7 @@ namespace ServiceControl.Persistence
 
     public class RetryBatchGroup
     {
-        public string RequestId { get; set; }
+        public required string RequestId { get; set; }
 
         public RetryType RetryType { get; set; }
 
@@ -14,9 +14,9 @@ namespace ServiceControl.Persistence
 
         public int InitialBatchSize { get; set; }
 
-        public string Originator { get; set; }
+        public string? Originator { get; set; }
 
-        public string Classifier { get; set; }
+        public string? Classifier { get; set; }
 
         public DateTime StartTime { get; set; }
 

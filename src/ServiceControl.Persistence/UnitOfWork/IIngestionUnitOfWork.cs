@@ -6,8 +6,8 @@
 
     public interface IIngestionUnitOfWork : IAsyncDisposable
     {
-        IMonitoringIngestionUnitOfWork Monitoring { get; }
-        IRecoverabilityIngestionUnitOfWork Recoverability { get; }
+        IMonitoringIngestionUnitOfWork? Monitoring { get; }
+        IRecoverabilityIngestionUnitOfWork? Recoverability { get; }
         Task Complete(CancellationToken cancellationToken = default);
     }
 }

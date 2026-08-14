@@ -148,7 +148,7 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
         Guid instanceB = DeterministicGuid.MakeId(endpointName1, "B");
         Guid instanceC = DeterministicGuid.MakeId(endpointName1, "C");
         var mockMonitoringDataStore = new MockMonitoringDataStore(
-            [new KnownEndpoint { EndpointDetails = new EndpointDetails { Name = endpointName1 } }]);
+            [new KnownEndpoint { EndpointDetails = new EndpointDetails { Name = endpointName1, Host = endpointName1 } }]);
         var mockEndpointInstanceMonitoring = new MockEndpointInstanceMonitoring([
             new EndpointsView { IsSendingHeartbeats = false, Name = endpointName1, Id = instanceA },
             new EndpointsView { IsSendingHeartbeats = false, Name = endpointName1, Id = instanceB },
@@ -189,7 +189,7 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
         const string endpointName1 = "Sales";
         Guid instanceA = DeterministicGuid.MakeId(endpointName1, "A");
         var mockMonitoringDataStore = new MockMonitoringDataStore(
-            [new KnownEndpoint { EndpointDetails = new EndpointDetails { Name = endpointName1 } }]);
+            [new KnownEndpoint { EndpointDetails = new EndpointDetails { Name = endpointName1, Host = endpointName1 } }]);
         var mockEndpointInstanceMonitoring = new MockEndpointInstanceMonitoring([
             new EndpointsView { IsSendingHeartbeats = false, Name = endpointName1, Id = instanceA },
             new EndpointsView

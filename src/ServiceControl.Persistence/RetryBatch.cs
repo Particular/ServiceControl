@@ -4,14 +4,14 @@ namespace ServiceControl.Persistence
 
     public class RetryBatch
     {
-        public string Id { get; init; }
-        public string Context { get; init; }
-        public string StagingId { get; init; }
-        public string Originator { get; init; }
-        public string Classifier { get; init; }
+        public required string Id { get; init; }
+        public string? Context { get; init; }
+        public string? StagingId { get; init; }
+        public string? Originator { get; init; }
+        public string? Classifier { get; init; }
         public DateTime StartTime { get; init; }
         public DateTime? Last { get; init; }
-        public string RequestId { get; init; }
+        public string? RequestId { get; init; }
         public int InitialBatchSize { get; init; }
         public RetryType RetryType { get; init; }
         public RetryBatchStatus Status { get; init; }
@@ -29,12 +29,12 @@ namespace ServiceControl.Persistence
         /// correlated to the API's operation entry by <see cref="OperationId"/>. Null only for legacy
         /// in-flight commands sent without the headers.
         /// </summary>
-        public string InitiatedById { get; init; }
+        public string? InitiatedById { get; init; }
 
         /// <inheritdoc cref="InitiatedById"/>
-        public string InitiatedByName { get; init; }
+        public string? InitiatedByName { get; init; }
 
         /// <inheritdoc cref="InitiatedById"/>
-        public string OperationId { get; init; }
+        public string? OperationId { get; init; }
     }
 }

@@ -84,7 +84,7 @@ public class AsyncRangeAndQueueAuditTests
     public async Task ArchiveMessage_audits_the_archived_message()
     {
         var audit = new RecordingMessageActionAuditLog();
-        var store = new StubErrorMessageDataStore { ErrorByResult = new FailedMessage { Status = FailedMessageStatus.Unresolved } };
+        var store = new StubErrorMessageDataStore { ErrorByResult = new FailedMessage { UniqueMessageId = Guid.NewGuid().ToString(), Status = FailedMessageStatus.Unresolved } };
         var handler = new ArchiveMessageHandler(store, store, new FakeDomainEvents(), audit);
 
         var context = new TestableMessageHandlerContext { MessageHeaders = StampedHeaders("op-a") };
@@ -104,7 +104,7 @@ public class AsyncRangeAndQueueAuditTests
     public async Task ArchiveMessage_already_archived_is_not_audited()
     {
         var audit = new RecordingMessageActionAuditLog();
-        var store = new StubErrorMessageDataStore { ErrorByResult = new FailedMessage { Status = FailedMessageStatus.Archived } };
+        var store = new StubErrorMessageDataStore { ErrorByResult = new FailedMessage { UniqueMessageId = Guid.NewGuid().ToString(), Status = FailedMessageStatus.Archived } };
         var handler = new ArchiveMessageHandler(store, store, new FakeDomainEvents(), audit);
 
         var context = new TestableMessageHandlerContext { MessageHeaders = StampedHeaders("op-a") };
@@ -157,7 +157,10 @@ public class AsyncRangeAndQueueAuditTests
         public string[] RetryPendingMessagesResult { get; set; } = [];
         public string[] UnArchiveByRangeResult { get; set; } = [];
         public string[] UnArchiveMessagesResult { get; set; } = [];
-        public FailedMessage ErrorByResult { get; set; } = new();
+        public FailedMessage ErrorByResult { get; set; } = new()
+        {
+            UniqueMessageId = Guid.NewGuid().ToString(),
+        };
 
         public Task<string[]> GetRetryPendingMessages(DateTime from, DateTime to, string queueAddress, CancellationToken cancellationToken = default) => Task.FromResult(RetryPendingMessagesResult);
         public Task RemoveFailedMessageRetry(string uniqueMessageId, CancellationToken cancellationToken = default) => Task.CompletedTask;

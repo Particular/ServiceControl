@@ -34,7 +34,7 @@ public class EditFailedMessagesControllerAuditTests
     public async Task Edit_emits_single_operation()
     {
         var audit = new RecordingMessageActionAuditLog();
-        var store = new StubErrorMessageDataStore { ErrorByResult = new FailedMessage { ProcessingAttempts = { new FailedMessage.ProcessingAttempt() } } };
+        var store = new StubErrorMessageDataStore { ErrorByResult = new FailedMessage { UniqueMessageId = Guid.NewGuid().ToString(), ProcessingAttempts = { new FailedMessage.ProcessingAttempt() } } };
 
         await Create(store, audit).Edit("msg-1", ValidEdit());
 

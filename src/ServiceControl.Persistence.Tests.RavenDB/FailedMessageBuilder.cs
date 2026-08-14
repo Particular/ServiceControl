@@ -15,6 +15,7 @@
             var message = new FailedMessage
             {
                 Id = "1",
+                UniqueMessageId = Guid.NewGuid().ToString(),
                 ProcessingAttempts =
                 [
                     new FailedMessage.ProcessingAttempt

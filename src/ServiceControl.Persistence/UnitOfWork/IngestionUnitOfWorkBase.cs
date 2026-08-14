@@ -17,8 +17,8 @@ namespace ServiceControl.Persistence.UnitOfWork
             GC.SuppressFinalize(this);
         }
 
-        public IMonitoringIngestionUnitOfWork Monitoring { get; protected set; }
-        public IRecoverabilityIngestionUnitOfWork Recoverability { get; protected set; }
+        public IMonitoringIngestionUnitOfWork? Monitoring { get; protected set; }
+        public IRecoverabilityIngestionUnitOfWork? Recoverability { get; protected set; }
         public virtual Task Complete(CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 }

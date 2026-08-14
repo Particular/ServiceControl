@@ -20,7 +20,7 @@
 
     public sealed class MessageBodyResult
     {
-        MessageBodyResult(MessageBodyState state, MessageBodyStreamContent content = null)
+        MessageBodyResult(MessageBodyState state, MessageBodyStreamContent? content = null)
         {
             State = state;
             ContentValue = content;
@@ -28,9 +28,9 @@
 
         public MessageBodyState State { get; }
 
-        public MessageBodyStreamContent Content => State == MessageBodyState.Available
+        public MessageBodyStreamContent Content => State == MessageBodyState.Available && ContentValue is not null
             ? ContentValue
-            : throw new InvalidOperationException($"Body content is not available when the state is {State}.");
+            : throw new InvalidOperationException($"Body content is not available when the state is {State} or content is null.");
 
         public static MessageBodyResult NotFound() => new(MessageBodyState.NotFound);
 
@@ -44,7 +44,7 @@
             return new MessageBodyResult(MessageBodyState.Available, content);
         }
 
-        MessageBodyStreamContent ContentValue { get; }
+        MessageBodyStreamContent? ContentValue { get; }
     }
 
     public sealed record MessageBodyStreamContent(Stream Stream, string ContentType, int BodySize, string Etag);

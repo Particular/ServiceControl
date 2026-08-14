@@ -9,10 +9,10 @@ namespace ServiceControl.Contracts.Operations
             TimeOfFailure = DateTime.UtcNow;
         }
 
-        public string AddressOfFailingEndpoint { get; set; }
+        public string? AddressOfFailingEndpoint { get; set; }
 
         public DateTime TimeOfFailure { get; set; }
 
-        public ExceptionDetails Exception { get; set; }
+        public ExceptionDetails? Exception { get; set; }
     }
 }

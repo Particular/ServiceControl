@@ -96,7 +96,7 @@ class MessageRedirectsDataStoreTests : PersistenceTestBase
         await Add("Sales", "Sales.New");
         await Add("Shipping", "Shipping.New");
 
-        await MessageRedirectsDataStore.RemoveRedirect(new MessageRedirect { FromPhysicalAddress = "Sales" });
+        await MessageRedirectsDataStore.RemoveRedirect(new MessageRedirect { FromPhysicalAddress = "Sales", ToPhysicalAddress = "Sales.New" });
 
         var redirects = await MessageRedirectsDataStore.GetRedirects();
 
@@ -112,7 +112,7 @@ class MessageRedirectsDataStoreTests : PersistenceTestBase
     {
         await Add("Sales", "Sales.New");
 
-        await MessageRedirectsDataStore.RemoveRedirect(new MessageRedirect { FromPhysicalAddress = "Unknown" });
+        await MessageRedirectsDataStore.RemoveRedirect(new MessageRedirect { FromPhysicalAddress = "Unknown", ToPhysicalAddress = "Sales" });
 
         Assert.That(await MessageRedirectsDataStore.GetRedirects(), Has.Count.EqualTo(1));
     }

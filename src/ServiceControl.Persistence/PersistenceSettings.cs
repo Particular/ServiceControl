@@ -9,7 +9,7 @@
     {
         public bool MaintenanceMode { get; set; }
         //HINT: This needs to be here so that ServerControl instance can add an instance specific metadata to tweak the DatabasePath value
-        public string DatabasePath { get; set; }
+        public string? DatabasePath { get; set; }
 
         public bool EnableFullTextSearchOnBodies { get; set; } = true;
 

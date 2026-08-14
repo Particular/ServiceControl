@@ -15,7 +15,7 @@ namespace ServiceControl.Persistence
 
         public Guid UniqueId { get; }
 
-        public bool Equals(EndpointInstanceId other)
+        public bool Equals(EndpointInstanceId? other)
         {
             if (other is null)
             {
@@ -30,7 +30,7 @@ namespace ServiceControl.Persistence
             return string.Equals(LogicalName, other.LogicalName) && string.Equals(HostName, other.HostName) && HostGuid.Equals(other.HostGuid);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as EndpointInstanceId);
         }

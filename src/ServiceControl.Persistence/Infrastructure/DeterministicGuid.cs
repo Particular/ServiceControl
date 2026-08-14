@@ -6,20 +6,11 @@
 
     public static class DeterministicGuid
     {
-        public static Guid MakeId(string data)
-        {
-            return DeterministicGuidBuilder(data);
-        }
+        public static Guid MakeId(string data) => DeterministicGuidBuilder(data);
 
-        public static Guid MakeId(string data1, string data2)
-        {
-            return DeterministicGuidBuilder($"{data1}{data2}");
-        }
+        public static Guid MakeId(string data1, string data2) => DeterministicGuidBuilder($"{data1}{data2}");
 
-        public static Guid MakeId(string data1, string data2, string data3)
-        {
-            return DeterministicGuidBuilder($"{data1}{data2}{data3}");
-        }
+        public static Guid MakeId(string data1, string data2, string data3) => DeterministicGuidBuilder($"{data1}{data2}{data3}");
 
         static Guid DeterministicGuidBuilder(string input)
         {
