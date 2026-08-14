@@ -24,7 +24,7 @@
         public async Task Should_import_all_messages()
         {
             //Make sure the error import attempt fails
-            CustomizeHostBuilder = builder => builder.Services.AddSingleton<FailOnceEnricher>();
+            CustomizeHostBuilder = builder => builder.Services.AddSingleton<IEnrichImportedErrorMessages, FailOnceEnricher>();
 
             var maximumConcurrencyLevel = 5;
 
