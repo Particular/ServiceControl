@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
+    using System;
     using System.Linq;
     using CustomChecks;
     using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +13,16 @@
         public void AddPersistence(IServiceCollection services)
         {
             ConfigureLifecycle(services, databaseConfiguration);
+
+            // Bucket selection and cleanup use the injected TimeProvider (TimeProvider.System in
+            // production) so tests can substitute a controllable provider.
+            services.AddSingleton(TimeProvider.System);
+
+            services.AddSingleton<AuditRetentionBuckets.AuditRetentionBucketManager>();
+            if (databaseConfiguration.EnableAuditRetentionBuckets)
+            {
+                services.AddHostedService<AuditRetentionBuckets.AuditRetentionBucketCleanupHostedService>();
+            }
 
             if (services.SingleOrDefault(s => s.ServiceType == typeof(EndpointConfiguration)) is
                 {

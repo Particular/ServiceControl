@@ -104,6 +104,35 @@
             Assert.Throws<InvalidOperationException>(() => RavenPersistenceConfiguration.GetDatabaseConfiguration(settings));
         }
 
+        [Test]
+        public void Should_throw_when_bucket_mode_is_enabled_and_expiration_process_timer_is_zero()
+        {
+            var settings = BuildSettings();
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = "connection string";
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.EnableAuditRetentionBucketsKey] = "true";
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ExpirationProcessTimerInSecondsKey] = "0";
+
+            var exception = Assert.Throws<InvalidOperationException>(() => RavenPersistenceConfiguration.GetDatabaseConfiguration(settings));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(exception.Message, Does.Contain(RavenPersistenceConfiguration.ExpirationProcessTimerInSecondsKey));
+                Assert.That(exception.Message, Does.Contain(RavenPersistenceConfiguration.EnableAuditRetentionBucketsKey));
+            });
+        }
+
+        [Test]
+        public void Should_accept_zero_expiration_process_timer_when_bucket_mode_is_disabled()
+        {
+            var settings = BuildSettings();
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = "connection string";
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ExpirationProcessTimerInSecondsKey] = "0";
+
+            var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings);
+
+            Assert.That(configuration.ExpirationProcessTimerInSeconds, Is.EqualTo(0));
+        }
+
         PersistenceSettings BuildSettings()
         {
             return new PersistenceSettings(TimeSpan.FromMinutes(2), true, 100000);

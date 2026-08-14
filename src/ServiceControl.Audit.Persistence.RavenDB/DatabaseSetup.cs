@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Indexes;
+using Raven.Client.Documents.Operations;
 using Raven.Client.Documents.Operations.Expiration;
 using Raven.Client.Documents.Operations.Indexes;
 using Raven.Client.Exceptions;
@@ -24,6 +25,24 @@ class DatabaseSetup(DatabaseConfiguration configuration)
         await CreateDatabase(documentStore, configuration.Name, cancellationToken);
 
         await UpdateDatabaseSettings(documentStore, configuration.Name, cancellationToken);
+
+        if (configuration.EnableAuditRetentionBuckets)
+        {
+            // Fail fast before the bucket-mode query path can become available: bucket mode reads only
+            // the dedicated per-bucket collections and indexes, so any ProcessedMessage or SagaSnapshot
+            // left in the legacy collections would be silently invisible to every query. There is no
+            // migration or legacy-read merge, so bucket mode is only safe on an empty/new database.
+            await EnsureNoLegacyAuditData(documentStore, cancellationToken);
+
+            // Bucket mode: only the unbucketed FailedAuditImport index is created here. The dedicated
+            // per-bucket indexes are created by AuditRetentionBucketManager when buckets roll over, and
+            // the current static index names are deliberately avoided so a side-by-side replacement can
+            // never be attempted under constant ingestion. Raven's document expiry is not enabled because
+            // bucket cleanup owns retention of the bucketed documents.
+            await IndexCreation.CreateIndexesAsync([new FailedAuditImportIndex()], documentStore, null, null, cancellationToken);
+            await LicenseStatusCheck.WaitForLicenseOrThrow(documentStore, cancellationToken);
+            return;
+        }
 
         await CreateIndexes(documentStore, configuration.EnableFullTextSearch, cancellationToken);
 
@@ -111,6 +130,24 @@ class DatabaseSetup(DatabaseConfiguration configuration)
         };
 
         await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig), cancellationToken);
+    }
+
+    async Task EnsureNoLegacyAuditData(IDocumentStore documentStore, CancellationToken cancellationToken)
+    {
+        var statistics = await documentStore.Maintenance.SendAsync(new GetCollectionStatisticsOperation(), cancellationToken);
+
+        statistics.Collections.TryGetValue("ProcessedMessages", out var processedMessageCount);
+        statistics.Collections.TryGetValue("SagaSnapshots", out var sagaSnapshotCount);
+
+        if (processedMessageCount > 0 || sagaSnapshotCount > 0)
+        {
+            throw new InvalidOperationException(
+                $"Audit retention bucket mode (RavenDB/EnableAuditRetentionBuckets) requires an empty or new database. " +
+                $"The database '{configuration.Name}' contains {processedMessageCount} legacy ProcessedMessage document(s) " +
+                $"and {sagaSnapshotCount} legacy SagaSnapshot document(s). Bucket mode reads only the dedicated per-bucket " +
+                $"collections, so enabling it on a populated legacy Audit database would silently hide all existing audit data. " +
+                $"Start bucket mode on an empty/new database; a migration of existing audit data is not supported.");
+        }
     }
 
     bool SetSearchEngineType(DatabaseRecord database, SearchEngineType searchEngineType)

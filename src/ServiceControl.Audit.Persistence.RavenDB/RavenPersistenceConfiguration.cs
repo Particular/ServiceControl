@@ -23,6 +23,7 @@
         public const string MinimumStorageLeftRequiredForIngestionKey = "MinimumStorageLeftRequiredForIngestion";
         public const string BulkInsertCommitTimeoutInSecondsKey = "BulkInsertCommitTimeoutInSeconds";
         public const string DataSpaceRemainingThresholdKey = "DataSpaceRemainingThreshold";
+        public const string EnableAuditRetentionBucketsKey = "RavenDB/EnableAuditRetentionBuckets";
 
         public IEnumerable<string> ConfigurationKeys => new[]{
             DatabaseNameKey,
@@ -37,7 +38,8 @@
             RavenDbLogLevelKey,
             DataSpaceRemainingThresholdKey,
             MinimumStorageLeftRequiredForIngestionKey,
-            BulkInsertCommitTimeoutInSecondsKey
+            BulkInsertCommitTimeoutInSecondsKey,
+            EnableAuditRetentionBucketsKey
         };
 
         public string Name => "RavenDB";
@@ -117,7 +119,9 @@
             var dataSpaceRemainingThreshold = CheckFreeDiskSpace.Parse(settings.PersisterSpecificSettings, Logger);
             var minimumStorageLeftRequiredForIngestion = CheckMinimumStorageRequiredForIngestion.Parse(settings.PersisterSpecificSettings);
 
-            var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
+            var enableAuditRetentionBuckets = GetEnableAuditRetentionBuckets(settings);
+
+            var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings, enableAuditRetentionBuckets);
 
             var bulkInsertTimeout = TimeSpan.FromSeconds(GetBulkInsertCommitTimeout(settings));
 
@@ -130,10 +134,26 @@
                 dataSpaceRemainingThreshold,
                 minimumStorageLeftRequiredForIngestion,
                 serverConfiguration,
-                bulkInsertTimeout);
+                bulkInsertTimeout,
+                enableAuditRetentionBuckets);
         }
 
-        static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)
+        static bool GetEnableAuditRetentionBuckets(PersistenceSettings settings)
+        {
+            if (!settings.PersisterSpecificSettings.TryGetValue(EnableAuditRetentionBucketsKey, out var value))
+            {
+                return false;
+            }
+
+            if (!bool.TryParse(value, out var enabled))
+            {
+                throw new InvalidOperationException($"{EnableAuditRetentionBucketsKey} must be a boolean value.");
+            }
+
+            return enabled;
+        }
+
+        static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings, bool enableAuditRetentionBuckets)
         {
             var expirationProcessTimerInSeconds = ExpirationProcessTimerInSecondsDefault;
 
@@ -148,6 +168,14 @@
             {
                 Logger.LogError("ExpirationProcessTimerInSeconds cannot be negative. Defaulting to {ExpirationProcessTimerInSecondsDefault}", ExpirationProcessTimerInSecondsDefault);
                 return ExpirationProcessTimerInSecondsDefault;
+            }
+
+            if (expirationProcessTimerInSeconds == 0 && enableAuditRetentionBuckets)
+            {
+                // The bucket cleanup loop is driven by a PeriodicTimer, which requires a positive period.
+                throw new InvalidOperationException(
+                    $"{ExpirationProcessTimerInSecondsKey} must be greater than zero when {EnableAuditRetentionBucketsKey} is enabled. " +
+                    "The audit retention bucket cleanup timer requires a positive period.");
             }
 
             if (expirationProcessTimerInSeconds > maxExpirationProcessTimerInSeconds)

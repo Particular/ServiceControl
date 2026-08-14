@@ -5,6 +5,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
+    using Microsoft.Extensions.DependencyInjection;
     using NUnit.Framework;
     using UnitOfWork;
 
@@ -13,6 +14,9 @@
     {
         public Action<PersistenceSettings> SetSettings = _ => { };
 
+        // Lets tests replace or add services (e.g. a controllable TimeProvider) before the host is built.
+        public Action<IServiceCollection> ConfigureServices = _ => { };
+
         [SetUp]
         public virtual Task Setup()
         {
@@ -20,7 +24,7 @@
 
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
 
-            return configuration.Configure(SetSettings);
+            return configuration.Configure(SetSettings, ConfigureServices);
         }
 
         [TearDown]

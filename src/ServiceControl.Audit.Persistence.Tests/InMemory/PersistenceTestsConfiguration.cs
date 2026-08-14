@@ -23,7 +23,7 @@
 
         public string Name => "InMemory";
 
-        public async Task Configure(Action<PersistenceSettings> setSettings)
+        public async Task Configure(Action<PersistenceSettings> setSettings, Action<IServiceCollection> configureServices = null)
         {
             var config = new InMemoryPersistenceConfiguration();
             var hostBuilder = Host.CreateApplicationBuilder();
@@ -34,6 +34,8 @@
             var persistence = config.Create(settings);
             persistence.AddPersistence(hostBuilder.Services);
             persistence.AddInstaller(hostBuilder.Services);
+
+            configureServices?.Invoke(hostBuilder.Services);
 
             var assembly = typeof(InMemoryPersistenceConfiguration).Assembly;
 

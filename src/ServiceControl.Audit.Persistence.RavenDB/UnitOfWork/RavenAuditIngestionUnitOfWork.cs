@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using AuditRetentionBuckets;
     using Auditing;
     using Auditing.BodyStorage;
     using NServiceBus;
@@ -18,7 +19,8 @@
         BulkInsertOperation bulkInsert,
         CancellationTokenSource timedCancellationSource,
         TimeSpan auditRetentionPeriod,
-        IBodyStorage bodyStorage)
+        IBodyStorage bodyStorage,
+        AuditRetentionBucket currentBucket)
         : IAuditIngestionUnitOfWork
     {
         public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default)
@@ -29,7 +31,7 @@
                 processedMessage.MessageMetadata["BodyUrl"] = $"/messages/{processedMessage.Id}/body";
             }
 
-            await bulkInsert.StoreAsync(processedMessage, GetExpirationMetadata());
+            await bulkInsert.StoreAsync(processedMessage, GetMetadata());
 
             if (!body.IsEmpty)
             {
@@ -40,14 +42,37 @@
             }
         }
 
+        public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken = default)
+        {
+            if (currentBucket == null)
+            {
+                return bulkInsert.StoreAsync(sagaSnapshot, GetExpirationMetadata());
+            }
+
+            return bulkInsert.StoreAsync(sagaSnapshot, new MetadataAsDictionary
+            {
+                [Constants.Documents.Metadata.Collection] = currentBucket.SagaSnapshotCollection
+            });
+        }
+
+        MetadataAsDictionary GetMetadata()
+        {
+            if (currentBucket == null)
+            {
+                return GetExpirationMetadata();
+            }
+
+            return new MetadataAsDictionary
+            {
+                [Constants.Documents.Metadata.Collection] = currentBucket.ProcessedMessageCollection
+            };
+        }
+
         MetadataAsDictionary GetExpirationMetadata() =>
             new()
             {
                 [Constants.Documents.Metadata.Expires] = DateTime.UtcNow.Add(auditRetentionPeriod)
             };
-
-        public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken = default)
-            => bulkInsert.StoreAsync(sagaSnapshot, GetExpirationMetadata());
 
         public async ValueTask DisposeAsync()
         {

@@ -30,7 +30,7 @@
 
         public string Name => "RavenDB";
 
-        public async Task Configure(Action<PersistenceSettings> setSettings)
+        public async Task Configure(Action<PersistenceSettings> setSettings, Action<IServiceCollection> configureServices = null)
         {
             var config = new RavenPersistenceConfiguration();
             var hostBuilder = Host.CreateApplicationBuilder();
@@ -64,6 +64,8 @@
             var persistence = config.Create(persistenceSettings);
             persistence.AddPersistence(hostBuilder.Services);
             persistence.AddInstaller(hostBuilder.Services);
+
+            configureServices?.Invoke(hostBuilder.Services);
 
             var assembly = typeof(RavenPersistenceConfiguration).Assembly;
 
