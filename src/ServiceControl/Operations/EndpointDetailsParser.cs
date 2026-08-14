@@ -13,7 +13,7 @@ namespace ServiceControl.Contracts.Operations
         {
             var endpointDetails = new EndpointDetails()
             {
-                Name = headers.GetValueOrDefault(Headers.OriginatingHostId, string.Empty),
+                Name = headers.GetValueOrDefault(Headers.OriginatingEndpoint, string.Empty),
                 Host = headers.GetValueOrDefault(Headers.OriginatingMachine, string.Empty),
                 HostId = Guid.TryParse(headers.GetValueOrDefault(Headers.OriginatingHostId, string.Empty), out var g) ? g : Guid.Empty
             };

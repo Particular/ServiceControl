@@ -8,16 +8,21 @@
     {
         public FailedMessage()
         {
+            // these ID fields *should* be marked as required
+            // but there seem to be some wire usages of this type for 
+            // deserialisation that omit the UniqueMessageId on output
+            Id = string.Empty;
+            UniqueMessageId = string.Empty;
             ProcessingAttempts = [];
             FailureGroups = [];
         }
 
-        public string? Id { get; set; }
+        public required string Id { get; set; }
+        public string UniqueMessageId { get; set; }
 
         public List<ProcessingAttempt> ProcessingAttempts { get; set; }
         public List<FailureGroup> FailureGroups { get; set; }
 
-        public required string UniqueMessageId { get; set; }
 
         public FailedMessageStatus Status { get; set; }
 
