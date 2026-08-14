@@ -131,13 +131,6 @@ class FailedMessageRetryDataStoreTests : PersistenceTestBase
         Assert.That(captured, Is.EquivalentTo(new[] { shipping, billing }).IgnoreCase);
     }
 
-    [Test]
-    public void GetFailedMessageBody_throws_for_a_nonexistent_message()
-    {
-        Assert.ThrowsAsync<InvalidOperationException>(() =>
-            FailedMessageRetryStore.GetFailedMessageBody(Guid.NewGuid().ToString()));
-    }
-
     async Task<string> Insert(IngestedFailure failure, FailedMessageStatus status = FailedMessageStatus.Unresolved)
     {
         var message = failure.ToFailedMessage(status);

@@ -4,10 +4,9 @@ using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.MessageFailures;
-using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
-public class FailedMessageRetryDataStore(IServiceScopeFactory scopeFactory, IBodyStorage bodyStorage)
+public class FailedMessageRetryDataStore(IServiceScopeFactory scopeFactory)
     : DataStoreBase(scopeFactory), IFailedMessageRetryDataStore
 {
     public Task RemoveFailedMessageRetry(string uniqueMessageId, CancellationToken cancellationToken = default) =>
@@ -52,31 +51,4 @@ public class FailedMessageRetryDataStore(IServiceScopeFactory scopeFactory, IBod
                 await processCallback(uniqueMessageId, token);
             }
         }, cancellationToken);
-
-    public async Task<byte[]> GetFailedMessageBody(string uniqueMessageId, CancellationToken cancellationToken = default)
-    {
-        var result = await bodyStorage.TryFetch(uniqueMessageId, cancellationToken);
-
-        if (result.State == MessageBodyState.NotFound)
-        {
-            throw new InvalidOperationException("IBodyStorage.TryFetch result cannot be null");
-        }
-
-        if (result.State == MessageBodyState.Unavailable)
-        {
-            throw new InvalidOperationException("IBodyStorage.TryFetch did not return a body");
-        }
-
-        if (result.State == MessageBodyState.Empty)
-        {
-            return [];
-        }
-
-        await using (result.Content.Stream)
-        {
-            using var memoryStream = new MemoryStream();
-            await result.Content.Stream.CopyToAsync(memoryStream, cancellationToken);
-            return memoryStream.ToArray();
-        }
-    }
 }
