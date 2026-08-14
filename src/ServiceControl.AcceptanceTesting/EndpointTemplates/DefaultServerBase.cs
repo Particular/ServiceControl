@@ -16,7 +16,11 @@
         {
         }
 
+#pragma warning disable PS0013
+#pragma warning disable PS0018
         public virtual async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizations, Func<EndpointConfiguration, Task> configurationBuilderCustomization)
+#pragma warning restore PS0018
+#pragma warning restore PS0013
         {
             var endpointConfiguration = new EndpointConfiguration(endpointCustomizations.EndpointName);
 

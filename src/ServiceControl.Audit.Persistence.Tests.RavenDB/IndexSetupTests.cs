@@ -122,10 +122,12 @@ class IndexSetupTests : PersistenceTestFixture
                     return newStats;
                 }
             }
+#pragma warning disable PS0020
             catch (OperationCanceledException)
             {
                 // keep going since we can get this if we query right when the update happens
             }
+#pragma warning restore PS0020
 
             await Task.Delay(TimeSpan.FromMilliseconds(100), TestTimeoutCancellationToken);
         }

@@ -3,6 +3,8 @@
     using System;
     using System.Threading.Tasks;
 
+#pragma warning disable PS0013
+#pragma warning disable PS0018
     class AwaitableDelegateCommand : AwaitableDelegateCommand<object>, IAsyncCommand
     {
         public AwaitableDelegateCommand(Func<object, Task> executeMethod, Func<object, bool> canExecuteMethod = null) : base(executeMethod, canExecuteMethod)
@@ -39,4 +41,6 @@
 
         readonly Func<T, Task> executeMethod;
     }
+#pragma warning restore PS0018
+#pragma warning restore PS0013
 }

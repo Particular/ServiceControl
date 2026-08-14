@@ -31,7 +31,9 @@ namespace ServiceControl.Config.Framework.Commands
             ((ICommand<T>)this).Execute((T)parameter);
         }
 
+#pragma warning disable PS0018
         public abstract Task ExecuteAsync(T obj);
+#pragma warning restore PS0018
 
         protected virtual void OnExecuting()
         {

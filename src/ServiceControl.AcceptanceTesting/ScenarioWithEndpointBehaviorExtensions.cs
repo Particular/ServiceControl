@@ -8,6 +8,8 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
 
+#pragma warning disable PS0013
+#pragma warning disable PS0018
     public static class ScenarioWithEndpointBehaviorExtensions
     {
         public static IScenarioWithEndpointBehavior<TContext> Done<TContext>(this IScenarioWithEndpointBehavior<TContext> endpointBehavior, Func<TContext, Task<bool>> func) where TContext : ScenarioContext
@@ -158,4 +160,6 @@
             CancellationTokenSource tokenSource;
         }
     }
+#pragma warning restore PS0018
+#pragma warning restore PS0013
 }

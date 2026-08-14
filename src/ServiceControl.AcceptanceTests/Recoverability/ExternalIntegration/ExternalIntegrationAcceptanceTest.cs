@@ -43,7 +43,7 @@
 
                 OutgoingMessage CreateTransportMessage(string messageId)
                 {
-                    var date = new DateTime(2015, 9, 20, 0, 0, 0);
+                    var date = new DateTimeOffset(2015, 9, 20, 0, 0, 0, TimeSpan.Zero);
                     var msg = new OutgoingMessage(messageId, new Dictionary<string, string>
                     {
                         {Headers.MessageId, messageId},

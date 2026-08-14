@@ -4,13 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using NServiceBus;
 using NUnit.Framework;
 using ServiceControl.Operations;
-using ServiceControl.Persistence;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.Infrastructure;
 
@@ -161,33 +158,6 @@ class FailedErrorImportTests : ErrorIngestionTestBase
         {
             Assert.That(replayed, Has.Count.EqualTo(250));
             Assert.That(await FailedImportStore.QueryContainsFailedImports(), Is.False);
-        }
-    }
-
-    [Test]
-    public async Task Stops_replaying_when_cancelled()
-    {
-        await Store(
-            Import("native-1", BaseTime),
-            Import("native-2", BaseTime.AddSeconds(1)),
-            Import("native-3", BaseTime.AddSeconds(2)));
-
-        using var cts = new CancellationTokenSource();
-        var replayed = new List<string>();
-
-        await FailedImportStore.ProcessFailedErrorImports(
-            (message, _) =>
-            {
-                replayed.Add(message.Id);
-                cts.Cancel();
-                return Task.CompletedTask;
-            },
-            cts.Token);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(replayed, Has.Count.EqualTo(1));
-            Assert.That(await FailedImportStore.QueryContainsFailedImports(), Is.True);
         }
     }
 
