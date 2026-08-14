@@ -54,7 +54,7 @@ public class FailedErrorImportDataStore(
                 HeadersJson = headersJson,
                 Body = storedBody,
                 BodyStoredExternally = storeExternally,
-                ExceptionInfo = failure.ExceptionInfo ?? ""
+                ExceptionInfo = failure.ExceptionInfo ?? string.Empty
             }, (entity) =>
             {
                 entity.FailedAt = failedAt;
@@ -62,7 +62,7 @@ public class FailedErrorImportDataStore(
                 entity.HeadersJson = headersJson;
                 entity.Body = storedBody;
                 entity.BodyStoredExternally = storeExternally;
-                entity.ExceptionInfo = failure.ExceptionInfo ?? "";
+                entity.ExceptionInfo = failure.ExceptionInfo ?? string.Empty;
             }, token);
         }, cancellationToken);
 

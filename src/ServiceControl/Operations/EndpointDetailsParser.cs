@@ -11,11 +11,12 @@ namespace ServiceControl.Contracts.Operations
     {
         public static EndpointDetails SendingEndpoint(IReadOnlyDictionary<string, string> headers)
         {
-            var endpointDetails = new EndpointDetails() { Name = "", Host = "" };
-
-            DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingEndpoint, headers, s => endpointDetails.Name = s);
-            DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingMachine, headers, s => endpointDetails.Host = s);
-            DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingHostId, headers, s => endpointDetails.HostId = Guid.Parse(s));
+            var endpointDetails = new EndpointDetails()
+            {
+                Name = headers.GetValueOrDefault(Headers.OriginatingHostId, string.Empty),
+                Host = headers.GetValueOrDefault(Headers.OriginatingMachine, string.Empty),
+                HostId = Guid.TryParse(headers.GetValueOrDefault(Headers.OriginatingHostId, string.Empty), out var g) ? g : Guid.Empty
+            };
 
             if (!string.IsNullOrEmpty(endpointDetails.Name) && !string.IsNullOrEmpty(endpointDetails.Host))
             {
@@ -38,23 +39,13 @@ namespace ServiceControl.Contracts.Operations
 
         public static EndpointDetails ReceivingEndpoint(IReadOnlyDictionary<string, string> headers)
         {
-            var endpoint = new EndpointDetails() { Name = "", Host = "" };
-
-            if (headers.TryGetValue(Headers.HostId, out var hostIdHeader))
+            var endpoint = new EndpointDetails()
             {
-                endpoint.HostId = Guid.Parse(hostIdHeader);
-            }
-
-            if (headers.TryGetValue(Headers.HostDisplayName, out var hostDisplayNameHeader))
-            {
-                endpoint.Host = hostDisplayNameHeader;
-            }
-            else
-            {
-                DictionaryExtensions.CheckIfKeyExists(Headers.ProcessingMachine, headers, s => endpoint.Host = s);
-            }
-
-            DictionaryExtensions.CheckIfKeyExists(Headers.ProcessingEndpoint, headers, s => endpoint.Name = s);
+                Name = headers.GetValueOrDefault(Headers.ProcessingEndpoint, string.Empty),
+                Host = headers.GetValueOrDefault(Headers.HostDisplayName, null)
+                       ?? headers.GetValueOrDefault(Headers.ProcessingMachine, string.Empty),
+                HostId = Guid.TryParse(headers.GetValueOrDefault(Headers.HostId, string.Empty), out var g) ? g : Guid.Empty
+            };
 
             if (!string.IsNullOrEmpty(endpoint.Name) && !string.IsNullOrEmpty(endpoint.Host))
             {
