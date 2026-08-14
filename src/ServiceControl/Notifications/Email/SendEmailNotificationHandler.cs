@@ -15,12 +15,7 @@
     {
         public async Task Handle(SendEmailNotification message, IMessageHandlerContext context)
         {
-            NotificationsSettings notifications;
-
-            await using (var manager = await store.CreateNotificationsManager(context.CancellationToken))
-            {
-                notifications = await manager.LoadSettings(context.CancellationToken);
-            }
+            var notifications = await store.LoadSettings(context.CancellationToken);
 
             logger.LogInformation("Processing email notification. Subject: {Subject}, Body: {Body}", message.Subject, message.Body);
 
