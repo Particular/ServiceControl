@@ -52,20 +52,12 @@
     <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_encountered_an_error.cs" />
     <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\When_edited_message_fails_to_process.cs" />
 
-    <!-- Remaining EF retry scenarios are deferred for separate investigation. -->
-    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\When_a_message_is_retried.cs" />
-    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\When_a_message_is_retried_with_a_replyTo_header.cs" />
-    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\When_a_native_integration_message_is_retried.cs" />
-
     <!-- EF persistence retains only the latest processing attempt. -->
     <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\MessageFailures\When_errors_with_same_uniqueid_are_imported.cs" />
     <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\MessageFailures\When_a_messages_fails_multiple_times.cs" />
 
-    <!-- The EF custom-check query does not provide an ETag. -->
+    <!-- The EF custom-check query does not provide an ETag. Addressed by a separate PR. -->
     <Compile Remove="..\ServiceControl.AcceptanceTests\WebApi\When_a_request_is_repeated_with_its_etag.cs" />
-
-    <!-- The EF DateTime round trip changes the offset expected by this scenario. -->
-    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\MessageFailures\When_ingesting_failed_message_with_missing_headers.cs" />
   </ItemGroup>
 
 </Project>
