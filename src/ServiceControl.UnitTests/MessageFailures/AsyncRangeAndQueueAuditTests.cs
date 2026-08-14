@@ -175,6 +175,5 @@ public class AsyncRangeAndQueueAuditTests
         public Task<bool> MarkAsResolved(string failedMessageId, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, CancellationToken, Task> processCallback, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task RevertRetry(string messageUniqueId, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public Task<byte[]> GetFailedMessageBody(string uniqueMessageId, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 }
