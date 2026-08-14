@@ -45,21 +45,22 @@ namespace ServiceControl.AcceptanceTests.EventLogs
                         return false;
                     }
 
-                    // Raw header: an unquoted value fails EntityTagHeaderValue parsing, and this test
-                    // has to observe that rather than throw on it.
-                    if (!first.Headers.TryGetValues("ETag", out var values))
+                    var currentEtag = ReadEtag(first);
+
+                    if (string.IsNullOrEmpty(currentEtag))
                     {
                         return false;
                     }
 
-                    etag = values.FirstOrDefault();
+                    var current = await PollUntilTheLogGoesQuiet(currentEtag);
 
-                    if (string.IsNullOrEmpty(etag))
+                    if (current == null)
                     {
                         return false;
                     }
 
-                    currentEtagStatus = (await Poll(etag)).StatusCode;
+                    etag = currentEtag;
+                    currentEtagStatus = current.StatusCode;
 
                     var unknown = await Poll("\"not-an-etag-this-instance-ever-issued\"");
                     unknownEtagStatus = unknown.StatusCode;
@@ -87,6 +88,40 @@ namespace ServiceControl.AcceptanceTests.EventLogs
             }
         }
 
+        // Raw header: an unquoted value fails EntityTagHeaderValue parsing, and this test
+        // has to observe that rather than throw on it.
+        static string ReadEtag(HttpResponseMessage response) =>
+            response.Headers.TryGetValues("ETag", out var values) ? values.FirstOrDefault() : null;
+
+        // The endpoint keeps writing startup events, so a 200 carrying a *different* ETag only
+        // means the log moved on between the two requests, and says nothing about conditional
+        // GET support. Poll again with the ETag that response handed back, until either the log
+        // stops changing (304, or a 200 repeating the validator we sent, which is the real
+        // failure) or the attempts run out and the caller retries from a fresh read.
+        async Task<HttpResponseMessage> PollUntilTheLogGoesQuiet(string etag)
+        {
+            for (var attempt = 0; attempt < MaxPollAttempts; attempt++)
+            {
+                var response = await Poll(etag);
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    return response;
+                }
+
+                var newEtag = ReadEtag(response);
+
+                if (string.IsNullOrEmpty(newEtag) || newEtag == etag)
+                {
+                    return response;
+                }
+
+                etag = newEtag;
+            }
+
+            return null;
+        }
+
         Task<HttpResponseMessage> Poll(string ifNoneMatch)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "/api/eventlogitems/");
@@ -94,6 +129,8 @@ namespace ServiceControl.AcceptanceTests.EventLogs
 
             return HttpClient.SendAsync(request);
         }
+
+        const int MaxPollAttempts = 5;
 
         public class StartingEndpoint : EndpointConfigurationBuilder
         {
