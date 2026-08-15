@@ -115,12 +115,10 @@ while ($pending.Count -gt 0 -or $active.Count -gt 0) {
             # Set immediately before spawning, so the child inherits this run's value. Safe because
             # spawning is serialised here even though the runs themselves are not.
             $Env:ServiceControl_TESTS_RAVENDB_PORT = $nextPort
-            Write-Output "Starting $($run.Label) with RavenDB port $nextPort"
             $nextPort += $portSpacing
         }
-        else {
-            Write-Output "Starting $($run.Label)"
-        }
+
+        Write-Output "Starting $($run.Label)"
 
         $run | Add-Member -NotePropertyName Process -NotePropertyValue (
             Start-Process -FilePath 'dotnet' -ArgumentList $arguments -NoNewWindow -PassThru `
