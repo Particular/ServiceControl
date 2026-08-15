@@ -238,16 +238,32 @@ No tooling came out of this phase, deliberately. A test that scans the suite's s
 own coverage is a second thing to maintain and gets stale in its own way; the list above is the
 artefact, and new routes are a review-time concern.
 
-### Phase 2: make the silent-registration class impossible
+### Phase 2: the silent-registration class (done)
 
-The highest-value item and the smallest. The failure mode is a test double that is registered but
-never resolved, and it is invisible in review, in CI, and in the test output. It should be caught by
-the harness, not by someone happening to read the file.
+The whole suite registers services from a test in seven places, so the audit was exhaustive rather
+than a sample. Five were correct. Two were the known `IEnrichImportedErrorMessages` cases, already
+fixed. One was new:
 
-- One PR: a convention test asserting every test-registered double is reachable through the
-  abstraction its collaborator injects.
-- Same PR: audit the other `CustomizeHostBuilder` registrations across the suite for the same
-  mistake.
+`When_a_critical_error_is_triggered` registered `CriticalErrorCustomCheck` as its own concrete type,
+with a comment saying it overrode the production registration to shorten the check interval. It did
+not. The check is registered with `TryAddEnumerable` against `ICustomCheck` and consumed through
+`GetServices<ICustomCheck>()`, so the test's registration was never resolved and the check ran on
+its 60-second production interval. The test passed either way, about a minute slower than intended.
+It now removes the production registration explicitly and re-adds the check against `ICustomCheck`,
+and runs in six seconds.
+
+One registration is worth knowing about even though it is correct. `When_a_retry_fails_to_be_sent`
+substitutes a `FakeReturnToSender` by re-registering `ReturnToSender`, which works only because
+`CustomizeHostBuilder` runs after all production registration and `ReturnToSenderDequeuer` resolves
+a single instance rather than a collection. That is a real distinction, not a detail: the same move
+against a collection adds a second implementation and leaves the production one running.
+
+No harness check came out of this phase. The underlying fault is a test written so that it could
+pass without its own setup taking effect, and a convention test policing registrations would catch
+one shape of that while leaving the rest. The practice is written down instead, in
+[Writing acceptance tests](writing-acceptance-tests.md), which covers registering against the
+injected abstraction, replacing a production registration so that it fails loudly if production
+moves, and asserting on evidence the double actually ran.
 
 ### Phase 3: sweep the 71 files, one area per PR
 

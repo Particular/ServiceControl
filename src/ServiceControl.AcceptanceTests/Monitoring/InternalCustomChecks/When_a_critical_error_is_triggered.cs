@@ -7,7 +7,9 @@
     using Contracts.CustomChecks;
     using EventLog;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using ServiceControl.Operations;
 
@@ -20,7 +22,13 @@
         {
             CustomizeHostBuilder = builder =>
             {
-                builder.Services.AddTransient(_ => new CriticalErrorCustomCheck(TimeSpan.FromSeconds(1))); // Overrides existing registration to have an increased test interval
+                // Replace the production registration of the critical error custom check with a test version that has a shorter interval to trigger the critical error faster.
+                var productionRegistration = builder.Services.Single(registration =>
+                    registration.ServiceType == typeof(ICustomCheck) &&
+                    registration.ImplementationType == typeof(CriticalErrorCustomCheck));
+
+                builder.Services.Remove(productionRegistration);
+                builder.Services.AddSingleton<ICustomCheck>(_ => new CriticalErrorCustomCheck(TimeSpan.FromSeconds(1)));
             };
 
             SetSettings = settings =>
