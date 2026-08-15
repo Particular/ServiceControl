@@ -56,8 +56,10 @@ namespace ServiceControl.Audit.Persistence.RavenDB.AuditRetentionBuckets
             return new DateTime(bucketTicks, DateTimeKind.Utc);
         }
 
-        // The bucket key is derived from the fixed hourly bucket duration. The format is part of the
-        // persisted catalog contract: changing it would orphan existing buckets.
+        // The bucket key is derived from the bucket start aligned to the configured bucket duration.
+        // The duration is validated to be a whole number of hours of at least one hour, so the
+        // hour-granular key stays collision-free. The format is part of the persisted catalog
+        // contract: changing it would orphan existing buckets.
         public static string GetBucketKey(DateTime bucketStart) => bucketStart.ToString("yyyyMMdd_HH", CultureInfo.InvariantCulture);
 
         public static string GetProcessedMessageCollection(string bucketKey) => $"ProcessedMessages_{bucketKey}";

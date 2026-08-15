@@ -133,9 +133,82 @@
             Assert.That(configuration.ExpirationProcessTimerInSeconds, Is.EqualTo(0));
         }
 
+        [Test]
+        public void Should_default_bucket_duration_to_one_hour()
+        {
+            var settings = BuildBucketModeSettings();
+
+            var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings);
+
+            Assert.That(configuration.AuditRetentionBucketDuration, Is.EqualTo(TimeSpan.FromHours(1)));
+        }
+
+        [Test]
+        public void Should_apply_configured_bucket_duration()
+        {
+            var settings = BuildBucketModeSettings();
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.AuditRetentionBucketDurationKey] = "1.00:00:00";
+
+            var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings);
+
+            Assert.That(configuration.AuditRetentionBucketDuration, Is.EqualTo(TimeSpan.FromDays(1)));
+        }
+
+        [Test]
+        public void Should_throw_if_bucket_duration_is_not_a_time_span()
+        {
+            var settings = BuildBucketModeSettings();
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.AuditRetentionBucketDurationKey] = "not a time span";
+
+            var exception = Assert.Throws<InvalidOperationException>(() => RavenPersistenceConfiguration.GetDatabaseConfiguration(settings));
+
+            Assert.That(exception.Message, Does.Contain(RavenPersistenceConfiguration.AuditRetentionBucketDurationKey));
+        }
+
+        [Test]
+        public void Should_throw_if_bucket_duration_is_below_one_hour()
+        {
+            var settings = BuildBucketModeSettings();
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.AuditRetentionBucketDurationKey] = "00:30:00";
+
+            var exception = Assert.Throws<InvalidOperationException>(() => RavenPersistenceConfiguration.GetDatabaseConfiguration(settings));
+
+            Assert.That(exception.Message, Does.Contain(RavenPersistenceConfiguration.AuditRetentionBucketDurationKey));
+        }
+
+        [Test]
+        public void Should_throw_if_bucket_duration_is_not_a_whole_number_of_hours()
+        {
+            var settings = BuildBucketModeSettings();
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.AuditRetentionBucketDurationKey] = "01:30:00";
+
+            var exception = Assert.Throws<InvalidOperationException>(() => RavenPersistenceConfiguration.GetDatabaseConfiguration(settings));
+
+            Assert.That(exception.Message, Does.Contain(RavenPersistenceConfiguration.AuditRetentionBucketDurationKey));
+        }
+
+        [Test]
+        public void Should_throw_if_bucket_duration_exceeds_thirty_one_days()
+        {
+            var settings = BuildBucketModeSettings();
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.AuditRetentionBucketDurationKey] = "32.00:00:00";
+
+            var exception = Assert.Throws<InvalidOperationException>(() => RavenPersistenceConfiguration.GetDatabaseConfiguration(settings));
+
+            Assert.That(exception.Message, Does.Contain(RavenPersistenceConfiguration.AuditRetentionBucketDurationKey));
+        }
+
         PersistenceSettings BuildSettings()
         {
             return new PersistenceSettings(TimeSpan.FromMinutes(2), true, 100000);
+        }
+
+        PersistenceSettings BuildBucketModeSettings()
+        {
+            var settings = BuildSettings();
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = "connection string";
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.EnableAuditRetentionBucketsKey] = "true";
+            return settings;
         }
     }
 }

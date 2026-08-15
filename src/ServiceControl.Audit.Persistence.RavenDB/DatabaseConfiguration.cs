@@ -12,7 +12,8 @@
         int minimumStorageLeftRequiredForIngestion,
         ServerConfiguration serverConfiguration,
         TimeSpan bulkInsertCommitTimeout,
-        bool enableAuditRetentionBuckets = false)
+        bool enableAuditRetentionBuckets = false,
+        TimeSpan? auditRetentionBucketDuration = null)
     {
         public string Name { get; } = name;
 
@@ -41,9 +42,17 @@
         public bool EnableAuditRetentionBuckets { get; } = enableAuditRetentionBuckets;
 
         /// <summary>
-        /// Fixed UTC bucket duration used by bucket mode. The bucket key format and the persisted catalog
-        /// contract depend on this value, so it must not be changed for an existing database.
+        /// Default UTC bucket duration used by bucket mode when no explicit value is configured.
         /// </summary>
-        public static readonly TimeSpan AuditRetentionBucketDuration = TimeSpan.FromHours(1);
+        public static readonly TimeSpan DefaultAuditRetentionBucketDuration = TimeSpan.FromHours(1);
+
+        /// <summary>
+        /// Configurable UTC bucket duration used by bucket mode (see
+        /// RavenPersistenceConfiguration.AuditRetentionBucketDurationKey). Defaults to one hour. Must be a
+        /// whole number of hours between one hour and 31 days so the "yyyyMMdd_HH" bucket key derived from
+        /// the bucket start stays collision-free. The persisted catalog records the value and rejects a
+        /// different duration for an existing database, so changing it requires a fresh database.
+        /// </summary>
+        public TimeSpan AuditRetentionBucketDuration { get; } = auditRetentionBucketDuration ?? DefaultAuditRetentionBucketDuration;
     }
 }

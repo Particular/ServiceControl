@@ -24,6 +24,7 @@
         public const string BulkInsertCommitTimeoutInSecondsKey = "BulkInsertCommitTimeoutInSeconds";
         public const string DataSpaceRemainingThresholdKey = "DataSpaceRemainingThreshold";
         public const string EnableAuditRetentionBucketsKey = "RavenDB/EnableAuditRetentionBuckets";
+        public const string AuditRetentionBucketDurationKey = "RavenDB/AuditRetentionBucketDuration";
 
         public IEnumerable<string> ConfigurationKeys => new[]{
             DatabaseNameKey,
@@ -39,7 +40,8 @@
             DataSpaceRemainingThresholdKey,
             MinimumStorageLeftRequiredForIngestionKey,
             BulkInsertCommitTimeoutInSecondsKey,
-            EnableAuditRetentionBucketsKey
+            EnableAuditRetentionBucketsKey,
+            AuditRetentionBucketDurationKey
         };
 
         public string Name => "RavenDB";
@@ -121,6 +123,23 @@
 
             var enableAuditRetentionBuckets = GetEnableAuditRetentionBuckets(settings);
 
+            var auditRetentionBucketDuration = GetAuditRetentionBucketDuration(settings);
+
+            if (enableAuditRetentionBuckets)
+            {
+                if (auditRetentionBucketDuration > settings.AuditRetentionPeriod)
+                {
+                    Logger.LogWarning("{AuditRetentionBucketDurationKey} ({BucketDuration}) is longer than the audit retention period ({AuditRetentionPeriod}). Retention deletes whole buckets, so the effective retention will overshoot the configured period", AuditRetentionBucketDurationKey, auditRetentionBucketDuration, settings.AuditRetentionPeriod);
+                }
+
+                // Retention keeps every bucket whose End + retention is still in the future, so the
+                // expected number of active buckets scales with retention / duration. Every read fans
+                // out one query per active bucket, which makes the bucket count the dominant cost
+                // driver of bucket mode; log it so operators can correlate query load with sizing.
+                var expectedActiveBuckets = (int)Math.Ceiling(settings.AuditRetentionPeriod / auditRetentionBucketDuration) + 1;
+                Logger.LogInformation("Audit retention buckets are enabled with a bucket duration of {BucketDuration}; expect up to {ExpectedActiveBuckets} active buckets for the {AuditRetentionPeriod} audit retention period", auditRetentionBucketDuration, expectedActiveBuckets, settings.AuditRetentionPeriod);
+            }
+
             var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings, enableAuditRetentionBuckets);
 
             var bulkInsertTimeout = TimeSpan.FromSeconds(GetBulkInsertCommitTimeout(settings));
@@ -135,7 +154,8 @@
                 minimumStorageLeftRequiredForIngestion,
                 serverConfiguration,
                 bulkInsertTimeout,
-                enableAuditRetentionBuckets);
+                enableAuditRetentionBuckets,
+                auditRetentionBucketDuration);
         }
 
         static bool GetEnableAuditRetentionBuckets(PersistenceSettings settings)
@@ -151,6 +171,38 @@
             }
 
             return enabled;
+        }
+
+        static TimeSpan GetAuditRetentionBucketDuration(PersistenceSettings settings)
+        {
+            if (!settings.PersisterSpecificSettings.TryGetValue(AuditRetentionBucketDurationKey, out var value))
+            {
+                return DatabaseConfiguration.DefaultAuditRetentionBucketDuration;
+            }
+
+            if (!TimeSpan.TryParse(value, out var duration))
+            {
+                throw new InvalidOperationException($"{AuditRetentionBucketDurationKey} must be a TimeSpan value, e.g. 01:00:00 for one hour or 1.00:00:00 for one day.");
+            }
+
+            if (duration < TimeSpan.FromHours(1))
+            {
+                throw new InvalidOperationException($"{AuditRetentionBucketDurationKey} must be at least one hour.");
+            }
+
+            if (duration > TimeSpan.FromDays(31))
+            {
+                throw new InvalidOperationException($"{AuditRetentionBucketDurationKey} must not exceed 31 days.");
+            }
+
+            // Bucket keys only carry the hour of the bucket start ("yyyyMMdd_HH"), so a duration that
+            // is not a whole number of hours could map two buckets onto the same key.
+            if (duration.Ticks % TimeSpan.TicksPerHour != 0)
+            {
+                throw new InvalidOperationException($"{AuditRetentionBucketDurationKey} must be a whole number of hours.");
+            }
+
+            return duration;
         }
 
         static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings, bool enableAuditRetentionBuckets)

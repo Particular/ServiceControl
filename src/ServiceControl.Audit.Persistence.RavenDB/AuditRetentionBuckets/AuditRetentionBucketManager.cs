@@ -43,7 +43,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB.AuditRetentionBuckets
             {
                 await InitializeCore(cancellationToken);
 
-                var currentKey = AuditRetentionBucketNaming.GetBucketKey(AuditRetentionBucketNaming.GetBucketStart(UtcNow(), DatabaseConfiguration.AuditRetentionBucketDuration));
+                var currentKey = AuditRetentionBucketNaming.GetBucketKey(AuditRetentionBucketNaming.GetBucketStart(UtcNow(), configuration.AuditRetentionBucketDuration));
                 if (currentBucket == null || currentBucket.Key != currentKey)
                 {
                     currentBucket = catalog.Buckets.FirstOrDefault(b => b.Key == currentKey && b.State == AuditRetentionBucketState.Active)
@@ -112,13 +112,13 @@ namespace ServiceControl.Audit.Persistence.RavenDB.AuditRetentionBuckets
         async Task<AuditRetentionBucket> CreateBucket(string bucketKey, CancellationToken cancellationToken)
         {
             var documentStore = await documentStoreProvider.GetDocumentStore(cancellationToken);
-            var bucketStart = AuditRetentionBucketNaming.GetBucketStart(UtcNow(), DatabaseConfiguration.AuditRetentionBucketDuration);
+            var bucketStart = AuditRetentionBucketNaming.GetBucketStart(UtcNow(), configuration.AuditRetentionBucketDuration);
 
             var bucket = new AuditRetentionBucket
             {
                 Key = bucketKey,
                 Start = bucketStart,
-                End = bucketStart.Add(DatabaseConfiguration.AuditRetentionBucketDuration),
+                End = bucketStart.Add(configuration.AuditRetentionBucketDuration),
                 State = AuditRetentionBucketState.Active,
                 ProcessedMessageCollection = AuditRetentionBucketNaming.GetProcessedMessageCollection(bucketKey),
                 SagaSnapshotCollection = AuditRetentionBucketNaming.GetSagaSnapshotCollection(bucketKey),
@@ -229,11 +229,12 @@ namespace ServiceControl.Audit.Persistence.RavenDB.AuditRetentionBuckets
             var existing = await session.LoadAsync<AuditRetentionBucketCatalog>(AuditRetentionBucketCatalog.DocumentId, cancellationToken);
             if (existing != null)
             {
-                var configuredDuration = System.Xml.XmlConvert.ToString(DatabaseConfiguration.AuditRetentionBucketDuration);
+                var configuredDuration = System.Xml.XmlConvert.ToString(configuration.AuditRetentionBucketDuration);
                 if (!string.Equals(existing.BucketDuration, configuredDuration, StringComparison.Ordinal))
                 {
                     throw new InvalidOperationException(
-                        $"The audit retention bucket duration stored in the catalog ({existing.BucketDuration}) does not match the configured duration ({configuredDuration}). The bucket duration cannot be changed for an existing database.");
+                        $"The audit retention bucket duration stored in the catalog ({existing.BucketDuration}) does not match the configured duration ({configuredDuration}). " +
+                        $"The bucket duration cannot be changed for an existing database. Restore the previous value of the {RavenPersistenceConfiguration.AuditRetentionBucketDurationKey} setting or use a fresh database.");
                 }
 
                 return existing;
@@ -242,7 +243,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB.AuditRetentionBuckets
             var catalog = new AuditRetentionBucketCatalog
             {
                 Id = AuditRetentionBucketCatalog.DocumentId,
-                BucketDuration = System.Xml.XmlConvert.ToString(DatabaseConfiguration.AuditRetentionBucketDuration)
+                BucketDuration = System.Xml.XmlConvert.ToString(configuration.AuditRetentionBucketDuration)
             };
             await session.StoreAsync(catalog, cancellationToken);
             await session.SaveChangesAsync(cancellationToken);
