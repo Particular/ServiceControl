@@ -35,7 +35,7 @@
                 var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
                 var logPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs", "Audit");
                 var logsMode = "Operations";
-                var serverUrl = $"http://localhost:{PortUtility.FindAvailablePort(33334)}";
+                var serverUrl = $"http://localhost:{PortUtility.GetAssignedOrAvailablePort(33334)}";
 
                 var databaseConfiguration = new DatabaseConfiguration("audit", 60, true, TimeSpan.FromMinutes(5), 120000, 5, 5, new ServerConfiguration(dbPath, serverUrl, logPath, logsMode), TimeSpan.FromSeconds(60));
                 var serverConfig = databaseConfiguration.ServerConfiguration;

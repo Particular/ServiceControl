@@ -65,6 +65,14 @@ if ($runs.Count -eq 0) {
     throw 'No test projects were runnable on this platform.'
 }
 
+# RavenDB.Embedded binds a fixed port, and the tests otherwise pick one by probing the active
+# listeners, which concurrent processes all do at the same instant and all resolve to the same port.
+# Hand each run its own instead. Left unset when running one at a time, because probing copes better
+# with a port that something else on the machine already holds.
+$assignPorts = $MaxParallel -gt 1
+$nextPort = 33334
+$portSpacing = 10
+
 $exitCode = 0
 
 function Complete-Run($run) {
@@ -103,7 +111,17 @@ while ($pending.Count -gt 0 -or $active.Count -gt 0) {
             "RunConfiguration.TargetPlatform=$TargetPlatform"
         )
 
-        Write-Output "Starting $($run.Label)"
+        if ($assignPorts) {
+            # Set immediately before spawning, so the child inherits this run's value. Safe because
+            # spawning is serialised here even though the runs themselves are not.
+            $Env:ServiceControl_TESTS_RAVENDB_PORT = $nextPort
+            Write-Output "Starting $($run.Label) with RavenDB port $nextPort"
+            $nextPort += $portSpacing
+        }
+        else {
+            Write-Output "Starting $($run.Label)"
+        }
+
         $run | Add-Member -NotePropertyName Process -NotePropertyValue (
             Start-Process -FilePath 'dotnet' -ArgumentList $arguments -NoNewWindow -PassThru `
                 -RedirectStandardOutput $run.OutFile -RedirectStandardError $run.ErrFile)
@@ -118,9 +136,11 @@ while ($pending.Count -gt 0 -or $active.Count -gt 0) {
     }
 
     foreach ($run in @($finished)) {
-        # WaitForExit with no timeout after HasExited flushes the redirected streams, which are
-        # otherwise not guaranteed to be complete when the process object reports exit.
-        $run.Process.WaitForExit()
+        # Bounded on purpose. The parameterless WaitForExit() also waits for the redirected streams to
+        # reach EOF, and on Linux Start-Process pumps them through a pipe, so a test that leaves behind
+        # a child holding the inherited handle blocks it forever. HasExited has already told us the
+        # test process itself is done; this only gives the pump a moment to drain.
+        [void]$run.Process.WaitForExit(5000)
         Complete-Run $run
         [void]$active.Remove($run)
     }
