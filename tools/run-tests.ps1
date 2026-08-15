@@ -35,7 +35,9 @@ Write-Output "Max parallel test runs = $MaxParallel"
 $reportWarningsValue = if ($ReportWarnings) { 'true' } else { 'false' }
 $isUnix = $PSVersionTable.Platform -eq 'Unix'
 
-$runs = foreach ($project in $projectPaths) {
+$runs = [Collections.Generic.List[object]]::new()
+
+foreach ($project in $projectPaths) {
     $frameworks = @(
         (Select-Xml -Path $project -XPath "/Project/PropertyGroup/TargetFramework").Node.InnerText
         (Select-Xml -Path $project -XPath "/Project/PropertyGroup/TargetFrameworks").Node.InnerText -split ';'
@@ -51,15 +53,13 @@ $runs = foreach ($project in $projectPaths) {
             continue
         }
 
-        [pscustomobject]@{
-            Label     = "$(Split-Path $project -Leaf) ($framework)"
-            Project   = $project
-            Framework = $framework
-        }
+        $runs.Add([pscustomobject]@{
+                Label     = "$(Split-Path $project -Leaf) ($framework)"
+                Project   = $project
+                Framework = $framework
+            })
     }
 }
-
-$runs = @($runs)
 
 if ($runs.Count -eq 0) {
     throw 'No test projects were runnable on this platform.'
