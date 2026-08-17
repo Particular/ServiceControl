@@ -27,7 +27,7 @@
         [CancelAfter(180_000)]
         public async Task SubsequentBatchesShouldBeProcessed(CancellationToken cancellationToken = default)
         {
-            FailedMessage decomissionedFailure = null, successfullyRetried = null;
+            FailedMessageView decomissionedFailure = null, successfullyRetried = null;
 
             CustomizeHostBuilder = hostBuilder =>
             {
@@ -56,9 +56,9 @@
                         return false;
                     }
 
-                    var decomissionedFailureResult = await this.TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.DecommissionedEndpointUniqueMessageId && m.Status == FailedMessageStatus.Unresolved);
+                    var decomissionedFailureResult = await this.TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == ctx.DecommissionedEndpointUniqueMessageId && m.Status == FailedMessageStatus.Unresolved);
                     decomissionedFailure = decomissionedFailureResult;
-                    var successfullyRetriedResult = await this.TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.MessageThatWillFailUniqueMessageId && m.Status == FailedMessageStatus.Resolved);
+                    var successfullyRetriedResult = await this.TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == ctx.MessageThatWillFailUniqueMessageId && m.Status == FailedMessageStatus.Resolved);
                     successfullyRetried = successfullyRetriedResult;
                     return decomissionedFailureResult && successfullyRetriedResult;
                 })
