@@ -19,7 +19,7 @@
             {
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Persistence.RavenDB"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Persistence.EFCore.SqlServer"));
-                ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Persistence.EFCore.PostgreSQL"));
+                ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Persistence.EFCore.PostgreSql"));
             }
         }
 
