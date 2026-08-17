@@ -5,11 +5,13 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using OpenTelemetry.Trace;
     using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Auditing.MessagesView;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.SagaAudit;
+    using static System.Runtime.InteropServices.JavaScript.JSType;
 
     class InMemoryAuditDataStore : IAuditDataStore
     {
@@ -173,6 +175,7 @@
 
         public Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName, CancellationToken cancellationToken)
         {
+            var hasSent = messageViews.Any(m => m.SendingEndpoint?.Name == endpointName);
             var results = messageViews
                 .Where(m => m.ReceivingEndpoint.Name == endpointName && !m.IsSystemMessage)
                 .GroupBy(m => m.ProcessedAt.ToUniversalTime().Date)
@@ -184,7 +187,13 @@
                 .OrderBy(r => r.UtcDate)
                 .ToList();
 
-            return Task.FromResult(new QueryResult<IList<AuditCount>>(results, QueryStatsInfo.Zero));
+            return results.Count == 0 && hasSent
+                ? Task.FromResult(new QueryResult<IList<AuditCount>>([new AuditCount
+                        {
+                            UtcDate = messageViews.First().ProcessedAt.ToUniversalTime().Date,
+                            Count = 0
+                        }], QueryStatsInfo.Zero))
+                : Task.FromResult(new QueryResult<IList<AuditCount>>(results, QueryStatsInfo.Zero));
         }
 
         public Task SaveProcessedMessage(ProcessedMessage processedMessage)
