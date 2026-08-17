@@ -234,8 +234,8 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         });
         await auditThroughputCollectorHostedService.StopAsync(token);
 
-        var endpointWithoutCounts = await DataStore.GetEndpoint("EndpointNoData", ThroughputSource.Audit, default);
-        var endpointWithCounts = await DataStore.GetEndpoint("EndpointWithData", ThroughputSource.Audit, default);
+        var endpointWithoutCounts = await DataStore.GetEndpoint("EndpointNoData", ThroughputSource.Audit, CancellationToken.None);
+        var endpointWithCounts = await DataStore.GetEndpoint("EndpointWithData", ThroughputSource.Audit, CancellationToken.None);
 
         // Assert
         using (Assert.EnterMultipleScope())

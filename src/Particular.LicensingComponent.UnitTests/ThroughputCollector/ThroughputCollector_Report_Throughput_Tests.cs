@@ -219,7 +219,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         await DataStore.CreateBuilder().AddEndpoint().Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null, CancellationToken.None);
 
         // Assert
         Assert.That(report, Is.Not.Null);

@@ -184,7 +184,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
                 new EndpointDailyThroughput(new DateOnly(2025, 1, 10), 0)])).Build();
 
         // Act
-        var summary = await ThroughputCollector.GetThroughputSummary(default);
+        var summary = await ThroughputCollector.GetThroughputSummary(CancellationToken.None);
 
         // Assert
         Assert.That(summary, Is.Not.Null);
