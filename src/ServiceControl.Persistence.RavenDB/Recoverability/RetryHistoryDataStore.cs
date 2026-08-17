@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.RavenDB.Recoverability
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using ServiceControl.Recoverability;
 
@@ -8,22 +9,22 @@
     {
         const string DocumentId = "RetryOperations/History";
 
-        public async Task<RetryHistory> GetRetryHistory()
+        public async Task<RetryHistory> GetRetryHistory(CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
-            var id = DocumentId;
-            var retryHistory = await session.LoadAsync<RetryHistory>(id);
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var retryHistory = await session.LoadAsync<RetryHistory>(DocumentId, cancellationToken);
 
-            retryHistory ??= new() { Id = DocumentId };
+            retryHistory ??= new();
 
             return retryHistory;
         }
 
         public async Task RecordRetryOperationCompleted(string requestId, RetryType retryType, DateTime startTime, DateTime completionTime,
-            string originator, string classifier, bool messageFailed, int numberOfMessagesProcessed, DateTime lastProcessed, int retryHistoryDepth)
+            string originator, string classifier, bool messageFailed, int numberOfMessagesProcessed, DateTime lastProcessed, int retryHistoryDepth,
+            CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
-            var retryHistory = await session.LoadAsync<RetryHistory>(DocumentId) ?? new() { Id = DocumentId };
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var retryHistory = await session.LoadAsync<RetryHistory>(DocumentId, cancellationToken) ?? new();
 
             retryHistory.AddToUnacknowledged(new UnacknowledgedRetryOperation
             {
@@ -49,20 +50,20 @@
                 NumberOfMessagesProcessed = numberOfMessagesProcessed
             }, retryHistoryDepth);
 
-            await session.StoreAsync(retryHistory);
-            await session.SaveChangesAsync();
+            await session.StoreAsync(retryHistory, DocumentId, cancellationToken);
+            await session.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task<bool> AcknowledgeRetryGroup(string groupId)
+        public async Task<bool> AcknowledgeRetryGroup(string groupId, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
-            var retryHistory = await session.LoadAsync<RetryHistory>(DocumentId);
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var retryHistory = await session.LoadAsync<RetryHistory>(DocumentId, cancellationToken);
             if (retryHistory != null)
             {
                 if (retryHistory.Acknowledge(groupId, RetryType.FailureGroup))
                 {
-                    await session.StoreAsync(retryHistory);
-                    await session.SaveChangesAsync();
+                    await session.StoreAsync(retryHistory, DocumentId, cancellationToken);
+                    await session.SaveChangesAsync(cancellationToken);
 
                     return true;
                 }

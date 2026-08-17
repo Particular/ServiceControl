@@ -19,21 +19,21 @@
             this.logger = logger;
             gracePeriod = settings.HeartbeatGracePeriod;
         }
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken = default)
         {
-            await persistence.WarmupMonitoringFromPersistence(monitor);
-            timer = scheduler.Schedule(_ => CheckEndpoints(), TimeSpan.Zero, TimeSpan.FromSeconds(5), e => logger.LogError(e, "Exception occurred when monitoring endpoint instances"));
+            await persistence.WarmupMonitoringFromPersistence(monitor, cancellationToken);
+            timer = scheduler.Schedule(CheckEndpoints, TimeSpan.Zero, TimeSpan.FromSeconds(5), e => logger.LogError(e, "Exception occurred when monitoring endpoint instances"));
         }
 
-        public Task StopAsync(CancellationToken cancellationToken) => timer.Stop(cancellationToken);
+        public Task StopAsync(CancellationToken cancellationToken = default) => timer.Stop(cancellationToken);
 
-        async Task<TimerJobExecutionResult> CheckEndpoints()
+        async Task<TimerJobExecutionResult> CheckEndpoints(CancellationToken cancellationToken)
         {
             var inactivityThreshold = DateTime.UtcNow - gracePeriod;
 
             logger.LogDebug("Monitoring Endpoint Instances. Inactivity Threshold = {InactivityThreshold}", inactivityThreshold);
 
-            await monitor.CheckEndpoints(inactivityThreshold);
+            await monitor.CheckEndpoints(inactivityThreshold, cancellationToken);
             return TimerJobExecutionResult.ScheduleNextExecution;
         }
 

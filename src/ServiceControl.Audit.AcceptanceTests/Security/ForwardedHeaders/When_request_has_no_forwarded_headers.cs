@@ -10,6 +10,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
     /// Direct Access (No Proxy)
     /// When no forwarded headers are sent, the request values should remain unchanged.
     /// </summary>
+    [NonParallelizable]
     class When_request_has_no_forwarded_headers : AcceptanceTest
     {
         [Test]

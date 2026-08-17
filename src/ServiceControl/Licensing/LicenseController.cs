@@ -23,7 +23,7 @@ namespace ServiceControl.Licensing
         [Authorize(Policy = Permissions.ErrorLicensingView)]
         [HttpGet]
         [Route("license")]
-        public async Task<ActionResult<LicenseInfo>> License(bool refresh, string clientName, CancellationToken cancellationToken)
+        public async Task<ActionResult<LicenseInfo>> License(bool refresh, string clientName, CancellationToken cancellationToken = default)
         {
             if (refresh)
             {
@@ -42,6 +42,7 @@ namespace ServiceControl.Licensing
                 InstanceName = settings.InstanceName ?? string.Empty,
                 LicenseStatus = activeLicense.Details.Status,
                 Products = activeLicense.Details.Products,
+                HasEndpointMetadata = activeLicense.Details.HasEndpointMetadata,
                 LicenseExtensionUrl = connectorHeartbeatStatus.LastHeartbeat == null
                     ? $"https://particular.net/extend-your-trial?p={clientName}"
                     : $"https://particular.net/license/mt?p={clientName}&t={(activeLicense.IsEvaluation ? 0 : 1)}"
@@ -50,11 +51,16 @@ namespace ServiceControl.Licensing
             return licenseInfo;
         }
 
-        [Authorize(Policy = Permissions.ErrorLicensingView)]
+        [Authorize(Policy = Permissions.ErrorThroughputView)]
         [HttpGet]
         [Route("license/details")]
-        public async Task<ActionResult<LicensedEndpointDetails?>> LicenseDetails(CancellationToken cancellationToken)
+        public async Task<ActionResult<LicensedEndpointDetails?>> LicenseDetails(CancellationToken cancellationToken = default)
         {
+            if (activeLicense.Details.Edition != "Endpoint Size" || !activeLicense.Details.HasEndpointMetadata)
+            {
+                return (LicensedEndpointDetails?)null;
+            }
+
             var licenseDetails = await dataStore.GetLicensedEndpointDetails(cancellationToken);
             if (licenseDetails is null)
             {
@@ -65,10 +71,10 @@ namespace ServiceControl.Licensing
             return licenseDetails;
         }
 
-        [Authorize(Policy = Permissions.ErrorLicensingManage)]
+        [Authorize(Policy = Permissions.ErrorThroughputManage)]
         [HttpPost]
         [Route("license/detailsUpload")]
-        public async Task UploadLicenseDetails([FromForm] IFormFile file, CancellationToken cancellationToken)
+        public async Task UploadLicenseDetails([FromForm] IFormFile file, CancellationToken cancellationToken = default)
         {
             //perform date and license id checks
             using var brotliStream = new BrotliStream(file.OpenReadStream(), CompressionMode.Decompress);

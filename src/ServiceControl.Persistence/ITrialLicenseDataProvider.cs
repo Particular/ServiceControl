@@ -6,7 +6,7 @@
 
     public interface ITrialLicenseDataProvider
     {
-        Task<DateOnly?> GetTrialEndDate(CancellationToken cancellationToken);
-        Task StoreTrialEndDate(DateOnly trialEndDate, CancellationToken cancellationToken);
+        Task<DateOnly?> GetTrialEndDate(CancellationToken cancellationToken = default);
+        Task StoreTrialEndDate(DateOnly trialEndDate, CancellationToken cancellationToken = default);
     }
 }

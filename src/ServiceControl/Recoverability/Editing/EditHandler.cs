@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Recoverability.Editing
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
@@ -16,16 +17,16 @@
     using ServiceControl.Persistence.MessageRedirects;
 
     [Handler]
-    class EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IMessageDispatcher dispatcher, ErrorQueueNameCache errorQueueNameCache, IDomainEvents domainEvents, IMessageActionAuditLog auditLog, ILogger<EditHandler> logger)
+    class EditHandler(IEditFailedMessagesDataStore store, IMessageRedirectsDataStore redirectsStore, IMessageDispatcher dispatcher, ErrorQueueNameCache errorQueueNameCache, IDomainEvents domainEvents, IMessageActionAuditLog auditLog, ILogger<EditHandler> logger)
         : IHandleMessages<EditAndSend>
     {
         public async Task Handle(EditAndSend message, IMessageHandlerContext context)
         {
             FailedMessage failedMessage;
             string editId;
-            using (var session = await store.CreateEditFailedMessageManager())
+            await using (var session = await store.CreateEditFailedMessageManager(context.CancellationToken))
             {
-                failedMessage = await session.GetFailedMessage(message.FailedMessageId);
+                failedMessage = await session.GetFailedMessage(message.FailedMessageId, context.CancellationToken);
 
                 if (failedMessage == null)
                 {
@@ -33,7 +34,7 @@
                     return;
                 }
 
-                editId = await session.GetCurrentEditingRequestId(message.FailedMessageId);
+                editId = await session.GetCurrentEditingRequestId(message.FailedMessageId, context.CancellationToken);
                 if (editId == null)
                 {
                     if (failedMessage.Status != FailedMessageStatus.Unresolved)
@@ -43,7 +44,7 @@
                     }
 
                     // create a retries document to prevent concurrent edits
-                    await session.SetCurrentEditingRequestId(context.MessageId);
+                    await session.SetCurrentEditingRequestId(context.MessageId, context.CancellationToken);
                 }
                 else if (editId != context.MessageId)
                 {
@@ -52,13 +53,13 @@
                 }
 
                 // the original failure is marked as resolved as any failures of the edited message are treated as a new message failure.
-                await session.SetFailedMessageAsResolved();
+                await session.SetFailedMessageAsResolved(context.CancellationToken);
 
 
-                await session.SaveChanges();
+                await session.SaveChanges(context.CancellationToken);
             }
 
-            var redirects = await redirectsStore.GetOrCreate();
+            var redirects = await redirectsStore.GetRedirects(context.CancellationToken);
 
             var attempt = failedMessage.ProcessingAttempts.Last();
 
@@ -102,9 +103,9 @@
             return outgoingMessage;
         }
 
-        static string ApplyRedirect(string addressOfFailingEndpoint, MessageRedirectsCollection redirects)
+        static string ApplyRedirect(string addressOfFailingEndpoint, IReadOnlyList<MessageRedirect> redirects)
         {
-            var redirect = redirects[addressOfFailingEndpoint];
+            var redirect = redirects.FindByAddress(addressOfFailingEndpoint);
             if (redirect != null)
             {
                 addressOfFailingEndpoint = redirect.ToPhysicalAddress;

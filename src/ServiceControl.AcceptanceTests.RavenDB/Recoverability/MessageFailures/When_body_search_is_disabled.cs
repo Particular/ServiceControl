@@ -1,0 +1,94 @@
+namespace ServiceControl.AcceptanceTests.RavenDB.Recoverability.MessageFailures
+{
+    using System;
+    using System.Threading.Tasks;
+    using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
+    using CompositeViews.Messages;
+    using NServiceBus;
+    using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTesting.Customization;
+    using NUnit.Framework;
+
+    // EnableFullTextSearchOnBodies is honoured by the RavenDB persister only: it decides at ingestion
+    // whether the body is indexed. The EF persisters always index it, so this test cannot be shared.
+    class When_body_search_is_disabled : AcceptanceTest
+    {
+        [Test]
+        public async Task Should_not_be_found()
+        {
+            SetSettings = settings => settings.PersisterSpecificSettings.EnableFullTextSearchOnBodies = false;
+
+            var searchString = "forty-two";
+
+            var context = await Define<MyContext>()
+                .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage
+                {
+                    Something = "Somewhere in the body is the answer to all of the questions. forty-two"
+                })))
+                .WithEndpoint<Receiver>(b => b.DoNotFailOnErrorMessages())
+                .Done(async c =>
+                {
+                    if (c.MessageId != null && await this.TryGetMany<MessagesView>($"/api/messages/search/{c.MessageId}"))
+                    {
+                        c.MessageIngested = true;
+                    }
+
+                    if (!c.MessageIngested)
+                    {
+                        return false;
+                    }
+
+                    c.MessageFound = await this.TryGetMany<MessagesView>($"/api/messages/search/{searchString}");
+                    return true;
+                })
+                .Run();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(context.MessageIngested, Is.True);
+                Assert.That(context.MessageFound, Is.False);
+            }
+        }
+
+        public class Sender : EndpointConfigurationBuilder
+        {
+            public Sender() =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                {
+                    var routing = c.ConfigureRouting();
+                    routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
+                });
+        }
+
+        public class Receiver : EndpointConfigurationBuilder
+        {
+            public Receiver() =>
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.NoRetries());
+
+            [Handler]
+            public class MyMessageHandler(MyContext scenarioContext) : IHandleMessages<MyMessage>
+            {
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
+                {
+                    scenarioContext.MessageId = context.MessageId;
+                    throw new Exception("Simulated exception");
+                }
+            }
+        }
+
+        public class MyMessage : ICommand
+        {
+            public string Something { get; set; }
+        }
+
+        public class MyContext : ScenarioContext
+        {
+            public string MessageId { get; set; }
+
+            public bool MessageIngested { get; set; }
+
+            public bool MessageFound { get; set; }
+        }
+    }
+}

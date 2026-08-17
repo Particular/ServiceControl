@@ -34,7 +34,7 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
         var auditQuery = new AuditQuery(NullLogger<AuditQuery>.Instance, new EndpointsApi_ReturningTwoEndpoints(), new FakeAuditCountApi(), new FakeConfigurationApi());
 
         //Act
-        var endpoints = (await auditQuery.GetKnownEndpoints(default)).ToList();
+        var endpoints = (await auditQuery.GetKnownEndpoints()).ToList();
 
         //Assert
         Assert.That(endpoints, Is.Not.Null, "Endpoints should be found");
@@ -53,7 +53,7 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
         var auditQuery = new AuditQuery(NullLogger<AuditQuery>.Instance, new FakeEndpointApi(), new FakeAuditCountApi(), new ConfigurationApi_ReturningOneValidAuditConfig());
 
         //Act
-        var remotes = await auditQuery.GetAuditRemotes(default);
+        var remotes = await auditQuery.GetAuditRemotes();
 
         //Assert
         Assert.That(remotes, Is.Not.Null, "Remotes should be found");
@@ -81,7 +81,7 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
         var auditQuery = new AuditQuery(NullLogger<AuditQuery>.Instance, new FakeEndpointApi(), new FakeAuditCountApi(), new ConfigurationApi_ReturningOneValidAuditConfig());
 
         //Act
-        var connectionSettingsResult = await auditQuery.TestAuditConnection(default);
+        var connectionSettingsResult = await auditQuery.TestAuditConnection();
 
         //Assert
         Assert.That(connectionSettingsResult, Is.Not.Null, "connectionSettingsResult should be returned");
@@ -103,7 +103,7 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
         var auditQuery = new AuditQuery(NullLogger<AuditQuery>.Instance, new FakeEndpointApi(), new FakeAuditCountApi(), confiApi);
 
         //Act
-        var connectionSettingsResult = await auditQuery.TestAuditConnection(default);
+        var connectionSettingsResult = await auditQuery.TestAuditConnection();
 
         //Assert
         Assert.That(connectionSettingsResult, Is.Not.Null, "connectionSettingsResult should be returned");
@@ -128,7 +128,7 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
         var auditQuery = new AuditQuery(NullLogger<AuditQuery>.Instance, new FakeEndpointApi(), new FakeAuditCountApi(), confiApi);
 
         //Act
-        var connectionSettingsResult = await auditQuery.TestAuditConnection(default);
+        var connectionSettingsResult = await auditQuery.TestAuditConnection();
 
         //Assert
         Assert.That(connectionSettingsResult, Is.Not.Null, "connectionSettingsResult should be returned");
@@ -148,7 +148,7 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
         var auditQuery = new AuditQuery(NullLogger<AuditQuery>.Instance, new FakeEndpointApi(), new AuditCountApi_ReturningThreeAuditCounts(), new FakeConfigurationApi());
 
         //Act
-        var auditCount = await auditQuery.GetAuditCountForEndpoint("Endpoint1", default);
+        var auditCount = await auditQuery.GetAuditCountForEndpoint("Endpoint1");
 
         Assert.That(auditCount, Is.Not.Null, "AuditCount should be returned");
         Assert.That(auditCount.Count, Is.EqualTo(3), "Invalid number of audit counts");
@@ -156,7 +156,7 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
 
     class ConfigurationApi_ReturningOneValidAuditConfig : IConfigurationApi
     {
-        public Task<object> GetConfig(CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<object> GetConfig(CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
         public Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken = default)
         {
@@ -165,12 +165,12 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
             return Task.FromResult<RemoteConfiguration[]>([remote]);
         }
 
-        public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 
     class ConfigurationApi_Configurable : IConfigurationApi
     {
-        public Task<object> GetConfig(CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<object> GetConfig(CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
         public Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken = default)
         {
@@ -184,7 +184,7 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
             return Task.FromResult<RemoteConfiguration[]>([remote]);
         }
 
-        public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
         public bool ReturnAuditConfig { get; set; }
         public string RemoteStatus { get; set; }
@@ -194,7 +194,7 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
 
     class EndpointsApi_ReturningTwoEndpoints : IEndpointsApi
     {
-        public Task<List<Endpoint>> GetEndpoints(CancellationToken cancellationToken)
+        public Task<List<Endpoint>> GetEndpoints(CancellationToken cancellationToken = default)
         {
             return Task.FromResult<List<Endpoint>>([
                 new Endpoint { Id = Guid.NewGuid(), Name = "Endpoint1" },
@@ -206,7 +206,7 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
 
     class AuditCountApi_ReturningThreeAuditCounts : IAuditCountApi
     {
-        public async Task<IList<AuditCount>> GetEndpointAuditCounts(string endpoint, CancellationToken token)
+        public async Task<IList<AuditCount>> GetEndpointAuditCounts(string endpoint, CancellationToken cancellationToken = default)
         {
             var auditCounts = new List<AuditCount>
             {

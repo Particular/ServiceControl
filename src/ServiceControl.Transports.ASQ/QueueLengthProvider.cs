@@ -33,19 +33,19 @@
             queueLengths.AddOrUpdate(queueToTrack, _ => emptyQueueLength, (_, existingQueueLength) => existingQueueLength);
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 try
                 {
-                    await FetchQueueSizes(stoppingToken);
+                    await FetchQueueSizes(cancellationToken);
 
                     UpdateQueueLengthStore();
 
-                    await Task.Delay(QueryDelayInterval, stoppingToken);
+                    await Task.Delay(QueryDelayInterval, cancellationToken);
                 }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
                     // no-op
                 }

@@ -19,7 +19,7 @@
             Recoverability = primary.Recoverability ?? fallback.Recoverability;
         }
 
-        public override Task Complete(CancellationToken cancellationToken)
+        public override Task Complete(CancellationToken cancellationToken = default)
             => Task.WhenAll(
                 primary.Complete(cancellationToken),
                 fallback.Complete(cancellationToken)

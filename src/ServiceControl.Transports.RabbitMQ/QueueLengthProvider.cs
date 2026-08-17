@@ -34,19 +34,19 @@
                 return queueToTrack.InputQueue;
             });
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 try
                 {
-                    await FetchQueueLengths(stoppingToken);
+                    await FetchQueueLengths(cancellationToken);
 
                     UpdateQueueLengths();
 
-                    await Task.Delay(QueryDelayInterval, stoppingToken);
+                    await Task.Delay(QueryDelayInterval, cancellationToken);
                 }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
                     // no-op
                 }
@@ -90,6 +90,10 @@
 
                     var size = queue.MessageCount;
                     sizes.AddOrUpdate(queueName, _ => size, (_, _) => size);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
                 }
                 catch (Exception e)
                 {

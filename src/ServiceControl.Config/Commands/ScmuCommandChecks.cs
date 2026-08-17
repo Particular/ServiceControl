@@ -3,6 +3,7 @@
     using System;
     using System.Diagnostics;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using ServiceControl.Config.Framework;
     using ServiceControlInstaller.Engine;
@@ -18,7 +19,7 @@
             this.windowManager = windowManager;
         }
 
-        protected override async Task<bool> PromptForRabbitMqCheck(bool isUpgrade)
+        protected override async Task<bool> PromptForRabbitMqCheck(bool isUpgrade, CancellationToken cancellationToken = default)
         {
             var title = isUpgrade ? "UPGRADE WARNING" : "INSTALL WARNING";
             var beforeWhat = isUpgrade ? "upgrading" : "installing";
@@ -34,27 +35,28 @@
             message.AppendLine();
             message.AppendLine($"Please confirm your broker meets the minimum requirements before {beforeWhat}.");
 
-            var continueInstall = await windowManager.ShowYesNoDialog(title, message.ToString(), question, yes, no);
+            var continueInstall = await windowManager.ShowYesNoDialog(title, message.ToString(), question, yes, no, cancellationToken);
             return continueInstall;
         }
 
-        protected override Task NotifyForDeprecatedMessageTransport(TransportInfo transport)
+        protected override Task NotifyForDeprecatedMessageTransport(TransportInfo transport, CancellationToken cancellationToken = default)
         {
-            return windowManager.ShowMessage("DEPRECATED MESSAGE TRANSPORT", $"The message transport '{transport.DisplayName}' is not available in this version of ServiceControl, and this instance cannot be upgraded.", acceptText: "Cancel Upgrade", hideCancel: true);
+            return windowManager.ShowMessage("DEPRECATED MESSAGE TRANSPORT", $"The message transport '{transport.DisplayName}' is not available in this version of ServiceControl, and this instance cannot be upgraded.", acceptText: "Cancel Upgrade", hideCancel: true, cancellationToken: cancellationToken);
         }
 
-        protected override Task NotifyForMissingSystemPrerequisites(string missingPrereqsMessage)
+        protected override Task NotifyForMissingSystemPrerequisites(string missingPrereqsMessage, CancellationToken cancellationToken = default)
         {
-            return windowManager.ShowMessage("Missing prerequisites", missingPrereqsMessage, acceptText: "Cancel", hideCancel: true);
+            return windowManager.ShowMessage("Missing prerequisites", missingPrereqsMessage, acceptText: "Cancel", hideCancel: true, cancellationToken: cancellationToken);
         }
 
-        protected override async Task NotifyForIncompatibleStorageEngine(IServiceControlBaseInstance baseInstance)
+        protected override async Task NotifyForIncompatibleStorageEngine(IServiceControlBaseInstance baseInstance, CancellationToken cancellationToken = default)
         {
             var openUpgradeGuide = await windowManager.ShowYesNoDialog("STORAGE ENGINE INCOMPATIBLE",
                 $"The storage format has changed and the {baseInstance.PersistenceManifest.DisplayName} storage engine is no longer available. Upgrading requires a side-by-side deployment of both versions. Migration guidance is available in the version 4 to 5 upgrade guidance at {UpgradeGuide4to5Url}",
                 "Open online ServiceControl 4 to 5 upgrade guide in system default browser?",
                 "Yes",
-                "No"
+                "No",
+                cancellationToken
             );
 
             if (openUpgradeGuide)
@@ -63,7 +65,7 @@
             }
         }
 
-        protected override async Task NotifyForIncompatibleUpgradeVersion(UpgradeInfo upgradeInfo)
+        protected override async Task NotifyForIncompatibleUpgradeVersion(UpgradeInfo upgradeInfo, CancellationToken cancellationToken = default)
         {
             var nextVersion = upgradeInfo.UpgradePath[0];
             await windowManager.ShowMessage("VERSION UPGRADE INCOMPATIBLE",
@@ -76,26 +78,26 @@
                 "<ListItem Margin=\"48,0,0,0\"><Paragraph>Upgrade this instance to the latest version of ServiceControl.</Paragraph></ListItem>\r\n" +
                 "</List>\r\n" +
                 "</Section>",
-                hideCancel: true);
+                hideCancel: true, cancellationToken: cancellationToken);
         }
 
-        protected override Task NotifyError(string title, string message)
+        protected override Task NotifyError(string title, string message, CancellationToken cancellationToken = default)
         {
-            return windowManager.ShowMessage(title.ToUpperInvariant(), message, hideCancel: true);
+            return windowManager.ShowMessage(title.ToUpperInvariant(), message, hideCancel: true, cancellationToken: cancellationToken);
         }
 
-        protected override Task<bool> PromptToStopRunningInstance(BaseService instance)
+        protected override Task<bool> PromptToStopRunningInstance(BaseService instance, CancellationToken cancellationToken = default)
         {
             return windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {Constants.CurrentVersion}",
                 $"{instance.Name} needs to be stopped in order to upgrade to version {Constants.CurrentVersion}.",
                 "Do you want to proceed?",
-                "Yes, I want to proceed", "No");
+                "Yes, I want to proceed", "No", cancellationToken);
         }
 
-        protected override Task<bool> PromptToContinueWithForcedUpgrade()
+        protected override Task<bool> PromptToContinueWithForcedUpgrade(CancellationToken cancellationToken = default)
         {
             return windowManager.ShowMessage("Forced migration",
-                "Do you want to proceed with forced migration to ServiceControl 5? The current RavenDB 3.5 database will be moved aside and a new database will be created.", "Yes");
+                "Do you want to proceed with forced migration to ServiceControl 5? The current RavenDB 3.5 database will be moved aside and a new database will be created.", "Yes", cancellationToken: cancellationToken);
         }
     }
 }

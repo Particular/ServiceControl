@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Recoverability.API
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
     using Microsoft.AspNetCore.Authorization;
@@ -14,7 +15,7 @@
         [Authorize(Policy = Permissions.ErrorRecoverabilityGroupsView)]
         [Route("recoverability/unacknowledgedgroups/{groupId:required:minlength(1)}")]
         [HttpDelete]
-        public async Task<IActionResult> AcknowledgeOperation(string groupId)
+        public async Task<IActionResult> AcknowledgeOperation(string groupId, CancellationToken cancellationToken = default)
         {
             if (archiver.IsArchiveInProgressFor(groupId))
             {
@@ -22,7 +23,7 @@
                 return Ok();
             }
 
-            var success = await retryStore.AcknowledgeRetryGroup(groupId);
+            var success = await retryStore.AcknowledgeRetryGroup(groupId, cancellationToken);
 
             if (success)
             {

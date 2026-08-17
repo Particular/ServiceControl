@@ -28,8 +28,6 @@ public class FailedMessageEntity
 
     public string? ConversationId { get; set; }
 
-    public string? QueueAddress { get; set; }
-
     public string? SendingEndpointName { get; set; }
 
     public Guid? SendingEndpointHostId { get; set; }
@@ -58,5 +56,5 @@ public class FailedMessageEntity
 
     public string? BodyContentType { get; set; }
 
-    public required string FailingEndpointAddress { get; set; }
+    public string? FailingEndpointAddress { get; set; }
 }

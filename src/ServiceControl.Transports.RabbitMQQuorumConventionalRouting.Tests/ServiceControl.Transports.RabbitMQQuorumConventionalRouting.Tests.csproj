@@ -1,7 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <TestCategory>RabbitMQQuorumConventional</TestCategory>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,8 +25,8 @@
 
   <ItemGroup>
     <Compile Include="..\ServiceControl.Transports.Tests\*.cs" LinkBase="Shared" />
+    <Compile Remove="..\ServiceControl.Transports.Tests\NUnitParallelRunnerSettings.cs" />
     <Compile Remove="..\ServiceControl.Transports.Tests\TransportManifestLibraryTests.cs" />
-    <Compile Remove="..\ServiceControl.Transports.Tests\TestsFilter.cs" />
   </ItemGroup>
 
 </Project>

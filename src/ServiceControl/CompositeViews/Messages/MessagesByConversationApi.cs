@@ -2,6 +2,7 @@ namespace ServiceControl.CompositeViews.Messages
 {
     using System.Collections.Generic;
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
@@ -16,15 +17,15 @@ namespace ServiceControl.CompositeViews.Messages
         string ConversationId)
         : ScatterGatherApiMessageViewWithSystemMessagesContext(PagingInfo, SortInfo, IncludeSystemMessages);
 
-    public class MessagesByConversationApi : ScatterGatherApiMessageView<IErrorMessageDataStore, MessagesByConversationContext>
+    public class MessagesByConversationApi : ScatterGatherApiMessageView<IMessagesViewDataStore, MessagesByConversationContext>
     {
-        public MessagesByConversationApi(IErrorMessageDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<MessagesByConversationApi> logger)
+        public MessagesByConversationApi(IMessagesViewDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<MessagesByConversationApi> logger)
             : base(dataStore, settings, httpClientFactory, httpContextAccessor, logger)
         {
         }
 
-        protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(MessagesByConversationContext input) =>
+        protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(MessagesByConversationContext input, CancellationToken cancellationToken = default) =>
             DataStore.GetAllMessagesByConversation(input.ConversationId, input.PagingInfo, input.SortInfo,
-                input.IncludeSystemMessages);
+                input.IncludeSystemMessages, cancellationToken);
     }
 }

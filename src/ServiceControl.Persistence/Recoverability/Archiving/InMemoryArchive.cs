@@ -41,7 +41,7 @@
             return new ArchiveProgress(roundedPercentage, TotalNumberOfMessages, NumberOfMessagesArchived, remaining);
         }
 
-        public Task Start()
+        public Task Start(CancellationToken cancellationToken = default)
         {
             ArchiveState = ArchiveState.ArchiveStarted;
             CompletionTime = null;
@@ -52,10 +52,10 @@
                 ArchiveType = ArchiveType,
                 Progress = GetProgress(),
                 StartTime = Started
-            }, CancellationToken.None);
+            }, cancellationToken);
         }
 
-        public Task BatchArchived(int numberOfMessagesArchivedInBatch)
+        public Task BatchArchived(int numberOfMessagesArchivedInBatch, CancellationToken cancellationToken = default)
         {
             ArchiveState = ArchiveState.ArchiveProgressing;
             NumberOfMessagesArchived += numberOfMessagesArchivedInBatch;
@@ -69,10 +69,10 @@
                 Progress = GetProgress(),
                 StartTime = Started,
                 Last = Last.Value
-            }, CancellationToken.None);
+            }, cancellationToken);
         }
 
-        public Task FinalizeArchive()
+        public Task FinalizeArchive(CancellationToken cancellationToken = default)
         {
             ArchiveState = ArchiveState.ArchiveFinalizing;
             NumberOfMessagesArchived = TotalNumberOfMessages;
@@ -85,10 +85,10 @@
                 Progress = GetProgress(),
                 StartTime = Started,
                 Last = Last.Value
-            }, CancellationToken.None);
+            }, cancellationToken);
         }
 
-        public Task Complete()
+        public Task Complete(CancellationToken cancellationToken = default)
         {
             ArchiveState = ArchiveState.ArchiveCompleted;
             NumberOfMessagesArchived = TotalNumberOfMessages;
@@ -104,7 +104,7 @@
                 Last = Last.Value,
                 CompletionTime = CompletionTime.Value,
                 GroupName = GroupName
-            }, CancellationToken.None);
+            }, cancellationToken);
         }
 
         public bool NeedsAcknowledgement()

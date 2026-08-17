@@ -10,6 +10,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
     /// Known Proxies Only
     /// When KnownProxies are configured and the caller IP matches, headers should be applied.
     /// </summary>
+    [NonParallelizable]
     class When_known_proxies_are_configured : AcceptanceTest
     {
         ForwardedHeadersTestConfiguration configuration;

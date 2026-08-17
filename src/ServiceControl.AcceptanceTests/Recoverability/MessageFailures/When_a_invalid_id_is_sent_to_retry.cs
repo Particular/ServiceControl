@@ -15,7 +15,7 @@
     {
         [Test]
         [CancelAfter(180_000)]
-        public async Task SubsequentBatchesShouldBeProcessed(CancellationToken cancellationToken)
+        public async Task SubsequentBatchesShouldBeProcessed(CancellationToken cancellationToken = default)
         {
             var context = await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(cfg => cfg

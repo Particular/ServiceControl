@@ -1,38 +1,53 @@
-﻿namespace ServiceControl.AcceptanceTests
+﻿namespace ServiceControl.AcceptanceTests.RavenDB;
+
+using System;
+using System.Reactive.Disposables;
+using System.Threading;
+using System.Threading.Tasks;
+using ServiceBus.Management.Infrastructure.Settings;
+using ServiceControl.AcceptanceTests.TestSupport;
+using ServiceControl.Persistence.Tests;
+using ServiceControl.RavenDB;
+
+public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfiguration
 {
-    using System;
-    using System.Threading.Tasks;
-    using Persistence.Tests;
-    using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.RavenDB;
+    public string PersistenceType { get; } = "RavenDB";
 
-    public class AcceptanceTestStorageConfiguration
+
+    public async Task CustomizeSettings(Settings settings, CancellationToken cancellationToken = default)
     {
-        public string PersistenceType { get; } = "RavenDB";
+        databaseName = Guid.NewGuid().ToString("n");
+        databaseInstance = await SharedEmbeddedServer.GetInstance(cancellationToken);
 
-        public async Task CustomizeSettings(Settings settings)
+        settings.PersisterSpecificSettings = new RavenPersisterSettings
         {
-            databaseName = Guid.NewGuid().ToString("n");
-            databaseInstance = await SharedEmbeddedServer.GetInstance();
-
-            settings.PersisterSpecificSettings = new RavenPersisterSettings
-            {
-                ErrorRetentionPeriod = TimeSpan.FromDays(10),
-                ConnectionString = databaseInstance.ServerUrl,
-                DatabaseName = databaseName
-            };
-        }
-
-        public async Task Cleanup()
-        {
-            if (databaseInstance == null)
-            {
-                return;
-            }
-            await databaseInstance.DeleteDatabase(databaseName);
-        }
-
-        EmbeddedDatabase databaseInstance;
-        string databaseName;
+            ErrorRetentionPeriod = TimeSpan.FromDays(10),
+            ConnectionString = databaseInstance.ServerUrl,
+            DatabaseName = databaseName
+        };
     }
+
+    public async Task Cleanup(CancellationToken cancellationToken = default)
+    {
+        if (databaseInstance == null)
+        {
+            return;
+        }
+        using var _ = await UseDatabaseLifecycleLock(cancellationToken);
+        await databaseInstance.DeleteDatabase(databaseName, cancellationToken);
+    }
+
+    /// <summary>
+    /// The shared server cannot perform database lifecycle operations in parallel, take this lock when you
+    /// need to do one of these operations in a test.
+    /// </summary>
+    public async Task<IDisposable> UseDatabaseLifecycleLock(CancellationToken cancellationToken = default)
+    {
+        await databaseLifecycleLock.WaitAsync(cancellationToken);
+        return Disposable.Create(() => databaseLifecycleLock.Release());
+    }
+
+    static readonly SemaphoreSlim databaseLifecycleLock = new SemaphoreSlim(1, 1);
+    EmbeddedDatabase databaseInstance;
+    string databaseName;
 }

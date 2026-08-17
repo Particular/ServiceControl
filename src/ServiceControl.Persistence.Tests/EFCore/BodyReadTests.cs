@@ -26,9 +26,9 @@ class BodyReadTests : ErrorIngestionTestBase
         Assert.That(result, Is.Not.Null);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.HasResult, Is.True);
-            Assert.That(result.ContentType, Is.EqualTo("text/xml"));
-            Assert.That(Encoding.UTF8.GetString(ReadAll(result.Stream)), Is.EqualTo("<order>1</order>"));
+            Assert.That(result.State, Is.EqualTo(MessageBodyState.Available));
+            Assert.That(result.Content.ContentType, Is.EqualTo("text/xml"));
+            Assert.That(Encoding.UTF8.GetString(ReadAll(result.Content.Stream)), Is.EqualTo("<order>1</order>"));
         }
     }
 
@@ -44,9 +44,9 @@ class BodyReadTests : ErrorIngestionTestBase
         Assert.That(result, Is.Not.Null);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.HasResult, Is.True);
-            Assert.That(result.ContentType, Is.EqualTo("application/octet-stream"));
-            Assert.That(ReadAll(result.Stream), Is.EqualTo(body));
+            Assert.That(result.State, Is.EqualTo(MessageBodyState.Available));
+            Assert.That(result.Content.ContentType, Is.EqualTo("application/octet-stream"));
+            Assert.That(ReadAll(result.Content.Stream), Is.EqualTo(body));
         }
     }
 
@@ -62,8 +62,8 @@ class BodyReadTests : ErrorIngestionTestBase
         Assert.That(result, Is.Not.Null);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.HasResult, Is.True);
-            Assert.That(ReadAll(result.Stream), Is.EqualTo(body), "external storage is authoritative, not the inline search prefix");
+            Assert.That(result.State, Is.EqualTo(MessageBodyState.Available));
+            Assert.That(ReadAll(result.Content.Stream), Is.EqualTo(body), "external storage is authoritative, not the inline search prefix");
         }
     }
 
@@ -76,11 +76,11 @@ class BodyReadTests : ErrorIngestionTestBase
         var result = await Fetch(failure.MessageId);
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.HasResult, Is.True);
+        Assert.That(result.State, Is.EqualTo(MessageBodyState.Available));
     }
 
     [Test]
-    public async Task Reports_no_body_for_an_empty_body()
+    public async Task Reports_an_empty_body()
     {
         var failure = new IngestedFailure { Body = [] };
         await Ingest(failure);
@@ -88,7 +88,7 @@ class BodyReadTests : ErrorIngestionTestBase
         var result = await Fetch(failure.UniqueMessageIdString);
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.HasResult, Is.False);
+        Assert.That(result.State, Is.EqualTo(MessageBodyState.Empty));
     }
 
     [Test]
@@ -96,10 +96,10 @@ class BodyReadTests : ErrorIngestionTestBase
     {
         var result = await Fetch(Guid.NewGuid().ToString());
 
-        Assert.That(result, Is.Null);
+        Assert.That(result.State, Is.EqualTo(MessageBodyState.NotFound));
     }
 
-    async Task<MessageBodyStreamResult> Fetch(string bodyId)
+    async Task<MessageBodyResult> Fetch(string bodyId)
     {
         using var scope = ServiceProvider.CreateScope();
         var bodyStorage = scope.ServiceProvider.GetRequiredService<IBodyStorage>();

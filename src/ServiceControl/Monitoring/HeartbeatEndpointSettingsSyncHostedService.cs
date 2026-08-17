@@ -21,7 +21,7 @@ public class HeartbeatEndpointSettingsSyncHostedService(
 {
     public TimeSpan DelayStart { get; set; } = TimeSpan.FromSeconds(20);
 
-    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Starting {ServiceName}", nameof(HeartbeatEndpointSettingsSyncHostedService));
 
@@ -38,7 +38,11 @@ public class HeartbeatEndpointSettingsSyncHostedService(
                     logger.LogInformation("Performing sync for {ServiceName}", nameof(HeartbeatEndpointSettingsSyncHostedService));
                     await PerformSync(cancellationToken);
                 }
-                catch (Exception ex) when (ex is not OperationCanceledException)
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception ex)
                 {
                     logger.LogError(ex,
                         $"Failed to perform sync between data in {nameof(IEndpointInstanceMonitoring)} and {nameof(IEndpointSettingsStore)}");
@@ -53,7 +57,7 @@ public class HeartbeatEndpointSettingsSyncHostedService(
 
     async Task PerformSync(CancellationToken cancellationToken)
     {
-        var monitorEndpoints = (await monitoringDataStore.GetAllKnownEndpoints())
+        var monitorEndpoints = (await monitoringDataStore.GetAllKnownEndpoints(cancellationToken))
             .Select(endpoint => endpoint.EndpointDetails.Name).Distinct().ToHashSet();
 
         await InitialiseSettings(monitorEndpoints, cancellationToken);
@@ -78,7 +82,7 @@ public class HeartbeatEndpointSettingsSyncHostedService(
                     foreach (Guid endpointId in monitorEndpointsLookup[endpointSetting.Name].SkipLast(1))
                     {
                         endpointInstanceMonitoring.RemoveEndpoint(endpointId);
-                        await monitoringDataStore.Delete(endpointId);
+                        await monitoringDataStore.Delete(endpointId, cancellationToken);
                         logger.LogInformation("Removed endpoint '{EndpointName}' from monitoring data", endpointSetting.Name);
                     }
                 }

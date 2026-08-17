@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Transports;
     using Transports.ASBS;
@@ -11,7 +12,7 @@
 
         public ITransportCustomization TransportCustomization { get; private set; }
 
-        public Task Configure()
+        public Task Configure(CancellationToken cancellationToken = default)
         {
             TransportCustomization = new ASBSTransportCustomization();
             ConnectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
@@ -24,7 +25,7 @@
             return Task.CompletedTask;
         }
 
-        public Task Cleanup() => Task.CompletedTask;
+        public Task Cleanup(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
         static string ConnectionStringKey = "ServiceControl_TransportTests_ASBS_ConnectionString";
     }

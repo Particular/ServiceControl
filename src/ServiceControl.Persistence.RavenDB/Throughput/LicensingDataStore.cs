@@ -25,13 +25,11 @@ class LicensingDataStore(
     const string ReportMasksDocumentId = "ReportMasks";
     const string LicencedEndpointDetailsDocumentId = "LicensedEndpointDetails";
 
-    const int ThroughputPeriodMonths = 14;
-
     static readonly AuditServiceMetadata DefaultAuditServiceMetadata = new([], []);
     static readonly BrokerMetadata DefaultBrokerMetadata = new(null, []);
     static readonly ReportConfigurationDocument DefaultReportConfiguration = new();
 
-    public async Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken)
+    public async Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken = default)
     {
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
@@ -47,7 +45,7 @@ class LicensingDataStore(
         return documents.Select(document => document.ToEndpoint());
     }
 
-    public async Task<Endpoint?> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken)
+    public async Task<Endpoint?> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken = default)
     {
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
@@ -72,7 +70,7 @@ class LicensingDataStore(
         return endpoint;
     }
 
-    public async Task<IEnumerable<(EndpointIdentifier, Endpoint?)>> GetEndpoints(IList<EndpointIdentifier> endpointIds, CancellationToken cancellationToken)
+    public async Task<IEnumerable<(EndpointIdentifier, Endpoint?)>> GetEndpoints(IList<EndpointIdentifier> endpointIds, CancellationToken cancellationToken = default)
     {
         var documentIds = endpointIds.Select(id => id.GenerateDocumentId());
 
@@ -112,7 +110,7 @@ class LicensingDataStore(
             });
     }
 
-    public async Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken)
+    public async Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken = default)
     {
         var document = endpoint.ToEndpointDocument();
 
@@ -137,14 +135,14 @@ class LicensingDataStore(
         await session.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, CancellationToken cancellationToken)
+    public async Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, CancellationToken cancellationToken = default)
     {
         var results = queueNames.ToDictionary(queueName => queueName, _ => new List<ThroughputData>() as IEnumerable<ThroughputData>);
 
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
-        var from = DateTime.UtcNow.AddMonths(-ThroughputPeriodMonths);
+        var from = DateTime.UtcNow.AddMonths(-ThroughputReporting.ReportedMonths);
         var query = session.Query<EndpointDocument>()
             .Where(document => document.SanitizedName.In(queueNames))
             .Include(builder => builder.IncludeTimeSeries(ThroughputTimeSeriesName, from));
@@ -172,7 +170,7 @@ class LicensingDataStore(
         return results;
     }
 
-    public async Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IList<EndpointDailyThroughput> throughput, CancellationToken cancellationToken)
+    public async Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IList<EndpointDailyThroughput> throughput, CancellationToken cancellationToken = default)
     {
         if (!throughput.Any())
         {
@@ -197,7 +195,7 @@ class LicensingDataStore(
         await session.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task UpdateUserIndicatorOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken)
+    public async Task UpdateUserIndicatorOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken = default)
     {
         var updates = userIndicatorUpdates.ToDictionary(u => u.Name, u => u.UserIndicator);
         var store = await storeProvider.GetDocumentStore(cancellationToken);
@@ -246,7 +244,7 @@ class LicensingDataStore(
         await session.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken)
+    public async Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken = default)
     {
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
@@ -256,7 +254,7 @@ class LicensingDataStore(
         return result;
     }
 
-    public async Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, bool includeToday, CancellationToken cancellationToken)
+    public async Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, bool includeToday, CancellationToken cancellationToken = default)
     {
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
@@ -281,7 +279,7 @@ class LicensingDataStore(
         return documents.SelectMany(timeSeries => timeSeries.Results).Any();
     }
 
-    public async Task<BrokerMetadata> GetBrokerMetadata(CancellationToken cancellationToken)
+    public async Task<BrokerMetadata> GetBrokerMetadata(CancellationToken cancellationToken = default)
     {
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
@@ -289,7 +287,7 @@ class LicensingDataStore(
         return await session.LoadAsync<BrokerMetadata>(BrokerMetadataDocumentId, cancellationToken) ?? DefaultBrokerMetadata;
     }
 
-    public async Task SaveBrokerMetadata(BrokerMetadata brokerMetadata, CancellationToken cancellationToken)
+    public async Task SaveBrokerMetadata(BrokerMetadata brokerMetadata, CancellationToken cancellationToken = default)
     {
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
@@ -298,7 +296,7 @@ class LicensingDataStore(
         await session.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<AuditServiceMetadata> GetAuditServiceMetadata(CancellationToken cancellationToken)
+    public async Task<AuditServiceMetadata> GetAuditServiceMetadata(CancellationToken cancellationToken = default)
     {
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
@@ -306,7 +304,7 @@ class LicensingDataStore(
         return await session.LoadAsync<AuditServiceMetadata>(AuditServiceMetadataDocumentId, cancellationToken) ?? DefaultAuditServiceMetadata;
     }
 
-    public async Task SaveAuditServiceMetadata(AuditServiceMetadata auditServiceMetadata, CancellationToken cancellationToken)
+    public async Task SaveAuditServiceMetadata(AuditServiceMetadata auditServiceMetadata, CancellationToken cancellationToken = default)
     {
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
@@ -315,7 +313,7 @@ class LicensingDataStore(
         await session.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<List<string>> GetReportMasks(CancellationToken cancellationToken)
+    public async Task<List<string>> GetReportMasks(CancellationToken cancellationToken = default)
     {
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
@@ -325,7 +323,7 @@ class LicensingDataStore(
         return config.MaskedStrings;
     }
 
-    public async Task SaveReportMasks(List<string> reportMasks, CancellationToken cancellationToken)
+    public async Task SaveReportMasks(List<string> reportMasks, CancellationToken cancellationToken = default)
     {
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
@@ -334,7 +332,7 @@ class LicensingDataStore(
         await session.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(CancellationToken cancellationToken)
+    public async Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(CancellationToken cancellationToken = default)
     {
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
@@ -342,7 +340,7 @@ class LicensingDataStore(
         return await session.LoadAsync<LicensedEndpointDetails>(LicencedEndpointDetailsDocumentId, cancellationToken);
     }
 
-    public async Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken)
+    public async Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken = default)
     {
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);

@@ -19,7 +19,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
     {
         [Test]
         [CancelAfter(180_000)]
-        public async Task Only_the_second_groups_should_apply(CancellationToken cancellationToken)
+        public async Task Only_the_second_groups_should_apply(CancellationToken cancellationToken = default)
         {
             FailedMessage originalMessage = null;
             FailedMessage retriedMessage = null;

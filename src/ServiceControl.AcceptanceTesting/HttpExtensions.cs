@@ -6,16 +6,17 @@ namespace ServiceControl.AcceptanceTesting
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Json;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public static class HttpExtensions
     {
-        public static async Task Put<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null) where T : class
+        public static async Task Put<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, CancellationToken cancellationToken = default) where T : class
         {
             requestHasFailed ??= statusCode => statusCode is not HttpStatusCode.OK and not HttpStatusCode.Accepted;
 
             var httpClient = provider.HttpClient;
-            var response = await httpClient.PutAsJsonAsync(url, payload, provider.SerializerOptions);
+            var response = await httpClient.PutAsJsonAsync(url, payload, provider.SerializerOptions, cancellationToken);
 
             if (requestHasFailed(response.StatusCode))
             {
@@ -23,24 +24,24 @@ namespace ServiceControl.AcceptanceTesting
             }
         }
 
-        public static Task<HttpResponseMessage> GetRaw(this IAcceptanceTestInfrastructureProvider provider, string url)
+        public static Task<HttpResponseMessage> GetRaw(this IAcceptanceTestInfrastructureProvider provider, string url, CancellationToken cancellationToken = default)
         {
             var httpClient = provider.HttpClient;
-            return httpClient.GetAsync(url);
+            return httpClient.GetAsync(url, cancellationToken);
         }
 
-        public static Task<HttpResponseMessage> Options(this IAcceptanceTestInfrastructureProvider provider, string url)
+        public static Task<HttpResponseMessage> Options(this IAcceptanceTestInfrastructureProvider provider, string url, CancellationToken cancellationToken = default)
         {
             var httpClient = provider.HttpClient;
             var request = new HttpRequestMessage(HttpMethod.Options, url);
-            return httpClient.SendAsync(request);
+            return httpClient.SendAsync(request, cancellationToken);
         }
 
-        public static async Task<ManyResult<T>> TryGetMany<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null) where T : class
+        public static async Task<ManyResult<T>> TryGetMany<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null, CancellationToken cancellationToken = default) where T : class
         {
             condition ??= _ => true;
 
-            var response = await provider.GetInternal<List<T>>(url);
+            var response = await provider.GetInternal<List<T>>(url, cancellationToken);
 
             if (response == null || !response.Any(m => condition(m)))
             {
@@ -50,25 +51,25 @@ namespace ServiceControl.AcceptanceTesting
             return ManyResult<T>.New(true, response.Where(m => condition(m)).ToList());
         }
 
-        public static async Task<HttpStatusCode> Patch<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null) where T : class
+        public static async Task<HttpStatusCode> Patch<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, CancellationToken cancellationToken = default) where T : class
         {
             var httpClient = provider.HttpClient;
-            var response = await httpClient.PatchAsJsonAsync(url, payload, provider.SerializerOptions);
+            var response = await httpClient.PatchAsJsonAsync(url, payload, provider.SerializerOptions, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
-                var body = await response.Content.ReadAsStringAsync();
+                var body = await response.Content.ReadAsStringAsync(cancellationToken);
                 throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} - {body}");
             }
 
             return response.StatusCode;
         }
 
-        public static async Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null) where T : class
+        public static async Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null, CancellationToken cancellationToken = default) where T : class
         {
             condition ??= _ => true;
 
-            var response = await provider.GetInternal<T>(url);
+            var response = await provider.GetInternal<T>(url, cancellationToken);
 
             if (response == null || !condition(response))
             {
@@ -78,11 +79,11 @@ namespace ServiceControl.AcceptanceTesting
             return SingleResult<T>.New(response);
         }
 
-        public static async Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Func<T, Task<bool>> condition) where T : class
+        public static async Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Func<T, CancellationToken, Task<bool>> condition, CancellationToken cancellationToken = default) where T : class
         {
-            var response = await provider.GetInternal<T>(url);
+            var response = await provider.GetInternal<T>(url, cancellationToken);
 
-            if (response == null || !await condition(response))
+            if (response == null || !await condition(response, cancellationToken))
             {
                 return SingleResult<T>.Empty;
             }
@@ -90,11 +91,11 @@ namespace ServiceControl.AcceptanceTesting
             return SingleResult<T>.New(response);
         }
 
-        public static async Task<SingleResult<T>> TryGetSingle<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null) where T : class
+        public static async Task<SingleResult<T>> TryGetSingle<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null, CancellationToken cancellationToken = default) where T : class
         {
             condition ??= _ => true;
 
-            var response = await provider.GetInternal<List<T>>(url);
+            var response = await provider.GetInternal<List<T>>(url, cancellationToken);
             T item = null;
             if (response != null)
             {
@@ -116,17 +117,17 @@ namespace ServiceControl.AcceptanceTesting
             return SingleResult<T>.Empty;
         }
 
-        public static async Task<HttpStatusCode> Get(this IAcceptanceTestInfrastructureProvider provider, string url)
+        public static async Task<HttpStatusCode> Get(this IAcceptanceTestInfrastructureProvider provider, string url, CancellationToken cancellationToken = default)
         {
             var httpClient = provider.HttpClient;
-            var response = await httpClient.GetAsync(url);
+            var response = await httpClient.GetAsync(url, cancellationToken);
             return response.StatusCode;
         }
 
-        public static async Task Post<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null) where T : class
+        public static async Task Post<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, CancellationToken cancellationToken = default) where T : class
         {
             var httpClient = provider.HttpClient;
-            var response = await httpClient.PostAsJsonAsync(url, payload, provider.SerializerOptions);
+            var response = await httpClient.PostAsJsonAsync(url, payload, provider.SerializerOptions, cancellationToken);
 
             if (requestHasFailed != null)
             {
@@ -140,39 +141,39 @@ namespace ServiceControl.AcceptanceTesting
 
             if (!response.IsSuccessStatusCode)
             {
-                var body = await response.Content.ReadAsStringAsync();
+                var body = await response.Content.ReadAsStringAsync(cancellationToken);
                 throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} - {body}");
             }
         }
 
-        public static async Task Delete(this IAcceptanceTestInfrastructureProvider provider, string url)
+        public static async Task Delete(this IAcceptanceTestInfrastructureProvider provider, string url, CancellationToken cancellationToken = default)
         {
             var httpClient = provider.HttpClient;
-            var response = await httpClient.DeleteAsync(url);
+            var response = await httpClient.DeleteAsync(url, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
-                var body = await response.Content.ReadAsStringAsync();
+                var body = await response.Content.ReadAsStringAsync(cancellationToken);
                 throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} - {body}");
             }
         }
 
-        public static async Task<byte[]> DownloadData(this IAcceptanceTestInfrastructureProvider provider, string url, HttpStatusCode successCode = HttpStatusCode.OK)
+        public static async Task<byte[]> DownloadData(this IAcceptanceTestInfrastructureProvider provider, string url, HttpStatusCode successCode = HttpStatusCode.OK, CancellationToken cancellationToken = default)
         {
             var httpClient = provider.HttpClient;
-            var response = await httpClient.GetAsync(url);
+            var response = await httpClient.GetAsync(url, cancellationToken);
 
             if (response.StatusCode != successCode)
             {
                 throw new Exception($"Expected status code of {successCode}, but instead got {response.StatusCode}.");
             }
 
-            return await response.Content.ReadAsByteArrayAsync();
+            return await response.Content.ReadAsByteArrayAsync(cancellationToken);
         }
 
-        static async Task<T> GetInternal<T>(this IAcceptanceTestInfrastructureProvider provider, string url) where T : class
+        static async Task<T> GetInternal<T>(this IAcceptanceTestInfrastructureProvider provider, string url, CancellationToken cancellationToken) where T : class
         {
-            var response = await provider.GetRaw(url);
+            var response = await provider.GetRaw(url, cancellationToken);
 
             //for now
             if (response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.NoContent or HttpStatusCode.ServiceUnavailable)
@@ -183,12 +184,12 @@ namespace ServiceControl.AcceptanceTesting
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                var content = await response.Content.ReadAsStringAsync();
+                var content = await response.Content.ReadAsStringAsync(cancellationToken);
                 LogRequest(response.ReasonPhrase + content);
                 throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} {Environment.NewLine} {content}");
             }
 
-            var payload = await response.Content.ReadFromJsonAsync<T>(provider.SerializerOptions);
+            var payload = await response.Content.ReadFromJsonAsync<T>(provider.SerializerOptions, cancellationToken);
             LogRequest();
             return payload;
 

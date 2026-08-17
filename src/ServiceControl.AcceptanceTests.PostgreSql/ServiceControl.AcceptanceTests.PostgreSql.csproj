@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <TestCategory>PrimaryPostgreSqlAcceptance</TestCategory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="ServiceControl.AcceptanceTests.PostgreSql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence.EFCore.PostgreSql\ServiceControl.Persistence.EFCore.PostgreSql.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
+    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
+    <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GitHubActionsTestLogger" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NServiceBus.Heartbeat" />
+    <PackageReference Include="NServiceBus.SagaAudit" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit.Analyzers" />
+    <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.AcceptanceTests\**\*.cs" LinkBase="Shared" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.PostgreSql\PostgreSqlSharedContainer.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.PostgreSql\StopSharedPostgreSql.cs" />
+    <Compile Include="..\ServiceControl.UnitTests\NUnitParallelRunnerSettings.cs" />
+
+    <!-- External integration event dispatch is not implemented by EF persistence. -->
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Monitoring\ExternalIntegration\When_a_custom_check_fails.cs" />
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Monitoring\ExternalIntegration\When_a_custom_check_succeeds.cs" />
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Monitoring\ExternalIntegration\When_heartbeat_is_restored.cs" />
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Monitoring\ExternalIntegration\When_heartbeat_loss_is_detected.cs" />
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_failed_edit_is_resolved_by_retry.cs" />
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_failed_message_is_archived.cs" />
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_failed_message_is_resolved_by_retry.cs" />
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_failed_message_is_resolved_manually.cs" />
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_failed_message_is_unarchived.cs" />
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_failed_msg_is_resolved_by_edit.cs" />
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_group_is_archived.cs" />
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_message_has_failed_detected.cs" />
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_reedit_solves_a_failed_msg.cs" />
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_encountered_an_error.cs" />
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\When_edited_message_fails_to_process.cs" />
+
+    <!-- The EF custom-check query does not provide an ETag. Addressed by a separate PR. -->
+    <Compile Remove="..\ServiceControl.AcceptanceTests\WebApi\When_a_request_is_repeated_with_its_etag.cs" />
+
+    <!-- The PostgreSQL event-log query does not provide an ETag. Addressed by a separate PR. -->
+    <Compile Remove="..\ServiceControl.AcceptanceTests\EventLogs\When_the_event_log_is_polled_with_an_etag.cs" />
+  </ItemGroup>
+
+</Project>

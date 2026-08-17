@@ -24,7 +24,7 @@
         {
             var emailDropPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(emailDropPath);
-            string[] emails = [];
+            string[] emailHeaders = [];
 
             SetSettings = settings =>
             {
@@ -41,43 +41,65 @@
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .Done(c =>
                 {
-                    emails = Directory.EnumerateFiles(emailDropPath).ToArray();
-                    return emails.Length > 0;
+                    var emails = Directory.EnumerateFiles(emailDropPath).ToArray();
+
+                    return emails.Length > 0 && TryReadHeaders(emails[0], out emailHeaders);
                 })
                 .Run();
 
-            Assert.That(emails, Is.Not.Empty);
-
-            var emailText = await File.ReadAllLinesAsync(emails[0]);
+            Assert.That(emailHeaders, Is.Not.Empty);
 
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(emailText[0], Is.EqualTo("X-Sender: YouServiceControl@particular.net"));
-                Assert.That(emailText[1], Is.EqualTo("X-Receiver: WhoeverMightBeConcerned@particular.net"));
-                Assert.That(emailText[3], Is.EqualTo("From: YouServiceControl@particular.net"));
-                Assert.That(emailText[4], Is.EqualTo("To: WhoeverMightBeConcerned@particular.net"));
-                Assert.That(emailText[6], Is.EqualTo("Subject: [Particular.ServiceControl] health check failed"));
+                Assert.That(emailHeaders[0], Is.EqualTo("X-Sender: YouServiceControl@particular.net"));
+                Assert.That(emailHeaders[1], Is.EqualTo("X-Receiver: WhoeverMightBeConcerned@particular.net"));
+                Assert.That(emailHeaders[3], Is.EqualTo("From: YouServiceControl@particular.net"));
+                Assert.That(emailHeaders[4], Is.EqualTo("To: WhoeverMightBeConcerned@particular.net"));
+                Assert.That(emailHeaders[6], Is.EqualTo("Subject: [Particular.ServiceControl] health check failed"));
             }
         }
 
-        class SetupNotificationSettings(IErrorMessageDataStore errorMessageDataStore) : IHostedService
+        // SmtpClient creates the file in the pickup folder before it writes the message into it, so
+        // the headers can only be read once the blank line that terminates them has been written.
+        static bool TryReadHeaders(string emailFile, out string[] headers)
         {
-            public async Task StartAsync(CancellationToken cancellationToken)
+            headers = [];
+
+            string[] lines;
+
+            try
             {
-                using var notificationsManager = await errorMessageDataStore.CreateNotificationsManager();
-
-                var settings = await notificationsManager.LoadSettings();
-                settings.Email = new EmailNotifications
-                {
-                    Enabled = true,
-                    From = "YouServiceControl@particular.net",
-                    To = "WhoeverMightBeConcerned@particular.net",
-                };
-
-                await notificationsManager.SaveChanges();
+                lines = File.ReadAllLines(emailFile);
+            }
+            catch (IOException)
+            {
+                return false;
             }
 
-            public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+            var endOfHeaders = Array.IndexOf(lines, string.Empty);
+
+            if (endOfHeaders < 0)
+            {
+                return false;
+            }
+
+            headers = lines[..endOfHeaders];
+
+            return true;
+        }
+
+        class SetupNotificationSettings(INotificationsDataStore notificationsDataStore) : IHostedService
+        {
+            public async Task StartAsync(CancellationToken cancellationToken = default)
+            {
+                var settings = await notificationsDataStore.LoadSettings(cancellationToken);
+                settings.Email.Enabled = true;
+                settings.Email.From = "YouServiceControl@particular.net";
+                settings.Email.To = "WhoeverMightBeConcerned@particular.net";
+                await notificationsDataStore.SaveSettings(settings, cancellationToken);
+            }
+
+            public Task StopAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
         }
 
         public class MyContext : ScenarioContext

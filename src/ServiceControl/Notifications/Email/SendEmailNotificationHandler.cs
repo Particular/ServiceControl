@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Notifications.Email
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
@@ -9,17 +10,12 @@
     using ServiceBus.Management.Infrastructure.Settings;
 
     [Handler]
-    class SendEmailNotificationHandler(IErrorMessageDataStore store, Settings settings, EmailThrottlingState throttlingState, EmailSender emailSender, ILogger<SendEmailNotificationHandler> logger)
+    class SendEmailNotificationHandler(INotificationsDataStore store, Settings settings, EmailThrottlingState throttlingState, EmailSender emailSender, ILogger<SendEmailNotificationHandler> logger)
         : IHandleMessages<SendEmailNotification>
     {
         public async Task Handle(SendEmailNotification message, IMessageHandlerContext context)
         {
-            NotificationsSettings notifications;
-
-            using (var manager = await store.CreateNotificationsManager())
-            {
-                notifications = await manager.LoadSettings(cacheTimeout);
-            }
+            var notifications = await store.LoadSettings(context.CancellationToken);
 
             logger.LogInformation("Processing email notification. Subject: {Subject}, Body: {Body}", message.Subject, message.Body);
 
@@ -51,9 +47,13 @@
                     message.Body += "\n\nWARNING: Your SMTP server was temporarily unavailable. Make sure to check ServicePulse for a full list of health check notifications.";
                 }
 
-                await emailSender.Send(notifications.Email, message.Subject, message.Body, emailDropFolder);
+                await emailSender.Send(notifications.Email, message.Subject, message.Body, emailDropFolder, cancellationToken);
             }
-            catch (Exception e) when (e is not OperationCanceledException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception e)
             {
                 if (message.FailureNotification)
                 {
@@ -85,7 +85,6 @@
 
         static readonly TimeSpan spinDelay = TimeSpan.FromSeconds(1);
         static readonly TimeSpan throttlingDelay = TimeSpan.FromSeconds(30);
-        static readonly TimeSpan cacheTimeout = TimeSpan.FromMinutes(5);
 
         public static RecoverabilityAction RecoverabilityPolicy(RecoverabilityConfig config, ErrorContext context)
         {

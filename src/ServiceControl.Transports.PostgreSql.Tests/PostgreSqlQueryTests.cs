@@ -95,27 +95,40 @@ class PostgreSqlQueryTests : TransportTestFixture
         Assert.That(queue, Is.Not.Null);
 
         long total = 0L;
-        using var reset = new ManualResetEventSlim();
 
-        var runScenarioAndAdvanceTime = Task.Run(async () =>
-        {
-            while (!reset.IsSet)
-            {
-                await SendAndReceiveMessages(transportSettings.EndpointName, 1);
-                provider.Advance(TimeSpan.FromHours(1));
-            }
-        }, token);
+        await using var throughputPerDay = query.GetThroughputPerDay(queue, new DateOnly(), token).GetAsyncEnumerator(token);
 
-        await foreach (QueueThroughput queueThroughput in query.GetThroughputPerDay(queue, new DateOnly(), token))
+        // Sending the message before asking for the next hourly value keeps every message inside
+        // exactly one snapshot interval, instead of racing the snapshots from a background task.
+        for (int hour = 0; hour < 24; hour++)
         {
-            total += queueThroughput.TotalThroughput;
+            await SendAndReceiveMessages(transportSettings.EndpointName, 1);
+
+            Assert.That(await MoveToNextHour(throughputPerDay, token), Is.True);
+
+            total += throughputPerDay.Current.TotalThroughput;
         }
 
-        reset.Set();
-        await runScenarioAndAdvanceTime.WaitAsync(token);
-
-        // Asserting that we have one message per hour during 24 hours, the first snapshot is not counted hence the 23 assertion.
+        // The sequence already reports a last_value of 1 before the first message is sent, so that
+        // message is not visible in any of the hourly deltas, hence the 23 instead of 24.
         Assert.That(total, Is.EqualTo(23));
+    }
+
+    // The query only takes its next snapshot once an hour has passed on the fake clock, but it
+    // registers that timer asynchronously after the previous value was consumed, so an advance can
+    // land before the timer exists. Keep advancing until the value arrives.
+    async Task<bool> MoveToNextHour(IAsyncEnumerator<QueueThroughput> throughputPerDay, CancellationToken cancellationToken)
+    {
+        var moveNext = throughputPerDay.MoveNextAsync().AsTask();
+
+        while (!moveNext.IsCompleted)
+        {
+            provider.Advance(TimeSpan.FromHours(1));
+
+            await Task.WhenAny(moveNext, Task.Delay(TimeSpan.FromMilliseconds(50), cancellationToken));
+        }
+
+        return await moveNext;
     }
 
     [Test]
@@ -155,7 +168,7 @@ class PostgreSqlQueryTests : TransportTestFixture
                 // Drop the table mid-way while GetThroughputPerDay is waiting for the next hour
                 if (advanceCount == 3)
                 {
-                    await DropQueueTable(brokerQueueTable.QueueAddress.QualifiedTableName);
+                    await DropQueueTable(brokerQueueTable.QueueAddress.QualifiedTableName, token);
                 }
 
                 provider.Advance(TimeSpan.FromHours(1));
@@ -179,12 +192,12 @@ class PostgreSqlQueryTests : TransportTestFixture
         Assert.That(throughputValues, Has.All.Matches<QueueThroughput>(qt => qt.TotalThroughput >= 0));
     }
 
-    async Task DropQueueTable(string qualifiedTableName)
+    async Task DropQueueTable(string qualifiedTableName, CancellationToken cancellationToken)
     {
         await using var conn = new NpgsqlConnection(configuration.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(cancellationToken);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = $"DROP TABLE IF EXISTS {qualifiedTableName} CASCADE;";
-        await cmd.ExecuteNonQueryAsync();
+        await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 }

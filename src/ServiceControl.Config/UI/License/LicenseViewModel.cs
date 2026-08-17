@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Input;
     using Caliburn.Micro;
@@ -29,7 +30,7 @@
 
         public string ExtendLicenseUrl { get; set; }
 
-        protected override Task OnActivate()
+        protected override Task OnActivate(CancellationToken cancellationToken = default)
         {
             RefreshLicenseInfo();
             return Task.CompletedTask;
@@ -46,7 +47,9 @@
             ExtendLicenseUrl = $"https://particular.net/license/nservicebus?t={(license.IsEvaluationLicense ? 0 : 1)}&p=servicecontrol";
         }
 
+#pragma warning disable PS0018 // Bound to AwaitableSelectPathCommand's Func<string, Task>, which the tokenless ICommand.Execute drives
         async Task OpenLicenseFile(string path)
+#pragma warning restore PS0018
         {
             if (LicenseManager.TryImportLicense(path, out var importError))
             {

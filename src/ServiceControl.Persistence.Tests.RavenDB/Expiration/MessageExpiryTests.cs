@@ -47,12 +47,12 @@
 
             Assert.That(error.Results, Has.Count.EqualTo(1), "Failed message should be available to query after ingestion");
 
-            await ErrorStore.FailedMessageMarkAsArchived(error.Results.First().Id);
+            await FailedMessageLifecycleStore.MarkAsArchived(error.Results.First().Id);
 
             await WaitUntil(async () => (await GetAllMessages()).Results.Count == 0, "Archived message should be removed after archiving.");
         }
 
-        async Task<QueryResult<IList<MessagesView>>> GetAllMessages() => await ErrorStore.GetAllMessages(new PagingInfo(1, 10), new SortInfo(null, null), false);
+        async Task<QueryResult<IList<MessagesView>>> GetAllMessages() => await MessagesViewStore.GetAllMessages(new PagingInfo(1, 10), new SortInfo(null, null), false);
 
         [Test]
         public async Task AllMessagesInUnArchivedGroupShouldNotExpire()
@@ -136,7 +136,7 @@
 
             Assert.That(errors.Results, Has.Count.EqualTo(1), "Failed message should be available to query after ingestion");
 
-            await ErrorStore.MarkMessageAsResolved(errors.Results.First().Id);
+            await FailedMessageLifecycleStore.MarkAsResolved(errors.Results.First().Id);
 
             await WaitUntil(async () => (await GetAllMessages()).Results.Count == 0, "Archived message should be removed after archiving.");
         }
@@ -246,11 +246,12 @@
         {
             await DisableExpiration();
 
-            await ErrorStore.StoreEventLogItem(new EventLogItem());
+            await EventLogDataStore.Add(
+                new EventLogItem { Category = "Recoverability", EventType = "MessageFailed" });
 
             await CompleteDatabaseOperation();
 
-            var (logItems, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(1, 1));
+            var logItems = (await EventLogDataStore.GetEventLogItems(new PagingInfo(1, 1))).Results;
 
             Assert.That(logItems, Has.Count.EqualTo(1), "Event log items should be available to query.");
 
@@ -258,7 +259,7 @@
 
             await WaitUntil(async () =>
             {
-                var (items, _, _) = await EventLogDataStore.GetEventLogItems(new PagingInfo(1, 1));
+                var items = (await EventLogDataStore.GetEventLogItems(new PagingInfo(1, 1))).Results;
 
                 return items.Count == 0;
             }, "Event log items should be removed after expiration period elapses.");

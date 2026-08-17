@@ -63,6 +63,10 @@
                 await dog.Stop(TestContext.CurrentContext.CancellationToken);
                 Assert.Fail("Should have thrown an exception");
             }
+            catch (OperationCanceledException) when (TestContext.CurrentContext.CancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 Assert.That(ex.Message, Is.EqualTo("Simulated"));

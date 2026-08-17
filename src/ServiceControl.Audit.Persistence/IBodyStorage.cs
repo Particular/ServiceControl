@@ -6,8 +6,8 @@
 
     public interface IBodyStorage
     {
-        Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream, CancellationToken cancellationToken);
-        Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken);
+        Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream, CancellationToken cancellationToken = default);
+        Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken = default);
     }
 
     public class StreamResult

@@ -17,7 +17,7 @@
     {
         [Test]
         [CancelAfter(180_000)]
-        public async Task Only_unresolved_issues_should_be_retried(CancellationToken cancellationToken)
+        public async Task Only_unresolved_issues_should_be_retried(CancellationToken cancellationToken = default)
         {
             FailedMessage messageToBeRetriedAsPartOfRetryAll = null;
             FailedMessage messageToBeArchived = null;
@@ -96,7 +96,6 @@
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoRetries();
-                    c.ReportSuccessfulRetriesToServiceControl();
                 });
 
             [Handler]

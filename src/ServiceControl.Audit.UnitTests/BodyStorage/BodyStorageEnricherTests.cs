@@ -262,13 +262,13 @@ namespace ServiceControl.UnitTests.BodyStorage
         {
             public int StoredBodySize { get; set; }
 
-            public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream, CancellationToken cancellationToken)
+            public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream, CancellationToken cancellationToken = default)
             {
                 StoredBodySize = bodySize;
                 return Task.CompletedTask;
             }
 
-            public Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken)
+            public Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken = default)
             {
                 throw new NotImplementedException();
             }

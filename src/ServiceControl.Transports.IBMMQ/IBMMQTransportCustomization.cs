@@ -9,6 +9,7 @@ using NServiceBus;
 using NServiceBus.CustomChecks;
 using NServiceBus.Transport.IBMMQ;
 
+#pragma warning disable PS0024 // The I is from IBM, matching NServiceBus.Transport.IBMMQ
 public class IBMMQTransportCustomization : TransportCustomization<IBMMQTransport>
 {
     protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, IBMMQTransport transportDefinition, TransportSettings transportSettings) =>
@@ -85,3 +86,4 @@ public class IBMMQTransportCustomization : TransportCustomization<IBMMQTransport
         return transport;
     }
 }
+#pragma warning restore PS0024

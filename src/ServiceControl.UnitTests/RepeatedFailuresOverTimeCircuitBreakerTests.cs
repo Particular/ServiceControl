@@ -11,6 +11,7 @@
     // Ideally the circuit breaker would use a time provider to allow for easier testing but that would require a significant refactor
     // and we want keep the changes to a minimum for now to allow backporting to older versions.
     [TestFixture]
+    [NonParallelizable]
     public class RepeatedFailuresOverTimeCircuitBreakerTests
     {
         [SetUp]

@@ -3,6 +3,7 @@ namespace ServiceControl.CustomChecks
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.CustomChecks;
     using ExternalIntegrations;
@@ -22,7 +23,7 @@ namespace ServiceControl.CustomChecks
             };
         }
 
-        protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts)
+        protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(contexts.Select(r => (object)new Contracts.CustomCheckSucceeded
             {

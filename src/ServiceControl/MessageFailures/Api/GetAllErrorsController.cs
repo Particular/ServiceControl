@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
     using Infrastructure.WebApi;
@@ -11,19 +12,20 @@
 
     [ApiController]
     [Route("api")]
-    public class GetAllErrorsController(IErrorMessageDataStore store) : ControllerBase
+    public class GetAllErrorsController(IFailedMessageQueryDataStore store) : ControllerBase
     {
         [Authorize(Policy = Permissions.ErrorMessagesView)]
         [Route("errors")]
         [HttpGet]
-        public async Task<IList<FailedMessageView>> ErrorsGet([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string status, string modified, string queueAddress)
+        public async Task<IList<FailedMessageView>> ErrorsGet([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string status, string modified, string queueAddress, CancellationToken cancellationToken = default)
         {
-            var results = await store.ErrorGet(
+            var results = await store.GetFailedMessages(
                     status: status,
                     modified: modified,
                     queueAddress: queueAddress,
                     pagingInfo,
-                    sortInfo
+                    sortInfo,
+                    cancellationToken
                     );
 
             Response.WithQueryStatsAndPagingInfo(results.QueryStats, pagingInfo);
@@ -34,12 +36,13 @@
         [Authorize(Policy = Permissions.ErrorMessagesView)]
         [Route("errors")]
         [HttpHead]
-        public async Task ErrorsHead(string status, string modified, string queueAddress)
+        public async Task ErrorsHead(string status, string modified, string queueAddress, CancellationToken cancellationToken = default)
         {
-            var queryResult = await store.ErrorsHead(
+            var queryResult = await store.GetFailedMessagesStats(
                     status: status,
                     modified: modified,
-                    queueAddress: queueAddress
+                    queueAddress: queueAddress,
+                    cancellationToken: cancellationToken
                     );
 
             Response.WithQueryStatsInfo(queryResult);
@@ -48,14 +51,15 @@
         [Authorize(Policy = Permissions.ErrorMessagesView)]
         [Route("endpoints/{endpointname}/errors")]
         [HttpGet]
-        public async Task<IList<FailedMessageView>> ErrorsByEndpointName([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string status, string modified, string endpointName)
+        public async Task<IList<FailedMessageView>> ErrorsByEndpointName([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string status, string modified, string endpointName, CancellationToken cancellationToken = default)
         {
-            var results = await store.ErrorsByEndpointName(
+            var results = await store.GetFailedMessagesByEndpoint(
                 status: status,
                 endpointName: endpointName,
                 modified: modified,
                 pagingInfo,
-                sortInfo
+                sortInfo,
+                cancellationToken
                 );
 
             Response.WithQueryStatsAndPagingInfo(results.QueryStats, pagingInfo);
@@ -66,6 +70,6 @@
         [Authorize(Policy = Permissions.ErrorMessagesView)]
         [Route("errors/summary")]
         [HttpGet]
-        public async Task<IDictionary<string, object>> ErrorsSummary() => await store.ErrorsSummary();
+        public async Task<IDictionary<string, object>> ErrorsSummary(CancellationToken cancellationToken = default) => await store.GetFailedMessagesSummary(cancellationToken);
     }
 }

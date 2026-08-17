@@ -1,9 +1,8 @@
-﻿namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
+namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 {
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -19,37 +18,32 @@
 
     class When_errors_with_same_uniqueid_are_imported : AcceptanceTest
     {
+        const int NumberOfDuplicates = 10;
+
         [Test]
         public async Task The_import_should_deduplicate_on_TimeOfFailure()
         {
             var criticalErrorExecuted = false;
 
-            SetSettings = settings => settings.MaximumConcurrencyLevel = 10;
-            CustomizeHostBuilder = builder => builder.Services.AddSingleton<CounterEnricher>();
-            CustomConfiguration = config =>
-            {
-                config.DefineCriticalErrorAction((_, _) =>
+            SetSettings = settings => settings.MaximumConcurrencyLevel = NumberOfDuplicates;
+            CustomizeHostBuilder = builder => builder.Services.AddSingleton<IEnrichImportedErrorMessages, CounterEnricher>();
+            CustomConfiguration = config => config.DefineCriticalErrorAction((_, _) =>
                 {
                     criticalErrorExecuted = true;
                     return Task.CompletedTask;
                 });
-            };
 
             FailedMessage failure = null;
             var context = await Define<MyContext>()
                 .WithEndpoint<SourceEndpoint>()
                 .Done(async c =>
                 {
-                    if (c.UniqueId == null)
+                    if (c.UniqueId == null || c.IngestedCount < NumberOfDuplicates)
                     {
                         return false;
                     }
 
-                    var result = await this.TryGet<FailedMessage>($"/api/errors/{c.UniqueId}", m =>
-                    {
-                        Console.WriteLine("Processing attempts: " + m.ProcessingAttempts.Count);
-                        return m.ProcessingAttempts.Count == 2;
-                    });
+                    var result = await this.TryGet<FailedMessage>($"/api/errors/{c.UniqueId}");
                     failure = result;
                     return criticalErrorExecuted || result;
                 })
@@ -64,8 +58,8 @@
             var attempts = failure.ProcessingAttempts;
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(attempts, Has.Count.EqualTo(2));
-                Assert.That(attempts.Select(a => a.AttemptedAt), Is.EquivalentTo(context.FailureTimes));
+                Assert.That(attempts, Has.Count.EqualTo(1));
+                Assert.That(attempts[^1].AttemptedAt, Is.EqualTo(context.FailureTime));
             }
         }
 
@@ -94,41 +88,34 @@
                 {
                     var messageId = Guid.NewGuid().ToString();
                     context.UniqueId = DeterministicGuid.MakeId(messageId, "Error.SourceEndpoint").ToString();
-                    context.FailureTimes = new[]
-                    {
-                        new DateTime(2020, 09, 05, 13, 20, 00, 0, DateTimeKind.Utc),
-                        new DateTime(2020, 09, 05, 12, 20, 00, 0, DateTimeKind.Utc),
-                    };
+                    context.FailureTime = new DateTime(2020, 09, 05, 13, 20, 00, 0, DateTimeKind.Utc);
 
-                    return new TransportOperations(GetMessages(context.UniqueId, context.FailureTimes).ToArray());
+                    return new TransportOperations([.. GetMessages(context.UniqueId, context.FailureTime)]);
                 }
 
-                IEnumerable<TransportOperation> GetMessages(string uniqueId, DateTime[] failureTimes)
+                IEnumerable<TransportOperation> GetMessages(string uniqueId, DateTime failureTime)
                 {
-                    for (var failureNo = 0; failureNo < failureTimes.Length; failureNo++)
+                    for (var i = 0; i < NumberOfDuplicates; i++)
                     {
-                        for (var i = 0; i < 5; i++)
+                        var messageId = Guid.NewGuid().ToString();
+                        var headers = new Dictionary<string, string>
                         {
-                            var messageId = Guid.NewGuid().ToString();
-                            var headers = new Dictionary<string, string>
-                            {
-                                [Headers.MessageId] = messageId,
-                                ["ServiceControl.Retry.UniqueMessageId"] = uniqueId,
-                                [Headers.ProcessingEndpoint] = "Error.SourceEndpoint",
-                                ["NServiceBus.ExceptionInfo.ExceptionType"] = typeof(Exception).FullName,
-                                ["NServiceBus.ExceptionInfo.Message"] = "Bad thing happened",
-                                ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
-                                ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
-                                ["NServiceBus.ExceptionInfo.StackTrace"] = string.Empty,
-                                ["NServiceBus.FailedQ"] = "Error.SourceEndpoint",
-                                ["NServiceBus.TimeOfFailure"] = DateTimeOffsetHelper.ToWireFormattedString(failureTimes[failureNo]),
-                                ["Counter"] = i.ToString()
-                            };
+                            [Headers.MessageId] = messageId,
+                            ["ServiceControl.Retry.UniqueMessageId"] = uniqueId,
+                            [Headers.ProcessingEndpoint] = "Error.SourceEndpoint",
+                            ["NServiceBus.ExceptionInfo.ExceptionType"] = typeof(Exception).FullName,
+                            ["NServiceBus.ExceptionInfo.Message"] = "Bad thing happened",
+                            ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
+                            ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
+                            ["NServiceBus.ExceptionInfo.StackTrace"] = string.Empty,
+                            ["NServiceBus.FailedQ"] = "Error.SourceEndpoint",
+                            ["NServiceBus.TimeOfFailure"] = DateTimeOffsetHelper.ToWireFormattedString(failureTime),
+                            ["Counter"] = i.ToString()
+                        };
 
-                            var outgoingMessage = new OutgoingMessage(messageId, headers, new byte[0]);
+                        var outgoingMessage = new OutgoingMessage(messageId, headers, Array.Empty<byte>());
 
-                            yield return new TransportOperation(outgoingMessage, new UnicastAddressTag("error"));
-                        }
+                        yield return new TransportOperation(outgoingMessage, new UnicastAddressTag("error"));
                     }
                 }
             }
@@ -138,7 +125,9 @@
         {
             public string UniqueId { get; set; }
 
-            public DateTime[] FailureTimes { get; set; }
+            public DateTime FailureTime { get; set; }
+
+            public int IngestedCount => receivedMessages.Count;
 
             public void OnMessage(string counter) => receivedMessages.AddOrUpdate(counter, true, (id, old) => true);
 

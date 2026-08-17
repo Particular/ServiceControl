@@ -64,6 +64,9 @@ abstract class ErrorIngestionTestBase : PersistenceTestBase
     protected Task<FailedMessageEntity> FindFailedMessage(Guid uniqueMessageId) =>
         Query(dbContext => dbContext.FailedMessages.AsNoTracking().SingleOrDefaultAsync(m => m.UniqueMessageId == uniqueMessageId));
 
+    protected Task<GroupCommentEntity> FindGroupComment(string groupId) =>
+        Query(dbContext => dbContext.GroupComments.AsNoTracking().SingleOrDefaultAsync(c => c.GroupId == groupId));
+
     protected Task<List<FailedMessageGroupEntity>> GetGroups(Guid uniqueMessageId) =>
         Query(dbContext => dbContext.FailedMessageGroups
             .AsNoTracking()
@@ -89,7 +92,7 @@ abstract class ErrorIngestionTestBase : PersistenceTestBase
     protected Task RunRetentionSweep() =>
         ServiceProvider.GetServices<IHostedService>().OfType<RetentionSweeper>().Single().SweepNow(TestContext.CurrentContext.CancellationToken);
 
-    async Task<T> Query<T>(Func<ServiceControlDbContext, Task<T>> query)
+    protected async Task<T> Query<T>(Func<ServiceControlDbContext, Task<T>> query)
     {
         using var scope = ServiceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();

@@ -42,7 +42,7 @@
             }
         }
 
-        public Task Handle(CustomCheckFailed domainEvent, CancellationToken cancellationToken)
+        public Task Handle(CustomCheckFailed domainEvent, CancellationToken cancellationToken = default)
         {
             if (IsHealthCheck(domainEvent.CustomCheckId))
             {
@@ -67,7 +67,7 @@
             return Task.CompletedTask;
         }
 
-        public Task Handle(CustomCheckSucceeded domainEvent, CancellationToken cancellationToken)
+        public Task Handle(CustomCheckSucceeded domainEvent, CancellationToken cancellationToken = default)
         {
             if (IsHealthCheck(domainEvent.CustomCheckId))
             {

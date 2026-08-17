@@ -125,7 +125,7 @@ class FailedErrorImportTests : ErrorIngestionTestBase
 
         var replayed = new List<string>();
         await FailedImportStore.ProcessFailedErrorImports(
-            message =>
+            (message, _) =>
             {
                 replayed.Add(message.Id);
                 return message.Id == "native-2" ? throw new InvalidOperationException("boom") : Task.CompletedTask;
@@ -140,7 +140,7 @@ class FailedErrorImportTests : ErrorIngestionTestBase
 
         var secondRun = new List<string>();
         await FailedImportStore.ProcessFailedErrorImports(
-            message => { secondRun.Add(message.Id); return Task.CompletedTask; },
+            (message, _) => { secondRun.Add(message.Id); return Task.CompletedTask; },
             TestContext.CurrentContext.CancellationToken);
 
         Assert.That(secondRun, Is.EqualTo(new[] { "native-2" }));
@@ -176,7 +176,7 @@ class FailedErrorImportTests : ErrorIngestionTestBase
         var replayed = new List<string>();
 
         await FailedImportStore.ProcessFailedErrorImports(
-            message =>
+            (message, _) =>
             {
                 replayed.Add(message.Id);
                 cts.Cancel();
@@ -248,13 +248,12 @@ class FailedErrorImportTests : ErrorIngestionTestBase
         Assert.That(secondRun, Is.Empty, "the row with the missing body is retried and fails again");
     }
 
-    IFailedErrorImportDataStore FailedImportStore => ServiceProvider.GetRequiredService<IFailedErrorImportDataStore>();
 
     Task StoreImport(Dictionary<string, string> headers, byte[] body, string exceptionInfo = "boom", string nativeId = null)
     {
         nativeId ??= Guid.NewGuid().ToString();
 
-        return ErrorStore.StoreFailedErrorImport(new FailedErrorImport
+        return FailedImportStore.StoreFailedErrorImport(new FailedErrorImport
         {
             Id = FailedErrorImport.DeriveKey(headers, nativeId).ToString(),
             Message = new FailedTransportMessage { Id = nativeId, Headers = headers, Body = body },
@@ -267,7 +266,7 @@ class FailedErrorImportTests : ErrorIngestionTestBase
         var replayed = new List<FailedTransportMessage>();
 
         await FailedImportStore.ProcessFailedErrorImports(
-            message => { replayed.Add(message); return Task.CompletedTask; },
+            (message, _) => { replayed.Add(message); return Task.CompletedTask; },
             TestContext.CurrentContext.CancellationToken);
 
         return replayed;

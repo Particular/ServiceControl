@@ -2,6 +2,7 @@
 {
     using System;
     using System.Net;
+    using System.Threading;
     using System.Threading.Tasks;
     using Email;
     using Infrastructure.Auth;
@@ -12,15 +13,14 @@
 
     [ApiController]
     [Route("api")]
-    public class NotificationsController(IErrorMessageDataStore store, Settings settings, EmailSender emailSender) : ControllerBase
+    public class NotificationsController(INotificationsDataStore store, Settings settings, EmailSender emailSender) : ControllerBase
     {
         [Authorize(Policy = Permissions.ErrorNotificationsView)]
         [Route("notifications/email")]
         [HttpGet]
-        public async Task<EmailNotifications> GetEmailNotificationsSettings()
+        public async Task<EmailNotifications> GetEmailNotificationsSettings(CancellationToken cancellationToken = default)
         {
-            using var manager = await store.CreateNotificationsManager();
-            var notificationsSettings = await manager.LoadSettings();
+            var notificationsSettings = await store.LoadSettings(cancellationToken);
 
             return notificationsSettings.Email;
         }
@@ -28,14 +28,13 @@
         [Authorize(Policy = Permissions.ErrorNotificationsManage)]
         [Route("notifications/email/toggle")]
         [HttpPost]
-        public async Task<IActionResult> ToggleEmailNotifications(ToggleEmailNotifications request)
+        public async Task<IActionResult> ToggleEmailNotifications(ToggleEmailNotifications request, CancellationToken cancellationToken = default)
         {
-            using var manager = await store.CreateNotificationsManager();
-            var notificationsSettings = await manager.LoadSettings();
+            var notificationsSettings = await store.LoadSettings(cancellationToken);
 
             notificationsSettings.Email.Enabled = request.Enabled;
 
-            await manager.SaveChanges();
+            await store.SaveSettings(notificationsSettings, cancellationToken);
 
             return Ok();
         }
@@ -43,10 +42,9 @@
         [Authorize(Policy = Permissions.ErrorNotificationsManage)]
         [Route("notifications/email")]
         [HttpPost]
-        public async Task<IActionResult> UpdateSettings(UpdateEmailNotificationsSettingsRequest request)
+        public async Task<IActionResult> UpdateSettings(UpdateEmailNotificationsSettingsRequest request, CancellationToken cancellationToken = default)
         {
-            using var manager = await store.CreateNotificationsManager();
-            var notificationsSettings = await manager.LoadSettings();
+            var notificationsSettings = await store.LoadSettings(cancellationToken);
 
             var emailSettings = notificationsSettings.Email;
 
@@ -60,7 +58,7 @@
             emailSettings.From = request.From;
             emailSettings.To = request.To;
 
-            await manager.SaveChanges();
+            await store.SaveSettings(notificationsSettings, cancellationToken);
 
             return Ok();
         }
@@ -68,17 +66,21 @@
         [Authorize(Policy = Permissions.ErrorNotificationsTest)]
         [Route("notifications/email/test")]
         [HttpPost]
-        public async Task<IActionResult> SendTestEmail()
+        public async Task<IActionResult> SendTestEmail(CancellationToken cancellationToken = default)
         {
-            using var manager = await store.CreateNotificationsManager();
-            var notificationsSettings = await manager.LoadSettings();
+            var notificationsSettings = await store.LoadSettings(cancellationToken);
 
             try
             {
                 await emailSender.Send(
                         notificationsSettings.Email,
                         $"[{settings.InstanceName}] health check notification check successful",
-                        $"[{settings.InstanceName}] health check notification check successful.");
+                        $"[{settings.InstanceName}] health check notification check successful.",
+                        cancellationToken: cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {

@@ -10,6 +10,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
     /// When TrustAllProxies=false (known proxies configured), ForwardLimit=1,
     /// so only the rightmost values are processed.
     /// </summary>
+    [NonParallelizable]
     class When_multiple_header_values_are_sent_with_known_proxies : AcceptanceTest
     {
         ForwardedHeadersTestConfiguration configuration;

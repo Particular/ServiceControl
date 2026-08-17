@@ -3,7 +3,7 @@
     using System;
 
     /// <summary>
-    /// Marker interface used to serialize persister settings in REST API
+    /// Base settings that apply across all Persisters
     /// </summary>
     public abstract class PersistenceSettings
     {

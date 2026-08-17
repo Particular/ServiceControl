@@ -22,7 +22,7 @@
     {
         [Test]
         [CancelAfter(120_000)]
-        public async Task Should_be_forwarded_to_audit_instance(CancellationToken cancellationToken)
+        public async Task Should_be_forwarded_to_audit_instance(CancellationToken cancellationToken = default)
         {
             string addressOfAuditInstance = null;
 
@@ -72,7 +72,7 @@
             using (Assert.EnterMultipleScope())
             {
                 Assert.That(body, Is.EqualTo(context.MessageBody), "Body bytes mismatch");
-                Assert.That(response.Headers.GetValues("ETag").SingleOrDefault(), Is.Not.Null, "Etag not set");
+                Assert.That(response.Headers.ETag, Is.Not.Null, "Etag not set, or not a well formed entity-tag");
             }
         }
 

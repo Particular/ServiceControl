@@ -3,20 +3,25 @@
     using System;
     using System.Net;
     using System.Net.Mail;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
 
     public class EmailSender(ILogger<EmailSender> logger)
     {
-        public async Task Send(EmailNotifications settings, string subject, string body, string emailDropFolder = null)
+        public async Task Send(EmailNotifications settings, string subject, string body, string emailDropFolder = null, CancellationToken cancellationToken = default)
         {
             try
             {
                 using (var client = CreateSmtpClient(settings, emailDropFolder))
                 using (var mailMessage = new MailMessage(settings.From, settings.To, subject, body))
                 {
-                    await client.SendMailAsync(mailMessage);
+                    await client.SendMailAsync(mailMessage, cancellationToken);
                 }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {

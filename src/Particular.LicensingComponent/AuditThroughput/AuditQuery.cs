@@ -17,7 +17,7 @@
             r.SemanticVersion >= MinAuditCountsVersion &&
             r.Retention >= TimeSpan.FromDays(2);
 
-        public async Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken)
+        public async Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken = default)
         {
             var endpoints = await endpointsApi.GetEndpoints(cancellationToken);
 
@@ -36,9 +36,9 @@
             return scEndpoints ?? [];
         }
 
-        public async Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName, CancellationToken cancellationToken) => (await auditCountApi.GetEndpointAuditCounts(endpointUrlName, cancellationToken)).Select(s => new AuditCount { Count = s.Count, UtcDate = DateOnly.FromDateTime(s.UtcDate) });
+        public async Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName, CancellationToken cancellationToken = default) => (await auditCountApi.GetEndpointAuditCounts(endpointUrlName, cancellationToken)).Select(s => new AuditCount { Count = s.Count, UtcDate = DateOnly.FromDateTime(s.UtcDate) });
 
-        public async Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken)
+        public async Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken = default)
         {
             try
             {
@@ -101,6 +101,10 @@
 
                 return remotesInfo;
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Failed to get Audit Remotes");
@@ -108,7 +112,7 @@
             }
         }
 
-        public async Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken)
+        public async Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken = default)
         {
             var connectionTestResult = new ConnectionSettingsTestResult { ConnectionSuccessful = true };
 

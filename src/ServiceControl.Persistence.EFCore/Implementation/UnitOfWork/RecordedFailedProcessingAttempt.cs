@@ -14,7 +14,6 @@ sealed class RecordedFailedProcessingAttempt
     public string? MessageType { get; init; }
     public DateTime? TimeSent { get; init; }
     public string? ConversationId { get; init; }
-    public string? QueueAddress { get; init; }
     public string? SendingEndpointName { get; init; }
     public Guid? SendingEndpointHostId { get; init; }
     public string? SendingEndpointHost { get; init; }
@@ -29,5 +28,5 @@ sealed class RecordedFailedProcessingAttempt
     public bool BodyStoredExternally { get; init; }
     public int BodySize { get; init; }
     public string? BodyContentType { get; init; }
-    public required string FailingEndpointAddress { get; set; }
+    public string? FailingEndpointAddress { get; set; }
 }

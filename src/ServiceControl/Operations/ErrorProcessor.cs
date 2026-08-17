@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using Contracts.Operations;
@@ -31,13 +32,13 @@
             failedMessageFactory = new FailedMessageFactory(failedMessageEnrichers);
         }
 
-        public async Task<IReadOnlyList<MessageContext>> Process(IReadOnlyList<MessageContext> contexts, IIngestionUnitOfWork unitOfWork)
+        public async Task<IReadOnlyList<MessageContext>> Process(IReadOnlyList<MessageContext> contexts, IIngestionUnitOfWork unitOfWork, CancellationToken cancellationToken = default)
         {
             var storedContexts = new List<MessageContext>(contexts.Count);
             var tasks = new List<Task>(contexts.Count);
             foreach (var context in contexts)
             {
-                tasks.Add(ProcessMessage(context, unitOfWork));
+                tasks.Add(ProcessMessage(context, unitOfWork, cancellationToken));
             }
 
             await Task.WhenAll(tasks);
@@ -65,13 +66,13 @@
             {
                 logger.LogDebug("Adding known endpoint '{EndpointName}' for bulk storage", endpoint.EndpointDetails.Name);
 
-                await unitOfWork.Monitoring.RecordKnownEndpoint(endpoint);
+                await unitOfWork.Monitoring.RecordKnownEndpoint(endpoint, cancellationToken);
             }
 
             return storedContexts;
         }
 
-        public Task Announce(MessageContext messageContext)
+        public Task Announce(MessageContext messageContext, CancellationToken cancellationToken = default)
         {
             var failureDetails = messageContext.Extensions.Get<FailureDetails>();
             var headers = messageContext.Headers;
@@ -86,7 +87,7 @@
                     EndpointId = failingEndpointId,
                     FailedMessageId = failedMessageId,
                     RepeatedFailure = true
-                });
+                }, cancellationToken);
             }
 
             return domainEvents.Raise(new MessageFailed
@@ -94,10 +95,10 @@
                 FailureDetails = failureDetails,
                 EndpointId = failingEndpointId,
                 FailedMessageId = headers.UniqueId()
-            });
+            }, cancellationToken);
         }
 
-        async Task ProcessMessage(MessageContext context, IIngestionUnitOfWork unitOfWork)
+        async Task ProcessMessage(MessageContext context, IIngestionUnitOfWork unitOfWork, CancellationToken cancellationToken)
         {
             bool isOriginalMessageId = true;
             if (!context.Headers.TryGetValue(Headers.MessageId, out var messageId))
@@ -121,10 +122,18 @@
 
                 var groups = failedMessageFactory.GetGroups((string)metadata["MessageType"], failureDetails, processingAttempt);
 
-                await unitOfWork.Recoverability.RecordFailedProcessingAttempt(context, processingAttempt, groups);
+                await unitOfWork.Recoverability.RecordFailedProcessingAttempt(context, processingAttempt, groups, cancellationToken);
 
                 context.Extensions.Set(failureDetails);
                 context.Extensions.Set(enricherContext.NewEndpoints);
+            }
+            catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested)
+            {
+                // Shutdown, not a processing failure. The context still has to be released or Process
+                // would await it forever, but the exception is rethrown so the batch stops here rather
+                // than logging every remaining message as failed.
+                context.GetTaskCompletionSource().TrySetException(e);
+                throw;
             }
             catch (Exception e)
             {

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Particular.LicensingComponent.Contracts;
@@ -36,7 +37,7 @@ class ThroughputCollector_ThroughputSumary_Indicator_Tests : ThroughputCollector
             .Build();
 
         // Act
-        var summary = await ThroughputCollector.GetThroughputSummary(default);
+        var summary = await ThroughputCollector.GetThroughputSummary();
 
         // Assert
         Assert.That(summary, Is.Not.Null);
@@ -54,14 +55,14 @@ class ThroughputCollector_ThroughputSumary_Indicator_Tests : ThroughputCollector
             .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
             .AddEndpoint("Endpoint1", sources: [ThroughputSource.Monitoring]).WithThroughput(days: 2)
             .Build();
-        var summary = await ThroughputCollector.GetThroughputSummary(default);
+        var summary = await ThroughputCollector.GetThroughputSummary();
 
         // Act
         List<UpdateUserIndicator> endpointsWithUpdates = [new UpdateUserIndicator() { Name = "Endpoint1", UserIndicator = userIndicator }];
-        await ThroughputCollector.UpdateUserIndicatorsOnEndpoints(endpointsWithUpdates, default);
+        await ThroughputCollector.UpdateUserIndicatorsOnEndpoints(endpointsWithUpdates);
 
         // Assert
-        var updatedEndpoints = await DataStore.GetAllEndpoints(true, default);
+        var updatedEndpoints = await DataStore.GetAllEndpoints(true);
         Assert.That(updatedEndpoints, Is.Not.Null);
         Assert.That(updatedEndpoints.Count, Is.EqualTo(2));
 

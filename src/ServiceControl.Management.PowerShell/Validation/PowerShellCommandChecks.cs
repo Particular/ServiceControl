@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Management.Automation;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using ServiceControlInstaller.Engine;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
@@ -28,21 +29,21 @@
             cmdlet.ThrowTerminatingError(errorRecord);
         }
 
-        protected override Task NotifyForDeprecatedMessageTransport(TransportInfo transport)
+        protected override Task NotifyForDeprecatedMessageTransport(TransportInfo transport, CancellationToken cancellationToken = default)
         {
             var terminateMsg = $"The message transport '{transport.DisplayName}' is not available in this version of ServiceControl, and this instance cannot be upgraded.";
             Terminate(terminateMsg, "Install Error", ErrorCategory.InvalidOperation);
             return Task.CompletedTask;
         }
 
-        protected override Task NotifyForIncompatibleStorageEngine(IServiceControlBaseInstance baseInstance)
+        protected override Task NotifyForIncompatibleStorageEngine(IServiceControlBaseInstance baseInstance, CancellationToken cancellationToken = default)
         {
             var msg = $"The storage format has changed and the {baseInstance.PersistenceManifest.DisplayName} storage engine is no longer available. Upgrading requires a side-by-side deployment of both versions. Migration guidance is available in the version 4 to 5 upgrade guidance at {UpgradeGuide4to5Url}";
             Terminate(msg, "Install Error", ErrorCategory.InvalidOperation);
             return Task.CompletedTask;
         }
 
-        protected override Task NotifyForIncompatibleUpgradeVersion(UpgradeInfo upgradeInfo)
+        protected override Task NotifyForIncompatibleUpgradeVersion(UpgradeInfo upgradeInfo, CancellationToken cancellationToken = default)
         {
             var nextVersion = upgradeInfo.UpgradePath[0];
             var b = new StringBuilder();
@@ -57,19 +58,19 @@
             return Task.CompletedTask;
         }
 
-        protected override Task NotifyError(string title, string message)
+        protected override Task NotifyError(string title, string message, CancellationToken cancellationToken = default)
         {
             Terminate(message, title, ErrorCategory.InvalidOperation);
             return Task.CompletedTask;
         }
 
-        protected override Task NotifyForMissingSystemPrerequisites(string missingPrereqsMessage)
+        protected override Task NotifyForMissingSystemPrerequisites(string missingPrereqsMessage, CancellationToken cancellationToken = default)
         {
             Terminate(missingPrereqsMessage, "Missing Prerequisites", ErrorCategory.NotInstalled);
             return Task.CompletedTask;
         }
 
-        protected override Task<bool> PromptForRabbitMqCheck(bool isUpgrade)
+        protected override Task<bool> PromptForRabbitMqCheck(bool isUpgrade, CancellationToken cancellationToken = default)
         {
             if (!acknowledgements.Any(ack => ack.Equals(AcknowledgementValues.RabbitMQBrokerVersion310, StringComparison.OrdinalIgnoreCase)))
             {
@@ -90,13 +91,13 @@
             return Task.FromResult(true);
         }
 
-        protected override Task<bool> PromptToStopRunningInstance(BaseService instance)
+        protected override Task<bool> PromptToStopRunningInstance(BaseService instance, CancellationToken cancellationToken = default)
         {
             // PowerShell assumes you always want to stop the service if it's running
             return Task.FromResult(true);
         }
 
-        protected override Task<bool> PromptToContinueWithForcedUpgrade()
+        protected override Task<bool> PromptToContinueWithForcedUpgrade(CancellationToken cancellationToken = default)
         {
             // In PowerShell, you passed the -Force parameter to get here in the first place
             return Task.FromResult(true);

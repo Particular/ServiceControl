@@ -22,10 +22,10 @@ namespace ServiceControl.Transports
         void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
         void AddTransportForMonitoring(IServiceCollection services, TransportSettings transportSettings);
 
-        Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues);
+        Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues, CancellationToken cancellationToken = default);
         string ToTransportQualifiedQueueName(string queueName);
 
-        Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly);
+        Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, CancellationToken, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly, CancellationToken cancellationToken = default);
     }
 
     public abstract class TransportCustomization<TTransport> : ITransportCustomization where TTransport : TransportDefinition
@@ -123,7 +123,7 @@ namespace ServiceControl.Transports
 
         protected virtual string ToTransportQualifiedQueueNameCore(string queueName) => queueName;
 
-        public virtual async Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues)
+        public virtual async Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues, CancellationToken cancellationToken = default)
         {
             // For queue provisioning MaxConcurrency is not relevant. Settings it to 1 to avoid null checks
             transportSettings.MaxConcurrency ??= 1;
@@ -155,21 +155,21 @@ namespace ServiceControl.Transports
                 .Distinct()
                 .ToArray();
 
-            var transportInfrastructure = await transport.Initialize(hostSettings, receivers, additionalQueuesToProvision);
-            await transportInfrastructure.Shutdown();
+            var transportInfrastructure = await transport.Initialize(hostSettings, receivers, additionalQueuesToProvision, cancellationToken);
+            await transportInfrastructure.Shutdown(cancellationToken);
         }
 
-        public async Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
+        public async Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, CancellationToken, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly, CancellationToken cancellationToken = default)
         {
             var transport = CreateTransport(transportSettings, preferredTransactionMode);
 
-            onCriticalError ??= (_, __) => Task.CompletedTask;
+            onCriticalError ??= (_, __, ___) => Task.CompletedTask;
 
             var hostSettings = new HostSettings(
                 name,
                 $"TransportInfrastructure for {name}",
                 new StartupDiagnosticEntries(),
-                (msg, exception, cancellationToken) => Task.Run(() => onCriticalError(msg, exception), cancellationToken),
+                (msg, exception, criticalErrorCancellationToken) => Task.Run(() => onCriticalError(msg, exception, criticalErrorCancellationToken), criticalErrorCancellationToken),
                 false,
                 null); //null means "not hosted by core", transport SHOULD adjust accordingly to not assume things
 
@@ -186,7 +186,7 @@ namespace ServiceControl.Transports
                 receivers = [];
             }
 
-            var transportInfrastructure = await transport.Initialize(hostSettings, receivers, new[] { ToTransportQualifiedQueueNameCore(transportSettings.ErrorQueue) });
+            var transportInfrastructure = await transport.Initialize(hostSettings, receivers, new[] { ToTransportQualifiedQueueNameCore(transportSettings.ErrorQueue) }, cancellationToken);
 
             if (createReceiver)
             {
@@ -196,7 +196,7 @@ namespace ServiceControl.Transports
                 }
 
                 var transportInfrastructureReceiver = transportInfrastructure.Receivers[name];
-                await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency.Value), onMessage, onError, CancellationToken.None);
+                await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency.Value), onMessage, onError, cancellationToken);
             }
 
             return transportInfrastructure;

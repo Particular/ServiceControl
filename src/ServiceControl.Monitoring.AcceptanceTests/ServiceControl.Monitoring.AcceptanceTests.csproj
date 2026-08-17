@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <TestCategory>DefaultMonitoring</TestCategory>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,4 +26,7 @@
     <PackageReference Include="Particular.Approvals" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.UnitTests\NUnitParallelRunnerSettings.cs" />
+  </ItemGroup>
 </Project>

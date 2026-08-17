@@ -1,9 +1,8 @@
 namespace ServiceControl.Recoverability
 {
     using Infrastructure.DomainEvents;
-    using Infrastructure.SignalR;
 
-    public class FailedMessageGroupBatchUnarchived : IDomainEvent, IUserInterfaceEvent
+    public class FailedMessageGroupBatchUnarchived : IDomainEvent
     {
         public string[] FailedMessagesIds { get; set; }
     }

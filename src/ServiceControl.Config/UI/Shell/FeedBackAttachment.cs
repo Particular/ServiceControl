@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Config.UI.Shell
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using FeedBack;
     using Framework;
@@ -23,10 +24,10 @@
 
         protected override void OnAttach()
         {
-            viewModel.OpenFeedBack = Command.Create(async () => await FeedBack());
+            viewModel.OpenFeedBack = Command.Create(async () => await FeedBack(CancellationToken.None));
         }
 
-        async Task FeedBack()
+        async Task FeedBack(CancellationToken cancellationToken)
         {
             if (raygunFeedBack.Enabled)
             {

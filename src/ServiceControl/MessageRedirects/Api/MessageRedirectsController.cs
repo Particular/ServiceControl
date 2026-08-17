@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Net;
     using System.Text.Json.Serialization;
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.MessageRedirects;
     using Infrastructure.Auth;
@@ -30,7 +31,7 @@
         [Authorize(Policy = Permissions.ErrorRedirectsManage)]
         [Route("redirects")]
         [HttpPost]
-        public async Task<IActionResult> NewRedirects(MessageRedirectRequest request)
+        public async Task<IActionResult> NewRedirects(MessageRedirectRequest request, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(request.FromPhysicalAddress) || string.IsNullOrWhiteSpace(request.ToPhysicalAddress))
             {
@@ -41,12 +42,12 @@
             {
                 FromPhysicalAddress = request.FromPhysicalAddress,
                 ToPhysicalAddress = request.ToPhysicalAddress,
-                LastModifiedTicks = DateTime.UtcNow.Ticks
+                LastModified = DateTime.UtcNow
             };
 
-            var collection = await store.GetOrCreate();
+            var redirects = await store.GetRedirects(cancellationToken);
 
-            var existing = collection[messageRedirect.MessageRedirectId];
+            var existing = redirects.FindById(messageRedirect.MessageRedirectId);
 
             if (existing != null)
             {
@@ -61,7 +62,7 @@
                 return StatusCode((int)HttpStatusCode.Conflict, existing);
             }
 
-            var dependents = collection.Redirects.Where(r => r.ToPhysicalAddress == request.FromPhysicalAddress).ToList();
+            var dependents = redirects.Where(r => r.ToPhysicalAddress == request.FromPhysicalAddress).ToList();
 
             if (dependents.Any())
             {
@@ -71,16 +72,14 @@
                 return StatusCode((int)HttpStatusCode.Conflict, dependents);
             }
 
-            collection.Redirects.Add(messageRedirect);
-
-            await store.Save(collection);
+            await store.AddRedirect(messageRedirect, cancellationToken);
 
             await events.Raise(new MessageRedirectCreated
             {
                 MessageRedirectId = messageRedirect.MessageRedirectId,
                 FromPhysicalAddress = messageRedirect.FromPhysicalAddress,
                 ToPhysicalAddress = messageRedirect.ToPhysicalAddress
-            });
+            }, cancellationToken);
 
             if (request.RetryExisting)
             {
@@ -89,7 +88,7 @@
                     QueueAddress = messageRedirect.FromPhysicalAddress,
                     PeriodFrom = DateTime.MinValue,
                     PeriodTo = DateTime.UtcNow
-                });
+                }, cancellationToken);
             }
 
             // not using Created here because that would be turned by the HttpNoContentOutputFormatter into a 204
@@ -99,16 +98,16 @@
         [Authorize(Policy = Permissions.ErrorRedirectsManage)]
         [Route("redirects/{messageRedirectId:guid}")]
         [HttpPut]
-        public async Task<IActionResult> UpdateRedirect(Guid messageRedirectId, MessageRedirectRequest request)
+        public async Task<IActionResult> UpdateRedirect(Guid messageRedirectId, MessageRedirectRequest request, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(request.ToPhysicalAddress))
             {
                 return BadRequest();
             }
 
-            var redirects = await store.GetOrCreate();
+            var redirects = await store.GetRedirects(cancellationToken);
 
-            var messageRedirect = redirects[messageRedirectId];
+            var messageRedirect = redirects.FindById(messageRedirectId);
 
             if (messageRedirect == null)
             {
@@ -117,7 +116,7 @@
 
             var toMessageRedirectId = DeterministicGuid.MakeId(request.ToPhysicalAddress);
 
-            if (redirects[toMessageRedirectId] != null)
+            if (redirects.FindById(toMessageRedirectId) != null)
             {
                 return Conflict();
             }
@@ -130,11 +129,11 @@
                 ToPhysicalAddress = messageRedirect.ToPhysicalAddress = request.ToPhysicalAddress
             };
 
-            messageRedirect.LastModifiedTicks = DateTime.UtcNow.Ticks;
+            messageRedirect.LastModified = DateTime.UtcNow;
 
-            await store.Save(redirects);
+            await store.UpdateRedirect(messageRedirect, cancellationToken);
 
-            await events.Raise(messageRedirectChanged);
+            await events.Raise(messageRedirectChanged, cancellationToken);
 
             return NoContent();
         }
@@ -142,27 +141,25 @@
         [Authorize(Policy = Permissions.ErrorRedirectsManage)]
         [Route("redirects/{messageRedirectId:guid}")]
         [HttpDelete]
-        public async Task<IActionResult> DeleteRedirect(Guid messageRedirectId)
+        public async Task<IActionResult> DeleteRedirect(Guid messageRedirectId, CancellationToken cancellationToken = default)
         {
-            var redirects = await store.GetOrCreate();
+            var redirects = await store.GetRedirects(cancellationToken);
 
-            var messageRedirect = redirects[messageRedirectId];
+            var messageRedirect = redirects.FindById(messageRedirectId);
 
             if (messageRedirect == null)
             {
                 return NoContent();
             }
 
-            redirects.Redirects.Remove(messageRedirect);
-
-            await store.Save(redirects);
+            await store.RemoveRedirect(messageRedirect, cancellationToken);
 
             await events.Raise(new MessageRedirectRemoved
             {
                 MessageRedirectId = messageRedirectId,
                 FromPhysicalAddress = messageRedirect.FromPhysicalAddress,
                 ToPhysicalAddress = messageRedirect.ToPhysicalAddress
-            });
+            }, cancellationToken);
 
             return NoContent();
         }
@@ -170,20 +167,20 @@
         [Authorize(Policy = Permissions.ErrorRedirectsView)]
         [Route("redirect")]
         [HttpHead]
-        public async Task CountRedirects()
+        public async Task CountRedirects(CancellationToken cancellationToken = default)
         {
-            var redirects = await store.GetOrCreate();
+            var redirects = await store.GetRedirects(cancellationToken);
 
-            Response.WithEtag(redirects.ETag);
-            Response.WithTotalCount(redirects.Redirects.Count);
+            Response.WithDeterministicEtag(EtagHelper.CalculateEtag(redirects));
+            Response.WithTotalCount(redirects.Count);
         }
 
         [Authorize(Policy = Permissions.ErrorRedirectsView)]
         [Route("redirects")]
         [HttpGet]
-        public async Task<IEnumerable<RedirectsQueryResult>> Redirects(string sort, string direction, [FromQuery] PagingInfo pagingInfo)
+        public async Task<IEnumerable<RedirectsQueryResult>> Redirects(string sort, string direction, [FromQuery] PagingInfo pagingInfo, CancellationToken cancellationToken = default)
         {
-            var redirects = await store.GetOrCreate();
+            var redirects = await store.GetRedirects(cancellationToken);
 
             var queryResult = redirects
                 .Sort(sort, direction)
@@ -193,11 +190,11 @@
                     r.MessageRedirectId,
                     r.FromPhysicalAddress,
                     r.ToPhysicalAddress,
-                    new DateTime(r.LastModifiedTicks)
+                    r.LastModified
                 ));
 
-            Response.WithEtag(redirects.ETag);
-            Response.WithPagingLinksAndTotalCount(pagingInfo, redirects.Redirects.Count);
+            Response.WithDeterministicEtag(EtagHelper.CalculateEtag(redirects));
+            Response.WithPagingLinksAndTotalCount(pagingInfo, redirects.Count);
 
             return queryResult;
         }

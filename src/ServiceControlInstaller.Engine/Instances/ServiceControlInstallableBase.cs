@@ -5,6 +5,7 @@
     using System.IO;
     using System.Security.AccessControl;
     using System.Security.Principal;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Xml.Serialization;
     using Accounts;
@@ -219,7 +220,7 @@
             }
         }
 
-        public async Task Validate(Func<PathInfo, Task<bool>> promptToProceed)
+        public async Task Validate(Func<PathInfo, CancellationToken, Task<bool>> promptToProceed, CancellationToken cancellationToken = default)
         {
             RunValidation(ValidateTransport);
             RunValidation(ValidatePort);
@@ -227,7 +228,7 @@
 
             try
             {
-                ReportCard.CancelRequested = await ValidatePaths(promptToProceed).ConfigureAwait(false);
+                ReportCard.CancelRequested = await ValidatePaths(promptToProceed, cancellationToken).ConfigureAwait(false);
             }
             catch (EngineValidationException ex)
             {
@@ -267,9 +268,9 @@
         {
         }
 
-        protected virtual Task<bool> ValidatePaths(Func<PathInfo, Task<bool>> promptToProceed)
+        protected virtual Task<bool> ValidatePaths(Func<PathInfo, CancellationToken, Task<bool>> promptToProceed, CancellationToken cancellationToken = default)
         {
-            return new PathsValidator(this).RunValidation(true, promptToProceed);
+            return new PathsValidator(this).RunValidation(true, promptToProceed, cancellationToken);
         }
 
         protected virtual void ValidateMaintenancePort()

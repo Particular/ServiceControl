@@ -10,6 +10,7 @@
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
+    using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Persistence.UnitOfWork;
 
     [TestFixture]
@@ -81,12 +82,15 @@
             Assert.That(retrieved, Is.Not.Null);
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(retrieved.HasResult, Is.True);
-                Assert.That(retrieved.ContentType, Is.EqualTo(contentType));
+                Assert.That(retrieved.State, Is.EqualTo(MessageBodyState.Available));
+                Assert.That(retrieved.Content.ContentType, Is.EqualTo(contentType));
             }
 
-            var buffer = new byte[retrieved.BodySize];
-            retrieved.Stream.Read(buffer, 0, retrieved.BodySize);
+            var buffer = new byte[retrieved.Content.BodySize];
+            await using (retrieved.Content.Stream)
+            {
+                retrieved.Content.Stream.ReadExactly(buffer);
+            }
 
             Assert.That(buffer, Is.EqualTo(body));
         }

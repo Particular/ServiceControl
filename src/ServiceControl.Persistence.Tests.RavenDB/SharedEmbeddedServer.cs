@@ -1,7 +1,9 @@
 ﻿namespace ServiceControl.Persistence.Tests
 {
+    using System;
     using System.IO;
     using System.Linq;
+    using System.Reactive.Disposables;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting.Internal;
@@ -25,6 +27,11 @@
 
             try
             {
+                if (embeddedDatabase != null)
+                {
+                    return embeddedDatabase;
+                }
+
                 var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "PrimaryData");
                 var logPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs", "Primary");
                 var logsMode = "Operations";
@@ -84,5 +91,6 @@
 
         static EmbeddedDatabase embeddedDatabase;
         static readonly SemaphoreSlim semaphoreSlim = new(1, 1);
+
     }
 }

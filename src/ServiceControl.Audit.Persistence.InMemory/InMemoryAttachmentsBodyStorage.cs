@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.Persistence.InMemory
 {
-    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -17,7 +16,7 @@
             messageBodies = [];
         }
 
-        public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream, CancellationToken cancellationToken)
+        public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream, CancellationToken cancellationToken = default)
         {
             var messageBody = messageBodies.FirstOrDefault(w => w.BodyId == bodyId);
 
@@ -45,7 +44,7 @@
             return Task.CompletedTask;
         }
 
-        public async Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken)
+        public async Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken = default)
         {
             var messageBody = messageBodies.FirstOrDefault(w => w.BodyId == bodyId);
 
@@ -61,7 +60,8 @@
                     Stream = new MemoryStream(messageBody.Content),
                     ContentType = messageBody.ContentType,
                     BodySize = messageBody.BodySize,
-                    Etag = Guid.NewGuid().ToString()
+                    // Bodies are immutable per message, so the id is a stable validator
+                    Etag = bodyId
                 });
         }
 

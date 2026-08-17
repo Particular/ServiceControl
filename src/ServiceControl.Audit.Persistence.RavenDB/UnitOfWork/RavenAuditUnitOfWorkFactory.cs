@@ -13,7 +13,7 @@
         MinimumRequiredStorageState customCheckState)
         : IAuditIngestionUnitOfWorkFactory
     {
-        public async ValueTask<IAuditIngestionUnitOfWork> StartNew(int batchSize, CancellationToken cancellationToken)
+        public async ValueTask<IAuditIngestionUnitOfWork> StartNew(int batchSize, CancellationToken cancellationToken = default)
         {
             // DO NOT USE using var, will be disposed by RavenAuditIngestionUnitOfWork
             var lifetimeForwardedTimedCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);

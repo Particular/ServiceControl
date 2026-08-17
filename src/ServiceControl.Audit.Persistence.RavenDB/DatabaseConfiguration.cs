@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using System;
-    using Sparrow.Json;
 
     public class DatabaseConfiguration(
         string name,
@@ -19,8 +18,6 @@
         public int ExpirationProcessTimerInSeconds { get; } = expirationProcessTimerInSeconds;
 
         public bool EnableFullTextSearch { get; } = enableFullTextSearch;
-
-        public Func<string, BlittableJsonReaderObject, string> FindClrType { get; }
 
         public ServerConfiguration ServerConfiguration { get; } = serverConfiguration;
 

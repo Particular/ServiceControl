@@ -1,6 +1,7 @@
 namespace ServiceControl.CustomChecks
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.CustomChecks;
     using Infrastructure.DomainEvents;
@@ -16,14 +17,14 @@ namespace ServiceControl.CustomChecks
             this.logger = logger;
         }
 
-        public async Task ProcessResult(CustomCheckDetail checkDetail)
+        public async Task ProcessResult(CustomCheckDetail checkDetail, CancellationToken cancellationToken = default)
         {
             try
             {
-                var statusChange = await store.UpdateCustomCheckStatus(checkDetail);
-                await RaiseEvents(statusChange, checkDetail);
+                var statusChange = await store.UpdateCustomCheckStatus(checkDetail, cancellationToken);
+                await RaiseEvents(statusChange, checkDetail, cancellationToken);
 
-                var numberOfFailedChecks = await store.GetNumberOfFailedChecks();
+                var numberOfFailedChecks = await store.GetNumberOfFailedChecks(cancellationToken);
 
                 if (lastCount == numberOfFailedChecks)
                 {
@@ -34,7 +35,11 @@ namespace ServiceControl.CustomChecks
                 await domainEvents.Raise(new CustomChecksUpdated
                 {
                     Failed = numberOfFailedChecks
-                });
+                }, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception ex)
             {
@@ -42,7 +47,7 @@ namespace ServiceControl.CustomChecks
             }
         }
 
-        async Task RaiseEvents(CheckStateChange state, CustomCheckDetail detail)
+        async Task RaiseEvents(CheckStateChange state, CustomCheckDetail detail, CancellationToken cancellationToken)
         {
             var id = detail.GetDeterministicId();
 
@@ -58,7 +63,7 @@ namespace ServiceControl.CustomChecks
                         FailedAt = detail.ReportedAt,
                         FailureReason = detail.FailureReason,
                         OriginatingEndpoint = detail.OriginatingEndpoint
-                    });
+                    }, cancellationToken);
                 }
                 else
                 {
@@ -69,7 +74,7 @@ namespace ServiceControl.CustomChecks
                         Category = detail.Category,
                         SucceededAt = detail.ReportedAt,
                         OriginatingEndpoint = detail.OriginatingEndpoint
-                    });
+                    }, cancellationToken);
                 }
             }
         }

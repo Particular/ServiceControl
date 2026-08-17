@@ -22,7 +22,7 @@
     {
         [Test]
         [CancelAfter(120_000)]
-        public async Task Should_show_up_as_resolved_when_doing_a_single_retry(CancellationToken cancellationToken)
+        public async Task Should_show_up_as_resolved_when_doing_a_single_retry(CancellationToken cancellationToken = default)
         {
             FailedMessage failure = null;
 
@@ -75,7 +75,6 @@
                 {
                     c.EnableFeature<SendControlMessage>();
                     c.NoDelayedRetries();
-                    c.ReportSuccessfulRetriesToServiceControl();
                     c.Pipeline.Register(services => new LookForControlMessage(services.GetRequiredService<MyContext>()), "Look for control messages");
                 });
 

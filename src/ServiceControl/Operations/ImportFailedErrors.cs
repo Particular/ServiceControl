@@ -19,7 +19,7 @@
                 await errorIngestor.VerifyCanReachForwardingAddress(cancellationToken);
             }
 
-            await store.ProcessFailedErrorImports(async transportMessage =>
+            await store.ProcessFailedErrorImports(async (transportMessage, token) =>
             {
                 var messageContext = new MessageContext(
                     transportMessage.Id,
@@ -32,7 +32,7 @@
                 var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-                await errorIngestor.Ingest([messageContext], cancellationToken);
+                await errorIngestor.Ingest([messageContext], token);
                 await taskCompletionSource.Task;
             }, cancellationToken);
         }

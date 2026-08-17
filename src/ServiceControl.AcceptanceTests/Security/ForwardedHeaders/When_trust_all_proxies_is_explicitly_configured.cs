@@ -11,6 +11,7 @@ namespace ServiceControl.AcceptanceTests.Security.ForwardedHeaders
     /// When TrustAllProxies is explicitly configured via environment variable, headers should be applied.
     /// This test verifies the WithTrustAllProxies() configuration method works correctly.
     /// </summary>
+    [NonParallelizable]
     class When_trust_all_proxies_is_explicitly_configured : AcceptanceTest
     {
         ForwardedHeadersTestConfiguration configuration;

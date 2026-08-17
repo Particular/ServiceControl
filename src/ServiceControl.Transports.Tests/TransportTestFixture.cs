@@ -44,7 +44,7 @@
 
             await configuration.Configure();
 
-            dispatcherTransportInfrastructure = await CreateDispatcherTransportInfrastructure();
+            dispatcherTransportInfrastructure = await CreateDispatcherTransportInfrastructure(testCancellationTokenSource.Token);
         }
 
         [TearDown]
@@ -98,7 +98,7 @@
 
         protected TransportTestsConfiguration configuration;
 
-        protected async Task<IAsyncDisposable> StartQueueLengthProvider(string queueName, Action<QueueLengthEntry> onQueueLengthReported)
+        protected async Task<IAsyncDisposable> StartQueueLengthProvider(string queueName, Action<QueueLengthEntry> onQueueLengthReported, CancellationToken cancellationToken = default)
         {
             // The transport test fixture abuses the transport seam as if it was stateless can but it isn't really
             // currently working around by creating a service collection per start call and then disposing the provider
@@ -122,7 +122,7 @@
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
             queueLengthProvider = serviceProvider.GetRequiredService<IProvideQueueLength>();
-            await queueLengthProvider.StartAsync(CancellationToken.None);
+            await queueLengthProvider.StartAsync(cancellationToken);
             queueLengthProvider.TrackEndpointInputQueue(new EndpointToQueueMapping(queueName, queueName));
 
             return new QueueLengthProviderScope(serviceProvider);
@@ -140,7 +140,8 @@
         protected async Task StartQueueIngestor(
             string queueName,
             OnMessage onMessage,
-            OnError onError)
+            OnError onError,
+            CancellationToken cancellationToken = default)
         {
             var transportSettings = new TransportSettings
             {
@@ -154,18 +155,19 @@
                 transportSettings,
                 onMessage,
                 onError,
-                (_, __) =>
+                (_, __, ___) =>
                 {
                     Assert.Fail("There should be no critical errors");
                     return Task.CompletedTask;
-                });
+                },
+                cancellationToken: cancellationToken);
 
             queueIngestor = transportInfrastructure.Receivers[queueName];
 
-            await queueIngestor.StartReceive();
+            await queueIngestor.StartReceive(cancellationToken);
         }
 
-        protected Task ProvisionQueues(string queueName, string errorQueue, IEnumerable<string> additionalQueues)
+        protected Task ProvisionQueues(string queueName, string errorQueue, IEnumerable<string> additionalQueues, CancellationToken cancellationToken = default)
         {
             var transportSettings = new TransportSettings
             {
@@ -175,10 +177,10 @@
                 MaxConcurrency = 1
             };
 
-            return configuration.TransportCustomization.ProvisionQueues(transportSettings, additionalQueues);
+            return configuration.TransportCustomization.ProvisionQueues(transportSettings, additionalQueues, cancellationToken);
         }
 
-        protected Task CreateTestQueue(string queueName)
+        protected Task CreateTestQueue(string queueName, CancellationToken cancellationToken = default)
         {
             var transportSettings = new TransportSettings
             {
@@ -187,12 +189,12 @@
                 MaxConcurrency = 1
             };
 
-            return configuration.TransportCustomization.ProvisionQueues(transportSettings, []);
+            return configuration.TransportCustomization.ProvisionQueues(transportSettings, [], cancellationToken);
         }
 
         protected static TimeSpan TestTimeout = TimeSpan.FromMinutes(5);
 
-        protected async Task SendAndReceiveMessages(string queueName, int numMessagesToIngest)
+        protected async Task SendAndReceiveMessages(string queueName, int numMessagesToIngest, CancellationToken cancellationToken = default)
         {
             TaskCompletionSource<bool> onMessagesProcessed = CreateTaskCompletionSource<bool>();
             int numMessagesIngested = 0;
@@ -214,11 +216,12 @@
                 {
                     Assert.Fail("There should be no errors");
                     return Task.FromResult(ErrorHandleResult.Handled);
-                });
+                },
+                cancellationToken);
 
             for (int i = 0; i < numMessagesToIngest; i++)
             {
-                await Dispatcher.SendTestMessage(queueName, $"message{i}", configuration.TransportCustomization);
+                await Dispatcher.SendTestMessage(queueName, $"message{i}", configuration.TransportCustomization, cancellationToken);
             }
 
             bool allMessagesProcessed = await onMessagesProcessed.Task;
@@ -226,18 +229,18 @@
 
             if (queueIngestor != null)
             {
-                await queueIngestor.StopReceive();
+                await queueIngestor.StopReceive(cancellationToken);
                 queueIngestor = null;
             }
 
             if (transportInfrastructure != null)
             {
-                await transportInfrastructure.Shutdown();
+                await transportInfrastructure.Shutdown(cancellationToken);
                 transportInfrastructure = null;
             }
         }
 
-        async Task<TransportInfrastructure> CreateDispatcherTransportInfrastructure()
+        async Task<TransportInfrastructure> CreateDispatcherTransportInfrastructure(CancellationToken cancellationToken)
         {
             var transportSettings = new TransportSettings
             {
@@ -246,7 +249,7 @@
                 MaxConcurrency = 1
             };
 
-            return await configuration.TransportCustomization.CreateTransportInfrastructure("TransportTestDispatcher", transportSettings);
+            return await configuration.TransportCustomization.CreateTransportInfrastructure("TransportTestDispatcher", transportSettings, cancellationToken: cancellationToken);
         }
 
         string queueSuffix;

@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using MessageFailures;
     using Persistence.RavenDB;
@@ -13,9 +14,9 @@
 
     class UnarchiveDocumentManager
     {
-        public Task<UnarchiveOperation> LoadUnarchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType) => session.LoadAsync<UnarchiveOperation>(UnarchiveOperation.MakeId(groupId, archiveType));
+        public Task<UnarchiveOperation> LoadUnarchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType, CancellationToken cancellationToken = default) => session.LoadAsync<UnarchiveOperation>(UnarchiveOperation.MakeId(groupId, archiveType), cancellationToken);
 
-        public async Task<UnarchiveOperation> CreateUnarchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType, int numberOfMessages, string groupName, int batchSize, string initiatedById = null, string initiatedByName = null, string operationId = null)
+        public async Task<UnarchiveOperation> CreateUnarchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType, int numberOfMessages, string groupName, int batchSize, string initiatedById = null, string initiatedByName = null, string operationId = null, CancellationToken cancellationToken = default)
         {
             var operation = new UnarchiveOperation
             {
@@ -33,7 +34,7 @@
                 OperationId = operationId
             };
 
-            await session.StoreAsync(operation);
+            await session.StoreAsync(operation, cancellationToken);
 
             var documentCount = 0;
             var indexQuery = session.Query<FailureGroupMessageView>(new FailedMessages_ByGroup().IndexName);
@@ -43,7 +44,7 @@
                 .Where(failure => failure.Status == FailedMessageStatus.Archived)
                 .Select(document => document.Id);
 
-            var docs = await StreamResults(session, docQuery);
+            var docs = await StreamResults(session, docQuery, cancellationToken);
 
             var batches = docs
                 .GroupBy(d => documentCount++ / batchSize);
@@ -56,16 +57,16 @@
                     DocumentIds = batch.ToList()
                 };
 
-                await session.StoreAsync(unarchiveBatch);
+                await session.StoreAsync(unarchiveBatch, cancellationToken);
             }
 
             return operation;
         }
 
-        async Task<IEnumerable<string>> StreamResults(IAsyncDocumentSession session, IQueryable<string> query)
+        async Task<IEnumerable<string>> StreamResults(IAsyncDocumentSession session, IQueryable<string> query, CancellationToken cancellationToken)
         {
             var results = new List<string>();
-            await using var enumerator = await session.Advanced.StreamAsync(query);
+            await using var enumerator = await session.Advanced.StreamAsync(query, cancellationToken);
             while (await enumerator.MoveNextAsync())
             {
                 results.Add(enumerator.Current.Document);
@@ -74,15 +75,15 @@
             return results;
         }
 
-        public Task<UnarchiveBatch> GetUnarchiveBatch(IAsyncDocumentSession session, string unUnarchiveOperationId, int batchNumber)
+        public Task<UnarchiveBatch> GetUnarchiveBatch(IAsyncDocumentSession session, string unUnarchiveOperationId, int batchNumber, CancellationToken cancellationToken = default)
         {
-            return session.LoadAsync<UnarchiveBatch>($"{unUnarchiveOperationId}/{batchNumber}");
+            return session.LoadAsync<UnarchiveBatch>($"{unUnarchiveOperationId}/{batchNumber}", cancellationToken);
         }
 
-        public async Task<GroupDetails> GetGroupDetails(IAsyncDocumentSession session, string groupId)
+        public async Task<GroupDetails> GetGroupDetails(IAsyncDocumentSession session, string groupId, CancellationToken cancellationToken = default)
         {
             var group = await session.Query<FailureGroupView, ArchivedGroupsViewIndex>()
-                .FirstOrDefaultAsync(x => x.Id == groupId);
+                .FirstOrDefaultAsync(x => x.Id == groupId, cancellationToken);
 
             return new GroupDetails
             {
@@ -114,9 +115,9 @@
             }
         }
 
-        public async Task<bool> WaitForIndexUpdateOfUnarchiveOperation(IRavenSessionProvider sessionProvider, string requestId, TimeSpan timeToWait)
+        public async Task<bool> WaitForIndexUpdateOfUnarchiveOperation(IRavenSessionProvider sessionProvider, string requestId, TimeSpan timeToWait, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var indexQuery = session.Query<FailureGroupMessageView>(new FailedMessages_ByGroup().IndexName)
                 .Customize(x => x.WaitForNonStaleResults(timeToWait));
 
@@ -126,9 +127,13 @@
 
             try
             {
-                await docQuery.AnyAsync();
+                await docQuery.AnyAsync(cancellationToken);
 
                 return true;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch
             {
@@ -136,16 +141,16 @@
             }
         }
 
-        public async Task UpdateUnarchiveOperation(IAsyncDocumentSession session, UnarchiveOperation unarchiveOperation)
+        public async Task UpdateUnarchiveOperation(IAsyncDocumentSession session, UnarchiveOperation unarchiveOperation, CancellationToken cancellationToken = default)
         {
-            await session.StoreAsync(unarchiveOperation);
+            await session.StoreAsync(unarchiveOperation, cancellationToken);
         }
 
-        public async Task RemoveUnarchiveOperation(IRavenSessionProvider sessionProvider, UnarchiveOperation unarchiveOperation)
+        public async Task RemoveUnarchiveOperation(IRavenSessionProvider sessionProvider, UnarchiveOperation unarchiveOperation, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             session.Advanced.Defer(new DeleteCommandData(unarchiveOperation.Id, null));
-            await session.SaveChangesAsync();
+            await session.SaveChangesAsync(cancellationToken);
         }
 
         public class GroupDetails

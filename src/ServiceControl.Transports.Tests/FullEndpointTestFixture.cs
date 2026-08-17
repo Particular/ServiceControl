@@ -7,7 +7,7 @@
     using ServiceControl.Infrastructure;
 
     [TestFixture]
-
+    [FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
     abstract class FullEndpointTestFixture
     {
         [SetUp]

@@ -17,10 +17,10 @@
 
     class ImportFailedErrorsCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings)
+        public override async Task Execute(HostArguments args, Settings settings, CancellationToken cancellationToken = default)
         {
             using var app = BuildHost(settings);
-            await app.StartAsync();
+            await app.StartAsync(cancellationToken);
 
             var importFailedErrors = app.Services.GetRequiredService<ImportFailedErrors>();
 
@@ -31,7 +31,7 @@
             {
                 await importFailedErrors.Run(tokenSource.Token);
             }
-            catch (OperationCanceledException e) when (tokenSource.IsCancellationRequested)
+            catch (OperationCanceledException e) when (tokenSource.Token.IsCancellationRequested)
             {
                 LoggerUtil.CreateStaticLogger<ImportFailedErrorsCommand>().LogInformation(e, "Cancelled");
             }

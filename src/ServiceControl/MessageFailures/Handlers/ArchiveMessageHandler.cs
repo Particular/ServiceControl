@@ -9,13 +9,13 @@
     using ServiceControl.Persistence;
 
     [Handler]
-    class ArchiveMessageHandler(IErrorMessageDataStore dataStore, IDomainEvents domainEvents, IMessageActionAuditLog auditLog) : IHandleMessages<ArchiveMessage>
+    class ArchiveMessageHandler(IFailedMessageQueryDataStore queryStore, IFailedMessageLifecycleDataStore lifecycleStore, IDomainEvents domainEvents, IMessageActionAuditLog auditLog) : IHandleMessages<ArchiveMessage>
     {
         public async Task Handle(ArchiveMessage message, IMessageHandlerContext context)
         {
             var failedMessageId = message.FailedMessageId;
 
-            var failedMessage = await dataStore.ErrorBy(failedMessageId);
+            var failedMessage = await queryStore.GetFailedMessage(failedMessageId, context.CancellationToken);
 
             if (failedMessage.Status != FailedMessageStatus.Archived)
             {
@@ -24,7 +24,7 @@
                     FailedMessageId = failedMessageId
                 }, context.CancellationToken);
 
-                await dataStore.FailedMessageMarkAsArchived(failedMessageId);
+                await lifecycleStore.MarkAsArchived(failedMessageId, context.CancellationToken);
 
                 var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);
                 if (!string.IsNullOrEmpty(operationId))

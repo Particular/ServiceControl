@@ -39,10 +39,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB
 
                 var serverConfig = databaseConfiguration.ServerConfiguration;
 
-                var embeddedConfig = new EmbeddedDatabaseConfiguration(serverConfig.ServerUrl, databaseConfiguration.Name, serverConfig.DbPath, serverConfig.LogPath, serverConfig.LogsMode)
-                {
-                    FindClrType = databaseConfiguration.FindClrType
-                };
+                var embeddedConfig = new EmbeddedDatabaseConfiguration(serverConfig.ServerUrl, databaseConfiguration.Name, serverConfig.DbPath, serverConfig.LogPath, serverConfig.LogsMode);
 
                 database = EmbeddedDatabase.Start(embeddedConfig, lifetime);
 

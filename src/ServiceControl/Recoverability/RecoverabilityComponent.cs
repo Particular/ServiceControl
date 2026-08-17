@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using Connection;
     using Contracts;
-    using Contracts.MessageFailures;
     using CustomChecks;
     using EventLog;
     using ExternalIntegration;
@@ -17,7 +16,6 @@
     using Microsoft.Extensions.Logging;
     using Operations;
     using Particular.ServiceControl;
-    using Persistence;
     using Retrying;
     using ServiceBus.Management.Infrastructure.Settings;
     using Transports;
@@ -104,9 +102,6 @@
                 services.AddHostedService<ProcessRetryBatchesHostedService>();
             }
 
-            //Failed messages
-            services.AddHostedService<FailedMessageNotificationsHostedService>();
-
             //Health checks
             services.AddCustomCheck<ErrorIngestionCustomCheck>();
             services.AddCustomCheck<FailedErrorImportCustomCheck>();
@@ -138,43 +133,6 @@
             services.AddEventLogMapping<MessagesSubmittedForRetryFailedDefinition>();
         }
 
-        class FailedMessageNotificationsHostedService : IHostedService
-        {
-            public FailedMessageNotificationsHostedService(
-                IDomainEvents domainEvents,
-                IFailedMessageViewIndexNotifications store
-                )
-            {
-                this.domainEvents = domainEvents;
-                this.store = store;
-            }
-
-            public Task StartAsync(CancellationToken cancellationToken)
-            {
-                subscription = store.Subscribe(Callback);
-                return Task.FromResult(true);
-            }
-
-            Task Callback(FailedMessageTotals message)
-            {
-                return domainEvents.Raise(new MessageFailuresUpdated
-                {
-                    UnresolvedTotal = message.UnresolvedTotal,
-                    ArchivedTotal = message.UnresolvedTotal
-                });
-            }
-
-            public Task StopAsync(CancellationToken cancellationToken)
-            {
-                subscription.Dispose();
-                return Task.FromResult(true);
-            }
-
-            readonly IDomainEvents domainEvents;
-            IFailedMessageViewIndexNotifications store;
-            IDisposable subscription;
-        }
-
         class BulkRetryBatchCreationHostedService : IHostedService
         {
             public BulkRetryBatchCreationHostedService(RetriesGateway retries, IAsyncTimer scheduler, ILogger<BulkRetryBatchCreationHostedService> logger)
@@ -184,21 +142,21 @@
                 this.logger = logger;
             }
 
-            public Task StartAsync(CancellationToken cancellationToken)
+            public Task StartAsync(CancellationToken cancellationToken = default)
             {
                 if (retries != null)
                 {
-                    timer = scheduler.Schedule(_ => ProcessRequestedBulkRetryOperations(), interval, interval, e => logger.LogError(e, "Unhandled exception while processing bulk retry operations"));
+                    timer = scheduler.Schedule(ProcessRequestedBulkRetryOperations, interval, interval, e => logger.LogError(e, "Unhandled exception while processing bulk retry operations"));
                 }
 
                 return Task.CompletedTask;
             }
 
-            public Task StopAsync(CancellationToken cancellationToken) => timer?.Stop(cancellationToken) ?? Task.CompletedTask;
+            public Task StopAsync(CancellationToken cancellationToken = default) => timer?.Stop(cancellationToken) ?? Task.CompletedTask;
 
-            async Task<TimerJobExecutionResult> ProcessRequestedBulkRetryOperations()
+            async Task<TimerJobExecutionResult> ProcessRequestedBulkRetryOperations(CancellationToken cancellationToken)
             {
-                var processedRequests = await retries.ProcessNextBulkRetry();
+                var processedRequests = await retries.ProcessNextBulkRetry(cancellationToken);
                 return processedRequests ? TimerJobExecutionResult.ExecuteImmediately : TimerJobExecutionResult.ScheduleNextExecution;
             }
 
@@ -216,12 +174,12 @@
                 this.retryDocumentManager = retryDocumentManager;
             }
 
-            public Task StartAsync(CancellationToken cancellationToken)
+            public Task StartAsync(CancellationToken cancellationToken = default)
             {
-                return retryDocumentManager.RebuildRetryOperationState();
+                return retryDocumentManager.RebuildRetryOperationState(cancellationToken);
             }
 
-            public Task StopAsync(CancellationToken cancellationToken)
+            public Task StopAsync(CancellationToken cancellationToken = default)
             {
                 return Task.CompletedTask;
             }
@@ -238,24 +196,24 @@
                 this.logger = logger;
             }
 
-            internal async Task<bool> AdoptOrphanedBatchesAsync()
+            internal async Task<bool> AdoptOrphanedBatchesAsync(CancellationToken cancellationToken = default)
             {
-                var moreWorkRemaining = await retryDocumentManager.AdoptOrphanedBatches();
+                var moreWorkRemaining = await retryDocumentManager.AdoptOrphanedBatches(cancellationToken);
 
                 return moreWorkRemaining;
             }
 
-            public Task StartAsync(CancellationToken cancellationToken)
+            public Task StartAsync(CancellationToken cancellationToken = default)
             {
-                timer = scheduler.Schedule(async _ =>
+                timer = scheduler.Schedule(async token =>
                 {
-                    var hasMoreWork = await AdoptOrphanedBatchesAsync();
+                    var hasMoreWork = await AdoptOrphanedBatchesAsync(token);
                     return hasMoreWork ? TimerJobExecutionResult.ScheduleNextExecution : TimerJobExecutionResult.DoNotContinueExecuting;
                 }, TimeSpan.Zero, TimeSpan.FromMinutes(2), e => logger.LogError(e, "Unhandled exception while trying to adopt orphaned batches"));
                 return Task.CompletedTask;
             }
 
-            public Task StopAsync(CancellationToken cancellationToken) => timer.Stop(cancellationToken);
+            public Task StopAsync(CancellationToken cancellationToken = default) => timer.Stop(cancellationToken);
 
             TimerJob timer;
             readonly IAsyncTimer scheduler;
@@ -277,13 +235,13 @@
                 this.logger = logger;
             }
 
-            public Task StartAsync(CancellationToken cancellationToken)
+            public Task StartAsync(CancellationToken cancellationToken = default)
             {
                 timer = scheduler.Schedule(Process, TimeSpan.Zero, settings.ProcessRetryBatchesFrequency, e => logger.LogError(e, "Unhandled exception while processing retry batches"));
                 return Task.CompletedTask;
             }
 
-            public Task StopAsync(CancellationToken cancellationToken) => timer.Stop(cancellationToken);
+            public Task StopAsync(CancellationToken cancellationToken = default) => timer.Stop(cancellationToken);
 
             async Task<TimerJobExecutionResult> Process(CancellationToken cancellationToken)
             {

@@ -2,24 +2,26 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Recoverability;
 
     public class GroupFetcher
     {
-        public GroupFetcher(IGroupsDataStore store, IRetryHistoryDataStore retryStore, RetryingManager retryingManager, IArchiveMessages archiver)
+        public GroupFetcher(IGroupsDataStore store, IRetryHistoryDataStore retryStore, IRetryBatchStore retryBatchStore, RetryingManager retryingManager, IArchiveMessages archiver)
         {
             this.store = store;
             this.retryStore = retryStore;
+            this.retryBatchStore = retryBatchStore;
             this.retryingManager = retryingManager;
             this.archiver = archiver;
         }
 
-        public async Task<GroupOperation[]> GetGroups(string classifier, string classifierFilter)
+        public async Task<GroupOperation[]> GetGroups(string classifier, string classifierFilter, CancellationToken cancellationToken = default)
         {
-            var dbGroups = await store.GetFailureGroupsByClassifier(classifier, classifierFilter);
-            var retryHistory = await retryStore.GetRetryHistory();
+            var dbGroups = await store.GetUnresolvedGroupsByClassifier(classifier, classifierFilter, cancellationToken);
+            var retryHistory = await retryStore.GetRetryHistory(cancellationToken);
             var unacknowledgedRetries = retryHistory.GetUnacknowledgedByClassifier(classifier);
 
             var openRetryAcknowledgements = MapAcksToOpenGroups(dbGroups, unacknowledgedRetries);
@@ -32,7 +34,7 @@
             openGroups = MapOpenGroups(openGroups, archiver.GetArchivalOperations()).ToList();
             openGroups = openGroups.Where(group => !closedGroups.Any(closedGroup => closedGroup.Id == group.Id)).ToList();
 
-            var currentForwardingBatch = await store.GetCurrentForwardingBatch();
+            var currentForwardingBatch = await retryBatchStore.GetCurrentForwardingBatch(cancellationToken);
             MakeSureForwardingBatchIsIncludedAsOpen(classifier, currentForwardingBatch, openGroups);
 
             var groups = openGroups.Union(closedGroups);
@@ -40,7 +42,7 @@
             return groups.OrderByDescending(g => g.Last).ToArray();
         }
 
-        void MakeSureForwardingBatchIsIncludedAsOpen(string classifier, RetryBatch forwardingBatch, List<GroupOperation> open)
+        void MakeSureForwardingBatchIsIncludedAsOpen(string classifier, ForwardingRetryBatch forwardingBatch, List<GroupOperation> open)
         {
             if (forwardingBatch == null || forwardingBatch.Classifier != classifier)
             {
@@ -63,12 +65,12 @@
                     select unack).ToArray();
         }
 
-        static bool IsCurrentForwardingOperationIncluded(List<GroupOperation> open, RetryBatch forwardingBatch)
+        static bool IsCurrentForwardingOperationIncluded(List<GroupOperation> open, ForwardingRetryBatch forwardingBatch)
         {
             return open.Any(x => x.Id == forwardingBatch.RequestId && x.Type == forwardingBatch.Classifier && forwardingBatch.RetryType == RetryType.FailureGroup);
         }
 
-        static GroupOperation MapOpenForForwardingOperation(string classifier, RetryBatch forwardingBatch, InMemoryRetry summary)
+        static GroupOperation MapOpenForForwardingOperation(string classifier, ForwardingRetryBatch forwardingBatch, InMemoryRetry summary)
         {
             var progress = summary.GetProgress();
             return new GroupOperation
@@ -190,6 +192,7 @@
 
         readonly IGroupsDataStore store;
         readonly IRetryHistoryDataStore retryStore;
+        readonly IRetryBatchStore retryBatchStore;
         readonly RetryingManager retryingManager;
         readonly IArchiveMessages archiver;
     }

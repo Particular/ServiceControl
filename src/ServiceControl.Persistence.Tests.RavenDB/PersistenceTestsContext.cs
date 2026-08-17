@@ -3,11 +3,13 @@ namespace ServiceControl.Persistence.Tests;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
 using Raven.Client.Documents;
+using Raven.Client.Documents.Session;
 using ServiceControl.Contracts.Operations;
 using ServiceControl.MessageFailures;
 using ServiceControl.Persistence;
@@ -52,7 +54,15 @@ public class PersistenceTestsContext : IPersistenceTestsContext
         await CompleteDatabaseOperation();
     }
 
-    public async Task TearDown() => await embeddedServer.DeleteDatabase(databaseName);
+    public async Task TearDown()
+    {
+        if (embeddedServer == null)
+        {
+            return;
+        }
+
+        await embeddedServer.DeleteDatabase(databaseName);
+    }
 
     public PersistenceSettings PersistenceSettings { get; private set; }
     public string GenerateFailedMessageRecordId(string messageId) => FailedMessageIdGenerator.MakeDocumentId(messageId);

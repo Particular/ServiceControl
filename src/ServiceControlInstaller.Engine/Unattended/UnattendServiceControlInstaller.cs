@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.ServiceProcess;
+    using System.Threading;
     using System.Threading.Tasks;
     using Configuration.ServiceControl;
     using FileSystem;
@@ -20,7 +21,7 @@
 
         public PlatformZipInfo ZipInfo { get; }
 
-        public async Task<bool> Add(ServiceControlNewInstance details, Func<PathInfo, Task<bool>> promptToProceed)
+        public async Task<bool> Add(ServiceControlNewInstance details, Func<PathInfo, CancellationToken, Task<bool>> promptToProceed, CancellationToken cancellationToken = default)
         {
             ZipInfo.ValidateZip();
 
@@ -32,7 +33,7 @@
                 instanceInstaller.Version = Constants.CurrentVersion;
 
                 //Validation
-                await instanceInstaller.Validate(promptToProceed).ConfigureAwait(false);
+                await instanceInstaller.Validate(promptToProceed, cancellationToken).ConfigureAwait(false);
 
                 if (instanceInstaller.ReportCard.HasErrors)
                 {
@@ -142,10 +143,10 @@
             return true;
         }
 
-        internal async Task<bool> Update(ServiceControlInstance instance, bool startService)
+        internal async Task<bool> Update(ServiceControlInstance instance, bool startService, CancellationToken cancellationToken = default)
         {
             instance.ReportCard = new ReportCard();
-            await instance.ValidateChanges().ConfigureAwait(false);
+            await instance.ValidateChanges(cancellationToken).ConfigureAwait(false);
             if (instance.ReportCard.HasErrors)
             {
                 return false;

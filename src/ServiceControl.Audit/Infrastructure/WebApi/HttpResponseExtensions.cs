@@ -14,7 +14,19 @@ namespace ServiceControl.Audit.Infrastructure.WebApi
     {
         public static void WithTotalCount(this HttpResponse response, long totalCount) => response.WithHeader("Total-Count", totalCount.ToString(CultureInfo.InvariantCulture));
 
-        public static void WithEtag(this HttpResponse response, StringValues value) => response.Headers.ETag = value;
+        public static void WithEtag(this HttpResponse response, StringValues value)
+        {
+            var validator = value.ToString();
+
+            if (string.IsNullOrEmpty(validator))
+            {
+                return;
+            }
+
+            // RFC 9110 requires an entity-tag to be a quoted string. Unquoted, EntityTagHeaderValue
+            // cannot parse it and NotModifiedStatusHttpHandler never matches a client's If-None-Match.
+            response.Headers.ETag = $"\"{validator}\"";
+        }
 
         public static void WithQueryStatsInfo(this HttpResponse response, QueryStatsInfo queryStatsInfo)
         {

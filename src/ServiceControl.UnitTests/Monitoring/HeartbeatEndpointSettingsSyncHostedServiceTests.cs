@@ -17,23 +17,34 @@ using ServiceControl.Operations;
 [TestFixture]
 public class HeartbeatEndpointSettingsSyncHostedServiceTests
 {
+
+    static async Task WaitUntilAsync(Func<bool> condition, TimeSpan? timeout = null)
+    {
+        var deadline = DateTime.UtcNow + (timeout ?? TimeSpan.FromSeconds(10));
+        while (!condition() && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(20);
+        }
+    }
+
     [Test]
     public async Task Should_handle_cancellation_token_gracefully()
     {
         using var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(3));
         CancellationToken token = tokenSource.Token;
         var fakeTimeProvider = new FakeTimeProvider();
+        var mockEndpointInstanceMonitoring = new MockEndpointInstanceMonitoring([]);
         var service = new HeartbeatEndpointSettingsSyncHostedService(
             new MockMonitoringDataStore([]),
             new MockEndpointSettingsStore([]),
-            new MockEndpointInstanceMonitoring([]), new Settings { TrackInstancesInitialValue = true },
+            mockEndpointInstanceMonitoring, new Settings { TrackInstancesInitialValue = true },
             fakeTimeProvider, NullLogger<HeartbeatEndpointSettingsSyncHostedService>.Instance)
         {
             DelayStart = TimeSpan.Zero
         };
 
         await service.StartAsync(token);
-        await Task.Delay(TimeSpan.FromSeconds(2), token);
+        await WaitUntilAsync(() => mockEndpointInstanceMonitoring.GetEndpointsCallCount >= 1);
         await service.StopAsync(token);
 
         Assert.That(service.ExecuteTask?.IsCompletedSuccessfully, Is.True);
@@ -59,7 +70,7 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
         };
 
         await service.StartAsync(token);
-        await Task.Delay(TimeSpan.FromSeconds(2), token);
+        await WaitUntilAsync(() => mockEndpointSettingsStore.Deleted.Count >= 2);
         await service.StopAsync(token);
 
         Assert.That(mockEndpointSettingsStore.Deleted.Count, Is.EqualTo(2));
@@ -86,7 +97,7 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
         };
 
         await service.StartAsync(token);
-        await Task.Delay(TimeSpan.FromSeconds(2), token);
+        await WaitUntilAsync(() => mockEndpointSettingsStore.Updated.Count >= 1);
         await service.StopAsync(token);
 
         Assert.That(mockEndpointSettingsStore.Updated.Count, Is.EqualTo(1));
@@ -106,11 +117,12 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
         var mockEndpointSettingsStore = new MockEndpointSettingsStore([
             new EndpointSettings { Name = string.Empty, TrackInstances = expectedTrackInstancesInitialValue }
         ]);
+        var mockEndpointInstanceMonitoring = new MockEndpointInstanceMonitoring([]);
         var service = new HeartbeatEndpointSettingsSyncHostedService(
             new MockMonitoringDataStore(
                 []),
             mockEndpointSettingsStore,
-            new MockEndpointInstanceMonitoring([]),
+            mockEndpointInstanceMonitoring,
             new Settings { TrackInstancesInitialValue = expectedTrackInstancesInitialValue },
             fakeTimeProvider, NullLogger<HeartbeatEndpointSettingsSyncHostedService>.Instance)
         {
@@ -118,7 +130,7 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
         };
 
         await service.StartAsync(token);
-        await Task.Delay(TimeSpan.FromSeconds(2), token);
+        await WaitUntilAsync(() => mockEndpointInstanceMonitoring.GetEndpointsCallCount >= 1);
         await service.StopAsync(token);
 
         Assert.That(mockEndpointSettingsStore.Updated.Count, Is.EqualTo(0));
@@ -158,7 +170,7 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
         };
 
         await service.StartAsync(token);
-        await Task.Delay(TimeSpan.FromSeconds(2), token);
+        await WaitUntilAsync(() => mockMonitoringDataStore.Deleted.Count >= 2);
         await service.StopAsync(token);
 
         Assert.That(mockMonitoringDataStore.Deleted.Count, Is.EqualTo(2));
@@ -197,7 +209,7 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
         };
 
         await service.StartAsync(token);
-        await Task.Delay(TimeSpan.FromSeconds(2), token);
+        await WaitUntilAsync(() => mockEndpointInstanceMonitoring.GetEndpointsCallCount >= 1);
         await service.StopAsync(token);
 
         Assert.That(mockMonitoringDataStore.Deleted.Count, Is.EqualTo(0));
@@ -206,21 +218,30 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
 
     class MockEndpointInstanceMonitoring(EndpointsView[] endpointsViews) : IEndpointInstanceMonitoring
     {
-        public Task CheckEndpoints(DateTime threshold) => throw new NotImplementedException();
+        public Task CheckEndpoints(DateTime threshold, CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
-        public Task DetectEndpointFromHeartbeatStartup(EndpointDetails newEndpointDetails, DateTime startedAt) =>
+        public Task DetectEndpointFromHeartbeatStartup(EndpointDetails newEndpointDetails, DateTime startedAt, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
         public void DetectEndpointFromPersistentStore(EndpointDetails endpointDetails, bool monitored) =>
             throw new NotImplementedException();
 
-        public Task DisableMonitoring(Guid id) => throw new NotImplementedException();
+        public Task DisableMonitoring(Guid id, CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
-        public Task EnableMonitoring(Guid id) => throw new NotImplementedException();
+        public Task EnableMonitoring(Guid id, CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
-        public Task EndpointDetected(EndpointDetails newEndpointDetails) => throw new NotImplementedException();
+        public Task EndpointDetected(EndpointDetails newEndpointDetails, CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
-        public EndpointsView[] GetEndpoints() => endpointsViews;
+        public EndpointsView[] GetEndpoints()
+        {
+            GetEndpointsCallCount++;
+            return endpointsViews;
+        }
+
+        // GetEndpoints() is called by PurgeMonitoringDataThatDoesNotNeedToBeTracked, which runs
+        // at the end of each sync cycle. Waiting for this to be invoked gives a deterministic
+        // signal that a full sync cycle has completed, without relying on a fixed wall-clock delay.
+        public int GetEndpointsCallCount { get; private set; }
 
         public List<KnownEndpointsView> GetKnownEndpoints() => throw new NotImplementedException();
 
@@ -242,15 +263,15 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
 
     class MockEndpointSettingsStore(EndpointSettings[] settings) : IEndpointSettingsStore
     {
-        public IAsyncEnumerable<EndpointSettings> GetAllEndpointSettings(CancellationToken token) => settings.ToAsyncEnumerable();
+        public IAsyncEnumerable<EndpointSettings> GetAllEndpointSettings(CancellationToken cancellationToken = default) => settings.ToAsyncEnumerable();
 
-        public Task UpdateEndpointSettings(EndpointSettings settings, CancellationToken token)
+        public Task UpdateEndpointSettings(EndpointSettings settings, CancellationToken cancellationToken = default)
         {
             Updated.Add(settings);
             return Task.CompletedTask;
         }
 
-        public Task Delete(string name, CancellationToken cancellationToken)
+        public Task Delete(string name, CancellationToken cancellationToken = default)
         {
             Deleted.Add(name);
             return Task.CompletedTask;
@@ -263,18 +284,18 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
 
     class MockMonitoringDataStore(KnownEndpoint[] knownEndpoints) : IMonitoringDataStore
     {
-        public Task CreateIfNotExists(EndpointDetails endpoint) => throw new NotImplementedException();
+        public Task CreateIfNotExists(EndpointDetails endpoint, CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
-        public Task CreateOrUpdate(EndpointDetails endpoint, IEndpointInstanceMonitoring endpointInstanceMonitoring) =>
+        public Task CreateOrUpdate(EndpointDetails endpoint, IEndpointInstanceMonitoring endpointInstanceMonitoring, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
-        public Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored) =>
+        public Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
-        public Task WarmupMonitoringFromPersistence(IEndpointInstanceMonitoring endpointInstanceMonitoring) =>
+        public Task WarmupMonitoringFromPersistence(IEndpointInstanceMonitoring endpointInstanceMonitoring, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
-        public Task Delete(Guid endpointId)
+        public Task Delete(Guid endpointId, CancellationToken cancellationToken = default)
         {
             Deleted.Add(endpointId);
             return Task.CompletedTask;
@@ -282,7 +303,7 @@ public class HeartbeatEndpointSettingsSyncHostedServiceTests
 
         public List<Guid> Deleted { get; } = [];
 
-        public Task<IReadOnlyList<KnownEndpoint>> GetAllKnownEndpoints() =>
+        public Task<IReadOnlyList<KnownEndpoint>> GetAllKnownEndpoints(CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<KnownEndpoint>>(knownEndpoints);
     }
 }

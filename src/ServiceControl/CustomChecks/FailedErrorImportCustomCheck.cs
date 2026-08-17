@@ -18,7 +18,7 @@
 
         public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
-            var hasFailedImports = await store.QueryContainsFailedImports();
+            var hasFailedImports = await store.QueryContainsFailedImports(cancellationToken);
 
             if (hasFailedImports)
             {

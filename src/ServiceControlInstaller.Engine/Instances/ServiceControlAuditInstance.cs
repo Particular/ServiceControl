@@ -16,7 +16,30 @@ namespace ServiceControlInstaller.Engine.Instances
     {
         public ServiceControlAuditInstance(IWindowsServiceController service) : base(service)
         {
-            Reload();
+            // Set the config file path so it's available if loading fails
+            ConfigurationFilePath = Path.Combine(InstallPath, $"{Constants.ServiceControlAuditExe}.config");
+
+            // Check if config loading failed in base constructor
+            if (ConfigurationLoadException != null)
+            {
+                ConfigurationLoadError = $"Failed to load configuration file '{ConfigurationFilePath}': {ConfigurationLoadException.Message}";
+                InstanceName = Name;
+                ReportCard = new ReportCard.ReportCard();
+                ReportCard.Errors.Add(ConfigurationLoadError);
+                return;
+            }
+
+            try
+            {
+                Reload();
+            }
+            catch (Exception ex)
+            {
+                ConfigurationLoadError = $"Failed to load configuration file '{ConfigurationFilePath}': {ex.Message}";
+                InstanceName = Name;
+                ReportCard = new ReportCard.ReportCard();
+                ReportCard.Errors.Add(ConfigurationLoadError);
+            }
         }
 
         public TimeSpan AuditRetentionPeriod { get; set; }
@@ -71,6 +94,12 @@ namespace ServiceControlInstaller.Engine.Instances
             Service.Refresh();
 
             AppConfig = CreateAppConfig();
+
+            // If config failed to load, throw exception to be caught by constructor
+            if (AppConfig.Config == null)
+            {
+                throw new Exception(AppConfig.ConfigLoadException?.Message ?? "Unknown error", AppConfig.ConfigLoadException);
+            }
 
             InstanceName = AppConfig.Read(AuditInstanceSettingsList.InternalQueueName, Name);
             InstanceName = AppConfig.Read(AuditInstanceSettingsList.InstanceName, InstanceName);

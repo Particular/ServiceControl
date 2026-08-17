@@ -2,6 +2,7 @@ namespace ServiceControl.CompositeViews.Messages
 {
     using System.Collections.Generic;
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
@@ -17,14 +18,14 @@ namespace ServiceControl.CompositeViews.Messages
         DateTimeRange TimeSentRange = null)
         : ScatterGatherApiMessageViewContext(PagingInfo, SortInfo, TimeSentRange);
 
-    public class SearchEndpointApi : ScatterGatherApiMessageView<IErrorMessageDataStore, SearchEndpointContext>
+    public class SearchEndpointApi : ScatterGatherApiMessageView<IMessagesViewDataStore, SearchEndpointContext>
     {
-        public SearchEndpointApi(IErrorMessageDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<SearchEndpointApi> logger)
+        public SearchEndpointApi(IMessagesViewDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<SearchEndpointApi> logger)
             : base(dataStore, settings, httpClientFactory, httpContextAccessor, logger)
         {
         }
 
-        protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(SearchEndpointContext input) =>
-            DataStore.SearchEndpointMessages(input.Endpoint, input.Keyword, input.PagingInfo, input.SortInfo, input.TimeSentRange);
+        protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(SearchEndpointContext input, CancellationToken cancellationToken = default) =>
+            DataStore.SearchEndpointMessages(input.Endpoint, input.Keyword, input.PagingInfo, input.SortInfo, input.TimeSentRange, cancellationToken);
     }
 }

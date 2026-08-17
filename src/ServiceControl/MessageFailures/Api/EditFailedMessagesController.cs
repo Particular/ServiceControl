@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
     using Infrastructure.WebApi;
@@ -19,7 +20,8 @@
     [Route("api")]
     public class EditFailedMessagesController(
         Settings settings,
-        IErrorMessageDataStore store,
+        IFailedMessageQueryDataStore store,
+        IEditFailedMessagesDataStore editStore,
         IMessageSession session,
         ILogger<EditFailedMessagesController> logger,
         ICurrentUserAccessor userAccessor,
@@ -34,7 +36,7 @@
         [Authorize(Policy = Permissions.ErrorMessagesEdit)]
         [Route("edit/{failedMessageId:required:minlength(1)}")]
         [HttpPost]
-        public async Task<ActionResult<EditRetryResponse>> Edit(string failedMessageId, [FromBody] EditMessageModel edit)
+        public async Task<ActionResult<EditRetryResponse>> Edit(string failedMessageId, [FromBody] EditMessageModel edit, CancellationToken cancellationToken = default)
         {
             if (!settings.AllowMessageEditing)
             {
@@ -43,8 +45,8 @@
             }
 
             //HINT: This validation is the first one because we want to minimize the chance of two users concurrently execute an edit-retry.
-            var editManager = await store.CreateEditFailedMessageManager();
-            var editId = await editManager.GetCurrentEditingRequestId(failedMessageId);
+            var editManager = await editStore.CreateEditFailedMessageManager(cancellationToken);
+            var editId = await editManager.GetCurrentEditingRequestId(failedMessageId, cancellationToken);
             if (editId != null)
             {
                 logger.LogWarning("Cannot edit message {FailedMessageId} because it has already been edited", failedMessageId);
@@ -52,7 +54,7 @@
                 return Ok(new EditRetryResponse { EditIgnored = true });
             }
 
-            var failedMessage = await store.ErrorBy(failedMessageId);
+            var failedMessage = await store.GetFailedMessage(failedMessageId, cancellationToken);
 
             if (failedMessage == null)
             {
@@ -90,12 +92,12 @@
 
             await auditLog.AuditedOperation(user, MessageActionKind.Edit, Permissions.ErrorMessagesEdit, MessageActionScope.Single,
                 resource: failedMessageId, count: 1, operationId: operationId,
-                () => session.Send(new EditAndSend
+                ct => session.Send(new EditAndSend
                 {
                     FailedMessageId = failedMessageId,
                     NewBody = base64String,
                     NewHeaders = edit.MessageHeaders
-                }, AuditHeaders.LocalSendOptions(user, operationId)));
+                }, AuditHeaders.LocalSendOptions(user, operationId), ct), cancellationToken);
 
             return Accepted(new EditRetryResponse { EditIgnored = false });
         }

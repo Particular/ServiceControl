@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Runtime.InteropServices;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
@@ -11,7 +12,7 @@
 
     class SetupCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings)
+        public override async Task Execute(HostArguments args, Settings settings, CancellationToken cancellationToken = default)
         {
             if (settings.IngestAuditMessages)
             {
@@ -32,7 +33,7 @@
                     transportSettings.RunCustomChecks = false;
                     var transportCustomization = TransportFactory.Create(transportSettings);
 
-                    await transportCustomization.ProvisionQueues(transportSettings, additionalQueues);
+                    await transportCustomization.ProvisionQueues(transportSettings, additionalQueues, cancellationToken);
                 }
             }
 
@@ -45,8 +46,8 @@
             hostBuilder.AddServiceControlAuditInstallers(settings);
 
             using var host = hostBuilder.Build();
-            await host.StartAsync();
-            await host.StopAsync();
+            await host.StartAsync(cancellationToken);
+            await host.StopAsync(cancellationToken);
         }
     }
 }

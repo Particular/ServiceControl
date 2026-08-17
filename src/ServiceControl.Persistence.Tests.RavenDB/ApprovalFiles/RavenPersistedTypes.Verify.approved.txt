@@ -5,9 +5,9 @@ ServiceControl.MessageFailures.QueueAddress, ServiceControl.Persistence, Version
 ServiceControl.Operations.FailedErrorImport, ServiceControl.Persistence, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null
 ServiceControl.Persistence.KnownEndpoint, ServiceControl.Persistence, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null
 ServiceControl.Persistence.MessagesViewIndex+SortAndFilterOptions, ServiceControl.Persistence.RavenDB, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.Persistence.RavenDB.FailedMessageRetry, ServiceControl.Persistence.RavenDB, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.Persistence.RavenDB.RetryBatch, ServiceControl.Persistence.RavenDB, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null
 ServiceControl.Persistence.RavenDB.Throughput.Models.EndpointDocument, ServiceControl.Persistence.RavenDB, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null
-ServiceControl.Persistence.RetryBatch, ServiceControl.Persistence, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null
 ServiceControl.Persistence.RetryBatchGroup, ServiceControl.Persistence, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null
-ServiceControl.Recoverability.FailedMessageRetry, ServiceControl.Persistence, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null
 ServiceControl.Recoverability.FailureGroupMessageView, ServiceControl.Persistence, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null
 ServiceControl.Recoverability.FailureGroupView, ServiceControl.Persistence, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null

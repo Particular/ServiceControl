@@ -34,9 +34,9 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         public HttpClient HttpClient { get; private set; }
         public JsonSerializerOptions SerializerOptions => Infrastructure.SerializerOptions.Default;
 
-        public Task Initialize(RunDescriptor run) => InitializeServiceControl(run.ScenarioContext);
+        public Task Initialize(RunDescriptor run, CancellationToken cancellationToken = default) => InitializeServiceControl(run.ScenarioContext, cancellationToken);
 
-        async Task InitializeServiceControl(ScenarioContext context)
+        async Task InitializeServiceControl(ScenarioContext context, CancellationToken cancellationToken)
         {
             LoggerUtil.ActiveLoggers = Loggers.Test;
             settings = new Settings(transportType: transportToUse.TypeName)
@@ -79,7 +79,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
             using (new DiagnosticTimer($"Creating infrastructure for {settings.InstanceName}"))
             {
                 var setupCommand = new SetupCommand();
-                await setupCommand.Execute(new HostArguments([]), settings);
+                await setupCommand.Execute(new HostArguments([]), settings, cancellationToken);
             }
 
             var configuration = new EndpointConfiguration(settings.InstanceName);
@@ -127,7 +127,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 host.UseTestRemoteIp();
                 host.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
                 host.UseServiceControlMonitoring(settings.ForwardedHeadersSettings, settings.HttpsSettings, settings.CorsSettings);
-                await host.StartAsync();
+                await host.StartAsync(cancellationToken);
 
                 HttpClient = host.Services.GetRequiredKeyedService<TestServer>(settings.InstanceName).CreateClient();
             }

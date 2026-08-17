@@ -30,6 +30,7 @@ namespace ServiceControl.Audit.Auditing
             var succeeded = 0;
             var failed = 0;
 
+#pragma warning disable PS0021
             await failedAuditStore.ProcessFailedMessages(
                 async (transportMessage, markComplete, token) =>
                     {
@@ -54,9 +55,9 @@ namespace ServiceControl.Audit.Auditing
                             succeeded++;
                             logger.LogDebug("Successfully re-imported failed audit message {MessageId}", transportMessage.Id);
                         }
-                        catch (OperationCanceledException e) when (token.IsCancellationRequested)
+                        catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested)
                         {
-                            logger.LogInformation(e, "Cancelled");
+                            logger.LogInformation(e, "Cancelled re-importing failed audit message {MessageId}", transportMessage.Id);
                         }
                         catch (Exception e)
                         {
@@ -65,6 +66,7 @@ namespace ServiceControl.Audit.Auditing
                         }
 
                     }, cancellationToken);
+#pragma warning restore PS0021
 
             logger.LogInformation("Done re-importing failed audits. Successfully re-imported {SuccessCount} messages. Failed re-importing {FailureCount} messages", succeeded, failed);
 

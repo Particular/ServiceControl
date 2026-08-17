@@ -14,7 +14,8 @@ public class EFRecoverabilityIngestionUnitOfWork(EFIngestionUnitOfWork parentUni
 {
     public Task RecordFailedProcessingAttempt(MessageContext context,
         FailedMessage.ProcessingAttempt processingAttempt,
-        List<FailedMessage.FailureGroup> groups)
+        List<FailedMessage.FailureGroup> groups,
+        CancellationToken cancellationToken = default)
     {
         var uniqueMessageId = context.Headers.UniqueId();
         var contentType = context.Headers.GetValueOrDefault(Headers.ContentType, "text/plain");
@@ -24,7 +25,7 @@ public class EFRecoverabilityIngestionUnitOfWork(EFIngestionUnitOfWork parentUni
         if (storeExternally)
         {
             parentUnitOfWork.RecordBodyWrite(
-                storagePersistence.WriteBody(uniqueMessageId, context.Body, contentType));
+                storagePersistence.WriteBody(uniqueMessageId, context.Body, contentType, cancellationToken));
         }
 
         var sendingEndpoint = GetMetadata<EndpointDetails>(processingAttempt, "SendingEndpoint");
@@ -36,12 +37,11 @@ public class EFRecoverabilityIngestionUnitOfWork(EFIngestionUnitOfWork parentUni
             AttemptedAt = processingAttempt.AttemptedAt,
             TimeOfFailure = processingAttempt.FailureDetails.TimeOfFailure,
             Groups = groups,
-            HeadersJson = JsonSerializer.Serialize(processingAttempt.Headers, HeadersJsonContext.Default.DictionaryStringString),
+            HeadersJson = MessageHeaders.Write(processingAttempt.Headers),
             MessageId = processingAttempt.MessageId,
             MessageType = GetMetadata<string>(processingAttempt, "MessageType"),
             TimeSent = GetMetadata<DateTime?>(processingAttempt, "TimeSent"),
             ConversationId = GetMetadata<string>(processingAttempt, "ConversationId"),
-            QueueAddress = context.Headers.GetValueOrDefault(NServiceBus.Faults.FaultsHeaderKeys.FailedQ),
             SendingEndpointName = sendingEndpoint?.Name,
             SendingEndpointHostId = sendingEndpoint?.HostId,
             SendingEndpointHost = sendingEndpoint?.Host,
@@ -61,7 +61,7 @@ public class EFRecoverabilityIngestionUnitOfWork(EFIngestionUnitOfWork parentUni
         return Task.CompletedTask;
     }
 
-    public Task RecordSuccessfulRetry(string retriedMessageUniqueId)
+    public Task RecordSuccessfulRetry(string retriedMessageUniqueId, CancellationToken cancellationToken = default)
     {
         parentUnitOfWork.RecordConfirmedRetry(Guid.Parse(retriedMessageUniqueId));
 

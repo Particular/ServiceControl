@@ -4,6 +4,7 @@ namespace ServiceControlInstaller.Engine.Validation
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     class PathsValidator
@@ -52,12 +53,12 @@ namespace ServiceControlInstaller.Engine.Validation
             paths = pathList.Where(p => !string.IsNullOrWhiteSpace(p.Path)).ToList();
         }
 
-        public Task RunValidation(bool includeNewInstanceChecks)
+        public Task RunValidation(bool includeNewInstanceChecks, CancellationToken cancellationToken = default)
         {
-            return RunValidation(includeNewInstanceChecks, info => Task.FromResult(false));
+            return RunValidation(includeNewInstanceChecks, (info, token) => Task.FromResult(false), cancellationToken);
         }
 
-        public async Task<bool> RunValidation(bool includeNewInstanceChecks, Func<PathInfo, Task<bool>> promptToProceed)
+        public async Task<bool> RunValidation(bool includeNewInstanceChecks, Func<PathInfo, CancellationToken, Task<bool>> promptToProceed, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -69,12 +70,16 @@ namespace ServiceControlInstaller.Engine.Validation
                 //Do Checks that only make sense on add instance
                 if (includeNewInstanceChecks)
                 {
-                    cancelRequested = await CheckPathsAreEmpty(promptToProceed).ConfigureAwait(false);
+                    cancelRequested = await CheckPathsAreEmpty(promptToProceed, cancellationToken).ConfigureAwait(false);
                 }
 
                 return cancelRequested;
             }
             catch (EngineValidationException)
+            {
+                throw;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 throw;
             }
@@ -84,7 +89,7 @@ namespace ServiceControlInstaller.Engine.Validation
             }
         }
 
-        async Task<bool> CheckPathsAreEmpty(Func<PathInfo, Task<bool>> promptToProceed)
+        async Task<bool> CheckPathsAreEmpty(Func<PathInfo, CancellationToken, Task<bool>> promptToProceed, CancellationToken cancellationToken)
         {
             foreach (var pathInfo in paths)
             {
@@ -104,7 +109,7 @@ namespace ServiceControlInstaller.Engine.Validation
 
                     if (directory.EnumerateFileSystemInfos().Any())
                     {
-                        var shouldProceed = await promptToProceed(pathInfo).ConfigureAwait(false);
+                        var shouldProceed = await promptToProceed(pathInfo, cancellationToken).ConfigureAwait(false);
                         if (!shouldProceed)
                         {
                             return true;

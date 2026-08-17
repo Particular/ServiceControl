@@ -24,7 +24,7 @@
         public async Task Should_import_all_messages()
         {
             //Make sure the error import attempt fails
-            CustomizeHostBuilder = builder => builder.Services.AddSingleton<FailOnceEnricher>();
+            CustomizeHostBuilder = builder => builder.Services.AddSingleton<IEnrichImportedErrorMessages, FailOnceEnricher>();
 
             var maximumConcurrencyLevel = 5;
 
@@ -82,7 +82,7 @@
                             [Headers.MessageId] = i == 2 ? context.MessageId : Guid.NewGuid().ToString(),
                             ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(Sendonly)),
                             ["$.diagnostics.hostid"] = Guid.NewGuid().ToString(),
-                            ["NServiceBus.TimeOfFailure"] = DateTimeOffsetHelper.ToWireFormattedString(DateTime.UtcNow)
+                            ["NServiceBus.TimeOfFailure"] = DateTimeOffsetHelper.ToWireFormattedString(DateTimeOffset.UtcNow)
 
                         };
 

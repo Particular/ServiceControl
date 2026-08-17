@@ -5,17 +5,32 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using EFCore.DbContexts;
 using EFCore.Entities;
-using EFCore.Implementation.UnitOfWork;
+using EFCore.Infrastructure;
 using MessageFailures;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Time.Testing;
 using NServiceBus;
 using Operations;
 
 public partial class PersistenceTestsContext
 {
+    public FakeTimeProvider FakeTime { get; } = new(StorableUtcNow());
+
+    // PostgreSQL timestamps only keep microseconds, so a clock seeded straight from
+    // DateTimeOffset.UtcNow carries a 100ns tick that no longer compares equal once a
+    // timestamp stamped from it has been through the database.
+    static DateTimeOffset StorableUtcNow()
+    {
+        var now = DateTimeOffset.UtcNow;
+
+        return now.AddTicks(-(now.Ticks % TimeSpan.TicksPerMillisecond));
+    }
+
     static async Task InsertFailedMessagesDirect(IServiceProvider serviceProvider, FailedMessage[] messages)
     {
         await using var scope = serviceProvider.CreateAsyncScope();
@@ -41,12 +56,11 @@ public partial class PersistenceTestsContext
                 FirstTimeOfFailure = ordered.Min(pa => pa.FailureDetails.TimeOfFailure),
                 LastTimeOfFailure = ordered.Max(pa => pa.FailureDetails.TimeOfFailure),
                 LastAttemptedAt = attempt.AttemptedAt,
-                HeadersJson = JsonSerializer.Serialize(attempt.Headers, HeadersJsonContext.Default.DictionaryStringString),
+                HeadersJson = MessageHeaders.Write(attempt.Headers),
                 MessageId = attempt.MessageId,
                 MessageType = GetMetadata<string>(attempt, "MessageType"),
                 TimeSent = GetMetadata<DateTime?>(attempt, "TimeSent"),
                 ConversationId = GetMetadata<string>(attempt, "ConversationId"),
-                QueueAddress = attempt.Headers.GetValueOrDefault(NServiceBus.Faults.FaultsHeaderKeys.FailedQ),
                 SendingEndpointName = sendingEndpoint?.Name,
                 SendingEndpointHostId = sendingEndpoint?.HostId,
                 SendingEndpointHost = sendingEndpoint?.Host,
@@ -66,6 +80,19 @@ public partial class PersistenceTestsContext
                 LastModified = now,
                 NumberOfProcessingAttempts = ordered.Select(pa => pa.AttemptedAt).Distinct().Count(),
             });
+
+            // RavenDB carries the failure groups inside the document, so seeding them has to be
+            // explicit here for the two persisters to start from the same state.
+            db.FailedMessageGroups.AddRange(failedMessage.FailureGroups
+                .Where(group => group.Id != null)
+                .DistinctBy(group => group.Id)
+                .Select(group => new FailedMessageGroupEntity
+                {
+                    FailedMessageUniqueId = Guid.Parse(failedMessage.UniqueMessageId),
+                    GroupId = group.Id,
+                    Title = group.Title ?? string.Empty,
+                    Type = group.Type ?? string.Empty
+                }));
         }
 
         await db.SaveChangesAsync();

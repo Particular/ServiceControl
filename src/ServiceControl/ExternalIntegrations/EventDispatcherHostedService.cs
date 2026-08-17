@@ -26,19 +26,19 @@
             this.logger = logger;
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken = default)
         {
             store.Subscribe(TryDispatchEventBatch);
 
             return Task.CompletedTask;
         }
 
-        async Task TryDispatchEventBatch(object[] allContexts)
+        async Task TryDispatchEventBatch(object[] allContexts, CancellationToken cancellationToken)
         {
             var eventsToBePublished = new List<object>();
             foreach (var publisher in eventPublishers)
             {
-                var events = await publisher.PublishEventsForOwnContexts(allContexts);
+                var events = await publisher.PublishEventsForOwnContexts(allContexts, cancellationToken);
                 eventsToBePublished.AddRange(events);
             }
 
@@ -48,7 +48,11 @@
 
                 try
                 {
-                    await messageSession.Publish(eventToBePublished);
+                    await messageSession.Publish(eventToBePublished, cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
                 }
                 catch (Exception e)
                 {
@@ -67,12 +71,12 @@
                         m.Reason = "Failed to retrieve reason!";
                     }
 
-                    await domainEvents.Raise(m);
+                    await domainEvents.Raise(m, cancellationToken);
                 }
             }
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        public Task StopAsync(CancellationToken cancellationToken = default)
         {
             return store.StopAsync(cancellationToken);
         }

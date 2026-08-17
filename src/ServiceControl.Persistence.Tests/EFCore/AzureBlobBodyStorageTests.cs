@@ -13,11 +13,10 @@ using Testcontainers.Azurite;
 [Platform(Exclude = "Win", Reason = "Azurite has no Windows container image")]
 class AzureBlobBodyStorageTests
 {
-    AzuriteContainer azurite;
-    AzureBlobBodyStoragePersistence store;
+    static AzuriteContainer azurite;
 
     [OneTimeSetUp]
-    public async Task StartAzurite()
+    public static async Task StartAzurite()
     {
         // Azurite 3.36.0 does not implement the service version the current Azure.Storage.Blobs
         // package negotiates, so the API version check has to be skipped. Support is milestoned for
@@ -30,7 +29,7 @@ class AzureBlobBodyStorageTests
     }
 
     [OneTimeTearDown]
-    public async Task StopAzurite()
+    public static async Task StopAzurite()
     {
         if (azurite != null)
         {
@@ -38,8 +37,7 @@ class AzureBlobBodyStorageTests
         }
     }
 
-    [SetUp]
-    public async Task CreateContainer()
+    public async Task<AzureBlobBodyStoragePersistence> CreateContainer()
     {
         var settings = new AzureBlobBodyStorageSettings
         {
@@ -49,12 +47,13 @@ class AzureBlobBodyStorageTests
         };
 
         await new AzureBlobBodyStorageInstaller(settings).Provision();
-        store = new AzureBlobBodyStoragePersistence(settings);
+        return new AzureBlobBodyStoragePersistence(settings);
     }
 
     [Test]
     public async Task Round_trips_a_small_uncompressed_body()
     {
+        var store = await CreateContainer();
         var bodyId = Guid.NewGuid().ToString();
         var body = Encoding.UTF8.GetBytes("hello world");
 
@@ -63,7 +62,7 @@ class AzureBlobBodyStorageTests
         var result = await store.ReadBody(bodyId);
 
         Assert.That(result, Is.Not.Null);
-        using (result.Stream)
+        await using (result.Stream)
         {
             Assert.That(ReadAll(result.Stream), Is.EqualTo(body));
         }
@@ -78,6 +77,7 @@ class AzureBlobBodyStorageTests
     [Test]
     public async Task Round_trips_a_large_body_over_the_compression_threshold()
     {
+        var store = await CreateContainer();
         var bodyId = Guid.NewGuid().ToString();
         var body = Encoding.UTF8.GetBytes(new string('a', 100_000));
 
@@ -86,7 +86,7 @@ class AzureBlobBodyStorageTests
         var result = await store.ReadBody(bodyId);
 
         Assert.That(result, Is.Not.Null);
-        using (result.Stream)
+        await using (result.Stream)
         {
             Assert.That(ReadAll(result.Stream), Is.EqualTo(body));
         }
@@ -95,14 +95,18 @@ class AzureBlobBodyStorageTests
     }
 
     [Test]
-    public async Task Returns_null_for_a_missing_body() =>
+    public async Task Returns_null_for_a_missing_body()
+    {
+        var store = await CreateContainer();
         Assert.That(await store.ReadBody(Guid.NewGuid().ToString()), Is.Null);
+    }
 
     [Test]
     public async Task Delete_removes_the_body()
     {
+        var store = await CreateContainer();
         var bodyId = Guid.NewGuid().ToString();
-        await store.WriteBody(bodyId, Encoding.UTF8.GetBytes("payload"), "text/plain");
+        await store.WriteBody(bodyId, "payload"u8.ToArray(), "text/plain");
 
         await store.DeleteBody(bodyId);
 
@@ -110,24 +114,29 @@ class AzureBlobBodyStorageTests
     }
 
     [Test]
-    public void Delete_of_a_missing_body_does_not_throw() =>
+    public async Task Delete_of_a_missing_body_does_not_throw()
+    {
+        var store = await CreateContainer();
         Assert.DoesNotThrowAsync(() => store.DeleteBody(Guid.NewGuid().ToString()));
+    }
 
     [Test]
     public async Task Rewriting_an_existing_body_keeps_the_first_write()
     {
+        var store = await CreateContainer();
         var bodyId = Guid.NewGuid().ToString();
-        var original = Encoding.UTF8.GetBytes("original");
+        var original = "original"u8.ToArray();
 
         await store.WriteBody(bodyId, original, "text/plain");
-        await store.WriteBody(bodyId, Encoding.UTF8.GetBytes("different"), "text/plain");
+        await store.WriteBody(bodyId, "different"u8.ToArray(), "text/plain");
 
         var result = await store.ReadBody(bodyId);
 
         Assert.That(result, Is.Not.Null);
-        using (result.Stream)
+        await using (result.Stream)
         {
-            Assert.That(ReadAll(result.Stream), Is.EqualTo(original), "bodies are immutable, so the first write wins");
+            var data = ReadAll(result.Stream);
+            Assert.That(data, Is.EqualTo(original), "bodies are immutable, so the first write wins");
         }
     }
 

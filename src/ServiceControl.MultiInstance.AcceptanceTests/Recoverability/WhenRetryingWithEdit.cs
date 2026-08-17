@@ -17,7 +17,7 @@ class WhenRetryingWithEdit : WhenRetrying
 {
     [Test]
     [CancelAfter(30_000)]
-    public async Task ShouldCreateNewMessageAndResolveEditedMessage(CancellationToken cancellationToken)
+    public async Task ShouldCreateNewMessageAndResolveEditedMessage(CancellationToken cancellationToken = default)
     {
         CustomServiceControlPrimarySettings = s => { s.AllowMessageEditing = true; };
 

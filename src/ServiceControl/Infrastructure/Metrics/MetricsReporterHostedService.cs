@@ -19,7 +19,7 @@
             this.logger = logger;
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken = default)
         {
             reporter = new MetricsReporter(metrics, x => logger.LogInformation(x), TimeSpan.FromSeconds(5));
 
@@ -28,11 +28,11 @@
             return Task.CompletedTask;
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
+        public async Task StopAsync(CancellationToken cancellationToken = default)
         {
             try
             {
-                await reporter.Stop();
+                await reporter.Stop(cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {

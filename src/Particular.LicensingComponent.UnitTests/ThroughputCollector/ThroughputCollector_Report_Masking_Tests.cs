@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Particular.LicensingComponent.Contracts;
@@ -28,10 +29,10 @@ class ThroughputCollector_Report_Masking_Tests : ThroughputCollectorTestFixture
             .AddEndpoint("Endpoint3", sources: [ThroughputSource.Broker]).WithThroughput(days: 2)
             .Build();
         var expectedReportMasks = new List<string> { "Endpoint1" };
-        await DataStore.SaveReportMasks(expectedReportMasks, default);
+        await DataStore.SaveReportMasks(expectedReportMasks);
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         // Assert
         Assert.That(report, Is.Not.Null);
@@ -56,7 +57,7 @@ class ThroughputCollector_Report_Masking_Tests : ThroughputCollectorTestFixture
             .Build();
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("", null, default);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         // Assert
         Assert.That(report, Is.Not.Null);

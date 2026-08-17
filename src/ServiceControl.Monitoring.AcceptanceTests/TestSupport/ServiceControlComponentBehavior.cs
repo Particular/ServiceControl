@@ -21,7 +21,9 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         public HttpClient HttpClient => runner.HttpClient;
         public JsonSerializerOptions SerializerOptions => runner.SerializerOptions;
 
+#pragma warning disable PS0018 // IComponentBehavior declares this without a CancellationToken
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
+#pragma warning restore PS0018
         {
             runner = new ServiceControlComponentRunner(transportIntegration, setSettings, customConfiguration);
             await runner.Initialize(run);

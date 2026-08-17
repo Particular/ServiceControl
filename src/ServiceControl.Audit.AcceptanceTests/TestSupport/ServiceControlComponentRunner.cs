@@ -45,6 +45,16 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
         async Task InitializeServiceControl(ScenarioContext context)
         {
+            // Serialize initialization across parallel tests because:
+            // 1. ConfigurationManager.AppSettings is process-global and not thread-safe
+            // 2. The embedded RavenDB server does not support concurrent database create/delete/index operations
+            // The test scenario execution (after this method returns) still runs in parallel.
+            using var _ = await AcceptanceTestStorageConfiguration.UseDatabaseLifecycleLock();
+            await InitializeServiceControlCore(context);
+        }
+
+        async Task InitializeServiceControlCore(ScenarioContext context)
+        {
             var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(logPath);
 

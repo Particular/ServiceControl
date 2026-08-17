@@ -2,6 +2,7 @@ namespace ServiceControl.AcceptanceTesting.Cors
 {
     using System.Net;
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using NUnit.Framework;
 
@@ -22,13 +23,14 @@ namespace ServiceControl.AcceptanceTesting.Cors
         public static async Task<HttpResponseMessage> SendPreflightRequest(
             HttpClient httpClient,
             string origin,
-            string requestMethod = "GET")
+            string requestMethod = "GET",
+            CancellationToken cancellationToken = default)
         {
             using var request = new HttpRequestMessage(HttpMethod.Options, "/api");
             request.Headers.Add("Origin", origin);
             request.Headers.Add("Access-Control-Request-Method", requestMethod);
 
-            return await httpClient.SendAsync(request);
+            return await httpClient.SendAsync(request, cancellationToken);
         }
 
         /// <summary>
@@ -37,12 +39,13 @@ namespace ServiceControl.AcceptanceTesting.Cors
         public static async Task<HttpResponseMessage> SendRequestWithOrigin(
             HttpClient httpClient,
             string origin,
-            string endpoint = "/api")
+            string endpoint = "/api",
+            CancellationToken cancellationToken = default)
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
             request.Headers.Add("Origin", origin);
 
-            return await httpClient.SendAsync(request);
+            return await httpClient.SendAsync(request, cancellationToken);
         }
 
         /// <summary>

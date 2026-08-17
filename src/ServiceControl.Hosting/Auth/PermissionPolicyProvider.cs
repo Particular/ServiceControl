@@ -52,6 +52,7 @@ public sealed class PermissionPolicyProvider(IOptions<AuthorizationOptions> auth
                 : AllowAll,
             StringComparer.Ordinal);
 
+#pragma warning disable PS0018 // IAuthorizationPolicyProvider declares these without a CancellationToken
     public Task<AuthorizationPolicy?> GetPolicyAsync(string policyName) =>
         Task.FromResult(policies.GetValueOrDefault(policyName));
 
@@ -64,4 +65,5 @@ public sealed class PermissionPolicyProvider(IOptions<AuthorizationOptions> auth
 
     public Task<AuthorizationPolicy?> GetFallbackPolicyAsync()
         => Task.FromResult(authorizationOptions.Value.FallbackPolicy);
+#pragma warning restore PS0018
 }

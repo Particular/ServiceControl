@@ -41,15 +41,15 @@
             UpdateLookup();
         }
 
-        public async Task Initialize()
+        public async Task Initialize(CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
-            var primeSubscriptions = await LoadSubscriptions(session) ?? await MigrateSubscriptions(session, localClient);
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var primeSubscriptions = await LoadSubscriptions(session, cancellationToken) ?? await MigrateSubscriptions(session, localClient, cancellationToken);
 
-            await SetSubscriptions(primeSubscriptions);
+            await SetSubscriptions(primeSubscriptions, cancellationToken);
         }
 
-        public async Task Subscribe(Subscriber subscriber, MessageType messageType, ContextBag context, CancellationToken cancellationToken)
+        public async Task Subscribe(Subscriber subscriber, MessageType messageType, ContextBag context, CancellationToken cancellationToken = default)
         {
             if (subscriber.Endpoint == localClient.Endpoint)
             {
@@ -62,7 +62,7 @@
 
                 if (AddOrUpdateSubscription(messageType, subscriber))
                 {
-                    await SaveSubscriptions();
+                    await SaveSubscriptions(cancellationToken);
                 }
             }
             finally
@@ -71,7 +71,7 @@
             }
         }
 
-        public async Task Unsubscribe(Subscriber subscriber, MessageType messageType, ContextBag context, CancellationToken cancellationToken)
+        public async Task Unsubscribe(Subscriber subscriber, MessageType messageType, ContextBag context, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -89,7 +89,7 @@
 
                 if (needsSave)
                 {
-                    await SaveSubscriptions();
+                    await SaveSubscriptions(cancellationToken);
                 }
             }
             finally
@@ -98,7 +98,7 @@
             }
         }
 
-        public Task<IEnumerable<Subscriber>> GetSubscriberAddressesForMessage(IEnumerable<MessageType> messageTypes, ContextBag context, CancellationToken cancellationToken)
+        public Task<IEnumerable<Subscriber>> GetSubscriberAddressesForMessage(IEnumerable<MessageType> messageTypes, ContextBag context, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(messageTypes.SelectMany(x => subscriptionsLookup[x]).Distinct());
         }
@@ -146,12 +146,12 @@
             return subscriptionClient;
         }
 
-        async Task SaveSubscriptions()
+        async Task SaveSubscriptions(CancellationToken cancellationToken)
         {
-            using var session = await sessionProvider.OpenSession();
-            await session.StoreAsync(subscriptions, Subscriptions.SingleDocumentId);
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            await session.StoreAsync(subscriptions, Subscriptions.SingleDocumentId, cancellationToken);
             UpdateLookup();
-            await session.SaveChangesAsync();
+            await session.SaveChangesAsync(cancellationToken);
         }
 
         void UpdateLookup() =>
@@ -180,11 +180,11 @@
             return $"Subscriptions/{id}";
         }
 
-        async Task SetSubscriptions(Subscriptions newSubscriptions)
+        async Task SetSubscriptions(Subscriptions newSubscriptions, CancellationToken cancellationToken)
         {
             try
             {
-                await subscriptionsLock.WaitAsync();
+                await subscriptionsLock.WaitAsync(cancellationToken);
 
                 subscriptions = newSubscriptions;
                 UpdateLookup();
@@ -195,27 +195,29 @@
             }
         }
 
-        static Task<Subscriptions> LoadSubscriptions(IAsyncDocumentSession session)
-            => session.LoadAsync<Subscriptions>(Subscriptions.SingleDocumentId);
+        static Task<Subscriptions> LoadSubscriptions(IAsyncDocumentSession session, CancellationToken cancellationToken)
+            => session.LoadAsync<Subscriptions>(Subscriptions.SingleDocumentId, cancellationToken);
 
-        async Task<Subscriptions> MigrateSubscriptions(IAsyncDocumentSession session, SubscriptionClient localClient)
+        async Task<Subscriptions> MigrateSubscriptions(IAsyncDocumentSession session, SubscriptionClient localClient, CancellationToken cancellationToken)
         {
             logger.LogInformation("Migrating subscriptions to new format");
 
             var subscriptions = new Subscriptions();
 
-            var stream = await session.Advanced.StreamAsync<Subscription>("Subscriptions");
+            var stream = await session.Advanced.StreamAsync<Subscription>("Subscriptions", token: cancellationToken);
 
             while (await stream.MoveNextAsync())
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var existingSubscription = stream.Current.Document;
                 existingSubscription.Subscribers.Remove(localClient);
                 subscriptions.All.Add(existingSubscription.Id.Replace("Subscriptions/", string.Empty), existingSubscription);
-                await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(stream.Current.Id, null), session.Advanced.Context);
+                await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(stream.Current.Id, null), session.Advanced.Context, token: cancellationToken);
             }
 
-            await session.StoreAsync(subscriptions, Subscriptions.SingleDocumentId);
-            await session.SaveChangesAsync();
+            await session.StoreAsync(subscriptions, Subscriptions.SingleDocumentId, cancellationToken);
+            await session.SaveChangesAsync(cancellationToken);
             return subscriptions;
         }
 

@@ -14,7 +14,7 @@ class ErrorIngestionTests : ErrorIngestionTestBase
     [Test]
     public async Task First_failure_stores_the_message()
     {
-        var failure = new IngestedFailure();
+        var failure = new IngestedFailure { FailingEndpointAddress = "Sales@MACHINE" };
 
         await Ingest(failure);
 
@@ -31,7 +31,7 @@ class ErrorIngestionTests : ErrorIngestionTestBase
             Assert.That(row.MessageType, Is.EqualTo(failure.MessageType));
             Assert.That(row.TimeSent, Is.EqualTo(failure.TimeSent));
             Assert.That(row.ConversationId, Is.EqualTo(failure.ConversationId));
-            Assert.That(row.QueueAddress, Is.EqualTo(failure.QueueAddress));
+            Assert.That(row.FailingEndpointAddress, Is.EqualTo(failure.FailingEndpointAddress));
             Assert.That(row.SendingEndpointName, Is.EqualTo(failure.SendingEndpoint.Name));
             Assert.That(row.SendingEndpointHostId, Is.EqualTo(failure.SendingEndpoint.HostId));
             Assert.That(row.SendingEndpointHost, Is.EqualTo(failure.SendingEndpoint.Host));
@@ -214,11 +214,33 @@ class ErrorIngestionTests : ErrorIngestionTestBase
     }
 
     [Test]
+    public async Task An_older_attempt_does_not_replace_the_newer_attempts_groups()
+    {
+        var newer = new IngestedFailure();
+        await Ingest(newer);
+
+        var older = new IngestedFailure
+        {
+            MessageId = newer.MessageId,
+            EndpointName = newer.EndpointName,
+            AttemptedAt = newer.AttemptedAt.AddMinutes(-5),
+            TimeOfFailure = newer.TimeOfFailure.AddMinutes(-5),
+            Groups = [new FailedMessage.FailureGroup { Id = Guid.NewGuid().ToString(), Title = "The older group", Type = "Exception Type and Stack Trace" }]
+        };
+        await Ingest(older);
+
+        var groups = await GetGroups(newer.UniqueMessageId);
+
+        Assert.That(groups, Has.Count.EqualTo(1));
+        Assert.That(groups[0].GroupId, Is.EqualTo(newer.Groups[0].Id), "The older attempt's groups replaced the newer attempt's");
+    }
+
+    [Test]
     public async Task A_confirmed_retry_resolves_the_message_and_drops_its_retry_row()
     {
         var failure = new IngestedFailure();
         await Ingest(failure);
-        await Store(new FailedMessageRetryEntity { UniqueMessageId = failure.UniqueMessageId, RetryId = "RetryBatches/1" });
+        await Store(new FailedMessageRetryEntity { UniqueMessageId = failure.UniqueMessageId, RetryBatchId = Guid.NewGuid() });
 
         await ConfirmRetry(failure.UniqueMessageIdString);
 

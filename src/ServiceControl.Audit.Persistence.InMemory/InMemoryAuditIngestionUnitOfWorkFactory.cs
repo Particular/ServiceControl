@@ -7,7 +7,7 @@
 
     class InMemoryAuditIngestionUnitOfWorkFactory(InMemoryAuditDataStore dataStore, BodyStorageEnricher bodyStorageEnricher) : IAuditIngestionUnitOfWorkFactory
     {
-        public ValueTask<IAuditIngestionUnitOfWork> StartNew(int batchSize, CancellationToken cancellationToken)
+        public ValueTask<IAuditIngestionUnitOfWork> StartNew(int batchSize, CancellationToken cancellationToken = default)
         {
             //The batchSize argument is ignored: the in-memory storage implementation doesn't support batching.
             return new ValueTask<IAuditIngestionUnitOfWork>(new InMemoryAuditIngestionUnitOfWork(dataStore, bodyStorageEnricher));

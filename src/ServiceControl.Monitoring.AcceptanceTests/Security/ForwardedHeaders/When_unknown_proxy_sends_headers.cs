@@ -9,6 +9,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
     /// <summary>
     /// When KnownProxies are configured but the caller IP does NOT match, headers should be ignored.
     /// </summary>
+    [NonParallelizable]
     class When_unknown_proxy_sends_headers : AcceptanceTest
     {
         ForwardedHeadersTestConfiguration configuration;

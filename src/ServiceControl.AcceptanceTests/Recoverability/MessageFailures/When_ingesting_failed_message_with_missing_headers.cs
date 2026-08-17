@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 using AcceptanceTesting;
 using AcceptanceTesting.EndpointTemplates;
@@ -67,7 +68,7 @@ class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
     [Test]
     public async Task TimeSent_should_not_be_casted()
     {
-        var sentTime = DateTime.Parse("2014-11-11T02:26:58.000462Z");
+        var sentTime = DateTime.Parse("2014-11-11T02:26:58.000462Z", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
 
         var context = await Define<TestContext>(c =>
             {
@@ -81,7 +82,9 @@ class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
         var failure = context.Failure;
 
         Assert.That(failure, Is.Not.Null);
-        Assert.That(failure.TimeSent, Is.EqualTo(sentTime));
+
+        // Raven hands back a local DateTime and EF a UTC one, so compare the instant rather than the wall clock.
+        Assert.That(failure.TimeSent?.ToUniversalTime(), Is.EqualTo(sentTime));
     }
 
     async Task<bool> TryGetFailureFromApi(TestContext context)

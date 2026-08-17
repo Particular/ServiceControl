@@ -25,14 +25,14 @@
     using NServiceBus.AcceptanceTesting.Support;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
-    using RavenDB.Shared;
+    using Persistence.Tests;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
     using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
     public class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostApplicationBuilder> hostBuilderCustomization)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, IAcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostApplicationBuilder> hostBuilderCustomization)
         {
             this.transportToUse = transportToUse;
             this.persistenceToUse = persistenceToUse;
@@ -45,12 +45,15 @@
         public Settings Settings { get; private set; }
         public HttpClient HttpClient { get; private set; }
         public JsonSerializerOptions SerializerOptions => Infrastructure.WebApi.SerializerOptions.Default;
-        public Func<HttpMessageHandler> HttpMessageHandlerFactory { get; private set; }
         public IDomainEvents DomainEvents { get; private set; }
 
-        public Task Initialize(RunDescriptor run) => InitializeServiceControl(run.ScenarioContext);
+        public async Task Initialize(RunDescriptor run)
+        {
+            using var _ = await persistenceToUse.UseDatabaseLifecycleLock();
+            await InitializeServiceControlCore(run.ScenarioContext);
+        }
 
-        async Task InitializeServiceControl(ScenarioContext context)
+        async Task InitializeServiceControlCore(ScenarioContext context)
         {
             var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(logPath);
@@ -147,7 +150,6 @@
                 DomainEvents = host.Services.GetRequiredService<IDomainEvents>();
                 // Bring this back and look into the base address of the client
                 HttpClient = host.GetTestServer().CreateClient();
-                HttpMessageHandlerFactory = () => host.GetTestServer().CreateHandler();
             }
         }
 
@@ -158,13 +160,13 @@
                 await host.StopAsync(cancellationToken);
                 HttpClient.Dispose();
                 await host.DisposeAsync();
-                await persistenceToUse.Cleanup();
+                await persistenceToUse.Cleanup(cancellationToken);
             }
         }
 
         WebApplication host;
         readonly ITransportIntegration transportToUse;
-        readonly AcceptanceTestStorageConfiguration persistenceToUse;
+        readonly IAcceptanceTestStorageConfiguration persistenceToUse;
         readonly Action<Settings> setSettings;
         readonly Action<EndpointConfiguration> customConfiguration;
         readonly Action<IHostApplicationBuilder> hostBuilderCustomization;

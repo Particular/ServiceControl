@@ -25,7 +25,6 @@ namespace ServiceControl.AcceptanceTests
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
         public JsonSerializerOptions SerializerOptions => serviceControlRunnerBehavior.SerializerOptions;
         public Settings Settings => serviceControlRunnerBehavior.Settings;
-        public Func<HttpMessageHandler> HttpMessageHandlerFactory => serviceControlRunnerBehavior.HttpMessageHandlerFactory;
 
         [SetUp]
         public void Setup()
@@ -95,7 +94,7 @@ namespace ServiceControl.AcceptanceTests
         protected Action<Settings> SetSettings = _ => { };
         protected Action<IHostApplicationBuilder> CustomizeHostBuilder = _ => { };
         protected ITransportIntegration TransportIntegration;
-        protected AcceptanceTestStorageConfiguration StorageConfiguration;
+        protected IAcceptanceTestStorageConfiguration StorageConfiguration;
 
         ServiceControlComponentBehavior serviceControlRunnerBehavior;
         TextWriterTraceListener textWriterTraceListener;

@@ -13,6 +13,7 @@ using ServiceControl.Infrastructure;
 /// The parsing logic is identical, so testing with one namespace is sufficient.
 /// </summary>
 [TestFixture]
+[NonParallelizable]
 public class OpenIdConnectSettingsTests
 {
     static readonly SettingsRootNamespace TestNamespace = new("ServiceControl");

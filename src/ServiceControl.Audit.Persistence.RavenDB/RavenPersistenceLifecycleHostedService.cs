@@ -6,8 +6,8 @@ namespace ServiceControl.Audit.Persistence.RavenDB
 
     sealed class RavenPersistenceLifecycleHostedService(IRavenPersistenceLifecycle lifecycle) : IHostedService
     {
-        public Task StartAsync(CancellationToken cancellationToken) => lifecycle.Initialize(cancellationToken);
+        public Task StartAsync(CancellationToken cancellationToken = default) => lifecycle.Initialize(cancellationToken);
 
-        public Task StopAsync(CancellationToken cancellationToken) => lifecycle.Stop(cancellationToken);
+        public Task StopAsync(CancellationToken cancellationToken = default) => lifecycle.Stop(cancellationToken);
     }
 }

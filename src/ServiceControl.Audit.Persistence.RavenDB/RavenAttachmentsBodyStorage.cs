@@ -12,7 +12,7 @@
         int settingsMaxBodySizeToStore)
         : IBodyStorage
     {
-        public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream, CancellationToken cancellationToken)
+        public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream, CancellationToken cancellationToken = default)
         {
             if (bodySize > settingsMaxBodySizeToStore)
             {
@@ -23,7 +23,7 @@
                 .StoreAsync("body", bodyStream, contentType, cancellationToken);
         }
 
-        public async Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken)
+        public async Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var result = await session.Advanced.Attachments.GetAsync($"MessageBodies/{bodyId}", "body", cancellationToken);

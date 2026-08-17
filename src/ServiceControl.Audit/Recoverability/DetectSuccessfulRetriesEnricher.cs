@@ -2,15 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using Auditing;
-    using Contracts.MessageFailures;
-    using Infrastructure;
     using NServiceBus;
-    using NServiceBus.Faults;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
-    using ServiceControl.Audit.Persistence.Infrastructure;
 
     class DetectSuccessfulRetriesEnricher : IEnrichImportedAuditMessages
     {
@@ -39,53 +34,12 @@
                 //and did not send the acknowledgment. We send it here to the acknowledgment queue.
                 var ackMessage = new OutgoingMessage(Guid.NewGuid().ToString(), new Dictionary<string, string>
                 {
-                    ["ServiceControl.Retry.Successful"] = DateTimeOffsetHelper.ToWireFormattedString(DateTime.UtcNow),
+                    ["ServiceControl.Retry.Successful"] = DateTimeOffsetHelper.ToWireFormattedString(DateTimeOffset.UtcNow),
                     ["ServiceControl.Retry.UniqueMessageId"] = newRetryMessageId
                 }, Array.Empty<byte>());
                 var ackOperation = new TransportOperation(ackMessage, new UnicastAddressTag(ackQueue));
                 context.AddForSend(ackOperation);
             }
-            else
-            {
-                //The message has been sent for retry from ServiceControl older than 4.20. Regardless which version the endpoint was, we need to send a legacy confirmation
-                //message because the main instance of ServiceControl may still be on version lower than 4.19.
-                context.AddForSend(new MarkMessageFailureResolvedByRetry
-                {
-                    FailedMessageId = isOldRetry ? headers.UniqueId() : newRetryMessageId,
-                    AlternativeFailedMessageIds = GetAlternativeUniqueMessageId(headers).ToArray()
-                });
-            }
-        }
-
-        IEnumerable<string> GetAlternativeUniqueMessageId(IReadOnlyDictionary<string, string> headers)
-        {
-            var messageId = headers.MessageId();
-            if (headers.TryGetValue(Headers.ProcessingEndpoint, out var processingEndpoint))
-            {
-                yield return DeterministicGuid.MakeId(messageId, processingEndpoint).ToString();
-            }
-
-            if (headers.TryGetValue(FaultsHeaderKeys.FailedQ, out var failedQ))
-            {
-                yield return DeterministicGuid.MakeId(messageId, ExtractQueueNameForLegacyReasons(failedQ)).ToString();
-            }
-
-            if (headers.TryGetValue(Headers.ReplyToAddress, out var replyToAddress))
-            {
-                yield return DeterministicGuid.MakeId(messageId, ExtractQueueNameForLegacyReasons(replyToAddress)).ToString();
-            }
-        }
-
-        static string ExtractQueueNameForLegacyReasons(string address)
-        {
-            var atIndex = address?.IndexOf("@", StringComparison.InvariantCulture);
-
-            if (atIndex.HasValue && atIndex.Value > -1)
-            {
-                return address.Substring(0, atIndex.Value);
-            }
-
-            return address;
         }
     }
 }

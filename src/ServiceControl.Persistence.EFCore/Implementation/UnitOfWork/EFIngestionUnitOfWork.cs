@@ -12,14 +12,14 @@ public class EFIngestionUnitOfWork : IIngestionUnitOfWork
 {
     readonly ServiceControlDbContext dbContext;
     readonly IAsyncDisposable scope;
-    readonly IIngestionSqlDialect dialect;
+    readonly IFailedMessageIngestionSqlDialect dialect;
     readonly TimeProvider timeProvider;
     readonly ConcurrentQueue<RecordedFailedProcessingAttempt> failedProcessingAttempts = new();
     readonly ConcurrentQueue<Task> bodyWrites = new();
     readonly ConcurrentQueue<KnownEndpoint> knownEndpoints = new();
     readonly ConcurrentQueue<Guid> confirmedRetries = new();
 
-    public EFIngestionUnitOfWork(IAsyncDisposable scope, ServiceControlDbContext dbContext, IBodyStoragePersistence storagePersistence, EFPersisterSettings settings, IIngestionSqlDialect dialect, TimeProvider timeProvider)
+    public EFIngestionUnitOfWork(IAsyncDisposable scope, ServiceControlDbContext dbContext, IBodyStoragePersistence storagePersistence, EFPersisterSettings settings, IFailedMessageIngestionSqlDialect dialect, TimeProvider timeProvider)
     {
         this.scope = scope;
         this.dbContext = dbContext;
@@ -41,7 +41,7 @@ public class EFIngestionUnitOfWork : IIngestionUnitOfWork
 
     internal void RecordConfirmedRetry(Guid uniqueMessageId) => confirmedRetries.Enqueue(uniqueMessageId);
 
-    public async Task Complete(CancellationToken cancellationToken)
+    public async Task Complete(CancellationToken cancellationToken = default)
     {
         // External bodies are written before the rows that point at them
         await Task.WhenAll(bodyWrites);

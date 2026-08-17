@@ -2,3 +2,11 @@
 
 # Justification: Usage is from test projects
 dotnet_diagnostic.CA2007.severity = none
+
+# These types sit on NServiceBus.AcceptanceTesting's extension points, which drive them without a
+# CancellationToken: IEndpointSetupTemplate, IComponentBehavior/ComponentRunner, and the scenario
+# Done/When callbacks whose delegate shapes the framework fixes. A token added here could only ever
+# be CancellationToken.None. Everything else in this project takes and forwards one.
+[{EndpointTemplates/*.cs,InfrastructureConfig/*.cs,ScenarioWithEndpointBehaviorExtensions.cs,Sequence.cs,DispatchRawMessages.cs}]
+dotnet_diagnostic.PS0013.severity = none
+dotnet_diagnostic.PS0018.severity = none

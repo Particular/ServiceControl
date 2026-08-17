@@ -104,11 +104,12 @@
             public override Task ComponentsStarted(CancellationToken cancellationToken = default)
             {
                 tokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                var checkToken = tokenSource.Token;
                 checkTask = Task.Run(async () =>
                 {
                     try
                     {
-                        while (!tokenSource.IsCancellationRequested)
+                        while (!checkToken.IsCancellationRequested)
                         {
                             if (await isDone(scenarioContext))
                             {
@@ -116,14 +117,18 @@
                                 return;
                             }
 
-                            await Task.Delay(100, tokenSource.Token);
+                            await Task.Delay(100, checkToken);
                         }
+                    }
+                    catch (OperationCanceledException) when (checkToken.IsCancellationRequested)
+                    {
+                        // Stopping the run cancels the poll; that is not a test failure
                     }
                     catch (Exception e)
                     {
                         setException(ExceptionDispatchInfo.Capture(e));
                     }
-                }, tokenSource.Token);
+                }, checkToken);
                 return Task.CompletedTask;
             }
 

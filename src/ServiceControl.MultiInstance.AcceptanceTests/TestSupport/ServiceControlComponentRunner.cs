@@ -77,7 +77,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             primaryInstanceComponentRunner = new PrimaryInstanceTestsSupport.ServiceControlComponentRunner(
                 transportToUse,
-                new ServiceControl.AcceptanceTests.AcceptanceTestStorageConfiguration(), primarySettings =>
+                new ServiceControl.AcceptanceTests.RavenDB.AcceptanceTestStorageConfiguration(), primarySettings =>
                 {
                     primarySettings.RemoteInstances = [auditInstance];
                     customServiceControlSettings(primarySettings);

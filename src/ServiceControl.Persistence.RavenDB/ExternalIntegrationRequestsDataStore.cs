@@ -45,9 +45,9 @@
 
         const string KeyPrefix = "ExternalIntegrationDispatchRequests";
 
-        public async Task StoreDispatchRequest(IEnumerable<ExternalIntegrationDispatchRequest> dispatchRequests)
+        public async Task StoreDispatchRequest(IEnumerable<ExternalIntegrationDispatchRequest> dispatchRequests, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             foreach (var dispatchRequest in dispatchRequests)
             {
                 if (dispatchRequest.Id != null)
@@ -56,13 +56,13 @@
                 }
 
                 dispatchRequest.Id = KeyPrefix + "/" + Guid.NewGuid();
-                await session.StoreAsync(dispatchRequest);
+                await session.StoreAsync(dispatchRequest, cancellationToken);
             }
 
-            await session.SaveChangesAsync();
+            await session.SaveChangesAsync(cancellationToken);
         }
 
-        public void Subscribe(Func<object[], Task> callback)
+        public void Subscribe(Func<object[], CancellationToken, Task> callback)
         {
             if (this.callback != null)
             {
@@ -119,7 +119,7 @@
 
             do
             {
-                more = await TryDispatchEventBatch();
+                more = await TryDispatchEventBatch(cancellationToken);
 
                 circuitBreaker.Success();
 
@@ -132,14 +132,14 @@
             while (!cancellationToken.IsCancellationRequested && more);
         }
 
-        async Task<bool> TryDispatchEventBatch()
+        async Task<bool> TryDispatchEventBatch(CancellationToken cancellationToken)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var awaitingDispatching = await session
                 .Query<ExternalIntegrationDispatchRequest>()
                 .Statistics(out var stats)
                 .Take(settings.ExternalIntegrationsDispatchingBatchSize)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             if (awaitingDispatching.Count == 0)
             {
@@ -151,19 +151,19 @@
             var allContexts = awaitingDispatching.Select(r => r.DispatchContext).ToArray();
             logger.LogDebug("Dispatching {EventCount} events", allContexts.Length);
 
-            await callback(allContexts);
+            await callback(allContexts, cancellationToken);
 
             foreach (var dispatchedEvent in awaitingDispatching)
             {
                 session.Delete(dispatchedEvent);
             }
 
-            await session.SaveChangesAsync();
+            await session.SaveChangesAsync(cancellationToken);
 
             return true;
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken = default)
         {
             var documentStore = await documentStoreProvider.GetDocumentStore(cancellationToken);
             subscription = documentStore
@@ -176,7 +176,7 @@
                 });
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken) => await DisposeAsync();
+        public async Task StopAsync(CancellationToken cancellationToken = default) => await DisposeAsync();
 
         public async ValueTask DisposeAsync()
         {
@@ -206,7 +206,7 @@
         IDisposable subscription;
         Task task;
         ManualResetEventSlim signal = new();
-        Func<object[], Task> callback;
+        Func<object[], CancellationToken, Task> callback;
         bool isDisposed;
 
         readonly ILogger<ExternalIntegrationRequestsDataStore> logger;

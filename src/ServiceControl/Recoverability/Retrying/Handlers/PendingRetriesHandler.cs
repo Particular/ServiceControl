@@ -11,7 +11,7 @@ namespace ServiceControl.Recoverability
     class PendingRetriesHandler : IHandleMessages<RetryPendingMessagesById>,
         IHandleMessages<RetryPendingMessages>
     {
-        public PendingRetriesHandler(IErrorMessageDataStore dataStore)
+        public PendingRetriesHandler(IFailedMessageRetryDataStore dataStore)
         {
             this.dataStore = dataStore;
         }
@@ -20,11 +20,11 @@ namespace ServiceControl.Recoverability
         {
             var messageIds = new List<string>();
 
-            var ids = await dataStore.GetRetryPendingMessages(message.PeriodFrom, message.PeriodTo, message.QueueAddress);
+            var ids = await dataStore.GetRetryPendingMessages(message.PeriodFrom, message.PeriodTo, message.QueueAddress, context.CancellationToken);
 
             foreach (var id in ids)
             {
-                await dataStore.RemoveFailedMessageRetryDocument(id);
+                await dataStore.RemoveFailedMessageRetry(id, context.CancellationToken);
                 messageIds.Add(id);
             }
 
@@ -35,7 +35,7 @@ namespace ServiceControl.Recoverability
         {
             foreach (var messageUniqueId in message.MessageUniqueIds)
             {
-                await dataStore.RemoveFailedMessageRetryDocument(messageUniqueId);
+                await dataStore.RemoveFailedMessageRetry(messageUniqueId, context.CancellationToken);
             }
 
             await SendRetryMessagesById(context, message.MessageUniqueIds);
@@ -55,6 +55,6 @@ namespace ServiceControl.Recoverability
             return context.Send(new RetryMessagesById { MessageUniqueIds = messageUniqueIds }, sendOptions);
         }
 
-        readonly IErrorMessageDataStore dataStore;
+        readonly IFailedMessageRetryDataStore dataStore;
     }
 }

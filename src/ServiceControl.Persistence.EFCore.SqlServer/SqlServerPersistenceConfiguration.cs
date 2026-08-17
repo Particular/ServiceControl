@@ -12,7 +12,9 @@ class SqlServerPersistenceConfiguration : EFPersistenceConfigurationBase
         LoggerUtil.CreateStaticLogger<SqlServerPersistenceConfiguration>()
             .LogError("The SQL Server persistence is still under development and is not ready for use");
 
-        return new SqlServerPersistence((SqlServerPersisterSettings)settings);
+        var sqlSettings = (SqlServerPersisterSettings)settings;
+
+        return new SqlServerPersistence(sqlSettings);
     }
 
     protected override EFPersisterSettings CreateSettings(string connectionString, BodyStorageSettings bodyStorage) =>

@@ -2,6 +2,7 @@ namespace ServiceControl.Recoverability.ExternalIntegration
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using ExternalIntegrations;
     using Recoverability;
@@ -16,7 +17,7 @@ namespace ServiceControl.Recoverability.ExternalIntegration
             };
         }
 
-        protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts)
+        protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(contexts.Select(r => (object)new Contracts.FailedMessagesUnArchived()
             {

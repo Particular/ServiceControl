@@ -2,3 +2,11 @@
 
 # Justification: Test project
 dotnet_diagnostic.CA2007.severity = none
+
+# Cancellation analyzer debt, still scheduled work rather than accepted exceptions. Measured
+# Aug 2026: PS0018 here is NOT about [Test] methods (Particular.Analyzers already exempts those),
+# it is the protected/private test helpers those tests call. Converting them means threading a
+# token through the helper chain and the Func<...> callback shapes, which is why it is not done
+# yet. Remove a line once this project has no violations of that rule left.
+dotnet_diagnostic.PS0013.severity = none
+dotnet_diagnostic.PS0018.severity = none

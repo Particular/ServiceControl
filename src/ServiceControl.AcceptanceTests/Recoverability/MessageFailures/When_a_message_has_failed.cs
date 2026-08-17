@@ -7,7 +7,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using System.IO;
     using System.Linq;
     using System.Net.Http;
-    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
@@ -15,13 +14,10 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using CompositeViews.Messages;
     using EventLog;
     using Infrastructure;
-    using Microsoft.AspNetCore.SignalR.Client;
-    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.Configuration.AdvancedExtensibility;
-    using NServiceBus.Features;
     using NServiceBus.MessageInterfaces;
     using NServiceBus.Serialization;
     using NServiceBus.Settings;
@@ -150,7 +146,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 
         [Test]
         [CancelAfter(120_000)]
-        public async Task Should_be_listed_in_the_messages_list(CancellationToken cancellationToken)
+        public async Task Should_be_listed_in_the_messages_list(CancellationToken cancellationToken = default)
         {
             var failure = new MessagesView();
 
@@ -198,21 +194,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         }
 
         [Test]
-        public async Task Should_raise_a_signalr_event()
-        {
-            var context = await Define<MyContext>(ctx =>
-                {
-                    ctx.HttpMessageHandlerFactory = () => HttpMessageHandlerFactory();
-                })
-                .WithEndpoint<Receiver>(b => b.DoNotFailOnErrorMessages())
-                .WithEndpoint<EndpointThatUsesSignalR>()
-                .Done(c => c.SignalrEventReceived)
-                .Run();
-
-            Assert.That(context.SignalrData, Is.Not.Null);
-        }
-
-        [Test]
         public async Task Should_be_able_to_search_queueaddresses()
         {
             var searchResults = new List<QueueAddress>();
@@ -240,72 +221,12 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             Assert.That(searchResults.Count, Is.EqualTo(1), "Result count did not match");
         }
 
-        public class EndpointThatUsesSignalR : EndpointConfigurationBuilder
-        {
-            public EndpointThatUsesSignalR() =>
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
-                {
-                    c.EnableFeature<SignalRStarterFeature>();
-
-                    var routing = c.ConfigureRouting();
-                    routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
-                });
-
-            class SignalRStarterFeature : Feature
-            {
-                protected override void Setup(FeatureConfigurationContext context)
-                {
-                    context.Services.AddSingleton<SignalRStarter>();
-                    context.RegisterStartupTask(provider => provider.GetRequiredService<SignalRStarter>());
-                }
-
-                class SignalRStarter : FeatureStartupTask
-                {
-                    public SignalRStarter(MyContext context)
-                    {
-                        this.context = context;
-                        connection = new HubConnectionBuilder()
-                            .WithUrl("http://localhost/api/messagestream", o => o.HttpMessageHandlerFactory = _ => context.HttpMessageHandlerFactory())
-                            .Build();
-                    }
-
-                    protected override async Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
-                    {
-                        // We might also be able to strongly type this to match instead of just getting a string?
-                        connection.On<JsonElement>("PushEnvelope", EnvelopeReceived);
-
-                        await connection.StartAsync(cancellationToken);
-
-                        await session.Send(new MyMessage(), cancellationToken);
-                    }
-
-                    protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default) => connection.StopAsync(cancellationToken);
-
-                    void EnvelopeReceived(JsonElement jElement)
-                    {
-                        var s = jElement.ToString();
-                        if (s.IndexOf("\"MessageFailuresUpdated\"", StringComparison.Ordinal) <= 0)
-                        {
-                            return;
-                        }
-
-                        context.SignalrData = s;
-                        context.SignalrEventReceived = true;
-                    }
-
-                    readonly MyContext context;
-                    readonly HubConnection connection;
-                }
-            }
-        }
-
         public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoRetries();
-                    c.ReportSuccessfulRetriesToServiceControl();
                 });
 
             [Handler]
@@ -331,7 +252,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoRetries();
-                    c.ReportSuccessfulRetriesToServiceControl();
                     c.UseSerialization<MySuperSerializer>();
                 });
 
@@ -408,10 +328,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             public string MessageId { get; set; }
             public string EndpointNameOfReceivingEndpoint { get; set; }
             public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
-            public bool SignalrEventReceived { get; set; }
-            public string SignalrData { get; set; }
             public string LocalAddress { get; set; }
-            public Func<HttpMessageHandler> HttpMessageHandlerFactory { get; set; }
         }
 
         public class QueueSearchContext : ScenarioContext

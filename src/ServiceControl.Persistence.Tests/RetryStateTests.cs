@@ -46,7 +46,7 @@
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", false, 1);
 
-            var documentManager = new CustomRetryDocumentManager(false, RetryStore, retryManager);
+            var documentManager = new CustomRetryDocumentManager(false, RetryBatchStore, retryManager);
 
             var orphanage = new AdoptOrphanBatchesFromPreviousSessionHostedService(documentManager, new AsyncTimer(), NullLogger<AdoptOrphanBatchesFromPreviousSessionHostedService>.Instance);
             await orphanage.AdoptOrphanedBatchesAsync();
@@ -71,7 +71,7 @@
 
             var transportCustomization = new TestTransportCustomization { TransportInfrastructure = transportInfrastructure };
 
-            var testReturnToSenderDequeuer = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance), ErrorStore, domainEvents, "TestEndpoint",
+            var testReturnToSenderDequeuer = new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint",
                 errorQueueNameCache, transportCustomization);
 
             await testReturnToSenderDequeuer.StartAsync(new CancellationToken());
@@ -89,11 +89,12 @@
 
             var sender = new TestSender();
             var processor = new RetryProcessor(
-                RetryBatchesStore,
+                RetryStagingStore,
+                MessageRedirectsDataStore,
                 domainEvents,
                 new TestReturnToSenderDequeuer(
-                    new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance),
-                    ErrorStore,
+                    new ReturnToSender(BodyStorage, NullLogger<ReturnToSender>.Instance),
+                    FailedMessageLifecycleStore,
                     domainEvents,
                     "TestEndpoint",
                     new ErrorQueueNameCache(),
@@ -111,16 +112,17 @@
             // Simulate SC restart
             retryManager = new RetryingManager(domainEvents, NullLogger<RetryingManager>.Instance);
 
-            var documentManager = new CustomRetryDocumentManager(false, RetryStore, retryManager);
+            var documentManager = new CustomRetryDocumentManager(false, RetryBatchStore, retryManager);
 
             await documentManager.RebuildRetryOperationState();
 
             processor = new RetryProcessor(
-                RetryBatchesStore,
+                RetryStagingStore,
+                MessageRedirectsDataStore,
                 domainEvents,
                 new TestReturnToSenderDequeuer(
-                    new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance),
-                    ErrorStore,
+                    new ReturnToSender(BodyStorage, NullLogger<ReturnToSender>.Instance),
+                    FailedMessageLifecycleStore,
                     domainEvents,
                     "TestEndpoint",
                     new ErrorQueueNameCache(),
@@ -146,14 +148,49 @@
 
             var sender = new TestSender();
 
-            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance), ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
+            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
+            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
 
             await processor.ProcessBatches(); // mark ready
             await processor.ProcessBatches();
 
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
             Assert.That(status.RetryState, Is.EqualTo(RetryState.Completed));
+        }
+
+        [Test]
+        public async Task When_a_staged_batch_has_nothing_left_to_stage_it_is_discarded()
+        {
+            var batchId = await StageBatchWithoutMessages();
+
+            var processor = CreateProcessor(new FakeDomainEvents(), new TestSender());
+
+            await processor.ProcessBatches();
+            await CompleteDatabaseOperation();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(await RetryStagingStore.GetStagingBatch(), Is.Null);
+                Assert.That(await RetryStagingStore.GetBatch(batchId, CancellationToken.None), Is.Null);
+                Assert.That(await RetryStagingStore.GetForwardingBatchId(), Is.Null);
+            }
+        }
+
+        [Test]
+        public async Task When_the_batch_being_forwarded_is_gone_the_forwarding_pointer_is_cleared()
+        {
+            var batchId = await StageBatchWithoutMessages();
+
+            await RetryStagingStore.MarkBatchAsForwarding(batchId, "staging-1", []);
+            await RetryStagingStore.DiscardBatch(batchId);
+            await CompleteDatabaseOperation();
+
+            var processor = CreateProcessor(new FakeDomainEvents(), new TestSender());
+
+            await processor.ProcessBatches();
+            await CompleteDatabaseOperation();
+
+            Assert.That(await RetryStagingStore.GetForwardingBatchId(), Is.Null);
         }
 
         [Test]
@@ -176,8 +213,8 @@
                 }
             };
 
-            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance), ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
+            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
+            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
 
             bool c;
             do
@@ -213,11 +250,11 @@
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, 1001);
 
-            var returnToSender = new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance);
+            var returnToSender = new ReturnToSender(BodyStorage, NullLogger<ReturnToSender>.Instance);
 
             var sender = new TestSender();
 
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()), retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()), retryManager, new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
 
             await CompleteDatabaseOperation();
 
@@ -257,14 +294,14 @@
             await PersistenceTestsContext.InsertFailedMessages(messages);
             await CompleteDatabaseOperation();
 
-            var gateway = new CustomRetriesGateway(true, RetryStore, retryManager);
+            var gateway = new CustomRetriesGateway(true, RetryBatchStore, retryManager);
             await gateway.StartRetryForMessageSelection(ids, user, operationId);
             await CompleteDatabaseOperation();
 
             var audit = new RecordingMessageActionAuditLog();
             var sender = new TestSender();
-            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance), ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
+            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
+            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
 
             await processor.ProcessBatches(); // stage
             await processor.ProcessBatches(); // forward
@@ -290,8 +327,8 @@
 
             var audit = new RecordingMessageActionAuditLog();
             var sender = new TestSender();
-            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore, NullLogger<ReturnToSender>.Instance), ErrorStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
+            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
+            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
 
             await processor.ProcessBatches(); // stage (emits per-message audit)
             await processor.ProcessBatches(); // forward
@@ -305,6 +342,31 @@
                 Assert.That(audit.Messages, Has.All.Matches<RecordingMessageActionAuditLog.MessageEntry>(m => m.Scope == MessageActionScope.Group));
             }
         }
+
+        // Claims messages that have no failed message behind them, which is what a batch looks like once
+        // every message it covered has been claimed by an earlier batch or has aged out of retention.
+        async Task<string> StageBatchWithoutMessages()
+        {
+            string[] messageIds = [Guid.NewGuid().ToString()];
+
+            var batchId = await RetryBatchStore.CreateBatch(RetryDocumentManager.RetrySessionId, "Test-group", RetryType.FailureGroup, messageIds, "Test-group", DateTime.UtcNow);
+
+            await RetryBatchStore.AssignMessagesToBatch(batchId, messageIds);
+            await RetryBatchStore.MoveBatchToStaging(batchId);
+            await CompleteDatabaseOperation();
+
+            return batchId;
+        }
+
+        RetryProcessor CreateProcessor(IDomainEvents domainEvents, TestSender sender) =>
+            new(RetryStagingStore,
+                MessageRedirectsDataStore,
+                domainEvents,
+                new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()),
+                new RetryingManager(domainEvents, NullLogger<RetryingManager>.Instance),
+                new Lazy<IMessageDispatcher>(() => sender),
+                new RecordingMessageActionAuditLog(),
+                NullLogger<RetryProcessor>.Instance);
 
         Task CreateAFailedMessageAndMarkAsPartOfRetryBatch(RetryingManager retryManager, string groupId, bool progressToStaged, int numberOfMessages)
         {
@@ -348,8 +410,8 @@
             // Needs index FailedMessages_UniqueMessageIdAndTimeOfFailures
             await CompleteDatabaseOperation();
 
-            var documentManager = new CustomRetryDocumentManager(progressToStaged, RetryStore, retryManager);
-            var gateway = new CustomRetriesGateway(progressToStaged, RetryStore, retryManager);
+            var documentManager = new CustomRetryDocumentManager(progressToStaged, RetryBatchStore, retryManager);
+            var gateway = new CustomRetriesGateway(progressToStaged, RetryBatchStore, retryManager);
 
             gateway.EnqueueRetryForFailureGroup(new RetriesGateway.RetryForFailureGroup(groupId, "Test-Context", groupType: null, DateTime.UtcNow, initiatedBy, operationId));
 
@@ -363,17 +425,17 @@
 
         class CustomRetriesGateway : RetriesGateway
         {
-            public CustomRetriesGateway(bool progressToStaged, IRetryDocumentDataStore store, RetryingManager retryManager)
+            public CustomRetriesGateway(bool progressToStaged, IRetryBatchStore store, RetryingManager retryManager)
                 : base(store, retryManager, NullLogger<RetriesGateway>.Instance)
             {
                 this.progressToStaged = progressToStaged;
             }
 
-            protected override Task MoveBatchToStaging(string batchDocumentId)
+            protected override Task MoveBatchToStaging(string batchId, CancellationToken cancellationToken = default)
             {
                 if (progressToStaged)
                 {
-                    return base.MoveBatchToStaging(batchDocumentId);
+                    return base.MoveBatchToStaging(batchId, cancellationToken);
                 }
 
                 return Task.CompletedTask;
@@ -384,18 +446,18 @@
 
         class CustomRetryDocumentManager : RetryDocumentManager
         {
-            public CustomRetryDocumentManager(bool progressToStaged, IRetryDocumentDataStore retryStore, RetryingManager retryManager)
+            public CustomRetryDocumentManager(bool progressToStaged, IRetryBatchStore retryStore, RetryingManager retryManager)
                 : base(new FakeApplicationLifetime(), retryStore, retryManager, NullLogger<RetryDocumentManager>.Instance)
             {
                 RetrySessionId = Guid.NewGuid().ToString();
                 this.progressToStaged = progressToStaged;
             }
 
-            public override Task MoveBatchToStaging(string batchDocumentId)
+            public override Task MoveBatchToStaging(string batchId, CancellationToken cancellationToken = default)
             {
                 if (progressToStaged)
                 {
-                    return base.MoveBatchToStaging(batchDocumentId);
+                    return base.MoveBatchToStaging(batchId, cancellationToken);
                 }
 
                 return Task.CompletedTask;
@@ -416,7 +478,7 @@
 
         class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
         {
-            public TestReturnToSenderDequeuer(ReturnToSender returnToSender, IErrorMessageDataStore store, IDomainEvents domainEvents, string endpointName,
+            public TestReturnToSenderDequeuer(ReturnToSender returnToSender, IFailedMessageLifecycleDataStore store, IDomainEvents domainEvents, string endpointName,
                 ErrorQueueNameCache cache, ITransportCustomization transportCustomization)
                 : base(returnToSender, store, domainEvents, transportCustomization, null, new Settings { InstanceName = endpointName }, cache, NullLogger<ReturnToSenderDequeuer>.Instance)
             {
@@ -438,13 +500,14 @@
 
             public Task<TransportInfrastructure> CreateTransportInfrastructure(string name,
                 TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null,
-                Func<string, Exception, Task> onCriticalError = null,
+                Func<string, Exception, CancellationToken, Task> onCriticalError = null,
                 NServiceBus.TransportTransactionMode preferredTransactionMode =
-                    NServiceBus.TransportTransactionMode.ReceiveOnly) => Task.FromResult(TransportInfrastructure);
+                    NServiceBus.TransportTransactionMode.ReceiveOnly,
+                CancellationToken cancellationToken = default) => Task.FromResult(TransportInfrastructure);
             public void CustomizeAuditEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
             public void CustomizeMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
             public void CustomizePrimaryEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
-            public Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues) => throw new NotImplementedException();
+            public Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public string ToTransportQualifiedQueueName(string queueName) => queueName;
         }
 
@@ -452,7 +515,7 @@
         {
             public Action<UnicastTransportOperation> Callback { get; set; } = m => { };
 
-            public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, CancellationToken cancellationToken)
+            public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, CancellationToken cancellationToken = default)
             {
                 foreach (var operation in outgoingMessages.UnicastTransportOperations)
                 {

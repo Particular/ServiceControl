@@ -24,7 +24,7 @@ public class GetMessages2Controller(IAuditDataStore dataStore) : ControllerBase
         [FromQuery(Name = "from")] string from,
         [FromQuery(Name = "to")] string to,
         string q,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         QueryResult<IList<MessagesView>> result;
         var pagingInfo = new PagingInfo(pageSize: pageSize);

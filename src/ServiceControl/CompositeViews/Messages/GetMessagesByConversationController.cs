@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.CompositeViews.Messages
 {
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
     using Infrastructure.WebApi;
@@ -20,11 +21,11 @@
         public async Task<IList<MessagesView>> Messages([FromQuery] PagingInfo pagingInfo,
             [FromQuery] SortInfo sortInfo,
             [FromQuery(Name = "include_system_messages")]
-            bool includeSystemMessages, string conversationId)
+            bool includeSystemMessages, string conversationId, CancellationToken cancellationToken = default)
         {
             QueryResult<IList<MessagesView>> result = await byConversationApi.Execute(
                 new MessagesByConversationContext(pagingInfo, sortInfo, includeSystemMessages, conversationId),
-                Request.GetEncodedPathAndQuery());
+                Request.GetEncodedPathAndQuery(), cancellationToken);
 
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;

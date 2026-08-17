@@ -9,9 +9,9 @@ using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
 
-// Deletes resolved and archived failed messages once they age past the retention period. Runs
-// hourly, in bounded batches so it never holds a large delete, and recomputes the cutoff on every
-// run so a changed retention setting takes effect without rewriting any row.
+// Deletes rows once they age past their retention period.
+// Runs hourly, in bounded batches so it never holds a large delete, and recomputes the cutoffs on
+// every run so a changed retention setting takes effect without rewriting any row.
 public class RetentionSweeper(
     ILogger<RetentionSweeper> logger,
     TimeProvider timeProvider,
@@ -24,13 +24,13 @@ public class RetentionSweeper(
     static readonly TimeSpan InitialDelay = TimeSpan.FromMinutes(1);
     static readonly TimeSpan BatchPause = TimeSpan.FromSeconds(1);
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Starting error retention sweep");
+        logger.LogInformation("Starting retention sweep");
 
         try
         {
-            await Task.Delay(InitialDelay, timeProvider, stoppingToken);
+            await Task.Delay(InitialDelay, timeProvider, cancellationToken);
 
             using PeriodicTimer timer = new(Interval, timeProvider);
 
@@ -38,17 +38,20 @@ public class RetentionSweeper(
             {
                 try
                 {
-                    await Sweep(pace: true, stoppingToken);
+                    await Sweep(pace: true, cancellationToken);
                 }
+#pragma warning disable PS0019 // The filter already excludes OperationCanceledException, so
+                // cancellation propagates; PS0019 only recognises a cancellationToken guard.
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
-                    logger.LogError(ex, "Error during error retention sweep");
+                    logger.LogError(ex, "Error during retention sweep");
                 }
-            } while (await timer.WaitForNextTickAsync(stoppingToken));
+#pragma warning restore PS0019
+            } while (await timer.WaitForNextTickAsync(cancellationToken));
         }
-        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            logger.LogInformation("Stopping error retention sweep");
+            logger.LogInformation("Stopping retention sweep");
         }
     }
 
@@ -57,6 +60,55 @@ public class RetentionSweeper(
     public Task SweepNow(CancellationToken cancellationToken = default) => Sweep(pace: false, cancellationToken);
 
     async Task Sweep(bool pace, CancellationToken cancellationToken)
+    {
+        await SweepFailedMessages(pace, cancellationToken);
+        await SweepEventLogItems(pace, cancellationToken);
+        await SweepOrphanedGroupComments(cancellationToken);
+    }
+
+    // Once the last message of a group has been swept the group cannot be displayed at all, so its
+    // comment is unreachable. Leaving it behind would both accumulate invisible rows and, because
+    // group ids are deterministic, reattach a stale comment if the same failure ever recurs.
+    async Task SweepOrphanedGroupComments(CancellationToken cancellationToken)
+    {
+        using var scope = serviceScopeFactory.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+
+        await dbContext.GroupComments
+            .Where(comment => !dbContext.FailedMessageGroups.Any(group => group.GroupId == comment.GroupId))
+            .ExecuteDeleteAsync(cancellationToken);
+    }
+
+    // Event log items are insert-only and carry no external bodies, so each batch is a single
+    // ordered DELETE.
+    async Task SweepEventLogItems(bool pace, CancellationToken cancellationToken)
+    {
+        var cutoff = timeProvider.GetUtcNow().UtcDateTime - settings.EventsRetentionPeriod;
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            using var scope = serviceScopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+
+            var deleted = await dbContext.EventLogItems
+                .Where(eventLogItem => eventLogItem.RaisedAt < cutoff)
+                .OrderBy(eventLogItem => eventLogItem.RaisedAt)
+                .Take(BatchSize)
+                .ExecuteDeleteAsync(cancellationToken);
+
+            if (deleted < BatchSize)
+            {
+                break;
+            }
+
+            if (pace)
+            {
+                await Task.Delay(BatchPause, timeProvider, cancellationToken);
+            }
+        }
+    }
+
+    async Task SweepFailedMessages(bool pace, CancellationToken cancellationToken)
     {
         var cutoff = timeProvider.GetUtcNow().UtcDateTime - settings.ErrorRetentionPeriod;
 
@@ -113,11 +165,13 @@ public class RetentionSweeper(
         {
             await bodyStorage.DeleteBody(uniqueMessageId.ToString(), cancellationToken);
         }
+#pragma warning disable PS0019 // As above: the filter excludes cancellation already.
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             // Retention must not stall on a missing or unavailable body.
             logger.LogWarning(ex, "Could not delete the external body for {UniqueMessageId} during retention", uniqueMessageId);
         }
+#pragma warning restore PS0019
     }
 
     static System.Linq.Expressions.Expression<Func<FailedMessageEntity, bool>> IsExpired(DateTime cutoff) =>

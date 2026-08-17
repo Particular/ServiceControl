@@ -20,7 +20,7 @@ class AuditIngestionFaultPolicy
     public AuditIngestionFaultPolicy(
         IFailedAuditStorage failedAuditStorage,
         LoggingSettings settings,
-        Func<string, Exception, Task> onCriticalError,
+        Func<string, Exception, CancellationToken, Task> onCriticalError,
         IngestionMetrics metrics,
         ILogger logger)
     {
@@ -84,7 +84,7 @@ class AuditIngestionFaultPolicy
         logger.LogError(exception, "Failed importing error message");
 
         // Write to storage
-        await failedAuditStorage.SaveFailedAuditImport(failure);
+        await failedAuditStorage.SaveFailedAuditImport(failure, cancellationToken);
 
         if (!AppEnvironment.RunningInContainer)
         {

@@ -42,7 +42,7 @@
                 FailureReason = message.FailureReason
             };
 
-            await checkResultProcessor.ProcessResult(checkDetails);
+            await checkResultProcessor.ProcessResult(checkDetails, context.CancellationToken);
         }
     }
 }

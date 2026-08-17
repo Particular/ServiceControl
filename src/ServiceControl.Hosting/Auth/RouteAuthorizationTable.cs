@@ -30,7 +30,7 @@ public sealed class RouteAuthorizationTable(EndpointDataSource endpointDataSourc
 
         foreach (var endpoint in endpointDataSource.Endpoints.OfType<RouteEndpoint>())
         {
-            // Only controller actions: skips the SignalR hub and other non-MVC endpoints.
+            // Only controller actions: skips non-MVC endpoints.
             if (endpoint.Metadata.GetMetadata<ControllerActionDescriptor>() is null)
             {
                 continue;

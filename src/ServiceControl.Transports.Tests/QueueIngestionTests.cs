@@ -9,6 +9,7 @@
     // The logging cannot be reinitialized, so subsequent test that utilize the Scenario.Define.Run will use a different log factory that depends on more statics :(
     // The end result is a null reference exception :(
     [TestFixture]
+    [NonParallelizable]
     [Order(1)]
     class QueueIngestionTests : TransportTestFixture
     {

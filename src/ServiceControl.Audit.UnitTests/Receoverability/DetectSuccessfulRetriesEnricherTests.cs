@@ -3,7 +3,6 @@
     using System.Collections.Generic;
     using System.Linq;
     using Audit.Auditing;
-    using Contracts.MessageFailures;
     using NServiceBus;
     using NServiceBus.Transport;
     using NUnit.Framework;
@@ -35,7 +34,7 @@
         }
 
         [Test]
-        public void It_sends_legacy_command_if_retry_comes_from_old_ServiceControl()
+        public void It_does_not_acknowledge_if_retry_comes_from_old_ServiceControl()
         {
             var enricher = new DetectSuccessfulRetriesEnricher();
 
@@ -50,9 +49,9 @@
 
             enricher.Enrich(new AuditEnricherContext(headers, outgoingCommands, transportOperations, metadata));
 
-            Assert.That(outgoingCommands, Is.Not.Empty);
-            Assert.That(outgoingCommands, Is.All.InstanceOf(typeof(MarkMessageFailureResolvedByRetry)));
+            Assert.That(outgoingCommands, Is.Empty);
             Assert.That(transportOperations, Is.Empty);
+            Assert.That(metadata["IsRetried"], Is.True);
         }
 
         [Test]

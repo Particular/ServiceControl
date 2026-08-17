@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.MessageRedirects
+namespace ServiceControl.Persistence.MessageRedirects
 {
     using System;
     using System.Collections.Concurrent;
@@ -10,7 +10,7 @@
 
         public string FromPhysicalAddress { get; set; }
         public string ToPhysicalAddress { get; set; }
-        public long LastModifiedTicks { get; set; }
+        public DateTime LastModified { get; set; }
         static ConcurrentDictionary<string, Guid> idCache = new ConcurrentDictionary<string, Guid>();
     }
 }

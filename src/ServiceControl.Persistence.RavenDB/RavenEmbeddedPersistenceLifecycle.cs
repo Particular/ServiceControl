@@ -32,7 +32,7 @@ namespace ServiceControl.Persistence.RavenDB
             }
         }
 
-        public async Task Initialize(CancellationToken cancellationToken)
+        public async Task Initialize(CancellationToken cancellationToken = default)
         {
             try
             {
@@ -69,7 +69,7 @@ namespace ServiceControl.Persistence.RavenDB
             }
         }
 
-        public async Task Stop(CancellationToken cancellationToken)
+        public async Task Stop(CancellationToken cancellationToken = default)
         {
             if (database != null)
             {

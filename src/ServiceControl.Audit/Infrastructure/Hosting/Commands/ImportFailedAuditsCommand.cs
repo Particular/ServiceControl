@@ -13,7 +13,7 @@
 
     class ImportFailedAuditsCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings)
+        public override async Task Execute(HostArguments args, Settings settings, CancellationToken cancellationToken = default)
         {
             settings.IngestAuditMessages = false;
 
@@ -39,7 +39,7 @@
             {
                 await importer.Run(tokenSource.Token);
             }
-            catch (OperationCanceledException e) when (tokenSource.IsCancellationRequested)
+            catch (OperationCanceledException e) when (tokenSource.Token.IsCancellationRequested)
             {
                 LoggerUtil.CreateStaticLogger<ImportFailedAuditsCommand>().LogInformation(e, "Cancelled");
             }

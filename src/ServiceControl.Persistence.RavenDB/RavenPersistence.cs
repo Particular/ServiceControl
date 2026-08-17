@@ -1,7 +1,7 @@
 namespace ServiceControl.Persistence.RavenDB;
 
 using CustomChecks;
-using MessageFailures;
+using Editing;
 using MessageRedirects;
 using Microsoft.Extensions.DependencyInjection;
 using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
@@ -37,10 +37,6 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddSingleton<MinimumRequiredStorageState>();
         services.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
 
-        services.AddSingleton<FailedMessageViewIndexNotifications>();
-        services.AddSingleton<IFailedMessageViewIndexNotifications>(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
-        services.AddHostedService(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
-
         services.AddSingleton<ExternalIntegrationRequestsDataStore>();
         services.AddSingleton<IExternalIntegrationRequestsDataStore>(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
         services.AddHostedService(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
@@ -56,15 +52,21 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
 
         services.AddSingleton<IArchiveMessages, MessageArchiver>();
         services.AddSingleton<ICustomChecksDataStore, RavenCustomCheckDataStore>();
-        services.AddSingleton<IErrorMessageDataStore, ErrorMessagesDataStore>();
+        services.AddSingleton<ErrorMessagesDataStore>();
+        services.AddSingleton<IMessagesViewDataStore>(p => p.GetRequiredService<ErrorMessagesDataStore>());
+        services.AddSingleton<IFailedMessageQueryDataStore>(p => p.GetRequiredService<ErrorMessagesDataStore>());
+        services.AddSingleton<IFailedMessageLifecycleDataStore>(p => p.GetRequiredService<ErrorMessagesDataStore>());
+        services.AddSingleton<IFailedMessageRetryDataStore>(p => p.GetRequiredService<ErrorMessagesDataStore>());
+        services.AddSingleton<IEditFailedMessagesDataStore, EditFailedMessagesDataStore>();
+        services.AddSingleton<INotificationsDataStore, NotificationsDataStore>();
         services.AddSingleton<IEventLogDataStore, EventLogDataStore>();
         services.AddSingleton<IFailedErrorImportDataStore, FailedErrorImportDataStore>();
         services.AddSingleton<IGroupsDataStore, GroupsDataStore>();
         services.AddSingleton<IMessageRedirectsDataStore, MessageRedirectsDataStore>();
         services.AddSingleton<IMonitoringDataStore, RavenMonitoringDataStore>();
         services.AddSingleton<IQueueAddressStore, QueueAddressStore>();
-        services.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
-        services.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
+        services.AddSingleton<IRetryStagingStore, RetryStagingStore>();
+        services.AddSingleton<IRetryBatchStore, RetryDocumentDataStore>();
         services.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
         services.AddSingleton<IEndpointSettingsStore, EndpointSettingsStore>();
         services.AddSingleton<ITrialLicenseDataProvider, TrialLicenseDataProvider>();

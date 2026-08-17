@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
 
@@ -40,7 +41,7 @@
             return summary;
         }
 
-        public Task StartArchiving(ArchiveOperation archiveOperation)
+        public Task StartArchiving(ArchiveOperation archiveOperation, CancellationToken cancellationToken = default)
         {
             var summary = GetOrCreate(archiveOperation.ArchiveType, archiveOperation.RequestId);
 
@@ -51,10 +52,10 @@
             summary.NumberOfBatches = archiveOperation.NumberOfBatches;
             summary.CurrentBatch = archiveOperation.CurrentBatch;
 
-            return summary.Start();
+            return summary.Start(cancellationToken);
         }
 
-        public Task StartArchiving(string requestId, ArchiveType archiveType)
+        public Task StartArchiving(string requestId, ArchiveType archiveType, CancellationToken cancellationToken = default)
         {
             var summary = GetOrCreate(archiveType, requestId);
 
@@ -65,7 +66,7 @@
             summary.NumberOfBatches = 0;
             summary.CurrentBatch = 0;
 
-            return summary.Start();
+            return summary.Start(cancellationToken);
         }
 
         public InMemoryArchive GetStatusForArchiveOperation(string requestId, ArchiveType archiveType)
@@ -75,23 +76,23 @@
             return summary;
         }
 
-        public Task BatchArchived(string requestId, ArchiveType archiveType, int numberOfMessagesArchivedInBatch)
+        public Task BatchArchived(string requestId, ArchiveType archiveType, int numberOfMessagesArchivedInBatch, CancellationToken cancellationToken = default)
         {
             var summary = GetOrCreate(archiveType, requestId);
 
-            return summary.BatchArchived(numberOfMessagesArchivedInBatch);
+            return summary.BatchArchived(numberOfMessagesArchivedInBatch, cancellationToken);
         }
 
-        public Task ArchiveOperationFinalizing(string requestId, ArchiveType archiveType)
+        public Task ArchiveOperationFinalizing(string requestId, ArchiveType archiveType, CancellationToken cancellationToken = default)
         {
             var summary = GetOrCreate(archiveType, requestId);
-            return summary.FinalizeArchive();
+            return summary.FinalizeArchive(cancellationToken);
         }
 
-        public Task ArchiveOperationCompleted(string requestId, ArchiveType archiveType)
+        public Task ArchiveOperationCompleted(string requestId, ArchiveType archiveType, CancellationToken cancellationToken = default)
         {
             var summary = GetOrCreate(archiveType, requestId);
-            return summary.Complete();
+            return summary.Complete(cancellationToken);
         }
 
         public void DismissArchiveOperation(string requestId, ArchiveType archiveType)

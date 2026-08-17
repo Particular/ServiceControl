@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.RavenDB.Recoverability
+namespace ServiceControl.Persistence.RavenDB.Recoverability
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -6,14 +6,17 @@
     using System.Threading.Tasks;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Linq;
+    using Raven.Client.Documents.Session;
     using ServiceControl.MessageFailures;
+    using ServiceControl.MessageFailures.Api;
+    using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
 
     class GroupsDataStore(IRavenSessionProvider sessionProvider) : IGroupsDataStore
     {
-        public async Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier, string classifierFilter)
+        public async Task<IList<FailureGroupView>> GetUnresolvedGroupsByClassifier(string classifier, string classifierFilter, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var query = Queryable.Where(session.Query<FailureGroupView, FailureGroupsViewIndex>(), v => v.Type == classifier);
 
             if (!string.IsNullOrWhiteSpace(classifierFilter))
@@ -23,11 +26,11 @@
 
             var groups = await query.OrderByDescending(x => x.Last)
                 .Take(200)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             var commentIds = groups.Select(x => MakeId(x.Id)).ToArray();
             var comments = await session.Query<GroupComment, GroupCommentIndex>().Where(x => x.Id.In(commentIds))
-                .ToListAsync(CancellationToken.None);
+                .ToListAsync(cancellationToken);
 
             foreach (var group in groups)
             {
@@ -37,13 +40,108 @@
             return groups;
         }
 
-        public async Task<RetryBatch> GetCurrentForwardingBatch()
+        public async Task<IList<FailureGroupView>> GetArchivedGroupsByClassifier(string classifier, CancellationToken cancellationToken = default)
         {
-            using var session = await sessionProvider.OpenSession();
-            var nowForwarding = await session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
-                .LoadAsync<RetryBatchNowForwarding>(RetryDocumentDataStore.NowForwardingDocumentId);
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var groups = session
+                .Query<FailureGroupView, ArchivedGroupsViewIndex>()
+                .Where(v => v.Type == classifier);
 
-            return nowForwarding == null ? null : await session.LoadAsync<RetryBatch>(nowForwarding.RetryBatchId);
+            var results = await groups
+                .OrderByDescending(x => x.Last)
+                .Take(200) // only show 200 groups
+                .ToListAsync(cancellationToken);
+
+            return results;
+        }
+
+        public async Task<QueryResult<FailureGroupView>> GetUnresolvedGroup(string groupId, string status, string modified, CancellationToken cancellationToken = default)
+        {
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var document = await session.Advanced
+                .AsyncDocumentQuery<FailureGroupView, FailureGroupsViewIndex>()
+                .Statistics(out var stats)
+                .WhereEquals(group => group.Id, groupId)
+                .FilterByStatusWhere(status)
+                .FilterByLastModifiedRange(modified)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return new QueryResult<FailureGroupView>(document, stats.ToQueryStatsInfo());
+        }
+
+        public async Task<QueryResult<FailureGroupView>> GetArchivedGroup(string groupId, string status, string modified, CancellationToken cancellationToken = default)
+        {
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var document = await session.Advanced
+                .AsyncDocumentQuery<FailureGroupView, ArchivedGroupsViewIndex>()
+                .Statistics(out var stats)
+                .WhereEquals(group => group.Id, groupId)
+                .FilterByStatusWhere(status)
+                .FilterByLastModifiedRange(modified)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return new QueryResult<FailureGroupView>(document, stats.ToQueryStatsInfo());
+        }
+
+        public async Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(
+            string groupId,
+            string status,
+            string modified,
+            SortInfo sortInfo,
+            PagingInfo pagingInfo,
+            CancellationToken cancellationToken = default
+            )
+        {
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var query = session.Advanced
+                .AsyncDocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
+                .Statistics(out var stats)
+                .WhereEquals(view => view.FailureGroupId, groupId)
+                .FilterByStatusWhere(status)
+                .FilterByLastModifiedRange(modified)
+                .Sort(sortInfo)
+                .Paging(pagingInfo)
+                .SelectFields<FailedMessage>()
+                .ToQueryable()
+                .TransformToFailedMessageView();
+
+            var results = await query
+                .ToListAsync(cancellationToken);
+
+            return results.ToQueryResult(stats);
+        }
+
+        public async Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string status, string modified, CancellationToken cancellationToken = default)
+        {
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var queryResult = await session.Advanced
+                .AsyncDocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
+                .WhereEquals(view => view.FailureGroupId, groupId)
+                .FilterByStatusWhere(status)
+                .FilterByLastModifiedRange(modified)
+                .GetQueryResultAsync(cancellationToken);
+
+            return queryResult.ToQueryStatsInfo();
+        }
+
+        public async Task EditComment(string groupId, string comment, CancellationToken cancellationToken = default)
+        {
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            var groupComment =
+                await session.LoadAsync<GroupComment>(MakeId(groupId), cancellationToken)
+                ?? new GroupComment { Id = MakeId(groupId) };
+
+            groupComment.Comment = comment;
+
+            await session.StoreAsync(groupComment, cancellationToken);
+            await session.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task DeleteComment(string groupId, CancellationToken cancellationToken = default)
+        {
+            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            session.Delete(MakeId(groupId));
+            await session.SaveChangesAsync(cancellationToken);
         }
 
         public static string MakeId(string groupId) => $"GroupComment/{groupId}";

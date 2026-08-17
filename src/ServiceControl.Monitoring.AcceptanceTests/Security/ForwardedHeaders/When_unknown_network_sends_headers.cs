@@ -9,6 +9,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
     /// <summary>
     /// When KnownNetworks are configured but the caller IP does NOT fall within, headers should be ignored.
     /// </summary>
+    [NonParallelizable]
     class When_unknown_network_sends_headers : AcceptanceTest
     {
         ForwardedHeadersTestConfiguration configuration;

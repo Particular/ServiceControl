@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Persistence.RavenDB
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using ServiceControl.Persistence.UnitOfWork;
 
@@ -10,7 +11,7 @@
         RavenPersisterSettings settings)
         : IIngestionUnitOfWorkFactory
     {
-        public ValueTask<IIngestionUnitOfWork> StartNew()
+        public ValueTask<IIngestionUnitOfWork> StartNew(CancellationToken cancellationToken = default)
             => new(new RavenIngestionUnitOfWork(sessionProvider, expirationManager, settings));
 
         public bool CanIngestMore() => customCheckState.CanIngestMore;

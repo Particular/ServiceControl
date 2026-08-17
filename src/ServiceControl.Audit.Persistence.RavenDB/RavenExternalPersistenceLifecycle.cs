@@ -46,11 +46,6 @@ namespace ServiceControl.Audit.Persistence.RavenDB
                     }
                 };
 
-                if (configuration.FindClrType != null)
-                {
-                    store.Conventions.FindClrType += configuration.FindClrType;
-                }
-
                 documentStore = store.Initialize();
 
                 await StartupChecks.EnsureServerVersion(store, cancellationToken);

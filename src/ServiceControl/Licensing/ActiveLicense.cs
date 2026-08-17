@@ -14,7 +14,7 @@
 
         public LicenseDetails Details { get; set; }
 
-        public async Task Refresh(CancellationToken cancellationToken)
+        public async Task Refresh(CancellationToken cancellationToken = default)
         {
             logger.LogDebug("Refreshing ActiveLicense");
 
@@ -27,7 +27,7 @@
             IsEvaluation = detectedLicense.IsEvaluationLicense;
         }
 
-        internal static async Task<LicenseDetails> ValidateTrialLicense(LicenseDetails licenseDetails, ITrialLicenseDataProvider trialLicenseDataProvider, CancellationToken cancellationToken)
+        internal static async Task<LicenseDetails> ValidateTrialLicense(LicenseDetails licenseDetails, ITrialLicenseDataProvider trialLicenseDataProvider, CancellationToken cancellationToken = default)
         {
             if (licenseDetails.LicenseType.Equals("trial", StringComparison.OrdinalIgnoreCase))
             {
@@ -47,7 +47,7 @@
                 }
 
                 //If the trial end date in db has been tampered, invalidate the license
-                if (trialEndDateInDb > DateOnly.FromDateTime(DateTime.Now).AddDays(MaxTrialPeriodInDays))
+                if (trialEndDateInDb > DateOnly.FromDateTime(DateTime.UtcNow).AddDays(MaxTrialPeriodInDays))
                 {
                     return LicenseDetails.TrialExpired();
                 }

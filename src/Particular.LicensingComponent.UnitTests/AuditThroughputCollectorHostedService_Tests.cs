@@ -133,7 +133,7 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
             } while (!token.IsCancellationRequested);
         });
 
-        Endpoint foundEndpoint = await DataStore.GetEndpoint(endpointName, ThroughputSource.Audit, default);
+        Endpoint foundEndpoint = await DataStore.GetEndpoint(endpointName, ThroughputSource.Audit);
 
         //Assert
         Assert.That(foundEndpoint, Is.Not.Null, $"Expected endpoint {endpointName} not found.");
@@ -181,9 +181,9 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         });
         await auditThroughputCollectorHostedService.StopAsync(token2);
 
-        Endpoint foundEndpoint = await DataStore.GetEndpoint(endpointName, ThroughputSource.Audit, default);
+        Endpoint foundEndpoint = await DataStore.GetEndpoint(endpointName, ThroughputSource.Audit);
         IDictionary<string, IEnumerable<ThroughputData>> foundEndpointThroughput =
-            await DataStore.GetEndpointThroughputByQueueName([endpointName], default);
+            await DataStore.GetEndpointThroughputByQueueName([endpointName]);
         ThroughputData[] throughputData = foundEndpointThroughput[endpointName].ToArray();
 
         // Assert
@@ -252,19 +252,19 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         public Func<RemoteInstanceInformation, bool> ValidRemoteInstances => r => true;
 
         public Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName,
-            CancellationToken cancellationToken) => Task.FromResult<IEnumerable<AuditCount>>([]);
+            CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<AuditCount>>([]);
 
-        public Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken) =>
+        public Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken = default) =>
             Task.FromResult<List<RemoteInstanceInformation>>([]);
 
-        public Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken)
+        public Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken = default)
         {
             InstanceParameter = true;
 
             return Task.FromResult<IEnumerable<ServiceControlEndpoint>>([]);
         }
 
-        public Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken) =>
+        public Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken = default) =>
             Task.FromResult(
                 new ConnectionSettingsTestResult { ConnectionSuccessful = true, ConnectionErrorMessages = [] });
 
@@ -285,23 +285,23 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         public Func<RemoteInstanceInformation, bool> ValidRemoteInstances => r => true;
 
         public Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             var auditCount = new AuditCount { UtcDate = ThroughputDate, Count = ThroughputCount };
 
             return Task.FromResult(new List<AuditCount> { auditCount }.AsEnumerable());
         }
 
-        public Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken) =>
+        public Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken = default) =>
             Task.FromResult<List<RemoteInstanceInformation>>([]);
 
-        public Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken)
+        public Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken = default)
         {
             var scEndpoint = new ServiceControlEndpoint { Name = EndpointName, HeartbeatsEnabled = true };
             return Task.FromResult<IEnumerable<ServiceControlEndpoint>>([scEndpoint]);
         }
 
-        public Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken) =>
+        public Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken = default) =>
             Task.FromResult(
                 new ConnectionSettingsTestResult { ConnectionSuccessful = true, ConnectionErrorMessages = [] });
 
@@ -317,19 +317,19 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         public Func<RemoteInstanceInformation, bool> ValidRemoteInstances => r => true;
 
         public Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName,
-            CancellationToken cancellationToken) => throw new NotImplementedException();
+            CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
-        public Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken) =>
+        public Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken = default) =>
             Task.FromResult<List<RemoteInstanceInformation>>([]);
 
-        public Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken)
+        public Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken = default)
         {
             InstanceParameter = true;
 
             throw new Exception("Oops");
         }
 
-        public Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken) =>
+        public Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
         public bool InstanceParameter { get; set; }
@@ -345,17 +345,17 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
 
         public KeyDescriptionPair[] Settings => throw new NotImplementedException();
 
-        public IAsyncEnumerable<IBrokerQueue> GetQueueNames(CancellationToken cancellationToken) =>
+        public IAsyncEnumerable<IBrokerQueue> GetQueueNames(CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
         public IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
-            CancellationToken cancellationToken) => throw new NotImplementedException();
+            CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
         public bool HasInitialisationErrors(out string errorMessage) => throw new NotImplementedException();
         public void Initialize(ReadOnlyDictionary<string, string> settings) => throw new NotImplementedException();
 
         public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
-            CancellationToken cancellationToken) => throw new NotImplementedException();
+            CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
         public string SanitizeEndpointName(string endpointName)
         {

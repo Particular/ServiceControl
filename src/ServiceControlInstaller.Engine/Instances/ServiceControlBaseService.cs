@@ -7,6 +7,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Linq;
     using System.Security.AccessControl;
     using System.Security.Principal;
+    using System.Threading;
     using System.Threading.Tasks;
     using Accounts;
     using Configuration;
@@ -20,10 +21,21 @@ namespace ServiceControlInstaller.Engine.Instances
 
     public abstract class ServiceControlBaseService : BaseService
     {
+        protected Exception ConfigurationLoadException { get; set; }
+
         protected ServiceControlBaseService(IWindowsServiceController service)
         {
             Service = service;
-            AppConfig = CreateAppConfig();
+            try
+            {
+                AppConfig = CreateAppConfig();
+            }
+            catch (Exception ex)
+            {
+                // Config loading failed - will be handled by derived class constructor
+                // Store the exception so derived class can log it
+                ConfigurationLoadException = ex;
+            }
         }
 
         public bool InMaintenanceMode { get; set; }
@@ -289,7 +301,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
         }
 
-        protected virtual Task ValidatePaths() => Task.CompletedTask;
+        protected virtual Task ValidatePaths(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
         protected virtual void ValidateQueueNames()
         {
@@ -349,9 +361,9 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        public async Task ValidateChanges()
+        public async Task ValidateChanges(CancellationToken cancellationToken = default)
         {
-            await ValidatePaths().ConfigureAwait(false);
+            await ValidatePaths(cancellationToken).ConfigureAwait(false);
 
             ValidateQueueNames();
 

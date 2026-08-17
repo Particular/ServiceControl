@@ -47,7 +47,7 @@
             }
         }
 
-        public override Task<bool> CanCloseAsync(CancellationToken cancellationToken) => Task.FromResult(!InProgress);
+        public override Task<bool> CanCloseAsync(CancellationToken cancellationToken = default) => Task.FromResult(!InProgress);
 
         void NotifyUpdates()
         {

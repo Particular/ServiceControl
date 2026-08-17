@@ -1,5 +1,6 @@
 namespace ServiceControl.Monitoring
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using ServiceControl.Infrastructure;
@@ -7,7 +8,7 @@ namespace ServiceControl.Monitoring
 
     class SetupCommand : AbstractCommand
     {
-        public override Task Execute(HostArguments args, Settings settings)
+        public override Task Execute(HostArguments args, Settings settings, CancellationToken cancellationToken = default)
         {
             if (args.SkipQueueCreation)
             {
@@ -18,7 +19,7 @@ namespace ServiceControl.Monitoring
             var transportSettings = settings.ToTransportSettings();
             transportSettings.ErrorQueue = settings.ErrorQueue;
             var transportCustomization = TransportFactory.Create(transportSettings);
-            return transportCustomization.ProvisionQueues(transportSettings, []);
+            return transportCustomization.ProvisionQueues(transportSettings, [], cancellationToken);
         }
     }
 }

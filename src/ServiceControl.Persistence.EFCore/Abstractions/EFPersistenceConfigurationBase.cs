@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using ServiceControl.Configuration;
 using ServiceControl.Infrastructure;
 
-public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
+public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration, IPersistenceConfiguration
 {
     const string ConnectionStringKey = "Database/ConnectionString";
     const string CommandTimeoutKey = "Database/CommandTimeout";
@@ -25,7 +25,8 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
     const string MinBodySizeForCompressionKey = "MessageBody/MinCompressionSize";
     const string MaxBodySizeToStoreKey = "MaxBodySizeToStore";
     const string ErrorRetentionPeriodKey = "ErrorRetentionPeriod";
-    const string EnableFullTextSearchOnBodiesKey = "EnableFullTextSearchOnBodies";
+    const string EventsRetentionPeriodKey = "EventsRetentionPeriod";
+    const string SubscriptionCacheDurationKey = "SubscriptionCacheDuration";
 
     public PersistenceSettings CreateSettings(SettingsRootNamespace settingsRootNamespace)
     {
@@ -35,7 +36,8 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
 
         settings.CommandTimeout = SettingsReader.Read(settingsRootNamespace, CommandTimeoutKey, EFPersisterSettings.DefaultCommandTimeout);
         settings.ErrorRetentionPeriod = GetRequiredSetting<TimeSpan>(settingsRootNamespace, ErrorRetentionPeriodKey);
-        settings.EnableFullTextSearchOnBodies = SettingsReader.Read(settingsRootNamespace, EnableFullTextSearchOnBodiesKey, true);
+        settings.EventsRetentionPeriod = SettingsReader.Read(settingsRootNamespace, EventsRetentionPeriodKey, EFPersisterSettings.DefaultEventsRetentionPeriod);
+        settings.SubscriptionCacheDuration = SettingsReader.Read(settingsRootNamespace, SubscriptionCacheDurationKey, EFPersisterSettings.DefaultSubscriptionCacheDuration);
 
         return settings;
     }
@@ -187,15 +189,5 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
         }
 
         return maxBodySizeToStore;
-    }
-
-    static T GetRequiredSetting<T>(SettingsRootNamespace settingsRootNamespace, string key)
-    {
-        if (SettingsReader.TryRead<T>(settingsRootNamespace, key, out var value))
-        {
-            return value;
-        }
-
-        throw new Exception($"Setting {key} of type {typeof(T)} is required");
     }
 }

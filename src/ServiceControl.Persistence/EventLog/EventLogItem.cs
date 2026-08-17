@@ -3,9 +3,12 @@
     using System;
     using System.Collections.Generic;
 
+    /// <summary>
+    /// One event log item as written. Carries no identity: each persister assigns that itself and
+    /// surfaces it on <see cref="EventLogItemView"/> when the item is read back.
+    /// </summary>
     public class EventLogItem
     {
-        public string Id { get; set; }
         public string Description { get; set; }
         public Severity Severity { get; set; }
         public DateTime RaisedAt { get; set; }

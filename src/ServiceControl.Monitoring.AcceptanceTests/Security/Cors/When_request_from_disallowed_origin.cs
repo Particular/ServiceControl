@@ -12,6 +12,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.Cors
     /// When a request comes from an origin that is NOT in the AllowedOrigins list,
     /// the response should NOT include an Access-Control-Allow-Origin header that matches the request origin.
     /// </summary>
+    [NonParallelizable]
     class When_request_from_disallowed_origin : AcceptanceTest
     {
         CorsTestConfiguration configuration;

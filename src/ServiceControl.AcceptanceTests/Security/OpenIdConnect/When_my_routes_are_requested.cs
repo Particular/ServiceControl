@@ -17,6 +17,7 @@ using ServiceControl.Infrastructure.Auth;
 /// It is the per-instance authorization contract ServicePulse consumes: it gates UI on routes it
 /// already calls rather than on the server's internal permission vocabulary.
 /// </summary>
+[NonParallelizable]
 class When_my_routes_are_requested : AcceptanceTest
 {
     OpenIdConnectTestConfiguration configuration;

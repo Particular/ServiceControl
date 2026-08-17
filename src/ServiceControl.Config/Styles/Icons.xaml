@@ -101,6 +101,30 @@
         </Viewbox>
     </ControlTemplate>
 
+    <ControlTemplate x:Key="CopyIcon">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="16" Height="16">
+                <!-- back page -->
+                <Rectangle Canvas.Left="4" Canvas.Top="2" Width="9" Height="11"
+                           Fill="{TemplateBinding Foreground}" />
+                <Rectangle Canvas.Left="5" Canvas.Top="3" Width="7" Height="9"
+                           Fill="White" />
+                <!-- front page -->
+                <Rectangle Canvas.Left="2" Canvas.Top="4" Width="9" Height="11"
+                           Fill="{TemplateBinding Foreground}" />
+                <Rectangle Canvas.Left="3" Canvas.Top="5" Width="7" Height="9"
+                           Fill="White" />
+                <!-- lines on front page -->
+                <Rectangle Canvas.Left="4" Canvas.Top="7" Width="5" Height="1"
+                           Fill="{TemplateBinding Foreground}" />
+                <Rectangle Canvas.Left="4" Canvas.Top="9" Width="5" Height="1"
+                           Fill="{TemplateBinding Foreground}" />
+                <Rectangle Canvas.Left="4" Canvas.Top="11" Width="3" Height="1"
+                           Fill="{TemplateBinding Foreground}" />
+            </Canvas>
+        </Viewbox>
+    </ControlTemplate>
+
     <ControlTemplate x:Key="RemoveIcon">
         <Viewbox Stretch="Uniform">
             <Canvas Width="24" Height="24">

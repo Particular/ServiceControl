@@ -165,7 +165,7 @@ namespace ServiceControl.RavenDB
             }
         }
 
-        public async Task<IDocumentStore> Connect(CancellationToken cancellationToken)
+        public async Task<IDocumentStore> Connect(CancellationToken cancellationToken = default)
         {
             var dbOptions = new DatabaseOptions(configuration.Name)
             {
@@ -176,25 +176,20 @@ namespace ServiceControl.RavenDB
                 SkipCreatingDatabase = true
             };
 
-            if (configuration.FindClrType != null)
-            {
-                dbOptions.Conventions.FindClrType += configuration.FindClrType;
-            }
-
             var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions, cancellationToken);
             return store;
         }
 
-        public async Task DeleteDatabase(string dbName)
+        public async Task DeleteDatabase(string dbName, CancellationToken cancellationToken = default)
         {
             using var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(new DatabaseOptions(dbName)
             {
                 SkipCreatingDatabase = true
-            });
-            await store.Maintenance.Server.SendAsync(new DeleteDatabasesOperation(dbName, true));
+            }, cancellationToken);
+            await store.Maintenance.Server.SendAsync(new DeleteDatabasesOperation(dbName, true), cancellationToken);
         }
 
-        public async Task Stop(CancellationToken cancellationToken)
+        public async Task Stop(CancellationToken cancellationToken = default)
         {
             logger.LogDebug("Stopping RavenDB server");
             EmbeddedServer.Instance.ServerProcessExited -= OnServerProcessExited;

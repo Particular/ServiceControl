@@ -3,6 +3,7 @@ namespace ServiceControl.Recoverability.ExternalIntegration
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using ExternalIntegrations;
@@ -10,9 +11,9 @@ namespace ServiceControl.Recoverability.ExternalIntegration
 
     class MessageFailedPublisher : EventPublisher<MessageFailed, MessageFailedPublisher.DispatchContext>
     {
-        readonly IErrorMessageDataStore dataStore;
+        readonly IFailedMessageQueryDataStore dataStore;
 
-        public MessageFailedPublisher(IErrorMessageDataStore dataStore)
+        public MessageFailedPublisher(IFailedMessageQueryDataStore dataStore)
         {
             this.dataStore = dataStore;
         }
@@ -25,10 +26,10 @@ namespace ServiceControl.Recoverability.ExternalIntegration
             };
         }
 
-        protected override async Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts)
+        protected override async Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, CancellationToken cancellationToken = default)
         {
             var ids = contexts.Select(x => x.FailedMessageId).ToArray();
-            var results = await dataStore.FailedMessagesFetch(ids);
+            var results = await dataStore.GetFailedMessagesByIds(ids, cancellationToken);
             return results.Select(x => x.ToEvent());
         }
 

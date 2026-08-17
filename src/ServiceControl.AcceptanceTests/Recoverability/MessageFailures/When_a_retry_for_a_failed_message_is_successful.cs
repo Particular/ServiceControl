@@ -20,7 +20,7 @@
     {
         [Test]
         [CancelAfter(120_000)]
-        public async Task Should_show_up_as_resolved_in_the_eventlog(CancellationToken cancellationToken)
+        public async Task Should_show_up_as_resolved_in_the_eventlog(CancellationToken cancellationToken = default)
         {
             FailedMessage failure = null;
             List<EventLogItem> eventLogItems = null;
@@ -58,7 +58,7 @@
 
         [Test]
         [CancelAfter(120_000)]
-        public async Task Should_show_up_as_resolved_when_doing_a_multi_retry(CancellationToken cancellationToken)
+        public async Task Should_show_up_as_resolved_when_doing_a_multi_retry(CancellationToken cancellationToken = default)
         {
             FailedMessage failure = null;
 
@@ -89,7 +89,7 @@
 
         [Test]
         [CancelAfter(120_000)]
-        public async Task Should_show_up_as_resolved_when_doing_a_retry_all(CancellationToken cancellationToken)
+        public async Task Should_show_up_as_resolved_when_doing_a_retry_all(CancellationToken cancellationToken = default)
         {
             FailedMessage failure = null;
 
@@ -120,7 +120,7 @@
 
         [Test]
         [CancelAfter(120_000)]
-        public async Task Acknowledging_the_retry_should_be_successful(CancellationToken cancellationToken)
+        public async Task Acknowledging_the_retry_should_be_successful(CancellationToken cancellationToken = default)
         {
             FailedMessage failure;
 
@@ -149,7 +149,7 @@
 
         [Test]
         [CancelAfter(120_000)]
-        public async Task Should_show_up_as_resolved_when_doing_a_retry_all_for_the_given_endpoint(CancellationToken cancellationToken)
+        public async Task Should_show_up_as_resolved_when_doing_a_retry_all_for_the_given_endpoint(CancellationToken cancellationToken = default)
         {
             FailedMessage failure = null;
 
@@ -205,7 +205,6 @@
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoRetries();
-                    c.ReportSuccessfulRetriesToServiceControl();
                 });
 
             [Handler]

@@ -7,13 +7,13 @@
 
     public interface IFailedAuditStorage
     {
-        Task SaveFailedAuditImport(FailedAuditImport message);
+        Task SaveFailedAuditImport(FailedAuditImport message, CancellationToken cancellationToken = default);
 
         Task ProcessFailedMessages(
             Func<FailedTransportMessage, Func<CancellationToken, Task>, CancellationToken, Task> onMessage,
-            CancellationToken cancellationToken
+            CancellationToken cancellationToken = default
         );
 
-        Task<int> GetFailedAuditsCount();
+        Task<int> GetFailedAuditsCount(CancellationToken cancellationToken = default);
     }
 }

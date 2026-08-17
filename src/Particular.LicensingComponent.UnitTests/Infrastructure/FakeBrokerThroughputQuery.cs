@@ -17,17 +17,17 @@ class FakeBrokerThroughputQuery : IBrokerThroughputQuery
 
     public KeyDescriptionPair[] Settings => throw new NotImplementedException();
 
-    public IAsyncEnumerable<IBrokerQueue> GetQueueNames(CancellationToken cancellationToken) =>
+    public IAsyncEnumerable<IBrokerQueue> GetQueueNames(CancellationToken cancellationToken = default) =>
         throw new NotImplementedException();
 
     public IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue, DateOnly startDate,
-        CancellationToken cancellationToken) => throw new NotImplementedException();
+        CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
     public bool HasInitialisationErrors(out string errorMessage) => throw new NotImplementedException();
     public void Initialize(ReadOnlyDictionary<string, string> settings) => throw new NotImplementedException();
 
     public Task<(bool Success, List<string> Errors, string Diagnostics)> TestConnection(
-        CancellationToken cancellationToken) => throw new NotImplementedException();
+        CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
     public string SanitizeEndpointName(string endpointName) => endpointName;
     public string SanitizedEndpointNameCleanser(string endpointName) => endpointName;

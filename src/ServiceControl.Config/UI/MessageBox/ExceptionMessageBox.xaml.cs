@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Config.UI.MessageBox
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Input;
@@ -95,7 +96,9 @@
             Clipboard.SetText(ErrorDetails.Text);
         }
 
+#pragma warning disable PS0018 // Bound to AwaitableDelegateCommand's Func<object, Task>, which the tokenless ICommand.Execute drives
         async Task CallReportClick(object sender)
+#pragma warning restore PS0018
         {
             ProgressTitle = "Processing";
             ProgressMessage = "Sending Exception Details...";

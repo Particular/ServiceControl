@@ -13,11 +13,10 @@ using Testcontainers.LocalStack;
 [Platform(Exclude = "Win", Reason = "LocalStack has no Windows container image")]
 class S3BodyStorageTests
 {
-    LocalStackContainer localStack;
-    S3BodyStoragePersistence store;
+    static LocalStackContainer localStack;
 
     [OneTimeSetUp]
-    public async Task StartLocalStack()
+    public static async Task StartLocalStack()
     {
         // We need to pin the tag to 4.4.0 because after that version LocalStack has become a paid service for commercial use.
         localStack = new LocalStackBuilder("localstack/localstack:4.4.0").Build();
@@ -25,7 +24,7 @@ class S3BodyStorageTests
     }
 
     [OneTimeTearDown]
-    public async Task StopLocalStack()
+    public static async Task StopLocalStack()
     {
         if (localStack != null)
         {
@@ -33,8 +32,7 @@ class S3BodyStorageTests
         }
     }
 
-    [SetUp]
-    public async Task CreateBucket()
+    public async Task<S3BodyStoragePersistence> CreateBucket()
     {
         var settings = new S3BodyStorageSettings
         {
@@ -46,12 +44,13 @@ class S3BodyStorageTests
         };
 
         await new S3BodyStorageInstaller(settings).Provision();
-        store = new S3BodyStoragePersistence(settings);
+        return new S3BodyStoragePersistence(settings);
     }
 
     [Test]
     public async Task Round_trips_a_small_uncompressed_body()
     {
+        var store = await CreateBucket();
         var bodyId = Guid.NewGuid().ToString();
         var body = Encoding.UTF8.GetBytes("hello world");
 
@@ -75,6 +74,7 @@ class S3BodyStorageTests
     [Test]
     public async Task Round_trips_a_large_body_over_the_compression_threshold()
     {
+        var store = await CreateBucket();
         var bodyId = Guid.NewGuid().ToString();
         var body = Encoding.UTF8.GetBytes(new string('a', 100_000));
 
@@ -92,12 +92,16 @@ class S3BodyStorageTests
     }
 
     [Test]
-    public async Task Returns_null_for_a_missing_body() =>
+    public async Task Returns_null_for_a_missing_body()
+    {
+        var store = await CreateBucket();
         Assert.That(await store.ReadBody(Guid.NewGuid().ToString()), Is.Null);
+    }
 
     [Test]
     public async Task Delete_removes_the_body()
     {
+        var store = await CreateBucket();
         var bodyId = Guid.NewGuid().ToString();
         await store.WriteBody(bodyId, Encoding.UTF8.GetBytes("payload"), "text/plain");
 
@@ -107,12 +111,17 @@ class S3BodyStorageTests
     }
 
     [Test]
-    public void Delete_of_a_missing_body_does_not_throw() =>
+    public async Task Delete_of_a_missing_body_does_not_throw()
+    {
+        var store = await CreateBucket();
         Assert.DoesNotThrowAsync(() => store.DeleteBody(Guid.NewGuid().ToString()));
+    }
 
     [Test]
+    [Parallelizable(ParallelScope.None)]
     public async Task Rewriting_an_existing_body_keeps_the_first_write()
     {
+        var store = await CreateBucket();
         var bodyId = Guid.NewGuid().ToString();
         var original = Encoding.UTF8.GetBytes("original");
 

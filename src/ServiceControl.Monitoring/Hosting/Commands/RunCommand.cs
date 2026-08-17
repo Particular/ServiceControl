@@ -1,5 +1,6 @@
 namespace ServiceControl.Monitoring
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.WebApi;
@@ -10,7 +11,7 @@ namespace ServiceControl.Monitoring
 
     class RunCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args, Settings settings)
+        public override async Task Execute(HostArguments args, Settings settings, CancellationToken cancellationToken = default)
         {
             var endpointConfiguration = new EndpointConfiguration(settings.InstanceName);
 

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using ServiceControl.Transports.PostgreSql;
     using Transports;
@@ -11,7 +12,7 @@
 
         public ITransportCustomization TransportCustomization { get; private set; }
 
-        public Task Configure()
+        public Task Configure(CancellationToken cancellationToken = default)
         {
             TransportCustomization = new PostgreSqlTransportCustomization();
             ConnectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
@@ -24,7 +25,7 @@
             return Task.CompletedTask;
         }
 
-        public Task Cleanup() => Task.CompletedTask;
+        public Task Cleanup(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
         const string ConnectionStringKey = "ServiceControl_TransportTests_PostgreSQL_ConnectionString";
     }

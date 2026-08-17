@@ -11,7 +11,6 @@ using MessageFailures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Time.Testing;
 using Npgsql;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.Infrastructure;
@@ -21,8 +20,6 @@ public partial class PersistenceTestsContext : IPersistenceTestsContext
     IHost host;
     string databaseName;
     string bodyStoragePath;
-
-    public FakeTimeProvider FakeTime { get; } = new();
 
     public async Task Setup(IHostApplicationBuilder hostBuilder)
     {

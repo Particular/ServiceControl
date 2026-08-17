@@ -32,10 +32,12 @@ namespace ServiceControl.Operations
             return Task.FromResult(CheckResult.Pass);
         }
 
+#pragma warning disable PS0018 // Matches the NServiceBus critical-error delegate, which takes no CancellationToken
         public static Task OnCriticalError(ICriticalErrorContext criticalErrorContext)
         {
             recentFailure = criticalErrorContext.Error;
             return Task.CompletedTask;
         }
+#pragma warning restore PS0018
     }
 }

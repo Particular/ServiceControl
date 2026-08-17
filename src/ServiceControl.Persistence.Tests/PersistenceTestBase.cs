@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.Tests;
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -12,6 +13,7 @@ using Particular.LicensingComponent.Persistence;
 using ServiceControl.Infrastructure;
 using ServiceControl.Infrastructure.Auth;
 using ServiceControl.Infrastructure.DomainEvents;
+using ServiceControl.MessageFailures;
 using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.MessageRedirects;
@@ -93,11 +95,15 @@ public abstract class PersistenceTestBase
         throw new Exception($"{condition} has not been meet in defined timespan: {timeout})");
     }
 
-    protected IErrorMessageDataStore ErrorStore => ServiceProvider.GetRequiredService<IErrorMessageDataStore>();
-    protected IRetryDocumentDataStore RetryStore => ServiceProvider.GetRequiredService<IRetryDocumentDataStore>();
     protected IBodyStorage BodyStorage => ServiceProvider.GetRequiredService<IBodyStorage>();
-    protected IRetryBatchesDataStore RetryBatchesStore => ServiceProvider.GetRequiredService<IRetryBatchesDataStore>();
-    protected IErrorMessageDataStore ErrorMessageDataStore => ServiceProvider.GetRequiredService<IErrorMessageDataStore>();
+    protected IRetryStagingStore RetryStagingStore => ServiceProvider.GetRequiredService<IRetryStagingStore>();
+    protected IFailedMessageQueryDataStore FailedMessageQueryStore => ServiceProvider.GetRequiredService<IFailedMessageQueryDataStore>();
+    protected IFailedMessageLifecycleDataStore FailedMessageLifecycleStore => ServiceProvider.GetRequiredService<IFailedMessageLifecycleDataStore>();
+    protected IFailedMessageRetryDataStore FailedMessageRetryStore => ServiceProvider.GetRequiredService<IFailedMessageRetryDataStore>();
+    protected IMessagesViewDataStore MessagesViewStore => ServiceProvider.GetRequiredService<IMessagesViewDataStore>();
+    protected IGroupsDataStore GroupsStore => ServiceProvider.GetRequiredService<IGroupsDataStore>();
+    protected IEditFailedMessagesDataStore EditFailedMessagesStore => ServiceProvider.GetRequiredService<IEditFailedMessagesDataStore>();
+    protected INotificationsDataStore NotificationsStore => ServiceProvider.GetRequiredService<INotificationsDataStore>();
     protected IMessageRedirectsDataStore MessageRedirectsDataStore => ServiceProvider.GetRequiredService<IMessageRedirectsDataStore>();
     protected IMonitoringDataStore MonitoringDataStore => ServiceProvider.GetRequiredService<IMonitoringDataStore>();
     protected IIngestionUnitOfWorkFactory UnitOfWorkFactory => ServiceProvider.GetRequiredService<IIngestionUnitOfWorkFactory>();
@@ -105,7 +111,9 @@ public abstract class PersistenceTestBase
     protected IArchiveMessages ArchiveMessages => ServiceProvider.GetRequiredService<IArchiveMessages>();
     protected IIngestionUnitOfWorkFactory IngestionUnitOfWorkFactory => ServiceProvider.GetRequiredService<IIngestionUnitOfWorkFactory>();
     protected IEventLogDataStore EventLogDataStore => ServiceProvider.GetRequiredService<IEventLogDataStore>();
-    protected IRetryDocumentDataStore RetryDocumentDataStore => ServiceProvider.GetRequiredService<IRetryDocumentDataStore>();
+    protected IFailedErrorImportDataStore FailedImportStore => ServiceProvider.GetRequiredService<IFailedErrorImportDataStore>();
+    protected IRetryBatchStore RetryBatchStore => ServiceProvider.GetRequiredService<IRetryBatchStore>();
+    protected IRetryHistoryDataStore RetryHistoryStore => ServiceProvider.GetRequiredService<IRetryHistoryDataStore>();
     protected ILicensingDataStore LicensingDataStore => ServiceProvider.GetRequiredService<ILicensingDataStore>();
     protected IQueueAddressStore QueueAddressStore => ServiceProvider.GetRequiredService<IQueueAddressStore>();
     protected IEndpointSettingsStore EndpointSettingsStore => ServiceProvider.GetRequiredService<IEndpointSettingsStore>();

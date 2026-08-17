@@ -19,7 +19,7 @@
     {
         [Route("failedmessageretries/count")]
         [HttpGet]
-        public async Task<FailedMessageRetriesCountReponse> GetFailedMessageRetriesCount(CancellationToken cancellationToken)
+        public async Task<FailedMessageRetriesCountReponse> GetFailedMessageRetriesCount(CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             await session.Query<FailedMessageRetry>().Statistics(out var stats).ToListAsync(cancellationToken);

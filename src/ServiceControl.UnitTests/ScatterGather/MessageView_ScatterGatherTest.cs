@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Microsoft.AspNetCore.Http;
@@ -74,7 +75,7 @@
             {
             }
 
-            protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(ScatterGatherApiMessageViewContext input) => throw new NotImplementedException();
+            protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(ScatterGatherApiMessageViewContext input, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         }
     }
 }

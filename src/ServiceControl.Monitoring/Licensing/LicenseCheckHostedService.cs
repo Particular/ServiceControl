@@ -9,7 +9,7 @@
 
     class LicenseCheckHostedService(ActiveLicense activeLicense, IAsyncTimer scheduler, ILogger<LicenseCheckHostedService> logger) : IHostedService
     {
-        public Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken = default)
         {
             var due = TimeSpan.FromHours(8);
             timer = scheduler.Schedule(_ =>
@@ -20,7 +20,7 @@
             return Task.CompletedTask;
         }
 
-        public Task StopAsync(CancellationToken cancellationToken) => timer.Stop(cancellationToken);
+        public Task StopAsync(CancellationToken cancellationToken = default) => timer.Stop(cancellationToken);
 
         TimerJob timer;
 

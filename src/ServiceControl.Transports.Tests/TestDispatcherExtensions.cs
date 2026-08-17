@@ -10,14 +10,14 @@
 
     static class TestDispatcherExtensions
     {
-        public static Task SendTestMessage(this IMessageDispatcher dispatcher, string queue, string content, ITransportCustomization transportCustomization)
+        public static Task SendTestMessage(this IMessageDispatcher dispatcher, string queue, string content, ITransportCustomization transportCustomization, CancellationToken cancellationToken = default)
         {
             var transportOperation = new TransportOperation(
              new OutgoingMessage(Guid.NewGuid().ToString(), [],
                  Encoding.UTF8.GetBytes(content)),
              new UnicastAddressTag(transportCustomization.ToTransportQualifiedQueueName(queue)), []);
 
-            return dispatcher.Dispatch(new TransportOperations(transportOperation), new TransportTransaction(), CancellationToken.None);
+            return dispatcher.Dispatch(new TransportOperations(transportOperation), new TransportTransaction(), cancellationToken);
         }
     }
 }

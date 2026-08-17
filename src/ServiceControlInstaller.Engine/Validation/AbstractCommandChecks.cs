@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.ServiceProcess;
+    using System.Threading;
     using System.Threading.Tasks;
     using NuGet.Versioning;
     using ServiceControl.LicenseManagement;
@@ -14,24 +15,24 @@
     {
         protected const string UpgradeGuide4to5Url = "https://docs.particular.net/servicecontrol/upgrades/4to5/";
 
-        protected abstract Task<bool> PromptForRabbitMqCheck(bool isUpgrade);
-        protected abstract Task<bool> PromptToStopRunningInstance(BaseService instance);
-        protected abstract Task<bool> PromptToContinueWithForcedUpgrade();
-        protected abstract Task NotifyForDeprecatedMessageTransport(TransportInfo transport);
-        protected abstract Task NotifyForMissingSystemPrerequisites(string missingPrereqsMessage);
-        protected abstract Task NotifyForIncompatibleStorageEngine(IServiceControlBaseInstance baseInstance);
-        protected abstract Task NotifyForIncompatibleUpgradeVersion(UpgradeInfo upgradeInfo);
-        protected abstract Task NotifyError(string title, string message);
+        protected abstract Task<bool> PromptForRabbitMqCheck(bool isUpgrade, CancellationToken cancellationToken = default);
+        protected abstract Task<bool> PromptToStopRunningInstance(BaseService instance, CancellationToken cancellationToken = default);
+        protected abstract Task<bool> PromptToContinueWithForcedUpgrade(CancellationToken cancellationToken = default);
+        protected abstract Task NotifyForDeprecatedMessageTransport(TransportInfo transport, CancellationToken cancellationToken = default);
+        protected abstract Task NotifyForMissingSystemPrerequisites(string missingPrereqsMessage, CancellationToken cancellationToken = default);
+        protected abstract Task NotifyForIncompatibleStorageEngine(IServiceControlBaseInstance baseInstance, CancellationToken cancellationToken = default);
+        protected abstract Task NotifyForIncompatibleUpgradeVersion(UpgradeInfo upgradeInfo, CancellationToken cancellationToken = default);
+        protected abstract Task NotifyError(string title, string message, CancellationToken cancellationToken = default);
 
-        public async Task<bool> CanAddInstance(bool allowExpiredLicense = false)
+        public async Task<bool> CanAddInstance(bool allowExpiredLicense = false, CancellationToken cancellationToken = default)
         {
             // Check for license
-            if (!allowExpiredLicense && !await IsLicenseOk().ConfigureAwait(false))
+            if (!allowExpiredLicense && !await IsLicenseOk(cancellationToken).ConfigureAwait(false))
             {
                 return false;
             }
 
-            if (await OldVersionOfServiceControlInstalled().ConfigureAwait(false))
+            if (await OldVersionOfServiceControlInstalled(cancellationToken).ConfigureAwait(false))
             {
                 return false;
             }
@@ -39,7 +40,7 @@
             return true;
         }
 
-        public async Task<bool> ValidateNewInstance(params IServiceInstance[] instances)
+        public async Task<bool> ValidateNewInstance(IServiceInstance[] instances, CancellationToken cancellationToken = default)
         {
             var transport = instances
                 .OfType<ITransportConfig>()
@@ -47,16 +48,16 @@
                 .Select(i => i.TransportPackage)
                 .First(t => t is not null);
 
-            var continueInstall = await RabbitMqCheckIsOK(transport, Constants.CurrentVersion, false).ConfigureAwait(false);
+            var continueInstall = await RabbitMqCheckIsOK(transport, Constants.CurrentVersion, false, cancellationToken).ConfigureAwait(false);
 
             return continueInstall;
         }
 
-        public Task<bool> CanEditInstance(BaseService instance) => CanEditOrDelete(instance, isDelete: false);
+        public Task<bool> CanEditInstance(BaseService instance, CancellationToken cancellationToken = default) => CanEditOrDelete(instance, isDelete: false, cancellationToken);
 
-        public Task<bool> CanDeleteInstance(BaseService instance) => CanEditOrDelete(instance, isDelete: true);
+        public Task<bool> CanDeleteInstance(BaseService instance, CancellationToken cancellationToken = default) => CanEditOrDelete(instance, isDelete: true, cancellationToken);
 
-        async Task<bool> CanEditOrDelete(BaseService instance, bool isDelete)
+        async Task<bool> CanEditOrDelete(BaseService instance, bool isDelete, CancellationToken cancellationToken)
         {
             var instanceVersion = instance.Version;
             var instanceIsNewer = instanceVersion > Constants.CurrentVersion;
@@ -68,21 +69,21 @@
             {
                 var verb = isDelete ? "remove" : "edit";
                 var message = $"This instance version {instanceVersion} is newer than the installer version {Constants.CurrentVersion}. This installer can only {verb} instances with versions between {Constants.CurrentVersion.Major}.0.0 and {Constants.CurrentVersion}.";
-                await NotifyError(title, message).ConfigureAwait(false);
+                await NotifyError(title, message, cancellationToken).ConfigureAwait(false);
                 return false;
             }
 
             if (installerOfDifferentMajor && !isDelete)
             {
                 var message = $"This installer cannot edit instances created by a different major version. A {instanceVersion.Major}.* installer version greater or equal to {instanceVersion.Major}.{instanceVersion.Minor}.{instanceVersion.Patch} must be used instead.";
-                await NotifyError(title, message).ConfigureAwait(false);
+                await NotifyError(title, message, cancellationToken).ConfigureAwait(false);
                 return false;
             }
 
             return true;
         }
 
-        async Task<bool> RabbitMqCheckIsOK(TransportInfo transport, SemanticVersion instanceVersion, bool isUpgrade)
+        async Task<bool> RabbitMqCheckIsOK(TransportInfo transport, SemanticVersion instanceVersion, bool isUpgrade, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(transport);
 
@@ -99,18 +100,18 @@
                 return true;
             }
 
-            return await PromptForRabbitMqCheck(isUpgrade).ConfigureAwait(false);
+            return await PromptForRabbitMqCheck(isUpgrade, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<bool> CanUpgradeInstance(BaseService instance, bool forceUpgradeDb = false)
+        public async Task<bool> CanUpgradeInstance(BaseService instance, bool forceUpgradeDb = false, CancellationToken cancellationToken = default)
         {
             // Check for license
-            if (!await IsLicenseOk().ConfigureAwait(false))
+            if (!await IsLicenseOk(cancellationToken).ConfigureAwait(false))
             {
                 return false;
             }
 
-            if (await OldVersionOfServiceControlInstalled().ConfigureAwait(false))
+            if (await OldVersionOfServiceControlInstalled(cancellationToken).ConfigureAwait(false))
             {
                 return false;
             }
@@ -119,7 +120,7 @@
             var cantUpdateTransport = instance.TransportPackage.Removed && instance.TransportPackage.AutoMigrateTo is null;
             if (cantUpdateTransport)
             {
-                await NotifyForDeprecatedMessageTransport(instance.TransportPackage).ConfigureAwait(false);
+                await NotifyForDeprecatedMessageTransport(instance.TransportPackage, cancellationToken).ConfigureAwait(false);
                 return false;
             }
 
@@ -134,11 +135,11 @@
 
                     if (!forceUpgradeAllowed)
                     {
-                        await NotifyError("Cannot run the command", "Only ServiceControl 4.x primary instances that use RavenDB 3.5 persistence can be force-upgraded.").ConfigureAwait(false);
+                        await NotifyError("Cannot run the command", "Only ServiceControl 4.x primary instances that use RavenDB 3.5 persistence can be force-upgraded.", cancellationToken).ConfigureAwait(false);
                         return false;
                     }
 
-                    if (!await PromptToContinueWithForcedUpgrade().ConfigureAwait(false))
+                    if (!await PromptToContinueWithForcedUpgrade(cancellationToken).ConfigureAwait(false))
                     {
                         return false;
                     }
@@ -149,7 +150,7 @@
 
                     if (!compatibleStorageEngine)
                     {
-                        await NotifyForIncompatibleStorageEngine(baseInstance).ConfigureAwait(false);
+                        await NotifyForIncompatibleStorageEngine(baseInstance, cancellationToken).ConfigureAwait(false);
                         return false;
                     }
                 }
@@ -159,12 +160,12 @@
                 var upgradeInfo = UpgradeInfo.GetUpgradePathFor(instance.Version);
                 if (upgradeInfo.HasIncompatibleVersion)
                 {
-                    await NotifyForIncompatibleUpgradeVersion(upgradeInfo).ConfigureAwait(false);
+                    await NotifyForIncompatibleUpgradeVersion(upgradeInfo, cancellationToken).ConfigureAwait(false);
                     return false;
                 }
             }
 
-            if (!await RabbitMqCheckIsOK(instance.TransportPackage, instance.Version, isUpgrade: true).ConfigureAwait(false))
+            if (!await RabbitMqCheckIsOK(instance.TransportPackage, instance.Version, isUpgrade: true, cancellationToken).ConfigureAwait(false))
             {
                 return false;
             }
@@ -172,38 +173,38 @@
             return true;
         }
 
-        async Task<bool> OldVersionOfServiceControlInstalled()
+        async Task<bool> OldVersionOfServiceControlInstalled(CancellationToken cancellationToken)
         {
             if (OldScmuCheck.OldVersionOfServiceControlInstalled(out var installedVersion))
             {
                 var message = $"An old version {installedVersion} of ServiceControl Management is installed, which will not work after installing new instances. Before installing ServiceControl 5 instances, you must either uninstall the {installedVersion} instance or update it to a 4.x version at least {OldScmuCheck.MinimumScmuVersion}.";
-                await NotifyError("Outdated Version Installed", message).ConfigureAwait(false);
+                await NotifyError("Outdated Version Installed", message, cancellationToken).ConfigureAwait(false);
                 return true;
             }
 
             return false;
         }
 
-        async Task<bool> IsLicenseOk()
+        async Task<bool> IsLicenseOk(CancellationToken cancellationToken)
         {
             var licenseCheckResult = CheckLicenseIsValid();
             if (!licenseCheckResult.Valid)
             {
-                await NotifyError("License Error", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net").ConfigureAwait(false);
+                await NotifyError("License Error", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net", cancellationToken).ConfigureAwait(false);
                 return false;
             }
 
             return true;
         }
 
-        public async Task<bool> StopBecauseInstanceIsRunning(BaseService instance)
+        public async Task<bool> StopBecauseInstanceIsRunning(BaseService instance, CancellationToken cancellationToken = default)
         {
             if (instance.Service.Status == ServiceControllerStatus.Stopped)
             {
                 return false;
             }
 
-            var proceed = await PromptToStopRunningInstance(instance).ConfigureAwait(false);
+            var proceed = await PromptToStopRunningInstance(instance, cancellationToken).ConfigureAwait(false);
 
             return !proceed;
         }

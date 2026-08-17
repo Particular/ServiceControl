@@ -1,6 +1,6 @@
 # ServiceControl ![Current Version](https://img.shields.io/github/release/particular/servicecontrol.svg?style=flat&label=current%20version)
 
-ServiceControl is the monitoring brain in the [Particular Service Platform](https://particular.net/service-platform), which includes [NServiceBus](https://particular.net/nservicebus) and tools to build, monitor, and debug distributed systems. ServiceControl collects data on every single message flowing through the system (Audit Queue), errors (Error Queue), as well as additional information regarding sagas, endpoints heartbeats, and custom checks (Control Queue). The information is then exposed to [ServicePulse](https://particular.net/servicepulse) and [ServiceInsight](https://particular.net/serviceinsight) via an HTTP API and SignalR notifications.
+ServiceControl is the monitoring brain in the [Particular Service Platform](https://particular.net/service-platform), which includes [NServiceBus](https://particular.net/nservicebus) and tools to build, monitor, and debug distributed systems. ServiceControl collects data on every single message flowing through the system (Audit Queue), errors (Error Queue), as well as additional information regarding sagas, endpoints heartbeats, and custom checks (Control Queue). The information is then exposed to [ServicePulse](https://particular.net/servicepulse) and [ServiceInsight](https://particular.net/serviceinsight) via an HTTP API.
 
 See the [ServiceControl documentation](https://docs.particular.net/servicecontrol/) for more information.
 
@@ -46,17 +46,58 @@ Testing using the [CI workflow](/.github/workflows/ci.yml) depends on the follow
 
 Running all tests all the times takes a lot of resources. Tests are filtered based on the `ServiceControl_TESTS_FILTER` environment variable. To run only a subset, e.g., SQS transport tests, define the variable as `ServiceControl_TESTS_FILTER=SQS`. The following list contains all the possible `ServiceControl_TESTS_FILTER` values:
 
-- `Default` - runs only non-transport-specific tests
+Non-transport-specific:
+
+- `DefaultCore`
+- `DefaultAudit`
+- `DefaultMonitoring`
+
+Transports:
+
 - `AzureServiceBus`
 - `AzureStorageQueues`
+- `IBMMQ`
 - `MSMQ`
-- `RabbitMQ`
+- `PostgreSql`
+- `RabbitMQClassicConventional`
+- `RabbitMQClassicDirect`
+- `RabbitMQQuorumConventional`
+- `RabbitMQQuorumDirect`
 - `SqlServer`
-- `SqlServerPersistence`
-- `PostgresSqlPersistence`
 - `SQS`
 
-NOTE: If no variable is defined all tests will be executed.
+Persisters:
+
+- `PostgreSqlPersistence`
+- `PrimaryRavenAcceptance`
+- `PrimaryRavenPersistence`
+- `SqlServerPersistence`
+
+> [!NOTE]
+> If no variable is defined all tests will be executed.
+
+Each category is declared once, by the `<TestCategory>` property in the test project. CI reads that property to build and run only the projects belonging to the category under test, and the build generates the assembly-level `IncludeInTestCategory` attribute from it, which is what `ServiceControl_TESTS_FILTER` matches against at run time.
+
+### Adding a test project
+
+> [!IMPORTANT]
+> Every test project must set `<TestCategory>` in its `.csproj`, alongside `TargetFramework`:
+>
+> ```xml
+> <PropertyGroup>
+>   <TargetFramework>net10.0</TargetFramework>
+>   <TestCategory>DefaultCore</TestCategory>
+> </PropertyGroup>
+> ```
+>
+> CI selects projects by that property alone, so a test project without it is never built and never run. The tests would simply not exist as far as CI is concerned, and nothing would go red. `tools/select-test-projects.ps1` fails the build if a project references `Microsoft.NET.Test.Sdk` without declaring a category, so this cannot be forgotten silently.
+
+Use an existing category from the list above where the tests fit.
+
+> [!WARNING]
+> Introducing a *new* category also means adding it to the `test-category` matrix in [ci.yml](.github/workflows/ci.yml), otherwise no job ever selects it and the tests never run.
+
+Run `./tools/select-test-projects.ps1 -List` to see every category and the projects it selects.
 
 ## Security Configuration
 

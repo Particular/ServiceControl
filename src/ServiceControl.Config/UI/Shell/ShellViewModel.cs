@@ -15,7 +15,7 @@
     using NuGet.Versioning;
     using ServiceControlInstaller.Engine.Instances;
 
-    class ShellViewModel : RxConductor<RxScreen>.OneActive, IHandle<PostRefreshInstances>
+    class ShellViewModel : RxConductor<RxScreen>.OneActive, IHandle<PostRefreshInstances>, IHandle<ResetInstances>
     {
         public ShellViewModel(
             NoInstancesViewModel noInstances,
@@ -86,33 +86,33 @@
 
         public string AvailableUpgradeReleaseLink { get; set; }
 
-        public Task HandleAsync(PostRefreshInstances message, CancellationToken cancellationToken) => RefreshInstances();
+        public Task HandleAsync(PostRefreshInstances message, CancellationToken cancellationToken = default) => RefreshInstances(cancellationToken);
 
-        protected override Task OnInitialize() => RefreshInstances();
+        public Task HandleAsync(ResetInstances message, CancellationToken cancellationToken = default) => RefreshInstances(cancellationToken);
 
-        protected override async Task OnActivate()
+        protected override Task OnInitialize(CancellationToken cancellationToken = default) => RefreshInstances(cancellationToken);
+
+        protected override async Task OnActivate(CancellationToken cancellationToken = default)
         {
-            await base.OnActivate();
+            await base.OnActivate(cancellationToken);
 
             BeginCheckForUpdates();
         }
 
-        public async Task RefreshInstances()
+        public async Task RefreshInstances(CancellationToken cancellationToken = default)
         {
-            if (ActiveItem != null && !(ActiveItem == listInstances || ActiveItem == noInstances))
-            {
-                return;
-            }
-
             HasInstances = InstanceFinder.AllInstances().Any();
 
-            if (HasInstances)
+            if (ActiveItem == null || ActiveItem == listInstances || ActiveItem == noInstances)
             {
-                await ActivateItem(listInstances);
-            }
-            else
-            {
-                await ActivateItem(noInstances);
+                if (HasInstances)
+                {
+                    await ActivateItem(listInstances, cancellationToken);
+                }
+                else
+                {
+                    await ActivateItem(noInstances, cancellationToken);
+                }
             }
         }
 
@@ -125,16 +125,16 @@
                 return;
             }
 
-            updateCheckTask = CheckForUpdates();
+            updateCheckTask = CheckForUpdates(CancellationToken.None);
 
             NotifyOfPropertyChange(nameof(IsCheckingForUpdate));
         }
 
-        async Task CheckForUpdates()
+        async Task CheckForUpdates(CancellationToken cancellationToken)
         {
             try
             {
-                var availableUpgradeRelease = await VersionCheckerHelper.GetLatestRelease(AppVersion);
+                var availableUpgradeRelease = await VersionCheckerHelper.GetLatestRelease(AppVersion, cancellationToken);
 
                 if (availableUpgradeRelease.Version == AppVersion)
                 {
@@ -146,6 +146,10 @@
                     UpdateAvailableText = $"v{availableUpgradeRelease.Version} - Update Available";
                     UpdateAvailable = true;
                 }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch
             {

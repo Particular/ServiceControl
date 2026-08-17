@@ -77,6 +77,12 @@ namespace ServiceControl.Infrastructure
                 FinalMinLevel = LogLevel.Warn
             };
 
+            var efCoreRule = new LoggingRule()
+            {
+                LoggerNamePattern = "Microsoft.EntityFrameworkCore.*",
+                FinalMinLevel = LogLevel.Warn
+            };
+
             // The authorization audit trail is emitted on a dedicated category, separate from the plain-text
             // operational log, so it can be shipped to a SIEM without the two streams polluting each other.
             // Each event is already a complete ECS JSON document (built in AuthorizationAuditLog); the target
@@ -121,6 +127,7 @@ namespace ServiceControl.Infrastructure
 
             nlogConfig.LoggingRules.Add(aspNetCoreRule);
             nlogConfig.LoggingRules.Add(httpClientRule);
+            nlogConfig.LoggingRules.Add(efCoreRule);
             nlogConfig.LoggingRules.Add(auditRule);
 
             nlogConfig.LoggingRules.Add(new LoggingRule("*", logLevel, consoleTarget));

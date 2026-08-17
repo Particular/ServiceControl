@@ -153,7 +153,7 @@
         [Test]
         public void Destination_path_is_null()
         {
-            var viewModel = new ServiceControlAddViewModel();
+            var viewModel = new ServiceControlAddViewModel(() => []);
 
             var errorInfo = (INotifyDataErrorInfo)viewModel;
 
@@ -169,7 +169,7 @@
         [Test]
         public void Log_path_is_null()
         {
-            var viewModel = new ServiceControlAddViewModel();
+            var viewModel = new ServiceControlAddViewModel(() => []);
 
             var errorInfo = (INotifyDataErrorInfo)viewModel;
 
@@ -186,7 +186,7 @@
         [Test]
         public void Database_path_is_null()
         {
-            var viewModel = new ServiceControlAddViewModel();
+            var viewModel = new ServiceControlAddViewModel(() => []);
 
             var errorInfo = (INotifyDataErrorInfo)viewModel;
 

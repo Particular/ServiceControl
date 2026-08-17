@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Operations
 {
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using Infrastructure.DomainEvents;
@@ -17,21 +18,21 @@
             this.domainEvents = domainEvents;
         }
 
-        public async Task Process(List<MessageContext> contexts, IIngestionUnitOfWork unitOfWork)
+        public async Task Process(List<MessageContext> contexts, IIngestionUnitOfWork unitOfWork, CancellationToken cancellationToken = default)
         {
             foreach (var context in contexts)
             {
                 var retriedMessageUniqueId = context.Headers[RetryUniqueMessageIdHeader];
-                await unitOfWork.Recoverability.RecordSuccessfulRetry(retriedMessageUniqueId);
+                await unitOfWork.Recoverability.RecordSuccessfulRetry(retriedMessageUniqueId, cancellationToken);
             }
         }
 
-        public Task Announce(MessageContext messageContext)
+        public Task Announce(MessageContext messageContext, CancellationToken cancellationToken = default)
         {
             return domainEvents.Raise(new MessageFailureResolvedByRetry
             {
                 FailedMessageId = messageContext.Headers[RetryUniqueMessageIdHeader],
-            });
+            }, cancellationToken);
         }
 
         readonly IDomainEvents domainEvents;

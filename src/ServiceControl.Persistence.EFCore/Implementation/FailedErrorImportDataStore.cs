@@ -5,7 +5,9 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NServiceBus;
 using ServiceControl.Operations;
+using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
@@ -14,17 +16,60 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 public class FailedErrorImportDataStore(
     IServiceScopeFactory scopeFactory,
     IBodyStoragePersistence bodyStorage,
+    BodyStorageSettings bodyStorageSettings,
+    TimeProvider timeProvider,
     ILogger<FailedErrorImportDataStore> logger) : DataStoreBase(scopeFactory), IFailedErrorImportDataStore
 {
     const int BatchSize = 100;
 
-    public Task<bool> QueryContainsFailedImports() =>
-        ExecuteWithDbContext(dbContext => dbContext.FailedErrorImports.AsNoTracking().AnyAsync());
+    public Task<bool> QueryContainsFailedImports(CancellationToken cancellationToken = default) =>
+        ExecuteWithDbContext((dbContext, token) => dbContext.FailedErrorImports.AsNoTracking().AnyAsync(token), cancellationToken);
+
+    // Update-first, then insert. The dedupe key is deterministic, so a repeat failure updates the
+    // existing row and concurrent writers that both miss it race only on the insert. The loser of
+    // that race confirms the row is now present (the winner stored the same logical failure) and
+    // otherwise rethrows, so the caller never treats a message as stored when it is not.
+    public Task StoreFailedErrorImport(FailedErrorImport failure, CancellationToken cancellationToken = default) =>
+        ExecuteWithDbContext(async (dbContext, token) =>
+        {
+            var uniqueMessageId = FailedErrorImport.DeriveKey(failure.Message.Headers, failure.Message.Id);
+            var body = failure.Message.Body ?? [];
+            var storeExternally = body.Length > bodyStorageSettings.MaxBodySizeToStore;
+
+            if (storeExternally)
+            {
+                var contentType = failure.Message.Headers.GetValueOrDefault(Headers.ContentType) ?? "application/octet-stream";
+                await bodyStorage.WriteBody(FailedErrorImportEntity.ExternalBodyId(uniqueMessageId), body, contentType, token);
+            }
+
+            var failedAt = timeProvider.GetUtcNow().UtcDateTime;
+            var headersJson = MessageHeaders.Write(failure.Message.Headers);
+            byte[] storedBody = storeExternally ? [] : body;
+
+            await dbContext.UpsertAsync([uniqueMessageId], () => new FailedErrorImportEntity
+            {
+                UniqueMessageId = uniqueMessageId,
+                FailedAt = failedAt,
+                MessageId = failure.Message.Id,
+                HeadersJson = headersJson,
+                Body = storedBody,
+                BodyStoredExternally = storeExternally,
+                ExceptionInfo = failure.ExceptionInfo
+            }, (entity) =>
+            {
+                entity.FailedAt = failedAt;
+                entity.MessageId = failure.Message.Id;
+                entity.HeadersJson = headersJson;
+                entity.Body = storedBody;
+                entity.BodyStoredExternally = storeExternally;
+                entity.ExceptionInfo = failure.ExceptionInfo;
+            }, token);
+        }, cancellationToken);
 
     // Replays oldest-first. Successful imports delete their row; failures are left in place, so the
     // count of failures so far is exactly the offset to the next unseen row. This walks the whole
     // set once without retrying a failure within the same run.
-    public async Task ProcessFailedErrorImports(Func<FailedTransportMessage, Task> processMessage, CancellationToken cancellationToken)
+    public async Task ProcessFailedErrorImports(Func<FailedTransportMessage, CancellationToken, Task> processMessage, CancellationToken cancellationToken = default)
     {
         var succeeded = 0;
         var failed = 0;
@@ -49,7 +94,7 @@ public class FailedErrorImportDataStore(
                 {
                     var transportMessage = await ToTransportMessage(import, cancellationToken);
 
-                    await processMessage(transportMessage);
+                    await processMessage(transportMessage, cancellationToken);
 
                     await DeleteImport(import, cancellationToken);
 
@@ -98,7 +143,7 @@ public class FailedErrorImportDataStore(
 
     async Task<FailedTransportMessage> ToTransportMessage(FailedErrorImportEntity import, CancellationToken cancellationToken)
     {
-        var headers = JsonSerializer.Deserialize(import.HeadersJson, HeadersJsonContext.Default.DictionaryStringString) ?? [];
+        var headers = MessageHeaders.Read(import.HeadersJson);
 
         var body = import.BodyStoredExternally
             ? await ReadExternalBody(import.UniqueMessageId, cancellationToken)
@@ -147,10 +192,13 @@ public class FailedErrorImportDataStore(
         {
             await bodyStorage.DeleteBody(FailedErrorImportEntity.ExternalBodyId(uniqueMessageId), cancellationToken);
         }
+#pragma warning disable PS0019 // The filter already excludes OperationCanceledException, so cancellation
+        // propagates; PS0019 only recognises a cancellationToken.IsCancellationRequested guard.
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             // Re-import must not stall on a missing or unavailable body.
             logger.LogWarning(ex, "Could not delete the external body for re-imported failed error {UniqueMessageId}", uniqueMessageId);
         }
+#pragma warning restore PS0019
     }
 }

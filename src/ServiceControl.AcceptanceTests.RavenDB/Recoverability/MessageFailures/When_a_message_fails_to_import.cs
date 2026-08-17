@@ -18,6 +18,7 @@
     using ServiceControl.MessageFailures;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
+    [NonParallelizable]
     class When_a_message_fails_to_import : AcceptanceTest
     {
         [Test]
@@ -76,7 +77,7 @@
 
         class MessageFailedHandler(MyContext scenarioContext) : IDomainHandler<MessageFailed>
         {
-            public Task Handle(MessageFailed domainEvent, CancellationToken cancellationToken)
+            public Task Handle(MessageFailed domainEvent, CancellationToken cancellationToken = default)
             {
                 scenarioContext.MessageFailedEventPublished = true;
                 return Task.CompletedTask;

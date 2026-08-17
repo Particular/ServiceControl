@@ -1,4 +1,4 @@
-namespace ServiceControl.AcceptanceTests.RavenDB.Shared;
+namespace ServiceControl.AcceptanceTests.TestSupport;
 
 using System;
 using Microsoft.AspNetCore.Builder;

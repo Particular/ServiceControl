@@ -68,10 +68,10 @@
             );
         }
 
-        Task OnCriticalError(string failure, Exception exception)
+        Task OnCriticalError(string failure, Exception exception, CancellationToken cancellationToken)
         {
             logger.LogCritical(exception, "OnCriticalError. '{Failure}'", failure);
-            return watchdog.OnFailure(failure);
+            return watchdog.OnFailure(failure, cancellationToken);
         }
 
         async Task EnsureStarted(CancellationToken cancellationToken)
@@ -93,11 +93,19 @@
                     await StopAndTeardownInfrastructure(cancellationToken);
                 }
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
             catch (Exception e)
             {
                 try
                 {
                     await StopAndTeardownInfrastructure(cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
                 }
                 catch (Exception teardownException)
                 {
@@ -129,7 +137,8 @@
                     OnMessage,
                     errorHandlingPolicy.OnError,
                     OnCriticalError,
-                    TransportTransactionMode.ReceiveOnly
+                    TransportTransactionMode.ReceiveOnly,
+                    cancellationToken
                 );
 
                 messageReceiver = transportInfrastructure.Receivers[inputEndpoint];
@@ -138,6 +147,10 @@
                 await messageReceiver.StartReceive(cancellationToken);
 
                 logger.LogInformation(LogMessages.StartedInfrastructure);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {
@@ -173,6 +186,10 @@
                 transportInfrastructure = null;
 
                 logger.LogInformation(LogMessages.StoppedInfrastructure);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {
@@ -216,19 +233,19 @@
             messageIngestionMetrics.Success();
         }
 
-        public override async Task StartAsync(CancellationToken cancellationToken)
+        public override async Task StartAsync(CancellationToken cancellationToken = default)
         {
             await watchdog.Start(() => applicationLifetime.StopApplication(), cancellationToken);
             await base.StartAsync(cancellationToken);
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
         {
             try
             {
                 var contexts = new List<MessageContext>(MaxBatchSize);
 
-                while (await channel.Reader.WaitToReadAsync(stoppingToken))
+                while (await channel.Reader.WaitToReadAsync(cancellationToken))
                 {
                     // will only enter here if there is something to read.
                     try
@@ -241,11 +258,11 @@
                             contexts.Add(context);
                         }
 
-                        await auditIngestor.Ingest(contexts, stoppingToken);
+                        await auditIngestor.Ingest(contexts, cancellationToken);
 
                         batchMetrics.Complete(contexts.Count);
                     }
-                    catch (Exception e)
+                    catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested)
                     {
                         // signal all message handling tasks to terminate
                         foreach (var context in contexts)
@@ -253,10 +270,15 @@
                             _ = context.GetTaskCompletionSource().TrySetException(e);
                         }
 
-                        if (e is OperationCanceledException && stoppingToken.IsCancellationRequested)
+                        logger.LogInformation(e, "Batch cancelled");
+                        break;
+                    }
+                    catch (Exception e)
+                    {
+                        // signal all message handling tasks to terminate
+                        foreach (var context in contexts)
                         {
-                            logger.LogInformation(e, "Batch cancelled");
-                            break;
+                            _ = context.GetTaskCompletionSource().TrySetException(e);
                         }
 
                         logger.LogInformation(e, "Ingesting messages failed");
@@ -268,13 +290,13 @@
                 }
                 // will fall out here when writer is completed
             }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 // ExecuteAsync cancelled
             }
         }
 
-        public override async Task StopAsync(CancellationToken cancellationToken)
+        public override async Task StopAsync(CancellationToken cancellationToken = default)
         {
             try
             {

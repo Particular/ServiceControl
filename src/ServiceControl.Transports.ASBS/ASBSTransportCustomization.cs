@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using Azure.Messaging.ServiceBus;
     using Azure.Messaging.ServiceBus.Administration;
@@ -99,9 +100,9 @@
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
         }
 
-        public override async Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues)
+        public override async Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues, CancellationToken cancellationToken = default)
         {
-            await base.ProvisionQueues(transportSettings, additionalQueues);
+            await base.ProvisionQueues(transportSettings, additionalQueues, cancellationToken);
 
             if (transportSettings.EventTypesPublished.Count == 0)
             {
@@ -132,7 +133,7 @@
 
                 try
                 {
-                    await managementClient.CreateTopicAsync(topicToPublishTo).ConfigureAwait(false);
+                    await managementClient.CreateTopicAsync(topicToPublishTo, cancellationToken).ConfigureAwait(false);
                 }
                 catch (ServiceBusException sbe) when (sbe.Reason == ServiceBusFailureReason.MessagingEntityAlreadyExists || sbe.IsTransient)
                 {

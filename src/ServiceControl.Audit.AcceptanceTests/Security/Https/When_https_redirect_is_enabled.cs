@@ -11,6 +11,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Https
     /// HTTPS Redirect Enabled
     /// When RedirectHttpToHttps is true, HTTP requests should be redirected to HTTPS.
     /// </summary>
+    [NonParallelizable]
     class When_https_redirect_is_enabled : AcceptanceTest
     {
         HttpsTestConfiguration configuration;

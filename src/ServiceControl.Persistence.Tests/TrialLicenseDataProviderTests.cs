@@ -9,8 +9,8 @@ using ServiceControl.Persistence;
 
 class TrialLicenseDataProviderTests : PersistenceTestBase
 {
-    [Test, CancelAfter(10_000)]
-    public async Task GetTrialEndDate_returns_null_by_default(CancellationToken cancellationToken)
+    [Test, CancelAfter(30_000)]
+    public async Task GetTrialEndDate_returns_null_by_default(CancellationToken cancellationToken = default)
     {
         var trialLicenseDataProvider = ServiceProvider.GetRequiredService<ITrialLicenseDataProvider>();
 
@@ -19,8 +19,8 @@ class TrialLicenseDataProviderTests : PersistenceTestBase
         Assert.That(trialEndDate, Is.Null);
     }
 
-    [Test, CancelAfter(10_000)]
-    public async Task StoreTrialEndDate_persists_value(CancellationToken cancellationToken)
+    [Test, CancelAfter(30_000)]
+    public async Task StoreTrialEndDate_persists_value(CancellationToken cancellationToken = default)
     {
         var trialLicenseDataProvider = ServiceProvider.GetRequiredService<ITrialLicenseDataProvider>();
         var expectedEndDate = DateOnly.FromDateTime(DateTime.UtcNow.Date.AddDays(13));

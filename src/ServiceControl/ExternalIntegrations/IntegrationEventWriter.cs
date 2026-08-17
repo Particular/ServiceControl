@@ -20,7 +20,7 @@
             this.logger = logger;
         }
 
-        public async Task Handle(IDomainEvent message, CancellationToken cancellationToken)
+        public async Task Handle(IDomainEvent message, CancellationToken cancellationToken = default)
         {
             var dispatchContexts = eventPublishers
                 .Where(p => p.Handles(message))
@@ -39,7 +39,7 @@
                 DispatchContext = dispatchContext
             }).ToList();
 
-            await store.StoreDispatchRequest(dispatchRequests);
+            await store.StoreDispatchRequest(dispatchRequests, cancellationToken);
         }
 
         readonly IExternalIntegrationRequestsDataStore store;

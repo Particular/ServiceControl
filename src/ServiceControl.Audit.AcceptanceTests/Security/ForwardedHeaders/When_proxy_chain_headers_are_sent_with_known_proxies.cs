@@ -10,6 +10,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
     /// Proxy Chain with Known Proxies (ForwardLimit=1)
     /// When TrustAllProxies=false (known proxies configured), ForwardLimit=1, so only the last proxy IP is processed.
     /// </summary>
+    [NonParallelizable]
     class When_proxy_chain_headers_are_sent_with_known_proxies : AcceptanceTest
     {
         ForwardedHeadersTestConfiguration configuration;

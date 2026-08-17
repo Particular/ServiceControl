@@ -14,7 +14,9 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
         ConfigureDbContext(services);
         RegisterDataStores(services, settings);
 
-        services.AddSingleton<IIngestionSqlDialect, SqlServerIngestionSqlDialect>();
+        services.AddSingleton<IFailedMessageIngestionSqlDialect, SqlServerFailedMessageIngestionSqlDialect>();
+        services.AddSingleton<IRetryBatchSqlDialect, SqlServerRetryBatchSqlDialect>();
+        services.AddSingleton<IFullTextSearchDialect, SqlServerFullTextSearchDialect>();
     }
 
     public void AddInstaller(IServiceCollection services)

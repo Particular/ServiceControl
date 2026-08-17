@@ -12,6 +12,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
     /// When a request comes from an origin that is in the AllowedOrigins list,
     /// the response should include the Access-Control-Allow-Origin header with that specific origin.
     /// </summary>
+    [NonParallelizable]
     class When_request_from_allowed_origin : AcceptanceTest
     {
         CorsTestConfiguration configuration;

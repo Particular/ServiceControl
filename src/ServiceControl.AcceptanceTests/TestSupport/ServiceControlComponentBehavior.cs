@@ -13,7 +13,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostApplicationBuilder> hostBuilderCustomization)
+        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, IAcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostApplicationBuilder> hostBuilderCustomization)
         {
             this.customConfiguration = customConfiguration;
             this.persistenceToUse = persistenceToUse;
@@ -26,7 +26,6 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         public JsonSerializerOptions SerializerOptions => runner.SerializerOptions;
         public Settings Settings => runner.Settings;
         public IDomainEvents DomainEvents => runner.DomainEvents;
-        public Func<HttpMessageHandler> HttpMessageHandlerFactory => runner.HttpMessageHandlerFactory;
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
@@ -36,7 +35,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         }
 
         readonly ITransportIntegration transportIntegration;
-        readonly AcceptanceTestStorageConfiguration persistenceToUse;
+        readonly IAcceptanceTestStorageConfiguration persistenceToUse;
         readonly Action<Settings> setSettings;
         readonly Action<EndpointConfiguration> customConfiguration;
         readonly Action<IHostApplicationBuilder> hostBuilderCustomization;

@@ -14,7 +14,7 @@
             this.settings = settings;
         }
 
-        public Task Handle(RetryOperationCompleted message, CancellationToken cancellationToken)
+        public Task Handle(RetryOperationCompleted message, CancellationToken cancellationToken = default)
         {
             return store.RecordRetryOperationCompleted(
                 message.RequestId,
@@ -26,7 +26,8 @@
                 message.Failed,
                 message.NumberOfMessagesProcessed,
                 message.Last,
-                settings.RetryHistoryDepth);
+                settings.RetryHistoryDepth,
+                cancellationToken);
         }
 
         readonly IRetryHistoryDataStore store;
