@@ -13,11 +13,12 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, IAcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostApplicationBuilder> hostBuilderCustomization)
+        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, IAcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostApplicationBuilder> hostBuilderCustomization, Action<IHostApplicationBuilder> hostBuilderCustomizationBeforeServiceControl)
         {
             this.customConfiguration = customConfiguration;
             this.persistenceToUse = persistenceToUse;
             this.hostBuilderCustomization = hostBuilderCustomization;
+            this.hostBuilderCustomizationBeforeServiceControl = hostBuilderCustomizationBeforeServiceControl;
             this.setSettings = setSettings;
             transportIntegration = transportToUse;
         }
@@ -29,7 +30,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
-            runner = new ServiceControlComponentRunner(transportIntegration, persistenceToUse, setSettings, customConfiguration, hostBuilderCustomization);
+            runner = new ServiceControlComponentRunner(transportIntegration, persistenceToUse, setSettings, customConfiguration, hostBuilderCustomization, hostBuilderCustomizationBeforeServiceControl);
             await runner.Initialize(run);
             return runner;
         }
@@ -39,6 +40,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         readonly Action<Settings> setSettings;
         readonly Action<EndpointConfiguration> customConfiguration;
         readonly Action<IHostApplicationBuilder> hostBuilderCustomization;
+        readonly Action<IHostApplicationBuilder> hostBuilderCustomizationBeforeServiceControl;
         ServiceControlComponentRunner runner;
     }
 }
