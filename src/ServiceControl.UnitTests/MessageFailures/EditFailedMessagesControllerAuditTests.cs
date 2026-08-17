@@ -45,25 +45,17 @@ public class EditFailedMessagesControllerAuditTests
         Assert.That(op.Count, Is.EqualTo(1));
     }
 
-    sealed class FakeEditFailedMessagesManager : IEditFailedMessagesManager
-    {
-        public string? CurrentEditingRequestId { get; set; }
-
-        public Task SaveChanges(CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task<FailedMessage?> GetFailedMessage(string failedMessageId, CancellationToken cancellationToken = default) => Task.FromResult<FailedMessage?>(null);
-        public Task<string?> GetCurrentEditingRequestId(string failedMessageId, CancellationToken cancellationToken = default) => Task.FromResult(CurrentEditingRequestId);
-        public Task SetCurrentEditingRequestId(string editingMessageId, CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task SetFailedMessageAsResolved(CancellationToken cancellationToken = default) => Task.CompletedTask;
-
-        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
-    }
-
     sealed class StubErrorMessageDataStore : IFailedMessageQueryDataStore, IEditFailedMessagesDataStore
     {
         public FailedMessage? ErrorByResult { get; set; }
-        public FakeEditFailedMessagesManager EditManager { get; } = new();
+        public string? CurrentEditingRequestId { get; set; }
 
-        public Task<IEditFailedMessagesManager> CreateEditFailedMessageManager(CancellationToken cancellationToken = default) => Task.FromResult<IEditFailedMessagesManager>(EditManager);
+        public Task<string?> GetCurrentEditingRequestId(string failedMessageId, CancellationToken cancellationToken = default) =>
+            Task.FromResult(CurrentEditingRequestId);
+
+        public Task<BeginEditResult> TryBeginEdit(string failedMessageId, string editingMessageId, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new BeginEditResult(BeginEditOutcome.MessageNotFound));
+
         public Task<FailedMessage?> GetFailedMessage(string failedMessageId, CancellationToken cancellationToken = default) => Task.FromResult(ErrorByResult);
 
         public Task<FailedMessage[]> GetFailedMessagesByIds(Guid[] ids, CancellationToken cancellationToken = default) => throw new NotImplementedException();

@@ -44,9 +44,8 @@
                 return NotFound();
             }
 
-            //HINT: This validation is the first one because we want to minimize the chance of two users concurrently execute an edit-retry.
-            var editManager = await editStore.CreateEditFailedMessageManager(cancellationToken);
-            var editId = await editManager.GetCurrentEditingRequestId(failedMessageId, cancellationToken);
+            // This early query is advisory only. The handler atomically acquires the edit before dispatch.
+            var editId = await editStore.GetCurrentEditingRequestId(failedMessageId, cancellationToken);
             if (editId != null)
             {
                 logger.LogWarning("Cannot edit message {FailedMessageId} because it has already been edited", failedMessageId);

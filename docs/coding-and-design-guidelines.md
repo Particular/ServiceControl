@@ -40,6 +40,23 @@ There are a few things that are still registered using convention. Note that the
 Additionally, because NServiceBus does a type-scan at startup it will automatically register any implementations of `Feature` and `IHandleMessage<>`. We have chosen to leave this alone as we would be fighting with NServiceBus in order to turn this off. 
 
 
+## Prefer explicit persistence operations
+
+Use a direct data-store method when all inputs for a persistence operation fit in one method call. The method should own and dispose its EF Core scope/context or RavenDB session, accept a `CancellationToken`, and commit before returning. Returned entities are detached snapshots; callers must not be required to mutate tracked entities as an implicit persistence command.
+
+Atomic operations that can encounter concurrency conflicts should document their provider guarantees and translate expected provider exceptions into explicit domain outcomes. For example, a unique-key or optimistic-concurrency conflict should not escape when contention is part of the operation's normal contract.
+
+Reserve a specialized unit of work for cases where a caller genuinely composes several writes into one atomic batch. New unit-of-work APIs should consistently provide:
+
+- an `I...UnitOfWorkFactory`;
+- a `StartNew` factory method;
+- a `Complete(CancellationToken)` commit method;
+- `IAsyncDisposable` lifetime ownership;
+- explicit operation-recording methods rather than mutation of tracked return values;
+- documented commit, abandon, repeated-completion, and concurrency behavior.
+
+Do not introduce generic `IDataSessionManager`-style abstractions or persistence managers with hidden call-order protocols. During review, prefer one explicit store operation unless caller-composed atomicity requires a unit of work.
+
 ## Avoid property injection
 
 Although the Autofac container can be configured to allow property injection, we prefer to avoid it. There is no way to specify property injection using the Microsoft DI abstractions, and the default `IServiceProvider` implementation does not support it. Where possible, use constructor injection instead.
