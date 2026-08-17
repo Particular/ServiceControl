@@ -128,4 +128,5 @@ public abstract class PersistenceTestBase
     protected ILicensingDataStore LicensingDataStore => ServiceProvider.GetRequiredService<ILicensingDataStore>();
     protected IQueueAddressStore QueueAddressStore => ServiceProvider.GetRequiredService<IQueueAddressStore>();
     protected IEndpointSettingsStore EndpointSettingsStore => ServiceProvider.GetRequiredService<IEndpointSettingsStore>();
+    protected IExternalIntegrationRequestsDataStore ExternalIntegrationStore => ServiceProvider.GetRequiredService<IExternalIntegrationRequestsDataStore>();
 }
