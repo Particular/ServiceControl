@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServiceControl.Persistence.EFCore.PostgreSql;
@@ -12,9 +13,11 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    partial class PostgreSqlServiceControlDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260811033225_AddExternalIntegrationDispatchRequests")]
+    partial class AddExternalIntegrationDispatchRequests
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -275,27 +278,6 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasDatabaseName("ix_failed_error_imports_failed_at");
 
                     b.ToTable("failed_error_imports", (string)null);
-                });
-
-            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageEditEntity", b =>
-                {
-                    b.Property<Guid>("UniqueMessageId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("unique_message_id");
-
-                    b.Property<string>("EditId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("edit_id");
-
-                    b.HasKey("UniqueMessageId")
-                        .HasName("pk_failed_message_edits");
-
-                    b.HasIndex("EditId")
-                        .HasDatabaseName("ix_failed_message_edits_edit_id");
-
-                    b.ToTable("failed_message_edits", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageEntity", b =>

@@ -50,13 +50,8 @@
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             foreach (var dispatchRequest in dispatchRequests)
             {
-                if (dispatchRequest.Id != null)
-                {
-                    throw new ArgumentException("Items cannot have their Id property set");
-                }
-
-                dispatchRequest.Id = KeyPrefix + "/" + Guid.NewGuid();
-                await session.StoreAsync(dispatchRequest, cancellationToken);
+                var id = KeyPrefix + "/" + Guid.NewGuid();
+                await session.StoreAsync(dispatchRequest, id, cancellationToken);
             }
 
             await session.SaveChangesAsync(cancellationToken);
@@ -170,10 +165,7 @@
                 .Changes()
                 .ForDocumentsStartingWith(KeyPrefix)
                 .Where(c => c.Type == DocumentChangeTypes.Put)
-                .Subscribe(d =>
-                {
-                    signal.Set();
-                });
+                .Subscribe(_ => signal.Set());
         }
 
         public async Task StopAsync(CancellationToken cancellationToken = default) => await DisposeAsync();
