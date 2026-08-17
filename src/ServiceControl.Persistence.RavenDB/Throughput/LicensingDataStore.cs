@@ -121,7 +121,7 @@ class LicensingDataStore(
         await session.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task RemoveEndpoints(EndpointIdentifier[] endpointIds, CancellationToken cancellationToken)
+    public async Task RemoveEndpoints(EndpointIdentifier[] endpointIds, CancellationToken cancellationToken = default)
     {
         var documentIds = endpointIds.Select(id => id.GenerateDocumentId());
 

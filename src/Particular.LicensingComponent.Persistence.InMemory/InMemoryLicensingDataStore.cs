@@ -179,7 +179,7 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         return Task.CompletedTask;
     }
 
-    public Task RemoveEndpoints(EndpointIdentifier[] endpointIds, CancellationToken cancellationToken)
+    public Task RemoveEndpoints(EndpointIdentifier[] endpointIds, CancellationToken cancellationToken = default)
     {
         foreach (var id in endpointIds)
         {
