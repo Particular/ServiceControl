@@ -395,14 +395,14 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         public SemanticVersion MinAuditCountsVersion => new(4, 29, 0);
         public Func<RemoteInstanceInformation, bool> ValidRemoteInstances => _ => true;
 
-        public Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken) =>
+        public Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken = default) =>
             Task.FromResult<IEnumerable<ServiceControlEndpoint>>(
             [
                 new ServiceControlEndpoint { Name = endpointWithoutCounts, HeartbeatsEnabled = true },
                 new ServiceControlEndpoint { Name = endpointWithCounts, HeartbeatsEnabled = true }
             ]);
 
-        public Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName, CancellationToken cancellationToken)
+        public Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName, CancellationToken cancellationToken = default)
         {
             if (endpointUrlName == endpointWithCounts)
             {
@@ -412,10 +412,10 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
             return Task.FromResult<IEnumerable<AuditCount>>([]);
         }
 
-        public Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken) =>
+        public Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken = default) =>
             Task.FromResult<List<RemoteInstanceInformation>>([]);
 
-        public Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken) =>
+        public Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken = default) =>
             Task.FromResult(new ConnectionSettingsTestResult { ConnectionSuccessful = true, ConnectionErrorMessages = [] });
 
         readonly string endpointWithoutCounts;
