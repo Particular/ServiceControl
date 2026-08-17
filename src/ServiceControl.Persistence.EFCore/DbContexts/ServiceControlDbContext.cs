@@ -26,6 +26,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
     public DbSet<FailedMessageEditEntity> FailedMessageEdits { get; set; }
     public DbSet<LicensingEndpointEntity> LicensingEndpoints { get; set; }
     public DbSet<LicensingEndpointThroughputEntity> LicensingEndpointThroughput { get; set; }
+    public DbSet<ExternalIntegrationDispatchRequestEntity> ExternalIntegrationDispatchRequests { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.EnableDetailedErrors();
@@ -54,6 +55,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
         modelBuilder.ApplyConfiguration(new ArchiveOperationConfiguration());
         modelBuilder.ApplyConfiguration(new LicensingEndpointConfiguration());
         modelBuilder.ApplyConfiguration(new LicensingEndpointThroughputConfiguration());
+        modelBuilder.ApplyConfiguration(new ExternalIntegrationDispatchRequestConfiguration());
     }
 
     public abstract bool IsDuplicateKeyException(DbUpdateException exception);

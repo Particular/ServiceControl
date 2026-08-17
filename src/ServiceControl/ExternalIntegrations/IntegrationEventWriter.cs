@@ -9,18 +9,11 @@
     using Microsoft.Extensions.Logging;
     using ServiceControl.Persistence;
 
-    class IntegrationEventWriter : IDomainHandler<IDomainEvent>
+    class IntegrationEventWriter(
+        IExternalIntegrationRequestsDataStore store,
+        IEnumerable<IEventPublisher> eventPublishers,
+        ILogger<IntegrationEventWriter> logger) : IDomainHandler<IDomainEvent>
     {
-        public IntegrationEventWriter(
-            IExternalIntegrationRequestsDataStore store,
-            IEnumerable<IEventPublisher> eventPublishers,
-            ILogger<IntegrationEventWriter> logger)
-        {
-            this.store = store;
-            this.eventPublishers = eventPublishers;
-            this.logger = logger;
-        }
-
         public async Task Handle(IDomainEvent message, CancellationToken cancellationToken = default)
         {
             var dispatchContexts = eventPublishers
@@ -42,9 +35,5 @@
 
             await store.StoreDispatchRequest(dispatchRequests, cancellationToken);
         }
-
-        readonly IExternalIntegrationRequestsDataStore store;
-        readonly IEnumerable<IEventPublisher> eventPublishers;
-        readonly ILogger<IntegrationEventWriter> logger;
     }
 }

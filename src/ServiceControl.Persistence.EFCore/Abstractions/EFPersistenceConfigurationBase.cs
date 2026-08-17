@@ -27,6 +27,7 @@ public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration,
     const string ErrorRetentionPeriodKey = "ErrorRetentionPeriod";
     const string EventsRetentionPeriodKey = "EventsRetentionPeriod";
     const string SubscriptionCacheDurationKey = "SubscriptionCacheDuration";
+    const string ExternalIntegrationsDispatchingBatchSizeKey = "ExternalIntegrationsDispatchingBatchSize";
 
     public PersistenceSettings CreateSettings(SettingsRootNamespace settingsRootNamespace)
     {
@@ -38,6 +39,7 @@ public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration,
         settings.ErrorRetentionPeriod = GetRequiredSetting<TimeSpan>(settingsRootNamespace, ErrorRetentionPeriodKey);
         settings.EventsRetentionPeriod = SettingsReader.Read(settingsRootNamespace, EventsRetentionPeriodKey, EFPersisterSettings.DefaultEventsRetentionPeriod);
         settings.SubscriptionCacheDuration = SettingsReader.Read(settingsRootNamespace, SubscriptionCacheDurationKey, EFPersisterSettings.DefaultSubscriptionCacheDuration);
+        settings.ExternalIntegrationsDispatchingBatchSize = SettingsReader.Read(settingsRootNamespace, ExternalIntegrationsDispatchingBatchSizeKey, 100);
 
         return settings;
     }

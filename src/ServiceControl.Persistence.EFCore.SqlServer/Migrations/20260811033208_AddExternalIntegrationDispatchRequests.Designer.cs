@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ServiceControl.Persistence.EFCore.SqlServer;
 
@@ -11,9 +12,11 @@ using ServiceControl.Persistence.EFCore.SqlServer;
 namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerServiceControlDbContext))]
-    partial class SqlServerServiceControlDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260811033208_AddExternalIntegrationDispatchRequests")]
+    partial class AddExternalIntegrationDispatchRequests
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -225,23 +228,6 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.ToTable("FailedErrorImports");
                 });
 
-            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageEditEntity", b =>
-                {
-                    b.Property<Guid>("UniqueMessageId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("EditId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("UniqueMessageId");
-
-                    b.HasIndex("EditId");
-
-                    b.ToTable("FailedMessageEdits");
-                });
-
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageEntity", b =>
                 {
                     b.Property<Guid>("UniqueMessageId")
@@ -271,7 +257,6 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FailingEndpointAddress")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 

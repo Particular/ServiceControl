@@ -3,7 +3,6 @@ namespace ServiceControl.Persistence.Tests;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using DotNet.Testcontainers.Builders;
 using Testcontainers.MsSql;
 
 static class SqlServerSharedContainer
