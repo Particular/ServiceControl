@@ -18,11 +18,11 @@ public class MonitoringService(ILicensingDataStore dataStore, IBrokerThroughputQ
             message = await JsonSerializer.DeserializeAsync<RecordEndpointThroughputData>(stream, cancellationToken: cancellationToken);
         }
 
-        if (message != null && message.EndpointThroughputData != null)
+        if (message is not null && message.EndpointThroughputData is { } endpointThroughputData)
         {
-            Debug.WriteLine($"Throughput data from {message.StartDateTime:yyyy-MM-dd HH:mm} to {message.EndDateTime:yyyy-MM-dd HH:mm} for {message.EndpointThroughputData?.Length} endpoint(s)");
+            Debug.WriteLine($"Throughput data from {message.StartDateTime:yyyy-MM-dd HH:mm} to {message.EndDateTime:yyyy-MM-dd HH:mm} for {endpointThroughputData.Length} endpoint(s)");
 
-            message.EndpointThroughputData?.ToList().ForEach(async e =>
+            foreach (var e in endpointThroughputData)
             {
                 var endpoint = await dataStore.GetEndpoint(e.Name, ThroughputSource.Monitoring, cancellationToken);
                 if (endpoint == null)
@@ -41,7 +41,7 @@ public class MonitoringService(ILicensingDataStore dataStore, IBrokerThroughputQ
 
                     await dataStore.RecordEndpointThroughput(e.Name, ThroughputSource.Monitoring, [endpointThroughput], cancellationToken);
                 }
-            });
+            }
         }
     }
 

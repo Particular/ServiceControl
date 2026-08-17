@@ -1,6 +1,7 @@
 namespace Particular.LicensingComponent.UnitTests;
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -13,6 +14,7 @@ using Contracts;
 using Infrastructure;
 using MonitoringThroughput;
 using NUnit.Framework;
+using Persistence;
 using ServiceControl.Transports.BrokerThroughput;
 
 [TestFixture]
@@ -157,6 +159,110 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
                 StringComparison.OrdinalIgnoreCase), Is.True, "Expected diagnostics not found");
 
         Approver.Verify(connectionSettingsResult.Diagnostics);
+    }
+
+    [Test]
+    public async Task Should_record_throughput_for_every_endpoint_in_the_message()
+    {
+        // Arrange
+        var dataStore = new YieldingLicensingDataStore();
+        var monitoringService = new MonitoringService(dataStore);
+
+        string[] endpointNames = [.. Enumerable.Range(1, 20).Select(i => $"Endpoint{i}")];
+        var message = new RecordEndpointThroughputData
+        {
+            StartDateTime = DateTime.UtcNow.AddMinutes(-5),
+            EndDateTime = DateTime.UtcNow,
+            EndpointThroughputData = [.. endpointNames.Select(name => new EndpointThroughputData { Name = name, Throughput = 15 })]
+        };
+
+        // Act
+        byte[] messageBytes = JsonSerializer.SerializeToUtf8Bytes(message);
+        await monitoringService.RecordMonitoringThroughput(messageBytes);
+
+        // Assert
+        string[] endpointsWithoutThroughput = [.. endpointNames.Where(name => !dataStore.RecordedThroughput.ContainsKey(name))];
+        string[] unsavedEndpoints = [.. endpointNames.Where(name => !dataStore.SavedEndpoints.ContainsKey(name))];
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(unsavedEndpoints, Is.Empty,
+                $"{unsavedEndpoints.Length} of {endpointNames.Length} endpoints were not saved when RecordMonitoringThroughput returned: {string.Join(", ", unsavedEndpoints)}");
+            Assert.That(endpointsWithoutThroughput, Is.Empty,
+                $"{endpointsWithoutThroughput.Length} of {endpointNames.Length} endpoints had no throughput recorded when RecordMonitoringThroughput returned: {string.Join(", ", endpointsWithoutThroughput)}");
+        }
+
+        Assert.That(dataStore.RecordedThroughput.Values, Is.All.EqualTo(15L), "Expected a throughput of 15 for every endpoint");
+    }
+
+    // Records only after suspending, so any write the service starts without awaiting is still
+    // outstanding when RecordMonitoringThroughput returns.
+    class YieldingLicensingDataStore : ILicensingDataStore
+    {
+        public ConcurrentDictionary<string, Endpoint> SavedEndpoints { get; } = new();
+
+        public ConcurrentDictionary<string, long> RecordedThroughput { get; } = new();
+
+        public async Task<Endpoint> GetEndpoint(EndpointIdentifier id, CancellationToken cancellationToken = default)
+        {
+            await Task.Yield();
+            return SavedEndpoints.TryGetValue(id.Name, out Endpoint endpoint) ? endpoint : null;
+        }
+
+        public async Task SaveEndpoint(Endpoint endpoint, CancellationToken cancellationToken = default)
+        {
+            await Task.Yield();
+            SavedEndpoints[endpoint.Id.Name] = endpoint;
+        }
+
+        public async Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource,
+            IList<EndpointDailyThroughput> throughput, CancellationToken cancellationToken = default)
+        {
+            await Task.Yield();
+            RecordedThroughput[endpointName] = throughput.Sum(t => t.MessageCount);
+        }
+
+        public Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<IEnumerable<(EndpointIdentifier Id, Endpoint Endpoint)>> GetEndpoints(IList<EndpointIdentifier> endpointIds, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task UpdateUserIndicatorOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, bool includeToday, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<BrokerMetadata> GetBrokerMetadata(CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task SaveBrokerMetadata(BrokerMetadata brokerMetadata, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<AuditServiceMetadata> GetAuditServiceMetadata(CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task SaveAuditServiceMetadata(AuditServiceMetadata auditServiceMetadata, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<List<string>> GetReportMasks(CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task SaveReportMasks(List<string> reportMasks, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<LicensedEndpointDetails> GetLicensedEndpointDetails(CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
     }
 
     class BrokerThroughputQuery_WithSanitization : IBrokerThroughputQuery
