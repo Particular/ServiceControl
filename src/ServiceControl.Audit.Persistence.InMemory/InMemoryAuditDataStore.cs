@@ -5,13 +5,11 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using OpenTelemetry.Trace;
     using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Auditing.MessagesView;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.SagaAudit;
-    using static System.Runtime.InteropServices.JavaScript.JSType;
 
     class InMemoryAuditDataStore : IAuditDataStore
     {
