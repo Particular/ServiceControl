@@ -30,9 +30,10 @@
             try
             {
                 stream = await session.Advanced.StreamAsync(query, cancellationToken);
-                while (!cancellationToken.IsCancellationRequested &&
-                       await stream.MoveNextAsync())
+                while (await stream.MoveNextAsync())
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     FailedTransportMessage transportMessage = stream.Current.Document.Message;
                     var localSession = session;
 

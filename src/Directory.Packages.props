@@ -22,6 +22,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.Data.SqlClient.Extensions.Azure" Version="7.0.2" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="$(RuntimeFrameworkVersion)" />
@@ -77,10 +78,10 @@
     <PackageVersion Include="PropertyChanging.Fody" Version="1.31.0" />
     <PackageVersion Include="PublicApiGenerator" Version="11.5.4" />
     <PackageVersion Include="RavenDB.Embedded" Version="6.2.17" />
-    <PackageVersion Include="Testcontainers.Azurite" Version="4.13.0" />
-    <PackageVersion Include="Testcontainers.LocalStack" Version="4.13.0" />
-    <PackageVersion Include="Testcontainers.MsSql" Version="4.13.0" />
-    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.13.0" />
+    <PackageVersion Include="Testcontainers.Azurite" Version="4.14.0" />
+    <PackageVersion Include="Testcontainers.LocalStack" Version="4.14.0" />
+    <PackageVersion Include="Testcontainers.MsSql" Version="4.14.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.14.0" />
     <PackageVersion Include="ReactiveUI.WPF" Version="22.3.1" />
     <PackageVersion Include="Seq.Extensions.Logging" Version="9.0.0" />
     <PackageVersion Include="ServiceControl.Contracts" Version="5.1.0" />

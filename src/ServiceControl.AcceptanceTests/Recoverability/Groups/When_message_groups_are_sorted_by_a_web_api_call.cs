@@ -108,7 +108,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
 
                 OutgoingMessage CreateTransportMessage(int i)
                 {
-                    var date = new DateTime(2015, 9 + i, 20 + i, 0, 0, 0);
+                    var date = new DateTimeOffset(2015, 9 + i, 20 + i, 0, 0, 0, TimeSpan.Zero);
                     var messageId = $"{i}{MessageId}";
                     var msg = new OutgoingMessage(messageId, new Dictionary<string, string>
                     {

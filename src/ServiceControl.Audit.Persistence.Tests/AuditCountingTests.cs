@@ -15,7 +15,7 @@
         [Test]
         public async Task ShouldCountAuditedMessages()
         {
-            var today = DateTime.UtcNow.Date;
+            var today = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero);
             var yesterday = today.AddDays(-1);
             var weekBefore = yesterday.AddDays(-7);
 
@@ -71,7 +71,7 @@
         public async Task Should_return_zero_throughput_entry_when_SendOnly()
         {
             // Arrange
-            var today = DateTime.UtcNow.Date;
+            var today = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero);
             const string sendOnlyEndpoint = "SendOnlyEndpoint";
 
             var messages = new[]
@@ -90,13 +90,13 @@
             Assert.That(result, Has.Count.EqualTo(1), "Expected single audit count for send-only endpoint");
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(result[0].UtcDate, Is.EqualTo(today), "Expected today's date placeholder");
+                Assert.That(result[0].UtcDate, Is.EqualTo(today.Date), "Expected today's date placeholder");
                 Assert.That(result[0].Count, Is.Zero, "Expected zero throughput count for send-only endpoint");
             }
         }
 
-        static ProcessedMessage MakeMessage(string processingEndpoint, DateTime processedAt, bool systemMessage) => MakeMessage(processingEndpoint, null, processedAt, systemMessage);
-        static ProcessedMessage MakeMessage(string processingEndpoint, string sendingEndpoint, DateTime processedAt, bool systemMessage)
+        static ProcessedMessage MakeMessage(string processingEndpoint, DateTimeOffset processedAt, bool systemMessage) => MakeMessage(processingEndpoint, null, processedAt, systemMessage);
+        static ProcessedMessage MakeMessage(string processingEndpoint, string sendingEndpoint, DateTimeOffset processedAt, bool systemMessage)
         {
             var messageId = Guid.NewGuid().ToString();
             var messageType = "MyMessageType";

@@ -73,7 +73,9 @@ class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
         var context = await Define<TestContext>(c =>
             {
                 c.AddMinimalRequiredHeaders();
+#pragma warning disable PS0022
                 c.Headers.Add(Headers.TimeSent, DateTimeOffsetHelper.ToWireFormattedString(sentTime));
+#pragma warning restore PS0022
             })
             .WithEndpoint<FailingEndpoint>()
             .Done(async c => await TryGetFailureFromApi(c))

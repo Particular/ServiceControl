@@ -59,7 +59,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             using (Assert.EnterMultipleScope())
             {
                 Assert.That(attempts, Has.Count.EqualTo(1));
-                Assert.That(attempts[^1].AttemptedAt, Is.EqualTo(context.FailureTime));
+                Assert.That(attempts[^1].AttemptedAt, Is.EqualTo(context.FailureTime.UtcDateTime));
             }
         }
 
@@ -88,12 +88,12 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 {
                     var messageId = Guid.NewGuid().ToString();
                     context.UniqueId = DeterministicGuid.MakeId(messageId, "Error.SourceEndpoint").ToString();
-                    context.FailureTime = new DateTime(2020, 09, 05, 13, 20, 00, 0, DateTimeKind.Utc);
+                    context.FailureTime = new DateTimeOffset(2020, 09, 05, 13, 20, 00, 0, TimeSpan.Zero);
 
                     return new TransportOperations([.. GetMessages(context.UniqueId, context.FailureTime)]);
                 }
 
-                IEnumerable<TransportOperation> GetMessages(string uniqueId, DateTime failureTime)
+                IEnumerable<TransportOperation> GetMessages(string uniqueId, DateTimeOffset failureTime)
                 {
                     for (var i = 0; i < NumberOfDuplicates; i++)
                     {
@@ -125,7 +125,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         {
             public string UniqueId { get; set; }
 
-            public DateTime FailureTime { get; set; }
+            public DateTimeOffset FailureTime { get; set; }
 
             public int IngestedCount => receivedMessages.Count;
 

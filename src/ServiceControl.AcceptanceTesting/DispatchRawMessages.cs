@@ -9,6 +9,8 @@
     using NServiceBus.Features;
     using NServiceBus.Transport;
 
+#pragma warning disable PS0013
+#pragma warning disable PS0018
     public abstract class DispatchRawMessages<TContext> : Feature
         where TContext : ScenarioContext
     {
@@ -79,4 +81,6 @@
             ScenarioContext scenarioContext;
         }
     }
+#pragma warning restore PS0018
+#pragma warning restore PS0013
 }
