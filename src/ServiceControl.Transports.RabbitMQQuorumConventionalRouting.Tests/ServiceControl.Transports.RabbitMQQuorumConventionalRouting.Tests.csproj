@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <TestCategory>RabbitMQQuorumConventional</TestCategory>
+    <TestCategory>RabbitMQ</TestCategory>
   </PropertyGroup>
 
   <ItemGroup>

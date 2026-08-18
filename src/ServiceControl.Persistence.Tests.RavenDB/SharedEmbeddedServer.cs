@@ -41,7 +41,7 @@
                     DatabasePath = dbPath,
                     LogPath = logPath,
                     LogsMode = logsMode,
-                    DatabaseMaintenancePort = PortUtility.FindAvailablePort(RavenPersisterSettings.DatabaseMaintenancePortDefault)
+                    DatabaseMaintenancePort = PortUtility.GetAssignedOrAvailablePort(RavenPersisterSettings.DatabaseMaintenancePortDefault)
                 };
 
                 // TODO: See if more refactoring can be done between this and the RavenPersisterSettings above

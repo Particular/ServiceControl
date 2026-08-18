@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <TestCategory>DefaultAudit</TestCategory>
+    <TestCategory>Raven</TestCategory>
   </PropertyGroup>
 
   <ItemGroup>
