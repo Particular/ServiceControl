@@ -246,7 +246,21 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
         });
     }
 
-    public Task RemoveEndpoints(EndpointIdentifier[] endpointIds, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+    public Task RemoveEndpoints(EndpointIdentifier[] endpointIds, CancellationToken cancellationToken = default) =>
+        ExecuteWithDbContext(async (context, token) =>
+        {
+            foreach (var endpointsBySource in endpointIds.GroupBy(endpoint => endpoint.ThroughputSource))
+            {
+                var normalizedNames = endpointsBySource
+                    .Select(endpoint => Normalize(endpoint.Name))
+                    .Distinct()
+                    .ToList();
+
+                await context.LicensingEndpoints
+                    .Where(endpoint => endpoint.ThroughputSource == endpointsBySource.Key && normalizedNames.Contains(endpoint.NormalizedName))
+                    .ExecuteDeleteAsync(token);
+            }
+        }, cancellationToken);
 
     public Task UpdateUserIndicatorOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (context, token) =>

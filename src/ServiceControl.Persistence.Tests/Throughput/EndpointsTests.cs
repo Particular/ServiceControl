@@ -48,6 +48,30 @@ class EndpointsTests : PersistenceTestBase
     }
 
     [Test]
+    public async Task Should_remove_only_endpoints_matching_name_and_source()
+    {
+        var endpoint1Audit = new Endpoint("Endpoint1", ThroughputSource.Audit);
+        var endpoint1Broker = new Endpoint("Endpoint1", ThroughputSource.Broker);
+        var endpoint2Audit = new Endpoint("Endpoint2", ThroughputSource.Audit);
+        var endpoint3Monitoring = new Endpoint("Endpoint3", ThroughputSource.Monitoring);
+
+        await LicensingDataStore.SaveEndpoint(endpoint1Audit);
+        await LicensingDataStore.SaveEndpoint(endpoint1Broker);
+        await LicensingDataStore.SaveEndpoint(endpoint2Audit);
+        await LicensingDataStore.SaveEndpoint(endpoint3Monitoring);
+
+        await LicensingDataStore.RemoveEndpoints([endpoint1Audit.Id, endpoint3Monitoring.Id]);
+
+        var remainingEndpoints = await LicensingDataStore.GetAllEndpoints(true);
+
+        Assert.That(remainingEndpoints.Select(endpoint => endpoint.Id), Is.EquivalentTo(new[]
+        {
+            endpoint1Broker.Id,
+            endpoint2Audit.Id
+        }));
+    }
+
+    [Test]
     public async Task Should_update_endpoint_that_already_has_throughput_with_new_throughput()
     {
         // Arrange
