@@ -61,27 +61,6 @@ public class ConditionalGetTests
     }
 
     [Test]
-    public void The_emitted_etag_quotes_the_value_without_altering_it()
-    {
-        var httpContext = new DefaultHttpContext();
-
-        httpContext.Response.WithEtag(DataVersion.FromToken("4611686018427387904"));
-
-        Assert.That(httpContext.Response.Headers.ETag.ToString(), Is.EqualTo("\"4611686018427387904\""));
-    }
-
-    [Test]
-    public void A_data_version_emits_the_same_header_the_string_overload_did()
-    {
-        var httpContext = new DefaultHttpContext();
-
-        httpContext.Response.WithEtag(DataVersion.FromToken("A:2-abc"));
-
-        // Marking comes later. This change only moves who holds the value.
-        Assert.That(httpContext.Response.Headers.ETag.ToString(), Is.EqualTo("\"A:2-abc\""));
-    }
-
-    [Test]
     public void An_absent_data_version_emits_no_header()
     {
         var httpContext = new DefaultHttpContext();
@@ -104,6 +83,113 @@ public class ConditionalGetTests
 
         // A hashed validator matches nothing a store holds, so the endpoint can never skip its query.
         Assert.That(httpContext.Response.Headers.ETag.ToString(), Does.Contain(version.ToString()));
+    }
+
+    [Test]
+    public void An_aggregate_derived_etag_is_marked_weak()
+    {
+        var httpContext = new DefaultHttpContext();
+
+        httpContext.Response.WithEtag(DataVersion.FromToken("4611686018427387904"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(httpContext.Response.Headers.ETag.ToString(), Is.EqualTo("W/\"4611686018427387904\""));
+            Assert.That(httpContext.Response.GetTypedHeaders().ETag.IsWeak, Is.True);
+        });
+    }
+
+    [Test]
+    public void An_exact_etag_goes_out_unmarked()
+    {
+        var httpContext = new DefaultHttpContext();
+
+        httpContext.Response.WithEtag(DataVersion.FromContent("A:2-abc"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(httpContext.Response.Headers.ETag.ToString(), Is.EqualTo("\"A:2-abc\""));
+            Assert.That(httpContext.Response.GetTypedHeaders().ETag.IsWeak, Is.False);
+        });
+    }
+
+    [Test]
+    public void A_client_holding_a_weak_tag_matches_an_exact_response_tag()
+    {
+        var httpContext = new DefaultHttpContext();
+
+        httpContext.Response.WithEtag(DataVersion.FromContent("A:2-abc"));
+        httpContext.Request.Headers.IfNoneMatch = "W/\"A:2-abc\"";
+
+        var context = ResultExecuting(httpContext);
+
+        new NotModifiedStatusHttpHandler().OnResultExecuting(context);
+
+        Assert.That(context.Result, Is.InstanceOf<StatusCodeResult>(),
+            "weak comparison ignores strength on both sides, which is what lets an exact and a weak tag over the same value match");
+    }
+
+    [Test]
+    public void A_weak_validator_matches_under_the_comparison_If_None_Match_requires()
+    {
+        var httpContext = new DefaultHttpContext();
+
+        httpContext.Response.WithEtag(DataVersion.FromToken("4611686018427387904"));
+        httpContext.Request.Headers.IfNoneMatch = httpContext.Response.Headers.ETag;
+
+        var context = ResultExecuting(httpContext);
+
+        new NotModifiedStatusHttpHandler().OnResultExecuting(context);
+
+        Assert.That(context.Result, Is.InstanceOf<StatusCodeResult>(),
+            "RFC 9110 requires If-None-Match to use the weak comparison function, so a weak tag must match a weak tag");
+    }
+
+    [Test]
+    public void An_unmarked_validator_from_an_older_client_still_matches()
+    {
+        var httpContext = new DefaultHttpContext();
+
+        httpContext.Response.WithEtag(DataVersion.FromToken("4611686018427387904"));
+        httpContext.Request.Headers.IfNoneMatch = "\"4611686018427387904\"";
+
+        var context = ResultExecuting(httpContext);
+
+        new NotModifiedStatusHttpHandler().OnResultExecuting(context);
+
+        Assert.That(context.Result, Is.InstanceOf<StatusCodeResult>(),
+            "weak comparison ignores the W/ prefix, which is what carries a client through the upgrade");
+    }
+
+    [Test]
+    public void A_wildcard_precondition_is_not_modified_when_a_representation_exists()
+    {
+        var httpContext = new DefaultHttpContext();
+
+        httpContext.Response.WithEtag(DataVersion.FromToken("4611686018427387904"));
+        httpContext.Request.Headers.IfNoneMatch = "*";
+
+        var context = ResultExecuting(httpContext);
+
+        new NotModifiedStatusHttpHandler().OnResultExecuting(context);
+
+        Assert.That(context.Result, Is.InstanceOf<StatusCodeResult>(),
+            "RFC 9110: * matches whenever a current representation exists");
+    }
+
+    [Test]
+    public void A_wildcard_precondition_is_ignored_when_there_is_no_validator()
+    {
+        var httpContext = new DefaultHttpContext();
+
+        httpContext.Request.Headers.IfNoneMatch = "*";
+
+        var context = ResultExecuting(httpContext);
+
+        new NotModifiedStatusHttpHandler().OnResultExecuting(context);
+
+        Assert.That(context.Result, Is.InstanceOf<OkObjectResult>(),
+            "an endpoint that publishes no validator has nothing for a client to have cached");
     }
 
     static ResultExecutingContext ResultExecuting(HttpContext httpContext) =>

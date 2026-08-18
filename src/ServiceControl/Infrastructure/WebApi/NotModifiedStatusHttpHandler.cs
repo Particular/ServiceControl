@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Infrastructure.WebApi
 {
     using System;
+    using System.Linq;
     using System.Net;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Headers;
@@ -9,8 +10,20 @@
 
     class NotModifiedStatusHttpHandler : IResultFilter
     {
-        static bool IfNoneMatch(RequestHeaders requestHeaders, ResponseHeaders responseHeaders) =>
-            responseHeaders.ETag != null && requestHeaders.IfNoneMatch.Contains(responseHeaders.ETag);
+        static bool IfNoneMatch(RequestHeaders requestHeaders, ResponseHeaders responseHeaders)
+        {
+            var current = responseHeaders.ETag;
+
+            if (current is null)
+            {
+                return false;
+            }
+
+            // EntityTagHeaderValue.Equals compares strength as well as tag, and its own documentation
+            // says not to use it for this. RFC 9110 requires If-None-Match to use weak comparison.
+            return requestHeaders.IfNoneMatch.Any(candidate =>
+                candidate.Tag.Equals("*", StringComparison.Ordinal) || candidate.Compare(current, useStrongComparison: false));
+        }
 
         static bool IfNotModifiedSince(DateTimeOffset? ifModifiedSince, DateTimeOffset? lastModified) =>
             lastModified <= ifModifiedSince;
