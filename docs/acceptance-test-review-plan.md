@@ -10,9 +10,9 @@ That is the shape of the problem: these failures are silent. A test that asserts
 
 ## Where this has got to
 
-Phases 1 and 2 are done. Phase 3 has swept the first of its four areas, `Recoverability/MessageFailures`. Phase 4 has closed the licensing block, 8 routes of the 40, on both of the branches those routes take.
+Phases 1, 2 and 3 are done. Phase 4 has closed the licensing block, 8 routes of the 40, on both of the branches those routes take.
 
-What is left: three areas to sweep, of which the two `ExternalIntegration` ones are parked until the EF work lands, and 32 routes to cover.
+What is left: 32 routes to cover, starting with the three nav-gating ones.
 
 ## Scope
 
@@ -42,13 +42,13 @@ The double is registered as its concrete type, so the collection the production 
 
 Seven files contain no `Assert` at all. Five use the `Do("step", …)` sequence helper, which logs `Advancing from X to Y` on each transition, so a regression there is diagnosable from the console output. That is a deliberate and acceptable pattern. The other two gated on a single `Done` predicate and reported a regression as a bare timeout with nothing to read.
 
-**Detect:** files with a `[Test]` and zero `Assert.` occurrences, minus those using the `Sequence` helper. Seven have no assertion, five of them legitimately. `ErrorImportPerformanceTests` is fixed: it records the count on the context, which the runner prints when a scenario does not finish. That leaves `When_single_message_fails_in_batch`, in the area phase 3 sweeps next.
+**Detect:** files with a `[Test]` and zero `Assert.` occurrences, minus those using the `Sequence` helper. Outside `ExternalIntegration` this is now clear: eight files have no assertion, seven of them driven by steps, and `ErrorImportPerformanceTests` records its count on the context, which the runner prints when a scenario does not finish.
 
 ### 3. Assertion restates the condition the scenario already waited on (unfalsifiable)
 
 `When_a_invalid_id_is_sent_to_retry` ended with `Assert.That(context.Done, Is.True)` after `.Done(ctx => ctx.Done)`. That assertion could not fail: if the flag were false the scenario would have timed out first. The real subject of the test, that posting a retry for a non-existent id does not break subsequent batches, was never asserted, and the response of the invalid POST was never inspected.
 
-**Detect:** a mechanical grep finds candidates of the shape `Assert.That(context.Flag, Is.True)`, currently 9. The confirmed one is fixed and now asserts the status the unknown id answers with. The rest need reading individually, because a flag set by a message handler and gated on something else is legitimate: `When_failed_message_searched_by_body_content` was read and is sound, since its `Done` returns true whether or not the flag is set. Four of the nine are in `ExternalIntegration`, which is parked.
+**Detect:** a mechanical grep finds candidates of the shape `Assert.That(context.Flag, Is.True)`. Nine were confirmed and fixed across the suite. The two that remain were read and are sound, because a flag set by a message handler while the scenario waits for something else can fail: `When_failed_message_searched_by_body_content`, whose `Done` returns true either way, and `When_single_message_fails_in_batch`, whose new assertion is falsifiable and was proven so. The grep is a starting point, not a verdict.
 
 ### 4. Assertions coupled to one persister's internals (portability)
 
@@ -220,9 +220,24 @@ Read for the five patterns above, area by area, so each PR stays reviewable and 
   Thirteen `Console.WriteLine` calls went, across eleven files. Six were a bare "Message Handled" in a handler, which carries no identity and fires on every delivery, so in tests turning on how many times a message was handled it cannot tell the first attempt from the retry. Worse, they sat next to the counter that does answer that, and the runner already prints the context on failure. The rest either narrated a step that throws with detail when it fails, or dumped state next to an assertion whose message says the same thing. They read as debugging left in place rather than diagnostics anyone chose.
 
   Not every test wants this. A test that sends a message, waits for one thing and asserts reads worse as a sequence, which is most of `When_a_message_has_failed`. A step also has no `bus`, so anything that sends has to stay an endpoint `When`.
-- [ ] `Recoverability/*` root, `Groups`, `MessageRedirects`: the retry, group and redirect flows.
-- [ ] `Monitoring/*` and `EventLogs`: heartbeats, custom checks, endpoint monitoring.
-- [ ] `Recoverability/ExternalIntegration` and `Monitoring/ExternalIntegration`: hold until the EF external-integration work lands, then review against both persisters at once.
+
+  Converting to steps exposed a second tautology underneath the first. Four of these tests polled until the message was `Resolved` and then asserted it was `Resolved`, which cannot fail: if the status never changes the scenario times out and the assertion never runs. Three were dropped, since the step named "Wait for it to be resolved" reports the same failure with the same precision. The event log test keeps its assertions because they check the description and the related message id, which the poll does not.
+- [x] `Recoverability/*` root, `Groups`, `MessageRedirects`, and `Monitoring/*` and `EventLogs`: swept together, since the mechanical passes cover both in one go and the findings were thin.
+
+  `When_single_message_fails_in_batch` was the last test in the suite with no assertion and no sequence to read on failure, and it is one of the two that started this review. Nothing in it checked that its double ran, so the original bug would still pass today. It now asserts the enricher threw, which is not gated on by the scenario: registering the double as its concrete type again fails the test in six seconds with "The enricher never threw, so nothing in the batch failed and the test proved nothing". The imported count also goes on the context so a timeout says how far ingestion got.
+
+  Two more unfalsifiable assertions, both fixed by making the sequence explicit and dropping the restatement: `When_a_message_without_a_correlationid_header_is_retried` asserted the flag its own `Done` waited for, and `MessageRedirects/When_a_message_is_retried` asserted `Received` after `Done(ctx => ctx.Received)`.
+
+  One dead context property, `EmailDropPath`, written by the scenario while the test read the local it was copied from.
+
+  Nothing for the registration or persister-coupling patterns. The four registrations here were settled in phase 2, and every EF exclusion in these areas is in `ExternalIntegration`.
+- [x] `Recoverability/ExternalIntegration` and `Monitoring/ExternalIntegration`: reviewed and brought into shape, still excluded from the EF suites until the EF external-integration work lands.
+
+  Six unfalsifiable assertions, the densest pocket in the suite. Every one restated the flag its own `Done` had waited for. Two files already carried a real assertion underneath, so the restatement simply went: `When_a_custom_check_fails` checks the type name external subscribers bind to, and `When_encountered_an_error` checks that the faulty publisher actually ran, which is the point of registering one.
+
+  The other three had nothing else, so removing the restatement would have left them asserting nothing at all. They now assert the same contract their sibling does, the `EnclosedMessageTypes` header of the published event, which is what an external subscriber binds to and what a rename would silently break. Renaming the expected type fails them with the old and new names side by side.
+
+  These are single-wait tests, so none became a sequence. Nothing found for the registration, timeout or rot patterns.
 
 ### Phase 4: work through the route list
 

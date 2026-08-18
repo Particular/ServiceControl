@@ -1,6 +1,7 @@
 namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -57,7 +58,9 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
                 .Done(c => c.NotificationDelivered)
                 .Run();
 
-            Assert.That(context.NotificationDelivered, Is.True);
+            Assert.That(context.IntegrationEventHeaders[Headers.EnclosedMessageTypes],
+                Is.EqualTo("ServiceControl.Contracts.HeartbeatStopped, ServiceControl.Contracts"),
+                "External subscribers bind to this type name");
         }
 
         public class ExternalProcessor : EndpointConfigurationBuilder
@@ -75,6 +78,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
                 public Task Handle(HeartbeatStopped message, IMessageHandlerContext context)
                 {
                     testContext.NotificationDelivered = true;
+                    testContext.IntegrationEventHeaders = context.MessageHeaders;
                     return Task.CompletedTask;
                 }
             }
@@ -83,6 +87,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
         public class MyContext : ScenarioContext
         {
             public bool NotificationDelivered { get; set; }
+            public IReadOnlyDictionary<string, string> IntegrationEventHeaders { get; set; }
         }
     }
 }

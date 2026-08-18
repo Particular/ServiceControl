@@ -67,11 +67,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                 .Done(c => c.NotificationDelivered)
                 .Run();
 
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(context.NotificationDelivered, Is.True);
-                Assert.That(context.Failed, Is.True);
-            }
+            Assert.That(context.Failed, Is.True, "The faulty publisher never ran, so the notification was not delivered in spite of one");
         }
 
         class FaultyPublisher(MyContext context) : IEventPublisher

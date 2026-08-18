@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -55,7 +56,9 @@
                 .Done(c => c.CustomCheckSucceededReceived)
                 .Run();
 
-            Assert.That(context.CustomCheckSucceededReceived, Is.True);
+            Assert.That(context.IntegrationEventHeaders[Headers.EnclosedMessageTypes],
+                Is.EqualTo("ServiceControl.Contracts.CustomCheckSucceeded, ServiceControl.Contracts"),
+                "External subscribers bind to this type name");
         }
 
         public class ExternalProcessor : EndpointConfigurationBuilder
@@ -76,6 +79,7 @@
                 public Task Handle(CustomCheckSucceeded message, IMessageHandlerContext context)
                 {
                     testContext.CustomCheckSucceededReceived = true;
+                    testContext.IntegrationEventHeaders = context.MessageHeaders;
                     return Task.CompletedTask;
                 }
             }
@@ -84,6 +88,7 @@
         public class MyContext : ScenarioContext
         {
             public bool CustomCheckSucceededReceived { get; set; }
+            public IReadOnlyDictionary<string, string> IntegrationEventHeaders { get; set; }
         }
     }
 }

@@ -36,7 +36,6 @@
 
             await Define<MyContext>(c =>
                 {
-                    c.EmailDropPath = emailDropPath;
                 })
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .Done(c =>
@@ -104,7 +103,6 @@
 
         public class MyContext : ScenarioContext
         {
-            public string EmailDropPath { get; set; }
         }
 
         public class EndpointWithFailingCustomCheck : EndpointConfigurationBuilder

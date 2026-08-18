@@ -50,34 +50,26 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         [CancelAfter(120_000)]
         public async Task Should_show_up_as_resolved_when_doing_a_multi_retry(CancellationToken cancellationToken = default)
         {
-            FailedMessage failure = null;
-
             await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
-                .Do("Wait for the message to fail", async ctx => (failure = await GetFailedMessage(ctx)) != null)
+                .Do("Wait for the message to fail", async ctx => await GetFailedMessage(ctx))
                 .Do("Retry the message by id", ctx => IssueRetry(ctx, () => this.Post("/api/errors/retry", new List<string> { ctx.UniqueMessageId })))
-                .Do("Wait for it to be resolved", async ctx => await IsResolved(ctx, result => failure = result))
+                .Do("Wait for it to be resolved", async ctx => await IsResolved(ctx))
                 .Done()
                 .Run(cancellationToken);
-
-            Assert.That(failure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
         }
 
         [Test]
         [CancelAfter(120_000)]
         public async Task Should_show_up_as_resolved_when_doing_a_retry_all(CancellationToken cancellationToken = default)
         {
-            FailedMessage failure = null;
-
             await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
-                .Do("Wait for the message to fail", async ctx => (failure = await GetFailedMessage(ctx)) != null)
+                .Do("Wait for the message to fail", async ctx => await GetFailedMessage(ctx))
                 .Do("Retry everything", ctx => IssueRetry(ctx, () => this.Post<object>("/api/errors/retry/all")))
-                .Do("Wait for it to be resolved", async ctx => await IsResolved(ctx, result => failure = result))
+                .Do("Wait for it to be resolved", async ctx => await IsResolved(ctx))
                 .Done()
                 .Run(cancellationToken);
-
-            Assert.That(failure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
         }
 
         [Test]
@@ -90,7 +82,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Do("Wait for the message to fail", async ctx => (failure = await GetFailedMessage(ctx)) != null)
                 .Do("Retry the group it belongs to", ctx => IssueRetry(ctx, () => this.Post<object>($"/api/recoverability/groups/{failure.FailureGroups.First().Id}/errors/retry")))
-                .Do("Wait for it to be resolved", async ctx => await IsResolved(ctx, result => failure = result))
+                .Do("Wait for it to be resolved", async ctx => await IsResolved(ctx))
                 .Done()
                 .Run(cancellationToken);
         }
@@ -99,17 +91,13 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         [CancelAfter(120_000)]
         public async Task Should_show_up_as_resolved_when_doing_a_retry_all_for_the_given_endpoint(CancellationToken cancellationToken = default)
         {
-            FailedMessage failure = null;
-
             await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
-                .Do("Wait for the message to fail", async ctx => (failure = await GetFailedMessage(ctx)) != null)
+                .Do("Wait for the message to fail", async ctx => await GetFailedMessage(ctx))
                 .Do("Retry everything for the endpoint", ctx => IssueRetry(ctx, () => this.Post<object>($"/api/errors/{ctx.EndpointNameOfReceivingEndpoint}/retry/all")))
-                .Do("Wait for it to be resolved", async ctx => await IsResolved(ctx, result => failure = result))
+                .Do("Wait for it to be resolved", async ctx => await IsResolved(ctx))
                 .Done()
                 .Run(cancellationToken);
-
-            Assert.That(failure.Status, Is.EqualTo(FailedMessageStatus.Resolved));
         }
 
         Task<SingleResult<FailedMessage>> GetFailedMessage(MyContext c)
@@ -122,7 +110,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             return this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId);
         }
 
-        async Task<bool> IsResolved(MyContext c, Action<FailedMessage> capture)
+        async Task<bool> IsResolved(MyContext c, Action<FailedMessage> capture = null)
         {
             var result = await GetFailedMessage(c);
 
@@ -131,7 +119,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 return false;
             }
 
-            capture(result);
+            capture?.Invoke(result);
 
             return result.Item.Status == FailedMessageStatus.Resolved;
         }

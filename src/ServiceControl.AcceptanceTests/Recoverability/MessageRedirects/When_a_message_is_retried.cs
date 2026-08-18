@@ -20,36 +20,30 @@
         [CancelAfter(120_000)]
         public async Task It_should_be_sent_to_the_correct_endpoint(CancellationToken cancellationToken = default)
         {
-            var context = await Define<Context>()
+            await Define<Context>()
                 .WithEndpoint<FromEndpoint>(b => b.When(bus => bus.SendLocal(new MessageToRetry()))
-                    .When(async ctx =>
-                    {
-                        if (ctx.UniqueMessageId == null)
-                        {
-                            return false;
-                        }
-
-                        return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
-                    }, async (bus, ctx) =>
-                    {
-                        await this.Post("/api/redirects", new RedirectRequest
-                        {
-                            fromphysicaladdress = ctx.FromAddress,
-                            tophysicaladdress = ctx.ToAddress
-                        }, status => status != HttpStatusCode.Created);
-
-                        await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
-                    }).DoNotFailOnErrorMessages())
+                    .DoNotFailOnErrorMessages())
                 .WithEndpoint<ToNewEndpoint>(c =>
                     c.When((session, ctx) =>
                     {
                         ctx.ToAddress = Conventions.EndpointNamingConvention(typeof(ToNewEndpoint));
                         return Task.CompletedTask;
                     }))
-                .Done(ctx => ctx.Received)
-                .Run(cancellationToken);
+                .Do("Wait for the message to fail", async ctx =>
+                    ctx.UniqueMessageId != null && await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}"))
+                .Do("Redirect the queue and retry", async ctx =>
+                {
+                    await this.Post("/api/redirects", new RedirectRequest
+                    {
+                        fromphysicaladdress = ctx.FromAddress,
+                        tophysicaladdress = ctx.ToAddress
+                    }, status => status != HttpStatusCode.Created);
 
-            Assert.That(context.Received, Is.True);
+                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                })
+                .Do("Wait for the new endpoint to receive it", ctx => Task.FromResult(ctx.Received))
+                .Done()
+                .Run(cancellationToken);
         }
 
         public class FromEndpoint : EndpointConfigurationBuilder
@@ -87,8 +81,9 @@
             }
         }
 
-        public class Context : ScenarioContext
+        public class Context : ScenarioContext, ISequenceContext
         {
+            public int Step { get; set; }
             public string UniqueMessageId { get; set; }
             public string FromAddress { get; set; }
             public string ToAddress { get; set; }
