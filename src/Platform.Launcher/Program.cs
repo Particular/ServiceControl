@@ -1,7 +1,6 @@
 namespace ServiceControl.Launcher;
 
 using System.Collections;
-using System.Diagnostics;
 
 static class Program
 {
@@ -25,48 +24,23 @@ static class Program
                 return ConfigurationErrorExitCode;
             }
 
-            return await Run(plan, CancellationToken.None).ConfigureAwait(false);
+            var shutdownTimeout = LauncherShutdownTimeout.Parse(
+                Environment.GetEnvironmentVariable(LauncherShutdownTimeout.EnvironmentVariable));
+
+            Console.WriteLine($"Selected process roles: {string.Join(", ", plan.Selection.ProcessRoles)}");
+            Console.WriteLine($"Selected capabilities: {(plan.Selection.Capabilities.Count == 0 ? "none" : string.Join(", ", plan.Selection.Capabilities))}");
+
+            using var shutdownSignals = new ShutdownSignalSource();
+            var supervisor = new ChildProcessSupervisor(
+                new SystemChildProcessFactory(),
+                new UnixSignalSender(),
+                TimeProvider.System);
+            return await supervisor.Run(plan, shutdownSignals.Requested, shutdownTimeout).ConfigureAwait(false);
         }
         catch (LauncherConfigurationException exception)
         {
             Console.Error.WriteLine(exception.Message);
             return ConfigurationErrorExitCode;
-        }
-    }
-
-    static async Task<int> Run(LaunchPlan plan, CancellationToken cancellationToken)
-    {
-        foreach (var child in plan.Children)
-        {
-            if (!File.Exists(child.Descriptor.ExecutablePath))
-            {
-                throw new LauncherConfigurationException(
-                    $"The {child.Descriptor.Role} executable was not found at '{child.Descriptor.ExecutablePath}'.");
-            }
-        }
-
-        Console.WriteLine($"Selected process roles: {string.Join(", ", plan.Selection.ProcessRoles)}");
-        Console.WriteLine($"Selected capabilities: {(plan.Selection.Capabilities.Count == 0 ? "none" : string.Join(", ", plan.Selection.Capabilities))}");
-
-        var processes = new List<Process>();
-        try
-        {
-            foreach (var child in plan.Children)
-            {
-                Console.WriteLine($"Starting {child.Descriptor.Role}: {child.Descriptor.ExecutablePath} (port {child.Descriptor.Port})");
-                var startInfo = ChildProcessStartInfoFactory.Create(child);
-                processes.Add(Process.Start(startInfo) ?? throw new InvalidOperationException($"Failed to start {child.Descriptor.Role}."));
-            }
-
-            await Task.WhenAll(processes.Select(process => process.WaitForExitAsync(cancellationToken))).ConfigureAwait(false);
-            return processes.Select(process => process.ExitCode).FirstOrDefault(exitCode => exitCode != 0);
-        }
-        finally
-        {
-            foreach (var process in processes)
-            {
-                process.Dispose();
-            }
         }
     }
 
