@@ -51,5 +51,5 @@ static class ThroughputDataExtensions
     }
 
     public static bool HasDataFromSource(this IDictionary<string, IEnumerable<ThroughputData>> throughputPerQueue, ThroughputSource source) =>
-        throughputPerQueue.Any(queueName => queueName.Value.Any(data => data.ThroughputSource == source && data.Count > 0));
+        throughputPerQueue.Any(queueThroughput => queueThroughput.Value.Any(data => data.ThroughputSource == source && data.Count > 0));
 }

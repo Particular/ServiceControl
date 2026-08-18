@@ -246,6 +246,8 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
         });
     }
 
+    public Task RemoveEndpoints(EndpointIdentifier[] endpointIds, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+
     public Task UpdateUserIndicatorOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (context, token) =>
         {

@@ -177,7 +177,23 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
     }
 
     [Test]
-    public async Task Should_return_correct_max_daily_throughput_in_summary_when_endpoint_has_no_throughput()
+    public async Task Should_return_correct_max_daily_throughput_in_summary_when_endpoint_has_zero_throughput()
+    {
+        // Arrange
+        await DataStore.CreateBuilder().AddEndpoint().WithThroughput(new ThroughputData([
+                new EndpointDailyThroughput(new DateOnly(2025, 1, 10), 0)])).Build();
+
+        // Act
+        var summary = await ThroughputCollector.GetThroughputSummary(CancellationToken.None);
+
+        // Assert
+        Assert.That(summary, Is.Not.Null);
+        Assert.That(summary, Has.Count.EqualTo(1), "Invalid number of endpoints in throughput summary");
+        Assert.That(summary[0].MaxDailyThroughput, Is.EqualTo(0), $"Incorrect MaxDailyThroughput recorded for {summary[0].Name}");
+    }
+
+    [Test]
+    public async Task Should_not_return_endpoint_in_summary_when_endpoint_has_no_throughput()
     {
         // Arrange
         await DataStore.CreateBuilder().AddEndpoint().Build();
@@ -187,8 +203,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
 
         // Assert
         Assert.That(summary, Is.Not.Null);
-        Assert.That(summary, Has.Count.EqualTo(1), "Invalid number of endpoints in throughput summary");
-        Assert.That(summary[0].MaxDailyThroughput, Is.EqualTo(0), $"Incorrect MaxDailyThroughput recorded for {summary[0].Name}");
+        Assert.That(summary, Is.Empty, "Invalid number of endpoints in throughput summary");
     }
 
     [Test]

@@ -173,6 +173,7 @@
 
         public Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName, CancellationToken cancellationToken = default)
         {
+            var hasSent = messageViews.Any(m => m.SendingEndpoint?.Name == endpointName);
             var results = messageViews
                 .Where(m => m.ReceivingEndpoint.Name == endpointName && !m.IsSystemMessage)
                 .GroupBy(m => m.ProcessedAt.ToUniversalTime().Date)
@@ -184,7 +185,13 @@
                 .OrderBy(r => r.UtcDate)
                 .ToList();
 
-            return Task.FromResult(new QueryResult<IList<AuditCount>>(results, QueryStatsInfo.Zero));
+            return results.Count == 0 && hasSent
+                ? Task.FromResult(new QueryResult<IList<AuditCount>>([new AuditCount
+                        {
+                            UtcDate = messageViews.First().ProcessedAt.ToUniversalTime().Date,
+                            Count = 0
+                        }], QueryStatsInfo.Zero))
+                : Task.FromResult(new QueryResult<IList<AuditCount>>(results, QueryStatsInfo.Zero));
         }
 
         public Task SaveProcessedMessage(ProcessedMessage processedMessage, CancellationToken cancellationToken = default)

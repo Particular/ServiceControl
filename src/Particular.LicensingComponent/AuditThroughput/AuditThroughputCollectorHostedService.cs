@@ -78,8 +78,13 @@ public class AuditThroughputCollectorHostedService(
 
             var auditCounts = (await auditQuery.GetAuditCountForEndpoint(knownEndpointsLookup[endpointId].UrlName, cancellationToken)).ToList();
 
-            if (endpoint == null)
+            if (endpoint is null)
             {
+                if (auditCounts.Count <= 0)
+                {
+                    continue;
+                }
+
                 endpoint = ConvertToEndpoint(knownEndpointsLookup[endpointId]);
                 await dataStore.SaveEndpoint(endpoint, cancellationToken);
             }

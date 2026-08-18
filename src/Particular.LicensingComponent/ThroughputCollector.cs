@@ -224,7 +224,14 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
 
             var userIndicator = UserIndicator(endpointGroupPerQueue) ?? null;
 
-            yield return new EndpointData(endpointName, throughputData, userIndicator, EndpointScope(endpointGroupPerQueue), EndpointIndicators(endpointGroupPerQueue), IsKnownEndpoint(endpointGroupPerQueue));
+            if (throughputData.Any(x => x.Any()))
+            {
+                yield return new EndpointData(endpointName, throughputData, userIndicator, EndpointScope(endpointGroupPerQueue), EndpointIndicators(endpointGroupPerQueue), IsKnownEndpoint(endpointGroupPerQueue));
+            }
+            else
+            {
+                await dataStore.RemoveEndpoints([.. endpointGroupPerQueue.Select(endpoint => endpoint.Id)], cancellationToken);
+            }
         }
     }
 

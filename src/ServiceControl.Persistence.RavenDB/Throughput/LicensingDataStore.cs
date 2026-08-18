@@ -121,6 +121,20 @@ class LicensingDataStore(
         await session.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task RemoveEndpoints(EndpointIdentifier[] endpointIds, CancellationToken cancellationToken = default)
+    {
+        var documentIds = endpointIds.Select(id => id.GenerateDocumentId());
+
+        var store = await storeProvider.GetDocumentStore(cancellationToken);
+        using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
+
+        foreach (var documentId in documentIds)
+        {
+            session.Delete(documentId);
+        }
+        await session.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, CancellationToken cancellationToken = default)
     {
         var results = queueNames.ToDictionary(queueName => queueName, _ => new List<ThroughputData>() as IEnumerable<ThroughputData>);
