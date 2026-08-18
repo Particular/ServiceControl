@@ -63,7 +63,7 @@ jobs:
       # https://github.com/Azure/azure-cli/issues/32980
       - name: Set Python 3.13 (Linux)
         if: matrix.name == 'asb'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.13'
       - name: Install pinned Azure CLI on Python 3.13 (Linux)
