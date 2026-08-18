@@ -29,8 +29,13 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
             return MessageBodyResult.NotFound();
         }
 
-        // Bodies are immutable per message, so the id is a stable ETag.
         var uniqueMessageId = row.UniqueMessageId.ToString();
+
+        // Ingestion updates the existing row rather than adding one, so the message id is unchanged 
+        // and cannot serve as a version alone. LastModified is written on every upsert.
+        var version = DataVersion.Compose(
+            ("uniqueMessageId", row.UniqueMessageId),
+            ("lastModified", row.LastModified));
 
         if (row.BodyStoredExternally)
         {
@@ -47,7 +52,7 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
                 return MessageBodyResult.Empty();
             }
 
-            return MessageBodyResult.Available(new MessageBodyStreamContent(external.Stream, external.ContentType, external.BodySize, DataVersion.FromToken(uniqueMessageId)));
+            return MessageBodyResult.Available(new MessageBodyStreamContent(external.Stream, external.ContentType, external.BodySize, version));
         }
 
         if (row.BodyText != null)
@@ -63,7 +68,7 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
                 new MemoryStream(bytes, writable: false),
                 row.BodyContentType ?? "text/plain",
                 bytes.Length,
-                DataVersion.FromToken(uniqueMessageId)));
+                version));
         }
 
         if (row.BodySize == 0)
@@ -99,7 +104,8 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
                 BodyText = message.BodyText,
                 BodyStoredExternally = message.BodyStoredExternally,
                 BodySize = message.BodySize,
-                BodyContentType = message.BodyContentType
+                BodyContentType = message.BodyContentType,
+                LastModified = message.LastModified
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -110,5 +116,6 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
         public bool BodyStoredExternally { get; init; }
         public int BodySize { get; init; }
         public string? BodyContentType { get; init; }
+        public DateTime LastModified { get; init; }
     }
 }

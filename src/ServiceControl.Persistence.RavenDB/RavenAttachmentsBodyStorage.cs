@@ -73,7 +73,8 @@
                 result.Stream,
                 result.Details.ContentType,
                 (int)result.Details.Size,
-                DataVersion.FromToken(result.Details.ChangeVector)));
+                // The change vector moves whenever the stored bytes do.
+                DataVersion.FromContent(result.Details.ChangeVector)));
         }
     }
 }
