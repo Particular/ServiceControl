@@ -5,7 +5,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Persistence.Infrastructure;
-    using Persistence.Infrastructure;
     using Persistence.RavenDB;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Session;

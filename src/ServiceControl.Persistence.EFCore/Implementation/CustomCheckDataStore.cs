@@ -65,6 +65,7 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
             .Take(paging.PageSize)
             .ToListAsync(token);
 
+        // No version: this store has no aggregate that moves when a check's status does.
         return new QueryResult<IList<CustomCheck>>(page.Select(c => new CustomCheck
         {
             Id = c.Id.ToString(),
@@ -73,7 +74,6 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
             Status = c.Status,
             ReportedAt = c.ReportedAt,
             FailureReason = c.FailureReason
-            // No version: this store has no aggregate that moves when a check's status does.
         }).ToList(), new QueryStatsInfo(DataVersion.None, page.Count, false));
     }, cancellationToken);
 

@@ -9,7 +9,6 @@ using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.Infrastructure;
-using ServiceControl.Persistence.Infrastructure;
 
 /// <summary>
 /// Resolves a message body from wherever it was stored.
