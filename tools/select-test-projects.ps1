@@ -5,6 +5,10 @@
 # Writes the selected project paths to $GITHUB_OUTPUT as 'test-projects', and generates an MSBuild
 # traversal project so that `dotnet build` can build the whole selection in one graph.
 #
+# A category can span several test projects that share infrastructure, so that CI provisions its
+# container once and compiles the union of their closures once. Their assemblies then run concurrently,
+# via the -MaxParallel switch on run-tests.ps1.
+#
 # Use -List to print every category and its projects without writing any files.
 
 [CmdletBinding(DefaultParameterSetName = 'Select')]

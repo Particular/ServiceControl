@@ -11,6 +11,9 @@ env:
 defaults:
   run:
     shell: pwsh
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
     name: ${{ matrix.os-name }}-${{ matrix.test-category }}
@@ -18,13 +21,26 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest]
-        # Categories are declared by the <TestCategory> property in each test project.
-        test-category: [ DefaultCore, DefaultAudit, DefaultMonitoring, SqlServer, SqlServerPersistence, AzureServiceBus, RabbitMQClassicConventional, RabbitMQClassicDirect, RabbitMQQuorumConventional, RabbitMQQuorumDirect, AzureStorageQueues, MSMQ, SQS, PrimaryRavenAcceptance, PrimarySqlServerAcceptance, PrimaryPostgreSqlAcceptance, PrimaryRavenPersistence, PostgreSql, PostgreSqlPersistence, IBMMQ ]
+        # Categories are declared by the <TestCategory> property in each test project. A category can
+        # span several projects that share infrastructure, so that the container is provisioned once
+        # and the union of their build closures is compiled once.
+        test-category: [ DefaultCore, DefaultMonitoring, Raven, SqlServer, PostgreSql, RabbitMQ, AzureServiceBus, AzureStorageQueues, MSMQ, SQS, IBMMQ ]
         include:
           - os: windows-latest
             os-name: Windows
           - os: ubuntu-latest
             os-name: Linux
+          # How many of a category's assemblies run at once, so that a multi-project category costs the
+          # slowest of them rather than the sum. Defaults to 1 where unset. Dial down if the shared
+          # infrastructure turns out not to tolerate the concurrency.
+          - test-category: Raven
+            max-parallel: 3
+          - test-category: RabbitMQ
+            max-parallel: 4
+          - test-category: SqlServer
+            max-parallel: 3
+          - test-category: PostgreSql
+            max-parallel: 3
         exclude:
           - os: ubuntu-latest
             test-category: MSMQ
@@ -56,13 +72,12 @@ jobs:
       # run in on Windows. A no-op on Linux, but still run there so those actions see the same
       # environment variables on both runners.
       - name: Setup WSL
-        if: startsWith(matrix.test-category, 'RabbitMQ') || contains(fromJSON('["SqlServer", "SqlServerPersistence", "PrimarySqlServerAcceptance", "PostgreSql", "PostgreSqlPersistence", "PrimaryPostgreSqlAcceptance", "IBMMQ"]'), matrix.test-category)
+        if: contains(fromJSON('["RabbitMQ", "SqlServer", "PostgreSql", "IBMMQ"]'), matrix.test-category)
         uses: Particular/setup-wsl-action@v1.2.0
         with:
           # The action defaults to 4GB. The runner has 16GB and the build runs concurrently with the
           # container starting up, so give the VM real headroom.
           memory: 8GB
-
       # there is an issue with az cli and python 3.14, so for now we need to pin it
       # once the issue is resolved it should be able to be re-floated
       # https://github.com/Azure/azure-cli/issues/32980. 
@@ -79,37 +94,29 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --user "azure-cli==2.64.0"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-
       - name: Setup SQL Server
         uses: Particular/install-sql-server-action@v3.0.0
         if: matrix.test-category == 'SqlServer'
         with:
-          connection-string-env-var: ServiceControl_TransportTests_SQL_ConnectionString
-          catalog: nservicebus
-      - name: Setup SQL Server persistence
-        uses: Particular/install-sql-server-action@v3.0.0
-        if: matrix.test-category == 'SqlServerPersistence' || matrix.test-category == 'PrimarySqlServerAcceptance'
-        with:
           connection-string-env-var: ServiceControl_Persistence_SqlServer_ConnectionString
           catalog: ServiceControl
           enable-full-text-search: true
+      - name: Point the SQL Server transport tests at the same server
+        if: matrix.test-category == 'SqlServer'
+        run: echo "ServiceControl_TransportTests_SQL_ConnectionString=$Env:ServiceControl_Persistence_SqlServer_ConnectionString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
       - name: Setup PostgreSQL
         uses: Particular/setup-postgres-action@v3.0.0
         if: matrix.test-category == 'PostgreSql'
         with:
-          connection-string-name: ServiceControl_TransportTests_PostgreSQL_ConnectionString
-          registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
-          registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Setup PostgreSQL persistence
-        uses: Particular/setup-postgres-action@v3.0.0
-        if: matrix.test-category == 'PostgreSqlPersistence' || matrix.test-category == 'PrimaryPostgreSqlAcceptance'
-        with:
           connection-string-name: ServiceControl_Persistence_PostgreSql_ConnectionString
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
           registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Point the PostgreSQL transport tests at the same server
+        if: matrix.test-category == 'PostgreSql'
+        run: echo "ServiceControl_TransportTests_PostgreSQL_ConnectionString=$Env:ServiceControl_Persistence_PostgreSql_ConnectionString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
       - name: Setup RabbitMQ
         uses: Particular/setup-rabbitmq-action@v2.0.0
-        if: startsWith(matrix.test-category, 'RabbitMQ')
+        if: matrix.test-category == 'RabbitMQ'
         with:
           connection-string-name: ServiceControl_TransportTests_RabbitMQ_ConnectionString
           registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -153,7 +160,7 @@ jobs:
           azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
           tag: ServiceControl
       - name: Run tests
-        run: ./tools/run-tests.ps1 -Projects $Env:TEST_PROJECTS
+        run: ./tools/run-tests.ps1 -Projects $Env:TEST_PROJECTS -MaxParallel ${{ matrix.max-parallel || 1 }}
         env:
           TEST_PROJECTS: ${{ steps.select.outputs.test-projects }}
           ServiceControl_TESTS_FILTER: ${{ matrix.test-category }}

@@ -49,7 +49,6 @@ Running all tests all the times takes a lot of resources. Tests are filtered bas
 Non-transport-specific:
 
 - `DefaultCore`
-- `DefaultAudit`
 - `DefaultMonitoring`
 
 Transports:
@@ -58,25 +57,24 @@ Transports:
 - `AzureStorageQueues`
 - `IBMMQ`
 - `MSMQ`
-- `PostgreSql`
-- `RabbitMQClassicConventional`
-- `RabbitMQClassicDirect`
-- `RabbitMQQuorumConventional`
-- `RabbitMQQuorumDirect`
-- `SqlServer`
+- `RabbitMQ` (all four classic/quorum and conventional/direct routing combinations)
 - `SQS`
+
+Transports and persisters sharing a database server:
+
+- `PostgreSql` (transport, persistence and acceptance tests)
+- `SqlServer` (transport, persistence and acceptance tests)
 
 Persisters:
 
-- `PostgreSqlPersistence`
-- `PrimaryRavenAcceptance`
-- `PrimaryRavenPersistence`
-- `SqlServerPersistence`
+- `Raven` (persistence, acceptance and audit tests)
 
 > [!NOTE]
 > If no variable is defined all tests will be executed.
 
 Each category is declared once, by the `<TestCategory>` property in the test project. CI reads that property to build and run only the projects belonging to the category under test, and the build generates the assembly-level `IncludeInTestCategory` attribute from it, which is what `ServiceControl_TESTS_FILTER` matches against at run time.
+
+A category can span several projects. Where those projects need the same infrastructure, sharing a category means CI provisions it once, compiles the union of their build closures once, and runs their assemblies concurrently on a single runner. That is why, for example, all four RabbitMQ routing topologies are one category rather than four.
 
 ### Adding a test project
 
