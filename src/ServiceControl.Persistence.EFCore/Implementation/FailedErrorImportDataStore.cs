@@ -74,8 +74,10 @@ public class FailedErrorImportDataStore(
         var succeeded = 0;
         var failed = 0;
 
-        while (!cancellationToken.IsCancellationRequested)
+        while (true)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var batch = await ReadBatch(failed, cancellationToken);
 
             if (batch.Count == 0)
@@ -85,10 +87,7 @@ public class FailedErrorImportDataStore(
 
             foreach (var import in batch)
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
+                cancellationToken.ThrowIfCancellationRequested();
 
                 try
                 {
@@ -102,9 +101,9 @@ public class FailedErrorImportDataStore(
 
                     logger.LogDebug("Successfully re-imported failed error message {MessageId}", import.MessageId);
                 }
-                catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested)
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
-                    logger.LogInformation(e, "Cancelled");
+                    throw;
                 }
                 catch (Exception e)
                 {

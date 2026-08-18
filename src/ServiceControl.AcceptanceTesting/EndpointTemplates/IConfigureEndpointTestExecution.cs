@@ -8,6 +8,7 @@
     /// Provide a mechanism in acceptance tests for transports and persistences
     /// to configure an endpoint for a test and then clean up afterwards.
     /// </summary>
+#pragma warning disable PS0018
     public interface IConfigureEndpointTestExecution
     {
         /// <summary>
@@ -32,4 +33,5 @@
         /// <returns>An async Task.</returns>
         Task Cleanup();
     }
+#pragma warning restore PS0018
 }

@@ -15,7 +15,7 @@
         [Test]
         public async Task ShouldCountAuditedMessages()
         {
-            var today = DateTime.UtcNow.Date;
+            var today = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero);
             var yesterday = today.AddDays(-1);
             var weekBefore = yesterday.AddDays(-7);
 
@@ -67,7 +67,7 @@
             }, ScrubDates);
         }
 
-        ProcessedMessage MakeMessage(string processingEndpoint, DateTime processedAt, bool systemMessage)
+        ProcessedMessage MakeMessage(string processingEndpoint, DateTimeOffset processedAt, bool systemMessage)
         {
             var messageId = Guid.NewGuid().ToString();
             var messageType = "MyMessageType";

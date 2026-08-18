@@ -31,8 +31,10 @@
             {
                 var query = session.Query<FailedErrorImport, FailedErrorImportIndex>();
                 await using var stream = await session.Advanced.StreamAsync(query, cancellationToken);
-                while (!cancellationToken.IsCancellationRequested && await stream.MoveNextAsync())
+                while (await stream.MoveNextAsync())
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var transportMessage = stream.Current.Document.Message;
                     try
                     {
@@ -44,9 +46,9 @@
 
                         logger.LogDebug("Successfully re-imported failed error message {MessageId}", transportMessage.Id);
                     }
-                    catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested)
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                     {
-                        logger.LogInformation(e, "Cancelled");
+                        throw;
                     }
                     catch (Exception e)
                     {

@@ -12,7 +12,9 @@ namespace ServiceControl.Config.Commands
         readonly CommonOpenFileDialog dlg;
         readonly Func<string, Task> setPath;
 
+#pragma warning disable PS0013
         public AwaitableSelectPathCommand(Func<string, Task> setPath, string title = null, bool isFolderPicker = false, IEnumerable<CommonFileDialogFilter> filters = null, string defaultPath = "")
+#pragma warning restore PS0013
         {
             dlg = new CommonOpenFileDialog
             {

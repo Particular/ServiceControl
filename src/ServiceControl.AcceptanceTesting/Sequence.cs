@@ -4,6 +4,8 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
+#pragma warning disable PS0013
+#pragma warning disable PS0018
     class Sequence<TContext>
         where TContext : ISequenceContext
     {
@@ -55,4 +57,6 @@
         List<Func<TContext, Task<bool>>> steps = [];
         List<string> stepNames = [];
     }
+#pragma warning restore PS0018
+#pragma warning restore PS0013
 }

@@ -7,6 +7,7 @@
     using NServiceBus.AcceptanceTesting.Support;
     using NUnit.Framework;
 
+#pragma warning disable PS0018
     public class ConfigureEndpointLearningTransport : ITransportIntegration
     {
         public ConfigureEndpointLearningTransport()
@@ -48,4 +49,5 @@
 
         public string TypeName => "LearningTransport";
     }
+#pragma warning restore PS0018
 }

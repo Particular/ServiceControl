@@ -26,6 +26,7 @@
             return new DelegateCommand<T>(executeMethod, canExecuteMethod);
         }
 
+#pragma warning disable PS0013
         public static IAsyncCommand Create(Func<Task> executeMethod)
         {
             return new AwaitableDelegateCommand(_ => executeMethod());
@@ -45,5 +46,6 @@
         {
             return new AwaitableDelegateCommand<T>(executeMethod, canExecuteMethod);
         }
+#pragma warning restore PS0013
     }
 }

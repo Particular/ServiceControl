@@ -169,7 +169,7 @@
             var unitOfWork = await StartAuditUnitOfWork(1);
             var messageId = "duplicatedId";
             var processingEndpoint = "endpoint";
-            var processingStarted = DateTime.UtcNow;
+            var processingStarted = DateTimeOffset.UtcNow;
 
             var processedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
             var duplicatedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
@@ -190,7 +190,7 @@
         {
             var messageId = "duplicatedId";
             var processingEndpoint = "endpoint";
-            var processingStarted = DateTime.UtcNow;
+            var processingStarted = DateTimeOffset.UtcNow;
 
             var processedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
             var unitOfWork1 = await StartAuditUnitOfWork(1);
@@ -215,7 +215,7 @@
             var unitOfWork = await StartAuditUnitOfWork(1);
             var messageId = "duplicatedId";
             var processingEndpoint = "endpoint";
-            var processingStarted = DateTime.UtcNow;
+            var processingStarted = DateTimeOffset.UtcNow;
             var duplicatedProcessingStarted = processingStarted.AddSeconds(5);
 
             var processedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
@@ -255,7 +255,7 @@
             MessageIntent intent = MessageIntent.Send,
             string conversationId = null,
             string processingEndpoint = null,
-            DateTime? processingStarted = null,
+            DateTimeOffset? processingStarted = null,
             string messageType = null
         )
         {
@@ -284,7 +284,7 @@
                 { Headers.ProcessingEndpoint, processingEndpoint },
                 { Headers.MessageIntent, intent.ToString() },
                 { Headers.ConversationId, conversationId },
-                { Headers.ProcessingStarted, DateTimeOffsetHelper.ToWireFormattedString(processingStarted ?? DateTime.UtcNow) },
+                { Headers.ProcessingStarted, DateTimeOffsetHelper.ToWireFormattedString(processingStarted ?? DateTimeOffset.UtcNow) },
                 { Headers.EnclosedMessageTypes, messageType }
             };
 
