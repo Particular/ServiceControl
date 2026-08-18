@@ -1,0 +1,23 @@
+{
+  "profiles": {
+    "Platform Launcher": {
+      "commandName": "Project",
+      "launchBrowser": false,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "SERVICE_CONTROL_ROLE": "All",
+        "SERVICECONTROL_LAUNCHER_RUN_IN_PLACE": "true"
+      }
+    },
+    "Setup and Run Platform Launcher": {
+      "commandName": "Project",
+      "commandLineArgs": "--setup-and-run",
+      "launchBrowser": false,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "SERVICE_CONTROL_ROLE": "All",
+        "SERVICECONTROL_LAUNCHER_RUN_IN_PLACE": "true"
+      }
+    }
+  }
+}
