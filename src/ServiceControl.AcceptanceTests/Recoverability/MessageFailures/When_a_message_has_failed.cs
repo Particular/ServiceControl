@@ -232,14 +232,12 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             [Handler]
             public class MyMessageHandler(
                 MyContext testContext,
-                IReadOnlySettings settings,
-                ReceiveAddresses receiveAddresses)
+                IReadOnlySettings settings)
                 : IHandleMessages<MyMessage>
             {
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
-                    testContext.LocalAddress = receiveAddresses.MainReceiveAddress;
                     testContext.MessageId = context.MessageId.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }
@@ -258,14 +256,12 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             [Handler]
             public class MyMessageHandler(
                 MyContext testContext,
-                IReadOnlySettings settings,
-                ReceiveAddresses receiveAddresses)
+                IReadOnlySettings settings)
                 : IHandleMessages<MyMessage>
             {
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
-                    testContext.LocalAddress = receiveAddresses.MainReceiveAddress;
                     testContext.MessageId = context.MessageId.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }
@@ -328,7 +324,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             public string MessageId { get; set; }
             public string EndpointNameOfReceivingEndpoint { get; set; }
             public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
-            public string LocalAddress { get; set; }
         }
 
         public class QueueSearchContext : ScenarioContext

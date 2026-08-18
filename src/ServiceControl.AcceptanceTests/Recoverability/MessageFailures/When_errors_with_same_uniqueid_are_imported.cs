@@ -71,10 +71,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 {
                     testContext.OnMessage(counter);
                 }
-                else
-                {
-                    Console.WriteLine("No Counter header found");
-                }
             }
         }
 

@@ -18,9 +18,6 @@ namespace ServiceControl.AcceptanceTests.Licensing
     using Particular.LicensingComponent.MonitoringThroughput;
     using Particular.LicensingComponent.Shared;
 
-    // The journey ServicePulse's throughput page walks a user through: see whether a report is
-    // possible, review where the numbers come from, correct what counts as an endpoint, redact the
-    // names that cannot leave the building, and download the report to send to Particular.
     class When_creating_a_usage_report_on_a_non_broker_transport : AcceptanceTest
     {
         [Test]
@@ -135,8 +132,6 @@ namespace ServiceControl.AcceptanceTests.Licensing
             public int Step { get; set; }
         }
 
-        // Stands in for the monitoring instance, which reports what it saw to the primary instance's
-        // throughput queue.
         class MonitoringInstance : EndpointConfigurationBuilder
         {
             public MonitoringInstance() =>
@@ -146,8 +141,7 @@ namespace ServiceControl.AcceptanceTests.Licensing
             {
                 protected override TransportOperations CreateMessage(Context context)
                 {
-                    // Yesterday: a report only counts complete days, so throughput recorded for today
-                    // is deliberately not enough to generate one.
+                    // Yesterday, because a usage report only counts complete days.
                     var recorded = new RecordEndpointThroughputData
                     {
                         StartDateTime = DateTime.UtcNow.AddDays(-1).AddHours(-1),

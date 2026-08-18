@@ -19,22 +19,13 @@
         public async Task Should_import_all_messages(CancellationToken cancellationToken = default)
         {
             await Define<MyContext>()
-                .WithEndpoint<Receiver>(b => b.When(bus => Task.WhenAll(Enumerable.Repeat(0, 100).Select(i => bus.SendLocal(new MyMessage())))).DoNotFailOnErrorMessages())
+                .WithEndpoint<Receiver>(b => b.When(bus => Task.WhenAll(Enumerable.Repeat(0, ExpectedMessages).Select(i => bus.SendLocal(new MyMessage())))).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     var result = await this.TryGetMany<MessagesView>("/api/messages?per_page=150");
-                    if (!result)
-                    {
-                        return false;
-                    }
+                    c.MessagesImported = result ? ((List<MessagesView>)result).Count : 0;
 
-                    List<MessagesView> messages = result;
-                    if (messages.Count < 100)
-                    {
-                        Console.Out.WriteLine("Messages found: " + messages.Count);
-                    }
-
-                    return messages.Count >= 100;
+                    return c.MessagesImported >= ExpectedMessages;
                 })
                 .Run(cancellationToken);
         }
@@ -53,6 +44,11 @@
 
         public class MyMessage : ICommand;
 
-        public class MyContext : ScenarioContext;
+        const int ExpectedMessages = 100;
+
+        public class MyContext : ScenarioContext
+        {
+            public int MessagesImported { get; set; }
+        }
     }
 }

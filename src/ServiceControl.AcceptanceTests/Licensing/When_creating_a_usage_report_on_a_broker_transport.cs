@@ -24,8 +24,6 @@ namespace ServiceControl.AcceptanceTests.Licensing
     using Particular.LicensingComponent.Shared;
     using ServiceControl.Transports.BrokerThroughput;
 
-    // The same journey as When_creating_a_usage_report_on_a_non_broker_transport, on the branch every
-    // production install except MSMQ takes. 
     class When_creating_a_usage_report_on_a_broker_transport : AcceptanceTest
     {
         [Test]
@@ -63,8 +61,6 @@ namespace ServiceControl.AcceptanceTests.Licensing
                 })
                 .Do("List the endpoints reporting throughput", async _ =>
                 {
-                    // Monitoring reports the same endpoint the broker measured, so wait for both
-                    // before reading the list, otherwise the grouping below proves nothing.
                     var summary = await this.TryGet<List<EndpointThroughputSummary>>(
                         "/api/licensing/endpoints",
                         items => items.Any(item => item.MaxDailyThroughput == BrokerThroughput));
@@ -99,9 +95,6 @@ namespace ServiceControl.AcceptanceTests.Licensing
                 Assert.That(reportData.GetProperty("ReportMethod").GetString(), Is.EqualTo("Broker"),
                     "Particular reads the report method to know how the numbers were measured");
 
-                // The broker calls the queue Contoso/Sales and monitoring calls the endpoint the same
-                // thing, but the two only line up once the broker's sanitized name is applied to both.
-                // Without that they are two endpoints, and the customer's report counts them twice.
                 Assert.That(endpoints, Has.Exactly(1).Items,
                     "The broker queue and the monitored endpoint are one endpoint, not two");
 
@@ -124,8 +117,7 @@ namespace ServiceControl.AcceptanceTests.Licensing
             }
         }
 
-        // The collector waits 40 seconds before its first pass, which is longer than this scenario
-        // should take, and the delay is only reachable through the registration.
+        // The collector waits 40 seconds before its first pass, reachable only through the registration.
         static void CollectFromTheBrokerImmediately(IHostApplicationBuilder builder)
         {
             var scheduled = builder.Services.Single(registration =>
@@ -161,7 +153,6 @@ namespace ServiceControl.AcceptanceTests.Licensing
             public int Step { get; set; }
         }
 
-        // Reports the same endpoint the broker measured, under the name monitoring knows it by.
         class MonitoringInstance : EndpointConfigurationBuilder
         {
             public MonitoringInstance() =>
