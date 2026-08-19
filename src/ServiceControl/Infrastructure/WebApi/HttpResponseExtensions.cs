@@ -21,9 +21,8 @@ namespace ServiceControl.Infrastructure.WebApi
             }
 
             // Quotes are required by RFC 9110. Without them EntityTagHeaderValue cannot parse the tag and
-            // NotModifiedStatusHttpHandler never matches a client's If-None-Match. Weak unless the
-            // producing mechanism moves with the stored bytes.
-            response.Headers.ETag = version.IsStrong ? $"\"{version}\"" : $"W/\"{version}\"";
+            // NotModifiedStatusHttpHandler never matches a client's If-None-Match.
+            response.Headers.ETag = $"W/\"{version}\"";
         }
 
         public static void WithQueryStatsInfo(this HttpResponse response, QueryStatsInfo queryStatsInfo)

@@ -248,44 +248,9 @@ public class DataVersionTests
     }
 
     [Test]
-    public void Only_FromContent_promises_byte_equivalence()
+    public void Matching_ignores_the_weak_marking_a_client_sends()
     {
-        Assert.Multiple(() =>
-        {
-            Assert.That(DataVersion.FromContent("cv-1").IsStrong, Is.True);
-            Assert.That(DataVersion.FromToken("cv-1").IsStrong, Is.False);
-            Assert.That(DataVersion.FromToken(1L).IsStrong, Is.False);
-            Assert.That(DataVersion.FromClient("\"cv-1\"").IsStrong, Is.False);
-            Assert.That(DataVersion.None.IsStrong, Is.False);
-        });
-    }
-
-    [Test]
-    public void Composing_and_combining_are_never_exact()
-    {
-        var exact = DataVersion.FromContent("cv-1");
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(DataVersion.Compose(("total", 3L)).IsStrong, Is.False,
-                "a hash over aggregates cannot promise the bytes are identical");
-            Assert.That(DataVersion.Combine([("one", exact), ("two", exact)]).IsStrong, Is.False,
-                "a composite across instances is an approximation whatever went into it");
-        });
-    }
-
-    [Test]
-    public void Matching_ignores_the_marking()
-    {
-        // RFC 9110 requires the weak comparison, which ignores the marking. Anything coming back through
-        // FromClient has lost its marking anyway, so this is the normal case and not an edge one.
-        Assert.That(DataVersion.FromContent("cv-1").Matches(DataVersion.FromClient("W/\"cv-1\"")), Is.True);
-    }
-
-    [Test]
-    public void Equality_does_not_ignore_the_marking()
-    {
-        Assert.That(DataVersion.FromContent("cv-1").Equals(DataVersion.FromToken("cv-1")), Is.False,
-            "Equals is ordinary value equality over everything the struct holds, which is why it must never decide not-modified");
+        // RFC 9110 requires If-None-Match to use the weak comparison.
+        Assert.That(DataVersion.FromToken("cv-1").Matches(DataVersion.FromClient("W/\"cv-1\"")), Is.True);
     }
 }

@@ -23,26 +23,14 @@ namespace ServiceControl.Persistence.Infrastructure
     public readonly struct DataVersion : IEquatable<DataVersion>
     {
         readonly string validator;
-        readonly bool strong;
 
-        DataVersion(string validator, bool strong = false)
-        {
-            this.validator = validator;
-            this.strong = strong;
-        }
+        DataVersion(string validator) => this.validator = validator;
 
         public static readonly DataVersion None = default;
 
         public bool HasValue => validator is not null;
 
-        /// <summary>
-        /// Whether this promises the bytes are identical, which decides if it goes out marked weak. Only
-        /// <see cref="FromContent"/> can promise it. <see cref="Matches"/> ignores it, because RFC 9110 says
-        /// <c>If-None-Match</c> compares tags without regard to strength.
-        /// </summary>
-        public bool IsStrong => strong;
-
-        /// <summary>A version the backend made itself. Weak: it covers a result set, not the response bytes.</summary>
+        /// <summary>A version the backend made itself.</summary>
         public static DataVersion FromToken(string token) =>
             string.IsNullOrEmpty(token) ? None : new DataVersion(token);
 
@@ -50,16 +38,9 @@ namespace ServiceControl.Persistence.Infrastructure
             new(token.ToString(CultureInfo.InvariantCulture));
 
         /// <summary>
-        /// A backend token that moves whenever the response bytes move, so the tag goes out unmarked. Only
-        /// the caller can know that holds, so only use it where it demonstrably does.
-        /// </summary>
-        public static DataVersion FromContent(string token) =>
-            string.IsNullOrEmpty(token) ? None : new DataVersion(token, strong: true);
-
-        /// <summary>
         /// A version over the query behind the page. Every field the response shows has to be covered by a
         /// term, measured over the same filtered set, or a change to an uncovered one leaves a client holding
-        /// a stale page. Always weak: a summary cannot promise the bytes.
+        /// a stale page.
         /// </summary>
         public static DataVersion Compose(params (string Name, object Value)[] terms) =>
             terms is null || terms.Length == 0
@@ -90,7 +71,7 @@ namespace ServiceControl.Persistence.Infrastructure
         /// <summary>
         /// One version for a result gathered from several instances. Missing anywhere means missing overall.
         /// Keyed on the instance, so a validator moving from one instance to another still moves the
-        /// composite. Always weak, whatever went in, since it goes through <see cref="Compose"/>.
+        /// composite.
         /// </summary>
         public static DataVersion Combine(IEnumerable<(string InstanceId, DataVersion Version)> versions)
         {
@@ -149,23 +130,21 @@ namespace ServiceControl.Persistence.Infrastructure
 
         /// <summary>
         /// Whether a caller holding <paramref name="other"/> already has this version. The only question a
-        /// store or a conditional-request filter should ask. Ignores <see cref="IsStrong"/>: RFC 9110 requires
-        /// the weak comparison, and a version that came back through <see cref="FromClient"/> has lost its
-        /// marking anyway.
+        /// store or a conditional-request filter should ask.
         /// </summary>
         public bool Matches(DataVersion other) =>
             HasValue && other.HasValue && string.Equals(validator, other.validator, StringComparison.Ordinal);
 
         /// <summary>
-        /// Plain value equality, marking included. Never use it to decide whether something changed: it is
+        /// Plain value equality. Never use it to decide whether something changed: it is
         /// reflexive, so <see cref="None"/> equals <see cref="None"/>.
         /// </summary>
         public bool Equals(DataVersion other) =>
-            strong == other.strong && string.Equals(validator, other.validator, StringComparison.Ordinal);
+            string.Equals(validator, other.validator, StringComparison.Ordinal);
 
         public override bool Equals(object obj) => obj is DataVersion other && Equals(other);
 
-        public override int GetHashCode() => HashCode.Combine(validator?.GetHashCode(StringComparison.Ordinal) ?? 0, strong);
+        public override int GetHashCode() => validator?.GetHashCode(StringComparison.Ordinal) ?? 0;
 
         /// <summary>The validator unquoted, or an empty string for <see cref="None"/>.</summary>
         public override string ToString() => validator ?? string.Empty;

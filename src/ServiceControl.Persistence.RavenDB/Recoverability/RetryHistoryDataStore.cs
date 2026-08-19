@@ -12,7 +12,7 @@
 
         // Before the first operation completes there is no document and so no change vector, but an
         // empty history still has to be cacheable.
-        static readonly DataVersion EmptyHistory = DataVersion.FromContent("no-retry-history");
+        static readonly DataVersion EmptyHistory = DataVersion.FromToken("no-retry-history");
 
         public async Task<QueryResult<RetryHistory>> GetRetryHistory(CancellationToken cancellationToken = default)
         {
@@ -21,7 +21,7 @@
 
             var version = retryHistory == null
                 ? EmptyHistory
-                : DataVersion.FromContent(session.Advanced.GetChangeVectorFor(retryHistory));
+                : DataVersion.FromToken(session.Advanced.GetChangeVectorFor(retryHistory));
 
             retryHistory ??= new();
 

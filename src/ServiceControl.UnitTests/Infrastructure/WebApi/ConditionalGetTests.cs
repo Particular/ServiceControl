@@ -99,35 +99,6 @@ public class ConditionalGetTests
         });
     }
 
-    [Test]
-    public void An_exact_etag_goes_out_unmarked()
-    {
-        var httpContext = new DefaultHttpContext();
-
-        httpContext.Response.WithEtag(DataVersion.FromContent("A:2-abc"));
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(httpContext.Response.Headers.ETag.ToString(), Is.EqualTo("\"A:2-abc\""));
-            Assert.That(httpContext.Response.GetTypedHeaders().ETag.IsWeak, Is.False);
-        });
-    }
-
-    [Test]
-    public void A_client_holding_a_weak_tag_matches_an_exact_response_tag()
-    {
-        var httpContext = new DefaultHttpContext();
-
-        httpContext.Response.WithEtag(DataVersion.FromContent("A:2-abc"));
-        httpContext.Request.Headers.IfNoneMatch = "W/\"A:2-abc\"";
-
-        var context = ResultExecuting(httpContext);
-
-        new NotModifiedStatusHttpHandler().OnResultExecuting(context);
-
-        Assert.That(context.Result, Is.InstanceOf<StatusCodeResult>(),
-            "weak comparison ignores strength on both sides, which is what lets an exact and a weak tag over the same value match");
-    }
 
     [Test]
     public void A_weak_validator_matches_under_the_comparison_If_None_Match_requires()
@@ -214,19 +185,6 @@ public class ConditionalGetTests
 
         Assert.That(httpContext.Request.GetKnownVersion().Matches(issued), Is.True,
             "the store cannot skip work for a version it can no longer recognise coming back");
-    }
-
-    [Test]
-    public void An_exact_version_survives_the_round_trip_too()
-    {
-        var issued = DataVersion.FromContent("cv-1");
-
-        var httpContext = new DefaultHttpContext();
-        httpContext.Response.WithEtag(issued);
-        httpContext.Request.Headers.IfNoneMatch = httpContext.Response.Headers.ETag;
-
-        Assert.That(httpContext.Request.GetKnownVersion().Matches(issued), Is.True,
-            "an unmarked tag goes out without the W/ prefix, so the return path has to cope with both shapes");
     }
 
     [Test]
