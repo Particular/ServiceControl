@@ -24,13 +24,11 @@
             EndpointInstanceMonitoring endpointInstanceMonitoring,
             IEnumerable<IEnrichImportedAuditMessages> auditEnrichers, // allows extending message enrichers with custom enrichers registered in the DI container
             IMessageSession messageSession,
-            Lazy<IMessageDispatcher> messageDispatcher,
             ITransportCustomization transportCustomization,
             ILogger<AuditIngestor> logger
         )
         {
             this.settings = settings;
-            this.messageDispatcher = messageDispatcher;
             this.logger = logger;
             var enrichers = new IEnrichImportedAuditMessages[] { new MessageTypeEnricher(), new EnrichWithTrackingIds(), new ProcessingStatisticsEnricher(), new DetectNewEndpointsFromAuditImportsEnricher(endpointInstanceMonitoring), new DetectSuccessfulRetriesEnricher(), new SagaRelationshipsEnricher() }.Concat(auditEnrichers).ToArray();
 
@@ -40,20 +38,19 @@
                 unitOfWorkFactory,
                 enrichers,
                 messageSession,
-                messageDispatcher,
                 logger
             );
         }
 
-        public async Task Ingest(List<MessageContext> contexts, CancellationToken cancellationToken = default)
+        public async Task Ingest(List<MessageContext> contexts, IMessageDispatcher dispatcher, CancellationToken cancellationToken = default)
         {
-            var stored = await auditPersister.Persist(contexts, cancellationToken);
+            var stored = await auditPersister.Persist(contexts, dispatcher, cancellationToken);
 
             try
             {
                 if (settings.ForwardAuditMessages)
                 {
-                    await Forward(stored, logQueueAddress, cancellationToken);
+                    await Forward(stored, logQueueAddress, dispatcher, cancellationToken);
                 }
 
                 foreach (var context in contexts)
@@ -74,7 +71,7 @@
             }
         }
 
-        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, string forwardingAddress, CancellationToken cancellationToken)
+        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, string forwardingAddress, IMessageDispatcher dispatcher, CancellationToken cancellationToken)
         {
             var transportOperations = new List<TransportOperation>(messageContexts.Count);
             MessageContext anyContext = null;
@@ -99,13 +96,13 @@
             }
 
             return anyContext != null
-                ? messageDispatcher.Value.Dispatch(
+                ? dispatcher.Dispatch(
                     new TransportOperations([.. transportOperations]),
                     anyContext.TransportTransaction, cancellationToken)
                 : Task.CompletedTask;
         }
 
-        public async Task VerifyCanReachForwardingAddress(CancellationToken cancellationToken = default)
+        public async Task VerifyCanReachForwardingAddress(IMessageDispatcher dispatcher, CancellationToken cancellationToken = default)
         {
             if (!settings.ForwardAuditMessages)
             {
@@ -122,7 +119,7 @@
                     )
                 );
 
-                await messageDispatcher.Value.Dispatch(transportOperations, new TransportTransaction(), cancellationToken);
+                await dispatcher.Dispatch(transportOperations, new TransportTransaction(), cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -136,7 +133,6 @@
 
         readonly AuditPersister auditPersister;
         readonly Settings settings;
-        readonly Lazy<IMessageDispatcher> messageDispatcher;
         readonly string logQueueAddress;
 
         readonly ILogger logger;
