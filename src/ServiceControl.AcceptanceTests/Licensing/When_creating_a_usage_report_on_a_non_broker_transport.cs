@@ -122,9 +122,9 @@ namespace ServiceControl.AcceptanceTests.Licensing
             return JsonDocument.Parse(entry);
         }
 
-        const string RedactedCustomer = "Contoso";
-        const string SalesEndpoint = "Contoso.Sales";
-        const string NotAnEndpoint = "Contoso.Website.Inbox";
+        const string RedactedCustomer = "Particular";
+        const string SalesEndpoint = "Particular.Sales";
+        const string NotAnEndpoint = "Particular.Website.Inbox";
         const long SalesThroughput = 42;
 
         class Context : ScenarioContext, ISequenceContext
