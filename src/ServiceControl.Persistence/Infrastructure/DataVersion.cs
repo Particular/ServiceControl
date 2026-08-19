@@ -48,16 +48,19 @@ namespace ServiceControl.Persistence.Infrastructure
                 : new DataVersion(DeterministicGuid.MakeId(Describe(terms)).ToString());
 
         /// <summary>
-        /// A version for one page of a result set. <paramref name="state"/> covers what the response says
-        /// about the whole set, such as the total behind Total-Count, and one term per row covers which rows
-        /// this page actually renders.
+        /// A version over a list the response renders row by row. <paramref name="summary"/> covers whatever
+        /// the response says about the list as a whole, such as the total behind Total-Count when the rows are
+        /// only one page of it, and one term per row covers the rows themselves. Every field a row shows has
+        /// to appear in <paramref name="fields"/>, and each is length prefixed, so no value can pose as a
+        /// different set of fields. Rows are named by position, so a caller whose query has no ORDER BY has to
+        /// sort them first.
         /// </summary>
-        public static DataVersion OverPage<TRow>((string Name, object Value)[] state, IEnumerable<TRow> rows, Func<TRow, object[]> fields)
+        public static DataVersion OverRows<TRow>((string Name, object Value)[] summary, IEnumerable<TRow> rows, Func<TRow, object[]> fields)
         {
             ArgumentNullException.ThrowIfNull(rows);
             ArgumentNullException.ThrowIfNull(fields);
 
-            var terms = new List<(string Name, object Value)>(state ?? []);
+            var terms = new List<(string Name, object Value)>(summary ?? []);
             var row = 0;
 
             foreach (var item in rows)
@@ -164,6 +167,7 @@ namespace ServiceControl.Persistence.Infrastructure
         {
             null => string.Empty,
             string text => text,
+            bool flag => flag.ToString(),
             DateTime timestamp => timestamp.Ticks.ToString(CultureInfo.InvariantCulture),
             DateTimeOffset timestamp => timestamp.UtcTicks.ToString(CultureInfo.InvariantCulture),
             IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),

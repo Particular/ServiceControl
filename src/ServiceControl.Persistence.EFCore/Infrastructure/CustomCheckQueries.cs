@@ -1,6 +1,5 @@
 namespace ServiceControl.Persistence.EFCore.Infrastructure;
 
-using System;
 using ServiceControl.Contracts.CustomChecks;
 using ServiceControl.Persistence.Infrastructure;
 
@@ -13,10 +12,8 @@ static class CustomCheckQueries
     /// updated.
     /// </summary>
     public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<CustomCheck> page, long totalCount) =>
-        new(DataVersion.Compose(
-                ("checks", totalCount),
-                ("page", string.Join("|", page.Select(check => FormattableString.Invariant(
-                    $"{check.Id}.{check.CustomCheckId}.{check.Category}.{check.Status}.{check.ReportedAt.Ticks}.{check.FailureReason}"))))),
+        new(DataVersion.OverRows([("checks", totalCount)], page,
+                check => [check.Id, check.CustomCheckId, check.Category, check.Status, check.ReportedAt, check.FailureReason]),
             totalCount,
             false);
 }

@@ -14,7 +14,7 @@ namespace ServiceControl.Persistence
         /// </summary>
         public static QueryStatsInfo ToPagedQueryStatsInfo<TRow>(this QueryStatistics stats, IEnumerable<TRow> page, Func<TRow, string> id) =>
             new(stats.ResultEtag is { } resultEtag
-                    ? DataVersion.OverPage([("index", resultEtag), ("total", stats.TotalResults)], page, row => [id(row)])
+                    ? DataVersion.OverRows([("index", resultEtag), ("total", stats.TotalResults)], page, row => [id(row)])
                     : DataVersion.None,
                 stats.TotalResults,
                 stats.IsStale);

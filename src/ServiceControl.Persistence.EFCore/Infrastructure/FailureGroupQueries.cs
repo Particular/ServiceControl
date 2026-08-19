@@ -28,10 +28,8 @@ static class FailureGroupQueries
     /// either is a different row rather than a changed one.
     /// </summary>
     public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<FailureGroupView> groups) =>
-        new(DataVersion.Compose(
-                ("groups", groups.Count),
-                ("state", string.Join("|", groups.Select(group => FormattableString.Invariant(
-                    $"{group.Id}.{group.Title}.{group.Type}.{group.Count}.{group.Comment}.{group.First.Ticks}.{group.Last.Ticks}"))))),
+        new(DataVersion.OverRows([("groups", groups.Count)], groups,
+                group => [group.Id, group.Title, group.Type, group.Count, group.Comment, group.First, group.Last]),
             groups.Count,
             false);
 }

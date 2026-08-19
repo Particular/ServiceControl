@@ -235,5 +235,25 @@ namespace ServiceControl.UnitTests.Operations
             Assert.That(ResponseVersions.VersionOf(oneGroup).Matches(emptyVersion), Is.False,
                 "an empty list is a representation like any other, so this compares two real versions rather than a version against nothing");
         }
+
+        [Test]
+        public void A_title_carrying_a_delimiter_cannot_impersonate_the_next_field()
+        {
+            var carrying = ResponseVersions.VersionOf([new GroupOperation { Title = "Shipping.Exception", Type = string.Empty }]);
+            var split = ResponseVersions.VersionOf([new GroupOperation { Title = "Shipping", Type = "Exception" }]);
+
+            Assert.That(carrying.Matches(split), Is.False,
+                "two groups a client can tell apart must not share a validator");
+        }
+
+        [Test]
+        public void Two_groups_cannot_digest_as_one_carrying_a_delimiter()
+        {
+            var two = ResponseVersions.VersionOf([new GroupOperation { Id = "a" }, new GroupOperation { Id = "b" }]);
+            var oneForging = ResponseVersions.VersionOf([new GroupOperation { Id = "a|row1:1:b" }]);
+
+            Assert.That(oneForging.Matches(two), Is.False,
+                "a row able to pose as a longer row list would let user text pin the validator");
+        }
     }
 }
