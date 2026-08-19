@@ -26,13 +26,11 @@
             IEnumerable<IFailedMessageEnricher> failedMessageEnrichers,
             IDomainEvents domainEvents,
             IIngestionUnitOfWorkFactory unitOfWorkFactory,
-            Lazy<IMessageDispatcher> messageDispatcher,
             ITransportCustomization transportCustomization,
             Settings settings,
             ILogger<ErrorIngestor> logger)
         {
             this.unitOfWorkFactory = unitOfWorkFactory;
-            this.messageDispatcher = messageDispatcher;
             this.settings = settings;
             this.logger = logger;
             bulkInsertDurationMeter = metrics.GetMeter("Error ingestion - bulk insert duration", FrequencyInMilliseconds);
@@ -51,7 +49,7 @@
             logQueueAddress = new UnicastAddressTag(transportCustomization.ToTransportQualifiedQueueName(this.settings.ErrorLogQueue));
         }
 
-        public async Task Ingest(List<MessageContext> contexts, CancellationToken cancellationToken = default)
+        public async Task Ingest(List<MessageContext> contexts, IMessageDispatcher dispatcher, CancellationToken cancellationToken = default)
         {
             var failedMessages = new List<MessageContext>(contexts.Count);
             var retriedMessages = new List<MessageContext>(contexts.Count);
@@ -89,7 +87,7 @@
                 {
                     logger.LogDebug("Forwarding {FailedMessageCount} messages", storedFailed.Count);
 
-                    await Forward(storedFailed, cancellationToken);
+                    await Forward(storedFailed, dispatcher, cancellationToken);
 
                     logger.LogDebug("Forwarded messages");
                 }
@@ -149,7 +147,7 @@
             }
         }
 
-        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, CancellationToken cancellationToken)
+        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, IMessageDispatcher dispatcher, CancellationToken cancellationToken)
         {
             var transportOperations = new TransportOperation[messageContexts.Count]; //We could allocate based on the actual number of ProcessedMessages but this should be OK
             var index = 0;
@@ -170,13 +168,13 @@
             }
 
             return anyContext != null
-                ? messageDispatcher.Value.Dispatch(
+                ? dispatcher.Dispatch(
                     new TransportOperations(transportOperations),
                     anyContext.TransportTransaction, cancellationToken)
                 : Task.CompletedTask;
         }
 
-        public async Task VerifyCanReachForwardingAddress(CancellationToken cancellationToken = default)
+        public async Task VerifyCanReachForwardingAddress(IMessageDispatcher dispatcher, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -188,7 +186,7 @@
                     )
                 );
 
-                await messageDispatcher.Value.Dispatch(transportOperations, new TransportTransaction(), cancellationToken);
+                await dispatcher.Dispatch(transportOperations, new TransportTransaction(), cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -204,7 +202,6 @@
         readonly Meter bulkInsertDurationMeter;
         readonly Settings settings;
         readonly ErrorProcessor errorProcessor;
-        readonly Lazy<IMessageDispatcher> messageDispatcher;
         readonly RetryConfirmationProcessor retryConfirmationProcessor;
         readonly UnicastAddressTag logQueueAddress;
 
