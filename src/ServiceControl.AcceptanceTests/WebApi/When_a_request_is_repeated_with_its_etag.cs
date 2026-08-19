@@ -6,14 +6,14 @@ namespace ServiceControl.AcceptanceTests.WebApi
     using AcceptanceTesting;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using Recoverability.MessageRedirects;
 
     class When_a_request_is_repeated_with_its_etag : AcceptanceTest
     {
-        [TestCase("/api/customchecks", "GET", false)]
-        [TestCase("/api/redirects", "GET", true)]
-        [TestCase("/api/redirect", "HEAD", true)]
-        public async Task Should_answer_not_modified(string url, string method, bool seedARedirect)
+        [TestCase("/api/customchecks", "GET")]
+        [TestCase("/api/redirects", "GET")]
+        [TestCase("/api/redirect", "HEAD")]
+        [TestCase("/api/errors/queues/addresses", "GET")]
+        public async Task Should_answer_not_modified(string url, string method)
         {
             Answer issued = null;
             Answer repeated = null;
@@ -21,15 +21,6 @@ namespace ServiceControl.AcceptanceTests.WebApi
             await Define<Context>()
                 .Done(async ctx =>
                 {
-                    if (seedARedirect)
-                    {
-                        await this.Post("/api/redirects", new RedirectRequest
-                        {
-                            fromphysicaladdress = "endpointA@machine1",
-                            tophysicaladdress = "endpointB@machine2"
-                        }, status => status is not HttpStatusCode.Created);
-                    }
-
                     // Internal custom checks re-report on a timer, so the validator can move between
                     // the two requests.
                     for (var attempt = 0; attempt < 5; attempt++)

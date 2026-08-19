@@ -42,7 +42,6 @@ class QueueAddressVersionTests : IngestionTestBase
 
         var before = await QueueAddressStore.GetAddresses(new PagingInfo());
 
-        AdvanceClock(TimeSpan.FromHours(1));
         await Ingest(MovedTo("OtherEndpoint@machine2", first));
         await CompleteDatabaseOperation();
 

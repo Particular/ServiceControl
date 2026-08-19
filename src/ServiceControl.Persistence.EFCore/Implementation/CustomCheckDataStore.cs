@@ -59,22 +59,31 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
             _ => query
         };
 
-        var page = await query
+        var checks = await query
             .OrderBy(c => c.ReportedAt)
             .Skip(paging.Offset)
             .Take(paging.PageSize)
+            .Select(c => new CustomCheck
+            {
+                Id = c.Id.ToString(),
+                CustomCheckId = c.CustomCheckId,
+                Category = c.Category,
+                Status = c.Status,
+                ReportedAt = c.ReportedAt,
+                FailureReason = c.FailureReason
+            })
             .ToListAsync(token);
 
-        // No version: this store has no aggregate that moves when a check's status does.
-        return new QueryResult<IList<CustomCheck>>(page.Select(c => new CustomCheck
-        {
-            Id = c.Id.ToString(),
-            CustomCheckId = c.CustomCheckId,
-            Category = c.Category,
-            Status = c.Status,
-            ReportedAt = c.ReportedAt,
-            FailureReason = c.FailureReason
-        }).ToList(), new QueryStatsInfo(DataVersion.None, page.Count, false));
+        var totalCount = await query.CountAsync(token);
+
+        // Every field of every check the body shows, along with the total count provides a reliable
+        // data version.
+        var version = DataVersion.Compose(
+            ("checks", totalCount),
+            ("page", string.Join("|", checks.Select(check => FormattableString.Invariant(
+                $"{check.Id}.{check.CustomCheckId}.{check.Category}.{check.Status}.{check.ReportedAt.Ticks}.{check.FailureReason}")))));
+
+        return new QueryResult<IList<CustomCheck>>(checks, new QueryStatsInfo(version, totalCount, false));
     }, cancellationToken);
 
     public Task DeleteCustomCheck(Guid id, CancellationToken cancellationToken = default) => ExecuteWithDbContext(async (context, token) => await context.CustomChecks.AsNoTracking().Where(cc => cc.Id == id).ExecuteDeleteAsync(token), cancellationToken);
