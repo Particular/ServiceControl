@@ -19,6 +19,8 @@
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var retryHistory = await session.LoadAsync<RetryHistory>(DocumentId, cancellationToken);
 
+            // GetChangeVectorFor throws for an entity the session is not tracking, so this relies on the
+            // session provider's default. Opening this one with NoTracking would turn the endpoint into a 500.
             var version = retryHistory == null
                 ? EmptyHistory
                 : DataVersion.FromToken(session.Advanced.GetChangeVectorFor(retryHistory));

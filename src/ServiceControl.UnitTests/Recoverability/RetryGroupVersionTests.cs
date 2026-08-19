@@ -3,6 +3,7 @@ namespace ServiceControl.UnitTests.Operations
     using System;
     using NUnit.Framework;
     using ServiceControl.Recoverability;
+    using ServiceControl.Recoverability.API;
 
     [TestFixture]
     public class RetryGroupVersionTests

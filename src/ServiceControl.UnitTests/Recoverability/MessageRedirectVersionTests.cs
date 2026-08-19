@@ -4,6 +4,7 @@ namespace ServiceControl.UnitTests.Operations
     using System.Collections.Generic;
     using NUnit.Framework;
     using ServiceControl.Persistence.MessageRedirects;
+    using ServiceControl.Recoverability.API;
 
     [TestFixture]
     public class MessageRedirectVersionTests

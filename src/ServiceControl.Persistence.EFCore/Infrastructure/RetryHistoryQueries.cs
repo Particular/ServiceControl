@@ -1,6 +1,5 @@
 namespace ServiceControl.Persistence.EFCore.Infrastructure;
 
-using System;
 using ServiceControl.Persistence.Infrastructure;
 using ServiceControl.Recoverability;
 

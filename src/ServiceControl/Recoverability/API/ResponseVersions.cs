@@ -1,3 +1,5 @@
+namespace ServiceControl.Recoverability.API;
+
 using System.Collections.Generic;
 using ServiceControl.Persistence.Infrastructure;
 using ServiceControl.Persistence.MessageRedirects;
