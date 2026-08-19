@@ -101,9 +101,7 @@
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.IdentityModel.Abstractions" Version="8.22.0" />
-    <PackageVersion Include="SSH.NET" Version="2026.0.0" />
     <PackageVersion Include="System.Formats.Cbor" Version="$(RuntimeFrameworkVersion)" />
-    <PackageVersion Include="System.IO.Hashing" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.Threading.RateLimiting" Version="$(RuntimeFrameworkVersion)" />
   </ItemGroup>
