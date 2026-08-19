@@ -23,10 +23,11 @@ static class FailureGroupQueries
             Last = aggregate.Max(message => message.LastTimeOfFailure)
         };
 
-    public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<FailureGroupView> groups)
-    {
-        var latest = groups.Count == 0 ? DateTime.MinValue : groups.Max(group => group.Last);
-
-        return new QueryStatsInfo(DataVersion.Compose(("groups", groups.Count), ("last", latest)), groups.Count, false);
-    }
+    public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<FailureGroupView> groups) =>
+        new(DataVersion.Compose(
+                ("groups", groups.Count),
+                ("state", string.Join("|", groups.Select(group => FormattableString.Invariant(
+                    $"{group.Id}.{group.Title}.{group.Type}.{group.Count}.{group.Comment}.{group.First.Ticks}.{group.Last.Ticks}"))))),
+            groups.Count,
+            false);
 }

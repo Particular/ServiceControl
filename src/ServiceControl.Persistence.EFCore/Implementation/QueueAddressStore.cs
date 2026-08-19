@@ -20,10 +20,13 @@ public class QueueAddressStore(IServiceScopeFactory scopeFactory) : DataStoreBas
                 });
 
             var items = await query.Skip(pagingInfo.Offset).Take(pagingInfo.PageSize).ToListAsync(token);
-            var version = DataVersion.Compose(
-                ("addresses", items.Count),
-                ("physicalAddresses", string.Join(",", items.Select(x => x.PhysicalAddress))));
+            var addressCount = await query.CountAsync(token);
 
-            return new QueryResult<IList<QueueAddress>>(items, new QueryStatsInfo(version, query.Count(), false));
+            // Both fields of every row the body shows, plus the total, gives a reliable data version.
+            var version = DataVersion.Compose(
+                ("addresses", addressCount),
+                ("page", string.Join("|", items.Select(address => $"{address.PhysicalAddress}={address.FailedMessageCount}"))));
+
+            return new QueryResult<IList<QueueAddress>>(items, new QueryStatsInfo(version, addressCount, false));
         }, cancellationToken);
 }
