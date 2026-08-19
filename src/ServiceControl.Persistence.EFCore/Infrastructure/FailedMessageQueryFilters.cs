@@ -175,6 +175,7 @@ static class FailedMessageQueryFilters
 
         var count = stats?.Count ?? 0;
 
+        // Aggregates rather than the rows, which holds only because every write path sets LastModified.
         return new QueryStatsInfo(DataVersion.Compose(("failures", count), ("lastModified", stats?.Latest)), count, false);
     }
 

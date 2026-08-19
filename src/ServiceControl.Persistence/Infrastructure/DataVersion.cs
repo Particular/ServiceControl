@@ -57,9 +57,9 @@ namespace ServiceControl.Persistence.Infrastructure
             string.IsNullOrEmpty(token) ? None : new DataVersion(token, strong: true);
 
         /// <summary>
-        /// A version built from aggregates over the query behind the page. Name every field the response
-        /// shows, measured over the same filtered set, or a change to an unnamed one leaves a client holding
-        /// a stale page. Always weak: a summary of aggregates cannot promise the bytes.
+        /// A version over the query behind the page. Every field the response shows has to be covered by a
+        /// term, measured over the same filtered set, or a change to an uncovered one leaves a client holding
+        /// a stale page. Always weak: a summary cannot promise the bytes.
         /// </summary>
         public static DataVersion Compose(params (string Name, object Value)[] terms) =>
             terms is null || terms.Length == 0
