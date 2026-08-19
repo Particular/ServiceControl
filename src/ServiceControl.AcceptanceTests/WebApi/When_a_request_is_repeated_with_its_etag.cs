@@ -2,6 +2,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
 {
     using System.Net;
     using System.Net.Http;
+    using System.Net.Http.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using NServiceBus.AcceptanceTesting;
@@ -50,6 +51,42 @@ namespace ServiceControl.AcceptanceTests.WebApi
             // ServicePulse drives pagination from Total-Count, and a revalidating client takes it from
             // the 304 rather than from the body it already holds.
             Assert.That(repeated.TotalCount, Is.Not.Null.And.EqualTo(issued.TotalCount), $"{method} {url} did not carry its Total-Count through to the 304");
+        }
+
+        [Test]
+        public async Task Should_answer_with_a_new_etag_once_the_data_moves()
+        {
+            Answer before = null;
+            Answer after = null;
+
+            await Define<Context>()
+                .Done(async ctx =>
+                {
+                    before = await Ask("GET", "/api/redirects", ifNoneMatch: null);
+
+                    if (before.Etag == null)
+                    {
+                        return false;
+                    }
+
+                    using var created = await HttpClient.PostAsJsonAsync("/api/redirects", new
+                    {
+                        FromPhysicalAddress = "SomeEndpoint@MACHINE",
+                        ToPhysicalAddress = "OtherEndpoint@MACHINE"
+                    });
+
+                    created.EnsureSuccessStatusCode();
+
+                    after = await Ask("GET", "/api/redirects", before.Etag);
+
+                    return true;
+                })
+                .Run();
+
+            Assert.That(after.Status, Is.EqualTo(HttpStatusCode.OK),
+                "a redirect was added, so the client's validator is stale and it has to be sent the new list");
+            Assert.That(after.Etag, Is.Not.Null.And.Not.EqualTo(before.Etag),
+                "the body changed, so the validator has to move with it or the next poll caches the stale list forever");
         }
 
         async Task<Answer> Ask(string method, string url, string ifNoneMatch)

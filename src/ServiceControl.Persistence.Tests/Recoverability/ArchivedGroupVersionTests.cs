@@ -18,22 +18,21 @@ class ArchivedGroupVersionTests : PersistenceTestBase
     [Test]
     public async Task Version_changes_when_group_counts_move_but_the_total_and_the_span_hold()
     {
-        var stays = NewGroup("Shipping");
-        var goes = NewGroup("Billing");
+        var shipping = NewGroup("Shipping");
+        var billing = NewGroup("Billing");
 
-        var oldest = InGroup(stays, Oldest);
-        var newest = InGroup(stays, Newest);
-        var middle = InGroup(goes, Middle);
+        var oldest = InGroup(shipping, Oldest);
+        var middle = InGroup(shipping, Middle);
+        var newest = InGroup(billing, Newest);
 
-        await Insert(oldest, newest, middle);
-        await Archive(oldest, newest, middle);
+        await Insert(oldest, middle, newest);
+        await Archive(oldest, middle, newest);
 
         var before = await GroupsStore.GetArchivedGroupsByClassifier(Classifier);
 
-        // One message leaves the archived set and another joins it in the same span, so the total
-        // stays at three and neither the earliest nor the latest failure moves. Only the per group
-        // counts change, and those are what the body reports.
-        var replacement = InGroup(stays, Middle);
+        // The archived set keeps two groups, three messages, and the same earliest and latest failure.
+        // All that moves is how the three are split between the groups, from two and one to one and two.
+        var replacement = InGroup(billing, Middle);
         await Insert(replacement);
         await Archive(replacement);
         _ = await FailedMessageLifecycleStore.UnArchiveMessages([middle.UniqueMessageIdString]);
@@ -44,11 +43,14 @@ class ArchivedGroupVersionTests : PersistenceTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(before.Results, Has.Count.EqualTo(2), "two archived groups to start with");
-            Assert.That(after.Results, Has.Count.EqualTo(1), "and one afterwards, so the body definitely changed");
-            Assert.That(after.Results.Single().Count, Is.EqualTo(3), "carrying all three archived messages");
+            Assert.That(after.Results, Has.Count.EqualTo(2), "and still two afterwards");
+            Assert.That(after.Results.Sum(group => group.Count), Is.EqualTo(3), "still three archived messages between them");
+            Assert.That(after.Results.Max(group => group.Last), Is.EqualTo(before.Results.Max(group => group.Last)), "and the latest failure has not moved");
+            Assert.That(before.Results.Single(group => group.Title == "Shipping").Count, Is.EqualTo(2), "Shipping held two of them");
+            Assert.That(after.Results.Single(group => group.Title == "Shipping").Count, Is.EqualTo(1), "and now holds one, so the split between the groups moved");
             Assert.That(before.QueryStats.Version.HasValue, Is.True, "there was no version to move");
             Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False,
-                "the body changed, so the validator must too, or a revalidating client keeps a group that is gone");
+                "the body reports a different count per group, so the validator cannot stay put");
         }
     }
 

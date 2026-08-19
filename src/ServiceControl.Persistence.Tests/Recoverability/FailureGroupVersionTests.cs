@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using ServiceControl.MessageFailures;
+using ServiceControl.Persistence.Infrastructure;
 
 [TestFixture]
 class FailureGroupVersionTests : PersistenceTestBase
@@ -99,6 +100,83 @@ class FailureGroupVersionTests : PersistenceTestBase
 
         VersionAssert.Held(first.QueryStats.Version, second.QueryStats.Version,
             "nothing changed, so the validator has to stay put or conditional GET never pays off");
+    }
+
+    [Test]
+    public async Task The_errors_in_a_group_report_a_version_that_moves_with_them()
+    {
+        var group = NewGroup();
+        var middle = InGroup(group, Middle);
+
+        await Insert(InGroup(group, Oldest), middle, InGroup(group, Newest));
+
+        var before = await GroupsStore.GetGroupErrors(group.Id, "unresolved", null, new SortInfo(), new PagingInfo());
+
+        await FailedMessageLifecycleStore.MarkAsArchived(middle.UniqueMessageIdString);
+        await CompleteDatabaseOperation();
+
+        var after = await GroupsStore.GetGroupErrors(group.Id, "unresolved", null, new SortInfo(), new PagingInfo());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(before.Results, Has.Count.EqualTo(3), "three errors to start with");
+            Assert.That(after.Results, Has.Count.EqualTo(2), "and the body now reports two");
+            Assert.That(before.QueryStats.Version.HasValue, Is.True, "there was no version to move");
+            Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False,
+                "the page lost a row, so the validator cannot stay put");
+        }
+    }
+
+    [Test]
+    public async Task The_error_count_of_a_group_reports_a_version_that_moves_with_it()
+    {
+        var group = NewGroup();
+        var middle = InGroup(group, Middle);
+
+        await Insert(InGroup(group, Oldest), middle, InGroup(group, Newest));
+
+        var before = await GroupsStore.GetGroupErrorsCount(group.Id, "unresolved", null);
+
+        await FailedMessageLifecycleStore.MarkAsArchived(middle.UniqueMessageIdString);
+        await CompleteDatabaseOperation();
+
+        var after = await GroupsStore.GetGroupErrorsCount(group.Id, "unresolved", null);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(before.TotalCount, Is.EqualTo(3));
+            Assert.That(after.TotalCount, Is.EqualTo(2), "the count the body reports has changed");
+            Assert.That(before.Version.HasValue, Is.True, "there was no version to move");
+            Assert.That(after.Version.Matches(before.Version), Is.False);
+        }
+    }
+
+    [Test]
+    public async Task An_archived_group_reports_a_version_that_moves_with_it()
+    {
+        var group = NewGroup();
+        var oldest = InGroup(group, Oldest);
+        var middle = InGroup(group, Middle);
+
+        await Insert(oldest, middle, InGroup(group, Newest));
+        await FailedMessageLifecycleStore.MarkAsArchived(oldest.UniqueMessageIdString);
+        await FailedMessageLifecycleStore.MarkAsArchived(middle.UniqueMessageIdString);
+        await CompleteDatabaseOperation();
+
+        var before = await GroupsStore.GetArchivedGroup(group.Id, null, null);
+
+        _ = await FailedMessageLifecycleStore.UnArchiveMessages([middle.UniqueMessageIdString]);
+        await CompleteDatabaseOperation();
+
+        var after = await GroupsStore.GetArchivedGroup(group.Id, null, null);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(before.Results.Count, Is.EqualTo(2), "two archived errors to start with");
+            Assert.That(after.Results.Count, Is.EqualTo(1), "and the body now reports one");
+            Assert.That(before.QueryStats.Version.HasValue, Is.True, "there was no version to move");
+            Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False);
+        }
     }
 
     [Test]

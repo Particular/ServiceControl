@@ -23,6 +23,10 @@ static class FailureGroupQueries
             Last = aggregate.Max(message => message.LastTimeOfFailure)
         };
 
+    /// <summary>
+    /// Title and Type cannot move within a row, because AggregateGroups groups by them, so a change to
+    /// either is a different row rather than a changed one.
+    /// </summary>
     public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<FailureGroupView> groups) =>
         new(DataVersion.Compose(
                 ("groups", groups.Count),
