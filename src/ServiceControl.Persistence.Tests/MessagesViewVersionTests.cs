@@ -144,6 +144,30 @@ class MessagesViewVersionTests : IngestionTestBase
     }
 
     [Test]
+    public async Task Version_changes_when_a_row_on_the_page_changes_status()
+    {
+        var archived = new IngestedFailure();
+
+        await Ingest(archived, new IngestedFailure());
+        await CompleteDatabaseOperation();
+
+        var before = await AllMessages();
+
+        await FailedMessageLifecycleStore.MarkAsArchived(archived.UniqueMessageIdString);
+        await CompleteDatabaseOperation();
+
+        var after = await AllMessages();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(after.Results, Has.Count.EqualTo(2), "both messages are still on the page");
+            Assert.That(after.QueryStats.TotalCount, Is.EqualTo(before.QueryStats.TotalCount), "and the total has not moved");
+            Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False,
+                "the body reports the new status, so a revalidating client must not be told its page is current");
+        }
+    }
+
+    [Test]
     public async Task An_empty_store_still_reports_a_version()
     {
         var result = await AllMessages();

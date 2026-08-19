@@ -107,6 +107,54 @@ public class DataVersionTests
     }
 
     [Test]
+    public void OverPage_moves_when_a_row_changes_under_an_unchanged_timestamp()
+    {
+        var at = new DateTime(2026, 8, 1, 12, 0, 0, DateTimeKind.Utc);
+
+        var before = Page(("a", at, "Unresolved"));
+        var after = Page(("a", at, "Archived"));
+
+        Assert.That(after.Matches(before), Is.False,
+            "two writes to one row inside a single clock tick leave the timestamp identical, so the version cannot rest on it alone");
+    }
+
+    [Test]
+    public void OverPage_distinguishes_two_pages_of_one_set()
+    {
+        var at = new DateTime(2026, 8, 1, 12, 0, 0, DateTimeKind.Utc);
+
+        var firstPage = Page(("a", at, "Unresolved"));
+        var secondPage = Page(("b", at, "Unresolved"));
+
+        Assert.That(secondPage.Matches(firstPage), Is.False,
+            "the two pages render different rows, so a client holding one must not be told the other is current");
+    }
+
+    [Test]
+    public void OverPage_holds_while_the_page_and_the_total_hold()
+    {
+        var at = new DateTime(2026, 8, 1, 12, 0, 0, DateTimeKind.Utc);
+
+        Assert.That(Page(("a", at, "Unresolved")).Matches(Page(("a", at, "Unresolved"))), Is.True);
+    }
+
+    [Test]
+    public void OverPage_moves_when_only_the_total_moves()
+    {
+        var at = new DateTime(2026, 8, 1, 12, 0, 0, DateTimeKind.Utc);
+        var row = ("a", at, "Unresolved");
+
+        Assert.That(DataVersion.OverPage([("total", 9L)], [row], Fields)
+                .Matches(DataVersion.OverPage([("total", 2L)], [row], Fields)), Is.False,
+            "Total-Count is part of the response, so a client holding the old one must not be told it is current");
+    }
+
+    static DataVersion Page(params (string Id, DateTime At, string Status)[] rows) =>
+        DataVersion.OverPage([("total", 2L)], rows, Fields);
+
+    static object[] Fields((string Id, DateTime At, string Status) row) => [row.Id, row.At, row.Status];
+
+    [Test]
     public void Combine_does_not_depend_on_the_order_instances_answered_in()
     {
         var a = DataVersion.FromToken("a");

@@ -185,7 +185,8 @@ static class FailedMessageQueryFilters
     /// Versions the rows this page renders, plus the total behind Total-Count. 
     /// </summary>
     public static QueryStatsInfo ToPagedQueryStatsInfo(this IReadOnlyCollection<FailedMessageEntity> page, long total) =>
-        new(DataVersion.OverPage([("total", total)], page, row => [row.UniqueMessageId, row.LastModified]),
+        new(DataVersion.OverPage([("total", total)], page,
+                row => [row.UniqueMessageId, row.LastModified, row.Status, row.NumberOfProcessingAttempts]),
             total,
             false);
 
