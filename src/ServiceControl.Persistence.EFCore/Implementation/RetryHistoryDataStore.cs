@@ -31,6 +31,10 @@ public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStor
 
             var unacknowledgedOperations = await dbContext.UnacknowledgedRetryOperations
                 .AsNoTracking()
+                // By the primary key, so the order is total. Without it the rows arrive in whatever order
+                // the server happens to produce, which leaves the body unstable under a stable validator.
+                .OrderBy(operation => operation.RequestId)
+                .ThenBy(operation => operation.RetryType)
                 .Select(operation => new UnacknowledgedRetryOperation
                 {
                     RequestId = operation.RequestId,

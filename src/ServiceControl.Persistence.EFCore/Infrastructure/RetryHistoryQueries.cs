@@ -26,11 +26,9 @@ static class RetryHistoryQueries
                 operation.Originator, operation.Failed, operation.NumberOfMessagesProcessed];
         }
 
-        // Sorted because these rows are read without an ORDER BY, so the order they arrive in is not a
-        // property of the data and must not move the version.
-        foreach (var operation in history.UnacknowledgedOperations
-            .OrderBy(operation => operation.RequestId, StringComparer.Ordinal)
-            .ThenBy(operation => operation.RetryType))
+        // Rows are named by position, so both collections have to arrive in a deterministic order. Each is
+        // ordered by its query in RetryHistoryDataStore, historic by completion time and these by their key.
+        foreach (var operation in history.UnacknowledgedOperations)
         {
             yield return ["unacknowledged", operation.RequestId, operation.RetryType, operation.StartTime, operation.CompletionTime,
                 operation.Last, operation.Originator, operation.Classifier, operation.Failed, operation.NumberOfMessagesProcessed];
