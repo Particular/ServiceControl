@@ -13,11 +13,11 @@ namespace ServiceControl.UnitTests.Operations
             var group = new GroupOperation { Id = "old" };
             var data = new[] { group };
 
-            var knownVersion = EtagHelper.VersionOf(data);
+            var knownVersion = ResponseVersions.VersionOf(data);
 
             group.Id = "new";
 
-            Assert.That(EtagHelper.VersionOf(data).Matches(knownVersion), Is.False);
+            Assert.That(ResponseVersions.VersionOf(data).Matches(knownVersion), Is.False);
         }
 
         [Test]
@@ -26,11 +26,11 @@ namespace ServiceControl.UnitTests.Operations
             var group = new GroupOperation { Count = 1 };
             var data = new[] { group };
 
-            var knownVersion = EtagHelper.VersionOf(data);
+            var knownVersion = ResponseVersions.VersionOf(data);
 
             group.Count = 2;
 
-            Assert.That(EtagHelper.VersionOf(data).Matches(knownVersion), Is.False);
+            Assert.That(ResponseVersions.VersionOf(data).Matches(knownVersion), Is.False);
         }
 
         [Test]
@@ -39,11 +39,11 @@ namespace ServiceControl.UnitTests.Operations
             var group = new GroupOperation { OperationStatus = RetryState.Waiting.ToString() };
             var data = new[] { group };
 
-            var knownVersion = EtagHelper.VersionOf(data);
+            var knownVersion = ResponseVersions.VersionOf(data);
 
             group.OperationStatus = RetryState.Preparing.ToString();
 
-            Assert.That(EtagHelper.VersionOf(data).Matches(knownVersion), Is.False);
+            Assert.That(ResponseVersions.VersionOf(data).Matches(knownVersion), Is.False);
         }
 
         [Test]
@@ -52,11 +52,11 @@ namespace ServiceControl.UnitTests.Operations
             var group = new GroupOperation();
             var data = new[] { group };
 
-            var knownVersion = EtagHelper.VersionOf(data);
+            var knownVersion = ResponseVersions.VersionOf(data);
 
             group.OperationProgress = 0.01;
 
-            Assert.That(EtagHelper.VersionOf(data).Matches(knownVersion), Is.False);
+            Assert.That(ResponseVersions.VersionOf(data).Matches(knownVersion), Is.False);
         }
 
         [Test]
@@ -65,11 +65,11 @@ namespace ServiceControl.UnitTests.Operations
             var group = new GroupOperation();
             var data = new[] { group };
 
-            var knownVersion = EtagHelper.VersionOf(data);
+            var knownVersion = ResponseVersions.VersionOf(data);
 
             group.OperationStartTime = DateTime.UtcNow;
 
-            Assert.That(EtagHelper.VersionOf(data).Matches(knownVersion), Is.False);
+            Assert.That(ResponseVersions.VersionOf(data).Matches(knownVersion), Is.False);
         }
 
         [Test]
@@ -78,11 +78,11 @@ namespace ServiceControl.UnitTests.Operations
             var group = new GroupOperation();
             var data = new[] { group };
 
-            var knownVersion = EtagHelper.VersionOf(data);
+            var knownVersion = ResponseVersions.VersionOf(data);
 
             group.OperationCompletionTime = DateTime.UtcNow;
 
-            Assert.That(EtagHelper.VersionOf(data).Matches(knownVersion), Is.False);
+            Assert.That(ResponseVersions.VersionOf(data).Matches(knownVersion), Is.False);
         }
 
         [Test]
@@ -91,11 +91,11 @@ namespace ServiceControl.UnitTests.Operations
             var group = new GroupOperation();
             var data = new[] { group };
 
-            var knownVersion = EtagHelper.VersionOf(data);
+            var knownVersion = ResponseVersions.VersionOf(data);
 
             group.NeedUserAcknowledgement = true;
 
-            Assert.That(EtagHelper.VersionOf(data).Matches(knownVersion), Is.False);
+            Assert.That(ResponseVersions.VersionOf(data).Matches(knownVersion), Is.False);
         }
 
         [Test]
@@ -104,11 +104,11 @@ namespace ServiceControl.UnitTests.Operations
             var group = new GroupOperation { Comment = "before" };
             var data = new[] { group };
 
-            var knownVersion = EtagHelper.VersionOf(data);
+            var knownVersion = ResponseVersions.VersionOf(data);
 
             group.Comment = "after";
 
-            Assert.That(EtagHelper.VersionOf(data).Matches(knownVersion), Is.False);
+            Assert.That(ResponseVersions.VersionOf(data).Matches(knownVersion), Is.False);
         }
 
         [Test]
@@ -117,11 +117,11 @@ namespace ServiceControl.UnitTests.Operations
             var group = new GroupOperation { Title = "before" };
             var data = new[] { group };
 
-            var knownVersion = EtagHelper.VersionOf(data);
+            var knownVersion = ResponseVersions.VersionOf(data);
 
             group.Title = "after";
 
-            Assert.That(EtagHelper.VersionOf(data).Matches(knownVersion), Is.False);
+            Assert.That(ResponseVersions.VersionOf(data).Matches(knownVersion), Is.False);
         }
 
         [Test]
@@ -130,11 +130,11 @@ namespace ServiceControl.UnitTests.Operations
             var group = new GroupOperation { Type = "before" };
             var data = new[] { group };
 
-            var knownVersion = EtagHelper.VersionOf(data);
+            var knownVersion = ResponseVersions.VersionOf(data);
 
             group.Type = "after";
 
-            Assert.That(EtagHelper.VersionOf(data).Matches(knownVersion), Is.False);
+            Assert.That(ResponseVersions.VersionOf(data).Matches(knownVersion), Is.False);
         }
 
         [Test]
@@ -143,11 +143,11 @@ namespace ServiceControl.UnitTests.Operations
             var group = new GroupOperation();
             var data = new[] { group };
 
-            var knownVersion = EtagHelper.VersionOf(data);
+            var knownVersion = ResponseVersions.VersionOf(data);
 
             group.First = DateTime.UtcNow;
 
-            Assert.That(EtagHelper.VersionOf(data).Matches(knownVersion), Is.False);
+            Assert.That(ResponseVersions.VersionOf(data).Matches(knownVersion), Is.False);
         }
 
         [Test]
@@ -156,11 +156,11 @@ namespace ServiceControl.UnitTests.Operations
             var group = new GroupOperation();
             var data = new[] { group };
 
-            var knownVersion = EtagHelper.VersionOf(data);
+            var knownVersion = ResponseVersions.VersionOf(data);
 
             group.Last = DateTime.UtcNow;
 
-            Assert.That(EtagHelper.VersionOf(data).Matches(knownVersion), Is.False);
+            Assert.That(ResponseVersions.VersionOf(data).Matches(knownVersion), Is.False);
         }
 
         [Test]
@@ -169,11 +169,11 @@ namespace ServiceControl.UnitTests.Operations
             var group = new GroupOperation { OperationFailed = false };
             var data = new[] { group };
 
-            var knownVersion = EtagHelper.VersionOf(data);
+            var knownVersion = ResponseVersions.VersionOf(data);
 
             group.OperationFailed = true;
 
-            Assert.That(EtagHelper.VersionOf(data).Matches(knownVersion), Is.False);
+            Assert.That(ResponseVersions.VersionOf(data).Matches(knownVersion), Is.False);
         }
 
         [Test]
@@ -182,11 +182,11 @@ namespace ServiceControl.UnitTests.Operations
             var group = new GroupOperation { OperationMessagesCompletedCount = 1 };
             var data = new[] { group };
 
-            var knownVersion = EtagHelper.VersionOf(data);
+            var knownVersion = ResponseVersions.VersionOf(data);
 
             group.OperationMessagesCompletedCount = 2;
 
-            Assert.That(EtagHelper.VersionOf(data).Matches(knownVersion), Is.False);
+            Assert.That(ResponseVersions.VersionOf(data).Matches(knownVersion), Is.False);
         }
 
         [Test]
@@ -195,11 +195,11 @@ namespace ServiceControl.UnitTests.Operations
             var group = new GroupOperation { OperationRemainingCount = 2 };
             var data = new[] { group };
 
-            var knownVersion = EtagHelper.VersionOf(data);
+            var knownVersion = ResponseVersions.VersionOf(data);
 
             group.OperationRemainingCount = 1;
 
-            Assert.That(EtagHelper.VersionOf(data).Matches(knownVersion), Is.False);
+            Assert.That(ResponseVersions.VersionOf(data).Matches(knownVersion), Is.False);
         }
 
         [Test]
@@ -216,23 +216,23 @@ namespace ServiceControl.UnitTests.Operations
             };
             var data = new[] { group };
 
-            var knownVersion = EtagHelper.VersionOf(data);
+            var knownVersion = ResponseVersions.VersionOf(data);
 
             group.OperationMessagesCompletedCount = 10_001;
             group.OperationRemainingCount = 39_999;
 
             Assert.That(group.OperationProgress, Is.EqualTo(0.2), "the premise: the rounded percentage has not moved");
-            Assert.That(EtagHelper.VersionOf(data).Matches(knownVersion), Is.False);
+            Assert.That(ResponseVersions.VersionOf(data).Matches(knownVersion), Is.False);
         }
 
         [Test]
         public void Changing_item_count_should_change_version()
         {
-            var emptyVersion = EtagHelper.VersionOf(Array.Empty<GroupOperation>());
+            var emptyVersion = ResponseVersions.VersionOf(Array.Empty<GroupOperation>());
 
             var oneGroup = new[] { new GroupOperation() };
 
-            Assert.That(EtagHelper.VersionOf(oneGroup).Matches(emptyVersion), Is.False,
+            Assert.That(ResponseVersions.VersionOf(oneGroup).Matches(emptyVersion), Is.False,
                 "an empty list is a representation like any other, so this compares two real versions rather than a version against nothing");
         }
     }

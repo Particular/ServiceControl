@@ -11,9 +11,9 @@ namespace ServiceControl.UnitTests.Operations
         [Test]
         public void From_address_changed_should_change_version()
         {
-            var knownVersion = EtagHelper.VersionOf(Redirects(Redirect(from: "old@machine")));
+            var knownVersion = ResponseVersions.VersionOf(Redirects(Redirect(from: "old@machine")));
 
-            var moved = EtagHelper.VersionOf(Redirects(Redirect(from: "new@machine")));
+            var moved = ResponseVersions.VersionOf(Redirects(Redirect(from: "new@machine")));
 
             Assert.That(moved.Matches(knownVersion), Is.False);
         }
@@ -24,11 +24,11 @@ namespace ServiceControl.UnitTests.Operations
             var redirect = Redirect(to: "old@machine");
             var data = Redirects(redirect);
 
-            var knownVersion = EtagHelper.VersionOf(data);
+            var knownVersion = ResponseVersions.VersionOf(data);
 
             redirect.ToPhysicalAddress = "new@machine";
 
-            Assert.That(EtagHelper.VersionOf(data).Matches(knownVersion), Is.False);
+            Assert.That(ResponseVersions.VersionOf(data).Matches(knownVersion), Is.False);
         }
 
         [Test]
@@ -37,28 +37,28 @@ namespace ServiceControl.UnitTests.Operations
             var redirect = Redirect();
             var data = Redirects(redirect);
 
-            var knownVersion = EtagHelper.VersionOf(data);
+            var knownVersion = ResponseVersions.VersionOf(data);
 
             redirect.LastModified = redirect.LastModified.AddTicks(1);
 
-            Assert.That(EtagHelper.VersionOf(data).Matches(knownVersion), Is.False);
+            Assert.That(ResponseVersions.VersionOf(data).Matches(knownVersion), Is.False);
         }
 
         [Test]
         public void Changing_item_count_should_change_version()
         {
-            var emptyVersion = EtagHelper.VersionOf(Redirects());
+            var emptyVersion = ResponseVersions.VersionOf(Redirects());
 
             var oneRedirect = Redirects(Redirect());
 
-            Assert.That(EtagHelper.VersionOf(oneRedirect).Matches(emptyVersion), Is.False,
+            Assert.That(ResponseVersions.VersionOf(oneRedirect).Matches(emptyVersion), Is.False,
                 "an empty list is a representation like any other, so this compares two real versions rather than a version against nothing");
         }
 
         [Test]
         public void An_empty_list_still_reports_a_version()
         {
-            var version = EtagHelper.VersionOf(Redirects());
+            var version = ResponseVersions.VersionOf(Redirects());
 
             Assert.That(version.HasValue, Is.True,
                 "a client watching a list that stays empty must be able to revalidate it rather than refetch the emptiness");

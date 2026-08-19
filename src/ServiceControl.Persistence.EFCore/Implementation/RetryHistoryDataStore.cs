@@ -4,11 +4,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
+using ServiceControl.Persistence.EFCore.Infrastructure;
+using ServiceControl.Persistence.Infrastructure;
 using ServiceControl.Recoverability;
 
 public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IRetryHistoryDataStore
 {
-    public Task<RetryHistory> GetRetryHistory(CancellationToken cancellationToken = default) =>
+    public Task<QueryResult<RetryHistory>> GetRetryHistory(CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (dbContext, token) =>
         {
             var historicOperations = await dbContext.HistoricRetryOperations
@@ -43,11 +45,13 @@ public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStor
                 })
                 .ToListAsync(token);
 
-            return new RetryHistory
+            var history = new RetryHistory
             {
                 HistoricOperations = historicOperations,
                 UnacknowledgedOperations = unacknowledgedOperations
             };
+
+            return new QueryResult<RetryHistory>(history, history.ToQueryStatsInfo());
         }, cancellationToken);
 
     public Task RecordRetryOperationCompleted(string requestId, RetryType retryType, DateTime startTime, DateTime completionTime,

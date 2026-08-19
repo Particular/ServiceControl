@@ -67,7 +67,7 @@
             }
 
             var results = await fetcher.GetGroups(classifier, classifierFilter, cancellationToken);
-            Response.WithEtag(EtagHelper.VersionOf(results));
+            Response.WithEtag(ResponseVersions.VersionOf(results));
             return results;
         }
 
@@ -100,9 +100,9 @@
         {
             var retryHistory = await retryStore.GetRetryHistory(cancellationToken);
 
-            Response.WithEtag(DataVersion.Compose(("operations", retryHistory.GetHistoryOperationsUniqueIdentifier())));
+            Response.WithEtag(retryHistory.QueryStats.Version);
 
-            return retryHistory;
+            return retryHistory.Results;
         }
 
         [Authorize(Policy = Permissions.ErrorRecoverabilityGroupsView)]

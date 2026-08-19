@@ -21,7 +21,7 @@
         public async Task<GroupOperation[]> GetGroups(string classifier, string classifierFilter, CancellationToken cancellationToken = default)
         {
             var dbGroups = await store.GetUnresolvedGroupsByClassifier(classifier, classifierFilter, cancellationToken);
-            var retryHistory = await retryStore.GetRetryHistory(cancellationToken);
+            var retryHistory = (await retryStore.GetRetryHistory(cancellationToken)).Results;
             var unacknowledgedRetries = retryHistory.GetUnacknowledgedByClassifier(classifier);
 
             var openRetryAcknowledgements = MapAcksToOpenGroups(dbGroups, unacknowledgedRetries);
