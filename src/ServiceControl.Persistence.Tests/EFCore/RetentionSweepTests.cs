@@ -264,6 +264,27 @@ class RetentionSweepTests : ErrorIngestionTestBase
         }
     }
 
+    [Test]
+    public async Task Sweeping_failed_messages_changes_the_version()
+    {
+        await SeedFailedMessage(FailedMessageStatus.Archived, Now.AddDays(-31));
+        await SeedFailedMessage(FailedMessageStatus.Archived, Now.AddDays(-1));
+
+        var versionBefore = (await FailedMessageQueryStore.GetFailedMessagesStats(null, null, null)).Version;
+
+        await RunRetentionSweep();
+
+        var after = await FailedMessageQueryStore.GetFailedMessagesStats(null, null, null);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(after.TotalCount, Is.EqualTo(1));
+            // A sweep is the only thing that takes a row away without touching the newest LastModified,
+            // so nothing else keeps the count term of this version honest.
+            Assert.That(after.Version.Matches(versionBefore), Is.False);
+        }
+    }
+
     static EventLogItemEntity EventLogRow(string marker, DateTime raisedAt) => new()
     {
         Description = marker,
