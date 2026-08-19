@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -74,7 +73,6 @@
                 Assert.That(messageTypeGroups.Count, Is.EqualTo(2), "There should be 2 Message Type Groups");
             }
 
-            defaultGroups.ForEach(g => Console.WriteLine(JsonSerializer.Serialize(g)));
 
             Assert.That(exceptionTypeAndStackTraceGroups.Select(g => g.Id).Except(defaultGroups.Select(g => g.Id)), Is.Empty, "/api/recoverability/groups did not retrieve Exception Type and Stack Trace Group");
 

@@ -57,8 +57,6 @@
                 .Done(c => c.CustomCheckFailedReceived)
                 .Run();
 
-            Assert.That(context.CustomCheckFailedReceived, Is.True);
-
             var enclosedType = context.IntegrationEventHeaders[Headers.EnclosedMessageTypes];
             Assert.That(enclosedType, Is.EqualTo("ServiceControl.Contracts.CustomCheckFailed, ServiceControl.Contracts"));
         }

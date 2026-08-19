@@ -25,19 +25,19 @@
     using NServiceBus.AcceptanceTesting.Support;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
-    using Persistence.Tests;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
     using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
     public class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, IAcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostApplicationBuilder> hostBuilderCustomization)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, IAcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostApplicationBuilder> hostBuilderCustomization, Action<IHostApplicationBuilder> hostBuilderCustomizationBeforeServiceControl)
         {
             this.transportToUse = transportToUse;
             this.persistenceToUse = persistenceToUse;
             this.customConfiguration = customConfiguration;
             this.hostBuilderCustomization = hostBuilderCustomization;
+            this.hostBuilderCustomizationBeforeServiceControl = hostBuilderCustomizationBeforeServiceControl;
             this.setSettings = setSettings;
         }
 
@@ -129,6 +129,9 @@
                 });
 
                 hostBuilder.Services.AddScenarioContext(context);
+
+                hostBuilderCustomizationBeforeServiceControl(hostBuilder);
+
                 hostBuilder.AddServiceControlAuthentication(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControlAuthorization(settings.OpenIdConnectSettings);
                 hostBuilder.AddServiceControl(settings, configuration);
@@ -170,6 +173,7 @@
         readonly Action<Settings> setSettings;
         readonly Action<EndpointConfiguration> customConfiguration;
         readonly Action<IHostApplicationBuilder> hostBuilderCustomization;
+        readonly Action<IHostApplicationBuilder> hostBuilderCustomizationBeforeServiceControl;
         readonly string instanceName = Settings.DEFAULT_INSTANCE_NAME;
     }
 }

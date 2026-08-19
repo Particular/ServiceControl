@@ -107,7 +107,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     }
 
                     primaryHostBuilderCustomization(primaryHostBuilder);
-                });
+                },
+                _ => { });
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(run.ScenarioContext, PrimaryInstanceSettings.DEFAULT_INSTANCE_NAME);
             await primaryInstanceComponentRunner.Initialize(run);
 

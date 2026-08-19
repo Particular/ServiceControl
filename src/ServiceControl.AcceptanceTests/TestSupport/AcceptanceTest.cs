@@ -32,6 +32,7 @@ namespace ServiceControl.AcceptanceTests
             SetSettings = _ => { };
             CustomConfiguration = _ => { };
             CustomizeHostBuilder = _ => { };
+            CustomizeHostBuilderBeforeServiceControl = _ => { };
 
             var logfilesPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "logs");
             Directory.CreateDirectory(logfilesPath);
@@ -53,7 +54,8 @@ namespace ServiceControl.AcceptanceTests
                 StorageConfiguration,
                 s => SetSettings(s),
                 s => CustomConfiguration(s),
-                hb => CustomizeHostBuilder(hb)
+                hb => CustomizeHostBuilder(hb),
+                hb => CustomizeHostBuilderBeforeServiceControl(hb)
                 );
         }
 
@@ -93,6 +95,14 @@ namespace ServiceControl.AcceptanceTests
         protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
         protected Action<Settings> SetSettings = _ => { };
         protected Action<IHostApplicationBuilder> CustomizeHostBuilder = _ => { };
+
+        /// <summary>
+        /// Runs before AddServiceControl, for the few registrations ServiceControl's own registration
+        /// reacts to, such as a transport's IBrokerThroughputQuery. Prefer CustomizeHostBuilder for
+        /// everything else: registering last is what lets a test substitute a service.
+        /// </summary>
+        protected Action<IHostApplicationBuilder> CustomizeHostBuilderBeforeServiceControl = _ => { };
+
         protected ITransportIntegration TransportIntegration;
         protected IAcceptanceTestStorageConfiguration StorageConfiguration;
 

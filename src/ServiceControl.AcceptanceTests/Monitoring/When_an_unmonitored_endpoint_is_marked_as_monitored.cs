@@ -60,7 +60,6 @@
                                 MonitorHeartbeat = true
                             });
                             state = State.WaitingForHeartbeatFailure;
-                            Console.WriteLine("Patch successful");
                         }
 
                         return false;

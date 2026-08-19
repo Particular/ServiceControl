@@ -33,6 +33,8 @@ Transport tests are done by executing the transport test suite for each transpor
 
 Run ServiceControl full version and use the HTTP API to validate results. LearningTransport is used for all tests.
 
+For how to write one that fails when it should, see [Writing acceptance tests](writing-acceptance-tests.md).
+
 ### Windows prerequisite: register the event sources
 
 On Windows, every acceptance test fails on first run with:

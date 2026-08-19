@@ -112,18 +112,15 @@
             {
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Console.WriteLine("Attempting to process message");
 
                     scenarioContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
                     scenarioContext.MessageId = context.MessageId.Replace(@"\", "-");
 
                     if (!scenarioContext.Succeed) //simulate that the exception will be resolved with the retry
                     {
-                        Console.WriteLine("Message processing failure");
                         throw new Exception("Simulated exception");
                     }
 
-                    Console.WriteLine("Message processing success");
                     return Task.CompletedTask;
                 }
             }

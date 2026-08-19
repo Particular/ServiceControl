@@ -18,39 +18,26 @@
         [Test]
         public async Task The_successful_retry_should_succeed()
         {
-            var context = await Define<MyContext>()
+            await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage()))
                     .DoNotFailOnErrorMessages())
-                .Done(async ctx =>
+                .Do("Wait for the message to fail", async ctx =>
+                    !string.IsNullOrWhiteSpace(ctx.UniqueMessageId) && await this.TryGet<object>($"/api/errors/{ctx.UniqueMessageId}"))
+                .Do("Retry the message", async ctx =>
                 {
-                    if (string.IsNullOrWhiteSpace(ctx.UniqueMessageId))
-                    {
-                        return false;
-                    }
-
-                    if (!ctx.RetryIssued)
-                    {
-                        if (!await this.TryGet<object>($"/api/errors/{ctx.UniqueMessageId}"))
-                        {
-                            return false;
-                        }
-
-                        ctx.RetryIssued = true;
-                        await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
-                        return false;
-                    }
-
-                    return ctx.RetryHandled;
+                    ctx.RetryIssued = true;
+                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                 })
+                .Do("Wait for the retry to be handled", ctx => Task.FromResult(ctx.RetryHandled))
+                .Done()
                 .Run();
-
-            Assert.That(context.RetryHandled, Is.True, "Retry not handled correctly");
         }
 
         internal class MyMessage : IMessage;
 
-        internal class MyContext : ScenarioContext
+        internal class MyContext : ScenarioContext, ISequenceContext
         {
+            public int Step { get; set; }
             public string UniqueMessageId { get; set; }
             public bool RetryIssued { get; set; }
             public bool RetryHandled { get; set; }

@@ -58,22 +58,18 @@
             [Handler]
             public class MyMessageHandler(
                 Context scenarioContext,
-                IReadOnlySettings settings,
-                ReceiveAddresses receiveAddresses)
+                IReadOnlySettings settings)
                 : IHandleMessages<MyMessage>
             {
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Console.WriteLine("Message Handled");
                     if (scenarioContext.Step == 0)
                     {
-                        scenarioContext.FromAddress = receiveAddresses.MainReceiveAddress;
                         scenarioContext.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, settings.EndpointName()).ToString();
                         throw new Exception("Simulated Exception");
                     }
 
                     scenarioContext.RetryCount++;
-                    scenarioContext.Retried = true;
                     return Task.CompletedTask;
                 }
             }
@@ -82,9 +78,7 @@
         public class Context : ScenarioContext, ISequenceContext
         {
             public string UniqueMessageId { get; set; }
-            public bool Retried { get; set; }
             public int RetryCount { get; set; }
-            public string FromAddress { get; set; }
             public int Step { get; set; }
         }
 

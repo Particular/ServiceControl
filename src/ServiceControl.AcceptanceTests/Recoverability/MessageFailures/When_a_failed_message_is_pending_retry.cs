@@ -23,31 +23,20 @@
             FailedMessage failedMessage = null;
 
             await Define<Context>()
-                .WithEndpoint<FailingEndpoint>(b => b.When(async ctx =>
-                {
-                    if (ctx.UniqueMessageId == null)
-                    {
-                        return false;
-                    }
-
-                    var result = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
-                    failedMessage = result;
-                    return result;
-                }, async (bus, ctx) =>
+                .WithEndpoint<FailingEndpoint>(b => b.DoNotFailOnErrorMessages())
+                .Do("Wait for the message to fail", async ctx =>
+                    ctx.UniqueMessageId != null && await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}"))
+                .Do("Issue a retry", async ctx =>
                 {
                     ctx.AboutToSendRetry = true;
                     await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
-                }).DoNotFailOnErrorMessages())
-                .Done(async ctx =>
-                {
-                    if (ctx.Retried)
-                    {
-                        failedMessage = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
-                        return true;
-                    }
-
-                    return false;
                 })
+                .Do("Wait for the retry to be handled", ctx => Task.FromResult(ctx.Retried))
+                .Do("Read the failed message back", async ctx =>
+                {
+                    failedMessage = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                })
+                .Done()
                 .Run();
 
             Assert.That(failedMessage.Status, Is.EqualTo(FailedMessageStatus.RetryIssued), "Status was not set to RetryIssued");
@@ -81,7 +70,6 @@
             {
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Console.WriteLine("Message Handled");
                     if (scenarioContext.AboutToSendRetry)
                     {
                         scenarioContext.Retried = true;
@@ -97,11 +85,12 @@
             }
         }
 
-        public class Context : ScenarioContext
+        public class Context : ScenarioContext, ISequenceContext
         {
             public string UniqueMessageId { get; set; }
             public bool Retried { get; set; }
             public bool AboutToSendRetry { get; set; }
+            public int Step { get; set; }
         }
 
         public class MyMessage : ICommand;

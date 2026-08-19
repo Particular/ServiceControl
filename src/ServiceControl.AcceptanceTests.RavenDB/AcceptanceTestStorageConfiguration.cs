@@ -23,7 +23,8 @@ public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfigur
         {
             ErrorRetentionPeriod = TimeSpan.FromDays(10),
             ConnectionString = databaseInstance.ServerUrl,
-            DatabaseName = databaseName
+            DatabaseName = databaseName,
+            ThroughputDatabaseName = $"{databaseName}-throughput"
         };
     }
 
@@ -35,6 +36,7 @@ public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfigur
         }
         using var _ = await UseDatabaseLifecycleLock(cancellationToken);
         await databaseInstance.DeleteDatabase(databaseName, cancellationToken);
+        await databaseInstance.DeleteDatabase($"{databaseName}-throughput", cancellationToken);
     }
 
     /// <summary>

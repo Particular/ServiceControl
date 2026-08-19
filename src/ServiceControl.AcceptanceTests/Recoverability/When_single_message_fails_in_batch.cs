@@ -30,7 +30,7 @@
 
             SetSettings = settings => settings.MaximumConcurrencyLevel = maximumConcurrencyLevel;
 
-            await Define<MyContext>(ctx =>
+            var context = await Define<MyContext>(ctx =>
                 {
                     ctx.MessageId = Guid.NewGuid().ToString();
                 })
@@ -39,14 +39,19 @@
                 {
                     var result = await this.TryGetMany<MessagesView>("/api/messages?include_system_messages=false&sort=id");
                     List<MessagesView> messages = result;
-                    if (result)
+                    if (!result)
                     {
-                        return messages.Count == 9 && messages.Select(m => m.MessageId).OrderBy(t => t).SequenceEqual(c.MessageIds.OrderBy(t => t));
+                        return false;
                     }
 
-                    return false;
+                    c.MessagesImported = messages.Count;
+
+                    return messages.Count == BatchSize && messages.Select(m => m.MessageId).OrderBy(t => t).SequenceEqual(c.MessageIds.OrderBy(t => t));
                 })
                 .Run();
+
+            Assert.That(context.FailureSimulated, Is.True,
+                "The enricher never threw, so nothing in the batch failed and the test proved nothing");
         }
 
         class FailOnceEnricher(MyContext testContext) : IEnrichImportedErrorMessages
@@ -55,11 +60,9 @@
             {
                 if (context.Headers[Headers.MessageId] == testContext.MessageId && Interlocked.Increment(ref attempt) == 1)
                 {
-                    TestContext.Out.WriteLine("Simulating message processing failure");
+                    testContext.FailureSimulated = true;
                     throw new InvalidOperationException("ID", null);
                 }
-
-                TestContext.Out.WriteLine("Message processed correctly");
             }
 
             int attempt;
@@ -74,8 +77,8 @@
                 protected override TransportOperations CreateMessage(MyContext context)
                 {
                     // put the message that will fail somewhere in the middle of the first batch
-                    var operations = new TransportOperation[9];
-                    for (var i = 0; i < 9; i++)
+                    var operations = new TransportOperation[BatchSize];
+                    for (var i = 0; i < BatchSize; i++)
                     {
                         var headers = new Dictionary<string, string>
                         {
@@ -96,10 +99,14 @@
             }
         }
 
+        const int BatchSize = 9;
+
         public class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
             public List<string> MessageIds { get; } = [];
+            public bool FailureSimulated { get; set; }
+            public int MessagesImported { get; set; }
         }
     }
 }
