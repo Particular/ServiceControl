@@ -87,6 +87,7 @@ class IngestedFailure
         MessageMetadata = new Dictionary<string, object>
         {
             ["MessageId"] = MessageId,
+            ["MessageIntent"] = MessageIntent,
             ["MessageType"] = MessageType,
             ["TimeSent"] = TimeSent,
             ["ConversationId"] = ConversationId,
