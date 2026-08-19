@@ -77,10 +77,6 @@
     <PackageVersion Include="PropertyChanging.Fody" Version="1.31.0" />
     <PackageVersion Include="PublicApiGenerator" Version="11.5.4" />
     <PackageVersion Include="RavenDB.Embedded" Version="6.2.18" />
-    <PackageVersion Include="Testcontainers.Azurite" Version="4.14.0" />
-    <PackageVersion Include="Testcontainers.LocalStack" Version="4.14.0" />
-    <PackageVersion Include="Testcontainers.MsSql" Version="4.14.0" />
-    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.14.0" />
     <PackageVersion Include="ReactiveUI.WPF" Version="22.3.1" />
     <PackageVersion Include="Seq.Extensions.Logging" Version="9.0.0" />
     <PackageVersion Include="ServiceControl.Contracts" Version="5.1.0" />
@@ -93,19 +89,23 @@
     <PackageVersion Include="System.Reactive" Version="6.1.0" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Testcontainers.Azurite" Version="4.14.0" />
+    <PackageVersion Include="Testcontainers.LocalStack" Version="4.14.0" />
+    <PackageVersion Include="Testcontainers.MsSql" Version="4.14.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.14.0" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>
   <ItemGroup Label="Versions to pin transitive references">
+    <PackageVersion Include="Azure.Core" Version="1.61.0" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.IdentityModel.Abstractions" Version="8.22.0" />
+    <PackageVersion Include="SSH.NET" Version="2026.0.0" />
     <PackageVersion Include="System.Formats.Cbor" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.IO.Hashing" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.Threading.RateLimiting" Version="$(RuntimeFrameworkVersion)" />
-    <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.2" />
-    <PackageVersion Include="Azure.Core" Version="1.61.0" />
-    <PackageVersion Include="SSH.NET" Version="2026.0.0" />
   </ItemGroup>
   <ItemGroup>
     <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="6.1.63" />
