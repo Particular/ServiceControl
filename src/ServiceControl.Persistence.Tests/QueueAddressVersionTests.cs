@@ -27,6 +27,7 @@ class QueueAddressVersionTests : IngestionTestBase
         {
             Assert.That(after.Results, Has.Count.EqualTo(1), "still one address");
             Assert.That(after.Results[0].FailedMessageCount, Is.EqualTo(2), "and the body now reports two failures");
+            Assert.That(before.QueryStats.Version.HasValue, Is.True, "there was no version to move");
             Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False,
                 "the body changed, so the validator must too, or a revalidating client is served a stale count");
         });
@@ -51,6 +52,7 @@ class QueueAddressVersionTests : IngestionTestBase
         {
             Assert.That(after.Results, Has.Count.EqualTo(1), "still one address");
             Assert.That(after.Results[0].PhysicalAddress, Is.EqualTo("OtherEndpoint@machine2"), "and it is the new one");
+            Assert.That(before.QueryStats.Version.HasValue, Is.True, "there was no version to move");
             Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False,
                 "the body reports a different address under the same count, so the validator cannot stay put");
         });
@@ -69,7 +71,8 @@ class QueueAddressVersionTests : IngestionTestBase
 
         var after = await QueueAddressStore.GetAddresses(new PagingInfo());
 
-        Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False);
+        VersionAssert.Moved(before.QueryStats.Version, after.QueryStats.Version,
+            "an address appeared, so a revalidating client must not be told its page is current");
     }
 
     [Test]
@@ -81,7 +84,8 @@ class QueueAddressVersionTests : IngestionTestBase
         var first = await QueueAddressStore.GetAddresses(new PagingInfo());
         var second = await QueueAddressStore.GetAddresses(new PagingInfo());
 
-        Assert.That(second.QueryStats.Version.Matches(first.QueryStats.Version), Is.True);
+        VersionAssert.Held(first.QueryStats.Version, second.QueryStats.Version,
+            "nothing changed, so the validator has to stay put or conditional GET never pays off");
     }
 
     [Test]

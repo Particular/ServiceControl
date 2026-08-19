@@ -7,7 +7,7 @@ using ServiceControl.Recoverability;
 static class RetryHistoryQueries
 {
     /// <summary>
-    /// Every field of every operation in both collections, plus the total count of 
+    /// Every field of every operation in both collections, plus each collection's count
     /// </summary>
     public static QueryStatsInfo ToQueryStatsInfo(this RetryHistory history) =>
         new(DataVersion.Compose(

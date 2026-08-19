@@ -44,6 +44,9 @@ namespace ServiceControl.CompositeViews.Messages
         }
 
         protected TDataStore DataStore { get; }
+
+        protected string LocalInstanceId => Settings.InstanceId;
+
         Settings Settings { get; }
         IHttpClientFactory HttpClientFactory { get; }
         IHttpContextAccessor HttpContextAccessor { get; }
@@ -96,12 +99,30 @@ namespace ServiceControl.CompositeViews.Messages
 
         protected abstract TOut ProcessResults(TIn input, QueryResult<TOut>[] results);
 
-        protected virtual QueryStatsInfo AggregateStats(TIn input, IEnumerable<QueryResult<TOut>> results, TOut processedResults)
+        protected virtual QueryStatsInfo AggregateStats(TIn input, IEnumerable<QueryResult<TOut>> results, TOut processedResults) =>
+            Aggregate(results);
+
+        /// <summary>
+        /// For an API whose own instance holds none of the data. Its local result carries no version, and
+        /// <see cref="DataVersion.Combine"/> reports <see cref="DataVersion.None"/> as soon as one result
+        /// is missing one, which would leave every response with no ETag at all.
+        /// </summary>
+        protected QueryStatsInfo AggregateStatsFromRemotesOnly(IEnumerable<QueryResult<TOut>> results) =>
+            Aggregate(results.Where(result => result.InstanceId != LocalInstanceId));
+
+        static QueryStatsInfo Aggregate(IEnumerable<QueryResult<TOut>> results)
         {
-            var infos = results.Select(x => x.QueryStats).ToArray();
+            var reported = results.ToArray();
+
+            if (reported.Length == 0)
+            {
+                return QueryStatsInfo.Zero;
+            }
+
+            var infos = reported.Select(x => x.QueryStats).ToArray();
 
             return new QueryStatsInfo(
-                DataVersion.Combine(infos.Select(x => x.Version)),
+                DataVersion.Combine(reported.Select(result => (result.InstanceId, result.QueryStats.Version))),
                 infos.Sum(x => x.TotalCount),
                 isStale: infos.Any(x => x.IsStale),
                 infos.Max(x => x.HighestTotalCountOfAllTheInstances)

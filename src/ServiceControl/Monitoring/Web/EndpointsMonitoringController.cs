@@ -68,8 +68,7 @@
         {
             var knownEndpoints = monitoring.GetKnownEndpoints();
 
-            // No version: this list is stitched together here from sources with no shared count or
-            // timestamp to watch.
+            // No version: this list lives in memory and no store version covers it.
             Response.WithQueryStatsAndPagingInfo(new QueryStatsInfo(DataVersion.None, knownEndpoints.Count, isStale: false), pagingInfo);
             return knownEndpoints;
         }

@@ -46,6 +46,7 @@ class ArchivedGroupVersionTests : PersistenceTestBase
             Assert.That(before.Results, Has.Count.EqualTo(2), "two archived groups to start with");
             Assert.That(after.Results, Has.Count.EqualTo(1), "and one afterwards, so the body definitely changed");
             Assert.That(after.Results.Single().Count, Is.EqualTo(3), "carrying all three archived messages");
+            Assert.That(before.QueryStats.Version.HasValue, Is.True, "there was no version to move");
             Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False,
                 "the body changed, so the validator must too, or a revalidating client keeps a group that is gone");
         }
@@ -68,7 +69,8 @@ class ArchivedGroupVersionTests : PersistenceTestBase
 
         var after = await GroupsStore.GetArchivedGroupsByClassifier(Classifier);
 
-        Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False);
+        VersionAssert.Moved(before.QueryStats.Version, after.QueryStats.Version,
+            "the archived group gained a message, so its validator cannot stay put");
     }
 
     [Test]
@@ -83,7 +85,8 @@ class ArchivedGroupVersionTests : PersistenceTestBase
         var first = await GroupsStore.GetArchivedGroupsByClassifier(Classifier);
         var second = await GroupsStore.GetArchivedGroupsByClassifier(Classifier);
 
-        Assert.That(second.QueryStats.Version.Matches(first.QueryStats.Version), Is.True);
+        VersionAssert.Held(first.QueryStats.Version, second.QueryStats.Version,
+            "nothing changed, so the validator has to stay put or conditional GET never pays off");
     }
 
     [Test]

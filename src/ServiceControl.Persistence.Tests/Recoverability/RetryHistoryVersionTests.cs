@@ -30,6 +30,7 @@ class RetryHistoryVersionTests : PersistenceTestBase
             Assert.That(before.Results.UnacknowledgedOperations, Has.Count.EqualTo(1));
             Assert.That(after.Results.UnacknowledgedOperations, Is.Empty, "the body changed");
             Assert.That(after.Results.HistoricOperations, Has.Count.EqualTo(1), "and the historic half did not");
+            Assert.That(before.QueryStats.Version.HasValue, Is.True, "there was no version to move");
             Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False,
                 "the body changed, so the validator must too, or a revalidating client keeps an operation it has dismissed");
         }
@@ -48,7 +49,8 @@ class RetryHistoryVersionTests : PersistenceTestBase
 
         var after = await RetryHistoryStore.GetRetryHistory();
 
-        Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False);
+        VersionAssert.Moved(before.QueryStats.Version, after.QueryStats.Version,
+            "another operation completed, so a revalidating client must not keep the old history");
     }
 
     [Test]
@@ -60,7 +62,8 @@ class RetryHistoryVersionTests : PersistenceTestBase
         var first = await RetryHistoryStore.GetRetryHistory();
         var second = await RetryHistoryStore.GetRetryHistory();
 
-        Assert.That(second.QueryStats.Version.Matches(first.QueryStats.Version), Is.True);
+        VersionAssert.Held(first.QueryStats.Version, second.QueryStats.Version,
+            "nothing changed, so the validator has to stay put or conditional GET never pays off");
     }
 
     [Test]

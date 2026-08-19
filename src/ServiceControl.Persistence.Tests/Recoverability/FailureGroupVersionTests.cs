@@ -38,6 +38,7 @@ class FailureGroupVersionTests : PersistenceTestBase
             Assert.That(after.Results.Count, Is.EqualTo(2), "and the body now reports two");
             Assert.That(after.Results.First, Is.EqualTo(before.Results.First), "the earliest failure is unchanged");
             Assert.That(after.Results.Last, Is.EqualTo(before.Results.Last), "and so is the latest");
+            Assert.That(before.QueryStats.Version.HasValue, Is.True, "there was no version to move");
             Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False,
                 "the body changed, so the validator must too, or a revalidating client is served a stale count");
         });
@@ -56,7 +57,8 @@ class FailureGroupVersionTests : PersistenceTestBase
 
         var after = await GroupsStore.GetUnresolvedGroup(group.Id, null, null);
 
-        Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False);
+        VersionAssert.Moved(before.QueryStats.Version, after.QueryStats.Version,
+            "the group gained a message, so its validator cannot stay put");
     }
 
     [Test]
@@ -79,6 +81,7 @@ class FailureGroupVersionTests : PersistenceTestBase
         Assert.Multiple(() =>
         {
             Assert.That(after.Results.Count, Is.EqualTo(before.Results.Count), "still three messages");
+            Assert.That(before.QueryStats.Version.HasValue, Is.True, "there was no version to move");
             Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False,
                 "a different span of failures is being reported under the same count");
         });
@@ -94,7 +97,8 @@ class FailureGroupVersionTests : PersistenceTestBase
         var first = await GroupsStore.GetUnresolvedGroup(group.Id, null, null);
         var second = await GroupsStore.GetUnresolvedGroup(group.Id, null, null);
 
-        Assert.That(second.QueryStats.Version.Matches(first.QueryStats.Version), Is.True);
+        VersionAssert.Held(first.QueryStats.Version, second.QueryStats.Version,
+            "nothing changed, so the validator has to stay put or conditional GET never pays off");
     }
 
     [Test]

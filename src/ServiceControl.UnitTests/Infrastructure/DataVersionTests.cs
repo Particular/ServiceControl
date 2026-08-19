@@ -112,7 +112,19 @@ public class DataVersionTests
         var a = DataVersion.FromToken("a");
         var b = DataVersion.FromToken("b");
 
-        Assert.That(DataVersion.Combine([a, b]).Matches(DataVersion.Combine([b, a])), Is.True);
+        Assert.That(DataVersion.Combine([("one", a), ("two", b)])
+            .Matches(DataVersion.Combine([("two", b), ("one", a)])), Is.True);
+    }
+
+    [Test]
+    public void Combine_moves_when_two_instances_swap_which_version_they_report()
+    {
+        var a = DataVersion.FromToken("a");
+        var b = DataVersion.FromToken("b");
+
+        Assert.That(DataVersion.Combine([("one", a), ("two", b)])
+                .Matches(DataVersion.Combine([("one", b), ("two", a)])), Is.False,
+            "both instances changed, so a composite that only looked at the set of validators would answer 304 over stale data");
     }
 
     [Test]
@@ -121,7 +133,7 @@ public class DataVersionTests
         var a = DataVersion.FromToken("a");
         var b = DataVersion.FromToken("b");
 
-        var combined = DataVersion.Combine([a, b]);
+        var combined = DataVersion.Combine([("one", a), ("two", b)]);
 
         Assert.Multiple(() =>
         {
@@ -133,7 +145,7 @@ public class DataVersionTests
     [Test]
     public void Combine_is_absent_when_any_instance_has_no_version()
     {
-        var combined = DataVersion.Combine([DataVersion.FromToken("a"), DataVersion.None]);
+        var combined = DataVersion.Combine([("one", DataVersion.FromToken("a")), ("two", DataVersion.None)]);
 
         Assert.That(combined.HasValue, Is.False,
             "a composite that ignored an instance would stop reporting that instance's changes");
@@ -143,6 +155,23 @@ public class DataVersionTests
     public void Combine_of_nothing_is_absent()
     {
         Assert.That(DataVersion.Combine([]).HasValue, Is.False);
+    }
+
+    [Test]
+    public void Compose_distinguishes_a_term_value_that_carries_the_delimiters()
+    {
+        var forged = DataVersion.Compose(("one", "a|two:1:b"));
+        var genuine = DataVersion.Compose(("one", "a"), ("two", "b"));
+
+        Assert.That(forged.Matches(genuine), Is.False,
+            "a value able to pose as a longer term list would let a peer pin the composite version");
+    }
+
+    [Test]
+    public void Compose_refuses_a_term_whose_text_is_not_derived_from_its_content()
+    {
+        Assert.That(() => DataVersion.Compose(("rows", new object())), Throws.ArgumentException,
+            "a type name is a constant, so the version would never move and clients would cache forever");
     }
 
     [TestCase("\"abc\"", TestName = "FromClient_reads_a_quoted_validator")]
@@ -192,7 +221,7 @@ public class DataVersionTests
         {
             Assert.That(DataVersion.Compose(("total", 3L)).IsStrong, Is.False,
                 "a hash over aggregates cannot promise the bytes are identical");
-            Assert.That(DataVersion.Combine([exact, exact]).IsStrong, Is.False,
+            Assert.That(DataVersion.Combine([("one", exact), ("two", exact)]).IsStrong, Is.False,
                 "a composite across instances is an approximation whatever went into it");
         });
     }

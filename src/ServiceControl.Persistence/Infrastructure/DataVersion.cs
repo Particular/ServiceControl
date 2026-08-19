@@ -14,8 +14,8 @@ namespace ServiceControl.Persistence.Infrastructure
     /// stays reflexive, so the struct still works as a dictionary key.
     /// </para>
     /// <para>
-    /// A struct, so <c>default</c> is <see cref="None"/> and no field can be null. A null would be a second
-    /// way to say "no version" that <see cref="Matches"/> never sees. <c>operator ==</c> is left undefined on
+    /// A struct, so <c>default</c> is <see cref="None"/> and no variable of this type can be null. A null
+    /// reference would be a second way to say "no version" that <see cref="Matches"/> never sees. <c>operator ==</c> is left undefined on
     /// purpose: the only two questions worth asking are <see cref="Matches"/> and <see cref="Equals(DataVersion)"/>.
     /// </para>
     /// </summary>
@@ -50,7 +50,7 @@ namespace ServiceControl.Persistence.Infrastructure
             new(token.ToString(CultureInfo.InvariantCulture));
 
         /// <summary>
-        /// A backend token that moves only when the response bytes move, so the tag goes out unmarked. Only
+        /// A backend token that moves whenever the response bytes move, so the tag goes out unmarked. Only
         /// the caller can know that holds, so only use it where it demonstrably does.
         /// </summary>
         public static DataVersion FromContent(string token) =>
@@ -68,31 +68,34 @@ namespace ServiceControl.Persistence.Infrastructure
 
         /// <summary>
         /// One version for a result gathered from several instances. Missing anywhere means missing overall.
-        /// Always weak, whatever went in, since it goes through <see cref="Compose"/>.
+        /// Keyed on the instance, so a validator moving from one instance to another still moves the
+        /// composite. Always weak, whatever went in, since it goes through <see cref="Compose"/>.
         /// </summary>
-        public static DataVersion Combine(IEnumerable<DataVersion> versions)
+        public static DataVersion Combine(IEnumerable<(string InstanceId, DataVersion Version)> versions)
         {
-            var validators = new List<string>();
+            ArgumentNullException.ThrowIfNull(versions);
 
-            foreach (var version in versions)
+            var reported = new List<(string InstanceId, string Validator)>();
+
+            foreach (var (instanceId, version) in versions)
             {
                 if (!version.HasValue)
                 {
                     return None;
                 }
 
-                validators.Add(version.validator);
+                reported.Add((instanceId, version.validator));
             }
 
-            if (validators.Count == 0)
+            if (reported.Count == 0)
             {
                 return None;
             }
 
-            // Instances answer in no guaranteed order, so the composite has to be order independent.
-            validators.Sort(StringComparer.Ordinal);
-
-            return Compose([.. validators.Select((v, i) => ($"instance{i.ToString(CultureInfo.InvariantCulture)}", (object)v))]);
+            return Compose([.. reported
+                .OrderBy(entry => entry.InstanceId, StringComparer.Ordinal)
+                .ThenBy(entry => entry.Validator, StringComparer.Ordinal)
+                .Select(entry => (entry.InstanceId, (object)entry.Validator))]);
         }
 
         /// <summary>
@@ -147,14 +150,21 @@ namespace ServiceControl.Persistence.Infrastructure
         public override string ToString() => validator ?? string.Empty;
 
         static string Describe((string Name, object Value)[] terms) =>
-            string.Join("|", terms.Select(term => $"{term.Name}={Format(term.Value)}"));
+            string.Join("|", terms.Select(term => Encode(term.Name, Format(term.Value))));
+
+        static string Encode(string name, string value) =>
+            $"{name}:{value.Length.ToString(CultureInfo.InvariantCulture)}:{value}";
 
         static string Format(object value) => value switch
         {
             null => string.Empty,
+            string text => text,
             DateTime timestamp => timestamp.Ticks.ToString(CultureInfo.InvariantCulture),
+            DateTimeOffset timestamp => timestamp.UtcTicks.ToString(CultureInfo.InvariantCulture),
             IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
-            _ => value.ToString()
+            // Any other ToString is not a documented function of the content, so it could pin the
+            // version while the data moves and cache a stale page forever.
+            _ => throw new ArgumentException($"A version term cannot be built from {value.GetType()}.", nameof(value))
         };
     }
 }

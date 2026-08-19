@@ -27,6 +27,7 @@ class CustomCheckVersionTests : PersistenceTestBase
         {
             Assert.That(after.Results, Has.Count.EqualTo(1), "still one check");
             Assert.That(after.Results[0].Status, Is.EqualTo(Status.Fail), "and the body now reports it failing");
+            Assert.That(before.QueryStats.Version.HasValue, Is.True, "there was no version to move");
             Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False,
                 "the body changed, so the validator must too, or a revalidating client is shown a stale status");
         });
@@ -43,7 +44,8 @@ class CustomCheckVersionTests : PersistenceTestBase
 
         var after = await CustomChecks.GetStats(new PagingInfo());
 
-        Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False);
+        VersionAssert.Moved(before.QueryStats.Version, after.QueryStats.Version,
+            "a check appeared, so a revalidating client must not be told its page is current");
     }
 
     [Test]
@@ -54,7 +56,8 @@ class CustomCheckVersionTests : PersistenceTestBase
         var first = await CustomChecks.GetStats(new PagingInfo());
         var second = await CustomChecks.GetStats(new PagingInfo());
 
-        Assert.That(second.QueryStats.Version.Matches(first.QueryStats.Version), Is.True);
+        VersionAssert.Held(first.QueryStats.Version, second.QueryStats.Version,
+            "nothing changed, so the validator has to stay put or conditional GET never pays off");
     }
 
     [Test]

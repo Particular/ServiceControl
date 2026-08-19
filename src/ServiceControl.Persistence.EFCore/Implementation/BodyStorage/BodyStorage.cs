@@ -31,7 +31,7 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
 
         var uniqueMessageId = row.UniqueMessageId.ToString();
 
-        // Ingestion updates the existing row rather than adding one, so the message id is unchanged 
+        // Ingestion updates the existing row rather than adding one, so the message id is unchanged
         // and cannot serve as a version alone. LastModified is written on every upsert.
         var version = DataVersion.Compose(
             ("uniqueMessageId", row.UniqueMessageId),

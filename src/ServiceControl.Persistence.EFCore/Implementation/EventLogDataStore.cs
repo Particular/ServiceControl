@@ -76,8 +76,8 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
             return new QueryResult<IList<EventLogItemView>>(items, queryStats);
         }, cancellationToken);
 
-    // The table is append-only, so the highest key is enough to spot an insert: identity values can gap
-    // but never repeat, whatever RaisedAt says.
+    // Rows are never rewritten, only inserted or swept, so the count catches a sweep and the highest
+    // key catches an insert: identity values gap but never repeat, whatever RaisedAt says.
     static DataVersion Version(long total, DateTime? newest, long? highestId) =>
         DataVersion.Compose(("total", total), ("newest", newest), ("highestId", highestId));
 }

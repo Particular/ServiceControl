@@ -26,6 +26,7 @@ class IngestionClockTests : IngestionTestBase
 
         // The EF clock is frozen, so without AdvanceClock a second attempt at the same message leaves
         // both the count and LastModified alone and the version cannot move.
-        Assert.That(after.Matches(before), Is.False);
+        VersionAssert.Moved(before, after,
+            "the stored body changed, so a revalidating client must not be served the old bytes");
     }
 }

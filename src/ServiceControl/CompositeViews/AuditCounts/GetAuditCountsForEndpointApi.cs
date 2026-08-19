@@ -33,6 +33,9 @@
             // Will never be implemented on the primary instance
             Task.FromResult(new QueryResult<IList<AuditCount>>(Empty, QueryStatsInfo.Zero));
 
+        protected override QueryStatsInfo AggregateStats(AuditCountsForEndpointContext input, IEnumerable<QueryResult<IList<AuditCount>>> results, IList<AuditCount> processedResults) =>
+            AggregateStatsFromRemotesOnly(results);
+
         protected override IList<AuditCount> ProcessResults(AuditCountsForEndpointContext input, QueryResult<IList<AuditCount>>[] results) =>
             results.SelectMany(r => r.Results)
                 .GroupBy(r => r.UtcDate)

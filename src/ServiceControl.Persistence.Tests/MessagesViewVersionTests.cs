@@ -27,6 +27,7 @@ class MessagesViewVersionTests : IngestionTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(after.Results, Has.Count.EqualTo(2), "the body now reports two messages");
+            Assert.That(before.QueryStats.Version.HasValue, Is.True, "there was no version to move");
             Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False,
                 "the body changed, so the validator must too");
         }
@@ -52,6 +53,7 @@ class MessagesViewVersionTests : IngestionTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(after.Results, Has.Count.EqualTo(1), "still one message");
+            Assert.That(before.QueryStats.Version.HasValue, Is.True, "there was no version to move");
             Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False,
                 "the message the body reports has a later attempt on it, so the validator cannot stay put");
         }
@@ -75,6 +77,7 @@ class MessagesViewVersionTests : IngestionTestBase
         {
             Assert.That(before.Results, Has.Count.EqualTo(1), "the Shipping message is not on this page");
             Assert.That(after.Results, Has.Count.EqualTo(2), "and the body now reports two");
+            Assert.That(before.QueryStats.Version.HasValue, Is.True, "there was no version to move");
             Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False,
                 "the body changed, so the validator must too");
         }
@@ -89,7 +92,8 @@ class MessagesViewVersionTests : IngestionTestBase
         var first = await AllMessages();
         var second = await AllMessages();
 
-        Assert.That(second.QueryStats.Version.Matches(first.QueryStats.Version), Is.True);
+        VersionAssert.Held(first.QueryStats.Version, second.QueryStats.Version,
+            "nothing changed, so the validator has to stay put or conditional GET never pays off");
     }
 
     [Test]
