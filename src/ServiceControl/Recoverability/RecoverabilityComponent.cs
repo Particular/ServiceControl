@@ -79,7 +79,11 @@
             services.AddSingleton<ReturnToSender>();
             services.AddSingleton<ErrorQueueNameCache>();
             services.AddSingleton<ReturnToSenderDequeuer>();
-            services.AddHostedService(provider => provider.GetRequiredService<ReturnToSenderDequeuer>());
+
+            if (!settings.ErrorIngestionOnly)
+            {
+                services.AddHostedService(provider => provider.GetRequiredService<ReturnToSenderDequeuer>());
+            }
 
             //Error importer
             services.AddSingleton<ImportFailedErrors>();

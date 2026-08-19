@@ -33,7 +33,10 @@ public abstract class BasePersistence
         services.AddSingleton<IExternalIntegrationRequestsDataStore>(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
         services.AddHostedService(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
 
-        services.AddHostedService<RetentionSweeper>();
+        if (settings.RunRetentionSweep)
+        {
+            services.AddHostedService<RetentionSweeper>();
+        }
 
         services.AddSingleton<OperationsManager>();
         services.AddSingleton<IArchiveMessages, MessageArchiver>();

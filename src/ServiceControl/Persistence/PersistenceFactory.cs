@@ -13,6 +13,7 @@ namespace ServiceControl.Persistence
             //HINT: This is false when executed from acceptance tests
             settings.PersisterSpecificSettings ??= persistenceConfiguration.CreateSettings(Settings.SettingsRootNamespace);
             settings.PersisterSpecificSettings.MaintenanceMode = maintenanceMode;
+            settings.PersisterSpecificSettings.RunRetentionSweep = !settings.ErrorIngestionOnly;
 
             var persistence = persistenceConfiguration.Create(settings.PersisterSpecificSettings);
             return persistence;
