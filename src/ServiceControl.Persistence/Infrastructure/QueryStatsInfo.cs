@@ -16,6 +16,13 @@ namespace ServiceControl.Persistence.Infrastructure
             HighestTotalCountOfAllTheInstances = highestTotalCountOfAllTheInstances ?? totalCount;
         }
 
-        public static readonly QueryStatsInfo Zero = new(DataVersion.None, 0, false);
+        /// <summary>
+        /// For a result that cannot be stale (when queries can
+        /// run against an index that has not caught up).
+        /// </summary>
+        public static QueryStatsInfo Fresh(DataVersion version, long totalCount) =>
+            new(version, totalCount, isStale: false);
+
+        public static readonly QueryStatsInfo Zero = Fresh(DataVersion.None, 0);
     }
 }

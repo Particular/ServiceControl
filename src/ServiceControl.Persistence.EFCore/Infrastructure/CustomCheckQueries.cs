@@ -12,8 +12,7 @@ static class CustomCheckQueries
     /// updated.
     /// </summary>
     public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<CustomCheck> page, long totalCount) =>
-        new(DataVersion.OverRows([("checks", totalCount)], page,
+        QueryStatsInfo.Fresh(DataVersion.OverRows([("checks", totalCount)], page,
                 check => [check.Id, check.CustomCheckId, check.Category, check.Status, check.ReportedAt, check.FailureReason]),
-            totalCount,
-            false);
+            totalCount);
 }

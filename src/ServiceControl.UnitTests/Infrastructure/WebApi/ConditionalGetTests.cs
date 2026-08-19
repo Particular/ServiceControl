@@ -78,7 +78,7 @@ public class ConditionalGetTests
         var version = DataVersion.FromToken("4611686018427387904");
 
         httpContext.Response.WithQueryStatsAndPagingInfo(
-            new QueryStatsInfo(version, totalCount: 1, isStale: false),
+            QueryStatsInfo.Fresh(version, totalCount: 1),
             new PagingInfo());
 
         // A hashed validator matches nothing a store holds, so the endpoint can never skip its query.

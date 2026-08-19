@@ -44,7 +44,7 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
 
             var total = stats?.Total ?? 0;
             var version = Version(total, stats?.Newest, stats?.HighestId);
-            var queryStats = new QueryStatsInfo(version, total, isStale: false);
+            var queryStats = QueryStatsInfo.Fresh(version, total);
 
             // The point of knownVersion. Everything above is index work.
             // If the caller already has the latest version, skip the rest of the query.

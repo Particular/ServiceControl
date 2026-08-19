@@ -207,7 +207,7 @@ namespace ServiceControl.CompositeViews.Messages
 
             var etag = ReadEtag(responseMessage.Headers);
 
-            return new QueryResult<TOut>(remoteResults, new QueryStatsInfo(etag, totalCount, isStale: false));
+            return new QueryResult<TOut>(remoteResults, QueryStatsInfo.Fresh(etag, totalCount));
         }
 
         readonly ILogger logger;

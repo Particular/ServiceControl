@@ -28,7 +28,7 @@
             retryHistory ??= new();
 
             return new QueryResult<RetryHistory>(retryHistory,
-                new QueryStatsInfo(version, retryHistory.HistoricOperations.Count, false));
+                QueryStatsInfo.Fresh(version, retryHistory.HistoricOperations.Count));
         }
 
         public async Task RecordRetryOperationCompleted(string requestId, RetryType retryType, DateTime startTime, DateTime completionTime,
