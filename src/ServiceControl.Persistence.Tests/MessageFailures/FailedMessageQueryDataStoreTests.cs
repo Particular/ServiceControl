@@ -311,7 +311,26 @@ class FailedMessageQueryDataStoreTests : PersistenceTestBase
         {
             Assert.That(stats.TotalCount, Is.EqualTo(1));
             Assert.That(stats.TotalCount, Is.EqualTo(query.QueryStats.TotalCount));
-            Assert.That(stats.Version.Matches(query.QueryStats.Version), Is.True);
+            Assert.That(stats.Version.HasValue, Is.True, "the count endpoint still has to be cacheable");
+            Assert.That(stats.Version.Matches(query.QueryStats.Version), Is.False);
+        }
+    }
+
+    [Test]
+    public async Task Two_filters_that_render_different_rows_do_not_share_a_version()
+    {
+        await Insert(new IngestedFailure().ToFailedMessage(), new IngestedFailure().ToFailedMessage(FailedMessageStatus.Archived));
+
+        var unresolved = await FailedMessageQueryStore.GetFailedMessages("unresolved", null, null, new PagingInfo(), new SortInfo());
+        var archived = await FailedMessageQueryStore.GetFailedMessages("archived", null, null, new PagingInfo(), new SortInfo());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(unresolved.Results, Has.Count.EqualTo(1), "one unresolved message");
+            Assert.That(archived.Results, Has.Count.EqualTo(1), "and one archived, so the counts cannot tell the two apart");
+            Assert.That(Ids(archived), Is.Not.EquivalentTo(Ids(unresolved)), "and the two pages render different rows");
+            Assert.That(archived.QueryStats.Version.Matches(unresolved.QueryStats.Version), Is.False,
+                "two different bodies sharing a validator lets a client that reuses one across views be served the wrong page");
         }
     }
 

@@ -53,7 +53,7 @@
 
             var results = await query.ToListAsync(cancellationToken);
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            return new QueryResult<IList<MessagesView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(
@@ -79,7 +79,7 @@
             var results = await query.ToListAsync(cancellationToken);
 
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            return new QueryResult<IList<MessagesView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> SearchEndpointMessages(
@@ -104,7 +104,7 @@
 
             var results = await query.ToListAsync(cancellationToken);
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            return new QueryResult<IList<MessagesView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(
@@ -126,7 +126,7 @@
 
             var results = await query.ToListAsync(cancellationToken);
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            return new QueryResult<IList<MessagesView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(
@@ -149,7 +149,7 @@
 
             var results = await query.ToListAsync(cancellationToken);
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            return new QueryResult<IList<MessagesView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id));
         }
 
         public async Task MarkAsArchived(string failedMessageId, CancellationToken cancellationToken = default)
@@ -200,7 +200,7 @@
             var results = await query
                 .ToListAsync(cancellationToken);
 
-            return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
+            return new QueryResult<IList<FailedMessageView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id));
         }
 
         public async Task<QueryStatsInfo> GetFailedMessagesStats(
@@ -247,7 +247,7 @@
             var results = await query
                 .ToListAsync(cancellationToken);
 
-            return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
+            return new QueryResult<IList<FailedMessageView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id));
         }
 
         public async Task<IDictionary<string, object>> GetFailedMessagesSummary(CancellationToken cancellationToken = default)

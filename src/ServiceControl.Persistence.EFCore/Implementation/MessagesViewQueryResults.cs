@@ -10,7 +10,7 @@ static class MessagesViewQueryResults
 {
     public static async Task<QueryResult<IList<MessagesView>>> ToPagedMessagesResult(this IQueryable<FailedMessageEntity> source, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken = default)
     {
-        var stats = await source.ToQueryStatsInfo(cancellationToken);
+        var total = await source.LongCountAsync(cancellationToken);
 
         var entities = await source
             .SortMessages(sortInfo)
@@ -19,6 +19,6 @@ static class MessagesViewQueryResults
 
         IList<MessagesView> results = [.. entities.Select(entity => entity.ToMessagesView())];
 
-        return new QueryResult<IList<MessagesView>>(results, stats);
+        return new QueryResult<IList<MessagesView>>(results, entities.ToPagedQueryStatsInfo(total));
     }
 }

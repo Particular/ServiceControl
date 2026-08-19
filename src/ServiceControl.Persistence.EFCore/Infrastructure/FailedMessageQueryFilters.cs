@@ -176,8 +176,18 @@ static class FailedMessageQueryFilters
         var count = stats?.Count ?? 0;
 
         // Aggregates rather than the rows, which holds only because every write path sets LastModified.
+        // Only safe for a response that reports the count and nothing else. A paged response has to use
+        // ToPagedQueryStatsInfo.
         return new QueryStatsInfo(DataVersion.Compose(("failures", count), ("lastModified", stats?.Latest)), count, false);
     }
+
+    /// <summary>
+    /// Versions the rows this page renders, plus the total behind Total-Count. 
+    /// </summary>
+    public static QueryStatsInfo ToPagedQueryStatsInfo(this IReadOnlyCollection<FailedMessageEntity> page, long total) =>
+        new(DataVersion.OverPage([("total", total)], page, row => [row.UniqueMessageId, row.LastModified]),
+            total,
+            false);
 
     static IOrderedQueryable<FailedMessageEntity> OrderBy<TKey>(this IQueryable<FailedMessageEntity> source, System.Linq.Expressions.Expression<Func<FailedMessageEntity, TKey>> keySelector, bool descending) =>
         descending

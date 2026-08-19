@@ -97,6 +97,53 @@ class MessagesViewVersionTests : IngestionTestBase
     }
 
     [Test]
+    public async Task Two_pages_of_one_set_do_not_share_a_version()
+    {
+        for (var i = 0; i < 3; i++)
+        {
+            await Ingest(new IngestedFailure());
+        }
+
+        await CompleteDatabaseOperation();
+
+        var firstPage = await MessagesViewStore.GetAllMessages(new PagingInfo(page: 1, pageSize: 2), new SortInfo(), includeSystemMessages: true);
+        var secondPage = await MessagesViewStore.GetAllMessages(new PagingInfo(page: 2, pageSize: 2), new SortInfo(), includeSystemMessages: true);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(firstPage.Results, Has.Count.EqualTo(2), "two rows on the first page");
+            Assert.That(secondPage.Results, Has.Count.EqualTo(1), "and the third on the second, so the bodies differ");
+            Assert.That(secondPage.QueryStats.Version.Matches(firstPage.QueryStats.Version), Is.False,
+                "a client following the Link rel=next header while revalidating would otherwise render page one as page two");
+        }
+    }
+
+    [Test]
+    public async Task A_page_keeps_its_version_when_a_row_it_does_not_show_changes()
+    {
+        var shown = new IngestedFailure();
+
+        await Ingest(shown);
+        await CompleteDatabaseOperation();
+
+        var before = await MessagesViewStore.GetAllMessages(new PagingInfo(page: 1, pageSize: 1), new SortInfo(), includeSystemMessages: true);
+
+        AdvanceClock(TimeSpan.FromMinutes(5));
+
+        await Ingest(new IngestedFailure());
+        await CompleteDatabaseOperation();
+
+        var after = await MessagesViewStore.GetAllMessages(new PagingInfo(page: 1, pageSize: 1), new SortInfo(), includeSystemMessages: true);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(after.Results, Has.Count.EqualTo(1), "still one row on the page");
+            Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False,
+                "Total-Count went from one to two, and the body reports it, so the validator has to move");
+        }
+    }
+
+    [Test]
     public async Task An_empty_store_still_reports_a_version()
     {
         var result = await AllMessages();

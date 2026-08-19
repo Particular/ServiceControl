@@ -67,6 +67,27 @@ namespace ServiceControl.Persistence.Infrastructure
                 : new DataVersion(DeterministicGuid.MakeId(Describe(terms)).ToString());
 
         /// <summary>
+        /// A version for one page of a result set. <paramref name="state"/> covers what the response says
+        /// about the whole set, such as the total behind Total-Count, and one term per row covers which rows
+        /// this page actually renders.
+        /// </summary>
+        public static DataVersion OverPage<TRow>((string Name, object Value)[] state, IEnumerable<TRow> rows, Func<TRow, object[]> fields)
+        {
+            ArgumentNullException.ThrowIfNull(rows);
+            ArgumentNullException.ThrowIfNull(fields);
+
+            var terms = new List<(string Name, object Value)>(state ?? []);
+            var row = 0;
+
+            foreach (var item in rows)
+            {
+                terms.Add((FormattableString.Invariant($"row{row++}"), Row(fields(item))));
+            }
+
+            return Compose([.. terms]);
+        }
+
+        /// <summary>
         /// One version for a result gathered from several instances. Missing anywhere means missing overall.
         /// Keyed on the instance, so a validator moving from one instance to another still moves the
         /// composite. Always weak, whatever went in, since it goes through <see cref="Compose"/>.
@@ -152,8 +173,13 @@ namespace ServiceControl.Persistence.Infrastructure
         static string Describe((string Name, object Value)[] terms) =>
             string.Join("|", terms.Select(term => Encode(term.Name, Format(term.Value))));
 
-        static string Encode(string name, string value) =>
-            $"{name}:{value.Length.ToString(CultureInfo.InvariantCulture)}:{value}";
+        static string Encode(string name, string value) => $"{name}:{Prefixed(value)}";
+
+        static string Row(object[] fields) =>
+            fields is null ? string.Empty : string.Concat(fields.Select(field => Prefixed(Format(field))));
+
+        static string Prefixed(string value) =>
+            $"{value.Length.ToString(CultureInfo.InvariantCulture)}:{value}";
 
         static string Format(object value) => value switch
         {
