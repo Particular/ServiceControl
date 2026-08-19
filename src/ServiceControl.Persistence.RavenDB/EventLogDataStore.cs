@@ -39,10 +39,11 @@
                 .Paging(pagingInfo)
                 .ToListAsync(cancellationToken);
 
-            var queryStats = stats.ToQueryStatsInfo();
+            // Names the ids on the page, not just the index etag, or every page of every filter over this
+            // index shares one validator.
+            var queryStats = stats.ToPagedQueryStatsInfo(documents, session.Advanced.GetDocumentId);
 
-            // The validator comes off the query statistics, so the page cannot be
-            // skipped. Only the projection below is saved.
+            // The page cannot be skipped, only the projection below.
             if (knownVersion.Matches(queryStats.Version))
             {
                 return QueryResult<IList<EventLogItemView>>.Unchanged(queryStats);

@@ -43,7 +43,12 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
                 .FirstOrDefaultAsync(token);
 
             var total = stats?.Total ?? 0;
-            var version = Version(total, stats?.Newest, stats?.HighestId);
+            var version = DataVersion.Compose(
+                ("total", total),
+                ("newest", stats?.Newest),
+                ("highestId", stats?.HighestId),
+                ("page", pagingInfo.Page),
+                ("pageSize", pagingInfo.PageSize));
             var queryStats = QueryStatsInfo.Fresh(version, total);
 
             // The point of knownVersion. Everything above is index work.
@@ -75,9 +80,4 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
 
             return new QueryResult<IList<EventLogItemView>>(items, queryStats);
         }, cancellationToken);
-
-    // Rows are never rewritten, only inserted or swept, so the count catches a sweep and the highest
-    // key catches an insert: identity values gap but never repeat, whatever RaisedAt says.
-    static DataVersion Version(long total, DateTime? newest, long? highestId) =>
-        DataVersion.Compose(("total", total), ("newest", newest), ("highestId", highestId));
 }

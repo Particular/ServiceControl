@@ -221,6 +221,39 @@ class EventLogDataStoreTests : PersistenceTestBase
     }
 
     [Test]
+    public async Task Two_pages_do_not_share_a_version()
+    {
+        await AddItems(3);
+
+        var firstPage = await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 1, pageSize: 2));
+        var secondPage = await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 2, pageSize: 2));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(firstPage.Results, Has.Count.EqualTo(2), "two items on the first page");
+            Assert.That(secondPage.Results, Has.Count.EqualTo(1), "and the third on the second, so the bodies differ");
+            Assert.That(secondPage.QueryStats.Version.Matches(firstPage.QueryStats.Version), Is.False,
+                "sharing one would let the store answer page two out of a caller's cached page one");
+        }
+    }
+
+    [Test]
+    public async Task A_page_is_not_skipped_for_a_version_from_a_different_page()
+    {
+        await AddItems(3);
+
+        var firstPageVersion = (await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 1, pageSize: 2))).QueryStats.Version;
+
+        var secondPage = await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 2, pageSize: 2), firstPageVersion);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(secondPage.NotModified, Is.False, "the caller holds another page's validator, so this one still has to be fetched");
+            Assert.That(secondPage.Results, Has.Count.EqualTo(1));
+        }
+    }
+
+    [Test]
     public async Task Stale_known_version_returns_the_page()
     {
         await AddItems(2);
