@@ -6,6 +6,7 @@ using ServiceControl.Hosting.ForwardedHeaders;
 using ServiceControl.Hosting.Https;
 using ServiceControl.Hosting.RequestId;
 using ServiceControl.Infrastructure;
+using ServiceControl.Infrastructure.Health;
 
 public static class WebApplicationExtensions
 {
@@ -19,5 +20,6 @@ public static class WebApplicationExtensions
         app.UseHttpLogging();
         app.UseCors();
         app.MapControllers();
+        app.MapServiceControlHealthChecks();
     }
 }

@@ -71,6 +71,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability
             "HeartbeatMonitoringHostedService",     // warms the endpoint monitor, does not check heartbeats
             "InternalCustomChecksHostedService",    // reports this node's ingestion health to the database
             "MetricsReporterHostedService",
+            "HealthCheckPublisherHostedService",  // inert, no IHealthCheckPublisher is registered
             "ExternalIntegrationRequestsDataStore"  // its drain is inert here, nothing calls Subscribe
         ];
 
@@ -138,6 +139,22 @@ namespace ServiceControl.AcceptanceTests.Recoverability
                 await WaitFor(host, async dbContext => await dbContext.EventLogItems.AsNoTracking()
                         .AnyAsync(item => item.EventType == "MessageFailed" && item.Description == "Simulated failure"),
                     "an event log entry for the failure");
+
+                using var client = host.GetTestClient();
+
+                var liveness = await client.GetAsync("/health");
+                var readiness = await client.GetAsync("/health/ready");
+
+                using (Assert.EnterMultipleScope())
+                {
+                    // The container health check binary insists on non-empty JSON.
+                    Assert.That(liveness.IsSuccessStatusCode, Is.True);
+                    Assert.That(liveness.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/json"));
+                    Assert.That(await liveness.Content.ReadAsStringAsync(), Does.Contain("Healthy"));
+
+                    Assert.That(readiness.IsSuccessStatusCode, Is.True);
+                    Assert.That(await readiness.Content.ReadAsStringAsync(), Does.Contain("error-ingestion"));
+                }
             }
             finally
             {

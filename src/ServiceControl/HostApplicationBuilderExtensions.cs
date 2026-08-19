@@ -10,6 +10,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure.Auth;
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
+    using global::ServiceControl.Infrastructure.Health;
     using global::ServiceControl.Infrastructure.Metrics;
     using global::ServiceControl.Infrastructure.WebApi;
     using global::ServiceControl.Notifications.Email;
@@ -92,6 +93,7 @@ namespace Particular.ServiceControl
 
             services.AddPersistence(settings);
             services.AddMetrics(settings.PrintMetrics);
+            services.AddServiceControlHealthChecks();
 
             if (settings.ErrorIngestionOnly)
             {

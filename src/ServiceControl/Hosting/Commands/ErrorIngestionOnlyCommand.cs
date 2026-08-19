@@ -11,6 +11,7 @@ namespace ServiceControl.Hosting.Commands
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.EventLog;
     using ServiceControl.ExternalIntegrations;
+    using ServiceControl.Infrastructure.Health;
     using ServiceControl.Monitoring;
     using ServiceControl.Persistence;
     using ServiceControl.Recoverability;
@@ -46,7 +47,11 @@ namespace ServiceControl.Hosting.Commands
 
             customize?.Invoke(hostBuilder);
 
-            return hostBuilder.Build();
+            var app = hostBuilder.Build();
+
+            app.MapServiceControlHealthChecks();
+
+            return app;
         }
 
         static void EnsureStorageCanScaleOut(Settings settings)
