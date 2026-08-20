@@ -19,8 +19,20 @@ share the ingestion load. Requires SQL Server or PostgreSQL storage, and require
 has already been provisioned by a normal instance. Exactly one normal instance must still be running:
 it owns the retry pipeline, the retention sweep, integration event dispatch and heartbeat monitoring.
 
-Message bodies must be stored somewhere every host can read, so this mode should not be combined with
-file system body storage unless the path is a shared mount.
+Message bodies must be stored somewhere every host can read. With file system body storage the mode
+refuses to start unless ServiceControl/MessageBody/FileSystem/PathIsShared is set to true, which
+asserts that the configured path is a shared mount.
+
+AUDIT INGESTION ONLY
+
+   ServiceControl.exe --audit-ingestion-only
+
+Runs a host that only drains the audit queue into the configured database, so several processes can
+share the ingestion load. Requires storage that supports audit ingestion, and requires that the
+database has already been provisioned by a normal instance. It cannot be combined with
+--error-ingestion-only: each queue gets its own worker pool so the two can be scaled independently.
+
+The same body storage rule applies as for error ingestion only.
 
 SERVICE INSTALL AND UNINSTALL AND CONFIGURATION OPTIONS
 
