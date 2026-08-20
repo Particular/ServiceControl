@@ -14,11 +14,12 @@ namespace ServiceControl.Infrastructure.Health
         public const string LivenessPath = "/health";
         public const string ReadinessPath = "/health/ready";
 
-        const string ReadyTag = "ready";
+        internal const string ReadyTag = "ready";
 
+        // The individual checks are added by the components that host the work they report on, so a
+        // host that does not ingest error messages does not answer for error ingestion.
         public static void AddServiceControlHealthChecks(this IServiceCollection services) =>
-            services.AddHealthChecks()
-                .AddCheck<ErrorIngestionHealthCheck>("error-ingestion", tags: [ReadyTag]);
+            services.AddHealthChecks();
 
         /// <summary>
         /// Liveness answers "is this process still serving", and is what a container health check
