@@ -22,6 +22,7 @@
             Recoverability = primary.Recoverability
                              ?? fallback.Recoverability
                              ?? throw new InvalidOperationException("Fallback unit of work must implement Recoverability");
+            Audit = primary.Audit ?? fallback.Audit;
         }
 
         public override Task Complete(CancellationToken cancellationToken = default)

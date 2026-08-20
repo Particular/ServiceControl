@@ -4,6 +4,7 @@
   "Description": "SQL Server ServiceControl persister",
   "AssemblyName": "ServiceControl.Persistence.EFCore.SqlServer",
   "TypeName": "ServiceControl.Persistence.EFCore.SqlServer.SqlServerPersistenceConfiguration, ServiceControl.Persistence.EFCore.SqlServer",
+  "SupportsAuditIngestion": false,
   "Settings": [
     {
       "Name": "ServiceControl/Database/ConnectionString",
