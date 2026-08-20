@@ -182,6 +182,7 @@ public class ExternalIntegrationRequestsDataStore(
         tokenSource.Dispose();
         signal.Dispose();
         drainLock.Dispose();
+        circuitBreaker.Dispose();
     }
 
     readonly SemaphoreSlim signal = new(0, int.MaxValue);
