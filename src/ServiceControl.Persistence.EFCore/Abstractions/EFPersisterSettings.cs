@@ -18,6 +18,7 @@ public abstract class EFPersisterSettings : PersistenceSettings
     public int MaxRetryDelayInSeconds { get; set; } = 30;
     public bool EnableSensitiveDataLogging { get; set; }
     public bool EnableRetryOnFailure { get; set; } = true;
+    public int ExternalIntegrationsDispatchingBatchSize { get; set; } = 100;
 
     /// <summary>
     /// How long subscriber lookups are cached for. <see cref="TimeSpan.Zero"/> disables caching.

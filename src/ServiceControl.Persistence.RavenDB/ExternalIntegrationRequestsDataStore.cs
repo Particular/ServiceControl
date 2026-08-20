@@ -14,12 +14,8 @@
     using Raven.Client.Documents.Changes;
     using ServiceControl.Infrastructure;
 
-    class ExternalIntegrationRequestsDataStore
-        : IExternalIntegrationRequestsDataStore
-        , IHostedService
-        , IAsyncDisposable
+    class ExternalIntegrationRequestsDataStore : IExternalIntegrationRequestsDataStore, IHostedService, IAsyncDisposable
     {
-
         public ExternalIntegrationRequestsDataStore(
             RavenPersisterSettings settings,
             IRavenSessionProvider sessionProvider,
@@ -50,13 +46,8 @@
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             foreach (var dispatchRequest in dispatchRequests)
             {
-                if (dispatchRequest.Id != null)
-                {
-                    throw new ArgumentException("Items cannot have their Id property set");
-                }
-
-                dispatchRequest.Id = KeyPrefix + "/" + Guid.NewGuid();
-                await session.StoreAsync(dispatchRequest, cancellationToken);
+                var id = KeyPrefix + "/" + Guid.NewGuid();
+                await session.StoreAsync(dispatchRequest, id, cancellationToken);
             }
 
             await session.SaveChangesAsync(cancellationToken);
@@ -104,7 +95,16 @@
             catch (Exception ex)
             {
                 logger.LogError(ex, "An exception occurred when dispatching external integration events");
-                await circuitBreaker.Failure(ex, cancellationToken);
+
+                try
+                {
+                    await circuitBreaker.Failure(ex, cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    // Shutting down while backing off after a failure - nothing more to do.
+                    return;
+                }
 
                 if (!tokenSource.IsCancellationRequested)
                 {
@@ -170,10 +170,7 @@
                 .Changes()
                 .ForDocumentsStartingWith(KeyPrefix)
                 .Where(c => c.Type == DocumentChangeTypes.Put)
-                .Subscribe(d =>
-                {
-                    signal.Set();
-                });
+                .Subscribe(_ => signal.Set());
         }
 
         public async Task StopAsync(CancellationToken cancellationToken = default) => await DisposeAsync();
@@ -195,6 +192,7 @@
             }
 
             tokenSource?.Dispose();
+            circuitBreaker.Dispose();
         }
 
         readonly RavenPersisterSettings settings;
@@ -205,7 +203,7 @@
 
         IDisposable subscription;
         Task task;
-        ManualResetEventSlim signal = new();
+        readonly ManualResetEventSlim signal = new();
         Func<object[], CancellationToken, Task> callback;
         bool isDisposed;
 
