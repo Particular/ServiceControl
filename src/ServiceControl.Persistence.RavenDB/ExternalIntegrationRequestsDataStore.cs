@@ -14,12 +14,8 @@
     using Raven.Client.Documents.Changes;
     using ServiceControl.Infrastructure;
 
-    class ExternalIntegrationRequestsDataStore
-        : IExternalIntegrationRequestsDataStore
-        , IHostedService
-        , IAsyncDisposable
+    class ExternalIntegrationRequestsDataStore : IExternalIntegrationRequestsDataStore, IHostedService, IAsyncDisposable
     {
-
         public ExternalIntegrationRequestsDataStore(
             RavenPersisterSettings settings,
             IRavenSessionProvider sessionProvider,
@@ -187,6 +183,7 @@
             }
 
             tokenSource?.Dispose();
+            circuitBreaker.Dispose();
         }
 
         readonly RavenPersisterSettings settings;
@@ -197,7 +194,7 @@
 
         IDisposable subscription;
         Task task;
-        ManualResetEventSlim signal = new();
+        readonly ManualResetEventSlim signal = new();
         Func<object[], CancellationToken, Task> callback;
         bool isDisposed;
 
