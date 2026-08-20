@@ -4,7 +4,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Collections.Generic;
     using Persistence.Infrastructure;
 
-    static class MessageViewComparer
+    public static class MessageViewComparer
     {
         public static IComparer<MessagesView> FromSortInfo(SortInfo sortInfo)
         {
@@ -49,17 +49,11 @@ namespace ServiceControl.CompositeViews.Messages
                 this.comparerFunc = comparerFunc;
             }
 
-            public int Compare(MessagesView x, MessagesView y)
-            {
-                return comparerFunc(x, y);
-            }
+            public int Compare(MessagesView? x, MessagesView? y) => comparerFunc(x!, y!);
 
-            public IComparer<MessagesView> Reverse()
-            {
-                return new Reverse(this);
-            }
+            public IComparer<MessagesView> Reverse() => new Reverse(this);
 
-            Func<MessagesView, MessagesView, int> comparerFunc;
+            readonly Func<MessagesView, MessagesView, int> comparerFunc;
         }
 
         class Reverse : IComparer<MessagesView>
@@ -69,7 +63,7 @@ namespace ServiceControl.CompositeViews.Messages
                 this.inner = inner;
             }
 
-            public int Compare(MessagesView x, MessagesView y) => inner.Compare(y, x);
+            public int Compare(MessagesView? x, MessagesView? y) => inner.Compare(y, x);
             readonly IComparer<MessagesView> inner;
         }
     }
