@@ -50,8 +50,8 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
                 .WithEndpoint<Receiver>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGetMany<FailedMessage.FailureGroup>("/api/recoverability/groups");
-                    List<FailedMessage.FailureGroup> groups = result;
+                    var result = await this.TryGetMany<GroupOperation>("/api/recoverability/groups");
+                    List<GroupOperation> groups = result;
                     if (!result)
                     {
                         return false;

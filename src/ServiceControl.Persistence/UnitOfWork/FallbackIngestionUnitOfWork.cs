@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Persistence.UnitOfWork
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -8,15 +9,19 @@
     // recoverability and monitoring. It can focus on one at a time.
     class FallbackIngestionUnitOfWork : IngestionUnitOfWorkBase
     {
-        IIngestionUnitOfWork primary;
-        IIngestionUnitOfWork fallback;
+        readonly IIngestionUnitOfWork primary;
+        readonly IIngestionUnitOfWork fallback;
 
         public FallbackIngestionUnitOfWork(IIngestionUnitOfWork primary, IIngestionUnitOfWork fallback)
         {
-            this.primary = primary;
-            this.fallback = fallback;
-            Monitoring = primary.Monitoring ?? fallback.Monitoring;
-            Recoverability = primary.Recoverability ?? fallback.Recoverability;
+            this.primary = primary ?? throw new ArgumentNullException(nameof(primary));
+            this.fallback = fallback ?? throw new ArgumentNullException(nameof(fallback));
+            Monitoring = primary.Monitoring
+                         ?? fallback.Monitoring
+                         ?? throw new InvalidOperationException("Fallback unit of work must implement Monitoring");
+            Recoverability = primary.Recoverability
+                             ?? fallback.Recoverability
+                             ?? throw new InvalidOperationException("Fallback unit of work must implement Recoverability");
         }
 
         public override Task Complete(CancellationToken cancellationToken = default)
@@ -27,15 +32,8 @@
 
         protected override async ValueTask DisposeAsyncCore()
         {
-            if (primary != null)
-            {
-                await primary.DisposeAsync();
-            }
-
-            if (fallback != null)
-            {
-                await fallback.DisposeAsync();
-            }
+            await primary.DisposeAsync();
+            await fallback.DisposeAsync();
         }
     }
 }

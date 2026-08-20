@@ -8,7 +8,7 @@ namespace ServiceControl.Recoverability
     public struct ClassifiableMessageDetails
     {
         public ProcessingAttempt ProcessingAttempt { get; }
-        public FailureDetails Details { get; }
+        public FailureDetails? Details { get; }
         public string MessageType { get; }
 
         public ClassifiableMessageDetails(FailedMessage message)

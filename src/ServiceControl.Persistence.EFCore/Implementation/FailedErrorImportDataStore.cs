@@ -32,7 +32,7 @@ public class FailedErrorImportDataStore(
     public Task StoreFailedErrorImport(FailedErrorImport failure, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (dbContext, token) =>
         {
-            var uniqueMessageId = FailedErrorImport.DeriveKey(failure.Message.Headers, failure.Message.Id);
+            var uniqueMessageId = FailedErrorImport.DeriveKey(failure.Message!.Headers, failure.Message.Id);
             var body = failure.Message.Body ?? [];
             var storeExternally = body.Length > bodyStorageSettings.MaxBodySizeToStore;
 
@@ -54,7 +54,7 @@ public class FailedErrorImportDataStore(
                 HeadersJson = headersJson,
                 Body = storedBody,
                 BodyStoredExternally = storeExternally,
-                ExceptionInfo = failure.ExceptionInfo
+                ExceptionInfo = failure.ExceptionInfo ?? string.Empty
             }, (entity) =>
             {
                 entity.FailedAt = failedAt;
@@ -62,7 +62,7 @@ public class FailedErrorImportDataStore(
                 entity.HeadersJson = headersJson;
                 entity.Body = storedBody;
                 entity.BodyStoredExternally = storeExternally;
-                entity.ExceptionInfo = failure.ExceptionInfo;
+                entity.ExceptionInfo = failure.ExceptionInfo ?? string.Empty;
             }, token);
         }, cancellationToken);
 

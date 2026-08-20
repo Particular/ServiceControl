@@ -134,12 +134,13 @@
             {
                 return new FailedMessage
                 {
+                    UniqueMessageId = Guid.NewGuid().ToString(),
                     ProcessingAttempts = processingAttempts.Select(x =>
                     {
                         var messageMetadata = new Dictionary<string, object>
                         {
-                            {"SendingEndpoint", new EndpointDetails()},
-                            {"ReceivingEndpoint", new EndpointDetails()}
+                            {"SendingEndpoint", new EndpointDetails {  Name = "Sales",  Host = "sales-server" }},
+                            {"ReceivingEndpoint", new EndpointDetails() {  Name = "Shipping",  Host = "shipping-server" }},
                         };
                         if (messageType != null)
                         {

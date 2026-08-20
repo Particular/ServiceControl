@@ -12,7 +12,7 @@ using ServiceControl.Recoverability;
 
 public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IGroupsDataStore
 {
-    public Task<IList<FailureGroupView>> GetUnresolvedGroupsByClassifier(string classifier, string classifierFilter, CancellationToken cancellationToken = default) =>
+    public Task<IList<FailureGroupView>> GetUnresolvedGroupsByClassifier(string classifier, string? classifierFilter, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (dbContext, token) =>
         {
             var groups = ByClassifier(dbContext, classifier);
@@ -33,16 +33,16 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
         ExecuteWithDbContext((dbContext, token) => MostRecent(
             ByClassifier(dbContext, classifier).AggregateGroups(WithStatus(dbContext, FailedMessageStatus.Archived)), token), cancellationToken);
 
-    public Task<QueryResult<FailureGroupView>> GetUnresolvedGroup(string groupId, string status, string modified, CancellationToken cancellationToken = default) =>
+    public Task<QueryResult<FailureGroupView>> GetUnresolvedGroup(string groupId, string? status, string? modified, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((dbContext, token) => SingleGroup(dbContext, groupId, FailedMessageStatus.Unresolved, status, modified, token), cancellationToken);
 
-    public Task<QueryResult<FailureGroupView>> GetArchivedGroup(string groupId, string status, string modified, CancellationToken cancellationToken = default) =>
+    public Task<QueryResult<FailureGroupView>> GetArchivedGroup(string groupId, string? status, string? modified, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((dbContext, token) => SingleGroup(dbContext, groupId, FailedMessageStatus.Archived, status, modified, token), cancellationToken);
 
-    public Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(string groupId, string status, string modified, SortInfo sortInfo, PagingInfo pagingInfo, CancellationToken cancellationToken = default) =>
+    public Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(string groupId, string? status, string? modified, SortInfo sortInfo, PagingInfo pagingInfo, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((dbContext, token) => InGroup(dbContext, groupId, status, modified).ToPagedResult(pagingInfo, sortInfo, token), cancellationToken);
 
-    public Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string status, string modified, CancellationToken cancellationToken = default) =>
+    public Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string? status, string? modified, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((dbContext, token) => InGroup(dbContext, groupId, status, modified).ToQueryStatsInfo(token), cancellationToken);
 
     public Task EditComment(string groupId, string comment, CancellationToken cancellationToken = default) =>
@@ -73,7 +73,7 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
             .AsNoTracking()
             .Where(group => group.Type == classifier);
 
-    static async Task<QueryResult<FailureGroupView>> SingleGroup(ServiceControlDbContext dbContext, string groupId, FailedMessageStatus baseline, string status, string modified, CancellationToken cancellationToken)
+    static async Task<QueryResult<FailureGroupView>> SingleGroup(ServiceControlDbContext dbContext, string groupId, FailedMessageStatus baseline, string? status, string? modified, CancellationToken cancellationToken)
     {
         var groups = await dbContext.FailedMessageGroups
             .AsNoTracking()
@@ -91,7 +91,7 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
             .AsNoTracking()
             .Where(message => message.Status == status);
 
-    static IQueryable<FailedMessageEntity> InGroup(ServiceControlDbContext dbContext, string groupId, string status, string modified) =>
+    static IQueryable<FailedMessageEntity> InGroup(ServiceControlDbContext dbContext, string groupId, string? status, string? modified) =>
         dbContext.FailedMessages
             .AsNoTracking()
             .Where(message => dbContext.FailedMessageGroups.Any(group => group.GroupId == groupId && group.FailedMessageUniqueId == message.UniqueMessageId))

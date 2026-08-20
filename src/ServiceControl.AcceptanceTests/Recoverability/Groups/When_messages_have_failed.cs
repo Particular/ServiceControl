@@ -19,9 +19,9 @@
         [Test]
         public async Task Should_be_grouped()
         {
-            List<FailureGroupView> defaultGroups = null;
-            List<FailureGroupView> exceptionTypeAndStackTraceGroups = null;
-            List<FailureGroupView> messageTypeGroups = null;
+            List<GroupOperation> defaultGroups = null;
+            List<GroupOperation> exceptionTypeAndStackTraceGroups = null;
+            List<GroupOperation> messageTypeGroups = null;
 
             FailedMessage failedMessageA = null;
             FailedMessage failedMessageB = null;
@@ -39,7 +39,7 @@
                         return false;
                     }
 
-                    var defaultGroupsResult = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/");
+                    var defaultGroupsResult = await this.TryGetMany<GroupOperation>("/api/recoverability/groups/");
                     defaultGroups = defaultGroupsResult;
                     if (!defaultGroupsResult)
                     {
@@ -51,8 +51,8 @@
                         return false;
                     }
 
-                    messageTypeGroups = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/Message%20Type");
-                    exceptionTypeAndStackTraceGroups = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/Exception%20Type%20and%20Stack%20Trace");
+                    messageTypeGroups = await this.TryGetMany<GroupOperation>("/api/recoverability/groups/Message%20Type");
+                    exceptionTypeAndStackTraceGroups = await this.TryGetMany<GroupOperation>("/api/recoverability/groups/Exception%20Type%20and%20Stack%20Trace");
 
                     var failedMessageAResult = await this.TryGet<FailedMessage>($"/api/errors/{c.UniqueMessageIdA}", msg => msg.FailureGroups.Any());
                     failedMessageA = failedMessageAResult;

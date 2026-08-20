@@ -11,12 +11,12 @@ namespace ServiceControl.EventLog
         /// <summary>
         /// Assigned by whichever persister stored the item, and opaque.
         /// </summary>
-        public string Id { get; set; }
-        public string Description { get; set; }
+        public required string Id { get; set; }
+        public required string Description { get; set; }
         public Severity Severity { get; set; }
         public DateTime RaisedAt { get; set; }
-        public List<string> RelatedTo { get; set; }
-        public string Category { get; set; }
-        public string EventType { get; set; }
+        public List<string> RelatedTo { get; set; } = [];
+        public required string Category { get; set; }
+        public required string EventType { get; set; }
     }
 }

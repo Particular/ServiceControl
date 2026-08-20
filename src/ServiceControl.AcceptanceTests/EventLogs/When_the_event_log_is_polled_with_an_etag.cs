@@ -36,7 +36,7 @@ namespace ServiceControl.AcceptanceTests.EventLogs
                         return false;
                     }
 
-                    var items = await first.Content.ReadFromJsonAsync<List<EventLogItem>>(SerializerOptions);
+                    var items = await first.Content.ReadFromJsonAsync<List<EventLogItemView>>(SerializerOptions);
 
                     // Keep polling until the endpoint's startup event has landed. An empty event
                     // log has a stable ETag of its own and would make the assertions meaningless.
@@ -65,7 +65,7 @@ namespace ServiceControl.AcceptanceTests.EventLogs
                     var unknown = await Poll("\"not-an-etag-this-instance-ever-issued\"");
                     unknownEtagStatus = unknown.StatusCode;
 
-                    var unknownBody = await unknown.Content.ReadFromJsonAsync<List<EventLogItem>>(SerializerOptions);
+                    var unknownBody = await unknown.Content.ReadFromJsonAsync<List<EventLogItemView>>(SerializerOptions);
                     unknownEtagReturnedItems = unknownBody is { Count: > 0 };
 
                     return true;

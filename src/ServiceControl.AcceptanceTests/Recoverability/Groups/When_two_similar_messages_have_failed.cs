@@ -19,8 +19,8 @@
         [Test]
         public async Task They_should_be_grouped_together()
         {
-            List<FailureGroupView> exceptionTypeAndStackTraceGroups = null;
-            List<FailureGroupView> messageTypeGroups = null;
+            List<GroupOperation> exceptionTypeAndStackTraceGroups = null;
+            List<GroupOperation> messageTypeGroups = null;
             FailedMessage firstFailure = null;
             FailedMessage secondFailure = null;
 
@@ -38,7 +38,7 @@
                         return false;
                     }
 
-                    var result = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/");
+                    var result = await this.TryGetMany<GroupOperation>("/api/recoverability/groups/");
                     exceptionTypeAndStackTraceGroups = result;
                     if (!result)
                     {
@@ -50,7 +50,7 @@
                         return false;
                     }
 
-                    messageTypeGroups = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/Message%20Type");
+                    messageTypeGroups = await this.TryGetMany<GroupOperation>("/api/recoverability/groups/Message%20Type");
 
                     var firstFailureResult = await this.TryGet<FailedMessage>($"/api/errors/{c.FirstMessageId}");
                     firstFailure = firstFailureResult;

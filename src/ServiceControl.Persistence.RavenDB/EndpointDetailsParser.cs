@@ -10,7 +10,7 @@ namespace ServiceControl
     {
         public static EndpointDetails SendingEndpoint(IReadOnlyDictionary<string, string> headers)
         {
-            var endpointDetails = new EndpointDetails();
+            var endpointDetails = new EndpointDetails() { Name = "", Host = "" };
 
             DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingEndpoint, headers, s => endpointDetails.Name = s);
             DictionaryExtensions.CheckIfKeyExists("NServiceBus.OriginatingMachine", headers, s => endpointDetails.Host = s);
@@ -37,7 +37,7 @@ namespace ServiceControl
 
         public static EndpointDetails ReceivingEndpoint(IReadOnlyDictionary<string, string> headers)
         {
-            var endpoint = new EndpointDetails();
+            var endpoint = new EndpointDetails() { Name = "", Host = "" };
 
             if (headers.TryGetValue(Headers.HostId, out var hostIdHeader))
             {

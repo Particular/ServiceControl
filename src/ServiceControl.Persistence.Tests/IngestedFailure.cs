@@ -153,6 +153,7 @@ class IngestedFailure
         // stores the document under it while the relational persisters ignore it.
         return new FailedMessage
         {
+            Id = Guid.NewGuid().ToString(),
             UniqueMessageId = UniqueMessageIdString,
             Status = status,
             ProcessingAttempts = attempts,

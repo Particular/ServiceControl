@@ -22,7 +22,7 @@
         public DateTime? Last { get; set; }
         public DateTime Started { get; set; }
         public ArchiveState ArchiveState { get; set; }
-        public string GroupName { get; set; }
+        public string? GroupName { get; set; }
         public string RequestId { get; set; }
         public ArchiveType ArchiveType { get; set; }
 

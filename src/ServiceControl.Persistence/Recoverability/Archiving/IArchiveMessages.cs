@@ -11,8 +11,8 @@
     /// </summary>
     public interface IArchiveMessages
     {
-        Task ArchiveAllInGroup(string groupId, AuditUser? initiatedBy = null, string operationId = null, CancellationToken cancellationToken = default);
-        Task UnarchiveAllInGroup(string groupId, AuditUser? initiatedBy = null, string operationId = null, CancellationToken cancellationToken = default);
+        Task ArchiveAllInGroup(string groupId, AuditUser? initiatedBy = null, string? operationId = null, CancellationToken cancellationToken = default);
+        Task UnarchiveAllInGroup(string groupId, AuditUser? initiatedBy = null, string? operationId = null, CancellationToken cancellationToken = default);
 
         bool IsOperationInProgressFor(string groupId, ArchiveType archiveType);
 

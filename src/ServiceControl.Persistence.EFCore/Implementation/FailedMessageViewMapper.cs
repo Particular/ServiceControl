@@ -132,7 +132,7 @@ static class FailedMessageViewMapper
             : new EndpointDetails
             {
                 Name = entity.SendingEndpointName,
-                Host = entity.SendingEndpointHost,
+                Host = entity.SendingEndpointHost ?? string.Empty,
                 HostId = entity.SendingEndpointHostId ?? Guid.Empty
             };
 
@@ -142,7 +142,7 @@ static class FailedMessageViewMapper
             : new EndpointDetails
             {
                 Name = entity.ReceivingEndpointName,
-                Host = entity.ReceivingEndpointHost,
+                Host = entity.ReceivingEndpointHost ?? string.Empty,
                 HostId = entity.ReceivingEndpointHostId ?? Guid.Empty
             };
 

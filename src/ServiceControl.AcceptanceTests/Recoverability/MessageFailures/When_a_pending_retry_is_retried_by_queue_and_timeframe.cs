@@ -12,6 +12,7 @@
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
+    using ServiceControl.MessageFailures.Api;
 
     class When_a_pending_retry_is_retried_by_queue_and_timeframe : AcceptanceTest
     {
@@ -32,7 +33,7 @@
                 })
                 .Do("WaitForIndex", async ctx =>
                 {
-                    return await this.TryGet<FailedMessage[]>("/api/errors",
+                    return await this.TryGet<FailedMessageView[]>("/api/errors",
                         allErrors => allErrors.Any(fm => fm.Id == ctx.UniqueMessageId));
                 })
                 .Do("RetryPending", async ctx =>

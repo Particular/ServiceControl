@@ -11,6 +11,7 @@
     using NUnit.Framework;
     using ServiceControl.Contracts;
     using ServiceControl.MessageFailures;
+    using ServiceControl.MessageFailures.Api;
 
     class When_a_group_is_archived : ExternalIntegrationAcceptanceTest
     {
@@ -39,7 +40,7 @@
                 .Do("WaitUntilGroupsContainsFailedMessages", async ctx =>
                 {
                     // Don't retry until the message has been added to a group
-                    var groups = await this.TryGetMany<FailedMessage.FailureGroup>("/api/recoverability/groups/");
+                    var groups = await this.TryGetMany<GroupOperation>("/api/recoverability/groups/");
                     if (!groups)
                     {
                         return false;
@@ -52,7 +53,7 @@
                     ctx => Task.FromResult(ctx.ExternalProcessorSubscribed))
                 .Do("WaitUntilGroupContainsBothMessages", async ctx =>
                 {
-                    var failedMessages = await this.TryGetMany<FailedMessage>($"/api/recoverability/groups/{ctx.GroupId}/errors");
+                    var failedMessages = await this.TryGetMany<FailedMessageView>($"/api/recoverability/groups/{ctx.GroupId}/errors");
                     return failedMessages && failedMessages.Items.Count == 1;
                 })
                 .Do("Archive", async ctx => { await this.Post<object>($"/api/recoverability/groups/{ctx.GroupId}/errors/archive"); })

@@ -51,7 +51,7 @@ public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStor
         }, cancellationToken);
 
     public Task RecordRetryOperationCompleted(string requestId, RetryType retryType, DateTime startTime, DateTime completionTime,
-        string originator, string classifier, bool messageFailed, int numberOfMessagesProcessed, DateTime lastProcessed, int retryHistoryDepth,
+        string? originator, string? classifier, bool messageFailed, int numberOfMessagesProcessed, DateTime lastProcessed, int retryHistoryDepth,
         CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (dbContext, token) =>
         {
@@ -101,7 +101,7 @@ public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStor
         retryType is not RetryType.SingleMessage and not RetryType.MultipleMessages;
 
     static async Task RecordUnacknowledged(ServiceControlDbContext dbContext, string requestId, RetryType retryType,
-        DateTime startTime, DateTime completionTime, string originator, string classifier, bool messageFailed,
+        DateTime startTime, DateTime completionTime, string? originator, string? classifier, bool messageFailed,
         int numberOfMessagesProcessed, DateTime lastProcessed, CancellationToken cancellationToken)
     {
         var unacknowledged = await dbContext.UnacknowledgedRetryOperations

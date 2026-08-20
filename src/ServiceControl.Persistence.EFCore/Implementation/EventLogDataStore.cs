@@ -13,7 +13,7 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
         {
             dbContext.EventLogItems.Add(new EventLogItemEntity
             {
-                Description = logItem.Description,
+                Description = logItem.Description ?? string.Empty,
                 Severity = logItem.Severity,
                 RaisedAt = logItem.RaisedAt,
                 RelatedTo = logItem.RelatedTo ?? [],

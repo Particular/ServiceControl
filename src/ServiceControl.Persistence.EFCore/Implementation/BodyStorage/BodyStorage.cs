@@ -60,7 +60,7 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
 
             return MessageBodyResult.Available(new MessageBodyStreamContent(
                 new MemoryStream(bytes, writable: false),
-                row.BodyContentType,
+                row.BodyContentType ?? "text/plain",
                 bytes.Length,
                 uniqueMessageId));
         }

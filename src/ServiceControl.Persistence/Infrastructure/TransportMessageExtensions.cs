@@ -7,7 +7,7 @@
 
     public static class HeaderExtensions
     {
-        public static string ProcessingEndpointName(this IReadOnlyDictionary<string, string> headers)
+        public static string? ProcessingEndpointName(this IReadOnlyDictionary<string, string> headers)
         {
             if (headers.TryGetValue(Headers.ProcessingEndpoint, out var endpoint))
             {
@@ -40,7 +40,7 @@
         {
             return headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out var existingUniqueMessageId)
                 ? existingUniqueMessageId
-                : DeterministicGuid.MakeId(headers.MessageId(), headers.ProcessingEndpointName()).ToString();
+                : DeterministicGuid.MakeId(headers.MessageId() ?? "", headers.ProcessingEndpointName() ?? "").ToString();
         }
 
         public static string ProcessingId(this IReadOnlyDictionary<string, string> headers)
@@ -58,13 +58,13 @@
         }
 
         // NOTE: Duplicated from TransportMessage
-        public static string MessageId(this IReadOnlyDictionary<string, string> headers)
+        public static string? MessageId(this IReadOnlyDictionary<string, string> headers)
         {
             return headers.TryGetValue(Headers.MessageId, out var str) ? str : default;
         }
 
         // NOTE: Duplicated from TransportMessage
-        public static string CorrelationId(this IReadOnlyDictionary<string, string> headers)
+        public static string? CorrelationId(this IReadOnlyDictionary<string, string> headers)
         {
             return headers.TryGetValue(Headers.CorrelationId, out var correlationId) ? correlationId : null;
         }
@@ -102,17 +102,17 @@
 
             return true;
         }
-        static string ReplyToAddress(this IReadOnlyDictionary<string, string> headers) => headers.GetValueOrDefault(Headers.ReplyToAddress);
+        static string? ReplyToAddress(this IReadOnlyDictionary<string, string> headers) => headers.GetValueOrDefault(Headers.ReplyToAddress);
 
-        static string ProcessingStarted(this IReadOnlyDictionary<string, string> headers) => headers.GetValueOrDefault(Headers.ProcessingStarted);
+        static string? ProcessingStarted(this IReadOnlyDictionary<string, string> headers) => headers.GetValueOrDefault(Headers.ProcessingStarted);
 
-        static string ExtractQueue(string address)
+        static string? ExtractQueue(string? address)
         {
             var atIndex = address?.IndexOf("@", StringComparison.InvariantCulture);
 
-            if (atIndex.HasValue && atIndex.Value > -1)
+            if (atIndex is > -1)
             {
-                return address.Substring(0, atIndex.Value);
+                return address![..atIndex.Value];
             }
 
             return address;

@@ -24,9 +24,9 @@
                 DateTimeOffsetHelper.ToDateTimeOffset(processedAt).UtcDateTime : DateTime.UtcNow; // best guess
         }
 
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
-        public string UniqueMessageId { get; set; }
+        public string? UniqueMessageId { get; set; }
 
         public Dictionary<string, object> MessageMetadata { get; set; }
 

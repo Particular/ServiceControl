@@ -5,12 +5,12 @@ namespace ServiceControl.Operations
 
     public class EndpointDetails
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         public Guid HostId { get; set; }
 
-        public string Host { get; set; }
+        public required string Host { get; set; }
 
-        public Guid GetDeterministicId() => DeterministicGuid.MakeId(Name, HostId.ToString());
+        public Guid GetDeterministicId() => DeterministicGuid.MakeId(Name ?? "", HostId.ToString());
     }
 }

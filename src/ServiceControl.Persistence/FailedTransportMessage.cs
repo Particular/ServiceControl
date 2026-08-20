@@ -4,8 +4,8 @@
 
     public class FailedTransportMessage
     {
-        public string Id { get; set; }
-        public Dictionary<string, string> Headers { get; set; }
-        public byte[] Body { get; set; }
+        public required string Id { get; set; }
+        public required Dictionary<string, string> Headers { get; set; }
+        public required byte[] Body { get; set; }
     }
 }

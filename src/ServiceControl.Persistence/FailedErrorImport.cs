@@ -6,9 +6,9 @@ namespace ServiceControl.Operations
 
     public class FailedErrorImport
     {
-        public string Id { get; set; }
-        public FailedTransportMessage Message { get; set; }
-        public string ExceptionInfo { get; set; }
+        public required string Id { get; set; }
+        public FailedTransportMessage? Message { get; set; }
+        public string? ExceptionInfo { get; set; }
 
         public static Guid DeriveKey(IReadOnlyDictionary<string, string> headers, string nativeMessageId)
         {

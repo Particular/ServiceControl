@@ -6,14 +6,16 @@ namespace ServiceControl.Recoverability
     {
         public bool IsOperationInProgressFor(string requestId, ArchiveType archiveType)
         {
-            var isUnarchiveOpration = UnarchiveOperations.TryGetValue(InMemoryUnarchive.MakeId(requestId, archiveType),
+            var isUnarchiveOperation = UnarchiveOperations.TryGetValue(InMemoryUnarchive.MakeId(requestId, archiveType),
                 out var unarchiveSummary);
-            if (!ArchiveOperations.TryGetValue(InMemoryArchive.MakeId(requestId, archiveType), out var archiveSummary) && !isUnarchiveOpration)
+            if (!ArchiveOperations.TryGetValue(InMemoryArchive.MakeId(requestId, archiveType), out var archiveSummary) && !isUnarchiveOperation)
             {
                 return false;
             }
 
-            return archiveSummary?.ArchiveState != ArchiveState.ArchiveCompleted && isUnarchiveOpration && unarchiveSummary.ArchiveState != ArchiveState.ArchiveCompleted;
+            return archiveSummary?.ArchiveState != ArchiveState.ArchiveCompleted
+                   && isUnarchiveOperation
+                   && unarchiveSummary?.ArchiveState != ArchiveState.ArchiveCompleted;
         }
 
         public Dictionary<string, InMemoryUnarchive> UnarchiveOperations { get; } = [];

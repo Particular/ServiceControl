@@ -10,17 +10,17 @@
 
     public class PersistenceManifest
     {
-        public string Location { get; set; }
+        public string? Location { get; set; }
 
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
-        public string DisplayName { get; set; }
+        public required string DisplayName { get; set; }
 
-        public string Description { get; set; }
+        public required string Description { get; set; }
 
-        public string AssemblyName { get; set; }
+        public required string AssemblyName { get; set; }
 
-        public string TypeName { get; set; }
+        public required string TypeName { get; set; }
 
         public bool IsSupported { get; set; } = true;
 
@@ -61,10 +61,7 @@
             {
                 foreach (var manifestFile in Directory.EnumerateFiles(assemblyDirectory, "persistence.manifest", SearchOption.AllDirectories))
                 {
-                    var manifest = JsonSerializer.Deserialize<PersistenceManifest>(File.ReadAllText(manifestFile));
-                    manifest.Location = Path.GetDirectoryName(manifestFile);
-
-                    PersistenceManifests.Add(manifest);
+                    PersistenceManifests.Add(DeserializeManifest(manifestFile));
                 }
             }
             catch (Exception ex)
@@ -76,10 +73,7 @@
             {
                 foreach (var manifestFile in DevelopmentPersistenceLocations.ManifestFiles)
                 {
-                    var manifest = JsonSerializer.Deserialize<PersistenceManifest>(File.ReadAllText(manifestFile));
-                    manifest.Location = Path.GetDirectoryName(manifestFile);
-
-                    PersistenceManifests.Add(manifest);
+                    PersistenceManifests.Add(DeserializeManifest(manifestFile));
                 }
             }
             catch (Exception ex)
@@ -90,13 +84,23 @@
             PersistenceManifests.ForEach(m => logger.LogInformation("Found persistence manifest for {ManifestDisplayName}", m.DisplayName));
         }
 
+        static PersistenceManifest DeserializeManifest(string manifestFile)
+        {
+            var manifest = JsonSerializer.Deserialize<PersistenceManifest>(File.ReadAllText(manifestFile))
+                ?? throw new InvalidDataException($"The persistence manifest '{manifestFile}' is empty or invalid.");
+            manifest.Location = Path.GetDirectoryName(manifestFile)
+                ?? throw new InvalidDataException($"The persistence manifest '{manifestFile}' has no containing directory.");
+            return manifest;
+        }
+
         static string GetAssemblyDirectory()
         {
             var assemblyLocation = typeof(PersistenceManifestLibrary).Assembly.Location;
-            return Path.GetDirectoryName(assemblyLocation);
+            return Path.GetDirectoryName(assemblyLocation)
+                ?? throw new InvalidOperationException("The persistence assembly has no containing directory.");
         }
 
-        public static PersistenceManifest Find(string persistenceType)
+        public static PersistenceManifest? Find(string persistenceType)
         {
             if (persistenceType == null)
             {

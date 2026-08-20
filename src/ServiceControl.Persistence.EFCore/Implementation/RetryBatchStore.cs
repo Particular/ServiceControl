@@ -11,7 +11,7 @@ using ServiceControl.Persistence.Infrastructure;
 public class RetryBatchStore(IServiceScopeFactory scopeFactory, IRetryBatchSqlDialect dialect) : DataStoreBase(scopeFactory), IRetryBatchStore
 {
     public Task<string> CreateBatch(string retrySessionId, string requestId, RetryType retryType,
-        string[] failedMessageRetryIds, string originator, DateTime startTime, DateTime? last = null,
+        string[] failedMessageRetryIds, string? originator, DateTime startTime, DateTime? last = null,
         string? batchName = null, string? classifier = null,
         string? initiatedById = null, string? initiatedByName = null, string? operationId = null,
         CancellationToken cancellationToken = default) =>
