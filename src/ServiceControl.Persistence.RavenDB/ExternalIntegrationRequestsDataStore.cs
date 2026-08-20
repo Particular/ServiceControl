@@ -95,7 +95,16 @@
             catch (Exception ex)
             {
                 logger.LogError(ex, "An exception occurred when dispatching external integration events");
-                await circuitBreaker.Failure(ex, cancellationToken);
+
+                try
+                {
+                    await circuitBreaker.Failure(ex, cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    // Shutting down while backing off after a failure - nothing more to do.
+                    return;
+                }
 
                 if (!tokenSource.IsCancellationRequested)
                 {
