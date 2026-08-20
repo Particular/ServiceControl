@@ -15,6 +15,7 @@ using ServiceControl.MessageFailures;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.RavenDB;
 using ServiceControl.RavenDB;
+using TestHelper;
 
 public class PersistenceTestsContext : IPersistenceTestsContext
 {

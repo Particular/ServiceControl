@@ -13,7 +13,6 @@ namespace ServiceControl.RavenDB
     using Microsoft.Extensions.Logging;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
-    using Raven.Client.ServerWide.Operations;
     using Raven.Embedded;
     using ServiceControl.Infrastructure;
     using Sparrow.Logging;
@@ -178,15 +177,6 @@ namespace ServiceControl.RavenDB
 
             var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions, cancellationToken);
             return store;
-        }
-
-        public async Task DeleteDatabase(string dbName, CancellationToken cancellationToken = default)
-        {
-            using var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(new DatabaseOptions(dbName)
-            {
-                SkipCreatingDatabase = true
-            }, cancellationToken);
-            await store.Maintenance.Server.SendAsync(new DeleteDatabasesOperation(dbName, true), cancellationToken);
         }
 
         public async Task Stop(CancellationToken cancellationToken = default)

@@ -8,6 +8,7 @@
     using ServiceControl.Audit.Persistence.RavenDB;
     using ServiceControl.Audit.Persistence.Tests;
     using ServiceControl.RavenDB;
+    using TestHelper;
 
     public class AcceptanceTestStorageConfiguration
     {
