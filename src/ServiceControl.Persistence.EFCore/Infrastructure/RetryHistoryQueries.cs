@@ -15,7 +15,7 @@ static class RetryHistoryQueries
                 row => row),
             history.HistoricOperations.Count);
 
-    static IEnumerable<object[]> Rows(RetryHistory history)
+    static IEnumerable<object?[]> Rows(RetryHistory history)
     {
         // The leading marker keeps a historic row from ever digesting the same as an unacknowledged one.
         foreach (var operation in history.HistoricOperations)

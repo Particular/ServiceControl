@@ -3,6 +3,7 @@ namespace ServiceControl.Persistence.Infrastructure
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Linq;
 
@@ -22,12 +23,13 @@ namespace ServiceControl.Persistence.Infrastructure
     [DebuggerDisplay("{validator ?? \"None\",nq}")]
     public readonly struct DataVersion : IEquatable<DataVersion>
     {
-        readonly string validator;
+        readonly string? validator;
 
         DataVersion(string validator) => this.validator = validator;
 
         public static readonly DataVersion None = default;
 
+        [MemberNotNullWhen(true, nameof(validator))]
         public bool HasValue => validator is not null;
 
         /// <summary>A version the backend made itself.</summary>
@@ -42,7 +44,7 @@ namespace ServiceControl.Persistence.Infrastructure
         /// term, measured over the same filtered set, or a change to an uncovered one leaves a client holding
         /// a stale page.
         /// </summary>
-        public static DataVersion Compose(params (string Name, object Value)[] terms) =>
+        public static DataVersion Compose(params (string Name, object? Value)[]? terms) =>
             terms is null || terms.Length == 0
                 ? None
                 : new DataVersion(DeterministicGuid.MakeId(Describe(terms)).ToString());
@@ -55,12 +57,12 @@ namespace ServiceControl.Persistence.Infrastructure
         /// different set of fields. Rows are named by position, so a caller whose query has no ORDER BY has to
         /// sort them first.
         /// </summary>
-        public static DataVersion OverRows<TRow>((string Name, object Value)[] summary, IEnumerable<TRow> rows, Func<TRow, object[]> fields)
+        public static DataVersion OverRows<TRow>((string Name, object? Value)[]? summary, IEnumerable<TRow> rows, Func<TRow, object?[]> fields)
         {
             ArgumentNullException.ThrowIfNull(rows);
             ArgumentNullException.ThrowIfNull(fields);
 
-            var terms = new List<(string Name, object Value)>(summary ?? []);
+            var terms = new List<(string Name, object? Value)>(summary ?? []);
             var row = 0;
 
             foreach (var item in rows)
@@ -145,25 +147,25 @@ namespace ServiceControl.Persistence.Infrastructure
         public bool Equals(DataVersion other) =>
             string.Equals(validator, other.validator, StringComparison.Ordinal);
 
-        public override bool Equals(object obj) => obj is DataVersion other && Equals(other);
+        public override bool Equals(object? obj) => obj is DataVersion other && Equals(other);
 
         public override int GetHashCode() => validator?.GetHashCode(StringComparison.Ordinal) ?? 0;
 
         /// <summary>The validator unquoted, or an empty string for <see cref="None"/>.</summary>
         public override string ToString() => validator ?? string.Empty;
 
-        static string Describe((string Name, object Value)[] terms) =>
+        static string Describe((string Name, object? Value)[] terms) =>
             string.Join("|", terms.Select(term => Encode(term.Name, Format(term.Value))));
 
         static string Encode(string name, string value) => $"{name}:{Prefixed(value)}";
 
-        static string Row(object[] fields) =>
+        static string Row(object?[]? fields) =>
             fields is null ? string.Empty : string.Concat(fields.Select(field => Prefixed(Format(field))));
 
         static string Prefixed(string value) =>
             $"{value.Length.ToString(CultureInfo.InvariantCulture)}:{value}";
 
-        static string Format(object value) => value switch
+        static string Format(object? value) => value switch
         {
             null => string.Empty,
             string text => text,
