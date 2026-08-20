@@ -219,6 +219,16 @@
         // Set by the --error-ingestion-only command, never read from configuration.
         public bool ErrorIngestionOnly { get; set; }
 
+        // Set by the --audit-ingestion-only command, never read from configuration.
+        public bool AuditIngestionOnly { get; set; }
+
+        /// <summary>
+        /// True in either ingestion only mode. These hosts run no NServiceBus endpoint, own none of the
+        /// work a deployment may only do once, and never provision anything.
+        /// </summary>
+        [JsonIgnore]
+        public bool IngestionOnly => ErrorIngestionOnly || AuditIngestionOnly;
+
         public TimeSpan? AuditRetentionPeriod { get; set; }
 
         public TimeSpan ErrorRetentionPeriod { get; }

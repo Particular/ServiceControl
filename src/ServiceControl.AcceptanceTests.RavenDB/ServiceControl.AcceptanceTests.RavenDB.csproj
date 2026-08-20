@@ -37,6 +37,7 @@
     <!-- Error ingestion only mode is supported on SQL Server and PostgreSQL storage only. -->
     <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\When_hosting_error_ingestion_only.cs" />
     <Compile Remove="..\ServiceControl.AcceptanceTests\Auditing\When_composing_audit_ingestion_in_the_primary.cs" />
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Auditing\When_hosting_audit_ingestion_only.cs" />
   </ItemGroup>
 
   <ItemGroup>
