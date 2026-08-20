@@ -8,6 +8,7 @@ namespace ServiceControl.Auditing
     using ServiceControl.Auditing.Metrics;
     using ServiceControl.Connection;
     using ServiceControl.CustomChecks;
+    using ServiceControl.Infrastructure.Health;
     using ServiceControl.Persistence;
     using ServiceControl.Transports;
 
@@ -47,12 +48,15 @@ namespace ServiceControl.Auditing
             services.AddCustomCheck<AuditIngestionCustomCheck>();
             services.AddCustomCheck<FailedAuditImportCustomCheck>();
 
+            services.AddHealthChecks()
+                .AddCheck<AuditIngestionHealthCheck>("audit-ingestion", tags: [HealthCheckExtensions.ReadyTag]);
+
             if (settings.IngestAuditMessages)
             {
                 services.AddHostedService<AuditIngestion>();
             }
 
-            if (!settings.ErrorIngestionOnly)
+            if (!settings.IngestionOnly)
             {
                 // Registered before the licensing component's own fallback, which uses TryAdd.
                 services.AddSingleton<ILocalAuditSource, PrimaryLocalAuditSource>();

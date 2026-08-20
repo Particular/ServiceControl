@@ -76,6 +76,7 @@
   "TimeToRestartAuditIngestionAfterFailure": "00:01:00",
   "OtlpEndpointUrl": null,
   "ErrorIngestionOnly": false,
+  "AuditIngestionOnly": false,
   "AuditRetentionPeriod": null,
   "ErrorRetentionPeriod": "10.00:00:00",
   "EventsRetentionPeriod": "14.00:00:00",
