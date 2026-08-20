@@ -7,7 +7,9 @@ namespace ServiceControl.UnitTests.Hosting
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Hosting.Commands;
 
+    // Environment variables are process wide, so these cannot run alongside anything else that reads them.
     [TestFixture]
+    [NonParallelizable]
     public class AuditIngestionOnlyCommandTests
     {
         [TestCase("RavenDB")]
