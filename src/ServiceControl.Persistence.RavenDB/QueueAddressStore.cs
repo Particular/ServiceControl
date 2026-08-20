@@ -20,7 +20,8 @@
                 .Paging(pagingInfo)
                 .ToListAsync(cancellationToken);
 
-            var result = new QueryResult<IList<QueueAddress>>(addresses, stats.ToQueryStatsInfo());
+            var result = new QueryResult<IList<QueueAddress>>(addresses,
+                stats.ToPagedQueryStatsInfo(addresses, address => address.PhysicalAddress, ("page", pagingInfo.Page), ("pageSize", pagingInfo.PageSize)));
             return result;
         }
     }

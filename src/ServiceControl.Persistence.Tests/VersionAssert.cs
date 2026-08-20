@@ -20,6 +20,20 @@ static class VersionAssert
         }
     }
 
+    /// <summary>
+    /// Two different queries, answered at the same instant. Neither describes the other, so a caller
+    /// holding one must never be told the other is current.
+    /// </summary>
+    public static void Distinct(DataVersion one, DataVersion other, string because)
+    {
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(one.HasValue, Is.True, "the first query produced no version to compare");
+            Assert.That(other.HasValue, Is.True, "the second query produced no version to compare");
+            Assert.That(other.Matches(one), Is.False, because);
+        }
+    }
+
     /// <summary>Nothing changed, so a caller holding the earlier version still holds the current one.</summary>
     public static void Held(DataVersion first, DataVersion second, string because)
     {

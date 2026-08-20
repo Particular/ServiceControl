@@ -4,6 +4,7 @@ using Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Contracts.CustomChecks;
+using ServiceControl.Operations;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.Infrastructure;
 
@@ -72,13 +73,20 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
                 Category = c.Category,
                 Status = c.Status,
                 ReportedAt = c.ReportedAt,
-                FailureReason = c.FailureReason
+                FailureReason = c.FailureReason,
+                OriginatingEndpoint = new EndpointDetails
+                {
+                    Name = c.OriginatingEndpointName,
+                    Host = c.OriginatingEndpointHost,
+                    HostId = c.OriginatingEndpointHostId
+                }
             })
             .ToListAsync(token);
 
         var totalCount = await query.CountAsync(token);
 
-        return new QueryResult<IList<CustomCheck>>(checks, checks.ToQueryStatsInfo(totalCount));
+        return new QueryResult<IList<CustomCheck>>(checks,
+            checks.ToQueryStatsInfo(totalCount, ("status", status), ("page", paging.Page), ("pageSize", paging.PageSize)));
     }, cancellationToken);
 
     public Task DeleteCustomCheck(Guid id, CancellationToken cancellationToken = default) => ExecuteWithDbContext(async (context, token) => await context.CustomChecks.AsNoTracking().Where(cc => cc.Id == id).ExecuteDeleteAsync(token), cancellationToken);

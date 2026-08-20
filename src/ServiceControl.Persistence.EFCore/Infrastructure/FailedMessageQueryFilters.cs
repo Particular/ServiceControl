@@ -166,7 +166,7 @@ static class FailedMessageQueryFilters
     public static IQueryable<FailedMessageEntity> Page(this IQueryable<FailedMessageEntity> source, PagingInfo pagingInfo) =>
         source.Skip(pagingInfo.Offset).Take(pagingInfo.Next);
 
-    public static async Task<QueryStatsInfo> ToQueryStatsInfo(this IQueryable<FailedMessageEntity> source, CancellationToken cancellationToken = default)
+    public static async Task<QueryStatsInfo> ToQueryStatsInfo(this IQueryable<FailedMessageEntity> source, (string Name, object? Value)[] query, CancellationToken cancellationToken = default)
     {
         var stats = await source
             .GroupBy(_ => 1)
@@ -178,14 +178,15 @@ static class FailedMessageQueryFilters
         // Aggregates rather than the rows, which holds only because every write path sets LastModified.
         // Only safe for a response that reports the count and nothing else. A paged response has to use
         // ToPagedQueryStatsInfo.
-        return QueryStatsInfo.Fresh(DataVersion.Compose(("failures", count), ("lastModified", stats?.Latest)), count);
+        return QueryStatsInfo.Fresh(DataVersion.Compose([("failures", count), ("lastModified", stats?.Latest), .. query]), count);
     }
 
     /// <summary>
-    /// Versions the rows this page renders, plus the total behind Total-Count.
+    /// Versions the rows this page renders, plus the total behind Total-Count, plus whatever narrowed the
+    /// query.
     /// </summary>
-    public static QueryStatsInfo ToPagedQueryStatsInfo(this IReadOnlyCollection<FailedMessageEntity> page, long total) =>
-        QueryStatsInfo.Fresh(DataVersion.OverRows([("total", total)], page,
+    public static QueryStatsInfo ToPagedQueryStatsInfo(this IReadOnlyCollection<FailedMessageEntity> page, long total, params (string Name, object? Value)[] query) =>
+        QueryStatsInfo.Fresh(DataVersion.OverRows([("total", total), .. query], page,
                 row => [row.UniqueMessageId, row.LastModified, row.Status, row.NumberOfProcessingAttempts]),
             total);
 

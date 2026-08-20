@@ -15,8 +15,16 @@ static class ResponseVersions
                 group.OperationStatus, group.OperationFailed, group.OperationProgress, group.OperationMessagesCompletedCount,
                 group.OperationRemainingCount, group.OperationStartTime, group.OperationCompletionTime, group.NeedUserAcknowledgement]);
 
-    // FromPhysicalAddress needs no field of its own: MessageRedirectId is a deterministic hash of it.
     internal static DataVersion VersionOf(IReadOnlyList<MessageRedirect> redirects) =>
-        DataVersion.OverRows([("redirects", redirects.Count)], redirects,
-            redirect => [redirect.MessageRedirectId, redirect.ToPhysicalAddress, redirect.LastModified]);
+        DataVersion.OverRows([("redirects", redirects.Count)], redirects, Fields);
+
+    /// <summary>
+    /// One sorted page of redirects, for a response that renders the page while reporting the total behind it.
+    /// </summary>
+    internal static DataVersion VersionOfPage(IReadOnlyList<MessageRedirect> page, int total, PagingInfo pagingInfo) =>
+        DataVersion.OverRows([("redirects", total), ("page", pagingInfo.Page), ("pageSize", pagingInfo.PageSize)], page, Fields);
+
+    // FromPhysicalAddress needs no field of its own: MessageRedirectId is a deterministic hash of it.
+    static object[] Fields(MessageRedirect redirect) =>
+        [redirect.MessageRedirectId, redirect.ToPhysicalAddress, redirect.LastModified];
 }

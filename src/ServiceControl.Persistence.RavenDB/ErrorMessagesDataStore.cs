@@ -53,7 +53,7 @@
 
             var results = await query.ToListAsync(cancellationToken);
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id));
+            return new QueryResult<IList<MessagesView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id, QueryNarrowing.Terms(pagingInfo, sortInfo, ("includeSystemMessages", includeSystemMessages))));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(
@@ -79,7 +79,7 @@
             var results = await query.ToListAsync(cancellationToken);
 
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id));
+            return new QueryResult<IList<MessagesView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id, QueryNarrowing.Terms(pagingInfo, sortInfo, ("endpointName", endpointName), ("includeSystemMessages", includeSystemMessages))));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> SearchEndpointMessages(
@@ -104,7 +104,7 @@
 
             var results = await query.ToListAsync(cancellationToken);
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id));
+            return new QueryResult<IList<MessagesView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id, QueryNarrowing.Terms(pagingInfo, sortInfo, ("endpointName", endpointName), ("searchKeyword", searchKeyword))));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(
@@ -126,7 +126,7 @@
 
             var results = await query.ToListAsync(cancellationToken);
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id));
+            return new QueryResult<IList<MessagesView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id, QueryNarrowing.Terms(pagingInfo, sortInfo, ("conversationId", conversationId), ("includeSystemMessages", includeSystemMessages))));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(
@@ -149,7 +149,7 @@
 
             var results = await query.ToListAsync(cancellationToken);
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id));
+            return new QueryResult<IList<MessagesView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id, QueryNarrowing.Terms(pagingInfo, sortInfo, ("searchTerms", searchTerms))));
         }
 
         public async Task MarkAsArchived(string failedMessageId, CancellationToken cancellationToken = default)
@@ -200,7 +200,7 @@
             var results = await query
                 .ToListAsync(cancellationToken);
 
-            return new QueryResult<IList<FailedMessageView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id));
+            return new QueryResult<IList<FailedMessageView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id, QueryNarrowing.Terms(pagingInfo, sortInfo, ("status", status), ("modified", modified), ("queueAddress", queueAddress))));
         }
 
         public async Task<QueryStatsInfo> GetFailedMessagesStats(
@@ -218,7 +218,7 @@
                 .FilterByQueueAddress(queueAddress)
                 .GetQueryResultAsync(cancellationToken);
 
-            return stats.ToQueryStatsInfo();
+            return stats.ToCountQueryStatsInfo(("status", status), ("modified", modified), ("queueAddress", queueAddress));
         }
 
         public async Task<QueryResult<IList<FailedMessageView>>> GetFailedMessagesByEndpoint(
@@ -247,7 +247,7 @@
             var results = await query
                 .ToListAsync(cancellationToken);
 
-            return new QueryResult<IList<FailedMessageView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id));
+            return new QueryResult<IList<FailedMessageView>>(results, stats.ToPagedQueryStatsInfo(results, view => view.Id, QueryNarrowing.Terms(pagingInfo, sortInfo, ("status", status), ("endpointName", endpointName), ("modified", modified))));
         }
 
         public async Task<IDictionary<string, object>> GetFailedMessagesSummary(CancellationToken cancellationToken = default)
@@ -506,5 +506,7 @@
         }
 
         record struct FailedMessageProjection(string UniqueMessageId);
+
+
     }
 }

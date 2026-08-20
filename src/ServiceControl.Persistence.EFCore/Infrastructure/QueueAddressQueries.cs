@@ -8,8 +8,8 @@ static class QueueAddressQueries
     /// <summary>
     /// Both fields of every address the body shows, plus the total behind Total-Count.
     /// </summary>
-    public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<QueueAddress> page, long totalCount) =>
-        QueryStatsInfo.Fresh(DataVersion.OverRows([("addresses", totalCount)], page,
+    public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<QueueAddress> page, long totalCount, params (string Name, object? Value)[] query) =>
+        QueryStatsInfo.Fresh(DataVersion.OverRows([("addresses", totalCount), .. query], page,
                 address => [address.PhysicalAddress, address.FailedMessageCount]),
             totalCount);
 }

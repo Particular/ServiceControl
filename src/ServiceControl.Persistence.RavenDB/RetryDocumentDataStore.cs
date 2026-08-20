@@ -95,7 +95,8 @@
                 .Statistics(out var stats)
                 .ToListAsync(cancellationToken);
 
-            return orphanedBatches.Select(batch => batch.ToContract()).ToList().ToQueryResult(stats);
+            return orphanedBatches.Select(batch => batch.ToContract()).ToList()
+                .ToQueryResult(stats, batch => batch.Id, ("retrySessionId", retrySessionId));
         }
 
         public async Task<IList<RetryBatchGroup>> GetAvailableBatchGroups(CancellationToken cancellationToken = default)

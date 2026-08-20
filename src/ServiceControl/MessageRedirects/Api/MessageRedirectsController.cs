@@ -182,9 +182,13 @@
         {
             var redirects = await store.GetRedirects(cancellationToken);
 
-            var queryResult = redirects
+            // Materialised because the version has to describe the page this response renders.
+            var page = redirects
                 .Sort(sort, direction)
                 .Paging(pagingInfo)
+                .ToList();
+
+            var queryResult = page
                 .Select(r => new RedirectsQueryResult
                 (
                     r.MessageRedirectId,
@@ -193,7 +197,7 @@
                     r.LastModified
                 ));
 
-            Response.WithEtag(ResponseVersions.VersionOf(redirects));
+            Response.WithEtag(ResponseVersions.VersionOfPage(page, redirects.Count, pagingInfo));
             Response.WithPagingLinksAndTotalCount(pagingInfo, redirects.Count);
 
             return queryResult;

@@ -57,7 +57,8 @@
                 .Paging(paging)
                 .ToListAsync(cancellationToken);
 
-            return new QueryResult<IList<CustomCheck>>(results, stats.ToQueryStatsInfo());
+            return new QueryResult<IList<CustomCheck>>(results,
+                stats.ToPagedQueryStatsInfo(results, check => check.Id, ("status", status), ("page", paging.Page), ("pageSize", paging.PageSize)));
         }
 
         public async Task DeleteCustomCheck(Guid id, CancellationToken cancellationToken = default)

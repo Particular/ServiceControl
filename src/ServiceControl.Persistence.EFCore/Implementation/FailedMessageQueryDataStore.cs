@@ -18,7 +18,7 @@ public class FailedMessageQueryDataStore(IServiceScopeFactory scopeFactory) : Da
             .FilterByStatus(status)
             .FilterByLastModifiedRange(modified)
             .FilterByQueueAddress(queueAddress)
-            .ToPagedResult(pagingInfo, sortInfo, token), cancellationToken);
+            .ToPagedResult(pagingInfo, sortInfo, [("status", status), ("modified", modified), ("queueAddress", queueAddress)], token), cancellationToken);
 
     public Task<QueryStatsInfo> GetFailedMessagesStats(string? status, string? modified, string? queueAddress, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((dbContext, token) => dbContext.FailedMessages
@@ -26,7 +26,7 @@ public class FailedMessageQueryDataStore(IServiceScopeFactory scopeFactory) : Da
             .FilterByStatus(status)
             .FilterByLastModifiedRange(modified)
             .FilterByQueueAddress(queueAddress)
-            .ToQueryStatsInfo(token), cancellationToken);
+            .ToQueryStatsInfo([("status", status), ("modified", modified), ("queueAddress", queueAddress)], token), cancellationToken);
 
     public Task<QueryResult<IList<FailedMessageView>>> GetFailedMessagesByEndpoint(string? status, string endpointName, string? modified, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((dbContext, token) => dbContext.FailedMessages
@@ -34,7 +34,7 @@ public class FailedMessageQueryDataStore(IServiceScopeFactory scopeFactory) : Da
             .Where(message => message.ReceivingEndpointName == endpointName)
             .FilterByStatus(status)
             .FilterByLastModifiedRange(modified)
-            .ToPagedResult(pagingInfo, sortInfo, token), cancellationToken);
+            .ToPagedResult(pagingInfo, sortInfo, [("status", status), ("endpointName", endpointName), ("modified", modified)], token), cancellationToken);
 
     public Task<IDictionary<string, object>> GetFailedMessagesSummary(CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (dbContext, token) =>
