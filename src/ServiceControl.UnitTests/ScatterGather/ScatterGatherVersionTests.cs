@@ -2,8 +2,8 @@ namespace ServiceControl.UnitTests.ScatterGather
 {
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
     using System.Threading;
+    using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Microsoft.Extensions.Logging.Abstractions;
     using NUnit.Framework;
@@ -44,22 +44,32 @@ namespace ServiceControl.UnitTests.ScatterGather
         [Test]
         public void A_remote_only_api_reports_the_version_of_the_instances_that_have_the_data()
         {
-            var settings = new Settings();
-            var api = new RemoteOnlyApi(settings);
+            var api = new RemoteOnlyApi(new Settings());
 
-            var composite = api.AggregateResults(Context(), [NoLocalData(settings.InstanceId), Page("remote", "b")]);
+            var composite = api.AggregateResults(Context(), [NoLocalData(), Page("remote", "b")]);
 
             Assert.That(composite.QueryStats.Version.HasValue, Is.True,
                 "the remote answered with a version, so discarding it would leave the response with no ETag at all");
         }
 
         [Test]
-        public void A_remote_only_api_reports_no_version_when_no_remote_answered()
+        public void A_remote_only_api_still_covers_a_remote_configured_with_its_own_instance_id()
         {
             var settings = new Settings();
             var api = new RemoteOnlyApi(settings);
 
-            var composite = api.AggregateResults(Context(), [NoLocalData(settings.InstanceId)]);
+            var composite = api.AggregateResults(Context(), [NoLocalData(), Page(settings.InstanceId, "b")]);
+
+            Assert.That(composite.QueryStats.Version.HasValue, Is.True,
+                "dropping a remote because it answers to the local instance id would promise coverage the composite does not have");
+        }
+
+        [Test]
+        public void A_remote_only_api_reports_no_version_when_no_remote_answered()
+        {
+            var api = new RemoteOnlyApi(new Settings());
+
+            var composite = api.AggregateResults(Context(), [NoLocalData()]);
 
             Assert.That(composite.QueryStats.Version.HasValue, Is.False,
                 "nothing reported a version, so there is nothing to promise a caller");
@@ -74,8 +84,8 @@ namespace ServiceControl.UnitTests.ScatterGather
             };
 
         // What ScatterGatherRemoteOnly.LocalQuery returns: no rows and no version.
-        static QueryResult<IList<MessagesView>> NoLocalData(string instanceId) =>
-            new(null, QueryStatsInfo.Zero) { InstanceId = instanceId };
+        static QueryResult<IList<MessagesView>> NoLocalData() =>
+            new(null, QueryStatsInfo.Zero) { IsLocalInstance = true };
 
         class LocalAndRemoteApi() : ScatterGatherApiMessageView<object, ScatterGatherApiMessageViewContext>(
             null, null, null, null, NullLogger<LocalAndRemoteApi>.Instance)

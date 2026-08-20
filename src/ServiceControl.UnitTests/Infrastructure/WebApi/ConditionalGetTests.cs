@@ -92,13 +92,12 @@ public class ConditionalGetTests
 
         httpContext.Response.WithEtag(DataVersion.FromToken("4611686018427387904"));
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(httpContext.Response.Headers.ETag.ToString(), Is.EqualTo("W/\"4611686018427387904\""));
             Assert.That(httpContext.Response.GetTypedHeaders().ETag.IsWeak, Is.True);
-        });
+        }
     }
-
 
     [Test]
     public void A_weak_validator_matches_under_the_comparison_If_None_Match_requires()

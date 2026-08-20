@@ -19,11 +19,11 @@ public class DataVersionTests
     {
         var real = DataVersion.FromToken("4611686018427387904");
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(DataVersion.None.Matches(real), Is.False);
             Assert.That(real.Matches(DataVersion.None), Is.False);
-        });
+        }
     }
 
     [Test]
@@ -48,11 +48,11 @@ public class DataVersionTests
     [Test]
     public void An_empty_token_is_absent()
     {
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(DataVersion.FromToken(null).HasValue, Is.False);
             Assert.That(DataVersion.FromToken(string.Empty).HasValue, Is.False);
-        });
+        }
     }
 
     [Test]
@@ -149,6 +149,28 @@ public class DataVersionTests
             "Total-Count is part of the response, so a client holding the old one must not be told it is current");
     }
 
+    [Test]
+    public void OverRows_distinguishes_rows_that_bare_concatenation_would_collide()
+    {
+        var left = DataVersion.OverRows([("total", 1L)], [("ab", "c")], row => [row.Item1, row.Item2]);
+        var right = DataVersion.OverRows([("total", 1L)], [("a", "bc")], row => [row.Item1, row.Item2]);
+
+        Assert.That(right.Matches(left), Is.False,
+            "fields inside a row are length prefixed, so no value can pose as a different split of the same text");
+    }
+
+    [Test]
+    public void OverRows_refuses_a_missing_row_source()
+    {
+        Assert.Throws<ArgumentNullException>(() => DataVersion.OverRows<string>([("total", 0L)], null, _ => []));
+    }
+
+    [Test]
+    public void OverRows_refuses_a_missing_field_selector()
+    {
+        Assert.Throws<ArgumentNullException>(() => DataVersion.OverRows<string>([("total", 0L)], [], null));
+    }
+
     static DataVersion Page(params (string Id, DateTime At, string Status)[] rows) =>
         DataVersion.OverRows([("total", 2L)], rows, Fields);
 
@@ -183,11 +205,11 @@ public class DataVersionTests
 
         var combined = DataVersion.Combine([("one", a), ("two", b)]);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(combined.Matches(a), Is.False);
             Assert.That(combined.Matches(b), Is.False);
-        });
+        }
     }
 
     [Test]

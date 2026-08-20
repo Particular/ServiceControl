@@ -45,8 +45,6 @@ namespace ServiceControl.CompositeViews.Messages
 
         protected TDataStore DataStore { get; }
 
-        protected string LocalInstanceId => Settings.InstanceId;
-
         Settings Settings { get; }
         IHttpClientFactory HttpClientFactory { get; }
         IHttpContextAccessor HttpContextAccessor { get; }
@@ -82,6 +80,7 @@ namespace ServiceControl.CompositeViews.Messages
         {
             var result = await LocalQuery(input, cancellationToken);
             result.InstanceId = instanceId;
+            result.IsLocalInstance = true;
             return result;
         }
 
@@ -107,8 +106,8 @@ namespace ServiceControl.CompositeViews.Messages
         /// <see cref="DataVersion.Combine"/> reports <see cref="DataVersion.None"/> as soon as one result
         /// is missing one, which would leave every response with no ETag at all.
         /// </summary>
-        protected QueryStatsInfo AggregateStatsFromRemotesOnly(IEnumerable<QueryResult<TOut>> results) =>
-            Aggregate(results.Where(result => result.InstanceId != LocalInstanceId));
+        protected static QueryStatsInfo AggregateStatsFromRemotesOnly(IEnumerable<QueryResult<TOut>> results) =>
+            Aggregate(results.Where(result => !result.IsLocalInstance));
 
         static QueryStatsInfo Aggregate(IEnumerable<QueryResult<TOut>> results)
         {

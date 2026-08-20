@@ -12,7 +12,6 @@
     using Infrastructure.DomainEvents;
     using Infrastructure.WebApi;
     using MessageFailures.InternalMessages;
-    using Recoverability.API;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;

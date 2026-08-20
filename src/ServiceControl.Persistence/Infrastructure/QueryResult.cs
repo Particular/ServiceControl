@@ -9,6 +9,11 @@ namespace ServiceControl.Persistence.Infrastructure
 
         public string? InstanceId { get; set; }
 
+        /// <summary>
+        /// The result the scatter-gather got from its own instance.
+        /// </summary>
+        public bool IsLocalInstance { get; set; }
+
         public QueryStatsInfo QueryStats { get; } = queryStatsInfo;
 
         /// <summary>

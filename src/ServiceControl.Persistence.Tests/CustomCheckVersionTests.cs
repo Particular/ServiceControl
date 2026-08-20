@@ -24,14 +24,14 @@ class CustomCheckVersionTests : PersistenceTestBase
 
         var after = await CustomChecks.GetStats(new PagingInfo());
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(after.Results, Has.Count.EqualTo(1), "still one check");
             Assert.That(after.Results[0].Status, Is.EqualTo(Status.Fail), "and the body now reports it failing");
             Assert.That(before.QueryStats.Version.HasValue, Is.True, "there was no version to move");
             Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False,
                 "the body changed, so the validator must too, or a revalidating client is shown a stale status");
-        });
+        }
     }
 
     [Test]
@@ -66,12 +66,12 @@ class CustomCheckVersionTests : PersistenceTestBase
     {
         var result = await CustomChecks.GetStats(new PagingInfo());
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Results, Is.Empty);
             Assert.That(result.QueryStats.Version.HasValue, Is.True,
                 "an empty list is a representation like any other and has to be cacheable");
-        });
+        }
     }
 
     [Test]

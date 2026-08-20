@@ -33,7 +33,7 @@ class FailureGroupVersionTests : PersistenceTestBase
 
         var after = await GroupsStore.GetUnresolvedGroup(group.Id, null, null);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(before.Results.Count, Is.EqualTo(3), "three messages to start with");
             Assert.That(after.Results.Count, Is.EqualTo(2), "and the body now reports two");
@@ -42,7 +42,7 @@ class FailureGroupVersionTests : PersistenceTestBase
             Assert.That(before.QueryStats.Version.HasValue, Is.True, "there was no version to move");
             Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False,
                 "the body changed, so the validator must too, or a revalidating client is served a stale count");
-        });
+        }
     }
 
     [Test]
@@ -79,13 +79,13 @@ class FailureGroupVersionTests : PersistenceTestBase
 
         var after = await GroupsStore.GetUnresolvedGroup(group.Id, null, null);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(after.Results.Count, Is.EqualTo(before.Results.Count), "still three messages");
             Assert.That(before.QueryStats.Version.HasValue, Is.True, "there was no version to move");
             Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False,
                 "a different span of failures is being reported under the same count");
-        });
+        }
     }
 
     [Test]
@@ -184,11 +184,11 @@ class FailureGroupVersionTests : PersistenceTestBase
     {
         var result = await GroupsStore.GetUnresolvedGroup("no-such-group", null, null);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Results, Is.Null);
             Assert.That(result.QueryStats.Version.HasValue, Is.True);
-        });
+        }
     }
 
     static FailedMessage.FailureGroup NewGroup() =>

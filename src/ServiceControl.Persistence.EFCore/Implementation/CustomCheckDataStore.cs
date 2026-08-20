@@ -62,6 +62,7 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
 
         var checks = await query
             .OrderBy(c => c.ReportedAt)
+            .ThenBy(c => c.Id)
             .Skip(paging.Offset)
             .Take(paging.PageSize)
             .Select(c => new CustomCheck

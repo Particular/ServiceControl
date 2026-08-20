@@ -3,8 +3,8 @@ namespace ServiceControl.UnitTests.Operations
     using System;
     using System.Collections.Generic;
     using NUnit.Framework;
+    using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Persistence.MessageRedirects;
-    using ServiceControl.Recoverability.API;
 
     [TestFixture]
     public class MessageRedirectVersionTests

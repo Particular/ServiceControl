@@ -23,14 +23,14 @@ class QueueAddressVersionTests : IngestionTestBase
 
         var after = await QueueAddressStore.GetAddresses(new PagingInfo());
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(after.Results, Has.Count.EqualTo(1), "still one address");
             Assert.That(after.Results[0].FailedMessageCount, Is.EqualTo(2), "and the body now reports two failures");
             Assert.That(before.QueryStats.Version.HasValue, Is.True, "there was no version to move");
             Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False,
                 "the body changed, so the validator must too, or a revalidating client is served a stale count");
-        });
+        }
     }
 
     [Test]
@@ -48,14 +48,14 @@ class QueueAddressVersionTests : IngestionTestBase
 
         var after = await QueueAddressStore.GetAddresses(new PagingInfo());
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(after.Results, Has.Count.EqualTo(1), "still one address");
             Assert.That(after.Results[0].PhysicalAddress, Is.EqualTo("OtherEndpoint@machine2"), "and it is the new one");
             Assert.That(before.QueryStats.Version.HasValue, Is.True, "there was no version to move");
             Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False,
                 "the body reports a different address under the same count, so the validator cannot stay put");
-        });
+        }
     }
 
     [Test]
@@ -93,12 +93,12 @@ class QueueAddressVersionTests : IngestionTestBase
     {
         var result = await QueueAddressStore.GetAddresses(new PagingInfo());
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Results, Is.Empty);
             Assert.That(result.QueryStats.Version.HasValue, Is.True,
                 "an empty list is a representation like any other and has to be cacheable");
-        });
+        }
     }
 
     static IngestedFailure Failure(string failingEndpointAddress) =>

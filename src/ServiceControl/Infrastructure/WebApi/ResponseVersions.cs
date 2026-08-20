@@ -1,11 +1,11 @@
-namespace ServiceControl.Recoverability.API;
+namespace ServiceControl.Infrastructure.WebApi;
 
 using System.Collections.Generic;
 using ServiceControl.Persistence.Infrastructure;
 using ServiceControl.Persistence.MessageRedirects;
 
 /// <summary>
-/// Versions for responses built in a controller.
+/// Versions for responses a controller assembles itself, rather than getting from a store.
 /// </summary>
 static class ResponseVersions
 {

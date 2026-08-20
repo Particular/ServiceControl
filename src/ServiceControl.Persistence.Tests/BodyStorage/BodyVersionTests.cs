@@ -31,14 +31,14 @@ class BodyVersionTests : IngestionTestBase
 
         var (replacedBody, after) = await Fetch(first.UniqueMessageIdString);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(originalBody, Is.EqualTo("the original body"));
             Assert.That(replacedBody, Is.EqualTo("a completely different body"), "the stored body was replaced");
             Assert.That(before.HasValue, Is.True, "there was no version to move");
             Assert.That(after.Matches(before), Is.False,
                 "the body changed, so a client holding the old version must be sent the new body rather than a 304");
-        });
+        }
     }
 
     [Test]
