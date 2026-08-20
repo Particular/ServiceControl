@@ -11,6 +11,7 @@
     using ExternalIntegrations;
     using Infrastructure.BackgroundTasks;
     using Infrastructure.DomainEvents;
+    using Infrastructure.Health;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
@@ -80,7 +81,7 @@
             services.AddSingleton<ErrorQueueNameCache>();
             services.AddSingleton<ReturnToSenderDequeuer>();
 
-            if (!settings.ErrorIngestionOnly)
+            if (!settings.IngestionOnly)
             {
                 services.AddHostedService(provider => provider.GetRequiredService<ReturnToSenderDequeuer>());
             }
@@ -109,6 +110,8 @@
             //Health checks
             services.AddCustomCheck<ErrorIngestionCustomCheck>();
             services.AddCustomCheck<FailedErrorImportCustomCheck>();
+            services.AddHealthChecks()
+                .AddCheck<ErrorIngestionHealthCheck>("error-ingestion", tags: [HealthCheckExtensions.ReadyTag]);
 
             //External integration
             services.AddIntegrationEventPublisher<FailedMessageArchivedPublisher>();
