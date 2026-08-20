@@ -28,7 +28,11 @@
             hostBuilder.Services.AddEventLogMapping<CustomCheckDeletedDefinition>();
             hostBuilder.Services.AddEventLogMapping<CustomCheckFailedDefinition>();
             hostBuilder.Services.AddEventLogMapping<CustomCheckSucceededDefinition>();
-            hostBuilder.Services.AddPlatformConnectionProvider<CustomChecksPlatformConnectionDetailsProvider>();
+
+            if (!settings.ErrorIngestionOnly)
+            {
+                hostBuilder.Services.AddPlatformConnectionProvider<CustomChecksPlatformConnectionDetailsProvider>();
+            }
             hostBuilder.Services.AddSingleton<CustomCheckResultProcessor>();
         }
     }

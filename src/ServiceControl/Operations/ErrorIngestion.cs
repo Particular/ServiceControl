@@ -97,7 +97,7 @@
                         batchSizeMeter.Mark(contexts.Count);
                         using (batchDurationMeter.Measure())
                         {
-                            await ingestor.Ingest(contexts, cancellationToken);
+                            await ingestor.Ingest(contexts, messageDispatcher, cancellationToken);
                         }
                     }
                     catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested)
@@ -138,23 +138,17 @@
         {
             try
             {
-                await watchdog.Stop(cancellationToken);
+                // Order matters. Receiving stops first so nothing new enters the channel, but the
+                // infrastructure is left running while the channel drains, because those batches
+                // still forward through its dispatcher and Shutdown disposes it.
+                await EnsureReceivingStopped(cancellationToken);
                 channel.Writer.Complete();
                 await base.StopAsync(cancellationToken);
             }
             finally
             {
-                if (transportInfrastructure != null)
-                {
-                    try
-                    {
-                        await transportInfrastructure.Shutdown(cancellationToken);
-                    }
-                    catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested)
-                    {
-                        logger.LogInformation(e, "Shutdown cancelled");
-                    }
-                }
+                // Tears the infrastructure down, now that nothing is left to dispatch.
+                await watchdog.Stop(cancellationToken);
             }
         }
 
@@ -226,10 +220,11 @@
                 );
 
                 messageReceiver = transportInfrastructure.Receivers[errorQueue];
+                messageDispatcher = transportInfrastructure.Dispatcher;
 
                 if (settings.ForwardErrorMessages)
                 {
-                    await ingestor.VerifyCanReachForwardingAddress(cancellationToken);
+                    await ingestor.VerifyCanReachForwardingAddress(messageDispatcher, cancellationToken);
                 }
 
                 await messageReceiver.StartReceive(cancellationToken);
@@ -258,10 +253,7 @@
                 logger.LogInformation("Stopping infrastructure");
                 try
                 {
-                    if (messageReceiver != null)
-                    {
-                        await messageReceiver.StopReceive(cancellationToken);
-                    }
+                    await StopReceiving(cancellationToken);
                 }
                 finally
                 {
@@ -270,6 +262,7 @@
 
                 messageReceiver = null;
                 transportInfrastructure = null;
+                receiveStopped = false;
 
                 logger.LogInformation(LogMessages.StoppedInfrastructure);
             }
@@ -327,11 +320,43 @@
             }
         }
 
+        async Task EnsureReceivingStopped(CancellationToken cancellationToken)
+        {
+            await startStopSemaphore.WaitAsync(cancellationToken);
+
+            try
+            {
+                await StopReceiving(cancellationToken);
+            }
+            finally
+            {
+                startStopSemaphore.Release();
+            }
+        }
+
+        // Stops the receiver on its own, leaving the infrastructure up. Idempotent because a
+        // shutdown stops receiving before draining and then tears down, so this runs twice.
+        async Task StopReceiving(CancellationToken cancellationToken)
+        {
+            if (messageReceiver == null || receiveStopped)
+            {
+                return;
+            }
+
+            await messageReceiver.StopReceive(cancellationToken);
+            receiveStopped = true;
+        }
+
         SemaphoreSlim startStopSemaphore = new(1);
         string errorQueue;
         ErrorIngestionFaultPolicy errorHandlingPolicy;
         TransportInfrastructure transportInfrastructure;
         IMessageReceiver messageReceiver;
+        bool receiveStopped;
+
+        // Left in place when the infrastructure is torn down. A shutdown drains before tearing down,
+        // so this is still usable there
+        IMessageDispatcher messageDispatcher;
 
         readonly Settings settings;
         readonly ITransportCustomization transportCustomization;

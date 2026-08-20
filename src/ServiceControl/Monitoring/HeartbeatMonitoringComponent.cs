@@ -30,7 +30,11 @@
         public override void Configure(Settings settings, ITransportCustomization transportCustomization, IHostApplicationBuilder hostBuilder)
         {
             hostBuilder.Services.AddHostedService<HeartbeatMonitoringHostedService>();
-            hostBuilder.Services.AddHostedService<HeartbeatEndpointSettingsSyncHostedService>();
+
+            if (!settings.ErrorIngestionOnly)
+            {
+                hostBuilder.Services.AddHostedService<HeartbeatEndpointSettingsSyncHostedService>();
+            }
 
             hostBuilder.Services.AddSingleton<IEndpointInstanceMonitoring, EndpointInstanceMonitoring>();
             hostBuilder.Services.AddSingleton<MassTransitConnectorHeartbeatStatus>();
@@ -48,7 +52,10 @@
 
             hostBuilder.Services.AddErrorMessageEnricher<DetectNewEndpointsFromErrorImportsEnricher>();
 
-            hostBuilder.Services.AddPlatformConnectionProvider<HeartbeatsPlatformConnectionDetailsProvider>();
+            if (!settings.ErrorIngestionOnly)
+            {
+                hostBuilder.Services.AddPlatformConnectionProvider<HeartbeatsPlatformConnectionDetailsProvider>();
+            }
         }
     }
 }

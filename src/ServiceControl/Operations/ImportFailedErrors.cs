@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Operations
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Extensibility;
@@ -10,13 +11,14 @@
     public class ImportFailedErrors(
         IFailedErrorImportDataStore store,
         ErrorIngestor errorIngestor,
+        Lazy<IMessageDispatcher> messageDispatcher,
         Settings settings)
     {
         public async Task Run(CancellationToken cancellationToken = default)
         {
             if (settings.ForwardErrorMessages)
             {
-                await errorIngestor.VerifyCanReachForwardingAddress(cancellationToken);
+                await errorIngestor.VerifyCanReachForwardingAddress(messageDispatcher.Value, cancellationToken);
             }
 
             await store.ProcessFailedErrorImports(async (transportMessage, token) =>
@@ -32,7 +34,7 @@
                 var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-                await errorIngestor.Ingest([messageContext], token);
+                await errorIngestor.Ingest([messageContext], messageDispatcher.Value, token);
                 await taskCompletionSource.Task;
             }, cancellationToken);
         }

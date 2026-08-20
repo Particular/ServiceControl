@@ -16,8 +16,12 @@ namespace ServiceControl.ExternalIntegrations
 
             if (!settings.DisableExternalIntegrationsPublishing)
             {
-                services.AddHostedService<EventDispatcherHostedService>();
                 services.AddDomainEventHandler<IntegrationEventWriter>();
+
+                if (!settings.ErrorIngestionOnly)
+                {
+                    services.AddHostedService<EventDispatcherHostedService>();
+                }
             }
         }
     }

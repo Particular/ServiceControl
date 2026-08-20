@@ -19,10 +19,9 @@
     class AuditPersister(IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
         IEnrichImportedAuditMessages[] enrichers,
         IMessageSession messageSession,
-        Lazy<IMessageDispatcher> messageDispatcher,
         ILogger logger)
     {
-        public async Task<IReadOnlyList<MessageContext>> Persist(IReadOnlyList<MessageContext> contexts, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<MessageContext>> Persist(IReadOnlyList<MessageContext> contexts, IMessageDispatcher dispatcher, CancellationToken cancellationToken = default)
         {
             var storedContexts = new List<MessageContext>(contexts.Count);
             IAuditIngestionUnitOfWork unitOfWork = null;
@@ -33,7 +32,7 @@
                 var inserts = new List<Task>(contexts.Count);
                 foreach (var context in contexts)
                 {
-                    inserts.Add(ProcessMessage(context, cancellationToken));
+                    inserts.Add(ProcessMessage(context, dispatcher, cancellationToken));
                 }
 
                 await Task.WhenAll(inserts);
@@ -93,7 +92,7 @@
             return storedContexts;
         }
 
-        async Task ProcessMessage(MessageContext context, CancellationToken cancellationToken)
+        async Task ProcessMessage(MessageContext context, IMessageDispatcher dispatcher, CancellationToken cancellationToken)
         {
             if (context.Headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageType)
                 && messageType == typeof(SagaUpdatedMessage).FullName)
@@ -102,7 +101,7 @@
             }
             else
             {
-                await ProcessAuditMessage(context, cancellationToken);
+                await ProcessAuditMessage(context, dispatcher, cancellationToken);
             }
         }
 
@@ -127,7 +126,7 @@
             }
         }
 
-        async Task ProcessAuditMessage(MessageContext context, CancellationToken cancellationToken)
+        async Task ProcessAuditMessage(MessageContext context, IMessageDispatcher dispatcher, CancellationToken cancellationToken)
         {
             if (!context.Headers.TryGetValue(Headers.MessageId, out var messageId))
             {
@@ -160,7 +159,7 @@
                     await messageSession.Send(commandToEmit, cancellationToken);
                 }
 
-                await messageDispatcher.Value.Dispatch(new TransportOperations(messagesToEmit.ToArray()),
+                await dispatcher.Dispatch(new TransportOperations(messagesToEmit.ToArray()),
                     new TransportTransaction(), cancellationToken); //Do not hook into the incoming transaction
 
                 logger.LogDebug("{CommandsToEmitCount} commands and {MessagesToEmitCount} control messages emitted", commandsToEmit.Count, messagesToEmit.Count);

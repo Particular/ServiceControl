@@ -201,6 +201,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool IngestErrorMessages { get; set; } = true;
         public bool RunRetryProcessor { get; set; } = true;
 
+        // Set by the --error-ingestion-only command, never read from configuration.
+        public bool ErrorIngestionOnly { get; set; }
+
         public TimeSpan? AuditRetentionPeriod { get; set; }
 
         public TimeSpan ErrorRetentionPeriod { get; }

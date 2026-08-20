@@ -53,6 +53,15 @@ namespace Particular.ServiceControl.Hosting
                 }
             };
 
+            var errorIngestionOnlyOptions = new OptionSet
+            {
+                {
+                    "error-ingestion-only",
+                    "Run only error ingestion, for scaling out ingestion across several processes",
+                    s => Command = typeof(ErrorIngestionOnlyCommand)
+                }
+            };
+
             try
             {
                 externalInstallerOptions.Parse(args);
@@ -72,6 +81,13 @@ namespace Particular.ServiceControl.Hosting
                 reimportFailedErrorsOptions.Parse(args);
 
                 if (Command == typeof(ImportFailedErrorsCommand))
+                {
+                    return;
+                }
+
+                errorIngestionOnlyOptions.Parse(args);
+
+                if (Command == typeof(ErrorIngestionOnlyCommand))
                 {
                     return;
                 }

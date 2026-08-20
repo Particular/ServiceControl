@@ -14,18 +14,20 @@ namespace ServiceControl.Audit.Auditing
         public ImportFailedAudits(
             IFailedAuditStorage failedAuditStore,
             AuditIngestor auditIngestor,
+            Lazy<IMessageDispatcher> messageDispatcher,
             Settings settings,
             ILogger<ImportFailedAudits> logger)
         {
             this.settings = settings;
             this.failedAuditStore = failedAuditStore;
             this.auditIngestor = auditIngestor;
+            this.messageDispatcher = messageDispatcher;
             this.logger = logger;
         }
 
         public async Task Run(CancellationToken cancellationToken = default)
         {
-            await auditIngestor.VerifyCanReachForwardingAddress(cancellationToken);
+            await auditIngestor.VerifyCanReachForwardingAddress(messageDispatcher.Value, cancellationToken);
 
             var succeeded = 0;
             var failed = 0;
@@ -47,7 +49,7 @@ namespace ServiceControl.Audit.Auditing
                             var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                             messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-                            await auditIngestor.Ingest([messageContext], cancellationToken);
+                            await auditIngestor.Ingest([messageContext], messageDispatcher.Value, cancellationToken);
 
                             await taskCompletionSource.Task;
 
@@ -78,6 +80,7 @@ namespace ServiceControl.Audit.Auditing
 
         readonly IFailedAuditStorage failedAuditStore;
         readonly AuditIngestor auditIngestor;
+        readonly Lazy<IMessageDispatcher> messageDispatcher;
         readonly Settings settings;
         readonly ILogger<ImportFailedAudits> logger;
 

@@ -68,6 +68,7 @@
   "ForwardErrorMessages": false,
   "IngestErrorMessages": true,
   "RunRetryProcessor": true,
+  "ErrorIngestionOnly": false,
   "AuditRetentionPeriod": null,
   "ErrorRetentionPeriod": "10.00:00:00",
   "EventsRetentionPeriod": "14.00:00:00",

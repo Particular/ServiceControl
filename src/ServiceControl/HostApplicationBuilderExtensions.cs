@@ -3,12 +3,14 @@ namespace Particular.ServiceControl
     using System;
     using System.Diagnostics;
     using System.Runtime.InteropServices;
+    using System.Threading.Tasks;
     using global::ServiceControl.CustomChecks;
     using global::ServiceControl.Hosting;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.Auth;
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
+    using global::ServiceControl.Infrastructure.Health;
     using global::ServiceControl.Infrastructure.Metrics;
     using global::ServiceControl.Infrastructure.WebApi;
     using global::ServiceControl.Notifications.Email;
@@ -22,6 +24,7 @@ namespace Particular.ServiceControl
     using Microsoft.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
+    using NServiceBus.Hosting;
     using NServiceBus.Transport;
     using Particular.LicensingComponent;
     using ServiceBus.Management.Infrastructure;
@@ -32,7 +35,10 @@ namespace Particular.ServiceControl
     {
         public static void AddServiceControl(this IHostApplicationBuilder hostBuilder, Settings settings, EndpointConfiguration configuration, params ReadOnlySpan<ServiceControlComponent> components)
         {
-            ArgumentNullException.ThrowIfNull(configuration);
+            if (!settings.ErrorIngestionOnly)
+            {
+                ArgumentNullException.ThrowIfNull(configuration);
+            }
 
             RecordStartup(settings, configuration);
 
@@ -85,14 +91,35 @@ namespace Particular.ServiceControl
             // directly and to make things more complex of course the order of registration still matters ;)
             services.AddSingleton(provider => new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
 
-            services.AddLicenseCheck();
             services.AddPersistence(settings);
             services.AddMetrics(settings.PrintMetrics);
+            services.AddServiceControlHealthChecks();
 
-            NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, configuration);
-            hostBuilder.Services.AddNServiceBusEndpoint(configuration);
+            if (settings.ErrorIngestionOnly)
+            {
+                // Ingestion receives through its own transport infrastructure and forwards through
+                // that same infrastructure's dispatcher, so the endpoint is not hosted at all.
+                var machineName = NServiceBus.Support.RuntimeEnvironment.MachineName;
+                services.AddSingleton(new HostInformation(
+                    DeterministicGuid.MakeId(machineName, settings.InstanceName),
+                    machineName));
+                services.AddSingleton(provider => new CriticalError((context, _) =>
+                {
+                    provider.GetRequiredService<ILogger<CriticalError>>().LogCritical(context.Exception, "{CriticalError}", context.Error);
+                    provider.GetRequiredService<IHostApplicationLifetime>().StopApplication();
+                    return Task.CompletedTask;
+                }));
+            }
+            else
+            {
+                services.AddLicenseCheck();
 
-            hostBuilder.AddEmailNotifications();
+                NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, configuration);
+                hostBuilder.Services.AddNServiceBusEndpoint(configuration);
+
+                hostBuilder.AddEmailNotifications();
+            }
+
             hostBuilder.AddAsyncTimer();
 
             if (!settings.DisableHealthChecks)
@@ -125,6 +152,7 @@ ServiceControl Version:             {version}
 Audit Retention Period (optional):  {settings.AuditRetentionPeriod}
 Error Retention Period:             {settings.ErrorRetentionPeriod}
 Ingest Error Messages:              {settings.IngestErrorMessages}
+Error Ingestion Only:               {settings.ErrorIngestionOnly}
 Forwarding Error Messages:          {settings.ForwardErrorMessages}
 ServiceControl Logging Level:       {settings.LoggingSettings.LogLevel}
 Selected Transport Customization:   {settings.TransportType}
@@ -133,7 +161,9 @@ Integrated ServicePulse:            {(settings.EnableIntegratedServicePulse ? "E
 
             var logger = LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.LoggingSettings.LogLevel);
             logger.LogInformation(startupMessage);
-            endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
+
+            // There is no endpoint to hang diagnostics off in error ingestion only mode.
+            endpointConfiguration?.GetSettings().AddStartupDiagnosticsSection("Startup", new
             {
                 Settings = settings,
             });
