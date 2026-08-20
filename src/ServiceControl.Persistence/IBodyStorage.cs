@@ -7,6 +7,16 @@
 
     public interface IBodyStorage
     {
+        /// <summary>
+        /// Resolves a message body from wherever it was stored. A persister that holds audit data as
+        /// well as failed messages resolves in one fixed order, because a message that both failed and
+        /// was audited has two bodies and an edited message's two bodies differ:
+        /// <list type="number">
+        /// <item>failed message by UniqueMessageId,</item>
+        /// <item>failed message by MessageId,</item>
+        /// <item>audit message by UniqueMessageId, including a body held inline for full text search.</item>
+        /// </list>
+        /// </summary>
         Task<MessageBodyResult> TryFetch(string bodyId, CancellationToken cancellationToken = default);
     }
 
