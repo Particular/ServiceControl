@@ -2,9 +2,11 @@ namespace ServiceControl.Auditing
 {
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Particular.LicensingComponent.AuditThroughput;
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Auditing.Metrics;
+    using ServiceControl.Connection;
     using ServiceControl.CustomChecks;
     using ServiceControl.Persistence;
     using ServiceControl.Transports;
@@ -48,6 +50,13 @@ namespace ServiceControl.Auditing
             if (settings.IngestAuditMessages)
             {
                 services.AddHostedService<AuditIngestion>();
+            }
+
+            if (!settings.ErrorIngestionOnly)
+            {
+                // Registered before the licensing component's own fallback, which uses TryAdd.
+                services.AddSingleton<ILocalAuditSource, PrimaryLocalAuditSource>();
+                services.AddPlatformConnectionProvider<AuditPlatformConnectionDetailsProvider>();
             }
 
             hostBuilder.AddAuditIngestionOpenTelemetry(settings);
