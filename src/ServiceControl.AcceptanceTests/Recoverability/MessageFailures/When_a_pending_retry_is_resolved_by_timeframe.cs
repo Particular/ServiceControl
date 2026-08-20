@@ -14,7 +14,7 @@
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
 
-    class When_a_pending_retry_is_resolved_by_queue_and_timeframe : AcceptanceTest
+    class When_a_pending_retry_is_resolved_by_timeframe : AcceptanceTest
     {
         [Test]
         public async Task Should_succeed() =>
@@ -44,7 +44,6 @@
                 {
                     await this.Patch("/api/pendingretries/resolve", new
                     {
-                        queueaddress = ctx.FromAddress,
                         from = DateTime.UtcNow.AddHours(-1).ToString("o"),
                         to = DateTime.UtcNow.ToString("o")
                     });
@@ -71,15 +70,13 @@
             [Handler]
             public class MyMessageHandler(
                 Context scenarioContext,
-                IReadOnlySettings settings,
-                ReceiveAddresses receiveAddresses)
+                IReadOnlySettings settings)
                 : IHandleMessages<MyMessage>
             {
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     if (scenarioContext.Step == 0)
                     {
-                        scenarioContext.FromAddress = receiveAddresses.MainReceiveAddress;
                         scenarioContext.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, settings.EndpointName()).ToString();
                         throw new Exception("Simulated Exception");
                     }
@@ -95,7 +92,6 @@
         {
             public string UniqueMessageId { get; set; }
             public int RetryCount { get; set; }
-            public string FromAddress { get; set; }
             public int Step { get; set; }
         }
 

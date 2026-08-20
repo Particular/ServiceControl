@@ -21,6 +21,8 @@ namespace ServiceControl.AcceptanceTests.WebApi
             List<MessagesView> forBilling = null;
             List<MessagesView> matchingTerm = null;
             List<MessagesView> forBillingMatchingTerm = null;
+            List<MessagesView> searchRoute = null;
+            List<MessagesView> endpointSearchRoute = null;
 
             await Define<Context>()
                 .WithEndpoint<Sender>(b => b.When(async (bus, _) =>
@@ -46,6 +48,11 @@ namespace ServiceControl.AcceptanceTests.WebApi
                     forBilling = await Query($"endpoint_name={BillingEndpoint}");
                     forBillingMatchingTerm = await Query($"endpoint_name={BillingEndpoint}&q={SearchTerm}");
                 })
+                .Do("Query the same two things through the search routes beside it", async _ =>
+                {
+                    searchRoute = await Paged($"/api/messages/search?q={SearchTerm}");
+                    endpointSearchRoute = await Paged($"/api/endpoints/{BillingEndpoint}/messages/search?q={SearchTerm}");
+                })
                 .Done(_ => true)
                 .Run();
 
@@ -57,12 +64,21 @@ namespace ServiceControl.AcceptanceTests.WebApi
                 Assert.That(TypesIn(matchingTerm), Is.EquivalentTo(new[] { NameOf<InvoiceFailed>(), NameOf<LabelFailed>() }),
                     $"q has to match the bodies carrying '{SearchTerm}' across endpoints, and drop the one without it");
 
+                Assert.That(TypesIn(searchRoute), Is.EquivalentTo(TypesIn(matchingTerm)),
+                    "messages/search and messages2 run the same search, so ServicePulse gets the same answer whichever it asks");
+
+                Assert.That(TypesIn(endpointSearchRoute), Is.EquivalentTo(new[] { NameOf<InvoiceFailed>() }),
+                    "Scoping the search route to an endpoint has to drop the other endpoint's match");
+
                 Assert.That(TypesIn(forBillingMatchingTerm), Is.EquivalentTo(new[] { NameOf<InvoiceFailed>() }),
                     "Supplying both narrows to the intersection rather than applying whichever filter is read last");
 
                 Assert.That(ReceiversIn(forBillingMatchingTerm), Is.EquivalentTo(new[] { BillingEndpoint }));
             }
         }
+
+        async Task<List<MessagesView>> Paged(string url) =>
+            (await this.TryGetMany<MessagesView>($"{url}&per_page=50")).Items;
 
         async Task<List<MessagesView>> Query(string filter)
         {
