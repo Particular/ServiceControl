@@ -1,4 +1,4 @@
-namespace Particular.LicensingComponent;
+﻿namespace Particular.LicensingComponent;
 
 using AuditThroughput;
 using BrokerThroughput;
