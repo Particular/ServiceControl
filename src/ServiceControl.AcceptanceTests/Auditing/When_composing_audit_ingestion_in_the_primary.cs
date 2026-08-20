@@ -11,10 +11,12 @@ namespace ServiceControl.AcceptanceTests.Auditing
     using Microsoft.Extensions.Logging;
     using NServiceBus;
     using NUnit.Framework;
+    using Particular.LicensingComponent.AuditThroughput;
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Auditing;
     using ServiceControl.CompositeViews.MessageCounting;
+    using ServiceControl.Connection;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Persistence;
@@ -41,6 +43,14 @@ namespace ServiceControl.AcceptanceTests.Auditing
                     Assert.That(app.Services.GetService<IFailedAuditImportDataStore>(), Is.Not.Null);
                     Assert.That(app.Services.GetService<IAuditCountsDataStore>(), Is.Not.Null);
                     Assert.That(app.Services.GetService<ISagaHistoryDataStore>(), Is.Not.Null);
+
+                    Assert.That(app.Services.GetService<ILocalAuditSource>(), Is.Not.Null,
+                        "without it the local audit queues are counted as customer endpoints in the licensing report");
+                    Assert.That(services.Any(descriptor =>
+                            descriptor.ServiceType == typeof(IProvidePlatformConnectionDetails)
+                            && descriptor.ImplementationType == typeof(AuditPlatformConnectionDetailsProvider)),
+                        Is.True,
+                        "/api/connection must still tell endpoints where to send audit and saga data");
                 }
             }
             finally
@@ -86,6 +96,7 @@ namespace ServiceControl.AcceptanceTests.Auditing
                     Assert.That(app.Services.GetService<GetSagaByIdApi>(), Is.Not.Null,
                         "the audit routes stay served from the configured remotes, so the APIs must still resolve");
                     Assert.That(app.Services.GetService<GetAuditCountsForEndpointApi>(), Is.Not.Null);
+                    Assert.That(app.Services.GetService<ILocalAuditSource>(), Is.Null);
                 }
             }
             finally
