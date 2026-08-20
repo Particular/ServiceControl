@@ -42,6 +42,8 @@
 
     <!-- RavenDB is the one persister that supports maintenance mode; StartupModeTests covers it. -->
     <Compile Remove="..\ServiceControl.AcceptanceTests\MaintenanceModeTests.cs" />
+
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Auditing\When_composing_audit_ingestion_in_the_primary.cs" />
   </ItemGroup>
 
   <ItemGroup>
