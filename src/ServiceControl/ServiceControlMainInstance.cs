@@ -1,5 +1,6 @@
 namespace Particular.ServiceControl
 {
+    using global::ServiceControl.Auditing;
     using global::ServiceControl.CustomChecks;
     using global::ServiceControl.EventLog;
     using global::ServiceControl.ExternalIntegrations;
@@ -14,6 +15,7 @@ namespace Particular.ServiceControl
             new ExternalIntegrationsComponent(),
             new RecoverabilityComponent(),
             new HeartbeatMonitoringComponent(),
+            new AuditComponent(),
             new CustomChecksComponent(),
             new LicensingComponent()
         };

@@ -1,5 +1,7 @@
 Configuration: Saga Audit Configuration
 Health: ServiceControl Primary Instance
 Health: ServiceControl Remotes
+ServiceControl Health: Audit Message Ingestion (local)
+ServiceControl Health: Audit Message Ingestion Process
 ServiceControl Health: Error Message Ingestion
 ServiceControl Health: Error Message Ingestion Process
