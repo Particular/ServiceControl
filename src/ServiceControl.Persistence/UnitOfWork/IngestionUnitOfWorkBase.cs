@@ -19,6 +19,7 @@ namespace ServiceControl.Persistence.UnitOfWork
 
         public IMonitoringIngestionUnitOfWork? Monitoring { get; protected set; }
         public IRecoverabilityIngestionUnitOfWork? Recoverability { get; protected set; }
+        public IAuditIngestionUnitOfWork? Audit { get; protected set; }
         public virtual Task Complete(CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 }
