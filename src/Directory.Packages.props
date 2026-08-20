@@ -86,7 +86,7 @@
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.22.0" />
     <PackageVersion Include="System.Management" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.Management.Automation" Version="7.6.5" />
-    <PackageVersion Include="System.Reactive" Version="6.1.0" />
+    <PackageVersion Include="System.Reactive" Version="7.0.0" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Testcontainers.Azurite" Version="4.14.0" />
