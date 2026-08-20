@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj" />
     <ProjectReference Include="..\ServiceControl.Persistence.EFCore.SqlServer\ServiceControl.Persistence.EFCore.SqlServer.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence.Tests.AuditCapable\ServiceControl.Persistence.Tests.AuditCapable.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
     <ProjectReference Include="..\TestHelper\TestHelper.csproj" />

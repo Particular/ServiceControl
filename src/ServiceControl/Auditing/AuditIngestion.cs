@@ -1,41 +1,42 @@
-﻿namespace ServiceControl.Operations
+﻿namespace ServiceControl.Auditing
 {
     using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using Infrastructure;
-    using Metrics;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.Transport;
-    using Persistence;
-    using Persistence.UnitOfWork;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Auditing.Metrics;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Ingestion;
-    using Transports;
+    using ServiceControl.Operations;
+    using ServiceControl.Persistence;
+    using ServiceControl.Persistence.UnitOfWork;
+    using ServiceControl.Transports;
 
-    class ErrorIngestion : BackgroundService
+    class AuditIngestion : BackgroundService
     {
-        public ErrorIngestion(
+        public AuditIngestion(
             Settings settings,
             ITransportCustomization transportCustomization,
             TransportSettings transportSettings,
-            IngestionMetrics metrics,
-            IFailedErrorImportDataStore dataStore,
-            ErrorIngestionCustomCheck.State ingestionState,
-            ErrorIngestor ingestor,
+            IFailedAuditImportDataStore failedImportsStore,
+            AuditIngestionCustomCheck.State ingestionState,
+            AuditIngestor auditIngestor,
             IIngestionUnitOfWorkFactory unitOfWorkFactory,
             IHostApplicationLifetime applicationLifetime,
-            ILogger<ErrorIngestion> logger)
+            AuditIngestionMetrics metrics,
+            ILogger<AuditIngestion> logger)
         {
-            this.settings = settings;
+            inputEndpoint = settings.AuditQueue;
             this.transportCustomization = transportCustomization;
             this.transportSettings = transportSettings;
-            errorQueue = settings.ErrorQueue;
-            this.ingestor = ingestor;
+            this.auditIngestor = auditIngestor;
             this.unitOfWorkFactory = unitOfWorkFactory;
+            this.settings = settings;
             this.applicationLifetime = applicationLifetime;
             this.metrics = metrics;
             this.logger = logger;
@@ -45,29 +46,28 @@
                 throw new ArgumentException("MaxConcurrency is not set in TransportSettings");
             }
 
-            MaxBatchSize = settings.ErrorIngestionBatchSize ?? transportSettings.MaxConcurrency.Value;
+            MaxBatchSize = settings.AuditIngestionBatchSize ?? transportSettings.MaxConcurrency.Value;
 
             pipeline = new IngestionPipeline(
                 new IngestionPipelineSettings
                 {
                     BatchSize = MaxBatchSize,
-                    MaxWriters = IngestionSettingsReader.ResolveMaxParallelWriters(settings.ErrorIngestionMaxParallelWriters, unitOfWorkFactory.SupportsConcurrentBatches, nameof(settings.ErrorIngestionMaxParallelWriters), logger),
-                    BatchTimeout = settings.ErrorIngestionBatchTimeout
+                    MaxWriters = IngestionSettingsReader.ResolveMaxParallelWriters(settings.AuditIngestionMaxParallelWriters, unitOfWorkFactory.SupportsConcurrentBatches, nameof(settings.AuditIngestionMaxParallelWriters), logger),
+                    BatchTimeout = settings.AuditIngestionBatchTimeout
                 },
                 IngestBatch,
                 logger);
 
-            errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, settings.LoggingSettings, OnCriticalError, metrics, logger);
+            errorHandlingPolicy = new AuditIngestionFaultPolicy(failedImportsStore, settings.LoggingSettings, OnCriticalError, metrics, logger);
 
             watchdog = new Watchdog(
-                "failed message ingestion",
+                "audit message ingestion",
                 EnsureStarted,
                 EnsureStopped,
                 ingestionState.ReportError,
                 ingestionState.Clear,
-                settings.TimeToRestartErrorIngestionAfterFailure,
-                logger
-            );
+                settings.TimeToRestartAuditIngestionAfterFailure,
+                logger);
         }
 
         public override async Task StartAsync(CancellationToken cancellationToken = default)
@@ -83,7 +83,7 @@
             // Leaving the scope without completing it is what records the batch as failed
             using var batchMetrics = metrics.BeginBatch(MaxBatchSize);
 
-            await ingestor.Ingest(contexts, messageDispatcher, cancellationToken);
+            await auditIngestor.Ingest(contexts, messageDispatcher, cancellationToken);
 
             batchMetrics.Complete(contexts.Count);
         }
@@ -92,9 +92,10 @@
         {
             try
             {
-                // Order matters. Receiving stops first so nothing new enters the pipeline, but the
-                // infrastructure is left running while the pipeline drains, because those batches
-                // still forward through its dispatcher and Shutdown disposes it.
+                // Order matters. Receiving stops under the shutdown token rather than a cancelled
+                // one, so messages already being processed finish and their receives commit instead
+                // of being abandoned and redelivered after having been forwarded. Nothing new enters
+                // the pipeline after this, and the infrastructure stays up until it drains.
                 await EnsureReceivingStopped(cancellationToken);
                 pipeline.CompleteAdding();
                 await base.StopAsync(cancellationToken);
@@ -104,6 +105,12 @@
                 // Tears the infrastructure down, now that nothing is left to dispatch.
                 await watchdog.Stop(cancellationToken);
             }
+        }
+
+        Task OnCriticalError(string failure, Exception exception, CancellationToken cancellationToken)
+        {
+            logger.LogCritical(exception, "OnCriticalError. '{Failure}'", failure);
+            return watchdog.OnFailure(failure, cancellationToken);
         }
 
         async Task EnsureStarted(CancellationToken cancellationToken)
@@ -164,23 +171,18 @@
             {
                 logger.LogInformation("Starting infrastructure");
                 transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(
-                    errorQueue,
+                    inputEndpoint,
                     transportSettings,
                     OnMessage,
                     errorHandlingPolicy.OnError,
                     OnCriticalError,
                     TransportTransactionMode.ReceiveOnly,
-                    cancellationToken: cancellationToken
-                );
+                    cancellationToken);
 
-                messageReceiver = transportInfrastructure.Receivers[errorQueue];
+                messageReceiver = transportInfrastructure.Receivers[inputEndpoint];
                 messageDispatcher = transportInfrastructure.Dispatcher;
 
-                if (settings.ForwardErrorMessages)
-                {
-                    await ingestor.VerifyCanReachForwardingAddress(messageDispatcher, cancellationToken);
-                }
-
+                await auditIngestor.VerifyCanReachForwardingAddress(messageDispatcher, cancellationToken);
                 await messageReceiver.StartReceive(cancellationToken);
 
                 logger.LogInformation(LogMessages.StartedInfrastructure);
@@ -195,6 +197,7 @@
                 throw;
             }
         }
+
         async Task StopAndTeardownInfrastructure(CancellationToken cancellationToken)
         {
             if (transportInfrastructure == null)
@@ -202,6 +205,7 @@
                 logger.LogDebug("Infrastructure already Stopped");
                 return;
             }
+
             try
             {
                 logger.LogInformation("Stopping infrastructure");
@@ -229,36 +233,6 @@
                 logger.LogError(e, "Failed to stop infrastructure");
                 throw;
             }
-        }
-
-        async Task OnMessage(MessageContext messageContext, CancellationToken cancellationToken)
-        {
-            using var messageIngestionMetrics = metrics.BeginIngestion(messageContext);
-
-            if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
-            {
-                messageIngestionMetrics.Skipped();
-                return;
-            }
-
-            var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            messageContext.SetTaskCompletionSource(taskCompletionSource);
-
-            // Ideally we want to propagate the cancellationToken to the batch handling
-            // but cancellation in only cancelled when endpointInstance.Stop is cancelled, not when invoked.
-            // Not much shutdown speed to gain but this will ensure endpoint.Stop will return.
-            await using var cancellationTokenRegistration = cancellationToken.Register(() => _ = taskCompletionSource.TrySetCanceled());
-
-            await pipeline.Enqueue(messageContext, cancellationToken);
-            await taskCompletionSource.Task;
-
-            messageIngestionMetrics.Success();
-        }
-
-        Task OnCriticalError(string failure, Exception exception, CancellationToken cancellationToken)
-        {
-            logger.LogCritical(exception, "OnCriticalError. '{FailureMessage}'", failure);
-            return watchdog.OnFailure(failure, cancellationToken);
         }
 
         async Task EnsureStopped(CancellationToken cancellationToken)
@@ -304,35 +278,47 @@
             receiveStopped = true;
         }
 
-        SemaphoreSlim startStopSemaphore = new(1);
-        string errorQueue;
-        ErrorIngestionFaultPolicy errorHandlingPolicy;
+        async Task OnMessage(MessageContext messageContext, CancellationToken cancellationToken)
+        {
+            using var messageIngestionMetrics = metrics.BeginIngestion(messageContext);
+
+            if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
+            {
+                messageIngestionMetrics.Skipped();
+                return;
+            }
+
+            var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            messageContext.SetTaskCompletionSource(taskCompletionSource);
+
+            await pipeline.Enqueue(messageContext, cancellationToken);
+            _ = await taskCompletionSource.Task;
+
+            messageIngestionMetrics.Success();
+        }
+
         TransportInfrastructure transportInfrastructure;
         IMessageReceiver messageReceiver;
         bool receiveStopped;
 
         // Left in place when the infrastructure is torn down. A shutdown drains before tearing down,
-        // so this is still usable there
+        // so this is still usable there.
         IMessageDispatcher messageDispatcher;
 
-        readonly Settings settings;
+        readonly int MaxBatchSize;
+        readonly SemaphoreSlim startStopSemaphore = new(1);
+        readonly string inputEndpoint;
         readonly ITransportCustomization transportCustomization;
         readonly TransportSettings transportSettings;
-        readonly int MaxBatchSize;
-        readonly Watchdog watchdog;
-        readonly IngestionPipeline pipeline;
-        readonly IngestionMetrics metrics;
-        readonly ErrorIngestor ingestor;
+        readonly AuditIngestor auditIngestor;
+        readonly AuditIngestionFaultPolicy errorHandlingPolicy;
         readonly IIngestionUnitOfWorkFactory unitOfWorkFactory;
+        readonly Settings settings;
+        readonly IngestionPipeline pipeline;
+        readonly Watchdog watchdog;
         readonly IHostApplicationLifetime applicationLifetime;
-
-        readonly ILogger<ErrorIngestion> logger;
-
-        public override void Dispose()
-        {
-            startStopSemaphore.Dispose();
-            base.Dispose();
-        }
+        readonly AuditIngestionMetrics metrics;
+        readonly ILogger<AuditIngestion> logger;
 
         internal static class LogMessages
         {
