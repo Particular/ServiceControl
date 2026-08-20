@@ -1,0 +1,15 @@
+namespace ServiceControl.Persistence.UnitOfWork
+{
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using ServiceControl.MessageAuditing;
+    using ServiceControl.SagaAudit;
+
+    public interface IAuditIngestionUnitOfWork
+    {
+        Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body = default, CancellationToken cancellationToken = default);
+
+        Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken = default);
+    }
+}
