@@ -8,6 +8,7 @@ using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.AcceptanceTests.TestSupport;
 using ServiceControl.Persistence.Tests;
 using ServiceControl.RavenDB;
+using TestHelper;
 
 public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfiguration
 {
