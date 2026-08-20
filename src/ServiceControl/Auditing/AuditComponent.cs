@@ -2,12 +2,14 @@ namespace ServiceControl.Auditing
 {
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using Particular.LicensingComponent.AuditThroughput;
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Auditing.Metrics;
     using ServiceControl.Connection;
     using ServiceControl.CustomChecks;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Health;
     using ServiceControl.Persistence;
     using ServiceControl.Transports;
@@ -38,6 +40,8 @@ namespace ServiceControl.Auditing
                 return;
             }
 
+            WarnAboutSettingCollisions(settings);
+
             var services = hostBuilder.Services;
 
             services.AddSingleton<AuditIngestionMetrics>();
@@ -64,6 +68,23 @@ namespace ServiceControl.Auditing
             }
 
             hostBuilder.AddAuditIngestionOpenTelemetry(settings);
+        }
+
+        // ServiceControl and ServiceControl.Audit settings can both be set by bare environment variable
+        // name, and ServiceBus/AuditQueue is literally the same key for both processes, so a combined
+        // primary and a standalone audit instance sharing one environment file collide. That
+        // combination is unsupported, and this is the shape most likely to hit it.
+        static void WarnAboutSettingCollisions(Settings settings)
+        {
+            if (settings.RemoteInstances.Length == 0)
+            {
+                return;
+            }
+
+            LoggerUtil.CreateStaticLogger(typeof(AuditComponent), settings.LoggingSettings.LogLevel)
+                .LogWarning("This instance ingests audit messages itself and also has {RemoteInstanceCount} audit remote(s) configured. "
+                    + "Running both is not supported: the two processes read the same setting names, so a shared environment file makes them "
+                    + "collide on the audit queue, retention, forwarding and ingestion settings.", settings.RemoteInstances.Length);
         }
 
         internal static bool SupportsAuditIngestion(Settings settings) =>
