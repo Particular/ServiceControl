@@ -14,10 +14,12 @@ namespace ServiceControl.AcceptanceTests.Auditing
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Auditing;
+    using ServiceControl.CompositeViews.MessageCounting;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Tests.AuditCapable;
+    using ServiceControl.SagaAudit;
 
     // The inner persistence type reaches the test persister through an environment variable, which is
     // process wide, so these cannot run alongside anything else that sets it.
@@ -80,6 +82,10 @@ namespace ServiceControl.AcceptanceTests.Auditing
                     Assert.That(HostsAuditIngestion(services), Is.False);
                     Assert.That(app.Services.GetService<AuditIngestor>(), Is.Null);
                     Assert.That(app.Services.GetService<AuditIngestionCustomCheck.State>(), Is.Null);
+
+                    Assert.That(app.Services.GetService<GetSagaByIdApi>(), Is.Not.Null,
+                        "the audit routes stay served from the configured remotes, so the APIs must still resolve");
+                    Assert.That(app.Services.GetService<GetAuditCountsForEndpointApi>(), Is.Not.Null);
                 }
             }
             finally

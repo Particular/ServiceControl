@@ -13,7 +13,7 @@ namespace ServiceControl.Persistence.Tests.AuditCapable
     class AuditCapableIngestionUnitOfWork(IIngestionUnitOfWork inner, InMemoryAuditStore auditStore)
         : IIngestionUnitOfWork, IAuditIngestionUnitOfWork
     {
-        readonly ConcurrentQueue<ProcessedMessage> processedMessages = new();
+        readonly ConcurrentQueue<(ProcessedMessage Message, byte[] Body)> processedMessages = new();
         readonly ConcurrentQueue<SagaSnapshot> sagaSnapshots = new();
 
         public IMonitoringIngestionUnitOfWork? Monitoring => inner.Monitoring;
@@ -24,7 +24,7 @@ namespace ServiceControl.Persistence.Tests.AuditCapable
 
         public Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body = default, CancellationToken cancellationToken = default)
         {
-            processedMessages.Enqueue(processedMessage);
+            processedMessages.Enqueue((processedMessage, body.ToArray()));
             return Task.CompletedTask;
         }
 
@@ -40,7 +40,7 @@ namespace ServiceControl.Persistence.Tests.AuditCapable
 
             while (processedMessages.TryDequeue(out var processedMessage))
             {
-                auditStore.Record(processedMessage);
+                auditStore.Record(processedMessage.Message, processedMessage.Body);
             }
 
             while (sagaSnapshots.TryDequeue(out var sagaSnapshot))
