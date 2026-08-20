@@ -7,6 +7,7 @@ using Persistence.RavenDB;
 using Persistence.RavenDB.Indexes;
 using Raven.Client.Documents.Indexes;
 using Raven.Client.Documents.Operations.Indexes;
+using Raven.Client.Exceptions;
 using Raven.Client.Exceptions.Documents.Indexes;
 
 [TestFixture]
@@ -109,8 +110,16 @@ class IndexSetupTests : PersistenceTestFixture
         return await WaitForIndexDefinitionUpdate(statsBefore);
     }
 
+    // How many consecutive RavenExceptions from the stats query below get tolerated before letting one propagate for real.
+    // RavenDB can throw a variety of transient errors for that race (seen so far: OperationCanceledException
+    // from the read transaction being cancelled, and ObjectDisposedException from the old engine's index persistence being torn down).
+    // A genuinely broken index should still fail the test.
+    const int MaxTransientRavenExceptionRetries = 2;
+
     async Task<IndexStats> WaitForIndexDefinitionUpdate(IndexStats oldStats)
     {
+        var transientFailures = 0;
+
         while (true)
         {
             try
@@ -126,6 +135,10 @@ class IndexSetupTests : PersistenceTestFixture
             catch (OperationCanceledException)
             {
                 // keep going since we can get this if we query right when the update happens
+            }
+            catch (RavenException) when (transientFailures < MaxTransientRavenExceptionRetries)
+            {
+                transientFailures++;
             }
 #pragma warning restore PS0020
 
