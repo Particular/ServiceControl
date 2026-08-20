@@ -144,7 +144,7 @@ namespace ServiceControl.AcceptanceTests.Licensing
             return JsonDocument.Parse(entry);
         }
 
-        const string SalesQueue = "Contoso/Sales";
+        const string SalesQueue = "Particular.Sales";
         const long BrokerThroughput = 42;
         const long MonitoringThroughput = 17;
 
