@@ -12,13 +12,15 @@ That is the shape of the problem: these failures are silent. A test that asserts
 
 Phases 1, 2 and 3 are done. Phase 4 has closed the licensing block, 8 routes of the 40, on both of the branches those routes take.
 
-What is left: 32 routes to cover, starting with the three nav-gating ones.
+What is left: 27 routes needing a test, in seven groups, starting with notifications. Two more are recorded below as deliberately untested, and six are covered in MultiInstance only and need a home decision rather than a new test.
 
 ## Scope
 
 In scope: the functional areas of `ServiceControl.AcceptanceTests`, being `Recoverability`, `Monitoring`, `EventLogs` and `WebApi`. That is 71 `When_*.cs` files.
 
 Out of scope: `Security/*` (25 files across ForwardedHeaders, OpenIdConnect, Cors and Https), which carries a different risk model and deserves its own pass. Also out of scope: the audit instance, monitoring instance, and multi-instance suites, except where they already cover a route the primary suite misses.
+
+One consequence of that boundary is worth stating, because this review already tripped over it once. `GET /api/my/routes` is the manifest every gated ServicePulse capability is resolved against, so it carries the risk of a nav item disappearing for all 85 routes at once. It lives in `Security/OpenIdConnect/When_my_routes_are_requested` and is therefore out of scope here, which is why the route list below originally recorded that risk as uncovered. Anything reasoning about gating has to read that file even though this review does not touch it.
 
 Three artefacts anchor the work:
 
@@ -70,15 +72,31 @@ Harmless on its own, but it makes tests read as though they cover more than they
 
 The groups are sized to be one PR each and ordered by what breaks in ServicePulse if the route regresses. Each entry names the ServicePulse consumer where there is one, because that is what the test should assert: the contract the UI relies on, not a 200.
 
-### Nav-gating routes
+### Routes behind the main ServicePulse pages (done)
 
-If one of these regresses, ServicePulse loses a whole section of its navigation and nothing in the suite notices.
+These sit behind three of the most-used pages in ServicePulse. If one regresses, the page breaks on arrival.
 
-- [ ] `GET /api/heartbeats/stats`: gates the Heartbeats nav item (`viewHeartbeats`)
-- [ ] `GET /api/messages2`: gates the audit messages nav item (`viewAuditMessages`)
-- [ ] `GET /api/license`: gates the Licence nav item (`viewLicense`)
+- [x] `GET /api/heartbeats/stats`: the Heartbeats page (`viewHeartbeats`), by `Monitoring/When_heartbeat_stats_are_requested`
+- [x] `GET /api/messages2`: the audit messages page (`viewAuditMessages`), by `WebApi/When_failed_messages_are_queried`
+- [x] `GET /api/license`: the Licence page (`viewLicense`), by `Licensing/When_the_license_is_requested`
 
-`GET /api/licensing/report/available` gates the Throughput nav item and belongs to this tier too, but it is written with the rest of the licensing block below. `GET /api/connection` gates the Connections nav item and is covered in MultiInstance only, so it is a home decision rather than a new test.
+This tier was originally called "nav-gating", on the grounds that a regression here costs ServicePulse a whole section of its navigation. That is not how the gating works, and the distinction changes what these tests are for.
+
+ServicePulse decides which nav items to render with `canCall(ApiRoutes.viewHeartbeats)`, which reduces to `!shouldGate || store.routes.has(normalizeRouteKey(method, path))`. `store.routes` is a manifest fetched once from `GET /api/my/routes`, so a nav item appears when the route is *advertised in the manifest*, never because the route was called and answered. A route that throws on every request keeps its nav item and breaks the page behind it. Only removing the route, or changing the permission that filters it, takes the nav item away. The gating is fail-open besides: `shouldGate` requires `authEnabled && isAuthenticated && loaded`, so an install without OpenID Connect renders every nav item regardless.
+
+The manifest itself is covered, by `ServiceControl.AcceptanceTests/Security/OpenIdConnect/When_my_routes_are_requested`, which asserts it is the projection of what the server actually enforces. See the note in [Scope](#scope): that file is out of scope for this review, which is how the risk came to be listed as uncovered here.
+
+So the three are not a journey and should not be written as one. Their arrangements have nothing in common: `license` needs none at all, `heartbeats/stats` needs endpoints registered in `IEndpointInstanceMonitoring` with heartbeats flowing, and `messages2` needs ingested failed messages. Nothing one call returns feeds the next, which is the property that earned the licensing block a single scenario. Three separate tests, filed in the area each belongs to.
+
+Writing them turned up three things worth keeping.
+
+`GET /api/license` answers **400** without a `clientName`. `LicenseController` is a `#nullable enable` file, so the non-nullable `string clientName` is inferred as required and the request is rejected before the action runs. The parameter exists only to label a marketing link, so the route that backs the Licence page rejects a caller who does not want one. ServicePulse always sends it, alongside `refresh=true`, which is why nothing has noticed. `When_the_license_is_requested` now covers both the answer ServicePulse gets and the 400, so the behaviour is pinned rather than latent.
+
+`GET /api/messages2` builds its paging from `page_size` alone. It is the only paged route that does not bind `PagingInfo` through `PagingInfoModelBinder`: it takes a bare `int pageSize` and hands it to `new PagingInfo(pageSize: pageSize)`, which takes the value as given. Omitting `page_size` therefore asks for a page of nothing and gets an empty list, where every other route falls back to 50. It also reads `page_size` rather than `per_page` and ignores `page` entirely, both of which match how ServicePulse calls it (`auditClient.ts` sends `page_size` and windows by date instead of paging), so the divergence is deliberate. Only the missing floor is a rough edge.
+
+Search is not visible at the same moment on every persister. On SQL Server the full text index is populated asynchronously, so a `q=` search answers nothing for a while after the plain list already returns the message. A test that waits for ingestion on the unsearched list and then searches passes on RavenDB and PostgreSQL and fails on SQL Server, which is how this one first failed. The rule is now written down in [Writing acceptance tests](writing-acceptance-tests.md): wait on the path you are about to assert on.
+
+`GET /api/licensing/report/available` backs the Throughput page and belongs to this tier too, but it is written with the rest of the licensing block below. `GET /api/connection` backs the Connections page and is covered in MultiInstance only, so it is a home decision rather than a new test.
 
 ### Licensing and throughput (done)
 

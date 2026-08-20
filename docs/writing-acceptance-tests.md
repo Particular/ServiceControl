@@ -109,6 +109,38 @@ Registering the double correctly is only half the job. If the assertion would al
 
 The suite runs against every persister. An assertion about how RavenDB happens to store or trim something says nothing about ServiceControl's behaviour. It also ends up on another persister's exclusion list, where it looks like a missing feature instead of a test that asks for too much. Assert what every persister has to do to be correct.
 
+### The wait that does not cover what the assertion reads
+
+Wait on the path you are about to assert on, not on a cheaper one that looks equivalent.
+
+Persisters do not make a write visible everywhere at the same moment, and search is where they differ most. PostgreSQL indexes a `to_tsvector` expression with GIN, which is maintained inside the writing transaction, so a committed message is searchable at once. SQL Server's full text index is populated by a background process (`CHANGE_TRACKING AUTO`), so a `q=` search answers nothing for a while after the plain list already returns the same message. A test that waits for ingestion by listing messages and then searches therefore passes on PostgreSQL and RavenDB, and fails on SQL Server:
+
+```csharp
+// Wrong: the list does not go through the search index, so the search below can run against
+// an index that has not caught up.
+.Do("Wait for the failures to be ingested", async _ => (await Query(string.Empty)).Count == 3)
+.Do("Search", async _ => matches = await Query($"q={SearchTerm}"))
+
+// Right: the wait runs the same query the assertion depends on.
+.Do("Wait for the search index to catch up", async _ =>
+{
+    matches = await Query($"q={SearchTerm}");
+    return matches.Count == 2;
+})
+```
+
+This cuts across [the assertion that could not have failed](#the-assertion-that-could-not-have-failed), so be deliberate about where the wait stops and the assertion starts.
+
+Wait for the loosest condition that makes the query answerable, not for the answer you expect. `Count == 2` never advances when a search matches three, so the interesting regression, matching too much, is reported as a 90 second timeout rather than as the assertion that would have named the extra row. `Count >= 2` advances as soon as there is enough to judge and lets the assertion do the judging, which turns that same regression into a failure in a few seconds reading `Extra (1): DeliveryFailed`.
+
+Whatever the wait cannot avoid holding, record on the scenario context, because the runner prints the context when a scenario does not finish while a `TimeoutException` on its own says only that 90 seconds passed:
+
+```csharp
+ctx.SearchMatched = string.Join(", ", TypesIn(matchingTerm));
+```
+
+A stalled run then reads as the step it stopped on, from `Advancing from X to Y`, plus what that step kept seeing, which separates an index that never populated from one that matched the wrong thing.
+
 ### The setup that nothing reads
 
 Headers put into a dictionary nothing reads, constants nothing compares against, fixtures left behind after an assertion was deleted. Each one is harmless by itself. Together they make a test look like it covers more than it does, which is how everything above gets through review.
