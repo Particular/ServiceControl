@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Build the role applications for IDE run-in-place profiles without loading their assemblies into the launcher. -->
+    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Platform.Launcher.UnitTests" />
+  </ItemGroup>
+
+</Project>

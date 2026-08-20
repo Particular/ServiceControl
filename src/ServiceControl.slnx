@@ -58,6 +58,7 @@
     <Project Path="ServiceControl.UnitTests/ServiceControl.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Instances/Shared/">
+    <Project Path="Platform.Launcher/Platform.Launcher.csproj" />
     <Project Path="ServiceControl.Api/ServiceControl.Api.csproj" />
     <Project Path="ServiceControl.Configuration/ServiceControl.Configuration.csproj" />
     <Project Path="ServiceControl.DomainEvents/ServiceControl.DomainEvents.csproj" />
@@ -69,6 +70,7 @@
     <Project Path="ServiceControl.SagaAudit/ServiceControl.SagaAudit.csproj" />
   </Folder>
   <Folder Name="/Instances/Shared/Testing/">
+    <Project Path="Platform.Launcher.UnitTests/Platform.Launcher.UnitTests.csproj" />
     <Project Path="ServiceControl.AcceptanceTesting/ServiceControl.AcceptanceTesting.csproj" />
     <Project Path="ServiceControl.MultiInstance.AcceptanceTests/ServiceControl.MultiInstance.AcceptanceTests.csproj" />
   </Folder>
