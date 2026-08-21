@@ -9,16 +9,6 @@ namespace ServiceControl.Persistence.Infrastructure
 
     /// <summary>
     /// An opaque version of a query result, sent to clients as an HTTP entity-tag.
-    /// <para>
-    /// <see cref="None"/> means there is no version. It matches nothing, not even itself, so two parties
-    /// that both know nothing can never answer 304. <see cref="Equals(DataVersion)"/> is plain equality and
-    /// stays reflexive, so the struct still works as a dictionary key.
-    /// </para>
-    /// <para>
-    /// A struct, so <c>default</c> is <see cref="None"/> and no variable of this type can be null. A null
-    /// reference would be a second way to say "no version" that <see cref="Matches"/> never sees. <c>operator ==</c> is left undefined on
-    /// purpose: the only two questions worth asking are <see cref="Matches"/> and <see cref="Equals(DataVersion)"/>.
-    /// </para>
     /// </summary>
     [DebuggerDisplay("{validator ?? \"None\",nq}")]
     public readonly struct DataVersion : IEquatable<DataVersion>
@@ -106,8 +96,8 @@ namespace ServiceControl.Persistence.Infrastructure
         }
 
         /// <summary>
-        /// A validator a client sent back, in any shape an old or current instance might use. Only ever
-        /// trusted for matching.
+        /// A validator read back off the wire, in any shape an old or current instance might emit, so that
+        /// a scatter-gather can fold another instance's entity-tag into its own composite.
         /// </summary>
         public static DataVersion FromClient(string headerValue)
         {
@@ -133,17 +123,6 @@ namespace ServiceControl.Persistence.Infrastructure
             return FromToken(value);
         }
 
-        /// <summary>
-        /// Whether this and <paramref name="other"/> are the same version and both present. Absence never
-        /// counts as a match, so any comparison involving <see cref="None"/> is false.
-        /// </summary>
-        public bool Matches(DataVersion other) =>
-            HasValue && other.HasValue && string.Equals(validator, other.validator, StringComparison.Ordinal);
-
-        /// <summary>
-        /// Plain value equality. Never use it to decide whether something changed: it is
-        /// reflexive, so <see cref="None"/> equals <see cref="None"/>.
-        /// </summary>
         public bool Equals(DataVersion other) =>
             string.Equals(validator, other.validator, StringComparison.Ordinal);
 

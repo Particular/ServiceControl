@@ -279,8 +279,6 @@ class RetentionSweepTests : ErrorIngestionTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(after.TotalCount, Is.EqualTo(1));
-            // A sweep is the only thing that takes a row away without touching the newest LastModified,
-            // so nothing else keeps the count term of this version honest.
             Assert.That(after.Version.Matches(versionBefore), Is.False);
         }
     }

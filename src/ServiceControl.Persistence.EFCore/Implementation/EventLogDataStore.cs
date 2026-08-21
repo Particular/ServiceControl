@@ -52,7 +52,6 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
 
             var total = await query.LongCountAsync(token);
 
-            return new QueryResult<IList<EventLogItemView>>(items,
-                items.ToQueryStatsInfo(total, ("page", pagingInfo.Page), ("pageSize", pagingInfo.PageSize)));
+            return new QueryResult<IList<EventLogItemView>>(items, items.ToQueryStatsInfo(total));
         }, cancellationToken);
 }

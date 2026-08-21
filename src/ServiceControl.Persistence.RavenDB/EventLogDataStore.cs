@@ -39,9 +39,7 @@
                 .Paging(pagingInfo)
                 .ToListAsync(cancellationToken);
 
-            // Names the ids on the page, not just the index etag, or every page of every filter over this
-            // index shares one validator.
-            var queryStats = stats.ToPagedQueryStatsInfo(documents, session.Advanced.GetDocumentId);
+            var queryStats = stats.ToQueryStatsInfo();
 
             // The id lives in document metadata rather than on the document
             var items = documents.ConvertAll(document => new EventLogItemView

@@ -1,7 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.Infrastructure;
 
 using ServiceControl.Persistence.EFCore.Entities;
-using ServiceControl.Persistence.Infrastructure;
 using ServiceControl.Recoverability;
 
 static class FailureGroupQueries
@@ -22,13 +21,4 @@ static class FailureGroupQueries
             First = aggregate.Min(message => message.FirstTimeOfFailure),
             Last = aggregate.Max(message => message.LastTimeOfFailure)
         };
-
-    /// <summary>
-    /// Title and Type cannot move within a row, because AggregateGroups groups by them, so a change to
-    /// either is a different row rather than a changed one.
-    /// </summary>
-    public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<FailureGroupView> groups, params (string Name, object? Value)[] query) =>
-        QueryStatsInfo.Fresh(DataVersion.OverRows([("groups", groups.Count), .. query], groups,
-                group => [group.Id, group.Title, group.Type, group.Count, group.Comment, group.First, group.Last]),
-            groups.Count);
 }

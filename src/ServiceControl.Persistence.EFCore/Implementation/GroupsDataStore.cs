@@ -36,7 +36,7 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
 
             var views = await MostRecent(groups.AggregateGroups(WithStatus(dbContext, FailedMessageStatus.Archived)), token);
 
-            return new QueryResult<IList<FailureGroupView>>(views, views.ToQueryStatsInfo(("classifier", classifier)));
+            return new QueryResult<IList<FailureGroupView>>(views, views.ToQueryStatsInfo());
         }, cancellationToken);
 
     public Task<QueryResult<FailureGroupView>> GetUnresolvedGroup(string groupId, string? status, string? modified, CancellationToken cancellationToken = default) =>
@@ -47,11 +47,11 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
 
     public Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(string groupId, string? status, string? modified, SortInfo sortInfo, PagingInfo pagingInfo, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((dbContext, token) => InGroup(dbContext, groupId, status, modified)
-            .ToPagedResult(pagingInfo, sortInfo, [("groupId", groupId), ("status", status), ("modified", modified)], token), cancellationToken);
+            .ToPagedResult(pagingInfo, sortInfo, token), cancellationToken);
 
     public Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string? status, string? modified, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((dbContext, token) => InGroup(dbContext, groupId, status, modified)
-            .ToQueryStatsInfo([("groupId", groupId), ("status", status), ("modified", modified)], token), cancellationToken);
+            .ToCountQueryStatsInfo("failures", token), cancellationToken);
 
     public Task EditComment(string groupId, string comment, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (dbContext, token) =>
@@ -92,7 +92,7 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
             .ToListAsync(cancellationToken);
 
         return new QueryResult<FailureGroupView>(groups.FirstOrDefault()!,
-            groups.ToQueryStatsInfo(("groupId", groupId), ("status", status), ("modified", modified)));
+            groups.ToQueryStatsInfo());
     }
 
     static IQueryable<FailedMessageEntity> WithStatus(ServiceControlDbContext dbContext, FailedMessageStatus status) =>

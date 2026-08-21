@@ -81,12 +81,11 @@ public class ConditionalGetTests
             QueryStatsInfo.Fresh(version, totalCount: 1),
             new PagingInfo());
 
-        // A hashed validator matches nothing a store holds, so the endpoint can never skip its query.
         Assert.That(httpContext.Response.Headers.ETag.ToString(), Does.Contain(version.ToString()));
     }
 
     [Test]
-    public void An_aggregate_derived_etag_is_marked_weak()
+    public void Every_emitted_etag_is_marked_weak()
     {
         var httpContext = new DefaultHttpContext();
 
@@ -97,22 +96,6 @@ public class ConditionalGetTests
             Assert.That(httpContext.Response.Headers.ETag.ToString(), Is.EqualTo("W/\"4611686018427387904\""));
             Assert.That(httpContext.Response.GetTypedHeaders().ETag.IsWeak, Is.True);
         }
-    }
-
-    [Test]
-    public void A_weak_validator_matches_under_the_comparison_If_None_Match_requires()
-    {
-        var httpContext = new DefaultHttpContext();
-
-        httpContext.Response.WithEtag(DataVersion.FromToken("4611686018427387904"));
-        httpContext.Request.Headers.IfNoneMatch = httpContext.Response.Headers.ETag;
-
-        var context = ResultExecuting(httpContext);
-
-        new NotModifiedStatusHttpHandler().OnResultExecuting(context);
-
-        Assert.That(context.Result, Is.InstanceOf<StatusCodeResult>(),
-            "RFC 9110 requires If-None-Match to use the weak comparison function, so a weak tag must match a weak tag");
     }
 
     [Test]

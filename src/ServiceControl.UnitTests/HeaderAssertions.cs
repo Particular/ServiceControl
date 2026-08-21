@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using NUnit.Framework;
+    using ServiceControl.Persistence.Infrastructure;
 
     public static class HeaderAssertions
     {
@@ -19,5 +20,8 @@
         {
             Assert.That(headers.ContainsKey(key), Is.False, $"Unexpected header [{key}] found.");
         }
+
+        public static bool Matches(this DataVersion one, DataVersion other) =>
+            one.HasValue && other.HasValue && one.Equals(other);
     }
 }

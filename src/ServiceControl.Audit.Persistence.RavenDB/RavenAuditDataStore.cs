@@ -25,7 +25,7 @@
                     .Statistics(out var stats)
                     .SingleOrDefaultAsync(x => x.SagaId == input, token: cancellationToken);
 
-            return sagaHistory == null ? QueryResult<SagaHistory>.Empty() : new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo($"{stats.ResultEtag}", stats.TotalResults));
+            return sagaHistory == null ? QueryResult<SagaHistory>.Empty() : new QueryResult<SagaHistory>(sagaHistory, stats.ToQueryStatsInfo());
         }
 
         public async Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default)
@@ -40,8 +40,7 @@
                 .ToMessagesView()
                 .ToListAsync(token: cancellationToken);
 
-            return new QueryResult<IList<MessagesView>>(results,
-                stats.ToPagedQueryStatsInfo(results, view => view.Id, Narrowing(pagingInfo, sortInfo, timeSentRange, ("includeSystemMessages", includeSystemMessages))));
+            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string searchParam, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default)
@@ -56,8 +55,7 @@
                 .ToMessagesView()
                 .ToListAsync(token: cancellationToken);
 
-            return new QueryResult<IList<MessagesView>>(results,
-                stats.ToPagedQueryStatsInfo(results, view => view.Id, Narrowing(pagingInfo, sortInfo, timeSentRange, ("search", searchParam))));
+            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default)
@@ -73,8 +71,7 @@
                 .ToMessagesView()
                 .ToListAsync(token: cancellationToken);
 
-            return new QueryResult<IList<MessagesView>>(results,
-                stats.ToPagedQueryStatsInfo(results, view => view.Id, Narrowing(pagingInfo, sortInfo, timeSentRange, ("endpoint", endpoint), ("keyword", keyword))));
+            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default)
@@ -90,8 +87,7 @@
                 .ToMessagesView()
                 .ToListAsync(token: cancellationToken);
 
-            return new QueryResult<IList<MessagesView>>(results,
-                stats.ToPagedQueryStatsInfo(results, view => view.Id, Narrowing(pagingInfo, sortInfo, timeSentRange, ("endpointName", endpointName), ("includeSystemMessages", includeSystemMessages))));
+            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken = default)
@@ -105,24 +101,8 @@
                 .ToMessagesView()
                 .ToListAsync(token: cancellationToken);
 
-            return new QueryResult<IList<MessagesView>>(results,
-                stats.ToPagedQueryStatsInfo(results, view => view.Id, Narrowing(pagingInfo, sortInfo, null, ("conversationId", conversationId))));
+            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
-
-        /// <summary>
-        /// The page, ordering and filters a read was narrowed by. Rows name a non-empty page on their own,
-        /// so these terms are what keep two queries apart when one of them returns nothing.
-        /// </summary>
-        static (string Name, object Value)[] Narrowing(PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, params (string Name, object Value)[] filters) =>
-        [
-            ("page", pagingInfo.Page),
-            ("pageSize", pagingInfo.PageSize),
-            ("sort", sortInfo?.Sort),
-            ("direction", sortInfo?.Direction),
-            ("from", timeSentRange?.From),
-            ("to", timeSentRange?.To),
-            .. filters
-        ];
 
         public async Task<MessageBodyView> GetMessageBody(string messageId, CancellationToken cancellationToken = default)
         {

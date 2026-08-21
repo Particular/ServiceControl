@@ -90,13 +90,13 @@
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var orphanedBatches = await session
                 .Query<RetryBatch, RetryBatches_ByStatusAndSession>()
-
                 .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != retrySessionId)
                 .Statistics(out var stats)
                 .ToListAsync(cancellationToken);
 
-            return orphanedBatches.Select(batch => batch.ToContract()).ToList()
-                .ToQueryResult(stats, batch => batch.Id, ("retrySessionId", retrySessionId));
+            return orphanedBatches.Select(batch => batch.ToContract())
+                .ToList()
+                .ToQueryResult(stats);
         }
 
         public async Task<IList<RetryBatchGroup>> GetAvailableBatchGroups(CancellationToken cancellationToken = default)

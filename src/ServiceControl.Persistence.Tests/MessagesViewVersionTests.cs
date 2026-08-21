@@ -97,29 +97,7 @@ class MessagesViewVersionTests : IngestionTestBase
     }
 
     [Test]
-    public async Task Two_pages_of_one_set_do_not_share_a_version()
-    {
-        for (var i = 0; i < 3; i++)
-        {
-            await Ingest(new IngestedFailure());
-        }
-
-        await CompleteDatabaseOperation();
-
-        var firstPage = await MessagesViewStore.GetAllMessages(new PagingInfo(page: 1, pageSize: 2), new SortInfo(), includeSystemMessages: true);
-        var secondPage = await MessagesViewStore.GetAllMessages(new PagingInfo(page: 2, pageSize: 2), new SortInfo(), includeSystemMessages: true);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(firstPage.Results, Has.Count.EqualTo(2), "two rows on the first page");
-            Assert.That(secondPage.Results, Has.Count.EqualTo(1), "and the third on the second, so the bodies differ");
-            Assert.That(secondPage.QueryStats.Version.Matches(firstPage.QueryStats.Version), Is.False,
-                "a client following the Link rel=next header while revalidating would otherwise render page one as page two");
-        }
-    }
-
-    [Test]
-    public async Task A_page_keeps_its_version_when_a_row_it_does_not_show_changes()
+    public async Task Version_changes_when_the_total_moves_under_an_unchanged_page()
     {
         var shown = new IngestedFailure();
 

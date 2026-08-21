@@ -269,10 +269,4 @@ public class DataVersionTests
         Assert.That(DataVersion.FromClient("\"abc").ToString(), Is.EqualTo("\"abc"));
     }
 
-    [Test]
-    public void Matching_ignores_the_weak_marking_a_client_sends()
-    {
-        // RFC 9110 requires If-None-Match to use the weak comparison.
-        Assert.That(DataVersion.FromToken("cv-1").Matches(DataVersion.FromClient("W/\"cv-1\"")), Is.True);
-    }
 }

@@ -171,7 +171,7 @@
         {
             var redirects = await store.GetRedirects(cancellationToken);
 
-            Response.WithEtag(ResponseVersions.VersionOf(redirects));
+            Response.WithEtag(ResponseVersions.VersionOf(redirects, redirects.Count));
             Response.WithTotalCount(redirects.Count);
         }
 
@@ -182,25 +182,20 @@
         {
             var redirects = await store.GetRedirects(cancellationToken);
 
-            // Materialised because the version has to describe the page this response renders.
             var page = redirects
                 .Sort(sort, direction)
                 .Paging(pagingInfo)
                 .ToList();
 
-            var queryResult = page
-                .Select(r => new RedirectsQueryResult
-                (
-                    r.MessageRedirectId,
-                    r.FromPhysicalAddress,
-                    r.ToPhysicalAddress,
-                    r.LastModified
-                ));
+            Response.WithQueryStatsAndPagingInfo(QueryStatsInfo.Fresh(ResponseVersions.VersionOf(page, redirects.Count), redirects.Count), pagingInfo);
 
-            Response.WithEtag(ResponseVersions.VersionOfPage(page, redirects.Count, pagingInfo));
-            Response.WithPagingLinksAndTotalCount(pagingInfo, redirects.Count);
-
-            return queryResult;
+            return page.Select(r => new RedirectsQueryResult
+            (
+                r.MessageRedirectId,
+                r.FromPhysicalAddress,
+                r.ToPhysicalAddress,
+                r.LastModified
+            ));
         }
 
         public record RedirectsQueryResult(Guid MessageRedirectId, string FromPhysicalAddress, string ToPhysicalAddress, DateTime LastModified);

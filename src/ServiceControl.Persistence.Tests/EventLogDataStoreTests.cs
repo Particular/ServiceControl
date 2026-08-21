@@ -176,23 +176,6 @@ class EventLogDataStoreTests : PersistenceTestBase
         Assert.That(secondRead, Is.EqualTo(firstRead));
     }
 
-    [Test]
-    public async Task Two_pages_do_not_share_a_version()
-    {
-        await AddItems(3);
-
-        var firstPage = await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 1, pageSize: 2));
-        var secondPage = await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 2, pageSize: 2));
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(firstPage.Results, Has.Count.EqualTo(2), "two items on the first page");
-            Assert.That(secondPage.Results, Has.Count.EqualTo(1), "and the third on the second, so the bodies differ");
-            Assert.That(secondPage.QueryStats.Version.Matches(firstPage.QueryStats.Version), Is.False,
-                "sharing one would let the store answer page two out of a caller's cached page one");
-        }
-    }
-
     async Task<DataVersion> CurrentVersion() =>
         (await EventLogDataStore.GetEventLogItems(new PagingInfo())).QueryStats.Version;
 

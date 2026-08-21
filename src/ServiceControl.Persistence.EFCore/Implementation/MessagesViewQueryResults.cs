@@ -8,7 +8,7 @@ using ServiceControl.Persistence.Infrastructure;
 
 static class MessagesViewQueryResults
 {
-    public static async Task<QueryResult<IList<MessagesView>>> ToPagedMessagesResult(this IQueryable<FailedMessageEntity> source, PagingInfo pagingInfo, SortInfo sortInfo, (string Name, object? Value)[] filters, CancellationToken cancellationToken = default)
+    public static async Task<QueryResult<IList<MessagesView>>> ToPagedMessagesResult(this IQueryable<FailedMessageEntity> source, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken = default)
     {
         var total = await source.LongCountAsync(cancellationToken);
 
@@ -19,6 +19,6 @@ static class MessagesViewQueryResults
 
         IList<MessagesView> results = [.. entities.Select(entity => entity.ToMessagesView())];
 
-        return new QueryResult<IList<MessagesView>>(results, entities.ToPagedQueryStatsInfo(total, QueryNarrowing.Terms(pagingInfo, sortInfo, filters)));
+        return new QueryResult<IList<MessagesView>>(results, entities.ToQueryStatsInfo(total));
     }
 }

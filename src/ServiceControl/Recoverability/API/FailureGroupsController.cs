@@ -67,7 +67,7 @@
             }
 
             var results = await fetcher.GetGroups(classifier, classifierFilter, cancellationToken);
-            Response.WithEtag(ResponseVersions.VersionOf(results));
+            Response.WithEtag(ResponseVersions.VersionOf(results, results.Length));
             return results;
         }
 

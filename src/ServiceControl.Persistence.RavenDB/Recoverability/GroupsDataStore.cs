@@ -53,8 +53,7 @@ namespace ServiceControl.Persistence.RavenDB.Recoverability
                 .Take(200) // only show 200 groups
                 .ToListAsync(cancellationToken);
 
-            return new QueryResult<IList<FailureGroupView>>(results,
-                stats.ToPagedQueryStatsInfo(results, group => group.Id, ("classifier", classifier)));
+            return new QueryResult<IList<FailureGroupView>>(results, stats.ToQueryStatsInfo());
         }
 
         public async Task<QueryResult<FailureGroupView>> GetUnresolvedGroup(string groupId, string status, string modified, CancellationToken cancellationToken = default)
@@ -68,7 +67,7 @@ namespace ServiceControl.Persistence.RavenDB.Recoverability
                 .FilterByLastModifiedRange(modified)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            return new QueryResult<FailureGroupView>(document, OneGroup(stats, document, groupId, status, modified));
+            return new QueryResult<FailureGroupView>(document, stats.ToQueryStatsInfo());
         }
 
         public async Task<QueryResult<FailureGroupView>> GetArchivedGroup(string groupId, string status, string modified, CancellationToken cancellationToken = default)
@@ -82,12 +81,8 @@ namespace ServiceControl.Persistence.RavenDB.Recoverability
                 .FilterByLastModifiedRange(modified)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            return new QueryResult<FailureGroupView>(document, OneGroup(stats, document, groupId, status, modified));
+            return new QueryResult<FailureGroupView>(document, stats.ToQueryStatsInfo());
         }
-
-        static QueryStatsInfo OneGroup(QueryStatistics stats, FailureGroupView document, string groupId, string status, string modified) =>
-            stats.ToPagedQueryStatsInfo<FailureGroupView>(document is null ? [] : [document], group => group.Id,
-                ("groupId", groupId), ("status", status), ("modified", modified));
 
         public async Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(
             string groupId,
@@ -114,9 +109,7 @@ namespace ServiceControl.Persistence.RavenDB.Recoverability
             var results = await query
                 .ToListAsync(cancellationToken);
 
-            return results.ToQueryResult(stats, view => view.Id,
-                ("groupId", groupId), ("status", status), ("modified", modified),
-                ("page", pagingInfo.Page), ("pageSize", pagingInfo.PageSize));
+            return results.ToQueryResult(stats);
         }
 
         public async Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string status, string modified, CancellationToken cancellationToken = default)
@@ -129,7 +122,7 @@ namespace ServiceControl.Persistence.RavenDB.Recoverability
                 .FilterByLastModifiedRange(modified)
                 .GetQueryResultAsync(cancellationToken);
 
-            return queryResult.ToCountQueryStatsInfo(("groupId", groupId), ("status", status), ("modified", modified));
+            return queryResult.ToQueryStatsInfo();
         }
 
         public async Task EditComment(string groupId, string comment, CancellationToken cancellationToken = default)
