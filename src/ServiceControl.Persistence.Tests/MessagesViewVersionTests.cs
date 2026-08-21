@@ -92,7 +92,7 @@ class MessagesViewVersionTests : IngestionTestBase
         var first = await AllMessages();
         var second = await AllMessages();
 
-        VersionAssert.Held(first.QueryStats.Version, second.QueryStats.Version,
+        VersionAssert.Matches(first.QueryStats.Version, second.QueryStats.Version,
             "nothing changed, so the validator has to stay put or conditional GET never pays off");
     }
 

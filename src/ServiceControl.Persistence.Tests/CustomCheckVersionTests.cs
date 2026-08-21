@@ -57,7 +57,7 @@ class CustomCheckVersionTests : PersistenceTestBase
         var first = await CustomChecks.GetStats(new PagingInfo());
         var second = await CustomChecks.GetStats(new PagingInfo());
 
-        VersionAssert.Held(first.QueryStats.Version, second.QueryStats.Version,
+        VersionAssert.Matches(first.QueryStats.Version, second.QueryStats.Version,
             "nothing changed, so the validator has to stay put or conditional GET never pays off");
     }
 

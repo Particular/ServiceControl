@@ -62,7 +62,7 @@ class RetryHistoryVersionTests : PersistenceTestBase
         var first = await RetryHistoryStore.GetRetryHistory();
         var second = await RetryHistoryStore.GetRetryHistory();
 
-        VersionAssert.Held(first.QueryStats.Version, second.QueryStats.Version,
+        VersionAssert.Matches(first.QueryStats.Version, second.QueryStats.Version,
             "nothing changed, so the validator has to stay put or conditional GET never pays off");
     }
 

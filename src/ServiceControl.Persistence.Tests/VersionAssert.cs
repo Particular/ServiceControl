@@ -15,7 +15,7 @@ static class VersionAssert
         }
     }
 
-    public static void Held(DataVersion first, DataVersion second, string because)
+    public static void Matches(DataVersion first, DataVersion second, string because)
     {
         using (Assert.EnterMultipleScope())
         {

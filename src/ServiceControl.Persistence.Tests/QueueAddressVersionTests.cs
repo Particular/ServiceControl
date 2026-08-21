@@ -84,7 +84,7 @@ class QueueAddressVersionTests : IngestionTestBase
         var first = await QueueAddressStore.GetAddresses(new PagingInfo());
         var second = await QueueAddressStore.GetAddresses(new PagingInfo());
 
-        VersionAssert.Held(first.QueryStats.Version, second.QueryStats.Version,
+        VersionAssert.Matches(first.QueryStats.Version, second.QueryStats.Version,
             "nothing changed, so the validator has to stay put or conditional GET never pays off");
     }
 

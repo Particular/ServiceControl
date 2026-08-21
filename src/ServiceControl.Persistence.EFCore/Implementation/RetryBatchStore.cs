@@ -6,7 +6,6 @@ using ServiceControl.MessageFailures;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
-using ServiceControl.Persistence.Infrastructure;
 
 public class RetryBatchStore(IServiceScopeFactory scopeFactory, IRetryBatchSqlDialect dialect) : DataStoreBase(scopeFactory), IRetryBatchStore
 {
@@ -111,7 +110,7 @@ public class RetryBatchStore(IServiceScopeFactory scopeFactory, IRetryBatchSqlDi
 
             IReadOnlyList<RetryBatch> batches = [.. orphaned.Select(batch => batch.ToRetryBatch(messageCounts.GetValueOrDefault(batch.Id)))];
 
-            return new OrphanedBatches(batches, MightBeIncomplete: false);
+            return OrphanedBatches.Complete(batches);
         }, cancellationToken);
 
     public Task<IList<RetryBatchGroup>> GetAvailableBatchGroups(CancellationToken cancellationToken = default) =>
