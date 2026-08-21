@@ -161,7 +161,7 @@
             // Successful retry stamps @expires on the FailedMessage document.
             await using (var uow = await IngestionUnitOfWorkFactory.StartNew())
             {
-                await uow.Recoverability.RecordSuccessfulRetry(uniqueMessageId);
+                await uow.Recoverability.RecordSuccessfulRetry(uniqueMessageId, attempt.AttemptedAt.AddMinutes(1));
 
                 await uow.Complete(TestContext.CurrentContext.CancellationToken);
             }
@@ -169,7 +169,7 @@
             await CompleteDatabaseOperation();
 
             // The same logical message fails again before the retention period elapses.
-            var (context2, attempt2) = CreateMessageContext(uniqueMessageId);
+            var (context2, attempt2) = CreateMessageContext(uniqueMessageId, attempt.AttemptedAt.AddMinutes(2));
 
             await using (var uow = await IngestionUnitOfWorkFactory.StartNew())
             {
@@ -211,7 +211,7 @@
 
             await using (var uow = await IngestionUnitOfWorkFactory.StartNew())
             {
-                await uow.Recoverability.RecordSuccessfulRetry(errors.Results.First().Id);
+                await uow.Recoverability.RecordSuccessfulRetry(errors.Results.First().Id, attempt.AttemptedAt.AddMinutes(1));
 
                 await uow.Complete(TestContext.CurrentContext.CancellationToken);
             }
@@ -219,7 +219,7 @@
             await WaitUntil(async () => (await GetAllMessages()).Results.Count == 0, "Retry confirmation should cause message removal.");
         }
 
-        static (MessageContext, FailedMessage.ProcessingAttempt) CreateMessageContext(string forceUniqueMessageId = null)
+        static (MessageContext, FailedMessage.ProcessingAttempt) CreateMessageContext(string forceUniqueMessageId = null, DateTime? attemptedAt = null)
         {
             var headers = new Dictionary<string, string>
             {
@@ -235,6 +235,11 @@
             }
 
             var attempt = FailedMessageBuilder.Minimal().ProcessingAttempts.First();
+
+            if (attemptedAt.HasValue)
+            {
+                attempt.AttemptedAt = attemptedAt.Value;
+            }
 
             var message = new MessageContext(Guid.NewGuid().ToString(), headers, ReadOnlyMemory<byte>.Empty, new TransportTransaction(), "receiveAddress", new ContextBag());
 

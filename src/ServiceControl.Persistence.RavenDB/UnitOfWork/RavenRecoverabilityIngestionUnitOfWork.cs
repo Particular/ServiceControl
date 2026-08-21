@@ -68,20 +68,24 @@
             return Task.CompletedTask;
         }
 
-        public Task RecordSuccessfulRetry(string retriedMessageUniqueId, CancellationToken cancellationToken = default)
+        public Task RecordSuccessfulRetry(string retriedMessageUniqueId, DateTime succeededAt, CancellationToken cancellationToken = default)
         {
             var failedMessageDocumentId = FailedMessageIdGenerator.MakeDocumentId(retriedMessageUniqueId);
             var failedMessageRetryDocumentId = RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(retriedMessageUniqueId);
 
             var patchRequest = new PatchRequest
             {
-                Script = $@"this.{nameof(FailedMessage.Status)} = {(int)FailedMessageStatus.Resolved};"
+                Values = new Dictionary<string, object> { { "succeededAt", succeededAt } }
             };
 
-            expirationManager.EnableExpiration(patchRequest);
+            patchRequest.Script = $@"if({NewestStoredAttempt("<=", "args.succeededAt")}){{
+                                        this.{nameof(FailedMessage.Status)} = {(int)FailedMessageStatus.Resolved};
+                                        {expirationManager.EnableExpirationScript(patchRequest)}
+                                     }}";
 
             parentUnitOfWork.AddCommand(new PatchCommandData(failedMessageDocumentId, null, patchRequest));
 
+            // The retry itself did complete, so its claim is released either way.
             parentUnitOfWork.AddCommand(new DeleteCommandData(failedMessageRetryDocumentId, null));
             return Task.CompletedTask;
         }
@@ -91,14 +95,24 @@
         {
             var documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueMessageId);
 
-            const string ProcessingAttempts = nameof(FailedMessage.ProcessingAttempts);
-            const string AttemptedAt = nameof(FailedMessage.ProcessingAttempt.AttemptedAt);
-
             //HINT: RavenDB 4.2 removed Lodash utility functions, but supports ECMAScript 5.1 and some 6.0 features like arrow functions and array primitive functions
             var existingDocPatch = new PatchRequest
             {
-                Script = $@"this.{nameof(FailedMessage.Status)} = args.status;
-                                this.{nameof(FailedMessage.FailureGroups)} = args.failureGroups;
+                // The status, the groups and the retention stamp describe the message as its newest
+                // attempt left it, so an attempt that is not the newest only joins the attempts
+                // array. Which attempt is newest has to be read before the incoming one is pushed.
+                //
+                // A message re-failing must not keep an @expires stamp set by an earlier
+                // resolve/archive/retry, otherwise it can be silently deleted while still
+                // Unresolved. A late older attempt must not strip the stamp off a message that is
+                // still resolved, which is why that runs down the same branch.
+                Script = $@"var isNewestAttempt = {NewestStoredAttempt("<", $"args.attempt.{AttemptedAt}")};
+
+                                if(isNewestAttempt){{
+                                    this.{nameof(FailedMessage.Status)} = args.status;
+                                    this.{nameof(FailedMessage.FailureGroups)} = args.failureGroups;
+                                    {ExpirationManager.CancelExpirationScript}
+                                }}
 
                                 var newAttempts = this.{nameof(FailedMessage.ProcessingAttempts)};
 
@@ -126,10 +140,6 @@
                         {"attempt", processingAttempt}
                     },
             };
-
-            // A message re-failing must not keep an @expires stamp set by an earlier
-            // resolve/archive/retry, otherwise it can be silently deleted while still Unresolved.
-            expirationManager.CancelExpiration(existingDocPatch);
 
             return new PatchCommandData(documentId, null, existingDocPatch,
                 patchIfMissing: new PatchRequest
@@ -166,6 +176,14 @@
 
         static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
             => headers.GetValueOrDefault(Headers.ContentType, defaultContentType);
+
+        // Attempts are stored sorted ascending by AttemptedAt, so the last one is the newest. Both
+        // sides are RavenDB serialized dates, compared as strings exactly as the sort above does.
+        static string NewestStoredAttempt(string comparison, string time) =>
+            $"this.{ProcessingAttempts}.length === 0 || this.{ProcessingAttempts}[this.{ProcessingAttempts}.length - 1].{AttemptedAt} {comparison} {time}";
+
+        const string ProcessingAttempts = nameof(FailedMessage.ProcessingAttempts);
+        const string AttemptedAt = nameof(FailedMessage.ProcessingAttempt.AttemptedAt);
 
         static int MaxProcessingAttempts = 10;
         // large object heap starts above 85000 bytes and not above 85 KB!

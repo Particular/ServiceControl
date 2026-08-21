@@ -76,6 +76,35 @@ class SqlServerFailedMessageIngestionSqlDialect : SqlServerDialect, IFailedMessa
         }
     }
 
+    public async Task ResolveRetriedMessages(ServiceControlDbContext dbContext, IReadOnlyList<ConfirmedRetry> rows, DateTime now, CancellationToken cancellationToken = default)
+    {
+        const int resolved = (int)FailedMessageStatus.Resolved;
+
+        var maxRowsPerStatement = MaxRowsPerStatement(2);
+        foreach (var chunk in rows.Chunk(maxRowsPerStatement))
+        {
+            await Execute(
+                dbContext,
+                $"""
+                 UPDATE t SET
+                     [Status] = {resolved},
+                     [StatusChangedAt] = @p0,
+                     [LastModified] = @p0
+                 FROM [FailedMessages] AS t
+                 INNER JOIN (VALUES
+                 {ConfirmedRetryRows(chunk.Length)}
+                 ) AS s ([UniqueMessageId], [SucceededAt])
+                     ON t.[UniqueMessageId] = s.[UniqueMessageId]
+                 WHERE t.[LastAttemptedAt] <= s.[SucceededAt];
+                 """,
+                [[now], .. chunk.Select(retry => new object?[] { retry.UniqueMessageId, retry.SucceededAt })],
+                cancellationToken);
+        }
+    }
+
+    static string ConfirmedRetryRows(int rowCount) =>
+        string.Join(",\n", Enumerable.Range(0, rowCount).Select(row => $"(@p{1 + (row * 2)}, @p{2 + (row * 2)})"));
+
     // The columns the newer attempt wins wholesale
     static readonly string[] PayloadColumns =
     [
@@ -111,6 +140,11 @@ class SqlServerFailedMessageIngestionSqlDialect : SqlServerDialect, IFailedMessa
 
     static readonly string WhenMatchedUpdate = BuildWhenMatchedUpdate();
 
+    // Strictly newer, where the payload columns take the incoming attempt on a tie as well. A
+    // redelivery of the attempt already stored is not news, and must not undo a resolve or an
+    // archive that happened after it.
+    const string IsNewerAttempt = "s.[LastAttemptedAt] > t.[LastAttemptedAt]";
+
     static string BuildWhenMatchedUpdate()
     {
         const int unresolved = (int)FailedMessageStatus.Unresolved;
@@ -118,8 +152,8 @@ class SqlServerFailedMessageIngestionSqlDialect : SqlServerDialect, IFailedMessa
         var sql = new StringBuilder(
             $"""
              WHEN MATCHED THEN UPDATE SET
-                 [Status] = {unresolved},
-                 [StatusChangedAt] = CASE WHEN t.[Status] <> {unresolved} THEN s.[StatusChangedAt] ELSE t.[StatusChangedAt] END,
+                 [Status] = CASE WHEN {IsNewerAttempt} THEN {unresolved} ELSE t.[Status] END,
+                 [StatusChangedAt] = CASE WHEN {IsNewerAttempt} AND t.[Status] <> {unresolved} THEN s.[StatusChangedAt] ELSE t.[StatusChangedAt] END,
                  [LastModified] = s.[LastModified],
                  [NumberOfProcessingAttempts] = t.[NumberOfProcessingAttempts]
                      + CASE WHEN s.[LastAttemptedAt] <> t.[LastAttemptedAt] THEN s.[NumberOfProcessingAttempts] ELSE 0 END,
