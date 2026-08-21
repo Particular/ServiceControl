@@ -39,14 +39,21 @@
             session.Advanced.GetMetadataFor(eventLogItem)[Constants.Documents.Metadata.Expires] = expiresAt;
         }
 
-        public void EnableExpiration(PatchRequest request)
+        public void EnableExpiration(PatchRequest request) => request.Script += "\n" + EnableExpirationScript(request);
+
+        // Registers the value and hands back the statement, for scripts that only expire the
+        // document down one branch and so cannot have it appended to the end.
+        public string EnableExpirationScript(PatchRequest request)
         {
             var expiredAt = DateTime.UtcNow + errorRetentionPeriod;
 
-            request.Script += "\nthis['@metadata']['@expires'] = args.Expires;";
             request.Values.Add("Expires", expiredAt);
+
+            return "this['@metadata']['@expires'] = args.Expires;";
         }
 
-        public void CancelExpiration(PatchRequest request) => request.Script += "delete this['@metadata']['@expires']";
+        public void CancelExpiration(PatchRequest request) => request.Script += CancelExpirationScript;
+
+        public const string CancelExpirationScript = "delete this['@metadata']['@expires'];";
     }
 }

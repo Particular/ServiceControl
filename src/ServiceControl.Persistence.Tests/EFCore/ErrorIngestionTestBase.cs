@@ -43,12 +43,16 @@ abstract class ErrorIngestionTestBase : PersistenceTestBase
             }
         });
 
-    protected Task ConfirmRetry(params string[] uniqueMessageIds) =>
+    protected DateTime Now => PersistenceTestsContext.FakeTime.GetUtcNow().UtcDateTime;
+
+    protected Task ConfirmRetry(params string[] uniqueMessageIds) => ConfirmRetryAt(Now, uniqueMessageIds);
+
+    protected Task ConfirmRetryAt(DateTime succeededAt, params string[] uniqueMessageIds) =>
         InBatch(async unitOfWork =>
         {
             foreach (var uniqueMessageId in uniqueMessageIds)
             {
-                await unitOfWork.Recoverability.RecordSuccessfulRetry(uniqueMessageId);
+                await unitOfWork.Recoverability.RecordSuccessfulRetry(uniqueMessageId, succeededAt);
             }
         });
 

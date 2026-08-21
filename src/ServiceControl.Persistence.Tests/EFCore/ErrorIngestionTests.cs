@@ -263,7 +263,7 @@ class ErrorIngestionTests : ErrorIngestionTestBase
         await InBatch(async unitOfWork =>
         {
             await unitOfWork.Recoverability.RecordFailedProcessingAttempt(failure.Context, failure.ProcessingAttempt, failure.Groups);
-            await unitOfWork.Recoverability.RecordSuccessfulRetry(failure.UniqueMessageIdString);
+            await unitOfWork.Recoverability.RecordSuccessfulRetry(failure.UniqueMessageIdString, Now);
         });
 
         var row = await GetFailedMessage(failure.UniqueMessageId);
