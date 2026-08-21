@@ -8,9 +8,11 @@ for the relational persisters (PostgreSQL and SQL Server) and explains the desig
 are not obvious from the code, in particular why the write path is hand-written SQL rather than
 ordinary change-tracked entity saves.
 
-The unit of ingestion is a **batch**: the transport hands the ingester up to `MaximumConcurrency`
-messages at a time, and the whole batch is written in a single database transaction. The relevant
-types are `EFIngestionUnitOfWork` (accumulation), `FailedMessageBatchWriter` (the write), and the
+The unit of ingestion is a **batch**, and the whole batch is written in a single database
+transaction. How batches are assembled, how many are written at once, and what can be tuned about
+that is covered in [ingestion-pipeline.md](ingestion-pipeline.md); by default a batch holds up to
+`MaximumConcurrency` messages and several are written concurrently. The relevant types here are
+`EFIngestionUnitOfWork` (accumulation), `FailedMessageBatchWriter` (the write), and the
 per-provider `IFailedMessageIngestionSqlDialect` implementations (the statements that differ by
 provider). Retry claim insertion is a separate persistence capability behind
 `IRetryBatchSqlDialect`; it is used by `RetryBatchStore`, not by the ingestion unit of work.
