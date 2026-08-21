@@ -66,6 +66,7 @@ public class GetMessages2Controller(
         }
 
         Response.WithTotalCount(result.QueryStats.TotalCount);
+        Response.WithEtag(result.QueryStats.Version);
 
         return result.Results;
     }

@@ -10,9 +10,11 @@ This is the primary (error) instance only. The audit instance still carries a `s
 
 ## The one rule
 
-**If any field the response body renders can change without the version changing, a client caches that page indefinitely, and nothing reveals it.** No log line, no exception, no failing test. Every design decision below follows from that asymmetry: a version that moves too often costs a redundant download, a version that moves too rarely serves wrong data.
+**If a field the response renders can change without the version changing, a client caches that page for ever and nothing reveals it.** No log line, no exception, no failing test.
 
-So the version has to cover the response, not the data. Two requests that render different bodies must not share a validator, which is why paged endpoints name the page and not only the underlying set.
+The promise is scoped to **one URL**, because a client only ever sends a validator back to the URL that issued it. So what must never happen is one URL answering `304` when its own body would have differed. Two different URLs sharing a value is harmless: an HTTP cache is keyed on the whole URL.
+
+That scoping is what makes a backend's own token usable. RavenDB's result etag stands for the state of the index behind the query, so it moves on any write the query could see, but it says nothing about which page was asked for: every `/api/errors` URL shares one value, whatever the page, sort or filter. The EF Core persisters compose over the rows they returned, so theirs differ per page. Both satisfy the rule.
 
 ## Making one
 
