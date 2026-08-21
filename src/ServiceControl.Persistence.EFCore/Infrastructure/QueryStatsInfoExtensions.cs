@@ -11,7 +11,7 @@ using ServiceControl.Recoverability;
 static class QueryStatsInfoExtensions
 {
     public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<CustomCheck> items, long totalCount) =>
-        QueryStatsInfo.Fresh(
+        new QueryStatsInfo(
             DataVersion.OverRows(
                 [("checks", totalCount)],
                 items,
@@ -19,7 +19,7 @@ static class QueryStatsInfoExtensions
             totalCount);
 
     public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<EventLogItemView> items, long totalCount) =>
-        QueryStatsInfo.Fresh(
+        new QueryStatsInfo(
             DataVersion.OverRows(
                 [("items", totalCount)],
                 items,
@@ -27,7 +27,7 @@ static class QueryStatsInfoExtensions
             totalCount);
 
     public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<FailedMessageEntity> items, long totalCount) =>
-        QueryStatsInfo.Fresh(
+        new QueryStatsInfo(
             DataVersion.OverRows(
                 [("messages", totalCount)],
                 items,
@@ -39,11 +39,11 @@ static class QueryStatsInfoExtensions
     {
         var count = await source.LongCountAsync(cancellationToken);
 
-        return QueryStatsInfo.Fresh(DataVersion.Compose([(name, count)]), count);
+        return new QueryStatsInfo(DataVersion.Compose([(name, count)]), count);
     }
 
     public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<FailureGroupView> groups) =>
-        QueryStatsInfo.Fresh(
+        new QueryStatsInfo(
             DataVersion.OverRows(
                 [("groups", groups.Count)],
                 groups,
@@ -51,7 +51,7 @@ static class QueryStatsInfoExtensions
             groups.Count);
 
     public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<QueueAddress> items, long totalCount) =>
-        QueryStatsInfo.Fresh(
+        new QueryStatsInfo(
             DataVersion.OverRows(
                 [("addresses", totalCount)],
                 items,

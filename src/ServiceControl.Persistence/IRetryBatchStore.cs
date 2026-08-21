@@ -19,7 +19,7 @@ namespace ServiceControl.Persistence
 
         Task MoveBatchToStaging(string batchId, CancellationToken cancellationToken = default);
 
-        Task<QueryResult<IList<RetryBatch>>> GetOrphanedBatches(string retrySessionId, CancellationToken cancellationToken = default);
+        Task<OrphanedBatches> GetOrphanedBatches(string retrySessionId, CancellationToken cancellationToken = default);
         Task<IList<RetryBatchGroup>> GetAvailableBatchGroups(CancellationToken cancellationToken = default);
 
         Task<ForwardingRetryBatch?> GetCurrentForwardingBatch(CancellationToken cancellationToken = default);

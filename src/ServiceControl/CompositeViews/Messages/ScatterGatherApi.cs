@@ -123,7 +123,6 @@ namespace ServiceControl.CompositeViews.Messages
             return new QueryStatsInfo(
                 DataVersion.Combine(reported.Select(result => (result.InstanceId, result.QueryStats.Version))),
                 infos.Sum(x => x.TotalCount),
-                isStale: infos.Any(x => x.IsStale),
                 infos.Max(x => x.HighestTotalCountOfAllTheInstances)
             );
         }
@@ -206,7 +205,7 @@ namespace ServiceControl.CompositeViews.Messages
 
             var etag = ReadEtag(responseMessage.Headers);
 
-            return new QueryResult<TOut>(remoteResults, QueryStatsInfo.Fresh(etag, totalCount));
+            return new QueryResult<TOut>(remoteResults, new QueryStatsInfo(etag, totalCount));
         }
 
         readonly ILogger logger;

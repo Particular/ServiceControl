@@ -69,7 +69,7 @@
             var knownEndpoints = monitoring.GetKnownEndpoints();
 
             // No version: this list lives in memory and no store version covers it.
-            Response.WithQueryStatsAndPagingInfo(QueryStatsInfo.Fresh(DataVersion.None, knownEndpoints.Count), pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(new QueryStatsInfo(DataVersion.None, knownEndpoints.Count), pagingInfo);
             return knownEndpoints;
         }
 

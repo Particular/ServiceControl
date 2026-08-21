@@ -187,7 +187,7 @@
                 .Paging(pagingInfo)
                 .ToList();
 
-            Response.WithQueryStatsAndPagingInfo(QueryStatsInfo.Fresh(ResponseVersions.VersionOf(page, redirects.Count), redirects.Count), pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(new QueryStatsInfo(ResponseVersions.VersionOf(page, redirects.Count), redirects.Count), pagingInfo);
 
             return page.Select(r => new RedirectsQueryResult
             (

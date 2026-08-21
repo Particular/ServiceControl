@@ -78,7 +78,7 @@ namespace ServiceControl.UnitTests.ScatterGather
         static ScatterGatherApiMessageViewContext Context() => new(new PagingInfo(), new SortInfo());
 
         static QueryResult<IList<MessagesView>> Page(string instanceId, string validator) =>
-            new([new MessagesView { MessageId = instanceId }], QueryStatsInfo.Fresh(DataVersion.FromToken(validator), 1))
+            new([new MessagesView { MessageId = instanceId }], new QueryStatsInfo(DataVersion.FromToken(validator), 1))
             {
                 InstanceId = instanceId
             };

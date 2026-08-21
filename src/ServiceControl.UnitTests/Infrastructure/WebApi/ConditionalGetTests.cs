@@ -78,7 +78,7 @@ public class ConditionalGetTests
         var version = DataVersion.FromToken("4611686018427387904");
 
         httpContext.Response.WithQueryStatsAndPagingInfo(
-            QueryStatsInfo.Fresh(version, totalCount: 1),
+            new QueryStatsInfo(version, totalCount: 1),
             new PagingInfo());
 
         Assert.That(httpContext.Response.Headers.ETag.ToString(), Does.Contain(version.ToString()));

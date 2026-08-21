@@ -9,7 +9,7 @@ static class RetryHistoryQueries
     /// Every field of every operation in both collections, plus each collection's count.
     /// </summary>
     public static QueryStatsInfo ToQueryStatsInfo(this RetryHistory history) =>
-        QueryStatsInfo.Fresh(DataVersion.OverRows(
+        new QueryStatsInfo(DataVersion.OverRows(
                 [("historic", history.HistoricOperations.Count), ("unacknowledged", history.UnacknowledgedOperations.Count)],
                 Rows(history),
                 row => row),

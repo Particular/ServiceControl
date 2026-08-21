@@ -44,7 +44,7 @@ class RetryBatchStoreTests : ErrorIngestionTestBase
 
         var orphaned = await RetryBatchStore.GetOrphanedBatches(OtherSession);
 
-        Assert.That(orphaned.Results, Is.Empty);
+        Assert.That(orphaned.Batches, Is.Empty);
     }
 
     [Test]
@@ -225,7 +225,7 @@ class RetryBatchStoreTests : ErrorIngestionTestBase
             Noon,
             classifier: "Message Type");
 
-    async Task<IList<RetryBatch>> Orphaned() => (await RetryBatchStore.GetOrphanedBatches(OtherSession)).Results;
+    async Task<IReadOnlyList<RetryBatch>> Orphaned() => (await RetryBatchStore.GetOrphanedBatches(OtherSession)).Batches;
 
     async Task<List<string>> ClaimedBy(string batchId)
     {

@@ -99,7 +99,7 @@ public class RetryBatchStore(IServiceScopeFactory scopeFactory, IRetryBatchSqlDi
             ? parsed
             : throw new ArgumentException($"'{batchId}' is not a retry batch id issued by this store.", nameof(batchId));
 
-    public Task<QueryResult<IList<RetryBatch>>> GetOrphanedBatches(string retrySessionId, CancellationToken cancellationToken = default) =>
+    public Task<OrphanedBatches> GetOrphanedBatches(string retrySessionId, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (dbContext, token) =>
         {
             var orphaned = await dbContext.RetryBatches
@@ -109,10 +109,9 @@ public class RetryBatchStore(IServiceScopeFactory scopeFactory, IRetryBatchSqlDi
 
             var messageCounts = await CountMessages(dbContext, [.. orphaned.Select(batch => batch.Id)], token);
 
-            IList<RetryBatch> batches = [.. orphaned.Select(batch => batch.ToRetryBatch(messageCounts.GetValueOrDefault(batch.Id)))];
+            IReadOnlyList<RetryBatch> batches = [.. orphaned.Select(batch => batch.ToRetryBatch(messageCounts.GetValueOrDefault(batch.Id)))];
 
-            // No version: orphaned batches are consumed by the retry session, never by a caching client.
-            return new QueryResult<IList<RetryBatch>>(batches, QueryStatsInfo.Fresh(DataVersion.None, batches.Count));
+            return new OrphanedBatches(batches, MightBeIncomplete: false);
         }, cancellationToken);
 
     public Task<IList<RetryBatchGroup>> GetAvailableBatchGroups(CancellationToken cancellationToken = default) =>

@@ -39,7 +39,7 @@
 
             return new QueryResult<IList<MessagesView>>(
                 pageOfResults,
-                QueryStatsInfo.Fresh(DataVersion.FromToken(etag), allResults.Count))
+                new QueryStatsInfo(DataVersion.FromToken(etag), allResults.Count))
             {
                 InstanceId = instanceId
             };
