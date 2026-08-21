@@ -2,11 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
-    using Infrastructure.Metrics;
+    using Metrics;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
@@ -19,13 +18,11 @@
 
     class ErrorIngestion : BackgroundService
     {
-        static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
-
         public ErrorIngestion(
             Settings settings,
             ITransportCustomization transportCustomization,
             TransportSettings transportSettings,
-            Metrics metrics,
+            IngestionMetrics metrics,
             IFailedErrorImportDataStore dataStore,
             ErrorIngestionCustomCheck.State ingestionState,
             ErrorIngestor ingestor,
@@ -40,27 +37,27 @@
             this.ingestor = ingestor;
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.applicationLifetime = applicationLifetime;
+            this.metrics = metrics;
             this.logger = logger;
-            receivedMeter = metrics.GetCounter("Error ingestion - received");
-            batchSizeMeter = metrics.GetMeter("Error ingestion - batch size");
-            batchDurationMeter = metrics.GetMeter("Error ingestion - batch processing duration", FrequencyInMilliseconds);
 
             if (!transportSettings.MaxConcurrency.HasValue)
             {
                 throw new ArgumentException("MaxConcurrency is not set in TransportSettings");
             }
 
+            MaxBatchSize = settings.ErrorIngestionBatchSize ?? transportSettings.MaxConcurrency.Value;
+
             pipeline = new IngestionPipeline(
                 new IngestionPipelineSettings
                 {
-                    BatchSize = settings.ErrorIngestionBatchSize ?? transportSettings.MaxConcurrency.Value,
+                    BatchSize = MaxBatchSize,
                     MaxWriters = IngestionSettingsReader.ResolveMaxParallelWriters(settings.ErrorIngestionMaxParallelWriters, unitOfWorkFactory.SupportsConcurrentBatches, nameof(settings.ErrorIngestionMaxParallelWriters), logger),
                     BatchTimeout = settings.ErrorIngestionBatchTimeout
                 },
                 IngestBatch,
                 logger);
 
-            errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, settings.LoggingSettings, OnCriticalError, logger);
+            errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, settings.LoggingSettings, OnCriticalError, metrics, logger);
 
             watchdog = new Watchdog(
                 "failed message ingestion",
@@ -83,12 +80,12 @@
 
         async Task IngestBatch(List<MessageContext> contexts, CancellationToken cancellationToken)
         {
-            batchSizeMeter.Mark(contexts.Count);
+            // Leaving the scope without completing it is what records the batch as failed
+            using var batchMetrics = metrics.BeginBatch(MaxBatchSize);
 
-            using (batchDurationMeter.Measure())
-            {
-                await ingestor.Ingest(contexts, messageDispatcher, cancellationToken);
-            }
+            await ingestor.Ingest(contexts, messageDispatcher, cancellationToken);
+
+            batchMetrics.Complete(contexts.Count);
         }
 
         public override async Task StopAsync(CancellationToken cancellationToken = default)
@@ -236,8 +233,11 @@
 
         async Task OnMessage(MessageContext messageContext, CancellationToken cancellationToken)
         {
+            using var messageIngestionMetrics = metrics.BeginIngestion(messageContext);
+
             if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
             {
+                messageIngestionMetrics.Skipped();
                 return;
             }
 
@@ -249,10 +249,10 @@
             // Not much shutdown speed to gain but this will ensure endpoint.Stop will return.
             await using var cancellationTokenRegistration = cancellationToken.Register(() => _ = taskCompletionSource.TrySetCanceled());
 
-            receivedMeter.Mark();
-
             await pipeline.Enqueue(messageContext, cancellationToken);
             await taskCompletionSource.Task;
+
+            messageIngestionMetrics.Success();
         }
 
         Task OnCriticalError(string failure, Exception exception, CancellationToken cancellationToken)
@@ -318,11 +318,10 @@
         readonly Settings settings;
         readonly ITransportCustomization transportCustomization;
         readonly TransportSettings transportSettings;
+        readonly int MaxBatchSize;
         readonly Watchdog watchdog;
         readonly IngestionPipeline pipeline;
-        readonly Meter batchDurationMeter;
-        readonly Meter batchSizeMeter;
-        readonly Counter receivedMeter;
+        readonly IngestionMetrics metrics;
         readonly ErrorIngestor ingestor;
         readonly IIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly IHostApplicationLifetime applicationLifetime;

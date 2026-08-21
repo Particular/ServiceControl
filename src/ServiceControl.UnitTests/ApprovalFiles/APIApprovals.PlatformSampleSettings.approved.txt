@@ -59,6 +59,7 @@
   "Port": 8888,
   "PersisterSpecificSettings": null,
   "PrintMetrics": false,
+  "OtlpEndpointUrl": null,
   "Hostname": "localhost",
   "VirtualDirectory": "",
   "HeartbeatGracePeriod": "00:00:40",
