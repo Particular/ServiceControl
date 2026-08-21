@@ -79,6 +79,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             NotificationsFilter = SettingsReader.Read<string>(SettingsRootNamespace, "NotificationsFilter");
             RemoteInstances = GetRemoteInstances().ToArray();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
+            HeartbeatGracePeriod = GetHeartbeatGracePeriod();
             DisableExternalIntegrationsPublishing = SettingsReader.Read(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", false);
             TrackInstancesInitialValue = SettingsReader.Read(SettingsRootNamespace, "TrackInstancesInitialValue", true);
             ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
@@ -175,21 +176,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string Hostname { get; private set; }
         public string VirtualDirectory => SettingsReader.Read(SettingsRootNamespace, "VirtualDirectory", string.Empty);
 
-        public TimeSpan HeartbeatGracePeriod
-        {
-            get
-            {
-                try
-                {
-                    return TimeSpan.Parse(SettingsReader.Read(SettingsRootNamespace, "HeartbeatGracePeriod", "00:00:40"));
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "HeartbeatGracePeriod settings invalid. Defaulting HeartbeatGracePeriod to '00:00:40'");
-                    return TimeSpan.FromSeconds(40);
-                }
-            }
-        }
+        public TimeSpan HeartbeatGracePeriod { get; set; }
 
         public string TransportType { get; set; }
         public string PersistenceType { get; private set; }
@@ -367,6 +354,19 @@ namespace ServiceBus.Management.Infrastructure.Settings
             }
 
             return result;
+        }
+
+        TimeSpan GetHeartbeatGracePeriod()
+        {
+            try
+            {
+                return TimeSpan.Parse(SettingsReader.Read(SettingsRootNamespace, "HeartbeatGracePeriod", "00:00:40"));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "HeartbeatGracePeriod settings invalid. Defaulting HeartbeatGracePeriod to '00:00:40'");
+                return TimeSpan.FromSeconds(40);
+            }
         }
 
         TimeSpan GetTimeToRestartErrorIngestionAfterFailure()

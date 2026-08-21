@@ -34,19 +34,18 @@ public class EndpointsSettingsController(
     {
         await using IAsyncEnumerator<EndpointSettings> enumerator =
             dataStore.GetAllEndpointSettings(cancellationToken).GetAsyncEnumerator(cancellationToken);
-        bool noResults = true;
+        bool hasDefault = false;
         while (await enumerator.MoveNextAsync())
         {
-            noResults = false;
+            hasDefault |= enumerator.Current.Name == string.Empty;
             yield return new SettingsData
             {
-#pragma warning disable IDE0055
-                Name = enumerator.Current.Name, TrackInstances = enumerator.Current.TrackInstances
-#pragma warning restore IDE0055
+                Name = enumerator.Current.Name,
+                TrackInstances = enumerator.Current.TrackInstances
             };
         }
 
-        if (noResults)
+        if (!hasDefault)
         {
             yield return new SettingsData { Name = string.Empty, TrackInstances = settings.TrackInstancesInitialValue };
         }
