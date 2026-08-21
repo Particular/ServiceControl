@@ -29,5 +29,7 @@
         {
             return primary.CanIngestMore() && secondary.CanIngestMore();
         }
+
+        public bool SupportsConcurrentBatches => primary.SupportsConcurrentBatches && secondary.SupportsConcurrentBatches;
     }
 }

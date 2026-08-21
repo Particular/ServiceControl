@@ -23,4 +23,10 @@ public class EFIngestionUnitOfWorkFactory(
     }
 
     public bool CanIngestMore() => storageState.CanIngestMore;
+
+    // The batch writer is built for it: upserts guarded by the attempt times so the newer attempt
+    // wins whichever transaction commits last, inserts that tolerate a competing writer's identical
+    // row, and a consistent lock order. Running several ingestion hosts against one database
+    // already relies on all of it.
+    public bool SupportsConcurrentBatches => true;
 }

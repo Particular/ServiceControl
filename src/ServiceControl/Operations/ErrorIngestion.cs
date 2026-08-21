@@ -51,7 +51,12 @@
             }
 
             pipeline = new IngestionPipeline(
-                new IngestionPipelineSettings { BatchSize = transportSettings.MaxConcurrency.Value },
+                new IngestionPipelineSettings
+                {
+                    BatchSize = settings.ErrorIngestionBatchSize ?? transportSettings.MaxConcurrency.Value,
+                    MaxWriters = IngestionSettingsReader.ResolveMaxParallelWriters(settings.ErrorIngestionMaxParallelWriters, unitOfWorkFactory.SupportsConcurrentBatches, nameof(settings.ErrorIngestionMaxParallelWriters), logger),
+                    BatchTimeout = settings.ErrorIngestionBatchTimeout
+                },
                 IngestBatch,
                 logger);
 

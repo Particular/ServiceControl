@@ -1,4 +1,4 @@
-namespace ServiceBus.Management.Infrastructure.Settings
+﻿namespace ServiceBus.Management.Infrastructure.Settings
 {
     using System;
     using System.Collections.Generic;
@@ -12,6 +12,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using Particular.ServiceControl;
     using ServiceControl.Configuration;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.Ingestion;
     using ServiceControl.Infrastructure.Settings;
     using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Persistence;
@@ -80,6 +81,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
             RemoteInstances = GetRemoteInstances().ToArray();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             HeartbeatGracePeriod = GetHeartbeatGracePeriod();
+            ErrorIngestionBatchSize = IngestionSettingsReader.ReadBatchSize(SettingsRootNamespace, nameof(ErrorIngestionBatchSize), ValidateConfiguration);
+            ErrorIngestionMaxParallelWriters = IngestionSettingsReader.ReadMaxParallelWriters(SettingsRootNamespace, nameof(ErrorIngestionMaxParallelWriters), ValidateConfiguration);
+            ErrorIngestionBatchTimeout = IngestionSettingsReader.ReadBatchTimeout(SettingsRootNamespace, nameof(ErrorIngestionBatchTimeout), ValidateConfiguration);
             DisableExternalIntegrationsPublishing = SettingsReader.Read(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", false);
             TrackInstancesInitialValue = SettingsReader.Read(SettingsRootNamespace, "TrackInstancesInitialValue", true);
             ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
@@ -203,6 +207,22 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string TransportConnectionString { get; set; }
         public TimeSpan ProcessRetryBatchesFrequency { get; set; }
         public TimeSpan TimeToRestartErrorIngestionAfterFailure { get; set; }
+
+        /// <summary>
+        /// The most messages one write handles. Null leaves it to the transport's concurrency.
+        /// </summary>
+        public int? ErrorIngestionBatchSize { get; set; }
+
+        /// <summary>
+        /// How many batches are written at once. Null leaves it to the storage, and a storage whose
+        /// batches are not safe to interleave holds it at one whatever is configured.
+        /// </summary>
+        public int? ErrorIngestionMaxParallelWriters { get; set; }
+
+        /// <summary>
+        /// How long a batch that is not yet full waits for more messages.
+        /// </summary>
+        public TimeSpan ErrorIngestionBatchTimeout { get; set; }
         public int? MaximumConcurrencyLevel { get; set; }
 
         public int RetryHistoryDepth { get; set; }
