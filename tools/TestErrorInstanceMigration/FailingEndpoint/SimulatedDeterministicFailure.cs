@@ -1,0 +1,1 @@
+public sealed class SimulatedDeterministicFailure(string message) : Exception(message);
