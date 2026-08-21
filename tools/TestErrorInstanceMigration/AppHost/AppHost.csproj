@@ -17,6 +17,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FailingEndpoint\FailingEndpoint.csproj" />
-    <ProjectReference Include="..\ReplacingErrorInstance.ServiceDefaults\ReplacingErrorInstance.ServiceDefaults.csproj" IsAspireProjectResource="false"/>
+    <ProjectReference Include="..\ServiceDefaults\ServiceDefaults.csproj" IsAspireProjectResource="false" />
   </ItemGroup>
 </Project>

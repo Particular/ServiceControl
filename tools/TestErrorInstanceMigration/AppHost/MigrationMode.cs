@@ -2,7 +2,7 @@ namespace AppHost;
 
 public enum MigrationMode
 {
-    PreMigration,
-    SideBySide,
-    PostMigrationMode
+    Step1PreMigration,
+    Step2RetryMessages,
+    Step3PostMigration
 }
