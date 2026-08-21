@@ -89,9 +89,14 @@ namespace ServiceControl.Infrastructure.WebApi
 
         public static void WithQueryStatsAndPagingInfo(this HttpResponse response, QueryStatsInfo queryStats, PagingInfo pagingInfo)
         {
-            response.WithTotalCount(queryStats.TotalCount);
-            response.WithPagingLinks(pagingInfo, queryStats.HighestTotalCountOfAllTheInstances, queryStats.TotalCount);
+            response.WithPagingLinksAndTotalCount(pagingInfo, queryStats.TotalCount, queryStats.HighestTotalCountOfAllTheInstances);
             response.WithEtag(queryStats.Version);
+        }
+
+        public static void WithPagingLinksAndTotalCount(this HttpResponse response, PagingInfo pagingInfo, long totalCount, long? highestTotalCountOfAllInstances = null)
+        {
+            response.WithTotalCount(totalCount);
+            response.WithPagingLinks(pagingInfo, highestTotalCountOfAllInstances ?? totalCount, totalCount);
         }
     }
 }
