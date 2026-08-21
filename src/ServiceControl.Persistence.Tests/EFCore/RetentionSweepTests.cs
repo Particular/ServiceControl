@@ -15,8 +15,6 @@ class RetentionSweepTests : ErrorIngestionTestBase
     [SetUp]
     public void SetRetention() => EFSettings.ErrorRetentionPeriod = TimeSpan.FromDays(30);
 
-    DateTime Now => PersistenceTestsContext.FakeTime.GetUtcNow().UtcDateTime;
-
     [Test]
     public async Task Deletes_resolved_and_archived_rows_past_the_cutoff()
     {

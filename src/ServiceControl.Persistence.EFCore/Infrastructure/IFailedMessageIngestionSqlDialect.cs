@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.EFCore.Infrastructure;
+﻿namespace ServiceControl.Persistence.EFCore.Infrastructure;
 
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
@@ -28,4 +28,11 @@ public interface IFailedMessageIngestionSqlDialect
     /// Insert if absent, never update: existing endpoints keep their Monitored flag.
     /// </summary>
     Task InsertMissingKnownEndpoints(ServiceControlDbContext dbContext, IReadOnlyList<KnownEndpointEntity> rows, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// One row per message, distinct by UniqueMessageId. Marks each Resolved unless its stored
+    /// attempt is newer than the retry succeeded, which means the message failed again afterwards
+    /// and must stay Unresolved however the two batches interleave.
+    /// </summary>
+    Task ResolveRetriedMessages(ServiceControlDbContext dbContext, IReadOnlyList<ConfirmedRetry> rows, DateTime now, CancellationToken cancellationToken = default);
 }

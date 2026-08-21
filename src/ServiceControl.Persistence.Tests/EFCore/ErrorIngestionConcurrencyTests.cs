@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using ServiceControl.MessageFailures;
 using ServiceControl.Operations;
+using ServiceControl.Persistence.EFCore.Entities;
 
 class ErrorIngestionConcurrencyTests : ErrorIngestionTestBase
 {
@@ -81,6 +82,75 @@ class ErrorIngestionConcurrencyTests : ErrorIngestionTestBase
 
             Assert.That(groups.Select(group => group.GroupId), Is.EqualTo(new[] { newestGroupId }),
                 "only the newest attempt's groups may survive, regardless of commit order");
+        }
+    }
+
+    // A retry acknowledgement and a later failure of the same message reach storage in whatever
+    // order their batches commit, and with several ingestion hosts they need not even be on the
+    // same one. Both orders are forced here rather than raced, so the assertion is about the end
+    // state and not about which batch got there first.
+    [Test]
+    public async Task A_confirmation_arriving_after_a_later_attempt_leaves_the_message_unresolved()
+    {
+        var failure = new IngestedFailure();
+        var retrySucceededAt = failure.AttemptedAt.AddMinutes(1);
+
+        await Ingest(failure);
+        await Ingest(failure.NextAttempt(retrySucceededAt.AddMinutes(1)));
+        await ConfirmRetryAt(retrySucceededAt, failure.UniqueMessageIdString);
+
+        var row = await GetFailedMessage(failure.UniqueMessageId);
+
+        Assert.That(row.Status, Is.EqualTo(FailedMessageStatus.Unresolved), "the message failed again after the retry succeeded");
+    }
+
+    [Test]
+    public async Task A_later_attempt_arriving_after_a_confirmation_leaves_the_message_unresolved()
+    {
+        var failure = new IngestedFailure();
+        var retrySucceededAt = failure.AttemptedAt.AddMinutes(1);
+
+        await Ingest(failure);
+        await ConfirmRetryAt(retrySucceededAt, failure.UniqueMessageIdString);
+        await Ingest(failure.NextAttempt(retrySucceededAt.AddMinutes(1)));
+
+        var row = await GetFailedMessage(failure.UniqueMessageId);
+
+        Assert.That(row.Status, Is.EqualTo(FailedMessageStatus.Unresolved), "the message failed again after the retry succeeded");
+    }
+
+    [Test]
+    public async Task A_redelivered_attempt_arriving_after_a_confirmation_leaves_the_message_resolved()
+    {
+        var failure = new IngestedFailure();
+
+        await Ingest(failure);
+        await ConfirmRetryAt(failure.AttemptedAt.AddMinutes(1), failure.UniqueMessageIdString);
+        await Ingest(failure);
+
+        var row = await GetFailedMessage(failure.UniqueMessageId);
+
+        Assert.That(row.Status, Is.EqualTo(FailedMessageStatus.Resolved), "redelivering the attempt the retry was for is not a new failure");
+    }
+
+    [Test]
+    public async Task A_confirmation_releases_the_retry_claim_even_when_it_cannot_resolve()
+    {
+        var failure = new IngestedFailure();
+        var retrySucceededAt = failure.AttemptedAt.AddMinutes(1);
+
+        await Ingest(failure);
+        await Store(new FailedMessageRetryEntity { UniqueMessageId = failure.UniqueMessageId, RetryBatchId = Guid.NewGuid() });
+        await Ingest(failure.NextAttempt(retrySucceededAt.AddMinutes(1)));
+
+        await ConfirmRetryAt(retrySucceededAt, failure.UniqueMessageIdString);
+
+        var row = await GetFailedMessage(failure.UniqueMessageId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(row.Status, Is.EqualTo(FailedMessageStatus.Unresolved));
+            Assert.That(await CountRetryRows(failure.UniqueMessageId), Is.Zero, "the retry itself completed, so its claim is released either way");
         }
     }
 

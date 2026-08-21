@@ -9,19 +9,19 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 // Writes one ingestion batch inside a single transaction. The statements providers genuinely
 // differ on (the upserts) come from the injected dialect; everything portable stays here as
 // set-based EF operations. Statement order matters: a message that fails and is retry-confirmed
-// in the same batch must end Resolved.
+// in the same batch must end Resolved, which the resolve running last is what gives it.
 class FailedMessageBatchWriter(ServiceControlDbContext dbContext, IFailedMessageIngestionSqlDialect dialect)
 {
     public async Task Write(
         IReadOnlyCollection<RecordedFailedProcessingAttempt> attempts,
         IReadOnlyCollection<KnownEndpoint> knownEndpoints,
-        IReadOnlyCollection<Guid> confirmedRetries,
+        IReadOnlyCollection<ConfirmedRetry> confirmedRetries,
         DateTime now,
         CancellationToken cancellationToken = default)
     {
         var (failedMessages, groups) = Fold(attempts, now);
         var endpoints = BuildEndpointRows(knownEndpoints);
-        var retries = confirmedRetries.Distinct().ToArray();
+        var retries = FoldRetries(confirmedRetries);
 
         if (failedMessages.Count == 0 && endpoints.Count == 0 && retries.Length == 0)
         {
@@ -110,6 +110,14 @@ class FailedMessageBatchWriter(ServiceControlDbContext dbContext, IFailedMessage
         return (messages, groups);
     }
 
+    // A message acknowledged more than once in one batch keeps the latest acknowledgement, so the
+    // guard the resolve applies is the one that lets the most attempts through.
+    static ConfirmedRetry[] FoldRetries(IReadOnlyCollection<ConfirmedRetry> confirmedRetries) =>
+        [.. confirmedRetries
+            .GroupBy(retry => retry.UniqueMessageId)
+            .Select(group => new ConfirmedRetry(group.Key, group.Max(retry => retry.SucceededAt)))
+            .OrderBy(retry => retry.UniqueMessageId)];
+
     static List<KnownEndpointEntity> BuildEndpointRows(IReadOnlyCollection<KnownEndpoint> knownEndpoints) =>
         [.. knownEndpoints
             .Select(knownEndpoint => new KnownEndpointEntity
@@ -174,17 +182,17 @@ class FailedMessageBatchWriter(ServiceControlDbContext dbContext, IFailedMessage
         ];
     }
 
-    async Task ResolveRetried(Guid[] retries, DateTime now, CancellationToken cancellationToken)
+    // The status only moves for messages whose newest stored attempt is not newer than the retry,
+    // which the dialect applies per row. The retry rows go regardless: the retry itself completed,
+    // so its claim is released whether or not the message has since failed again.
+    async Task ResolveRetried(ConfirmedRetry[] retries, DateTime now, CancellationToken cancellationToken)
     {
-        await dbContext.FailedMessages
-            .Where(failedMessage => retries.Contains(failedMessage.UniqueMessageId))
-            .ExecuteUpdateAsync(setters => setters
-                .SetProperty(failedMessage => failedMessage.Status, FailedMessageStatus.Resolved)
-                .SetProperty(failedMessage => failedMessage.StatusChangedAt, now)
-                .SetProperty(failedMessage => failedMessage.LastModified, now), cancellationToken);
+        await dialect.ResolveRetriedMessages(dbContext, retries, now, cancellationToken);
+
+        var messageIds = retries.Select(retry => retry.UniqueMessageId).ToArray();
 
         await dbContext.FailedMessageRetries
-            .Where(retry => retries.Contains(retry.UniqueMessageId))
+            .Where(retry => messageIds.Contains(retry.UniqueMessageId))
             .ExecuteDeleteAsync(cancellationToken);
     }
 }

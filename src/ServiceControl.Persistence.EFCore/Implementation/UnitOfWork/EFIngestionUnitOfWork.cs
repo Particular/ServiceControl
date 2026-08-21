@@ -17,7 +17,7 @@ public class EFIngestionUnitOfWork : IIngestionUnitOfWork
     readonly ConcurrentQueue<RecordedFailedProcessingAttempt> failedProcessingAttempts = new();
     readonly ConcurrentQueue<Task> bodyWrites = new();
     readonly ConcurrentQueue<KnownEndpoint> knownEndpoints = new();
-    readonly ConcurrentQueue<Guid> confirmedRetries = new();
+    readonly ConcurrentQueue<ConfirmedRetry> confirmedRetries = new();
 
     public EFIngestionUnitOfWork(IAsyncDisposable scope, ServiceControlDbContext dbContext, IBodyStoragePersistence storagePersistence, EFPersisterSettings settings, IFailedMessageIngestionSqlDialect dialect, TimeProvider timeProvider)
     {
@@ -39,7 +39,7 @@ public class EFIngestionUnitOfWork : IIngestionUnitOfWork
 
     internal void Record(KnownEndpoint knownEndpoint) => knownEndpoints.Enqueue(knownEndpoint);
 
-    internal void RecordConfirmedRetry(Guid uniqueMessageId) => confirmedRetries.Enqueue(uniqueMessageId);
+    internal void RecordConfirmedRetry(ConfirmedRetry confirmedRetry) => confirmedRetries.Enqueue(confirmedRetry);
 
     public async Task Complete(CancellationToken cancellationToken = default)
     {
