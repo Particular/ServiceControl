@@ -27,11 +27,7 @@
         /// Returns one page of event log items, newest <c>RaisedAt</c> first.
         /// </summary>
         /// <param name="pagingInfo">Which page to return.</param>
-        /// <param name="knownVersion">
-        /// What the caller already holds, or <see cref="DataVersion.None"/>. On a match the result is
-        /// <see cref="QueryResult{TOut}.NotModified"/> and carries no page.
-        /// </param>
         Task<QueryResult<IList<EventLogItemView>>> GetEventLogItems(
-            PagingInfo pagingInfo, DataVersion knownVersion = default, CancellationToken cancellationToken = default);
+            PagingInfo pagingInfo, CancellationToken cancellationToken = default);
     }
 }

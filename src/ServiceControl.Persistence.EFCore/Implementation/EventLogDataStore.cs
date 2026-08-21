@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.EventLog;
 using ServiceControl.Persistence.Infrastructure;
 using ServiceControl.Persistence.EFCore.Entities;
+using ServiceControl.Persistence.EFCore.Infrastructure;
 
 public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IEventLogDataStore
 {
@@ -25,39 +26,10 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
         }, cancellationToken);
 
     public Task<QueryResult<IList<EventLogItemView>>> GetEventLogItems(
-        PagingInfo pagingInfo, DataVersion knownVersion = default, CancellationToken cancellationToken = default) =>
+        PagingInfo pagingInfo, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (dbContext, token) =>
         {
             var query = dbContext.EventLogItems.AsNoTracking();
-
-            // All three aggregates in one round trip. Grouping on a constant collapses the table to a
-            // single row, and an empty table yields no rows at all, hence the null coalescing.
-            var stats = await query
-                .GroupBy(_ => 1)
-                .Select(g => new
-                {
-                    Total = g.LongCount(),
-                    Newest = g.Max(e => (DateTime?)e.RaisedAt),
-                    HighestId = g.Max(e => (long?)e.Id)
-                })
-                .FirstOrDefaultAsync(token);
-
-            var total = stats?.Total ?? 0;
-            var version = DataVersion.Compose(
-                ("total", total),
-                ("newest", stats?.Newest),
-                ("highestId", stats?.HighestId),
-                ("page", pagingInfo.Page),
-                ("pageSize", pagingInfo.PageSize));
-            var queryStats = QueryStatsInfo.Fresh(version, total);
-
-            // The point of knownVersion. Everything above is index work.
-            // If the caller already has the latest version, skip the rest of the query.
-            // No database round trip is needed. No response body is needed.
-            if (knownVersion.Matches(version))
-            {
-                return QueryResult<IList<EventLogItemView>>.Unchanged(queryStats);
-            }
 
             var items = await query
                 // The key breaks ties so that items sharing a RaisedAt cannot shuffle between
@@ -78,6 +50,9 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
                 })
                 .ToListAsync(token);
 
-            return new QueryResult<IList<EventLogItemView>>(items, queryStats);
+            var total = await query.LongCountAsync(token);
+
+            return new QueryResult<IList<EventLogItemView>>(items,
+                items.ToQueryStatsInfo(total, ("page", pagingInfo.Page), ("pageSize", pagingInfo.PageSize)));
         }, cancellationToken);
 }

@@ -162,60 +162,6 @@ public class ConditionalGetTests
             "an endpoint that publishes no validator has nothing for a client to have cached");
     }
 
-    [Test]
-    public void A_caller_holding_one_validator_hands_it_to_the_store()
-    {
-        var httpContext = new DefaultHttpContext();
-
-        httpContext.Request.Headers.IfNoneMatch = "W/\"4611686018427387904\"";
-
-        Assert.That(httpContext.Request.GetKnownVersion().Matches(DataVersion.FromToken("4611686018427387904")), Is.True,
-            "the store skips its whole query on this, so it has to survive the round trip through the header");
-    }
-
-    [Test]
-    public void A_version_survives_the_round_trip_out_as_a_header_and_back()
-    {
-        var issued = DataVersion.FromToken("4611686018427387904");
-
-        var httpContext = new DefaultHttpContext();
-        httpContext.Response.WithEtag(issued);
-        httpContext.Request.Headers.IfNoneMatch = httpContext.Response.Headers.ETag;
-
-        Assert.That(httpContext.Request.GetKnownVersion().Matches(issued), Is.True,
-            "the store cannot skip work for a version it can no longer recognise coming back");
-    }
-
-    [Test]
-    public void A_caller_holding_several_validators_hands_the_store_none()
-    {
-        var httpContext = new DefaultHttpContext();
-
-        // RFC 9110 allows a list. Reading the raw header would hand the store the whole list as one
-        // malformed validator, which matches nothing and silently costs it the short circuit.
-        httpContext.Request.Headers.IfNoneMatch = "\"first\", \"second\"";
-
-        Assert.That(httpContext.Request.GetKnownVersion().HasValue, Is.False,
-            "a store can only skip work for a single known version");
-    }
-
-    [Test]
-    public void A_wildcard_precondition_is_not_a_known_version()
-    {
-        var httpContext = new DefaultHttpContext();
-
-        httpContext.Request.Headers.IfNoneMatch = "*";
-
-        Assert.That(httpContext.Request.GetKnownVersion().HasValue, Is.False,
-            "the wildcard asks whether any representation exists, which is not a version a store can match");
-    }
-
-    [Test]
-    public void A_caller_holding_nothing_hands_the_store_nothing()
-    {
-        Assert.That(new DefaultHttpContext().Request.GetKnownVersion().HasValue, Is.False);
-    }
-
     static ResultExecutingContext ResultExecuting(HttpContext httpContext) =>
         new(
             new ActionContext(httpContext, new RouteData(), new ActionDescriptor()),

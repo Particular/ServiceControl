@@ -97,18 +97,6 @@ class EventLogDataStoreTests : PersistenceTestBase
     }
 
     [Test]
-    public async Task Empty_store_is_a_page_of_nothing_rather_than_not_modified()
-    {
-        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo());
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.NotModified, Is.False, "an empty store still has a representation to return");
-            Assert.That(result.Results, Is.Not.Null);
-        }
-    }
-
-    [Test]
     public async Task Page_size_limits_returned_items_but_not_the_total()
     {
         await AddItems(5);
@@ -189,38 +177,6 @@ class EventLogDataStoreTests : PersistenceTestBase
     }
 
     [Test]
-    public async Task Matching_known_version_reports_not_modified()
-    {
-        await AddItems(3);
-        var version = await CurrentVersion();
-
-        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo(), version);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.NotModified, Is.True, "a caller already holding the current version must be told so, not handed the page again");
-            Assert.That(result.Results, Is.Null, "a not-modified result carries no page");
-        }
-    }
-
-    [Test]
-    public async Task Matching_known_version_still_reports_total_and_version()
-    {
-        await AddItems(3);
-        var version = await CurrentVersion();
-
-        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo(), version);
-
-        using (Assert.EnterMultipleScope())
-        {
-            // The controller sets Total-Count and ETag on the 304, so neither may be dropped
-            // just because the page was not fetched.
-            Assert.That(result.QueryStats.TotalCount, Is.EqualTo(3));
-            Assert.That(result.QueryStats.Version.Matches(version), Is.True);
-        }
-    }
-
-    [Test]
     public async Task Two_pages_do_not_share_a_version()
     {
         await AddItems(3);
@@ -234,55 +190,6 @@ class EventLogDataStoreTests : PersistenceTestBase
             Assert.That(secondPage.Results, Has.Count.EqualTo(1), "and the third on the second, so the bodies differ");
             Assert.That(secondPage.QueryStats.Version.Matches(firstPage.QueryStats.Version), Is.False,
                 "sharing one would let the store answer page two out of a caller's cached page one");
-        }
-    }
-
-    [Test]
-    public async Task A_page_is_not_skipped_for_a_version_from_a_different_page()
-    {
-        await AddItems(3);
-
-        var firstPageVersion = (await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 1, pageSize: 2))).QueryStats.Version;
-
-        var secondPage = await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 2, pageSize: 2), firstPageVersion);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(secondPage.NotModified, Is.False, "the caller holds another page's validator, so this one still has to be fetched");
-            Assert.That(secondPage.Results, Has.Count.EqualTo(1));
-        }
-    }
-
-    [Test]
-    public async Task Stale_known_version_returns_the_page()
-    {
-        await AddItems(2);
-        var staleVersion = await CurrentVersion();
-
-        await AddItems(1);
-
-        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo(), staleVersion);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.NotModified, Is.False);
-            Assert.That(result.Results, Has.Count.EqualTo(3));
-            Assert.That(result.QueryStats.TotalCount, Is.EqualTo(3));
-            Assert.That(result.QueryStats.Version.Matches(staleVersion), Is.False);
-        }
-    }
-
-    [Test]
-    public async Task Unrecognised_known_version_returns_the_page()
-    {
-        await AddItems(2);
-
-        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo(), DataVersion.FromToken("not-a-version-this-store-ever-issued"));
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.NotModified, Is.False, "an unrecognised validator must be treated as a cache miss, never as a match");
-            Assert.That(result.Results, Is.Not.Null);
         }
     }
 

@@ -36,26 +36,11 @@ Term names and every field inside a row are **length prefixed**. Without that, f
 
 Absence propagates in the safe direction. `WithEtag` writes no header for `None`, so no header means no `If-None-Match`, which means the full body. `Combine` returns `None` as soon as any instance reports none, rather than quietly claiming to cover an instance it could not see.
 
-## Two comparisons, and they are not the same question
-
-- `Matches(other)` is the cache question, and the only one a store or a conditional-request filter should ask. It requires both sides present.
-- `Equals(other)` is ordinary value equality and stays reflexive, so `None.Equals(None)` is true and the struct behaves in a dictionary.
-
-`operator ==` is deliberately left undefined so that choosing between them is explicit at the call site.
-
 ## Reaching the client
 
 `WithEtag` emits **every** tag weak, as `W/"…"`. Nothing here can promise the response bytes: response compression rewrites them without touching the tag, and no endpoint enables range processing, which is the one thing an exact validator would buy. RFC 9110 requires `If-None-Match` to use the weak comparison anyway, so the marking costs nothing.
 
 `NotModifiedStatusHttpHandler` turns a matching request into a `304`. It compares with `EntityTagHeaderValue.Compare(useStrongComparison: false)`, because `Equals` on that type compares strength as well as the tag and its own documentation says not to use it for this. `*` matches whenever a representation exists.
-
-`GetKnownVersion` reads the caller's validator back through typed headers, not the raw header, because `If-None-Match` is a comma-separated list and the raw header hands the whole list over as one malformed value. A caller holding several validators, or the `*` wildcard, is treated as holding none: a store can only skip work for a single known version. The `304` still comes from the filter either way.
-
-## Skipping the query
-
-`GET /api/eventlogitems` is the **only** endpoint that hands the caller's version down to the persister: `IEventLogDataStore.GetEventLogItems` takes a `knownVersion`, and on a match returns `QueryResult.Unchanged` without fetching the page at all. Everywhere else the version is compared after the work is done and only the response body is saved.
-
-That makes the coverage rule sharper here than anywhere else. A page-blind version does not merely serve a stale page, it means the right page is never queried. The EF store therefore names the page window (`page`, `pageSize`) rather than the rows, which is sound only because a row in that table never changes and the query has a total order, and which keeps the caller's version answerable without fetching anything.
 
 ## Across instances
 

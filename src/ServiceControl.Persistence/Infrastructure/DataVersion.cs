@@ -134,8 +134,8 @@ namespace ServiceControl.Persistence.Infrastructure
         }
 
         /// <summary>
-        /// Whether a caller holding <paramref name="other"/> already has this version. The only question a
-        /// store or a conditional-request filter should ask.
+        /// Whether this and <paramref name="other"/> are the same version and both present. Absence never
+        /// counts as a match, so any comparison involving <see cref="None"/> is false.
         /// </summary>
         public bool Matches(DataVersion other) =>
             HasValue && other.HasValue && string.Equals(validator, other.validator, StringComparison.Ordinal);

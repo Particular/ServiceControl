@@ -29,7 +29,7 @@
         }
 
         public async Task<QueryResult<IList<EventLogItemView>>> GetEventLogItems(
-            PagingInfo pagingInfo, DataVersion knownVersion = default, CancellationToken cancellationToken = default)
+            PagingInfo pagingInfo, CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var documents = await session
@@ -42,12 +42,6 @@
             // Names the ids on the page, not just the index etag, or every page of every filter over this
             // index shares one validator.
             var queryStats = stats.ToPagedQueryStatsInfo(documents, session.Advanced.GetDocumentId);
-
-            // The page cannot be skipped, only the projection below.
-            if (knownVersion.Matches(queryStats.Version))
-            {
-                return QueryResult<IList<EventLogItemView>>.Unchanged(queryStats);
-            }
 
             // The id lives in document metadata rather than on the document
             var items = documents.ConvertAll(document => new EventLogItemView
