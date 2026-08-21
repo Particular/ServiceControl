@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="AppHost\AppHost.csproj" />
+  <Project Path="FailingEndpoint/FailingEndpoint.csproj" />
+  <Project Path="ReplacingErrorInstance.ServiceDefaults/ReplacingErrorInstance.ServiceDefaults.csproj" />
+</Solution>

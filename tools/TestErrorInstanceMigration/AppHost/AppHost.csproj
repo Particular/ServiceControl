@@ -1,0 +1,22 @@
+﻿<Project Sdk="Aspire.AppHost.Sdk/13.4.5">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsAspireHost>true</IsAspireHost>
+    <UserSecretsId>5881c0e9-3e87-4447-85ed-6346bf54dc61</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.4.5" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.4.5" />
+    <PackageReference Include="Aspire.Hosting.SqlServer" Version="13.4.5" />
+    <PackageReference Include="Particular.Aspire.Hosting.ServicePlatform" Version="1.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FailingEndpoint\FailingEndpoint.csproj" />
+    <ProjectReference Include="..\ReplacingErrorInstance.ServiceDefaults\ReplacingErrorInstance.ServiceDefaults.csproj" IsAspireProjectResource="false"/>
+  </ItemGroup>
+</Project>
