@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Threading;
-    using System.Threading.Channels;
     using System.Threading.Tasks;
     using Infrastructure.Settings;
     using Metrics;
@@ -14,6 +13,7 @@
     using Persistence;
     using Persistence.UnitOfWork;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.Ingestion;
     using Transports;
 
     class AuditIngestion : BackgroundService
@@ -47,13 +47,10 @@
 
             MaxBatchSize = transportSettings.MaxConcurrency.Value;
 
-            channel = Channel.CreateBounded<MessageContext>(new BoundedChannelOptions(MaxBatchSize)
-            {
-                SingleReader = true,
-                SingleWriter = false,
-                AllowSynchronousContinuations = false,
-                FullMode = BoundedChannelFullMode.Wait
-            });
+            pipeline = new IngestionPipeline(
+                new IngestionPipelineSettings { BatchSize = MaxBatchSize },
+                IngestBatch,
+                logger);
 
             errorHandlingPolicy = new AuditIngestionFaultPolicy(failedImportsStorage, settings.LoggingSettings, OnCriticalError, metrics, logger);
 
@@ -253,7 +250,7 @@
             var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-            await channel.Writer.WriteAsync(messageContext, cancellationToken);
+            await pipeline.Enqueue(messageContext, cancellationToken);
             _ = await taskCompletionSource.Task;
 
             messageIngestionMetrics.Success();
@@ -265,61 +262,16 @@
             await base.StartAsync(cancellationToken);
         }
 
-        protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
+        protected override Task ExecuteAsync(CancellationToken cancellationToken = default) => pipeline.Run(cancellationToken);
+
+        async Task IngestBatch(List<MessageContext> contexts, CancellationToken cancellationToken)
         {
-            try
-            {
-                var contexts = new List<MessageContext>(MaxBatchSize);
+            // Leaving the scope without completing it is what records the batch as failed
+            using var batchMetrics = metrics.BeginBatch(MaxBatchSize);
 
-                while (await channel.Reader.WaitToReadAsync(cancellationToken))
-                {
-                    // will only enter here if there is something to read.
-                    try
-                    {
-                        using var batchMetrics = metrics.BeginBatch(MaxBatchSize);
+            await auditIngestor.Ingest(contexts, messageDispatcher, cancellationToken);
 
-                        // as long as there is something to read this will fetch up to MaximumConcurrency items
-                        while (channel.Reader.TryRead(out var context))
-                        {
-                            contexts.Add(context);
-                        }
-
-                        await auditIngestor.Ingest(contexts, messageDispatcher, cancellationToken);
-
-                        batchMetrics.Complete(contexts.Count);
-                    }
-                    catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested)
-                    {
-                        // signal all message handling tasks to terminate
-                        foreach (var context in contexts)
-                        {
-                            _ = context.GetTaskCompletionSource().TrySetException(e);
-                        }
-
-                        logger.LogInformation(e, "Batch cancelled");
-                        break;
-                    }
-                    catch (Exception e)
-                    {
-                        // signal all message handling tasks to terminate
-                        foreach (var context in contexts)
-                        {
-                            _ = context.GetTaskCompletionSource().TrySetException(e);
-                        }
-
-                        logger.LogInformation(e, "Ingesting messages failed");
-                    }
-                    finally
-                    {
-                        contexts.Clear();
-                    }
-                }
-                // will fall out here when writer is completed
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                // ExecuteAsync cancelled
-            }
+            batchMetrics.Complete(contexts.Count);
         }
 
         public override async Task StopAsync(CancellationToken cancellationToken = default)
@@ -329,9 +281,9 @@
                 // Order matters. Receiving stops under the shutdown token rather than a cancelled
                 // one, so messages already being processed finish and their receives commit instead
                 // of being abandoned and redelivered after having been forwarded. Nothing new enters
-                // the channel after this, and the infrastructure stays up until the channel drains.
+                // the pipeline after this, and the infrastructure stays up until it drains.
                 await EnsureReceivingStopped(cancellationToken);
-                channel.Writer.Complete();
+                pipeline.CompleteAdding();
                 await base.StopAsync(cancellationToken);
             }
             finally
@@ -358,11 +310,17 @@
         readonly AuditIngestionFaultPolicy errorHandlingPolicy;
         readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly Settings settings;
-        readonly Channel<MessageContext> channel;
+        readonly IngestionPipeline pipeline;
         readonly Watchdog watchdog;
         readonly IHostApplicationLifetime applicationLifetime;
         readonly IngestionMetrics metrics;
         readonly ILogger<AuditIngestion> logger;
+
+        public override void Dispose()
+        {
+            startStopSemaphore.Dispose();
+            base.Dispose();
+        }
 
         internal static class LogMessages
         {

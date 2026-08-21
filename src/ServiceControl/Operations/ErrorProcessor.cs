@@ -14,6 +14,7 @@
     using NServiceBus.Transport;
     using Recoverability;
     using ServiceControl.Persistence;
+    using ServiceControl.Infrastructure.Ingestion;
     using ServiceControl.Persistence.UnitOfWork;
 
     class ErrorProcessor

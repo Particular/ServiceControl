@@ -7,6 +7,7 @@
     using NServiceBus.Transport;
     using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.Ingestion;
 
     public class ImportFailedErrors(
         IFailedErrorImportDataStore store,

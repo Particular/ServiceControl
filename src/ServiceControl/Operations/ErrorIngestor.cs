@@ -14,6 +14,7 @@
     using NServiceBus.Transport;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.Ingestion;
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Transports;
 

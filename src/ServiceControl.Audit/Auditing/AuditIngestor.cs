@@ -14,6 +14,7 @@
     using Persistence.UnitOfWork;
     using Recoverability;
     using SagaAudit;
+    using ServiceControl.Infrastructure.Ingestion;
     using Transports;
 
     public class AuditIngestor

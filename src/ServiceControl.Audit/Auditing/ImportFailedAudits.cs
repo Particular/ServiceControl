@@ -1,4 +1,4 @@
-namespace ServiceControl.Audit.Auditing
+﻿namespace ServiceControl.Audit.Auditing
 {
     using System;
     using System.Threading;
@@ -8,6 +8,7 @@ namespace ServiceControl.Audit.Auditing
     using NServiceBus.Extensibility;
     using NServiceBus.Transport;
     using Persistence;
+    using ServiceControl.Infrastructure.Ingestion;
 
     public class ImportFailedAudits
     {
