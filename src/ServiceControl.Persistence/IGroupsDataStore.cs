@@ -10,7 +10,7 @@ namespace ServiceControl.Persistence
     public interface IGroupsDataStore
     {
         Task<IList<FailureGroupView>> GetUnresolvedGroupsByClassifier(string classifier, string? classifierFilter, CancellationToken cancellationToken = default);
-        Task<IList<FailureGroupView>> GetArchivedGroupsByClassifier(string classifier, CancellationToken cancellationToken = default);
+        Task<QueryResult<IList<FailureGroupView>>> GetArchivedGroupsByClassifier(string classifier, CancellationToken cancellationToken = default);
 
         Task<QueryResult<FailureGroupView>> GetUnresolvedGroup(string groupId, string? status, string? modified, CancellationToken cancellationToken = default);
         Task<QueryResult<FailureGroupView>> GetArchivedGroup(string groupId, string? status, string? modified, CancellationToken cancellationToken = default);

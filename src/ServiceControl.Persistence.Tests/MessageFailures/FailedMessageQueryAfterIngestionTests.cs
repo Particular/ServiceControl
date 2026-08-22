@@ -6,7 +6,7 @@ using NUnit.Framework;
 using ServiceControl.MessageFailures;
 using ServiceControl.Persistence.Infrastructure;
 
-class FailedMessageQueryAfterIngestionTests : PersistenceTestBase
+class FailedMessageQueryAfterIngestionTests : IngestionTestBase
 {
     [Test]
     public async Task Ingested_failure_is_returned_by_the_query_store()
@@ -18,6 +18,7 @@ class FailedMessageQueryAfterIngestionTests : PersistenceTestBase
         };
 
         await Ingest(failure);
+        await CompleteDatabaseOperation();
 
         var result = await FailedMessageQueryStore.GetFailedMessages(null, null, null, new PagingInfo(), new SortInfo());
 
@@ -47,6 +48,7 @@ class FailedMessageQueryAfterIngestionTests : PersistenceTestBase
         var failure = new IngestedFailure { FailingEndpointAddress = "Sales@MACHINE" };
 
         await Ingest(failure);
+        await CompleteDatabaseOperation();
 
         var view = await FailedMessageQueryStore.GetLatestFailedMessageView(failure.UniqueMessageIdString);
 
@@ -60,6 +62,7 @@ class FailedMessageQueryAfterIngestionTests : PersistenceTestBase
         var other = new IngestedFailure { FailingEndpointAddress = "Billing@MACHINE" };
 
         await Ingest(matching, other);
+        await CompleteDatabaseOperation();
 
         var result = await FailedMessageQueryStore.GetFailedMessages(null, null, "Sales@MACHINE", new PagingInfo(), new SortInfo());
 
@@ -74,6 +77,7 @@ class FailedMessageQueryAfterIngestionTests : PersistenceTestBase
         var failure = new IngestedFailure();
 
         await Ingest(failure);
+        await CompleteDatabaseOperation();
 
         var message = await FailedMessageQueryStore.GetFailedMessage(failure.UniqueMessageIdString);
 
@@ -97,6 +101,7 @@ class FailedMessageQueryAfterIngestionTests : PersistenceTestBase
 
         await Ingest(failure);
         await Ingest(secondAttempt);
+        await CompleteDatabaseOperation();
 
         var view = await FailedMessageQueryStore.GetLatestFailedMessageView(failure.UniqueMessageIdString);
         var message = await FailedMessageQueryStore.GetFailedMessage(failure.UniqueMessageIdString);
@@ -106,20 +111,5 @@ class FailedMessageQueryAfterIngestionTests : PersistenceTestBase
             Assert.That(view.NumberOfProcessingAttempts, Is.EqualTo(2));
             Assert.That(message.ProcessingAttempts, Has.Count.EqualTo(2));
         }
-    }
-
-    async Task Ingest(params IngestedFailure[] failures)
-    {
-        await using (var unitOfWork = await UnitOfWorkFactory.StartNew())
-        {
-            foreach (var failure in failures)
-            {
-                await unitOfWork.Recoverability.RecordFailedProcessingAttempt(failure.Context, failure.ProcessingAttempt, failure.Groups);
-            }
-
-            await unitOfWork.Complete(TestContext.CurrentContext.CancellationToken);
-        }
-
-        await CompleteDatabaseOperation();
     }
 }

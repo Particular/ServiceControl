@@ -68,7 +68,7 @@
         {
             var knownEndpoints = monitoring.GetKnownEndpoints();
 
-            Response.WithQueryStatsAndPagingInfo(new QueryStatsInfo(string.Empty, knownEndpoints.Count, isStale: false), pagingInfo);
+            Response.WithPagingLinksAndTotalCount(pagingInfo, knownEndpoints.Count);
             return knownEndpoints;
         }
 

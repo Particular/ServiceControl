@@ -29,7 +29,7 @@
         }
 
         public async Task<QueryResult<IList<EventLogItemView>>> GetEventLogItems(
-            PagingInfo pagingInfo, string knownVersion = null, CancellationToken cancellationToken = default)
+            PagingInfo pagingInfo, CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var documents = await session
@@ -40,13 +40,6 @@
                 .ToListAsync(cancellationToken);
 
             var queryStats = stats.ToQueryStatsInfo();
-
-            // The validator comes off the query statistics, so the page cannot be
-            // skipped. Only the projection below is saved.
-            if (knownVersion is not null && knownVersion == queryStats.ETag)
-            {
-                return QueryResult<IList<EventLogItemView>>.Unchanged(queryStats);
-            }
 
             // The id lives in document metadata rather than on the document
             var items = documents.ConvertAll(document => new EventLogItemView

@@ -217,7 +217,7 @@
                     _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
                 });
 
-            static MessageBodyStreamContent Content(byte[] body) => new(new MemoryStream(body), "text/plain", body.Length, "etag");
+            static MessageBodyStreamContent Content(byte[] body) => new(new MemoryStream(body), "text/plain", body.Length, DataVersion.FromToken("etag"));
         }
     }
 }

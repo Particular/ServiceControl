@@ -100,7 +100,7 @@ namespace ServiceControl.CompositeViews.Messages
                     return NoContent();
                 }
 
-                Response.WithEtag(result.Content.Etag);
+                Response.WithEtag(result.Content.Version);
                 return File(result.Content.Stream, result.Content.ContentType ?? "text/*");
             }
 

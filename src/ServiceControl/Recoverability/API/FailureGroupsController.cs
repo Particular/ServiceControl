@@ -67,7 +67,7 @@
             }
 
             var results = await fetcher.GetGroups(classifier, classifierFilter, cancellationToken);
-            Response.WithDeterministicEtag(EtagHelper.CalculateEtag(results));
+            Response.WithEtag(ResponseVersions.VersionOf(results, results.Length));
             return results;
         }
 
@@ -100,9 +100,9 @@
         {
             var retryHistory = await retryStore.GetRetryHistory(cancellationToken);
 
-            Response.WithDeterministicEtag(retryHistory.GetHistoryOperationsUniqueIdentifier());
+            Response.WithEtag(retryHistory.QueryStats.Version);
 
-            return retryHistory;
+            return retryHistory.Results;
         }
 
         [Authorize(Policy = Permissions.ErrorRecoverabilityGroupsView)]
@@ -112,7 +112,7 @@
         {
             var result = await store.GetUnresolvedGroup(groupId, status, modified, cancellationToken);
 
-            Response.WithEtag(result.QueryStats.ETag);
+            Response.WithEtag(result.QueryStats.Version);
 
             return result.Results == null ? NotFound() : result.Results;
         }

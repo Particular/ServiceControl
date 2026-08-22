@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.EventLog
 {
     using System.Collections.Generic;
-    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Auth;
@@ -20,16 +19,9 @@
         [HttpGet]
         public async Task<ActionResult<IList<EventLogItemView>>> Items([FromQuery] PagingInfo pagingInfo, CancellationToken cancellationToken = default)
         {
-            // Passing knownVersion lets the persister skip work it would otherwise waste
-            var result = await logDataStore.GetEventLogItems(pagingInfo, Request.GetKnownVersion(), cancellationToken);
+            var result = await logDataStore.GetEventLogItems(pagingInfo, cancellationToken);
 
-            Response.WithPagingLinksAndTotalCount(pagingInfo, result.QueryStats.TotalCount);
-            Response.WithEtag(result.QueryStats.ETag);
-
-            if (result.NotModified)
-            {
-                return StatusCode((int)HttpStatusCode.NotModified);
-            }
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
 
             return Ok(result.Results);
         }

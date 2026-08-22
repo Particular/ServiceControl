@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Persistence.Infrastructure;
     using Persistence.RavenDB;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Session;
@@ -72,7 +73,7 @@
                 result.Stream,
                 result.Details.ContentType,
                 (int)result.Details.Size,
-                result.Details.ChangeVector));
+                DataVersion.FromToken(result.Details.ChangeVector)));
         }
     }
 }

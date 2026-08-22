@@ -20,19 +20,12 @@ namespace ServiceControl.CompositeViews.Messages
     // Non-generic, so statics live once rather than once per closed generic instantiation.
     public abstract class ScatterGatherApiBase
     {
-        internal static string ReadEtag(HttpResponseHeaders headers)
-        {
-            // Read raw rather than through headers.ETag. An instance predating the quoted validator
-            // sends a bare token, which EntityTagHeaderValue fails to parse and discards silently.
-            if (!headers.TryGetValues("ETag", out var values))
-            {
-                return null;
-            }
-
-            var etag = values.FirstOrDefault();
-
-            return etag?.Length > 1 && etag[0] == '"' && etag[^1] == '"' ? etag[1..^1] : etag;
-        }
+        // Read raw, not via headers.ETag: an older instance sends an unquoted tag that
+        // EntityTagHeaderValue cannot parse and drops without a word.
+        internal static DataVersion ReadEtag(HttpResponseHeaders headers) =>
+            headers.TryGetValues("ETag", out var values)
+                ? DataVersion.FromClient(values.FirstOrDefault())
+                : DataVersion.None;
     }
 
     public record ScatterGatherContext(PagingInfo PagingInfo);
@@ -51,6 +44,7 @@ namespace ServiceControl.CompositeViews.Messages
         }
 
         protected TDataStore DataStore { get; }
+
         Settings Settings { get; }
         IHttpClientFactory HttpClientFactory { get; }
         IHttpContextAccessor HttpContextAccessor { get; }
@@ -86,6 +80,7 @@ namespace ServiceControl.CompositeViews.Messages
         {
             var result = await LocalQuery(input, cancellationToken);
             result.InstanceId = instanceId;
+            result.IsLocalInstance = true;
             return result;
         }
 
@@ -103,14 +98,31 @@ namespace ServiceControl.CompositeViews.Messages
 
         protected abstract TOut ProcessResults(TIn input, QueryResult<TOut>[] results);
 
-        protected virtual QueryStatsInfo AggregateStats(TIn input, IEnumerable<QueryResult<TOut>> results, TOut processedResults)
+        protected virtual QueryStatsInfo AggregateStats(TIn input, IEnumerable<QueryResult<TOut>> results, TOut processedResults) =>
+            Aggregate(results);
+
+        /// <summary>
+        /// For an API whose own instance holds none of the data. Its local result carries no version, and
+        /// <see cref="DataVersion.Combine"/> reports <see cref="DataVersion.None"/> as soon as one result
+        /// is missing one, which would leave every response with no ETag at all.
+        /// </summary>
+        protected static QueryStatsInfo AggregateStatsFromRemotesOnly(IEnumerable<QueryResult<TOut>> results) =>
+            Aggregate(results.Where(result => !result.IsLocalInstance));
+
+        static QueryStatsInfo Aggregate(IEnumerable<QueryResult<TOut>> results)
         {
-            var infos = results.Select(x => x.QueryStats).ToArray();
+            var reported = results.ToArray();
+
+            if (reported.Length == 0)
+            {
+                return QueryStatsInfo.Zero;
+            }
+
+            var infos = reported.Select(x => x.QueryStats).ToArray();
 
             return new QueryStatsInfo(
-                string.Concat(infos.OrderBy(x => x.ETag).Select(x => x.ETag)),
+                DataVersion.Combine(reported.Select(result => (result.InstanceId, result.QueryStats.Version))),
                 infos.Sum(x => x.TotalCount),
-                isStale: infos.Any(x => x.IsStale),
                 infos.Max(x => x.HighestTotalCountOfAllTheInstances)
             );
         }
@@ -191,11 +203,9 @@ namespace ServiceControl.CompositeViews.Messages
                 totalCount = int.Parse(totalCounts.ElementAt(0));
             }
 
-            // Unquoted, because AggregateStats concatenates it with the other instances' values and
-            // the result is re-tagged before it goes back on the wire.
             var etag = ReadEtag(responseMessage.Headers);
 
-            return new QueryResult<TOut>(remoteResults, new QueryStatsInfo(etag, totalCount, isStale: false));
+            return new QueryResult<TOut>(remoteResults, new QueryStatsInfo(etag, totalCount));
         }
 
         readonly ILogger logger;

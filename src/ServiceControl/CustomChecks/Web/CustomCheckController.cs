@@ -25,8 +25,7 @@
         {
             var stats = await checksDataStore.GetStats(pagingInfo, status, cancellationToken);
 
-            Response.WithPagingLinksAndTotalCount(pagingInfo, stats.QueryStats.TotalCount);
-            Response.WithEtag(stats.QueryStats.ETag);
+            Response.WithQueryStatsAndPagingInfo(stats.QueryStats, pagingInfo);
 
             return stats.Results;
         }

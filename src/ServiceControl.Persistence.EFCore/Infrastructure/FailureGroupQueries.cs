@@ -1,7 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.Infrastructure;
 
 using ServiceControl.Persistence.EFCore.Entities;
-using ServiceControl.Persistence.Infrastructure;
 using ServiceControl.Recoverability;
 
 static class FailureGroupQueries
@@ -22,11 +21,4 @@ static class FailureGroupQueries
             First = aggregate.Min(message => message.FirstTimeOfFailure),
             Last = aggregate.Max(message => message.LastTimeOfFailure)
         };
-
-    public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<FailureGroupView> groups)
-    {
-        var latest = groups.Count == 0 ? DateTime.MinValue : groups.Max(group => group.Last);
-
-        return new QueryStatsInfo($"{groups.Count}-{latest.Ticks}", groups.Count, false);
-    }
 }

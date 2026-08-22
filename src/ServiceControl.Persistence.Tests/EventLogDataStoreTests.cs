@@ -97,18 +97,6 @@ class EventLogDataStoreTests : PersistenceTestBase
     }
 
     [Test]
-    public async Task Empty_store_is_a_page_of_nothing_rather_than_not_modified()
-    {
-        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo());
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.NotModified, Is.False, "an empty store still has a representation to return");
-            Assert.That(result.Results, Is.Not.Null);
-        }
-    }
-
-    [Test]
     public async Task Page_size_limits_returned_items_but_not_the_total()
     {
         await AddItems(5);
@@ -188,73 +176,8 @@ class EventLogDataStoreTests : PersistenceTestBase
         Assert.That(secondRead, Is.EqualTo(firstRead));
     }
 
-    [Test]
-    public async Task Matching_known_version_reports_not_modified()
-    {
-        await AddItems(3);
-        var version = await CurrentVersion();
-
-        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo(), version);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.NotModified, Is.True, "a caller already holding the current version must be told so, not handed the page again");
-            Assert.That(result.Results, Is.Null, "a not-modified result carries no page");
-        }
-    }
-
-    [Test]
-    public async Task Matching_known_version_still_reports_total_and_version()
-    {
-        await AddItems(3);
-        var version = await CurrentVersion();
-
-        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo(), version);
-
-        using (Assert.EnterMultipleScope())
-        {
-            // The controller sets Total-Count and ETag on the 304, so neither may be dropped
-            // just because the page was not fetched.
-            Assert.That(result.QueryStats.TotalCount, Is.EqualTo(3));
-            Assert.That(result.QueryStats.ETag, Is.EqualTo(version));
-        }
-    }
-
-    [Test]
-    public async Task Stale_known_version_returns_the_page()
-    {
-        await AddItems(2);
-        var staleVersion = await CurrentVersion();
-
-        await AddItems(1);
-
-        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo(), staleVersion);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.NotModified, Is.False);
-            Assert.That(result.Results, Has.Count.EqualTo(3));
-            Assert.That(result.QueryStats.TotalCount, Is.EqualTo(3));
-            Assert.That(result.QueryStats.ETag, Is.Not.EqualTo(staleVersion));
-        }
-    }
-
-    [Test]
-    public async Task Unrecognised_known_version_returns_the_page()
-    {
-        await AddItems(2);
-
-        var result = await EventLogDataStore.GetEventLogItems(new PagingInfo(), "not-a-version-this-store-ever-issued");
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.NotModified, Is.False, "an unrecognised validator must be treated as a cache miss, never as a match");
-            Assert.That(result.Results, Is.Not.Null);
-        }
-    }
-
-    async Task<string> CurrentVersion() =>
-        (await EventLogDataStore.GetEventLogItems(new PagingInfo())).QueryStats.ETag;
+    async Task<DataVersion> CurrentVersion() =>
+        (await EventLogDataStore.GetEventLogItems(new PagingInfo())).QueryStats.Version;
 
     async Task AddItems(int count)
     {

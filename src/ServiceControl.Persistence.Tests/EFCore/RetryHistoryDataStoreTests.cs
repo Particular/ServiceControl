@@ -4,7 +4,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using ServiceControl.Recoverability;
 
 class RetryHistoryDataStoreTests : ErrorIngestionTestBase
 {
@@ -15,7 +14,7 @@ class RetryHistoryDataStoreTests : ErrorIngestionTestBase
     [Test]
     public async Task Returns_an_empty_history_when_nothing_has_completed()
     {
-        var history = await RetryHistoryStore.GetRetryHistory();
+        var history = (await RetryHistoryStore.GetRetryHistory()).Results;
 
         using (Assert.EnterMultipleScope())
         {
@@ -30,7 +29,7 @@ class RetryHistoryDataStoreTests : ErrorIngestionTestBase
         await RecordCompleted("group-1", originator: "OrderPlaced failures", classifier: "Exception Type and Stack Trace",
             failed: true, numberOfMessagesProcessed: 3);
 
-        var history = await RetryHistoryStore.GetRetryHistory();
+        var history = (await RetryHistoryStore.GetRetryHistory()).Results;
 
         var historic = history.HistoricOperations.Single();
         var unacknowledged = history.UnacknowledgedOperations.Single();
@@ -64,7 +63,7 @@ class RetryHistoryDataStoreTests : ErrorIngestionTestBase
         await RecordCompleted("group-2", completionTime: Noon.AddHours(-1));
         await RecordCompleted("group-3", completionTime: Noon.AddHours(1));
 
-        var history = await RetryHistoryStore.GetRetryHistory();
+        var history = (await RetryHistoryStore.GetRetryHistory()).Results;
 
         Assert.That(history.HistoricOperations.Select(operation => operation.RequestId),
             Is.EqualTo(new[] { "group-3", "group-1", "group-2" }));
@@ -78,7 +77,7 @@ class RetryHistoryDataStoreTests : ErrorIngestionTestBase
             await RecordCompleted($"group-{minute}", completionTime: Noon.AddMinutes(minute), depth: 3);
         }
 
-        var history = await RetryHistoryStore.GetRetryHistory();
+        var history = (await RetryHistoryStore.GetRetryHistory()).Results;
 
         Assert.That(history.HistoricOperations.Select(operation => operation.RequestId),
             Is.EqualTo(new[] { "group-4", "group-3", "group-2" }));
@@ -91,7 +90,7 @@ class RetryHistoryDataStoreTests : ErrorIngestionTestBase
         await RecordCompleted("group-2", completionTime: Noon, depth: 2);
         await RecordCompleted("group-3", completionTime: Noon, depth: 2);
 
-        var history = await RetryHistoryStore.GetRetryHistory();
+        var history = (await RetryHistoryStore.GetRetryHistory()).Results;
 
         Assert.That(history.HistoricOperations.Select(operation => operation.RequestId),
             Is.EqualTo(new[] { "group-3", "group-2" }));
@@ -107,7 +106,7 @@ class RetryHistoryDataStoreTests : ErrorIngestionTestBase
 
         await RecordCompleted("group-4", completionTime: Noon.AddMinutes(4), depth: 2);
 
-        var history = await RetryHistoryStore.GetRetryHistory();
+        var history = (await RetryHistoryStore.GetRetryHistory()).Results;
 
         Assert.That(history.HistoricOperations.Select(operation => operation.RequestId),
             Is.EqualTo(new[] { "group-4", "group-3" }));
@@ -119,7 +118,7 @@ class RetryHistoryDataStoreTests : ErrorIngestionTestBase
         await RecordCompleted("group-1");
         await RecordCompleted("group-2", depth: 0);
 
-        var history = await RetryHistoryStore.GetRetryHistory();
+        var history = (await RetryHistoryStore.GetRetryHistory()).Results;
 
         using (Assert.EnterMultipleScope())
         {
@@ -134,7 +133,7 @@ class RetryHistoryDataStoreTests : ErrorIngestionTestBase
     {
         await RecordCompleted("request-1", retryType);
 
-        var history = await RetryHistoryStore.GetRetryHistory();
+        var history = (await RetryHistoryStore.GetRetryHistory()).Results;
 
         using (Assert.EnterMultipleScope())
         {
@@ -149,7 +148,7 @@ class RetryHistoryDataStoreTests : ErrorIngestionTestBase
         await RecordCompleted("group-1", completionTime: Noon, numberOfMessagesProcessed: 3);
         await RecordCompleted("group-1", completionTime: Noon.AddHours(1), numberOfMessagesProcessed: 7);
 
-        var history = await RetryHistoryStore.GetRetryHistory();
+        var history = (await RetryHistoryStore.GetRetryHistory()).Results;
 
         var unacknowledged = history.UnacknowledgedOperations.Single();
 
@@ -167,7 +166,7 @@ class RetryHistoryDataStoreTests : ErrorIngestionTestBase
         await RecordCompleted("request-1", RetryType.FailureGroup);
         await RecordCompleted("request-1", RetryType.AllForEndpoint);
 
-        var history = await RetryHistoryStore.GetRetryHistory();
+        var history = (await RetryHistoryStore.GetRetryHistory()).Results;
 
         Assert.That(history.UnacknowledgedOperations.Select(operation => operation.RetryType),
             Is.EquivalentTo(new[] { RetryType.FailureGroup, RetryType.AllForEndpoint }));
@@ -180,7 +179,7 @@ class RetryHistoryDataStoreTests : ErrorIngestionTestBase
 
         var acknowledged = await RetryHistoryStore.AcknowledgeRetryGroup("group-1");
 
-        var history = await RetryHistoryStore.GetRetryHistory();
+        var history = (await RetryHistoryStore.GetRetryHistory()).Results;
 
         using (Assert.EnterMultipleScope())
         {
@@ -201,13 +200,27 @@ class RetryHistoryDataStoreTests : ErrorIngestionTestBase
 
         var acknowledged = await RetryHistoryStore.AcknowledgeRetryGroup("SomeEndpoint");
 
-        var history = await RetryHistoryStore.GetRetryHistory();
+        var history = (await RetryHistoryStore.GetRetryHistory()).Results;
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(acknowledged, Is.False);
             Assert.That(history.UnacknowledgedOperations, Has.Count.EqualTo(1));
         }
+    }
+
+    [Test]
+    public async Task Unacknowledged_operations_are_read_in_key_order()
+    {
+        await RecordCompleted("group-c");
+        await RecordCompleted("group-a");
+        await RecordCompleted("group-b");
+        await CompleteDatabaseOperation();
+
+        var history = (await RetryHistoryStore.GetRetryHistory()).Results;
+
+        Assert.That(history.UnacknowledgedOperations.Select(operation => operation.RequestId),
+            Is.EqualTo(new[] { "group-a", "group-b", "group-c" }));
     }
 
     Task RecordCompleted(string requestId, RetryType retryType = RetryType.FailureGroup, DateTime? completionTime = null,

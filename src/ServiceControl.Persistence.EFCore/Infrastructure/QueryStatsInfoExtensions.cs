@@ -1,0 +1,85 @@
+namespace ServiceControl.Persistence.EFCore.Infrastructure;
+
+using Microsoft.EntityFrameworkCore;
+using ServiceControl.Contracts.CustomChecks;
+using ServiceControl.EventLog;
+using ServiceControl.MessageFailures;
+using ServiceControl.Persistence.EFCore.Entities;
+using ServiceControl.Persistence.Infrastructure;
+using ServiceControl.Recoverability;
+
+static class QueryStatsInfoExtensions
+{
+    public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<CustomCheck> items, long totalCount) =>
+        new QueryStatsInfo(
+            DataVersion.OverRows(
+                [("checks", totalCount)],
+                items,
+                check => [check.Id, check.CustomCheckId, check.Category, check.Status, check.ReportedAt, check.FailureReason]),
+            totalCount);
+
+    public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<EventLogItemView> items, long totalCount) =>
+        new QueryStatsInfo(
+            DataVersion.OverRows(
+                [("items", totalCount)],
+                items,
+                item => [item.Id, item.Description, item.Severity, item.RaisedAt, item.Category, item.EventType]),
+            totalCount);
+
+    public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<FailedMessageEntity> items, long totalCount) =>
+        new QueryStatsInfo(
+            DataVersion.OverRows(
+                [("messages", totalCount)],
+                items,
+                row => [row.UniqueMessageId, row.LastModified, row.Status, row.NumberOfProcessingAttempts]),
+            totalCount);
+
+    // Used in a HEAD with no body. Total-Count is the whole response, so the count is the whole version.
+    public static async Task<QueryStatsInfo> ToCountQueryStatsInfo<TEntity>(this IQueryable<TEntity> source, string name, CancellationToken cancellationToken = default)
+    {
+        var count = await source.LongCountAsync(cancellationToken);
+
+        return new QueryStatsInfo(DataVersion.Compose([(name, count)]), count);
+    }
+
+    public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<FailureGroupView> groups) =>
+        new QueryStatsInfo(
+            DataVersion.OverRows(
+                [("groups", groups.Count)],
+                groups,
+                group => [group.Id, group.Title, group.Type, group.Count, group.Comment, group.First, group.Last]),
+            groups.Count);
+
+    public static QueryStatsInfo ToQueryStatsInfo(this IReadOnlyCollection<QueueAddress> items, long totalCount) =>
+        new QueryStatsInfo(
+            DataVersion.OverRows(
+                [("addresses", totalCount)],
+                items,
+                address => [address.PhysicalAddress, address.FailedMessageCount]),
+            totalCount);
+
+    public static QueryStatsInfo ToQueryStatsInfo(this RetryHistory history) =>
+        new QueryStatsInfo(DataVersion.OverRows(
+                [("historic", history.HistoricOperations.Count), ("unacknowledged", history.UnacknowledgedOperations.Count)],
+                Rows(history),
+                row => row),
+            history.HistoricOperations.Count);
+
+    static IEnumerable<object?[]> Rows(RetryHistory history)
+    {
+        // The leading marker keeps a historic row from ever digesting the same as an unacknowledged one.
+        foreach (var operation in history.HistoricOperations)
+        {
+            yield return ["historic", operation.RequestId, operation.RetryType, operation.StartTime, operation.CompletionTime,
+                operation.Originator, operation.Failed, operation.NumberOfMessagesProcessed];
+        }
+
+        // Rows are named by position, so both collections have to arrive in a deterministic order. Each is
+        // ordered by its query in RetryHistoryDataStore, historic by completion time and these by their key.
+        foreach (var operation in history.UnacknowledgedOperations)
+        {
+            yield return ["unacknowledged", operation.RequestId, operation.RetryType, operation.StartTime, operation.CompletionTime,
+                operation.Last, operation.Originator, operation.Classifier, operation.Failed, operation.NumberOfMessagesProcessed];
+        }
+    }
+}

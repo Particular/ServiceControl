@@ -22,16 +22,16 @@ namespace ServiceControl.Recoverability
         {
             var orphanedBatches = await store.GetOrphanedBatches(RetrySessionId, cancellationToken);
 
-            logger.LogInformation("Found {OrphanedBatchCount} orphaned retry batches from previous sessions", orphanedBatches.Results.Count);
+            logger.LogInformation("Found {OrphanedBatchCount} orphaned retry batches from previous sessions", orphanedBatches.Batches.Count);
 
             // let's leave Task.Run for now due to sync sends
-            await Task.WhenAll(orphanedBatches.Results.Select(b => Task.Run(async () =>
+            await Task.WhenAll(orphanedBatches.Batches.Select(b => Task.Run(async () =>
             {
                 logger.LogInformation("Adopting retry batch {BatchId} with {BatchMessageCount} messages", b.Id, b.MessageCount);
                 await MoveBatchToStaging(b.Id, cancellationToken);
             })));
 
-            foreach (var batch in orphanedBatches.Results)
+            foreach (var batch in orphanedBatches.Batches)
             {
                 if (batch.RetryType != RetryType.MultipleMessages)
                 {
@@ -44,7 +44,7 @@ namespace ServiceControl.Recoverability
                 return false;
             }
 
-            return orphanedBatches.QueryStats.IsStale || orphanedBatches.Results.Any();
+            return orphanedBatches.MightBeIncomplete || orphanedBatches.Batches.Count > 0;
         }
 
         public virtual Task MoveBatchToStaging(string batchId, CancellationToken cancellationToken = default) => store.MoveBatchToStaging(batchId, cancellationToken);

@@ -85,17 +85,16 @@
             return batchId;
         }
 
-        public async Task<QueryResult<IList<Persistence.RetryBatch>>> GetOrphanedBatches(string retrySessionId, CancellationToken cancellationToken = default)
+        public async Task<OrphanedBatches> GetOrphanedBatches(string retrySessionId, CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var orphanedBatches = await session
                 .Query<RetryBatch, RetryBatches_ByStatusAndSession>()
-
                 .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != retrySessionId)
                 .Statistics(out var stats)
                 .ToListAsync(cancellationToken);
 
-            return orphanedBatches.Select(batch => batch.ToContract()).ToList().ToQueryResult(stats);
+            return new OrphanedBatches([.. orphanedBatches.Select(batch => batch.ToContract())], stats.IsStale);
         }
 
         public async Task<IList<RetryBatchGroup>> GetAvailableBatchGroups(CancellationToken cancellationToken = default)

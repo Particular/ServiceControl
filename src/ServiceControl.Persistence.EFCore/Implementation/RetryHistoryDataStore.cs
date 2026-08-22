@@ -4,11 +4,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
+using ServiceControl.Persistence.EFCore.Infrastructure;
+using ServiceControl.Persistence.Infrastructure;
 using ServiceControl.Recoverability;
 
 public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IRetryHistoryDataStore
 {
-    public Task<RetryHistory> GetRetryHistory(CancellationToken cancellationToken = default) =>
+    public Task<QueryResult<RetryHistory>> GetRetryHistory(CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (dbContext, token) =>
         {
             var historicOperations = await dbContext.HistoricRetryOperations
@@ -29,6 +31,10 @@ public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStor
 
             var unacknowledgedOperations = await dbContext.UnacknowledgedRetryOperations
                 .AsNoTracking()
+                // By the primary key, so the order is total. Without it the rows arrive in whatever order
+                // the server happens to produce, which leaves the body unstable under a stable validator.
+                .OrderBy(operation => operation.RequestId)
+                .ThenBy(operation => operation.RetryType)
                 .Select(operation => new UnacknowledgedRetryOperation
                 {
                     RequestId = operation.RequestId,
@@ -43,11 +49,13 @@ public class RetryHistoryDataStore(IServiceScopeFactory scopeFactory) : DataStor
                 })
                 .ToListAsync(token);
 
-            return new RetryHistory
+            var history = new RetryHistory
             {
                 HistoricOperations = historicOperations,
                 UnacknowledgedOperations = unacknowledgedOperations
             };
+
+            return new QueryResult<RetryHistory>(history, history.ToQueryStatsInfo());
         }, cancellationToken);
 
     public Task RecordRetryOperationCompleted(string requestId, RetryType retryType, DateTime startTime, DateTime completionTime,

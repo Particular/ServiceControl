@@ -89,7 +89,7 @@ class EventLogDataStoreEFTests : PersistenceTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(after.QueryStats.TotalCount, Is.EqualTo(2));
-            Assert.That(after.QueryStats.ETag, Is.Not.EqualTo(before.QueryStats.ETag), "a delete must invalidate the client's cached page");
+            Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False, "a delete must invalidate the client's cached page");
         }
     }
 
@@ -120,7 +120,7 @@ class EventLogDataStoreEFTests : PersistenceTestBase
         {
             Assert.That(after.QueryStats.TotalCount, Is.EqualTo(before.QueryStats.TotalCount), "the setup only bites while the count is unchanged");
             Assert.That(after.Results.Max(i => i.RaisedAt), Is.EqualTo(before.Results.Max(i => i.RaisedAt)), "and while the newest RaisedAt is unchanged");
-            Assert.That(after.QueryStats.ETag, Is.Not.EqualTo(before.QueryStats.ETag), "the page changed, so the validator must too");
+            Assert.That(after.QueryStats.Version.Matches(before.QueryStats.Version), Is.False, "the page changed, so the validator must too");
         }
     }
 
