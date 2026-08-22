@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServiceControl.Persistence.EFCore.PostgreSql;
@@ -12,9 +13,11 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    partial class PostgreSqlServiceControlDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260822095934_AddAuditIngestion")]
+    partial class AddAuditIngestion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -334,33 +337,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .IsDescending()
                         .HasDatabaseName("ix_event_log_items_raised_at_id");
 
-                    b.ToTable("event_log_items", (string)null);
-                });
-
-            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.ExternalIntegrationDispatchRequestEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("DispatchContextJson")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("dispatch_context_json");
-
-                    b.Property<string>("DispatchContextTypeName")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("dispatch_context_type_name");
-
-                    b.HasKey("Id")
-                        .HasName("pk_external_integration_dispatch_requests");
-
-                    b.ToTable("external_integration_dispatch_requests", (string)null);
+                    b.ToTable("EventLogItems", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedAuditImportEntity", b =>
@@ -509,7 +486,6 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnName("exception_type");
 
                     b.Property<string>("FailingEndpointAddress")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)")
                         .HasColumnName("failing_endpoint_address");
@@ -545,8 +521,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnName("message_id");
 
                     b.Property<string>("MessageType")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasColumnType("text")
                         .HasColumnName("message_type");
 
                     b.Property<int>("NumberOfProcessingAttempts")
@@ -612,16 +587,8 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.HasIndex("TimeSent")
                         .HasDatabaseName("ix_failed_messages_time_sent");
 
-                    b.HasIndex("Status", "LastTimeOfFailure")
-                        .HasDatabaseName("ix_failed_messages_status_last_time_of_failure");
-
-                    b.HasIndex("Status", "LastModified", "UniqueMessageId")
-                        .HasDatabaseName("ix_failed_messages_status_last_modified_unique_message_id");
-
-                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("Status", "LastModified", "UniqueMessageId"), new[] { "FirstTimeOfFailure", "LastTimeOfFailure" });
-
-                    b.HasIndex("Status", "MessageType", "UniqueMessageId")
-                        .HasDatabaseName("ix_failed_messages_status_message_type_unique_message_id");
+                    b.HasIndex("Status", "LastModified")
+                        .HasDatabaseName("ix_failed_messages_status_last_modified");
 
                     b.ToTable("failed_messages", (string)null);
                 });
@@ -656,8 +623,6 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 
                     b.HasIndex("Type", "GroupId")
                         .HasDatabaseName("ix_failed_message_groups_type_group_id");
-
-                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("Type", "GroupId"), new[] { "FailedMessageUniqueId", "Title" });
 
                     b.ToTable("failed_message_groups", (string)null);
                 });

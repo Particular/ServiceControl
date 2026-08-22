@@ -15,9 +15,22 @@ evidence base for partitioning, retention and full-text search. It is not the de
 standalone audit instance with its own database, its own `DbContext` and its own persistence
 contracts. Here the audit tables join the primary's model.
 
+## The governing trade
+
+Ingestion is the hot path and reads are not. Audit volume is orders of magnitude above error volume,
+every message is written once and read rarely, and a slow write path backs up onto the broker where a
+slow query only makes one person wait.
+
+So: nothing goes on the write path that can be moved off it, and where the two conflict the query pays.
+That is what settles the shape of most of this plan. No upsert, no conflict probe, no rollup table
+maintained at ingestion, no extra index that only a query wants, and a database generated id rather
+than one derived per message. The consequences are read side and accepted: duplicate rows on
+redelivery, and counts and unions computed at query time.
+
 ## Goals
 
-- Store audit messages, saga snapshots and failed audit imports in the primary database.
+- Store audit messages, saga snapshots and failed audit imports in the primary database, with the
+  cheapest write path that will do.
 - Serve the five `IMessagesViewDataStore` queries from a union of failed and audited messages.
 - Serve audit counts, saga history, and audit body resolution.
 - Keep the spike's PostgreSQL hourly range partitioning and its retention economics.
@@ -41,27 +54,30 @@ Settled by interview on 22 Aug 2026.
 | Partition creation | The retention sweeper alone creates partitions ahead. Ingestion-only workers never issue DDL. |
 | Audit body keys | `audit/{yyyy-MM-dd-HH}/{uniqueMessageId}`, with a new delete-by-prefix operation on `IBodyStoragePersistence`. |
 | Full-text search | Mirror the error side: index the audit table's own columns through the existing `IFullTextSearchDialect` seam. No `SearchableContent` column. |
-| Audit message identity | `created_on` is the ingestion hour. Primary key is `(created_on, id)` where `id` is the deterministic processing id, so a redelivery within the hour collapses. |
-| Saga snapshot identity | Sequential `id`, no dedupe. A redelivered saga audit message produces a second snapshot. |
+| Audit message identity | `created_on` is the ingestion hour. Primary key is `(created_on, id)` where `id` is a `bigint` identity. Rows are plain inserts and are not deduplicated. |
+| Saga snapshot identity | A `bigint` database identity, no dedupe. A redelivered saga audit message produces a second snapshot. |
 | Audit counts | Aggregate query over the audit table, served by an index on `(receiving_endpoint_name, created_on)`. No rollup table. |
 | `AuditRetentionPeriod` null | 7 days, matching SCMU and the Dockerfile. |
 | Retention ownership | Single owner via `RunRetentionSweep`, plus a session scoped advisory lock ported from the spike so two misconfigured primaries cannot sweep at once. |
 
-### Why the partition key is the ingestion hour
+### Why the partition key is the ingestion hour, and why rows are not deduplicated
 
 PostgreSQL requires every unique constraint on a partitioned table to include the partition key, so
-the row's identity and its partition are one decision.
+the row's identity and its partition are one decision. `created_on` is `UtcNow` truncated to the hour,
+as in the spike.
 
-`created_on` is `UtcNow` truncated to the hour, as in the spike. A redelivery of the same audit
-message within the hour collapses onto the same primary key. A redelivery that straddles an hour
-boundary produces a second row.
+The ingestion path is a plain multi-row `INSERT` with a database generated id. There is no upsert,
+which means a redelivered audit message produces a second row.
 
-The alternative, partitioning on the message's own processing time, dedupes reliably but lets a late
-or replayed message target a partition retention has already dropped. `--import-failed-audits`
-replays old messages by design, so that failure mode is reachable in normal operation. The bounded
-duplicate is the cheaper defect.
+This is a deliberate regression against the standalone RavenDB audit instance, which does deduplicate:
+`RavenAuditIngestionUnitOfWork` bulk inserts with the deterministic document id
+`ProcessedMessages-{ticks}-{ProcessingId()}`, so storing the same message twice overwrites. Keeping
+that would have meant an index probe per row on the hot path, on every message, to correct a case that
+only arises when a receive is not acknowledged. The spike also inserted plainly. The cost is that a
+redelivered message appears twice in ServicePulse.
 
-State this in the acceptance criteria rather than claiming exact-once.
+Because there is no conflict clause, the insert is identical on both providers apart from identifier
+quoting, so audit ingestion needs no provider specific dialect at all.
 
 ### Partition creation is a single point of failure, knowingly
 
@@ -106,7 +122,7 @@ Partitioned by range on `created_on` (PostgreSQL only).
 | Column | Notes |
 | --- | --- |
 | `created_on` | Ingestion time truncated to the hour. Partition key. |
-| `id` | Deterministic processing id: `DeterministicGuid.MakeId(messageId, processingEndpoint, processingStarted)`, or a fresh Guid when any of those headers is absent. |
+| `id` | A `bigint` identity. Part of the key only because PostgreSQL requires the partition key in every unique constraint, and `created_on` alone is not unique. Nothing reads it back. |
 | `unique_message_id` | `headers.UniqueId()`. Indexed. Joins an audit row to its failed counterpart and to its body. |
 | `message_id` | |
 | `message_type` | |
@@ -122,17 +138,30 @@ Partitioned by range on `created_on` (PostgreSQL only).
 | `body_text` | Inline body, or null. Produced by `MessageBodyClassifier`. |
 | `body_stored_externally` | |
 | `body_size`, `body_content_type` | |
-| `invoked_sagas_json`, `originates_from_saga_json` | `MessagesView` carries these and the enrichers already produce them. The spike dropped them, which would have regressed the message view. |
+
 
 Primary key `(created_on, id)`. Indexes on `(unique_message_id)`, `(receiving_endpoint_name, created_on)`,
 `(conversation_id)`, `(processed_at)`, and the full-text index.
+
+A column exists only where the read path filters, sorts, indexes or full-text searches on it.
+Everything else is projected from `headers_json`, the way `MessagesViewMapper` already derives
+`MessageIntent` and `BodyUrl` for failed messages. In particular `InvokedSagas` and
+`OriginatesFromSaga` get no columns: `InvokedSagasParser.Parse` is a pure function of headers and
+nothing queries them.
+
+The spike's column list is good evidence for the write path it load tested, and is followed closely
+here. It cannot answer read path questions, because its `EFAuditDataStore` returns an empty result
+for every query.
 
 ### SagaSnapshots
 
 Partitioned identically. Maps `ServiceControl.SagaAudit.SagaSnapshot`, which does not move.
 
 `SagaSnapshotFactory` never assigns an id and RavenDB supplies a document id, so there is no natural
-key to carry over. The id is sequential and snapshots are not deduplicated.
+key to carry over. The id is a database generated identity and snapshots are not deduplicated.
+Identity columns work on a partitioned table in PostgreSQL 16, verified directly, including inserts
+that span partitions and the `LIKE INCLUDING ALL` clone the migration uses. The write path never reads
+the value back, so letting the database generate it costs nothing.
 
 The consequence, accepted knowingly: a redelivered saga audit message adds a second snapshot, which
 appears as a duplicate step in the ServicePulse saga diagram. Deriving the id from the carrying
@@ -296,20 +325,16 @@ buffers into thread-safe collections, exactly as the recoverability child does. 
 audit rows inside the existing transaction, after the failed message upsert and before the commit,
 so a batch's audit rows and its known endpoints commit together.
 
-Inserts go through a new `IAuditIngestionSqlDialect`:
-
-- PostgreSQL: `INSERT ... ON CONFLICT (created_on, id) DO NOTHING`.
-- SQL Server: `MERGE ... WITH (HOLDLOCK) ... WHEN NOT MATCHED THEN INSERT`.
-
-`DO NOTHING` rather than an update: an audit row is immutable once written, and a redelivery carries
-identical content.
+Inserts are a plain parameterised multi-row `INSERT`, reusing the existing `ParameterRows` helper. No
+conflict clause, no provider specific dialect: with nothing to deduplicate the statement is the same
+on both providers apart from identifier quoting.
 
 External body writes are queued on the existing `RecordBodyWrite` path, so they complete before the
 rows that point at them.
 
 ## Scale-out and idempotency
 
-- Audit inserts are insert-if-missing on a deterministic key, so competing consumers converge.
+- Audit inserts are plain inserts with a database generated id, so competing consumers never collide.
 - Known endpoint upserts are unchanged and already safe.
 - Failed audit imports key on `FailedAuditImport.DeriveKey`, already shipped, so a poison message
   produces one row rather than one per attempt per worker.
@@ -317,24 +342,24 @@ rows that point at them.
 - Only the retention owner issues DDL or deletes, and the advisory lock holds that to one host even
   when two are configured to sweep.
 
-Two known gaps, stated rather than hidden:
-
-- A redelivery that crosses an hour boundary produces a second audit row.
-- A redelivered saga audit message always produces a second saga snapshot, because snapshots carry no
-  deduplication key.
+One known gap, stated rather than hidden: a redelivered audit message or saga audit message always
+produces a second row. Neither table deduplicates. RavenDB does, so this is a behaviour difference
+between the two audit persisters and not merely a scale-out caveat.
 
 ## PR sequence
 
-1. **Schema and migrations.** Entities, configurations, `DbContext` registration, per-provider
-   migrations including the partitioning and full-text SQL. No behaviour: nothing writes or reads yet,
-   and the manifests still say false.
+1. **Schema and migrations.** Entities, configurations, `DbContext` registration, and per-provider
+   migrations including the PostgreSQL partitioning DDL. No behaviour: nothing writes or reads yet,
+   and the manifests still say false. The full-text index is not here, see step 4.
 2. **Ingestion write path.** `IAuditIngestionSqlDialect`, `EFAuditIngestionUnitOfWork`, wiring
    `EFIngestionUnitOfWork.Audit`. Tested through the persistence test base.
 3. **Retention, partitions and locking.** `IAuditPartitionManager` and `IRetentionLock` per provider,
    the sweeper's audit pass, the body prefix delete on all three body stores, the lookahead custom
    check.
 4. **Queries.** The five message view unions, audit counts, saga history, and the third step of body
-   arbitration.
+   arbitration. The full-text index lands here rather than with the schema, because the indexed
+   expression and the query expression have to be written together or PostgreSQL silently downgrades
+   to a sequential scan, which is what the pinning test exists to catch.
 5. **Failed audit imports.** The store, and the `--import-failed-audits` round trip.
 6. **Turn it on.** Flip `SupportsAuditIngestion` in both manifests, update the approval test that
    asserts it is false, and delete `ServiceControl.Persistence.Tests.AuditCapable` along with the
@@ -353,9 +378,8 @@ leave `SupportsAuditIngestion` false so nothing activates early.
   hour gone, and rows in live partitions untouched.
 - Retention locking: a second sweeper against the same database skips its pass rather than failing,
   and a dropped lock connection frees the lock for the next sweep.
-- Redelivery of an audit message within an hour produces one row. Redelivery across an hour boundary
-  produces two, and a redelivered saga audit message always produces two. All three are asserted
-  rather than left to chance.
+- A redelivered audit message and a redelivered saga audit message each produce two rows. Asserted
+  rather than left to chance, because it differs from RavenDB.
 - The precedence, paging and counting rules from `IMessagesViewDataStore`, now against real SQL rather
   than the in-memory test persister.
 - The acceptance tests from the hosting plan keep running, and step 6 makes them run against a real
@@ -363,10 +387,14 @@ leave `SupportsAuditIngestion` false so nothing activates early.
 
 ## Open items
 
-1. What caps `GetAllMessagesByConversation` and saga history, and what the API returns when a cap is hit.
-2. Whether the audit path should raise the `EndpointDetected` domain event. Carried over from the
+1. What supplies the SQL Server full-text `KEY INDEX`. It must be a single column unique index, and
+   the audit primary key is the composite `(created_on, id)`. Options are a SQL Server only surrogate
+   identity column, or letting SQL Server key on `id` alone, which would dedupe across hour boundaries
+   and so behave better than PostgreSQL rather than the same. Needed for step 4, not step 1.
+2. What caps `GetAllMessagesByConversation` and saga history, and what the API returns when a cap is hit.
+3. Whether the audit path should raise the `EndpointDetected` domain event. Carried over from the
    hosting plan, still unanswered, and now cheap to settle because the write path is real.
-3. Whether `SagaUpdatedHandler` should hand the snapshot straight to the audit unit of work instead of
+4. Whether `SagaUpdatedHandler` should hand the snapshot straight to the audit unit of work instead of
    forwarding it to the audit queue. Also carried over.
-4. Whether the 48 hour partition lookahead and the 12 hour custom check threshold are the right
+5. Whether the 48 hour partition lookahead and the 12 hour custom check threshold are the right
    numbers, which is a question for whoever runs the load tests.
