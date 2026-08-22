@@ -27,7 +27,7 @@
             // An ingestion only host receives no heartbeats, so it has nothing to check and would
             // only report every endpoint as dead. It still warms the monitor, because the error
             // enricher asks it whether an endpoint is new before recording it.
-            if (settings.ErrorIngestionOnly)
+            if (settings.IngestionOnly)
             {
                 return;
             }

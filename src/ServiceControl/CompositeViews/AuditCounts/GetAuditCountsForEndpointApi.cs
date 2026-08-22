@@ -13,25 +13,18 @@
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    // The endpoint is included for consistency reasons but is actually not required here because the query
-    // is forwarded to the remote instance. But this at least enforces us to declare the controller action
-    // with the necessary parameter and not accessing the endpoint becomes an implementation details of the scatter
-    // gather approach here.
     public record AuditCountsForEndpointContext(PagingInfo PagingInfo, string Endpoint) : ScatterGatherContext(PagingInfo);
 
     public class GetAuditCountsForEndpointApi(
-        IMessagesViewDataStore dataStore,
+        IAuditCountsDataStore dataStore,
         Settings settings,
         IHttpClientFactory httpClientFactory,
         IHttpContextAccessor httpContextAccessor,
         ILogger<GetAuditCountsForEndpointApi> logger)
-        : ScatterGatherApi<IMessagesViewDataStore, AuditCountsForEndpointContext, IList<AuditCount>>(dataStore, settings, httpClientFactory, httpContextAccessor, logger)
+        : ScatterGatherApi<IAuditCountsDataStore, AuditCountsForEndpointContext, IList<AuditCount>>(dataStore, settings, httpClientFactory, httpContextAccessor, logger)
     {
-        static readonly IList<AuditCount> Empty = new List<AuditCount>(0).AsReadOnly();
-
         protected override Task<QueryResult<IList<AuditCount>>> LocalQuery(AuditCountsForEndpointContext input, CancellationToken cancellationToken = default) =>
-            // Will never be implemented on the primary instance
-            Task.FromResult(new QueryResult<IList<AuditCount>>(Empty, QueryStatsInfo.Zero));
+            DataStore.QueryAuditCounts(input.Endpoint, cancellationToken);
 
         protected override IList<AuditCount> ProcessResults(AuditCountsForEndpointContext input, QueryResult<IList<AuditCount>>[] results) =>
             results.SelectMany(r => r.Results)

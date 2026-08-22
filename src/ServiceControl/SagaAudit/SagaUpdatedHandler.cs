@@ -53,12 +53,12 @@
                 var connectionDetails = await connectionBuilder.BuildPlatformConnection(cancellationToken);
 
                 // First instance is named `SagaAudit`, following instance `SagaAudit1`..`SagaAuditN`
-                if (connectionDetails.ToDictionary().TryGetValue("SagaAudit", out var sagaAuditObj) && sagaAuditObj is JsonElement sagaAudit)
+                if (connectionDetails.ToDictionary().TryGetValue("SagaAudit", out var sagaAudit))
                 {
                     // Pick any audit queue, assume all instance are based on competing consumer
-                    auditQueueName = sagaAudit.GetProperty("SagaAuditQueue").GetString();
+                    auditQueueName = ReadSagaAuditQueue(sagaAudit);
                     nextAuditQueueNameRefresh = DateTime.UtcNow.AddMinutes(5);
-                    logger.LogInformation("Refreshed audit queue name '{AuditQueueName}' from ServiceControl Audit instance. Will continue to use this value for forwarding saga update messages for the next 5 minutes", auditQueueName);
+                    logger.LogInformation("Refreshed audit queue name '{AuditQueueName}'. Will continue to use this value for forwarding saga update messages for the next 5 minutes", auditQueueName);
                 }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -75,6 +75,15 @@
                 semaphore.Release();
             }
         }
+
+        // A remote instance's details arrive as parsed JSON, a local audit capable primary's as the
+        // object its provider added.
+        static string ReadSagaAuditQueue(object sagaAudit) => sagaAudit switch
+        {
+            JsonElement json => json.GetProperty("SagaAuditQueue").GetString(),
+            Auditing.AuditPlatformConnectionDetailsProvider.SagaAuditConnectionDetails local => local.SagaAuditQueue,
+            _ => null
+        };
 
         static string auditQueueName;
         static DateTime nextAuditQueueNameRefresh;

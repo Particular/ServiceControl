@@ -503,6 +503,7 @@
                 Func<string, Exception, CancellationToken, Task> onCriticalError = null,
                 NServiceBus.TransportTransactionMode preferredTransactionMode =
                     NServiceBus.TransportTransactionMode.ReceiveOnly,
+                int? maxConcurrency = null,
                 CancellationToken cancellationToken = default) => Task.FromResult(TransportInfrastructure);
             public void CustomizeAuditEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();
             public void CustomizeMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new NotImplementedException();

@@ -88,6 +88,7 @@
         public Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings,
             OnMessage onMessage = null, OnError onError = null, Func<string, Exception, CancellationToken, Task> onCriticalError = null,
             TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly,
+            int? maxConcurrency = null,
             CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
         public string ToTransportQualifiedQueueName(string queueName) => queueName;

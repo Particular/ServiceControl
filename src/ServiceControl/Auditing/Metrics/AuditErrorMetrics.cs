@@ -1,0 +1,22 @@
+namespace ServiceControl.Auditing.Metrics
+{
+    using System;
+    using System.Diagnostics.Metrics;
+    using NServiceBus.Transport;
+
+    public record AuditErrorMetrics(ErrorContext Context, Counter<long> Failures) : IDisposable
+    {
+        public void Dispose()
+        {
+            var tags = AuditIngestionMetrics.GetMessageTags(Context.Headers);
+
+            tags.Add("result", retry ? "retry" : "stored-poison");
+
+            Failures.Add(1, tags);
+        }
+
+        public void Retry() => retry = true;
+
+        bool retry;
+    }
+}

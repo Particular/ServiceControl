@@ -29,7 +29,7 @@
             hostBuilder.Services.AddEventLogMapping<CustomCheckFailedDefinition>();
             hostBuilder.Services.AddEventLogMapping<CustomCheckSucceededDefinition>();
 
-            if (!settings.ErrorIngestionOnly)
+            if (!settings.IngestionOnly)
             {
                 hostBuilder.Services.AddPlatformConnectionProvider<CustomChecksPlatformConnectionDetailsProvider>();
             }

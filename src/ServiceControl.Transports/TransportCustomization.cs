@@ -25,7 +25,12 @@ namespace ServiceControl.Transports
         Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues, CancellationToken cancellationToken = default);
         string ToTransportQualifiedQueueName(string queueName);
 
-        Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, CancellationToken, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Creates transport infrastructure for one receiver. <paramref name="maxConcurrency"/> overrides
+        /// the shared <see cref="TransportSettings.MaxConcurrency"/>, which a combined host cannot use for
+        /// every receiver because error and audit ingestion are scaled independently.
+        /// </summary>
+        Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, CancellationToken, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly, int? maxConcurrency = null, CancellationToken cancellationToken = default);
     }
 
     public abstract class TransportCustomization<TTransport> : ITransportCustomization where TTransport : TransportDefinition
@@ -159,7 +164,7 @@ namespace ServiceControl.Transports
             await transportInfrastructure.Shutdown(cancellationToken);
         }
 
-        public async Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, CancellationToken, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly, CancellationToken cancellationToken = default)
+        public async Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, CancellationToken, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly, int? maxConcurrency = null, CancellationToken cancellationToken = default)
         {
             var transport = CreateTransport(transportSettings, preferredTransactionMode);
 
@@ -190,13 +195,11 @@ namespace ServiceControl.Transports
 
             if (createReceiver)
             {
-                if (!transportSettings.MaxConcurrency.HasValue)
-                {
-                    throw new ArgumentException("MaxConcurrency is not set in TransportSettings");
-                }
+                var receiverConcurrency = maxConcurrency ?? transportSettings.MaxConcurrency
+                    ?? throw new ArgumentException("MaxConcurrency is not set in TransportSettings and no per receiver concurrency was supplied");
 
                 var transportInfrastructureReceiver = transportInfrastructure.Receivers[name];
-                await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency.Value), onMessage, onError, cancellationToken);
+                await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(receiverConcurrency), onMessage, onError, cancellationToken);
             }
 
             return transportInfrastructure;

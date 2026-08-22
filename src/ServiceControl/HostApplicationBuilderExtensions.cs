@@ -35,7 +35,7 @@ namespace Particular.ServiceControl
     {
         public static void AddServiceControl(this IHostApplicationBuilder hostBuilder, Settings settings, EndpointConfiguration configuration, params ReadOnlySpan<ServiceControlComponent> components)
         {
-            if (!settings.ErrorIngestionOnly)
+            if (!settings.IngestionOnly)
             {
                 ArgumentNullException.ThrowIfNull(configuration);
             }
@@ -95,7 +95,7 @@ namespace Particular.ServiceControl
             services.AddMetrics(settings.PrintMetrics);
             services.AddServiceControlHealthChecks();
 
-            if (settings.ErrorIngestionOnly)
+            if (settings.IngestionOnly)
             {
                 // Ingestion receives through its own transport infrastructure and forwards through
                 // that same infrastructure's dispatcher, so the endpoint is not hosted at all.
@@ -153,6 +153,7 @@ Audit Retention Period (optional):  {settings.AuditRetentionPeriod}
 Error Retention Period:             {settings.ErrorRetentionPeriod}
 Ingest Error Messages:              {settings.IngestErrorMessages}
 Error Ingestion Only:               {settings.ErrorIngestionOnly}
+Audit Ingestion Only:               {settings.AuditIngestionOnly}
 Forwarding Error Messages:          {settings.ForwardErrorMessages}
 ServiceControl Logging Level:       {settings.LoggingSettings.LogLevel}
 Selected Transport Customization:   {settings.TransportType}

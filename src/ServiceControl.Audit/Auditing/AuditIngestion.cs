@@ -138,7 +138,7 @@
                     errorHandlingPolicy.OnError,
                     OnCriticalError,
                     TransportTransactionMode.ReceiveOnly,
-                    cancellationToken
+                    cancellationToken: cancellationToken
                 );
 
                 messageReceiver = transportInfrastructure.Receivers[inputEndpoint];
