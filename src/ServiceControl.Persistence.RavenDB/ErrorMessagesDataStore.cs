@@ -506,7 +506,5 @@
         }
 
         record struct FailedMessageProjection(string UniqueMessageId);
-
-
     }
 }

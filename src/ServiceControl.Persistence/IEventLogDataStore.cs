@@ -8,11 +8,6 @@
 
     /// <summary>
     /// Stores and reads the event log.
-    /// <para>
-    /// Items are <b>subject to provider retention and disappear on their own</b>. Each persister
-    /// enforces this its own way and neither is visible here. RavenDB stamps per-document expiry
-    /// metadata when the item is written, EF Core deletes aged rows on a timer.
-    /// </para>
     /// </summary>
     public interface IEventLogDataStore
     {

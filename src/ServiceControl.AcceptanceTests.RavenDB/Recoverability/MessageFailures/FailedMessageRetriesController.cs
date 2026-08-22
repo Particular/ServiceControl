@@ -7,7 +7,6 @@
     using Persistence.Infrastructure;
     using Persistence.RavenDB;
     using Raven.Client.Documents;
-    using ServiceControl.Recoverability;
 
     public class FailedMessageRetriesCountReponse
     {

@@ -12,7 +12,6 @@ using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
-using ServiceControl.Persistence.UnitOfWork;
 
 abstract class ErrorIngestionTestBase : IngestionTestBase
 {

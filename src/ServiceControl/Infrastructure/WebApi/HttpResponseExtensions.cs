@@ -93,7 +93,8 @@ namespace ServiceControl.Infrastructure.WebApi
             response.WithEtag(queryStats.Version);
         }
 
-        public static void WithPagingLinksAndTotalCount(this HttpResponse response, PagingInfo pagingInfo, long totalCount, long? highestTotalCountOfAllInstances = null)
+        public static void WithPagingLinksAndTotalCount(this HttpResponse response,
+            PagingInfo pagingInfo, long totalCount, long? highestTotalCountOfAllInstances = null)
         {
             response.WithTotalCount(totalCount);
             response.WithPagingLinks(pagingInfo, highestTotalCountOfAllInstances ?? totalCount, totalCount);
