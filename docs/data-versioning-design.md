@@ -23,20 +23,21 @@ That scoping is what makes a backend's own token usable. RavenDB's result etag s
 | `FromToken(string)` / `FromToken(long)` | a token the backend already produces, such as a RavenDB index etag or document change vector    |
 | `Compose(terms)`                        | named terms over aggregates, where an aggregate provably moves with the fields it stands in for |
 | `OverRows(summary, rows, fields)`       | a list the response renders row by row: summary terms for the whole set, plus one term per row  |
+| `OverRows(summary, rows)`               | the same, for rows that declare their own fields by implementing `IVersionedRow`                |
 | `Combine(instances)`                    | one version for a result gathered from several instances                                        |
 | `FromClient(header)`                    | a validator a caller sent back, in any shape an old or current instance might emit              |
 
-`Compose` hashes its description through `DeterministicGuid.MakeId`, so the emitted tag is a GUID rather than the underlying values.
+`Compose` digests its terms and emits the result as a GUID, so the tag reveals nothing about the values behind it. The terms go into the hash one at a time rather than being joined into a string first, so the largest thing ever held in memory is a single row rather than the whole page.
 
-Term names and every field inside a row are **length prefixed**. Without that, free user text carrying a delimiter could make two different results digest identically: a failure group titled `x.y` with an empty `Type` would collide with one titled `x` whose `Type` is `y`. `Format` accepts strings, `bool`, `DateTime` and `DateTimeOffset` (both by ticks) and anything `IFormattable` under the invariant culture, and **throws** on anything else, because a type whose `ToString` is not a documented function of its content would pin the version silently.
+Every term's value, and every field inside a row, is **length prefixed**. Without that, free user text carrying a delimiter could make two different results digest identically: a failure group titled `x.y` with an empty `Type` would collide with one titled `x` whose `Type` is `y`. Term names are not prefixed, because they are literals in the code rather than anything a user can type. `Format` accepts strings, `bool`, `DateTime` and `DateTimeOffset` (both by ticks) and anything `IFormattable` under the invariant culture, and **throws** on anything else, because a type whose `ToString` is not a documented function of its content would pin the version silently.
 
 `OverRows` names rows by position, so a caller whose query has no `ORDER BY` has to sort them first or the validator churns.
 
 ## Absence
 
-`DataVersion.None` is `default`, and it **matches nothing, not even itself**. Two parties that both know nothing have not established that nothing changed, so an empty-string validator matching itself would answer `304` for every request.
+`DataVersion.None` is `default`, and it means there is no version to offer. Two parties that both know nothing have not established that nothing changed, so **absence must never answer `304`**: an empty validator that matched itself would serve a cached page for every request for ever.
 
-Absence propagates in the safe direction. `WithEtag` writes no header for `None`, so no header means no `If-None-Match`, which means the full body. `Combine` returns `None` as soon as any instance reports none, rather than quietly claiming to cover an instance it could not see.
+`Combine` returns `None` as soon as any instance reports none, rather than quietly claiming to cover an instance it could not see.
 
 ## Reaching the client
 
