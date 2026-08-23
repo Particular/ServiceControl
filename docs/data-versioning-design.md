@@ -37,7 +37,9 @@ Every term's value, and every field inside a row, is **length prefixed**. Withou
 
 `DataVersion.None` is `default`, and it means there is no version to offer. Two parties that both know nothing have not established that nothing changed, so **absence must never answer `304`**: an empty validator that matched itself would serve a cached page for every request for ever.
 
-`Combine` returns `None` as soon as any instance reports none, rather than quietly claiming to cover an instance it could not see.
+`None` means "no answer", not "no rows", and the difference matters. A query that found nothing still produces a real version, because a list always contributes a summary term and `Compose` over `[("messages", 0)]` is as good a validator as any other. So an empty page is cacheable, and a client watching something that stays empty gets its `304`. What produces `None` is a question that was never answered: a store that has no token of its own to offer, a remote instance that timed out or refused the call, a response whose `ETag` header was absent or unparseable.
+
+`Combine` returns `None` as soon as any instance reports none, and that is why: an instance reporting none is one whose data could not be seen at all, so no promise can be made about it. It is not an instance reporting that it is empty, which would come with a version like anything else.
 
 ## Reaching the client
 
@@ -49,4 +51,4 @@ Every term's value, and every field inside a row, is **length prefixed**. Withou
 
 Scatter-gather endpoints merge one version per instance through `Combine`. It is keyed on instance id and sorted ordinally, so the composite is independent of the order instances answered in but still moves if two instances swap which validator they report.
 
-An API whose own instance holds none of the data drops its own empty result before aggregating, via `AggregateStatsFromRemotesOnly`. Left in, its version-less placeholder would take the whole composite to `None` and the endpoint would emit no tag at all.
+An API whose own instance holds none of the data drops its own result before aggregating, via `AggregateStatsFromRemotesOnly`. That instance is not a source for the query and never ran one, so its placeholder is a non-participant rather than an instance that went quiet. Left in, it would take the composite to `None` on every request, and the endpoint would never emit a tag at all.

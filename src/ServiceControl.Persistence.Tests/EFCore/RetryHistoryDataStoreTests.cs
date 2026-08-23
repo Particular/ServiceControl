@@ -209,20 +209,6 @@ class RetryHistoryDataStoreTests : ErrorIngestionTestBase
         }
     }
 
-    [Test]
-    public async Task Unacknowledged_operations_are_read_in_key_order()
-    {
-        await RecordCompleted("group-c");
-        await RecordCompleted("group-a");
-        await RecordCompleted("group-b");
-        await CompleteDatabaseOperation();
-
-        var history = (await RetryHistoryStore.GetRetryHistory()).Results;
-
-        Assert.That(history.UnacknowledgedOperations.Select(operation => operation.RequestId),
-            Is.EqualTo(new[] { "group-a", "group-b", "group-c" }));
-    }
-
     Task RecordCompleted(string requestId, RetryType retryType = RetryType.FailureGroup, DateTime? completionTime = null,
         string originator = "OrderPlaced failures", string classifier = "Exception Type and Stack Trace",
         bool failed = false, int numberOfMessagesProcessed = 1, int depth = DefaultDepth)

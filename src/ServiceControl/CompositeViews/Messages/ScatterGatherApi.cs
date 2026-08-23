@@ -44,7 +44,6 @@ namespace ServiceControl.CompositeViews.Messages
         }
 
         protected TDataStore DataStore { get; }
-
         Settings Settings { get; }
         IHttpClientFactory HttpClientFactory { get; }
         IHttpContextAccessor HttpContextAccessor { get; }
@@ -102,9 +101,8 @@ namespace ServiceControl.CompositeViews.Messages
             Aggregate(results);
 
         /// <summary>
-        /// For an API whose own instance holds none of the data. Its local result carries no version, and
-        /// <see cref="DataVersion.Combine"/> reports <see cref="DataVersion.None"/> as soon as one result
-        /// is missing one, which would leave every response with no ETag at all.
+        /// For an API whose own instance is not a source for the data: its local result is a non-participant
+        /// that was never queried, not an instance whose silence should take the composite to <see cref="DataVersion.None"/>.
         /// </summary>
         protected static QueryStatsInfo AggregateStatsFromRemotesOnly(IEnumerable<QueryResult<TOut>> results) =>
             Aggregate(results.Where(result => !result.IsLocalInstance));
