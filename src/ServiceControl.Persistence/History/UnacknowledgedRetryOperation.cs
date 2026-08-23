@@ -2,8 +2,9 @@
 {
     using System;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Infrastructure;
 
-    public class UnacknowledgedRetryOperation
+    public class UnacknowledgedRetryOperation : IVersionedRow
     {
         public required string RequestId { get; set; }
         public RetryType RetryType { get; set; }
@@ -14,5 +15,7 @@
         public string? Classifier { get; set; }
         public bool Failed { get; set; }
         public int NumberOfMessagesProcessed { get; set; }
+        object?[] IVersionedRow.VersionFields =>
+            [RequestId, RetryType, StartTime, CompletionTime, Last, Originator, Classifier, Failed, NumberOfMessagesProcessed];
     }
 }

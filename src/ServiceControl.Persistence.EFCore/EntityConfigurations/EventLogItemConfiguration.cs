@@ -18,9 +18,6 @@ class EventLogItemConfiguration : IEntityTypeConfiguration<EventLogItemEntity>
         builder.Property(e => e.RelatedTo).IsRequired();
         builder.Property(e => e.Category).IsRequired().HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.EventType).IsRequired().HasMaxLength(ColumnLengths.ShortTextLength);
-        // Every read is "order by RaisedAt descending" plus paging. The key is included as a
-        // tiebreaker so that items sharing a RaisedAt do not shuffle between pages, and so that
-        // MAX(RaisedAt) for the ETag is an index seek.
         builder.HasIndex(e => new { e.RaisedAt, e.Id }).IsDescending();
     }
 }

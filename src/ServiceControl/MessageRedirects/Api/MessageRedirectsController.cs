@@ -171,7 +171,7 @@
         {
             var redirects = await store.GetRedirects(cancellationToken);
 
-            Response.WithEtag(ResponseVersions.VersionOf(redirects, redirects.Count));
+            Response.WithEtag(DataVersion.OverRows([("redirects", redirects.Count)], redirects));
             Response.WithTotalCount(redirects.Count);
         }
 
@@ -187,7 +187,7 @@
                 .Paging(pagingInfo)
                 .ToList();
 
-            Response.WithQueryStatsAndPagingInfo(new QueryStatsInfo(ResponseVersions.VersionOf(page, redirects.Count), redirects.Count), pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(new QueryStatsInfo(DataVersion.OverRows([("redirects", redirects.Count)], page), redirects.Count), pagingInfo);
 
             return page.Select(r => new RedirectsQueryResult
             (

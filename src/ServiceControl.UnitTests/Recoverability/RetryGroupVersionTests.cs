@@ -260,6 +260,6 @@ namespace ServiceControl.UnitTests.Operations
         }
 
         static DataVersion VersionOf(IReadOnlyList<GroupOperation> groups) =>
-            ResponseVersions.VersionOf(groups, groups.Count);
+            groups.ToQueryStatsInfo("groups", groups.Count).Version;
     }
 }

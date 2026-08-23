@@ -1,8 +1,11 @@
 ﻿namespace ServiceControl.MessageFailures
 {
-    public class QueueAddress
+    using Persistence.Infrastructure;
+
+    public class QueueAddress : IVersionedRow
     {
         public string? PhysicalAddress { get; set; }
         public int FailedMessageCount { get; set; }
+        object?[] IVersionedRow.VersionFields => [PhysicalAddress, FailedMessageCount];
     }
 }

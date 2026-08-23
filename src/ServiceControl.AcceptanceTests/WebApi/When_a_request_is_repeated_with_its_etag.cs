@@ -11,9 +11,30 @@ namespace ServiceControl.AcceptanceTests.WebApi
     class When_a_request_is_repeated_with_its_etag : AcceptanceTest
     {
         [TestCase("/api/customchecks", "GET")]
+        [TestCase("/api/eventlogitems", "GET")]
         [TestCase("/api/redirects", "GET")]
         [TestCase("/api/redirect", "HEAD")]
         [TestCase("/api/errors/queues/addresses", "GET")]
+        [TestCase("/api/errors", "GET")]
+        [TestCase("/api/errors", "HEAD")]
+        [TestCase("/api/messages", "GET")]
+        [TestCase("/api/messages/search?q=anything", "GET")]
+        [TestCase("/api/messages/search/anything", "GET")]
+        [TestCase("/api/messages2?page_size=10", "GET")]
+        [TestCase("/api/endpoints/no-such-endpoint/messages", "GET")]
+        [TestCase("/api/endpoints/no-such-endpoint/errors", "GET")]
+        [TestCase("/api/endpoints/no-such-endpoint/messages/search?q=anything", "GET")]
+        [TestCase("/api/endpoints/no-such-endpoint/messages/search/anything", "GET")]
+        [TestCase("/api/errors/groups", "GET")]
+        [TestCase("/api/endpoints", "GET")]
+        [TestCase("/api/heartbeats/stats", "GET")]
+        [TestCase("/api/recoverability/classifiers", "GET")]
+        [TestCase("/api/recoverability/groups", "GET")]
+        [TestCase("/api/recoverability/history", "GET")]
+        // A group that does not exist still answers, with an empty page and a validator of its own.
+        [TestCase("/api/recoverability/groups/no-such-group/errors", "GET")]
+        [TestCase("/api/recoverability/groups/no-such-group/errors", "HEAD")]
+        [TestCase("/api/conversations/no-such-conversation", "GET")]
         public async Task Should_answer_not_modified(string url, string method)
         {
             Answer issued = null;

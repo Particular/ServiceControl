@@ -85,7 +85,7 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
 
         var totalCount = await query.CountAsync(token);
 
-        return new QueryResult<IList<CustomCheck>>(checks, checks.ToQueryStatsInfo(totalCount));
+        return new QueryResult<IList<CustomCheck>>(checks, checks.ToQueryStatsInfo("checks", totalCount));
     }, cancellationToken);
 
     public Task DeleteCustomCheck(Guid id, CancellationToken cancellationToken = default) => ExecuteWithDbContext(async (context, token) => await context.CustomChecks.AsNoTracking().Where(cc => cc.Id == id).ExecuteDeleteAsync(token), cancellationToken);

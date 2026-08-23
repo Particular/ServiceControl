@@ -49,7 +49,7 @@ namespace ServiceControl.MessageFailures.Api
         {
             var result = await dataStore.GetArchivedGroupsByClassifier(classifier, cancellationToken);
 
-            Response.WithEtag(result.QueryStats.Version);
+            Response.WithQueryStatsInfo(result.QueryStats);
 
             return Ok(result.Results);
         }

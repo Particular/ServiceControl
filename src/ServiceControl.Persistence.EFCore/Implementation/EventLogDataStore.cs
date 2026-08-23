@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.EventLog;
 using ServiceControl.Persistence.Infrastructure;
 using ServiceControl.Persistence.EFCore.Entities;
-using ServiceControl.Persistence.EFCore.Infrastructure;
 
 public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IEventLogDataStore
 {
@@ -32,8 +31,6 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
             var query = dbContext.EventLogItems.AsNoTracking();
 
             var items = await query
-                // The key breaks ties so that items sharing a RaisedAt cannot shuffle between
-                // pages. IX_EventLogItems_RaisedAt_Id is declared in exactly this order.
                 .OrderByDescending(e => e.RaisedAt)
                 .ThenByDescending(e => e.Id)
                 .Skip(pagingInfo.Offset)
@@ -52,6 +49,6 @@ public class EventLogDataStore(IServiceScopeFactory scopeFactory) : DataStoreBas
 
             var total = await query.LongCountAsync(token);
 
-            return new QueryResult<IList<EventLogItemView>>(items, items.ToQueryStatsInfo(total));
+            return new QueryResult<IList<EventLogItemView>>(items, items.ToQueryStatsInfo("items", total));
         }, cancellationToken);
 }

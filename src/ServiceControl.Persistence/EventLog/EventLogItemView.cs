@@ -2,11 +2,12 @@ namespace ServiceControl.EventLog
 {
     using System;
     using System.Collections.Generic;
+    using Persistence.Infrastructure;
 
     /// <summary>
     /// One event log item as read back and returned by the API.
     /// </summary>
-    public class EventLogItemView
+    public class EventLogItemView : IVersionedRow
     {
         /// <summary>
         /// Assigned by whichever persister stored the item, and opaque.
@@ -18,5 +19,7 @@ namespace ServiceControl.EventLog
         public List<string> RelatedTo { get; set; } = [];
         public required string Category { get; set; }
         public required string EventType { get; set; }
+        object?[] IVersionedRow.VersionFields =>
+            [Id, Description, Severity, RaisedAt, Category, EventType, .. RelatedTo];
     }
 }

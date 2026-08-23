@@ -36,7 +36,7 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
 
             var views = await MostRecent(groups.AggregateGroups(WithStatus(dbContext, FailedMessageStatus.Archived)), token);
 
-            return new QueryResult<IList<FailureGroupView>>(views, views.ToQueryStatsInfo());
+            return new QueryResult<IList<FailureGroupView>>(views, views.ToQueryStatsInfo("groups", views.Count));
         }, cancellationToken);
 
     public Task<QueryResult<FailureGroupView>> GetUnresolvedGroup(string groupId, string? status, string? modified, CancellationToken cancellationToken = default) =>
@@ -92,7 +92,7 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
             .ToListAsync(cancellationToken);
 
         return new QueryResult<FailureGroupView>(groups.FirstOrDefault()!,
-            groups.ToQueryStatsInfo());
+            groups.ToQueryStatsInfo("groups", groups.Count));
     }
 
     static IQueryable<FailedMessageEntity> WithStatus(ServiceControlDbContext dbContext, FailedMessageStatus status) =>

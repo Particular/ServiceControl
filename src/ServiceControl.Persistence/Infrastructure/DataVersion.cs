@@ -6,6 +6,8 @@ namespace ServiceControl.Persistence.Infrastructure
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Linq;
+    using System.Security.Cryptography;
+    using System.Text;
 
     /// <summary>
     /// An opaque version of a query result, sent to clients as an HTTP entity-tag.
@@ -19,6 +21,9 @@ namespace ServiceControl.Persistence.Infrastructure
 
         public static readonly DataVersion None = default;
 
+        static readonly byte[] Separator = "|"u8.ToArray();
+        static readonly byte[] Colon = ":"u8.ToArray();
+
         [MemberNotNullWhen(true, nameof(validator))]
         public bool HasValue => validator is not null;
 
@@ -31,13 +36,12 @@ namespace ServiceControl.Persistence.Infrastructure
 
         /// <summary>
         /// A version over the query behind the page. Every field the response shows has to be covered by a
-        /// term, measured over the same filtered set, or a change to an uncovered one leaves a client holding
-        /// a stale page.
+        /// term.
         /// </summary>
         public static DataVersion Compose(params (string Name, object? Value)[]? terms) =>
             terms is null || terms.Length == 0
                 ? None
-                : new DataVersion(DeterministicGuid.MakeId(Describe(terms)).ToString());
+                : new DataVersion(Digest(terms).ToString());
 
         /// <summary>
         /// A version over a list the response renders row by row. <paramref name="summary"/> covers whatever
@@ -62,6 +66,10 @@ namespace ServiceControl.Persistence.Infrastructure
 
             return Compose([.. terms]);
         }
+
+        public static DataVersion OverRows<TRow>((string Name, object? Value)[]? summary, IEnumerable<TRow> rows)
+            where TRow : IVersionedRow =>
+            OverRows(summary, rows, row => row.VersionFields);
 
         /// <summary>
         /// One version for a result gathered from several instances. Missing anywhere means missing overall.
@@ -133,10 +141,32 @@ namespace ServiceControl.Persistence.Infrastructure
         /// <summary>The validator unquoted, or an empty string for <see cref="None"/>.</summary>
         public override string ToString() => validator ?? string.Empty;
 
-        static string Describe((string Name, object? Value)[] terms) =>
-            string.Join("|", terms.Select(term => Encode(term.Name, Format(term.Value))));
+        // Hashed a term at a time, so nothing the size of the whole response is ever held at once: the
+        // peak is the largest single row rather than the page. These bytes are the wire format.
+        static Guid Digest((string Name, object? Value)[] terms)
+        {
+            using var digest = IncrementalHash.CreateHash(HashAlgorithmName.MD5);
 
-        static string Encode(string name, string value) => $"{name}:{Prefixed(value)}";
+            for (var index = 0; index < terms.Length; index++)
+            {
+                if (index > 0)
+                {
+                    digest.AppendData(Separator);
+                }
+
+                var value = Format(terms[index].Value);
+
+                Append(digest, terms[index].Name);
+                digest.AppendData(Colon);
+                Append(digest, value.Length.ToString(CultureInfo.InvariantCulture));
+                digest.AppendData(Colon);
+                Append(digest, value);
+            }
+
+            return new Guid(digest.GetHashAndReset());
+        }
+
+        static void Append(IncrementalHash digest, string text) => digest.AppendData(Encoding.UTF8.GetBytes(text));
 
         static string Row(object?[]? fields) =>
             fields is null ? string.Empty : string.Concat(fields.Select(field => Prefixed(Format(field))));

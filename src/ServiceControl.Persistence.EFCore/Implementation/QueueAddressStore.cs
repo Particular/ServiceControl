@@ -23,6 +23,6 @@ public class QueueAddressStore(IServiceScopeFactory scopeFactory) : DataStoreBas
             var items = await query.Skip(pagingInfo.Offset).Take(pagingInfo.PageSize).ToListAsync(token);
             var addressCount = await query.CountAsync(token);
 
-            return new QueryResult<IList<QueueAddress>>(items, items.ToQueryStatsInfo(addressCount));
+            return new QueryResult<IList<QueueAddress>>(items, items.ToQueryStatsInfo("addresses", addressCount));
         }, cancellationToken);
 }

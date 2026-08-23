@@ -67,7 +67,7 @@ namespace ServiceControl.UnitTests.Operations
         }
 
         static DataVersion VersionOf(IReadOnlyList<MessageRedirect> redirects) =>
-            ResponseVersions.VersionOf(redirects, redirects.Count);
+            redirects.ToQueryStatsInfo("redirects", redirects.Count).Version;
 
         static IReadOnlyList<MessageRedirect> Redirects(params MessageRedirect[] redirects) => redirects;
 

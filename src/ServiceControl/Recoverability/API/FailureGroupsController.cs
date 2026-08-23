@@ -31,7 +31,8 @@
                 .OrderByDescending(classifier => classifier == "Exception Type and Stack Trace")
                 .ToArray();
 
-            Response.WithTotalCount(result.Length);
+            Response.WithQueryStatsInfo(new QueryStatsInfo(
+                DataVersion.OverRows([("classifiers", result.Length)], result, name => [name]), result.Length));
 
             return result;
         }
@@ -67,7 +68,7 @@
             }
 
             var results = await fetcher.GetGroups(classifier, classifierFilter, cancellationToken);
-            Response.WithEtag(ResponseVersions.VersionOf(results, results.Length));
+            Response.WithQueryStatsInfo(results.ToQueryStatsInfo("groups", results.Length));
             return results;
         }
 
@@ -100,7 +101,7 @@
         {
             var retryHistory = await retryStore.GetRetryHistory(cancellationToken);
 
-            Response.WithEtag(retryHistory.QueryStats.Version);
+            Response.WithQueryStatsInfo(retryHistory.QueryStats);
 
             return retryHistory.Results;
         }

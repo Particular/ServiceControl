@@ -27,12 +27,28 @@
         [Authorize(Policy = Permissions.ErrorHeartbeatsView)]
         [Route("heartbeats/stats")]
         [HttpGet]
-        public EndpointMonitoringStats HeartbeatStats() => monitoring.GetStats();
+        public EndpointMonitoringStats HeartbeatStats()
+        {
+            var stats = monitoring.GetStats();
+
+            Response.WithQueryStatsInfo(new QueryStatsInfo(
+                DataVersion.Compose([("active", stats.Active), ("failing", stats.Failing)]),
+                stats.Active + stats.Failing));
+
+            return stats;
+        }
 
         [Authorize(Policy = Permissions.ErrorEndpointsView)]
         [Route("endpoints")]
         [HttpGet]
-        public EndpointsView[] Endpoints() => monitoring.GetEndpoints();
+        public EndpointsView[] Endpoints()
+        {
+            var endpoints = monitoring.GetEndpoints();
+
+            Response.WithQueryStatsInfo(endpoints.ToQueryStatsInfo("endpoints", endpoints.Length));
+
+            return endpoints;
+        }
 
         // Added as a way for SP to check if operations are supported by the SC API
         // Needs to be anonymous to allow preflight OPTIONS requests from browsers

@@ -35,7 +35,8 @@ namespace ServiceControl.Infrastructure.WebApi
 
         public static void WithPagingLinks(this HttpResponse response, PagingInfo pageInfo, long highestTotalCountOfAllInstances, long totalResults)
         {
-            if (totalResults <= PagingInfo.DefaultPageSize)
+            // The size asked for, not the default
+            if (totalResults <= pageInfo.PageSize)
             {
                 return;
             }

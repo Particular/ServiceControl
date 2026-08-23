@@ -269,4 +269,19 @@ public class DataVersionTests
         Assert.That(DataVersion.FromClient("\"abc").ToString(), Is.EqualTo("\"abc"));
     }
 
+
+    [Test]
+    public void The_tag_for_a_known_term_does_not_move()
+    {
+        Assert.That(DataVersion.Compose([("total", 2L)]).ToString(), Is.EqualTo("f9a81beb-bf45-49cd-5e8c-468453f2c2f8"));
+    }
+
+    [Test]
+    public void The_tag_for_a_known_page_does_not_move()
+    {
+        Assert.That(Page(("a", Noon, "Unresolved"), ("b", Noon, "Archived")).ToString(),
+            Is.EqualTo("e8be8f59-107e-568e-6925-10cf61541b5c"));
+    }
+
+    static readonly DateTime Noon = new(2026, 8, 1, 12, 0, 0, DateTimeKind.Utc);
 }
