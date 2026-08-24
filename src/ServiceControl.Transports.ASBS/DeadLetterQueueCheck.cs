@@ -3,7 +3,6 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.Messaging.ServiceBus.Administration;
     using Microsoft.Extensions.Logging;
     using NServiceBus.CustomChecks;
 
@@ -18,9 +17,9 @@
             logger.LogDebug("Azure Service Bus Dead Letter Queue custom check starting");
 
             this.logger = logger;
-            connectionString = settings.ConnectionString;
             stagingQueue = $"{settings.EndpointName}.staging";
             runCheck = settings.RunCustomChecks;
+            authenticationMethod = ConnectionStringParser.Parse(settings.ConnectionString).AuthenticationMethod;
         }
 
         public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
@@ -31,7 +30,7 @@
             }
 
             logger.LogDebug("Checking Dead Letter Queue length");
-            var managementClient = new ServiceBusAdministrationClient(connectionString);
+            var managementClient = authenticationMethod.BuildManagementClient();
 
             var queueRuntimeInfo = await managementClient.GetQueueRuntimePropertiesAsync(stagingQueue, cancellationToken);
             var deadLetterMessageCount = queueRuntimeInfo.Value.DeadLetterMessageCount;
@@ -47,9 +46,9 @@
             return CheckResult.Pass;
         }
 
-        readonly string connectionString;
         readonly string stagingQueue;
         readonly bool runCheck;
+        readonly AuthenticationMethod authenticationMethod;
         readonly ILogger<DeadLetterQueueCheck> logger;
     }
 }
