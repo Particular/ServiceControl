@@ -22,6 +22,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.Data.SqlClient.Extensions.Azure" Version="7.0.2" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="$(RuntimeFrameworkVersion)" />
@@ -98,6 +99,7 @@
   </ItemGroup>
   <ItemGroup Label="Versions to pin transitive references">
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(RuntimeFrameworkVersion)" />
+    <PackageVersion Include="Microsoft.Identity.Client" Version="4.84.2" />
     <PackageVersion Include="Microsoft.IdentityModel.Abstractions" Version="8.19.2" />
     <PackageVersion Include="System.Formats.Cbor" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.IO.Hashing" Version="$(RuntimeFrameworkVersion)" />
