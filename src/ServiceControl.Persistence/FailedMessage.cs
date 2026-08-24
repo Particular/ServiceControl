@@ -31,7 +31,7 @@
             }
 
             public Dictionary<string, object> MessageMetadata { get; set; }
-            public FailureDetails FailureDetails { get; set; } = new();
+            public FailureDetails FailureDetails { get; set; } = new() { AddressOfFailingEndpoint = string.Empty };
             public DateTime AttemptedAt { get; set; }
             public string? MessageId { get; set; }
             public string? Body { get; set; }

@@ -133,6 +133,7 @@ at NServiceBus.SagaPersistenceBehavior.Invoke(IInvokeHandlerContext context, Fun
         {
             var failure = new FailureDetails
             {
+                AddressOfFailingEndpoint = "TestEndpoint",
                 Exception = new ExceptionDetails
                 {
                     StackTrace = stackTrace,
@@ -146,6 +147,7 @@ at NServiceBus.SagaPersistenceBehavior.Invoke(IInvokeHandlerContext context, Fun
         {
             var failure = new FailureDetails
             {
+                AddressOfFailingEndpoint = "TestEndpoint",
                 Exception = new ExceptionDetails
                 {
                     StackTrace = "Stack trace",

@@ -56,5 +56,5 @@ public class FailedMessageEntity
 
     public string? BodyContentType { get; set; }
 
-    public string FailingEndpointAddress { get; set; } = string.Empty;
+    public required string FailingEndpointAddress { get; set; }
 }
