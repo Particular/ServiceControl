@@ -13,6 +13,8 @@ public class PersistenceTestsContext : IPersistenceTestsContext
     public Task InsertFailedMessages(params FailedMessage[] messages) => throw new System.NotImplementedException();
     public void AdvanceClock(System.TimeSpan by) => throw new System.NotImplementedException();
 
+    public System.DateTime UtcNow => throw new System.NotImplementedException();
+
     public Task Setup(IHostApplicationBuilder hostBuilder)
     {
         hostBuilder.Services.AddLicensingInMemoryPersistence();

@@ -21,6 +21,11 @@ public interface IPersistenceTestsContext
     /// </summary>
     void AdvanceClock(TimeSpan by);
 
+    /// <summary>
+    /// Reads the same clock <see cref="AdvanceClock" /> moves
+    /// </summary>
+    DateTime UtcNow { get; }
+
     PersistenceSettings PersistenceSettings { get; }
 
     string GenerateFailedMessageRecordId(string messageId);

@@ -18,8 +18,6 @@ class EditFailedMessagesDataStoreRetentionTests : ErrorIngestionTestBase
 {
     IEditFailedMessagesDataStore EditStore => ServiceProvider.GetRequiredService<IEditFailedMessagesDataStore>();
 
-    DateTime Now => PersistenceTestsContext.FakeTime.GetUtcNow().UtcDateTime;
-
     [Test]
     public async Task TryBeginEdit_stamps_StatusChangedAt_and_LastModified()
     {

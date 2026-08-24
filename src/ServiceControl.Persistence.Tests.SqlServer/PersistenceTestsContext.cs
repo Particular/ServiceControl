@@ -22,6 +22,8 @@ public partial class PersistenceTestsContext : IPersistenceTestsContext
 
     public void AdvanceClock(TimeSpan by) => FakeTime.Advance(by);
 
+    public DateTime UtcNow => FakeTime.GetUtcNow().UtcDateTime;
+
     public async Task Setup(IHostApplicationBuilder hostBuilder)
     {
         databaseName = $"sc_test_{Guid.NewGuid():n}";

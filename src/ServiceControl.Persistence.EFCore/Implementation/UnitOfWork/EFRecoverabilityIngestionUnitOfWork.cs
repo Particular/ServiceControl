@@ -61,9 +61,9 @@ public class EFRecoverabilityIngestionUnitOfWork(EFIngestionUnitOfWork parentUni
         return Task.CompletedTask;
     }
 
-    public Task RecordSuccessfulRetry(string retriedMessageUniqueId, CancellationToken cancellationToken = default)
+    public Task RecordSuccessfulRetry(string retriedMessageUniqueId, DateTime succeededAt, CancellationToken cancellationToken = default)
     {
-        parentUnitOfWork.RecordConfirmedRetry(Guid.Parse(retriedMessageUniqueId));
+        parentUnitOfWork.RecordConfirmedRetry(new ConfirmedRetry(Guid.Parse(retriedMessageUniqueId), succeededAt));
 
         return Task.CompletedTask;
     }

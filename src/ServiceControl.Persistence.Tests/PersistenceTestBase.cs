@@ -85,6 +85,8 @@ public abstract class PersistenceTestBase
 
     protected void AdvanceClock(TimeSpan by) => PersistenceTestsContext.AdvanceClock(by);
 
+    protected DateTime Now => PersistenceTestsContext.UtcNow;
+
     protected static async Task WaitUntil(Func<Task<bool>> conditionChecker, string condition, TimeSpan timeout = default)
     {
         timeout = timeout == default ? TimeSpan.FromSeconds(10) : timeout;

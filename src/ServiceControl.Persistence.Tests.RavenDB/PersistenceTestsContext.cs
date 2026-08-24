@@ -87,6 +87,8 @@ public class PersistenceTestsContext : IPersistenceTestsContext
     {
     }
 
+    public DateTime UtcNow => DateTime.UtcNow;
+
     public Task CompleteDatabaseOperation()
     {
         DocumentStore.WaitForIndexing();

@@ -63,6 +63,36 @@ class PostgreSqlFailedMessageIngestionSqlDialect : PostgreSqlDialect, IFailedMes
         }
     }
 
+    public async Task ResolveRetriedMessages(ServiceControlDbContext dbContext, IReadOnlyList<ConfirmedRetry> rows, DateTime now, CancellationToken cancellationToken = default)
+    {
+        const int resolved = (int)FailedMessageStatus.Resolved;
+
+        foreach (var chunk in rows.Chunk(MaxRowsPerStatement))
+        {
+            await Execute(
+                dbContext,
+                $"""
+                 UPDATE failed_messages SET
+                     status = {resolved},
+                     status_changed_at = @p0,
+                     last_modified = @p0
+                 FROM (VALUES
+                 {ConfirmedRetryRows(chunk.Length)}
+                 ) AS s (unique_message_id, succeeded_at)
+                 WHERE failed_messages.unique_message_id = s.unique_message_id
+                   AND failed_messages.last_attempted_at <= s.succeeded_at
+                 """,
+                [[now], .. chunk.Select(retry => new object?[] { retry.UniqueMessageId, retry.SucceededAt })],
+                cancellationToken);
+        }
+    }
+
+    // A bare VALUES list has no target column to take its types from, so the first row carries them.
+    static string ConfirmedRetryRows(int rowCount) =>
+        string.Join(",\n", Enumerable.Range(0, rowCount).Select(row => row == 0
+            ? "(@p1::uuid, @p2::timestamptz)"
+            : $"(@p{1 + (row * 2)}, @p{2 + (row * 2)})"));
+
     // The columns the newer attempt wins wholesale
     static readonly string[] PayloadColumns =
     [
@@ -96,6 +126,11 @@ class PostgreSqlFailedMessageIngestionSqlDialect : PostgreSqlDialect, IFailedMes
 
     static readonly string OnConflictUpdate = BuildOnConflictUpdate();
 
+    // Strictly newer, where the payload columns take the incoming attempt on a tie as well. A
+    // redelivery of the attempt already stored is not news, and must not undo a resolve or an
+    // archive that happened after it.
+    const string IsNewerAttempt = "excluded.last_attempted_at > failed_messages.last_attempted_at";
+
     static string BuildOnConflictUpdate()
     {
         const int unresolved = (int)FailedMessageStatus.Unresolved;
@@ -103,8 +138,8 @@ class PostgreSqlFailedMessageIngestionSqlDialect : PostgreSqlDialect, IFailedMes
         var sql = new StringBuilder(
             $"""
              ON CONFLICT (unique_message_id) DO UPDATE SET
-                 status = {unresolved},
-                 status_changed_at = CASE WHEN failed_messages.status <> {unresolved} THEN excluded.status_changed_at ELSE failed_messages.status_changed_at END,
+                 status = CASE WHEN {IsNewerAttempt} THEN {unresolved} ELSE failed_messages.status END,
+                 status_changed_at = CASE WHEN {IsNewerAttempt} AND failed_messages.status <> {unresolved} THEN excluded.status_changed_at ELSE failed_messages.status_changed_at END,
                  last_modified = excluded.last_modified,
                  number_of_processing_attempts = failed_messages.number_of_processing_attempts
                      + CASE WHEN excluded.last_attempted_at <> failed_messages.last_attempted_at THEN excluded.number_of_processing_attempts ELSE 0 END,
