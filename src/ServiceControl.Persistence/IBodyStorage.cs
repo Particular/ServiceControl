@@ -4,6 +4,7 @@
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
+    using ServiceControl.Persistence.Infrastructure;
 
     public interface IBodyStorage
     {
@@ -47,5 +48,5 @@
         MessageBodyStreamContent? ContentValue { get; }
     }
 
-    public sealed record MessageBodyStreamContent(Stream Stream, string ContentType, int BodySize, string Etag);
+    public sealed record MessageBodyStreamContent(Stream Stream, string ContentType, int BodySize, DataVersion Version);
 }

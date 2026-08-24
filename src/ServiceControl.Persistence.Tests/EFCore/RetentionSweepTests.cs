@@ -250,7 +250,7 @@ class RetentionSweepTests : ErrorIngestionTestBase
         await Store(EventLogRow("expired", Now.AddDays(-15)));
         await Store(EventLogRow("fresh", Now.AddDays(-1)));
 
-        var versionBefore = (await EventLogDataStore.GetEventLogItems(new PagingInfo())).QueryStats.ETag;
+        var versionBefore = (await EventLogDataStore.GetEventLogItems(new PagingInfo())).QueryStats.Version;
 
         await RunRetentionSweep();
 
@@ -260,7 +260,26 @@ class RetentionSweepTests : ErrorIngestionTestBase
         {
             Assert.That(after.QueryStats.TotalCount, Is.EqualTo(1));
             // The count term of the version exists precisely so that retention invalidates client caches.
-            Assert.That(after.QueryStats.ETag, Is.Not.EqualTo(versionBefore));
+            Assert.That(after.QueryStats.Version.Matches(versionBefore), Is.False);
+        }
+    }
+
+    [Test]
+    public async Task Sweeping_failed_messages_changes_the_version()
+    {
+        await SeedFailedMessage(FailedMessageStatus.Archived, Now.AddDays(-31));
+        await SeedFailedMessage(FailedMessageStatus.Archived, Now.AddDays(-1));
+
+        var versionBefore = (await FailedMessageQueryStore.GetFailedMessagesStats(null, null, null)).Version;
+
+        await RunRetentionSweep();
+
+        var after = await FailedMessageQueryStore.GetFailedMessagesStats(null, null, null);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(after.TotalCount, Is.EqualTo(1));
+            Assert.That(after.Version.Matches(versionBefore), Is.False);
         }
     }
 

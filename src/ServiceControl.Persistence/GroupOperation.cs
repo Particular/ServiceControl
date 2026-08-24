@@ -1,6 +1,7 @@
 using System;
+using ServiceControl.Persistence.Infrastructure;
 
-public class GroupOperation
+public class GroupOperation : IVersionedRow
 {
     public string? Id { get; set; }
     public string? Title { get; set; }
@@ -17,4 +18,10 @@ public class GroupOperation
     public DateTime? OperationStartTime { get; set; }
     public DateTime? OperationCompletionTime { get; set; }
     public bool NeedUserAcknowledgement { get; set; }
+    object?[] IVersionedRow.VersionFields =>
+    [
+        Id, Title, Type, Count, Comment, First, Last, OperationStatus, OperationFailed, OperationProgress,
+        OperationMessagesCompletedCount, OperationRemainingCount, OperationStartTime, OperationCompletionTime,
+        NeedUserAcknowledgement
+    ];
 }

@@ -13,42 +13,30 @@ namespace ServiceControl.Infrastructure.WebApi
     {
         public static void WithTotalCount(this HttpResponse response, long totalCount) => response.WithHeader("Total-Count", totalCount.ToString(CultureInfo.InvariantCulture));
 
-        public static void WithEtag(this HttpResponse response, StringValues value)
+        public static void WithEtag(this HttpResponse response, DataVersion version)
         {
-            var validator = value.ToString();
-
-            if (string.IsNullOrEmpty(validator))
+            if (!version.HasValue)
             {
                 return;
             }
 
-            // RFC 9110 requires an entity-tag to be a quoted string. Unquoted, EntityTagHeaderValue
-            // cannot parse it and NotModifiedStatusHttpHandler never matches a client's If-None-Match.
-            response.Headers.ETag = $"\"{validator}\"";
+            // Quotes are required by RFC 9110. Without them EntityTagHeaderValue cannot parse the tag and
+            // NotModifiedStatusHttpHandler never matches a client's If-None-Match.
+            response.Headers.ETag = $"W/\"{version}\"";
         }
 
         public static void WithQueryStatsInfo(this HttpResponse response, QueryStatsInfo queryStatsInfo)
         {
             response.WithTotalCount(queryStatsInfo.TotalCount);
-            response.WithEtag(queryStatsInfo.ETag);
-        }
-
-        public static void WithDeterministicEtag(this HttpResponse response, string data)
-        {
-            if (string.IsNullOrEmpty(data))
-            {
-                return;
-            }
-
-            var guid = DeterministicGuid.MakeId(data);
-            response.WithEtag(guid.ToString());
+            response.WithEtag(queryStatsInfo.Version);
         }
 
         static void WithHeader(this HttpResponse response, string header, StringValues value) => response.Headers.Append(header, value);
 
         public static void WithPagingLinks(this HttpResponse response, PagingInfo pageInfo, long highestTotalCountOfAllInstances, long totalResults)
         {
-            if (totalResults <= PagingInfo.DefaultPageSize)
+            // The size asked for, not the default
+            if (totalResults <= pageInfo.PageSize)
             {
                 return;
             }
@@ -103,14 +91,14 @@ namespace ServiceControl.Infrastructure.WebApi
         public static void WithQueryStatsAndPagingInfo(this HttpResponse response, QueryStatsInfo queryStats, PagingInfo pagingInfo)
         {
             response.WithPagingLinksAndTotalCount(pagingInfo, queryStats.TotalCount, queryStats.HighestTotalCountOfAllTheInstances);
-            response.WithDeterministicEtag(queryStats.ETag);
+            response.WithEtag(queryStats.Version);
         }
 
         public static void WithPagingLinksAndTotalCount(this HttpResponse response,
-            PagingInfo pagingInfo, long totalCount, long highestTotalCountOfAllInstances = 1)
+            PagingInfo pagingInfo, long totalCount, long? highestTotalCountOfAllInstances = null)
         {
             response.WithTotalCount(totalCount);
-            response.WithPagingLinks(pagingInfo, highestTotalCountOfAllInstances, totalCount);
+            response.WithPagingLinks(pagingInfo, highestTotalCountOfAllInstances ?? totalCount, totalCount);
         }
     }
 }

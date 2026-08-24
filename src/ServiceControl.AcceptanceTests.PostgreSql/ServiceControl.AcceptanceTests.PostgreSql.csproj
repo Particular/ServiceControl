@@ -51,9 +51,6 @@
     <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_reedit_solves_a_failed_msg.cs" />
     <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_encountered_an_error.cs" />
     <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\When_edited_message_fails_to_process.cs" />
-
-    <!-- The EF custom-check query does not provide an ETag. Addressed by a separate PR. -->
-    <Compile Remove="..\ServiceControl.AcceptanceTests\WebApi\When_a_request_is_repeated_with_its_etag.cs" />
   </ItemGroup>
 
 </Project>

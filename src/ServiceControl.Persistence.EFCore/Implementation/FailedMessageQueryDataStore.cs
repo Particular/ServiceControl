@@ -26,7 +26,7 @@ public class FailedMessageQueryDataStore(IServiceScopeFactory scopeFactory) : Da
             .FilterByStatus(status)
             .FilterByLastModifiedRange(modified)
             .FilterByQueueAddress(queueAddress)
-            .ToQueryStatsInfo(token), cancellationToken);
+            .ToCountQueryStatsInfo("failures", token), cancellationToken);
 
     public Task<QueryResult<IList<FailedMessageView>>> GetFailedMessagesByEndpoint(string? status, string endpointName, string? modified, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((dbContext, token) => dbContext.FailedMessages

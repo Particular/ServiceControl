@@ -3,6 +3,7 @@ namespace ServiceControl.Persistence.EFCore.Implementation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.MessageFailures;
+using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.Infrastructure;
 
 public class QueueAddressStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IQueueAddressStore
@@ -20,8 +21,8 @@ public class QueueAddressStore(IServiceScopeFactory scopeFactory) : DataStoreBas
                 });
 
             var items = await query.Skip(pagingInfo.Offset).Take(pagingInfo.PageSize).ToListAsync(token);
-            var eTag = DeterministicGuid.MakeId($"{items.Count}|{string.Join(",", items.Select(x => x.PhysicalAddress))}").ToString();
+            var addressCount = await query.CountAsync(token);
 
-            return new QueryResult<IList<QueueAddress>>(items, new QueryStatsInfo(eTag, query.Count(), false));
+            return new QueryResult<IList<QueueAddress>>(items, items.ToQueryStatsInfo("addresses", addressCount));
         }, cancellationToken);
 }

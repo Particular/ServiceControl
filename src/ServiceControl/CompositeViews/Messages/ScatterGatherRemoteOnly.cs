@@ -1,5 +1,6 @@
 namespace ServiceControl.CompositeViews.Messages
 {
+    using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
@@ -14,6 +15,9 @@ namespace ServiceControl.CompositeViews.Messages
         where TOut : class
     {
         protected sealed override Task<QueryResult<TOut>> LocalQuery(TIn input, CancellationToken cancellationToken = default) => QueryResult<TOut>.Empty();
+
+        protected sealed override QueryStatsInfo AggregateStats(TIn input, IEnumerable<QueryResult<TOut>> results, TOut processedResults) =>
+            AggregateStatsFromRemotesOnly(results);
     }
 
     public sealed class NoOpStore

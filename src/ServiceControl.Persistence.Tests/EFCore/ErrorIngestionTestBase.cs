@@ -12,9 +12,8 @@ using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
-using ServiceControl.Persistence.UnitOfWork;
 
-abstract class ErrorIngestionTestBase : PersistenceTestBase
+abstract class ErrorIngestionTestBase : IngestionTestBase
 {
     protected ErrorIngestionTestBase() =>
         RegisterServices = services => services.AddSingleton<IBodyStoragePersistence>(RecordedBodies);
@@ -22,35 +21,6 @@ abstract class ErrorIngestionTestBase : PersistenceTestBase
     protected InMemoryBodyStoragePersistence RecordedBodies { get; } = new();
 
     protected EFPersisterSettings EFSettings => (EFPersisterSettings)PersistenceSettings;
-
-    protected void AdvanceClock(TimeSpan by) => PersistenceTestsContext.FakeTime.Advance(by);
-
-    protected async Task InBatch(Func<IIngestionUnitOfWork, Task> record)
-    {
-        await using var unitOfWork = await UnitOfWorkFactory.StartNew();
-
-        await record(unitOfWork);
-
-        await unitOfWork.Complete(TestContext.CurrentContext.CancellationToken);
-    }
-
-    protected Task Ingest(params IngestedFailure[] failures) =>
-        InBatch(async unitOfWork =>
-        {
-            foreach (var failure in failures)
-            {
-                await unitOfWork.Recoverability.RecordFailedProcessingAttempt(failure.Context, failure.ProcessingAttempt, failure.Groups);
-            }
-        });
-
-    protected Task ConfirmRetry(params string[] uniqueMessageIds) =>
-        InBatch(async unitOfWork =>
-        {
-            foreach (var uniqueMessageId in uniqueMessageIds)
-            {
-                await unitOfWork.Recoverability.RecordSuccessfulRetry(uniqueMessageId);
-            }
-        });
 
     protected async Task<FailedMessageEntity> GetFailedMessage(Guid uniqueMessageId)
     {

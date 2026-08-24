@@ -3,20 +3,30 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
 
     class RetryHistoryDataStore(IRavenSessionProvider sessionProvider) : IRetryHistoryDataStore
     {
         const string DocumentId = "RetryOperations/History";
 
-        public async Task<RetryHistory> GetRetryHistory(CancellationToken cancellationToken = default)
+        public async Task<QueryResult<RetryHistory>> GetRetryHistory(CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var retryHistory = await session.LoadAsync<RetryHistory>(DocumentId, cancellationToken);
 
+            // GetChangeVectorFor throws for an entity the session is not tracking, so this relies on the
+            // session provider's default. Opening this one with NoTracking would turn the endpoint into a 500.
+            // Before the first operation completes there is no document and so no change vector, so to keep the handling of "empty data"
+            // consistent everywhere, we return a special "no-retry-history" version.
+            var version = retryHistory == null
+                ? DataVersion.FromToken("no-retry-history")
+                : DataVersion.FromToken(session.Advanced.GetChangeVectorFor(retryHistory));
+
             retryHistory ??= new();
 
-            return retryHistory;
+            return new QueryResult<RetryHistory>(retryHistory,
+                new QueryStatsInfo(version, retryHistory.HistoricOperations.Count));
         }
 
         public async Task RecordRetryOperationCompleted(string requestId, RetryType retryType, DateTime startTime, DateTime completionTime,

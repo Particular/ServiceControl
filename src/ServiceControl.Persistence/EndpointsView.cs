@@ -1,8 +1,9 @@
 namespace ServiceControl.Persistence
 {
     using System;
+    using ServiceControl.Persistence.Infrastructure;
 
-    public class EndpointsView
+    public class EndpointsView : IVersionedRow
     {
         public Guid Id { get; set; }
         public required string Name { get; set; }
@@ -11,5 +12,10 @@ namespace ServiceControl.Persistence
         public bool MonitorHeartbeat { get; set; }
         public HeartbeatInformation? HeartbeatInformation { get; set; }
         public bool IsSendingHeartbeats { get; set; }
+        object?[] IVersionedRow.VersionFields =>
+        [
+            Id, Name, HostDisplayName, Monitored, MonitorHeartbeat, IsSendingHeartbeats,
+            HeartbeatInformation?.LastReportAt, HeartbeatInformation?.ReportedStatus
+        ];
     }
 }

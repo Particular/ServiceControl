@@ -1,6 +1,5 @@
 namespace ServiceControl.MessageFailures.Api
 {
-    using System;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -48,11 +47,11 @@ namespace ServiceControl.MessageFailures.Api
         [HttpGet]
         public async Task<IActionResult> GetArchiveMessageGroups(string classifier = "Exception Type and Stack Trace", CancellationToken cancellationToken = default)
         {
-            var results = await dataStore.GetArchivedGroupsByClassifier(classifier, cancellationToken);
+            var result = await dataStore.GetArchivedGroupsByClassifier(classifier, cancellationToken);
 
-            Response.WithDeterministicEtag(EtagHelper.CalculateEtag(results));
+            Response.WithQueryStatsInfo(result.QueryStats);
 
-            return Ok(results);
+            return Ok(result.Results);
         }
 
         [Authorize(Policy = Permissions.ErrorMessagesArchive)]
@@ -77,7 +76,7 @@ namespace ServiceControl.MessageFailures.Api
         {
             var result = await dataStore.GetArchivedGroup(groupId, status, modified, cancellationToken);
 
-            Response.WithEtag(result.QueryStats.ETag);
+            Response.WithEtag(result.QueryStats.Version);
 
             return result.Results == null ? NotFound() : result.Results;
         }

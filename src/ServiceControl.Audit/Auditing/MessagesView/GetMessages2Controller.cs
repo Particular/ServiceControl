@@ -54,6 +54,7 @@ public class GetMessages2Controller(IAuditDataStore dataStore) : ControllerBase
         }
 
         Response.WithTotalCount(result.QueryStats.TotalCount);
+        Response.WithEtag(result.QueryStats.ETag);
 
         return result.Results;
     }

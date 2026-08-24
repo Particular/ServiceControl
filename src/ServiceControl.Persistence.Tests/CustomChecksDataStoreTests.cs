@@ -42,6 +42,40 @@ namespace ServiceControl.Persistence.Tests
         }
 
         [Test]
+        public async Task Reported_endpoint_survives_a_round_trip()
+        {
+            await CustomChecks.UpdateCustomCheckStatus(new CustomCheckDetail
+            {
+                Category = "test-category",
+                CustomCheckId = "Test-Check",
+                HasFailed = true,
+                FailureReason = "Testing",
+                OriginatingEndpoint = new EndpointDetails
+                {
+                    Host = "localhost",
+                    HostId = Guid.Parse("55D0800D-CC90-47C3-83EB-DDE292140C28"),
+                    Name = "test-host"
+                },
+            });
+
+            await CompleteDatabaseOperation();
+
+            var stats = await CustomChecks.GetStats(new PagingInfo());
+
+            Assert.That(stats.Results, Has.Count.EqualTo(1));
+
+            var reported = stats.Results[0].OriginatingEndpoint;
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(reported, Is.Not.Null, "the check came back with no reporting endpoint, so the page that renders its name cannot draw it");
+                Assert.That(reported?.Name, Is.EqualTo("test-host"));
+                Assert.That(reported?.Host, Is.EqualTo("localhost"));
+                Assert.That(reported?.HostId, Is.EqualTo(Guid.Parse("55D0800D-CC90-47C3-83EB-DDE292140C28")));
+            }
+        }
+
+        [Test]
         public async Task Storing_failed_custom_checks_returns_unchanged()
         {
             var checkDetails = new CustomCheckDetail

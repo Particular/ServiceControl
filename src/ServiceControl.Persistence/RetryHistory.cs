@@ -20,11 +20,6 @@
                 .ToList();
         }
 
-        public string GetHistoryOperationsUniqueIdentifier()
-        {
-            return string.Join(',', HistoricOperations.Select(x => x.RequestId));
-        }
-
         public void AddToUnacknowledged(UnacknowledgedRetryOperation unacknowledgedRetryOperation)
         {
             UnacknowledgedOperations.Add(unacknowledgedRetryOperation);

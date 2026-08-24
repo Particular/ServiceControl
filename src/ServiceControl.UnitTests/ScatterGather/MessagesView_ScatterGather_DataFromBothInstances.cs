@@ -24,10 +24,13 @@
         [Test]
         public void ResultingETagIsDifferentFromBothInstanceSpecificETags()
         {
-            var resultingEtag = Results.QueryStats.ETag;
+            var resultingVersion = Results.QueryStats.Version;
 
-            Assert.That(resultingEtag, Is.Not.EqualTo(LocalETag), "Resulting etag should not equal local etag");
-            Assert.That(resultingEtag, Is.Not.EqualTo(RemoteETag), "Resulting etag should not equal remote etag");
+            Assert.Multiple(() =>
+            {
+                Assert.That(resultingVersion.Matches(DataVersion.FromToken(LocalETag)), Is.False, "Resulting version should not equal local version");
+                Assert.That(resultingVersion.Matches(DataVersion.FromToken(RemoteETag)), Is.False, "Resulting version should not equal remote version");
+            });
         }
 
         [Test]

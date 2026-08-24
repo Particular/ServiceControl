@@ -1,7 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.Infrastructure;
 
 using System.Globalization;
-using Microsoft.EntityFrameworkCore;
 using ServiceControl.MessageFailures;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.Infrastructure;
@@ -165,19 +164,6 @@ static class FailedMessageQueryFilters
 
     public static IQueryable<FailedMessageEntity> Page(this IQueryable<FailedMessageEntity> source, PagingInfo pagingInfo) =>
         source.Skip(pagingInfo.Offset).Take(pagingInfo.Next);
-
-    public static async Task<QueryStatsInfo> ToQueryStatsInfo(this IQueryable<FailedMessageEntity> source, CancellationToken cancellationToken = default)
-    {
-        var stats = await source
-            .GroupBy(_ => 1)
-            .Select(group => new { Count = group.Count(), Latest = group.Max(message => (DateTime?)message.LastModified) })
-            .SingleOrDefaultAsync(cancellationToken);
-
-        var count = stats?.Count ?? 0;
-        var latest = stats?.Latest ?? DateTime.MinValue;
-
-        return new QueryStatsInfo($"{count}-{latest.Ticks}", count, false);
-    }
 
     static IOrderedQueryable<FailedMessageEntity> OrderBy<TKey>(this IQueryable<FailedMessageEntity> source, System.Linq.Expressions.Expression<Func<FailedMessageEntity, TKey>> keySelector, bool descending) =>
         descending

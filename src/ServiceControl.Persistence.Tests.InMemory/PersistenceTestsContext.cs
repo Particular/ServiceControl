@@ -11,6 +11,7 @@ public class PersistenceTestsContext : IPersistenceTestsContext
     public PersistenceSettings PersistenceSettings { get; private set; }
     public string GenerateFailedMessageRecordId(string messageId) => throw new System.NotImplementedException();
     public Task InsertFailedMessages(params FailedMessage[] messages) => throw new System.NotImplementedException();
+    public void AdvanceClock(System.TimeSpan by) => throw new System.NotImplementedException();
 
     public Task Setup(IHostApplicationBuilder hostBuilder)
     {

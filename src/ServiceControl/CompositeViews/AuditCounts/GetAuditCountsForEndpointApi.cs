@@ -3,13 +3,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
-    using System.Threading;
-    using System.Threading.Tasks;
     using Api.Contracts;
     using Messages;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
-    using Persistence;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -19,22 +16,17 @@
     // gather approach here.
     public record AuditCountsForEndpointContext(PagingInfo PagingInfo, string Endpoint) : ScatterGatherContext(PagingInfo);
 
+    // The counts only ever live on an audit instance, so this instance has nothing of its own to add.
     public class GetAuditCountsForEndpointApi(
-        IMessagesViewDataStore dataStore,
         Settings settings,
         IHttpClientFactory httpClientFactory,
         IHttpContextAccessor httpContextAccessor,
         ILogger<GetAuditCountsForEndpointApi> logger)
-        : ScatterGatherApi<IMessagesViewDataStore, AuditCountsForEndpointContext, IList<AuditCount>>(dataStore, settings, httpClientFactory, httpContextAccessor, logger)
+        : ScatterGatherRemoteOnly<AuditCountsForEndpointContext, IList<AuditCount>>(settings, httpClientFactory, httpContextAccessor, logger)
     {
-        static readonly IList<AuditCount> Empty = new List<AuditCount>(0).AsReadOnly();
-
-        protected override Task<QueryResult<IList<AuditCount>>> LocalQuery(AuditCountsForEndpointContext input, CancellationToken cancellationToken = default) =>
-            // Will never be implemented on the primary instance
-            Task.FromResult(new QueryResult<IList<AuditCount>>(Empty, QueryStatsInfo.Zero));
-
         protected override IList<AuditCount> ProcessResults(AuditCountsForEndpointContext input, QueryResult<IList<AuditCount>>[] results) =>
-            results.SelectMany(r => r.Results)
+            results.Where(r => r.Results is not null)
+                .SelectMany(r => r.Results)
                 .GroupBy(r => r.UtcDate)
                 .Select(g => new AuditCount
                 {

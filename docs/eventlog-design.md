@@ -40,7 +40,7 @@ Timestamps are when the thing happened, so an item can land in the middle of the
 `IEventLogDataStore` has two methods, and its XML docs are the binding contract:
 
 - `Add(EventLogItem)` persists one item. **Identity is the store's to assign** and surfaces on `EventLogItemView.Id`. That makes `Id` opaque: a stable key within one store, not something to parse.
-- `GetEventLogItems(PagingInfo, knownVersion)` returns a `QueryResult` carrying the page, the total count independent of paging, and an `ETag`. Two obligations: the `ETag` is surfaced **verbatim**, so whatever the client echoes back arrives here unchanged and can be compared, and it **must change when retention removes items**, not only when one is added, since nothing else tells a polling client its cached page has gone stale.
+- `GetEventLogItems(PagingInfo)` returns a `QueryResult` carrying the page, the total count independent of paging, and an `ETag`. Two obligations: the `ETag` is surfaced **verbatim**, so whatever the client echoes back arrives here unchanged and can be compared, and it **must change when retention removes items**, not only when one is added, since nothing else tells a polling client its cached page has gone stale.
 
 ## Retention
 

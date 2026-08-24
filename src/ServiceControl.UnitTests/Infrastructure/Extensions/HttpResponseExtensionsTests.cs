@@ -97,6 +97,23 @@
         }
 
         [Test]
+        public void WithPagingLinks_WhenSmallPageSizeSplitsASmallSet_AddNextPageLink()
+        {
+            var pagingHeaders = GetLinks(totalResults: 20, currentPage: 1, resultsPerPage: 5);
+
+            Assert.That(pagingHeaders, Does.Contain("<?per_page=5&page=2>; rel=\"next\""));
+            Assert.That(pagingHeaders, Does.Contain("<?per_page=5&page=4>; rel=\"last\""));
+        }
+
+        [Test]
+        public void WithPagingLinks_WhenThePageHoldsEverything_AddNoLinks()
+        {
+            var pagingHeaders = GetLinks(totalResults: 200, currentPage: 1, resultsPerPage: 500);
+
+            Assert.That(pagingHeaders, Is.Empty);
+        }
+
+        [Test]
         public void WithPagingLinks_WhenDefiningCustomPageSize_AdjustPagingToCustomPageSize()
         {
             var pagingHeaders = GetLinks(totalResults: 300, currentPage: 2, resultsPerPage: 100);

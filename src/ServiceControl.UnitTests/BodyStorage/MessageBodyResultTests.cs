@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using NUnit.Framework;
 using ServiceControl.Operations.BodyStorage;
+using ServiceControl.Persistence.Infrastructure;
 
 [TestFixture]
 public class MessageBodyResultTests
@@ -28,7 +29,7 @@ public class MessageBodyResultTests
     [Test]
     public void Body_is_accessible_when_available()
     {
-        var content = new MessageBodyStreamContent(Stream.Null, "text/plain", 1, "etag");
+        var content = new MessageBodyStreamContent(Stream.Null, "text/plain", 1, DataVersion.FromToken("etag"));
         var result = MessageBodyResult.Available(content);
 
         Assert.That(result.Content, Is.SameAs(content));

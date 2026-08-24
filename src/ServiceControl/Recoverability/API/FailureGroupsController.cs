@@ -31,7 +31,8 @@
                 .OrderByDescending(classifier => classifier == "Exception Type and Stack Trace")
                 .ToArray();
 
-            Response.WithTotalCount(result.Length);
+            Response.WithQueryStatsInfo(new QueryStatsInfo(
+                DataVersion.OverRows([("classifiers", result.Length)], result, name => [name]), result.Length));
 
             return result;
         }
@@ -67,7 +68,7 @@
             }
 
             var results = await fetcher.GetGroups(classifier, classifierFilter, cancellationToken);
-            Response.WithDeterministicEtag(EtagHelper.CalculateEtag(results));
+            Response.WithQueryStatsInfo(results.ToQueryStatsInfo("groups", results.Length));
             return results;
         }
 
@@ -100,9 +101,9 @@
         {
             var retryHistory = await retryStore.GetRetryHistory(cancellationToken);
 
-            Response.WithDeterministicEtag(retryHistory.GetHistoryOperationsUniqueIdentifier());
+            Response.WithQueryStatsInfo(retryHistory.QueryStats);
 
-            return retryHistory;
+            return retryHistory.Results;
         }
 
         [Authorize(Policy = Permissions.ErrorRecoverabilityGroupsView)]
@@ -112,7 +113,7 @@
         {
             var result = await store.GetUnresolvedGroup(groupId, status, modified, cancellationToken);
 
-            Response.WithEtag(result.QueryStats.ETag);
+            Response.WithEtag(result.QueryStats.Version);
 
             return result.Results == null ? NotFound() : result.Results;
         }

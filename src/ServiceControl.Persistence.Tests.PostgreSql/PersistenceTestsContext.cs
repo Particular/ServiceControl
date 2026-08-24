@@ -21,6 +21,8 @@ public partial class PersistenceTestsContext : IPersistenceTestsContext
     string databaseName;
     string bodyStoragePath;
 
+    public void AdvanceClock(TimeSpan by) => FakeTime.Advance(by);
+
     public async Task Setup(IHostApplicationBuilder hostBuilder)
     {
         databaseName = $"sc_test_{Guid.NewGuid():n}";
