@@ -297,7 +297,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         await DataStore.CreateBuilder()
             .AddEndpoint("Endpoint1", sources: [source])
             .WithThroughput(
-                startDate: DateOnly.FromDateTime(reportEndDate).AddDays(-1),
+                startDate: DateOnly.FromDateTime(reportEndDate).AddDays(-2),
                 data: [50, 55, 100])
             .Build();
 
@@ -362,7 +362,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         await DataStore.SaveAuditServiceMetadata(new AuditServiceMetadata(expectedAuditVersionSummary, expectedAuditTransportSummary));
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("2.3.1", new DateTime(2024, 4, 25));
+        var report = await ThroughputCollector.GenerateThroughputReport("2.3.1", new DateTime(2024, 4, 26));
         var reportString = System.Text.Json.JsonSerializer.Serialize(report, SerializationOptions.IndentedWithNoEscaping);
 
         // Assert

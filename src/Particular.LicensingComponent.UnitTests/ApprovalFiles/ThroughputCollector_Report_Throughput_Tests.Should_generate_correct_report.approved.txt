@@ -7,8 +7,8 @@
     "ToolVersion": "5.0.1",
     "ScopeType": "testingScope",
     "StartTime": "2024-04-24T00:00:00+00:00",
-    "EndTime": "2024-04-25T00:00:00+00:00",
-    "ReportDuration": "1.00:00:00",
+    "EndTime": "2024-04-26T00:00:00+00:00",
+    "ReportDuration": "2.00:00:00",
     "Queues": [
       {
         "QueueName": "REDACTED1",
