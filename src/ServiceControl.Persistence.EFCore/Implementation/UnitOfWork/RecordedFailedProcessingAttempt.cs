@@ -28,5 +28,5 @@ sealed class RecordedFailedProcessingAttempt
     public bool BodyStoredExternally { get; init; }
     public int BodySize { get; init; }
     public string? BodyContentType { get; init; }
-    public string? FailingEndpointAddress { get; set; }
+    public required string FailingEndpointAddress { get; set; }
 }

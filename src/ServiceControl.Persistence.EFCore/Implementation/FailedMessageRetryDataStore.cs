@@ -28,8 +28,7 @@ public class FailedMessageRetryDataStore(IServiceScopeFactory scopeFactory)
                 .AsNoTracking()
                 .Where(m => m.Status == FailedMessageStatus.RetryIssued
                             && m.LastModified >= from && m.LastModified <= to
-                            && ((m.FailingEndpointAddress == null && normalizedQueueAddress == null)
-                                || (m.FailingEndpointAddress != null && m.FailingEndpointAddress.ToLower() == normalizedQueueAddress)))
+                            && m.FailingEndpointAddress.ToLower() == normalizedQueueAddress)
                 .Select(m => m.UniqueMessageId.ToString())
                 .ToListAsync(token);
 

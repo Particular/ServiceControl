@@ -13,7 +13,7 @@ namespace ServiceControl.Persistence
         string Id,
         string UniqueMessageId,
         string AttemptMessageId,
-        string? FailingEndpointAddress,
+        string FailingEndpointAddress,
         Dictionary<string, string> Headers,
         int StageAttempts);
 }
