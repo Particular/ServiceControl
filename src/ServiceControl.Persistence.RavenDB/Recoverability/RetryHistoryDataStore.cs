@@ -10,10 +10,6 @@
     {
         const string DocumentId = "RetryOperations/History";
 
-        // Before the first operation completes there is no document and so no change vector, but an
-        // empty history still has to be cacheable.
-        static readonly DataVersion EmptyHistory = DataVersion.FromToken("no-retry-history");
-
         public async Task<QueryResult<RetryHistory>> GetRetryHistory(CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
@@ -21,8 +17,10 @@
 
             // GetChangeVectorFor throws for an entity the session is not tracking, so this relies on the
             // session provider's default. Opening this one with NoTracking would turn the endpoint into a 500.
+            // Before the first operation completes there is no document and so no change vector, so to keep the handling of "empty data"
+            // consistent everywhere, we return a special "no-retry-history" version.
             var version = retryHistory == null
-                ? EmptyHistory
+                ? DataVersion.FromToken("no-retry-history")
                 : DataVersion.FromToken(session.Advanced.GetChangeVectorFor(retryHistory));
 
             retryHistory ??= new();
