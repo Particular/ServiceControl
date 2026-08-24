@@ -112,7 +112,7 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
                 token);
         }, cancellationToken);
 
-    public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, CancellationToken cancellationToken = default) =>
+    public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, DateOnly? throughputMaxDate = null, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (context, token) =>
         {
             var results = queueNames.ToDictionary(queueName => queueName, _ => Enumerable.Empty<ThroughputData>());
@@ -148,6 +148,7 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
             foreach (var endpointRows in rows.GroupBy(row => (row.NormalizedSanitizedName, row.ThroughputSource)))
             {
                 var throughputData = new ThroughputData(endpointRows
+                    .Where(row => !throughputMaxDate.HasValue || row.DateUtc < throughputMaxDate.Value)
                     .OrderBy(row => row.DateUtc)
                     .Select(row => new EndpointDailyThroughput(row.DateUtc, row.MessageCount)))
                 {

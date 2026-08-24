@@ -65,7 +65,7 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
     {
         var endpointSummaries = new List<EndpointThroughputSummary>();
 
-        await foreach (var endpointData in GetDistinctEndpointData(cancellationToken))
+        await foreach (var endpointData in GetDistinctEndpointData(null, cancellationToken))
         {
             var endpointSummary = new EndpointThroughputSummary
             {
@@ -120,10 +120,15 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
         var reportMasks = await dataStore.GetReportMasks(cancellationToken);
         var masker = new Masker([.. reportMasks]);
 
+        if (reportEndDate is null || reportEndDate == DateTime.MinValue)
+        {
+            reportEndDate = DateTime.UtcNow.Date;
+        }
+
         var queueThroughputs = new List<QueueThroughput>();
         List<string> ignoredQueueNames = [];
 
-        await foreach (var endpointData in GetDistinctEndpointData(cancellationToken))
+        await foreach (var endpointData in GetDistinctEndpointData(DateOnly.FromDateTime(reportEndDate.Value), cancellationToken))
         {
             var notAnNsbEndpoint = endpointData.UserIndicator?.Equals(Contracts.UserIndicator.NotNServiceBusEndpoint.ToString(), StringComparison.OrdinalIgnoreCase) ?? false;
 
@@ -148,10 +153,6 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
 
         var auditServiceMetadata = await dataStore.GetAuditServiceMetadata(cancellationToken);
         var brokerMetaData = await dataStore.GetBrokerMetadata(cancellationToken);
-        if (reportEndDate is null || reportEndDate == DateTime.MinValue)
-        {
-            reportEndDate = DateTime.UtcNow.Date.AddDays(-1);
-        }
         var report = new Report.Report
         {
             EndTime = new DateTimeOffset((DateTime)reportEndDate, TimeSpan.Zero),
@@ -197,11 +198,13 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
         return throughputReport;
     }
 
-    async IAsyncEnumerable<EndpointData> GetDistinctEndpointData([EnumeratorCancellation] CancellationToken cancellationToken)
+    async IAsyncEnumerable<EndpointData> GetDistinctEndpointData(DateOnly? throughputMaxDate, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var endpoints = (await dataStore.GetAllEndpoints(false, cancellationToken)).ToArray();
         var queueNames = endpoints.Select(endpoint => endpoint.SanitizedName).Distinct().ToList();
-        var endpointThroughputPerQueue = await dataStore.GetEndpointThroughputByQueueName(queueNames, cancellationToken);
+        //Some brokers will have throughput data for "today" when a throughput report is being run only expecting data up until the end of "yesterday".
+        //  Provide throughputMaxDate so that throughput from the non-complete "today" can be filtered out from the resulting ThroughputData constructs
+        var endpointThroughputPerQueue = await dataStore.GetEndpointThroughputByQueueName(queueNames, throughputMaxDate, cancellationToken);
 
         systemHasAuditEnabled = endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Audit);
         systemHasMonitoringEnabled = endpointThroughputPerQueue.HasDataFromSource(ThroughputSource.Monitoring);

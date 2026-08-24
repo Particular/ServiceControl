@@ -228,7 +228,7 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
         public Task<IEnumerable<(EndpointIdentifier Id, Endpoint Endpoint)>> GetEndpoints(IList<EndpointIdentifier> endpointIds, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
-        public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, CancellationToken cancellationToken = default) =>
+        public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, DateOnly? throughputMaxDate = null, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
         public Task UpdateUserIndicatorOnEndpoints(List<UpdateUserIndicator> userIndicatorUpdates, CancellationToken cancellationToken = default) =>
