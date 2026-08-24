@@ -155,7 +155,7 @@ namespace ServiceControl.CompositeViews.Messages
             string endpoint, string q, CancellationToken cancellationToken = default)
         {
             QueryResult<IList<MessagesView>> result = await endpointApi.Execute(
-                new SearchEndpointContext(pagingInfo, sortInfo, endpoint, q), Request.GetEncodedPathAndQuery(), cancellationToken);
+                new SearchEndpointContext(pagingInfo, sortInfo, Keyword: q, Endpoint: endpoint), Request.GetEncodedPathAndQuery(), cancellationToken);
 
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
@@ -168,7 +168,7 @@ namespace ServiceControl.CompositeViews.Messages
             [FromQuery] SortInfo sortInfo, string endpoint, string keyword, CancellationToken cancellationToken = default)
         {
             QueryResult<IList<MessagesView>> result = await endpointApi.Execute(
-                new SearchEndpointContext(pagingInfo, sortInfo, endpoint, keyword), Request.GetEncodedPathAndQuery(), cancellationToken);
+                new SearchEndpointContext(pagingInfo, sortInfo, Keyword: keyword, Endpoint: endpoint), Request.GetEncodedPathAndQuery(), cancellationToken);
 
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
