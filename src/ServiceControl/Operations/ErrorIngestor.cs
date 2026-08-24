@@ -8,20 +8,19 @@
     using System.Threading.Tasks;
     using Contracts.Operations;
     using Infrastructure.DomainEvents;
-    using Infrastructure.Metrics;
+    using Metrics;
     using Microsoft.Extensions.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.Ingestion;
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Transports;
 
     public class ErrorIngestor
     {
-        static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
-
-        public ErrorIngestor(Metrics metrics,
+        public ErrorIngestor(IngestionMetrics metrics,
             IEnumerable<IEnrichImportedErrorMessages> errorEnrichers,
             IEnumerable<IFailedMessageEnricher> failedMessageEnrichers,
             IDomainEvents domainEvents,
@@ -32,9 +31,8 @@
         {
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.settings = settings;
+            this.metrics = metrics;
             this.logger = logger;
-            bulkInsertDurationMeter = metrics.GetMeter("Error ingestion - bulk insert duration", FrequencyInMilliseconds);
-            var ingestedMeter = metrics.GetCounter("Error ingestion - ingested");
 
             var enrichers = new IEnrichImportedErrorMessages[]
             {
@@ -44,7 +42,7 @@
 
             }.Concat(errorEnrichers).ToArray();
 
-            errorProcessor = new ErrorProcessor(enrichers, failedMessageEnrichers.ToArray(), domainEvents, ingestedMeter, logger);
+            errorProcessor = new ErrorProcessor(enrichers, failedMessageEnrichers.ToArray(), domainEvents, logger);
             retryConfirmationProcessor = new RetryConfirmationProcessor(domainEvents);
             logQueueAddress = new UnicastAddressTag(transportCustomization.ToTransportQualifiedQueueName(this.settings.ErrorLogQueue));
         }
@@ -122,7 +120,7 @@
                 var storedFailedMessageContexts = await errorProcessor.Process(failedMessageContexts, unitOfWork, cancellationToken);
                 await retryConfirmationProcessor.Process(retriedMessageContexts, unitOfWork, cancellationToken);
 
-                using (bulkInsertDurationMeter.Measure())
+                using (metrics.MeasureStorageWrite())
                 {
                     await unitOfWork.Complete(cancellationToken);
                 }
@@ -199,7 +197,7 @@
         }
 
         readonly IIngestionUnitOfWorkFactory unitOfWorkFactory;
-        readonly Meter bulkInsertDurationMeter;
+        readonly IngestionMetrics metrics;
         readonly Settings settings;
         readonly ErrorProcessor errorProcessor;
         readonly RetryConfirmationProcessor retryConfirmationProcessor;

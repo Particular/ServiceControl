@@ -9,6 +9,7 @@
     using System.Threading.Tasks;
     using Configuration;
     using Infrastructure;
+    using Metrics;
     using Microsoft.Extensions.Logging;
     using NServiceBus.Transport;
     using Persistence;
@@ -21,9 +22,10 @@
 
         ImportFailureCircuitBreaker failureCircuitBreaker;
 
-        public ErrorIngestionFaultPolicy(IFailedErrorImportDataStore store, LoggingSettings loggingSettings, Func<string, Exception, CancellationToken, Task> onCriticalError, ILogger logger)
+        public ErrorIngestionFaultPolicy(IFailedErrorImportDataStore store, LoggingSettings loggingSettings, Func<string, Exception, CancellationToken, Task> onCriticalError, IngestionMetrics metrics, ILogger logger)
         {
             this.store = store;
+            this.metrics = metrics;
             this.logger = logger;
             failureCircuitBreaker = new ImportFailureCircuitBreaker(onCriticalError);
 
@@ -36,9 +38,12 @@
 
         public async Task<ErrorHandleResult> OnError(ErrorContext errorContext, CancellationToken cancellationToken = default)
         {
+            using var failureMetrics = metrics.BeginErrorHandling(errorContext);
+
             //Same as recoverability policy in NServiceBusFactory
             if (errorContext.ImmediateProcessingFailures < 3)
             {
+                failureMetrics.Retry();
                 return ErrorHandleResult.RetryRequired;
             }
 
@@ -99,6 +104,7 @@
             EventLog.WriteEntry(EventSourceCreator.SourceName, message, EventLogEntryType.Error);
         }
 
+        readonly IngestionMetrics metrics;
         readonly ILogger logger;
     }
 }

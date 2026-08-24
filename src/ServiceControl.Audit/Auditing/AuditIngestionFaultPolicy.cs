@@ -38,12 +38,12 @@ class AuditIngestionFaultPolicy
 
     public async Task<ErrorHandleResult> OnError(ErrorContext errorContext, CancellationToken cancellationToken = default)
     {
-        using var errorMetrics = metrics.BeginErrorHandling(errorContext);
+        using var failureMetrics = metrics.BeginErrorHandling(errorContext);
 
         //Same as recoverability policy in NServiceBusFactory
         if (errorContext.ImmediateProcessingFailures < 3)
         {
-            errorMetrics.Retry();
+            failureMetrics.Retry();
             return ErrorHandleResult.RetryRequired;
         }
 

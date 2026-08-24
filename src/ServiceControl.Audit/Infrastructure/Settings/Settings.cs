@@ -9,6 +9,7 @@
     using NLog.Common;
     using NServiceBus.Transport;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.Ingestion;
     using Transports;
 
     public class Settings
@@ -53,6 +54,9 @@
             MaximumConcurrencyLevel = SettingsReader.Read<int?>(SettingsRootNamespace, "MaximumConcurrencyLevel");
             ServiceControlQueueAddress = SettingsReader.Read<string>(SettingsRootNamespace, "ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
+            AuditIngestionBatchSize = IngestionSettingsReader.ReadBatchSize(SettingsRootNamespace, nameof(AuditIngestionBatchSize), ValidateConfiguration);
+            AuditIngestionMaxParallelWriters = IngestionSettingsReader.ReadMaxParallelWriters(SettingsRootNamespace, nameof(AuditIngestionMaxParallelWriters), ValidateConfiguration);
+            AuditIngestionBatchTimeout = IngestionSettingsReader.ReadBatchTimeout(SettingsRootNamespace, nameof(AuditIngestionBatchTimeout), ValidateConfiguration);
             EnableFullTextSearchOnBodies = SettingsReader.Read(SettingsRootNamespace, "EnableFullTextSearchOnBodies", true);
             ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
 
@@ -184,6 +188,22 @@
         public string ServiceControlQueueAddress { get; set; }
 
         public TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
+
+        /// <summary>
+        /// The most messages one write handles. Null leaves it to the transport's concurrency.
+        /// </summary>
+        public int? AuditIngestionBatchSize { get; set; }
+
+        /// <summary>
+        /// How many batches are written at once. Null leaves it to the storage, and a storage whose
+        /// batches are not safe to interleave holds it at one whatever is configured.
+        /// </summary>
+        public int? AuditIngestionMaxParallelWriters { get; set; }
+
+        /// <summary>
+        /// How long a batch that is not yet full waits for more messages.
+        /// </summary>
+        public TimeSpan AuditIngestionBatchTimeout { get; set; }
 
         public bool EnableFullTextSearchOnBodies { get; set; }
 

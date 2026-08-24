@@ -1,4 +1,4 @@
-namespace Particular.ServiceControl
+﻿namespace Particular.ServiceControl
 {
     using System;
     using System.Diagnostics;
@@ -14,6 +14,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure.Metrics;
     using global::ServiceControl.Infrastructure.WebApi;
     using global::ServiceControl.Notifications.Email;
+    using global::ServiceControl.Operations.Metrics;
     using global::ServiceControl.Persistence;
     using global::ServiceControl.Transports;
     using Licensing;
@@ -26,6 +27,8 @@ namespace Particular.ServiceControl
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Hosting;
     using NServiceBus.Transport;
+    using OpenTelemetry.Metrics;
+    using OpenTelemetry.Resources;
     using Particular.LicensingComponent;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Installers;
@@ -33,6 +36,8 @@ namespace Particular.ServiceControl
 
     static class HostApplicationBuilderExtensions
     {
+        static readonly string InstanceVersion = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderExtensions).Assembly.Location).ProductVersion;
+
         public static void AddServiceControl(this IHostApplicationBuilder hostBuilder, Settings settings, EndpointConfiguration configuration, params ReadOnlySpan<ServiceControlComponent> components)
         {
             if (!settings.ErrorIngestionOnly)
@@ -93,6 +98,7 @@ namespace Particular.ServiceControl
 
             services.AddPersistence(settings);
             services.AddMetrics(settings.PrintMetrics);
+            hostBuilder.AddIngestionMetrics(settings);
             services.AddServiceControlHealthChecks();
 
             if (settings.ErrorIngestionOnly)
@@ -142,9 +148,43 @@ namespace Particular.ServiceControl
             persistence.AddInstaller(hostApplicationBuilder.Services);
         }
 
+        public static void AddIngestionMetrics(this IHostApplicationBuilder hostBuilder, Settings settings)
+        {
+            hostBuilder.Services.AddSingleton<IngestionMetrics>();
+
+            if (string.IsNullOrEmpty(settings.OtlpEndpointUrl))
+            {
+                return;
+            }
+
+            if (!Uri.TryCreate(settings.OtlpEndpointUrl, UriKind.Absolute, out var otlpEndpoint))
+            {
+                throw new UriFormatException($"Invalid OtlpEndpointUrl: {settings.OtlpEndpointUrl}");
+            }
+
+            hostBuilder.Services.AddOpenTelemetry()
+                .ConfigureResource(resource => resource.AddService(
+                    serviceName: settings.InstanceName,
+                    serviceVersion: InstanceVersion,
+                    autoGenerateServiceInstanceId: true))
+                .WithMetrics(metrics =>
+                {
+                    metrics.AddIngestionMetrics();
+                    metrics.AddOtlpExporter(exporter => exporter.Endpoint = otlpEndpoint);
+
+                    if (Debugger.IsAttached)
+                    {
+                        metrics.AddConsoleExporter();
+                    }
+                });
+
+            LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.LoggingSettings.LogLevel)
+                .LogInformation("OpenTelemetry metrics exporter enabled: {OtlpEndpointUrl}", settings.OtlpEndpointUrl);
+        }
+
         static void RecordStartup(Settings settings, EndpointConfiguration endpointConfiguration)
         {
-            var version = FileVersionInfo.GetVersionInfo(typeof(HostApplicationBuilderExtensions).Assembly.Location).ProductVersion;
+            var version = InstanceVersion;
 
             var startupMessage = $@"
 -------------------------------------------------------------

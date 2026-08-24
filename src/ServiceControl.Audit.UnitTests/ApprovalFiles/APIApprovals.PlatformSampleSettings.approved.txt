@@ -63,6 +63,9 @@
   "MaximumConcurrencyLevel": null,
   "ServiceControlQueueAddress": "Particular.ServiceControl",
   "TimeToRestartAuditIngestionAfterFailure": "00:01:00",
+  "AuditIngestionBatchSize": null,
+  "AuditIngestionMaxParallelWriters": null,
+  "AuditIngestionBatchTimeout": "00:00:00",
   "EnableFullTextSearchOnBodies": true,
   "ShutdownTimeout": "00:00:05"
 }

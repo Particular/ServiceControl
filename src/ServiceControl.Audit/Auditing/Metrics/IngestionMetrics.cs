@@ -3,9 +3,11 @@ namespace ServiceControl.Audit.Auditing.Metrics;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Threading;
 using EndpointPlugin.Messages.SagaState;
 using NServiceBus;
 using NServiceBus.Transport;
+using ServiceControl.Infrastructure.Ingestion.Metrics;
 
 public class IngestionMetrics
 {
@@ -20,17 +22,17 @@ public class IngestionMetrics
 
         batchDuration = meter.CreateHistogram<double>(BatchDurationInstrumentName, unit: "seconds", "Message batch processing duration in seconds");
         ingestionDuration = meter.CreateHistogram<double>(MessageDurationInstrumentName, unit: "seconds", description: "Audit message processing duration in seconds");
-        consecutiveBatchFailureGauge = meter.CreateObservableGauge($"{InstrumentPrefix}.consecutive_batch_failures_total", () => consecutiveBatchFailures, description: "Consecutive audit ingestion batch failures");
+        consecutiveBatchFailureGauge = meter.CreateObservableGauge($"{InstrumentPrefix}.consecutive_batch_failures_total", () => Volatile.Read(ref consecutiveBatchFailures), description: "Consecutive audit ingestion batch failures");
         failureCounter = meter.CreateCounter<long>($"{InstrumentPrefix}.failures_total", description: "Audit ingestion failure count");
     }
 
-    public MessageMetrics BeginIngestion(MessageContext messageContext) => new(messageContext, ingestionDuration);
+    public MessageMetrics BeginIngestion(MessageContext messageContext) => new(GetMessageTags(messageContext.Headers), ingestionDuration);
 
-    public ErrorMetrics BeginErrorHandling(ErrorContext errorContext) => new(errorContext, failureCounter);
+    public FailureMetrics BeginErrorHandling(ErrorContext errorContext) => new(GetMessageTags(errorContext.Headers), failureCounter);
 
     public BatchMetrics BeginBatch(int maxBatchSize) => new(maxBatchSize, batchDuration, RecordBatchOutcome);
 
-    public static TagList GetMessageTags(Dictionary<string, string> headers)
+    static TagList GetMessageTags(Dictionary<string, string> headers)
     {
         var tags = new TagList();
 
@@ -50,11 +52,11 @@ public class IngestionMetrics
     {
         if (success)
         {
-            consecutiveBatchFailures = 0;
+            Interlocked.Exchange(ref consecutiveBatchFailures, 0);
         }
         else
         {
-            consecutiveBatchFailures++;
+            Interlocked.Increment(ref consecutiveBatchFailures);
         }
     }
 

@@ -14,5 +14,7 @@
         }
 
         public bool CanIngestMore() => true;
+
+        public bool SupportsConcurrentBatches => false;
     }
 }

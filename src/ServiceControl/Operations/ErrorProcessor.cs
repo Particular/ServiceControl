@@ -8,12 +8,12 @@
     using Contracts.Operations;
     using Infrastructure;
     using Infrastructure.DomainEvents;
-    using Infrastructure.Metrics;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.Transport;
     using Recoverability;
     using ServiceControl.Persistence;
+    using ServiceControl.Infrastructure.Ingestion;
     using ServiceControl.Persistence.UnitOfWork;
 
     class ErrorProcessor
@@ -22,12 +22,10 @@
             IEnrichImportedErrorMessages[] enrichers,
             IFailedMessageEnricher[] failedMessageEnrichers,
             IDomainEvents domainEvents,
-            Counter ingestedCounter,
             ILogger logger)
         {
             this.enrichers = enrichers;
             this.domainEvents = domainEvents;
-            this.ingestedCounter = ingestedCounter;
             this.logger = logger;
             failedMessageFactory = new FailedMessageFactory(failedMessageEnrichers);
         }
@@ -54,7 +52,6 @@
                 }
 
                 storedContexts.Add(context);
-                ingestedCounter.Mark();
 
                 foreach (var endpointDetail in context.Extensions.Get<IEnumerable<EndpointDetails>>())
                 {
@@ -176,7 +173,6 @@
 
         readonly IEnrichImportedErrorMessages[] enrichers;
         readonly IDomainEvents domainEvents;
-        readonly Counter ingestedCounter;
         readonly FailedMessageFactory failedMessageFactory;
         readonly ILogger logger;
     }

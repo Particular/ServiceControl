@@ -14,6 +14,7 @@
     using ServiceControl.Audit.Persistence.Infrastructure;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.Ingestion;
     using ServiceControl.SagaAudit;
 
     class AuditPersister(IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,

@@ -31,5 +31,9 @@
         }
 
         public bool CanIngestMore() => customCheckState.CanIngestMore;
+
+        // Audit documents are independent: nothing merges two of them, and every batch gets its own
+        // bulk insert operation.
+        public bool SupportsConcurrentBatches => true;
     }
 }

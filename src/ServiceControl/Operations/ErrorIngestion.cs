@@ -2,12 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Threading;
-    using System.Threading.Channels;
     using System.Threading.Tasks;
     using Infrastructure;
-    using Infrastructure.Metrics;
+    using Metrics;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
@@ -15,17 +13,16 @@
     using Persistence;
     using Persistence.UnitOfWork;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.Ingestion;
     using Transports;
 
     class ErrorIngestion : BackgroundService
     {
-        static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
-
         public ErrorIngestion(
             Settings settings,
             ITransportCustomization transportCustomization,
             TransportSettings transportSettings,
-            Metrics metrics,
+            IngestionMetrics metrics,
             IFailedErrorImportDataStore dataStore,
             ErrorIngestionCustomCheck.State ingestionState,
             ErrorIngestor ingestor,
@@ -40,25 +37,27 @@
             this.ingestor = ingestor;
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.applicationLifetime = applicationLifetime;
+            this.metrics = metrics;
             this.logger = logger;
-            receivedMeter = metrics.GetCounter("Error ingestion - received");
-            batchSizeMeter = metrics.GetMeter("Error ingestion - batch size");
-            batchDurationMeter = metrics.GetMeter("Error ingestion - batch processing duration", FrequencyInMilliseconds);
 
             if (!transportSettings.MaxConcurrency.HasValue)
             {
                 throw new ArgumentException("MaxConcurrency is not set in TransportSettings");
             }
 
-            channel = Channel.CreateBounded<MessageContext>(new BoundedChannelOptions(transportSettings.MaxConcurrency.Value)
-            {
-                SingleReader = true,
-                SingleWriter = false,
-                AllowSynchronousContinuations = false,
-                FullMode = BoundedChannelFullMode.Wait
-            });
+            MaxBatchSize = settings.ErrorIngestionBatchSize ?? transportSettings.MaxConcurrency.Value;
 
-            errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, settings.LoggingSettings, OnCriticalError, logger);
+            pipeline = new IngestionPipeline(
+                new IngestionPipelineSettings
+                {
+                    BatchSize = MaxBatchSize,
+                    MaxWriters = IngestionSettingsReader.ResolveMaxParallelWriters(settings.ErrorIngestionMaxParallelWriters, unitOfWorkFactory.SupportsConcurrentBatches, nameof(settings.ErrorIngestionMaxParallelWriters), logger),
+                    BatchTimeout = settings.ErrorIngestionBatchTimeout
+                },
+                IngestBatch,
+                logger);
+
+            errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, settings.LoggingSettings, OnCriticalError, metrics, logger);
 
             watchdog = new Watchdog(
                 "failed message ingestion",
@@ -77,72 +76,27 @@
             await base.StartAsync(cancellationToken);
         }
 
-        protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
+        protected override Task ExecuteAsync(CancellationToken cancellationToken = default) => pipeline.Run(cancellationToken);
+
+        async Task IngestBatch(List<MessageContext> contexts, CancellationToken cancellationToken)
         {
-            try
-            {
-                var contexts = new List<MessageContext>(transportSettings.MaxConcurrency.Value);
+            // Leaving the scope without completing it is what records the batch as failed
+            using var batchMetrics = metrics.BeginBatch(MaxBatchSize);
 
-                while (await channel.Reader.WaitToReadAsync(cancellationToken))
-                {
-                    // will only enter here if there is something to read.
-                    try
-                    {
-                        // as long as there is something to read this will fetch up to MaximumConcurrency items
-                        while (channel.Reader.TryRead(out var context))
-                        {
-                            contexts.Add(context);
-                        }
+            await ingestor.Ingest(contexts, messageDispatcher, cancellationToken);
 
-                        batchSizeMeter.Mark(contexts.Count);
-                        using (batchDurationMeter.Measure())
-                        {
-                            await ingestor.Ingest(contexts, messageDispatcher, cancellationToken);
-                        }
-                    }
-                    catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested)
-                    {
-                        // signal all message handling tasks to terminate
-                        foreach (var context in contexts)
-                        {
-                            _ = context.GetTaskCompletionSource().TrySetException(e);
-                        }
-
-                        logger.LogInformation(e, "Batch cancelled");
-                        break;
-                    }
-                    catch (Exception e)
-                    {
-                        // signal all message handling tasks to terminate
-                        foreach (var context in contexts)
-                        {
-                            _ = context.GetTaskCompletionSource().TrySetException(e);
-                        }
-
-                        logger.LogInformation(e, "Ingesting messages failed");
-                    }
-                    finally
-                    {
-                        contexts.Clear();
-                    }
-                }
-                // will fall out here when writer is completed
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                // ExecuteAsync cancelled
-            }
+            batchMetrics.Complete(contexts.Count);
         }
 
         public override async Task StopAsync(CancellationToken cancellationToken = default)
         {
             try
             {
-                // Order matters. Receiving stops first so nothing new enters the channel, but the
-                // infrastructure is left running while the channel drains, because those batches
+                // Order matters. Receiving stops first so nothing new enters the pipeline, but the
+                // infrastructure is left running while the pipeline drains, because those batches
                 // still forward through its dispatcher and Shutdown disposes it.
                 await EnsureReceivingStopped(cancellationToken);
-                channel.Writer.Complete();
+                pipeline.CompleteAdding();
                 await base.StopAsync(cancellationToken);
             }
             finally
@@ -279,8 +233,11 @@
 
         async Task OnMessage(MessageContext messageContext, CancellationToken cancellationToken)
         {
+            using var messageIngestionMetrics = metrics.BeginIngestion(messageContext);
+
             if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
             {
+                messageIngestionMetrics.Skipped();
                 return;
             }
 
@@ -292,10 +249,10 @@
             // Not much shutdown speed to gain but this will ensure endpoint.Stop will return.
             await using var cancellationTokenRegistration = cancellationToken.Register(() => _ = taskCompletionSource.TrySetCanceled());
 
-            receivedMeter.Mark();
-
-            await channel.Writer.WriteAsync(messageContext, cancellationToken);
+            await pipeline.Enqueue(messageContext, cancellationToken);
             await taskCompletionSource.Task;
+
+            messageIngestionMetrics.Success();
         }
 
         Task OnCriticalError(string failure, Exception exception, CancellationToken cancellationToken)
@@ -361,16 +318,21 @@
         readonly Settings settings;
         readonly ITransportCustomization transportCustomization;
         readonly TransportSettings transportSettings;
+        readonly int MaxBatchSize;
         readonly Watchdog watchdog;
-        readonly Channel<MessageContext> channel;
-        readonly Meter batchDurationMeter;
-        readonly Meter batchSizeMeter;
-        readonly Counter receivedMeter;
+        readonly IngestionPipeline pipeline;
+        readonly IngestionMetrics metrics;
         readonly ErrorIngestor ingestor;
         readonly IIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly IHostApplicationLifetime applicationLifetime;
 
         readonly ILogger<ErrorIngestion> logger;
+
+        public override void Dispose()
+        {
+            startStopSemaphore.Dispose();
+            base.Dispose();
+        }
 
         internal static class LogMessages
         {
