@@ -8,9 +8,10 @@ See [requirements-test-tool-plan.md](./requirements-test-tool-plan.md) for the f
 
 ## Status
 
-Phases 0–6 complete (project bootstrap, OTel foundation, NServiceBus error path, scenarios,
-background jobs, web UI, containerization & scaling). Remaining: direct error-queue bypass writer
-(Phase 2 optional item), Grafana dashboard + smoke test (Phase 7).
+All phases complete (0–7): project bootstrap, OTel foundation (traces + metrics + logs),
+NServiceBus error path (handler + direct error-queue bypass writer), scenarios, background jobs,
+web UI, containerization & scaling, Aspire AppHost, and smoke tests. The only unplanned item is
+a prebuilt Grafana dashboard (otel traces/metrics already flow to the collector).
 
 ## What it does
 
@@ -30,7 +31,24 @@ Two background jobs (gated by config) run on timers:
 - **Replay** — fetches error groups from ServiceControl and triggers retry
 - **Search** — runs canned FTS queries to exercise the RavenDB search index
 
-All telemetry is exported via OTLP (traces + metrics) and a Prometheus `/metrics` endpoint.
+All telemetry is exported via OTLP (traces + metrics + logs) and a Prometheus `/metrics` endpoint.
+
+### Direct error-queue bypass writer
+
+In addition to the handler path, the tool can write failed-message envelopes directly to the
+ServiceControl error queue, bypassing the handler entirely for high-throughput error load.
+Each message carries standard NServiceBus failure headers (`NServiceBus.ExceptionInfo.*`,
+`NServiceBus.FailedQ`) so ServiceControl ingests it as a genuine failed message. Control via:
+- `POST /api/bypass/start` — `{ "scenario": "third-party-outage", "rate": 100, "durationSeconds": 60 }`
+- `POST /api/bypass/stop`
+- `GET /api/bypass/status`
+
+### Release-test scenario presets
+
+The tool ships with presets mapped from `docs/testing-scenarios.md` so release-test scenarios can
+be kicked off manually by name:
+- `GET /api/release-tests` — list all presets
+- `POST /api/release-tests/{name}/start` — start a preset (e.g. `retry-message-group`, `ingestion-load`)
 
 ## Layout
 
@@ -47,17 +65,21 @@ tools/testing-tool/
       wwwroot/index.html         # single-page web UI (vanilla JS, no build step)
       Program.cs                 # OTel wiring, NServiceBus endpoint, DI, API endpoints
       ScenarioRunner.cs          # start/stop, rate control, per-scenario error counting
+      DirectErrorQueueWriter.cs  # bypass path: writes failed-message envelopes directly to error queue
       FailingMessageHandler.cs   # NServiceBus handler that throws per scenario logic
+      ReleaseTestScenarios.cs    # release-test preset mappings (Phase 5)
       ServiceControlClient.cs    # REST API client (error groups, replay, search)
       ReplayService.cs           # background replay job
       SearchService.cs           # background search job
-      TelemetrySetup.cs          # OTel traces + metrics + OTLP/Prometheus exporters
+      TelemetrySetup.cs          # OTel traces + metrics + logs + OTLP/Prometheus exporters
       NServiceBusSetup.cs        # endpoint config (Learning transport, error queue routing)
       TestingToolOptions.cs      # config (SC URL, replay/search intervals, error queue name)
       TestingToolMetrics.cs      # shared live counters for /api/status
       ShardIdResolver.cs         # shard id from env var, StatefulSet ordinal, or hostname
     TestingTool.Scenarios/       # IScenario contract + 5 scenario implementations
-    TestingTool.Contracts/       # shared DTOs (ScenarioInfo, TestingToolStatus, StartScenarioRequest)
+    TestingTool.Contracts/       # shared DTOs (ScenarioInfo, TestingToolStatus, BypassStatus, etc.)
+    TestingTool.SmokeTests/      # xunit smoke tests (requires running SC + tool)
+  aspire/                        # file-based Aspire AppHost (platform + tool + Jaeger)
 ```
 
 ## Run locally
@@ -80,6 +102,40 @@ This starts ServiceControl + the testing tool + Jaeger (OTLP). Open:
 - ServiceControl: http://localhost:33333
 - Jaeger UI: http://localhost:16686
 - Prometheus metrics: http://localhost:8080/metrics
+
+## Run with Aspire
+
+The Aspire AppHost orchestrates the testing tool together with the full Particular platform
+(ServiceControl + Learning transport + RavenDB + ServicePulse) and Jaeger, so a single command
+brings up the whole system locally:
+
+```bash
+aspire run tools/testing-tool/aspire/AppHost.cs
+```
+
+To test a specific ServiceControl image tag (e.g. a PR-based prerelease tag):
+
+```bash
+aspire run tools/testing-tool/aspire/AppHost.cs -- pr-1234
+```
+
+The Aspire dashboard provides allocated ports for each service. The testing tool automatically
+connects to ServiceControl via the platform's transport and REST API URL.
+
+## Run smoke tests
+
+The smoke tests require a running ServiceControl + testing tool (via docker-compose or Aspire):
+
+```bash
+# Start the stack first (see above)
+dotnet test tools/testing-tool/src/TestingTool.SmokeTests
+```
+
+Configure the test URLs via environment variables if not using defaults:
+```bash
+TESTING_TOOL_URL=http://localhost:8080 SERVICECONTROL_URL=http://localhost:33333 \
+  dotnet test tools/testing-tool/src/TestingTool.SmokeTests
+```
 
 ## Deploy on Kubernetes
 

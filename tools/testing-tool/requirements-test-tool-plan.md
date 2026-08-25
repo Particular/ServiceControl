@@ -72,7 +72,7 @@ The tool is a **stateless, horizontally-scalable .NET service** hosted in a cont
 - [x] Define `ActivitySource` instances per scenario category (`testing-tool.load`, `testing-tool.replay`, `testing-tool.search` + per-scenario sources)
 - [x] Add metrics: `errors_sent_total{scenario}`, `errors_replayed_total{group}`, `searches_executed_total{query}`, `search_latency_ms{query}` (histogram)
 - [x] Prometheus scraping endpoint at `/metrics`
-- [ ] Add structured logs routed through OTel logs API (deferred — console logging is active)
+- [x] Add structured logs routed through OTel logs API (Phase 1 complete)
 
 ```csharp
 // Program.cs — OTel wiring
@@ -105,7 +105,7 @@ builder.Services.AddOpenTelemetryPrometheusScrapingEndpoint();
 
 - [x] Configure NServiceBus endpoint `TestingTool.Load` with error queue pointed at ServiceControl (using NServiceBus 10 `AddNServiceBusEndpoint` DI integration + Learning transport)
 - [x] Implement `FailingMessageHandler` that throws based on injected `IScenario` (via `IScenarioRegistry`)
-- [ ] Implement `DirectErrorQueueWriter` that constructs `MessageFailed` / transport message envelopes and writes directly to the ServiceControl error queue (bypass path) — see ref [ServiceControlFeeder](https://github.com/dvdstelt/ServiceControlFeeder)
+- [x] Implement `DirectErrorQueueWriter` that constructs `MessageFailed` / transport message envelopes and writes directly to the ServiceControl error queue (bypass path) — see ref [ServiceControlFeeder](https://github.com/dvdstelt/ServiceControlFeeder)
 - [x] Add a load-rate controller (token bucket) configurable per scenario (`PeriodicTimer`-based rate controller in `ScenarioRunner`)
 
 ```csharp
@@ -183,7 +183,7 @@ public class FailingMessageHandler(IScenario scenario, ILogger<FailingMessageHan
   - `GET  /api/status`        → live counters snapshot (errors, replays, searches, active scenarios, rate, uptime, SC url)
   - `GET  /metrics`           → Prometheus scraping endpoint
 - [x] `wwwroot/index.html` — vanilla JS SPA, no build step; dark/light theme, status dashboard, category-grouped scenario cards with Start/Stop + rate/duration controls, live 2s polling, toast notifications
-- [ ] Optional: wire release-test scenario names so they can be manually kicked off (requirement: *"any scenarios from the release tests should be considered to kick off manually"*)
+- [x] Optional: wire release-test scenario names so they can be manually kicked off (requirement: *"any scenarios from the release tests should be considered to kick off manually"*)
 
 ```html
 <!-- wwwroot/index.html (excerpt) -->
@@ -218,9 +218,10 @@ public class FailingMessageHandler(IScenario scenario, ILogger<FailingMessageHan
 
 ### Phase 7 — Observability dashboard & verification
 
-- [ ] Ship a prebuilt Grafana dashboard JSON (errors/sec, ingestion lag, search p95, replay success)
-- [ ] Add a smoke test that: starts tool → triggers `ThirdPartyOutageScenario` for 30s → verifies errors appear in ServiceControl → verifies replay passes
-- [ ] Write README with run instructions + env var reference
+- [ ] ~~Ship a prebuilt Grafana dashboard JSON (errors/sec, ingestion lag, search p95, replay success)~~ — **unplanned** (otel traces/metrics already flow to the collector; a bespoke dashboard is out of scope)
+- [x] Create an Aspire AppHost that orchestrates the testing tool together with the full Particular platform (ServiceControl + transport + persistence), so a single `aspire run` brings up the whole system locally. Include tag/channel selection for the platform images so a specific ServiceControl version (or `latest`) can be pinned via the Aspire app model — see the [Aspire docs on container image tag selection](https://learn.microsoft.com/dotnet/aspire/fundamentals/containers) for the `WithImageTag` / `WithImage(...)` resource customization pattern.
+- [x] Add a smoke test that: starts tool → triggers `ThirdPartyOutageScenario` for 30s → verifies errors appear in ServiceControl → verifies replay passes
+- [x] Write README with run instructions + env var reference
 
 ---
 
@@ -252,7 +253,7 @@ public class FailingMessageHandler(IScenario scenario, ILogger<FailingMessageHan
 
 | Milestone | Deliverable | Phase |
 |---|---|---|
-| M1 | OTel-instrumented endpoint emitting grouped errors (handler + bypass paths) | Phases 0–3 |
-| M2 | Background replay + search jobs running on timers | Phase 4 |
-| M3 | Web UI for manual scenario control | Phase 5 |
-| M4 | Containerized, horizontally-scalable deploy (done) + dashboard + smoke test (Phase 7) | Phases 6–7 |
+| M1 | OTel-instrumented endpoint emitting grouped errors (handler + bypass paths) | Phases 0–3 ✅ |
+| M2 | Background replay + search jobs running on timers | Phase 4 ✅ |
+| M3 | Web UI for manual scenario control | Phase 5 ✅ |
+| M4 | Containerized, horizontally-scalable deploy + Aspire AppHost + smoke test | Phases 6–7 ✅ |
