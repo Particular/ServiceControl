@@ -152,14 +152,11 @@
         {
             hostBuilder.Services.AddSingleton<IngestionMetrics>();
 
-            if (string.IsNullOrEmpty(settings.OtlpEndpointUrl))
+            var otlpEndpoint = OtlpEndpoint.Read(hostBuilder.Configuration);
+
+            if (otlpEndpoint is null)
             {
                 return;
-            }
-
-            if (!Uri.TryCreate(settings.OtlpEndpointUrl, UriKind.Absolute, out var otlpEndpoint))
-            {
-                throw new UriFormatException($"Invalid OtlpEndpointUrl: {settings.OtlpEndpointUrl}");
             }
 
             hostBuilder.Services.AddOpenTelemetry()
@@ -170,7 +167,7 @@
                 .WithMetrics(metrics =>
                 {
                     metrics.AddIngestionMetrics();
-                    metrics.AddOtlpExporter(exporter => exporter.Endpoint = otlpEndpoint);
+                    metrics.AddOtlpExporter();
 
                     if (Debugger.IsAttached)
                     {
@@ -179,7 +176,7 @@
                 });
 
             LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.LoggingSettings.LogLevel)
-                .LogInformation("OpenTelemetry metrics exporter enabled: {OtlpEndpointUrl}", settings.OtlpEndpointUrl);
+                .LogInformation("OpenTelemetry metrics exporter enabled: {OtlpEndpoint}", otlpEndpoint);
         }
 
         static void RecordStartup(Settings settings, EndpointConfiguration endpointConfiguration)

@@ -1,4 +1,4 @@
-namespace ServiceControl.Monitoring
+﻿namespace ServiceControl.Monitoring
 {
     using System;
     using System.Collections.Generic;

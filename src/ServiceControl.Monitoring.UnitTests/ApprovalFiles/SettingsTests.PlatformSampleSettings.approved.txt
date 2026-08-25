@@ -1,4 +1,4 @@
-{
+﻿{
   "LoggingSettings": {
     "LogLevel": "Information",
     "LogPath": "C:\\Logs"

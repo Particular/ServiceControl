@@ -2,17 +2,17 @@
 
 Instances can be configured to emit telemetry to aid in performance testing or troubleshooting performance-related issues.
 
-Both the error and the audit instance report their ingestion the same way. Set `OtlpEndpointUrl`
-in that instance's settings root to a valid [OTLP endpoint url](https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options).
-Only GRPC endpoints are supported at this stage.
+Both the error and the audit instance report their ingestion the same way. Exporting is configured with the standard [OpenTelemetry environment variables](https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options), not with instance settings, so the same variables that configure any other OpenTelemetry process apply here. Setting `OTEL_EXPORTER_OTLP_ENDPOINT` is enough to turn metrics on. Both gRPC and HTTP endpoints are supported, and `OTEL_EXPORTER_OTLP_PROTOCOL` selects between them.
 
-The instruments differ only in their prefix and in the categories a message can fall into, so the
-same dashboard works for both with the prefix swapped. What the batches being measured actually are
-is covered in [ingestion-pipeline.md](ingestion-pipeline.md).
+The signal-specific variables, `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` and its siblings, have no effect. The SDK only honours those under `UseOtlpExporter`, and instances use `AddOtlpExporter` so that OTLP applies to metrics without also being turned on for every other signal.
+
+Logs are exported separately. Add `Otlp` to the instance's `LoggingProviders` setting, which is what turns the OTLP log exporter on, and it then reads the same environment variables for its endpoint.
+
+The instruments differ only in their prefix and in the categories a message can fall into, so the same dashboard works for both with the prefix swapped. What the batches being measured actually are is covered in [ingestion-pipeline.md](ingestion-pipeline.md).
 
 ## Error
 
-Meter `Particular.ServiceControl`, configured with `ServiceControl/OtlpEndpointUrl`.
+Meter `Particular.ServiceControl`.
 
 - `sc.error.ingestion.batch_duration_seconds` - Message batch processing duration in seconds
   - `result` - Whether the batch was written at its configured size: `full`, `partial` or `failed`
@@ -29,7 +29,7 @@ Meter `Particular.ServiceControl`, configured with `ServiceControl/OtlpEndpointU
 
 ## Audit
 
-Meter `Particular.ServiceControl.Audit`, configured with `ServiceControl.Audit/OtlpEndpointUrl`.
+Meter `Particular.ServiceControl.Audit`.
 
 - `sc.audit.ingestion.batch_duration_seconds` - Message batch processing duration in seconds
   - `result` - Whether the batch was written at its configured size: `full`, `partial` or `failed`
