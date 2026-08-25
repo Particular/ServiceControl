@@ -152,7 +152,7 @@
         {
             hostBuilder.Services.AddSingleton<IngestionMetrics>();
 
-            var otlpEndpoint = OtlpEndpoint.MetricsEndpointFromEnvironment();
+            var otlpEndpoint = OtlpEndpoint.Read(hostBuilder.Configuration);
 
             if (otlpEndpoint is null)
             {

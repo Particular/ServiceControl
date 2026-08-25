@@ -97,7 +97,7 @@ static class HostApplicationBuilderExtensions
     {
         builder.Services.AddSingleton<IngestionMetrics>();
 
-        var otlpEndpoint = OtlpEndpoint.MetricsEndpointFromEnvironment();
+        var otlpEndpoint = OtlpEndpoint.Read(builder.Configuration);
 
         if (otlpEndpoint is null)
         {

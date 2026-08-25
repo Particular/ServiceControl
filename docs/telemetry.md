@@ -2,9 +2,9 @@
 
 Instances can be configured to emit telemetry to aid in performance testing or troubleshooting performance-related issues.
 
-Both the error and the audit instance report their ingestion the same way. Exporting is configured with the standard [OpenTelemetry environment variables](https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options), not with instance settings, so the same variables that configure any other OpenTelemetry process apply here. Setting `OTEL_EXPORTER_OTLP_ENDPOINT` is enough to turn metrics on, and `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` overrides it for metrics alone. Both gRPC and HTTP endpoints are supported, and `OTEL_EXPORTER_OTLP_PROTOCOL` selects between them.
+Both the error and the audit instance report their ingestion the same way. Exporting is configured with the standard [OpenTelemetry environment variables](https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options), not with instance settings, so the same variables that configure any other OpenTelemetry process apply here. Setting `OTEL_EXPORTER_OTLP_ENDPOINT` is enough to turn metrics on. Both gRPC and HTTP endpoints are supported, and `OTEL_EXPORTER_OTLP_PROTOCOL` selects between them.
 
-These variables have to be set in the instance's environment. They cannot be set in the instance's app.config, because the OpenTelemetry SDK reads them itself rather than going through the ServiceControl settings reader.
+The signal-specific variables, `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` and its siblings, have no effect. The SDK only honours those under `UseOtlpExporter`, and instances use `AddOtlpExporter` so that OTLP applies to metrics without also being turned on for every other signal.
 
 Logs are exported separately. Add `Otlp` to the instance's `LoggingProviders` setting, which is what turns the OTLP log exporter on, and it then reads the same environment variables for its endpoint.
 

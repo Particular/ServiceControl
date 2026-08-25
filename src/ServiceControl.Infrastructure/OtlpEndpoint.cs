@@ -1,15 +1,28 @@
 namespace ServiceControl.Infrastructure;
 
 using System;
+using Microsoft.Extensions.Configuration;
 
 public static class OtlpEndpoint
 {
-    public static string MetricsEndpointFromEnvironment() =>
-        Read("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT") ?? Read("OTEL_EXPORTER_OTLP_ENDPOINT");
+    // This is the default environment variable name used by the OpenTelemetry .NET SDK to configure the OTLP exporter endpoint
+    // as specified in https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/exporter.md.
+    const string EndpointKey = "OTEL_EXPORTER_OTLP_ENDPOINT";
 
-    static string Read(string variable)
+    public static Uri Read(IConfiguration configuration)
     {
-        var value = Environment.GetEnvironmentVariable(variable);
-        return string.IsNullOrWhiteSpace(value) ? null : value;
+        var configuredEndpoint = configuration[EndpointKey];
+
+        if (string.IsNullOrWhiteSpace(configuredEndpoint))
+        {
+            return null;
+        }
+
+        if (!Uri.TryCreate(configuredEndpoint, UriKind.Absolute, out var endpoint))
+        {
+            throw new UriFormatException($"Invalid {EndpointKey}: {configuredEndpoint}");
+        }
+
+        return endpoint;
     }
 }
