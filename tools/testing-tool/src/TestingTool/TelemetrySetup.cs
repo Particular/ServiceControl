@@ -1,5 +1,6 @@
 using System.Diagnostics.Metrics;
 using OpenTelemetry;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -22,6 +23,7 @@ public static class TelemetrySetup
         public const string Load = "testing-tool.load";
         public const string Replay = "testing-tool.replay";
         public const string Search = "testing-tool.search";
+        public const string Bypass = "testing-tool.bypass";
     }
 
     public static Meter CreateMeter() => new(MeterName, "1.0.0");
@@ -37,6 +39,7 @@ public static class TelemetrySetup
                 .AddSource(Sources.Load)
                 .AddSource(Sources.Replay)
                 .AddSource(Sources.Search)
+                .AddSource(Sources.Bypass)
                 // Also pick up per-scenario activity sources dynamically.
                 .AddSource("testing-tool.*")
                 .AddOtlpExporter())
@@ -45,6 +48,8 @@ public static class TelemetrySetup
                 .AddHttpClientInstrumentation()
                 .AddMeter(MeterName)
                 .AddPrometheusExporter()
-                .AddOtlpExporter());
+                .AddOtlpExporter())
+            // Phase 1: Route structured logs through the OpenTelemetry logs API to OTLP.
+            .WithLogging(l => l.AddOtlpExporter());
     }
 }

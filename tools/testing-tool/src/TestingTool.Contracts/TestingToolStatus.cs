@@ -18,6 +18,9 @@ public sealed class TestingToolStatus
     /// <summary>Total ServiceControl searches executed since process start.</summary>
     public long SearchesExecuted { get; init; }
 
+    /// <summary>Total errors emitted via the direct error-queue bypass writer since process start.</summary>
+    public long BypassErrorsWritten { get; init; }
+
     /// <summary>The shard id this replica owns, used for disjoint scenario slices when scaled out.</summary>
     public string? ShardId { get; init; }
 
