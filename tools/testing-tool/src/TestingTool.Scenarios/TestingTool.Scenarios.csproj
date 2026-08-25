@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Scenario definitions. The IScenario contract is fleshed out in Phase 3. -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\TestingTool.Contracts\TestingTool.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>
