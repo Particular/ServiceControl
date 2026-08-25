@@ -171,6 +171,10 @@
         <div class="label">Uptime</div>
         <div class="value" id="stat-uptime">—</div>
       </div>
+      <div class="stat-card">
+        <div class="label">Bypass Errors</div>
+        <div class="value" id="stat-bypass">—</div>
+      </div>
     </div>
 
     <!-- Connection info -->
@@ -185,6 +189,32 @@
     </div>
     <div class="scenarios" id="scenarios">
       <div class="loading">Loading scenarios…</div>
+    </div>
+
+    <!-- Bypass writer -->
+    <div class="section-head" style="margin-top:2rem">
+      <h2>Direct Error-Queue Bypass</h2>
+    </div>
+    <div class="scenario-card" id="bypass-card">
+      <div class="desc" style="margin-bottom:.8rem">
+        Writes failed-message envelopes directly to the ServiceControl error queue, bypassing the handler for high-throughput error load. Messages carry NServiceBus failure headers so ServiceControl ingests them as genuine failed messages.
+      </div>
+      <div class="controls">
+        <span class="field-label">Scenario:</span>
+        <select id="bypass-scenario" style="padding:.3rem .5rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);font-size:.85rem">
+          <option value="">Loading…</option>
+        </select>
+        <span class="field-label">Rate (msg/s):</span>
+        <input type="number" id="bypass-rate" value="100" min="1" step="1" />
+        <span class="field-label">Duration (sec, optional):</span>
+        <input type="number" id="bypass-duration" value="" min="1" step="1" placeholder="∞" />
+        <button class="btn start" onclick="startBypass()" id="btn-bypass-start">▶ Start Bypass</button>
+        <button class="btn stop" onclick="stopBypass()" id="btn-bypass-stop" disabled>⏹ Stop Bypass</button>
+      </div>
+      <div class="stats" id="bypass-stats" style="margin-top:.8rem">
+        <span>Status: <strong>idle</strong></span>
+        <span>Errors written: <strong>0</strong></span>
+      </div>
     </div>
 
     <footer>
@@ -375,6 +405,58 @@
       }
     }
 
+    // --- Bypass ---
+    function populateBypassScenarios() {
+      const sel = document.getElementById('bypass-scenario');
+      sel.innerHTML = scenarios.map(s => `<option value="${s.name}">${s.name} (${s.category})</option>`).join('');
+    }
+
+    async function startBypass() {
+      const scenario = document.getElementById('bypass-scenario').value;
+      const rate = parseFloat(document.getElementById('bypass-rate').value);
+      const dur = parseInt(document.getElementById('bypass-duration').value);
+      const body = { scenario };
+      if (rate && rate > 0) body.rate = rate;
+      if (dur && dur > 0) body.durationSeconds = dur;
+      try {
+        await api('POST', '/api/bypass/start', body);
+        toast(`Started bypass for "${scenario}"`, 'ok');
+        await refreshBypass();
+      } catch (e) {
+        toast(`Failed to start bypass: ${e.message}`, 'error');
+      }
+    }
+
+    async function stopBypass() {
+      try {
+        await api('POST', '/api/bypass/stop');
+        toast('Stopped bypass writer', 'ok');
+        await refreshBypass();
+      } catch (e) {
+        toast(`Failed: ${e.message}`, 'error');
+      }
+    }
+
+    async function refreshBypass() {
+      try {
+        const bypass = await api('GET', '/api/bypass/status');
+        const stats = document.getElementById('bypass-stats');
+        const startBtn = document.getElementById('btn-bypass-start');
+        const stopBtn = document.getElementById('btn-bypass-stop');
+        const card = document.getElementById('bypass-card');
+        card.classList.toggle('running', bypass.running);
+        startBtn.disabled = bypass.running;
+        stopBtn.disabled = !bypass.running;
+        document.querySelectorAll('#bypass-card input, #bypass-scenario').forEach(el => el.disabled = bypass.running);
+        stats.innerHTML = `
+          <span>Status: <strong>${bypass.running ? 'running' : 'idle'}</strong></span>
+          ${bypass.scenario ? `<span>Scenario: <strong>${bypass.scenario}</strong></span>` : ''}
+          ${bypass.running ? `<span>Rate: <strong>${bypass.rate ?? 0} msg/s</strong></span>` : ''}
+          <span>Errors written: <strong>${fmtNum(bypass.errorsWritten)}</strong></span>
+        `;
+      } catch (e) { /* ignore */ }
+    }
+
     // --- Polling ---
     async function loadAll() {
       await Promise.all([loadStatus(), loadScenarios()]);
@@ -390,6 +472,7 @@
         document.getElementById('stat-searches').textContent = fmtNum(status.searchesExecuted);
         document.getElementById('stat-active').textContent = status.activeScenarios ?? 0;
         document.getElementById('stat-uptime').textContent = fmtUptime(status.uptime);
+        document.getElementById('stat-bypass').textContent = fmtNum(status.bypassErrorsWritten);
 
         // Update per-scenario stats in-place without re-rendering inputs
         scenarios = await api('GET', '/api/scenarios');
@@ -420,8 +503,10 @@
     }
 
     // --- Init ---
-    loadAll();
+    loadAll().then(() => populateBypassScenarios());
+    refreshBypass();
     refreshTimer = setInterval(refresh, 2000);
+    setInterval(refreshBypass, 2000);
   </script>
 </body>
 

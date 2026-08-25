@@ -32,6 +32,7 @@ builder.Services.AddSingleton<IScenario>(_ => new RandomBackgroundNoiseScenario(
 
 builder.Services.AddSingleton<IScenarioRegistry, ScenarioRegistry>();
 builder.Services.AddSingleton<ScenarioRunner>();
+builder.Services.AddSingleton<DirectErrorQueueWriter>();
 builder.Services.AddSingleton<TestingToolMetrics>();
 
 // --- Background jobs (Phase 4) ---
@@ -65,11 +66,12 @@ app.Lifetime.ApplicationStarted.Register(() =>
     }
 });
 
-// Graceful shutdown: stop all scenarios.
+// Graceful shutdown: stop all scenarios and bypass writer.
 app.Lifetime.ApplicationStopping.Register(() =>
 {
     var runner = app.Services.GetRequiredService<ScenarioRunner>();
     runner.StopAll();
+    app.Services.GetRequiredService<DirectErrorQueueWriter>().Stop();
 });
 
 // --- Health endpoints (Phase 6) ---
@@ -90,6 +92,7 @@ app.MapGet("/api/status", () => Results.Ok(new TestingToolStatus
     ErrorsSent = metrics.TotalErrorsSent,
     ErrorsReplayed = metrics.TotalErrorsReplayed,
     SearchesExecuted = metrics.TotalSearches,
+    BypassErrorsWritten = metrics.TotalBypassErrorsWritten,
     ShardId = shardId,
     ActiveScenarios = metrics.ActiveScenarios,
     CurrentRate = Math.Round(metrics.CurrentRate, 1),
@@ -125,6 +128,68 @@ app.MapPost("/api/scenarios/stop-all", (ScenarioRunner runner) =>
 {
     runner.StopAll();
     return Results.Ok(new { stopped = "all" });
+});
+
+// --- Bypass endpoints (Phase 2: direct error-queue writer) ---
+// These endpoints control the bypass path that writes failed-message envelopes directly to the
+// ServiceControl error queue, bypassing the handler for high-throughput error load.
+
+app.MapGet("/api/bypass/status", (DirectErrorQueueWriter writer) => Results.Ok(writer.GetStatus()));
+
+app.MapPost("/api/bypass/start", (StartBypassRequest? request, DirectErrorQueueWriter writer, IScenarioRegistry registry) =>
+{
+    var scenarioName = request?.Scenario;
+    if (string.IsNullOrWhiteSpace(scenarioName))
+    {
+        // Default to the first scenario if none specified.
+        scenarioName = registry.All[0].Name;
+    }
+
+    var rate = request?.Rate ?? 100;
+    var duration = request?.DurationSeconds is { } secs and > 0
+        ? TimeSpan.FromSeconds(secs)
+        : (TimeSpan?)null;
+
+    if (!writer.TryStart(scenarioName, rate, duration, out var error))
+        return Results.BadRequest(new { error });
+
+    return Results.Ok(writer.GetStatus());
+});
+
+app.MapPost("/api/bypass/stop", (DirectErrorQueueWriter writer) =>
+{
+    writer.Stop();
+    return Results.Ok(writer.GetStatus());
+});
+
+// --- Release-test scenario endpoints (Phase 5: release-test presets) ---
+// Lists release-test presets that map to testing-tool scenarios, and allows kicking them off
+// by release-test name. This satisfies the optional requirement to consider release-test
+// scenarios for manual kickoff.
+
+app.MapGet("/api/release-tests", () => Results.Ok(ReleaseTestScenarios.Presets.Select(p => new
+{
+    name = p.Name,
+    scenario = p.ScenarioName,
+    description = p.Description,
+    rate = p.Rate,
+    durationSeconds = p.DurationSeconds
+})));
+
+app.MapPost("/api/release-tests/{name}/start", (string name, ScenarioRunner runner) =>
+{
+    var preset = ReleaseTestScenarios.Find(name);
+    if (preset is null)
+        return Results.BadRequest(new { error = $"Unknown release-test scenario '{name}'" });
+
+    var duration = preset.DurationSeconds is { } secs and > 0
+        ? TimeSpan.FromSeconds(secs)
+        : (TimeSpan?)null;
+
+    if (!runner.TryStart(preset.ScenarioName, preset.Rate, duration, out var error))
+        return Results.BadRequest(new { error });
+
+    return Results.Ok(new { started = preset.Name, scenario = preset.ScenarioName, rate = preset.Rate });
 });
 
 app.MapFallbackToFile("index.html");

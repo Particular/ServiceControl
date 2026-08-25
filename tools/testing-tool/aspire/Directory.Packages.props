@@ -1,0 +1,13 @@
+<Project>
+
+  <!--
+    Disable central package management for the file-based Aspire AppHost.
+    The AppHost specifies its own package versions via #:package directives (e.g. @1.*),
+    which requires ManagePackageVersionsCentrally=false to avoid conflicts with the
+    parent testing-tool Directory.Packages.props.
+  -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+</Project>
