@@ -1,4 +1,4 @@
-namespace ServiceControl.Audit;
+﻿namespace ServiceControl.Audit;
 
 using System;
 using System.Diagnostics;
@@ -97,31 +97,30 @@ static class HostApplicationBuilderExtensions
     {
         builder.Services.AddSingleton<IngestionMetrics>();
 
-        if (!string.IsNullOrEmpty(settings.OtlpEndpointUrl))
+        var otlpEndpoint = OtlpEndpoint.MetricsEndpointFromEnvironment();
+
+        if (otlpEndpoint is null)
         {
-            if (!Uri.TryCreate(settings.OtlpEndpointUrl, UriKind.Absolute, out var otelMetricsUri))
-            {
-                throw new UriFormatException($"Invalid OtlpEndpointUrl: {settings.OtlpEndpointUrl}");
-            }
-
-            builder.Services.AddOpenTelemetry()
-                .ConfigureResource(b => b.AddService(
-                    serviceName: settings.InstanceName,
-                    serviceVersion: InstanceVersion,
-                    autoGenerateServiceInstanceId: true))
-                .WithMetrics(b =>
-                {
-                    b.AddIngestionMetrics();
-                    b.AddOtlpExporter(e => e.Endpoint = otelMetricsUri);
-                    if (Debugger.IsAttached)
-                    {
-                        b.AddConsoleExporter();
-                    }
-                });
-
-            var logger = LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.LoggingSettings.LogLevel);
-            logger.LogInformation("OpenTelemetry metrics exporter enabled: {OtlpEndpointUrl}", settings.OtlpEndpointUrl);
+            return;
         }
+
+        builder.Services.AddOpenTelemetry()
+            .ConfigureResource(b => b.AddService(
+                serviceName: settings.InstanceName,
+                serviceVersion: InstanceVersion,
+                autoGenerateServiceInstanceId: true))
+            .WithMetrics(b =>
+            {
+                b.AddIngestionMetrics();
+                b.AddOtlpExporter();
+                if (Debugger.IsAttached)
+                {
+                    b.AddConsoleExporter();
+                }
+            });
+
+        var logger = LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.LoggingSettings.LogLevel);
+        logger.LogInformation("OpenTelemetry metrics exporter enabled: {OtlpEndpoint}", otlpEndpoint);
     }
 
     static void RecordStartup(Settings settings, EndpointConfiguration endpointConfiguration, IPersistenceConfiguration persistenceConfiguration)
