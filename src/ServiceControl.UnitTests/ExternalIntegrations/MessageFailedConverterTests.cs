@@ -156,6 +156,7 @@
                         {
                             FailureDetails = new FailureDetails
                             {
+                                AddressOfFailingEndpoint = "TestEndpoint",
                                 Exception = new ExceptionDetails()
                             },
                             MessageMetadata = messageMetadata

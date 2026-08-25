@@ -70,7 +70,7 @@
                                 ["DeliveryTime"]=TimeSpan.FromSeconds(5),
                                 ["IsSystemMessage"]=false,
                             },
-                            FailureDetails = new FailureDetails()
+                            FailureDetails = new FailureDetails { AddressOfFailingEndpoint = "TestEndpoint" }
                         }
                     }
             };

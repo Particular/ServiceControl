@@ -30,17 +30,19 @@
 
         public FailureDetails ParseFailureDetails(IReadOnlyDictionary<string, string> headers)
         {
-            var result = new FailureDetails();
-
-            DictionaryExtensions.CheckIfKeyExists("NServiceBus.TimeOfFailure", headers, s => result.TimeOfFailure = DateTimeOffsetHelper.ToDateTimeOffset(s).UtcDateTime);
-
-            result.Exception = GetException(headers);
-
             if (!headers.ContainsKey(FaultsHeaderKeys.FailedQ))
             {
                 throw new Exception($"Missing '{FaultsHeaderKeys.FailedQ}' header. Message is poison message or incorrectly send to (error) queue.");
             }
-            result.AddressOfFailingEndpoint = headers[FaultsHeaderKeys.FailedQ];
+
+            var result = new FailureDetails
+            {
+                AddressOfFailingEndpoint = headers[FaultsHeaderKeys.FailedQ]
+            };
+
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.TimeOfFailure", headers, s => result.TimeOfFailure = DateTimeOffsetHelper.ToDateTimeOffset(s).UtcDateTime);
+
+            result.Exception = GetException(headers);
 
             return result;
         }

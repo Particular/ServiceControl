@@ -28,7 +28,7 @@
                         {
                             AttemptedAt = DateTime.UtcNow,
                             MessageMetadata = [],
-                            FailureDetails = new FailureDetails()
+                            FailureDetails = new FailureDetails { AddressOfFailingEndpoint = "TestEndpoint" }
                         }
                     ]
                 };
