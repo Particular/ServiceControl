@@ -1,0 +1,57 @@
+# Test instance of ServiceControl + the testing tool + a Jaeger (OTLP) backend.
+#
+# Usage:
+#   docker compose -f tools/testing-tool/docker-compose.yml up --build
+#
+# Then open:
+#   * Testing tool UI:  http://localhost:8080
+#   * ServiceControl:   http://localhost:33333
+#   * Jaeger UI:        http://localhost:16686
+#
+# This compose runs a single replica for local development. For horizontal scaling with
+# disjoint shard ids, use the Kubernetes manifests in tools/testing-tool/k8s/ instead.
+#
+# Health probes: the chiseled runtime image has no shell/curl, so in-container healthchecks
+# are not possible in docker-compose. The /health/live and /health/ready HTTP endpoints are
+# available for Kubernetes HTTP probes and manual verification:
+#   curl http://localhost:8080/health/live
+#   curl http://localhost:8080/health/ready
+
+services:
+
+  servicecontrol:
+    # Primary ServiceControl instance under test. Uses the embedded RavenDB persistence and the
+    # learning transport so the stack runs with no external broker/database dependencies.
+    image: ghcr.io/particular/servicecontrol:latest
+    environment:
+      TRANSPORTTYPE: Learning
+      RAVENDB_TARGETTYPENAME: Embedded
+    ports:
+      - "33333:33333"
+    # The official image is chiseled (no shell/curl), so no in-container healthcheck is defined
+    # here. `depends_on` only orders startup; Phase 6 adds proper readiness gating.
+
+  jaeger:
+    # all-in-one Jaeger accepts OTLP (gRPC :4317 / HTTP :4318) directly, so no separate collector is
+    # needed for the test deployment.
+    image: jaegertracing/all-in-one:1.62
+    ports:
+      - "16686:16686" # Jaeger UI
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+
+  testing-tool:
+    build:
+      context: ../..
+      dockerfile: tools/testing-tool/Dockerfile
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      OTEL_SERVICE_NAME: testing-tool
+      SHARD_ID: "0"
+      TestingTool__ServiceControlApiUrl: http://servicecontrol:33333
+      TestingTool__AutoStartBackgroundNoise: "true"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - servicecontrol
+      - jaeger

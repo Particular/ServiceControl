@@ -1,0 +1,99 @@
+# Kubernetes manifests for the ServiceControl Testing Tool.
+#
+# Deploy with:
+#   kubectl apply -f tools/testing-tool/k8s/
+#
+# This deploys:
+#   - A StatefulSet (stable pod names → deterministic shard ids via ShardIdResolver)
+#   - A ClusterIP Service
+#   - A ConfigMap for non-secret configuration
+#   - HTTP liveness/readiness probes on /health/live and /health/ready
+#
+# Scale by changing spec.replicas. Each pod derives its shard id from its StatefulSet ordinal
+# (testing-tool-0 → shard "0", testing-tool-1 → shard "1", …) so replicas own disjoint scenario
+# slices automatically. See README.md § Horizontal scaling for details.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: testing-tool-config
+  labels:
+    app: testing-tool
+data:
+  # All config is environment-based — the tool is stateless.
+  TestingTool__ServiceControlApiUrl: "http://servicecontrol:33333"
+  TestingTool__ReplayEnabled: "false"
+  TestingTool__SearchEnabled: "false"
+  TestingTool__AutoStartBackgroundNoise: "true"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+  OTEL_SERVICE_NAME: "testing-tool"
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: testing-tool
+  labels:
+    app: testing-tool
+spec:
+  serviceName: testing-tool
+  replicas: 3
+  selector:
+    matchLabels:
+      app: testing-tool
+  template:
+    metadata:
+      labels:
+        app: testing-tool
+    spec:
+      containers:
+        - name: testing-tool
+          image: ghcr.io/particular/testing-tool:latest
+          ports:
+            - containerPort: 8080
+              name: http
+          envFrom:
+            - configMapRef:
+                name: testing-tool-config
+          # SHARD_ID is not set — ShardIdResolver extracts the ordinal from the StatefulSet
+          # pod hostname (e.g. testing-tool-0 → "0").
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          # HTTP probes — the chiseled base has no shell, so exec probes are not possible.
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: testing-tool
+  labels:
+    app: testing-tool
+spec:
+  type: ClusterIP
+  selector:
+    app: testing-tool
+  ports:
+    - port: 8080
+      targetPort: http
+      name: http

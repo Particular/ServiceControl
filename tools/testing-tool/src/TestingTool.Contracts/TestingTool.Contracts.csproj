@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Shared DTOs for the testing tool web API. No dependencies beyond the base class library. -->
+
+</Project>
