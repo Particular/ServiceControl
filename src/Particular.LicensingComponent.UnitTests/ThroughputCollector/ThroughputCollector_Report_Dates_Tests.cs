@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Particular.LicensingComponent.Contracts;
@@ -22,7 +21,8 @@ class ThroughputCollector_Report_Dates_Tests : ThroughputCollectorTestFixture
     public async Task Should_return_correct_dates_for_report_when_multiple_sources_with_different_dates()
     {
         // Arrange
-        var maxDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
+        var today = DateTime.UtcNow.Date;
+        var maxDate = DateOnly.FromDateTime(today).AddDays(-1);
         var minDate = maxDate.AddDays(-4);
 
         await DataStore.CreateBuilder()
@@ -46,7 +46,7 @@ class ThroughputCollector_Report_Dates_Tests : ThroughputCollectorTestFixture
 
         // Assert
         var minDateInReport = new DateTimeOffset(minDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
-        var reportEndDate = new DateTimeOffset(maxDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
+        var reportEndDate = new DateTimeOffset(today);
 
         Assert.That(report, Is.Not.Null);
         using (Assert.EnterMultipleScope())

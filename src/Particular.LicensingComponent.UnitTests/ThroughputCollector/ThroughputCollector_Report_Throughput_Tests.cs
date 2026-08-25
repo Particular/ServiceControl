@@ -286,6 +286,44 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         }
     }
 
+    [TestCase(ThroughputSource.Audit)]
+    [TestCase(ThroughputSource.Broker)]
+    [TestCase(ThroughputSource.Monitoring)]
+    public async Task Should_not_include_throughput_after_report_end_date(ThroughputSource source)
+    {
+        // Arrange
+        var reportEndDate = new DateTime(2024, 4, 25, 0, 0, 0, DateTimeKind.Utc);
+
+        await DataStore.CreateBuilder()
+            .AddEndpoint("Endpoint1", sources: [source])
+            .WithThroughput(
+                startDate: DateOnly.FromDateTime(reportEndDate).AddDays(-2),
+                data: [50, 55, 100])
+            .Build();
+
+        // Act
+        var report = await ThroughputCollector.GenerateThroughputReport("", reportEndDate);
+
+        // Assert
+        var queue = report.ReportData.Queues.Single();
+        var dailyThroughput = source switch
+        {
+            ThroughputSource.Audit => queue.DailyThroughputFromAudit,
+            ThroughputSource.Broker => queue.DailyThroughputFromBroker,
+            ThroughputSource.Monitoring => queue.DailyThroughputFromMonitoring,
+            _ => throw new ArgumentOutOfRangeException(nameof(source))
+        };
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(dailyThroughput, Has.Length.EqualTo(2));
+            Assert.That(dailyThroughput, Has.All.Matches<DailyThroughput>(
+                throughput => throughput.DateUTC <= DateOnly.FromDateTime(reportEndDate)));
+            Assert.That(queue.Throughput, Is.EqualTo(55));
+            Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(55));
+        }
+    }
+
     [Test]
     public async Task Should_generate_correct_report()
     {
@@ -324,7 +362,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         await DataStore.SaveAuditServiceMetadata(new AuditServiceMetadata(expectedAuditVersionSummary, expectedAuditTransportSummary));
 
         // Act
-        var report = await ThroughputCollector.GenerateThroughputReport("2.3.1", new DateTime(2024, 4, 25));
+        var report = await ThroughputCollector.GenerateThroughputReport("2.3.1", new DateTime(2024, 4, 26));
         var reportString = System.Text.Json.JsonSerializer.Serialize(report, SerializationOptions.IndentedWithNoEscaping);
 
         // Assert

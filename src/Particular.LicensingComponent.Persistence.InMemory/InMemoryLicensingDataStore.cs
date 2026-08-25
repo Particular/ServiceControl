@@ -68,7 +68,7 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         return Task.CompletedTask;
     }
 
-    public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, CancellationToken cancellationToken = default)
+    public Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, DateOnly? throughputMaxDate = null, CancellationToken cancellationToken = default)
     {
         var result = endpoints
             .Where(endpoint => queueNames.Contains(endpoint.SanitizedName))
@@ -77,7 +77,11 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
                 throughputDictionary => throughputDictionary.Key,
                 (endpoint, throughputDictionary) => new { endpoint.SanitizedName, throughputDictionary.Value })
             .GroupBy(anon => anon.SanitizedName)
-            .ToDictionary(group => group.Key, group => group.Select(entry => entry.Value));
+            .ToDictionary(group => group.Key, group => group.Select(
+                entry => new ThroughputData(entry.Value.Where(edt => !throughputMaxDate.HasValue || edt.Key < throughputMaxDate.Value).Select(edt => new EndpointDailyThroughput(edt.Key, edt.Value)))
+                {
+                    ThroughputSource = entry.Value.ThroughputSource
+                }));
 
         return Task.FromResult((IDictionary<string, IEnumerable<ThroughputData>>)result);
     }

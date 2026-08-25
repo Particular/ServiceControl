@@ -135,7 +135,7 @@ class LicensingDataStore(
         await session.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, CancellationToken cancellationToken = default)
+    public async Task<IDictionary<string, IEnumerable<ThroughputData>>> GetEndpointThroughputByQueueName(IList<string> queueNames, DateOnly? throughputMaxDate = null, CancellationToken cancellationToken = default)
     {
         var results = queueNames.ToDictionary(queueName => queueName, _ => new List<ThroughputData>() as IEnumerable<ThroughputData>);
 
@@ -155,10 +155,13 @@ class LicensingDataStore(
                 .IncrementalTimeSeriesFor(document.GenerateDocumentId(), ThroughputTimeSeriesName)
                 .GetAsync(from, token: cancellationToken);
 
+            var maxDateTime = throughputMaxDate?.ToDateTime(TimeOnly.MinValue);
             if (timeSeries is not null && results.TryGetValue(document.SanitizedName, out var throughputDatas) &&
                 throughputDatas is List<ThroughputData> throughputDataList)
             {
-                var endpointDailyThroughputs = timeSeries.Select(entry => new EndpointDailyThroughput(DateOnly.FromDateTime(entry.Timestamp), (long)entry.Value));
+                var endpointDailyThroughputs = timeSeries
+                    .Where(entry => !throughputMaxDate.HasValue || entry.Timestamp < maxDateTime)
+                    .Select(entry => new EndpointDailyThroughput(DateOnly.FromDateTime(entry.Timestamp), (long)entry.Value));
                 var throughputData = new ThroughputData(endpointDailyThroughputs)
                 {
                     ThroughputSource = document.EndpointId.ThroughputSource
