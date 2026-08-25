@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TestingTool.Contracts/TestingTool.Contracts.csproj" />
+    <Project Path="src/TestingTool.Scenarios/TestingTool.Scenarios.csproj" />
+    <Project Path="src/TestingTool/TestingTool.csproj" />
+  </Folder>
+</Solution>
