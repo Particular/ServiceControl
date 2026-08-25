@@ -28,6 +28,7 @@
     using NServiceBus.Hosting;
     using NServiceBus.Transport;
     using OpenTelemetry.Metrics;
+    using global::ServiceControl.Auditing.Metrics;
     using OpenTelemetry.Resources;
     using Particular.LicensingComponent;
     using ServiceBus.Management.Infrastructure;
@@ -40,7 +41,7 @@
 
         public static void AddServiceControl(this IHostApplicationBuilder hostBuilder, Settings settings, EndpointConfiguration configuration, params ReadOnlySpan<ServiceControlComponent> components)
         {
-            if (!settings.ErrorIngestionOnly)
+            if (!settings.IngestionOnly)
             {
                 ArgumentNullException.ThrowIfNull(configuration);
             }
@@ -101,7 +102,7 @@
             hostBuilder.AddIngestionMetrics(settings);
             services.AddServiceControlHealthChecks();
 
-            if (settings.ErrorIngestionOnly)
+            if (settings.IngestionOnly)
             {
                 // Ingestion receives through its own transport infrastructure and forwards through
                 // that same infrastructure's dispatcher, so the endpoint is not hosted at all.
@@ -170,6 +171,13 @@
                 .WithMetrics(metrics =>
                 {
                     metrics.AddIngestionMetrics();
+
+                    // Audit ingestion shares the meter, so only its instruments' views are added,
+                    // and they are added whether or not this host ingests audit: a view for an
+                    // instrument nobody records is inert, and making it conditional would tie the
+                    // exporter's shape to which component happened to be registered.
+                    metrics.AddAuditIngestionMetrics();
+
                     metrics.AddOtlpExporter(exporter => exporter.Endpoint = otlpEndpoint);
 
                     if (Debugger.IsAttached)
@@ -193,6 +201,7 @@ Audit Retention Period (optional):  {settings.AuditRetentionPeriod}
 Error Retention Period:             {settings.ErrorRetentionPeriod}
 Ingest Error Messages:              {settings.IngestErrorMessages}
 Error Ingestion Only:               {settings.ErrorIngestionOnly}
+Audit Ingestion Only:               {settings.AuditIngestionOnly}
 Forwarding Error Messages:          {settings.ForwardErrorMessages}
 ServiceControl Logging Level:       {settings.LoggingSettings.LogLevel}
 Selected Transport Customization:   {settings.TransportType}

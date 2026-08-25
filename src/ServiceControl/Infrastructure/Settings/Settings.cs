@@ -44,6 +44,7 @@
             InstanceName = SettingsReader.Read(SettingsRootNamespace, "InstanceName", InstanceName);
 
             LoadErrorIngestionSettings();
+            LoadAuditIngestionSettings();
 
             TransportConnectionString = GetConnectionString();
             TransportType = transportType ?? SettingsReader.Read<string>(SettingsRootNamespace, "TransportType");
@@ -84,6 +85,10 @@
             ErrorIngestionBatchSize = IngestionSettingsReader.ReadBatchSize(SettingsRootNamespace, nameof(ErrorIngestionBatchSize), ValidateConfiguration);
             ErrorIngestionMaxParallelWriters = IngestionSettingsReader.ReadMaxParallelWriters(SettingsRootNamespace, nameof(ErrorIngestionMaxParallelWriters), ValidateConfiguration);
             ErrorIngestionBatchTimeout = IngestionSettingsReader.ReadBatchTimeout(SettingsRootNamespace, nameof(ErrorIngestionBatchTimeout), ValidateConfiguration);
+            TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartIngestionAfterFailure("TimeToRestartAuditIngestionAfterFailure");
+            AuditIngestionBatchSize = IngestionSettingsReader.ReadBatchSize(SettingsRootNamespace, nameof(AuditIngestionBatchSize), ValidateConfiguration);
+            AuditIngestionMaxParallelWriters = IngestionSettingsReader.ReadMaxParallelWriters(SettingsRootNamespace, nameof(AuditIngestionMaxParallelWriters), ValidateConfiguration);
+            AuditIngestionBatchTimeout = IngestionSettingsReader.ReadBatchTimeout(SettingsRootNamespace, nameof(AuditIngestionBatchTimeout), ValidateConfiguration);
             DisableExternalIntegrationsPublishing = SettingsReader.Read(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", false);
             TrackInstancesInitialValue = SettingsReader.Read(SettingsRootNamespace, "TrackInstancesInitialValue", true);
             ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
@@ -194,8 +199,35 @@
         public bool IngestErrorMessages { get; set; } = true;
         public bool RunRetryProcessor { get; set; } = true;
 
+        public string AuditQueue { get; set; }
+        public string AuditLogQueue { get; set; }
+
+        public bool ForwardAuditMessages { get; set; }
+
+        /// <summary>
+        /// Whether the normal primary host runs the audit receiver. Only has an effect where the
+        /// persister advertises audit support; always on under audit ingestion only.
+        /// </summary>
+        public bool IngestAuditMessages { get; set; } = true;
+
+        public int? AuditIngestionBatchSize { get; set; }
+        public int? AuditIngestionMaxParallelWriters { get; set; }
+        public TimeSpan AuditIngestionBatchTimeout { get; set; }
+
+        public TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
+
         // Set by the --error-ingestion-only command, never read from configuration.
         public bool ErrorIngestionOnly { get; set; }
+
+        // Set by the --audit-ingestion-only command, never read from configuration.
+        public bool AuditIngestionOnly { get; set; }
+
+        /// <summary>
+        /// True in either ingestion only mode. These hosts run no NServiceBus endpoint, own none of the
+        /// work a deployment may only do once, and never provision anything.
+        /// </summary>
+        [JsonIgnore]
+        public bool IngestionOnly => ErrorIngestionOnly || AuditIngestionOnly;
 
         public TimeSpan? AuditRetentionPeriod { get; set; }
 
@@ -391,10 +423,12 @@
             }
         }
 
-        TimeSpan GetTimeToRestartErrorIngestionAfterFailure()
+        TimeSpan GetTimeToRestartErrorIngestionAfterFailure() => GetTimeToRestartIngestionAfterFailure("TimeToRestartErrorIngestionAfterFailure");
+
+        TimeSpan GetTimeToRestartIngestionAfterFailure(string settingName)
         {
             string message;
-            var valueRead = SettingsReader.Read<string>(SettingsRootNamespace, "TimeToRestartErrorIngestionAfterFailure");
+            var valueRead = SettingsReader.Read<string>(SettingsRootNamespace, settingName);
             if (valueRead == null)
             {
                 return TimeSpan.FromSeconds(60);
@@ -404,21 +438,21 @@
             {
                 if (ValidateConfiguration && result < TimeSpan.FromSeconds(5))
                 {
-                    message = "TimeToRestartErrorIngestionAfterFailure setting is invalid, value should be minimum 5 seconds.";
+                    message = $"{settingName} setting is invalid, value should be minimum 5 seconds.";
                     InternalLogger.Fatal(message);
                     throw new Exception(message);
                 }
 
                 if (ValidateConfiguration && result > TimeSpan.FromHours(1))
                 {
-                    message = "TimeToRestartErrorIngestionAfterFailure setting is invalid, value should be maximum 1 hour.";
+                    message = $"{settingName} setting is invalid, value should be maximum 1 hour.";
                     InternalLogger.Fatal(message);
                     throw new Exception(message);
                 }
             }
             else
             {
-                message = "TimeToRestartErrorIngestionAfterFailure setting is invalid, please make sure it is a TimeSpan.";
+                message = $"{settingName} setting is invalid, please make sure it is a TimeSpan.";
                 InternalLogger.Fatal(message);
                 throw new Exception(message);
             }
@@ -452,6 +486,31 @@
             var queue = address.Substring(0, atIndex);
             var machine = address.Substring(atIndex + 1);
             return $"{queue}.log@{machine}";
+        }
+
+        void LoadAuditIngestionSettings()
+        {
+            // Key names are deliberately the ones the standalone audit instance reads, so an operator
+            // configures a combined primary exactly as they configure an audit instance today.
+            var serviceBusRootNamespace = new SettingsRootNamespace("ServiceBus");
+            AuditQueue = SettingsReader.Read(serviceBusRootNamespace, "AuditQueue", "audit");
+
+            if (string.IsNullOrEmpty(AuditQueue))
+            {
+                throw new Exception("ServiceBus/AuditQueue value is required to start the instance");
+            }
+
+            IngestAuditMessages = SettingsReader.Read(SettingsRootNamespace, "IngestAuditMessages", true);
+
+            AuditLogQueue = SettingsReader.Read<string>(serviceBusRootNamespace, "AuditLogQueue", null);
+
+            if (AuditLogQueue == null)
+            {
+                logger.LogInformation("No settings found for audit log queue to import, default name will be used");
+                AuditLogQueue = Subscope(AuditQueue);
+            }
+
+            ForwardAuditMessages = SettingsReader.Read(SettingsRootNamespace, "ForwardAuditMessages", false);
         }
 
         void LoadErrorIngestionSettings()

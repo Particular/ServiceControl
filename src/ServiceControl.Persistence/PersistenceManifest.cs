@@ -24,6 +24,13 @@
 
         public bool IsSupported { get; set; } = true;
 
+        /// <summary>
+        /// Whether this persister can store and query audit data alongside the primary data, which is
+        /// what lets the primary instance ingest the audit queue itself. Absent means false, so RavenDB
+        /// and every legacy manifest stay audit free.
+        /// </summary>
+        public bool SupportsAuditIngestion { get; set; }
+
         public string[] Aliases { get; set; } = [];
 
         internal bool IsMatch(string persistenceType) =>

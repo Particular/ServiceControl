@@ -1,4 +1,4 @@
-namespace Particular.ServiceControl.Hosting
+﻿namespace Particular.ServiceControl.Hosting
 {
     using System;
     using System.IO;
@@ -11,6 +11,9 @@ namespace Particular.ServiceControl.Hosting
     {
         public HostArguments(string[] args)
         {
+            var errorIngestionOnly = false;
+            var auditIngestionOnly = false;
+
             if (SettingsReader.Read<bool>(Settings.SettingsRootNamespace, "MaintenanceMode"))
             {
                 args = [.. args, "-m"];
@@ -53,12 +56,17 @@ namespace Particular.ServiceControl.Hosting
                 }
             };
 
-            var errorIngestionOnlyOptions = new OptionSet
+            var ingestionOnlyOptions = new OptionSet
             {
                 {
                     "error-ingestion-only",
                     "Run only error ingestion, for scaling out ingestion across several processes",
-                    s => Command = typeof(ErrorIngestionOnlyCommand)
+                    s => errorIngestionOnly = true
+                },
+                {
+                    "audit-ingestion-only",
+                    "Run only audit ingestion, for scaling out ingestion across several processes",
+                    s => auditIngestionOnly = true
                 }
             };
 
@@ -85,10 +93,19 @@ namespace Particular.ServiceControl.Hosting
                     return;
                 }
 
-                errorIngestionOnlyOptions.Parse(args);
+                ingestionOnlyOptions.Parse(args);
 
-                if (Command == typeof(ErrorIngestionOnlyCommand))
+                IngestionOnlyGuards.EnsureModesAreNotCombined(errorIngestionOnly, auditIngestionOnly);
+
+                if (errorIngestionOnly)
                 {
+                    Command = typeof(ErrorIngestionOnlyCommand);
+                    return;
+                }
+
+                if (auditIngestionOnly)
+                {
+                    Command = typeof(AuditIngestionOnlyCommand);
                     return;
                 }
 

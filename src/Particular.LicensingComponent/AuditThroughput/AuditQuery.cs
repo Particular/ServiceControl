@@ -7,7 +7,7 @@
     using ServiceControl.Api;
     using AuditCount = Contracts.AuditCount;
 
-    public class AuditQuery(ILogger<AuditQuery> logger, IEndpointsApi endpointsApi, IAuditCountApi auditCountApi, IConfigurationApi configurationApi) : IAuditQuery
+    public class AuditQuery(ILogger<AuditQuery> logger, IEndpointsApi endpointsApi, IAuditCountApi auditCountApi, IConfigurationApi configurationApi, ILocalAuditSource? localAuditSource = null) : IAuditQuery
     {
         // Customers are expected to run at least version 4.29 for their Audit instances
         public SemanticVersion MinAuditCountsVersion => new(4, 29, 0);
@@ -44,6 +44,11 @@
             {
                 var remotes = await configurationApi.GetRemoteConfigs(cancellationToken);
                 var remotesInfo = new List<RemoteInstanceInformation>();
+
+                if (localAuditSource is { Enabled: true })
+                {
+                    remotesInfo.Add(localAuditSource.Describe());
+                }
 
                 if (remotes.Any())
                 {
