@@ -20,13 +20,7 @@ namespace ServiceControl.Config.Commands
 
         public override async Task ExecuteAsync(object obj)
         {
-            if (!await commandChecks.CanAddInstance(true))
-            {
-                return;
-            }
-
-            var instanceViewModel = addInstance();
-            await windowManager.ShowInnerDialog(instanceViewModel);
+            await ExecuteWithOptions(installError: true, installAudit: true, installServicePulse: true);
         }
 
         public async Task ExecuteWithOptions(bool installError, bool installAudit, bool installServicePulse, CancellationToken cancellationToken = default)

@@ -30,14 +30,12 @@
             this.noInstances = noInstances;
             this.addInstance = addInstance;
             OpenUrl = new OpenURLCommand();
-            AddInstance = addInstance;
             AddMonitoringInstance = addMonitoringInstance;
             LicenseStatusManager = licenseStatusManager;
             DisplayName = "ServiceControl Config";
             IsModal = false;
             LoadAppVersion();
             CopyrightInfo = $"{DateTime.UtcNow.Year} © Particular Software";
-            addInstance.OnCommandExecuting = () => ShowingMenuOverlay = false;
             addMonitoringInstance.OnCommandExecuting = () => ShowingMenuOverlay = false;
 
             RefreshInstancesCmd = Command.Create(async () =>
@@ -74,8 +72,6 @@
 
         [FeatureToggle(Feature.MonitoringInstances)]
         public bool ShowMonitoringInstances { get; set; }
-
-        public ICommand AddInstance { get; private set; }
 
         public ICommand AddMonitoringInstance { get; private set; }
 
