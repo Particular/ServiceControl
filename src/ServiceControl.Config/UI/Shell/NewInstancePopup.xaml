@@ -132,7 +132,7 @@
                       Unchecked="ComponentCheckBox_Changed">
                 <StackPanel Margin="5,0,0,0">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock x:Name="LblServicePulse" Style="{StaticResource ComponentLabel}" Text="Integrated ServicePulse" />
+                        <TextBlock Style="{StaticResource ComponentLabel}" Text="Integrated ServicePulse" />
                         <TextBlock FontSize="12"
                                    Foreground="{StaticResource Gray50Brush}"
                                    FontStyle="Italic"
