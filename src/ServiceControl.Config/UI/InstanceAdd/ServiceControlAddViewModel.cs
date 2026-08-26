@@ -396,9 +396,9 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
         public TimeSpanUnits AuditRetentionUnits => ServiceControlAudit.AuditRetentionUnits;
 
-        public bool IsServiceControlExpanded { get; set; }
+        public bool IsServiceControlExpanded { get; set; } = true;
 
-        public bool IsServiceControlAuditExpanded { get; set; }
+        public bool IsServiceControlAuditExpanded { get; set; } = true;
 
         public double AuditRetention
         {

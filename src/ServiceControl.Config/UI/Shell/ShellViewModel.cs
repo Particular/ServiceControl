@@ -28,6 +28,7 @@
         {
             this.listInstances = listInstances;
             this.noInstances = noInstances;
+            this.addInstance = addInstance;
             OpenUrl = new OpenURLCommand();
             AddInstance = addInstance;
             AddMonitoringInstance = addMonitoringInstance;
@@ -45,6 +46,12 @@
                 // Used to "blink" the refresh button to indicate the refresh actually ran.
                 await Task.Delay(500);
             });
+        }
+
+        public async Task LaunchServiceControlAdd(bool installError, bool installAudit, bool installServicePulse, CancellationToken cancellationToken = default)
+        {
+            ShowingMenuOverlay = false;
+            await addInstance.ExecuteWithOptions(installError, installAudit, installServicePulse, cancellationToken);
         }
 
         public object ActiveContext { get; set; }
@@ -171,5 +178,6 @@
         Task updateCheckTask;
         readonly ListInstancesViewModel listInstances;
         readonly NoInstancesViewModel noInstances;
+        readonly AddServiceControlInstanceCommand addInstance;
     }
 }
