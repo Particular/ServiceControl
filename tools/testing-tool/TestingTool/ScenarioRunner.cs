@@ -136,16 +136,22 @@ public sealed class ScenarioRunner
                 var payload = new byte[Random.Shared.Next(64, 512)];
                 Random.Shared.NextBytes(payload);
 
+                // Deterministic message id shared with the handler: FailingMessageHandler calls
+                // scenario.ShouldFail(context.MessageId), so setting the id here ensures the
+                // failure decision counted below matches the decision the handler actually makes.
+                var messageId = $"{scenario.Name}-{seq}-{runtime.StartedAt.Ticks}";
+
                 var sendOptions = new SendOptions();
                 sendOptions.RouteToThisEndpoint();
+                sendOptions.SetMessageId(messageId);
                 sendOptions.SetHeader("TestingTool.Scenario", scenario.Name);
 
                 try
                 {
                     await _session.Send(new LoadMessage { Sequence = seq, Payload = payload }, sendOptions, ct);
 
-                    // If the scenario would fail for this message id, count it as an error sent.
-                    var messageId = $"{scenario.Name}-{seq}-{runtime.StartedAt.Ticks}";
+                    // If the scenario fails for this message id (same decision as the handler),
+                    // count it as an error sent.
                     if (scenario.ShouldFail(messageId))
                     {
                         runtime.IncrementErrors();

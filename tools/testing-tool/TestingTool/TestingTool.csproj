@@ -21,6 +21,7 @@
 
     <!-- Phase 2: NServiceBus error path -->
     <PackageReference Include="NServiceBus" />
+    <PackageReference Include="NServiceBus.RabbitMQ" />
   </ItemGroup>
 
 </Project>

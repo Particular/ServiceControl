@@ -11,19 +11,27 @@ namespace TestingTool;
 public static class NServiceBusEndpointExtensions
 {
     /// <summary>
-    /// Registers the NServiceBus load-generation endpoint. Uses the Learning transport by default
-    /// (sufficient for local/single-host testing); swap for a real transport when targeting a
-    /// distributed ServiceControl deployment. Failed messages are routed to the ServiceControl
-    /// error queue.
+    /// Registers the NServiceBus load-generation endpoint. When a RabbitMQ connection string is
+    /// present (injected by the Aspire AppHost as <c>ConnectionStrings__rabbitmq</c>, matching the
+    /// ServiceControl platform transport), the endpoint uses RabbitMQ with quorum/conventional
+    /// routing. Otherwise it falls back to the Learning transport for local standalone runs.
+    /// Failed messages are routed to the ServiceControl error queue.
     /// </summary>
-    public static IServiceCollection AddTestingToolEndpoint(this IServiceCollection services, TestingToolOptions options)
+    public static IServiceCollection AddTestingToolEndpoint(this IServiceCollection services, TestingToolOptions options, IConfiguration configuration)
     {
         var config = new EndpointConfiguration("TestingTool.Load");
 
-        // Learning transport — zero-config, single-host. For multi-container deployments,
-        // replace with a real transport matching the ServiceControl instance under test.
-        // Learning transport — routing to this endpoint is handled by SendOptions.RouteToThisEndpoint().
-        config.UseTransport<LearningTransport>();
+        var rabbitConnectionString = configuration.GetConnectionString("rabbitmq");
+        if (!string.IsNullOrWhiteSpace(rabbitConnectionString))
+        {
+            var transport = config.UseTransport<RabbitMQTransport>();
+            transport.UseConventionalRoutingTopology(QueueType.Quorum);
+            transport.ConnectionString(rabbitConnectionString);
+        }
+        else
+        {
+            config.UseTransport<LearningTransport>();
+        }
 
         // Route failures to the ServiceControl error queue.
         config.SendFailedMessagesTo(options.ErrorQueueName);
