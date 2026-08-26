@@ -36,9 +36,8 @@ namespace ServiceControl.Config.Commands
 
             if (installError)
             {
-                var spOption = installServicePulse
-                    ? instanceViewModel.ServiceControl.EnableIntegratedServicePulseOptions.FirstOrDefault(o => o.Value)
-                    : instanceViewModel.ServiceControl.EnableIntegratedServicePulseOptions.FirstOrDefault(o => !o.Value);
+                var spOption = instanceViewModel.ServiceControl.EnableIntegratedServicePulseOptions
+                    .FirstOrDefault(o => o.Value == installServicePulse);
 
                 if (spOption != null)
                 {

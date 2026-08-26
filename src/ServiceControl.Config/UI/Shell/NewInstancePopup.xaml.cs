@@ -59,24 +59,17 @@ namespace ServiceControl.Config.UI.Shell
             MonitoringInfoBox.Visibility = Visibility.Collapsed;
             SetServiceControlCheckboxesEnabled(true);
 
-            if (sender == PresetMinimal)
+            var (sc, sp, audit) = sender switch
             {
-                CbServiceControl.IsChecked = true;
-                CbServicePulse.IsChecked = true;
-                CbAudit.IsChecked = false;
-            }
-            else if (sender == PresetFull)
-            {
-                CbServiceControl.IsChecked = true;
-                CbServicePulse.IsChecked = true;
-                CbAudit.IsChecked = true;
-            }
-            else if (sender == PresetAuditOnly)
-            {
-                CbServiceControl.IsChecked = false;
-                CbServicePulse.IsChecked = false;
-                CbAudit.IsChecked = true;
-            }
+                _ when sender == PresetMinimal => (true, true, false),
+                _ when sender == PresetFull => (true, true, true),
+                _ when sender == PresetAuditOnly => (false, false, true),
+                _ => (false, false, false)
+            };
+
+            CbServiceControl.IsChecked = sc;
+            CbServicePulse.IsChecked = sp;
+            CbAudit.IsChecked = audit;
 
             UpdateServicePulseState();
             UpdateNextButton();
@@ -176,29 +169,24 @@ namespace ServiceControl.Config.UI.Shell
 
         void SyncPresetSelection()
         {
-            var sc = CbServiceControl.IsChecked == true;
-            var sp = CbServicePulse.IsChecked == true;
-            var audit = CbAudit.IsChecked == true;
-
             suppressPresetEvents = true;
 
-            if (sc && sp && audit)
+            switch (InstallServiceControl, InstallServicePulse, InstallAudit)
             {
-                PresetFull.IsChecked = true;
-            }
-            else if (sc && sp && !audit)
-            {
-                PresetMinimal.IsChecked = true;
-            }
-            else if (!sc && !sp && audit)
-            {
-                PresetAuditOnly.IsChecked = true;
-            }
-            else
-            {
-                PresetMinimal.IsChecked = false;
-                PresetFull.IsChecked = false;
-                PresetAuditOnly.IsChecked = false;
+                case (true, true, true):
+                    PresetFull.IsChecked = true;
+                    break;
+                case (true, true, false):
+                    PresetMinimal.IsChecked = true;
+                    break;
+                case (false, false, true):
+                    PresetAuditOnly.IsChecked = true;
+                    break;
+                default:
+                    PresetMinimal.IsChecked = false;
+                    PresetFull.IsChecked = false;
+                    PresetAuditOnly.IsChecked = false;
+                    break;
             }
 
             suppressPresetEvents = false;
