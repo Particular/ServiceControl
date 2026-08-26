@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using AuditThroughput;
 using Contracts;
+using Microsoft.Extensions.Logging;
 using MonitoringThroughput;
 using Particular.LicensingComponent.Report.Utility;
 using Persistence;
@@ -13,7 +14,7 @@ using ServiceControl.Transports.BrokerThroughput;
 using Shared;
 using QueueThroughput = Report.QueueThroughput;
 
-public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettings throughputSettings, IAuditQuery auditQuery, MonitoringService monitoringService, IEnumerable<IEnvironmentDataProvider> environmentDataProviders, IBrokerThroughputQuery? throughputQuery = null)
+public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensingDataStore dataStore, ThroughputSettings throughputSettings, IAuditQuery auditQuery, MonitoringService monitoringService, IEnumerable<IEnvironmentDataProvider> environmentDataProviders, IBrokerThroughputQuery? throughputQuery = null)
     : IThroughputCollector
 {
     public async Task<ThroughputConnectionSettings> GetThroughputConnectionSettingsInformation(CancellationToken cancellationToken = default)
@@ -188,7 +189,23 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
 
         foreach (var environmentDataProvider in environmentDataProviders)
         {
-            foreach (var (key, value) in environmentDataProvider.GetData())
+            IEnumerable<(string key, string value)> environmentData;
+
+            try
+            {
+                environmentData = await environmentDataProvider.GetData(cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                logger.LogWarning(e, "Environment data provider {EnvironmentDataProvider} failed, its data is omitted from the report", environmentDataProvider.GetType().Name);
+                continue;
+            }
+
+            foreach (var (key, value) in environmentData)
             {
                 report.EnvironmentInformation.EnvironmentData[key] = value;
             }

@@ -35,9 +35,7 @@ class ThroughputCollector_AdditionalEnvironmentDataProvider_Tests : ThroughputCo
 
     class TestAdditionalEnvironmentDataProvider : IEnvironmentDataProvider
     {
-        public IEnumerable<(string key, string value)> GetData()
-        {
-            yield return ("TestKey", "TestValue");
-        }
+        public Task<IEnumerable<(string key, string value)>> GetData(CancellationToken cancellationToken = default) =>
+            Task.FromResult<IEnumerable<(string, string)>>([("TestKey", "TestValue")]);
     }
 }

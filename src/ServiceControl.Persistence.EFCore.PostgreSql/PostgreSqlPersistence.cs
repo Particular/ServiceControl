@@ -17,6 +17,7 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersiste
         services.AddSingleton<IFailedMessageIngestionSqlDialect, PostgreSqlFailedMessageIngestionSqlDialect>();
         services.AddSingleton<IRetryBatchSqlDialect, PostgreSqlRetryBatchSqlDialect>();
         services.AddSingleton<IFullTextSearchDialect, PostgreSqlFullTextSearchDialect>();
+        services.AddSingleton<IDatabaseHostingProbe, PostgreSqlDatabaseHostingProbe>();
     }
 
     public void AddInstaller(IServiceCollection services)
