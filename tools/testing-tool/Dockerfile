@@ -13,7 +13,7 @@ COPY global.json nuget.config ./
 COPY tools/testing-tool/ ./tools/testing-tool/
 
 # Publish the runnable host; its ProjectReferences pull in Contracts + Scenarios.
-RUN dotnet publish tools/testing-tool/src/TestingTool/TestingTool.csproj \
+RUN dotnet publish tools/testing-tool/TestingTool/TestingTool.csproj \
     --configuration Release \
     --arch $TARGETARCH \
     --output /app \
