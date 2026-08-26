@@ -60,7 +60,7 @@ The tool is a **stateless, horizontally-scalable .NET service** hosted in a cont
   - `TestingTool.Scenarios` (scenario definitions)
   - `TestingTool.Contracts` (shared DTOs for UI API)
 - [x] Add `Dockerfile` (multi-stage, `chiseled` base)
-- [x] Add `docker-compose.yml` with ServiceControl test instance + Jaeger (OTLP) collector
+- [x] ~~Add `docker-compose.yml` with ServiceControl test instance + Jaeger (OTLP) collector~~ — **removed**; the local stack is now brought up via the Aspire AppHost (Phase 7)
 - [x] Add `.github/workflows/testing-tool-ci.yml` (build + container image build; test step deferred — no tests exist in Phase 0)
 
 ### Phase 1 — OTel foundation
@@ -212,13 +212,13 @@ public class FailingMessageHandler(IScenario scenario, ILogger<FailingMessageHan
 - [x] Multi-stage `Dockerfile` (chiseled composite base, .NET 10, multi-arch build)
 - [x] No local file/db state; all config via env vars (`TestingTool__*` section binding + `SHARD_ID` + `OTEL_*`)
 - [x] Shard id derived from pod ordinal/hostname → disjoint scenario slices across replicas (`ShardIdResolver`: env var → StatefulSet ordinal → MachineName)
-- [x] `docker-compose` (single replica, local dev) + k8s `StatefulSet` (3 replicas, configurable) with HTTP liveness/readiness probes on `/health/live` and `/health/ready`
+- [x] ~~`docker-compose` (single replica, local dev) + k8s `StatefulSet` (3 replicas, configurable)~~ — **removed**; the tool runs via `dotnet run` or the Aspire AppHost. Horizontal scaling is still supported through the `SHARD_ID` env var / hostname-ordinal resolver (`ShardIdResolver`: env var → StatefulSet-style ordinal → `MachineName`); bring-your-own orchestration for multi-replica. HTTP liveness/readiness probes remain on `/health/live` and `/health/ready`
 - [x] Health endpoints: `GET /health/live` (liveness) + `GET /health/ready` (readiness)
 - [x] Document horizontal scale: *N replicas each emit 1/N of target rate* (README § Horizontal scaling + Configuration + Health checks)
 
 ### Phase 7 — Observability dashboard & verification
 
-- [ ] ~~Ship a prebuilt Grafana dashboard JSON (errors/sec, ingestion lag, search p95, replay success)~~ — **unplanned** (otel traces/metrics already flow to the collector; a bespoke dashboard is out of scope)
+- [ ] Ship a prebuilt Grafana dashboard JSON (errors/sec, ingestion lag, search p95, replay success) — **deferred to a future iteration** (otel traces/metrics already flow to the collector; a bespoke dashboard can be added later without rework)
 - [x] Create an Aspire AppHost that orchestrates the testing tool together with the full Particular platform (ServiceControl + transport + persistence), so a single `aspire run` brings up the whole system locally. Include tag/channel selection for the platform images so a specific ServiceControl version (or `latest`) can be pinned via the Aspire app model — see the [Aspire docs on container image tag selection](https://learn.microsoft.com/dotnet/aspire/fundamentals/containers) for the `WithImageTag` / `WithImage(...)` resource customization pattern.
 - [x] Add a smoke test that: starts tool → triggers `ThirdPartyOutageScenario` for 30s → verifies errors appear in ServiceControl → verifies replay passes
 - [x] Write README with run instructions + env var reference
@@ -245,7 +245,7 @@ public class FailingMessageHandler(IScenario scenario, ILogger<FailingMessageHan
 - [ ] Direct error-queue writer: transport = MSMQ / SQL / ASB / ASQ / RabbitMQ / SQS? Changes envelope format.
 - [ ] Release-test scenarios: is there an existing manifest file to import, or define new ones here?
 - [ ] Target error throughput ceiling (helps size replicas + token bucket defaults)?
-- [ ] Where should the Grafana dashboard + compose live — this repo or a shared infra repo?
+- [ ] (Future) Where should the prebuilt Grafana dashboard live — this repo or a shared infra repo?
 
 ---
 
