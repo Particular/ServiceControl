@@ -20,7 +20,7 @@ builder.Services.AddSingleton(meter);
 
 // --- NServiceBus endpoint (Phase 2) ---
 
-builder.Services.AddTestingToolEndpoint(options);
+builder.Services.AddTestingToolEndpoint(options, builder.Configuration);
 
 // --- Scenarios (Phase 3) ---
 
