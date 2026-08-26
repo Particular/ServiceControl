@@ -163,7 +163,7 @@ jobs:
       - name: Wait for build
         wait: build
       - name: Azure login
-        uses: azure/login@v3.0.1
+        uses: azure/login@v3.0.2
         if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues'
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
