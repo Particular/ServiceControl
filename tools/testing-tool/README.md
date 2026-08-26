@@ -10,8 +10,8 @@ See [requirements-test-tool-plan.md](./requirements-test-tool-plan.md) for the f
 
 All phases complete (0–7): project bootstrap, OTel foundation (traces + metrics + logs),
 NServiceBus error path (handler + direct error-queue bypass writer), scenarios, background jobs,
-web UI, containerization & scaling, Aspire AppHost, and smoke tests. The only unplanned item is
-a prebuilt Grafana dashboard (otel traces/metrics already flow to the collector).
+web UI, containerization & scaling, Aspire AppHost, and smoke tests. A prebuilt Grafana
+dashboard is left for a future iteration (otel traces/metrics already flow to the collector).
 
 ## What it does
 
@@ -58,50 +58,41 @@ tools/testing-tool/
   Directory.Build.props          # repo-style conventions (warnings-as-errors, nullable, analyzers)
   Directory.Packages.props       # central package management (OTel + NServiceBus pinned)
   Dockerfile
-  docker-compose.yml
-  k8s/testing-tool.yaml          # Kubernetes StatefulSet + Service + ConfigMap
-  src/
-    TestingTool/                 # ASP.NET Core host: Program.cs, web UI, services
-      wwwroot/index.html         # single-page web UI (vanilla JS, no build step)
-      Program.cs                 # OTel wiring, NServiceBus endpoint, DI, API endpoints
-      ScenarioRunner.cs          # start/stop, rate control, per-scenario error counting
-      DirectErrorQueueWriter.cs  # bypass path: writes failed-message envelopes directly to error queue
-      FailingMessageHandler.cs   # NServiceBus handler that throws per scenario logic
-      ReleaseTestScenarios.cs    # release-test preset mappings (Phase 5)
-      ServiceControlClient.cs    # REST API client (error groups, replay, search)
-      ReplayService.cs           # background replay job
-      SearchService.cs           # background search job
-      TelemetrySetup.cs          # OTel traces + metrics + logs + OTLP/Prometheus exporters
-      NServiceBusSetup.cs        # endpoint config (Learning transport, error queue routing)
-      TestingToolOptions.cs      # config (SC URL, replay/search intervals, error queue name)
-      TestingToolMetrics.cs      # shared live counters for /api/status
-      ShardIdResolver.cs         # shard id from env var, StatefulSet ordinal, or hostname
-    TestingTool.Scenarios/       # IScenario contract + 5 scenario implementations
-    TestingTool.Contracts/       # shared DTOs (ScenarioInfo, TestingToolStatus, BypassStatus, etc.)
-    TestingTool.SmokeTests/      # xunit smoke tests (requires running SC + tool)
-  aspire/                        # file-based Aspire AppHost (platform + tool + Jaeger)
+  global.json
+  TestingTool/                   # ASP.NET Core host: Program.cs, web UI, services
+    TestingTool.csproj
+    Program.cs                   # OTel wiring, NServiceBus endpoint, DI, API endpoints
+    appsettings.json             # base config (TestingTool section, overridable by env vars)
+    appsettings.Development.json # Development overrides
+    wwwroot/index.html           # single-page web UI (vanilla JS, no build step)
+    ScenarioRunner.cs            # start/stop, rate control, per-scenario error counting
+    DirectErrorQueueWriter.cs    # bypass path: writes failed-message envelopes directly to error queue
+    FailingMessageHandler.cs     # NServiceBus handler that throws per scenario logic
+    ReleaseTestScenarios.cs      # release-test preset mappings (Phase 5)
+    ServiceControlClient.cs      # REST API client (error groups, replay, search)
+    ReplayService.cs             # background replay job
+    SearchService.cs             # background search job
+    TelemetrySetup.cs            # OTel traces + metrics + logs + OTLP/Prometheus exporters
+    NServiceBusSetup.cs          # endpoint config (Learning transport, error queue routing)
+    TestingToolOptions.cs        # config (SC URL, replay/search intervals, error queue name)
+    TestingToolMetrics.cs        # shared live counters for /api/status
+    ShardIdResolver.cs           # shard id from env var, StatefulSet ordinal, or hostname
+    IScenarioRegistry.cs         # scenario registry abstraction (DI)
+    ScenarioRegistry.cs          # default scenario registry implementation
+  TestingTool.Scenarios/         # IScenario contract + 5 scenario implementations
+  TestingTool.Contracts/         # shared DTOs (ScenarioInfo, TestingToolStatus, BypassStatus, etc.)
+  TestingTool.SmokeTests/        # xunit smoke tests (requires running SC + tool)
+  TestingTool.AppHost/           # Aspire AppHost project (platform + tool + Jaeger)
 ```
 
 ## Run locally
 
 ```bash
 dotnet build tools/testing-tool/TestingTool.slnx --configuration Release
-dotnet run --project tools/testing-tool/src/TestingTool --configuration Release
+dotnet run --project tools/testing-tool/TestingTool --configuration Release
 ```
 
 Open http://localhost:5290 (or the port shown in the console).
-
-## Run the stack
-
-```bash
-docker compose -f tools/testing-tool/docker-compose.yml up --build
-```
-
-This starts ServiceControl + the testing tool + Jaeger (OTLP). Open:
-- Testing tool UI: http://localhost:8080
-- ServiceControl: http://localhost:33333
-- Jaeger UI: http://localhost:16686
-- Prometheus metrics: http://localhost:8080/metrics
 
 ## Run with Aspire
 
@@ -110,13 +101,13 @@ The Aspire AppHost orchestrates the testing tool together with the full Particul
 brings up the whole system locally:
 
 ```bash
-aspire run tools/testing-tool/aspire/AppHost.cs
+aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj
 ```
 
 To test a specific ServiceControl image tag (e.g. a PR-based prerelease tag):
 
 ```bash
-aspire run tools/testing-tool/aspire/AppHost.cs -- pr-1234
+aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- pr-1234
 ```
 
 The Aspire dashboard provides allocated ports for each service. The testing tool automatically
@@ -124,39 +115,33 @@ connects to ServiceControl via the platform's transport and REST API URL.
 
 ## Run smoke tests
 
-The smoke tests require a running ServiceControl + testing tool (via docker-compose or Aspire):
+The smoke tests require a running ServiceControl + testing tool (e.g. via the Aspire AppHost above,
+or `dotnet run` against an existing ServiceControl):
 
 ```bash
-# Start the stack first (see above)
-dotnet test tools/testing-tool/src/TestingTool.SmokeTests
+# Start the stack first (see Run with Aspire)
+dotnet test tools/testing-tool/TestingTool.SmokeTests
 ```
 
-Configure the test URLs via environment variables if not using defaults:
+The test URLs default to `http://localhost:8080` (tool) and `http://localhost:33333` (ServiceControl).
+Override them to match your run — Aspire assigns dynamic ports, shown in the Aspire dashboard:
 ```bash
-TESTING_TOOL_URL=http://localhost:8080 SERVICECONTROL_URL=http://localhost:33333 \
-  dotnet test tools/testing-tool/src/TestingTool.SmokeTests
+TESTING_TOOL_URL=http://localhost:<tool-port> SERVICECONTROL_URL=http://localhost:<sc-port> \
+  dotnet test tools/testing-tool/TestingTool.SmokeTests
 ```
-
-## Deploy on Kubernetes
-
-```bash
-kubectl apply -f tools/testing-tool/k8s/
-```
-
-The StatefulSet runs 3 replicas by default. Each pod derives its shard id from its StatefulSet
-ordinal (`testing-tool-0` → shard `0`, `testing-tool-1` → shard `1`, …) so replicas own disjoint
-scenario slices automatically. Scale by changing `spec.replicas` in the manifest.
 
 ## Horizontal scaling
 
-The tool is **stateless** — all state is in-memory per replica. When scaled to N replicas, each
-replica emits its own share of load. Shard ids ensure deterministic failure decisions don't
-overlap across pods:
+The tool is **stateless** — all state is in-memory per replica. The repo no longer ships
+docker-compose or Kubernetes manifests; run a single instance via `dotnet run` or the Aspire
+AppHost. For multi-replica deployments, bring your own orchestration and give each replica a
+distinct shard id so deterministic failure decisions don't overlap:
 
-| Replicas | Shard id source | Scenario slice |
-|---|---|---|
-| 1 (docker-compose) | `SHARD_ID=0` env var | All scenarios |
-| N (k8s StatefulSet) | Pod ordinal from hostname | 1/N of each scenario's messages |
+| Shard id source | When |
+|---|---|
+| `SHARD_ID` env var | Explicit override — recommended for any custom deployment |
+| Hostname trailing ordinal (e.g. `testing-tool-2` → `2`) | StatefulSet-style ordered hostnames |
+| `MachineName` | Fallback — unique per host/pod |
 
 To achieve a target aggregate rate of R msg/s across N replicas, set each replica's scenario rate
 to R/N. The web UI and `/api/status` endpoint report per-replica counters; aggregate across
@@ -178,7 +163,7 @@ All configuration is via environment variables (no files, no database). Settings
 | `TestingTool__SearchInterval` | `00:01:00` | Interval between search cycles |
 | `TestingTool__ErrorQueueName` | `error` | NServiceBus error queue (ServiceControl monitors this) |
 | `TestingTool__AutoStartBackgroundNoise` | `false` | Auto-start the background-noise scenario on startup |
-| `SHARD_ID` (env) | *(auto: pod ordinal or hostname)* | Shard id for disjoint scenario slices when scaled |
+| `SHARD_ID` (env) | *(auto: hostname ordinal or machine name)* | Shard id for disjoint scenario slices when scaled |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` (env) | `http://localhost:4317` | OTLP collector endpoint |
 | `OTEL_SERVICE_NAME` (env) | `testing-tool` | OTel service name |
 
