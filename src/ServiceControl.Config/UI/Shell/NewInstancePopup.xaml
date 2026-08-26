@@ -65,7 +65,6 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- Header -->
@@ -115,8 +114,8 @@
                       Grid.Row="3"
                       Style="{StaticResource ComponentCheckBox}"
                       IsChecked="True"
-                      Checked="ServiceControlCheckBox_Changed"
-                      Unchecked="ServiceControlCheckBox_Changed">
+                      Checked="ComponentCheckBox_Changed"
+                      Unchecked="ComponentCheckBox_Changed">
                 <StackPanel Margin="5,0,0,0">
                     <TextBlock Style="{StaticResource ComponentLabel}" Text="ServiceControl Instance" />
                     <TextBlock Style="{StaticResource ComponentDescription}"
@@ -206,7 +205,7 @@
             </Border>
 
             <!-- Next / Cancel buttons -->
-            <StackPanel Grid.Row="10"
+            <StackPanel Grid.Row="9"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right"
                         Margin="0,15,0,5">

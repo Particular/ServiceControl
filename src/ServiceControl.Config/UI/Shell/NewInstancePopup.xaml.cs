@@ -29,9 +29,9 @@ namespace ServiceControl.Config.UI.Shell
 
             CbServiceControl.IsChecked = true;
             CbServicePulse.IsChecked = true;
+            CbServicePulse.Opacity = 1.0;
             CbAudit.IsChecked = true;
 
-            CbServicePulse.Opacity = 1.0;
             NextButton.IsEnabled = true;
 
             suppressPresetEvents = true;
@@ -48,7 +48,7 @@ namespace ServiceControl.Config.UI.Shell
 
         void Preset_Checked(object sender, RoutedEventArgs e)
         {
-            if (CbServiceControl == null || suppressPresetEvents)
+            if (!IsLoaded || suppressPresetEvents)
             {
                 return;
             }
@@ -78,21 +78,9 @@ namespace ServiceControl.Config.UI.Shell
                 CbAudit.IsChecked = true;
             }
 
-            UpdateServicePulseEnabled();
+            UpdateServicePulseState();
             UpdateNextButton();
             suppressCheckBoxEvents = false;
-        }
-
-        void ServiceControlCheckBox_Changed(object sender, RoutedEventArgs e)
-        {
-            if (suppressCheckBoxEvents || !IsLoaded)
-            {
-                return;
-            }
-
-            UpdateServicePulseEnabled();
-            SyncPresetSelection();
-            UpdateNextButton();
         }
 
         void ComponentCheckBox_Changed(object sender, RoutedEventArgs e)
@@ -100,6 +88,11 @@ namespace ServiceControl.Config.UI.Shell
             if (suppressCheckBoxEvents || !IsLoaded)
             {
                 return;
+            }
+
+            if (sender == CbServiceControl)
+            {
+                UpdateServicePulseState();
             }
 
             SyncPresetSelection();
@@ -114,6 +107,7 @@ namespace ServiceControl.Config.UI.Shell
             CbServicePulse.IsChecked = false;
             CbAudit.IsChecked = false;
             SetServiceControlCheckboxesEnabled(false);
+            UpdateServicePulseState();
             SyncPresetSelection();
             MonitoringInfoBox.Visibility = Visibility.Visible;
             UpdateNextButton();
@@ -157,7 +151,7 @@ namespace ServiceControl.Config.UI.Shell
             }
         }
 
-        void UpdateServicePulseEnabled()
+        void UpdateServicePulseState()
         {
             if (!IsLoaded)
             {
