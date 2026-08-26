@@ -67,6 +67,8 @@ public class ExternalIntegrationRequestsDataStore(
 
     async Task RunLoop(CancellationToken cancellationToken)
     {
+        Task? pendingSignal = null;
+
         while (!cancellationToken.IsCancellationRequested)
         {
             try
@@ -97,7 +99,17 @@ public class ExternalIntegrationRequestsDataStore(
 
             try
             {
-                await Task.WhenAny(signal.WaitAsync(cancellationToken), Task.Delay(PollingInterval, timeProvider, cancellationToken));
+                pendingSignal ??= signal.WaitAsync(cancellationToken);
+
+                var completed = await Task.WhenAny(pendingSignal, Task.Delay(PollingInterval, timeProvider, cancellationToken));
+
+                // Clear the pending signal if it completed, so that we can wait for a new signal on the next iteration.
+                // If the delay completed first however, we will continue to the next iteration and use the same pending signal again.
+                if (completed == pendingSignal)
+                {
+                    await pendingSignal;
+                    pendingSignal = null;
+                }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
