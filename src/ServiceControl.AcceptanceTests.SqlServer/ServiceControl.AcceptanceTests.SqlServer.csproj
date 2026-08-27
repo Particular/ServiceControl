@@ -35,21 +35,7 @@
     <Compile Include="..\ServiceControl.Persistence.Tests.SqlServer\StopSharedSqlServer.cs" />
     <Compile Include="..\ServiceControl.UnitTests\NUnitParallelRunnerSettings.cs" />
 
-    <!-- External integration event dispatch is not implemented by EF persistence. -->
-    <Compile Remove="..\ServiceControl.AcceptanceTests\Monitoring\ExternalIntegration\When_a_custom_check_fails.cs" />
-    <Compile Remove="..\ServiceControl.AcceptanceTests\Monitoring\ExternalIntegration\When_a_custom_check_succeeds.cs" />
-    <Compile Remove="..\ServiceControl.AcceptanceTests\Monitoring\ExternalIntegration\When_heartbeat_is_restored.cs" />
-    <Compile Remove="..\ServiceControl.AcceptanceTests\Monitoring\ExternalIntegration\When_heartbeat_loss_is_detected.cs" />
-    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_failed_edit_is_resolved_by_retry.cs" />
-    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_failed_message_is_archived.cs" />
-    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_failed_message_is_resolved_by_retry.cs" />
-    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_failed_message_is_resolved_manually.cs" />
-    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_failed_message_is_unarchived.cs" />
-    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_failed_msg_is_resolved_by_edit.cs" />
-    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_group_is_archived.cs" />
-    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_message_has_failed_detected.cs" />
-    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_a_reedit_solves_a_failed_msg.cs" />
-    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\ExternalIntegration\When_encountered_an_error.cs" />
+    <!-- EF does not store body in MessageMetadata dictionary -->
     <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\When_edited_message_fails_to_process.cs" />
   </ItemGroup>
 
