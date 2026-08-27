@@ -155,24 +155,49 @@ public class ExternalIntegrationRequestsDataStore(
             return false;
         }
 
-        var contexts = rows
-            .Select(row => DispatchContextSerializer.Deserialize(row.DispatchContextTypeName, row.DispatchContextJson))
-            .ToArray();
+        var contexts = new List<object>(rows.Count);
+        var dispatchableRowIds = new List<long>(rows.Count);
+        List<long>? poisonedRowIds = null;
 
-        logger.LogDebug("Dispatching {EventCount} events", contexts.Length);
+        foreach (var row in rows)
+        {
+            try
+            {
+                contexts.Add(DispatchContextSerializer.Deserialize(row.DispatchContextTypeName, row.DispatchContextJson));
+                dispatchableRowIds.Add(row.Id);
+            }
+            catch (Exception ex)
+            {
+                poisonedRowIds ??= [];
+                logger.LogError(ex, "Failed to deserialize external integration dispatch request {DispatchRequestId} of type {DispatchContextTypeName}. The event will be discarded.", row.Id, row.DispatchContextTypeName);
+                poisonedRowIds.Add(row.Id);
+            }
+        }
 
-        // Rows are only deleted once the callback has successfully consumed the batch: if it
-        // throws (e.g. a transient failure resolving one of the outgoing contract events), the
-        // rows are left in place so the same batch is retried on the next pass.
-        await callback(contexts, cancellationToken);
+        if (poisonedRowIds is not null)
+        {
+            await ExecuteWithDbContext((context, cancellationToken) =>
+                context.ExternalIntegrationDispatchRequests
+                    .Where(row => poisonedRowIds.Contains(row.Id))
+                    .ExecuteDeleteAsync(cancellationToken),
+                cancellationToken);
+        }
 
-        var ids = rows.Select(row => row.Id).ToArray();
+        if (contexts.Count > 0)
+        {
+            logger.LogDebug("Dispatching {EventCount} events", contexts.Count);
 
-        await ExecuteWithDbContext(
-            (context, cancellationToken) => context.ExternalIntegrationDispatchRequests
-                .Where(row => ids.Contains(row.Id))
-                .ExecuteDeleteAsync(cancellationToken),
-            cancellationToken);
+            // Rows are only deleted once the callback has successfully consumed the batch: if it
+            // throws (e.g. a transient failure resolving one of the outgoing contract events), the
+            // rows are left in place so the same batch is retried on the next pass.
+            await callback([.. contexts], cancellationToken);
+
+            await ExecuteWithDbContext(
+                (context, cancellationToken) => context.ExternalIntegrationDispatchRequests
+                    .Where(row => dispatchableRowIds.Contains(row.Id))
+                    .ExecuteDeleteAsync(cancellationToken),
+                cancellationToken);
+        }
 
         return rows.Count == settings.ExternalIntegrationsDispatchingBatchSize;
     }
