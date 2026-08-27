@@ -13,7 +13,7 @@ class RavenPersisterSettings : PersistenceSettings, IRavenClientCertificateInfo
     public TimeSpan ErrorRetentionPeriod { get; set; }
     public TimeSpan EventsRetentionPeriod { get; set; }
     public TimeSpan? AuditRetentionPeriod { get; set; }
-    public int ExternalIntegrationsDispatchingBatchSize { get; set; } = 100;
+    public int ExternalIntegrationsDispatchingBatchSize { get; set; } = ExternalIntegrationsDispatchingBatchSizeDefault;
 
     /// <summary>
     /// Computed connection string to access embedded RavenDB API and RavenDB Studio
@@ -37,4 +37,5 @@ class RavenPersisterSettings : PersistenceSettings, IRavenClientCertificateInfo
     public const int DatabaseMaintenancePortDefault = 33334;
     public const int ExpirationProcessTimerInSecondsDefault = 600;
     public const string LogsModeDefault = "Operations";
+    public const int ExternalIntegrationsDispatchingBatchSizeDefault = 100;
 }

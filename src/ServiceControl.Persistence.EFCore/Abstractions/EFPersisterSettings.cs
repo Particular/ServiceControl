@@ -5,6 +5,7 @@ public abstract class EFPersisterSettings : PersistenceSettings
     public static readonly TimeSpan MigrationCommandTimeout = TimeSpan.FromMinutes(40);
 
     public const int DefaultCommandTimeout = 30;
+    public const int DefaultExternalIntegrationsDispatchingBatchSize = 100;
     public static readonly TimeSpan DefaultEventsRetentionPeriod = TimeSpan.FromDays(14);
 
     public static readonly TimeSpan DefaultSubscriptionCacheDuration = TimeSpan.FromSeconds(60);
@@ -18,7 +19,7 @@ public abstract class EFPersisterSettings : PersistenceSettings
     public int MaxRetryDelayInSeconds { get; set; } = 30;
     public bool EnableSensitiveDataLogging { get; set; }
     public bool EnableRetryOnFailure { get; set; } = true;
-    public int ExternalIntegrationsDispatchingBatchSize { get; set; } = 100;
+    public int ExternalIntegrationsDispatchingBatchSize { get; set; } = DefaultExternalIntegrationsDispatchingBatchSize;
 
     /// <summary>
     /// How long subscriber lookups are cached for. <see cref="TimeSpan.Zero"/> disables caching.
