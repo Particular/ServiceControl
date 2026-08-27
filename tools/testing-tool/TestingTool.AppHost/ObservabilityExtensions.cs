@@ -72,7 +72,11 @@ public static class ObservabilityExtensions
     static IResourceBuilder<ContainerResource> AddOtelCollector(
         IDistributedApplicationBuilder builder, IResourceBuilder<ContainerResource> jaeger) =>
         builder.AddContainer("otel-collector", "otel/opentelemetry-collector-contrib:0.110.0")
-            .WithBindMount("obs/otel-collector-config.yaml", "/etc/otelcol/config.yaml")
+            // The contrib image reads its config from /etc/otelcol-contrib/config.yaml (the core
+            // image uses /etc/otelcol/config.yaml). Mounting at the wrong path silently leaves the
+            // image's built-in default config active — which has no Prometheus exporter, so the
+            // :8889 scrape target has no listener and Prometheus gets "connection refused".
+            .WithBindMount("obs/otel-collector-config.yaml", "/etc/otelcol-contrib/config.yaml")
             .WithHttpEndpoint(8889, 8889, "metrics")   // Prometheus scrape target
             // The third positional arg of WithEndpoint is `scheme`, not `name` — passing "otlp-grpc"
             // positionally would set UriScheme to "otlp-grpc" and yield an otlp-grpc:// URL that the
