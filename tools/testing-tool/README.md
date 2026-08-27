@@ -27,9 +27,17 @@ ServiceControl to ingest. Five scenarios are built in, each producing naturally-
 | `deserialization-failure` | Deserialization | 100% fail — grouped by message type (bad deployment) |
 | `background-noise` | Noise | ~3% always-on baseline — rotates through exception types |
 
-Two background jobs (gated by config) run on timers:
-- **Replay** — fetches error groups from ServiceControl and triggers retry
-- **Search** — runs canned FTS queries to exercise the RavenDB search index
+Recoverability/search jobs are controllable from the web UI (no longer hidden config-gated
+ timers). They run a cycle on a configurable interval until stopped:
+- **Retry** — fetches error groups from ServiceControl and retries each group
+- **Archive** — fetches error groups from ServiceControl and archives each group
+- **Search** — runs canned FTS queries to exercise the ServiceControl search index
+
+Jobs do not auto-start; start them from the UI (or `/api/jobs`) when needed. Control via:
+- `GET /api/jobs` — list jobs with live status
+- `POST /api/jobs/{name}/start` — `{ "intervalSeconds": 120 }` (omit for the job default)
+- `POST /api/jobs/{name}/stop`
+- `POST /api/jobs/stop-all`
 
 All telemetry is exported via OTLP (traces + metrics + logs) and a Prometheus `/metrics` endpoint.
 
@@ -67,14 +75,18 @@ tools/testing-tool/
     wwwroot/index.html           # single-page web UI (vanilla JS, no build step)
     ScenarioRunner.cs            # start/stop, rate control, per-scenario error counting
     DirectErrorQueueWriter.cs    # bypass path: writes failed-message envelopes directly to error queue
+    Jobs/                        # UI-controllable recoverability/search jobs (retry, archive, search)
+      JobBase.cs                 # periodic job base class (start/stop, cycle counters)
+      JobRunner.cs               # manages job lifecycle, exposes /api/jobs
+      RetryJob.cs                # retries all error groups each cycle
+      ArchiveJob.cs              # archives all error groups each cycle
+      SearchJob.cs               # canned FTS queries each cycle
     FailingMessageHandler.cs     # NServiceBus handler that throws per scenario logic
     ReleaseTestScenarios.cs      # release-test preset mappings (Phase 5)
-    ServiceControlClient.cs      # REST API client (error groups, replay, search)
-    ReplayService.cs             # background replay job
-    SearchService.cs             # background search job
+    ServiceControlClient.cs      # REST API client (error groups, retry, archive, search)
     TelemetrySetup.cs            # OTel traces + metrics + logs + OTLP/Prometheus exporters
     NServiceBusSetup.cs          # endpoint config (Learning transport, error queue routing)
-    TestingToolOptions.cs        # config (SC URL, replay/search intervals, error queue name)
+    TestingToolOptions.cs        # config (SC URL, retry/archive/search intervals, error queue name)
     TestingToolMetrics.cs        # shared live counters for /api/status
     ShardIdResolver.cs           # shard id from env var, StatefulSet ordinal, or hostname
     IScenarioRegistry.cs         # scenario registry abstraction (DI)
@@ -156,11 +168,11 @@ All configuration is via environment variables (no files, no database). Settings
 | Setting | Default | Description |
 |---|---|---|
 | `TestingTool__ServiceControlApiUrl` | `http://localhost:33333` | ServiceControl REST API base URL |
-| `TestingTool__ReplayEnabled` | `false` | Enable the background replay job |
-| `TestingTool__ReplayInterval` | `00:02:00` | Interval between replay cycles |
-| `TestingTool__ReplayMinGroupSize` | `1` | Min messages in a group before replaying |
-| `TestingTool__SearchEnabled` | `false` | Enable the background search job |
-| `TestingTool__SearchInterval` | `00:01:00` | Interval between search cycles |
+| `TestingTool__ReplayInterval` | `00:02:00` | Default interval for the retry job |
+| `TestingTool__ReplayMinGroupSize` | `1` | Min messages in a group before retrying |
+| `TestingTool__SearchInterval` | `00:01:00` | Default interval for the search job |
+| `TestingTool__ArchiveInterval` | `00:02:00` | Default interval for the archive job |
+| `TestingTool__ArchiveMinGroupSize` | `1` | Min messages in a group before archiving |
 | `TestingTool__ErrorQueueName` | `error` | NServiceBus error queue (ServiceControl monitors this) |
 | `TestingTool__AutoStartBackgroundNoise` | `false` | Auto-start the background-noise scenario on startup |
 | `SHARD_ID` (env) | *(auto: hostname ordinal or machine name)* | Shard id for disjoint scenario slices when scaled |

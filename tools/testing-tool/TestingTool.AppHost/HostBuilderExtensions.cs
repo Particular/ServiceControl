@@ -19,15 +19,17 @@ public static class HostBuilderExtensions
         var postgresPassword = builder.AddParameter("postgres-password", "Password1!", secret: true);
         var postgres = builder
             .AddPostgres("postgres", password: postgresPassword)
+            .WithPgAdmin()
             .WithDataVolume("migration-postgres-data");
         return postgres.AddDatabase("servicecontrol-postgres", databaseName);
     }
 
-    public static IResourceBuilder<ServiceControlErrorInstanceResource> WithSqlPersistence(
+    public static IResourceBuilder<ServiceControlErrorInstanceResource> WithPersistenceType(
         this IResourceBuilder<ServiceControlErrorInstanceResource> error, PersistenceType type)
     {
         if (type == PersistenceType.RavenDb)
         {
+            //ravenDB is currently set up explicitly even if you aren't using it
             return error;
         }
 
