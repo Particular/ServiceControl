@@ -10,8 +10,8 @@ See [requirements-test-tool-plan.md](./requirements-test-tool-plan.md) for the f
 
 All phases complete (0–7): project bootstrap, OTel foundation (traces + metrics + logs),
 NServiceBus error path (handler + direct error-queue bypass writer), scenarios, background jobs,
-web UI, containerization & scaling, Aspire AppHost, and smoke tests. A prebuilt Grafana
-dashboard is left for a future iteration (otel traces/metrics already flow to the collector).
+web UI, containerization & scaling, Aspire AppHost, observability stack (OTel Collector →
+Jaeger + Prometheus + Grafana with prebuilt dashboard), and smoke tests.
 
 ## What it does
 
@@ -94,7 +94,16 @@ tools/testing-tool/
   TestingTool.Scenarios/         # IScenario contract + 5 scenario implementations
   TestingTool.Contracts/         # shared DTOs (ScenarioInfo, TestingToolStatus, BypassStatus, etc.)
   TestingTool.SmokeTests/        # xunit smoke tests (requires running SC + tool)
-  TestingTool.AppHost/           # Aspire AppHost project (platform + tool + Jaeger)
+  TestingTool.AppHost/           # Aspire AppHost project (platform + tool + observability stack)
+    AppHost.cs                   # top-level orchestration (platform, observability, testing tool)
+    HostBuilderExtensions.cs     # persistence-type extensions (RavenDB / SQL Server / PostgreSQL)
+    ObservabilityExtensions.cs   # AddObservabilityStack() — OTel Collector + Jaeger + Prometheus + Grafana
+    PersistenceType.cs           # persistence enum
+    obs/                         # observability config (collector, Prometheus, Grafana provisioning + dashboard)
+      otel-collector-config.yaml # collector pipeline: traces → Jaeger, metrics → Prometheus exporter
+      prometheus.yml             # scrape config (targets the collector's metrics exporter)
+      grafana/provisioning/      # auto-provisioned data sources (Prometheus + Jaeger) and dashboard provider
+      grafana/dashboards/        # prebuilt "Testing Tool" Grafana dashboard JSON
 ```
 
 ## Run locally
@@ -109,8 +118,9 @@ Open http://localhost:5290 (or the port shown in the console).
 ## Run with Aspire
 
 The Aspire AppHost orchestrates the testing tool together with the full Particular platform
-(ServiceControl + Learning transport + RavenDB + ServicePulse) and Jaeger, so a single command
-brings up the whole system locally:
+(ServiceControl + Learning transport + RavenDB + ServicePulse) and a complete observability
+stack (OTel Collector, Jaeger, Prometheus, Grafana), so a single command brings up the whole
+system locally:
 
 ```bash
 aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj
@@ -123,7 +133,24 @@ aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- 
 ```
 
 The Aspire dashboard provides allocated ports for each service. The testing tool automatically
-connects to ServiceControl via the platform's transport and REST API URL.
+connects to ServiceControl via the platform's transport and REST API URL, and sends its OTLP
+telemetry to the OTel Collector, which fans out traces to Jaeger and metrics to Prometheus.
+Grafana (auto-provisioned with Prometheus + Jaeger data sources) provides a prebuilt dashboard
+at the allocated port — log in with `admin`/`admin` or browse anonymously as Viewer.
+
+### Observability stack
+
+| Service | Image | Purpose |
+|---|---|---|
+| OTel Collector | `otel/opentelemetry-collector-contrib` | Receives OTLP, fans out traces → Jaeger, metrics → Prometheus exporter |
+| Jaeger | `jaegertracing/all-in-one` | Distributed-trace UI — purpose-built trace analysis richer than the Aspire dashboard |
+| Prometheus | `prom/prometheus` | Scrapes the collector's metrics exporter |
+| Grafana | `grafana/grafana-oss` | Dashboards with auto-provisioned Prometheus + Jaeger data sources |
+
+The stack is wired via `AddObservabilityStack()` in `ObservabilityExtensions.cs` so `AppHost.cs`
+stays clean. Config files live under `obs/` next to the AppHost project. The prebuilt Grafana
+dashboard ("Testing Tool — Error Load & Observability") shows errors/sec by scenario, search
+latency p95, replay/archive/bypass rates, and cumulative error count.
 
 ## Run smoke tests
 

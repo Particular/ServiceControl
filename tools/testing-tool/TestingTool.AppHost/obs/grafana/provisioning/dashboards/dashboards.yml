@@ -1,0 +1,13 @@
+# Grafana dashboard provisioning — loads dashboards from the mounted dashboards directory.
+
+apiVersion: 1
+
+providers:
+  - name: 'testing-tool'
+    orgId: 1
+    folder: 'Testing Tool'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards

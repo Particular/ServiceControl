@@ -1,0 +1,24 @@
+# Grafana data source provisioning for the testing-tool observability stack.
+# Auto-configures Prometheus (metrics) and Jaeger (traces) as data sources on startup.
+
+apiVersion: 1
+
+datasources:
+  # The dashboard JSON references its panels' datasource by uid "prometheus", so the provisioned
+  # data source MUST use that exact uid — otherwise Grafana can't resolve the panels and every
+  # panel shows "no data" / "datasource not found", even when Prometheus has the metrics.
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+
+  # Jaeger is referenced by trace panels/links via uid "jaeger".
+  - name: Jaeger
+    uid: jaeger
+    type: jaeger
+    access: proxy
+    url: http://jaeger:16686
+    editable: true
