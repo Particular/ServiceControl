@@ -1,9 +1,10 @@
 using Particular.Aspire.Hosting.ServicePlatform.Platform;
 using Particular.Aspire.Hosting.ServicePlatform.Transport;
+using TestingTool.AppHost;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-// --- Particular Platform (ServiceControl + RabbitMQ transport + RavenDB persistence) ---
+// --- Particular Platform (ServiceControl + RabbitMQ transport) ---
 var transportUserName = builder.AddParameter("transportUserName", "guest", secret: true);
 var transportPassword = builder.AddParameter("transportPassword", "guest", secret: true);
 var transport = builder.AddRabbitMQ("transport", transportUserName, transportPassword)
@@ -14,12 +15,12 @@ var platform = builder
     .AddParticularPlatform("particular")
     .WithTransportRabbitMQ(RabbitMqRouting.QuorumConventionalRouting, transport);
 
-//currently sql/postgres aren't supported so install and then override.
 var raven = platform.AddPersistenceRavenDb("raven");
 
 // Find the ServiceControl error instance to wire its REST API URL into the testing tool.
 var errorInstance = platform
     .AddServiceControlErrorInstance("error", raven)
+    .WithSqlPersistence(PersistenceType.RavenDb)
     .WithRunMode(PlatformRunMode.SetupAndRun);
 
 platform.AddServicePulse("pulse", errorInstance);
@@ -33,21 +34,21 @@ builder.AddProject<Projects.TestingTool>("testing-tool")
     .WaitFor(errorInstance);
 
 // --- Optional: override ServiceControl image tag for prerelease testing ---
-// Pass a tag as the first argument: `aspire run AppHost.cs -- pr-1234`
+// Pass a tag as the first argument: `aspire run -- pr-1234`
 // Defaults to the 'latest' tag configured by AddDefaultComponents.
-if (args.Length > 0)
+var tag = args.FirstOrDefault();
+tag = "pr-5765";
+if (!string.IsNullOrWhiteSpace(tag))
 {
-    var tag = args[0];
     Console.WriteLine($"Using ServiceControl image tag: {tag}");
     foreach (var c in builder.Resources.OfType<ContainerResource>())
     {
         if (c.TryGetLastAnnotation<ContainerImageAnnotation>(out var image) &&
-            (image.Image.StartsWith("particular/servicecontrol") ||
-             image.Image.StartsWith("particular/servicepulse")))
+            image.Image.StartsWith("particular/servicecontrol"))
         {
             builder
                 .CreateResourceBuilder(c)
-                .WithImageTag(tag);
+                 .WithImage($"ghcr.io/{image.Image}", tag);
         }
     }
 }

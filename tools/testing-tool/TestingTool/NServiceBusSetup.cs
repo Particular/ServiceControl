@@ -21,7 +21,7 @@ public static class NServiceBusEndpointExtensions
     {
         var config = new EndpointConfiguration("TestingTool.Load");
 
-        var rabbitConnectionString = configuration.GetConnectionString("rabbitmq");
+        var rabbitConnectionString = configuration.GetConnectionString("transport");
         if (!string.IsNullOrWhiteSpace(rabbitConnectionString))
         {
             var transport = config.UseTransport<RabbitMQTransport>();
