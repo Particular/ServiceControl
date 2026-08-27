@@ -39,7 +39,7 @@ public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration,
         settings.ErrorRetentionPeriod = GetRequiredSetting<TimeSpan>(settingsRootNamespace, ErrorRetentionPeriodKey);
         settings.EventsRetentionPeriod = SettingsReader.Read(settingsRootNamespace, EventsRetentionPeriodKey, EFPersisterSettings.DefaultEventsRetentionPeriod);
         settings.SubscriptionCacheDuration = SettingsReader.Read(settingsRootNamespace, SubscriptionCacheDurationKey, EFPersisterSettings.DefaultSubscriptionCacheDuration);
-        settings.ExternalIntegrationsDispatchingBatchSize = SettingsReader.Read(settingsRootNamespace, ExternalIntegrationsDispatchingBatchSizeKey, 100);
+        settings.ExternalIntegrationsDispatchingBatchSize = ReadExternalIntegrationsDispatchingBatchSize(settingsRootNamespace);
 
         return settings;
     }
@@ -191,5 +191,20 @@ public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration,
         }
 
         return maxBodySizeToStore;
+    }
+
+    static int ReadExternalIntegrationsDispatchingBatchSize(SettingsRootNamespace settingsRootNamespace)
+    {
+        var batchSize = SettingsReader.Read(settingsRootNamespace, ExternalIntegrationsDispatchingBatchSizeKey, EFPersisterSettings.DefaultExternalIntegrationsDispatchingBatchSize);
+
+        if (batchSize <= 0)
+        {
+            LoggerUtil.CreateStaticLogger<EFPersistenceConfigurationBase>()
+                .LogError("ExternalIntegrationsDispatchingBatchSize setting is invalid, 1 is the minimum value. Defaulting to {ExternalIntegrationsDispatchingBatchSizeDefault}", EFPersisterSettings.DefaultExternalIntegrationsDispatchingBatchSize);
+
+            return EFPersisterSettings.DefaultExternalIntegrationsDispatchingBatchSize;
+        }
+
+        return batchSize;
     }
 }

@@ -5,6 +5,7 @@
     using System.Reflection;
     using Configuration;
     using CustomChecks;
+    using Microsoft.Extensions.Logging;
     using Particular.LicensingComponent.Contracts;
     using ServiceControl.Infrastructure;
 
@@ -37,7 +38,7 @@
                 ErrorRetentionPeriod = GetRequiredSetting<TimeSpan>(settingsRootNamespace, ErrorRetentionPeriodKey),
                 EventsRetentionPeriod = SettingsReader.Read(settingsRootNamespace, EventsRetentionPeriodKey, TimeSpan.FromDays(14)),
                 AuditRetentionPeriod = SettingsReader.Read(settingsRootNamespace, AuditRetentionPeriodKey, TimeSpan.Zero),
-                ExternalIntegrationsDispatchingBatchSize = SettingsReader.Read(settingsRootNamespace, ExternalIntegrationsDispatchingBatchSizeKey, 100),
+                ExternalIntegrationsDispatchingBatchSize = ReadExternalIntegrationsDispatchingBatchSize(settingsRootNamespace),
                 MaintenanceMode = SettingsReader.Read(settingsRootNamespace, MaintenanceModeKey, false),
                 LogPath = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.LogsPathKey, DefaultLogLocation()),
                 LogsMode = logsMode,
@@ -48,6 +49,21 @@
             CheckFreeDiskSpace.Validate(settings);
             CheckMinimumStorageRequiredForIngestion.Validate(settings);
             return settings;
+        }
+
+        static int ReadExternalIntegrationsDispatchingBatchSize(SettingsRootNamespace settingsRootNamespace)
+        {
+            var batchSize = SettingsReader.Read(settingsRootNamespace, ExternalIntegrationsDispatchingBatchSizeKey, RavenPersisterSettings.ExternalIntegrationsDispatchingBatchSizeDefault);
+
+            if (batchSize <= 0)
+            {
+                LoggerUtil.CreateStaticLogger<RavenPersistenceConfiguration>()
+                    .LogError("ExternalIntegrationsDispatchingBatchSize setting is invalid, 1 is the minimum value. Defaulting to {ExternalIntegrationsDispatchingBatchSizeDefault}", RavenPersisterSettings.ExternalIntegrationsDispatchingBatchSizeDefault);
+
+                return RavenPersisterSettings.ExternalIntegrationsDispatchingBatchSizeDefault;
+            }
+
+            return batchSize;
         }
 
         // SC installer always populates DBPath in app.config on installation/change/upgrade so this will only be used when
