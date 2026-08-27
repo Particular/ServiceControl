@@ -5,5 +5,5 @@
 /// </summary>
 public interface IEnvironmentDataProvider
 {
-    Task<IEnumerable<(string key, string value)>> GetData(CancellationToken cancellationToken = default);
+    IEnumerable<EnvironmentDatum> GetData();
 }

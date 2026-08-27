@@ -1,7 +1,6 @@
 ﻿namespace Particular.LicensingComponent.UnitTests;
 
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -35,7 +34,7 @@ class ThroughputCollector_AdditionalEnvironmentDataProvider_Tests : ThroughputCo
 
     class TestAdditionalEnvironmentDataProvider : IEnvironmentDataProvider
     {
-        public Task<IEnumerable<(string key, string value)>> GetData(CancellationToken cancellationToken = default) =>
-            Task.FromResult<IEnumerable<(string, string)>>([("TestKey", "TestValue")]);
+        public IEnumerable<EnvironmentDatum> GetData() =>
+            [EnvironmentDatum.Value("TestKey", () => "TestValue")];
     }
 }

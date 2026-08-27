@@ -4,22 +4,27 @@ using System.Globalization;
 using Abstractions;
 using Infrastructure;
 using Particular.LicensingComponent.Contracts;
+using static Particular.LicensingComponent.Contracts.EnvironmentDatum;
 
 class EFEnvironmentDataProvider(EFPersisterSettings settings, IDatabaseHostingProbe hostingProbe) : IEnvironmentDataProvider
 {
-    public async Task<IEnumerable<(string key, string value)>> GetData(CancellationToken cancellationToken = default)
+    public IEnumerable<EnvironmentDatum> GetData()
     {
-        var hosting = await hostingProbe.Probe(cancellationToken);
+        // The three hosting keys share one probe, so the database is asked once per report and they
+        // stand or fall together, which is right because they have a single cause.
+        Task<DatabaseHosting>? probe = null;
+        Task<DatabaseHosting> Hosting(CancellationToken cancellationToken) => probe ??= hostingProbe.Probe(cancellationToken);
 
         return
         [
-            ("Persistence.Type", hostingProbe.StorageName),
-            ("Persistence.Hosting", hosting.Hosting),
-            ("Persistence.ServerVersion", hosting.ServerVersion),
-            ("Persistence.FullTextSearch", settings.EnableFullTextSearchOnBodies ? "Enabled" : "Disabled"),
-            ("Persistence.BodyStorage.Type", BodyStorageType(settings.BodyStorage)),
-            ("Persistence.BodyStorage.Auth", BodyStorageAuth(settings.BodyStorage)),
-            ("Limits.MaxBodySizeToStore", settings.BodyStorage.MaxBodySizeToStore.ToString(CultureInfo.InvariantCulture))
+            Value("Persistence.Type", () => hostingProbe.StorageName),
+            Deferred("Persistence.Hosting", async cancellationToken => (await Hosting(cancellationToken)).Hosting),
+            Deferred("Persistence.ServerVersion", async cancellationToken => (await Hosting(cancellationToken)).ServerVersion),
+            Deferred("Persistence.HostingSource", async cancellationToken => (await Hosting(cancellationToken)).Source),
+            Value("Persistence.FullTextSearch", () => settings.EnableFullTextSearchOnBodies ? "Enabled" : "Disabled"),
+            Value("Persistence.BodyStorage.Type", () => BodyStorageType(settings.BodyStorage)),
+            Value("Persistence.BodyStorage.Auth", () => BodyStorageAuth(settings.BodyStorage)),
+            Value("Limits.MaxBodySizeToStore", () => settings.BodyStorage.MaxBodySizeToStore.ToString(CultureInfo.InvariantCulture))
         ];
     }
 

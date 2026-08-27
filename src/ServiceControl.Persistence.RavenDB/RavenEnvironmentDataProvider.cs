@@ -4,53 +4,42 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Particular.LicensingComponent.Contracts;
 using Raven.Client.ServerWide.Operations;
+using static Particular.LicensingComponent.Contracts.EnvironmentDatum;
 
-class RavenEnvironmentDataProvider(RavenPersisterSettings settings, IRavenDocumentStoreProvider documentStoreProvider, ILogger<RavenEnvironmentDataProvider> logger) : IEnvironmentDataProvider
+class RavenEnvironmentDataProvider(RavenPersisterSettings settings, IRavenDocumentStoreProvider documentStoreProvider) : IEnvironmentDataProvider
 {
-    public async Task<IEnumerable<(string key, string value)>> GetData(CancellationToken cancellationToken = default) =>
+    public IEnumerable<EnvironmentDatum> GetData() =>
     [
-        ("Persistence.Type", "RavenDB"),
-        ("Persistence.RavenServer", settings.UseEmbeddedServer ? "Embedded" : "External"),
-        ("Persistence.Hosting", Hosting()),
-        ("Persistence.ServerVersion", await ServerVersion(cancellationToken)),
-        ("Persistence.FullTextSearch", settings.EnableFullTextSearchOnBodies ? "Enabled" : "Disabled"),
-        ("Persistence.BodyStorage.Type", "RavenAttachments"),
-        ("Persistence.BodyStorage.Auth", "NotApplicable")
+        Value("Persistence.Type", () => "RavenDB"),
+        Value("Persistence.RavenServer", () => settings.UseEmbeddedServer ? "Embedded" : "External"),
+        Value("Persistence.Hosting", () => Hosting().Hosting),
+        Deferred("Persistence.ServerVersion", ServerVersion),
+        Value("Persistence.HostingSource", () => Hosting().Source),
+        Value("Persistence.FullTextSearch", () => settings.EnableFullTextSearchOnBodies ? "Enabled" : "Disabled"),
+        Value("Persistence.BodyStorage.Type", () => "RavenAttachments"),
+        Value("Persistence.BodyStorage.Auth", () => "NotApplicable")
     ];
 
-    string Hosting()
+    (string Hosting, string Source) Hosting()
     {
+        // An embedded server runs in this process, so there is nothing to infer.
         if (settings.UseEmbeddedServer)
         {
-            return DatabaseHostClassifier.SelfHosted;
+            return (DatabaseHostClassifier.SelfHosted, DatabaseHostingSource.Configuration);
         }
 
         return Uri.TryCreate(settings.ConnectionString, UriKind.Absolute, out var url)
-            ? DatabaseHostClassifier.Classify(url.Host)
-            : DatabaseHostClassifier.Unknown;
+            ? (DatabaseHostClassifier.Classify(url.Host), DatabaseHostingSource.ConnectionString)
+            : (DatabaseHostClassifier.Unknown, DatabaseHostingSource.None);
     }
 
-    async Task<string> ServerVersion(CancellationToken cancellationToken)
+    async ValueTask<string> ServerVersion(CancellationToken cancellationToken)
     {
-        try
-        {
-            var documentStore = await documentStoreProvider.GetDocumentStore(cancellationToken);
-            var buildNumber = await documentStore.Maintenance.Server.SendAsync(new GetBuildNumberOperation(), cancellationToken);
+        var documentStore = await documentStoreProvider.GetDocumentStore(cancellationToken);
+        var buildNumber = await documentStore.Maintenance.Server.SendAsync(new GetBuildNumberOperation(), cancellationToken);
 
-            return buildNumber.ProductVersion ?? DatabaseHostClassifier.Unknown;
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            logger.LogDebug(e, "Could not read the RavenDB server version");
-
-            return DatabaseHostClassifier.Unknown;
-        }
+        return buildNumber.ProductVersion ?? DatabaseHostClassifier.Unknown;
     }
 }

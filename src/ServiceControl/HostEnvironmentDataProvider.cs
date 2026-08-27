@@ -4,26 +4,26 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting.WindowsServices;
 using Particular.LicensingComponent.Contracts;
 using global::ServiceControl.Configuration;
+using static Particular.LicensingComponent.Contracts.EnvironmentDatum;
 
 class HostEnvironmentDataProvider : IEnvironmentDataProvider
 {
-    public Task<IEnumerable<(string key, string value)>> GetData(CancellationToken cancellationToken = default) =>
-        Task.FromResult<IEnumerable<(string, string)>>(
-        [
-            ("Host.Model", HostModel()),
-            ("Host.Orchestrator", Environment.GetEnvironmentVariable(KubernetesServiceHostVariable) is not null ? "Kubernetes" : "None"),
-            ("Host.OSPlatform", OSPlatformName()),
-            ("Host.OSVersion", $"{Environment.OSVersion.Version.Major}.{Environment.OSVersion.Version.Minor}"),
-            ("Host.Architecture", RuntimeInformation.ProcessArchitecture.ToString()),
-            ("Host.RuntimeVersion", Environment.Version.ToString(3)),
-            ("Host.ProcessorCount", Environment.ProcessorCount.ToString(CultureInfo.InvariantCulture)),
-            ("Host.AvailableMemoryGB", AvailableMemoryGB())
-        ]);
+    public IEnumerable<EnvironmentDatum> GetData() =>
+    [
+        Value("Host.Model", HostModel),
+        Value("Host.Orchestrator", Orchestrator),
+        Value("Host.OSPlatform", OSPlatformName),
+        Value("Host.OSVersion", () => $"{Environment.OSVersion.Version.Major}.{Environment.OSVersion.Version.Minor}"),
+        Value("Host.Architecture", () => RuntimeInformation.ProcessArchitecture.ToString()),
+        Value("Host.RuntimeVersion", () => Environment.Version.ToString(3)),
+        Value("Host.ProcessorCount", () => Environment.ProcessorCount.ToString(CultureInfo.InvariantCulture)),
+        Value("Host.AvailableMemoryGB", AvailableMemoryGB)
+    ];
+
+    static string Orchestrator() => Environment.GetEnvironmentVariable(KubernetesServiceHostVariable) is not null ? "Kubernetes" : "None";
 
     static string HostModel()
     {

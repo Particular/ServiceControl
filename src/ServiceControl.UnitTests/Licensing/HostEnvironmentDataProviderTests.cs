@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Particular.ServiceControl;
@@ -12,7 +13,15 @@ using Particular.ServiceControl;
 class HostEnvironmentDataProviderTests
 {
     [SetUp]
-    public async Task SetUp() => data = (await new HostEnvironmentDataProvider().GetData()).ToDictionary(entry => entry.key, entry => entry.value);
+    public async Task SetUp()
+    {
+        data = [];
+
+        foreach (var datum in new HostEnvironmentDataProvider().GetData())
+        {
+            data[datum.Key] = await datum.ReadValue(CancellationToken.None);
+        }
+    }
 
     [Test]
     public void Should_report_a_known_hosting_model() =>

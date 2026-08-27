@@ -189,25 +189,33 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
 
         foreach (var environmentDataProvider in environmentDataProviders)
         {
-            IEnumerable<(string key, string value)> environmentData;
+            EnvironmentDatum[] environmentData;
 
             try
             {
-                environmentData = await environmentDataProvider.GetData(cancellationToken);
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                throw;
+                environmentData = [.. environmentDataProvider.GetData()];
             }
             catch (Exception e)
             {
-                logger.LogWarning(e, "Environment data provider {EnvironmentDataProvider} failed, its data is omitted from the report", environmentDataProvider.GetType().Name);
+                logger.LogWarning(e, "Environment data provider {EnvironmentDataProvider} could not list what it offers, so none of its data is in the report", environmentDataProvider.GetType().Name);
                 continue;
             }
 
-            foreach (var (key, value) in environmentData)
+            foreach (var datum in environmentData)
             {
-                report.EnvironmentInformation.EnvironmentData[key] = value;
+                try
+                {
+                    report.EnvironmentInformation.EnvironmentData[datum.Key] = await datum.ReadValue(cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    logger.LogWarning(e, "Environment datum {EnvironmentDatum} could not be read", datum.Key);
+                    report.EnvironmentInformation.EnvironmentData[datum.Key] = EnvironmentDatum.ReadFailed;
+                }
             }
         }
 

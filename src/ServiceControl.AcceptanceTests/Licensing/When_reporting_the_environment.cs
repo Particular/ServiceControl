@@ -59,8 +59,9 @@ namespace ServiceControl.AcceptanceTests.Licensing
                 Assert.That(data["Persistence.Type"], Is.Not.Empty);
                 Assert.That(data["Persistence.BodyStorage.Type"], Is.Not.Empty);
                 Assert.That(data["Persistence.BodyStorage.Auth"], Is.AnyOf("ManagedIdentity", "SharedKeyOrSas", "IamRole", "StaticCredentials", "NotApplicable"));
+                Assert.That(data["Persistence.HostingSource"], Is.AnyOf("Probe", "Configuration", "ConnectionString", "None"));
                 Assert.That(data["Security.Authentication"], Is.AnyOf("Enabled", "Disabled"));
-                Assert.That(data["Features.EmailNotifications"], Is.AnyOf("Enabled", "Disabled", "NotConfigured"));
+                Assert.That(data["Features.EmailNotifications"], Is.AnyOf("Enabled", "Disabled", "NotConfigured", "ReadFailed"));
                 Assert.That(int.Parse(data["Retention.ErrorHours"]), Is.GreaterThan(0));
 
                 Assert.That(data.Values, Has.None.Contains(Environment.MachineName),
@@ -81,6 +82,7 @@ namespace ServiceControl.AcceptanceTests.Licensing
             "Persistence.Type",
             "Persistence.Hosting",
             "Persistence.ServerVersion",
+            "Persistence.HostingSource",
             "Persistence.FullTextSearch",
             "Persistence.BodyStorage.Type",
             "Persistence.BodyStorage.Auth",
@@ -93,7 +95,6 @@ namespace ServiceControl.AcceptanceTests.Licensing
             "Features.ForwardErrorMessages",
             "Features.EmailNotifications",
             "Retention.ErrorHours",
-            "Retention.AuditHours",
             "Retention.EventsHours"
         ];
 

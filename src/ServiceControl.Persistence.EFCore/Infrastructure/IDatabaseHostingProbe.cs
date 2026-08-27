@@ -20,9 +20,11 @@ public interface IDatabaseHostingProbe
     Task<DatabaseHosting> Probe(CancellationToken cancellationToken = default);
 }
 
-/// <param name="Hosting">One of AzureSql, AzureSqlManagedInstance, AzureSynapse, AzurePostgres, AwsRds, GoogleCloudSql, SelfHosted or Unknown.</param>
+/// <param name="Hosting">One of AzureSql, AzureSqlManagedInstance, AzureSqlEdge, AzurePostgres, AzureMySql, AwsRds, GoogleCloudSql, RavenCloud, SelfHosted or Unknown.</param>
 /// <param name="ServerVersion">The engine major version, or Unknown.</param>
-public record DatabaseHosting(string Hosting, string ServerVersion)
+/// <param name="Source">A <see cref="DatabaseHostingSource"/> value.</param>
+public record DatabaseHosting(string Hosting, string ServerVersion, string Source)
 {
-    public static readonly DatabaseHosting Unavailable = new(DatabaseHostClassifier.Unknown, DatabaseHostClassifier.Unknown);
+    /// <summary>Nothing was available to classify the host with. A determination, not a failure.</summary>
+    public static readonly DatabaseHosting Unclassified = new(DatabaseHostClassifier.Unknown, DatabaseHostClassifier.Unknown, DatabaseHostingSource.None);
 }

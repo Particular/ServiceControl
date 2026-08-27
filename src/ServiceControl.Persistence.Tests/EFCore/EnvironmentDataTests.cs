@@ -21,9 +21,18 @@ class DatabaseHostClassifierTests
     [TestCase("/cloudsql/my-project:europe-west1:sc", "GoogleCloudSql")]
     [TestCase("a.b.c.ravendb.cloud", "RavenCloud")]
     [TestCase("localhost", "SelfHosted")]
-    [TestCase("sqlserver.internal.contoso.com", "SelfHosted")]
+    [TestCase("127.0.0.1", "SelfHosted")]
+    [TestCase("(local)", "SelfHosted")]
+    [TestCase("(localdb)\\MSSQLLocalDB", "SelfHosted")]
     public void Should_classify_host(string host, string expected) =>
         Assert.That(DatabaseHostClassifier.Classify(host), Is.EqualTo(expected));
+
+    [TestCase("sqlserver.internal.contoso.com")]
+    [TestCase("db01.corp.example")]
+    [TestCase("10.0.4.12")]
+    public void Should_not_call_a_private_name_self_hosted(string host) =>
+        Assert.That(DatabaseHostClassifier.Classify(host), Is.EqualTo("Unknown"),
+            "A private DNS name in front of a managed database must not be counted as self-hosting");
 
     [TestCase("")]
     [TestCase("   ")]
@@ -121,6 +130,7 @@ class EFEnvironmentDataProviderTests
         {
             Assert.That(data["Persistence.Hosting"], Is.EqualTo("Unknown"));
             Assert.That(data["Persistence.ServerVersion"], Is.EqualTo("Unknown"));
+            Assert.That(data["Persistence.HostingSource"], Is.EqualTo("None"));
         });
     }
 
@@ -128,8 +138,14 @@ class EFEnvironmentDataProviderTests
     {
         var settings = new TestPersisterSettings { ConnectionString = "Host=localhost", BodyStorage = bodyStorage };
         var provider = new EFEnvironmentDataProvider(settings, hostingProbe ?? new TestHostingProbe());
+        var data = new Dictionary<string, string>();
 
-        return (await provider.GetData()).ToDictionary(entry => entry.key, entry => entry.value);
+        foreach (var datum in provider.GetData())
+        {
+            data[datum.Key] = await datum.ReadValue(CancellationToken.None);
+        }
+
+        return data;
     }
 
     class TestPersisterSettings : EFPersisterSettings;
@@ -139,7 +155,7 @@ class EFEnvironmentDataProviderTests
         public string StorageName => "PostgreSQL";
 
         public Task<DatabaseHosting> Probe(CancellationToken cancellationToken = default) =>
-            Task.FromResult(new DatabaseHosting("SelfHosted", "17"));
+            Task.FromResult(new DatabaseHosting("SelfHosted", "17", DatabaseHostingSource.Probe));
     }
 
     class FailingHostingProbe : IDatabaseHostingProbe
@@ -147,6 +163,6 @@ class EFEnvironmentDataProviderTests
         public string StorageName => "PostgreSQL";
 
         public Task<DatabaseHosting> Probe(CancellationToken cancellationToken = default) =>
-            Task.FromResult(DatabaseHosting.Unavailable);
+            Task.FromResult(DatabaseHosting.Unclassified);
     }
 }

@@ -34,7 +34,9 @@ class PostgreSqlDatabaseHostingProbe(PostgreSqlPersisterSettings settings, IServ
                 return HostingFromConnectionString();
             }
 
-            return new DatabaseHosting(HostingFromRoles(reader), MajorVersion(reader));
+            var hosting = HostingFor(reader.GetBoolean(1), reader.GetBoolean(2), reader.GetBoolean(3), ConfiguredHost);
+
+            return new DatabaseHosting(hosting, MajorVersion(reader), DatabaseHostingSource.Probe);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -48,21 +50,32 @@ class PostgreSqlDatabaseHostingProbe(PostgreSqlPersisterSettings settings, IServ
         }
     }
 
-    // PostgreSQL has no equivalent of SQL Server's EngineEdition, but every managed offering creates
-    // a distinctive administrative role that a self-hosted server does not have.
-    string HostingFromRoles(DbDataReader reader)
+    /// <summary>
+    /// PostgreSQL has no equivalent of SQL Server's EngineEdition, but every managed offering
+    /// creates a distinctive administrative role that a self-hosted server does not have. A server
+    /// that answered and has none of them is self-hosted, unless its host name names a managed
+    /// service that does not announce itself this way.
+    /// </summary>
+    internal static string HostingFor(bool azure, bool rds, bool cloudSql, string? host)
     {
-        if (reader.GetBoolean(1))
+        if (azure)
         {
             return "AzurePostgres";
         }
 
-        if (reader.GetBoolean(2))
+        if (rds)
         {
             return "AwsRds";
         }
 
-        return reader.GetBoolean(3) ? "GoogleCloudSql" : HostingFromConnectionString().Hosting;
+        if (cloudSql)
+        {
+            return "GoogleCloudSql";
+        }
+
+        var classified = DatabaseHostClassifier.Classify(host);
+
+        return classified == DatabaseHostClassifier.Unknown ? DatabaseHostClassifier.SelfHosted : classified;
     }
 
     static string MajorVersion(DbDataReader reader) =>
@@ -70,17 +83,27 @@ class PostgreSqlDatabaseHostingProbe(PostgreSqlPersisterSettings settings, IServ
 
     DatabaseHosting HostingFromConnectionString()
     {
-        try
-        {
-            var host = new NpgsqlConnectionStringBuilder(settings.ConnectionString).Host;
+        var host = ConfiguredHost;
 
-            return new DatabaseHosting(DatabaseHostClassifier.Classify(host), DatabaseHostClassifier.Unknown);
-        }
-        catch (Exception e)
-        {
-            logger.LogDebug(e, "Could not classify the configured PostgreSQL host");
+        return host is null
+            ? DatabaseHosting.Unclassified
+            : new DatabaseHosting(DatabaseHostClassifier.Classify(host), DatabaseHostClassifier.Unknown, DatabaseHostingSource.ConnectionString);
+    }
 
-            return DatabaseHosting.Unavailable;
+    string? ConfiguredHost
+    {
+        get
+        {
+            try
+            {
+                return new NpgsqlConnectionStringBuilder(settings.ConnectionString).Host;
+            }
+            catch (Exception e)
+            {
+                logger.LogDebug(e, "Could not read the configured PostgreSQL host");
+
+                return null;
+            }
         }
     }
 
