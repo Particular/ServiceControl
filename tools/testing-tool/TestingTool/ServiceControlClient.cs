@@ -4,19 +4,24 @@ using System.Text.Json.Serialization;
 namespace TestingTool;
 
 /// <summary>
-/// Thin HTTP client for the ServiceControl REST API. Used by the background replay and search
-/// jobs to interact with the test ServiceControl instance.
+/// Thin HTTP client for the ServiceControl REST API. Used by the recoverability jobs (retry,
+/// archive) and the search job to interact with the test ServiceControl instance.
 /// </summary>
 public sealed class ServiceControlClient(HttpClient http, ILogger<ServiceControlClient> logger)
 {
     public string BaseUrl => http.BaseAddress?.ToString() ?? "(not configured)";
 
-    /// <summary>Fetches all error groups from ServiceControl.</summary>
+    /// <summary>
+    /// Fetches the active error (failure) groups from ServiceControl. These are the recoverability
+    /// groups that the retry and archive jobs operate on.
+    /// </summary>
     public async Task<IReadOnlyList<ErrorGroup>> GetErrorGroupsAsync(CancellationToken ct = default)
     {
         try
         {
-            var groups = await http.GetFromJsonAsync<List<ErrorGroup>>("/api/errors/groups", ct);
+            // ServiceControl exposes failure groups under /api/recoverability/groups. The response
+            // entries are GroupOperation objects (id, title, count, type, ...).
+            var groups = await http.GetFromJsonAsync<List<ErrorGroup>>("/api/recoverability/groups", ct);
             return groups ?? [];
         }
         catch (Exception ex)
@@ -26,17 +31,32 @@ public sealed class ServiceControlClient(HttpClient http, ILogger<ServiceControl
         }
     }
 
-    /// <summary>Triggers a retry/replay of all messages in an error group.</summary>
-    public async Task<bool> ReplayGroupAsync(string groupId, CancellationToken ct = default)
+    /// <summary>Triggers a retry of all messages in an error group (async, 202 Accepted on success).</summary>
+    public async Task<bool> RetryGroupAsync(string groupId, CancellationToken ct = default)
     {
         try
         {
-            var response = await http.PostAsJsonAsync($"/api/errors/groups/{groupId}/retry", new { }, ct);
+            var response = await http.PostAsJsonAsync($"/api/recoverability/groups/{groupId}/errors/retry", new { }, ct);
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Failed to replay error group {GroupId}", groupId);
+            logger.LogWarning(ex, "Failed to retry error group {GroupId}", groupId);
+            return false;
+        }
+    }
+
+    /// <summary>Triggers an archive of all messages in an error group (async, 202 Accepted on success).</summary>
+    public async Task<bool> ArchiveGroupAsync(string groupId, CancellationToken ct = default)
+    {
+        try
+        {
+            var response = await http.PostAsJsonAsync($"/api/recoverability/groups/{groupId}/errors/archive", new { }, ct);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to archive error group {GroupId}", groupId);
             return false;
         }
     }
@@ -64,9 +84,9 @@ public sealed class ServiceControlClient(HttpClient http, ILogger<ServiceControl
         [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("title")] string Title,
         [property: JsonPropertyName("count")] int Count,
-        [property: JsonPropertyName("exceptionType")] string? ExceptionType,
-        [property: JsonPropertyName("firstTime")] string? FirstTime,
-        [property: JsonPropertyName("lastTime")] string? LastTime);
+        [property: JsonPropertyName("type")] string? Type,
+        [property: JsonPropertyName("first")] string? First,
+        [property: JsonPropertyName("last")] string? Last);
 
     public sealed record SearchResponse([property: JsonPropertyName("messageCount")] int MessageCount);
 

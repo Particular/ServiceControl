@@ -12,8 +12,11 @@ public sealed class TestingToolStatus
     /// <summary>Total errors emitted since process start (handler + bypass paths).</summary>
     public long ErrorsSent { get; init; }
 
-    /// <summary>Total error groups replayed since process start.</summary>
+    /// <summary>Total error messages replayed since process start.</summary>
     public long ErrorsReplayed { get; init; }
+
+    /// <summary>Total error messages archived since process start.</summary>
+    public long ErrorsArchived { get; init; }
 
     /// <summary>Total ServiceControl searches executed since process start.</summary>
     public long SearchesExecuted { get; init; }
@@ -27,14 +30,11 @@ public sealed class TestingToolStatus
     /// <summary>Number of scenarios currently running.</summary>
     public int ActiveScenarios { get; init; }
 
+    /// <summary>Number of recoverability/search jobs currently running.</summary>
+    public int ActiveJobs { get; init; }
+
     /// <summary>Aggregate current emission rate across all running scenarios (msgs/sec).</summary>
     public double CurrentRate { get; init; }
-
-    /// <summary>Whether the background replay job is enabled.</summary>
-    public bool ReplayEnabled { get; init; }
-
-    /// <summary>Whether the background search job is enabled.</summary>
-    public bool SearchEnabled { get; init; }
 
     /// <summary>ServiceControl API URL the tool is targeting.</summary>
     public string? ServiceControlUrl { get; init; }

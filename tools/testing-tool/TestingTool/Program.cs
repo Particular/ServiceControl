@@ -1,6 +1,7 @@
 using System.Diagnostics.Metrics;
 using TestingTool;
 using TestingTool.Contracts;
+using TestingTool.Jobs;
 using TestingTool.Scenarios;
 
 // --- Configuration ---
@@ -35,7 +36,10 @@ builder.Services.AddSingleton<ScenarioRunner>();
 builder.Services.AddSingleton<DirectErrorQueueWriter>();
 builder.Services.AddSingleton<TestingToolMetrics>();
 
-// --- Background jobs (Phase 4) ---
+// --- Recoverability/search jobs (Phase 4) ---
+// The retry, archive and search jobs used to be hidden config-gated background timers. They are
+// now UI-controllable jobs managed by JobRunner and exposed through /api/jobs — start/stop them
+// from the web UI. Intervals/minimums still come from configuration as defaults.
 
 builder.Services.AddHttpClient<ServiceControlClient>((sp, client) =>
 {
@@ -43,8 +47,11 @@ builder.Services.AddHttpClient<ServiceControlClient>((sp, client) =>
     client.BaseAddress = new Uri(opts.ServiceControlApiUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
 });
-builder.Services.AddHostedService<ReplayService>();
-builder.Services.AddHostedService<SearchService>();
+
+builder.Services.AddSingleton<JobBase, RetryJob>();
+builder.Services.AddSingleton<JobBase, ArchiveJob>();
+builder.Services.AddSingleton<JobBase, SearchJob>();
+builder.Services.AddSingleton<JobRunner>();
 
 // --- Application pipeline ---
 
@@ -54,6 +61,7 @@ app.UseOpenTelemetryPrometheusScrapingEndpoint("/metrics");
 
 var metrics = app.Services.GetRequiredService<TestingToolMetrics>();
 var scClient = app.Services.GetRequiredService<ServiceControlClient>();
+var jobRunner = app.Services.GetRequiredService<JobRunner>();
 var startedAt = DateTimeOffset.UtcNow;
 
 // Auto-start background noise after the endpoint is ready.
@@ -66,11 +74,12 @@ app.Lifetime.ApplicationStarted.Register(() =>
     }
 });
 
-// Graceful shutdown: stop all scenarios and bypass writer.
+// Graceful shutdown: stop all scenarios, jobs and bypass writer.
 app.Lifetime.ApplicationStopping.Register(() =>
 {
     var runner = app.Services.GetRequiredService<ScenarioRunner>();
     runner.StopAll();
+    jobRunner.StopAll();
     app.Services.GetRequiredService<DirectErrorQueueWriter>().Stop();
 });
 
@@ -91,13 +100,13 @@ app.MapGet("/api/status", () => Results.Ok(new TestingToolStatus
     Ready = true,
     ErrorsSent = metrics.TotalErrorsSent,
     ErrorsReplayed = metrics.TotalErrorsReplayed,
+    ErrorsArchived = metrics.TotalErrorsArchived,
     SearchesExecuted = metrics.TotalSearches,
     BypassErrorsWritten = metrics.TotalBypassErrorsWritten,
     ShardId = shardId,
     ActiveScenarios = metrics.ActiveScenarios,
+    ActiveJobs = jobRunner.GetSnapshot().Count(j => j.Running),
     CurrentRate = Math.Round(metrics.CurrentRate, 1),
-    ReplayEnabled = options.ReplayEnabled,
-    SearchEnabled = options.SearchEnabled,
     ServiceControlUrl = scClient.BaseUrl,
     Uptime = (DateTimeOffset.UtcNow - startedAt).ToString(@"h\h\ m\m\ s\s")
 }));
@@ -127,6 +136,39 @@ app.MapPost("/api/scenarios/{name}/stop", (string name, ScenarioRunner runner) =
 app.MapPost("/api/scenarios/stop-all", (ScenarioRunner runner) =>
 {
     runner.StopAll();
+    return Results.Ok(new { stopped = "all" });
+});
+
+// --- Job endpoints (recoverability + search) ---
+// These replace the hidden background timers. Jobs are started/stopped on demand from the UI.
+
+app.MapGet("/api/jobs", () => Results.Ok(jobRunner.GetSnapshot()));
+
+app.MapPost("/api/jobs/{name}/start", (string name, StartJobRequest? request) =>
+{
+    var interval = request?.IntervalSeconds is { } secs and > 0
+        ? TimeSpan.FromSeconds(secs)
+        : (TimeSpan?)null;
+
+    if (!jobRunner.TryStart(name, interval, out var error))
+        return Results.BadRequest(new { error });
+
+    var snapshot = jobRunner.GetSnapshot()
+        .First(j => j.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+    return Results.Ok(snapshot);
+});
+
+app.MapPost("/api/jobs/{name}/stop", (string name) =>
+{
+    if (!jobRunner.TryStop(name))
+        return Results.BadRequest(new { error = $"Job '{name}' is not running" });
+
+    return Results.Ok(new { stopped = name });
+});
+
+app.MapPost("/api/jobs/stop-all", () =>
+{
+    jobRunner.StopAll();
     return Results.Ok(new { stopped = "all" });
 });
 
