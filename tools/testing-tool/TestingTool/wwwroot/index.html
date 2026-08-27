@@ -79,9 +79,17 @@
     .dot.on { background: var(--ok); } .dot.off { background: var(--muted); }
     .info-bar .spacer { flex: 1; }
 
-    /* --- Scenarios --- */
+    /* --- Scenarios / Jobs --- */
     .section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: .75rem; }
     .section-head h2 { font-size: 1.2rem; margin: 0; }
+
+    /* --- Tabs --- */
+    .tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+    .tab { padding: .5rem 1rem; border: none; background: none; color: var(--muted); cursor: pointer; font-size: .95rem; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
+    .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+    .tab:hover { color: var(--text); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
     .btn { padding: .4rem .9rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); color: var(--text); cursor: pointer; font-size: .85rem; transition: opacity .15s; }
     .btn:hover { opacity: .85; }
     .btn:disabled { opacity: .4; cursor: default; }
@@ -156,8 +164,9 @@
         <div class="sub" id="stat-rate">—</div>
       </div>
       <div class="stat-card">
-        <div class="label">Errors Replayed</div>
+        <div class="label">Replayed</div>
         <div class="value" id="stat-replayed">—</div>
+        <div class="sub" id="stat-replayed-sub">archived —</div>
       </div>
       <div class="stat-card">
         <div class="label">Searches</div>
@@ -166,14 +175,7 @@
       <div class="stat-card">
         <div class="label">Active Scenarios</div>
         <div class="value" id="stat-active">—</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Uptime</div>
-        <div class="value" id="stat-uptime">—</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Bypass Errors</div>
-        <div class="value" id="stat-bypass">—</div>
+        <div class="sub" id="stat-active-sub">— jobs active</div>
       </div>
     </div>
 
@@ -182,6 +184,15 @@
       <span class="loading">Loading…</span>
     </div>
 
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="scenarios" onclick="showTab('scenarios')">Scenarios</button>
+      <button class="tab" data-tab="jobs" onclick="showTab('jobs')">Recoverability Jobs</button>
+      <button class="tab" data-tab="bypass" onclick="showTab('bypass')">Bypass</button>
+    </div>
+
+    <!-- Tab: Scenarios -->
+    <div class="tab-panel active" id="panel-scenarios">
     <!-- Scenarios -->
     <div class="section-head">
       <h2>Scenarios</h2>
@@ -191,8 +202,25 @@
       <div class="loading">Loading scenarios…</div>
     </div>
 
-    <!-- Bypass writer -->
-    <div class="section-head" style="margin-top:2rem">
+    </div>
+
+    <!-- Tab: Recoverability jobs -->
+    <div class="tab-panel" id="panel-jobs">
+
+    <div class="section-head">
+      <h2>Recoverability Jobs</h2>
+      <button class="btn danger" onclick="stopAllJobs()" id="btn-stop-all-jobs" disabled>Stop All Jobs</button>
+    </div>
+    <div class="scenarios" id="jobs">
+      <div class="loading">Loading jobs…</div>
+    </div>
+
+    </div>
+
+    <!-- Tab: Bypass writer -->
+    <div class="tab-panel" id="panel-bypass">
+
+    <div class="section-head">
       <h2>Direct Error-Queue Bypass</h2>
     </div>
     <div class="scenario-card" id="bypass-card">
@@ -217,6 +245,8 @@
       </div>
     </div>
 
+    </div>
+
     <footer>
       <a href="/metrics" target="_blank">Prometheus /metrics</a>
       &nbsp;·&nbsp; OTel OTLP export active
@@ -229,8 +259,16 @@
   <script>
     // --- State ---
     let scenarios = [];
+    let jobs = [];
     let status = null;
     let refreshTimer = null;
+
+    // --- Tabs ---
+    function showTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+      try { localStorage.setItem('tt-tab', name); } catch (e) {}
+    }
 
     // --- Theme ---
     function toggleTheme() {
@@ -261,6 +299,7 @@
       // Uptime comes pre-formatted from the server (e.g. "0h 5m 12s")
       return ts;
     }
+    function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
     // --- API calls ---
     async function api(method, path, body) {
@@ -275,28 +314,32 @@
     }
 
     // --- Load status ---
+    function applyStatus(s) {
+      status = s;
+      document.getElementById('stat-errors').textContent = fmtNum(status.errorsSent);
+      document.getElementById('stat-rate').textContent = `${status.currentRate ?? 0} msg/s`;
+      document.getElementById('stat-replayed').textContent = fmtNum(status.errorsReplayed);
+      document.getElementById('stat-replayed-sub').textContent = `archived ${fmtNum(status.errorsArchived)}`;
+      document.getElementById('stat-searches').textContent = fmtNum(status.searchesExecuted);
+      document.getElementById('stat-active').textContent = status.activeScenarios ?? 0;
+      document.getElementById('stat-active-sub').textContent = `${status.activeJobs ?? 0} jobs active`;
+    }
+
+    function renderInfoBar() {
+      document.getElementById('info-bar').innerHTML = `
+        <span class="item"><span class="dot on"></span> Ready</span>
+        <span class="item">Uptime: <strong>${fmtUptime(status?.uptime)}</strong></span>
+        <span class="spacer"></span>
+        <span class="item">SC: <a href="${status?.serviceControlUrl}" target="_blank">${status?.serviceControlUrl ?? '—'}</a></span>
+        <span class="item">shard: <strong>${status?.shardId ?? '—'}</strong></span>
+      `;
+      document.getElementById('footer-shard').textContent = `shard: ${status?.shardId ?? '—'}`;
+    }
+
     async function loadStatus() {
       try {
-        status = await api('GET', '/api/status');
-        document.getElementById('stat-errors').textContent = fmtNum(status.errorsSent);
-        document.getElementById('stat-rate').textContent = `${status.currentRate ?? 0} msg/s`;
-        document.getElementById('stat-replayed').textContent = fmtNum(status.errorsReplayed);
-        document.getElementById('stat-searches').textContent = fmtNum(status.searchesExecuted);
-        document.getElementById('stat-active').textContent = status.activeScenarios ?? 0;
-        document.getElementById('stat-uptime').textContent = fmtUptime(status.uptime);
-
-        // Info bar
-        const replayDot = status.replayEnabled ? 'on' : 'off';
-        const searchDot = status.searchEnabled ? 'on' : 'off';
-        document.getElementById('info-bar').innerHTML = `
-          <span class="item"><span class="dot on"></span> Ready</span>
-          <span class="item"><span class="dot ${replayDot}"></span> Replay: ${status.replayEnabled ? 'enabled' : 'disabled'}</span>
-          <span class="item"><span class="dot ${searchDot}"></span> Search: ${status.searchEnabled ? 'enabled' : 'disabled'}</span>
-          <span class="spacer"></span>
-          <span class="item">SC: <a href="${status.serviceControlUrl}" target="_blank">${status.serviceControlUrl ?? '—'}</a></span>
-          <span class="item">shard: <strong>${status.shardId ?? '—'}</strong></span>
-        `;
-        document.getElementById('footer-shard').textContent = `shard: ${status.shardId ?? '—'}`;
+        applyStatus(await api('GET', '/api/status'));
+        renderInfoBar();
       } catch (e) {
         document.getElementById('info-bar').innerHTML = `<span class="item" style="color:var(--err)">⚠ ${e.message}</span>`;
       }
@@ -341,19 +384,19 @@
       const rateId = `rate-${s.name}`;
       const durId = `dur-${s.name}`;
       return `
-        <div class="scenario-card ${s.running ? 'running' : ''}" data-scenario="${s.name}">
+        <div class="scenario-card ${s.running ? 'running' : ''}" data-scenario="${esc(s.name)}">
           <div class="header-row">
             <div>
-              <span class="name">${s.name}</span>
+              <span class="name">${esc(s.name)}</span>
               <span class="badge ${s.running ? 'running' : 'idle'}">${s.running ? 'running' : 'idle'}</span>
-              &nbsp;<span class="cat">${s.category}</span>
+              &nbsp;<span class="cat">${esc(s.category)}</span>
             </div>
             <div>
-              <button class="btn start" onclick="startScenario('${s.name}')" ${s.running ? 'disabled' : ''}>▶ Start</button>
-              <button class="btn stop" onclick="stopScenario('${s.name}')" ${s.running ? '' : 'disabled'}>⏹ Stop</button>
+              <button class="btn start" onclick="startScenario('${esc(s.name)}')" ${s.running ? 'disabled' : ''}>▶ Start</button>
+              <button class="btn stop" onclick="stopScenario('${esc(s.name)}')" ${s.running ? '' : 'disabled'}>⏹ Stop</button>
             </div>
           </div>
-          <div class="desc">${s.description}</div>
+          <div class="desc">${esc(s.description)}</div>
           <div class="controls">
             <span class="field-label">Rate (msg/s):</span>
             <input type="number" id="${rateId}" value="${s.defaultRate}" min="1" step="1" ${s.running ? 'disabled' : ''} />
@@ -363,7 +406,7 @@
           <div class="stats">
             <span>Errors sent: <strong>${fmtNum(s.errorsSent)}</strong></span>
             <span>Rate: <strong>${s.currentRate ?? 0} msg/s</strong></span>
-            ${s.cooldown ? `<span>Cooldown: <strong>${s.cooldown}</strong></span>` : ''}
+            ${s.cooldown ? `<span>Cooldown: <strong>${esc(s.cooldown)}</strong></span>` : ''}
           </div>
         </div>`;
     }
@@ -400,6 +443,102 @@
         await api('POST', '/api/scenarios/stop-all');
         toast('Stopped all scenarios', 'ok');
         await loadScenarios();
+      } catch (e) {
+        toast(`Failed: ${e.message}`, 'error');
+      }
+    }
+
+    // --- Recoverability jobs ---
+    async function loadJobs() {
+      try {
+        jobs = await api('GET', '/api/jobs');
+        renderJobs();
+      } catch (e) {
+        document.getElementById('jobs').innerHTML = `<div class="loading" style="color:var(--err)">⚠ ${e.message}</div>`;
+      }
+    }
+
+    function renderJobs() {
+      const hasRunning = jobs.some(j => j.running);
+      document.getElementById('btn-stop-all-jobs').disabled = !hasRunning;
+
+      if (jobs.length === 0) {
+        document.getElementById('jobs').innerHTML = '<div class="loading">No jobs registered.</div>';
+        return;
+      }
+
+      // Group by category
+      const categories = {};
+      jobs.forEach(j => {
+        (categories[j.category] ??= []).push(j);
+      });
+
+      let html = '';
+      for (const [cat, items] of Object.entries(categories).sort()) {
+        html += `<div style="margin-bottom:.5rem;font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">${cat}</div>`;
+        for (const j of items) {
+          html += renderJobCard(j);
+        }
+      }
+      document.getElementById('jobs').innerHTML = html;
+    }
+
+    function renderJobCard(j) {
+      const intervalId = `job-interval-${j.name}`;
+      return `
+        <div class="scenario-card ${j.running ? 'running' : ''}" data-job="${esc(j.name)}">
+          <div class="header-row">
+            <div>
+              <span class="name">${esc(j.name)}</span>
+              <span class="badge ${j.running ? 'running' : 'idle'}">${j.running ? 'running' : 'idle'}</span>
+              &nbsp;<span class="cat">${esc(j.category)}</span>
+            </div>
+            <div>
+              <button class="btn start" onclick="startJob('${esc(j.name)}')" ${j.running ? 'disabled' : ''}>▶ Start</button>
+              <button class="btn stop" onclick="stopJob('${esc(j.name)}')" ${j.running ? '' : 'disabled'}>⏹ Stop</button>
+            </div>
+          </div>
+          <div class="desc">${esc(j.description)}</div>
+          <div class="controls">
+            <span class="field-label">Interval (sec):</span>
+            <input type="number" id="${intervalId}" value="${j.running ? j.intervalSeconds : j.defaultIntervalSeconds}" min="1" step="1" ${j.running ? 'disabled' : ''} />
+          </div>
+          <div class="stats">
+            <span>Cycles: <strong>${fmtNum(j.cycles)}</strong></span>
+            <span>Items processed: <strong>${fmtNum(j.itemsProcessed)}</strong></span>
+            ${j.running ? `<span>Interval: <strong>${j.intervalSeconds}s</strong></span>` : ''}
+          </div>
+        </div>`;
+    }
+
+    async function startJob(name) {
+      const intervalVal = parseInt(document.getElementById(`job-interval-${name}`)?.value);
+      const body = {};
+      if (intervalVal && intervalVal > 0) body.intervalSeconds = intervalVal;
+      try {
+        await api('POST', `/api/jobs/${encodeURIComponent(name)}/start`, body);
+        toast(`Started job "${name}"`, 'ok');
+        await loadJobs();
+      } catch (e) {
+        toast(`Failed to start job: ${e.message}`, 'error');
+      }
+    }
+
+    async function stopJob(name) {
+      try {
+        await api('POST', `/api/jobs/${encodeURIComponent(name)}/stop`);
+        toast(`Stopped job "${name}"`, 'ok');
+        await loadJobs();
+      } catch (e) {
+        toast(`Failed to stop job: ${e.message}`, 'error');
+      }
+    }
+
+    async function stopAllJobs() {
+      try {
+        await api('POST', '/api/jobs/stop-all');
+        toast('Stopped all jobs', 'ok');
+        await loadJobs();
       } catch (e) {
         toast(`Failed: ${e.message}`, 'error');
       }
@@ -459,20 +598,13 @@
 
     // --- Polling ---
     async function loadAll() {
-      await Promise.all([loadStatus(), loadScenarios()]);
+      await Promise.all([loadStatus(), loadScenarios(), loadJobs()]);
     }
 
     async function refresh() {
-      // Lightweight status refresh without full scenario re-render (preserves input focus)
+      // Lightweight status refresh without full re-render (preserves input focus)
       try {
-        status = await api('GET', '/api/status');
-        document.getElementById('stat-errors').textContent = fmtNum(status.errorsSent);
-        document.getElementById('stat-rate').textContent = `${status.currentRate ?? 0} msg/s`;
-        document.getElementById('stat-replayed').textContent = fmtNum(status.errorsReplayed);
-        document.getElementById('stat-searches').textContent = fmtNum(status.searchesExecuted);
-        document.getElementById('stat-active').textContent = status.activeScenarios ?? 0;
-        document.getElementById('stat-uptime').textContent = fmtUptime(status.uptime);
-        document.getElementById('stat-bypass').textContent = fmtNum(status.bypassErrorsWritten);
+        applyStatus(await api('GET', '/api/status'));
 
         // Update per-scenario stats in-place without re-rendering inputs
         scenarios = await api('GET', '/api/scenarios');
@@ -497,12 +629,36 @@
           card.querySelectorAll('input').forEach(i => i.disabled = s.running);
         });
         document.getElementById('btn-stop-all').disabled = !scenarios.some(s => s.running);
+
+        // Update per-job stats in-place
+        jobs = await api('GET', '/api/jobs');
+        jobs.forEach(j => {
+          const card = document.querySelector(`[data-job="${j.name}"]`);
+          if (!card) return;
+          const badge = card.querySelector('.badge');
+          badge.className = `badge ${j.running ? 'running' : 'idle'}`;
+          badge.textContent = j.running ? 'running' : 'idle';
+          card.classList.toggle('running', j.running);
+          const stats = card.querySelector('.stats');
+          if (stats) {
+            stats.innerHTML = `
+              <span>Cycles: <strong>${fmtNum(j.cycles)}</strong></span>
+              <span>Items processed: <strong>${fmtNum(j.itemsProcessed)}</strong></span>
+              ${j.running ? `<span>Interval: <strong>${j.intervalSeconds}s</strong></span>` : ''}
+            `;
+          }
+          card.querySelector('.btn.start').disabled = j.running;
+          card.querySelector('.btn.stop').disabled = !j.running;
+          card.querySelectorAll('input').forEach(i => i.disabled = j.running);
+        });
+        document.getElementById('btn-stop-all-jobs').disabled = !jobs.some(j => j.running);
       } catch (e) {
         // ignore transient errors during polling
       }
     }
 
     // --- Init ---
+    try { showTab(localStorage.getItem('tt-tab') || 'scenarios'); } catch (e) { showTab('scenarios'); }
     loadAll().then(() => populateBypassScenarios());
     refreshBypass();
     refreshTimer = setInterval(refresh, 2000);

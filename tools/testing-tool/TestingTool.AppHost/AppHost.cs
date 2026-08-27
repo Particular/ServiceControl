@@ -20,7 +20,7 @@ var raven = platform.AddPersistenceRavenDb("raven");
 // Find the ServiceControl error instance to wire its REST API URL into the testing tool.
 var errorInstance = platform
     .AddServiceControlErrorInstance("error", raven)
-    .WithSqlPersistence(PersistenceType.RavenDb)
+    .WithPersistenceType(PersistenceType.PostgreSql)
     .WithRunMode(PlatformRunMode.SetupAndRun);
 
 platform.AddServicePulse("pulse", errorInstance);
@@ -29,8 +29,6 @@ builder.AddProject<Projects.TestingTool>("testing-tool")
     .WithParticularPlatform(platform)
     .WithEnvironment("TestingTool__ServiceControlApiUrl", errorInstance.GetEndpoint("http"))
     .WithEnvironment("TestingTool__AutoStartBackgroundNoise", "true")
-    .WithEnvironment("TestingTool__ReplayEnabled", "true")
-    .WithEnvironment("TestingTool__SearchEnabled", "true")
     .WaitFor(errorInstance);
 
 // --- Optional: override ServiceControl image tag for prerelease testing ---

@@ -53,7 +53,7 @@ public class SmokeTest
         await Task.Delay(TimeSpan.FromSeconds(10));
 
         // 4. Check ServiceControl for error groups
-        var groupsResponse = await ScClient.GetAsync("/api/errors/groups");
+        var groupsResponse = await ScClient.GetAsync("/api/recoverability/groups");
         groupsResponse.EnsureSuccessStatusCode();
 
         var groups = await groupsResponse.Content.ReadFromJsonAsync<List<ErrorGroupResponse>>();
@@ -75,7 +75,7 @@ public class SmokeTest
     public async Task Replay_ErrorGroup_IsAcceptedByServiceControl()
     {
         // 1. Ensure there are error groups to replay
-        var groupsResponse = await ScClient.GetAsync("/api/errors/groups");
+        var groupsResponse = await ScClient.GetAsync("/api/recoverability/groups");
         groupsResponse.EnsureSuccessStatusCode();
         var groups = await groupsResponse.Content.ReadFromJsonAsync<List<ErrorGroupResponse>>();
 
@@ -87,7 +87,7 @@ public class SmokeTest
                 new { rate = 50, durationSeconds = 10 });
             await Task.Delay(TimeSpan.FromSeconds(15));
 
-            groupsResponse = await ScClient.GetAsync("/api/errors/groups");
+            groupsResponse = await ScClient.GetAsync("/api/recoverability/groups");
             groupsResponse.EnsureSuccessStatusCode();
             groups = await groupsResponse.Content.ReadFromJsonAsync<List<ErrorGroupResponse>>();
         }
@@ -98,7 +98,7 @@ public class SmokeTest
         // 2. Trigger replay on the first group
         var firstGroup = groups![0];
         var replayResponse = await ScClient.PostAsJsonAsync(
-            $"/api/errors/groups/{firstGroup.Id}/retry", new { });
+            $"/api/recoverability/groups/{firstGroup.Id}/errors/retry", new { });
 
         // ServiceControl should accept the replay request (202 Accepted or 200 OK)
         Assert.True(replayResponse.IsSuccessStatusCode,
