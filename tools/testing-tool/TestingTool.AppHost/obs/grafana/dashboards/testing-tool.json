@@ -2,7 +2,7 @@
   "title": "Testing Tool — Error Load & Observability",
   "uid": "testing-tool",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 3,
   "timezone": "browser",
   "refresh": "5s",
   "tags": ["testing-tool", "servicecontrol", "otel"],
@@ -23,7 +23,8 @@
   "panels": [
     {
       "id": 1,
-      "title": "Errors Sent / sec (by scenario)",
+      "title": "Errors Raised / sec — handler path (by scenario)",
+      "description": "Errors sent to the ServiceControl error queue via the NServiceBus handler path (errors_sent_total), broken down by scenario. The bypass path is emitted separately — see the 'Bypass Errors Written / sec' panel — and combined with this in the 'Errors Raised vs Ingested' panels.",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -60,10 +61,30 @@
       ]
     },
     {
+      "id": 5,
+      "title": "Bypass Errors Written / sec (by scenario)",
+      "description": "Errors written directly to the ServiceControl error queue by the bypass path (bypass_errors_written_total), bypassing the handler. Emitted separately from errors_sent_total so handler and bypass load can be told apart; the 'Errors Raised vs Ingested' panels combine the two into the total raised.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (scenario) (rate(bypass_errors_written_total[1m]))",
+          "legendFormat": "bypass: {{scenario}}"
+        }
+      ]
+    },
+    {
       "id": 3,
       "title": "Errors Replayed / sec",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 8 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": {
         "defaults": {
@@ -82,7 +103,7 @@
       "id": 4,
       "title": "Errors Archived / sec",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 8 },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 8 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": {
         "defaults": {
@@ -94,25 +115,6 @@
         {
           "expr": "rate(errors_archived_total[1m])",
           "legendFormat": "archived"
-        }
-      ]
-    },
-    {
-      "id": 5,
-      "title": "Bypass Errors Written / sec",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 8 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
-        }
-      },
-      "targets": [
-        {
-          "expr": "rate(bypass_errors_written_total[1m])",
-          "legendFormat": "bypass"
         }
       ]
     },
@@ -137,7 +139,8 @@
     },
     {
       "id": 7,
-      "title": "Total Errors Sent (cumulative)",
+      "title": "Total Errors Raised (cumulative)",
+      "description": "Cumulative errors raised by the testing tool, combining the handler path (errors_sent_total) and the bypass path (bypass_errors_written_total). Compare against 'Errors Ingested' in the 'Errors Raised vs Ingested' panels to gauge ingestion backlog.",
       "type": "stat",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -153,8 +156,100 @@
       },
       "targets": [
         {
-          "expr": "sum(errors_sent_total)",
-          "legendFormat": "total"
+          "expr": "sum(errors_sent_total) + sum(bypass_errors_written_total)",
+          "legendFormat": "raised"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Errors Raised vs Ingested / sec",
+      "description": "Compares the rate of errors the testing tool raises — combining the handler path (errors_sent_total) and the bypass path (bypass_errors_written_total) — against the rate ServiceControl successfully ingests (sc.error.ingestion.message_duration_seconds, message_category=failed-message, result=success). The raised series should lead the ingested series; a widening gap indicates an ingestion backlog or failures.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(errors_sent_total[1m])) + sum(rate(bypass_errors_written_total[1m]))",
+          "legendFormat": "raised (testing-tool)"
+        },
+        {
+          "expr": "sum(rate(sc_error_ingestion_message_duration_seconds_count{message_category=\"failed-message\",result=\"success\"}[1m]))",
+          "legendFormat": "ingested (servicecontrol)"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Errors Raised vs Ingested (cumulative)",
+      "description": "Cumulative comparison: total errors raised by the testing tool (handler + bypass) vs total failed messages ServiceControl successfully ingested. A persistent delta is the ingestion backlog (still queued or failed).",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [ { "color": "green" } ] }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "targets": [
+        {
+          "expr": "sum(errors_sent_total) + sum(bypass_errors_written_total)",
+          "legendFormat": "raised"
+        },
+        {
+          "expr": "sum(sc_error_ingestion_message_duration_seconds_count{message_category=\"failed-message\",result=\"success\"})",
+          "legendFormat": "ingested"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "ServiceControl Ingestion Duration p95 (s)",
+      "description": "ServiceControl OTel histogram sc.error.ingestion.message_duration_seconds — p95 end-to-end duration per ingested error message. Spikes here explain why 'ingested' lags 'raised'.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, service_name) (rate(sc_error_ingestion_message_duration_seconds_bucket{message_category=\"failed-message\"}[1m])))",
+          "legendFormat": "{{service_name}} p95"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "ServiceControl Ingestion Outcome / sec (by result)",
+      "description": "ServiceControl OTel histogram sc.error.ingestion.message_duration_seconds count, broken down by ingestion result (success / failed / skipped). 'success' is what counts as ingested; 'failed'/'skipped' explain the gap between raised and ingested.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (result) (rate(sc_error_ingestion_message_duration_seconds_count{message_category=\"failed-message\"}[1m]))",
+          "legendFormat": "{{result}}"
         }
       ]
     }
