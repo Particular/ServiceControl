@@ -37,9 +37,7 @@ public static class ObservabilityExtensions
     }
 
     /// <summary>
-    /// Overrides the image tag for every ServiceControl container in the AppHost. Pass a tag as
-    /// the first <c>aspire run</c> argument (e.g. <c>aspire run -- pr-1234</c>) to test a specific
-    /// prerelease. Omit it to use the default tag configured by the platform.
+    /// Overrides the image tag for every ServiceControl container in the AppHost.
     /// </summary>
     public static void UseServiceControlImageTag(this IDistributedApplicationBuilder builder, string? tag)
     {
