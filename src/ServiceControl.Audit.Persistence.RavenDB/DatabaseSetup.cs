@@ -15,6 +15,7 @@ using Raven.Client.ServerWide;
 using Raven.Client.ServerWide.Operations;
 using Raven.Client.ServerWide.Operations.Configuration;
 using Indexes;
+using ServiceControl.RavenDB;
 using SagaAudit;
 
 class DatabaseSetup(DatabaseConfiguration configuration)
@@ -26,6 +27,8 @@ class DatabaseSetup(DatabaseConfiguration configuration)
         await UpdateDatabaseSettings(documentStore, configuration.Name, cancellationToken);
 
         await CreateIndexes(documentStore, configuration.EnableFullTextSearch, cancellationToken);
+
+        await StartupChecks.WarnIfIndexesUseCorax(documentStore, configuration.Name, cancellationToken);
 
         await LicenseStatusCheck.WaitForLicenseOrThrow(documentStore, cancellationToken);
         await ConfigureExpiration(documentStore, cancellationToken);

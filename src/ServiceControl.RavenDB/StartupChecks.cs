@@ -2,11 +2,38 @@
 {
     using System.Reflection;
     using System.Threading;
+    using Microsoft.Extensions.Logging;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Indexes;
+    using Raven.Client.Documents.Operations.Indexes;
     using Raven.Client.ServerWide.Operations;
+    using ServiceControl.Infrastructure;
 
     public static class StartupChecks
     {
+        public static async Task WarnIfIndexesUseCorax(IDocumentStore store, string databaseName, CancellationToken cancellationToken = default)
+        {
+            // New databases are created with Lucene, existing databases keep whatever search engine they were created
+            // with as switching would trigger a full rebuild of all indexes. Let the operator know so they can plan the
+            // transition to Lucene themselves.
+            var coraxIndexes = await FindIndexesUsingCorax(store, databaseName, cancellationToken);
+
+            if (coraxIndexes.Length > 0)
+            {
+                Logger.LogWarning("Database '{DatabaseName}' has {Count} index(es) using the Corax search engine: {Indexes}. Lucene indexes are smaller, use less memory and perform better for ServiceControl workloads. Consider switching these indexes to Lucene, note that this will trigger a full rebuild of the index.", databaseName, coraxIndexes.Length, string.Join(", ", coraxIndexes));
+            }
+        }
+
+        public static async Task<string[]> FindIndexesUsingCorax(IDocumentStore store, string databaseName, CancellationToken cancellationToken = default)
+        {
+            var indexStats = await store.Maintenance.ForDatabase(databaseName).SendAsync(new GetIndexesStatisticsOperation(), cancellationToken);
+
+            return indexStats
+                .Where(i => i.SearchEngineType == SearchEngineType.Corax)
+                .Select(i => i.Name)
+                .ToArray();
+        }
+
         public static async Task EnsureServerVersion(IDocumentStore store, CancellationToken cancellationToken = default)
         {
             // RavenDB compatibility policy is that the major/minor version of the server must be
@@ -31,5 +58,7 @@
                 throw new Exception($"ServiceControl expects RavenDB Server version {clientProductVersion} or higher, but the server is using {serverProductVersion}.");
             }
         }
+
+        static readonly ILogger Logger = LoggerUtil.CreateStaticLogger(typeof(StartupChecks));
     }
 }

@@ -10,6 +10,7 @@ namespace ServiceControl.Persistence.RavenDB
     using Raven.Client.ServerWide;
     using Raven.Client.ServerWide.Operations;
     using Raven.Client.ServerWide.Operations.Configuration;
+    using ServiceControl.RavenDB;
 
     class DatabaseSetup(RavenPersisterSettings settings, IDocumentStore documentStore)
     {
@@ -22,6 +23,9 @@ namespace ServiceControl.Persistence.RavenDB
             await UpdateDatabaseSettings(settings.ThroughputDatabaseName, cancellationToken);
 
             await IndexCreation.CreateIndexesAsync(typeof(DatabaseSetup).Assembly, documentStore, null, null, cancellationToken);
+
+            await StartupChecks.WarnIfIndexesUseCorax(documentStore, settings.DatabaseName, cancellationToken);
+            await StartupChecks.WarnIfIndexesUseCorax(documentStore, settings.ThroughputDatabaseName, cancellationToken);
 
             await LicenseStatusCheck.WaitForLicenseOrThrow(documentStore, cancellationToken);
             await ConfigureExpiration(settings, cancellationToken);

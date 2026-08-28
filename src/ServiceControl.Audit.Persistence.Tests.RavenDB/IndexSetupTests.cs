@@ -9,6 +9,7 @@ using Raven.Client.Documents.Indexes;
 using Raven.Client.Documents.Operations.Indexes;
 using Raven.Client.Exceptions;
 using Raven.Client.Exceptions.Documents.Indexes;
+using ServiceControl.RavenDB;
 
 [TestFixture]
 class IndexSetupTests : PersistenceTestFixture
@@ -23,6 +24,26 @@ class IndexSetupTests : PersistenceTestFixture
             var indexStats = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(DatabaseSetup.MessagesViewIndexWithFulltextSearchName));
             Assert.That(indexStats.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene), $"{index.Name} is not using Lucene");
         }
+    }
+
+    [Test]
+    public async Task Startup_check_should_not_report_corax_indexes_for_new_database()
+    {
+        var coraxIndexes = await StartupChecks.FindIndexesUsingCorax(configuration.DocumentStore, configuration.DocumentStore.Database, TestTimeoutCancellationToken);
+
+        Assert.That(coraxIndexes, Is.Empty);
+    }
+
+    [Test]
+    public async Task Startup_check_should_report_indexes_using_corax()
+    {
+        var index = new MessagesViewIndexWithFullTextSearch { Configuration = { ["Indexing.Static.SearchEngineType"] = SearchEngineType.Corax.ToString() } };
+
+        await UpdateIndex(index);
+
+        var coraxIndexes = await StartupChecks.FindIndexesUsingCorax(configuration.DocumentStore, configuration.DocumentStore.Database, TestTimeoutCancellationToken);
+
+        Assert.That(coraxIndexes, Is.EqualTo(new[] { index.IndexName }));
     }
 
     [Test]
