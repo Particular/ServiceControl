@@ -20,7 +20,7 @@
 
             if (coraxIndexes.Length > 0)
             {
-                Logger.LogWarning("Database '{DatabaseName}' has {Count} index(es) using the Corax search engine: {Indexes}. Lucene indexes are smaller, use less memory and perform better for ServiceControl workloads. Consider switching these indexes to Lucene, note that this will trigger a full rebuild of the index.", databaseName, coraxIndexes.Length, string.Join(", ", coraxIndexes));
+                Logger.LogWarning("Database '{DatabaseName}' has {Count} index(es) using the Corax search engine: {Indexes}. Lucene indexes are smaller, use less memory and perform better for ServiceControl workloads. Consider switching these indexes to Lucene. Note that switching triggers a full rebuild of the index: on very large databases this can take days depending on the available compute, and while the rebuild is running ingestion and indexing rates can be degraded. Plan the switch accordingly.", databaseName, coraxIndexes.Length, string.Join(", ", coraxIndexes));
             }
         }
 
