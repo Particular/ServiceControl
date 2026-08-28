@@ -26,15 +26,18 @@ namespace ServiceControl.Audit.Persistence.RavenDB.Indexes
                     ProcessingTime = (TimeSpan?)message.MessageMetadata["ProcessingTime"],
                     DeliveryTime = (TimeSpan?)message.MessageMetadata["DeliveryTime"],
                     // Dates, durations, sizes and booleans only add tokens nobody searches for, so they are excluded.
-                    // Identifiers (message/conversation/correlation ids) are kept: /messages/search/{id} relies on them.
+                    // Identifiers are excluded too: they are matched exactly on the MessageId/ConversationId fields instead.
                     Query = message.MessageMetadata
-                        .Where(m => m.Key != "TimeSent" && m.Key != "CriticalTime" && m.Key != "ProcessingTime"
+                        .Where(m => m.Key != "MessageId" && m.Key != "ConversationId" && m.Key != "RelatedToId"
+                                && m.Key != "TimeSent" && m.Key != "CriticalTime" && m.Key != "ProcessingTime"
                                 && m.Key != "DeliveryTime" && m.Key != "ContentLength" && m.Key != "BodyUrl"
                                 && m.Key != "IsSystemMessage" && m.Key != "IsRetried" && m.Key != "BodyNotStored"
                                 && m.Key != "OriginatesFromSaga")
                         .Select(m => m.Value.ToString())
                         .Concat(message.Headers
-                            .Where(h => h.Key != "NServiceBus.TimeSent" && h.Key != "NServiceBus.ProcessingStarted" && h.Key != "NServiceBus.ProcessingEnded"
+                            .Where(h => h.Key != "NServiceBus.MessageId" && h.Key != "NServiceBus.ConversationId"
+                                    && h.Key != "NServiceBus.CorrelationId" && h.Key != "NServiceBus.RelatedTo"
+                                    && h.Key != "NServiceBus.TimeSent" && h.Key != "NServiceBus.ProcessingStarted" && h.Key != "NServiceBus.ProcessingEnded"
                                     && h.Key != "NServiceBus.DeliverAt" && h.Key != "NServiceBus.Timeout.Expire" && h.Key != "NServiceBus.Retries.Timestamp"
                                     && h.Key != "NServiceBus.ExceptionInfo.TimeOfFailure" && h.Key != "NServiceBus.TimeOfFailure" && h.Key != "NServiceBus.NonDurableMessage"
                                     && h.Key != "NServiceBus.TimeToBeReceived")

@@ -9,6 +9,8 @@
     using Extensions;
     using Indexes;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Linq;
+    using Raven.Client.Documents.Session;
     using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.SagaAudit;
@@ -46,9 +48,8 @@
         public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string searchParam, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
+            var results = await SearchMessages(session, searchParam)
                 .Statistics(out var stats)
-                .Search(x => x.Query, searchParam)
                 .FilterBySentTimeRange(timeSentRange)
                 .Sort(sortInfo)
                 .Paging(pagingInfo)
@@ -61,9 +62,8 @@
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
+            var results = await SearchMessages(session, keyword)
                 .Statistics(out var stats)
-                .Search(x => x.Query, keyword)
                 .Where(m => m.ReceivingEndpointName == endpoint)
                 .FilterBySentTimeRange(timeSentRange)
                 .Sort(sortInfo)
@@ -73,6 +73,18 @@
 
             return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
+
+        // Identifiers are not part of the full-text Query field; they are matched exactly on their own fields.
+        // Built as a DocumentQuery because the LINQ provider does not parenthesize an OR group, so subsequent Where
+        // clauses would bind to the last OR term only.
+        IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> SearchMessages(IAsyncDocumentSession session, string searchParam) =>
+            session.Advanced.AsyncDocumentQuery<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
+                .OpenSubclause()
+                .Search(x => x.Query, searchParam)
+                .OrElse().WhereEquals(x => x.MessageId, searchParam)
+                .OrElse().WhereEquals(x => x.ConversationId, searchParam)
+                .CloseSubclause()
+                .ToQueryable();
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default)
         {
