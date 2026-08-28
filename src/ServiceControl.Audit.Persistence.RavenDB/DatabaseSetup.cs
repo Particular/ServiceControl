@@ -41,7 +41,9 @@ class DatabaseSetup(DatabaseConfiguration configuration)
             {
                 var databaseRecord = new DatabaseRecord(databaseName);
 
-                SetSearchEngineType(databaseRecord, SearchEngineType.Corax);
+                // New databases use Lucene: smaller indexes, lower memory usage and faster for our index definitions.
+                // Existing databases keep the engine they were created with, see UpdateDatabaseSettings.
+                SetSearchEngineType(databaseRecord, SearchEngineType.Lucene);
 
                 await documentStore.Maintenance.Server.SendAsync(new CreateDatabaseOperation(databaseRecord), cancellationToken);
             }
@@ -56,6 +58,9 @@ class DatabaseSetup(DatabaseConfiguration configuration)
     {
         var databaseRecord = await documentStore.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName), cancellationToken) ?? throw new InvalidOperationException($"Database '{databaseName}' does not exist.");
 
+        // Existing databases keep their configured search engine. Changing it would trigger a full rebuild of all
+        // indexes, which can take a long time and a lot of resources on large databases. Databases created before the
+        // search engine was pinned explicitly get Corax, which was the default at the time.
         if (!SetSearchEngineType(databaseRecord, SearchEngineType.Corax))
         {
             return;

@@ -14,14 +14,14 @@ using Raven.Client.Exceptions.Documents.Indexes;
 class IndexSetupTests : PersistenceTestFixture
 {
     [Test]
-    public async Task Corax_should_be_the_default_search_engine_type()
+    public async Task Lucene_should_be_the_default_search_engine_type_for_new_databases()
     {
         var indexes = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexesOperation(0, int.MaxValue));
 
         foreach (var index in indexes)
         {
             var indexStats = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(DatabaseSetup.MessagesViewIndexWithFulltextSearchName));
-            Assert.That(indexStats.SearchEngineType, Is.EqualTo(SearchEngineType.Corax), $"{index.Name} is not using Corax");
+            Assert.That(indexStats.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene), $"{index.Name} is not using Lucene");
         }
     }
 
@@ -50,11 +50,11 @@ class IndexSetupTests : PersistenceTestFixture
     [Test]
     public async Task Indexes_should_be_reset_on_setup()
     {
-        var index = new MessagesViewIndexWithFullTextSearch { Configuration = { ["Indexing.Static.SearchEngineType"] = SearchEngineType.Lucene.ToString() } };
+        var index = new MessagesViewIndexWithFullTextSearch { Configuration = { ["Indexing.Static.SearchEngineType"] = SearchEngineType.Corax.ToString() } };
 
         var indexWithCustomConfigStats = await UpdateIndex(index);
 
-        Assert.That(indexWithCustomConfigStats.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
+        Assert.That(indexWithCustomConfigStats.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
 
         await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
 
@@ -62,7 +62,7 @@ class IndexSetupTests : PersistenceTestFixture
 
         var indexAfterResetStats = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName));
 
-        Assert.That(indexAfterResetStats.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
+        Assert.That(indexAfterResetStats.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
     }
 
     [Test]
@@ -70,13 +70,13 @@ class IndexSetupTests : PersistenceTestFixture
     {
         var index = new MessagesViewIndexWithFullTextSearch
         {
-            Configuration = { ["Indexing.Static.SearchEngineType"] = SearchEngineType.Lucene.ToString() },
+            Configuration = { ["Indexing.Static.SearchEngineType"] = SearchEngineType.Corax.ToString() },
             LockMode = IndexLockMode.LockedIgnore
         };
 
         var indexStatsBefore = await UpdateIndex(index);
 
-        Assert.That(indexStatsBefore.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
+        Assert.That(indexStatsBefore.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
 
         await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
 
@@ -84,7 +84,7 @@ class IndexSetupTests : PersistenceTestFixture
         await Task.Delay(1000);
 
         var indexStatsAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName));
-        Assert.That(indexStatsAfter.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
+        Assert.That(indexStatsAfter.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
     }
 
     [Test]
@@ -92,7 +92,7 @@ class IndexSetupTests : PersistenceTestFixture
     {
         var index = new MessagesViewIndexWithFullTextSearch
         {
-            Configuration = { ["Indexing.Static.SearchEngineType"] = SearchEngineType.Lucene.ToString() },
+            Configuration = { ["Indexing.Static.SearchEngineType"] = SearchEngineType.Corax.ToString() },
             LockMode = IndexLockMode.LockedError
         };
 
