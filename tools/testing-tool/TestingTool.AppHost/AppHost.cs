@@ -22,9 +22,7 @@ var platform = builder
     .AddParticularPlatform("particular")
     .WithTransportRabbitMQ(RabbitMqRouting.QuorumConventionalRouting, transport);
 
-var raven = persistenceType == PersistenceType.RavenDb
-        ? platform.AddPersistenceRavenDb("raven")
-        : builder.AddConnectionString("dummy-raven");
+var raven = platform.AddPersistenceRavenDb("raven");
 
 var errorInstance = platform
     .AddServiceControlErrorInstance("error", raven)
