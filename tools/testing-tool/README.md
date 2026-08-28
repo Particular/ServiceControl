@@ -129,7 +129,7 @@ aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj
 To test a specific ServiceControl image tag (e.g. a PR-based prerelease tag):
 
 ```bash
-aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- pr-1234
+aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- --tag pr-1234
 ```
 
 The Aspire dashboard provides allocated ports for each service. The testing tool automatically

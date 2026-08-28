@@ -1,7 +1,7 @@
 using Particular.Aspire.Hosting.ServicePlatform.Platform;
 using Particular.Aspire.Hosting.ServicePlatform.Transport;
 using TestingTool.AppHost;
-
+var options = CliOptions.Parse(args);
 var builder = DistributedApplication.CreateBuilder(args);
 
 // --- Observability stack (OTel Collector → Jaeger + Prometheus + Grafana) ---
@@ -38,8 +38,6 @@ builder.AddProject<Projects.TestingTool>("testing-tool")
     .WaitFor(observability.Collector);
 
 // --- Optional: override ServiceControl image tag for prerelease testing ---
-// Pass a tag as the first argument: `aspire run -- pr-1234`
-// Omit it to use the default tag configured by the platform.
-builder.UseServiceControlImageTag(args.FirstOrDefault());
+builder.UseServiceControlImageTag(options.GetValueOrDefault("tag"));
 
 builder.Build().Run();
