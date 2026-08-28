@@ -25,21 +25,32 @@ namespace ServiceControl.Audit.Persistence.RavenDB.Indexes
                     CriticalTime = (TimeSpan?)message.MessageMetadata["CriticalTime"],
                     ProcessingTime = (TimeSpan?)message.MessageMetadata["ProcessingTime"],
                     DeliveryTime = (TimeSpan?)message.MessageMetadata["DeliveryTime"],
-                    Query = message.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[]
-                    {
-                        string.Join(" ", message.Headers.Select(x => x.Value)),
-                        LoadAttachment(message, "body").GetContentAsString()
-                    }).ToArray(),
+                    // Dates, durations, sizes and booleans only add tokens nobody searches for, so they are excluded.
+                    // Identifiers (message/conversation/correlation ids) are kept: /messages/search/{id} relies on them.
+                    Query = message.MessageMetadata
+                        .Where(m => m.Key != "TimeSent" && m.Key != "CriticalTime" && m.Key != "ProcessingTime"
+                                && m.Key != "DeliveryTime" && m.Key != "ContentLength" && m.Key != "BodyUrl"
+                                && m.Key != "IsSystemMessage" && m.Key != "IsRetried" && m.Key != "BodyNotStored"
+                                && m.Key != "OriginatesFromSaga")
+                        .Select(m => m.Value.ToString())
+                        .Concat(message.Headers
+                            .Where(h => h.Key != "NServiceBus.TimeSent" && h.Key != "NServiceBus.ProcessingStarted" && h.Key != "NServiceBus.ProcessingEnded"
+                                    && h.Key != "NServiceBus.DeliverAt" && h.Key != "NServiceBus.Timeout.Expire" && h.Key != "NServiceBus.Retries.Timestamp"
+                                    && h.Key != "NServiceBus.ExceptionInfo.TimeOfFailure" && h.Key != "NServiceBus.TimeOfFailure" && h.Key != "NServiceBus.NonDurableMessage"
+                                    && h.Key != "NServiceBus.TimeToBeReceived")
+                            .Select(h => h.Value))
+                        .Where(v => v != null && v.Length > 0)
+                        .Distinct()
+                        .Concat(new[] { LoadAttachment(message, "body").GetContentAsString() })
+                        .ToArray(),
                     ConversationId = (string)message.MessageMetadata["ConversationId"]
                 };
 
             Index(x => x.Query, FieldIndexing.Search);
 
-            // Not using typeof() to prevent dependency on Lucene.
-            // Unfortunately while "StandardAnalyzer" would probably be better and more future-proof here,
-            // we can't change this string without causing any existing audit database to completely rebuild this index.
-            // If this index *must* be changed for some other reason, the analyzer name should be changed at the same time.
-            Analyze(x => x.Query, "Lucene.Net.Analysis.Standard.StandardAnalyzer, Lucene.Net, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181");
+            // Any change to this index definition (map or analyzer) causes existing audit databases to rebuild the index on startup.
+            // The analyzer name deliberately does not use typeof() to prevent a dependency on Lucene.
+            Analyze(x => x.Query, "StandardAnalyzer");
         }
     }
 }
