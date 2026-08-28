@@ -9,7 +9,6 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
-    using TestSupport;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     abstract class ExternalIntegrationAcceptanceTest : AcceptanceTest

@@ -34,7 +34,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
 
             ExecuteWhen(() => externalProcessorSubscribed, domainEvents => domainEvents.Raise(new EndpointHeartbeatRestored
             {
-                RestoredAt = new DateTime(2013, 09, 13, 13, 15, 13),
+                RestoredAt = new DateTime(2013, 09, 13, 13, 15, 13, DateTimeKind.Utc),
                 Endpoint = new EndpointDetails
                 {
                     Host = "LuckyHost",
