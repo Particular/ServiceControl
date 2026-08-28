@@ -11,7 +11,8 @@ USER ravendb
 
 ENV RAVEN_License_Eula_Accepted=true \
     RAVEN_License_Path=/usr/lib/ravendb/servicecontrol-license.json \
-    RAVEN_Setup_Mode=None
+    RAVEN_Setup_Mode=None \
+    RAVEN_Storage_EnablePrefetching=false
 
 LABEL org.opencontainers.image.source=https://github.com/Particular/ServiceControl \
       org.opencontainers.image.authors="Particular Software" \

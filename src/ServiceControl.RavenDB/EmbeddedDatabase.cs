@@ -83,6 +83,9 @@ namespace ServiceControl.RavenDB
                     // HINT: If this is not set, then Raven will pick a default location relative to the server binaries
                     // See https://github.com/ravendb/ravendb/issues/15694
                     $"--Indexing.NuGetPackagesPath=\"{nugetPackagesPath}\"",
+                    // HINT: Storage.EnablePrefetching is server-wide only and defaults to true in RavenDB. ServiceControl
+                    // disables it by default. Set RAVEN_Storage_EnablePrefetching on the container image to change it there.
+                    "--Storage.EnablePrefetching=false",
                     ..optionalArgs
                 ],
                 DataDirectory = databaseConfiguration.DbPath,
