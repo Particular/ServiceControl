@@ -1,7 +1,11 @@
 using Particular.Aspire.Hosting.ServicePlatform.Platform;
 using Particular.Aspire.Hosting.ServicePlatform.Transport;
 using TestingTool.AppHost;
+
 var options = CliOptions.Parse(args);
+var persistenceType = options.GetEnumOrDefault<PersistenceType>("persistence", PersistenceType.PostgreSql);
+Console.WriteLine($"Using persistence type: {persistenceType}");
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 // --- Observability stack (OTel Collector → Jaeger + Prometheus + Grafana) ---
@@ -18,12 +22,14 @@ var platform = builder
     .AddParticularPlatform("particular")
     .WithTransportRabbitMQ(RabbitMqRouting.QuorumConventionalRouting, transport);
 
-var raven = platform.AddPersistenceRavenDb("raven");
+var raven = persistenceType == PersistenceType.RavenDb
+        ? platform.AddPersistenceRavenDb("raven")
+        : builder.AddConnectionString("dummy-raven");
 
 var errorInstance = platform
     .AddServiceControlErrorInstance("error", raven)
     .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", observability.Collector.GetEndpoint("otlp-grpc"))
-    .WithPersistenceType(PersistenceType.PostgreSql)
+    .WithPersistenceType(persistenceType)
     .WithRunMode(PlatformRunMode.SetupAndRun);
 
 platform.AddServicePulse("pulse", errorInstance);

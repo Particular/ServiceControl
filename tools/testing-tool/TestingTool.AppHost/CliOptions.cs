@@ -1,10 +1,17 @@
+using System.Runtime.CompilerServices;
+
 namespace TestingTool.AppHost;
 
-public static class CliOptions
+/// <summary>
+/// This is a bare-bones parser for commandline options.
+/// </summary>
+public class CliOptions(IEnumerable<KeyValuePair<string, string>> values) : Dictionary<string, string>(values)
 {
-    public static Dictionary<string, string> Parse(params string[] args)
+    public T GetEnumOrDefault<T>(string key, T defaultValue) where T : struct => ContainsKey(key) ? Enum.Parse<T>(this[key]) : defaultValue;
+
+    public static CliOptions Parse(params string[] args)
     {
-        return new Dictionary<string, string>(Scan());
+        return new CliOptions(Scan());
         
         IEnumerable<KeyValuePair<string, string>> Scan()
         {
