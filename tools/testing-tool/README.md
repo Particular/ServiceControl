@@ -149,8 +149,11 @@ at the allocated port — log in with `admin`/`admin` or browse anonymously as V
 
 The stack is wired via `AddObservabilityStack()` in `ObservabilityExtensions.cs` so `AppHost.cs`
 stays clean. Config files live under `obs/` next to the AppHost project. The prebuilt Grafana
-dashboard ("Testing Tool — Error Load & Observability") shows errors/sec by scenario, search
-latency p95, replay/archive/bypass rates, and cumulative error count.
+dashboard ("Testing Tool — Error Load & Observability") shows errors/sec by scenario (handler
+and bypass paths emitted separately and combined into the raised total), search latency p95,
+replay/archive rates, and — using ServiceControl's own OTel ingestion metrics
+(`sc.error.ingestion.*`) — side-by-side comparison of errors raised vs errors ingested (rate
+and cumulative), ingestion duration p95, and ingestion outcome by result.
 
 ## Run smoke tests
 
