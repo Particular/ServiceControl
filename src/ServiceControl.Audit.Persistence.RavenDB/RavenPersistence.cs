@@ -22,6 +22,7 @@
                 endpointConfiguration.AddCustomCheck<CheckFreeDiskSpace>();
                 endpointConfiguration.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
                 endpointConfiguration.AddCustomCheck<CheckRavenDBIndexLag>();
+                endpointConfiguration.AddCustomCheck<CheckRavenDBSearchEngine>();
             }
 
             services.AddSingleton<IAuditDataStore, RavenAuditDataStore>();

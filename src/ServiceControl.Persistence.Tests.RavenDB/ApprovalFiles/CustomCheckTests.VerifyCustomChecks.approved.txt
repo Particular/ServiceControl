@@ -1,5 +1,6 @@
 ServiceControl Health: Error Database Index Errors
 ServiceControl Health: Error Database Index Lag
+ServiceControl Health: Error Database Search Engine
 ServiceControl Health: Message Ingestion Process
 ServiceControl Health: RavenDB dirty memory
 Storage space: ServiceControl database
