@@ -17,6 +17,7 @@ public class RetentionSweeper(
     TimeProvider timeProvider,
     IServiceScopeFactory serviceScopeFactory,
     IBodyStoragePersistence bodyStorage,
+    RetentionMetrics metrics,
     EFPersisterSettings settings) : BackgroundService
 {
     const int BatchSize = 1000;
@@ -71,18 +72,25 @@ public class RetentionSweeper(
     // group ids are deterministic, reattach a stale comment if the same failure ever recurs.
     async Task SweepOrphanedGroupComments(CancellationToken cancellationToken)
     {
+        using var cycle = metrics.BeginCycle(RetentionEntity.GroupComments, cancellationToken);
         using var scope = serviceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
 
-        await dbContext.GroupComments
+        var deleted = await dbContext.GroupComments
             .Where(comment => !dbContext.FailedMessageGroups.Any(group => group.GroupId == comment.GroupId))
             .ExecuteDeleteAsync(cancellationToken);
+
+        metrics.RecordRowsDeleted(RetentionEntity.GroupComments, deleted);
+
+        cycle.Complete();
     }
 
     // Event log items are insert-only and carry no external bodies, so each batch is a single
     // ordered DELETE.
     async Task SweepEventLogItems(bool pace, CancellationToken cancellationToken)
     {
+        using var cycle = metrics.BeginCycle(RetentionEntity.EventLog, cancellationToken);
+
         var cutoff = timeProvider.GetUtcNow().UtcDateTime - settings.EventsRetentionPeriod;
 
         while (!cancellationToken.IsCancellationRequested)
@@ -96,6 +104,8 @@ public class RetentionSweeper(
                 .Take(BatchSize)
                 .ExecuteDeleteAsync(cancellationToken);
 
+            metrics.RecordRowsDeleted(RetentionEntity.EventLog, deleted);
+
             if (deleted < BatchSize)
             {
                 break;
@@ -106,10 +116,14 @@ public class RetentionSweeper(
                 await Task.Delay(BatchPause, timeProvider, cancellationToken);
             }
         }
+
+        cycle.Complete();
     }
 
     async Task SweepFailedMessages(bool pace, CancellationToken cancellationToken)
     {
+        using var cycle = metrics.BeginCycle(RetentionEntity.FailedMessages, cancellationToken);
+
         var cutoff = timeProvider.GetUtcNow().UtcDateTime - settings.ErrorRetentionPeriod;
 
         while (!cancellationToken.IsCancellationRequested)
@@ -142,10 +156,12 @@ public class RetentionSweeper(
 
             // The predicate is re-asserted so a message that was re-failed (back to Unresolved)
             // between the select and the delete is left alone. The cascade removes its group rows.
-            await dbContext.FailedMessages
+            var deleted = await dbContext.FailedMessages
                 .Where(failedMessage => ids.Contains(failedMessage.UniqueMessageId))
                 .Where(IsExpired(cutoff))
                 .ExecuteDeleteAsync(cancellationToken);
+
+            metrics.RecordRowsDeleted(RetentionEntity.FailedMessages, deleted);
 
             if (expired.Count < BatchSize)
             {
@@ -157,6 +173,8 @@ public class RetentionSweeper(
                 await Task.Delay(BatchPause, timeProvider, cancellationToken);
             }
         }
+
+        cycle.Complete();
     }
 
     async Task DeleteExternalBody(Guid uniqueMessageId, CancellationToken cancellationToken)

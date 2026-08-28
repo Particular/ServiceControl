@@ -37,6 +37,7 @@ public abstract class BasePersistence
 
         if (settings.RunRetentionSweep)
         {
+            services.AddSingleton<RetentionMetrics>();
             services.AddHostedService<RetentionSweeper>();
         }
 

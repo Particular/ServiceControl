@@ -2,12 +2,15 @@ namespace ServiceControl.Persistence.Tests;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using ServiceControl.EventLog;
 using ServiceControl.MessageFailures;
 using ServiceControl.Persistence.EFCore.Entities;
+using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.Infrastructure;
 
 class RetentionSweepTests : ErrorIngestionTestBase
@@ -167,6 +170,48 @@ class RetentionSweepTests : ErrorIngestionTestBase
 
         Assert.That(await FindFailedMessage(messageId), Is.Null);
     }
+
+    [Test]
+    public async Task Counts_the_rows_it_deletes()
+    {
+        EFSettings.EventsRetentionPeriod = TimeSpan.FromDays(14);
+
+        await SeedFailedMessage(FailedMessageStatus.Resolved, Now.AddDays(-31));
+        await SeedFailedMessage(FailedMessageStatus.Resolved, Now.AddDays(-29));
+        await Store(EventLogRow("expired", Now.AddDays(-15)));
+
+        var expiredWithGroup = await SeedFailedMessage(FailedMessageStatus.Archived, Now.AddDays(-31));
+        await GroupsStore.EditComment(await SeedGroup(expiredWithGroup), "Raised with the shipping team");
+
+        using var recorded = ListenToRetentionMetrics();
+
+        await RunRetentionSweep();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(recorded.RowsDeleted(RetentionEntity.FailedMessages), Is.EqualTo(2), "the 29 day old message is still within retention");
+            Assert.That(recorded.RowsDeleted(RetentionEntity.EventLog), Is.EqualTo(1));
+            Assert.That(recorded.RowsDeleted(RetentionEntity.GroupComments), Is.EqualTo(1));
+        }
+    }
+
+    [Test]
+    public async Task Records_a_successful_cycle_for_every_pass()
+    {
+        using var recorded = ListenToRetentionMetrics();
+
+        await RunRetentionSweep();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(recorded.Cycles(RetentionEntity.FailedMessages).Select(cycle => cycle.Result), Is.EqualTo(new[] { "success" }));
+            Assert.That(recorded.Cycles(RetentionEntity.EventLog).Select(cycle => cycle.Result), Is.EqualTo(new[] { "success" }));
+            Assert.That(recorded.Cycles(RetentionEntity.GroupComments).Select(cycle => cycle.Result), Is.EqualTo(new[] { "success" }));
+            Assert.That(recorded.ConsecutiveFailures(RetentionEntity.FailedMessages), Is.Zero);
+        }
+    }
+
+    RecordedRetentionMetrics ListenToRetentionMetrics() => new(ServiceProvider.GetRequiredService<IMeterFactory>());
 
     async Task<string> SeedGroup(Guid uniqueMessageId)
     {
