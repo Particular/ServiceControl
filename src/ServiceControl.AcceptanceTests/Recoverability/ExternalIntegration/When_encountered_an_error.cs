@@ -44,8 +44,8 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 
             ExecuteWhen(() => externalProcessorSubscribed, domainEvents => domainEvents.Raise(new EndpointFailedToHeartbeat
             {
-                DetectedAt = new DateTime(2013, 09, 13, 13, 14, 13),
-                LastReceivedAt = new DateTime(2013, 09, 13, 13, 13, 13),
+                DetectedAt = new DateTime(2013, 09, 13, 13, 14, 13, DateTimeKind.Utc),
+                LastReceivedAt = new DateTime(2013, 09, 13, 13, 13, 13, DateTimeKind.Utc),
                 Endpoint = new EndpointDetails
                 {
                     Host = "UnluckyHost",
