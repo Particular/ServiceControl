@@ -132,6 +132,19 @@ To test a specific ServiceControl image tag (e.g. a PR-based prerelease tag):
 aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- --tag pr-1234
 ```
 
+To select a persistence backend for the ServiceControl error instance (`RavenDb`,
+`SqlServer`, or `PostgreSql`; defaults to `PostgreSql`):
+
+```bash
+aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- --persistence:RavenDb
+```
+
+`--persistence RavenDb` (space separator) is accepted too. Both flags may be combined:
+
+```bash
+aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- --tag pr-1234 --persistence:SqlServer
+```
+
 The Aspire dashboard provides allocated ports for each service. The testing tool automatically
 connects to ServiceControl via the platform's transport and REST API URL, and sends its OTLP
 telemetry to the OTel Collector, which fans out traces to Jaeger and metrics to Prometheus.
