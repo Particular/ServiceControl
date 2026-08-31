@@ -130,7 +130,7 @@ class RetentionMetricsTests
     }
 
     [Test]
-    public void A_cycle_interrupted_by_shutdown_is_not_recorded()
+    public void A_cycle_interrupted_by_shutdown_is_recorded_as_cancelled()
     {
         var metrics = new RetentionMetrics(MeterFactory);
         using var recorded = Listen();
@@ -141,11 +141,45 @@ class RetentionMetricsTests
             shutdown.Cancel();
         }
 
+        var cycles = recorded.Cycles(RetentionEntity.FailedMessages);
+
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(recorded.Cycles(RetentionEntity.FailedMessages), Is.Empty);
+            Assert.That(cycles, Has.Count.EqualTo(1));
+            Assert.That(cycles[0].Result, Is.EqualTo("cancelled"));
             Assert.That(recorded.ConsecutiveFailures(RetentionEntity.FailedMessages), Is.Zero);
         }
+    }
+
+    [Test]
+    public void A_cycle_that_finished_before_shutdown_is_still_a_success()
+    {
+        var metrics = new RetentionMetrics(MeterFactory);
+        using var recorded = Listen();
+        using var shutdown = new CancellationTokenSource();
+
+        using (var cycle = metrics.BeginCycle(RetentionEntity.FailedMessages, shutdown.Token))
+        {
+            cycle.Complete();
+            shutdown.Cancel();
+        }
+
+        Assert.That(recorded.Cycles(RetentionEntity.FailedMessages)[0].Result, Is.EqualTo("success"));
+    }
+
+    [Test]
+    public void Shutdown_neither_clears_nor_adds_to_the_failures()
+    {
+        var metrics = new RetentionMetrics(MeterFactory);
+        using var recorded = Listen();
+        using var shutdown = new CancellationTokenSource();
+
+        metrics.BeginCycle(RetentionEntity.FailedMessages).Dispose();
+
+        shutdown.Cancel();
+        metrics.BeginCycle(RetentionEntity.FailedMessages, shutdown.Token).Dispose();
+
+        Assert.That(recorded.ConsecutiveFailures(RetentionEntity.FailedMessages), Is.EqualTo(1));
     }
 
     [Test]
