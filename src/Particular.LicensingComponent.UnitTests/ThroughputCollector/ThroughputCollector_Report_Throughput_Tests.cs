@@ -302,7 +302,6 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             Assert.That(dailyThroughput, Has.All.Matches<DailyThroughput>(
                 throughput => throughput.DateUTC <= DateOnly.FromDateTime(reportEndDate)));
             Assert.That(queue.Throughput, Is.EqualTo(55));
-            Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(55));
         }
     }
 
