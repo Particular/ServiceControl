@@ -1,9 +1,9 @@
 ﻿namespace ServiceControl.Persistence.Tests;
 
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NServiceBus;
@@ -40,6 +40,8 @@ public abstract class PersistenceTestBase
         hostBuilder.Logging.ConfigureLogging(LogLevel.Information);
 
         await PersistenceTestsContext.Setup(hostBuilder);
+
+        hostBuilder.Services.TryAddSingleton(TimeProvider.System);
 
         // This is not cool. We have things that are registered as part of "the persistence" that then require parts
         // of the infrastructure to be registered and assume NServiceBus is around. This is a hack to get around that.

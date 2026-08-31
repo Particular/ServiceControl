@@ -13,7 +13,7 @@
     using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Session;
 
-    class ArchiveDocumentManager(ExpirationManager expirationManager, ILogger logger)
+    class ArchiveDocumentManager(ExpirationManager expirationManager, ILogger logger, TimeProvider timeProvider)
     {
         public Task<ArchiveOperation> LoadArchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType, CancellationToken cancellationToken = default) => session.LoadAsync<ArchiveOperation>(ArchiveOperation.MakeId(groupId, archiveType), cancellationToken);
 
@@ -26,7 +26,7 @@
                 ArchiveType = archiveType,
                 TotalNumberOfMessages = numberOfMessages,
                 NumberOfMessagesArchived = 0,
-                Started = DateTime.UtcNow,
+                Started = timeProvider.GetUtcNow().UtcDateTime,
                 GroupName = groupName,
                 NumberOfBatches = (int)Math.Ceiling(numberOfMessages / (float)batchSize),
                 CurrentBatch = 0,

@@ -12,11 +12,12 @@
 
     public class RetryingManager
     {
-        public RetryingManager(IDomainEvents domainEvents, RetryMetrics metrics, ILogger<RetryingManager> logger)
+        public RetryingManager(IDomainEvents domainEvents, RetryMetrics metrics, ILogger<RetryingManager> logger, TimeProvider timeProvider)
         {
             this.domainEvents = domainEvents;
             this.metrics = metrics;
             this.logger = logger;
+            this.timeProvider = timeProvider;
 
             metrics.ObserveOperationsInProgress(() => retryOperations.Values.Select(operation => (operation.RetryType, operation.RetryState)));
         }
@@ -97,7 +98,7 @@
             ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
 
             var key = InMemoryRetry.MakeOperationId(requestId, retryType);
-            return retryOperations.GetOrAdd(key, _ => new InMemoryRetry(requestId, retryType, domainEvents, metrics, logger));
+            return retryOperations.GetOrAdd(key, _ => new InMemoryRetry(requestId, retryType, domainEvents, metrics, logger, timeProvider));
         }
 
         public InMemoryRetry GetStatusForRetryOperation(string requestId, RetryType retryType)
@@ -110,6 +111,7 @@
         IDomainEvents domainEvents;
         readonly RetryMetrics metrics;
         readonly ILogger<RetryingManager> logger;
+        readonly TimeProvider timeProvider;
         ConcurrentDictionary<string, InMemoryRetry> retryOperations = new ConcurrentDictionary<string, InMemoryRetry>();
     }
 }

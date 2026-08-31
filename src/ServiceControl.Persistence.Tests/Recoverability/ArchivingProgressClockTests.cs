@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.Tests;
+namespace ServiceControl.Persistence.Tests.Recoverability;
 
 using System;
 using System.Collections.Generic;

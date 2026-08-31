@@ -30,7 +30,7 @@
         public async Task When_a_group_is_processed_it_is_set_to_the_Preparing_state()
         {
             var domainEvents = new FakeDomainEvents();
-            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
+            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance, TimeProvider.System);
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, 1);
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
@@ -42,7 +42,7 @@
         public async Task When_a_group_is_prepared_and_SC_is_started_the_group_is_marked_as_failed()
         {
             var domainEvents = new FakeDomainEvents();
-            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
+            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance, TimeProvider.System);
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", false, 1);
 
@@ -83,7 +83,7 @@
         public async Task When_a_group_is_prepared_with_three_batches_and_SC_is_restarted_while_the_first_group_is_being_forwarded_then_the_count_still_matches()
         {
             var domainEvents = new FakeDomainEvents();
-            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
+            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance, TimeProvider.System);
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, 2001);
 
@@ -110,7 +110,7 @@
             await processor.ProcessBatches(); // mark ready
 
             // Simulate SC restart
-            retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
+            retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance, TimeProvider.System);
 
             var documentManager = new CustomRetryDocumentManager(false, RetryBatchStore, retryManager);
 
@@ -142,7 +142,7 @@
         public async Task When_a_group_is_forwarded_the_status_is_Completed()
         {
             var domainEvents = new FakeDomainEvents();
-            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
+            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance, TimeProvider.System);
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, 1);
 
@@ -197,7 +197,7 @@
         public async Task When_there_is_one_poison_message_it_is_removed_from_batch_and_the_status_is_Complete()
         {
             var domainEvents = new FakeDomainEvents();
-            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
+            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance, TimeProvider.System);
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, "A", "B", "C");
 
@@ -246,7 +246,7 @@
         public async Task When_a_group_has_one_batch_out_of_two_forwarded_the_status_is_Forwarding()
         {
             var domainEvents = new FakeDomainEvents();
-            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
+            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance, TimeProvider.System);
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, 1001);
 
@@ -269,7 +269,7 @@
         public async Task When_a_selection_is_staged_each_message_is_audited_as_a_batch()
         {
             var domainEvents = new FakeDomainEvents();
-            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
+            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance, TimeProvider.System);
             var user = new AuditUser("alice-sub", "Alice");
             const string operationId = "op-sel";
             var ids = new[] { "A", "B" };
@@ -319,7 +319,7 @@
         public async Task When_a_group_is_staged_each_message_is_audited_with_the_initiating_user()
         {
             var domainEvents = new FakeDomainEvents();
-            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
+            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance, TimeProvider.System);
             var user = new AuditUser("alice-sub", "Alice");
             const string operationId = "op-abc";
 
@@ -363,7 +363,7 @@
                 MessageRedirectsDataStore,
                 domainEvents,
                 new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()),
-                new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance),
+                new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance, TimeProvider.System),
                 TestRetryMetrics.Create(), new Lazy<IMessageDispatcher>(() => sender),
                 new RecordingMessageActionAuditLog(),
                 NullLogger<RetryProcessor>.Instance);

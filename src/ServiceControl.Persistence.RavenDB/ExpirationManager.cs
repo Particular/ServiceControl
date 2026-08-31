@@ -12,12 +12,14 @@
         public const string DeleteExpirationFieldExpression = "delete msg['@metadata']['@expires']";
 
         readonly TimeSpan errorRetentionPeriod;
+        readonly TimeProvider timeProvider;
         readonly TimeSpan eventsRetentionPeriod;
 
-        public ExpirationManager(RavenPersisterSettings settings)
+        public ExpirationManager(RavenPersisterSettings settings, TimeProvider timeProvider)
         {
             errorRetentionPeriod = settings.ErrorRetentionPeriod;
             eventsRetentionPeriod = settings.EventsRetentionPeriod;
+            this.timeProvider = timeProvider;
         }
 
         public void CancelExpiration(IAsyncDocumentSession session, FailedMessage failedMessage)
@@ -27,14 +29,14 @@
 
         public void EnableExpiration(IAsyncDocumentSession session, FailedMessage failedMessage)
         {
-            var expiresAt = DateTime.UtcNow + errorRetentionPeriod;
+            var expiresAt = timeProvider.GetUtcNow().UtcDateTime + errorRetentionPeriod;
 
             session.Advanced.GetMetadataFor(failedMessage)[Constants.Documents.Metadata.Expires] = expiresAt;
         }
 
         public void EnableExpiration(IAsyncDocumentSession session, EventLogItem eventLogItem)
         {
-            var expiresAt = DateTime.UtcNow + eventsRetentionPeriod;
+            var expiresAt = timeProvider.GetUtcNow().UtcDateTime + eventsRetentionPeriod;
 
             session.Advanced.GetMetadataFor(eventLogItem)[Constants.Documents.Metadata.Expires] = expiresAt;
         }
@@ -45,7 +47,7 @@
         // document down one branch and so cannot have it appended to the end.
         public string EnableExpirationScript(PatchRequest request)
         {
-            var expiredAt = DateTime.UtcNow + errorRetentionPeriod;
+            var expiredAt = timeProvider.GetUtcNow().UtcDateTime + errorRetentionPeriod;
 
             request.Values.Add("Expires", expiredAt);
 

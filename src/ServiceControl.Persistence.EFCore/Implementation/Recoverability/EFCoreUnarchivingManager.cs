@@ -16,7 +16,7 @@ class EFCoreUnarchivingManager(IDomainEvents domainEvents, OperationsManager ope
         var id = InMemoryUnarchive.MakeId(requestId, archiveType);
         if (!operationsManager.UnarchiveOperations.TryGetValue(id, out var summary))
         {
-            summary = new InMemoryUnarchive(requestId, archiveType, domainEvents, metrics);
+            summary = new InMemoryUnarchive(requestId, archiveType, domainEvents, timeProvider, metrics);
             operationsManager.UnarchiveOperations[id] = summary;
         }
 
