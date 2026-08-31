@@ -12,6 +12,7 @@ using ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
 using ServiceControl.Persistence.EFCore.Implementation.Recoverability;
 using ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
 using ServiceControl.Persistence.EFCore.Infrastructure;
+using ServiceControl.Persistence.EFCore.Infrastructure.Metrics;
 using ServiceControl.Persistence.MessageRedirects;
 using ServiceControl.Persistence.Recoverability;
 using ServiceControl.Persistence.UnitOfWork;

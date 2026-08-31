@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Linq;
-using ServiceControl.Persistence.EFCore.Infrastructure;
+using ServiceControl.Persistence.EFCore.Infrastructure.Metrics;
 
 /// <summary>
 /// Collects everything the retention instruments record, for the meter belonging to one factory.

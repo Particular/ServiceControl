@@ -10,7 +10,7 @@ using NUnit.Framework;
 using ServiceControl.EventLog;
 using ServiceControl.MessageFailures;
 using ServiceControl.Persistence.EFCore.Entities;
-using ServiceControl.Persistence.EFCore.Infrastructure;
+using ServiceControl.Persistence.EFCore.Infrastructure.Metrics;
 using ServiceControl.Persistence.Infrastructure;
 
 class RetentionSweepTests : ErrorIngestionTestBase

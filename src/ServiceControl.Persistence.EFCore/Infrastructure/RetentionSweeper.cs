@@ -8,6 +8,7 @@ using ServiceControl.MessageFailures;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
+using ServiceControl.Persistence.EFCore.Infrastructure.Metrics;
 
 // Deletes rows once they age past their retention period.
 // Runs hourly, in bounded batches so it never holds a large delete, and recomputes the cutoffs on

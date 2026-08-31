@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using ServiceControl.Persistence.EFCore.Infrastructure;
+using ServiceControl.Persistence.EFCore.Infrastructure.Metrics;
 
 /// <summary>
 /// Instrument names are what dashboards and alerts are built on, so they are a published contract
