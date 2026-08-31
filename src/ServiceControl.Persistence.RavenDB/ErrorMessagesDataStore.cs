@@ -92,9 +92,8 @@
             )
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+            var query = SearchMessages(session, searchKeyword)
                 .Statistics(out var stats)
-                .Search(x => x.Query, searchKeyword)
                 .Where(m => m.ReceivingEndpointName == endpointName)
                 .FilterBySentTimeRange(timeSentRange)
                 .Sort(sortInfo)
@@ -106,6 +105,18 @@
 
             return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
+
+        // Identifiers are not part of the full-text Query field; they are matched exactly on their own fields.
+        // Built as a DocumentQuery because the LINQ provider does not parenthesize an OR group, so subsequent Where
+        // clauses would bind to the last OR term only.
+        static IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> SearchMessages(IAsyncDocumentSession session, string searchParam) =>
+            session.Advanced.AsyncDocumentQuery<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                .OpenSubclause()
+                .Search(x => x.Query, searchParam)
+                .OrElse().WhereEquals(x => x.MessageId, searchParam)
+                .OrElse().WhereEquals(x => x.ConversationId, searchParam)
+                .CloseSubclause()
+                .ToQueryable();
 
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(
             string conversationId,
@@ -138,9 +149,8 @@
             )
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+            var query = SearchMessages(session, searchTerms)
                 .Statistics(out var stats)
-                .Search(x => x.Query, searchTerms)
                 .FilterBySentTimeRange(timeSentRange)
                 .Sort(sortInfo)
                 .Paging(pagingInfo)

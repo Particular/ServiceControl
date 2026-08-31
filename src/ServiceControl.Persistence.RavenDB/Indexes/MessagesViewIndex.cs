@@ -32,7 +32,25 @@ namespace ServiceControl.Persistence
                     CriticalTime = (TimeSpan?)last.MessageMetadata["CriticalTime"],
                     ProcessingTime = (TimeSpan?)last.MessageMetadata["ProcessingTime"],
                     DeliveryTime = (TimeSpan?)last.MessageMetadata["DeliveryTime"],
-                    Query = last.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] { string.Join(" ", last.Headers.Select(x => x.Value)) }).ToArray(),
+                    // Dates, durations, sizes and booleans only add tokens nobody searches for, so they are excluded.
+                    // Identifiers are excluded too: they are matched exactly on the MessageId/ConversationId fields instead.
+                    Query = last.MessageMetadata
+                        .Where(m => m.Key != "MessageId" && m.Key != "ConversationId" && m.Key != "RelatedToId"
+                                && m.Key != "TimeSent" && m.Key != "CriticalTime" && m.Key != "ProcessingTime"
+                                && m.Key != "DeliveryTime" && m.Key != "ContentLength" && m.Key != "BodyUrl"
+                                && m.Key != "IsSystemMessage")
+                        .Select(m => m.Value.ToString())
+                        .Concat(last.Headers
+                            .Where(h => h.Key != "NServiceBus.MessageId" && h.Key != "NServiceBus.ConversationId"
+                                    && h.Key != "NServiceBus.CorrelationId" && h.Key != "NServiceBus.RelatedTo"
+                                    && h.Key != "NServiceBus.TimeSent" && h.Key != "NServiceBus.ProcessingStarted" && h.Key != "NServiceBus.ProcessingEnded"
+                                    && h.Key != "NServiceBus.DeliverAt" && h.Key != "NServiceBus.Timeout.Expire" && h.Key != "NServiceBus.Retries.Timestamp"
+                                    && h.Key != "NServiceBus.ExceptionInfo.TimeOfFailure" && h.Key != "NServiceBus.TimeOfFailure" && h.Key != "NServiceBus.NonDurableMessage"
+                                    && h.Key != "NServiceBus.TimeToBeReceived")
+                            .Select(h => h.Value))
+                        .Where(v => v != null && v.Length > 0)
+                        .Distinct()
+                        .ToArray(),
                     ConversationId = (string)last.MessageMetadata["ConversationId"]
                 };
 
