@@ -66,6 +66,36 @@ What the shapes mean when tuning:
 
 Example Grafana dashboard - https://github.com/andreasohlund/Docker/blob/main/otel-monitoring/grafana-platform-template.json
 
+## Retention
+
+Only the SQL persisters report retention. On RavenDB the expiry is metadata on each document and the deletes happen inside the Raven server, so there is no sweep of ours to measure.
+
+Meter `Particular.ServiceControl`, the same meter the instance uses for its ingestion. The prefix carries no instance segment, so when the audit SQL persister reports its own retention it uses these same names, and `job` (or `exported_job`) separates the two.
+
+The sweep runs hourly and makes one pass per kind of row. Each pass is measured on its own, tagged `retention.entity`: `failed_messages`, `event_log` or `group_comments`.
+
+- `sc.retention.cycle_duration_seconds` - Retention sweep pass duration in seconds
+  - `retention.entity` - Which pass this was
+  - `result` - The outcome: `success`, `failed`, or `cancelled` if shutdown cut the pass short
+- `sc.retention.rows_deleted_total` - Rows deleted by the retention sweep
+  - `retention.entity` - Which pass deleted them
+- `sc.retention.consecutive_failures_total` - Consecutive failures of that pass
+  - `retention.entity` - Which pass is failing
+
+### Reading the retention metrics
+
+- Rows reclaimed per hour: `sum(rate(sc_retention_rows_deleted_total[1h])) by (exported_job,retention_entity)`
+- Sweep duration: `histogram_quantile(0.9,sum(rate(sc_retention_cycle_duration_seconds_bucket[6h])) by (le,exported_job,retention_entity))`
+- Retention is broken: `max(sc_retention_consecutive_failures_total) by (exported_job,retention_entity) > 2`
+
+What the shapes mean:
+
+- `consecutive_failures_total` above zero is the signal that rows are no longer being reclaimed. Nothing else in the product reports this, and the database grows without bound while it lasts.
+- `rows_deleted_total` flat at zero across a long window is only healthy if the instance is also not ingesting. Deletion stopping while ingestion continues means the retention window is not being enforced.
+- A cycle duration climbing towards the hourly interval means the sweep is no longer keeping up with the arrival rate, and each run starts further behind than the last.
+- A body store that refuses a delete fails the `failed_messages` pass rather than orphaning the body, so an expired credential or a changed permission shows as a climbing gauge instead of storage that quietly keeps growing. Those rows stay until a sweep can delete the body and the row together.
+- Each pass is isolated, so one kind of row failing to be reclaimed does not stop the others. Every pass reports a result on every run, and the gauge is per pass, so alert across all entities rather than on any one of them.
+
 ## Monitoring
 
 No telemetry is currently available.

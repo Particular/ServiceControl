@@ -189,7 +189,7 @@ public class FailedErrorImportDataStore(
     {
         try
         {
-            await bodyStorage.DeleteBody(FailedErrorImportEntity.ExternalBodyId(uniqueMessageId), cancellationToken);
+            await bodyStorage.DeleteBodyIfExists(FailedErrorImportEntity.ExternalBodyId(uniqueMessageId), cancellationToken);
         }
 #pragma warning disable PS0019 // The filter already excludes OperationCanceledException, so cancellation
         // propagates; PS0019 only recognises a cancellationToken.IsCancellationRequested guard.

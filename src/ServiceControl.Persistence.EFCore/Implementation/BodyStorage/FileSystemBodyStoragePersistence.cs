@@ -135,7 +135,7 @@ public class FileSystemBodyStoragePersistence(FileSystemBodyStorageSettings sett
         }
     }
 
-    public Task DeleteBody(string bodyId, CancellationToken cancellationToken = default)
+    public Task DeleteBodyIfExists(string bodyId, CancellationToken cancellationToken = default)
     {
         TryDelete(GetBodyFilePath(bodyId));
         return Task.CompletedTask;

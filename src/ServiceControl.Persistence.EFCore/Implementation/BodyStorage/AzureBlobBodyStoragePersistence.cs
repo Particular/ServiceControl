@@ -93,6 +93,6 @@ public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
         }
     }
 
-    public Task DeleteBody(string bodyId, CancellationToken cancellationToken = default) =>
+    public Task DeleteBodyIfExists(string bodyId, CancellationToken cancellationToken = default) =>
         container.GetBlobClient(bodyId).DeleteIfExistsAsync(cancellationToken: cancellationToken);
 }

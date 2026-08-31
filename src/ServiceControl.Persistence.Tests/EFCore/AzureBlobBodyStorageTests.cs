@@ -108,7 +108,7 @@ class AzureBlobBodyStorageTests
         var bodyId = Guid.NewGuid().ToString();
         await store.WriteBody(bodyId, "payload"u8.ToArray(), "text/plain");
 
-        await store.DeleteBody(bodyId);
+        await store.DeleteBodyIfExists(bodyId);
 
         Assert.That(await store.ReadBody(bodyId), Is.Null);
     }
@@ -117,7 +117,7 @@ class AzureBlobBodyStorageTests
     public async Task Delete_of_a_missing_body_does_not_throw()
     {
         var store = await CreateContainer();
-        Assert.DoesNotThrowAsync(() => store.DeleteBody(Guid.NewGuid().ToString()));
+        Assert.DoesNotThrowAsync(() => store.DeleteBodyIfExists(Guid.NewGuid().ToString()));
     }
 
     [Test]

@@ -5,11 +5,12 @@ using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Threading;
 using NServiceBus.Transport;
+using ServiceControl.Infrastructure;
 using ServiceControl.Infrastructure.Ingestion.Metrics;
 
 public class IngestionMetrics
 {
-    public const string MeterName = "Particular.ServiceControl";
+    public const string MeterName = ServiceControlMeters.Error;
 
     public static readonly string BatchDurationInstrumentName = $"{InstrumentPrefix}.batch_duration_seconds";
     public static readonly string MessageDurationInstrumentName = $"{InstrumentPrefix}.message_duration_seconds";
