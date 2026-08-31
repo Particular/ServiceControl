@@ -115,7 +115,6 @@
             services.AddIntegrationEventPublisher<FailedMessageGroupBatchArchivedPublisher>();
             services.AddIntegrationEventPublisher<FailedMessageGroupBatchUnarchivedPublisher>();
             services.AddIntegrationEventPublisher<FailedMessagesUnarchivedPublisher>();
-            services.AddIntegrationEventPublisher<MessageFailedPublisher>();
             services.AddIntegrationEventPublisher<MessageFailureResolvedByRetryPublisher>();
             services.AddIntegrationEventPublisher<MessageFailureResolvedManuallyPublisher>();
             services.AddIntegrationEventPublisher<MessageEditedAndRetriedPublisher>();
@@ -125,7 +124,6 @@
             services.AddEventLogMapping<FailedMessageGroupArchivedDefinition>();
             services.AddEventLogMapping<FailedMessageGroupUnarchivedDefinition>();
             services.AddEventLogMapping<FailedMessageUnArchivedDefinition>();
-            services.AddEventLogMapping<MessageFailedDefinition>();
             services.AddEventLogMapping<MessageFailedInStagingDefinition>();
             services.AddEventLogMapping<MessageFailureResolvedByRetryDefinition>();
             services.AddEventLogMapping<MessageFailureResolvedManuallyDefinition>();
