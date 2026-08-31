@@ -63,9 +63,30 @@ public class RetentionSweeper(
 
     async Task Sweep(bool pace, CancellationToken cancellationToken)
     {
-        await SweepFailedMessages(pace, cancellationToken);
-        await SweepEventLogItems(pace, cancellationToken);
-        await SweepOrphanedGroupComments(cancellationToken);
+        await RunPass(RetentionEntity.FailedMessages, token => SweepFailedMessages(pace, token), cancellationToken);
+        await RunPass(RetentionEntity.EventLog, token => SweepEventLogItems(pace, token), cancellationToken);
+        await RunPass(RetentionEntity.GroupComments, SweepOrphanedGroupComments, cancellationToken);
+    }
+
+    // Each pass is isolated so one failing kind of row does not stop the others from being
+    // reclaimed, and so the metrics report an outcome for every pass on every run.
+    async Task RunPass(RetentionEntity entity, Func<CancellationToken, Task> pass, CancellationToken cancellationToken)
+    {
+        using var cycle = metrics.BeginCycle(entity, cancellationToken);
+
+        try
+        {
+            await pass(cancellationToken);
+
+            cycle.Complete();
+        }
+#pragma warning disable PS0019 // The filter already excludes OperationCanceledException, so
+        // cancellation propagates; PS0019 only recognises a cancellationToken guard.
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogError(ex, "Error during the {RetentionEntity} retention pass", entity);
+        }
+#pragma warning restore PS0019
     }
 
     // Once the last message of a group has been swept the group cannot be displayed at all, so its
@@ -73,7 +94,6 @@ public class RetentionSweeper(
     // group ids are deterministic, reattach a stale comment if the same failure ever recurs.
     async Task SweepOrphanedGroupComments(CancellationToken cancellationToken)
     {
-        using var cycle = metrics.BeginCycle(RetentionEntity.GroupComments, cancellationToken);
         using var scope = serviceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
 
@@ -82,16 +102,12 @@ public class RetentionSweeper(
             .ExecuteDeleteAsync(cancellationToken);
 
         metrics.RecordRowsDeleted(RetentionEntity.GroupComments, deleted);
-
-        cycle.Complete();
     }
 
     // Event log items are insert-only and carry no external bodies, so each batch is a single
     // ordered DELETE.
     async Task SweepEventLogItems(bool pace, CancellationToken cancellationToken)
     {
-        using var cycle = metrics.BeginCycle(RetentionEntity.EventLog, cancellationToken);
-
         var cutoff = timeProvider.GetUtcNow().UtcDateTime - settings.EventsRetentionPeriod;
 
         while (!cancellationToken.IsCancellationRequested)
@@ -117,14 +133,10 @@ public class RetentionSweeper(
                 await Task.Delay(BatchPause, timeProvider, cancellationToken);
             }
         }
-
-        cycle.Complete();
     }
 
     async Task SweepFailedMessages(bool pace, CancellationToken cancellationToken)
     {
-        using var cycle = metrics.BeginCycle(RetentionEntity.FailedMessages, cancellationToken);
-
         var cutoff = timeProvider.GetUtcNow().UtcDateTime - settings.ErrorRetentionPeriod;
 
         while (!cancellationToken.IsCancellationRequested)
@@ -142,15 +154,19 @@ public class RetentionSweeper(
 
             if (expired.Count == 0)
             {
+                // The other two passes always report what their delete removed, so this one
+                // reports its zero rather than leaving a gap in the series.
+                metrics.RecordRowsDeleted(RetentionEntity.FailedMessages, 0);
                 break;
             }
 
-            // External bodies are deleted before the rows. A crash in between leaves rows the next
-            // sweep re-handles (tolerating the already-missing body); deleting rows first would
-            // instead leak the external bodies.
+            // External bodies are deleted before the rows, so a body that will not delete fails the
+            // pass with its row intact and the next sweep retries it. Every store already treats an
+            // already-missing body as a success, so anything reaching here is a storage failure and
+            // deleting the row would strand the body with nothing left to name it.
             foreach (var row in expired.Where(row => row.BodyStoredExternally))
             {
-                await DeleteExternalBody(row.UniqueMessageId, cancellationToken);
+                await bodyStorage.DeleteBodyIfExists(row.UniqueMessageId.ToString(), cancellationToken);
             }
 
             var ids = expired.Select(row => row.UniqueMessageId).ToArray();
@@ -174,23 +190,6 @@ public class RetentionSweeper(
                 await Task.Delay(BatchPause, timeProvider, cancellationToken);
             }
         }
-
-        cycle.Complete();
-    }
-
-    async Task DeleteExternalBody(Guid uniqueMessageId, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await bodyStorage.DeleteBody(uniqueMessageId.ToString(), cancellationToken);
-        }
-#pragma warning disable PS0019 // As above: the filter excludes cancellation already.
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            // Retention must not stall on a missing or unavailable body.
-            logger.LogWarning(ex, "Could not delete the external body for {UniqueMessageId} during retention", uniqueMessageId);
-        }
-#pragma warning restore PS0019
     }
 
     static System.Linq.Expressions.Expression<Func<FailedMessageEntity, bool>> IsExpired(DateTime cutoff) =>
