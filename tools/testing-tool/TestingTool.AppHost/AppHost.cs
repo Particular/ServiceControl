@@ -3,7 +3,7 @@ using Particular.Aspire.Hosting.ServicePlatform.Transport;
 using TestingTool.AppHost;
 
 var options = CliOptions.Parse(args);
-var persistenceType = options.GetEnumOrDefault<PersistenceType>("persistence", PersistenceType.PostgreSql);
+var persistenceType = options.GetEnumOrDefault("persistence", PersistenceType.PostgreSql);
 Console.WriteLine($"Using persistence type: {persistenceType}");
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -26,6 +26,7 @@ var raven = platform.AddPersistenceRavenDb("raven");
 
 var errorInstance = platform
     .AddServiceControlErrorInstance("error", raven)
+    .WithEnvironment("SERVICECONTROL_DISABLEEXTERNALINTEGRATIONSPUBLISHING", "true")
     .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", observability.Collector.GetEndpoint("otlp-grpc"))
     .WithPersistenceType(persistenceType)
     .WithRunMode(PlatformRunMode.SetupAndRun);

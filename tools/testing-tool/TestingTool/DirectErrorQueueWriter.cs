@@ -33,14 +33,16 @@ public sealed class DirectErrorQueueWriter
     private readonly Counter<long> _bypassCounter;
 
     private CancellationTokenSource? _cts;
-    private Task? _loop;
+    private Task[]? _loops;
     private long _errorsWritten;
+    private long _errorsFailed;
     private double _currentRate;
     private string? _activeScenario;
     private DateTimeOffset _startedAt;
 
     public bool IsRunning => _cts is not null;
     public long ErrorsWritten => Interlocked.Read(ref _errorsWritten);
+    public long ErrorsFailed => Interlocked.Read(ref _errorsFailed);
     public double CurrentRate => _currentRate;
     public string? ActiveScenario => _activeScenario;
 
@@ -62,7 +64,7 @@ public sealed class DirectErrorQueueWriter
     }
 
     /// <summary>Starts writing failed-message envelopes directly to the error queue.</summary>
-    public bool TryStart(string scenarioName, double rate, TimeSpan? duration, out string? error)
+    public bool TryStart(string scenarioName, double rate, TimeSpan? duration, int? parallelism, out string? error)
     {
         var scenario = _registry.Get(scenarioName);
         if (scenario is null)
@@ -83,6 +85,11 @@ public sealed class DirectErrorQueueWriter
             return false;
         }
 
+        // Default to ProcessorCount workers. Each worker runs its own timer at rate/N so the
+        // aggregate approaches the target. More workers = more concurrent sends = higher
+        // throughput when individual sends have latency.
+        var workerCount = parallelism is { } p and > 0 ? p : Environment.ProcessorCount;
+
         _activeScenario = scenarioName;
         _currentRate = rate;
         _startedAt = DateTimeOffset.UtcNow;
@@ -92,10 +99,15 @@ public sealed class DirectErrorQueueWriter
             : new CancellationTokenSource();
         _cts = cts;
 
-        _loop = Task.Run(() => WriteLoop(scenario, rate, cts.Token));
+        _loops = new Task[workerCount];
+        for (var i = 0; i < workerCount; i++)
+        {
+            var workerIndex = i;
+            _loops[i] = Task.Run(() => WriteLoop(scenario, rate / workerCount, workerIndex, cts.Token));
+        }
 
-        _logger.LogInformation("Started bypass writer for scenario {Scenario} at {Rate:F1} msg/s{Duration}",
-            scenarioName, rate, duration is null ? "" : $" for {duration.Value}");
+        _logger.LogInformation("Started bypass writer for scenario {Scenario} at {Rate:F1} msg/s{Duration} across {Workers} workers",
+            scenarioName, rate, duration is null ? "" : $" for {duration.Value}", workerCount);
 
         error = null;
         return true;
@@ -107,10 +119,27 @@ public sealed class DirectErrorQueueWriter
         if (_cts is null) return;
 
         _cts.Cancel();
+
+        // Await all worker loops before disposing the token so we don't dispose a CTS that's still
+        // in flight inside _session.Send. Swallow the expected cancellation/timeout.
+        var loops = _loops;
+        if (loops is not null)
+        {
+            try
+            {
+                Task.WaitAll(loops, TimeSpan.FromSeconds(5));
+            }
+            catch
+            {
+                // Loops were cancelled or timed out — expected during stop.
+            }
+        }
+
         _cts.Dispose();
         _cts = null;
+        _loops = null;
 
-        _logger.LogInformation("Stopped bypass writer after {Errors} errors written", ErrorsWritten);
+        _logger.LogInformation("Stopped bypass writer: {Errors} written, {Failed} failed", ErrorsWritten, ErrorsFailed);
 
         _activeScenario = null;
         _currentRate = 0;
@@ -123,14 +152,16 @@ public sealed class DirectErrorQueueWriter
         Scenario = _activeScenario,
         Rate = _currentRate,
         ErrorsWritten = ErrorsWritten,
+        ErrorsFailed = ErrorsFailed,
         StartedAt = IsRunning ? _startedAt.ToString("O") : null
     };
 
     /// <summary>
     /// The load generation loop: sends <see cref="LoadMessage"/> directly to the error queue
-    /// with failure headers at the target rate until cancelled.
+    /// with failure headers at the target rate until cancelled. Multiple instances run in
+    /// parallel, each handling a fraction of the total rate.
     /// </summary>
-    private async Task WriteLoop(IScenario scenario, double rate, CancellationToken ct)
+    private async Task WriteLoop(IScenario scenario, double rate, int workerIndex, CancellationToken ct)
     {
         var interval = TimeSpan.FromSeconds(1.0 / rate);
         using var timer = new PeriodicTimer(interval);
@@ -184,9 +215,20 @@ public sealed class DirectErrorQueueWriter
                     _metrics.AddBypassErrorsWritten(1);
                     _bypassCounter.Add(1, new KeyValuePair<string, object?>("scenario", scenario.Name));
                 }
-                catch (Exception ex) when (ex is not OperationCanceledException)
+                catch (OperationCanceledException)
                 {
-                    _logger.LogDebug(ex, "Bypass send failed for scenario {Scenario} seq {Seq}", scenario.Name, seq);
+                    // Cancellation is expected on stop/timeout — let it propagate to the outer handler.
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    Interlocked.Increment(ref _errorsFailed);
+                    _metrics.AddBypassErrorsFailed(1);
+
+                    // Log at Warning so send failures are visible in default logging configs.
+                    // Previously this was LogDebug, which silently swallowed transport/broker
+                    // failures and made the bypass appear idle when sends were actually failing.
+                    _logger.LogWarning(ex, "Bypass send failed for scenario {Scenario} worker {Worker} seq {Seq}", scenario.Name, workerIndex, seq);
                 }
             }
         }

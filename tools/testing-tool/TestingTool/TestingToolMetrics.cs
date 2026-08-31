@@ -12,6 +12,7 @@ public sealed class TestingToolMetrics
     private long _totalErrorsArchived;
     private long _totalSearches;
     private long _totalBypassErrorsWritten;
+    private long _totalBypassErrorsFailed;
     private long _activeScenarios;
     private double _currentRate;
 
@@ -20,6 +21,7 @@ public sealed class TestingToolMetrics
     public long TotalErrorsArchived => Interlocked.Read(ref _totalErrorsArchived);
     public long TotalSearches => Interlocked.Read(ref _totalSearches);
     public long TotalBypassErrorsWritten => Interlocked.Read(ref _totalBypassErrorsWritten);
+    public long TotalBypassErrorsFailed => Interlocked.Read(ref _totalBypassErrorsFailed);
     public int ActiveScenarios => (int)Interlocked.Read(ref _activeScenarios);
     public double CurrentRate => _currentRate;
 
@@ -28,6 +30,7 @@ public sealed class TestingToolMetrics
     public void AddErrorsArchived(long count) => Interlocked.Add(ref _totalErrorsArchived, count);
     public void AddSearches(long count) => Interlocked.Add(ref _totalSearches, count);
     public void AddBypassErrorsWritten(long count) => Interlocked.Add(ref _totalBypassErrorsWritten, count);
+    public void AddBypassErrorsFailed(long count) => Interlocked.Add(ref _totalBypassErrorsFailed, count);
     public void SetActiveScenarios(int count) => Interlocked.Exchange(ref _activeScenarios, count);
     public void SetCurrentRate(double rate) => _currentRate = rate;
 }
