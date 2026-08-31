@@ -234,8 +234,12 @@
         </select>
         <span class="field-label">Rate (msg/s):</span>
         <input type="number" id="bypass-rate" value="100" min="1" step="1" />
+        <span class="field-label">Workers:</span>
+        <input type="number" id="bypass-parallelism" value="" min="1" step="1" placeholder="auto" title="Number of parallel worker tasks (default: CPU count)" />
         <span class="field-label">Duration (sec, optional):</span>
         <input type="number" id="bypass-duration" value="" min="1" step="1" placeholder="∞" />
+      </div>
+      <div class="controls">
         <button class="btn start" onclick="startBypass()" id="btn-bypass-start">▶ Start Bypass</button>
         <button class="btn stop" onclick="stopBypass()" id="btn-bypass-stop" disabled>⏹ Stop Bypass</button>
       </div>
@@ -554,8 +558,10 @@
       const scenario = document.getElementById('bypass-scenario').value;
       const rate = parseFloat(document.getElementById('bypass-rate').value);
       const dur = parseInt(document.getElementById('bypass-duration').value);
+      const par = parseInt(document.getElementById('bypass-parallelism').value);
       const body = { scenario };
       if (rate && rate > 0) body.rate = rate;
+      if (par && par > 0) body.parallelism = par;
       if (dur && dur > 0) body.durationSeconds = dur;
       try {
         await api('POST', '/api/bypass/start', body);
@@ -592,6 +598,7 @@
           ${bypass.scenario ? `<span>Scenario: <strong>${bypass.scenario}</strong></span>` : ''}
           ${bypass.running ? `<span>Rate: <strong>${bypass.rate ?? 0} msg/s</strong></span>` : ''}
           <span>Errors written: <strong>${fmtNum(bypass.errorsWritten)}</strong></span>
+          ${bypass.errorsFailed ? `<span style="color:var(--err)">Failed: <strong>${fmtNum(bypass.errorsFailed)}</strong></span>` : ''}
         `;
       } catch (e) { /* ignore */ }
     }
