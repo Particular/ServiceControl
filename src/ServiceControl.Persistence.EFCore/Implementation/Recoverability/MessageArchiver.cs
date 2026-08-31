@@ -31,8 +31,8 @@ public class MessageArchiver : IArchiveMessages
         this.logger = logger;
         this.domainEvents = domainEvents;
 
-        archivingManager = new EFCoreArchivingManager(domainEvents, operationsManager, metrics);
-        unarchivingManager = new EFCoreUnarchivingManager(domainEvents, operationsManager, metrics);
+        archivingManager = new EFCoreArchivingManager(domainEvents, operationsManager, metrics, timeProvider);
+        unarchivingManager = new EFCoreUnarchivingManager(domainEvents, operationsManager, metrics, timeProvider);
     }
 
     public async Task ArchiveAllInGroup(string groupId, AuditUser? initiatedBy = null, string? operationId = null, CancellationToken cancellationToken = default)
