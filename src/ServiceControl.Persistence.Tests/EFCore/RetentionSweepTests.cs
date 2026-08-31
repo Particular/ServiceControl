@@ -105,20 +105,39 @@ class RetentionSweepTests : ErrorIngestionTestBase
     }
 
     [Test]
-    public async Task Tolerates_a_body_that_cannot_be_deleted()
+    public async Task Keeps_the_row_of_a_body_that_cannot_be_deleted()
     {
         var unluckyBody = await SeedFailedMessage(FailedMessageStatus.Resolved, Now.AddDays(-31), bodyStoredExternally: true);
-        var otherBody = await SeedFailedMessage(FailedMessageStatus.Resolved, Now.AddDays(-31), bodyStoredExternally: true);
         RecordedBodies.FailDeleteFor.Add(unluckyBody.ToString());
+
+        using var recorded = ListenToRetentionMetrics();
 
         await RunRetentionSweep();
 
         using (Assert.EnterMultipleScope())
         {
-            // The failed delete must not stall retention: both rows are still swept.
+            Assert.That(await FindFailedMessage(unluckyBody), Is.Not.Null, "deleting the row would leave the body with nothing to name it");
+            Assert.That(recorded.Cycles(RetentionEntity.FailedMessages).Select(cycle => cycle.Result), Is.EqualTo(new[] { "failed" }));
+            Assert.That(recorded.Cycles(RetentionEntity.EventLog).Select(cycle => cycle.Result), Is.EqualTo(new[] { "success" }));
+        }
+    }
+
+    [Test]
+    public async Task Retries_a_body_that_could_not_be_deleted_on_the_next_sweep()
+    {
+        var unluckyBody = await SeedFailedMessage(FailedMessageStatus.Resolved, Now.AddDays(-31), bodyStoredExternally: true);
+        RecordedBodies.FailDeleteFor.Add(unluckyBody.ToString());
+
+        await RunRetentionSweep();
+
+        RecordedBodies.FailDeleteFor.Clear();
+
+        await RunRetentionSweep();
+
+        using (Assert.EnterMultipleScope())
+        {
             Assert.That(await FindFailedMessage(unluckyBody), Is.Null);
-            Assert.That(await FindFailedMessage(otherBody), Is.Null);
-            Assert.That(RecordedBodies.Deleted, Does.Contain(otherBody.ToString()));
+            Assert.That(RecordedBodies.Deleted, Does.Contain(unluckyBody.ToString()));
         }
     }
 
@@ -208,6 +227,46 @@ class RetentionSweepTests : ErrorIngestionTestBase
             Assert.That(recorded.Cycles(RetentionEntity.EventLog).Select(cycle => cycle.Result), Is.EqualTo(new[] { "success" }));
             Assert.That(recorded.Cycles(RetentionEntity.GroupComments).Select(cycle => cycle.Result), Is.EqualTo(new[] { "success" }));
             Assert.That(recorded.ConsecutiveFailures(RetentionEntity.FailedMessages), Is.Zero);
+        }
+    }
+
+    [Test]
+    public async Task Reports_zero_deleted_rows_when_there_is_nothing_to_sweep()
+    {
+        using var recorded = ListenToRetentionMetrics();
+
+        await RunRetentionSweep();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(recorded.Of(RetentionMetrics.RowsDeletedInstrumentName, RetentionEntity.FailedMessages), Is.Not.Empty);
+            Assert.That(recorded.Of(RetentionMetrics.RowsDeletedInstrumentName, RetentionEntity.EventLog), Is.Not.Empty);
+            Assert.That(recorded.Of(RetentionMetrics.RowsDeletedInstrumentName, RetentionEntity.GroupComments), Is.Not.Empty);
+            Assert.That(recorded.RowsDeleted(RetentionEntity.FailedMessages), Is.Zero);
+        }
+    }
+
+    [Test]
+    public async Task A_failing_pass_does_not_stop_the_others()
+    {
+        EFSettings.EventsRetentionPeriod = TimeSpan.FromDays(14);
+        await Store(EventLogRow("expired", Now.AddDays(-15)));
+
+        // Subtracting this from the clock cannot be represented, so the failed messages pass throws
+        // before it reaches the database.
+        EFSettings.ErrorRetentionPeriod = TimeSpan.FromDays(1_000_000);
+
+        using var recorded = ListenToRetentionMetrics();
+
+        await RunRetentionSweep();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(recorded.Cycles(RetentionEntity.FailedMessages).Select(cycle => cycle.Result), Is.EqualTo(new[] { "failed" }));
+            Assert.That(recorded.ConsecutiveFailures(RetentionEntity.FailedMessages), Is.EqualTo(1));
+            Assert.That(recorded.Cycles(RetentionEntity.EventLog).Select(cycle => cycle.Result), Is.EqualTo(new[] { "success" }));
+            Assert.That(recorded.Cycles(RetentionEntity.GroupComments).Select(cycle => cycle.Result), Is.EqualTo(new[] { "success" }));
+            Assert.That(await GetRemainingMarkers(), Does.Not.Contain("expired"));
         }
     }
 
