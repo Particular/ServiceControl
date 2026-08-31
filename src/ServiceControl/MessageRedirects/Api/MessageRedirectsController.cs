@@ -25,7 +25,8 @@
     public class MessageRedirectsController(
         IMessageSession session,
         IMessageRedirectsDataStore store,
-        IDomainEvents events)
+        IDomainEvents events,
+        TimeProvider timeProvider)
         : ControllerBase
     {
         [Authorize(Policy = Permissions.ErrorRedirectsManage)]
@@ -42,7 +43,7 @@
             {
                 FromPhysicalAddress = request.FromPhysicalAddress,
                 ToPhysicalAddress = request.ToPhysicalAddress,
-                LastModified = DateTime.UtcNow
+                LastModified = timeProvider.GetUtcNow().UtcDateTime
             };
 
             var redirects = await store.GetRedirects(cancellationToken);
@@ -87,7 +88,7 @@
                 {
                     QueueAddress = messageRedirect.FromPhysicalAddress,
                     PeriodFrom = DateTime.MinValue,
-                    PeriodTo = DateTime.UtcNow
+                    PeriodTo = timeProvider.GetUtcNow().UtcDateTime
                 }, cancellationToken);
             }
 
@@ -129,7 +130,7 @@
                 ToPhysicalAddress = messageRedirect.ToPhysicalAddress = request.ToPhysicalAddress
             };
 
-            messageRedirect.LastModified = DateTime.UtcNow;
+            messageRedirect.LastModified = timeProvider.GetUtcNow().UtcDateTime;
 
             await store.UpdateRedirect(messageRedirect, cancellationToken);
 

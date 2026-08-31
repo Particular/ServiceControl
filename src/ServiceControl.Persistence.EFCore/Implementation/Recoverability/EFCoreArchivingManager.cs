@@ -16,7 +16,7 @@ class EFCoreArchivingManager(IDomainEvents domainEvents, OperationsManager opera
         var id = InMemoryArchive.MakeId(requestId, archiveType);
         if (!operationsManager.ArchiveOperations.TryGetValue(id, out var summary))
         {
-            summary = new InMemoryArchive(requestId, archiveType, domainEvents, metrics);
+            summary = new InMemoryArchive(requestId, archiveType, domainEvents, timeProvider, metrics);
             operationsManager.ArchiveOperations[id] = summary;
         }
 

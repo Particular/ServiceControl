@@ -12,7 +12,7 @@
     using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Session;
 
-    class UnarchiveDocumentManager
+    class UnarchiveDocumentManager(TimeProvider timeProvider)
     {
         public Task<UnarchiveOperation> LoadUnarchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType, CancellationToken cancellationToken = default) => session.LoadAsync<UnarchiveOperation>(UnarchiveOperation.MakeId(groupId, archiveType), cancellationToken);
 
@@ -25,7 +25,7 @@
                 ArchiveType = archiveType,
                 TotalNumberOfMessages = numberOfMessages,
                 NumberOfMessagesUnarchived = 0,
-                Started = DateTime.UtcNow,
+                Started = timeProvider.GetUtcNow().UtcDateTime,
                 GroupName = groupName,
                 NumberOfBatches = (int)Math.Ceiling(numberOfMessages / (float)batchSize),
                 CurrentBatch = 0,
