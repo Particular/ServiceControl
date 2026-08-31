@@ -5,5 +5,5 @@
 /// </summary>
 public interface IEnvironmentDataProvider
 {
-    IEnumerable<(string key, string value)> GetData();
+    IEnumerable<EnvironmentDatum> GetData();
 }

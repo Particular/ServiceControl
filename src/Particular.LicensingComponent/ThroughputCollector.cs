@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using AuditThroughput;
 using Contracts;
+using Microsoft.Extensions.Logging;
 using MonitoringThroughput;
 using Particular.LicensingComponent.Report.Utility;
 using Persistence;
@@ -13,7 +14,7 @@ using ServiceControl.Transports.BrokerThroughput;
 using Shared;
 using QueueThroughput = Report.QueueThroughput;
 
-public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettings throughputSettings, IAuditQuery auditQuery, MonitoringService monitoringService, IEnumerable<IEnvironmentDataProvider> environmentDataProviders, IBrokerThroughputQuery? throughputQuery = null)
+public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensingDataStore dataStore, ThroughputSettings throughputSettings, IAuditQuery auditQuery, MonitoringService monitoringService, IEnumerable<IEnvironmentDataProvider> environmentDataProviders, IBrokerThroughputQuery? throughputQuery = null)
     : IThroughputCollector
 {
     public async Task<ThroughputConnectionSettings> GetThroughputConnectionSettingsInformation(CancellationToken cancellationToken = default)
@@ -188,9 +189,33 @@ public class ThroughputCollector(ILicensingDataStore dataStore, ThroughputSettin
 
         foreach (var environmentDataProvider in environmentDataProviders)
         {
-            foreach (var (key, value) in environmentDataProvider.GetData())
+            EnvironmentDatum[] environmentData;
+
+            try
             {
-                report.EnvironmentInformation.EnvironmentData[key] = value;
+                environmentData = [.. environmentDataProvider.GetData()];
+            }
+            catch (Exception e)
+            {
+                logger.LogWarning(e, "Environment data provider {EnvironmentDataProvider} could not list what it offers, so none of its data is in the report", environmentDataProvider.GetType().Name);
+                continue;
+            }
+
+            foreach (var datum in environmentData)
+            {
+                try
+                {
+                    report.EnvironmentInformation.EnvironmentData[datum.Key] = await datum.ReadValue(cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    logger.LogWarning(e, "Environment datum {EnvironmentDatum} could not be read", datum.Key);
+                    report.EnvironmentInformation.EnvironmentData[datum.Key] = EnvironmentDatum.ReadFailed;
+                }
             }
         }
 

@@ -3,6 +3,7 @@ namespace ServiceControl.Persistence.EFCore.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
+using Particular.LicensingComponent.Contracts;
 using Particular.LicensingComponent.Persistence;
 using ServiceControl.CustomChecks;
 using ServiceControl.Operations.BodyStorage;
@@ -28,6 +29,7 @@ public abstract class BasePersistence
 
         services.AddUnitOfWorkFactory<EFIngestionUnitOfWorkFactory>();
         services.AddSingleton<IBodyStorage, BodyStorage>();
+        services.AddSingleton<IEnvironmentDataProvider, EFEnvironmentDataProvider>();
 
         services.AddSingleton<ExternalIntegrationRequestsDataStore>();
         services.AddSingleton<IExternalIntegrationRequestsDataStore>(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());

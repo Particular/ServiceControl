@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
 using Operations.BodyStorage;
 using Operations.BodyStorage.RavenAttachments;
+using Particular.LicensingComponent.Contracts;
 using Persistence.MessageRedirects;
 using Persistence.Recoverability;
 using Recoverability;
@@ -36,6 +37,7 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddSingleton<ExpirationManager>();
         services.AddSingleton<MinimumRequiredStorageState>();
         services.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
+        services.AddSingleton<IEnvironmentDataProvider, RavenEnvironmentDataProvider>();
 
         services.AddSingleton<ExternalIntegrationRequestsDataStore>();
         services.AddSingleton<IExternalIntegrationRequestsDataStore>(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
