@@ -9,7 +9,7 @@ using ServiceControl.Recoverability.Archiving.Metrics;
 /// EFCore equivalent of the RavenDB <see cref="UnarchivingManager"/>. Wraps the shared
 /// <see cref="OperationsManager"/> singleton to manage in-memory unarchive progress state.
 /// </summary>
-class EFCoreUnarchivingManager(IDomainEvents domainEvents, OperationsManager operationsManager, ArchiveMetrics metrics)
+class EFCoreUnarchivingManager(IDomainEvents domainEvents, OperationsManager operationsManager, ArchiveMetrics metrics, TimeProvider timeProvider)
 {
     InMemoryUnarchive GetOrCreate(ArchiveType archiveType, string requestId)
     {
@@ -43,7 +43,7 @@ class EFCoreUnarchivingManager(IDomainEvents domainEvents, OperationsManager ope
 
         summary.TotalNumberOfMessages = 0;
         summary.NumberOfMessagesUnarchived = 0;
-        summary.Started = DateTime.UtcNow;
+        summary.Started = timeProvider.GetUtcNow().UtcDateTime;
         summary.GroupName = "Undefined";
         summary.NumberOfBatches = 0;
         summary.CurrentBatch = 0;
