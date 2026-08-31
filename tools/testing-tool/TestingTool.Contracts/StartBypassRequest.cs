@@ -15,4 +15,12 @@ public sealed class StartBypassRequest
 
     /// <summary>Optional auto-stop duration in seconds. Null/0 = run until explicitly stopped.</summary>
     public double? DurationSeconds { get; init; }
+
+    /// <summary>
+    /// Number of parallel worker tasks to use for sending. Each task runs its own timer at
+    /// <c>rate / parallelism</c> msg/s so the aggregate approaches the target rate. Defaults to
+    /// <see cref="Environment.ProcessorCount"/> when omitted. Increase this if the bypass is
+    /// not hitting the target rate due to send latency on a single thread.
+    /// </summary>
+    public int? Parallelism { get; init; }
 }

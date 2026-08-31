@@ -24,6 +24,10 @@ public sealed class TestingToolStatus
     /// <summary>Total errors emitted via the direct error-queue bypass writer since process start.</summary>
     public long BypassErrorsWritten { get; init; }
 
+    /// <summary>Total bypass sends that failed since process start. Non-zero values indicate
+    /// transport/broker issues on the bypass path — the handler path may be unaffected.</summary>
+    public long BypassErrorsFailed { get; init; }
+
     /// <summary>The shard id this replica owns, used for disjoint scenario slices when scaled out.</summary>
     public string? ShardId { get; init; }
 

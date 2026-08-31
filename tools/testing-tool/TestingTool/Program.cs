@@ -103,6 +103,7 @@ app.MapGet("/api/status", () => Results.Ok(new TestingToolStatus
     ErrorsArchived = metrics.TotalErrorsArchived,
     SearchesExecuted = metrics.TotalSearches,
     BypassErrorsWritten = metrics.TotalBypassErrorsWritten,
+    BypassErrorsFailed = metrics.TotalBypassErrorsFailed,
     ShardId = shardId,
     ActiveScenarios = metrics.ActiveScenarios,
     ActiveJobs = jobRunner.GetSnapshot().Count(j => j.Running),
@@ -192,7 +193,7 @@ app.MapPost("/api/bypass/start", (StartBypassRequest? request, DirectErrorQueueW
         ? TimeSpan.FromSeconds(secs)
         : (TimeSpan?)null;
 
-    if (!writer.TryStart(scenarioName, rate, duration, out var error))
+    if (!writer.TryStart(scenarioName, rate, duration, request?.Parallelism, out var error))
         return Results.BadRequest(new { error });
 
     return Results.Ok(writer.GetStatus());
