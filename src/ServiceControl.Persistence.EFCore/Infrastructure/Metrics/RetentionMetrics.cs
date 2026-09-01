@@ -16,7 +16,7 @@ public class RetentionMetrics
     {
         var meter = meterFactory.Create(MeterName, MeterVersion);
 
-        cycleDuration = meter.CreateHistogram<double>(
+        cycleDuration = meter.CreateHistogram(
             CycleDurationInstrumentName,
             unit: "seconds",
             description: "Retention sweep pass duration in seconds",
@@ -26,7 +26,7 @@ public class RetentionMetrics
             advice: new InstrumentAdvice<double> { HistogramBucketBoundaries = [0.1, 0.5, 1, 5, 15, 60, 300, 900] });
 
         rowsDeleted = meter.CreateCounter<long>(RowsDeletedInstrumentName, description: "Rows deleted by the retention sweep");
-        consecutiveFailureGauge = meter.CreateObservableGauge(ConsecutiveFailuresInstrumentName, ObserveConsecutiveFailures, description: "Consecutive retention sweep failures");
+        meter.CreateObservableGauge(ConsecutiveFailuresInstrumentName, ObserveConsecutiveFailures, description: "Consecutive retention sweep failures");
     }
 
     public RetentionCycleMetrics BeginCycle(RetentionEntity entity, CancellationToken cancellationToken = default) => new(this, entity, cancellationToken);
@@ -74,9 +74,6 @@ public class RetentionMetrics
 
     readonly Histogram<double> cycleDuration;
     readonly Counter<long> rowsDeleted;
-#pragma warning disable IDE0052
-    readonly ObservableGauge<long> consecutiveFailureGauge;
-#pragma warning restore IDE0052
 
     static readonly TagList[] EntityTags =
     [
