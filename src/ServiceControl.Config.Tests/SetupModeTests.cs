@@ -4,7 +4,7 @@ namespace ServiceControl.Config.Tests
     using UI.Shell;
 
     [TestFixture]
-    public class SetupModeTests
+    class SetupModeTests
     {
         [TestCase(SetupMode.ErrorHandling, true, false, false)]
         [TestCase(SetupMode.ErrorAndAudit, true, true, false)]
