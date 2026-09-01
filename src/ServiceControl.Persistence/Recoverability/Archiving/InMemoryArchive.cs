@@ -4,14 +4,16 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
+    using ServiceControl.Recoverability.Archiving.Metrics;
 
     public class InMemoryArchive // in memory
     {
-        public InMemoryArchive(string requestId, ArchiveType archiveType, IDomainEvents domainEvents)
+        public InMemoryArchive(string requestId, ArchiveType archiveType, IDomainEvents domainEvents, ArchiveMetrics? metrics = null)
         {
             RequestId = requestId;
             ArchiveType = archiveType;
             this.domainEvents = domainEvents;
+            operationMetrics = metrics?.CreateOperation(ArchiveOperationKind.Archive);
         }
 
         public int TotalNumberOfMessages { get; set; }
@@ -45,6 +47,7 @@
         {
             ArchiveState = ArchiveState.ArchiveStarted;
             CompletionTime = null;
+            operationMetrics?.Started();
 
             return domainEvents.Raise(new ArchiveOperationStarting
             {
@@ -61,6 +64,7 @@
             NumberOfMessagesArchived += numberOfMessagesArchivedInBatch;
             CurrentBatch++;
             Last = DateTime.UtcNow;
+            operationMetrics?.BatchCompleted(numberOfMessagesArchivedInBatch);
 
             return domainEvents.Raise(new ArchiveOperationBatchCompleted
             {
@@ -77,6 +81,7 @@
             ArchiveState = ArchiveState.ArchiveFinalizing;
             NumberOfMessagesArchived = TotalNumberOfMessages;
             Last = DateTime.UtcNow;
+            operationMetrics?.Finalizing();
 
             return domainEvents.Raise(new ArchiveOperationFinalizing
             {
@@ -94,6 +99,7 @@
             NumberOfMessagesArchived = TotalNumberOfMessages;
             CompletionTime = DateTime.UtcNow;
             Last = DateTime.UtcNow;
+            operationMetrics?.Completed();
 
             return domainEvents.Raise(new ArchiveOperationCompleted
             {
@@ -113,5 +119,6 @@
         }
 
         IDomainEvents domainEvents;
+        readonly ArchiveOperationMetrics? operationMetrics;
     }
 }
