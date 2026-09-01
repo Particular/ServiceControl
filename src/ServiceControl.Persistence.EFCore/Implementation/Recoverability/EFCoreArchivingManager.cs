@@ -3,19 +3,20 @@ namespace ServiceControl.Persistence.EFCore.Implementation;
 using ServiceControl.Infrastructure.DomainEvents;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Recoverability;
+using ServiceControl.Recoverability.Archiving.Metrics;
 
 /// <summary>
 /// EFCore equivalent of the RavenDB <see cref="ArchivingManager"/>. Wraps the shared
 /// <see cref="OperationsManager"/> singleton to manage in-memory archive progress state.
 /// </summary>
-class EFCoreArchivingManager(IDomainEvents domainEvents, OperationsManager operationsManager)
+class EFCoreArchivingManager(IDomainEvents domainEvents, OperationsManager operationsManager, ArchiveMetrics metrics)
 {
     InMemoryArchive GetOrCreate(ArchiveType archiveType, string requestId)
     {
         var id = InMemoryArchive.MakeId(requestId, archiveType);
         if (!operationsManager.ArchiveOperations.TryGetValue(id, out var summary))
         {
-            summary = new InMemoryArchive(requestId, archiveType, domainEvents);
+            summary = new InMemoryArchive(requestId, archiveType, domainEvents, metrics);
             operationsManager.ArchiveOperations[id] = summary;
         }
 
