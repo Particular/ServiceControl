@@ -12,6 +12,6 @@ namespace ServiceControl.Recoverability
         public string? Comment { get; set; }
         public DateTime First { get; set; }
         public DateTime Last { get; set; }
-        object?[] IVersionedRow.VersionFields => [Id, Title, Type, Count, Comment, First, Last];
+        object?[] IVersionedRow.GetVersionFields() => [Id, Title, Type, Count, Comment, First, Last];
     }
 }

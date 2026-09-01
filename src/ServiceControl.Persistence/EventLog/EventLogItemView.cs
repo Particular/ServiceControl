@@ -19,7 +19,7 @@ namespace ServiceControl.EventLog
         public List<string> RelatedTo { get; set; } = [];
         public required string Category { get; set; }
         public required string EventType { get; set; }
-        object?[] IVersionedRow.VersionFields =>
+        object?[] IVersionedRow.GetVersionFields() =>
             [Id, Description, Severity, RaisedAt, Category, EventType, .. RelatedTo];
     }
 }

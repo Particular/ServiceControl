@@ -13,7 +13,7 @@
         public string? Originator { get; set; }
         public bool Failed { get; set; }
         public int NumberOfMessagesProcessed { get; set; }
-        object?[] IVersionedRow.VersionFields =>
+        object?[] IVersionedRow.GetVersionFields() =>
             [RequestId, RetryType, StartTime, CompletionTime, Originator, Failed, NumberOfMessagesProcessed];
     }
 }
