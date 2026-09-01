@@ -18,7 +18,7 @@ public class GroupOperation : IVersionedRow
     public DateTime? OperationStartTime { get; set; }
     public DateTime? OperationCompletionTime { get; set; }
     public bool NeedUserAcknowledgement { get; set; }
-    object?[] IVersionedRow.VersionFields =>
+    object?[] IVersionedRow.GetVersionFields() =>
     [
         Id, Title, Type, Count, Comment, First, Last, OperationStatus, OperationFailed, OperationProgress,
         OperationMessagesCompletedCount, OperationRemainingCount, OperationStartTime, OperationCompletionTime,

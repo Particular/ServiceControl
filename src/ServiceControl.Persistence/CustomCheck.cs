@@ -14,7 +14,7 @@
         public DateTime ReportedAt { get; set; }
         public string? FailureReason { get; set; }
         public EndpointDetails? OriginatingEndpoint { get; set; }
-        object?[] IVersionedRow.VersionFields =>
+        object?[] IVersionedRow.GetVersionFields() =>
         [
             Id, CustomCheckId, Category, Status, ReportedAt, FailureReason,
             OriginatingEndpoint?.Name, OriginatingEndpoint?.HostId, OriginatingEndpoint?.Host

@@ -11,7 +11,7 @@
         public required string FromPhysicalAddress { get; set; }
         public required string ToPhysicalAddress { get; set; }
         public DateTime LastModified { get; set; }
-        object?[] IVersionedRow.VersionFields => [MessageRedirectId, ToPhysicalAddress, LastModified];
+        object?[] IVersionedRow.GetVersionFields() => [MessageRedirectId, ToPhysicalAddress, LastModified];
         static ConcurrentDictionary<string, Guid> idCache = new ConcurrentDictionary<string, Guid>();
     }
 }
