@@ -11,14 +11,6 @@ namespace ServiceControl.Config.UI.Shell
             IsVisibleChanged += OnIsVisibleChanged;
         }
 
-        enum SetupMode
-        {
-            ErrorHandling,
-            ErrorAndAudit,
-            AuditOnly,
-            MonitoringOnly
-        }
-
         void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             if ((bool)e.NewValue)
@@ -39,15 +31,13 @@ namespace ServiceControl.Config.UI.Shell
             UpdateComponentList();
         }
 
-        // The selected scenario is the only thing that decides which instances are installed;
-        // integrated ServicePulse is the single option layered on top of it.
-        bool InstallServiceControl => selectedMode is SetupMode.ErrorHandling or SetupMode.ErrorAndAudit;
+        bool InstallServiceControl => selectedMode.InstallsServiceControl();
 
-        bool InstallAudit => selectedMode is SetupMode.ErrorAndAudit or SetupMode.AuditOnly;
+        bool InstallAudit => selectedMode.InstallsAudit();
 
-        bool InstallMonitoring => selectedMode is SetupMode.MonitoringOnly;
+        bool InstallMonitoring => selectedMode.InstallsMonitoring();
 
-        bool InstallServicePulse => InstallServiceControl && installServicePulse;
+        bool InstallServicePulse => selectedMode.InstallsServicePulse(installServicePulse);
 
         void Mode_Checked(object sender, RoutedEventArgs e)
         {
