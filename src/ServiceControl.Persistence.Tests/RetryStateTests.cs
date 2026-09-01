@@ -426,7 +426,7 @@
         class CustomRetriesGateway : RetriesGateway
         {
             public CustomRetriesGateway(bool progressToStaged, IRetryBatchStore store, RetryingManager retryManager)
-                : base(store, retryManager, TestRetryMetrics.Create(), NullLogger<RetriesGateway>.Instance)
+                : base(store, retryManager, TestRetryMetrics.Create(), NullLogger<RetriesGateway>.Instance, TimeProvider.System)
             {
                 this.progressToStaged = progressToStaged;
             }

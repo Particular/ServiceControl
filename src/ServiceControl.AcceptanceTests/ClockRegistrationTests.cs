@@ -52,13 +52,16 @@ namespace ServiceControl.AcceptanceTests
         }
 
         [Test]
-        public async Task Should_start_a_persistence_only_host()
+        public async Task Should_register_a_clock_in_a_persistence_only_host()
         {
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.Services.AddPersistence(settings, maintenanceMode: true);
 
             using var host = hostBuilder.Build();
             await host.StartAsync();
+
+            Assert.That(host.Services.GetRequiredService<TimeProvider>(), Is.Not.Null);
+
             await host.StopAsync();
         }
 
