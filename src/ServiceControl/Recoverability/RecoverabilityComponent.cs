@@ -115,6 +115,7 @@
             services.AddIntegrationEventPublisher<FailedMessageGroupBatchArchivedPublisher>();
             services.AddIntegrationEventPublisher<FailedMessageGroupBatchUnarchivedPublisher>();
             services.AddIntegrationEventPublisher<FailedMessagesUnarchivedPublisher>();
+            services.AddIntegrationEventPublisher<MessageFailedPublisher>();
             services.AddIntegrationEventPublisher<MessageFailureResolvedByRetryPublisher>();
             services.AddIntegrationEventPublisher<MessageFailureResolvedManuallyPublisher>();
             services.AddIntegrationEventPublisher<MessageEditedAndRetriedPublisher>();
