@@ -6,7 +6,7 @@
              mc:Ignorable="d"
              d:DesignHeight="500" d:DesignWidth="600">
     <UserControl.Resources>
-        <Style x:Key="PresetButton" TargetType="RadioButton">
+        <Style x:Key="ModeButton" TargetType="RadioButton">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
@@ -34,9 +34,36 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="ModeLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="TextAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="ModeSubLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="Foreground" Value="{StaticResource Gray60Brush}" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,2,0,0" />
+        </Style>
+        <!-- Legible against both the unselected (Gray10) and selected (DarkTheme) tab backgrounds -->
+        <Style x:Key="ModeSubLabelHighlight" TargetType="TextBlock" BasedOn="{StaticResource ModeSubLabel}">
+            <Setter Property="Foreground" Value="{StaticResource WhiteBrush}" />
+            <Setter Property="Opacity" Value="0.85" />
+        </Style>
+        <!-- Installed components are outcomes, not controls, so they are ticks rather than
+             check boxes: the only box on the screen is the only thing worth clicking. -->
+        <Style x:Key="CheckGlyph" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource LightThemeBrush}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Width" Value="16" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Margin" Value="0,1,0,0" />
+        </Style>
         <Style x:Key="ComponentCheckBox" TargetType="CheckBox">
             <Setter Property="Foreground" Value="White" />
-            <Setter Property="Margin" Value="0,8" />
             <Setter Property="Cursor" Value="Hand" />
         </Style>
         <Style x:Key="ComponentLabel" TargetType="TextBlock">
@@ -53,173 +80,149 @@
     </UserControl.Resources>
 
     <Grid Background="Black" MinWidth="500">
-        <Grid Margin="20">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+        <StackPanel Margin="20">
 
             <!-- Header -->
-            <TextBlock Grid.Row="0"
-                       FontSize="15"
+            <TextBlock FontSize="15"
                        FontWeight="SemiBold"
                        Foreground="White"
                        Margin="0,0,0,15"
                        Text="Choose a setup scenario" />
 
-            <!-- Preset Buttons -->
-            <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,15">
-                <RadioButton x:Name="PresetMinimal"
-                             GroupName="Preset"
-                             Style="{StaticResource PresetButton}"
-                             Checked="Preset_Checked">
-                    <TextBlock FontSize="12" FontWeight="SemiBold" Foreground="White"
-                               Text="Minimal Setup" TextAlignment="Center" />
+            <!-- Scenario selection. These are mutually exclusive, so they are the only
+                 thing driving what gets installed. -->
+            <UniformGrid Columns="4" Margin="0,0,0,20">
+                <RadioButton x:Name="ModeErrorHandling"
+                             GroupName="SetupMode"
+                             Style="{StaticResource ModeButton}"
+                             Checked="Mode_Checked">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource ModeLabel}" Text="Error handling" />
+                        <TextBlock Style="{StaticResource ModeSubLabel}" Text="Failed messages" />
+                    </StackPanel>
                 </RadioButton>
-                <RadioButton x:Name="PresetFull"
-                             GroupName="Preset"
+                <RadioButton x:Name="ModeErrorAndAudit"
+                             GroupName="SetupMode"
                              IsChecked="True"
-                             Style="{StaticResource PresetButton}"
-                             Checked="Preset_Checked">
-                    <TextBlock FontSize="12" FontWeight="SemiBold" Foreground="White"
-                               Text="Full Setup" TextAlignment="Center" />
+                             Style="{StaticResource ModeButton}"
+                             Checked="Mode_Checked">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource ModeLabel}" Text="Error + Audit" />
+                        <TextBlock Style="{StaticResource ModeSubLabelHighlight}" Text="Failed and audit messages" />
+                    </StackPanel>
                 </RadioButton>
-                <RadioButton x:Name="PresetAuditOnly"
-                             GroupName="Preset"
-                             Style="{StaticResource PresetButton}"
-                             Checked="Preset_Checked">
-                    <TextBlock FontSize="12" FontWeight="SemiBold" Foreground="White"
-                               Text="Audit Only" TextAlignment="Center" />
+                <RadioButton x:Name="ModeAuditOnly"
+                             GroupName="SetupMode"
+                             Style="{StaticResource ModeButton}"
+                             Checked="Mode_Checked">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource ModeLabel}" Text="Audit only" />
+                        <TextBlock Style="{StaticResource ModeSubLabel}" Text="Add to existing Error instance" />
+                    </StackPanel>
+                </RadioButton>
+                <RadioButton x:Name="ModeMonitoringOnly"
+                             GroupName="SetupMode"
+                             Style="{StaticResource ModeButton}"
+                             Checked="Mode_Checked">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource ModeLabel}" Text="Monitoring only" />
+                        <TextBlock Style="{StaticResource ModeSubLabel}" Text="Add to existing Error instance" />
+                    </StackPanel>
                 </RadioButton>
             </UniformGrid>
 
-            <!-- "This will install:" label -->
-            <TextBlock Grid.Row="2"
-                       FontSize="13"
+            <TextBlock FontSize="13"
                        FontWeight="SemiBold"
                        Foreground="{StaticResource Gray70Brush}"
                        Margin="0,0,0,5"
                        Text="This will install:" />
 
-            <!-- ServiceControl Instance checkbox -->
-            <CheckBox x:Name="CbServiceControl"
-                      Grid.Row="3"
-                      Style="{StaticResource ComponentCheckBox}"
-                      IsChecked="True"
-                      Checked="ComponentCheckBox_Changed"
-                      Unchecked="ComponentCheckBox_Changed">
-                <StackPanel Margin="5,0,0,0">
-                    <TextBlock Style="{StaticResource ComponentLabel}" Text="ServiceControl Instance" />
-                    <TextBlock Style="{StaticResource ComponentDescription}"
-                               Text="Collects failed messages for retry and management" />
-                </StackPanel>
-            </CheckBox>
+            <!-- MinHeight keeps the popup from resizing as scenarios with different
+                 numbers of components are selected. -->
+            <StackPanel MinHeight="150">
 
-            <!-- Integrated ServicePulse checkbox -->
-            <CheckBox x:Name="CbServicePulse"
-                      Grid.Row="4"
-                      Style="{StaticResource ComponentCheckBox}"
-                      IsChecked="True"
-                      Checked="ComponentCheckBox_Changed"
-                      Unchecked="ComponentCheckBox_Changed">
-                <StackPanel Margin="5,0,0,0">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Style="{StaticResource ComponentLabel}" Text="Integrated ServicePulse" />
-                        <TextBlock FontSize="12"
-                                   Foreground="{StaticResource Gray50Brush}"
-                                   FontStyle="Italic"
-                                   Margin="6,0,0,0"
-                                   Text="(requires ServiceControl Instance)" />
+                <Grid x:Name="ServiceControlRow" Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Style="{StaticResource CheckGlyph}" Text="&#x2713;" />
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                        <TextBlock Style="{StaticResource ComponentLabel}" Text="ServiceControl Instance" />
+                        <TextBlock Style="{StaticResource ComponentDescription}"
+                                   Text="Collects failed messages for retry and management" />
                     </StackPanel>
-                    <TextBlock Style="{StaticResource ComponentDescription}"
-                               Text="Built-in web UI hosted by the error instance for managing failed messages" />
-                </StackPanel>
-            </CheckBox>
+                </Grid>
 
-            <!-- ServiceControl Audit Instance checkbox -->
-            <CheckBox x:Name="CbAudit"
-                      Grid.Row="5"
-                      Style="{StaticResource ComponentCheckBox}"
-                      IsChecked="True"
-                      Checked="ComponentCheckBox_Changed"
-                      Unchecked="ComponentCheckBox_Changed">
-                <StackPanel Margin="5,0,0,0">
-                    <TextBlock Style="{StaticResource ComponentLabel}" Text="ServiceControl Audit Instance" />
-                    <TextBlock Style="{StaticResource ComponentDescription}"
-                               Text="Collects audited messages for visualization with ServiceInsight" />
-                </StackPanel>
-            </CheckBox>
+                <!-- Nested under the instance that hosts it, and the one genuine choice here -->
+                <CheckBox x:Name="CbServicePulse"
+                          Style="{StaticResource ComponentCheckBox}"
+                          Margin="26,8,0,0"
+                          IsChecked="True"
+                          Checked="ServicePulse_Changed"
+                          Unchecked="ServicePulse_Changed">
+                    <StackPanel Margin="5,0,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource ComponentLabel}" Text="Integrated ServicePulse" />
+                            <TextBlock FontSize="12"
+                                       Foreground="{StaticResource Gray50Brush}"
+                                       FontStyle="Italic"
+                                       Margin="6,0,0,0"
+                                       Text="(requires ServiceControl Instance)" />
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource ComponentDescription}"
+                                   Text="Built-in web UI hosted by the Error instance for managing failed messages" />
+                    </StackPanel>
+                </CheckBox>
 
-            <!-- Separator: "Or install separately" -->
-            <Grid Grid.Row="6" Margin="0,15,0,8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Rectangle Grid.Column="0" Height="1" Fill="{StaticResource Gray20Brush}" VerticalAlignment="Center" />
-                <TextBlock Grid.Column="1"
-                           FontSize="11"
-                           Foreground="{StaticResource Gray50Brush}"
-                           FontWeight="SemiBold"
-                           Margin="10,0"
-                           Text="OR INSTALL SEPARATELY" />
-                <Rectangle Grid.Column="2" Height="1" Fill="{StaticResource Gray20Brush}" VerticalAlignment="Center" />
-            </Grid>
+                <Grid x:Name="AuditRow" Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Style="{StaticResource CheckGlyph}" Text="&#x2713;" />
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                        <TextBlock Style="{StaticResource ComponentLabel}" Text="ServiceControl Audit Instance" />
+                        <TextBlock Style="{StaticResource ComponentDescription}"
+                                   Text="Collects audited messages from endpoints for visualization with ServicePulse" />
+                    </StackPanel>
+                </Grid>
 
-            <!-- Monitoring checkbox -->
-            <CheckBox x:Name="CbMonitoring"
-                      Grid.Row="7"
-                      Style="{StaticResource ComponentCheckBox}"
-                      Checked="MonitoringCheckBox_Checked"
-                      Unchecked="MonitoringCheckBox_Unchecked">
-                <StackPanel Margin="5,0,0,0">
-                    <TextBlock Style="{StaticResource ComponentLabel}" Text="Monitoring Instance" />
-                    <TextBlock Style="{StaticResource ComponentDescription}"
-                               Text="Collects monitoring data from endpoints running the NServiceBus.Metrics.ServiceControl plugin" />
-                </StackPanel>
-            </CheckBox>
+                <Grid x:Name="MonitoringRow" Margin="0,8,0,0" Visibility="Collapsed">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Style="{StaticResource CheckGlyph}" Text="&#x2713;" />
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                        <TextBlock Style="{StaticResource ComponentLabel}" Text="Monitoring Instance" />
+                        <TextBlock Style="{StaticResource ComponentDescription}"
+                                   Text="Collects monitoring data from endpoints running the NServiceBus.Metrics.ServiceControl plugin" />
+                    </StackPanel>
+                </Grid>
 
-            <!-- Monitoring info box (hidden by default) -->
-            <Border x:Name="MonitoringInfoBox"
-                    Grid.Row="8"
-                    Background="#0d2818"
-                    BorderBrush="{StaticResource SuccessBrush}"
-                    BorderThickness="1"
-                    CornerRadius="2"
-                    Padding="12"
-                    Margin="0,4,0,0"
-                    Visibility="Collapsed">
-                <TextBlock FontSize="12"
-                           Foreground="{StaticResource Gray90Brush}"
-                           TextWrapping="Wrap"
-                           Text="Monitoring instances are installed separately and cannot be combined with Error or Audit instances in the same setup. Selecting this option will start a dedicated monitoring instance installation." />
-            </Border>
+            </StackPanel>
 
-            <!-- Next / Cancel buttons -->
-            <StackPanel Grid.Row="9"
-                        Orientation="Horizontal"
+            <TextBlock FontSize="11"
+                       FontStyle="Italic"
+                       Foreground="{StaticResource Gray50Brush}"
+                       TextWrapping="Wrap"
+                       Margin="0,14,0,0"
+                       Text="Pick a scenario above to change what gets installed." />
+
+            <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Right"
                         Margin="0,15,0,5">
                 <Button Content="Cancel"
                         Style="{StaticResource BasicButton}"
                         Padding="30,8"
                         Click="Cancel_Click" />
-                <Button x:Name="NextButton"
-                        Content="Next"
+                <Button Content="Next"
                         Style="{StaticResource HiliteButton}"
                         Padding="30,8"
                         Margin="10,0,0,0"
                         Click="Next_Click" />
             </StackPanel>
-        </Grid>
+        </StackPanel>
     </Grid>
 </UserControl>

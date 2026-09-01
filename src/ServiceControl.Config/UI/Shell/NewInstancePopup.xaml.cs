@@ -11,6 +11,14 @@ namespace ServiceControl.Config.UI.Shell
             IsVisibleChanged += OnIsVisibleChanged;
         }
 
+        enum SetupMode
+        {
+            ErrorHandling,
+            ErrorAndAudit,
+            AuditOnly,
+            MonitoringOnly
+        }
+
         void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             if ((bool)e.NewValue)
@@ -21,98 +29,67 @@ namespace ServiceControl.Config.UI.Shell
 
         void ResetToDefaults()
         {
-            suppressCheckBoxEvents = true;
+            installServicePulse = true;
 
-            CbMonitoring.IsChecked = false;
-            MonitoringInfoBox.Visibility = Visibility.Collapsed;
-            SetServiceControlCheckboxesEnabled(true);
+            // Assigning IsChecked when it is already true raises no Checked event, so the
+            // mode is set directly rather than relying on the radio button to report it.
+            selectedMode = SetupMode.ErrorAndAudit;
+            ModeErrorAndAudit.IsChecked = true;
 
-            CbServiceControl.IsChecked = true;
-            CbServicePulse.IsChecked = true;
-            CbServicePulse.Opacity = 1.0;
-            CbAudit.IsChecked = true;
-
-            NextButton.IsEnabled = true;
-
-            suppressPresetEvents = true;
-            PresetFull.IsChecked = true;
-            suppressPresetEvents = false;
-
-            suppressCheckBoxEvents = false;
+            UpdateComponentList();
         }
 
-        public bool InstallServiceControl => CbServiceControl.IsChecked == true;
-        public bool InstallServicePulse => CbServicePulse.IsChecked == true;
-        public bool InstallAudit => CbAudit.IsChecked == true;
-        public bool InstallMonitoring => CbMonitoring.IsChecked == true;
+        // The selected scenario is the only thing that decides which instances are installed;
+        // integrated ServicePulse is the single option layered on top of it.
+        public bool InstallServiceControl => selectedMode is SetupMode.ErrorHandling or SetupMode.ErrorAndAudit;
 
-        void Preset_Checked(object sender, RoutedEventArgs e)
+        public bool InstallAudit => selectedMode is SetupMode.ErrorAndAudit or SetupMode.AuditOnly;
+
+        public bool InstallMonitoring => selectedMode is SetupMode.MonitoringOnly;
+
+        public bool InstallServicePulse => InstallServiceControl && installServicePulse;
+
+        void Mode_Checked(object sender, RoutedEventArgs e)
         {
-            if (!IsLoaded || suppressPresetEvents)
+            if (!IsLoaded)
             {
                 return;
             }
 
-            suppressCheckBoxEvents = true;
-
-            CbMonitoring.IsChecked = false;
-            MonitoringInfoBox.Visibility = Visibility.Collapsed;
-            SetServiceControlCheckboxesEnabled(true);
-
-            var (sc, sp, audit) = sender switch
+            selectedMode = sender switch
             {
-                _ when sender == PresetMinimal => (true, true, false),
-                _ when sender == PresetFull => (true, true, true),
-                _ when sender == PresetAuditOnly => (false, false, true),
-                _ => (false, false, false)
+                _ when sender == ModeErrorHandling => SetupMode.ErrorHandling,
+                _ when sender == ModeAuditOnly => SetupMode.AuditOnly,
+                _ when sender == ModeMonitoringOnly => SetupMode.MonitoringOnly,
+                _ => SetupMode.ErrorAndAudit
             };
 
-            CbServiceControl.IsChecked = sc;
-            CbServicePulse.IsChecked = sp;
-            CbAudit.IsChecked = audit;
-
-            UpdateServicePulseState();
-            UpdateNextButton();
-            suppressCheckBoxEvents = false;
+            UpdateComponentList();
         }
 
-        void ComponentCheckBox_Changed(object sender, RoutedEventArgs e)
+        void ServicePulse_Changed(object sender, RoutedEventArgs e)
         {
-            if (suppressCheckBoxEvents || !IsLoaded)
+            if (!IsLoaded)
             {
                 return;
             }
 
-            if (sender == CbServiceControl)
-            {
-                UpdateServicePulseState();
-            }
-
-            SyncPresetSelection();
-            UpdateNextButton();
+            installServicePulse = CbServicePulse.IsChecked == true;
         }
 
-        void MonitoringCheckBox_Checked(object sender, RoutedEventArgs e)
+        void UpdateComponentList()
         {
-            suppressCheckBoxEvents = true;
+            ServiceControlRow.Visibility = Visible(InstallServiceControl);
+            AuditRow.Visibility = Visible(InstallAudit);
+            MonitoringRow.Visibility = Visible(InstallMonitoring);
 
-            CbServiceControl.IsChecked = false;
-            CbServicePulse.IsChecked = false;
-            CbAudit.IsChecked = false;
-            SetServiceControlCheckboxesEnabled(false);
-            UpdateServicePulseState();
-            SyncPresetSelection();
-            MonitoringInfoBox.Visibility = Visibility.Visible;
-            UpdateNextButton();
-
-            suppressCheckBoxEvents = false;
+            // ServicePulse is hosted by the error instance, so it is only on offer in the
+            // scenarios that install one. The choice is remembered across scenario changes.
+            CbServicePulse.Visibility = Visible(InstallServiceControl);
+            CbServicePulse.IsChecked = installServicePulse;
         }
 
-        void MonitoringCheckBox_Unchecked(object sender, RoutedEventArgs e)
-        {
-            MonitoringInfoBox.Visibility = Visibility.Collapsed;
-            PresetFull.IsChecked = true;
-        }
+        static Visibility Visible(bool visible) => visible ? Visibility.Visible : Visibility.Collapsed;
 
         void Next_Click(object sender, RoutedEventArgs e)
         {
@@ -144,65 +121,7 @@ namespace ServiceControl.Config.UI.Shell
             }
         }
 
-        void UpdateServicePulseState()
-        {
-            if (!IsLoaded)
-            {
-                return;
-            }
-
-            var errorChecked = CbServiceControl.IsChecked == true;
-            CbServicePulse.IsEnabled = errorChecked;
-            CbServicePulse.Opacity = errorChecked ? 1.0 : 0.4;
-            if (!errorChecked)
-            {
-                CbServicePulse.IsChecked = false;
-            }
-        }
-
-        void SetServiceControlCheckboxesEnabled(bool enabled)
-        {
-            CbServiceControl.IsEnabled = enabled;
-            CbServicePulse.IsEnabled = enabled;
-            CbAudit.IsEnabled = enabled;
-        }
-
-        void SyncPresetSelection()
-        {
-            suppressPresetEvents = true;
-
-            switch (InstallServiceControl, InstallServicePulse, InstallAudit)
-            {
-                case (true, true, true):
-                    PresetFull.IsChecked = true;
-                    break;
-                case (true, true, false):
-                    PresetMinimal.IsChecked = true;
-                    break;
-                case (false, false, true):
-                    PresetAuditOnly.IsChecked = true;
-                    break;
-                default:
-                    PresetMinimal.IsChecked = false;
-                    PresetFull.IsChecked = false;
-                    PresetAuditOnly.IsChecked = false;
-                    break;
-            }
-
-            suppressPresetEvents = false;
-        }
-
-        void UpdateNextButton()
-        {
-            if (!IsLoaded)
-            {
-                return;
-            }
-
-            NextButton.IsEnabled = InstallServiceControl || InstallAudit || InstallMonitoring;
-        }
-
-        bool suppressCheckBoxEvents;
-        bool suppressPresetEvents;
+        SetupMode selectedMode = SetupMode.ErrorAndAudit;
+        bool installServicePulse = true;
     }
 }

@@ -70,9 +70,6 @@
 
         public bool HasInstances { get; private set; }
 
-        [FeatureToggle(Feature.MonitoringInstances)]
-        public bool ShowMonitoringInstances { get; set; }
-
         public ICommand AddMonitoringInstance { get; private set; }
 
         public ICommand OpenUrl { get; private set; }
