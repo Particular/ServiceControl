@@ -13,7 +13,7 @@ namespace ServiceControl.Contracts.CustomChecks
     /// ReportCustomCheckResult messages (a wire contract owned by the NServiceBus.CustomChecks package, so
     /// nothing extra can travel in the message — the id has to be recognized here). Consequence: the audit
     /// section below is a list of string literals. New audit-instance checks MUST be added here; there are
-    /// acceptance tests that enforce this.
+    /// approval tests that enforce this.
     /// </summary>
     public static class InternalCustomCheckClassification
     {
