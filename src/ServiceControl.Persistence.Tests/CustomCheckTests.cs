@@ -2,6 +2,7 @@ namespace ServiceControl.Persistence.Tests
 {
     using System;
     using System.Linq;
+    using Contracts.CustomChecks;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
@@ -17,7 +18,7 @@ namespace ServiceControl.Persistence.Tests
                 string.Join(Environment.NewLine,
                     from check in ServiceProvider.GetServices<ICustomCheck>()
                     orderby check.Category, check.Id
-                    select $"{check.Category}: {check.Id}"
+                    select $"{check.Category}: {check.Id}{(InternalCustomCheckClassification.IsInternal(check.Id) ? "" : " - MISSING FROM InternalCustomCheckClassification")}"
                 )
             );
     }
