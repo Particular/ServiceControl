@@ -6,18 +6,22 @@
     using Infrastructure.DomainEvents;
     using Microsoft.Extensions.Logging;
     using ServiceControl.Persistence;
+    using ServiceControl.Recoverability.Retrying.Metrics;
 
     public class InMemoryRetry
     {
-        public InMemoryRetry(string requestId, RetryType retryType, IDomainEvents domainEvents, ILogger logger)
+        public InMemoryRetry(string requestId, RetryType retryType, IDomainEvents domainEvents, RetryMetrics metrics, ILogger logger)
         {
             RequestId = requestId;
-            this.retryType = retryType;
+            RetryType = retryType;
             this.domainEvents = domainEvents;
+            this.metrics = metrics;
             this.logger = logger;
+            operationStartTimestamp = metrics.GetTimestamp();
         }
 
         public string RequestId { get; }
+        public RetryType RetryType { get; }
         public int TotalNumberOfMessages { get; private set; }
         public int NumberOfMessagesPrepared { get; private set; }
         public int NumberOfMessagesForwarded { get; private set; }
@@ -39,6 +43,7 @@
         public Task Wait(DateTime started, string originator = null, string classifier = null, DateTime? last = null, CancellationToken cancellationToken = default)
         {
             RetryState = RetryState.Waiting;
+            operationStartTimestamp = metrics.GetTimestamp();
             NumberOfMessagesPrepared = 0;
             NumberOfMessagesForwarded = 0;
             TotalNumberOfMessages = 0;
@@ -53,7 +58,7 @@
             return domainEvents.Raise(new RetryOperationWaiting
             {
                 RequestId = RequestId,
-                RetryType = retryType,
+                RetryType = RetryType,
                 Progress = GetProgress(),
                 StartTime = Started
             }, cancellationToken);
@@ -66,6 +71,12 @@
 
         public Task Prepare(int totalNumberOfMessages, CancellationToken cancellationToken = default)
         {
+            // A completed operation being prepared again is a new run that never went through Wait.
+            if (RetryState == RetryState.Completed)
+            {
+                operationStartTimestamp = metrics.GetTimestamp();
+            }
+
             RetryState = RetryState.Preparing;
             TotalNumberOfMessages = totalNumberOfMessages;
             NumberOfMessagesForwarded = 0;
@@ -74,7 +85,7 @@
             return domainEvents.Raise(new RetryOperationPreparing
             {
                 RequestId = RequestId,
-                RetryType = retryType,
+                RetryType = RetryType,
                 TotalNumberOfMessages = TotalNumberOfMessages,
                 Progress = GetProgress(),
                 IsFailed = Failed,
@@ -89,7 +100,7 @@
             return domainEvents.Raise(new RetryOperationPreparing
             {
                 RequestId = RequestId,
-                RetryType = retryType,
+                RetryType = RetryType,
                 TotalNumberOfMessages = TotalNumberOfMessages,
                 Progress = GetProgress(),
                 IsFailed = Failed,
@@ -114,7 +125,7 @@
             return domainEvents.Raise(new RetryOperationForwarding
             {
                 RequestId = RequestId,
-                RetryType = retryType,
+                RetryType = RetryType,
                 TotalNumberOfMessages = TotalNumberOfMessages,
                 Progress = GetProgress(),
                 IsFailed = Failed,
@@ -125,11 +136,12 @@
         public async Task BatchForwarded(int numberOfMessagesForwarded, CancellationToken cancellationToken = default)
         {
             NumberOfMessagesForwarded += numberOfMessagesForwarded;
+            metrics.RecordMessages(RetryType, RetryMessageOutcome.Forwarded, numberOfMessagesForwarded);
 
             await domainEvents.Raise(new RetryMessagesForwarded
             {
                 RequestId = RequestId,
-                RetryType = retryType,
+                RetryType = RetryType,
                 TotalNumberOfMessages = TotalNumberOfMessages,
                 Progress = GetProgress(),
                 IsFailed = Failed,
@@ -142,6 +154,7 @@
         public Task Skip(int numberOfMessagesSkipped, CancellationToken cancellationToken = default)
         {
             NumberOfMessagesSkipped += numberOfMessagesSkipped;
+            metrics.RecordMessages(RetryType, RetryMessageOutcome.Skipped, numberOfMessagesSkipped);
             return CheckForCompletion(cancellationToken);
         }
 
@@ -154,11 +167,12 @@
 
             RetryState = RetryState.Completed;
             CompletionTime = DateTime.UtcNow;
+            metrics.RecordOperationCompleted(RetryType, operationStartTimestamp, Failed);
 
             await domainEvents.Raise(new RetryOperationCompleted
             {
                 RequestId = RequestId,
-                RetryType = retryType,
+                RetryType = RetryType,
                 Failed = Failed,
                 Progress = GetProgress(),
                 StartTime = Started,
@@ -169,7 +183,7 @@
                 Classifier = Classifier
             }, cancellationToken);
 
-            if (retryType == RetryType.FailureGroup)
+            if (RetryType == RetryType.FailureGroup)
             {
                 await domainEvents.Raise(new MessagesSubmittedForRetry
                 {
@@ -206,9 +220,11 @@
             return RetryState is not RetryState.Completed and not RetryState.Waiting;
         }
 
-        readonly RetryType retryType;
+
+        long operationStartTimestamp;
 
         IDomainEvents domainEvents;
+        readonly RetryMetrics metrics;
         readonly ILogger logger;
     }
 }

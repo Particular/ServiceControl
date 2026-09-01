@@ -8,13 +8,17 @@
     using Infrastructure.DomainEvents;
     using Microsoft.Extensions.Logging;
     using ServiceControl.Persistence;
+    using ServiceControl.Recoverability.Retrying.Metrics;
 
     public class RetryingManager
     {
-        public RetryingManager(IDomainEvents domainEvents, ILogger<RetryingManager> logger)
+        public RetryingManager(IDomainEvents domainEvents, RetryMetrics metrics, ILogger<RetryingManager> logger)
         {
             this.domainEvents = domainEvents;
+            this.metrics = metrics;
             this.logger = logger;
+
+            metrics.ObserveOperationsInProgress(() => retryOperations.Values.Select(operation => (operation.RetryType, operation.RetryState)));
         }
 
         public Task Wait(string requestId, RetryType retryType, DateTime started, string originator = null, string classifier = null, DateTime? last = null, CancellationToken cancellationToken = default)
@@ -93,7 +97,7 @@
             ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
 
             var key = InMemoryRetry.MakeOperationId(requestId, retryType);
-            return retryOperations.GetOrAdd(key, _ => new InMemoryRetry(requestId, retryType, domainEvents, logger));
+            return retryOperations.GetOrAdd(key, _ => new InMemoryRetry(requestId, retryType, domainEvents, metrics, logger));
         }
 
         public InMemoryRetry GetStatusForRetryOperation(string requestId, RetryType retryType)
@@ -104,6 +108,7 @@
         }
 
         IDomainEvents domainEvents;
+        readonly RetryMetrics metrics;
         readonly ILogger<RetryingManager> logger;
         ConcurrentDictionary<string, InMemoryRetry> retryOperations = new ConcurrentDictionary<string, InMemoryRetry>();
     }
