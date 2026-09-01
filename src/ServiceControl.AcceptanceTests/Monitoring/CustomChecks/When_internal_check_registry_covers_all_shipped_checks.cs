@@ -4,21 +4,15 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using AcceptanceTesting;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts.CustomChecks;
 
-    // Prong 2 of drift protection (see .plans/internal-customchecks.md §7.6): persister and transport checks
-    // are runtime-loaded plugin assemblies, not compile-visible to ServiceControl.UnitTests, so the unit-test
-    // approval (Prong 1) cannot see them. This test runs after the instance boots — when the plugin assemblies
-    // are loaded — and asserts every shipped product check discoverable at runtime is classified by the registry.
-    //
     // Some checks (e.g. DeadLetterQueueCheck) perform work in their constructor, so they cannot be instantiated
     // with null constructor arguments. Those are skipped here; they are already covered directly by the registry
-    // unit tests (Every_shipped_check_has_a_severity) and by the API acceptance assertions.
+    // unit tests (Every_shipped_check_is_internal) and by the API acceptance assertions.
     [TestFixture]
     class When_internal_check_registry_covers_all_shipped_checks : AcceptanceTest
     {
@@ -71,7 +65,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
                             continue;
                         }
 
-                        if (InternalCustomCheckClassification.SeverityFor(id) is null)
+                        if (!InternalCustomCheckClassification.IsInternal(id))
                         {
                             missing.Add(id);
                         }
@@ -82,9 +76,8 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
                 .Run();
 
             Assert.That(missing, Is.Empty,
-                "Every check ServiceControl ships must have a severity in the registry. " +
-                "If you added a check, add it to InternalCustomCheckClassification " +
-                "(see .plans/internal-customchecks.md §7.3). Missing: " +
+                "Every check ServiceControl ships must be in the internal registry. " +
+                "If you added a check, add it to InternalCustomCheckClassification. Missing: " +
                 string.Join(", ", missing));
         }
 

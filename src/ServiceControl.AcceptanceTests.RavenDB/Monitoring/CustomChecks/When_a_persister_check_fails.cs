@@ -10,11 +10,10 @@ namespace ServiceControl.AcceptanceTests.RavenDB.Monitoring.CustomChecks
     using NUnit.Framework;
     using Operations;
     using ServiceBus.Management.Infrastructure.Settings;
-    using CustomCheckSeverity = global::ServiceControl.Contracts.CustomChecks.CustomCheckSeverity;
     using CustomCheckView = global::ServiceControl.Contracts.CustomChecks.CustomCheckView;
     using CheckStatus = global::ServiceControl.Persistence.Status;
 
-    // Sibling of When_critical_storage_threshold_reached (see .plans/internal-customchecks.md §8.2): proves a
+    // Sibling of When_critical_storage_threshold_reached: proves a
     // persister-implemented internal check that is forced to fail comes back classified through the API.
     // "ServiceControl database" cannot be forced to fail in this environment (the shared embedded server means
     // UseEmbeddedServer is false, so CheckFreeDiskSpace always passes) — see plan §8.6.
@@ -31,7 +30,7 @@ namespace ServiceControl.AcceptanceTests.RavenDB.Monitoring.CustomChecks
         RavenPersisterSettings PersisterSettings => (RavenPersisterSettings)Settings.PersisterSpecificSettings;
 
         [Test]
-        public async Task Forced_failure_is_classified_internal_and_degraded()
+        public async Task Forced_failure_is_classified_internal()
         {
             CustomCheckView ingestionCheck = null;
 
@@ -56,7 +55,6 @@ namespace ServiceControl.AcceptanceTests.RavenDB.Monitoring.CustomChecks
             {
                 Assert.That(ingestionCheck, Is.Not.Null, "the forced storage-threshold failure never showed up");
                 Assert.That(ingestionCheck.Internal, Is.True);
-                Assert.That(ingestionCheck.Severity, Is.EqualTo(CustomCheckSeverity.Degraded));
             }
         }
 

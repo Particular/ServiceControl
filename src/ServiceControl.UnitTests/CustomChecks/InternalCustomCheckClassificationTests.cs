@@ -23,27 +23,22 @@ namespace ServiceControl.UnitTests.CustomChecks
         };
 
         [Test]
-        public void Internal_checks_are_flagged_and_carry_their_severity()
+        public void Internal_checks_are_flagged_internal()
         {
             var check = Check("ServiceControl Primary Instance");
 
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(check.Internal, Is.True);
-                Assert.That(check.Severity, Is.EqualTo(CustomCheckSeverity.Unavailable));
-            }
+            Assert.That(check.Internal, Is.True);
         }
 
-        [TestCase("Error Message Ingestion", ExpectedResult = CustomCheckSeverity.Degraded)]
-        [TestCase("Dead Letter Queue", ExpectedResult = CustomCheckSeverity.Degraded)]
-        [TestCase("ServiceControl body storage", ExpectedResult = CustomCheckSeverity.Degraded)]
-        [TestCase("Audit Message Ingestion Process", ExpectedResult = CustomCheckSeverity.Degraded)]
-        public CustomCheckSeverity Every_shipped_check_has_a_severity(string id)
+        [TestCase("Error Message Ingestion")]
+        [TestCase("Dead Letter Queue")]
+        [TestCase("ServiceControl body storage")]
+        [TestCase("Audit Message Ingestion Process")]
+        public void Every_shipped_check_is_internal(string id)
         {
             var check = Check(id);
 
             Assert.That(check.Internal, Is.True, $"{id} is not in the registry");
-            return check.Severity!.Value;
         }
 
         [Test]
@@ -56,21 +51,17 @@ namespace ServiceControl.UnitTests.CustomChecks
 
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(primary.Severity, Is.EqualTo(CustomCheckSeverity.Degraded));
-                Assert.That(audit.Severity, Is.EqualTo(CustomCheckSeverity.Degraded));
+                Assert.That(primary.Internal, Is.True);
+                Assert.That(audit.Internal, Is.True);
             }
         }
 
         [Test]
-        public void Endpoint_checks_are_not_internal_and_carry_no_severity()
+        public void Endpoint_checks_are_not_internal()
         {
             var check = Check("MyCustomCheckId", "MyCategory");
 
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(check.Internal, Is.False);
-                Assert.That(check.Severity, Is.Null);
-            }
+            Assert.That(check.Internal, Is.False);
         }
 
         [Test]
@@ -80,9 +71,8 @@ namespace ServiceControl.UnitTests.CustomChecks
 
             var json = JsonSerializer.Serialize(new[] { check }, SerializerOptions.Default);
 
-            // New fields present:
+            // New field present:
             Assert.That(json, Does.Contain("\"internal\":true"));
-            Assert.That(json, Does.Contain("\"severity\":\"unavailable\""));
             // Every pre-existing field still present, unchanged:
             Assert.That(json, Does.Contain("\"custom_check_id\":\"ServiceControl Primary Instance\""));
             Assert.That(json, Does.Contain("\"category\":\"Health\""));
@@ -92,14 +82,13 @@ namespace ServiceControl.UnitTests.CustomChecks
         }
 
         [Test]
-        public void External_checks_omit_severity_on_the_wire()
+        public void External_checks_render_internal_false_on_the_wire()
         {
             var check = Check("MyCustomCheckId", "MyCategory");
 
             var json = JsonSerializer.Serialize(new[] { check }, SerializerOptions.Default);
 
             Assert.That(json, Does.Contain("\"internal\":false"));
-            Assert.That(json, Does.Not.Contain("severity"));
         }
     }
 }

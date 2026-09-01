@@ -4,14 +4,8 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
     using AcceptanceTesting;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using CustomCheckSeverity = global::ServiceControl.Contracts.CustomChecks.CustomCheckSeverity;
     using CustomCheckView = global::ServiceControl.Contracts.CustomChecks.CustomCheckView;
 
-    // "ServiceControl body storage" is an EF Core persister check (SQL Server / PostgreSQL variants) that was
-    // missing from the ServicePulse spike table. This proves goal 5 of .plans/internal-customchecks.md server-side:
-    // a shipped check the spike table does not know about is still classified internal + degraded by the API.
-    // Excluded from the RavenDB variant (bodies are stored in the database there, so the check does not exist) —
-    // see the Compile Remove in ServiceControl.AcceptanceTests.RavenDB.csproj.
     [TestFixture]
     class When_the_body_storage_check_is_reported : AcceptanceTest
     {
@@ -20,7 +14,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
             SetSettings = static s => s.DisableHealthChecks = false;
 
         [Test]
-        public async Task Should_be_classified_internal_and_degraded()
+        public async Task Should_be_classified_internal()
         {
             CustomCheckView bodyStorageCheck = null;
 
@@ -37,7 +31,6 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
             {
                 Assert.That(bodyStorageCheck, Is.Not.Null, "the EF Core body storage check never reported");
                 Assert.That(bodyStorageCheck.Internal, Is.True);
-                Assert.That(bodyStorageCheck.Severity, Is.EqualTo(CustomCheckSeverity.Degraded));
             }
         }
     }

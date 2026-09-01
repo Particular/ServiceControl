@@ -11,7 +11,6 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
-    using CustomCheckSeverity = global::ServiceControl.Contracts.CustomChecks.CustomCheckSeverity;
     using CustomCheckView = global::ServiceControl.Contracts.CustomChecks.CustomCheckView;
     using CheckStatus = global::ServiceControl.Persistence.Status;
 
@@ -22,7 +21,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
         const string InternalId = "ServiceControl Primary Instance";
 
         [Test]
-        public async Task Internal_checks_are_flagged_with_severity_and_endpoint_checks_are_not()
+        public async Task Internal_checks_are_flagged_internal_and_endpoint_checks_are_not()
         {
             // The acceptance test runner disables internal custom checks by default; this test needs them.
             SetSettings = settings => { settings.DisableHealthChecks = false; };
@@ -40,8 +39,8 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
                     internalCheck ??= checks.Items.SingleOrDefault(x => x.CustomCheckId == InternalId);
                     endpointCheck ??= checks.Items.SingleOrDefault(x => x.CustomCheckId == "MyCustomCheckId" && x.Status == CheckStatus.Fail);
 
-                    // The view computes Internal/Severity from the check id, so deserializing alone would not
-                    // prove the endpoint emits them. Grab the raw payload once and assert on the wire itself.
+                    // The view computes Internal from the check id, so deserializing alone would not
+                    // prove the endpoint emits it. Grab the raw payload once and assert on the wire itself.
                     if (internalCheck != null && endpointCheck != null && wireBody == null)
                     {
                         var raw = await this.GetRaw("/api/customchecks");
@@ -56,33 +55,30 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
             {
                 Assert.That(internalCheck, Is.Not.Null, "primary internal checks report at startup; nothing was found");
                 Assert.That(internalCheck.Internal, Is.True);
-                Assert.That(internalCheck.Severity, Is.EqualTo(CustomCheckSeverity.Unavailable));
 
                 Assert.That(endpointCheck, Is.Not.Null);
                 Assert.That(endpointCheck.Internal, Is.False);
-                Assert.That(endpointCheck.Severity, Is.Null);
 
                 // What the wire actually carries:
                 Assert.That(wireBody, Does.Contain("\"internal\":true"), "internal checks must render internal:true on the wire");
-                Assert.That(wireBody, Does.Contain("\"severity\":\"unavailable\""), "the primary instance check must render severity:unavailable on the wire");
                 Assert.That(wireBody, Does.Contain("\"internal\":false"), "endpoint checks must render internal:false on the wire");
             }
         }
 
         [Test]
-        public async Task Severity_matches_the_spiked_platform_health_config_for_every_internal_check_present()
+        public async Task Every_expected_internal_check_is_flagged_internal()
         {
             // The acceptance test runner disables internal custom checks by default; this test needs them.
             SetSettings = settings => { settings.DisableHealthChecks = false; };
 
-            var expected = new (string Id, CustomCheckSeverity Severity)[]
+            var expectedIds = new[]
             {
-                ("ServiceControl Primary Instance", CustomCheckSeverity.Unavailable),
-                ("ServiceControl Remotes", CustomCheckSeverity.Unavailable),
-                ("Saga Audit Configuration", CustomCheckSeverity.Ignore),
+                "ServiceControl Primary Instance",
+                "ServiceControl Remotes",
+                "Saga Audit Configuration",
                 // RavenDB persister checks also assert here on the RavenDB acceptance variant:
-                ("Error Message Ingestion Process", CustomCheckSeverity.Degraded),
-                ("Error Message Ingestion", CustomCheckSeverity.Degraded),
+                "Error Message Ingestion Process",
+                "Error Message Ingestion",
             };
 
             var seen = new System.Collections.Generic.List<CustomCheckView>();
@@ -100,18 +96,14 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
                         }
                     }
 
-                    return expected.All(e => seen.Any(s => s.CustomCheckId == e.Id));
+                    return expectedIds.All(e => seen.Any(s => s.CustomCheckId == e));
                 })
                 .Run();
 
-            foreach (var (id, severity) in expected)
+            foreach (var id in expectedIds)
             {
                 var check = seen.Single(s => s.CustomCheckId == id);
-                using (Assert.EnterMultipleScope())
-                {
-                    Assert.That(check.Internal, Is.True, id);
-                    Assert.That(check.Severity, Is.EqualTo(severity), id);
-                }
+                Assert.That(check.Internal, Is.True, id);
             }
         }
 

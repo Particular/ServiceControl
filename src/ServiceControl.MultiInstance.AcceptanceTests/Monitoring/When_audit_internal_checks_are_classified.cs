@@ -7,7 +7,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.Monitoring
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using TestSupport;
-    using CustomCheckSeverity = global::ServiceControl.Contracts.CustomChecks.CustomCheckSeverity;
     using CustomCheckView = global::ServiceControl.Contracts.CustomChecks.CustomCheckView;
 
     // Primary + audit instances. The audit forwards its checks to the primary as
@@ -17,7 +16,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.Monitoring
     class When_audit_internal_checks_are_classified : AcceptanceTest
     {
         [Test]
-        public async Task Audit_checks_arriving_as_messages_are_flagged_internal_and_degraded()
+        public async Task Audit_checks_arriving_as_messages_are_flagged_internal()
         {
             var expectedIds = new[]
             {
@@ -47,11 +46,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.Monitoring
             foreach (var id in expectedIds)
             {
                 var check = seen.Single(s => s.CustomCheckId == id);
-                using (Assert.EnterMultipleScope())
-                {
-                    Assert.That(check.Internal, Is.True, id);
-                    Assert.That(check.Severity, Is.EqualTo(CustomCheckSeverity.Degraded), id);
-                }
+                Assert.That(check.Internal, Is.True, id);
             }
         }
 

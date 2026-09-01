@@ -15,7 +15,6 @@ namespace ServiceControl.Audit.UnitTests.API
         // accompanied by an entry in the primary registry; this snapshot makes that visible. The audit
         // RavenDB persister checks (CheckDirtyMemory, CheckFreeDiskSpace, CheckRavenDBIndexLag) are runtime
         // plugins not referenced here, so they are covered by the multi-instance acceptance test instead
-        // (see .plans/internal-customchecks.md §7.8).
         [Test]
         public void Audit_check_ids_are_snapshot()
         {

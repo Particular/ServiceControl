@@ -8,8 +8,8 @@ namespace ServiceControl.Contracts.CustomChecks
     /// <summary>
     /// One custom check as read back and returned by the API. Unlike the stored <see cref="CustomCheck"/>,
     /// it also tells ServicePulse whether the check is one ServiceControl ships itself (primary, audit or
-    /// transport check) or one reported by a monitored endpoint, and how severe a failing internal check is
-    /// for platform health. Both are classified from the check id at read time and are never persisted.
+    /// transport check) or one reported by a monitored endpoint. The flag is classified from the check id
+    /// at read time and is never persisted.
     /// </summary>
     public class CustomCheckView : IVersionedRow
     {
@@ -25,14 +25,7 @@ namespace ServiceControl.Contracts.CustomChecks
         /// True when this check is one ServiceControl ships itself (primary, audit or transport check),
         /// false when it was reported by a monitored endpoint. Computed from the check id.
         /// </summary>
-        public bool Internal => Severity is not null;
-
-        /// <summary>
-        /// Platform-health severity for internal checks. Computed from the check id, so it cannot drift
-        /// independently of it. Null — and therefore omitted from the response — for endpoint checks,
-        /// which have no platform-health semantics.
-        /// </summary>
-        public CustomCheckSeverity? Severity => InternalCustomCheckClassification.SeverityFor(CustomCheckId);
+        public bool Internal => InternalCustomCheckClassification.IsInternal(CustomCheckId);
 
         object?[] IVersionedRow.GetVersionFields() =>
         [
