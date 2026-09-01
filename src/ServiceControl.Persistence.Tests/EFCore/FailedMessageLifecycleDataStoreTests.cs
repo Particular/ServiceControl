@@ -8,10 +8,6 @@ using ServiceControl.Persistence.EFCore.Entities;
 
 class FailedMessageLifecycleDataStoreTests : ErrorIngestionTestBase
 {
-    // Advancing the clock wakes the live sweeper, so retention has to outrun every advance below.
-    [SetUp]
-    public void SetRetention() => EFSettings.ErrorRetentionPeriod = TimeSpan.FromDays(365);
-
     [Test]
     public async Task Marking_as_archived_stamps_the_injected_clock()
     {
