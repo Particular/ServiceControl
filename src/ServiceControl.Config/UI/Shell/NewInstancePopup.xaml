@@ -150,7 +150,7 @@
                     <StackPanel Grid.Column="1" Margin="10,0,0,0">
                         <TextBlock Style="{StaticResource ComponentLabel}" Text="ServiceControl Instance" />
                         <TextBlock Style="{StaticResource ComponentDescription}"
-                                   Text="Collects failed messages for retry and management" />
+                                   Text="Ability to retry failed / dead lettered messages" />
                     </StackPanel>
                 </Grid>
 
@@ -162,16 +162,9 @@
                           Checked="ServicePulse_Changed"
                           Unchecked="ServicePulse_Changed">
                     <StackPanel Margin="5,0,0,0">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Style="{StaticResource ComponentLabel}" Text="Integrated ServicePulse" />
-                            <TextBlock FontSize="12"
-                                       Foreground="{StaticResource Gray50Brush}"
-                                       FontStyle="Italic"
-                                       Margin="6,0,0,0"
-                                       Text="(requires ServiceControl Instance)" />
-                        </StackPanel>
+                        <TextBlock Style="{StaticResource ComponentLabel}" Text="Integrated ServicePulse" />
                         <TextBlock Style="{StaticResource ComponentDescription}"
-                                   Text="Built-in web UI hosted by the Error instance for managing failed messages" />
+                                   Text="Built-in web UI hosted by the Error instance" />
                     </StackPanel>
                 </CheckBox>
 
@@ -197,7 +190,7 @@
                     <StackPanel Grid.Column="1" Margin="10,0,0,0">
                         <TextBlock Style="{StaticResource ComponentLabel}" Text="Monitoring Instance" />
                         <TextBlock Style="{StaticResource ComponentDescription}"
-                                   Text="Collects monitoring data from endpoints running the NServiceBus.Metrics.ServiceControl plugin" />
+                                   Text="Collects monitoring data from endpoints for visualization with ServicePulse" />
                     </StackPanel>
                 </Grid>
 

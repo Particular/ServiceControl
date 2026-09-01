@@ -29,14 +29,13 @@
             this.listInstances = listInstances;
             this.noInstances = noInstances;
             this.addInstance = addInstance;
+            this.addMonitoringInstance = addMonitoringInstance;
             OpenUrl = new OpenURLCommand();
-            AddMonitoringInstance = addMonitoringInstance;
             LicenseStatusManager = licenseStatusManager;
             DisplayName = "ServiceControl Config";
             IsModal = false;
             LoadAppVersion();
             CopyrightInfo = $"{DateTime.UtcNow.Year} © Particular Software";
-            addMonitoringInstance.OnCommandExecuting = () => ShowingMenuOverlay = false;
 
             RefreshInstancesCmd = Command.Create(async () =>
             {
@@ -50,6 +49,12 @@
         {
             ShowingMenuOverlay = false;
             await addInstance.ExecuteWithOptions(installError, installAudit, installServicePulse, cancellationToken);
+        }
+
+        public void LaunchMonitoringAdd()
+        {
+            ShowingMenuOverlay = false;
+            addMonitoringInstance.Execute(null);
         }
 
         public object ActiveContext { get; set; }
@@ -69,8 +74,6 @@
         public string CopyrightInfo { get; }
 
         public bool HasInstances { get; private set; }
-
-        public ICommand AddMonitoringInstance { get; private set; }
 
         public ICommand OpenUrl { get; private set; }
 
@@ -172,5 +175,6 @@
         readonly ListInstancesViewModel listInstances;
         readonly NoInstancesViewModel noInstances;
         readonly AddServiceControlInstanceCommand addInstance;
+        readonly ICommand addMonitoringInstance;
     }
 }

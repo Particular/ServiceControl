@@ -41,13 +41,13 @@ namespace ServiceControl.Config.UI.Shell
 
         // The selected scenario is the only thing that decides which instances are installed;
         // integrated ServicePulse is the single option layered on top of it.
-        public bool InstallServiceControl => selectedMode is SetupMode.ErrorHandling or SetupMode.ErrorAndAudit;
+        bool InstallServiceControl => selectedMode is SetupMode.ErrorHandling or SetupMode.ErrorAndAudit;
 
-        public bool InstallAudit => selectedMode is SetupMode.ErrorAndAudit or SetupMode.AuditOnly;
+        bool InstallAudit => selectedMode is SetupMode.ErrorAndAudit or SetupMode.AuditOnly;
 
-        public bool InstallMonitoring => selectedMode is SetupMode.MonitoringOnly;
+        bool InstallMonitoring => selectedMode is SetupMode.MonitoringOnly;
 
-        public bool InstallServicePulse => InstallServiceControl && installServicePulse;
+        bool InstallServicePulse => InstallServiceControl && installServicePulse;
 
         void Mode_Checked(object sender, RoutedEventArgs e)
         {
@@ -91,7 +91,10 @@ namespace ServiceControl.Config.UI.Shell
 
         static Visibility Visible(bool visible) => visible ? Visibility.Visible : Visibility.Collapsed;
 
-        void Next_Click(object sender, RoutedEventArgs e)
+        // async void is deliberate: this is an event handler, so awaiting here routes any
+        // failure to the dispatcher's unhandled exception handler rather than dropping it
+        // on an unobserved task.
+        async void Next_Click(object sender, RoutedEventArgs e)
         {
             ClosePopup();
 
@@ -99,11 +102,11 @@ namespace ServiceControl.Config.UI.Shell
             {
                 if (InstallMonitoring)
                 {
-                    shell.AddMonitoringInstance.Execute(null);
+                    shell.LaunchMonitoringAdd();
                 }
                 else
                 {
-                    _ = shell.LaunchServiceControlAdd(InstallServiceControl, InstallAudit, InstallServicePulse);
+                    await shell.LaunchServiceControlAdd(InstallServiceControl, InstallAudit, InstallServicePulse);
                 }
             }
         }

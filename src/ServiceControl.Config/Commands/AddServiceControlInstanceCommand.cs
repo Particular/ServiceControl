@@ -36,13 +36,9 @@ namespace ServiceControl.Config.Commands
 
             if (installError)
             {
-                var spOption = instanceViewModel.ServiceControl.EnableIntegratedServicePulseOptions
-                    .FirstOrDefault(o => o.Value == installServicePulse);
-
-                if (spOption != null)
-                {
-                    instanceViewModel.ServiceControl.EnableIntegratedServicePulse = spOption;
-                }
+                // The options list always carries both an On and an Off entry.
+                instanceViewModel.ServiceControl.EnableIntegratedServicePulse = instanceViewModel.ServiceControl
+                    .EnableIntegratedServicePulseOptions.First(o => o.Value == installServicePulse);
             }
 
             await windowManager.ShowInnerDialog(instanceViewModel, cancellationToken: cancellationToken);
