@@ -18,6 +18,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Notifications;
     using CheckStatus = global::ServiceControl.Persistence.Status;
+    using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
 
     class When_email_notifications_are_configured : AcceptanceTest
     {

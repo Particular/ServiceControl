@@ -13,6 +13,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using CheckStatus = global::ServiceControl.Persistence.Status;
+    using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
 
     class When_a_failing_custom_check_is_dismissed : AcceptanceTest
     {
