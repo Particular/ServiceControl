@@ -13,15 +13,15 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    [Migration("20260807012019_AddSettings")]
-    partial class AddSettings
+    [Migration("20260901221623_AddFullTextSearch")]
+    partial class AddFullTextSearch
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -210,6 +210,32 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.ToTable("EventLogItems", (string)null);
                 });
 
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.ExternalIntegrationDispatchRequestEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("DispatchContextJson")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("dispatch_context_json");
+
+                    b.Property<string>("DispatchContextTypeName")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("dispatch_context_type_name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_external_integration_dispatch_requests");
+
+                    b.ToTable("ExternalIntegrationDispatchRequests", (string)null);
+                });
+
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedErrorImportEntity", b =>
                 {
                     b.Property<Guid>("UniqueMessageId")
@@ -254,6 +280,27 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.ToTable("failed_error_imports", (string)null);
                 });
 
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageEditEntity", b =>
+                {
+                    b.Property<Guid>("UniqueMessageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("unique_message_id");
+
+                    b.Property<string>("EditId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("edit_id");
+
+                    b.HasKey("UniqueMessageId")
+                        .HasName("pk_failed_message_edits");
+
+                    b.HasIndex("EditId")
+                        .HasDatabaseName("ix_failed_message_edits_edit_id");
+
+                    b.ToTable("failed_message_edits", (string)null);
+                });
+
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageEntity", b =>
                 {
                     b.Property<Guid>("UniqueMessageId")
@@ -291,6 +338,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnName("exception_type");
 
                     b.Property<string>("FailingEndpointAddress")
+                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)")
                         .HasColumnName("failing_endpoint_address");
@@ -554,6 +602,88 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.ToTable("known_endpoints", (string)null);
                 });
 
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.LicensingEndpointEntity", b =>
+                {
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("normalized_name");
+
+                    b.Property<int>("ThroughputSource")
+                        .HasColumnType("integer")
+                        .HasColumnName("throughput_source");
+
+                    b.PrimitiveCollection<List<string>>("EndpointIndicators")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("endpoint_indicators");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("NormalizedSanitizedName")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("normalized_sanitized_name");
+
+                    b.Property<string>("SanitizedName")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("sanitized_name");
+
+                    b.Property<string>("Scope")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("scope");
+
+                    b.Property<string>("UserIndicator")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("user_indicator");
+
+                    b.HasKey("NormalizedName", "ThroughputSource")
+                        .HasName("pk_licensing_endpoints");
+
+                    b.HasIndex("NormalizedSanitizedName")
+                        .HasDatabaseName("ix_licensing_endpoints_normalized_sanitized_name");
+
+                    b.ToTable("licensing_endpoints", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.LicensingEndpointThroughputEntity", b =>
+                {
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("normalized_name");
+
+                    b.Property<int>("ThroughputSource")
+                        .HasColumnType("integer")
+                        .HasColumnName("throughput_source");
+
+                    b.Property<DateOnly>("DateUtc")
+                        .HasColumnType("date")
+                        .HasColumnName("date_utc");
+
+                    b.Property<long>("MessageCount")
+                        .HasColumnType("bigint")
+                        .HasColumnName("message_count");
+
+                    b.HasKey("NormalizedName", "ThroughputSource", "DateUtc")
+                        .HasName("pk_licensing_endpoint_throughput");
+
+                    b.HasIndex("DateUtc")
+                        .HasDatabaseName("ix_licensing_endpoint_throughput_date_utc");
+
+                    b.ToTable("licensing_endpoint_throughput", (string)null);
+                });
+
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.MessageRedirectEntity", b =>
                 {
                     b.Property<string>("FromPhysicalAddress")
@@ -767,6 +897,16 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_failed_message_groups_failed_messages_failed_message_unique");
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.LicensingEndpointThroughputEntity", b =>
+                {
+                    b.HasOne("ServiceControl.Persistence.EFCore.Entities.LicensingEndpointEntity", null)
+                        .WithMany()
+                        .HasForeignKey("NormalizedName", "ThroughputSource")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_licensing_endpoint_throughput_licensing_endpoints_normalize");
                 });
 #pragma warning restore 612, 618
         }

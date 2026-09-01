@@ -12,18 +12,68 @@ using ServiceControl.Persistence.EFCore.SqlServer;
 namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerServiceControlDbContext))]
-    [Migration("20260804222033_AddRetryHistory")]
-    partial class AddRetryHistory
+    [Migration("20260901221643_AddFullTextSearch")]
+    partial class AddFullTextSearch
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.ArchiveOperationEntity", b =>
+                {
+                    b.Property<string>("RequestId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int>("ArchiveType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OperationType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CurrentBatch")
+                        .HasColumnType("int");
+
+                    b.Property<string>("GroupName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("InitiatedById")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("InitiatedByName")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("NumberOfBatches")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NumberOfMessagesProcessed")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OperationId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Started")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TotalNumberOfMessages")
+                        .HasColumnType("int");
+
+                    b.HasKey("RequestId", "ArchiveType", "OperationType");
+
+                    b.HasIndex("Started");
+
+                    b.ToTable("ArchiveOperations");
+                });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.CustomCheckEntity", b =>
                 {
@@ -121,6 +171,28 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.ToTable("EventLogItems", (string)null);
                 });
 
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.ExternalIntegrationDispatchRequestEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("DispatchContextJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DispatchContextTypeName")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ExternalIntegrationDispatchRequests", (string)null);
+                });
+
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedErrorImportEntity", b =>
                 {
                     b.Property<Guid>("UniqueMessageId")
@@ -156,6 +228,23 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.ToTable("FailedErrorImports");
                 });
 
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageEditEntity", b =>
+                {
+                    b.Property<Guid>("UniqueMessageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("EditId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("UniqueMessageId");
+
+                    b.HasIndex("EditId");
+
+                    b.ToTable("FailedMessageEdits");
+                });
+
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageEntity", b =>
                 {
                     b.Property<Guid>("UniqueMessageId")
@@ -185,6 +274,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FailingEndpointAddress")
+                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
@@ -391,6 +481,72 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.ToTable("KnownEndpoints");
                 });
 
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.LicensingEndpointEntity", b =>
+                {
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int>("ThroughputSource")
+                        .HasColumnType("int");
+
+                    b.PrimitiveCollection<string>("EndpointIndicators")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("NormalizedSanitizedName")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("SanitizedName")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Scope")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserIndicator")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("NormalizedName", "ThroughputSource");
+
+                    b.HasIndex("NormalizedSanitizedName");
+
+                    b.ToTable("LicensingEndpoints");
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.LicensingEndpointThroughputEntity", b =>
+                {
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int>("ThroughputSource")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("DateUtc")
+                        .HasColumnType("date");
+
+                    b.Property<long>("MessageCount")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("NormalizedName", "ThroughputSource", "DateUtc");
+
+                    b.HasIndex("DateUtc");
+
+                    b.ToTable("LicensingEndpointThroughput");
+                });
+
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.MessageRedirectEntity", b =>
                 {
                     b.Property<string>("FromPhysicalAddress")
@@ -484,6 +640,21 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.ToTable("RetryBatchNowForwarding");
                 });
 
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.SettingEntity", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("Settings");
+                });
+
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.SubscriptionEntity", b =>
                 {
                     b.Property<string>("MessageType")
@@ -502,28 +673,6 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.HasKey("MessageType", "TransportAddress");
 
                     b.ToTable("Subscriptions");
-                });
-
-            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.TrialMetadataEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateOnly?>("TrialEndDate")
-                        .HasColumnType("date");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TrialMetadata");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1
-                        });
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.UnacknowledgedRetryOperationEntity", b =>
@@ -567,6 +716,15 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.HasOne("ServiceControl.Persistence.EFCore.Entities.FailedMessageEntity", null)
                         .WithMany()
                         .HasForeignKey("FailedMessageUniqueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.LicensingEndpointThroughputEntity", b =>
+                {
+                    b.HasOne("ServiceControl.Persistence.EFCore.Entities.LicensingEndpointEntity", null)
+                        .WithMany()
+                        .HasForeignKey("NormalizedName", "ThroughputSource")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

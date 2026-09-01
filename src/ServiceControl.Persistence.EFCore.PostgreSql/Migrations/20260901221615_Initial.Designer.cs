@@ -13,15 +13,15 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    [Migration("20260811033225_AddExternalIntegrationDispatchRequests")]
-    partial class AddExternalIntegrationDispatchRequests
+    [Migration("20260901221615_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -280,6 +280,27 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.ToTable("failed_error_imports", (string)null);
                 });
 
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageEditEntity", b =>
+                {
+                    b.Property<Guid>("UniqueMessageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("unique_message_id");
+
+                    b.Property<string>("EditId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("edit_id");
+
+                    b.HasKey("UniqueMessageId")
+                        .HasName("pk_failed_message_edits");
+
+                    b.HasIndex("EditId")
+                        .HasDatabaseName("ix_failed_message_edits_edit_id");
+
+                    b.ToTable("failed_message_edits", (string)null);
+                });
+
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageEntity", b =>
                 {
                     b.Property<Guid>("UniqueMessageId")
@@ -317,6 +338,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnName("exception_type");
 
                     b.Property<string>("FailingEndpointAddress")
+                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)")
                         .HasColumnName("failing_endpoint_address");
