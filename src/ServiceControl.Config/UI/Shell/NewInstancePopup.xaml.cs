@@ -81,9 +81,7 @@ namespace ServiceControl.Config.UI.Shell
 
         static Visibility Visible(bool visible) => visible ? Visibility.Visible : Visibility.Collapsed;
 
-        // async void is deliberate: this is an event handler, so awaiting here routes any
-        // failure to the dispatcher's unhandled exception handler rather than dropping it
-        // on an unobserved task.
+#pragma warning disable PS0027 // Click is an event delegate, so there is nothing to return the task to. Awaiting routes failures to the dispatcher's unhandled exception handler instead of dropping them on an unobserved task.
         async void Next_Click(object sender, RoutedEventArgs e)
         {
             ClosePopup();
@@ -100,6 +98,7 @@ namespace ServiceControl.Config.UI.Shell
                 }
             }
         }
+#pragma warning restore PS0027
 
         void Cancel_Click(object sender, RoutedEventArgs e)
         {
