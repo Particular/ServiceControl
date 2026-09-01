@@ -27,6 +27,45 @@ Meter `Particular.ServiceControl`.
 
 `ServiceControl/PrintMetrics` predates this and no longer has anything to print.
 
+### Retry
+
+The retry pipeline runs in four stages: a bulk request is queued, preparation scans the store and cuts batches of 1000, staging dispatches a batch to the staging queue, and forwarding returns the staged messages to their senders. Each stage gets its own duration histogram, and the whole operation gets one end-to-end histogram on top.
+
+Every instrument carries `retry.type`, one of `all`, `endpoint`, `group`, `queue`, `batch` or `single`.
+
+- `sc.retry.operation_duration_seconds` - The whole retry operation, from the request arriving to the last message forwarded or skipped
+  - `result` - `success` or `failed`
+- `sc.retry.prepare_duration_seconds` - Preparation, covering the store scan and batch creation. This is the stage that grows with the size of the error store.
+  - `result` - `success`, `failed`, or `cancelled` if shutdown cut the preparation short
+- `sc.retry.stage_duration_seconds` - Staging one batch to the staging queue
+  - `result` - `success`, `failed`, `empty` for a batch that had no messages left and was discarded, or `cancelled` if shutdown cut the staging short
+- `sc.retry.forward_duration_seconds` - Forwarding one batch back to the senders
+  - `result` - `success`, `failed`, or `cancelled` if shutdown cut the forwarding short
+  - `mode` - `counting`, or `timeout` when recovering from a premature shutdown. Timeout mode only ends on the forwarder's 45 second idle timer, so its distribution has a floor at that value.
+- `sc.retry.messages_total` - Messages moved through the pipeline
+  - `result` - `staged`, `forwarded`, `skipped`, `staging_retried`, or `abandoned` for a message that hit the staging retry limit and was dropped from its batch. `abandoned` is the one to alert on: it is a message the user asked to retry that will not be retried.
+- `sc.retry.operations_in_progress` - Retry operations currently in progress
+  - `retry.state` - `waiting`, `preparing` or `forwarding`
+- `sc.retry.pending_bulk_requests` - Bulk retry requests queued behind each other, drained one per five second tick
+
+A retry that hangs never records a duration, so on the histograms alone a stuck operation looks identical to no traffic. `operations_in_progress` holding a non-zero value while the duration histograms stay flat is the stuck-operation signal.
+
+### Archive
+
+Group archive and unarchive run as a loop over batches of 1000 until the group is drained. These instruments are emitted only when the instance runs on the SQL Server or PostgreSQL persistence; on RavenDB the family does not exist.
+
+Every instrument carries `archive.operation`, either `archive` or `unarchive`.
+
+- `sc.archive.operation_duration_seconds` - The whole group operation
+- `sc.archive.batch_duration_seconds` - One batch of the loop, measured as the wall time between successive batch completions
+- `sc.archive.messages_total` - Messages archived and unarchived
+- `sc.archive.operations_in_progress` - Operations currently in progress
+  - `archive.state` - `started`, `progressing` or `finalizing`
+
+### Host
+
+With an OTLP endpoint configured the error instance also exports the standard [ASP.NET Core](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/built-in-metrics-aspnetcore) instruments (`http.server.request.duration` per route, which covers the read APIs), the [HTTP client](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/built-in-metrics-system-net) instruments (`http.client.request.duration`, which covers the scatter-gather calls to remote instances), and the [runtime](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/built-in-metrics-runtime) instruments (GC, thread pool, exceptions).
+
 ## Audit
 
 Meter `Particular.ServiceControl.Audit`.

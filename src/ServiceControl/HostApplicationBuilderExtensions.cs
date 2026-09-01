@@ -15,11 +15,13 @@
     using global::ServiceControl.Infrastructure.WebApi;
     using global::ServiceControl.Notifications.Email;
     using global::ServiceControl.Operations.Metrics;
+    using global::ServiceControl.Recoverability.Retrying.Metrics;
     using global::ServiceControl.Persistence;
     using global::ServiceControl.Transports;
     using Licensing;
     using Microsoft.AspNetCore.HttpLogging;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Hosting.WindowsServices;
     using Microsoft.Extensions.Logging;
@@ -99,7 +101,7 @@
 
             services.AddPersistence(settings);
             services.AddMetrics(settings.PrintMetrics);
-            hostBuilder.AddIngestionMetrics(settings);
+            hostBuilder.AddTelemetry(settings);
             services.AddServiceControlHealthChecks();
 
             if (settings.ErrorIngestionOnly)
@@ -149,9 +151,11 @@
             persistence.AddInstaller(hostApplicationBuilder.Services);
         }
 
-        public static void AddIngestionMetrics(this IHostApplicationBuilder hostBuilder, Settings settings)
+        public static void AddTelemetry(this IHostApplicationBuilder hostBuilder, Settings settings)
         {
+            hostBuilder.Services.TryAddSingleton(TimeProvider.System);
             hostBuilder.Services.AddSingleton<IngestionMetrics>();
+            hostBuilder.Services.AddSingleton<RetryMetrics>();
 
             var otlpEndpoint = OtlpEndpoint.Read(hostBuilder.Configuration);
 
@@ -168,6 +172,9 @@
                 .WithMetrics(metrics =>
                 {
                     metrics.AddIngestionMetrics();
+                    metrics.AddAspNetCoreInstrumentation();
+                    metrics.AddHttpClientInstrumentation();
+                    metrics.AddRuntimeInstrumentation();
                     metrics.AddOtlpExporter();
 
                     if (Debugger.IsAttached)

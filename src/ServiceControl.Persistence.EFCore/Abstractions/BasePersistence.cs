@@ -17,6 +17,7 @@ using ServiceControl.Persistence.MessageRedirects;
 using ServiceControl.Persistence.Recoverability;
 using ServiceControl.Persistence.UnitOfWork;
 using ServiceControl.Recoverability;
+using ServiceControl.Recoverability.Archiving.Metrics;
 
 public abstract class BasePersistence
 {
@@ -43,6 +44,7 @@ public abstract class BasePersistence
         }
 
         services.AddSingleton<OperationsManager>();
+        services.AddSingleton<ArchiveMetrics>();
         services.AddSingleton<IArchiveMessages, MessageArchiver>();
         services.AddSingleton<ICustomChecksDataStore, CustomCheckDataStore>();
         services.AddSingleton<IMessagesViewDataStore, MessagesViewDataStore>();
