@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 namespace ServiceControl.UnitTests.Recoverability;
 
 using System;
@@ -22,7 +22,7 @@ public class FailureGroupsRetryControllerAuditTests
         var session = new TestableMessageSession();
         var audit = new RecordingMessageActionAuditLog();
         var user = new AuditUser("alice-sub", "Alice");
-        var retryingManager = new RetryingManager(new FakeDomainEvents(), NullLogger<RetryingManager>.Instance);
+        var retryingManager = new RetryingManager(new FakeDomainEvents(), TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
         var controller = new FailureGroupsRetryController(session, retryingManager, new StubCurrentUserAccessor(user), audit);
 
         await controller.ArchiveGroupErrors("group-42");
@@ -41,7 +41,7 @@ public class FailureGroupsRetryControllerAuditTests
     {
         var session = new TestableMessageSession();
         var audit = new RecordingMessageActionAuditLog();
-        var retryingManager = new RetryingManager(new FakeDomainEvents(), NullLogger<RetryingManager>.Instance);
+        var retryingManager = new RetryingManager(new FakeDomainEvents(), TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
         await retryingManager.Preparing("group-42", RetryType.FailureGroup, totalNumberOfMessages: 10);
         var controller = new FailureGroupsRetryController(session, retryingManager, new StubCurrentUserAccessor(new AuditUser("alice-sub", "Alice")), audit);
 
