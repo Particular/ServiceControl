@@ -1,6 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
-using Xunit;
+using NUnit.Framework;
 
 namespace TestingTool.SmokeTests;
 
@@ -26,18 +26,18 @@ public class SmokeTest
     private static readonly HttpClient ToolClient = new() { BaseAddress = new Uri(TestingToolUrl), Timeout = TimeSpan.FromSeconds(30) };
     private static readonly HttpClient ScClient = new() { BaseAddress = new Uri(ServiceControlUrl), Timeout = TimeSpan.FromSeconds(30) };
 
-    [Fact]
+    [Test]
     public async Task TestingTool_IsAccessible_ReturnsStatus()
     {
         var response = await ToolClient.GetAsync("/api/status");
         response.EnsureSuccessStatusCode();
 
         var status = await response.Content.ReadFromJsonAsync<StatusResponse>();
-        Assert.NotNull(status);
-        Assert.True(status.Ready);
+        Assert.That(status, Is.Not.Null);
+        Assert.That(status!.Ready, Is.True);
     }
 
-    [Fact]
+    [Test]
     public async Task ThirdPartyOutage_GeneratesErrors_VisibleInServiceControl()
     {
         // 1. Stop any existing scenario first (clean slate)
@@ -57,8 +57,8 @@ public class SmokeTest
         groupsResponse.EnsureSuccessStatusCode();
 
         var groups = await groupsResponse.Content.ReadFromJsonAsync<List<ErrorGroupResponse>>();
-        Assert.NotNull(groups);
-        Assert.NotEmpty(groups!);
+        Assert.That(groups, Is.Not.Null);
+        Assert.That(groups!, Is.Not.Empty);
 
         // 5. Wait for the scenario to finish (remaining ~20s + buffer)
         await Task.Delay(TimeSpan.FromSeconds(25));
@@ -67,11 +67,11 @@ public class SmokeTest
         var statusResponse = await ToolClient.GetAsync("/api/status");
         statusResponse.EnsureSuccessStatusCode();
         var status = await statusResponse.Content.ReadFromJsonAsync<StatusResponse>();
-        Assert.NotNull(status);
-        Assert.True(status!.ErrorsSent > 0, $"Expected errors to be sent, got {status.ErrorsSent}");
+        Assert.That(status, Is.Not.Null);
+        Assert.That(status!.ErrorsSent > 0, $"Expected errors to be sent, got {status.ErrorsSent}");
     }
 
-    [Fact]
+    [Test]
     public async Task Replay_ErrorGroup_IsAcceptedByServiceControl()
     {
         // 1. Ensure there are error groups to replay
@@ -92,8 +92,8 @@ public class SmokeTest
             groups = await groupsResponse.Content.ReadFromJsonAsync<List<ErrorGroupResponse>>();
         }
 
-        Assert.NotNull(groups);
-        Assert.NotEmpty(groups!);
+        Assert.That(groups, Is.Not.Null);
+        Assert.That(groups!, Is.Not.Empty);
 
         // 2. Trigger replay on the first group
         var firstGroup = groups![0];
@@ -101,7 +101,7 @@ public class SmokeTest
             $"/api/recoverability/groups/{firstGroup.Id}/errors/retry", new { });
 
         // ServiceControl should accept the replay request (202 Accepted or 200 OK)
-        Assert.True(replayResponse.IsSuccessStatusCode,
+        Assert.That(replayResponse.IsSuccessStatusCode,
             $"Replay request failed: {replayResponse.StatusCode} {await replayResponse.Content.ReadAsStringAsync()}");
     }
 

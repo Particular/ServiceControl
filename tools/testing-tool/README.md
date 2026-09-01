@@ -64,7 +64,6 @@ be kicked off manually by name:
 tools/testing-tool/
   TestingTool.slnx
   Directory.Build.props          # repo-style conventions (warnings-as-errors, nullable, analyzers)
-  Directory.Packages.props       # central package management (OTel + NServiceBus pinned)
   Dockerfile
   global.json
   TestingTool/                   # ASP.NET Core host: Program.cs, web UI, services
@@ -93,7 +92,7 @@ tools/testing-tool/
     ScenarioRegistry.cs          # default scenario registry implementation
   TestingTool.Scenarios/         # IScenario contract + 5 scenario implementations
   TestingTool.Contracts/         # shared DTOs (ScenarioInfo, TestingToolStatus, BypassStatus, etc.)
-  TestingTool.SmokeTests/        # xunit smoke tests (requires running SC + tool)
+  TestingTool.SmokeTests/        # nunit smoke tests (requires running SC + tool)
   TestingTool.AppHost/           # Aspire AppHost project (platform + tool + observability stack)
     AppHost.cs                   # top-level orchestration (platform, observability, testing tool)
     HostBuilderExtensions.cs     # persistence-type extensions (RavenDB / SQL Server / PostgreSQL)
