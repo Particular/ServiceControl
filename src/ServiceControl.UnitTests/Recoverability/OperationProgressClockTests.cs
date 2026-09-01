@@ -58,7 +58,11 @@ public class OperationProgressClockTests
 
         await archive.Complete();
 
-        Assert.That(archive.CompletionTime, Is.EqualTo(archive.Last));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(archive.CompletionTime, Is.EqualTo(FixedNow));
+            Assert.That(archive.Last, Is.EqualTo(FixedNow));
+        }
     }
 
     [Test]
@@ -68,7 +72,11 @@ public class OperationProgressClockTests
 
         await unarchive.Complete();
 
-        Assert.That(unarchive.CompletionTime, Is.EqualTo(unarchive.Last));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(unarchive.CompletionTime, Is.EqualTo(FixedNow));
+            Assert.That(unarchive.Last, Is.EqualTo(FixedNow));
+        }
     }
 
     [Test]

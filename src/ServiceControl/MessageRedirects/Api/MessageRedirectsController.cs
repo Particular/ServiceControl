@@ -39,11 +39,13 @@
                 return BadRequest();
             }
 
+            var now = timeProvider.GetUtcNow().UtcDateTime;
+
             var messageRedirect = new MessageRedirect
             {
                 FromPhysicalAddress = request.FromPhysicalAddress,
                 ToPhysicalAddress = request.ToPhysicalAddress,
-                LastModified = timeProvider.GetUtcNow().UtcDateTime
+                LastModified = now
             };
 
             var redirects = await store.GetRedirects(cancellationToken);
@@ -88,7 +90,7 @@
                 {
                     QueueAddress = messageRedirect.FromPhysicalAddress,
                     PeriodFrom = DateTime.MinValue,
-                    PeriodTo = timeProvider.GetUtcNow().UtcDateTime
+                    PeriodTo = now
                 }, cancellationToken);
             }
 
