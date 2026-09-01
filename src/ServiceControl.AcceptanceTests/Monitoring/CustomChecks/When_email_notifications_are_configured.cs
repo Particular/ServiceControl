@@ -10,13 +10,13 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
+    using Contracts.CustomChecks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Notifications;
-    using CustomCheckView = global::ServiceControl.Contracts.CustomChecks.CustomCheck;
     using CheckStatus = global::ServiceControl.Persistence.Status;
 
     class When_email_notifications_are_configured : AcceptanceTest

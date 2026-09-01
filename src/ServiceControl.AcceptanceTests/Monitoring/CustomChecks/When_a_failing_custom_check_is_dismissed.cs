@@ -6,12 +6,12 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
+    using Contracts.CustomChecks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
-    using CustomCheckView = global::ServiceControl.Contracts.CustomChecks.CustomCheck;
     using CheckStatus = global::ServiceControl.Persistence.Status;
 
     class When_a_failing_custom_check_is_dismissed : AcceptanceTest

@@ -21,7 +21,7 @@
         [Authorize(Policy = Permissions.ErrorCustomChecksView)]
         [Route("customchecks")]
         [HttpGet]
-        public async Task<IList<CustomCheck>> CustomChecks([FromQuery] PagingInfo pagingInfo, string status = null, CancellationToken cancellationToken = default)
+        public async Task<IList<CustomCheckView>> CustomChecks([FromQuery] PagingInfo pagingInfo, string status = null, CancellationToken cancellationToken = default)
         {
             var stats = await checksDataStore.GetStats(pagingInfo, status, cancellationToken);
 

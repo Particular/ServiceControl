@@ -1,0 +1,5 @@
+Configuration: Saga Audit Configuration => Ignore
+Health: ServiceControl Primary Instance => Unavailable
+Health: ServiceControl Remotes => Unavailable
+ServiceControl Health: Error Message Ingestion => Degraded
+ServiceControl Health: Error Message Ingestion Process => Degraded
