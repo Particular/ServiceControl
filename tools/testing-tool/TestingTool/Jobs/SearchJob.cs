@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using TestingTool.Scenarios;
 
 namespace TestingTool.Jobs;
 
@@ -20,23 +21,29 @@ public sealed class SearchJob(
     private readonly Counter<long> _searchCounter = meter.CreateCounter<long>("searches_executed_total");
     private readonly Histogram<double> _searchLatency = meter.CreateHistogram<double>("search_latency_ms", "ms");
 
-    // Canned queries that exercise different search index paths.
-    private static readonly string[] CannedQueries =
-    [
-        "exception",
-        "timeout",
-        "NullReferenceException",
-        "downstream",
-        "deserialization",
-        "poison",
-        "503",
-        "retry"
-    ];
+    // Terms drawn from the same vocabulary embedded into generated message bodies by
+    // MessageTextGenerator, so the queries are guaranteed to match indexed content and
+    // genuinely exercise ServiceControl's full-text search index rather than returning empty
+    // results. We keep a couple of exception-related terms too: those appear in the failure
+    // headers (NServiceBus.ExceptionInfo.Message) that ServiceControl also indexes.
+    private static readonly string[] CannedQueries = BuildQueries();
 
     public override string Name => "search";
     public override string Description => "Run canned full-text-search queries against ServiceControl to exercise the search index.";
     public override string Category => "Search";
     public override TimeSpan DefaultInterval => options.Value.SearchInterval;
+
+    private static string[] BuildQueries()
+    {
+        // Start with the searchable terms embedded in generated message bodies...
+        var queries = new List<string>(MessageTextGenerator.SearchableTerms);
+
+        // ...then add a few terms that appear in scenario exception headers, which ServiceControl
+        // also indexes for full-text search.
+        queries.AddRange(["exception", "timeout", "poison", "deserialization"]);
+
+        return queries.ToArray();
+    }
 
     protected override async Task ExecuteCycleAsync(CancellationToken ct)
     {

@@ -133,8 +133,10 @@ public sealed class ScenarioRunner
             while (await timer.WaitForNextTickAsync(ct))
             {
                 var seq = Interlocked.Increment(ref sequence);
-                var payload = new byte[Random.Shared.Next(64, 512)];
-                Random.Shared.NextBytes(payload);
+
+                // Plausible JSON body (~3–6 KB) seeded with searchable terms so ServiceControl's
+                // full-text search index has real content to exercise.
+                var textBody = MessageTextGenerator.GenerateBody(seq);
 
                 // Deterministic message id shared with the handler: FailingMessageHandler calls
                 // scenario.ShouldFail(context.MessageId), so setting the id here ensures the
@@ -148,7 +150,7 @@ public sealed class ScenarioRunner
 
                 try
                 {
-                    await _session.Send(new LoadMessage { Sequence = seq, Payload = payload }, sendOptions, ct);
+                    await _session.Send(new LoadMessage { Sequence = seq, TextBody = textBody }, sendOptions, ct);
 
                     // If the scenario fails for this message id (same decision as the handler),
                     // count it as an error sent.
