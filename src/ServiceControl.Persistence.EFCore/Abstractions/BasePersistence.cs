@@ -23,7 +23,6 @@ public abstract class BasePersistence
 {
     protected static void RegisterDataStores(IServiceCollection services, EFPersisterSettings settings)
     {
-        // Usually provided by AddServiceControl, but a persistence-only host has to get it from here.
         services.TryAddSingleton(TimeProvider.System);
 
         services.AddSingleton<MinimumRequiredStorageState>();
