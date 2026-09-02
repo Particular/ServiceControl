@@ -91,4 +91,66 @@ public sealed class ServiceControlClient(HttpClient http, ILogger<ServiceControl
     public sealed record SearchResponse([property: JsonPropertyName("messageCount")] int MessageCount);
 
     public sealed record SearchResult(int MessageCount);
+
+    /// <summary>
+    /// Triggers a manual retention sweep on the ServiceControl error instance. The delete work
+    /// runs in the background on ServiceControl; this returns as soon as the run is accepted
+    /// (or refused because one is already running / unsupported by the persister). Both cutoffs
+    /// are omitted so ServiceControl derives them from the configured retention periods, just
+    /// as the scheduled hourly sweep does.
+    /// </summary>
+    /// <returns>The response status: <c>started</c>, <c>already-running</c>, <c>maintenance</c>,
+    /// <c>not-supported</c>, or <c>invalid-cutoff</c>; <c>null</c> on a transport/HTTP failure.</returns>
+    public async Task<RetentionSweepResponse?> SweepRetentionAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            // No body — both cutoffs default to (now - retention period) inside ServiceControl.
+            var response = await http.PostAsJsonAsync("/api/retention/sweep", new { }, ct);
+
+            // Both success (202) and refusal (409/501/503/400) carry a JSON body describing the
+            // outcome — deserialize it either way so the caller can react to the status string.
+            return await response.Content.ReadFromJsonAsync<RetentionSweepResponse>(ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to trigger retention sweep on ServiceControl");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Polls the execution state of the most recent retention sweep. On a persister with no
+    /// sweeper (e.g. RavenDB, which uses server-side document expiration) ServiceControl
+    /// returns 501 with a <see cref="RetentionSweepStatus.Reason"/>.
+    /// </summary>
+    public async Task<RetentionSweepStatus?> GetRetentionSweepStatusAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            var response = await http.GetAsync("/api/retention/sweep/status", ct);
+            return await response.Content.ReadFromJsonAsync<RetentionSweepStatus>(ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to fetch retention sweep status from ServiceControl");
+            return null;
+        }
+    }
+
+    public sealed record RetentionSweepResponse(
+        [property: JsonPropertyName("status")] string Status,
+        [property: JsonPropertyName("startedAt")] DateTime? StartedAt,
+        [property: JsonPropertyName("errorCutoff")] DateTime? ErrorCutoff,
+        [property: JsonPropertyName("eventsCutoff")] DateTime? EventsCutoff,
+        [property: JsonPropertyName("reason")] string? Reason);
+
+    public sealed record RetentionSweepStatus(
+        [property: JsonPropertyName("isRunning")] bool IsRunning,
+        [property: JsonPropertyName("lastStartedAt")] DateTime? LastStartedAt,
+        [property: JsonPropertyName("lastFinishedAt")] DateTime? LastFinishedAt,
+        [property: JsonPropertyName("lastErrorCutoff")] DateTime? LastErrorCutoff,
+        [property: JsonPropertyName("lastEventsCutoff")] DateTime? LastEventsCutoff,
+        [property: JsonPropertyName("lastError")] string? LastError,
+        [property: JsonPropertyName("reason")] string? Reason);
 }

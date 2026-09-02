@@ -32,6 +32,9 @@ Recoverability/search jobs are controllable from the web UI (no longer hidden co
 - **Retry** — fetches error groups from ServiceControl and retries each group
 - **Archive** — fetches error groups from ServiceControl and archives each group
 - **Search** — runs canned FTS queries to exercise the ServiceControl search index
+- **Retention sweep** — triggers a manual retention sweep on ServiceControl each cycle,
+  exercising the retention pipeline (full scan-and-delete of aged failures and event-log rows)
+  against the load the other jobs produce
 
 Jobs do not auto-start; start them from the UI (or `/api/jobs`) when needed. Control via:
 - `GET /api/jobs` — list jobs with live status
@@ -80,6 +83,7 @@ tools/testing-tool/
       RetryJob.cs                # retries all error groups each cycle
       ArchiveJob.cs              # archives all error groups each cycle
       SearchJob.cs               # canned FTS queries each cycle
+      RetentionSweepJob.cs       # triggers a manual retention sweep each cycle
     FailingMessageHandler.cs     # NServiceBus handler that throws per scenario logic
     ReleaseTestScenarios.cs      # release-test preset mappings (Phase 5)
     ServiceControlClient.cs      # REST API client (error groups, retry, archive, search)
@@ -215,6 +219,7 @@ All configuration is via environment variables (no files, no database). Settings
 | `TestingTool__SearchInterval` | `00:01:00` | Default interval for the search job |
 | `TestingTool__ArchiveInterval` | `00:02:00` | Default interval for the archive job |
 | `TestingTool__ArchiveMinGroupSize` | `1` | Min messages in a group before archiving |
+| `TestingTool__RetentionSweepInterval` | `00:05:00` | Default interval for the retention-sweep job |
 | `TestingTool__ErrorQueueName` | `error` | NServiceBus error queue (ServiceControl monitors this) |
 | `TestingTool__AutoStartBackgroundNoise` | `false` | Auto-start the background-noise scenario on startup |
 | `SHARD_ID` (env) | *(auto: hostname ordinal or machine name)* | Shard id for disjoint scenario slices when scaled |

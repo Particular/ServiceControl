@@ -51,6 +51,7 @@ builder.Services.AddHttpClient<ServiceControlClient>((sp, client) =>
 builder.Services.AddSingleton<JobBase, RetryJob>();
 builder.Services.AddSingleton<JobBase, ArchiveJob>();
 builder.Services.AddSingleton<JobBase, SearchJob>();
+builder.Services.AddSingleton<JobBase, RetentionSweepJob>();
 builder.Services.AddSingleton<JobRunner>();
 
 // --- Application pipeline ---
@@ -102,6 +103,9 @@ app.MapGet("/api/status", () => Results.Ok(new TestingToolStatus
     ErrorsReplayed = metrics.TotalErrorsReplayed,
     ErrorsArchived = metrics.TotalErrorsArchived,
     SearchesExecuted = metrics.TotalSearches,
+    RetentionSweepsStarted = metrics.TotalRetentionSweepsStarted,
+    RetentionSweepsAlreadyRunning = metrics.TotalRetentionSweepsAlreadyRunning,
+    RetentionSweepsNotSupported = metrics.TotalRetentionSweepsNotSupported,
     BypassErrorsWritten = metrics.TotalBypassErrorsWritten,
     BypassErrorsFailed = metrics.TotalBypassErrorsFailed,
     ShardId = shardId,
