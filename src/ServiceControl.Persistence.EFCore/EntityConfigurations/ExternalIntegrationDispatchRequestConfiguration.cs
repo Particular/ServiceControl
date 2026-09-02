@@ -8,7 +8,6 @@ class ExternalIntegrationDispatchRequestConfiguration : IEntityTypeConfiguration
 {
     public void Configure(EntityTypeBuilder<ExternalIntegrationDispatchRequestEntity> builder)
     {
-        builder.ToTable("ExternalIntegrationDispatchRequests");
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id).ValueGeneratedOnAdd();
         builder.Property(e => e.DispatchContextTypeName).IsRequired().HasMaxLength(ColumnLengths.ShortTextLength);
