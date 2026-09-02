@@ -1,3 +1,6 @@
+//Nullable enable is explicit here because this file is
+//included in audit test projects that do not have it enabled.
+#nullable enable
 namespace ServiceControl.Contracts.CustomChecks
 {
     using System;
