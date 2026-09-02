@@ -1,24 +1,20 @@
-namespace ServiceControl.Audit.UnitTests.API
+namespace ServiceControl.UnitTests.API
 {
     using System;
     using System.Linq;
-    using Audit.Infrastructure.Settings;
     using NUnit.Framework;
     using NServiceBus.CustomChecks;
     using Particular.Approvals;
+    using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Contracts.CustomChecks;
 
     [TestFixture]
-    class AuditCustomCheckApprovals
+    class CustomChecksTest
     {
-        // Mirrors the primary's InternalCustomCheckClassification audit section (string literals — the audit
-        // assembly is not referenced by the primary). Adding a custom check to the audit instance MUST be
-        // accompanied by an entry in the primary registry; this snapshot makes that visible. The audit
-        // RavenDB persister checks (CheckDirtyMemory, CheckFreeDiskSpace, CheckRavenDBIndexLag) are runtime
-        // plugins not referenced here, so they are covered by the persistence approval tests instead
         [Test]
-        public void Audit_check_ids_are_snapshot()
+        public void VerifyCustomChecks()
         {
-            var settings = (object)new Settings("LearningTransport", "InMemory");
+            var settings = (object)new Settings();
 
             var discovered =
                 from type in typeof(Settings).Assembly.GetTypes()
@@ -29,8 +25,9 @@ namespace ServiceControl.Audit.UnitTests.API
                     .Select(p => p.ParameterType == typeof(Settings) ? settings : null)
                     .ToArray()
                 let instance = (ICustomCheck)constructor.Invoke(constructorParameters)
+                let classified = InternalCustomCheckClassification.IsInternal(instance.Id)
                 orderby instance.Category, instance.Id
-                select $"{instance.Category}: {instance.Id}";
+                select $"{instance.Category}: {instance.Id} => {(classified ? "internal" : "MISSING FROM REGISTRY")}";
 
             Approver.Verify(string.Join(Environment.NewLine, discovered));
         }
