@@ -125,7 +125,6 @@
             services.AddEventLogMapping<FailedMessageGroupArchivedDefinition>();
             services.AddEventLogMapping<FailedMessageGroupUnarchivedDefinition>();
             services.AddEventLogMapping<FailedMessageUnArchivedDefinition>();
-            services.AddEventLogMapping<MessageFailedDefinition>();
             services.AddEventLogMapping<MessageFailedInStagingDefinition>();
             services.AddEventLogMapping<MessageFailureResolvedByRetryDefinition>();
             services.AddEventLogMapping<MessageFailureResolvedManuallyDefinition>();
