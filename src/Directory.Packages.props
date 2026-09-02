@@ -71,7 +71,7 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.18.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.18.0" />
     <PackageVersion Include="Particular.Approvals" Version="2.0.1" />
-    <PackageVersion Include="Particular.LicensingComponent.Report" Version="1.2.0" />
+    <PackageVersion Include="Particular.LicensingComponent.Report" Version="1.3.0" />
     <PackageVersion Include="Particular.Licensing.Sources" Version="7.4.0" />
     <PackageVersion Include="Particular.Obsoletes" Version="1.1.0" />
     <PackageVersion Include="Particular.ServicePulse.Core" Version="2.10.2" />

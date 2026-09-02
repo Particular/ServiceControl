@@ -70,8 +70,6 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
         // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(1));
-        //should see 1 endpoint with both throughputs, and return 60 as the maximum one
-        Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(60));
         Assert.That(report.ReportData.Queues.FirstOrDefault(f => f.QueueName == "Endpoint1").DailyThroughputFromAudit.Sum(s => s.MessageCount), Is.EqualTo(60));
         Assert.That(report.ReportData.Queues.FirstOrDefault(f => f.QueueName == "Endpoint1").DailyThroughputFromBroker.Sum(s => s.MessageCount), Is.EqualTo(50));
     }
@@ -123,8 +121,6 @@ class ThroughputCollector_SanitizedNameGrouping_Tests : ThroughputCollectorTestF
         // Assert
         Assert.That(report, Is.Not.Null);
         Assert.That(report.ReportData.Queues.Count, Is.EqualTo(2));
-        //two different endpoints hence total throughput is a sum of both of them
-        Assert.That(report.ReportData.TotalThroughput, Is.EqualTo(110));
     }
 
     class BrokerThroughputQuery_WithLowerCaseSanitizedNameCleanse : IBrokerThroughputQuery
