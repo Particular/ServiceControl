@@ -42,6 +42,45 @@
         }
 
         [Test]
+        public async Task When_a_bulk_retry_is_processed_the_operation_records_when_it_was_asked_for()
+        {
+            var askedAt = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            var retryManager = new RetryingManager(new FakeDomainEvents(), TestRetryMetrics.Create(fakeTime), NullLogger<RetryingManager>.Instance, fakeTime);
+
+            await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, null, null, askedAt, Guid.NewGuid().ToString());
+
+            var operation = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(operation.Started, Is.EqualTo(askedAt), "the bulk route carries the time the operator asked on the request, and used to drop it on the way to the operation");
+                Assert.That(operation.Originator, Is.EqualTo("Test-Context"), "without this the history row has nothing to describe the retry with");
+            }
+        }
+
+        [Test]
+        public async Task When_a_single_message_is_retried_the_operation_and_the_batch_agree_on_when_it_started()
+        {
+            var clock = new FakeTimeProvider(new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero));
+            var retryManager = new RetryingManager(new FakeDomainEvents(), TestRetryMetrics.Create(clock), NullLogger<RetryingManager>.Instance, clock);
+            var messageId = Guid.NewGuid().ToString();
+
+            await InsertUnresolvedFailedMessages("Test-group", messageId);
+
+            var gateway = new CustomRetriesGateway(true, RetryBatchStore, retryManager, clock);
+            await gateway.StartRetryForSingleMessage(messageId);
+            await CompleteDatabaseOperation();
+
+            var operation = retryManager.GetStatusForRetryOperation(messageId, RetryType.SingleMessage);
+            var batchGroup = (await RetryBatchStore.GetAvailableBatchGroups()).Single();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(operation.Started, Is.EqualTo(clock.GetUtcNow().UtcDateTime), "a single-message retry used to record 01 Jan 0001 as its start time");
+                Assert.That(batchGroup.StartTime, Is.EqualTo(operation.Started), "the batch is what the start time is rebuilt from after a restart, so the two must not drift apart");
+            }
+        }
+
+        [Test]
         public async Task When_a_group_is_prepared_and_SC_is_started_the_group_is_marked_as_failed()
         {
             var domainEvents = new FakeDomainEvents();
@@ -202,14 +241,17 @@
             var domainEvents = new FakeDomainEvents();
             var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(fakeTime), NullLogger<RetryingManager>.Instance, fakeTime);
 
-            await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, "A", "B", "C");
+            var ids = new[] { Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString() };
+            var poisonRecordId = PersistenceTestsContext.GenerateFailedMessageRecordId(ids[1]);
+
+            await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, ids);
 
             var sender = new TestSender
             {
                 Callback = operation =>
                 {
-                    //Always fails staging message B
-                    if (operation.Message.MessageId == "FailedMessages/B")
+                    //Always fails staging the second message
+                    if (operation.Message.MessageId == poisonRecordId)
                     {
                         throw new Exception("Simulated");
                     }
@@ -275,7 +317,7 @@
             var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(fakeTime), NullLogger<RetryingManager>.Instance, fakeTime);
             var user = new AuditUser("alice-sub", "Alice");
             const string operationId = "op-sel";
-            var ids = new[] { "A", "B" };
+            var ids = new[] { Guid.NewGuid().ToString(), Guid.NewGuid().ToString() };
 
             var messages = ids.Select(id => new FailedMessage
             {
@@ -326,7 +368,9 @@
             var user = new AuditUser("alice-sub", "Alice");
             const string operationId = "op-abc";
 
-            await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, user, operationId, "A", "B");
+            var ids = new[] { Guid.NewGuid().ToString(), Guid.NewGuid().ToString() };
+
+            await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, user, operationId, ids);
 
             var audit = new RecordingMessageActionAuditLog();
             var sender = new TestSender();
@@ -336,7 +380,7 @@
             await processor.ProcessBatches(); // stage (emits per-message audit)
             await processor.ProcessBatches(); // forward
 
-            Assert.That(audit.Messages.Select(m => m.MessageId), Is.EquivalentTo(new[] { "A", "B" }));
+            Assert.That(audit.Messages.Select(m => m.MessageId), Is.EquivalentTo(ids));
             using (Assert.EnterMultipleScope())
             {
                 Assert.That(audit.Messages, Has.All.Matches<RecordingMessageActionAuditLog.MessageEntry>(m => m.User.Equals(user)));
@@ -379,7 +423,26 @@
         Task CreateAFailedMessageAndMarkAsPartOfRetryBatch(RetryingManager retryManager, string groupId, bool progressToStaged, params string[] messageIds) =>
             CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, groupId, progressToStaged, null, null, messageIds);
 
-        async Task CreateAFailedMessageAndMarkAsPartOfRetryBatch(RetryingManager retryManager, string groupId, bool progressToStaged, AuditUser? initiatedBy, string operationId, params string[] messageIds)
+        Task CreateAFailedMessageAndMarkAsPartOfRetryBatch(RetryingManager retryManager, string groupId, bool progressToStaged, AuditUser? initiatedBy, string operationId, params string[] messageIds) =>
+            CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, groupId, progressToStaged, initiatedBy, operationId, DateTime.UtcNow, messageIds);
+
+        async Task CreateAFailedMessageAndMarkAsPartOfRetryBatch(RetryingManager retryManager, string groupId, bool progressToStaged, AuditUser? initiatedBy, string operationId, DateTime startTime, params string[] messageIds)
+        {
+            await InsertUnresolvedFailedMessages(groupId, messageIds);
+
+            var gateway = new CustomRetriesGateway(progressToStaged, RetryBatchStore, retryManager, fakeTime);
+
+            gateway.EnqueueRetryForFailureGroup(new RetriesGateway.RetryForFailureGroup(groupId, "Test-Context", groupType: null, startTime, initiatedBy, operationId));
+
+            await CompleteDatabaseOperation();
+
+            await gateway.ProcessNextBulkRetry();
+
+            // Wait for indexes to catch up
+            await CompleteDatabaseOperation();
+        }
+
+        async Task InsertUnresolvedFailedMessages(string groupId, params string[] messageIds)
         {
             var messages = messageIds.Select(id => new FailedMessage
             {
@@ -411,18 +474,6 @@
 
             // Needs index FailedMessages_ByGroup
             // Needs index FailedMessages_UniqueMessageIdAndTimeOfFailures
-            await CompleteDatabaseOperation();
-
-            var documentManager = new CustomRetryDocumentManager(progressToStaged, RetryBatchStore, retryManager);
-            var gateway = new CustomRetriesGateway(progressToStaged, RetryBatchStore, retryManager, fakeTime);
-
-            gateway.EnqueueRetryForFailureGroup(new RetriesGateway.RetryForFailureGroup(groupId, "Test-Context", groupType: null, DateTime.UtcNow, initiatedBy, operationId));
-
-            await CompleteDatabaseOperation();
-
-            await gateway.ProcessNextBulkRetry();
-
-            // Wait for indexes to catch up
             await CompleteDatabaseOperation();
         }
 

@@ -78,6 +78,9 @@
             if (isNewRun)
             {
                 operationStartTimestamp = metrics.GetTimestamp();
+                NumberOfMessagesSkipped = 0;
+                CompletionTime = null;
+                Failed = false;
             }
 
             // Only a group retry goes through Wait, which stamps these; every other type gets them here.
