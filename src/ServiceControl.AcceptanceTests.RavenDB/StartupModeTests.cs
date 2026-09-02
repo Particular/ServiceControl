@@ -51,6 +51,10 @@
 
             using var host = hostBuilder.Build();
             await host.StartAsync();
+
+            // Maintenance mode never calls AddServiceControl, so the persister has to supply the clock itself.
+            Assert.That(host.Services.GetRequiredService<TimeProvider>(), Is.Not.Null);
+
             await host.StopAsync();
         }
 

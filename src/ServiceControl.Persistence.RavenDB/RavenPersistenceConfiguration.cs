@@ -18,6 +18,8 @@ namespace ServiceControl.Persistence.RavenDB
         const string ExternalIntegrationsDispatchingBatchSizeKey = "ExternalIntegrationsDispatchingBatchSize";
         const string MaintenanceModeKey = "MaintenanceMode";
 
+        public bool SupportsMaintenanceMode => true;
+
         public PersistenceSettings CreateSettings(SettingsRootNamespace settingsRootNamespace)
         {
             var ravenDbLogLevel = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.RavenDbLogLevelKey, "Warn");
