@@ -181,10 +181,12 @@ public sealed class DirectErrorQueueWriter
             while (await timer.WaitForNextTickAsync(ct))
             {
                 var seq = Interlocked.Increment(ref sequence);
-                var payload = new byte[Random.Shared.Next(64, 512)];
-                Random.Shared.NextBytes(payload);
 
-                var message = new LoadMessage { Sequence = seq, Payload = payload };
+                // Plausible JSON body (~3–6 KB) seeded with searchable terms so the bypass path
+                // also feeds ServiceControl's full-text search index with real content.
+                var textBody = MessageTextGenerator.GenerateBody(seq);
+
+                var message = new LoadMessage { Sequence = seq, TextBody = textBody };
 
                 var sendOptions = new SendOptions();
                 // Route directly to the ServiceControl error queue — bypasses the handler entirely.
