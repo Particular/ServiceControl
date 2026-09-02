@@ -15,5 +15,10 @@ public interface IBodyStoragePersistence
 {
     Task WriteBody(string bodyId, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default);
     Task<MessageBodyFileResult?> ReadBody(string bodyId, CancellationToken cancellationToken = default);
-    Task DeleteBody(string bodyId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Implementations throw only when the store itself fails, never because the body was already
+    /// gone: callers delete the body before the row that names it.
+    /// </summary>
+    Task DeleteBodyIfExists(string bodyId, CancellationToken cancellationToken = default);
 }

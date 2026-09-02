@@ -79,11 +79,11 @@ class InMemoryBodyStoragePersistence : IBodyStoragePersistence
         }
     }
 
-    public Task DeleteBody(string bodyId, CancellationToken cancellationToken = default)
+    public Task DeleteBodyIfExists(string bodyId, CancellationToken cancellationToken = default)
     {
         if (FailDeleteFor.Contains(bodyId))
         {
-            throw new InvalidOperationException($"Simulated missing body for {bodyId}");
+            throw new InvalidOperationException($"Simulated body storage failure for {bodyId}");
         }
 
         lock (gate)

@@ -6,12 +6,13 @@ namespace ServiceControl.UnitTests.Infrastructure
     using System.Linq;
     using System.Reflection;
     using NUnit.Framework;
+    using Raven.Client.Documents.Conventions;
     using ServiceControl.EventLog;
     using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Operations;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
-    using JsonSerializer = System.Text.Json.JsonSerializer;
+    using Sparrow.Json;
 
     [TestFixture]
     public class VersionedRowTests
@@ -30,15 +31,19 @@ namespace ServiceControl.UnitTests.Infrastructure
                 "the scan below found nothing, so every other test here would pass without checking anything");
         }
 
-        // The declaration is implemented explicitly so the member stays off the type's public surface.
-        // Declared as an ordinary public property it would be serialised alongside the real fields.
+        // RavenDB serialises explicit interface implementations, under their fully qualified name, where
+        // System.Text.Json ignores them. Some of these rows are stored as-is, so a computed member lands in the document.
         [TestCaseSource(nameof(RowTypes))]
-        public void The_covered_field_list_is_not_part_of_the_response(Type type)
+        public void Only_the_rows_own_fields_are_stored(Type type)
         {
-            var row = Seeded(type);
+            var conventions = new DocumentConventions();
+            conventions.Serialization.Initialize(conventions);
 
-            Assert.That(JsonSerializer.Serialize(row, type, SerializerOptions.Default),
-                Does.Not.Contain("version_fields").IgnoreCase);
+            using var context = JsonOperationContext.ShortTermSingleUse();
+            using var stored = conventions.Serialization.DefaultConverter.ToBlittable(Seeded(type), context);
+
+            Assert.That(stored.GetPropertyNames(), Is.EquivalentTo(Stored(type)),
+                $"{type.Name} would be written to the database with something other than its own properties, so a value computed from the fields beside it gets stored next to them");
         }
 
         [TestCaseSource(nameof(RowTypes))]
@@ -74,6 +79,10 @@ namespace ServiceControl.UnitTests.Infrastructure
 
         static PropertyInfo[] Rendered(Type type) =>
             [.. type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(property => property.CanWrite)];
+
+        // Read-only ones count: a serialiser stores them too, and they are legitimate data.
+        static string[] Stored(Type type) =>
+            [.. type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(property => property.Name)];
 
         // Every field set to something, so a row is never checked with a null standing in for a real value
         // and a computed property never has to cope with an unset one.

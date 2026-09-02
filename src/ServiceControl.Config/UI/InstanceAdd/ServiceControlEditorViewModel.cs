@@ -36,8 +36,6 @@ public class ServiceControlEditorViewModel : RxProgressScreen
         // Needs to exist in base class for Fody to call it so it can be executed in superclass
     }
 
-    public bool OneInstanceTypeSelected => InstallErrorInstance || InstallAuditInstance;
-
     public string TransportWarning => SelectedTransport?.Help;
 
     public string ConnectionString { get; set; }

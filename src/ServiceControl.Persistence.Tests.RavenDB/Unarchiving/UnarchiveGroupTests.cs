@@ -15,6 +15,7 @@
             {
                 services.AddSingleton<UnarchiveAllInGroupHandler>();
                 services.AddSingleton<RetryingManager>();
+                services.AddSingleton(TestRetryMetrics.Create());
             };
 
         [Test]

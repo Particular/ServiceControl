@@ -14,6 +14,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Transport;
     using Persistence.MessageRedirects;
     using ServiceControl.Persistence;
+    using ServiceControl.Recoverability.Retrying.Metrics;
 
     class RetryProcessor
     {
@@ -23,6 +24,7 @@ namespace ServiceControl.Recoverability
             IDomainEvents domainEvents,
             ReturnToSenderDequeuer returnToSender,
             RetryingManager retryingManager,
+            RetryMetrics metrics,
             Lazy<IMessageDispatcher> messageDispatcher,
             IMessageActionAuditLog auditLog,
             ILogger<RetryProcessor> logger)
@@ -31,6 +33,7 @@ namespace ServiceControl.Recoverability
             this.redirectsStore = redirectsStore;
             this.returnToSender = returnToSender;
             this.retryingManager = retryingManager;
+            this.metrics = metrics;
             this.domainEvents = domainEvents;
             this.messageDispatcher = messageDispatcher;
             this.auditLog = auditLog;
@@ -118,6 +121,8 @@ namespace ServiceControl.Recoverability
 
         async Task Forward(RetryBatch forwardingBatch, CancellationToken cancellationToken)
         {
+            using var forwarding = metrics.BeginForwarding(forwardingBatch.RetryType, isRecoveringFromPrematureShutdown, cancellationToken);
+
             var messageCount = forwardingBatch.MessageCount;
 
             await retryingManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType, cancellationToken);
@@ -144,6 +149,7 @@ namespace ServiceControl.Recoverability
             }
 
             logger.LogInformation("Done forwarding batch {ForwardingBatchId}", forwardingBatch.Id);
+            forwarding.Complete();
         }
 
         static Predicate<MessageContext> IsPartOfStagedBatch(string stagingId)
@@ -157,6 +163,8 @@ namespace ServiceControl.Recoverability
 
         async Task<int> Stage(RetryBatch stagingBatch, CancellationToken cancellationToken)
         {
+            using var staging = metrics.BeginStaging(stagingBatch.RetryType, cancellationToken);
+
             var stagingId = Guid.NewGuid().ToString();
 
             var messagesToStage = await store.GetMessagesToStage(stagingBatch.Id, cancellationToken);
@@ -165,6 +173,7 @@ namespace ServiceControl.Recoverability
             {
                 logger.LogInformation("Retry batch {RetryBatchId} cancelled as it has no messages left to stage", stagingBatch.Id);
                 await store.DiscardBatch(stagingBatch.Id, cancellationToken);
+                staging.Empty();
                 return 0;
             }
 
@@ -180,7 +189,9 @@ namespace ServiceControl.Recoverability
                 transportOperations[current++] = ToTransportOperation(messageToStage, stagingId);
             }
 
-            await TryDispatch(stagingBatch.Id, transportOperations, messagesToStage, stageAttemptsById, previousAttemptFailed, cancellationToken);
+            await TryDispatch(stagingBatch.Id, stagingBatch.RetryType, transportOperations, messagesToStage, stageAttemptsById, previousAttemptFailed, cancellationToken);
+
+            metrics.RecordMessages(stagingBatch.RetryType, RetryMessageOutcome.Staged, messagesToStage.Length);
 
             AuditStagedMessages(stagingBatch, messagesToStage);
 
@@ -198,6 +209,7 @@ namespace ServiceControl.Recoverability
             await store.MarkBatchAsForwarding(stagingBatch.Id, stagingId, [.. stageAttemptsById.Keys], cancellationToken);
 
             logger.LogInformation("Retry batch {RetryBatchId} staged with Staging Id {StagingId} and {RetryFailureCount} matching failure retries", stagingBatch.Id, stagingId, messagesToStage.Length);
+            staging.Complete();
             return messagesToStage.Length;
         }
 
@@ -234,24 +246,24 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        Task TryDispatch(string batchId, TransportOperation[] transportOperations, IReadOnlyCollection<StagingMessage> messages,
+        Task TryDispatch(string batchId, RetryType retryType, TransportOperation[] transportOperations, IReadOnlyCollection<StagingMessage> messages,
             IReadOnlyDictionary<string, int> stageAttemptsById, bool previousAttemptFailed, CancellationToken cancellationToken)
         {
-            return previousAttemptFailed ? ConcurrentDispatchToTransport(transportOperations, stageAttemptsById, cancellationToken) :
-                BatchDispatchToTransport(batchId, transportOperations, messages, cancellationToken);
+            return previousAttemptFailed ? ConcurrentDispatchToTransport(retryType, transportOperations, stageAttemptsById, cancellationToken) :
+                BatchDispatchToTransport(batchId, retryType, transportOperations, messages, cancellationToken);
         }
 
-        Task ConcurrentDispatchToTransport(IReadOnlyCollection<TransportOperation> transportOperations, IReadOnlyDictionary<string, int> stageAttemptsById, CancellationToken cancellationToken)
+        Task ConcurrentDispatchToTransport(RetryType retryType, IReadOnlyCollection<TransportOperation> transportOperations, IReadOnlyDictionary<string, int> stageAttemptsById, CancellationToken cancellationToken)
         {
             var tasks = new List<Task>(transportOperations.Count);
             foreach (var transportOperation in transportOperations)
             {
-                tasks.Add(TryStageMessage(transportOperation, stageAttemptsById, cancellationToken));
+                tasks.Add(TryStageMessage(transportOperation, retryType, stageAttemptsById, cancellationToken));
             }
             return Task.WhenAll(tasks);
         }
 
-        async Task BatchDispatchToTransport(string batchId, TransportOperation[] transportOperations, IReadOnlyCollection<StagingMessage> messages, CancellationToken cancellationToken)
+        async Task BatchDispatchToTransport(string batchId, RetryType retryType, TransportOperation[] transportOperations, IReadOnlyCollection<StagingMessage> messages, CancellationToken cancellationToken)
         {
             try
             {
@@ -267,11 +279,13 @@ namespace ServiceControl.Recoverability
 
                 await store.RecordStagingFailure([.. messages.Select(message => message.UniqueMessageId)], cancellationToken);
 
+                metrics.RecordMessages(retryType, RetryMessageOutcome.StagingRetried, messages.Count);
+
                 throw new RetryStagingException(e);
             }
         }
 
-        async Task TryStageMessage(TransportOperation transportOperation, IReadOnlyDictionary<string, int> stageAttemptsById, CancellationToken cancellationToken)
+        async Task TryStageMessage(TransportOperation transportOperation, RetryType retryType, IReadOnlyDictionary<string, int> stageAttemptsById, CancellationToken cancellationToken)
         {
             var uniqueMessageId = transportOperation.Message.Headers["ServiceControl.Retry.UniqueMessageId"];
 
@@ -292,6 +306,8 @@ namespace ServiceControl.Recoverability
                     logger.LogWarning(e, "Attempt {StagingRetryAttempt} of {StagingRetryLimit} to stage a retry message {RetryMessageId} failed", incrementedAttempts, MaxStagingAttempts, uniqueMessageId);
 
                     await store.IncrementStagingAttempts(uniqueMessageId, cancellationToken);
+
+                    metrics.RecordMessages(retryType, RetryMessageOutcome.StagingRetried, 1);
                 }
                 else
                 {
@@ -303,6 +319,8 @@ namespace ServiceControl.Recoverability
                     {
                         UniqueMessageId = uniqueMessageId
                     }, cancellationToken);
+
+                    metrics.RecordMessages(retryType, RetryMessageOutcome.Abandoned, 1);
                 }
 
                 throw new RetryStagingException(e);
@@ -338,6 +356,7 @@ namespace ServiceControl.Recoverability
         readonly IMessageRedirectsDataStore redirectsStore;
         readonly ReturnToSenderDequeuer returnToSender;
         readonly RetryingManager retryingManager;
+        readonly RetryMetrics metrics;
         readonly Lazy<IMessageDispatcher> messageDispatcher;
         readonly IMessageActionAuditLog auditLog;
         IReadOnlyList<MessageRedirect> redirects;

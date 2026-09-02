@@ -11,14 +11,18 @@ namespace ServiceControl.Recoverability
     using MessageFailures;
     using Microsoft.Extensions.Logging;
     using ServiceControl.Persistence;
+    using ServiceControl.Recoverability.Retrying.Metrics;
 
     class RetriesGateway
     {
-        public RetriesGateway(IRetryBatchStore store, RetryingManager operationManager, ILogger<RetriesGateway> logger)
+        public RetriesGateway(IRetryBatchStore store, RetryingManager operationManager, RetryMetrics metrics, ILogger<RetriesGateway> logger)
         {
             this.store = store;
             this.operationManager = operationManager;
+            this.metrics = metrics;
             this.logger = logger;
+
+            metrics.ObservePendingBulkRequests(() => bulkRequests.Count);
         }
 
         public async Task StartRetryForSingleMessage(string uniqueMessageId, AuditUser? initiatedBy = null, string operationId = null, CancellationToken cancellationToken = default)
@@ -29,9 +33,13 @@ namespace ServiceControl.Recoverability
             var retryType = RetryType.SingleMessage;
             var numberOfMessages = 1;
 
+            using var preparation = metrics.BeginPreparation(retryType, cancellationToken);
+
             await operationManager.Preparing(requestId, retryType, numberOfMessages, cancellationToken);
             await AssignMessagesToBatch(requestId, retryType, new[] { uniqueMessageId }, DateTime.UtcNow, cancellationToken, initiatedBy: initiatedBy, operationId: operationId);
             await operationManager.PreparedBatch(requestId, retryType, numberOfMessages, cancellationToken);
+
+            preparation.Complete();
         }
 
         public async Task StartRetryForMessageSelection(string[] uniqueMessageIds, AuditUser? initiatedBy = null, string operationId = null, CancellationToken cancellationToken = default)
@@ -42,9 +50,13 @@ namespace ServiceControl.Recoverability
             var retryType = RetryType.MultipleMessages;
             var numberOfMessages = uniqueMessageIds.Length;
 
+            using var preparation = metrics.BeginPreparation(retryType, cancellationToken);
+
             await operationManager.Preparing(requestId, retryType, numberOfMessages, cancellationToken);
             await AssignMessagesToBatch(requestId, retryType, uniqueMessageIds, DateTime.UtcNow, cancellationToken, initiatedBy: initiatedBy, operationId: operationId);
             await operationManager.PreparedBatch(requestId, retryType, numberOfMessages, cancellationToken);
+
+            preparation.Complete();
         }
 
         async Task AssignMessagesToBatch(string requestId, RetryType retryType, string[] messageIds, DateTime startTime, CancellationToken cancellationToken, DateTime? last = null, string originator = null, string batchName = null, string classifier = null, AuditUser? initiatedBy = null, string operationId = null)
@@ -85,6 +97,8 @@ namespace ServiceControl.Recoverability
 
         async Task ProcessRequest(BulkRetryRequest request, CancellationToken cancellationToken)
         {
+            using var preparation = metrics.BeginPreparation(request.RetryType, cancellationToken);
+
             var (batches, latestAttempt) = await request.GetRequestedBatches(store, cancellationToken);
             var totalMessages = batches.Sum(b => b.Length);
 
@@ -102,6 +116,8 @@ namespace ServiceControl.Recoverability
                     await operationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded, cancellationToken);
                 }
             }
+
+            preparation.Complete();
         }
 
         static string GetBatchName(int pageNum, int totalPages, string context)
@@ -143,6 +159,7 @@ namespace ServiceControl.Recoverability
 
         readonly IRetryBatchStore store;
         readonly RetryingManager operationManager;
+        readonly RetryMetrics metrics;
         readonly ConcurrentQueue<BulkRetryRequest> bulkRequests = new ConcurrentQueue<BulkRetryRequest>();
         const int BatchSize = 1000;
 

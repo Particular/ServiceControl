@@ -69,7 +69,7 @@ namespace ServiceControl.Persistence.Infrastructure
 
         public static DataVersion OverRows<TRow>((string Name, object? Value)[]? summary, IEnumerable<TRow> rows)
             where TRow : IVersionedRow =>
-            OverRows(summary, rows, row => row.VersionFields);
+            OverRows(summary, rows, row => row.GetVersionFields());
 
         /// <summary>
         /// One version for a result gathered from several instances. Missing anywhere means missing overall.

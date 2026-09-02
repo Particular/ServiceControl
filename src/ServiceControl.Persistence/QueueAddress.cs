@@ -6,6 +6,6 @@
     {
         public string? PhysicalAddress { get; set; }
         public int FailedMessageCount { get; set; }
-        object?[] IVersionedRow.VersionFields => [PhysicalAddress, FailedMessageCount];
+        object?[] IVersionedRow.GetVersionFields() => [PhysicalAddress, FailedMessageCount];
     }
 }

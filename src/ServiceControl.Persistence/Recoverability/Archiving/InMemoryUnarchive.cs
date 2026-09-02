@@ -4,14 +4,16 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
+    using ServiceControl.Recoverability.Archiving.Metrics;
 
     public class InMemoryUnarchive // in memory
     {
-        public InMemoryUnarchive(string requestId, ArchiveType archiveType, IDomainEvents domainEvents)
+        public InMemoryUnarchive(string requestId, ArchiveType archiveType, IDomainEvents domainEvents, ArchiveMetrics? metrics = null)
         {
             RequestId = requestId;
             ArchiveType = archiveType;
             this.domainEvents = domainEvents;
+            operationMetrics = metrics?.CreateOperation(ArchiveOperationKind.Unarchive);
         }
 
         public int TotalNumberOfMessages { get; set; }
@@ -45,6 +47,7 @@
         {
             ArchiveState = ArchiveState.ArchiveStarted;
             CompletionTime = null;
+            operationMetrics?.Started();
 
             return domainEvents.Raise(new UnarchiveOperationStarting
             {
@@ -61,6 +64,7 @@
             NumberOfMessagesUnarchived += numberOfMessagesUnarchivedInBatch;
             CurrentBatch++;
             Last = DateTime.UtcNow;
+            operationMetrics?.BatchCompleted(numberOfMessagesUnarchivedInBatch);
 
             return domainEvents.Raise(new UnarchiveOperationBatchCompleted
             {
@@ -77,6 +81,7 @@
             ArchiveState = ArchiveState.ArchiveFinalizing;
             NumberOfMessagesUnarchived = TotalNumberOfMessages;
             Last = DateTime.UtcNow;
+            operationMetrics?.Finalizing();
 
             return domainEvents.Raise(new UnarchiveOperationFinalizing
             {
@@ -94,6 +99,7 @@
             NumberOfMessagesUnarchived = TotalNumberOfMessages;
             CompletionTime = DateTime.UtcNow;
             Last = DateTime.UtcNow;
+            operationMetrics?.Completed();
 
             return domainEvents.Raise(new UnarchiveOperationCompleted
             {
@@ -113,5 +119,6 @@
         }
 
         IDomainEvents domainEvents;
+        readonly ArchiveOperationMetrics? operationMetrics;
     }
 }

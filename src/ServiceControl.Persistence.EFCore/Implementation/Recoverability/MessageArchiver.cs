@@ -10,6 +10,7 @@ using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.Recoverability;
 using ServiceControl.Recoverability;
+using ServiceControl.Recoverability.Archiving.Metrics;
 
 public class MessageArchiver : IArchiveMessages
 {
@@ -19,6 +20,7 @@ public class MessageArchiver : IArchiveMessages
         IDomainEvents domainEvents,
         IMessageActionAuditLog auditLog,
         TimeProvider timeProvider,
+        ArchiveMetrics metrics,
         ILogger<MessageArchiver> logger
     )
     {
@@ -29,8 +31,8 @@ public class MessageArchiver : IArchiveMessages
         this.logger = logger;
         this.domainEvents = domainEvents;
 
-        archivingManager = new EFCoreArchivingManager(domainEvents, operationsManager);
-        unarchivingManager = new EFCoreUnarchivingManager(domainEvents, operationsManager);
+        archivingManager = new EFCoreArchivingManager(domainEvents, operationsManager, metrics);
+        unarchivingManager = new EFCoreUnarchivingManager(domainEvents, operationsManager, metrics);
     }
 
     public async Task ArchiveAllInGroup(string groupId, AuditUser? initiatedBy = null, string? operationId = null, CancellationToken cancellationToken = default)

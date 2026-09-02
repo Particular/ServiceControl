@@ -107,7 +107,7 @@ class BodyStoragePersistenceTests
         var bodyId = Guid.NewGuid().ToString();
         await store.WriteBody(bodyId, Encoding.UTF8.GetBytes("payload"), "text/plain");
 
-        await store.DeleteBody(bodyId);
+        await store.DeleteBodyIfExists(bodyId);
 
         Assert.That(await store.ReadBody(bodyId), Is.Null);
     }
@@ -118,7 +118,7 @@ class BodyStoragePersistenceTests
     {
         var store = CreateStore(kind);
 
-        Assert.DoesNotThrowAsync(() => store.DeleteBody(Guid.NewGuid().ToString()));
+        Assert.DoesNotThrowAsync(() => store.DeleteBodyIfExists(Guid.NewGuid().ToString()));
     }
 
     [TestCase(InMemory)]

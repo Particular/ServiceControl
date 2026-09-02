@@ -1,6 +1,8 @@
-﻿namespace ServiceControl.Config.Commands
+namespace ServiceControl.Config.Commands
 {
     using System;
+    using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Framework;
     using Framework.Commands;
@@ -18,13 +20,28 @@
 
         public override async Task ExecuteAsync(object obj)
         {
-            if (!await commandChecks.CanAddInstance(true))
+            await ExecuteWithOptions(installError: true, installAudit: true, installServicePulse: true);
+        }
+
+        public async Task ExecuteWithOptions(bool installError, bool installAudit, bool installServicePulse, CancellationToken cancellationToken = default)
+        {
+            if (!await commandChecks.CanAddInstance(true, cancellationToken))
             {
                 return;
             }
 
             var instanceViewModel = addInstance();
-            await windowManager.ShowInnerDialog(instanceViewModel);
+            instanceViewModel.InstallErrorInstance = installError;
+            instanceViewModel.InstallAuditInstance = installAudit;
+
+            if (installError)
+            {
+                // The options list always carries both an On and an Off entry.
+                instanceViewModel.ServiceControl.EnableIntegratedServicePulse = instanceViewModel.ServiceControl
+                    .EnableIntegratedServicePulseOptions.First(o => o.Value == installServicePulse);
+            }
+
+            await windowManager.ShowInnerDialog(instanceViewModel, cancellationToken: cancellationToken);
         }
 
         readonly Func<ServiceControlAddViewModel> addInstance;

@@ -12,10 +12,12 @@ using ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
 using ServiceControl.Persistence.EFCore.Implementation.Recoverability;
 using ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
 using ServiceControl.Persistence.EFCore.Infrastructure;
+using ServiceControl.Persistence.EFCore.Infrastructure.Metrics;
 using ServiceControl.Persistence.MessageRedirects;
 using ServiceControl.Persistence.Recoverability;
 using ServiceControl.Persistence.UnitOfWork;
 using ServiceControl.Recoverability;
+using ServiceControl.Recoverability.Archiving.Metrics;
 
 public abstract class BasePersistence
 {
@@ -37,10 +39,12 @@ public abstract class BasePersistence
 
         if (settings.RunRetentionSweep)
         {
+            services.AddSingleton<RetentionMetrics>();
             services.AddHostedService<RetentionSweeper>();
         }
 
         services.AddSingleton<OperationsManager>();
+        services.AddSingleton<ArchiveMetrics>();
         services.AddSingleton<IArchiveMessages, MessageArchiver>();
         services.AddSingleton<ICustomChecksDataStore, CustomCheckDataStore>();
         services.AddSingleton<IMessagesViewDataStore, MessagesViewDataStore>();

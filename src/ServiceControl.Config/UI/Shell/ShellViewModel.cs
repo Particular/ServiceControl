@@ -28,16 +28,14 @@
         {
             this.listInstances = listInstances;
             this.noInstances = noInstances;
+            this.addInstance = addInstance;
+            this.addMonitoringInstance = addMonitoringInstance;
             OpenUrl = new OpenURLCommand();
-            AddInstance = addInstance;
-            AddMonitoringInstance = addMonitoringInstance;
             LicenseStatusManager = licenseStatusManager;
             DisplayName = "ServiceControl Config";
             IsModal = false;
             LoadAppVersion();
             CopyrightInfo = $"{DateTime.UtcNow.Year} © Particular Software";
-            addInstance.OnCommandExecuting = () => ShowingMenuOverlay = false;
-            addMonitoringInstance.OnCommandExecuting = () => ShowingMenuOverlay = false;
 
             RefreshInstancesCmd = Command.Create(async () =>
             {
@@ -45,6 +43,18 @@
                 // Used to "blink" the refresh button to indicate the refresh actually ran.
                 await Task.Delay(500);
             });
+        }
+
+        public async Task LaunchServiceControlAdd(bool installError, bool installAudit, bool installServicePulse, CancellationToken cancellationToken = default)
+        {
+            ShowingMenuOverlay = false;
+            await addInstance.ExecuteWithOptions(installError, installAudit, installServicePulse, cancellationToken);
+        }
+
+        public void LaunchMonitoringAdd()
+        {
+            ShowingMenuOverlay = false;
+            addMonitoringInstance.Execute(null);
         }
 
         public object ActiveContext { get; set; }
@@ -64,13 +74,6 @@
         public string CopyrightInfo { get; }
 
         public bool HasInstances { get; private set; }
-
-        [FeatureToggle(Feature.MonitoringInstances)]
-        public bool ShowMonitoringInstances { get; set; }
-
-        public ICommand AddInstance { get; private set; }
-
-        public ICommand AddMonitoringInstance { get; private set; }
 
         public ICommand OpenUrl { get; private set; }
 
@@ -171,5 +174,7 @@
         Task updateCheckTask;
         readonly ListInstancesViewModel listInstances;
         readonly NoInstancesViewModel noInstances;
+        readonly AddServiceControlInstanceCommand addInstance;
+        readonly ICommand addMonitoringInstance;
     }
 }

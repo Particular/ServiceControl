@@ -93,7 +93,7 @@ public class S3BodyStoragePersistence : IBodyStoragePersistence
         }
     }
 
-    public Task DeleteBody(string bodyId, CancellationToken cancellationToken = default) =>
+    public Task DeleteBodyIfExists(string bodyId, CancellationToken cancellationToken = default) =>
         client.DeleteObjectAsync(bucketName, Key(bodyId), cancellationToken);
 
     async Task<bool> Exists(string key, CancellationToken cancellationToken)

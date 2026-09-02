@@ -167,7 +167,6 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
             IgnoredQueues = [.. ignoredQueueNames],
             Queues = [.. queueThroughputs],
             TotalQueues = queueThroughputs.Count,
-            TotalThroughput = queueThroughputs.Sum(q => q.Throughput ?? 0),
             EnvironmentInformation = new EnvironmentInformation { AuditServicesData = new AuditServicesData(auditServiceMetadata.Versions, auditServiceMetadata.Transports), EnvironmentData = brokerMetaData.Data }
         };
 

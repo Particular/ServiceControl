@@ -2,6 +2,7 @@
 {
     using System;
     using System.ComponentModel;
+    using System.Linq;
     using NUnit.Framework;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using UI.InstanceAdd;
@@ -275,6 +276,87 @@
             {
                 Assert.That(viewModel.AuditEnableFullTextSearchOnBodiesOptions, Is.Not.Empty);
                 Assert.That(viewModel.AuditEnableFullTextSearchOnBodies.Value, Is.EqualTo(true));
+            }
+        }
+
+        [Test]
+        public void Instance_sections_are_expanded_by_default()
+        {
+            var viewModel = new ServiceControlAddViewModel();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(viewModel.IsServiceControlExpanded, Is.True);
+                Assert.That(viewModel.IsServiceControlAuditExpanded, Is.True);
+            }
+        }
+
+        [Test]
+        public void Integrated_ServicePulse_is_enabled_by_default()
+        {
+            var viewModel = new ServiceControlAddViewModel();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(viewModel.ErrorEnableIntegratedServicePulseOptions, Is.Not.Empty);
+                Assert.That(viewModel.ErrorEnableIntegratedServicePulse.Value, Is.True);
+            }
+        }
+
+        [Test]
+        public void Integrated_ServicePulse_can_be_disabled()
+        {
+            var viewModel = new ServiceControlAddViewModel();
+
+            var offOption = viewModel.ErrorEnableIntegratedServicePulseOptions.First(o => !o.Value);
+            viewModel.ServiceControl.EnableIntegratedServicePulse = offOption;
+
+            Assert.That(viewModel.ErrorEnableIntegratedServicePulse.Value, Is.False);
+        }
+
+        [Test]
+        public void Audit_only_configuration_has_no_validation_errors_for_error_fields()
+        {
+            var viewModel = new ServiceControlAddViewModel(() => [])
+            {
+                InstallErrorInstance = false,
+                InstallAuditInstance = true,
+                SubmitAttempted = true
+            };
+
+            var notifyErrorInfo = (INotifyDataErrorInfo)viewModel;
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorInstanceName)), Is.Empty);
+                Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorHostName)), Is.Empty);
+                Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorPortNumber)), Is.Empty);
+                Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorDestinationPath)), Is.Empty);
+                Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorLogPath)), Is.Empty);
+                Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorDatabasePath)), Is.Empty);
+            }
+        }
+
+        [Test]
+        public void Error_only_configuration_has_no_validation_errors_for_audit_fields()
+        {
+            var viewModel = new ServiceControlAddViewModel(() => [])
+            {
+                InstallErrorInstance = true,
+                InstallAuditInstance = false,
+                SubmitAttempted = true
+            };
+
+            var notifyErrorInfo = (INotifyDataErrorInfo)viewModel;
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditInstanceName)), Is.Empty);
+                Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)), Is.Empty);
+                Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditPortNumber)), Is.Empty);
+                Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)), Is.Empty);
+                Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditLogPath)), Is.Empty);
+                Assert.That(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)), Is.Empty);
             }
         }
     }

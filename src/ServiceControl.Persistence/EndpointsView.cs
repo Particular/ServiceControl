@@ -12,7 +12,7 @@ namespace ServiceControl.Persistence
         public bool MonitorHeartbeat { get; set; }
         public HeartbeatInformation? HeartbeatInformation { get; set; }
         public bool IsSendingHeartbeats { get; set; }
-        object?[] IVersionedRow.VersionFields =>
+        object?[] IVersionedRow.GetVersionFields() =>
         [
             Id, Name, HostDisplayName, Monitored, MonitorHeartbeat, IsSendingHeartbeats,
             HeartbeatInformation?.LastReportAt, HeartbeatInformation?.ReportedStatus

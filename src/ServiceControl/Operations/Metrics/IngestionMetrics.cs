@@ -1,15 +1,16 @@
-namespace ServiceControl.Operations.Metrics;
+﻿namespace ServiceControl.Operations.Metrics;
 
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Threading;
 using NServiceBus.Transport;
+using ServiceControl.Infrastructure;
 using ServiceControl.Infrastructure.Ingestion.Metrics;
 
 public class IngestionMetrics
 {
-    public const string MeterName = "Particular.ServiceControl";
+    public const string MeterName = ServiceControlMeters.Error;
 
     public static readonly string BatchDurationInstrumentName = $"{InstrumentPrefix}.batch_duration_seconds";
     public static readonly string MessageDurationInstrumentName = $"{InstrumentPrefix}.message_duration_seconds";
@@ -22,7 +23,7 @@ public class IngestionMetrics
         batchDuration = meter.CreateHistogram<double>(BatchDurationInstrumentName, unit: "seconds", description: "Message batch processing duration in seconds");
         ingestionDuration = meter.CreateHistogram<double>(MessageDurationInstrumentName, unit: "seconds", description: "Error message processing duration in seconds");
         storageDuration = meter.CreateHistogram<double>(StorageDurationInstrumentName, unit: "seconds", description: "Error ingestion batch storage write duration in seconds");
-        consecutiveBatchFailureGauge = meter.CreateObservableGauge($"{InstrumentPrefix}.consecutive_batch_failures_total", () => Volatile.Read(ref consecutiveBatchFailures), description: "Consecutive error ingestion batch failures");
+        meter.CreateObservableGauge($"{InstrumentPrefix}.consecutive_batch_failures_total", () => Volatile.Read(ref consecutiveBatchFailures), description: "Consecutive error ingestion batch failures");
         failureCounter = meter.CreateCounter<long>($"{InstrumentPrefix}.failures_total", description: "Error ingestion failure count");
     }
 
@@ -66,10 +67,6 @@ public class IngestionMetrics
     long consecutiveBatchFailures;
 
     readonly Histogram<double> batchDuration;
-#pragma warning disable IDE0052
-    // this can be changed to Gauge<T> once we can use the latest version of System.Diagnostics.DiagnosticSource
-    readonly ObservableGauge<long> consecutiveBatchFailureGauge;
-#pragma warning restore IDE0052
     readonly Histogram<double> ingestionDuration;
     readonly Histogram<double> storageDuration;
     readonly Counter<long> failureCounter;
