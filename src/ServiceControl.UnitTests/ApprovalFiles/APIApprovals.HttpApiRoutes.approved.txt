@@ -74,4 +74,6 @@ GET /redirects => ServiceControl.MessageRedirects.Api.MessageRedirectsController
 POST /redirects => ServiceControl.MessageRedirects.Api.MessageRedirectsController:NewRedirects(MessageRedirectRequest request, CancellationToken cancellationToken)
 DELETE /redirects/{messageRedirectId:guid} => ServiceControl.MessageRedirects.Api.MessageRedirectsController:DeleteRedirect(Guid messageRedirectId, CancellationToken cancellationToken)
 PUT /redirects/{messageRedirectId:guid} => ServiceControl.MessageRedirects.Api.MessageRedirectsController:UpdateRedirect(Guid messageRedirectId, MessageRedirectRequest request, CancellationToken cancellationToken)
+POST /retention/sweep => ServiceControl.Retention.Api.RetentionController:Sweep(RetentionSweepRequest request, CancellationToken cancellationToken)
+GET /retention/sweep/status => ServiceControl.Retention.Api.RetentionController:Status(CancellationToken cancellationToken)
 GET /sagas/{id} => ServiceControl.SagaAudit.SagasController:Sagas(PagingInfo pagingInfo, Guid id, CancellationToken cancellationToken)

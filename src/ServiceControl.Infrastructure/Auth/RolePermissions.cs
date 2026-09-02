@@ -63,6 +63,7 @@ public static class RolePermissions
         Permissions.ErrorRedirectsManage,
         Permissions.ErrorThroughputView,
         Permissions.ErrorThroughputManage,
+        Permissions.ErrorRetentionSweep,
     ];
 
     public static readonly FrozenDictionary<string, FrozenSet<string>> Roles =
