@@ -12,6 +12,7 @@ namespace Particular.ServiceControl
             hostBuilder.Services.AddSingleton<IConfigurationApi, ConfigurationApi>();
             hostBuilder.Services.AddSingleton<IAuditCountApi, AuditCountApi>();
             hostBuilder.Services.AddSingleton<IEndpointsApi, EndpointsApi>();
+            hostBuilder.Services.AddSingleton<IRetentionApi, RetentionApi>();
         }
     }
 }
