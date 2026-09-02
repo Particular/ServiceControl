@@ -62,7 +62,9 @@ abstract class SqlServerDialect
         return sql.ToString();
     }
 
-    protected static int MaxRowsPerStatement(int columns) => (MaxSqlParameters - ExecuteSqlOverhead) / columns;
+    // sharedParameters is for a statement that also carries values of its own, outside the per-row ones.
+    protected static int MaxRowsPerStatement(int columns, int sharedParameters = 0) =>
+        (MaxSqlParameters - ExecuteSqlOverhead - sharedParameters) / columns;
 
     const int MaxSqlParameters = 2100;
 
