@@ -417,7 +417,7 @@ class RetentionSweepTests : ErrorIngestionTestBase
         // A caller-supplied cutoff of 15 days ago is earlier than the message, so the manual sweep deletes it.
         var message = await SeedFailedMessage(FailedMessageStatus.Resolved, Now.AddDays(-20));
 
-        var attempt = await GetSweeper().TryStartManualSweep(Now.AddDays(-15), null, TODO);
+        var attempt = GetSweeper().TryStartManualSweep(Now.AddDays(-15), null);
 
         await WaitForManualSweepToFinish();
 
@@ -438,7 +438,7 @@ class RetentionSweepTests : ErrorIngestionTestBase
         await Store(EventLogRow("to-delete", Now.AddDays(-10)));
         await Store(EventLogRow("to-keep", Now.AddDays(-3)));
 
-        await GetSweeper().TryStartManualSweep(null, Now.AddDays(-5), TODO);
+        GetSweeper().TryStartManualSweep(null, Now.AddDays(-5));
 
         await WaitForManualSweepToFinish();
 
@@ -458,7 +458,7 @@ class RetentionSweepTests : ErrorIngestionTestBase
         var withinRetention = await SeedFailedMessage(FailedMessageStatus.Resolved, Now.AddDays(-29));
         var pastRetention = await SeedFailedMessage(FailedMessageStatus.Resolved, Now.AddDays(-31));
 
-        await GetSweeper().TryStartManualSweep(null, null, TODO);
+        GetSweeper().TryStartManualSweep(null, null);
 
         await WaitForManualSweepToFinish();
 
@@ -475,7 +475,7 @@ class RetentionSweepTests : ErrorIngestionTestBase
         await SeedFailedMessage(FailedMessageStatus.Resolved, Now.AddDays(-31));
 
         var sweeper = GetSweeper();
-        var attempt = await sweeper.TryStartManualSweep(Now.AddDays(-30), null, TODO);
+        var attempt = sweeper.TryStartManualSweep(Now.AddDays(-30), null);
 
         Assert.That(attempt.Outcome, Is.EqualTo(ManualSweepOutcome.Started));
         Assert.That(attempt.StartedAt, Is.Not.Null);
@@ -524,9 +524,9 @@ class RetentionSweepTests : ErrorIngestionTestBase
         await Store([.. rows]);
 
         var sweeper = GetSweeper();
-        var first = await sweeper.TryStartManualSweep(Now.AddDays(-30), null, TODO);
+        var first = sweeper.TryStartManualSweep(Now.AddDays(-30), null);
         // Immediately request a second sweep on the same thread while the first is still deleting.
-        var second = await sweeper.TryStartManualSweep(Now.AddDays(-30), null, TODO);
+        var second = sweeper.TryStartManualSweep(Now.AddDays(-30), null);
 
         await WaitForManualSweepToFinish();
 
