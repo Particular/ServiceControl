@@ -62,6 +62,10 @@ abstract class SqlServerDialect
         return sql.ToString();
     }
 
-    protected static int MaxRowsPerStatement(int columns) => MaxSqlParameters / columns;
+    protected static int MaxRowsPerStatement(int columns) => (MaxSqlParameters - ExecuteSqlOverhead) / columns;
+
     const int MaxSqlParameters = 2100;
+
+    // The client sends every parameterised command through sp_executesql, which spends two of the 2100 on the statement and the parameter list.
+    const int ExecuteSqlOverhead = 2;
 }

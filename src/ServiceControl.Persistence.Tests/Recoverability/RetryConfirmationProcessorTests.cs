@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Contracts.Operations;
     using MessageFailures;
     using NServiceBus.Extensibility;
     using NServiceBus.Transport;
@@ -19,14 +20,21 @@
             var domainEvents = new FakeDomainEvents();
             Processor = new RetryConfirmationProcessor(domainEvents);
 
-            await PersistenceTestsContext.InsertFailedMessages(
-                new FailedMessage
-                {
-                    Id = MessageId,
-                    UniqueMessageId = Guid.NewGuid().ToString(),
-                    Status = FailedMessageStatus.Unresolved
-                }
-            );
+            await SeedFailedMessage(new FailedMessage
+            {
+                UniqueMessageId = MessageId,
+                Status = FailedMessageStatus.Unresolved,
+                ProcessingAttempts =
+                [
+                    new FailedMessage.ProcessingAttempt
+                    {
+                        AttemptedAt = DateTime.UtcNow,
+                        MessageMetadata = [],
+                        FailureDetails = new FailureDetails { AddressOfFailingEndpoint = "TestEndpoint" },
+                        Headers = []
+                    }
+                ]
+            });
 
             var batchId = Guid.NewGuid().ToString();
             await RetryBatchStore.AssignMessagesToBatch(batchId, new[] { MessageId });

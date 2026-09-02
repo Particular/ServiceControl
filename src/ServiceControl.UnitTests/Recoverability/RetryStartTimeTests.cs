@@ -76,6 +76,25 @@ public class RetryStartTimeTests
     }
 
     [Test]
+    public async Task A_group_retry_keeps_the_title_it_waited_with()
+    {
+        var clock = new FakeTimeProvider(ClockStart);
+        var retryingManager = NewManager(clock);
+
+        await retryingManager.Wait("group-42", RetryType.FailureGroup, clock.GetUtcNow().UtcDateTime, "OrderPlaced failures");
+
+        clock.Advance(TimeSpan.FromMinutes(5));
+        await retryingManager.Preparing("group-42", RetryType.FailureGroup, totalNumberOfMessages: 1, clock.GetUtcNow().UtcDateTime);
+
+        var operation = retryingManager.GetStatusForRetryOperation("group-42", RetryType.FailureGroup);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(operation.Originator, Is.EqualTo("OrderPlaced failures"), "Prepare must leave alone what Wait already stamped, or the group loses its title on the history row");
+            Assert.That(operation.Started, Is.EqualTo(ClockStart.UtcDateTime), "Prepare must leave alone what Wait already stamped, or the group reports the wrong start time");
+        }
+    }
+
+    [Test]
     public async Task A_completed_retry_that_runs_again_records_the_later_start()
     {
         var clock = new FakeTimeProvider(ClockStart);

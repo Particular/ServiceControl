@@ -31,9 +31,6 @@
   <ItemGroup>
     <Compile Include="..\ServiceControl.Persistence.Tests\**\*.cs" LinkBase="Shared" />
     
-    <!-- as features get implemented remove these exclusions -->
-    <Compile Remove="..\ServiceControl.Persistence.Tests\Recoverability\RetryConfirmationProcessorTests.cs" />
-    <Compile Remove="..\ServiceControl.Persistence.Tests\RetryStateTests.cs" />
   </ItemGroup>
 
 </Project>
