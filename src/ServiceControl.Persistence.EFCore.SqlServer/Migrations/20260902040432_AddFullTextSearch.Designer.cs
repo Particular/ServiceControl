@@ -12,8 +12,8 @@ using ServiceControl.Persistence.EFCore.SqlServer;
 namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerServiceControlDbContext))]
-    [Migration("20260901221640_Initial")]
-    partial class Initial
+    [Migration("20260902040432_AddFullTextSearch")]
+    partial class AddFullTextSearch
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -168,7 +168,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.HasIndex("RaisedAt", "Id")
                         .IsDescending();
 
-                    b.ToTable("EventLogItems", (string)null);
+                    b.ToTable("EventLogItems");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.ExternalIntegrationDispatchRequestEntity", b =>
@@ -190,7 +190,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ExternalIntegrationDispatchRequests", (string)null);
+                    b.ToTable("ExternalIntegrationDispatchRequests");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedErrorImportEntity", b =>

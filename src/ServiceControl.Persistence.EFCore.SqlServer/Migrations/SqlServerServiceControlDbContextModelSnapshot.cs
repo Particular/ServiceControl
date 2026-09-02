@@ -165,7 +165,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.HasIndex("RaisedAt", "Id")
                         .IsDescending();
 
-                    b.ToTable("EventLogItems", (string)null);
+                    b.ToTable("EventLogItems");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.ExternalIntegrationDispatchRequestEntity", b =>
@@ -187,7 +187,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ExternalIntegrationDispatchRequests", (string)null);
+                    b.ToTable("ExternalIntegrationDispatchRequests");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedErrorImportEntity", b =>

@@ -13,7 +13,7 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    [Migration("20260901221623_AddFullTextSearch")]
+    [Migration("20260902040422_AddFullTextSearch")]
     partial class AddFullTextSearch
     {
         /// <inheritdoc />
@@ -207,7 +207,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .IsDescending()
                         .HasDatabaseName("ix_event_log_items_raised_at_id");
 
-                    b.ToTable("EventLogItems", (string)null);
+                    b.ToTable("event_log_items", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.ExternalIntegrationDispatchRequestEntity", b =>
@@ -233,7 +233,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.HasKey("Id")
                         .HasName("pk_external_integration_dispatch_requests");
 
-                    b.ToTable("ExternalIntegrationDispatchRequests", (string)null);
+                    b.ToTable("external_integration_dispatch_requests", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedErrorImportEntity", b =>

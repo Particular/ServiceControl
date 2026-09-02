@@ -67,7 +67,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "EventLogItems",
+                name: "event_log_items",
                 columns: table => new
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
@@ -85,7 +85,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ExternalIntegrationDispatchRequests",
+                name: "external_integration_dispatch_requests",
                 columns: table => new
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
@@ -392,7 +392,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "ix_event_log_items_raised_at_id",
-                table: "EventLogItems",
+                table: "event_log_items",
                 columns: new[] { "raised_at", "id" },
                 descending: new bool[0]);
 
@@ -487,10 +487,10 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                 name: "endpoint_settings");
 
             migrationBuilder.DropTable(
-                name: "EventLogItems");
+                name: "event_log_items");
 
             migrationBuilder.DropTable(
-                name: "ExternalIntegrationDispatchRequests");
+                name: "external_integration_dispatch_requests");
 
             migrationBuilder.DropTable(
                 name: "failed_error_imports");
