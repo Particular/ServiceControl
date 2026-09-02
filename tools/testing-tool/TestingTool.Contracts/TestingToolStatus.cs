@@ -21,6 +21,25 @@ public sealed class TestingToolStatus
     /// <summary>Total ServiceControl searches executed since process start.</summary>
     public long SearchesExecuted { get; init; }
 
+    /// <summary>
+    /// Retention sweeps successfully started (202) since process start. Each corresponds to a
+    /// full scan-and-delete of aged rows accepted by the ServiceControl error instance.
+    /// </summary>
+    public long RetentionSweepsStarted { get; init; }
+
+    /// <summary>
+    /// Retention-sweep triggers that found a sweep already running (409) since process start.
+    /// Non-zero on intervals shorter than the sweep duration — the job skipped the cycle.
+    /// </summary>
+    public long RetentionSweepsAlreadyRunning { get; init; }
+
+    /// <summary>
+    /// Retention-sweep triggers the persister did not support (501) since process start. A
+    /// non-zero value means ServiceControl is backed by a persister with no sweeper (e.g.
+    /// RavenDB, whose retention is server-side document expiration) — the job is a no-op there.
+    /// </summary>
+    public long RetentionSweepsNotSupported { get; init; }
+
     /// <summary>Total errors emitted via the direct error-queue bypass writer since process start.</summary>
     public long BypassErrorsWritten { get; init; }
 
