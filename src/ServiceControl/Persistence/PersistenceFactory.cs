@@ -10,6 +10,11 @@ namespace ServiceControl.Persistence
         {
             var persistenceConfiguration = CreatePersistenceConfiguration(settings);
 
+            if (maintenanceMode && !persistenceConfiguration.SupportsMaintenanceMode)
+            {
+                throw new Exception($"Maintenance mode is not supported by the {settings.PersistenceType} persister. It is only available on RavenDB, where it starts the embedded database so RavenDB Studio can be used.");
+            }
+
             //HINT: This is false when executed from acceptance tests
             settings.PersisterSpecificSettings ??= persistenceConfiguration.CreateSettings(Settings.SettingsRootNamespace);
             settings.PersisterSpecificSettings.MaintenanceMode = maintenanceMode;

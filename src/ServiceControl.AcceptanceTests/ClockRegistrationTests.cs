@@ -8,7 +8,6 @@ namespace ServiceControl.AcceptanceTests
     using NServiceBus;
     using NUnit.Framework;
     using Particular.ServiceControl;
-    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ClockRegistrationTests : AcceptanceTest
@@ -49,20 +48,6 @@ namespace ServiceControl.AcceptanceTests
             using var host = hostBuilder.Build();
 
             Assert.That(host.Services.GetRequiredService<TimeProvider>(), Is.SameAs(hostClock));
-        }
-
-        [Test]
-        public async Task Should_register_a_clock_in_a_persistence_only_host()
-        {
-            var hostBuilder = Host.CreateApplicationBuilder();
-            hostBuilder.Services.AddPersistence(settings, maintenanceMode: true);
-
-            using var host = hostBuilder.Build();
-            await host.StartAsync();
-
-            Assert.That(host.Services.GetRequiredService<TimeProvider>(), Is.Not.Null);
-
-            await host.StopAsync();
         }
 
         sealed class StubTimeProvider : TimeProvider;

@@ -29,6 +29,8 @@ public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration,
     const string SubscriptionCacheDurationKey = "SubscriptionCacheDuration";
     const string ExternalIntegrationsDispatchingBatchSizeKey = "ExternalIntegrationsDispatchingBatchSize";
 
+    public bool SupportsMaintenanceMode => false;
+
     public PersistenceSettings CreateSettings(SettingsRootNamespace settingsRootNamespace)
     {
         var settings = CreateSettings(
