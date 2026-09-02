@@ -73,15 +73,9 @@
                         Visibility="{Binding IsModal,
                                              Converter={StaticResource boolToVisInverted}}">
 
-                <Button Command="{Binding AddInstance}" Style="{StaticResource OriginalNewButton}"
-                        Visibility="{Binding ShowMonitoringInstances,
-                                     Converter={StaticResource boolToVisInverted}}" />
-
                 <ToggleButton Name="AddInstanceButton"
                               Style="{StaticResource NewButton}"
-                              IsChecked="{Binding ShowingMenuOverlay, Mode=TwoWay}"
-                              Visibility="{Binding ShowMonitoringInstances,
-                                                   Converter={StaticResource boolToVis}}" />
+                              IsChecked="{Binding ShowingMenuOverlay, Mode=TwoWay}" />
 
                 <Popup PlacementTarget="{Binding ElementName=RootBorder}"
                        Focusable="False"
