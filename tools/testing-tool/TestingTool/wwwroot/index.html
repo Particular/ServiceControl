@@ -173,6 +173,11 @@
         <div class="value" id="stat-searches">—</div>
       </div>
       <div class="stat-card">
+        <div class="label">Retention Sweeps</div>
+        <div class="value" id="stat-retention">—</div>
+        <div class="sub" id="stat-retention-sub">—</div>
+      </div>
+      <div class="stat-card">
         <div class="label">Active Scenarios</div>
         <div class="value" id="stat-active">—</div>
         <div class="sub" id="stat-active-sub">— jobs active</div>
@@ -325,6 +330,14 @@
       document.getElementById('stat-replayed').textContent = fmtNum(status.errorsReplayed);
       document.getElementById('stat-replayed-sub').textContent = `archived ${fmtNum(status.errorsArchived)}`;
       document.getElementById('stat-searches').textContent = fmtNum(status.searchesExecuted);
+      const sweeps = status.retentionSweepsStarted ?? 0;
+      document.getElementById('stat-retention').textContent = fmtNum(sweeps);
+      // Show how many triggers were no-ops (already running or unsupported) as the sub-line.
+      const skipped = (status.retentionSweepsAlreadyRunning ?? 0) + (status.retentionSweepsNotSupported ?? 0);
+      const notSupported = status.retentionSweepsNotSupported ?? 0;
+      document.getElementById('stat-retention-sub').textContent = notSupported > 0
+        ? `${fmtNum(notSupported)} not supported`
+        : `${fmtNum(skipped)} skipped`;
       document.getElementById('stat-active').textContent = status.activeScenarios ?? 0;
       document.getElementById('stat-active-sub').textContent = `${status.activeJobs ?? 0} jobs active`;
     }
