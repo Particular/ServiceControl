@@ -39,9 +39,6 @@ jobs:
       - name: Build
         run: dotnet build tools/testing-tool/TestingTool.slnx --configuration Release
 
-      - name: Build Aspire AppHost
-        run: dotnet build tools/testing-tool/aspire/AppHost.cs --configuration Release
-
       - name: Build container image
         uses: docker/build-push-action@v7.2.0
         with:
