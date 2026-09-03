@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    Testing tool host: ASP.NET Core minimal API + hosted background services.
+    Wire-up for OTel (Phase 1), the NServiceBus error path (Phase 2), scenarios (Phase 3),
+    background replay/search jobs (Phase 4), and the web UI (Phase 5).
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\TestingTool.Contracts\TestingTool.Contracts.csproj" />
+    <ProjectReference Include="..\TestingTool.Scenarios\TestingTool.Scenarios.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NServiceBus" Version="10.2.8" />
+    <PackageReference Include="NServiceBus.RabbitMQ" Version="11.2.1" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.17.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.11.2-beta.1" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.17.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.12.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.12.0" />
+  </ItemGroup>
+
+</Project>

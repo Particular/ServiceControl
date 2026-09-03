@@ -1,0 +1,21 @@
+<Project Sdk="Aspire.AppHost.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.4.5" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.4.5" />
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="13.4.5" />
+    <PackageReference Include="Aspire.Hosting.SqlServer" Version="13.4.5" />
+    <PackageReference Include="Particular.Aspire.Hosting.ServicePlatform" Version="1.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TestingTool\TestingTool.csproj" />
+  </ItemGroup>
+
+</Project>

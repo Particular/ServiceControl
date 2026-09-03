@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ServiceControl Testing Tool</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #1a1a2e;
+      --surface: #16213e;
+      --surface-2: #0f3460;
+      --accent: #e94560;
+      --accent-2: #0f3460;
+      --text: #eee;
+      --muted: #888;
+      --ok: #4ade80;
+      --warn: #fbbf24;
+      --err: #f87171;
+      --border: #2a2a4a;
+      --radius: 8px;
+    }
+
+    [data-theme="light"] {
+      --bg: #f5f5f7;
+      --surface: #fff;
+      --surface-2: #e8eaf0;
+      --accent: #e94560;
+      --accent-2: #3b82f6;
+      --text: #1a1a2e;
+      --muted: #666;
+      --border: #ddd;
+    }
+
+    * { box-sizing: border-box; }
+    body { font: 14px/1.6 system-ui, -apple-system, Segoe UI, sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+    a { color: var(--accent-2); }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    header h1 { font-size: 1.5rem; margin: 0; }
+    header .theme-toggle { cursor: pointer; font-size: 1.2rem; border: none; background: none; color: var(--text); }
+
+    /* --- Status bar --- */
+    .status-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: .75rem;
+      margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .9rem 1rem;
+    }
+    .stat-card .label { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+    .stat-card .value { font-size: 1.6rem; font-weight: 700; margin-top: .2rem; }
+    .stat-card .sub { font-size: .75rem; color: var(--muted); margin-top: .1rem; }
+    .stat-card.accent { border-left: 3px solid var(--accent); }
+
+    /* --- Connection info --- */
+    .info-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .6rem 1rem;
+      margin-bottom: 1.5rem;
+      font-size: .85rem;
+    }
+    .info-bar .item { display: flex; align-items: center; gap: .4rem; }
+    .info-bar .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .dot.on { background: var(--ok); } .dot.off { background: var(--muted); }
+    .info-bar .spacer { flex: 1; }
+
+    /* --- Scenarios / Jobs --- */
+    .section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: .75rem; }
+    .section-head h2 { font-size: 1.2rem; margin: 0; }
+
+    /* --- Tabs --- */
+    .tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+    .tab { padding: .5rem 1rem; border: none; background: none; color: var(--muted); cursor: pointer; font-size: .95rem; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
+    .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+    .tab:hover { color: var(--text); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .btn { padding: .4rem .9rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); color: var(--text); cursor: pointer; font-size: .85rem; transition: opacity .15s; }
+    .btn:hover { opacity: .85; }
+    .btn:disabled { opacity: .4; cursor: default; }
+    .btn.start { border-color: var(--ok); color: var(--ok); }
+    .btn.stop { border-color: var(--err); color: var(--err); }
+    .btn.danger { border-color: var(--accent); color: var(--accent); }
+
+    .scenarios { display: grid; gap: .75rem; }
+    .scenario-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.2rem;
+      transition: border-color .2s;
+    }
+    .scenario-card.running { border-left: 3px solid var(--ok); }
+    .scenario-card .header-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .scenario-card .name { font-weight: 700; font-size: 1.05rem; }
+    .scenario-card .cat {
+      font-size: .7rem; text-transform: uppercase; letter-spacing: .05em;
+      background: var(--surface-2); padding: .15rem .5rem; border-radius: 4px; color: var(--muted);
+    }
+    .scenario-card .desc { color: var(--muted); font-size: .85rem; margin-top: .3rem; }
+    .scenario-card .controls { display: flex; align-items: center; gap: .5rem; margin-top: .8rem; flex-wrap: wrap; }
+    .scenario-card input[type="number"] {
+      width: 80px; padding: .3rem .5rem; border: 1px solid var(--border); border-radius: 4px;
+      background: var(--bg); color: var(--text); font-size: .85rem;
+    }
+    .scenario-card input[type="text"] {
+      width: 70px; padding: .3rem .5rem; border: 1px solid var(--border); border-radius: 4px;
+      background: var(--bg); color: var(--text); font-size: .85rem;
+    }
+    .scenario-card .field-label { font-size: .75rem; color: var(--muted); }
+    .scenario-card .stats { display: flex; gap: 1.2rem; margin-top: .6rem; font-size: .8rem; color: var(--muted); }
+    .scenario-card .stats span strong { color: var(--text); }
+
+    .badge { font-size: .7rem; padding: .1rem .45rem; border-radius: 4px; font-weight: 600; }
+    .badge.running { background: var(--ok); color: #111; }
+    .badge.idle { background: var(--surface-2); color: var(--muted); }
+
+    .loading { text-align: center; padding: 2rem; color: var(--muted); }
+
+    /* --- Toast --- */
+    #toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: .8rem 1.2rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,.3);
+      opacity: 0; transform: translateY(10px); transition: all .2s;
+      pointer-events: none; max-width: 380px;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.error { border-color: var(--err); }
+    #toast.ok { border-color: var(--ok); }
+
+    footer { margin-top: 2rem; color: var(--muted); font-size: .75rem; text-align: center; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>🎯 ServiceControl Testing Tool</h1>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+    </header>
+
+    <!-- Status dashboard -->
+    <div class="status-bar" id="status-bar">
+      <div class="stat-card accent">
+        <div class="label">Errors Sent</div>
+        <div class="value" id="stat-errors">—</div>
+        <div class="sub" id="stat-rate">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Replayed</div>
+        <div class="value" id="stat-replayed">—</div>
+        <div class="sub" id="stat-replayed-sub">archived —</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Searches</div>
+        <div class="value" id="stat-searches">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Active Scenarios</div>
+        <div class="value" id="stat-active">—</div>
+        <div class="sub" id="stat-active-sub">— jobs active</div>
+      </div>
+    </div>
+
+    <!-- Connection info -->
+    <div class="info-bar" id="info-bar">
+      <span class="loading">Loading…</span>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="scenarios" onclick="showTab('scenarios')">Scenarios</button>
+      <button class="tab" data-tab="jobs" onclick="showTab('jobs')">Recoverability Jobs</button>
+      <button class="tab" data-tab="bypass" onclick="showTab('bypass')">Bypass</button>
+    </div>
+
+    <!-- Tab: Scenarios -->
+    <div class="tab-panel active" id="panel-scenarios">
+    <!-- Scenarios -->
+    <div class="section-head">
+      <h2>Scenarios</h2>
+      <button class="btn danger" onclick="stopAll()" id="btn-stop-all" disabled>Stop All</button>
+    </div>
+    <div class="scenarios" id="scenarios">
+      <div class="loading">Loading scenarios…</div>
+    </div>
+
+    </div>
+
+    <!-- Tab: Recoverability jobs -->
+    <div class="tab-panel" id="panel-jobs">
+
+    <div class="section-head">
+      <h2>Recoverability Jobs</h2>
+      <button class="btn danger" onclick="stopAllJobs()" id="btn-stop-all-jobs" disabled>Stop All Jobs</button>
+    </div>
+    <div class="scenarios" id="jobs">
+      <div class="loading">Loading jobs…</div>
+    </div>
+
+    </div>
+
+    <!-- Tab: Bypass writer -->
+    <div class="tab-panel" id="panel-bypass">
+
+    <div class="section-head">
+      <h2>Direct Error-Queue Bypass</h2>
+    </div>
+    <div class="scenario-card" id="bypass-card">
+      <div class="desc" style="margin-bottom:.8rem">
+        Writes failed-message envelopes directly to the ServiceControl error queue, bypassing the handler for high-throughput error load. Messages carry NServiceBus failure headers so ServiceControl ingests them as genuine failed messages.
+      </div>
+      <div class="controls">
+        <span class="field-label">Scenario:</span>
+        <select id="bypass-scenario" style="padding:.3rem .5rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);font-size:.85rem">
+          <option value="">Loading…</option>
+        </select>
+        <span class="field-label">Rate (msg/s):</span>
+        <input type="number" id="bypass-rate" value="100" min="1" step="1" />
+        <span class="field-label">Workers:</span>
+        <input type="number" id="bypass-parallelism" value="" min="1" step="1" placeholder="auto" title="Number of parallel worker tasks (default: CPU count)" />
+        <span class="field-label">Duration (sec, optional):</span>
+        <input type="number" id="bypass-duration" value="" min="1" step="1" placeholder="∞" />
+      </div>
+      <div class="controls">
+        <button class="btn start" onclick="startBypass()" id="btn-bypass-start">▶ Start Bypass</button>
+        <button class="btn stop" onclick="stopBypass()" id="btn-bypass-stop" disabled>⏹ Stop Bypass</button>
+      </div>
+      <div class="stats" id="bypass-stats" style="margin-top:.8rem">
+        <span>Status: <strong>idle</strong></span>
+        <span>Errors written: <strong>0</strong></span>
+      </div>
+    </div>
+
+    </div>
+
+    <footer>
+      <a href="/metrics" target="_blank">Prometheus /metrics</a>
+      &nbsp;·&nbsp; OTel OTLP export active
+      &nbsp;·&nbsp; <span id="footer-shard">shard: —</span>
+    </footer>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    // --- State ---
+    let scenarios = [];
+    let jobs = [];
+    let status = null;
+    let refreshTimer = null;
+
+    // --- Tabs ---
+    function showTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+      try { localStorage.setItem('tt-tab', name); } catch (e) {}
+    }
+
+    // --- Theme ---
+    function toggleTheme() {
+      const dark = document.documentElement.getAttribute('data-theme') !== 'light';
+      document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
+      document.querySelector('.theme-toggle').textContent = dark ? '☀️' : '🌙';
+      localStorage.setItem('tt-theme', dark ? 'light' : 'dark');
+    }
+    (function() {
+      const saved = localStorage.getItem('tt-theme');
+      if (saved === 'light') { document.documentElement.setAttribute('data-theme', 'light'); document.querySelector('.theme-toggle').textContent = '☀️'; }
+    })();
+
+    // --- Toast ---
+    let toastTimer = null;
+    function toast(msg, type = '') {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'show ' + type;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.className = '', 3000);
+    }
+
+    // --- Formatting ---
+    function fmtNum(n) { return n?.toLocaleString?.() ?? '—'; }
+    function fmtUptime(ts) {
+      if (!ts) return '—';
+      // Uptime comes pre-formatted from the server (e.g. "0h 5m 12s")
+      return ts;
+    }
+    function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+    // --- API calls ---
+    async function api(method, path, body) {
+      const opts = { method, headers: { 'Content-Type': 'application/json' } };
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch(path, opts);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: res.statusText }));
+        throw new Error(err.error || res.statusText);
+      }
+      return res.json();
+    }
+
+    // --- Load status ---
+    function applyStatus(s) {
+      status = s;
+      document.getElementById('stat-errors').textContent = fmtNum(status.errorsSent);
+      document.getElementById('stat-rate').textContent = `${status.currentRate ?? 0} msg/s`;
+      document.getElementById('stat-replayed').textContent = fmtNum(status.errorsReplayed);
+      document.getElementById('stat-replayed-sub').textContent = `archived ${fmtNum(status.errorsArchived)}`;
+      document.getElementById('stat-searches').textContent = fmtNum(status.searchesExecuted);
+      document.getElementById('stat-active').textContent = status.activeScenarios ?? 0;
+      document.getElementById('stat-active-sub').textContent = `${status.activeJobs ?? 0} jobs active`;
+    }
+
+    function renderInfoBar() {
+      document.getElementById('info-bar').innerHTML = `
+        <span class="item"><span class="dot on"></span> Ready</span>
+        <span class="item">Uptime: <strong>${fmtUptime(status?.uptime)}</strong></span>
+        <span class="spacer"></span>
+        <span class="item">SC: <a href="${status?.serviceControlUrl}" target="_blank">${status?.serviceControlUrl ?? '—'}</a></span>
+        <span class="item">shard: <strong>${status?.shardId ?? '—'}</strong></span>
+      `;
+      document.getElementById('footer-shard').textContent = `shard: ${status?.shardId ?? '—'}`;
+    }
+
+    async function loadStatus() {
+      try {
+        applyStatus(await api('GET', '/api/status'));
+        renderInfoBar();
+      } catch (e) {
+        document.getElementById('info-bar').innerHTML = `<span class="item" style="color:var(--err)">⚠ ${e.message}</span>`;
+      }
+    }
+
+    // --- Load scenarios ---
+    async function loadScenarios() {
+      try {
+        scenarios = await api('GET', '/api/scenarios');
+        renderScenarios();
+      } catch (e) {
+        document.getElementById('scenarios').innerHTML = `<div class="loading" style="color:var(--err)">⚠ ${e.message}</div>`;
+      }
+    }
+
+    function renderScenarios() {
+      const hasRunning = scenarios.some(s => s.running);
+      document.getElementById('btn-stop-all').disabled = !hasRunning;
+
+      if (scenarios.length === 0) {
+        document.getElementById('scenarios').innerHTML = '<div class="loading">No scenarios registered.</div>';
+        return;
+      }
+
+      // Group by category
+      const categories = {};
+      scenarios.forEach(s => {
+        (categories[s.category] ??= []).push(s);
+      });
+
+      let html = '';
+      for (const [cat, items] of Object.entries(categories).sort()) {
+        html += `<div style="margin-bottom:.5rem;font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">${cat}</div>`;
+        for (const s of items) {
+          html += renderScenarioCard(s);
+        }
+      }
+      document.getElementById('scenarios').innerHTML = html;
+    }
+
+    function renderScenarioCard(s) {
+      const rateId = `rate-${s.name}`;
+      const durId = `dur-${s.name}`;
+      return `
+        <div class="scenario-card ${s.running ? 'running' : ''}" data-scenario="${esc(s.name)}">
+          <div class="header-row">
+            <div>
+              <span class="name">${esc(s.name)}</span>
+              <span class="badge ${s.running ? 'running' : 'idle'}">${s.running ? 'running' : 'idle'}</span>
+              &nbsp;<span class="cat">${esc(s.category)}</span>
+            </div>
+            <div>
+              <button class="btn start" onclick="startScenario('${esc(s.name)}')" ${s.running ? 'disabled' : ''}>▶ Start</button>
+              <button class="btn stop" onclick="stopScenario('${esc(s.name)}')" ${s.running ? '' : 'disabled'}>⏹ Stop</button>
+            </div>
+          </div>
+          <div class="desc">${esc(s.description)}</div>
+          <div class="controls">
+            <span class="field-label">Rate (msg/s):</span>
+            <input type="number" id="${rateId}" value="${s.defaultRate}" min="1" step="1" ${s.running ? 'disabled' : ''} />
+            <span class="field-label">Duration (sec, optional):</span>
+            <input type="number" id="${durId}" value="" min="1" step="1" placeholder="∞" ${s.running ? 'disabled' : ''} />
+          </div>
+          <div class="stats">
+            <span>Errors sent: <strong>${fmtNum(s.errorsSent)}</strong></span>
+            <span>Rate: <strong>${s.currentRate ?? 0} msg/s</strong></span>
+            ${s.cooldown ? `<span>Cooldown: <strong>${esc(s.cooldown)}</strong></span>` : ''}
+          </div>
+        </div>`;
+    }
+
+    // --- Actions ---
+    async function startScenario(name) {
+      const rateVal = parseFloat(document.getElementById(`rate-${name}`)?.value);
+      const durVal = parseInt(document.getElementById(`dur-${name}`)?.value);
+      const body = {};
+      if (rateVal && rateVal > 0) body.rate = rateVal;
+      if (durVal && durVal > 0) body.durationSeconds = durVal; // seconds
+
+      try {
+        await api('POST', `/api/scenarios/${encodeURIComponent(name)}/start`, body);
+        toast(`Started "${name}"`, 'ok');
+        await loadScenarios();
+      } catch (e) {
+        toast(`Failed to start: ${e.message}`, 'error');
+      }
+    }
+
+    async function stopScenario(name) {
+      try {
+        await api('POST', `/api/scenarios/${encodeURIComponent(name)}/stop`);
+        toast(`Stopped "${name}"`, 'ok');
+        await loadScenarios();
+      } catch (e) {
+        toast(`Failed to stop: ${e.message}`, 'error');
+      }
+    }
+
+    async function stopAll() {
+      try {
+        await api('POST', '/api/scenarios/stop-all');
+        toast('Stopped all scenarios', 'ok');
+        await loadScenarios();
+      } catch (e) {
+        toast(`Failed: ${e.message}`, 'error');
+      }
+    }
+
+    // --- Recoverability jobs ---
+    async function loadJobs() {
+      try {
+        jobs = await api('GET', '/api/jobs');
+        renderJobs();
+      } catch (e) {
+        document.getElementById('jobs').innerHTML = `<div class="loading" style="color:var(--err)">⚠ ${e.message}</div>`;
+      }
+    }
+
+    function renderJobs() {
+      const hasRunning = jobs.some(j => j.running);
+      document.getElementById('btn-stop-all-jobs').disabled = !hasRunning;
+
+      if (jobs.length === 0) {
+        document.getElementById('jobs').innerHTML = '<div class="loading">No jobs registered.</div>';
+        return;
+      }
+
+      // Group by category
+      const categories = {};
+      jobs.forEach(j => {
+        (categories[j.category] ??= []).push(j);
+      });
+
+      let html = '';
+      for (const [cat, items] of Object.entries(categories).sort()) {
+        html += `<div style="margin-bottom:.5rem;font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">${cat}</div>`;
+        for (const j of items) {
+          html += renderJobCard(j);
+        }
+      }
+      document.getElementById('jobs').innerHTML = html;
+    }
+
+    function renderJobCard(j) {
+      const intervalId = `job-interval-${j.name}`;
+      return `
+        <div class="scenario-card ${j.running ? 'running' : ''}" data-job="${esc(j.name)}">
+          <div class="header-row">
+            <div>
+              <span class="name">${esc(j.name)}</span>
+              <span class="badge ${j.running ? 'running' : 'idle'}">${j.running ? 'running' : 'idle'}</span>
+              &nbsp;<span class="cat">${esc(j.category)}</span>
+            </div>
+            <div>
+              <button class="btn start" onclick="startJob('${esc(j.name)}')" ${j.running ? 'disabled' : ''}>▶ Start</button>
+              <button class="btn stop" onclick="stopJob('${esc(j.name)}')" ${j.running ? '' : 'disabled'}>⏹ Stop</button>
+            </div>
+          </div>
+          <div class="desc">${esc(j.description)}</div>
+          <div class="controls">
+            <span class="field-label">Interval (sec):</span>
+            <input type="number" id="${intervalId}" value="${j.running ? j.intervalSeconds : j.defaultIntervalSeconds}" min="1" step="1" ${j.running ? 'disabled' : ''} />
+          </div>
+          <div class="stats">
+            <span>Cycles: <strong>${fmtNum(j.cycles)}</strong></span>
+            <span>Items processed: <strong>${fmtNum(j.itemsProcessed)}</strong></span>
+            ${j.running ? `<span>Interval: <strong>${j.intervalSeconds}s</strong></span>` : ''}
+          </div>
+        </div>`;
+    }
+
+    async function startJob(name) {
+      const intervalVal = parseInt(document.getElementById(`job-interval-${name}`)?.value);
+      const body = {};
+      if (intervalVal && intervalVal > 0) body.intervalSeconds = intervalVal;
+      try {
+        await api('POST', `/api/jobs/${encodeURIComponent(name)}/start`, body);
+        toast(`Started job "${name}"`, 'ok');
+        await loadJobs();
+      } catch (e) {
+        toast(`Failed to start job: ${e.message}`, 'error');
+      }
+    }
+
+    async function stopJob(name) {
+      try {
+        await api('POST', `/api/jobs/${encodeURIComponent(name)}/stop`);
+        toast(`Stopped job "${name}"`, 'ok');
+        await loadJobs();
+      } catch (e) {
+        toast(`Failed to stop job: ${e.message}`, 'error');
+      }
+    }
+
+    async function stopAllJobs() {
+      try {
+        await api('POST', '/api/jobs/stop-all');
+        toast('Stopped all jobs', 'ok');
+        await loadJobs();
+      } catch (e) {
+        toast(`Failed: ${e.message}`, 'error');
+      }
+    }
+
+    // --- Bypass ---
+    function populateBypassScenarios() {
+      const sel = document.getElementById('bypass-scenario');
+      sel.innerHTML = scenarios.map(s => `<option value="${s.name}">${s.name} (${s.category})</option>`).join('');
+    }
+
+    async function startBypass() {
+      const scenario = document.getElementById('bypass-scenario').value;
+      const rate = parseFloat(document.getElementById('bypass-rate').value);
+      const dur = parseInt(document.getElementById('bypass-duration').value);
+      const par = parseInt(document.getElementById('bypass-parallelism').value);
+      const body = { scenario };
+      if (rate && rate > 0) body.rate = rate;
+      if (par && par > 0) body.parallelism = par;
+      if (dur && dur > 0) body.durationSeconds = dur;
+      try {
+        await api('POST', '/api/bypass/start', body);
+        toast(`Started bypass for "${scenario}"`, 'ok');
+        await refreshBypass();
+      } catch (e) {
+        toast(`Failed to start bypass: ${e.message}`, 'error');
+      }
+    }
+
+    async function stopBypass() {
+      try {
+        await api('POST', '/api/bypass/stop');
+        toast('Stopped bypass writer', 'ok');
+        await refreshBypass();
+      } catch (e) {
+        toast(`Failed: ${e.message}`, 'error');
+      }
+    }
+
+    async function refreshBypass() {
+      try {
+        const bypass = await api('GET', '/api/bypass/status');
+        const stats = document.getElementById('bypass-stats');
+        const startBtn = document.getElementById('btn-bypass-start');
+        const stopBtn = document.getElementById('btn-bypass-stop');
+        const card = document.getElementById('bypass-card');
+        card.classList.toggle('running', bypass.running);
+        startBtn.disabled = bypass.running;
+        stopBtn.disabled = !bypass.running;
+        document.querySelectorAll('#bypass-card input, #bypass-scenario').forEach(el => el.disabled = bypass.running);
+        stats.innerHTML = `
+          <span>Status: <strong>${bypass.running ? 'running' : 'idle'}</strong></span>
+          ${bypass.scenario ? `<span>Scenario: <strong>${bypass.scenario}</strong></span>` : ''}
+          ${bypass.running ? `<span>Rate: <strong>${bypass.rate ?? 0} msg/s</strong></span>` : ''}
+          <span>Errors written: <strong>${fmtNum(bypass.errorsWritten)}</strong></span>
+          ${bypass.errorsFailed ? `<span style="color:var(--err)">Failed: <strong>${fmtNum(bypass.errorsFailed)}</strong></span>` : ''}
+        `;
+      } catch (e) { /* ignore */ }
+    }
+
+    // --- Polling ---
+    async function loadAll() {
+      await Promise.all([loadStatus(), loadScenarios(), loadJobs()]);
+    }
+
+    async function refresh() {
+      // Lightweight status refresh without full re-render (preserves input focus)
+      try {
+        applyStatus(await api('GET', '/api/status'));
+
+        // Update per-scenario stats in-place without re-rendering inputs
+        scenarios = await api('GET', '/api/scenarios');
+        scenarios.forEach(s => {
+          const card = document.querySelector(`[data-scenario="${s.name}"]`);
+          if (!card) return;
+          const badge = card.querySelector('.badge');
+          badge.className = `badge ${s.running ? 'running' : 'idle'}`;
+          badge.textContent = s.running ? 'running' : 'idle';
+          card.classList.toggle('running', s.running);
+          const stats = card.querySelector('.stats');
+          if (stats) {
+            stats.innerHTML = `
+              <span>Errors sent: <strong>${fmtNum(s.errorsSent)}</strong></span>
+              <span>Rate: <strong>${s.currentRate ?? 0} msg/s</strong></span>
+              ${s.cooldown ? `<span>Cooldown: <strong>${s.cooldown}</strong></span>` : ''}
+            `;
+          }
+          // Enable/disable buttons
+          card.querySelector('.btn.start').disabled = s.running;
+          card.querySelector('.btn.stop').disabled = !s.running;
+          card.querySelectorAll('input').forEach(i => i.disabled = s.running);
+        });
+        document.getElementById('btn-stop-all').disabled = !scenarios.some(s => s.running);
+
+        // Update per-job stats in-place
+        jobs = await api('GET', '/api/jobs');
+        jobs.forEach(j => {
+          const card = document.querySelector(`[data-job="${j.name}"]`);
+          if (!card) return;
+          const badge = card.querySelector('.badge');
+          badge.className = `badge ${j.running ? 'running' : 'idle'}`;
+          badge.textContent = j.running ? 'running' : 'idle';
+          card.classList.toggle('running', j.running);
+          const stats = card.querySelector('.stats');
+          if (stats) {
+            stats.innerHTML = `
+              <span>Cycles: <strong>${fmtNum(j.cycles)}</strong></span>
+              <span>Items processed: <strong>${fmtNum(j.itemsProcessed)}</strong></span>
+              ${j.running ? `<span>Interval: <strong>${j.intervalSeconds}s</strong></span>` : ''}
+            `;
+          }
+          card.querySelector('.btn.start').disabled = j.running;
+          card.querySelector('.btn.stop').disabled = !j.running;
+          card.querySelectorAll('input').forEach(i => i.disabled = j.running);
+        });
+        document.getElementById('btn-stop-all-jobs').disabled = !jobs.some(j => j.running);
+      } catch (e) {
+        // ignore transient errors during polling
+      }
+    }
+
+    // --- Init ---
+    try { showTab(localStorage.getItem('tt-tab') || 'scenarios'); } catch (e) { showTab('scenarios'); }
+    loadAll().then(() => populateBypassScenarios());
+    refreshBypass();
+    refreshTimer = setInterval(refresh, 2000);
+    setInterval(refreshBypass, 2000);
+  </script>
+</body>
+
+</html>

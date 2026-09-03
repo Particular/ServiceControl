@@ -1,0 +1,15 @@
+# Prometheus scrape configuration for the testing-tool observability stack.
+#
+# Scrapes the OpenTelemetry Collector's Prometheus exporter, which exposes the testing
+# tool's OTel metrics (received via OTLP) in Prometheus format at :8889.
+
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: 'otel-collector'
+    static_configs:
+      - targets: ['otel-collector:8889']
+        labels:
+          source: 'otel-collector'
