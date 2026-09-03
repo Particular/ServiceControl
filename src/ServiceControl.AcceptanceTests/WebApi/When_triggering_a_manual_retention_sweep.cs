@@ -25,6 +25,7 @@ class When_triggering_a_manual_retention_sweep : AcceptanceTest
 
         HttpStatusCode started = default;
         HttpStatusCode invalidCutoff = default;
+        RetentionSweepStatus completion = null;
 
         await Define<Context>()
             .Done(async _ =>
@@ -46,6 +47,9 @@ class When_triggering_a_manual_retention_sweep : AcceptanceTest
 
                 invalidCutoff = badRequest.StatusCode;
 
+                // The status endpoint must report the run, and the background sweep must complete.
+                completion = await WaitUntilSweepFinishes();
+
                 return true;
             })
             .Run();
@@ -54,12 +58,10 @@ class When_triggering_a_manual_retention_sweep : AcceptanceTest
         {
             Assert.That(started, Is.EqualTo(HttpStatusCode.Accepted), "the sweep should start in the background");
             Assert.That(invalidCutoff, Is.EqualTo(HttpStatusCode.BadRequest), "a future cutoff must be rejected");
+            Assert.That(completion, Is.Not.Null, "the background sweep must complete");
+            Assert.That(completion.IsRunning, Is.False, "the background sweep must complete");
+            Assert.That(completion.LastStartedAt, Is.Not.Null);
         }
-
-        // The status endpoint must report the run, and the background sweep must complete.
-        var status = await WaitUntilSweepFinishes();
-        Assert.That(status.IsRunning, Is.False, "the background sweep must complete");
-        Assert.That(status.LastStartedAt, Is.Not.Null);
     }
 
     [Test]
@@ -71,6 +73,8 @@ class When_triggering_a_manual_retention_sweep : AcceptanceTest
             return;
         }
 
+        RetentionSweepStatus completion = null;
+
         await Define<Context>()
             .Done(async _ =>
             {
@@ -79,16 +83,17 @@ class When_triggering_a_manual_retention_sweep : AcceptanceTest
                     new RetentionSweepRequest { ErrorCutoff = DateTime.UtcNow.AddDays(-30) },
                     SerializerOptions);
 
+                completion = await WaitUntilSweepFinishes();
                 return response.StatusCode == HttpStatusCode.Accepted;
             })
             .Run();
 
-        var status = await WaitUntilSweepFinishes();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(status.IsRunning, Is.False);
-            Assert.That(status.LastFinishedAt, Is.Not.Null, "a completed run records its finish time");
+            Assert.That(completion, Is.Not.Null, "the background sweep must complete");
+            Assert.That(completion.IsRunning, Is.False);
+            Assert.That(completion.LastFinishedAt, Is.Not.Null, "a completed run records its finish time");
         }
     }
 
