@@ -66,6 +66,7 @@ abstract class SqlServerDialect
     protected static int MaxRowsPerStatement(int columns, int sharedParameters = 0) =>
         (MaxSqlParameters - ExecuteSqlOverhead - sharedParameters) / columns;
 
+    // https://learn.microsoft.com/en-us/sql/sql-server/maximum-capacity-specifications-for-sql-server
     const int MaxSqlParameters = 2100;
 
     // The client sends every parameterised command through sp_executesql, which spends two of the 2100 on the statement and the parameter list.
