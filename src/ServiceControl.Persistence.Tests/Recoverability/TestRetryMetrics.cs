@@ -6,7 +6,7 @@ namespace ServiceControl.Persistence.Tests
 
     static class TestRetryMetrics
     {
-        public static RetryMetrics Create() => new(new TestMeterFactory(), TimeProvider.System);
+        public static RetryMetrics Create(TimeProvider timeProvider) => new(new TestMeterFactory(), timeProvider);
     }
 
     sealed class TestMeterFactory : IMeterFactory

@@ -82,7 +82,7 @@ public class OperationProgressClockTests
     [Test]
     public async Task Retry_completion_comes_from_the_injected_clock()
     {
-        var retry = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(), NullLogger.Instance, new FixedClock(FixedNow));
+        var retry = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(new FixedClock(FixedNow)), NullLogger.Instance, new FixedClock(FixedNow));
 
         await retry.Prepare(1000);
         await retry.PrepareBatch(1000);

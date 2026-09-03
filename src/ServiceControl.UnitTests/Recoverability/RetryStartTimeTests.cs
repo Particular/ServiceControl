@@ -24,7 +24,7 @@ public class RetryStartTimeTests
     {
         var clock = new FakeTimeProvider(ClockStart);
         var session = new TestableMessageSession();
-        var retryingManager = new RetryingManager(new FakeDomainEvents(), TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance, clock);
+        var retryingManager = new RetryingManager(new FakeDomainEvents(), TestRetryMetrics.Create(clock), NullLogger<RetryingManager>.Instance, clock);
 
         await NewController(session, retryingManager, clock).ArchiveGroupErrors("group-42");
 
@@ -40,7 +40,7 @@ public class RetryStartTimeTests
     public async Task A_completed_group_retry_never_finishes_before_it_started()
     {
         var clock = new FakeTimeProvider(ClockStart);
-        var retryingManager = new RetryingManager(new FakeDomainEvents(), TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance, clock);
+        var retryingManager = new RetryingManager(new FakeDomainEvents(), TestRetryMetrics.Create(clock), NullLogger<RetryingManager>.Instance, clock);
 
         await NewController(new TestableMessageSession(), retryingManager, clock).ArchiveGroupErrors("group-42");
 

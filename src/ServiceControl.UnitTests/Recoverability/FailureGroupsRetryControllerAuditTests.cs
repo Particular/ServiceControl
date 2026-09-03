@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Time.Testing;
 using NServiceBus.Testing;
 using NUnit.Framework;
 using ServiceControl.Infrastructure.Auth;
@@ -16,14 +17,16 @@ using ServiceControl.UnitTests.Operations;
 [TestFixture]
 public class FailureGroupsRetryControllerAuditTests
 {
+    readonly FakeTimeProvider fakeTime = new(DateTimeOffset.UtcNow);
+
     [Test]
     public async Task Emits_group_retry_operation_entry()
     {
         var session = new TestableMessageSession();
         var audit = new RecordingMessageActionAuditLog();
         var user = new AuditUser("alice-sub", "Alice");
-        var retryingManager = new RetryingManager(new FakeDomainEvents(), TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance, TimeProvider.System);
-        var controller = new FailureGroupsRetryController(session, retryingManager, new StubCurrentUserAccessor(user), audit, TimeProvider.System);
+        var retryingManager = new RetryingManager(new FakeDomainEvents(), TestRetryMetrics.Create(fakeTime), NullLogger<RetryingManager>.Instance, fakeTime);
+        var controller = new FailureGroupsRetryController(session, retryingManager, new StubCurrentUserAccessor(user), audit, fakeTime);
 
         await controller.ArchiveGroupErrors("group-42");
 
@@ -41,9 +44,9 @@ public class FailureGroupsRetryControllerAuditTests
     {
         var session = new TestableMessageSession();
         var audit = new RecordingMessageActionAuditLog();
-        var retryingManager = new RetryingManager(new FakeDomainEvents(), TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance, TimeProvider.System);
+        var retryingManager = new RetryingManager(new FakeDomainEvents(), TestRetryMetrics.Create(fakeTime), NullLogger<RetryingManager>.Instance, fakeTime);
         await retryingManager.Preparing("group-42", RetryType.FailureGroup, totalNumberOfMessages: 10);
-        var controller = new FailureGroupsRetryController(session, retryingManager, new StubCurrentUserAccessor(new AuditUser("alice-sub", "Alice")), audit, TimeProvider.System);
+        var controller = new FailureGroupsRetryController(session, retryingManager, new StubCurrentUserAccessor(new AuditUser("alice-sub", "Alice")), audit, fakeTime);
 
         await controller.ArchiveGroupErrors("group-42");
 
