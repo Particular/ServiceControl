@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging.Abstractions;
+    using Microsoft.Extensions.Time.Testing;
     using NUnit.Framework;
     using ServiceControl.Persistence;
     using ServiceControl.Recoverability;
@@ -11,10 +12,12 @@
     [TestFixture]
     public class RetryOperationTests
     {
+        readonly FakeTimeProvider fakeTime = new(DateTimeOffset.UtcNow);
+
         [Test]
         public async Task Wait_should_set_wait_state()
         {
-            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(), NullLogger.Instance, TimeProvider.System);
+            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(fakeTime), NullLogger.Instance, fakeTime);
             await summary.Wait(DateTime.UtcNow, "FailureGroup1");
             using (Assert.EnterMultipleScope())
             {
@@ -30,7 +33,7 @@
         [Test]
         public void Fail_should_set_failed()
         {
-            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(), NullLogger.Instance, TimeProvider.System);
+            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(fakeTime), NullLogger.Instance, fakeTime);
             summary.Fail();
             Assert.That(summary.Failed, Is.True);
         }
@@ -38,7 +41,7 @@
         [Test]
         public async Task Prepare_should_set_prepare_state()
         {
-            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(), NullLogger.Instance, TimeProvider.System);
+            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(fakeTime), NullLogger.Instance, fakeTime);
             await summary.Prepare(1000);
             using (Assert.EnterMultipleScope())
             {
@@ -51,7 +54,7 @@
         [Test]
         public async Task Prepared_batch_should_set_prepare_state()
         {
-            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(), NullLogger.Instance, TimeProvider.System);
+            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(fakeTime), NullLogger.Instance, fakeTime);
             await summary.Prepare(1000);
             await summary.PrepareBatch(1000);
             using (Assert.EnterMultipleScope())
@@ -65,7 +68,7 @@
         [Test]
         public async Task Forwarding_should_set_forwarding_state()
         {
-            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(), NullLogger.Instance, TimeProvider.System);
+            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(fakeTime), NullLogger.Instance, fakeTime);
             await summary.Prepare(1000);
             await summary.PrepareBatch(1000);
             await summary.Forwarding();
@@ -81,7 +84,7 @@
         [Test]
         public async Task Batch_forwarded_should_set_forwarding_state()
         {
-            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(), NullLogger.Instance, TimeProvider.System);
+            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(fakeTime), NullLogger.Instance, fakeTime);
             await summary.Prepare(1000);
             await summary.PrepareBatch(1000);
             await summary.Forwarding();
@@ -99,7 +102,7 @@
         public async Task Should_raise_domain_events()
         {
             var domainEvents = new FakeDomainEvents();
-            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, domainEvents, TestRetryMetrics.Create(), NullLogger.Instance, TimeProvider.System);
+            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, domainEvents, TestRetryMetrics.Create(fakeTime), NullLogger.Instance, fakeTime);
             await summary.Prepare(1000);
             await summary.PrepareBatch(1000);
             await summary.Forwarding();
@@ -118,7 +121,7 @@
         [Test]
         public async Task Batch_forwarded_all_forwarded_should_set_completed_state()
         {
-            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(), NullLogger.Instance, TimeProvider.System);
+            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(fakeTime), NullLogger.Instance, fakeTime);
             await summary.Prepare(1000);
             await summary.PrepareBatch(1000);
             await summary.Forwarding();
@@ -135,7 +138,7 @@
         [Test]
         public async Task Skip_should_set_update_skipped_messages()
         {
-            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(), NullLogger.Instance, TimeProvider.System);
+            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(fakeTime), NullLogger.Instance, fakeTime);
             await summary.Wait(DateTime.UtcNow);
             await summary.Prepare(2000);
             await summary.PrepareBatch(1000);
@@ -151,7 +154,7 @@
         [Test]
         public async Task Skip_should_complete_when_all_skipped()
         {
-            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(), NullLogger.Instance, TimeProvider.System);
+            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(fakeTime), NullLogger.Instance, fakeTime);
             await summary.Wait(DateTime.UtcNow);
             await summary.Prepare(1000);
             await summary.PrepareBatch(1000);
@@ -167,7 +170,7 @@
         [Test]
         public async Task Skip_and_forward_combination_should_complete_when_done()
         {
-            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(), NullLogger.Instance, TimeProvider.System);
+            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(fakeTime), NullLogger.Instance, fakeTime);
             await summary.Wait(DateTime.UtcNow);
             await summary.Prepare(2000);
             await summary.PrepareBatch(1000);

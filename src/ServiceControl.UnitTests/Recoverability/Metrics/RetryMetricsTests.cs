@@ -6,6 +6,7 @@ namespace ServiceControl.UnitTests.Recoverability.Metrics
     using System.Linq;
     using System.Threading;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Time.Testing;
     using NUnit.Framework;
     using ServiceControl.Persistence;
     using ServiceControl.Recoverability;
@@ -19,7 +20,11 @@ namespace ServiceControl.UnitTests.Recoverability.Metrics
     class RetryMetricsTests
     {
         [SetUp]
-        public void CreateMeterFactory() => provider = new ServiceCollection().AddMetrics().BuildServiceProvider();
+        public void CreateMeterFactory()
+        {
+            provider = new ServiceCollection().AddMetrics().BuildServiceProvider();
+            fakeTime = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        }
 
         [TearDown]
         public void DisposeMeterFactory() => provider.Dispose();
@@ -42,7 +47,7 @@ namespace ServiceControl.UnitTests.Recoverability.Metrics
 
             listener.Start();
 
-            var metrics = new RetryMetrics(MeterFactory, TimeProvider.System);
+            var metrics = new RetryMetrics(MeterFactory, fakeTime);
             metrics.ObserveOperationsInProgress(() => []);
             metrics.ObservePendingBulkRequests(() => 0);
 
@@ -61,7 +66,7 @@ namespace ServiceControl.UnitTests.Recoverability.Metrics
         [Test]
         public void Every_retry_type_maps_to_its_own_tag_value()
         {
-            var metrics = new RetryMetrics(MeterFactory, TimeProvider.System);
+            var metrics = new RetryMetrics(MeterFactory, fakeTime);
             using var recorded = new RecordedRetryMetrics(MeterFactory);
 
             foreach (var retryType in Enum.GetValues<RetryType>())
@@ -77,7 +82,7 @@ namespace ServiceControl.UnitTests.Recoverability.Metrics
         [Test]
         public void Operation_completion_is_tagged_with_its_result()
         {
-            var metrics = new RetryMetrics(MeterFactory, TimeProvider.System);
+            var metrics = new RetryMetrics(MeterFactory, fakeTime);
             using var recorded = new RecordedRetryMetrics(MeterFactory);
 
             metrics.RecordOperationCompleted(RetryType.FailureGroup, metrics.GetTimestamp(), failed: false);
@@ -94,7 +99,7 @@ namespace ServiceControl.UnitTests.Recoverability.Metrics
         [Test]
         public void A_scope_records_the_outcome_it_was_given()
         {
-            var metrics = new RetryMetrics(MeterFactory, TimeProvider.System);
+            var metrics = new RetryMetrics(MeterFactory, fakeTime);
             using var recorded = new RecordedRetryMetrics(MeterFactory);
 
             using (var staging = metrics.BeginStaging(RetryType.FailureGroup))
@@ -119,7 +124,7 @@ namespace ServiceControl.UnitTests.Recoverability.Metrics
         [Test]
         public void A_scope_cut_short_by_shutdown_is_recorded_as_cancelled()
         {
-            var metrics = new RetryMetrics(MeterFactory, TimeProvider.System);
+            var metrics = new RetryMetrics(MeterFactory, fakeTime);
             using var recorded = new RecordedRetryMetrics(MeterFactory);
             using var shutdown = new CancellationTokenSource();
 
@@ -134,7 +139,7 @@ namespace ServiceControl.UnitTests.Recoverability.Metrics
         [Test]
         public void A_scope_that_finished_before_shutdown_is_still_a_success()
         {
-            var metrics = new RetryMetrics(MeterFactory, TimeProvider.System);
+            var metrics = new RetryMetrics(MeterFactory, fakeTime);
             using var recorded = new RecordedRetryMetrics(MeterFactory);
             using var shutdown = new CancellationTokenSource();
 
@@ -150,7 +155,7 @@ namespace ServiceControl.UnitTests.Recoverability.Metrics
         [Test]
         public void Forwarding_is_tagged_with_its_mode()
         {
-            var metrics = new RetryMetrics(MeterFactory, TimeProvider.System);
+            var metrics = new RetryMetrics(MeterFactory, fakeTime);
             using var recorded = new RecordedRetryMetrics(MeterFactory);
 
             using (var forwarding = metrics.BeginForwarding(RetryType.FailureGroup, recoveringFromPrematureShutdown: false))
@@ -171,7 +176,7 @@ namespace ServiceControl.UnitTests.Recoverability.Metrics
         [Test]
         public void The_gauge_counts_operations_by_type_and_state_and_excludes_completed()
         {
-            var metrics = new RetryMetrics(MeterFactory, TimeProvider.System);
+            var metrics = new RetryMetrics(MeterFactory, fakeTime);
             using var recorded = new RecordedRetryMetrics(MeterFactory);
 
             metrics.ObserveOperationsInProgress(() =>
@@ -197,7 +202,7 @@ namespace ServiceControl.UnitTests.Recoverability.Metrics
         [Test]
         public void The_bulk_request_gauge_reads_the_queue_depth()
         {
-            var metrics = new RetryMetrics(MeterFactory, TimeProvider.System);
+            var metrics = new RetryMetrics(MeterFactory, fakeTime);
             using var recorded = new RecordedRetryMetrics(MeterFactory);
 
             var depth = 3;
@@ -218,5 +223,6 @@ namespace ServiceControl.UnitTests.Recoverability.Metrics
         IMeterFactory MeterFactory => provider.GetRequiredService<IMeterFactory>();
 
         ServiceProvider provider;
+        FakeTimeProvider fakeTime;
     }
 }
