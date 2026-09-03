@@ -2,7 +2,7 @@
   "title": "Testing Tool — Error Load & Observability",
   "uid": "testing-tool",
   "schemaVersion": 39,
-  "version": 4,
+  "version": 5,
   "timezone": "browser",
   "refresh": "5s",
   "tags": ["testing-tool", "servicecontrol", "otel"],
@@ -696,6 +696,209 @@
         {
           "expr": "sum by (result) (rate(sc_error_ingestion_batch_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval])) / on() group_left() sum(rate(sc_error_ingestion_batch_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
           "legendFormat": "{{result}}"
+        }
+      ]
+    },
+    {
+      "id": 105,
+      "type": "row",
+      "title": "ServiceControl recoverability — retry, archive & retention",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 91 },
+      "panels": []
+    },
+    {
+      "id": 35,
+      "title": "Recoverability Throughput / sec (messages moved)",
+      "description": "Combined view of items moving through the three recoverability pipelines: sc.retry.messages_total (messages staged/forwarded/skipped by retry type), sc.archive.messages_total (messages archived/unarchived), and sc.retention.rows_deleted_total (rows deleted by entity). Stacked, the total is the rate of recoverability work ServiceControl is doing. Compare against the testing tool's own errors_replayed_total and errors_archived_total to see whether ServiceControl is keeping up with the requested work.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 92 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 25,
+            "stacking": { "mode": "normal", "group": "A" }
+          }
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+      },
+      "targets": [
+        {
+          "expr": "sum by (retry_type) (rate(sc_retry_messages_total{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "legendFormat": "retry: {{retry_type}}"
+        },
+        {
+          "expr": "sum by (archive_operation) (rate(sc_archive_messages_total{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "legendFormat": "archive: {{archive_operation}}"
+        },
+        {
+          "expr": "sum by (retention_entity) (rate(sc_retention_rows_deleted_total{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "legendFormat": "retention: {{retention_entity}}"
+        }
+      ]
+    },
+    {
+      "id": 36,
+      "title": "Operations In Progress (retry & archive)",
+      "description": "sc.retry.operations_in_progress and sc.archive.operations_in_progress — the count of retry and archive operations currently in flight, split by type and state. Retry states are waiting / preparing / forwarding; archive states are started / progressing / finalizing. A non-zero forwarding count under load means retries are actively being dispatched; a stuck preparing count points at a slow store scan.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 92 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull"] }
+      },
+      "targets": [
+        {
+          "expr": "sum by (retry_type, retry_state) (sc_retry_operations_in_progress{exported_job=~\"$sc_instance\"})",
+          "legendFormat": "retry: {{retry_type}} / {{retry_state}}"
+        },
+        {
+          "expr": "sum by (archive_operation, archive_state) (sc_archive_operations_in_progress{exported_job=~\"$sc_instance\"})",
+          "legendFormat": "archive: {{archive_operation}} / {{archive_state}}"
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "title": "Retry Durations (s) — mean by phase",
+      "description": "Mean duration for each phase of the retry pipeline: sc.retry.operation_duration_seconds (request to completion), sc.retry.prepare_duration_seconds (store scan + batch creation), sc.retry.stage_duration_seconds (batch staging), and sc.retry.forward_duration_seconds (batch forwarding). Computed as histogram sum / count so these are true means, not clipped by bucket boundaries. Mirrors the ingestion 'Mean Duration' panel (id 31). Operation duration spans the whole retry; the phase breakdown shows where the time goes.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 100 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(sc_retry_operation_duration_seconds_sum{exported_job=~\"$sc_instance\"}[$__rate_interval])) / sum(rate(sc_retry_operation_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "legendFormat": "operation"
+        },
+        {
+          "expr": "sum(rate(sc_retry_prepare_duration_seconds_sum{exported_job=~\"$sc_instance\"}[$__rate_interval])) / sum(rate(sc_retry_prepare_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "legendFormat": "prepare"
+        },
+        {
+          "expr": "sum(rate(sc_retry_stage_duration_seconds_sum{exported_job=~\"$sc_instance\"}[$__rate_interval])) / sum(rate(sc_retry_stage_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "legendFormat": "stage"
+        },
+        {
+          "expr": "sum(rate(sc_retry_forward_duration_seconds_sum{exported_job=~\"$sc_instance\"}[$__rate_interval])) / sum(rate(sc_retry_forward_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "legendFormat": "forward"
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "title": "Archive & Retention Durations (s) — mean",
+      "description": "Mean duration for the remaining recoverability pipelines: sc.archive.operation_duration_seconds (full archive/unarchive operation), sc.archive.batch_duration_seconds (individual archive batch), and sc.retention.cycle_duration_seconds (retention sweep pass). True means (histogram sum / count). Archive operation duration spans the whole group; batch duration is the per-batch write. Retention cycle is the full sweep pass, split by entity in the legend.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 100 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(sc_archive_operation_duration_seconds_sum{exported_job=~\"$sc_instance\"}[$__rate_interval])) / sum(rate(sc_archive_operation_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "legendFormat": "archive operation"
+        },
+        {
+          "expr": "sum(rate(sc_archive_batch_duration_seconds_sum{exported_job=~\"$sc_instance\"}[$__rate_interval])) / sum(rate(sc_archive_batch_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "legendFormat": "archive batch"
+        },
+        {
+          "expr": "sum by (retention_entity) (rate(sc_retention_cycle_duration_seconds_sum{exported_job=~\"$sc_instance\"}[$__rate_interval])) / sum by (retention_entity) (rate(sc_retention_cycle_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "legendFormat": "retention: {{retention_entity}}"
+        }
+      ]
+    },
+    {
+      "id": 39,
+      "title": "Consecutive Retention Failures",
+      "description": "sc.retention.consecutive_failures_total — the retention sweep's own circuit-breaker signal, split by entity (failed_messages, event_log, group_comments). Resets to 0 on the first successful sweep. Anything above 0 means the sweep is currently failing. Mirrors the ingestion 'Consecutive Batch Failures' panel (id 23).",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 108 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 3 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "graphMode": "area",
+        "colorMode": "background"
+      },
+      "targets": [
+        {
+          "expr": "max by (retention_entity) (sc_retention_consecutive_failures_total{exported_job=~\"$sc_instance\"})",
+          "legendFormat": "{{retention_entity}}"
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "title": "Pending Bulk Retry Requests",
+      "description": "sc.retry.pending_bulk_requests — bulk retry requests queued for preparation. A rising value means retry preparation cannot keep up with incoming bulk retry requests; at zero the retry pipeline is idle or keeping pace.",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 108 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 10 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "graphMode": "area",
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "max(sc_retry_pending_bulk_requests{exported_job=~\"$sc_instance\"})",
+          "legendFormat": "pending"
         }
       ]
     }
