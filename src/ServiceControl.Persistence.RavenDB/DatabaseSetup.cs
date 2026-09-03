@@ -10,6 +10,7 @@ namespace ServiceControl.Persistence.RavenDB
     using Raven.Client.ServerWide;
     using Raven.Client.ServerWide.Operations;
     using Raven.Client.ServerWide.Operations.Configuration;
+    using ServiceControl.RavenDB;
 
     class DatabaseSetup(RavenPersisterSettings settings, IDocumentStore documentStore)
     {
@@ -22,6 +23,9 @@ namespace ServiceControl.Persistence.RavenDB
             await UpdateDatabaseSettings(settings.ThroughputDatabaseName, cancellationToken);
 
             await IndexCreation.CreateIndexesAsync(typeof(DatabaseSetup).Assembly, documentStore, null, null, cancellationToken);
+
+            await StartupChecks.WarnIfIndexesUseCorax(documentStore, settings.DatabaseName, cancellationToken);
+            await StartupChecks.WarnIfIndexesUseCorax(documentStore, settings.ThroughputDatabaseName, cancellationToken);
 
             await LicenseStatusCheck.WaitForLicenseOrThrow(documentStore, cancellationToken);
             await ConfigureExpiration(settings, cancellationToken);
@@ -36,8 +40,11 @@ namespace ServiceControl.Persistence.RavenDB
                 try
                 {
                     var databaseRecord = new DatabaseRecord(databaseName);
-                    databaseRecord.Settings.Add("Indexing.Auto.SearchEngineType", "Corax");
-                    databaseRecord.Settings.Add("Indexing.Static.SearchEngineType", "Corax");
+
+                    // New databases use Lucene: smaller indexes, lower memory usage and faster for our index definitions.
+                    // Existing databases keep the engine they were created with, see UpdateDatabaseSettings.
+                    databaseRecord.Settings.Add("Indexing.Auto.SearchEngineType", "Lucene");
+                    databaseRecord.Settings.Add("Indexing.Static.SearchEngineType", "Lucene");
 
                     await documentStore.Maintenance.Server.SendAsync(new CreateDatabaseOperation(databaseRecord), cancellationToken);
                 }
@@ -57,6 +64,9 @@ namespace ServiceControl.Persistence.RavenDB
                 throw new InvalidOperationException($"Database '{databaseName}' does not exist.");
             }
 
+            // Existing databases keep their configured search engine. Changing it would trigger a full rebuild of all
+            // indexes, which can take a long time and a lot of resources on large databases. Databases created before the
+            // search engine was pinned explicitly get Corax, which was the default at the time.
             var updated = false;
 
             updated |= dbRecord.Settings.TryAdd("Indexing.Auto.SearchEngineType", "Corax");
