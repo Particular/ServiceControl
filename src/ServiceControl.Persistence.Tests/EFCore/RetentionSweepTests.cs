@@ -400,4 +400,142 @@ class RetentionSweepTests : ErrorIngestionTestBase
         var items = (await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 1, pageSize: 100))).Results;
         return [.. items.Select(i => i.Description)];
     }
+
+    IRetentionSweeper GetSweeper() => ServiceProvider.GetRequiredService<IRetentionSweeper>();
+
+    async Task WaitForManualSweepToFinish()
+    {
+        var sweeper = GetSweeper();
+        await WaitUntil(() => Task.FromResult(!sweeper.GetStatus().IsRunning),
+            "the manual sweep to finish");
+    }
+
+    [Test]
+    public async Task Manual_sweep_uses_the_caller_supplied_error_cutoff_to_delete_early()
+    {
+        // 20 days old is within the 30 day configured retention, so the scheduled sweep would keep it.
+        // A caller-supplied cutoff of 15 days ago is earlier than the message, so the manual sweep deletes it.
+        var message = await SeedFailedMessage(FailedMessageStatus.Resolved, Now.AddDays(-20));
+
+        var attempt = GetSweeper().TryStartManualSweep(Now.AddDays(-15), null);
+
+        await WaitForManualSweepToFinish();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(attempt.Outcome, Is.EqualTo(ManualSweepOutcome.Started));
+            Assert.That(await FindFailedMessage(message), Is.Null,
+                "the caller-supplied cutoff overrides the configured retention derivation");
+        }
+    }
+
+    [Test]
+    public async Task Manual_sweep_uses_the_caller_supplied_events_cutoff()
+    {
+        EFSettings.EventsRetentionPeriod = TimeSpan.FromDays(14);
+
+        // 10 days old is within the 14 day configured events retention; a caller cutoff of 5 days ago deletes it.
+        await Store(EventLogRow("to-delete", Now.AddDays(-10)));
+        await Store(EventLogRow("to-keep", Now.AddDays(-3)));
+
+        GetSweeper().TryStartManualSweep(null, Now.AddDays(-5));
+
+        await WaitForManualSweepToFinish();
+
+        var remaining = await GetRemainingMarkers();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(remaining, Does.Not.Contain("to-delete"));
+            Assert.That(remaining, Does.Contain("to-keep"));
+        }
+    }
+
+    [Test]
+    public async Task Manual_sweep_with_null_cutoffs_keeps_the_default_derivation()
+    {
+        // No cutoff supplied => derive from settings as the scheduled path does. 29 days old is within 30 days.
+        var withinRetention = await SeedFailedMessage(FailedMessageStatus.Resolved, Now.AddDays(-29));
+        var pastRetention = await SeedFailedMessage(FailedMessageStatus.Resolved, Now.AddDays(-31));
+
+        GetSweeper().TryStartManualSweep(null, null);
+
+        await WaitForManualSweepToFinish();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(await FindFailedMessage(withinRetention), Is.Not.Null);
+            Assert.That(await FindFailedMessage(pastRetention), Is.Null);
+        }
+    }
+
+    [Test]
+    public async Task Manual_sweep_runs_in_the_background_and_reports_status()
+    {
+        await SeedFailedMessage(FailedMessageStatus.Resolved, Now.AddDays(-31));
+
+        var sweeper = GetSweeper();
+        var attempt = sweeper.TryStartManualSweep(Now.AddDays(-30), null);
+
+        Assert.That(attempt.Outcome, Is.EqualTo(ManualSweepOutcome.Started));
+        Assert.That(attempt.StartedAt, Is.Not.Null);
+
+        await WaitForManualSweepToFinish();
+
+        var status = sweeper.GetStatus();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(status.IsRunning, Is.False);
+            Assert.That(status.LastStartedAt, Is.Not.Null);
+            Assert.That(status.LastFinishedAt, Is.Not.Null);
+            Assert.That(status.LastErrorCutoff, Is.Not.Null);
+            Assert.That(status.LastError, Is.Null);
+        }
+    }
+
+    [Test]
+    public async Task A_second_manual_sweep_is_refused_while_one_is_running()
+    {
+        // Seed enough rows to force multiple delete batches so the first sweep is still running when the
+        // second, synchronous call is made. The single-flight lock is held from the moment the first call
+        // returns Started until the background body completes.
+        var rows = new List<FailedMessageEntity>();
+        for (var i = 0; i < 1500; i++)
+        {
+            rows.Add(new FailedMessageEntity
+            {
+                UniqueMessageId = Guid.NewGuid(),
+                Status = FailedMessageStatus.Archived,
+                StatusChangedAt = Now.AddDays(-31),
+                LastModified = Now.AddDays(-31),
+                NumberOfProcessingAttempts = 1,
+                FirstTimeOfFailure = Now.AddDays(-31),
+                LastTimeOfFailure = Now.AddDays(-31),
+                LastAttemptedAt = Now.AddDays(-31),
+                IsSystemMessage = false,
+                HeadersJson = "{}",
+                BodyStoredExternally = false,
+                BodySize = 0,
+                FailingEndpointAddress = "Shipping"
+            });
+        }
+
+        await Store([.. rows]);
+
+        var sweeper = GetSweeper();
+        var first = sweeper.TryStartManualSweep(Now.AddDays(-30), null);
+        // Immediately request a second sweep on the same thread while the first is still deleting.
+        var second = sweeper.TryStartManualSweep(Now.AddDays(-30), null);
+
+        await WaitForManualSweepToFinish();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(first.Outcome, Is.EqualTo(ManualSweepOutcome.Started),
+                "the first call should start the sweep");
+            Assert.That(second.Outcome, Is.EqualTo(ManualSweepOutcome.AlreadyRunning),
+                "a second sweep must not run in parallel with the first");
+        }
+    }
 }
