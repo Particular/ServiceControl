@@ -40,6 +40,7 @@ namespace ServiceControl.Contracts.CustomChecks
                 "RavenDB dirty memory",          // primary AND audit
                 "ServiceControl database",       // RavenDB persister
                 "Message Ingestion Process",     // RavenDB persister
+                "Error Database Search Engine",  // RavenDB persister
                 "ServiceControl body storage",   // EF Core persisters
                 "Dead Letter Queue",             // ASBS / IBMMQ / MSMQ
 
@@ -47,6 +48,7 @@ namespace ServiceControl.Contracts.CustomChecks
                 "Audit Message Ingestion",
                 "Audit Message Ingestion Process",
                 "Audit Database Index Lag",
+                "Audit Database Search Engine",
                 "ServiceControl.Audit database",
             };
 
