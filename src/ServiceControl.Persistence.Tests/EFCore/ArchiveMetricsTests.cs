@@ -62,7 +62,7 @@ class ArchiveMetricsTests
     {
         var metrics = new ArchiveMetrics(MeterFactory, fakeTime);
         using var recorded = new RecordedArchiveMetrics(MeterFactory);
-        var archive = new InMemoryArchive("group-1", ArchiveType.FailureGroup, new FakeDomainEvents(), metrics) { TotalNumberOfMessages = 1500 };
+        var archive = new InMemoryArchive("group-1", ArchiveType.FailureGroup, new FakeDomainEvents(), fakeTime, metrics) { TotalNumberOfMessages = 1500 };
 
         await archive.Start();
         Assert.That(recorded.InProgress(ArchiveOperationKind.Archive, "started"), Is.EqualTo(1));
@@ -96,7 +96,7 @@ class ArchiveMetricsTests
     {
         var metrics = new ArchiveMetrics(MeterFactory, fakeTime);
         using var recorded = new RecordedArchiveMetrics(MeterFactory);
-        var unarchive = new InMemoryUnarchive("group-1", ArchiveType.FailureGroup, new FakeDomainEvents(), metrics) { TotalNumberOfMessages = 200 };
+        var unarchive = new InMemoryUnarchive("group-1", ArchiveType.FailureGroup, new FakeDomainEvents(), fakeTime, metrics) { TotalNumberOfMessages = 200 };
 
         await unarchive.Start();
         fakeTime.Advance(TimeSpan.FromSeconds(5));
@@ -118,7 +118,7 @@ class ArchiveMetricsTests
     {
         var metrics = new ArchiveMetrics(MeterFactory, fakeTime);
         using var recorded = new RecordedArchiveMetrics(MeterFactory);
-        var archive = new InMemoryArchive("group-stuck", ArchiveType.FailureGroup, new FakeDomainEvents(), metrics) { TotalNumberOfMessages = 2000 };
+        var archive = new InMemoryArchive("group-stuck", ArchiveType.FailureGroup, new FakeDomainEvents(), fakeTime, metrics) { TotalNumberOfMessages = 2000 };
 
         await archive.Start();
         await archive.BatchArchived(1000);
@@ -135,7 +135,7 @@ class ArchiveMetricsTests
     {
         var metrics = new ArchiveMetrics(MeterFactory, fakeTime);
         using var recorded = new RecordedArchiveMetrics(MeterFactory);
-        var archive = new InMemoryArchive("group-1", ArchiveType.FailureGroup, new FakeDomainEvents(), metrics) { TotalNumberOfMessages = 10 };
+        var archive = new InMemoryArchive("group-1", ArchiveType.FailureGroup, new FakeDomainEvents(), fakeTime, metrics) { TotalNumberOfMessages = 10 };
 
         await archive.Start();
         await archive.BatchArchived(10);
@@ -153,7 +153,7 @@ class ArchiveMetricsTests
     [Test]
     public async Task Without_metrics_the_state_machine_runs_unchanged()
     {
-        var archive = new InMemoryArchive("group-1", ArchiveType.FailureGroup, new FakeDomainEvents()) { TotalNumberOfMessages = 10 };
+        var archive = new InMemoryArchive("group-1", ArchiveType.FailureGroup, new FakeDomainEvents(), fakeTime) { TotalNumberOfMessages = 10 };
 
         await archive.Start();
         await archive.BatchArchived(10);

@@ -23,7 +23,8 @@ public abstract class BasePersistence
 {
     protected static void RegisterDataStores(IServiceCollection services, EFPersisterSettings settings)
     {
-        services.AddSingleton(TimeProvider.System);
+        services.TryAddSingleton(TimeProvider.System);
+
         services.AddSingleton<MinimumRequiredStorageState>();
 
         services.AddSingleton<IServiceControlSubscriptionStorage, SubscriptionStorage>();

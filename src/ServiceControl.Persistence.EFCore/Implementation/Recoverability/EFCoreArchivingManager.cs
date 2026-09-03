@@ -9,14 +9,14 @@ using ServiceControl.Recoverability.Archiving.Metrics;
 /// EFCore equivalent of the RavenDB <see cref="ArchivingManager"/>. Wraps the shared
 /// <see cref="OperationsManager"/> singleton to manage in-memory archive progress state.
 /// </summary>
-class EFCoreArchivingManager(IDomainEvents domainEvents, OperationsManager operationsManager, ArchiveMetrics metrics)
+class EFCoreArchivingManager(IDomainEvents domainEvents, OperationsManager operationsManager, ArchiveMetrics metrics, TimeProvider timeProvider)
 {
     InMemoryArchive GetOrCreate(ArchiveType archiveType, string requestId)
     {
         var id = InMemoryArchive.MakeId(requestId, archiveType);
         if (!operationsManager.ArchiveOperations.TryGetValue(id, out var summary))
         {
-            summary = new InMemoryArchive(requestId, archiveType, domainEvents, metrics);
+            summary = new InMemoryArchive(requestId, archiveType, domainEvents, timeProvider, metrics);
             operationsManager.ArchiveOperations[id] = summary;
         }
 
@@ -43,7 +43,7 @@ class EFCoreArchivingManager(IDomainEvents domainEvents, OperationsManager opera
 
         summary.TotalNumberOfMessages = 0;
         summary.NumberOfMessagesArchived = 0;
-        summary.Started = DateTime.UtcNow;
+        summary.Started = timeProvider.GetUtcNow().UtcDateTime;
         summary.GroupName = "Undefined";
         summary.NumberOfBatches = 0;
         summary.CurrentBatch = 0;

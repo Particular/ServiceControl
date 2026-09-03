@@ -39,6 +39,7 @@
             {
                 if (indexStats.IsStale && indexStats.LastIndexingTime.HasValue)
                 {
+                    // Machine clock on purpose: LastIndexingTime comes from the server, so an injected clock would give a meaningless lag.
                     var indexLag = DateTime.UtcNow - indexStats.LastIndexingTime.Value;
 
                     if (indexLag > IndexLagThresholdError)

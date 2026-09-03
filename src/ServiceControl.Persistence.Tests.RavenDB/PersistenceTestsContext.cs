@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Session;
@@ -42,6 +43,8 @@ public class PersistenceTestsContext : IPersistenceTestsContext
         };
 
         var persistence = new RavenPersistenceConfiguration().Create(PersistenceSettings);
+
+        hostBuilder.Services.AddSingleton<TimeProvider>(FakeTime);
 
         persistence.AddPersistence(hostBuilder.Services);
         persistence.AddInstaller(hostBuilder.Services);
@@ -81,13 +84,13 @@ public class PersistenceTestsContext : IPersistenceTestsContext
 
     public IRavenSessionProvider SessionProvider { get; private set; }
 
-    // Nothing to do: Raven versions come from document and index etags, which move on every write, so
-    // no test needs to push its clock. There is no hook for the server clock anyway.
-    public void AdvanceClock(TimeSpan by)
-    {
-    }
+    public FakeTimeProvider FakeTime { get; } = new(DateTimeOffset.UtcNow);
 
-    public DateTime UtcNow => DateTime.UtcNow;
+    // Moves only what the persister stamps itself. The Raven server expires documents on its own
+    // clock, so advancing this changes the @expires value written, never when the server acts on it.
+    public void AdvanceClock(TimeSpan by) => FakeTime.Advance(by);
+
+    public DateTime UtcNow => FakeTime.GetUtcNow().UtcDateTime;
 
     public Task CompleteDatabaseOperation()
     {

@@ -10,7 +10,7 @@
 
     public class InMemoryRetry
     {
-        public InMemoryRetry(string requestId, RetryType retryType, IDomainEvents domainEvents, RetryMetrics metrics, ILogger logger)
+        public InMemoryRetry(string requestId, RetryType retryType, IDomainEvents domainEvents, RetryMetrics metrics, ILogger logger, TimeProvider timeProvider)
         {
             RequestId = requestId;
             RetryType = retryType;
@@ -18,6 +18,7 @@
             this.metrics = metrics;
             this.logger = logger;
             operationStartTimestamp = metrics.GetTimestamp();
+            this.timeProvider = timeProvider;
         }
 
         public string RequestId { get; }
@@ -166,7 +167,7 @@
             }
 
             RetryState = RetryState.Completed;
-            CompletionTime = DateTime.UtcNow;
+            CompletionTime = timeProvider.GetUtcNow().UtcDateTime;
             metrics.RecordOperationCompleted(RetryType, operationStartTimestamp, Failed);
 
             await domainEvents.Raise(new RetryOperationCompleted
@@ -226,5 +227,6 @@
         IDomainEvents domainEvents;
         readonly RetryMetrics metrics;
         readonly ILogger logger;
+        readonly TimeProvider timeProvider;
     }
 }
