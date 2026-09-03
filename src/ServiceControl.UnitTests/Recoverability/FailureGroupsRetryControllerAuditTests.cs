@@ -45,7 +45,7 @@ public class FailureGroupsRetryControllerAuditTests
         var session = new TestableMessageSession();
         var audit = new RecordingMessageActionAuditLog();
         var retryingManager = new RetryingManager(new FakeDomainEvents(), TestRetryMetrics.Create(fakeTime), NullLogger<RetryingManager>.Instance, fakeTime);
-        await retryingManager.Preparing("group-42", RetryType.FailureGroup, totalNumberOfMessages: 10);
+        await retryingManager.Preparing("group-42", RetryType.FailureGroup, totalNumberOfMessages: 10, startTime: fakeTime.GetUtcNow().UtcDateTime);
         var controller = new FailureGroupsRetryController(session, retryingManager, new StubCurrentUserAccessor(new AuditUser("alice-sub", "Alice")), audit, fakeTime);
 
         await controller.ArchiveGroupErrors("group-42");
