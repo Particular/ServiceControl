@@ -6,9 +6,15 @@ public static class HostBuilderExtensions
 {
     public static IResourceBuilder<IResourceWithConnectionString> AddSqlServerPersistence(this IDistributedApplicationBuilder builder, string databaseName)
     {
+        var resourceName = "sqlserver";
+        if (builder.Resources.TryGetByName(resourceName, out var existing))
+        {
+            return builder.CreateResourceBuilder((IResourceWithConnectionString)existing);
+        }
+        
         var password = builder.AddParameter("sql-password", "Password1!", secret: true);
         var server = builder
-            .AddSqlServer("sqlserver", password)
+            .AddSqlServer(resourceName, password)
             .WithDataVolume("migration-sql-data");
         return server.AddDatabase("servicecontrol-sql", databaseName);
     }
@@ -16,12 +22,18 @@ public static class HostBuilderExtensions
     public static IResourceBuilder<IResourceWithConnectionString> AddPostgresPersistence(
         this IDistributedApplicationBuilder builder, string databaseName)
     {
+        var databaseResource = "servicecontrol-postgres";
+        if (builder.Resources.TryGetByName(databaseResource, out var existing))
+        {
+            return builder.CreateResourceBuilder((IResourceWithConnectionString)existing);
+        }
+
         var postgresPassword = builder.AddParameter("postgres-password", "Password1!", secret: true);
         var postgres = builder
             .AddPostgres("postgres", password: postgresPassword)
             .WithPgAdmin()
             .WithDataVolume("migration-postgres-data");
-        return postgres.AddDatabase("servicecontrol-postgres", databaseName);
+        return postgres.AddDatabase(databaseResource, databaseName);
     }
 
     public static IResourceBuilder<ServiceControlErrorInstanceResource> WithPersistenceType(

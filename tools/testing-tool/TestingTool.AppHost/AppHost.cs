@@ -3,7 +3,7 @@ using Particular.Aspire.Hosting.ServicePlatform.Transport;
 using TestingTool.AppHost;
 
 var options = CliOptions.Parse(args);
-var persistenceType = options.GetEnumOrDefault("persistence", PersistenceType.PostgreSql);
+var persistenceType = options.GetValue("persistence", PersistenceType.RavenDb);
 Console.WriteLine($"Using persistence type: {persistenceType}");
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -24,22 +24,39 @@ var platform = builder
 
 var raven = platform.AddPersistenceRavenDb("raven");
 
-var errorInstance = platform
+var primaryErrorInstance = platform
     .AddServiceControlErrorInstance("error", raven)
-    .WithEnvironment("SERVICECONTROL_DISABLEEXTERNALINTEGRATIONSPUBLISHING", "true")
+    .WithEnvironment("SERVICECONTROL_INSTANCENAME", "booger")
     .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", observability.Collector.GetEndpoint("otlp-grpc"))
     .WithPersistenceType(persistenceType)
     .WithRunMode(PlatformRunMode.SetupAndRun);
 
-platform.AddServicePulse("pulse", errorInstance);
+for (int i = 0; i < options.GetValue("error-ingestion-scale-unit", 0); i++) {
+    platform
+        .AddServiceControlErrorInstance("error-scale-"  + i, raven)
+        .WithArgs("--error-ingestion-only")
+        .WithEnvironment("SERVICECONTROL_INSTANCENAME", "Error-scale-" + i)
+        .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", observability.Collector.GetEndpoint("otlp-grpc"))
+        
+        //get things working...
+        .WithEnvironment("MAXIMUMCONCURRENCYLEVEL", "2")
+        
+        //.WaitFor(primaryErrorInstance)
+        .WithPersistenceType(persistenceType)
+        .WithRunMode(PlatformRunMode.Run);
+}
+
+platform.AddServicePulse("pulse", primaryErrorInstance);
 
 // --- Testing tool ---
 builder.AddProject<Projects.TestingTool>("testing-tool")
     .WithParticularPlatform(platform)
-    .WithEnvironment("TestingTool__ServiceControlApiUrl", errorInstance.GetEndpoint("http"))
+    .WithEnvironment("TestingTool__ServiceControlApiUrl", primaryErrorInstance.GetEndpoint("http"))
     .WithEnvironment("TestingTool__AutoStartBackgroundNoise", "true")
     .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", observability.Collector.GetEndpoint("otlp-grpc"))
-    .WaitFor(errorInstance)
+    // this should wait for the platform but cannot because error scale out leaves nodes unhealthy 
+    //.WaitFor(primaryErrorInstance)
+    .WaitFor(transport)
     .WaitFor(observability.Collector);
 
 // --- Optional: override ServiceControl image tag for prerelease testing ---

@@ -16,6 +16,7 @@ public sealed class TestingToolMetrics
     private long _totalRetentionSweepsNotSupported;
     private long _totalBypassErrorsWritten;
     private long _totalBypassErrorsFailed;
+    private long _totalCustomCheckFailures;
     private long _activeScenarios;
     private double _currentRate;
 
@@ -28,6 +29,7 @@ public sealed class TestingToolMetrics
     public long TotalRetentionSweepsNotSupported => Interlocked.Read(ref _totalRetentionSweepsNotSupported);
     public long TotalBypassErrorsWritten => Interlocked.Read(ref _totalBypassErrorsWritten);
     public long TotalBypassErrorsFailed => Interlocked.Read(ref _totalBypassErrorsFailed);
+    public long TotalCustomCheckFailures => Interlocked.Read(ref _totalCustomCheckFailures);
     public int ActiveScenarios => (int)Interlocked.Read(ref _activeScenarios);
     public double CurrentRate => _currentRate;
 
@@ -40,6 +42,7 @@ public sealed class TestingToolMetrics
     public void AddRetentionSweepsNotSupported(long count) => Interlocked.Add(ref _totalRetentionSweepsNotSupported, count);
     public void AddBypassErrorsWritten(long count) => Interlocked.Add(ref _totalBypassErrorsWritten, count);
     public void AddBypassErrorsFailed(long count) => Interlocked.Add(ref _totalBypassErrorsFailed, count);
+    public void AddCustomCheckFailures(long count) => Interlocked.Add(ref _totalCustomCheckFailures, count);
     public void SetActiveScenarios(int count) => Interlocked.Exchange(ref _activeScenarios, count);
     public void SetCurrentRate(double rate) => _currentRate = rate;
 }

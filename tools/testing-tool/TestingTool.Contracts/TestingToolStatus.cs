@@ -47,6 +47,13 @@ public sealed class TestingToolStatus
     /// transport/broker issues on the bypass path — the handler path may be unaffected.</summary>
     public long BypassErrorsFailed { get; init; }
 
+    /// <summary>
+    /// Total internal-looking custom check failures reported to ServiceControl since process start
+    /// (via the custom-check-failures job). Each failure is a <c>ReportCustomCheckResult</c> sent
+    /// to the ServiceControl input queue with <c>HasFailed</c> = true.
+    /// </summary>
+    public long CustomCheckFailures { get; init; }
+
     /// <summary>The shard id this replica owns, used for disjoint scenario slices when scaled out.</summary>
     public string? ShardId { get; init; }
 

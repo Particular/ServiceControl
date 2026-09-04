@@ -38,4 +38,32 @@ public sealed class TestingToolOptions
 
     /// <summary>Whether to start the background-noise scenario automatically on startup.</summary>
     public bool AutoStartBackgroundNoise { get; set; } = false;
+
+    /// <summary>
+    /// The ServiceControl error instance's own input queue — the queue ServiceControl listens on
+    /// for custom-check reports (and heartbeats). The custom-check-failures job sends
+    /// <c>ReportCustomCheckResult</c> messages here over the transport. Defaults to the
+    /// conventional ServiceControl error instance name.
+    /// </summary>
+    public string ServiceControlInputQueue { get; set; } = "Particular.ServiceControl";
+
+    /// <summary>
+    /// Default interval between custom-check-failure job cycles. Each cycle emits a fresh
+    /// pass/fail report for every internal-looking check, so the ServicePulse Custom Checks view
+    /// shows the checks flipping state. A short default keeps the injected failures responsive.
+    /// </summary>
+    public TimeSpan CustomCheckInterval { get; set; } = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// The display name used for the <c>Host</c> field on injected custom-check reports, so they
+    /// read as coming from the ServiceControl host itself rather than an external endpoint.
+    /// </summary>
+    public string CustomCheckHost { get; set; } = "ServiceControl";
+
+    /// <summary>
+    /// Probability (0.0–1.0) that any given internal-looking custom check is reported as failed on
+    /// a cycle. The rest are reported as passed, producing a realistic mix of failures. Clamped to
+    /// [0, 0.95] at runtime so a misconfiguration can't produce 100% failures.
+    /// </summary>
+    public double CustomCheckFailureProbability { get; set; } = 0.4;
 }
