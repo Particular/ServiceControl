@@ -52,6 +52,7 @@ builder.Services.AddSingleton<JobBase, RetryJob>();
 builder.Services.AddSingleton<JobBase, ArchiveJob>();
 builder.Services.AddSingleton<JobBase, SearchJob>();
 builder.Services.AddSingleton<JobBase, RetentionSweepJob>();
+builder.Services.AddSingleton<JobBase, CustomCheckFailureJob>();
 builder.Services.AddSingleton<JobRunner>();
 
 // --- Application pipeline ---
@@ -108,6 +109,7 @@ app.MapGet("/api/status", () => Results.Ok(new TestingToolStatus
     RetentionSweepsNotSupported = metrics.TotalRetentionSweepsNotSupported,
     BypassErrorsWritten = metrics.TotalBypassErrorsWritten,
     BypassErrorsFailed = metrics.TotalBypassErrorsFailed,
+    CustomCheckFailures = metrics.TotalCustomCheckFailures,
     ShardId = shardId,
     ActiveScenarios = metrics.ActiveScenarios,
     ActiveJobs = jobRunner.GetSnapshot().Count(j => j.Running),

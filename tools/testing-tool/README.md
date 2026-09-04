@@ -35,6 +35,13 @@ Recoverability/search jobs are controllable from the web UI (no longer hidden co
 - **Retention sweep** — triggers a manual retention sweep on ServiceControl each cycle,
   exercising the retention pipeline (full scan-and-delete of aged failures and event-log rows)
   against the load the other jobs produce
+- **Custom check failures** — randomly reports internal-looking ServiceControl custom check
+  failures to ServiceControl each cycle. Each cycle it sends a `ReportCustomCheckResult`
+  per check in a pool of plausibly-named internal checks (category `ServiceControl Health`),
+  randomly marking some as failed and the rest as passed, with `EndpointName` set to the
+  ServiceControl instance name so they appear in ServicePulse as genuine internal custom
+  checks. This exercises ServiceControl's custom-check ingestion and the ServicePulse Custom
+  Checks dashboard under failure load, complementing the error-load scenarios.
 
 Jobs do not auto-start; start them from the UI (or `/api/jobs`) when needed. Control via:
 - `GET /api/jobs` — list jobs with live status
@@ -89,7 +96,7 @@ tools/testing-tool/
     ServiceControlClient.cs      # REST API client (error groups, retry, archive, search)
     TelemetrySetup.cs            # OTel traces + metrics + logs + OTLP/Prometheus exporters
     NServiceBusSetup.cs          # endpoint config (Learning transport, error queue routing)
-    TestingToolOptions.cs        # config (SC URL, retry/archive/search intervals, error queue name)
+    TestingToolOptions.cs        # config (SC URL, retry/archive/search/custom-check intervals, queue names)
     TestingToolMetrics.cs        # shared live counters for /api/status
     ShardIdResolver.cs           # shard id from env var, StatefulSet ordinal, or hostname
     IScenarioRegistry.cs         # scenario registry abstraction (DI)
@@ -147,6 +154,17 @@ aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- 
 ```bash
 aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- --tag pr-1234 --persistence:SqlServer
 ```
+
+### AppHost CLI options
+
+All flags are passed after `--` to the AppHost. Each accepts either `--name value` (space
+separator) or `--name:value` (colon separator):
+
+| Flag | Default | Values | Description |
+|---|---|---|---|
+| `--persistence` | `RavenDb` | `RavenDb`, `SqlServer`, `PostgreSql` | Persistence backend for the ServiceControl error instance |
+| `--tag` | *(none — uses the current build's image)* | any image tag, e.g. `pr-1234` or `6.3.1` | Override the ServiceControl container image tag (useful for testing PR-based prereleases) |
+| `--error-ingestion-scale-unit` | `0` | non-negative integer | Number of additional error-ingestion-only scale-out instances to spin up alongside the primary error instance (each runs with `--error-ingestion-only`) |
 
 The Aspire dashboard provides allocated ports for each service. The testing tool automatically
 connects to ServiceControl via the platform's transport and REST API URL, and sends its OTLP
@@ -220,6 +238,10 @@ All configuration is via environment variables (no files, no database). Settings
 | `TestingTool__ArchiveInterval` | `00:02:00` | Default interval for the archive job |
 | `TestingTool__ArchiveMinGroupSize` | `1` | Min messages in a group before archiving |
 | `TestingTool__RetentionSweepInterval` | `00:05:00` | Default interval for the retention-sweep job |
+| `TestingTool__ServiceControlInputQueue` | `Particular.ServiceControl` | ServiceControl error instance input queue (custom-check reports destination) |
+| `TestingTool__CustomCheckInterval` | `00:00:30` | Default interval for the custom-check-failures job |
+| `TestingTool__CustomCheckHost` | `ServiceControl` | `Host` field on injected custom-check reports |
+| `TestingTool__CustomCheckFailureProbability` | `0.4` | Probability (0–1) a given check is reported failed each cycle |
 | `TestingTool__ErrorQueueName` | `error` | NServiceBus error queue (ServiceControl monitors this) |
 | `TestingTool__AutoStartBackgroundNoise` | `false` | Auto-start the background-noise scenario on startup |
 | `SHARD_ID` (env) | *(auto: hostname ordinal or machine name)* | Shard id for disjoint scenario slices when scaled |

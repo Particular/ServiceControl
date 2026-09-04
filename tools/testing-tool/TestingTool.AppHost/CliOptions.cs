@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace TestingTool.AppHost;
@@ -7,7 +9,11 @@ namespace TestingTool.AppHost;
 /// </summary>
 public class CliOptions(IEnumerable<KeyValuePair<string, string>> values) : Dictionary<string, string>(values)
 {
-    public T GetEnumOrDefault<T>(string key, T defaultValue) where T : struct => ContainsKey(key) ? Enum.Parse<T>(this[key]) : defaultValue;
+    [return:NotNullIfNotNull(nameof(defaultValue))]
+    public T? GetValue<T>(string key, T? defaultValue = default) =>
+        ContainsKey(key) 
+        ? (T?)TypeDescriptor.GetConverter(typeof(T)).ConvertFromString(this[key]) ?? defaultValue 
+        : defaultValue;
 
     public static CliOptions Parse(params string[] args)
     {
