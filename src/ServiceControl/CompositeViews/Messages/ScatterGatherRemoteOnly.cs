@@ -16,6 +16,8 @@ namespace ServiceControl.CompositeViews.Messages
     {
         protected sealed override Task<QueryResult<TOut>> LocalQuery(TIn input, CancellationToken cancellationToken = default) => QueryResult<TOut>.Empty();
 
+        protected sealed override bool LocalInstanceParticipates => false;
+
         protected sealed override QueryStatsInfo AggregateStats(TIn input, IEnumerable<QueryResult<TOut>> results, TOut processedResults) =>
             AggregateStatsFromRemotesOnly(results);
     }

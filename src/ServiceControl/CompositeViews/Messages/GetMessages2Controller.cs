@@ -67,6 +67,7 @@ public class GetMessages2Controller(
 
         Response.WithTotalCount(result.QueryStats.TotalCount);
         Response.WithEtag(result.QueryStats.Version);
+        Response.WithIncompleteResults(result.IncompleteInstances);
 
         return result.Results;
     }

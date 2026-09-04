@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.CompositeViews.Messages
+namespace ServiceControl.CompositeViews.Messages
 {
     using System.Collections.Generic;
     using System.Threading;
@@ -27,7 +27,7 @@
                 new MessagesByConversationContext(pagingInfo, sortInfo, includeSystemMessages, conversationId),
                 Request.GetEncodedPathAndQuery(), cancellationToken);
 
-            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+            Response.WithScatterGatherResult(result, pagingInfo);
             return result.Results;
         }
     }
