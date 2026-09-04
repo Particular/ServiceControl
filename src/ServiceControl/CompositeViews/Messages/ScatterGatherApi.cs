@@ -26,6 +26,15 @@ namespace ServiceControl.CompositeViews.Messages
             headers.TryGetValues("ETag", out var values)
                 ? DataVersion.FromClient(values.FirstOrDefault())
                 : DataVersion.None;
+
+        internal static string Describe(IEnumerable<IncompleteInstance> incomplete) =>
+            string.Join(", ", incomplete.Select(instance => $"{instance.InstanceId} {instance.Reason switch
+            {
+                QueryFailure.TimedOut => "timed out",
+                QueryFailure.Unavailable => "is unavailable",
+                QueryFailure.Failed => "failed",
+                _ => "failed"
+            }}"));
     }
 
     public record ScatterGatherContext(PagingInfo PagingInfo);
@@ -58,26 +67,65 @@ namespace ServiceControl.CompositeViews.Messages
             {
                 LocalCall(input, instanceId, cancellationToken)
             };
+            var unavailable = new List<QueryResult<TOut>>();
 
             foreach (var remote in remotes)
             {
                 if (remote.TemporarilyUnavailable)
                 {
+                    unavailable.Add(new QueryResult<TOut>(null, QueryStatsInfo.Zero) { Failure = QueryFailure.Unavailable, InstanceId = remote.InstanceId });
                     continue;
                 }
 
                 tasks.Add(RemoteCall(HttpClientFactory.CreateClient(remote.InstanceId), pathAndQuery, remote, authorizationHeader, cancellationToken));
             }
 
-            var results = await Task.WhenAll(tasks);
+            // The local result stays first: ProcessResults gives it precedence when de-duplicating.
+            var results = (await Task.WhenAll(tasks)).Concat(unavailable).ToArray();
             var response = AggregateResults(input, results);
+
+            ThrowWhenNothingAnswered(results, response.IncompleteInstances);
 
             return response;
         }
 
+        /// <summary>
+        /// A missing instance is reported, not hidden; but when no instance that was asked answered and at least
+        /// one of them ran out of its query time, there is nothing to report but the timeout.
+        /// </summary>
+        void ThrowWhenNothingAnswered(QueryResult<TOut>[] results, IReadOnlyList<IncompleteInstance> incomplete)
+        {
+            var anyAnswered = results.Any(result => result.Failure is null && (LocalInstanceParticipates || !result.IsLocalInstance));
+
+            if (anyAnswered || incomplete.All(instance => instance.Reason != QueryFailure.TimedOut))
+            {
+                return;
+            }
+
+            throw new TimeoutException($"No instance completed the query within its allowed query time. {Describe(incomplete)}");
+        }
+
+        /// <summary>
+        /// Whether this instance's own data store is a source for the query. An API that only forwards to the
+        /// remotes answers "nothing" locally without that meaning anything about the data.
+        /// </summary>
+        protected virtual bool LocalInstanceParticipates => true;
+
         async Task<QueryResult<TOut>> LocalCall(TIn input, string instanceId, CancellationToken cancellationToken)
         {
-            var result = await LocalQuery(input, cancellationToken);
+            QueryResult<TOut> result;
+
+            try
+            {
+                result = await LocalQuery(input, cancellationToken);
+            }
+            catch (TimeoutException e)
+            {
+                // The same treatment a remote gets: this instance's data is missing, the others' is not.
+                logger.LogWarning(e, "The local query did not complete within its allowed query time");
+                result = QueryResult<TOut>.Failed(QueryFailure.TimedOut);
+            }
+
             result.InstanceId = instanceId;
             result.IsLocalInstance = true;
             return result;
@@ -92,7 +140,13 @@ namespace ServiceControl.CompositeViews.Messages
             return new QueryResult<TOut>(
                 combinedResults,
                 AggregateStats(input, results, combinedResults)
-            );
+            )
+            {
+                IncompleteInstances = results
+                    .Where(result => result.Failure is not null)
+                    .Select(result => new IncompleteInstance(result.InstanceId, result.Failure.Value))
+                    .ToArray()
+            };
         }
 
         protected abstract TOut ProcessResults(TIn input, QueryResult<TOut>[] results);
@@ -158,7 +212,22 @@ namespace ServiceControl.CompositeViews.Messages
                 {
                     logger.LogWarning("Authentication failed when querying remote instance at {RemoteInstanceBaseAddress}. Ensure authentication is correctly configured.",
                         remoteInstanceSetting.BaseAddress);
-                    return QueryResult<TOut>.Empty();
+                    return QueryResult<TOut>.Failed(QueryFailure.Failed);
+                }
+
+                if (rawResponse.StatusCode == HttpStatusCode.GatewayTimeout)
+                {
+                    // The remote's own query ran out of its allowed query time; its problem body names the remote's setting.
+                    logger.LogWarning("The query on remote instance at {RemoteInstanceBaseAddress} did not complete within its allowed query time: {Detail}",
+                        remoteInstanceSetting.BaseAddress, await rawResponse.Content.ReadAsStringAsync(cancellationToken));
+                    return QueryResult<TOut>.Failed(QueryFailure.TimedOut);
+                }
+
+                if (!rawResponse.IsSuccessStatusCode)
+                {
+                    logger.LogWarning("Remote instance at {RemoteInstanceBaseAddress} answered {StatusCode} {ReasonPhrase}",
+                        remoteInstanceSetting.BaseAddress, (int)rawResponse.StatusCode, rawResponse.ReasonPhrase);
+                    return QueryResult<TOut>.Failed(QueryFailure.Failed);
                 }
 
                 return await ParseResult(rawResponse, cancellationToken);
@@ -170,23 +239,23 @@ namespace ServiceControl.CompositeViews.Messages
                     httpRequestException,
                     "An HttpRequestException occurred when querying remote instance at {RemoteInstanceBaseAddress}. The instance will be temporarily disabled",
                     remoteInstanceSetting.BaseAddress);
-                return QueryResult<TOut>.Empty();
+                return QueryResult<TOut>.Failed(QueryFailure.Unavailable);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 // The caller gave up on the whole scatter-gather, so this is not a per-remote timeout
-                // to be absorbed into an empty result.
+                // to be absorbed into a failed result.
                 throw;
             }
-            catch (OperationCanceledException) // Intentional, used to gracefully handle timeout
+            catch (OperationCanceledException) // Intentional, used to gracefully handle the HttpClient timeout
             {
                 logger.LogWarning("Failed to query remote instance at {RemoteInstanceBaseAddress} due to a timeout", remoteInstanceSetting.BaseAddress);
-                return QueryResult<TOut>.Empty();
+                return QueryResult<TOut>.Failed(QueryFailure.TimedOut);
             }
             catch (Exception exception)
             {
                 logger.LogWarning(exception, "Failed to query remote instance at {RemoteInstanceBaseAddress}", remoteInstanceSetting.BaseAddress);
-                return QueryResult<TOut>.Empty();
+                return QueryResult<TOut>.Failed(QueryFailure.Failed);
             }
         }
 

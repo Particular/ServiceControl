@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.RavenDB
+namespace ServiceControl.Persistence.RavenDB
 {
     using System;
     using System.Collections.Generic;
@@ -23,6 +23,7 @@
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Operations;
     using ServiceControl.Operations.BodyStorage;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
 
@@ -30,127 +31,135 @@
         IRavenSessionProvider sessionProvider,
         IRavenDocumentStoreProvider documentStoreProvider,
         ExpirationManager expirationManager,
+        RavenPersisterSettings settings,
         ILogger<ErrorMessagesDataStore> logger)
         : IMessagesViewDataStore, IFailedMessageQueryDataStore, IFailedMessageLifecycleDataStore, IFailedMessageRetryDataStore
     {
-        public async Task<QueryResult<IList<MessagesView>>> GetAllMessages(
+        public Task<QueryResult<IList<MessagesView>>> GetAllMessages(
             PagingInfo pagingInfo,
             SortInfo sortInfo,
             bool includeSystemMessages,
             DateTimeRange timeSentRange,
             CancellationToken cancellationToken = default
-            )
-        {
-            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                .IncludeSystemMessagesWhere(includeSystemMessages)
-                .FilterBySentTimeRange(timeSentRange)
-                .Statistics(out var stats)
-                .Sort(sortInfo)
-                .Paging(pagingInfo)
-                .OfType<FailedMessage>()
-                .TransformToMessageView();
+            ) =>
+            WithQueryTimeout(async token =>
+            {
+                using var session = await sessionProvider.OpenSession(cancellationToken: token);
+                var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                    .IncludeSystemMessagesWhere(includeSystemMessages)
+                    .FilterBySentTimeRange(timeSentRange)
+                    .Statistics(out var stats)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .OfType<FailedMessage>()
+                    .TransformToMessageView();
 
-            var results = await query.ToListAsync(cancellationToken);
+                var results = await query.ToListAsync(token);
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-        }
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }, cancellationToken);
 
-        public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(
+        public Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(
             string endpointName,
             PagingInfo pagingInfo,
             SortInfo sortInfo,
             bool includeSystemMessages,
             DateTimeRange timeSentRange,
             CancellationToken cancellationToken = default
-            )
-        {
-            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                .IncludeSystemMessagesWhere(includeSystemMessages)
-                .FilterBySentTimeRange(timeSentRange)
-                .Where(m => m.ReceivingEndpointName == endpointName)
-                .Statistics(out var stats)
-                .Sort(sortInfo)
-                .Paging(pagingInfo)
-                .OfType<FailedMessage>()
-                .TransformToMessageView();
+            ) =>
+            WithQueryTimeout(async token =>
+            {
+                using var session = await sessionProvider.OpenSession(cancellationToken: token);
+                var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                    .IncludeSystemMessagesWhere(includeSystemMessages)
+                    .FilterBySentTimeRange(timeSentRange)
+                    .Where(m => m.ReceivingEndpointName == endpointName)
+                    .Statistics(out var stats)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .OfType<FailedMessage>()
+                    .TransformToMessageView();
 
-            var results = await query.ToListAsync(cancellationToken);
+                var results = await query.ToListAsync(token);
 
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }, cancellationToken);
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-        }
-
-        public async Task<QueryResult<IList<MessagesView>>> SearchEndpointMessages(
+        public Task<QueryResult<IList<MessagesView>>> SearchEndpointMessages(
             string endpointName,
             string searchKeyword,
             PagingInfo pagingInfo,
             SortInfo sortInfo,
             DateTimeRange timeSentRange,
             CancellationToken cancellationToken = default
-            )
-        {
-            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                .Statistics(out var stats)
-                .Search(x => x.Query, searchKeyword)
-                .Where(m => m.ReceivingEndpointName == endpointName)
-                .FilterBySentTimeRange(timeSentRange)
-                .Sort(sortInfo)
-                .Paging(pagingInfo)
-                .OfType<FailedMessage>()
-                .TransformToMessageView();
+            ) =>
+            WithQueryTimeout(async token =>
+            {
+                using var session = await sessionProvider.OpenSession(cancellationToken: token);
+                var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                    .Statistics(out var stats)
+                    .Search(x => x.Query, searchKeyword)
+                    .Where(m => m.ReceivingEndpointName == endpointName)
+                    .FilterBySentTimeRange(timeSentRange)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .OfType<FailedMessage>()
+                    .TransformToMessageView();
 
-            var results = await query.ToListAsync(cancellationToken);
+                var results = await query.ToListAsync(token);
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-        }
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }, cancellationToken);
 
-        public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(
+        public Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(
             string conversationId,
             PagingInfo pagingInfo,
             SortInfo sortInfo,
             bool includeSystemMessages,
             CancellationToken cancellationToken = default
-            )
-        {
-            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                .Statistics(out var stats)
-                .Where(m => m.ConversationId == conversationId)
-                .Sort(sortInfo)
-                .Paging(pagingInfo)
-                .OfType<FailedMessage>()
-                .TransformToMessageView();
+            ) =>
+            WithQueryTimeout(async token =>
+            {
+                using var session = await sessionProvider.OpenSession(cancellationToken: token);
+                var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                    .Statistics(out var stats)
+                    .Where(m => m.ConversationId == conversationId)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .OfType<FailedMessage>()
+                    .TransformToMessageView();
 
-            var results = await query.ToListAsync(cancellationToken);
+                var results = await query.ToListAsync(token);
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-        }
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }, cancellationToken);
 
-        public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(
+        public Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(
             string searchTerms,
             PagingInfo pagingInfo,
             SortInfo sortInfo,
             DateTimeRange timeSentRange,
             CancellationToken cancellationToken = default
-            )
-        {
-            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                .Statistics(out var stats)
-                .Search(x => x.Query, searchTerms)
-                .FilterBySentTimeRange(timeSentRange)
-                .Sort(sortInfo)
-                .Paging(pagingInfo)
-                .OfType<FailedMessage>()
-                .TransformToMessageView();
+            ) =>
+            WithQueryTimeout(async token =>
+            {
+                using var session = await sessionProvider.OpenSession(cancellationToken: token);
+                var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                    .Statistics(out var stats)
+                    .Search(x => x.Query, searchTerms)
+                    .FilterBySentTimeRange(timeSentRange)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .OfType<FailedMessage>()
+                    .TransformToMessageView();
 
-            var results = await query.ToListAsync(cancellationToken);
+                var results = await query.ToListAsync(token);
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-        }
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }, cancellationToken);
+
+        Task<T> WithQueryTimeout<T>(Func<CancellationToken, Task<T>> query, CancellationToken cancellationToken) =>
+            QueryTimeLimit.Run(query, settings.QueryTimeout, PersistenceSettings.QueryTimeoutSettingName, cancellationToken);
 
         public async Task MarkAsArchived(string failedMessageId, CancellationToken cancellationToken = default)
         {

@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceBus.Management.Infrastructure.Settings;
+using ServiceControl.Persistence;
 using Yarp.ReverseProxy.Forwarder;
 
 static class RemoteInstanceServiceCollectionExtensions
@@ -28,15 +29,22 @@ static class RemoteInstanceServiceCollectionExtensions
         }));
     }
 
+    /// <summary>
+    /// How much longer than the query time limit a remote gets to answer: its own query is allowed that limit
+    /// (the audit instance has the same setting), and its answer, a 504 included, still has to travel back.
+    /// </summary>
+    public static readonly TimeSpan ResponseMargin = TimeSpan.FromSeconds(30);
+
     public static void AddRemoteInstancesHttpClients(this IServiceCollection services, Settings settings)
     {
         foreach (var remoteInstance in settings.RemoteInstances)
         {
-            var remoteClientBuilder = services.AddHttpClient(remoteInstance.InstanceId, client =>
+            var remoteClientBuilder = services.AddHttpClient(remoteInstance.InstanceId, (serviceProvider, client) =>
             {
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 // Application settings might contain remote URLs with /api. We strip that away to be a real base address.
                 client.BaseAddress = new Uri(remoteInstance.BaseAddress);
+                client.Timeout = serviceProvider.GetRequiredService<PersistenceSettings>().QueryTimeout + ResponseMargin;
             });
 
             remoteClientBuilder.UseSocketsHttpHandler((handler, _) =>
