@@ -1,6 +1,7 @@
-﻿namespace ServiceControl.Persistence
+namespace ServiceControl.Persistence
 {
     using System;
+    using ServiceControl.Infrastructure;
 
     /// <summary>
     /// Base settings that apply across all Persisters
@@ -20,5 +21,15 @@
         public bool EnableFullTextSearchOnBodies { get; set; } = true;
 
         public TimeSpan? OverrideCustomCheckRepeatTime { get; set; }
+
+        /// <summary>
+        /// Wall-clock limit for the message view queries, see <see cref="QueryTimeLimit" />.
+        /// </summary>
+        public TimeSpan QueryTimeout { get; set; } = QueryTimeLimit.Default;
+
+        /// <summary>
+        /// The setting <see cref="QueryTimeout" /> is read from, as named in the timeout error.
+        /// </summary>
+        public const string QueryTimeoutSettingName = "ServiceControl/" + QueryTimeLimit.SettingName;
     }
 }

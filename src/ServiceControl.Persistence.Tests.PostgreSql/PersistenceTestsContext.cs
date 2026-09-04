@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using EFCore.PostgreSql;
 using MessageFailures;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
@@ -81,6 +82,17 @@ public partial class PersistenceTestsContext : IPersistenceTestsContext
     }
 
     public PersistenceSettings PersistenceSettings { get; set; }
+
+    /// <summary>
+    /// Adds an EF Core interceptor to the persistence's own DbContext registration.
+    /// </summary>
+    public void InterceptDatabaseCommands(IServiceCollection services, IInterceptor interceptor) =>
+        services.ConfigureDbContext<PostgreSqlServiceControlDbContext>(options => options.AddInterceptors(interceptor));
+
+    /// <summary>
+    /// SQL that makes the server sleep, to prepend to a query that has to still be running when a deadline fires.
+    /// </summary>
+    public string SqlToDelayFor(TimeSpan delay) => $"SELECT pg_sleep({delay.TotalSeconds:0});";
 
     public string GenerateFailedMessageRecordId(string messageId) => messageId;
 

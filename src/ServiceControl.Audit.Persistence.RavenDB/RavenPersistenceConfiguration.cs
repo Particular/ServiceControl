@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Persistence.RavenDB
+namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using System;
     using System.Collections.Generic;
@@ -23,6 +23,8 @@
         public const string MinimumStorageLeftRequiredForIngestionKey = "MinimumStorageLeftRequiredForIngestion";
         public const string BulkInsertCommitTimeoutInSecondsKey = "BulkInsertCommitTimeoutInSeconds";
         public const string DataSpaceRemainingThresholdKey = "DataSpaceRemainingThreshold";
+        public const string QueryTimeoutInSecondsKey = QueryTimeLimit.SettingName;
+        public const string QueryTimeoutSettingName = "ServiceControl.Audit/" + QueryTimeLimit.SettingName;
 
         public IEnumerable<string> ConfigurationKeys => new[]{
             DatabaseNameKey,
@@ -37,7 +39,8 @@
             RavenDbLogLevelKey,
             DataSpaceRemainingThresholdKey,
             MinimumStorageLeftRequiredForIngestionKey,
-            BulkInsertCommitTimeoutInSecondsKey
+            BulkInsertCommitTimeoutInSecondsKey,
+            QueryTimeoutInSecondsKey
         };
 
         public string Name => "RavenDB";
@@ -121,6 +124,8 @@
 
             var bulkInsertTimeout = TimeSpan.FromSeconds(GetBulkInsertCommitTimeout(settings));
 
+            var queryTimeout = GetQueryTimeout(settings);
+
             return new DatabaseConfiguration(
                 databaseName,
                 expirationProcessTimerInSeconds,
@@ -130,7 +135,8 @@
                 dataSpaceRemainingThreshold,
                 minimumStorageLeftRequiredForIngestion,
                 serverConfiguration,
-                bulkInsertTimeout);
+                bulkInsertTimeout,
+                queryTimeout);
         }
 
         static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)
@@ -183,6 +189,18 @@
             }
 
             return bulkInsertCommitTimeoutInSeconds;
+        }
+
+        static TimeSpan GetQueryTimeout(PersistenceSettings settings)
+        {
+            var queryTimeoutInSeconds = QueryTimeLimit.DefaultSeconds;
+
+            if (settings.PersisterSpecificSettings.TryGetValue(QueryTimeoutInSecondsKey, out var queryTimeoutString))
+            {
+                queryTimeoutInSeconds = int.Parse(queryTimeoutString);
+            }
+
+            return QueryTimeLimit.Validate(queryTimeoutInSeconds, QueryTimeoutSettingName, Logger);
         }
 
         static string GetLogPath(PersistenceSettings settings)
