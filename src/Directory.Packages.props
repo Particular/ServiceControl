@@ -93,7 +93,7 @@
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Testcontainers.Azurite" Version="4.14.0" />
-    <PackageVersion Include="Testcontainers.LocalStack" Version="4.14.0" />
+    <PackageVersion Include="Testcontainers.LocalStack" Version="4.15.0" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.14.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.14.0" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
