@@ -10,6 +10,8 @@ using Infrastructure;
 // when two writers insert the same key concurrently, ON CONFLICT cannot. All references to the
 // target table inside DO UPDATE read the pre-update row, so the guards are consistent within one
 // atomic statement. Rows are chunked to keep statement texts down to a few reusable shapes.
+// The target is aliased as t, so t. is the stored row and excluded. the incoming one, and the
+// statement bodies stay the same whichever schema the table is in.
 class PostgreSqlFailedMessageIngestionSqlDialect : PostgreSqlDialect, IFailedMessageIngestionSqlDialect
 {
     public async Task UpsertFailedMessages(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageEntity> rows, CancellationToken cancellationToken = default)
@@ -19,7 +21,7 @@ class PostgreSqlFailedMessageIngestionSqlDialect : PostgreSqlDialect, IFailedMes
             await Execute(
                 dbContext,
                 $"""
-                 INSERT INTO failed_messages ({FailedMessageColumnList})
+                 INSERT INTO {Table<FailedMessageEntity>(dbContext)} AS t ({FailedMessageColumnList})
                  VALUES
                  {ParameterRows(chunk.Length, FailedMessageColumns.Length)}
                  {OnConflictUpdate}
@@ -36,7 +38,7 @@ class PostgreSqlFailedMessageIngestionSqlDialect : PostgreSqlDialect, IFailedMes
             await Execute(
                 dbContext,
                 $"""
-                 INSERT INTO failed_message_groups (failed_message_unique_id, group_id, title, type)
+                 INSERT INTO {Table<FailedMessageGroupEntity>(dbContext)} (failed_message_unique_id, group_id, title, type)
                  VALUES
                  {ParameterRows(chunk.Length, 4)}
                  ON CONFLICT (failed_message_unique_id, group_id) DO NOTHING
@@ -53,7 +55,7 @@ class PostgreSqlFailedMessageIngestionSqlDialect : PostgreSqlDialect, IFailedMes
             await Execute(
                 dbContext,
                 $"""
-                 INSERT INTO known_endpoints (id, name, host_id, host, monitored)
+                 INSERT INTO {Table<KnownEndpointEntity>(dbContext)} (id, name, host_id, host, monitored)
                  VALUES
                  {ParameterRows(chunk.Length, 5)}
                  ON CONFLICT (id) DO NOTHING
@@ -72,15 +74,15 @@ class PostgreSqlFailedMessageIngestionSqlDialect : PostgreSqlDialect, IFailedMes
             await Execute(
                 dbContext,
                 $"""
-                 UPDATE failed_messages SET
+                 UPDATE {Table<FailedMessageEntity>(dbContext)} AS t SET
                      status = {resolved},
                      status_changed_at = @p0,
                      last_modified = @p0
                  FROM (VALUES
                  {ConfirmedRetryRows(chunk.Length)}
                  ) AS s (unique_message_id, succeeded_at)
-                 WHERE failed_messages.unique_message_id = s.unique_message_id
-                   AND failed_messages.last_attempted_at <= s.succeeded_at
+                 WHERE t.unique_message_id = s.unique_message_id
+                   AND t.last_attempted_at <= s.succeeded_at
                  """,
                 [[now], .. chunk.Select(retry => new object?[] { retry.UniqueMessageId, retry.SucceededAt })],
                 cancellationToken);
@@ -129,7 +131,7 @@ class PostgreSqlFailedMessageIngestionSqlDialect : PostgreSqlDialect, IFailedMes
     // Strictly newer, where the payload columns take the incoming attempt on a tie as well. A
     // redelivery of the attempt already stored is not news, and must not undo a resolve or an
     // archive that happened after it.
-    const string IsNewerAttempt = "excluded.last_attempted_at > failed_messages.last_attempted_at";
+    const string IsNewerAttempt = "excluded.last_attempted_at > t.last_attempted_at";
 
     static string BuildOnConflictUpdate()
     {
@@ -138,22 +140,22 @@ class PostgreSqlFailedMessageIngestionSqlDialect : PostgreSqlDialect, IFailedMes
         var sql = new StringBuilder(
             $"""
              ON CONFLICT (unique_message_id) DO UPDATE SET
-                 status = CASE WHEN {IsNewerAttempt} THEN {unresolved} ELSE failed_messages.status END,
-                 status_changed_at = CASE WHEN {IsNewerAttempt} AND failed_messages.status <> {unresolved} THEN excluded.status_changed_at ELSE failed_messages.status_changed_at END,
+                 status = CASE WHEN {IsNewerAttempt} THEN {unresolved} ELSE t.status END,
+                 status_changed_at = CASE WHEN {IsNewerAttempt} AND t.status <> {unresolved} THEN excluded.status_changed_at ELSE t.status_changed_at END,
                  last_modified = excluded.last_modified,
-                 number_of_processing_attempts = failed_messages.number_of_processing_attempts
-                     + CASE WHEN excluded.last_attempted_at <> failed_messages.last_attempted_at THEN excluded.number_of_processing_attempts ELSE 0 END,
-                 first_time_of_failure = LEAST(failed_messages.first_time_of_failure, excluded.first_time_of_failure),
-                 last_time_of_failure = GREATEST(failed_messages.last_time_of_failure, excluded.last_time_of_failure),
+                 number_of_processing_attempts = t.number_of_processing_attempts
+                     + CASE WHEN excluded.last_attempted_at <> t.last_attempted_at THEN excluded.number_of_processing_attempts ELSE 0 END,
+                 first_time_of_failure = LEAST(t.first_time_of_failure, excluded.first_time_of_failure),
+                 last_time_of_failure = GREATEST(t.last_time_of_failure, excluded.last_time_of_failure),
              """);
 
         foreach (var column in PayloadColumns)
         {
             sql.AppendLine().Append(
-                $"    {column} = CASE WHEN excluded.last_attempted_at >= failed_messages.last_attempted_at THEN excluded.{column} ELSE failed_messages.{column} END,");
+                $"    {column} = CASE WHEN excluded.last_attempted_at >= t.last_attempted_at THEN excluded.{column} ELSE t.{column} END,");
         }
 
-        sql.AppendLine().Append("    last_attempted_at = GREATEST(failed_messages.last_attempted_at, excluded.last_attempted_at)");
+        sql.AppendLine().Append("    last_attempted_at = GREATEST(t.last_attempted_at, excluded.last_attempted_at)");
 
         return sql.ToString();
     }

@@ -3,9 +3,16 @@ namespace ServiceControl.Persistence.EFCore.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.EntityConfigurations;
+using ServiceControl.Persistence.EFCore.Infrastructure;
 
 public abstract class ServiceControlDbContext(DbContextOptions options) : DbContext(options)
 {
+    /// <summary>
+    /// The configured schema, or null when the provider default is in use. Null keeps the model
+    /// identical to the one the migrations were scaffolded against.
+    /// </summary>
+    public string? Schema { get; } = options.FindExtension<SchemaOptionsExtension>()?.Schema;
+
     public DbSet<CustomCheckEntity> CustomChecks { get; set; }
     public DbSet<EndpointSettingsEntity> EndpointSettings { get; set; }
     public DbSet<KnownEndpointEntity> KnownEndpoints { get; set; }
@@ -34,6 +41,11 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        if (Schema is not null)
+        {
+            modelBuilder.HasDefaultSchema(Schema);
+        }
 
         modelBuilder.ApplyConfiguration(new CustomCheckConfiguration());
         modelBuilder.ApplyConfiguration(new EndpointSettingsConfiguration());

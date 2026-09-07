@@ -11,6 +11,17 @@ public abstract class EFPersisterSettings : PersistenceSettings
     public static readonly TimeSpan DefaultSubscriptionCacheDuration = TimeSpan.FromSeconds(60);
 
     public required string ConnectionString { get; set; }
+
+    /// <summary>
+    /// The schema the persister owns, or null to use the provider default. Validated on assignment
+    /// because it reaches raw DDL and dialect SQL by interpolation.
+    /// </summary>
+    public string? Schema
+    {
+        get;
+        set => field = value is null ? null : SchemaName.Validate(value);
+    }
+
     public int CommandTimeout { get; set; } = DefaultCommandTimeout;
     public TimeSpan ErrorRetentionPeriod { get; set; }
     public TimeSpan EventsRetentionPeriod { get; set; } = DefaultEventsRetentionPeriod;

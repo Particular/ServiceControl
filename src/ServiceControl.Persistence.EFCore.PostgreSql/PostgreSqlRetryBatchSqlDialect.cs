@@ -13,7 +13,7 @@ class PostgreSqlRetryBatchSqlDialect : PostgreSqlDialect, IRetryBatchSqlDialect
             await Execute(
                 dbContext,
                 $"""
-                 INSERT INTO failed_message_retries (unique_message_id, retry_batch_id, stage_attempts)
+                 INSERT INTO {Table<FailedMessageRetryEntity>(dbContext)} (unique_message_id, retry_batch_id, stage_attempts)
                  VALUES
                  {ParameterRows(chunk.Length, 3)}
                  ON CONFLICT (unique_message_id) DO NOTHING

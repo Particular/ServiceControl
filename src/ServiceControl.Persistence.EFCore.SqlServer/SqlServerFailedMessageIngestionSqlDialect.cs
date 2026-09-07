@@ -20,7 +20,7 @@ class SqlServerFailedMessageIngestionSqlDialect : SqlServerDialect, IFailedMessa
             await Execute(
                 dbContext,
                 $"""
-                 MERGE [FailedMessages] WITH (HOLDLOCK) AS t
+                 MERGE {Table<FailedMessageEntity>(dbContext)} WITH (HOLDLOCK) AS t
                  USING (VALUES
                  {ParameterRows(chunk.Length, FailedMessageColumns.Length)}
                  ) AS s ({FailedMessageColumnList})
@@ -42,7 +42,7 @@ class SqlServerFailedMessageIngestionSqlDialect : SqlServerDialect, IFailedMessa
             await Execute(
                 dbContext,
                 $"""
-                 MERGE [FailedMessageGroups] WITH (HOLDLOCK) AS t
+                 MERGE {Table<FailedMessageGroupEntity>(dbContext)} WITH (HOLDLOCK) AS t
                  USING (VALUES
                  {ParameterRows(chunk.Length, 4)}
                  ) AS s ([FailedMessageUniqueId], [GroupId], [Title], [Type])
@@ -63,7 +63,7 @@ class SqlServerFailedMessageIngestionSqlDialect : SqlServerDialect, IFailedMessa
             await Execute(
                 dbContext,
                 $"""
-                 MERGE [KnownEndpoints] WITH (HOLDLOCK) AS t
+                 MERGE {Table<KnownEndpointEntity>(dbContext)} WITH (HOLDLOCK) AS t
                  USING (VALUES
                  {ParameterRows(chunk.Length, 5)}
                  ) AS s ([Id], [Name], [HostId], [Host], [Monitored])
@@ -91,7 +91,7 @@ class SqlServerFailedMessageIngestionSqlDialect : SqlServerDialect, IFailedMessa
                      [Status] = {resolved},
                      [StatusChangedAt] = @p0,
                      [LastModified] = @p0
-                 FROM [FailedMessages] AS t
+                 FROM {Table<FailedMessageEntity>(dbContext)} AS t
                  INNER JOIN (VALUES
                  {ConfirmedRetryRows(chunk.Length)}
                  ) AS s ([UniqueMessageId], [SucceededAt])
