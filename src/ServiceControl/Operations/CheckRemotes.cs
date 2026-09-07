@@ -11,9 +11,14 @@
 
     class CheckRemotes : CustomCheck
     {
-        public CheckRemotes(Settings settings, IHttpClientFactory httpClientFactory) : base("ServiceControl Remotes", "Health", TimeSpan.FromSeconds(30))
+        public CheckRemotes(Settings settings, IHttpClientFactory httpClientFactory) : this(settings, httpClientFactory, TimeSpan.FromSeconds(10))
+        {
+        }
+
+        internal CheckRemotes(Settings settings, IHttpClientFactory httpClientFactory, TimeSpan probeTimeout) : base("ServiceControl Remotes", "Health", TimeSpan.FromSeconds(30))
         {
             this.httpClientFactory = httpClientFactory;
+            this.probeTimeout = probeTimeout;
             remoteInstanceSetting = settings.RemoteInstances;
             remoteQueryTasks = new List<Task>(remoteInstanceSetting.Length);
         }
@@ -22,11 +27,12 @@
         {
             try
             {
-                var queryTimeout = TimeSpan.FromSeconds(10);
-                using var cancellationTokenSource = new CancellationTokenSource(queryTimeout);
+                using var probe = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                probe.CancelAfter(probeTimeout);
+
                 foreach (var remote in remoteInstanceSetting)
                 {
-                    remoteQueryTasks.Add(CheckSuccessStatusCode(remote, queryTimeout, cancellationTokenSource.Token));
+                    remoteQueryTasks.Add(CheckSuccessStatusCode(remote, probe, cancellationToken));
                 }
 
                 try
@@ -59,12 +65,15 @@
             }
         }
 
-        async Task CheckSuccessStatusCode(RemoteInstanceSetting remoteSettings, TimeSpan queryTimeout, CancellationToken cancellationToken)
+        async Task CheckSuccessStatusCode(RemoteInstanceSetting remoteSettings, CancellationTokenSource probe, CancellationToken cancellationToken)
         {
             try
             {
                 var client = httpClientFactory.CreateClient(remoteSettings.InstanceId);
-                var response = await client.GetAsync("/api", cancellationToken);
+                // The remote's client is configured with the query time limit; the probe runs on its own budget.
+                client.Timeout = Timeout.InfiniteTimeSpan;
+
+                var response = await client.GetAsync("/api", probe.Token);
                 response.EnsureSuccessStatusCode();
                 remoteSettings.TemporarilyUnavailable = false;
             }
@@ -73,18 +82,21 @@
                 remoteSettings.TemporarilyUnavailable = true;
                 throw new TimeoutException($"The remote instance at '{remoteSettings.BaseAddress}' doesn't seem to be available. It will be temporarily disabled. Reason: {e.Message}", e);
             }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            catch (OperationCanceledException e) when (probe.Token.IsCancellationRequested)
             {
-                // Cancelled, noop
-            }
-            catch (OperationCanceledException e) // Intentional, OCE gracefully handled by other catch
-            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    // Shutting down; an aborted probe says nothing about the remote's health
+                    return;
+                }
+
                 remoteSettings.TemporarilyUnavailable = true;
-                throw new TimeoutException($"The remote at '{remoteSettings.BaseAddress}' did not respond within the allotted time of '{queryTimeout}'. It will be temporarily disabled.", e);
+                throw new TimeoutException($"The remote at '{remoteSettings.BaseAddress}' did not respond within the allotted time of '{probeTimeout}'. It will be temporarily disabled.", e);
             }
         }
 
         readonly IHttpClientFactory httpClientFactory;
+        readonly TimeSpan probeTimeout;
         RemoteInstanceSetting[] remoteInstanceSetting;
         List<Task> remoteQueryTasks;
     }

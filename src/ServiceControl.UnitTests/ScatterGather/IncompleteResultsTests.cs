@@ -1,9 +1,6 @@
-#pragma warning disable PS0003 // Make the CancellationToken parameter optional — HttpMessageHandler.SendAsync override signature is fixed
-
 namespace ServiceControl.UnitTests.ScatterGather;
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -238,24 +235,5 @@ class IncompleteResultsTests
         : ScatterGatherApiMessageView<object, ScatterGatherApiMessageViewContext>(new object(), settings, factory, new HttpContextAccessor(), NullLogger<TestApi>.Instance)
     {
         protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(ScatterGatherApiMessageViewContext input, CancellationToken cancellationToken = default) => local(cancellationToken);
-    }
-
-    class FakeHttpClientFactory : IHttpClientFactory
-    {
-        readonly ConcurrentDictionary<string, (HttpMessageHandler Handler, string BaseAddress)> handlers = new();
-
-        public void Register(RemoteInstanceSetting remote, Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> responder) =>
-            handlers[remote.InstanceId] = (new StubHandler(responder), remote.BaseAddress);
-
-        public HttpClient CreateClient(string name)
-        {
-            var (handler, baseAddress) = handlers[name];
-            return new HttpClient(handler, disposeHandler: false) { BaseAddress = new Uri(baseAddress) };
-        }
-    }
-
-    class StubHandler(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> responder) : HttpMessageHandler
-    {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) => responder(request, cancellationToken);
     }
 }
