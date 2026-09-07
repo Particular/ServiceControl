@@ -7,6 +7,7 @@ using ServiceControl.Infrastructure;
 public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration, IPersistenceConfiguration
 {
     const string ConnectionStringKey = "Database/ConnectionString";
+    const string SchemaKey = "Database/Schema";
     const string CommandTimeoutKey = "Database/CommandTimeout";
     const string BodyStorageTypeKey = "MessageBody/StorageType";
     const string FileSystemStoragePathKey = "MessageBody/FileSystem/StoragePath";
@@ -35,6 +36,7 @@ public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration,
             GetRequiredSetting<string>(settingsRootNamespace, ConnectionStringKey),
             CreateBodyStorageSettings(settingsRootNamespace));
 
+        settings.Schema = ReadSchema(settingsRootNamespace);
         settings.CommandTimeout = SettingsReader.Read(settingsRootNamespace, CommandTimeoutKey, EFPersisterSettings.DefaultCommandTimeout);
         settings.ErrorRetentionPeriod = GetRequiredSetting<TimeSpan>(settingsRootNamespace, ErrorRetentionPeriodKey);
         settings.EventsRetentionPeriod = SettingsReader.Read(settingsRootNamespace, EventsRetentionPeriodKey, EFPersisterSettings.DefaultEventsRetentionPeriod);
@@ -47,6 +49,25 @@ public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration,
     public abstract IPersistence Create(PersistenceSettings settings);
 
     protected abstract EFPersisterSettings CreateSettings(string connectionString, BodyStorageSettings bodyStorage);
+
+    static string? ReadSchema(SettingsRootNamespace settingsRootNamespace)
+    {
+        var schema = SettingsReader.Read<string>(settingsRootNamespace, SchemaKey);
+
+        if (string.IsNullOrWhiteSpace(schema))
+        {
+            return null;
+        }
+
+        try
+        {
+            return SchemaName.Validate(schema);
+        }
+        catch (ArgumentException e)
+        {
+            throw new Exception($"Setting {SchemaKey} is invalid. {e.Message}", e);
+        }
+    }
 
     static BodyStorageSettings CreateBodyStorageSettings(SettingsRootNamespace settingsRootNamespace)
     {

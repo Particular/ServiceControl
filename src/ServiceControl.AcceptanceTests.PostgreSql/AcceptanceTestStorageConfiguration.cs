@@ -4,7 +4,6 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Npgsql;
 using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.AcceptanceTests.TestSupport;
 using ServiceControl.Persistence.EFCore.Abstractions;
@@ -17,19 +16,16 @@ public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfigur
 
     public async Task CustomizeSettings(Settings settings, CancellationToken cancellationToken = default)
     {
-        databaseName = $"sc_at_{Guid.NewGuid():n}";
-        serverConnectionString = await PostgreSqlSharedContainer.GetConnectionStringAsync(cancellationToken).ConfigureAwait(false);
-
-        var connectionStringBuilder = new NpgsqlConnectionStringBuilder(serverConnectionString)
-        {
-            Database = databaseName
-        };
+        schema = $"sc_at_{Guid.NewGuid():n}";
+        connectionString = await PostgreSqlSharedContainer.GetConnectionStringAsync(cancellationToken).ConfigureAwait(false);
+        await TestSchema.Create(connectionString, schema, cancellationToken).ConfigureAwait(false);
 
         bodyStoragePath = Directory.CreateTempSubdirectory("sc_at_bodies_").FullName;
 
         settings.PersisterSpecificSettings = new PostgreSqlPersisterSettings
         {
-            ConnectionString = connectionStringBuilder.ConnectionString,
+            ConnectionString = connectionString,
+            Schema = schema,
             ErrorRetentionPeriod = TimeSpan.FromDays(10),
             BodyStorage = new FileSystemBodyStorageSettings { StoragePath = bodyStoragePath }
         };
@@ -44,22 +40,12 @@ public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfigur
 
         try
         {
-            if (serverConnectionString == null || databaseName == null)
+            if (connectionString == null || schema == null)
             {
                 return;
             }
 
-            var connection = new NpgsqlConnection(serverConnectionString);
-            await using (connection.ConfigureAwait(false))
-            {
-                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-                var command = connection.CreateCommand();
-                await using (command.ConfigureAwait(false))
-                {
-                    command.CommandText = $"DROP DATABASE IF EXISTS \"{databaseName}\" WITH (FORCE)";
-                    await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-                }
-            }
+            await TestSchema.Drop(connectionString, schema, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
@@ -91,8 +77,8 @@ public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfigur
         }
     }
 
-    string serverConnectionString;
-    string databaseName;
+    string connectionString;
+    string schema;
     string bodyStoragePath;
     int cleanupStarted;
 }

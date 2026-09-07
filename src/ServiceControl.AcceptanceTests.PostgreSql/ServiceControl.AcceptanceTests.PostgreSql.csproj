@@ -32,6 +32,7 @@
   <ItemGroup>
     <Compile Include="..\ServiceControl.AcceptanceTests\**\*.cs" LinkBase="Shared" />
     <Compile Include="..\ServiceControl.Persistence.Tests.PostgreSql\PostgreSqlSharedContainer.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.PostgreSql\TestSchema.cs" />
     <Compile Include="..\ServiceControl.Persistence.Tests.PostgreSql\StopSharedPostgreSql.cs" />
     <Compile Include="..\ServiceControl.UnitTests\NUnitParallelRunnerSettings.cs" />
 

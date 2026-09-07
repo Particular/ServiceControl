@@ -8,17 +8,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using EFCore.PostgreSql;
 using MessageFailures;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Npgsql;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
 public partial class PersistenceTestsContext : IPersistenceTestsContext
 {
     IHost host;
-    string databaseName;
+    string connectionString;
+    string schema;
     string bodyStoragePath;
 
     public void AdvanceClock(TimeSpan by) => FakeTime.Advance(by);
@@ -27,18 +26,16 @@ public partial class PersistenceTestsContext : IPersistenceTestsContext
 
     public async Task Setup(IHostApplicationBuilder hostBuilder)
     {
-        databaseName = $"sc_test_{Guid.NewGuid():n}";
-
-        var connectionStringBuilder = new NpgsqlConnectionStringBuilder(await PostgreSqlSharedContainer.GetConnectionStringAsync())
-        {
-            Database = databaseName
-        };
+        schema = $"sc_test_{Guid.NewGuid():n}";
+        connectionString = await PostgreSqlSharedContainer.GetConnectionStringAsync();
+        await TestSchema.Create(connectionString, schema);
 
         bodyStoragePath = Directory.CreateTempSubdirectory("sc_test_bodies_").FullName;
 
         PersistenceSettings = new PostgreSqlPersisterSettings
         {
-            ConnectionString = connectionStringBuilder.ConnectionString,
+            ConnectionString = connectionString,
+            Schema = schema,
             BodyStorage = new FileSystemBodyStorageSettings { StoragePath = bodyStoragePath }
         };
 
@@ -55,19 +52,14 @@ public partial class PersistenceTestsContext : IPersistenceTestsContext
         this.host = host;
 
         using var scope = host.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<PostgreSqlServiceControlDbContext>();
-        await db.Database.MigrateAsync();
+        await scope.ServiceProvider.GetRequiredService<IDatabaseMigrator>().ApplyMigrations();
     }
 
     public async Task TearDown()
     {
         DeleteBodyStorage();
 
-        await using var connection = new NpgsqlConnection(await PostgreSqlSharedContainer.GetConnectionStringAsync());
-        await connection.OpenAsync();
-        await using var command = connection.CreateCommand();
-        command.CommandText = $"DROP DATABASE IF EXISTS \"{databaseName}\" WITH (FORCE)";
-        await command.ExecuteNonQueryAsync();
+        await TestSchema.Drop(connectionString, schema);
     }
 
     // Drain every insert-only reconciler so that ingested data is visible to the data stores,
