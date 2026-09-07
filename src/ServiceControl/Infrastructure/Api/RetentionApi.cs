@@ -4,22 +4,24 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Persistence;
 using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.Api;
 using ServiceControl.Api.Contracts;
+using RetentionSweepStatus = Persistence.RetentionSweepStatus;
 
 // Manual retention-sweep API. The persister's IRetentionSweeper is resolved *optionally* so the
 // same controller/route is mapped on every persister: EFCore registers it and gets 202/409/200;
 // RavenDB registers nothing (its retention is the server-side @expires bundle) and gets 501.
 class RetentionApi(IServiceProvider serviceProvider, Settings settings) : IRetentionApi
 {
-    const string NotSupportedReason = "The current storage has no retention sweeper.";
+    const string NotSupportedReason = "The currently configured storage has no retention sweeper.";
 
-    public Task<RetentionSweepResponse> SweepAsync(RetentionSweepRequest request, CancellationToken cancellationToken = default)
+    public Task<RetentionSweepResponse> Sweep(RetentionSweepRequest request, CancellationToken cancellationToken = default)
     {
         // Resolve the sweeper lazily and optionally — never required via constructor injection, or
         // a RavenDB-backed instance would throw at resolve time. Absent => 501 Not Implemented.
-        var sweeper = serviceProvider.GetService<ServiceControl.Persistence.IRetentionSweeper>();
+        var sweeper = serviceProvider.GetService<IRetentionSweeper>();
         if (sweeper is null)
         {
             return Task.FromResult(NotSupported());
@@ -50,14 +52,14 @@ class RetentionApi(IServiceProvider serviceProvider, Settings settings) : IReten
 
         return Task.FromResult(attempt.Outcome switch
         {
-            ServiceControl.Persistence.ManualSweepOutcome.Started => new RetentionSweepResponse
+            RetentionSweepStatus.Started => new RetentionSweepResponse
             {
                 Status = "started",
                 StartedAt = attempt.StartedAt,
                 ErrorCutoff = attempt.ErrorCutoff,
                 EventsCutoff = attempt.EventsCutoff
             },
-            ServiceControl.Persistence.ManualSweepOutcome.AlreadyRunning => new RetentionSweepResponse
+            RetentionSweepStatus.AlreadyRunning => new RetentionSweepResponse
             {
                 Status = "already-running",
                 StartedAt = attempt.StartedAt
@@ -70,19 +72,19 @@ class RetentionApi(IServiceProvider serviceProvider, Settings settings) : IReten
         });
     }
 
-    public Task<RetentionSweepStatus> GetStatusAsync(CancellationToken cancellationToken = default)
+    public Task<RetentionSweepStatusResponse> GetStatus(CancellationToken cancellationToken = default)
     {
-        var sweeper = serviceProvider.GetService<ServiceControl.Persistence.IRetentionSweeper>();
+        var sweeper = serviceProvider.GetService<IRetentionSweeper>();
         if (sweeper is null)
         {
-            return Task.FromResult(new RetentionSweepStatus { Reason = NotSupportedReason });
+            return Task.FromResult(new RetentionSweepStatusResponse { Reason = NotSupportedReason });
         }
 
         // Map the persister's status record onto the API contract DTO (the two share a name but
         // live in different namespaces: ServiceControl.Persistence vs ServiceControl.Api.Contracts).
-        ServiceControl.Persistence.RetentionSweepStatus status = sweeper.GetStatus();
+        var status = sweeper.GetStatus();
 
-        return Task.FromResult(new RetentionSweepStatus
+        return Task.FromResult(new RetentionSweepStatusResponse
         {
             IsRunning = status.IsRunning,
             LastStartedAt = status.LastStartedAt,

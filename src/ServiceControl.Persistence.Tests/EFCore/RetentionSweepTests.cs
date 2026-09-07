@@ -423,7 +423,7 @@ class RetentionSweepTests : ErrorIngestionTestBase
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(attempt.Outcome, Is.EqualTo(ManualSweepOutcome.Started));
+            Assert.That(attempt.Outcome, Is.EqualTo(RetentionSweepStatus.Started));
             Assert.That(await FindFailedMessage(message), Is.Null,
                 "the caller-supplied cutoff overrides the configured retention derivation");
         }
@@ -477,7 +477,7 @@ class RetentionSweepTests : ErrorIngestionTestBase
         var sweeper = GetSweeper();
         var attempt = sweeper.TryStartManualSweep(Now.AddDays(-30), null);
 
-        Assert.That(attempt.Outcome, Is.EqualTo(ManualSweepOutcome.Started));
+        Assert.That(attempt.Outcome, Is.EqualTo(RetentionSweepStatus.Started));
         Assert.That(attempt.StartedAt, Is.Not.Null);
 
         await WaitForManualSweepToFinish();
@@ -532,9 +532,9 @@ class RetentionSweepTests : ErrorIngestionTestBase
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(first.Outcome, Is.EqualTo(ManualSweepOutcome.Started),
+            Assert.That(first.Outcome, Is.EqualTo(RetentionSweepStatus.Started),
                 "the first call should start the sweep");
-            Assert.That(second.Outcome, Is.EqualTo(ManualSweepOutcome.AlreadyRunning),
+            Assert.That(second.Outcome, Is.EqualTo(RetentionSweepStatus.AlreadyRunning),
                 "a second sweep must not run in parallel with the first");
         }
     }

@@ -45,8 +45,6 @@ public class RetentionSweeper(
     DateTime? lastEventsCutoff;
     string? lastError;
 
-    public RetentionSweepConfig Config => new(settings.ErrorRetentionPeriod, settings.EventsRetentionPeriod);
-
     protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Starting retention sweep");
@@ -90,7 +88,7 @@ public class RetentionSweeper(
         // already running (holding the lock)
         if (!sweepLock.Wait(0, cancellationToken))
         {
-            return new ManualSweepAttempt(ManualSweepOutcome.AlreadyRunning, lastStartedAt, errorCutoff, eventsCutoff);
+            return new ManualSweepAttempt(RetentionSweepStatus.AlreadyRunning, lastStartedAt, errorCutoff, eventsCutoff);
         }
 
         // Lock acquired on this thread. The background task owns it from here and releases it when
@@ -104,7 +102,7 @@ public class RetentionSweeper(
 
         _ = SweepWithoutAcquiringLock();
 
-        return new ManualSweepAttempt(ManualSweepOutcome.Started, lastStartedAt, errorCutoff, eventsCutoff);
+        return new ManualSweepAttempt(RetentionSweepStatus.Started, lastStartedAt, errorCutoff, eventsCutoff);
 
         async Task SweepWithoutAcquiringLock()
         {
@@ -122,7 +120,7 @@ public class RetentionSweeper(
         }
     }
 
-    public RetentionSweepStatus GetStatus() => new(isRunning, lastStartedAt, lastFinishedAt, lastErrorCutoff, lastEventsCutoff, lastError);
+    public RetentionSweepCurrentStatus GetStatus() => new(isRunning, lastStartedAt, lastFinishedAt, lastErrorCutoff, lastEventsCutoff, lastError);
 
     async Task Sweep(DateTime? errorCutoff, DateTime? eventsCutoff, bool pace, CancellationToken cancellationToken)
     {

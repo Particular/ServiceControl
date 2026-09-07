@@ -25,7 +25,7 @@ class When_triggering_a_manual_retention_sweep : AcceptanceTest
 
         HttpStatusCode started = default;
         HttpStatusCode invalidCutoff = default;
-        RetentionSweepStatus completion = null;
+        RetentionSweepStatusResponse completion = null;
 
         await Define<Context>()
             .Done(async _ =>
@@ -73,7 +73,7 @@ class When_triggering_a_manual_retention_sweep : AcceptanceTest
             return;
         }
 
-        RetentionSweepStatus completion = null;
+        RetentionSweepStatusResponse completion = null;
 
         await Define<Context>()
             .Done(async _ =>
@@ -137,7 +137,7 @@ class When_triggering_a_manual_retention_sweep : AcceptanceTest
         }
     }
 
-    async Task<RetentionSweepStatus> WaitUntilSweepFinishes(TimeSpan? timeout = null)
+    async Task<RetentionSweepStatusResponse> WaitUntilSweepFinishes(TimeSpan? timeout = null)
     {
         var deadline = DateTime.UtcNow + (timeout ?? TimeSpan.FromSeconds(30));
 
@@ -147,7 +147,7 @@ class When_triggering_a_manual_retention_sweep : AcceptanceTest
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                var status = await response.Content.ReadFromJsonAsync<RetentionSweepStatus>(SerializerOptions);
+                var status = await response.Content.ReadFromJsonAsync<RetentionSweepStatusResponse>(SerializerOptions);
 
                 if (status is { IsRunning: false })
                 {

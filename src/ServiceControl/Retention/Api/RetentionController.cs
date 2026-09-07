@@ -24,7 +24,7 @@ public class RetentionController(IRetentionApi retentionApi) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Sweep([FromBody] RetentionSweepRequest request, CancellationToken cancellationToken = default)
     {
-        var response = await retentionApi.SweepAsync(request ?? new RetentionSweepRequest(), cancellationToken);
+        var response = await retentionApi.Sweep(request ?? new RetentionSweepRequest(), cancellationToken);
 
         return response.Status switch
         {
@@ -43,7 +43,7 @@ public class RetentionController(IRetentionApi retentionApi) : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Status(CancellationToken cancellationToken = default)
     {
-        var status = await retentionApi.GetStatusAsync(cancellationToken);
+        var status = await retentionApi.GetStatus(cancellationToken);
 
         // A reason is present only when the persister has no sweeper (e.g. RavenDB).
         return status.Reason is not null ? StatusCode(501, status) : Ok(status);

@@ -6,7 +6,7 @@ using System;
 /// Response body for <c>GET /api/retention/sweep/status</c>. On a persister with no sweeper
 /// (e.g. RavenDB) the endpoint returns 501 with a <see cref="Reason"/> instead.
 /// </summary>
-public class RetentionSweepStatus
+public class RetentionSweepStatusResponse
 {
     public bool IsRunning { get; set; }
 
