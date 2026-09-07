@@ -12,6 +12,6 @@
                    VerticalAlignment="Center"
                    FontSize="20"
                    Foreground="{StaticResource Gray60Brush}"
-                   Text="No service instances installed" />
+                   Text="Add an instance to get started" />
     </Grid>
 </UserControl>
