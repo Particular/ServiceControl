@@ -102,6 +102,21 @@
             BeginCheckForUpdates();
         }
 
+        protected override void OnViewLoaded(object view)
+        {
+            base.OnViewLoaded(view);
+
+            // First run: nothing is installed yet, so open the "choose a setup scenario"
+            // popup immediately instead of leaving the user on the empty instance list.
+            // OnViewLoaded fires once, so alt-tabbing back or hitting refresh (both of
+            // which re-run RefreshInstances) won't re-trigger it, and dismissing the
+            // popup leaves the user on the NoInstances view.
+            if (!HasInstances)
+            {
+                ShowingMenuOverlay = true;
+            }
+        }
+
         public async Task RefreshInstances(CancellationToken cancellationToken = default)
         {
             HasInstances = InstanceFinder.AllInstances().Any();
