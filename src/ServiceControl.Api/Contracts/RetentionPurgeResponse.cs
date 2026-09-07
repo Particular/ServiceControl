@@ -3,11 +3,11 @@ namespace ServiceControl.Api.Contracts;
 using System;
 
 /// <summary>
-/// Response body for <c>POST /api/retention/sweep</c>. The <c>Status</c> field signals the
+/// Response body for <c>POST /api/maintenance/retention/purge</c>. The <c>Status</c> field signals the
 /// outcome: <c>started</c> (202), <c>already-running</c> (409), or
 /// <c>not-supported</c> (501).
 /// </summary>
-public class RetentionSweepResponse
+public class RetentionPurgeResponse
 {
     public string Status { get; set; }
 

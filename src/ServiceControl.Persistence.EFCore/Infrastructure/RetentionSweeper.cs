@@ -35,7 +35,7 @@ public class RetentionSweeper(
     // never overlap. Precedent: ExternalIntegrationRequestsDataStore.drainLock.
     readonly SemaphoreSlim sweepLock = new(1, 1);
 
-    // Status snapshot for GET /api/retention/sweep/status polling. Volatile reads/writes are
+    // Status snapshot for GET /api/maintenance/retention/purge/status polling. Volatile reads/writes are
     // sufficient here: the fields are written under sweepLock (or once at start) and read
     // lock-free for status reporting, which only needs an eventually-consistent snapshot.
     volatile bool isRunning;

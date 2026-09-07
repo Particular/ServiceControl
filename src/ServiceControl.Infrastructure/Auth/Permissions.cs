@@ -58,8 +58,8 @@ public static class Permissions
     /// <summary>Event log area — viewing the event log.</summary>
     public const string ErrorEventLogView = "error:eventlog:view";
 
-    /// <summary>Retention area — manually triggering a data retention sweep.</summary>
-    public const string ErrorRetentionSweep = "error:retention:sweep";
+    /// <summary>Retention area — manually triggering a data retention purge.</summary>
+    public const string ErrorRetentionPurge = "error:retention:purge";
 
     /// <summary>Licensing area — viewing and managing license configuration.</summary>
     public const string ErrorLicensingView = "error:licensing:view";

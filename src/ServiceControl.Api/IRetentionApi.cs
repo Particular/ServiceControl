@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Contracts;
 
 /// <summary>
-/// Manual retention-sweep API. The implementation resolves the persister's sweeper
+/// Manual retention-purge API. The implementation resolves the persister's sweeper
 /// optionally: when no sweeper is registered (e.g. RavenDB, which uses server-side document
 /// expiration) the operations report that the feature is not supported rather than silently
 /// failing.
@@ -13,14 +13,14 @@ using Contracts;
 public interface IRetentionApi
 {
     /// <summary>
-    /// Starts a manual retention sweep with caller-supplied cutoffs. The delete work runs in
+    /// Starts a manual retention purge with caller-supplied cutoffs. The delete work runs in
     /// the background on a host-lifetime token; this method returns as soon as the run is
     /// accepted (or refused because one is already running / unsupported).
     /// </summary>
-    Task<RetentionSweepResponse> Sweep(RetentionSweepRequest request, CancellationToken cancellationToken = default);
+    Task<RetentionPurgeResponse> Sweep(RetentionPurgeRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Returns a point-in-time snapshot of sweep execution state for polling.
+    /// Returns a point-in-time snapshot of purge execution state for polling.
     /// </summary>
-    Task<RetentionSweepStatusResponse> GetStatus(CancellationToken cancellationToken = default);
+    Task<RetentionPurgeStatusResponse> GetStatus(CancellationToken cancellationToken = default);
 }

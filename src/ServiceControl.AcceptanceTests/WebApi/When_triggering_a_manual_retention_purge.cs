@@ -12,7 +12,7 @@ using NServiceBus.AcceptanceTesting;
 using NUnit.Framework;
 using ServiceControl.Api.Contracts;
 
-class When_triggering_a_manual_retention_sweep : AcceptanceTest
+class When_triggering_a_manual_retention_purge : AcceptanceTest
 {
     [Test]
     public async Task Should_be_available_on_efcore_persisters()
@@ -25,30 +25,30 @@ class When_triggering_a_manual_retention_sweep : AcceptanceTest
 
         HttpStatusCode started = default;
         HttpStatusCode invalidCutoff = default;
-        RetentionSweepStatusResponse completion = null;
+        RetentionPurgeStatusResponse completion = null;
 
         await Define<Context>()
             .Done(async _ =>
             {
-                // Trigger a sweep with a past UTC cutoff. The delete work runs in the background,
+                // Trigger a purge with a past UTC cutoff. The delete work runs in the background,
                 // so the call returns 202 Accepted immediately.
                 using var response = await HttpClient.PostAsJsonAsync(
-                    "/api/retention/sweep",
-                    new RetentionSweepRequest { ErrorCutoff = DateTime.UtcNow.AddDays(-30) },
+                    "/api/maintenance/retention/purge",
+                    new RetentionPurgeRequest { ErrorCutoff = DateTime.UtcNow.AddDays(-30) },
                     SerializerOptions);
 
                 started = response.StatusCode;
 
                 // A future-dated cutoff is rejected with 400.
                 using var badRequest = await HttpClient.PostAsJsonAsync(
-                    "/api/retention/sweep",
-                    new RetentionSweepRequest { ErrorCutoff = DateTime.UtcNow.AddDays(1) },
+                    "/api/maintenance/retention/purge",
+                    new RetentionPurgeRequest { ErrorCutoff = DateTime.UtcNow.AddDays(1) },
                     SerializerOptions);
 
                 invalidCutoff = badRequest.StatusCode;
 
-                // The status endpoint must report the run, and the background sweep must complete.
-                completion = await WaitUntilSweepFinishes();
+                // The status endpoint must report the run, and the background purge must complete.
+                completion = await WaitUntilPurgeFinishes();
 
                 return true;
             })
@@ -56,10 +56,10 @@ class When_triggering_a_manual_retention_sweep : AcceptanceTest
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(started, Is.EqualTo(HttpStatusCode.Accepted), "the sweep should start in the background");
+            Assert.That(started, Is.EqualTo(HttpStatusCode.Accepted), "the purge should start in the background");
             Assert.That(invalidCutoff, Is.EqualTo(HttpStatusCode.BadRequest), "a future cutoff must be rejected");
-            Assert.That(completion, Is.Not.Null, "the background sweep must complete");
-            Assert.That(completion.IsRunning, Is.False, "the background sweep must complete");
+            Assert.That(completion, Is.Not.Null, "the background purge must complete");
+            Assert.That(completion.IsRunning, Is.False, "the background purge must complete");
             Assert.That(completion.LastStartedAt, Is.Not.Null);
         }
     }
@@ -73,17 +73,17 @@ class When_triggering_a_manual_retention_sweep : AcceptanceTest
             return;
         }
 
-        RetentionSweepStatusResponse completion = null;
+        RetentionPurgeStatusResponse completion = null;
 
         await Define<Context>()
             .Done(async _ =>
             {
                 using var response = await HttpClient.PostAsJsonAsync(
-                    "/api/retention/sweep",
-                    new RetentionSweepRequest { ErrorCutoff = DateTime.UtcNow.AddDays(-30) },
+                    "/api/maintenance/retention/purge",
+                    new RetentionPurgeRequest { ErrorCutoff = DateTime.UtcNow.AddDays(-30) },
                     SerializerOptions);
 
-                completion = await WaitUntilSweepFinishes();
+                completion = await WaitUntilPurgeFinishes();
                 return response.StatusCode == HttpStatusCode.Accepted;
             })
             .Run();
@@ -91,7 +91,7 @@ class When_triggering_a_manual_retention_sweep : AcceptanceTest
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(completion, Is.Not.Null, "the background sweep must complete");
+            Assert.That(completion, Is.Not.Null, "the background purge must complete");
             Assert.That(completion.IsRunning, Is.False);
             Assert.That(completion.LastFinishedAt, Is.Not.Null, "a completed run records its finish time");
         }
@@ -102,7 +102,7 @@ class When_triggering_a_manual_retention_sweep : AcceptanceTest
     {
         if (StorageConfiguration.PersistenceType != "RavenDB")
         {
-            Assert.Ignore("EFCore persisters support the sweep — covered by the efcore tests.");
+            Assert.Ignore("EFCore persisters support the purge — covered by the efcore tests.");
             return;
         }
 
@@ -113,13 +113,13 @@ class When_triggering_a_manual_retention_sweep : AcceptanceTest
             .Done(async _ =>
             {
                 using var response = await HttpClient.PostAsJsonAsync(
-                    "/api/retention/sweep",
-                    new RetentionSweepRequest { ErrorCutoff = DateTime.UtcNow.AddDays(-30) },
+                    "/api/maintenance/retention/purge",
+                    new RetentionPurgeRequest { ErrorCutoff = DateTime.UtcNow.AddDays(-30) },
                     SerializerOptions);
 
                 postStatus = response.StatusCode;
 
-                using var status = await HttpClient.GetAsync("/api/retention/sweep/status");
+                using var status = await HttpClient.GetAsync("/api/maintenance/retention/purge/status");
 
                 getStatus = status.StatusCode;
 
@@ -137,17 +137,17 @@ class When_triggering_a_manual_retention_sweep : AcceptanceTest
         }
     }
 
-    async Task<RetentionSweepStatusResponse> WaitUntilSweepFinishes(TimeSpan? timeout = null)
+    async Task<RetentionPurgeStatusResponse> WaitUntilPurgeFinishes(TimeSpan? timeout = null)
     {
         var deadline = DateTime.UtcNow + (timeout ?? TimeSpan.FromSeconds(30));
 
         while (DateTime.UtcNow < deadline)
         {
-            using var response = await HttpClient.GetAsync("/api/retention/sweep/status");
+            using var response = await HttpClient.GetAsync("/api/maintenance/retention/purge/status");
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                var status = await response.Content.ReadFromJsonAsync<RetentionSweepStatusResponse>(SerializerOptions);
+                var status = await response.Content.ReadFromJsonAsync<RetentionPurgeStatusResponse>(SerializerOptions);
 
                 if (status is { IsRunning: false })
                 {
@@ -158,7 +158,7 @@ class When_triggering_a_manual_retention_sweep : AcceptanceTest
             await Task.Delay(TimeSpan.FromMilliseconds(200));
         }
 
-        throw new Exception("The manual retention sweep did not finish within the timeout.");
+        throw new Exception("The manual retention purge did not finish within the timeout.");
     }
 
     class Context : ScenarioContext;
