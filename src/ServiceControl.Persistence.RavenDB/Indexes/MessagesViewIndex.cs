@@ -54,8 +54,13 @@ namespace ServiceControl.Persistence
                     ConversationId = (string)last.MessageMetadata["ConversationId"]
                 };
 
-            // StandardAnalyzer is the default analyzer, so no follow-up Analyze() call is needed here
             Index(x => x.Query, FieldIndexing.Search);
+
+            // The server default for Search fields is RavenStandardAnalyzer, which keeps English stop words.
+            // Name Lucene's StandardAnalyzer explicitly so this index tokenizes the same way as the audit indexes.
+            // The short name resolves to Lucene.Net.Analysis.Standard.StandardAnalyzer on the server; not using
+            // typeof() prevents a dependency on Lucene.
+            Analyze(x => x.Query, "StandardAnalyzer");
         }
 
         public class SortAndFilterOptions

@@ -52,7 +52,10 @@ namespace ServiceControl.Audit.Persistence.RavenDB.Indexes
             Index(x => x.Query, FieldIndexing.Search);
 
             // Any change to this index definition (map or analyzer) causes existing audit databases to rebuild the index on startup.
-            // The analyzer name deliberately does not use typeof() to prevent a dependency on Lucene.
+            // The short name resolves to Lucene.Net.Analysis.Standard.StandardAnalyzer on the server, the same class the
+            // previous assembly-qualified name pointed at, so only the map changed. The server default for Search fields
+            // (RavenStandardAnalyzer, which keeps English stop words) is deliberately not used. Not using typeof() prevents
+            // a dependency on Lucene.
             Analyze(x => x.Query, "StandardAnalyzer");
         }
     }
