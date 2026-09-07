@@ -182,9 +182,11 @@ jobs:
           azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
           tag: ServiceControl
       - name: Run tests
-        run: ./tools/run-tests.ps1 -Projects $Env:TEST_PROJECTS -MaxParallel ${{ matrix.max-parallel || 1 }}
+        uses: Particular/run-tests-action@e49b48c5d8f05ce781825e9a50bcdf8c7dd56ba4
+        with:
+          projects: ${{ steps.select.outputs.test-projects }}
+          max-parallel: ${{ matrix.max-parallel || 1 }}
         env:
-          TEST_PROJECTS: ${{ steps.select.outputs.test-projects }}
           ServiceControl_TESTS_FILTER: ${{ matrix.test-category }}
           PARTICULARSOFTWARE_LICENSE: ${{ secrets.LICENSETEXT }}
           AZURE_ACI_CREDENTIALS: ${{ secrets.AZURE_ACI_CREDENTIALS }}
