@@ -100,7 +100,5 @@ Set-Content -Path $TraversalProjectPath -Value $traversal -Encoding utf8
 Write-Output "Wrote traversal project to $TraversalProjectPath"
 
 if ($Env:GITHUB_OUTPUT) {
-    "test-projects<<PROJECTS_EOF" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
-    $projects | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
-    "PROJECTS_EOF" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
+    "test-projects=$($projects -join ';')" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
 }
