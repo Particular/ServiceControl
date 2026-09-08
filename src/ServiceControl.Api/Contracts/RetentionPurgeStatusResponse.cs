@@ -18,8 +18,6 @@ public class RetentionPurgeStatusResponse
 
     public DateTime? LastEventsCutoff { get; set; }
 
-    public string LastError { get; set; }
-
     /// <summary>Present only on the 501 Not Implemented response.</summary>
     public string Reason { get; set; }
 }

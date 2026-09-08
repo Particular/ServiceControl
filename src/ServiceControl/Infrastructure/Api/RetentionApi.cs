@@ -63,8 +63,7 @@ class RetentionApi(IServiceProvider serviceProvider) : IRetentionApi
             LastStartedAt = status.LastStartedAt,
             LastFinishedAt = status.LastFinishedAt,
             LastErrorCutoff = status.LastErrorCutoff,
-            LastEventsCutoff = status.LastEventsCutoff,
-            LastError = status.LastError
+            LastEventsCutoff = status.LastEventsCutoff
         });
     }
 
