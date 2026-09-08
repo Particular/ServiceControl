@@ -182,7 +182,7 @@ jobs:
           azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
           tag: ServiceControl
       - name: Run tests
-        uses: Particular/run-tests-action@134b61f77310b3bd758ed2c1ac8de5d21bf227bf
+        uses: Particular/run-tests-action@f0920c826c736cb38c6d16620458a8716f4ee072
         with:
           projects: ${{ steps.select.outputs.test-projects }}
           max-parallel: ${{ matrix.max-parallel || 1 }}
