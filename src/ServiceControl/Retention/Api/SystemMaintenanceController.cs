@@ -37,10 +37,10 @@ public class SystemMaintenanceController(IRetentionApi retentionApi, ICurrentUse
         IActionResult ToActionResult(RetentionPurgeResponse retentionPurgeResponse) =>
             retentionPurgeResponse.Status switch
             {
-                RetentionPurgeStatus.Started =>Accepted(retentionPurgeResponse),
+                RetentionPurgeStatus.Started => Accepted(retentionPurgeResponse),
                 RetentionPurgeStatus.AlreadyRunning => Conflict(retentionPurgeResponse),
                 RetentionPurgeStatus.NotSupported => StatusCode(501, retentionPurgeResponse),
-                RetentionPurgeStatus.Error =>BadRequest(retentionPurgeResponse),
+                RetentionPurgeStatus.Error => BadRequest(retentionPurgeResponse),
                 _ => throw new ArgumentOutOfRangeException(nameof(retentionPurgeResponse.Status), retentionPurgeResponse.Status, "Unexpected retention purge status.")
             };
     }

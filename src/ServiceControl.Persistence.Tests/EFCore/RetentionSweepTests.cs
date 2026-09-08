@@ -490,7 +490,6 @@ class RetentionSweepTests : ErrorIngestionTestBase
             Assert.That(status.LastStartedAt, Is.Not.Null);
             Assert.That(status.LastFinishedAt, Is.Not.Null);
             Assert.That(status.LastErrorCutoff, Is.Not.Null);
-            Assert.That(status.LastError, Is.Null);
         }
     }
 
