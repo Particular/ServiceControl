@@ -1,6 +1,7 @@
 namespace ServiceControl.AcceptanceTests.PostgreSql;
 
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,11 +17,17 @@ public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfigur
 
     public async Task CustomizeSettings(Settings settings, CancellationToken cancellationToken = default)
     {
-        schema = $"sc_at_{Guid.NewGuid():n}";
+        var schema = $"sc_at_{Guid.NewGuid():n}";
+        var bodyStoragePath = Directory.CreateTempSubdirectory("sc_at_bodies_").FullName;
+
         connectionString = await PostgreSqlSharedContainer.GetConnectionStringAsync(cancellationToken).ConfigureAwait(false);
         await TestSchema.Create(connectionString, schema, cancellationToken).ConfigureAwait(false);
 
-        bodyStoragePath = Directory.CreateTempSubdirectory("sc_at_bodies_").FullName;
+        // A test that runs more than one scenario comes back through here, and the runner cleans up
+        // after each one. Recording everything created, rather than keeping only the most recent,
+        // is what stops the earlier schema being stranded in the shared database.
+        schemas.Add(schema);
+        bodyStoragePaths.Add(bodyStoragePath);
 
         settings.PersisterSpecificSettings = new PostgreSqlPersisterSettings
         {
@@ -33,23 +40,16 @@ public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfigur
 
     public async Task Cleanup(CancellationToken cancellationToken = default)
     {
-        if (Interlocked.Exchange(ref cleanupStarted, 1) != 0)
-        {
-            return;
-        }
-
         try
         {
-            if (connectionString == null || schema == null)
+            while (schemas.TryTake(out var schema))
             {
-                return;
+                await TestSchema.Drop(connectionString, schema, cancellationToken).ConfigureAwait(false);
             }
-
-            await TestSchema.Drop(connectionString, schema, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
-            if (bodyStoragePath != null)
+            while (bodyStoragePaths.TryTake(out var bodyStoragePath))
             {
                 try
                 {
@@ -77,8 +77,7 @@ public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfigur
         }
     }
 
+    readonly ConcurrentBag<string> schemas = [];
+    readonly ConcurrentBag<string> bodyStoragePaths = [];
     string connectionString;
-    string schema;
-    string bodyStoragePath;
-    int cleanupStarted;
 }
