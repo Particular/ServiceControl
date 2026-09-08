@@ -81,7 +81,7 @@ class SqlServerFailedMessageIngestionSqlDialect : SqlServerDialect, IFailedMessa
         const int resolved = (int)FailedMessageStatus.Resolved;
 
         // @p0 carries "now" for every row in the statement
-        var maxRowsPerStatement = MaxRowsPerStatement(2, sharedParameters: 1);
+        var maxRowsPerStatement = MaxRowsPerStatement(2);
         foreach (var chunk in rows.Chunk(maxRowsPerStatement))
         {
             await Execute(

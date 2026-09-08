@@ -82,8 +82,8 @@ class FailedMessageIngestionSqlDialectTests : ErrorIngestionTestBase
             .Select(property => property!)];
     }
 
-    // Every one of these row counts fills at least one whole statement, which is where a chunk
-    // size that lands on the database's parameter ceiling instead of under it gets rejected.
+    // These cover SqlServerDialect.MaxRowsPerStatement: every row count overflows a chunk, so at least one
+    // statement goes out completely full, and only a full statement can trip the parameter limit.
 
     [Test]
     public async Task Upserts_more_messages_than_fit_in_one_statement()
