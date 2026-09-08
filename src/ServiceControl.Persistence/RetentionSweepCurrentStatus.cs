@@ -8,5 +8,4 @@ public sealed record RetentionSweepCurrentStatus(
     DateTime? LastStartedAt,
     DateTime? LastFinishedAt,
     DateTime? LastErrorCutoff,
-    DateTime? LastEventsCutoff,
-    string? LastError);
+    DateTime? LastEventsCutoff);

@@ -43,7 +43,6 @@ public class RetentionSweeper(
     DateTime? lastFinishedAt;
     DateTime? lastErrorCutoff;
     DateTime? lastEventsCutoff;
-    string? lastError;
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
@@ -98,7 +97,6 @@ public class RetentionSweeper(
         lastStartedAt = timeProvider.GetUtcNow().UtcDateTime;
         lastErrorCutoff = errorCutoff;
         lastEventsCutoff = eventsCutoff;
-        lastError = null;
 
         _ = SweepWithoutAcquiringLock();
 
@@ -120,7 +118,7 @@ public class RetentionSweeper(
         }
     }
 
-    public RetentionSweepCurrentStatus GetStatus() => new(isRunning, lastStartedAt, lastFinishedAt, lastErrorCutoff, lastEventsCutoff, lastError);
+    public RetentionSweepCurrentStatus GetStatus() => new(isRunning, lastStartedAt, lastFinishedAt, lastErrorCutoff, lastEventsCutoff);
 
     async Task Sweep(DateTime? errorCutoff, DateTime? eventsCutoff, bool pace, CancellationToken cancellationToken)
     {
@@ -129,7 +127,6 @@ public class RetentionSweeper(
         lastStartedAt = timeProvider.GetUtcNow().UtcDateTime;
         lastErrorCutoff = errorCutoff;
         lastEventsCutoff = eventsCutoff;
-        lastError = null;
         try
         {
             await SweepBody(errorCutoff, eventsCutoff, pace, cancellationToken);
