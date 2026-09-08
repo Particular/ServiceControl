@@ -9,7 +9,7 @@ using System;
 /// </summary>
 public class RetentionPurgeResponse
 {
-    public string Status { get; set; }
+    public RetentionPurgeStatus Status { get; set; }
 
     public DateTime? StartedAt { get; set; }
 
