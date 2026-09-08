@@ -1,0 +1,131 @@
+name: Cloud database tests
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Which managed database to test against
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - azure-sql
+          - azure-postgresql
+          - aurora-postgresql
+          - rds-sqlserver
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+-*'
+env:
+  DOTNET_NOLOGO: true
+defaults:
+  run:
+    shell: pwsh
+concurrency:
+  # Deliberately not cancel-in-progress: cancelling a run mid-flight risks skipping the teardown
+  # step and leaving billable cloud resources behind.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    outputs:
+      targets: ${{ steps.select.outputs.targets }}
+    steps:
+      - name: Select targets
+        id: select
+        run: |
+          $all = @(
+            @{ target = 'azure-sql';          provider = 'SqlServer'  }
+            @{ target = 'azure-postgresql';   provider = 'PostgreSql' }
+            @{ target = 'aurora-postgresql';  provider = 'PostgreSql' }
+            @{ target = 'rds-sqlserver';      provider = 'SqlServer'  }
+          )
+
+          # A tag push has no input, and runs everything.
+          $requested = '${{ inputs.target }}'
+          $targets = if (-not $requested -or $requested -eq 'all') { $all } else { $all | Where-Object { $_.target -eq $requested } }
+
+          if (-not $targets) {
+            throw "No cloud target named '$requested'."
+          }
+
+          $targets | ForEach-Object { Write-Output "Will test against $($_.target)" }
+
+          $matrix = @{ include = @($targets) }
+          "targets=$(ConvertTo-Json -InputObject $matrix -Compress -Depth 4)" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+  test:
+    name: ${{ matrix.target }}
+    needs: plan
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.targets) }}
+    # The two suites that exercise the persister. Named outright rather than selected by test
+    # category, because the category also carries the transport tests, which test the queue
+    # transport against its own connection string and have no business running here.
+    env:
+      PERSISTENCE_PROJECT: src/ServiceControl.Persistence.Tests.${{ matrix.provider }}/ServiceControl.Persistence.Tests.${{ matrix.provider }}.csproj
+      ACCEPTANCE_PROJECT: src/ServiceControl.AcceptanceTests.${{ matrix.provider }}/ServiceControl.AcceptanceTests.${{ matrix.provider }}.csproj
+    steps:
+      - name: Check for secrets
+        env:
+          SECRETS_AVAILABLE: ${{ secrets.SECRETS_AVAILABLE }}
+        run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Determine runtime version
+        run: |
+          # Read settings from Custom.Build.props
+          [xml]$xml = Get-Content ./src/Custom.Build.props
+          $runtimeVersion = $xml.selectNodes('/Project/PropertyGroup/RuntimeFrameworkVersion').InnerText
+          if (-not ($runtimeVersion)) {
+            throw "Missing RuntimeFrameworkVersion setting in Custom.Build.props"
+          }
+          echo "RuntimeVersion=$runtimeVersion" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+      - name: Install .NET Runtime
+        shell: bash
+        run: |
+          ./tools/dotnet-install.sh --skip-non-versioned-files --install-dir /usr/share/dotnet --runtime dotnet --version ${{ env.RuntimeVersion }}
+          ./tools/dotnet-install.sh --skip-non-versioned-files --install-dir /usr/share/dotnet --runtime aspnetcore --version ${{ env.RuntimeVersion }}
+      - name: Build
+        id: build
+        background: true
+        run: |
+          dotnet build $Env:PERSISTENCE_PROJECT --configuration Release
+          dotnet build $Env:ACCEPTANCE_PROJECT --configuration Release
+      - name: Azure login
+        uses: azure/login@v3.0.2
+        if: startsWith(matrix.target, 'azure-')
+        with:
+          creds: ${{ secrets.AZURE_CLOUD_TEST_CREDENTIALS }}
+      - name: Setup AWS environment variables
+        if: startsWith(matrix.target, 'aurora-') || startsWith(matrix.target, 'rds-')
+        run: |
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+      # Unlike ci.yml, which holds its cloud resources back until the build is done, provisioning
+      # starts first: it is the long pole here at anywhere from 3 to 25 minutes, and the teardown
+      # step runs on failure regardless.
+      - name: Provision database
+        run: ./tools/cloud/${{ matrix.target }}.ps1 -Action Provision -Name sc-ct-${{ github.run_id }}
+      - name: Wait for build
+        wait: build
+      - name: Run tests
+        run: ./tools/run-tests.ps1 -Projects "$Env:PERSISTENCE_PROJECT`n$Env:ACCEPTANCE_PROJECT" -MaxParallel 2
+        env:
+          ServiceControl_TESTS_FILTER: ${{ matrix.provider }}
+          PARTICULARSOFTWARE_LICENSE: ${{ secrets.LICENSETEXT }}
+      - name: Tear down database
+        if: always()
+        run: ./tools/cloud/${{ matrix.target }}.ps1 -Action Teardown -Name sc-ct-${{ github.run_id }}
