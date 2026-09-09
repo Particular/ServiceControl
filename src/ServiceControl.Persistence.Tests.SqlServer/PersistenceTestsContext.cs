@@ -9,6 +9,7 @@ using EFCore.SqlServer;
 using MessageFailures;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ServiceControl.Persistence.EFCore.Abstractions;
@@ -86,6 +87,17 @@ public partial class PersistenceTestsContext : IPersistenceTestsContext
     }
 
     public PersistenceSettings PersistenceSettings { get; set; }
+
+    /// <summary>
+    /// Adds an EF Core interceptor to the persistence's own DbContext registration.
+    /// </summary>
+    public void InterceptDatabaseCommands(IServiceCollection services, IInterceptor interceptor) =>
+        services.ConfigureDbContext<SqlServerServiceControlDbContext>(options => options.AddInterceptors(interceptor));
+
+    /// <summary>
+    /// SQL that makes the server sleep, to prepend to a query that has to still be running when a deadline fires.
+    /// </summary>
+    public string SqlToDelayFor(TimeSpan delay) => $"WAITFOR DELAY '{delay:hh\\:mm\\:ss}';";
 
     public string GenerateFailedMessageRecordId(string messageId) => messageId;
 

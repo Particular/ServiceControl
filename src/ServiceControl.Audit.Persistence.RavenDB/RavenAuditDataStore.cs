@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Persistence.RavenDB
+namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using System;
     using System.Collections.Generic;
@@ -11,6 +11,7 @@
     using Raven.Client.Documents;
     using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Infrastructure;
+    using ServiceControl.Infrastructure;
     using ServiceControl.SagaAudit;
     using Transformers;
 
@@ -28,81 +29,86 @@
             return sagaHistory == null ? QueryResult<SagaHistory>.Empty() : new QueryResult<SagaHistory>(sagaHistory, stats.ToQueryStatsInfo());
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default)
-        {
-            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
-                .Statistics(out var stats)
-                .FilterBySentTimeRange(timeSentRange)
-                .IncludeSystemMessagesWhere(includeSystemMessages)
-                .Sort(sortInfo)
-                .Paging(pagingInfo)
-                .ToMessagesView()
-                .ToListAsync(token: cancellationToken);
+        public Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default) =>
+            WithQueryTimeout(async token =>
+            {
+                using var session = await sessionProvider.OpenSession(cancellationToken: token);
+                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
+                    .Statistics(out var stats)
+                    .FilterBySentTimeRange(timeSentRange)
+                    .IncludeSystemMessagesWhere(includeSystemMessages)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .ToMessagesView()
+                    .ToListAsync(token: token);
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-        }
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }, cancellationToken);
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string searchParam, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default)
-        {
-            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
-                .Statistics(out var stats)
-                .Search(x => x.Query, searchParam)
-                .FilterBySentTimeRange(timeSentRange)
-                .Sort(sortInfo)
-                .Paging(pagingInfo)
-                .ToMessagesView()
-                .ToListAsync(token: cancellationToken);
+        public Task<QueryResult<IList<MessagesView>>> QueryMessages(string searchParam, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default) =>
+            WithQueryTimeout(async token =>
+            {
+                using var session = await sessionProvider.OpenSession(cancellationToken: token);
+                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
+                    .Statistics(out var stats)
+                    .Search(x => x.Query, searchParam)
+                    .FilterBySentTimeRange(timeSentRange)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .ToMessagesView()
+                    .ToListAsync(token: token);
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-        }
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }, cancellationToken);
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default)
-        {
-            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
-                .Statistics(out var stats)
-                .Search(x => x.Query, keyword)
-                .Where(m => m.ReceivingEndpointName == endpoint)
-                .FilterBySentTimeRange(timeSentRange)
-                .Sort(sortInfo)
-                .Paging(pagingInfo)
-                .ToMessagesView()
-                .ToListAsync(token: cancellationToken);
+        public Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default) =>
+            WithQueryTimeout(async token =>
+            {
+                using var session = await sessionProvider.OpenSession(cancellationToken: token);
+                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
+                    .Statistics(out var stats)
+                    .Search(x => x.Query, keyword)
+                    .Where(m => m.ReceivingEndpointName == endpoint)
+                    .FilterBySentTimeRange(timeSentRange)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .ToMessagesView()
+                    .ToListAsync(token: token);
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-        }
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }, cancellationToken);
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default)
-        {
-            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
-                .Statistics(out var stats)
-                .IncludeSystemMessagesWhere(includeSystemMessages)
-                .Where(m => m.ReceivingEndpointName == endpointName)
-                .FilterBySentTimeRange(timeSentRange)
-                .Sort(sortInfo)
-                .Paging(pagingInfo)
-                .ToMessagesView()
-                .ToListAsync(token: cancellationToken);
+        public Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default) =>
+            WithQueryTimeout(async token =>
+            {
+                using var session = await sessionProvider.OpenSession(cancellationToken: token);
+                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
+                    .Statistics(out var stats)
+                    .IncludeSystemMessagesWhere(includeSystemMessages)
+                    .Where(m => m.ReceivingEndpointName == endpointName)
+                    .FilterBySentTimeRange(timeSentRange)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .ToMessagesView()
+                    .ToListAsync(token: token);
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-        }
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }, cancellationToken);
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken = default)
-        {
-            using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
-                .Statistics(out var stats)
-                .Where(m => m.ConversationId == conversationId)
-                .Sort(sortInfo)
-                .Paging(pagingInfo)
-                .ToMessagesView()
-                .ToListAsync(token: cancellationToken);
+        public Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken = default) =>
+            WithQueryTimeout(async token =>
+            {
+                using var session = await sessionProvider.OpenSession(cancellationToken: token);
+                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
+                    .Statistics(out var stats)
+                    .Where(m => m.ConversationId == conversationId)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .ToMessagesView()
+                    .ToListAsync(token: token);
 
-            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-        }
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }, cancellationToken);
 
         public async Task<MessageBodyView> GetMessageBody(string messageId, CancellationToken cancellationToken = default)
         {
@@ -183,6 +189,9 @@
 
             return new QueryResult<IList<AuditCount>>(results, QueryStatsInfo.Zero);
         }
+
+        Task<T> WithQueryTimeout<T>(Func<CancellationToken, Task<T>> query, CancellationToken cancellationToken) =>
+            QueryTimeLimit.Run(query, databaseConfiguration.QueryTimeout, RavenPersistenceConfiguration.QueryTimeoutSettingName, cancellationToken);
 
         static string GetIndexName(bool isFullTextSearchEnabled) => isFullTextSearchEnabled ? "MessagesViewIndexWithFullTextSearch" : "MessagesViewIndex";
 

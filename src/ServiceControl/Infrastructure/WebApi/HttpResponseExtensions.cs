@@ -11,6 +11,42 @@ namespace ServiceControl.Infrastructure.WebApi
 
     static class HttpResponseExtensions
     {
+        /// <summary>
+        /// Names the instances whose data the response is missing, as "instanceId:reason" entries, so a client
+        /// can tell an incomplete page from a complete one. Absent when every instance answered.
+        /// </summary>
+        /// <remarks>
+        /// A header rather than a JSON field on purpose: the composite endpoints return a bare array (or a single
+        /// object), so the only place for this in the body would be an envelope around it. That changes the
+        /// response schema and would need a new API for every client that reads these endpoints today.
+        /// The header keeps the API backward compatible, the way Total-Count, ETag and Link already do for the
+        /// rest of the list metadata; a client that does not know the header simply ignores it.
+        /// </remarks>
+        public const string IncompleteResultsHeader = "X-Particular-Incomplete-Results";
+
+        public static void WithScatterGatherResult<T>(this HttpResponse response, QueryResult<T> result, PagingInfo pagingInfo)
+            where T : class
+        {
+            response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+            response.WithIncompleteResults(result.IncompleteInstances);
+        }
+
+        public static void WithIncompleteResults(this HttpResponse response, IReadOnlyList<IncompleteInstance> incomplete)
+        {
+            if (incomplete.Count == 0)
+            {
+                return;
+            }
+
+            response.WithHeader(IncompleteResultsHeader, string.Join(", ", incomplete.Select(instance => $"{instance.InstanceId}:{instance.Reason switch
+            {
+                QueryFailure.TimedOut => "timeout",
+                QueryFailure.Unavailable => "unavailable",
+                QueryFailure.Failed => "error",
+                _ => "error"
+            }}")));
+        }
+
         public static void WithTotalCount(this HttpResponse response, long totalCount) => response.WithHeader("Total-Count", totalCount.ToString(CultureInfo.InvariantCulture));
 
         public static void WithEtag(this HttpResponse response, DataVersion version)

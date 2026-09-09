@@ -48,7 +48,7 @@ namespace ServiceControl.CompositeViews.Messages
                 new ScatterGatherApiMessageViewWithSystemMessagesContext(pagingInfo, sortInfo, includeSystemMessages),
                 Request.GetEncodedPathAndQuery(), cancellationToken);
 
-            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+            Response.WithScatterGatherResult(result, pagingInfo);
             return result.Results;
         }
 
@@ -64,7 +64,7 @@ namespace ServiceControl.CompositeViews.Messages
                 new AllMessagesForEndpointContext(pagingInfo, sortInfo, includeSystemMessages, endpoint),
                 Request.GetEncodedPathAndQuery(), cancellationToken);
 
-            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+            Response.WithScatterGatherResult(result, pagingInfo);
             return result.Results;
         }
 
@@ -77,7 +77,7 @@ namespace ServiceControl.CompositeViews.Messages
             QueryResult<IList<AuditCount>> result = await auditCountsForEndpointApi.Execute(
                 new AuditCountsForEndpointContext(pagingInfo, endpoint), Request.GetEncodedPathAndQuery(), cancellationToken);
 
-            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+            Response.WithScatterGatherResult(result, pagingInfo);
             return result.Results;
         }
 
@@ -130,7 +130,7 @@ namespace ServiceControl.CompositeViews.Messages
             QueryResult<IList<MessagesView>> result = await api.Execute(new SearchApiContext(pagingInfo, sortInfo, q),
                 Request.GetEncodedPathAndQuery(), cancellationToken);
 
-            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+            Response.WithScatterGatherResult(result, pagingInfo);
             return result.Results;
         }
 
@@ -144,7 +144,7 @@ namespace ServiceControl.CompositeViews.Messages
                 new SearchApiContext(pagingInfo, sortInfo, keyword?.Replace("/", @"\")),
                 Request.GetEncodedPathAndQuery(), cancellationToken);
 
-            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+            Response.WithScatterGatherResult(result, pagingInfo);
             return result.Results;
         }
 
@@ -157,7 +157,7 @@ namespace ServiceControl.CompositeViews.Messages
             QueryResult<IList<MessagesView>> result = await endpointApi.Execute(
                 new SearchEndpointContext(pagingInfo, sortInfo, Keyword: q, Endpoint: endpoint), Request.GetEncodedPathAndQuery(), cancellationToken);
 
-            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+            Response.WithScatterGatherResult(result, pagingInfo);
             return result.Results;
         }
 
@@ -170,7 +170,7 @@ namespace ServiceControl.CompositeViews.Messages
             QueryResult<IList<MessagesView>> result = await endpointApi.Execute(
                 new SearchEndpointContext(pagingInfo, sortInfo, Keyword: keyword, Endpoint: endpoint), Request.GetEncodedPathAndQuery(), cancellationToken);
 
-            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+            Response.WithScatterGatherResult(result, pagingInfo);
             return result.Results;
         }
     }
