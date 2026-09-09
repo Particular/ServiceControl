@@ -1,5 +1,12 @@
 name: Cloud database tests
 on:
+  pull_request:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+-*'
+    branches:
+      - john/cloud-ci-tests
   workflow_dispatch:
     inputs:
       target:
@@ -13,10 +20,6 @@ on:
           - azure-postgresql
           - aurora-postgresql
           - rds-sqlserver
-  push:
-    tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
-      - '[0-9]+.[0-9]+.[0-9]+-*'
 env:
   DOTNET_NOLOGO: true
 defaults:
