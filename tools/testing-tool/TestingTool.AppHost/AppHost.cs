@@ -50,7 +50,7 @@ platform.AddServiceControlMonitoringInstance("monitoring");
 
 for (int i = 0; i < options.GetValue("audit-instances", 0); i++)
 {
-    platform.AddServiceControlAuditInstance("audit", primaryErrorInstance, raven)
+    platform.AddServiceControlAuditInstance("audit" + i, primaryErrorInstance, raven)
         .WithEnvironment("INSTANCENAME", "Audit-" + i);
 }
 
