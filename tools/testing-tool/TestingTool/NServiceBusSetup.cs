@@ -37,6 +37,7 @@ public static class NServiceBusEndpointExtensions
         config.SendFailedMessagesTo(options.ErrorQueueName);
         
         config.AuditProcessedMessagesTo(options.AuditQueueName);
+        config.SendHeartbeatTo(options.ServiceControlInputQueue);
 
         // Simplified serializer; the testing tool generates volume, not complex payloads.
         config.UseSerialization<SystemJsonSerializer>();
