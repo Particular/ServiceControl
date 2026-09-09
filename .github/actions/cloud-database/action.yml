@@ -1,0 +1,16 @@
+name: Cloud database provisioner
+description: Provisions a managed database for the run, and deletes it again when the job ends
+inputs:
+  target:
+    description: Which managed database to provision (azure-sql, azure-postgresql, aurora-postgresql or rds-sqlserver)
+    required: true
+  name:
+    description: Name for the resources this run creates, which teardown uses to find them again
+    required: true
+runs:
+  # A JavaScript action, not a composite one, because only this kind can declare a post step.
+  # Teardown is that post step, so it cannot be left out of a workflow or skipped by a failure
+  # earlier in the job.
+  using: node24
+  main: index.mts
+  post: index.mts

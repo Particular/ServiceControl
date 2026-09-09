@@ -118,10 +118,19 @@ jobs:
           echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
           echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
       # Unlike ci.yml, which holds its cloud resources back until the build is done, provisioning
-      # starts first: it is the long pole here at anywhere from 3 to 25 minutes, and the teardown
-      # step runs on failure regardless.
+      # starts first: it is the long pole here at anywhere from 3 to 25 minutes, and the database is
+      # torn down by this action's post step whatever the job does afterwards.
+      #
+      # It has to come after the login steps above. Post steps run in reverse, so this one's teardown
+      # runs before azure/login's post step signs the CLI out from under it.
       - name: Provision database
-        run: ./tools/cloud/${{ matrix.target }}.ps1 -Action Provision -Name sc-ct-${{ github.run_id }}
+        uses: ./.github/actions/cloud-database
+        with:
+          target: ${{ matrix.target }}
+          # The server is what isolates one run from another, so this has to be unique per run. It
+          # includes the attempt because run_id does not change when a run is retried, and the
+          # previous attempt's server may still be there or still be deleting.
+          name: sc-ct-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Wait for build
         wait: build
       - name: Run tests
@@ -129,6 +138,3 @@ jobs:
         env:
           ServiceControl_TESTS_FILTER: ${{ matrix.provider }}
           PARTICULARSOFTWARE_LICENSE: ${{ secrets.LICENSETEXT }}
-      - name: Tear down database
-        if: always()
-        run: ./tools/cloud/${{ matrix.target }}.ps1 -Action Teardown -Name sc-ct-${{ github.run_id }}
