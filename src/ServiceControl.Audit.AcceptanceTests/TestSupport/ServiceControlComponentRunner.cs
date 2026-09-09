@@ -169,13 +169,20 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
         public override async Task Stop(CancellationToken cancellationToken = default)
         {
+            // The scenario passes the test's own token here, which has already fired when the test timed out.
+            // Stopping with it aborts the host mid-shutdown, and the exception that produces replaces the
+            // timeout as the reported failure. Shutdown gets its own budget instead.
+            using var shutdown = new CancellationTokenSource(ShutdownTimeout);
+
             using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
             {
-                await host.StopAsync(cancellationToken);
+                await host.StopAsync(shutdown.Token);
                 HttpClient.Dispose();
                 await host.DisposeAsync();
             }
         }
+
+        static readonly TimeSpan ShutdownTimeout = TimeSpan.FromSeconds(30);
 
         string instanceName = Settings.DEFAULT_INSTANCE_NAME;
         WebApplication host;
