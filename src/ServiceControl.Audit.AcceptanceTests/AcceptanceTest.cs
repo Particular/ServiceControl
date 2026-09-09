@@ -65,7 +65,8 @@ namespace ServiceControl.Audit.AcceptanceTests
 
         protected IScenarioWithEndpointBehavior<T> Define<T>(Action<T> contextInitializer) where T : ScenarioContext, new() =>
             Scenario.Define(contextInitializer)
-                .WithComponent(serviceControlRunnerBehavior);
+                .WithComponent(serviceControlRunnerBehavior)
+                .WithTestTimeout();
 
         protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
         protected Action<Settings> SetSettings = _ => { };

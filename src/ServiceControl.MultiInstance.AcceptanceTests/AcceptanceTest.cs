@@ -71,7 +71,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
 
         protected IScenarioWithEndpointBehavior<T> Define<T>(Action<T> contextInitializer) where T : ScenarioContext, new() =>
             Scenario.Define(contextInitializer)
-                .WithComponent(serviceControlRunnerBehavior);
+                .WithComponent(serviceControlRunnerBehavior)
+                .WithTestTimeout();
 
         protected Action<EndpointConfiguration> CustomPrimaryEndpointConfiguration = c => { };
         protected Action<EndpointConfiguration> CustomAuditEndpointConfiguration = c => { };

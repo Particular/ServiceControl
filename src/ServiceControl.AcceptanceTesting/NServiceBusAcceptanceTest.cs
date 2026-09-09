@@ -13,6 +13,7 @@
     /// </summary>
     [TestFixture]
     [FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
+    [CancelAfter(180_000)]
     public abstract partial class NServiceBusAcceptanceTest
     {
         [SetUp]
