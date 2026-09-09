@@ -110,7 +110,7 @@ jobs:
         uses: azure/login@v3.0.2
         if: startsWith(matrix.target, 'azure-')
         with:
-          creds: ${{ secrets.AZURE_CLOUD_TEST_CREDENTIALS }}
+          creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup AWS environment variables
         if: startsWith(matrix.target, 'aurora-') || startsWith(matrix.target, 'rds-')
         run: |
