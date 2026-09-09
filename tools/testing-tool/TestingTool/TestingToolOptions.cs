@@ -66,4 +66,6 @@ public sealed class TestingToolOptions
     /// [0, 0.95] at runtime so a misconfiguration can't produce 100% failures.
     /// </summary>
     public double CustomCheckFailureProbability { get; set; } = 0.4;
+
+    public string AuditQueueName { get; set; } = "audit";
 }

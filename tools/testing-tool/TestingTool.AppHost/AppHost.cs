@@ -46,6 +46,13 @@ for (int i = 0; i < options.GetValue("error-ingestion-scale-unit", 0); i++) {
 }
 
 platform.AddServicePulse("pulse", primaryErrorInstance);
+platform.AddServiceControlMonitoringInstance("monitoring");
+
+for (int i = 0; i < options.GetValue("audit-instances", 0); i++)
+{
+    platform.AddServiceControlAuditInstance("audit", primaryErrorInstance, raven)
+        .WithEnvironment("INSTANCENAME", "Audit-" + i);
+}
 
 // --- Testing tool ---
 builder.AddProject<Projects.TestingTool>("testing-tool")
