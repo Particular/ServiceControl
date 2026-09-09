@@ -2,8 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Auditing;
+    using Auditing.MessagesView;
     using NServiceBus;
     using NUnit.Framework;
     using SagaAudit;
@@ -16,8 +18,8 @@
         {
             SetSettings = s =>
             {
-                s.AuditRetentionPeriod = TimeSpan.FromSeconds(2);
-                s.PersisterSpecificSettings["ExpirationProcessTimerInSeconds"] = 3.ToString();
+                s.AuditRetentionPeriod = RetentionPeriod;
+                s.PersisterSpecificSettings["ExpirationProcessTimerInSeconds"] = 1.ToString();
             };
             return base.Setup();
         }
@@ -25,27 +27,30 @@
         [Test]
         public async Task AuditMessageRetention()
         {
+            await WaitForIndexesToBeBuilt();
+
             var message = MakeMessage("MyMessageId");
 
             await IngestProcessedMessagesAudits(message);
 
-            var queryResultBeforeExpiration = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
-
-            await Task.Delay(4000);
-
-            var queryResultAfterExpiration = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
+            var queryResultBeforeExpiration = await QueryMessages(TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResultBeforeExpiration.Results, Has.Count.EqualTo(1));
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(queryResultBeforeExpiration.Results[0].MessageId, Is.EqualTo("MyMessageId"));
-                Assert.That(queryResultAfterExpiration.Results.Count, Is.EqualTo(0));
-            }
+            Assert.That(queryResultBeforeExpiration.Results[0].MessageId, Is.EqualTo("MyMessageId"));
+
+            var queryResultAfterExpiration = await WaitUntil(QueryMessages, result => result.Results.Count == 0);
+
+            Assert.That(queryResultAfterExpiration.Results, Is.Empty);
+
+            Task<QueryResult<IList<MessagesView>>> QueryMessages(CancellationToken cancellationToken) =>
+                DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"), cancellationToken: cancellationToken);
         }
 
         [Test]
         public async Task SagaSnapshotRetention()
         {
+            await WaitForIndexesToBeBuilt();
+
             var sagaId = Guid.NewGuid();
             var otherSagaId = Guid.NewGuid();
 
@@ -55,19 +60,41 @@
                 new SagaSnapshot { SagaId = sagaId }
             );
 
-            var queryResultBeforeExpiration = await DataStore.QuerySagaHistoryById(sagaId, TestContext.CurrentContext.CancellationToken);
-
-            await Task.Delay(4000);
-
-            var queryResultAfterExpiration = await DataStore.QuerySagaHistoryById(sagaId, TestContext.CurrentContext.CancellationToken);
+            var queryResultBeforeExpiration = await QuerySagaHistory(TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResultBeforeExpiration.Results, Is.Not.Null);
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(queryResultBeforeExpiration.Results.Changes, Has.Count.EqualTo(2));
-                Assert.That(queryResultAfterExpiration.Results, Is.Null);
-            }
+            Assert.That(queryResultBeforeExpiration.Results.Changes, Has.Count.EqualTo(2));
+
+            var queryResultAfterExpiration = await WaitUntil(QuerySagaHistory, result => result.Results == null);
+
+            Assert.That(queryResultAfterExpiration.Results, Is.Null);
+
+            Task<QueryResult<SagaHistory>> QuerySagaHistory(CancellationToken cancellationToken) =>
+                DataStore.QuerySagaHistoryById(sagaId, cancellationToken);
         }
+
+        // The retention window starts at ingestion, so building the indexes of the fresh database must
+        // not happen inside it: on a busy runner that alone has taken longer than the window.
+        Task WaitForIndexesToBeBuilt() => configuration.CompleteDBOperation();
+
+        // Polls instead of sleeping for a fixed time, so the test takes as long as expiration actually
+        // needs and still tolerates a slow expiration pass.
+        static async Task<T> WaitUntil<T>(Func<CancellationToken, Task<T>> query, Func<T, bool> condition)
+        {
+            var cancellationToken = TestContext.CurrentContext.CancellationToken;
+            var deadline = DateTime.UtcNow + RetentionPeriod + TimeSpan.FromSeconds(15);
+            var result = await query(cancellationToken);
+
+            while (!condition(result) && DateTime.UtcNow < deadline)
+            {
+                await Task.Delay(250, cancellationToken);
+                result = await query(cancellationToken);
+            }
+
+            return result;
+        }
+
+        static readonly TimeSpan RetentionPeriod = TimeSpan.FromSeconds(3);
 
         ProcessedMessage MakeMessage(
             string messageId = null,
