@@ -16,4 +16,8 @@
     <PackageReference Include="NServiceBus.CustomChecks" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.UnitTests" />
+  </ItemGroup>
+
 </Project>
