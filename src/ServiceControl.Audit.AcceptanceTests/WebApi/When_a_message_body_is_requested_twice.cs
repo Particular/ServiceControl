@@ -2,6 +2,7 @@ namespace ServiceControl.Audit.AcceptanceTests.WebApi
 {
     using System.Net;
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -14,7 +15,7 @@ namespace ServiceControl.Audit.AcceptanceTests.WebApi
     class When_a_message_body_is_requested_twice : AcceptanceTest
     {
         [Test]
-        public async Task Should_answer_not_modified()
+        public async Task Should_answer_not_modified(CancellationToken cancellationToken = default)
         {
             string issued = null;
             HttpStatusCode? repeated = null;
@@ -55,7 +56,7 @@ namespace ServiceControl.Audit.AcceptanceTests.WebApi
 
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(issued, Is.Not.Null, "the body response carried no validator, so a client can never revalidate it");
             Assert.That(repeated, Is.EqualTo(HttpStatusCode.NotModified), $"the body was sent again to a client that already held {issued}");

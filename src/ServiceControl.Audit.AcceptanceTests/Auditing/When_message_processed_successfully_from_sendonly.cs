@@ -2,6 +2,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Auditing
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -16,7 +17,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Auditing
     class When_message_processed_successfully_from_sendonly : AcceptanceTest
     {
         [Test]
-        public async Task Should_import_messages_from_sendonly_endpoint()
+        public async Task Should_import_messages_from_sendonly_endpoint(CancellationToken cancellationToken = default)
         {
             await Define<MyContext>(ctx => { ctx.MessageId = Guid.NewGuid().ToString(); })
                 .WithEndpoint<Sendonly>()
@@ -29,7 +30,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Auditing
 
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
         }
 
         class Sendonly : EndpointConfigurationBuilder

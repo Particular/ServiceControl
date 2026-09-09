@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.Groups
 {
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using NServiceBus.AcceptanceTesting;
@@ -10,7 +11,7 @@
     class When_ServiceControl_has_started : AcceptanceTest
     {
         [Test]
-        public async Task All_classifiers_should_be_retrievable()
+        public async Task All_classifiers_should_be_retrievable(CancellationToken cancellationToken = default)
         {
             List<string> classifiers = null;
 
@@ -21,7 +22,7 @@
                     classifiers = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(classifiers, Is.Not.Null, "classifiers is null");
             Assert.That(classifiers, Is.Not.Empty, "No classifiers retrieved");

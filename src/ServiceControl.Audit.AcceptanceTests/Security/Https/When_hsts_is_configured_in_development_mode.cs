@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.AcceptanceTests.Security.Https
 {
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.Https;
@@ -29,7 +30,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Https
         public void CleanupHttps() => configuration?.Dispose();
 
         [Test]
-        public async Task Should_not_include_hsts_header_in_development_mode()
+        public async Task Should_not_include_hsts_header_in_development_mode(CancellationToken cancellationToken = default)
         {
             // HSTS is intentionally NOT applied in development environments
             // This is ASP.NET Core's default behavior to prevent HSTS from being cached
@@ -43,7 +44,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Https
                     response = await this.GetRaw("/api");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             HttpsAssertions.AssertNoHstsHeader(response);
         }

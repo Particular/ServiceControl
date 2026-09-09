@@ -1,5 +1,6 @@
 namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.ForwardedHeaders;
@@ -13,7 +14,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
     class When_request_has_no_forwarded_headers : AcceptanceTest
     {
         [Test]
-        public async Task Request_values_should_remain_unchanged()
+        public async Task Request_values_should_remain_unchanged(CancellationToken cancellationToken = default)
         {
             RequestInfoResponse requestInfo = null;
 
@@ -28,7 +29,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
                     }
                     return false;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             ForwardedHeadersAssertions.AssertDirectAccessWithNoForwardedHeaders(requestInfo);
         }

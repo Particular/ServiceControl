@@ -1,6 +1,7 @@
 namespace ServiceControl.AcceptanceTests.Licensing
 {
     using System.Net;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using NServiceBus.AcceptanceTesting;
@@ -10,7 +11,7 @@ namespace ServiceControl.AcceptanceTests.Licensing
     class When_the_license_is_requested : AcceptanceTest
     {
         [Test]
-        public async Task Should_report_the_instance_and_where_to_extend_the_trial()
+        public async Task Should_report_the_instance_and_where_to_extend_the_trial(CancellationToken cancellationToken = default)
         {
             LicenseInfo license = null;
 
@@ -21,7 +22,7 @@ namespace ServiceControl.AcceptanceTests.Licensing
                     license = result.Item;
                     return result.HasResult;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {
@@ -37,7 +38,7 @@ namespace ServiceControl.AcceptanceTests.Licensing
         }
 
         [Test]
-        public async Task Should_reject_a_request_that_names_no_client()
+        public async Task Should_reject_a_request_that_names_no_client(CancellationToken cancellationToken = default)
         {
             HttpStatusCode status = default;
 
@@ -48,7 +49,7 @@ namespace ServiceControl.AcceptanceTests.Licensing
                     status = response.StatusCode;
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(status, Is.EqualTo(HttpStatusCode.BadRequest));
         }

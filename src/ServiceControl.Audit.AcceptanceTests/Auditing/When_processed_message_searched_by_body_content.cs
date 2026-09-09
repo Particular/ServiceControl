@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Auditing
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -12,7 +13,7 @@
     class When_processed_message_searched_by_body_content : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_found_when_fulltext_search_enabled()
+        public async Task Should_be_found_when_fulltext_search_enabled(CancellationToken cancellationToken = default)
         {
             // setting it even if it is the default
             SetSettings = settings => settings.EnableFullTextSearchOnBodies = true;
@@ -39,13 +40,13 @@
                     c.MessageFound = await this.TryGetMany<MessagesView>($"/api/messages/search/{searchString}");
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(context.MessageFound, Is.True);
         }
 
         [Test]
-        public async Task Should_not_be_found_when_fulltext_search_disabled()
+        public async Task Should_not_be_found_when_fulltext_search_disabled(CancellationToken cancellationToken = default)
         {
             SetSettings = settings => settings.EnableFullTextSearchOnBodies = false;
 
@@ -72,7 +73,7 @@
                     c.MessageFound = await this.TryGetMany<MessagesView>($"/api/messages/search/{searchString}");
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.SagaAudit
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -12,7 +13,7 @@
     class When_a_message_emitted_by_a_saga_is_audited : AcceptanceTest
     {
         [Test]
-        public async Task Info_on_emitted_saga_should_be_available_through_the_http_api()
+        public async Task Info_on_emitted_saga_should_be_available_through_the_http_api(CancellationToken cancellationToken = default)
         {
             MessagesView auditedMessage = null;
 
@@ -24,7 +25,7 @@
                     auditedMessage = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(auditedMessage.OriginatesFromSaga, Is.Not.Null);
 

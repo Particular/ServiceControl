@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.Legacy
 {
     using System.Text.Json.Nodes;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTests;
@@ -11,7 +12,7 @@
     class RootControllerTests : AcceptanceTest
     {
         [Test]
-        public async Task Should_gather_remote_data()
+        public async Task Should_gather_remote_data(CancellationToken cancellationToken = default)
         {
             // Since we don't have an audit instance running in a test, use the primary instance
             // configuration URL just to ensure the JSON is combined correctly.
@@ -37,7 +38,7 @@
                     config = result.Item;
                     return result.HasResult;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(config, Is.Not.Null);
             Assert.That(config.Count, Is.EqualTo(2));

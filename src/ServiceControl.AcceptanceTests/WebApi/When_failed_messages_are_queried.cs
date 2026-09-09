@@ -3,6 +3,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -16,7 +17,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
     class When_failed_messages_are_queried : AcceptanceTest
     {
         [Test]
-        public async Task Should_filter_by_endpoint_and_by_search_term()
+        public async Task Should_filter_by_endpoint_and_by_search_term(CancellationToken cancellationToken = default)
         {
             List<MessagesView> forBilling = null;
             List<MessagesView> matchingTerm = null;
@@ -54,7 +55,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
                     endpointSearchRoute = await Paged($"/api/endpoints/{BillingEndpoint}/messages/search?q={SearchTerm}");
                 })
                 .Done(_ => true)
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

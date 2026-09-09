@@ -3,6 +3,9 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <TestCategory>SqlServer</TestCategory>
+    <!-- Every test inherits [CancelAfter] from NServiceBusAcceptanceTest, which NUnit honours but the analyzer does not
+         see, so it reports the CancellationToken parameter as an unsupplied argument. -->
+    <NoWarn>$(NoWarn);NUnit1027</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

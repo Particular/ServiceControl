@@ -21,7 +21,7 @@
     class When_a_failed_message_is_retried : AcceptanceTest
     {
         [Test]
-        public async Task Should_remove_failedmessageretries_when_retrying_groups()
+        public async Task Should_remove_failedmessageretries_when_retrying_groups(CancellationToken cancellationToken = default)
         {
             FailedMessageRetriesCountReponse failedMessageRetries = null;
 
@@ -58,13 +58,13 @@
 
                     return false;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(failedMessageRetries.Count, Is.EqualTo(0), "FailedMessageRetries not removed");
         }
 
         [Test]
-        public async Task Should_remove_failedmessageretries_when_retrying_individual_messages()
+        public async Task Should_remove_failedmessageretries_when_retrying_individual_messages(CancellationToken cancellationToken = default)
         {
             FailedMessageRetriesCountReponse failedMessageRetries = null;
 
@@ -99,13 +99,13 @@
 
                     return false;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(failedMessageRetries.Count, Is.EqualTo(0), "FailedMessageRetries not removed");
         }
 
         [Test]
-        public async Task Should_remove_UnacknowledgedOperation_when_retrying_individual_messages()
+        public async Task Should_remove_UnacknowledgedOperation_when_retrying_individual_messages(CancellationToken cancellationToken = default)
         {
             RetryHistory retryHistory = null;
 
@@ -140,13 +140,13 @@
 
                     return false;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(retryHistory.UnacknowledgedOperations, Is.Empty, "Unucknowledged retry operation not removed");
         }
 
         [Test]
-        public async Task Should_remove_failedmessageretries_after_expiration_process_passes()
+        public async Task Should_remove_failedmessageretries_after_expiration_process_passes(CancellationToken cancellationToken = default)
         {
             FailedMessageRetriesCountReponse failedMessageRetries = null;
 
@@ -186,7 +186,7 @@
 
                     return false;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(failedMessageRetries.Count, Is.EqualTo(0), "FailedMessageRetries not removed");
         }

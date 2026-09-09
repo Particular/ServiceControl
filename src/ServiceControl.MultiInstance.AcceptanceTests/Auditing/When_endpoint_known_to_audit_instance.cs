@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -15,7 +16,7 @@
     class When_endpoint_known_to_audit_instance : AcceptanceTest
     {
         [Test]
-        public async Task Should_appear_in_list_of_known_endpoints()
+        public async Task Should_appear_in_list_of_known_endpoints(CancellationToken cancellationToken = default)
         {
             var knownEndpoints = new List<KnownEndpointsView>();
 
@@ -32,7 +33,7 @@
                     knownEndpoints = result.Items;
                     return result.HasResult;
                 })
-                .Run();
+                .Run(cancellationToken);
             Assert.That(knownEndpoints, Has.Count.EqualTo(1));
             var knownEndpoint = knownEndpoints.FirstOrDefault(x => x.EndpointDetails.Name == Conventions.EndpointNamingConvention(typeof(Sender)));
             Assert.That(knownEndpoint, Is.Not.Null);

@@ -1,6 +1,7 @@
 namespace ServiceControl.Monitoring.AcceptanceTests.Security.Https
 {
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.Https;
@@ -26,7 +27,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.Https
         public void CleanupHttps() => configuration?.Dispose();
 
         [Test]
-        public async Task Should_redirect_http_requests_to_https()
+        public async Task Should_redirect_http_requests_to_https(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
 
@@ -36,7 +37,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.Https
                     response = await this.GetRaw("/");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             HttpsAssertions.AssertHttpsRedirect(response, expectedPort: 443);
         }

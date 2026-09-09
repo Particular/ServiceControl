@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -16,7 +17,7 @@
     class When_an_event_with_multiple_subscribers_fails : AcceptanceTest
     {
         [Test]
-        public async Task There_should_be_a_FailedMessage_for_each_subscriber()
+        public async Task There_should_be_a_FailedMessage_for_each_subscriber(CancellationToken cancellationToken = default)
         {
             var failedMessages = new List<FailedMessageView>();
 
@@ -28,7 +29,7 @@
                     failedMessages = result;
                     return result && failedMessages.Sum(x => x.NumberOfProcessingAttempts) >= 2;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             var subscriber1FailedMessage = failedMessages.SingleOrDefault(msg => msg.QueueAddress.Contains("subscriber1"));
             var subscriber2FailedMessage = failedMessages.SingleOrDefault(msg => msg.QueueAddress.Contains("subscriber2"));

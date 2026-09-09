@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
 {
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.Cors;
@@ -27,7 +28,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
         public void CleanupCors() => configuration?.Dispose();
 
         [Test]
-        public async Task Should_return_wildcard_access_control_allow_origin_header()
+        public async Task Should_return_wildcard_access_control_allow_origin_header(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
             const string testOrigin = "https://app.example.com";
@@ -41,13 +42,13 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
                         endpoint: "/api");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             CorsAssertions.AssertAllowAnyOrigin(response);
         }
 
         [Test]
-        public async Task Should_return_expected_allowed_methods()
+        public async Task Should_return_expected_allowed_methods(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
             const string testOrigin = "https://app.example.com";
@@ -61,13 +62,13 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
                         requestMethod: "POST");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             CorsAssertions.AssertAllowedMethods(response, "POST", "GET", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD");
         }
 
         [Test]
-        public async Task Should_return_expected_exposed_headers()
+        public async Task Should_return_expected_exposed_headers(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
             const string testOrigin = "https://app.example.com";
@@ -81,7 +82,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
                         endpoint: "/api");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             CorsAssertions.AssertExposedHeaders(response, "ETag", "Last-Modified", "Link", "Total-Count", "X-Particular-Version");
         }

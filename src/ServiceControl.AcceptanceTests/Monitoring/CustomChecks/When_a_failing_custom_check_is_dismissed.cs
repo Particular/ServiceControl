@@ -18,7 +18,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
     class When_a_failing_custom_check_is_dismissed : AcceptanceTest
     {
         [Test]
-        public async Task Should_come_back_while_the_check_is_still_failing()
+        public async Task Should_come_back_while_the_check_is_still_failing(CancellationToken cancellationToken = default)
         {
             CustomCheckView dismissed = null;
             CustomCheckView returned = null;
@@ -52,7 +52,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
                     return returned != null;
                 })
                 .Done(_ => true)
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(returned.FailureReason, Is.EqualTo(dismissed.FailureReason),
                 "Dismissing a check that is still failing cannot silence it for good, or a real failure disappears from the page for as long as it lasts");

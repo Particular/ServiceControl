@@ -3,6 +3,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -21,7 +22,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         const int NumberOfDuplicates = 10;
 
         [Test]
-        public async Task The_import_should_deduplicate_on_TimeOfFailure()
+        public async Task The_import_should_deduplicate_on_TimeOfFailure(CancellationToken cancellationToken = default)
         {
             var criticalErrorExecuted = false;
 
@@ -47,7 +48,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     failure = result;
                     return criticalErrorExecuted || result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

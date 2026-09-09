@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.AcceptanceTests.Monitoring
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -16,7 +17,7 @@
         static string EndpointName => Conventions.EndpointNamingConvention(typeof(StartingEndpoint));
 
         [Test]
-        public async Task Should_be_monitored_and_active()
+        public async Task Should_be_monitored_and_active(CancellationToken cancellationToken = default)
         {
             EndpointsView endpoint = null;
 
@@ -28,7 +29,7 @@
                     endpoint = result.Item;
                     return result.HasResult;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {
@@ -38,7 +39,7 @@
         }
 
         [Test]
-        public async Task Should_be_persisted()
+        public async Task Should_be_persisted(CancellationToken cancellationToken = default)
         {
             var endpointName = Conventions.EndpointNamingConvention(typeof(StartingEndpoint));
             KnownEndpoint endpoint = default;
@@ -52,7 +53,7 @@
                     endpoint = result;
                     return result.HasResult;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(endpoint.Monitored, Is.True, "An endpoint discovered from heartbeats should be monitored");
         }

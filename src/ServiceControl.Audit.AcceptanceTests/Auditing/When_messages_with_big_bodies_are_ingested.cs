@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Auditing
 {
     using System.Net;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -12,7 +13,7 @@
     class When_messages_with_big_bodies_are_ingested : AcceptanceTest
     {
         [Test]
-        public async Task Should_not_get_an_empty_audit_message_body_when_configured_MaxBodySizeToStore_is_greater_then_message_size()
+        public async Task Should_not_get_an_empty_audit_message_body_when_configured_MaxBodySizeToStore_is_greater_then_message_size(CancellationToken cancellationToken = default)
         {
             //Arrange
             SetSettings = settings => settings.MaxBodySizeToStore = MAX_BODY_SIZE;
@@ -46,14 +47,14 @@
 
                         return true;
                     })
-                .Run();
+                .Run(cancellationToken);
 
             //Assert
             Assert.That(body, Is.Not.Null);
         }
 
         [Test]
-        public async Task Should_get_an_empty_audit_message_body_when_configured_MaxBodySizeToStore_is_less_then_message_size()
+        public async Task Should_get_an_empty_audit_message_body_when_configured_MaxBodySizeToStore_is_less_then_message_size(CancellationToken cancellationToken = default)
         {
             //Arrange
             SetSettings = settings => settings.MaxBodySizeToStore = MAX_BODY_SIZE;
@@ -87,14 +88,14 @@
 
                         return true;
                     })
-                .Run();
+                .Run(cancellationToken);
 
             //Assert
             Assert.That(body, Is.Empty);
         }
 
         [Test]
-        public async Task Should_not_get_an_empty_audit_message_body_when_body_is_above_loh_but_below_max_body_size()
+        public async Task Should_not_get_an_empty_audit_message_body_when_body_is_above_loh_but_below_max_body_size(CancellationToken cancellationToken = default)
         {
             //Arrange
             SetSettings = settings => settings.MaxBodySizeToStore = 2 * MAX_BODY_SIZE_BIGGER_THAN_LOH;
@@ -128,7 +129,7 @@
 
                         return true;
                     })
-                .Run();
+                .Run(cancellationToken);
 
             //Assert
             Assert.That(body, Is.Not.Null);

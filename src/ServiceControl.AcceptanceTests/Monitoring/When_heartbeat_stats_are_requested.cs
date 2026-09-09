@@ -1,6 +1,7 @@
 namespace ServiceControl.AcceptanceTests.Monitoring
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -12,7 +13,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring
     class When_heartbeat_stats_are_requested : AcceptanceTest
     {
         [Test]
-        public async Task Should_count_a_heartbeating_endpoint_as_active()
+        public async Task Should_count_a_heartbeating_endpoint_as_active(CancellationToken cancellationToken = default)
         {
             HeartbeatStats stats = null;
 
@@ -24,14 +25,14 @@ namespace ServiceControl.AcceptanceTests.Monitoring
                     stats = result.Item;
                     return result.HasResult;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(stats.Failing, Is.Zero,
                 "An endpoint still sending heartbeats must not also be counted against the failing tile");
         }
 
         [Test]
-        public async Task Should_count_an_endpoint_past_its_grace_period_as_failing()
+        public async Task Should_count_an_endpoint_past_its_grace_period_as_failing(CancellationToken cancellationToken = default)
         {
             HeartbeatStats stats = null;
 
@@ -47,7 +48,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring
                     stats = result.Item;
                     return result.HasResult;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(stats.Active, Is.Zero,
                 "An endpoint counted as failing must have left the active tile, or the two tiles double count it");

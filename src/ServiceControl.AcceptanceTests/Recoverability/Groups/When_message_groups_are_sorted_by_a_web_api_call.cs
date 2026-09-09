@@ -2,6 +2,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -17,9 +18,9 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
     class When_message_groups_are_sorted_by_a_web_api_call : AcceptanceTest
     {
         [Test]
-        public async Task All_messages_in_group_should_be_sorted_by_time_sent()
+        public async Task All_messages_in_group_should_be_sorted_by_time_sent(CancellationToken cancellationToken = default)
         {
-            var errors = await SortTest("time_sent");
+            var errors = await SortTest("time_sent", cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {
@@ -30,9 +31,9 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
         }
 
         [Test]
-        public async Task All_messages_in_group_should_be_sorted_by_message_type()
+        public async Task All_messages_in_group_should_be_sorted_by_message_type(CancellationToken cancellationToken = default)
         {
-            var errors = await SortTest("message_type");
+            var errors = await SortTest("message_type", cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {
@@ -42,7 +43,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
             }
         }
 
-        async Task<List<FailedMessageView>> SortTest(string sortProperty)
+        async Task<List<FailedMessageView>> SortTest(string sortProperty, CancellationToken cancellationToken)
         {
             List<FailedMessageView> localErrors = null;
 
@@ -76,7 +77,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
 
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             return localErrors;
         }

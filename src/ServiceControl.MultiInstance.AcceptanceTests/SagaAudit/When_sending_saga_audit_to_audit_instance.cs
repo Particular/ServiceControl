@@ -3,6 +3,7 @@
     using System;
     using System.Configuration;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -38,7 +39,7 @@
         }
 
         [Test]
-        public async Task Saga_history_can_be_fetched_from_main_instance()
+        public async Task Saga_history_can_be_fetched_from_main_instance(CancellationToken cancellationToken = default)
         {
             SagaHistory sagaHistory = null;
 
@@ -55,7 +56,7 @@
                     sagaHistory = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(sagaHistory, Is.Not.Null);
             using (Assert.EnterMultipleScope())

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MultiInstance.AcceptanceTests.Auditing
 {
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -14,7 +15,7 @@
     class When_message_searched_by_conversationId : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_found()
+        public async Task Should_be_found(CancellationToken cancellationToken = default)
         {
             await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new TriggeringMessage())))
@@ -25,7 +26,7 @@
                     List<MessagesView> response = result;
                     return c.ConversationId != null && result && response.Count == 2;
                 })
-                .Run();
+                .Run(cancellationToken);
         }
 
         public class Sender : EndpointConfigurationBuilder

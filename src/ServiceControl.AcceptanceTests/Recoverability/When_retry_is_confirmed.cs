@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -15,7 +16,7 @@
     class When_retry_is_confirmed : AcceptanceTest
     {
         [Test]
-        public async Task Should_mark_message_as_successfully_resolved()
+        public async Task Should_mark_message_as_successfully_resolved(CancellationToken cancellationToken = default)
         {
             var context = await Define<Context>()
                 .WithEndpoint<RetryingEndpoint>(b => b
@@ -50,7 +51,7 @@
                     return false;
                 })
                 .Done(c => true)
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(context.MessagesView.Count, Is.EqualTo(1));
             var failedMessage = context.MessagesView.Single();

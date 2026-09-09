@@ -21,7 +21,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
         const string InternalId = "ServiceControl Primary Instance";
 
         [Test]
-        public async Task Internal_checks_are_flagged_internal_and_endpoint_checks_are_not()
+        public async Task Internal_checks_are_flagged_internal_and_endpoint_checks_are_not(CancellationToken cancellationToken = default)
         {
             // The acceptance test runner disables internal custom checks by default; this test needs them.
             SetSettings = settings => { settings.DisableHealthChecks = false; };
@@ -49,7 +49,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
 
                     return internalCheck != null && endpointCheck != null && wireBody != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {
@@ -66,7 +66,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
         }
 
         [Test]
-        public async Task Every_expected_internal_check_is_flagged_internal()
+        public async Task Every_expected_internal_check_is_flagged_internal(CancellationToken cancellationToken = default)
         {
             // The acceptance test runner disables internal custom checks by default; this test needs them.
             SetSettings = settings => { settings.DisableHealthChecks = false; };
@@ -98,7 +98,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
 
                     return expectedIds.All(e => seen.Any(s => s.CustomCheckId == e));
                 })
-                .Run();
+                .Run(cancellationToken);
 
             foreach (var id in expectedIds)
             {

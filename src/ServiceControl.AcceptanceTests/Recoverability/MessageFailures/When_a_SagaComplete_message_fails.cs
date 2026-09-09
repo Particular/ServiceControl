@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -17,7 +18,7 @@
     class When_a_SagaComplete_message_fails : AcceptanceTest
     {
         [Test]
-        public async Task No_SagaType_Header_Is_Ok()
+        public async Task No_SagaType_Header_Is_Ok(CancellationToken cancellationToken = default)
         {
             FailedMessageView failure = null;
 
@@ -29,7 +30,7 @@
                     failure = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(failure, Is.Not.Null);
         }

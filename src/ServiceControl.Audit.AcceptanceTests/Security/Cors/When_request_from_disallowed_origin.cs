@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
 {
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.Cors;
@@ -27,7 +28,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
         public void CleanupCors() => configuration?.Dispose();
 
         [Test]
-        public async Task Should_not_return_access_control_allow_origin_header_for_disallowed_origin()
+        public async Task Should_not_return_access_control_allow_origin_header_for_disallowed_origin(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
             const string disallowedOrigin = "https://malicious.example.com";
@@ -41,13 +42,13 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
                         endpoint: "/api");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             CorsAssertions.AssertOriginNotAllowed(response, disallowedOrigin);
         }
 
         [Test]
-        public async Task Should_not_allow_origin_with_different_scheme()
+        public async Task Should_not_allow_origin_with_different_scheme(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
             // http:// instead of https://
@@ -62,13 +63,13 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
                         endpoint: "/api");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             CorsAssertions.AssertOriginNotAllowed(response, disallowedOrigin);
         }
 
         [Test]
-        public async Task Should_not_allow_origin_with_different_port()
+        public async Task Should_not_allow_origin_with_different_port(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
             // Different port
@@ -83,13 +84,13 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
                         endpoint: "/api");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             CorsAssertions.AssertOriginNotAllowed(response, disallowedOrigin);
         }
 
         [Test]
-        public async Task Should_not_allow_subdomain_when_parent_domain_is_configured()
+        public async Task Should_not_allow_subdomain_when_parent_domain_is_configured(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
             // Subdomain of allowed origin
@@ -104,13 +105,13 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
                         endpoint: "/api");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             CorsAssertions.AssertOriginNotAllowed(response, disallowedOrigin);
         }
 
         [Test]
-        public async Task Preflight_request_should_not_allow_disallowed_origin()
+        public async Task Preflight_request_should_not_allow_disallowed_origin(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
             const string disallowedOrigin = "https://malicious.example.com";
@@ -124,7 +125,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
                         requestMethod: "POST");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             CorsAssertions.AssertOriginNotAllowed(response, disallowedOrigin);
         }

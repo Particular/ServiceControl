@@ -3,6 +3,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.Auditing
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -17,7 +18,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.Auditing
     class When_audit_counts_for_an_endpoint_are_requested : AcceptanceTest
     {
         [Test]
-        public async Task Should_come_from_the_audit_instance_only()
+        public async Task Should_come_from_the_audit_instance_only(CancellationToken cancellationToken = default)
         {
             List<AuditCount> counted = null;
             List<AuditCount> unknownEndpoint = null;
@@ -45,7 +46,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.Auditing
 
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

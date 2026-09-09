@@ -2,6 +2,7 @@ namespace ServiceControl.AcceptanceTests.RavenDB.Monitoring.CustomChecks
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -30,7 +31,7 @@ namespace ServiceControl.AcceptanceTests.RavenDB.Monitoring.CustomChecks
         RavenPersisterSettings PersisterSettings => (RavenPersisterSettings)Settings.PersisterSpecificSettings;
 
         [Test]
-        public async Task Forced_failure_is_classified_internal()
+        public async Task Forced_failure_is_classified_internal(CancellationToken cancellationToken = default)
         {
             CustomCheckView ingestionCheck = null;
 
@@ -49,7 +50,7 @@ namespace ServiceControl.AcceptanceTests.RavenDB.Monitoring.CustomChecks
                     ingestionCheck = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

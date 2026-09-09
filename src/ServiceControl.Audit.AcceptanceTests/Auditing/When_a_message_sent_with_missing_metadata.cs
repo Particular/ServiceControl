@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -16,7 +17,7 @@
     class When_a_message_sent_with_missing_metadata : AcceptanceTest
     {
         [Test]
-        public async Task Should_not_be_cast_TimeSent_to_DateTimeMin()
+        public async Task Should_not_be_cast_TimeSent_to_DateTimeMin(CancellationToken cancellationToken = default)
         {
             MessagesView auditedMessage = null;
 
@@ -28,7 +29,7 @@
                     auditedMessage = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(auditedMessage, Is.Not.Null);
             Assert.That(auditedMessage.TimeSent, Is.Null);

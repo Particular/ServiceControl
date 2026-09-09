@@ -1,5 +1,6 @@
 namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.ForwardedHeaders;
@@ -14,7 +15,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
     class When_forwarded_headers_are_sent : AcceptanceTest
     {
         [Test]
-        public async Task Headers_should_be_applied_when_trust_all_proxies()
+        public async Task Headers_should_be_applied_when_trust_all_proxies(CancellationToken cancellationToken = default)
         {
             RequestInfoResponse requestInfo = null;
 
@@ -29,7 +30,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
                         xForwardedHost: "example.com");
                     return requestInfo != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             ForwardedHeadersAssertions.AssertHeadersAppliedWhenTrustAllProxies(
                 requestInfo,

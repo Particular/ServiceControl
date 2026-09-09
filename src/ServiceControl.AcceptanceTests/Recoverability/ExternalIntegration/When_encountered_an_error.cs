@@ -25,7 +25,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
     class When_encountered_an_error : AcceptanceTest
     {
         [Test]
-        public async Task Should_restart_dispatch_thread()
+        public async Task Should_restart_dispatch_thread(CancellationToken cancellationToken = default)
         {
             var externalProcessorSubscribed = false;
 
@@ -65,7 +65,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                     }
                 }))
                 .Done(c => c.NotificationDelivered)
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(context.Failed, Is.True, "The faulty publisher never ran, so the notification was not delivered in spite of one");
         }

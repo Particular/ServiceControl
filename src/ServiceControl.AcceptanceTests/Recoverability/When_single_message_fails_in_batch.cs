@@ -21,7 +21,7 @@
     class When_single_message_fails_in_batch : AcceptanceTest
     {
         [Test]
-        public async Task Should_import_all_messages()
+        public async Task Should_import_all_messages(CancellationToken cancellationToken = default)
         {
             //Make sure the error import attempt fails
             CustomizeHostBuilder = builder => builder.Services.AddSingleton<IEnrichImportedErrorMessages, FailOnceEnricher>();
@@ -48,7 +48,7 @@
 
                     return messages.Count == BatchSize && messages.Select(m => m.MessageId).OrderBy(t => t).SequenceEqual(c.MessageIds.OrderBy(t => t));
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(context.FailureSimulated, Is.True,
                 "The enricher never threw, so nothing in the batch failed and the test proved nothing");

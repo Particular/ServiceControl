@@ -2,6 +2,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -20,7 +21,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
     class When_heartbeat_is_restored : AcceptanceTest
     {
         [Test]
-        public async Task Should_publish_notification()
+        public async Task Should_publish_notification(CancellationToken cancellationToken = default)
         {
             var externalProcessorSubscribed = false;
 
@@ -54,7 +55,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
                     }
                 }))
                 .Done(c => c.NotificationDelivered)
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(context.IntegrationEventHeaders[Headers.EnclosedMessageTypes],
                 Is.EqualTo("ServiceControl.Contracts.HeartbeatRestored, ServiceControl.Contracts"),

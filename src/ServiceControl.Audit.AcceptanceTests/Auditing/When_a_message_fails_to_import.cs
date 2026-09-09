@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Auditing
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -16,7 +17,7 @@
     class When_a_message_fails_to_import : AcceptanceTest
     {
         [Test]
-        public async Task It_can_be_reimported()
+        public async Task It_can_be_reimported(CancellationToken cancellationToken = default)
         {
             CustomizeHostBuilder = hostBuilder =>
                 //Make sure the audit import attempt fails
@@ -55,7 +56,7 @@
 
                     return await this.TryGetMany<MessagesView>($"/api/messages/search/{c.MessageId}") && c.AuditForwarded;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(runResult.AuditForwarded, Is.True);
         }

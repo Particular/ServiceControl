@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -16,7 +17,7 @@
     class When_a_message_without_a_correlationid_header_is_retried : AcceptanceTest
     {
         [Test]
-        public async Task The_successful_retry_should_succeed()
+        public async Task The_successful_retry_should_succeed(CancellationToken cancellationToken = default)
         {
             await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage()))
@@ -30,7 +31,7 @@
                 })
                 .Do("Wait for the retry to be handled", ctx => Task.FromResult(ctx.RetryHandled))
                 .Done()
-                .Run();
+                .Run(cancellationToken);
         }
 
         internal class MyMessage : IMessage;

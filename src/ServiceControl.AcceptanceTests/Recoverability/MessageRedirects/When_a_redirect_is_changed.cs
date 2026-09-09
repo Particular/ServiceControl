@@ -3,6 +3,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
     using System;
     using System.Collections.Generic;
     using System.Net;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
@@ -12,7 +13,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
     class When_a_redirect_is_changed : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_successfully_updated()
+        public async Task Should_be_successfully_updated(CancellationToken cancellationToken = default)
         {
             var redirect = new RedirectRequest
             {
@@ -40,7 +41,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
                 result = await this.TryGetMany<MessageRedirectFromJson>("/api/redirects");
                 c.Response = result;
                 return true;
-            }).Run();
+            }).Run(cancellationToken);
 
             var response = context.Response;
             Assert.That(response.Count, Is.EqualTo(1), "Expected only 1 redirect");
@@ -54,7 +55,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
         }
 
         [Test]
-        public async Task Should_fail_validation_with_blank_tophysicaladdress()
+        public async Task Should_fail_validation_with_blank_tophysicaladdress(CancellationToken cancellationToken = default)
         {
             var redirect = new RedirectRequest
             {
@@ -76,11 +77,11 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
 
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
         }
 
         [Test]
-        public async Task Should_return_not_found_if_it_does_not_exist()
+        public async Task Should_return_not_found_if_it_does_not_exist(CancellationToken cancellationToken = default)
         {
             const string newTo = "endpointC@machine3";
 
@@ -93,11 +94,11 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
                     }, status => status != HttpStatusCode.NotFound);
 
                     return true;
-                }).Run();
+                }).Run(cancellationToken);
         }
 
         [Test]
-        public async Task Should_return_conflict_when_it_will_create_a_dependency()
+        public async Task Should_return_conflict_when_it_will_create_a_dependency(CancellationToken cancellationToken = default)
         {
             var updateRedirect = new RedirectRequest
             {
@@ -126,7 +127,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
                     }, status => status != HttpStatusCode.Conflict);
 
                     return true;
-                }).Run();
+                }).Run(cancellationToken);
         }
 
         class Context : ScenarioContext

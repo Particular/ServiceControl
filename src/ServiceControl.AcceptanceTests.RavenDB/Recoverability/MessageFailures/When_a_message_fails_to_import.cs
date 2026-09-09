@@ -22,7 +22,7 @@
     class When_a_message_fails_to_import : AcceptanceTest
     {
         [Test]
-        public async Task It_can_be_reimported()
+        public async Task It_can_be_reimported(CancellationToken cancellationToken = default)
         {
             CustomizeHostBuilder = hostBuilder =>
             {
@@ -66,7 +66,7 @@
 
                     return await this.TryGet<FailedMessage>($"/api/errors/{c.UniqueMessageId}") && c.ErrorForwarded;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

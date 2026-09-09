@@ -20,7 +20,7 @@
     class When_single_message_fails_in_batch : AcceptanceTest
     {
         [Test]
-        public async Task Should_import_all_messages()
+        public async Task Should_import_all_messages(CancellationToken cancellationToken = default)
         {
             CustomizeHostBuilder = hostBuilder =>
                 //Make sure the audit import attempt fails
@@ -49,7 +49,7 @@
 
                     return false;
                 })
-                .Run();
+                .Run(cancellationToken);
         }
 
         class FailOnceEnricher(MyContext testContext) : IEnrichImportedAuditMessages

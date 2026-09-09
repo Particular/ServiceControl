@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -14,7 +15,7 @@
     class When_ingesting_multiple_metrics_messages : AcceptanceTest
     {
         [Test]
-        public async Task Should_not_fail()
+        public async Task Should_not_fail(CancellationToken cancellationToken = default)
         {
             CustomConfiguration = endpointConfiguration =>
             {
@@ -43,7 +44,7 @@
 
                     return metricReported;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

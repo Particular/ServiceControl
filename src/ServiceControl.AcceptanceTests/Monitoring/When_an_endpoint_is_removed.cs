@@ -3,6 +3,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring
     using System;
     using System.Collections.Generic;
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -16,7 +17,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring
     class When_an_endpoint_is_removed : AcceptanceTest
     {
         [Test]
-        public async Task Should_signal_support_for_delete()
+        public async Task Should_signal_support_for_delete(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
 
@@ -26,7 +27,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring
                     response = await this.Options("/api/endpoints");
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {
@@ -36,7 +37,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring
         }
 
         [Test]
-        public async Task Should_be_successfully_deleted()
+        public async Task Should_be_successfully_deleted(CancellationToken cancellationToken = default)
         {
             var endpointsAfterDelete = new List<EndpointsView>();
 
@@ -55,7 +56,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring
                     endpointsAfterDelete = await this.TryGetMany<EndpointsView>("/api/endpoints");
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(endpointsAfterDelete, Is.Empty);
         }

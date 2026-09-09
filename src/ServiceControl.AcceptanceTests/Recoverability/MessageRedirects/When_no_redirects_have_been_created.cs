@@ -1,6 +1,7 @@
 namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
 {
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using NServiceBus.AcceptanceTesting;
@@ -9,7 +10,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
     class When_no_redirects_have_been_created : AcceptanceTest
     {
         [Test]
-        public async Task Listing_redirects_should_not_error()
+        public async Task Listing_redirects_should_not_error(CancellationToken cancellationToken = default)
         {
             var response = new List<MessageRedirectFromJson>();
 
@@ -20,7 +21,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
                     response = result;
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(response, Is.Empty, "Expected 0 redirects to be created");
         }

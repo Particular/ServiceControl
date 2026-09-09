@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Monitoring.AcceptanceTests.Tests
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -13,7 +14,7 @@
     {
 
         [Test]
-        public async Task Should_report_via_http()
+        public async Task Should_report_via_http(CancellationToken cancellationToken = default)
         {
             var metricReported = false;
 
@@ -27,7 +28,7 @@
 
                     return metricReported;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(metricReported, Is.True);
         }

@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -22,7 +23,7 @@
         static string EndpointName => Conventions.EndpointNamingConvention(typeof(MyEndpoint));
 
         [Test]
-        public async Task It_is_shown_as_inactive_if_it_does_not_send_heartbeats()
+        public async Task It_is_shown_as_inactive_if_it_does_not_send_heartbeats(CancellationToken cancellationToken = default)
         {
             List<EndpointsView> endpoints = null;
             var state = State.WaitingForEndpointDetection;
@@ -69,7 +70,7 @@
                     endpoints = result;
                     return state == State.WaitingForHeartbeatFailure && result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             var myEndpoint = endpoints.FirstOrDefault(e => e.Name == EndpointName);
             Assert.That(myEndpoint, Is.Not.Null);

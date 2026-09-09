@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -17,7 +18,7 @@
     class When_edited_message_fails_to_process : AcceptanceTest
     {
         [Test]
-        public async Task A_new_message_failure_is_created()
+        public async Task A_new_message_failure_is_created(CancellationToken cancellationToken = default)
         {
             CustomConfiguration = config => config.OnEndpointSubscribed<EditMessageFailureContext>((s, ctx) =>
             {
@@ -100,7 +101,7 @@
                     ctx.EditedMessageFailure = (await this.TryGet<FailedMessage>($"/api/errors/{ctx.EditedMessageFailureId}")).Item;
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             var editedMessageBody = JsonSerializer.Deserialize<FailingMessage>(context.EditedMessageFailure.ProcessingAttempts.Last().MessageMetadata["MsgFullText"].ToString());
 

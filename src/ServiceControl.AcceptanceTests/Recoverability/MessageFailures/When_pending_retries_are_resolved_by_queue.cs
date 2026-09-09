@@ -2,6 +2,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -16,7 +17,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     class When_pending_retries_are_resolved_by_queue : AcceptanceTest
     {
         [Test]
-        public async Task Should_resolve_only_the_queue_it_was_given()
+        public async Task Should_resolve_only_the_queue_it_was_given(CancellationToken cancellationToken = default)
         {
             FailedMessage billingAfterResolve = null;
             FailedMessage shippingAfterResolve = null;
@@ -84,7 +85,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     shippingAfterResolve = await this.TryGet<FailedMessage>($"/api/errors/{ctx.ShippingId}");
                 })
                 .Done(_ => true)
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

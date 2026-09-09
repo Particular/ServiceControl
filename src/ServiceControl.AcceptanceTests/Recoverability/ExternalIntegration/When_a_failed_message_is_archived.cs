@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 {
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -14,7 +15,7 @@
     class When_a_failed_message_is_archived : ExternalIntegrationAcceptanceTest
     {
         [Test]
-        public async Task Should_publish_notification()
+        public async Task Should_publish_notification(CancellationToken cancellationToken = default)
         {
             CustomConfiguration = config => config.OnEndpointSubscribed<Context>((s, ctx) =>
             {
@@ -48,7 +49,7 @@
                         e => e.Status == FailedMessageStatus.Archived);
                 })
                 .Done(ctx => ctx.EventDelivered) //Done when sequence is finished
-                .Run();
+                .Run(cancellationToken);
 
             var deserializedEvent = JsonSerializer.Deserialize<FailedMessagesArchived>(context.Event);
             Assert.That(deserializedEvent.FailedMessagesIds, Has.Member(context.FailedMessageId.ToString()));

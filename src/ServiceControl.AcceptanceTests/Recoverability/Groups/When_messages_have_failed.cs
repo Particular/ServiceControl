@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -17,7 +18,7 @@
     class When_messages_have_failed : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_grouped()
+        public async Task Should_be_grouped(CancellationToken cancellationToken = default)
         {
             List<GroupOperation> defaultGroups = null;
             List<GroupOperation> exceptionTypeAndStackTraceGroups = null;
@@ -65,7 +66,7 @@
 
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

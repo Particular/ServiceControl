@@ -22,7 +22,7 @@
             SetSettings = static s => s.TimeToRestartAuditIngestionAfterFailure = TimeSpan.FromSeconds(1);
 
         [Test]
-        public async Task Should_stop_ingestion()
+        public async Task Should_stop_ingestion(CancellationToken cancellationToken = default)
         {
             SetStorageConfiguration = static d => d.Add(RavenPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey, "0");
 
@@ -45,7 +45,7 @@
                 )
                 .Done(async c => await this.TryGetSingle<MessagesView>(
                     "/api/messages?include_system_messages=false&sort=id") == false)
-                .Run();
+                .Run(cancellationToken);
         }
 
         [Test]

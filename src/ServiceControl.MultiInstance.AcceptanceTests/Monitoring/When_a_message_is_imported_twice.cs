@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MultiInstance.AcceptanceTests.Monitoring
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -16,7 +17,7 @@
     class When_a_message_is_imported_twice : AcceptanceTest
     {
         [Test]
-        public async Task Should_register_a_new_endpoint()
+        public async Task Should_register_a_new_endpoint(CancellationToken cancellationToken = default)
         {
             var endpointName = Conventions.EndpointNamingConvention(typeof(Sender));
 
@@ -36,7 +37,7 @@
 
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(endpoint?.Name, Is.EqualTo(endpointName));
         }

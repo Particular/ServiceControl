@@ -18,7 +18,7 @@
     class When_a_failed_message_is_pending_retry : AcceptanceTest
     {
         [Test]
-        public async Task Should_status_retryissued_after_retry_is_sent()
+        public async Task Should_status_retryissued_after_retry_is_sent(CancellationToken cancellationToken = default)
         {
             FailedMessage failedMessage = null;
 
@@ -37,7 +37,7 @@
                     failedMessage = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
                 })
                 .Done()
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(failedMessage.Status, Is.EqualTo(FailedMessageStatus.RetryIssued), "Status was not set to RetryIssued");
         }

@@ -2,6 +2,7 @@ namespace ServiceControl.AcceptanceTests.RavenDB.Monitoring.CustomChecks
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -26,7 +27,7 @@ namespace ServiceControl.AcceptanceTests.RavenDB.Monitoring.CustomChecks
         RavenPersisterSettings PersisterSettings => (RavenPersisterSettings)Settings.PersisterSpecificSettings;
 
         [Test]
-        public async Task Should_stop_ingestion() =>
+        public async Task Should_stop_ingestion(CancellationToken cancellationToken = default) =>
             await Define<ScenarioContext>()
                 .WithEndpoint<Sender>(b => b
                     .When(context =>
@@ -45,10 +46,10 @@ namespace ServiceControl.AcceptanceTests.RavenDB.Monitoring.CustomChecks
                     )
                     .DoNotFailOnErrorMessages())
                 .Done(async c => await this.TryGetSingle<FailedMessageView>("/api/errors") == false)
-                .Run();
+                .Run(cancellationToken);
 
         [Test]
-        public async Task Should_stop_ingestion_and_resume_when_more_space_is_available()
+        public async Task Should_stop_ingestion_and_resume_when_more_space_is_available(CancellationToken cancellationToken = default)
         {
             var ingestionShutdown = false;
 
@@ -76,7 +77,7 @@ namespace ServiceControl.AcceptanceTests.RavenDB.Monitoring.CustomChecks
                     })
                     .DoNotFailOnErrorMessages())
                 .Done(async c => await this.TryGetSingle<FailedMessageView>("/api/errors"))
-                .Run();
+                .Run(cancellationToken);
         }
 
         public class Sender : EndpointConfigurationBuilder

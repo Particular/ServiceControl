@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -18,7 +19,7 @@
     class When_a_message_is_retried : AcceptanceTest
     {
         [Test]
-        public async Task Should_clean_headers()
+        public async Task Should_clean_headers(CancellationToken cancellationToken = default)
         {
             var context = await Define<TestContext>()
                 .WithEndpoint<VerifyHeader>()
@@ -32,7 +33,7 @@
 
                     return x.Done;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(HeadersThatShouldBeRemoved, Has.No.Member(context.Headers.Keys));
         }
@@ -42,7 +43,7 @@
         [TestCase(true, false)] // creates body above 85000 bytes to make sure it is ingested into the body storage
         [TestCase(false, true)]
         [TestCase(true, true)] // creates body above 85000 bytes to make sure it is ingested into the body storage
-        public async Task Should_work_with_various_body_size(bool largeMessageBodies, bool enableFullTextSearch)
+        public async Task Should_work_with_various_body_size(bool largeMessageBodies, bool enableFullTextSearch, CancellationToken cancellationToken = default)
         {
             SetSettings = settings =>
             {
@@ -67,7 +68,7 @@
 
                     return x.Done;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(context.BodyReceived, Is.EqualTo(context.BodyToSend).AsCollection);
         }

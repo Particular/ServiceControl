@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -18,7 +19,7 @@
     class When_failed_message_is_imported : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_accessible_via_the_rest_api()
+        public async Task Should_be_accessible_via_the_rest_api(CancellationToken cancellationToken = default)
         {
             const string Payload = "PAYLOAD";
             MessagesView failedMessage = null;
@@ -48,7 +49,7 @@
 
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

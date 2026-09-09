@@ -1,5 +1,6 @@
 namespace ServiceControl.AcceptanceTests.WebApi
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using NServiceBus.AcceptanceTesting;
@@ -8,7 +9,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
     class When_requesting_health : AcceptanceTest
     {
         [Test]
-        public async Task Should_report_liveness_and_readiness_as_json()
+        public async Task Should_report_liveness_and_readiness_as_json(CancellationToken cancellationToken = default)
         {
             await Define<ScenarioContext>()
                 .Done(async c =>
@@ -30,7 +31,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
 
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
         }
     }
 }

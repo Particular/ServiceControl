@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.MultiInstance.AcceptanceTests.Auditing
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -17,7 +18,7 @@
     class When_event_processed_by_multiple_endpoints : AcceptanceTest
     {
         [Test]
-        public async Task Should_find_both_occurrences()
+        public async Task Should_find_both_occurrences(CancellationToken cancellationToken = default)
         {
             CustomPrimaryEndpointConfiguration = config => config.OnEndpointSubscribed<MyContext>(
                 (subscription, context) =>
@@ -52,7 +53,7 @@
                     ctx => ctx.Subscriber1Subscribed && ctx.Subscriber2Subscribed,
                     session => session.Publish(new SomeEvent())))
                 .Done(async c => c.MessageId != null && (await this.TryGetMany<MessagesView>("/api/messages")).Items.Count == 2)
-                .Run();
+                .Run(cancellationToken);
         }
 
         class Publisher : EndpointConfigurationBuilder

@@ -1,6 +1,7 @@
 namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
 {
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.OpenIdConnect;
@@ -26,7 +27,7 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
         public void CleanupAuth() => configuration?.Dispose();
 
         [Test]
-        public async Task Should_allow_requests_without_authentication()
+        public async Task Should_allow_requests_without_authentication(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
 
@@ -40,13 +41,13 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                         "/api/errors");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             OpenIdConnectAssertions.AssertNoAuthenticationRequired(response);
         }
 
         [Test]
-        public async Task Should_return_authentication_configuration_as_disabled()
+        public async Task Should_return_authentication_configuration_as_disabled(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
 
@@ -59,9 +60,9 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                         "/api/authentication/configuration");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
-            await OpenIdConnectAssertions.AssertAuthConfigurationResponse(response, expectedEnabled: false);
+            await OpenIdConnectAssertions.AssertAuthConfigurationResponse(response, expectedEnabled: false, cancellationToken: cancellationToken);
         }
 
         class Context : ScenarioContext;

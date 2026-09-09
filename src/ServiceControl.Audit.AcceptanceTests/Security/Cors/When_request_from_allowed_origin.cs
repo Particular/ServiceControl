@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
 {
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.Cors;
@@ -28,7 +29,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
 
         [TestCase("https://app.example.com")]
         [TestCase("https://admin.example.com")]
-        public async Task Should_return_matching_origin_in_access_control_allow_origin_header(string allowedOrigin)
+        public async Task Should_return_matching_origin_in_access_control_allow_origin_header(string allowedOrigin, CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
 
@@ -41,13 +42,13 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
                         endpoint: "/api");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             CorsAssertions.AssertAllowedOrigin(response, allowedOrigin);
         }
 
         [Test]
-        public async Task Preflight_request_should_return_correct_cors_headers()
+        public async Task Preflight_request_should_return_correct_cors_headers(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
             const string allowedOrigin = "https://app.example.com";
@@ -61,7 +62,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Cors
                         requestMethod: "POST");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             CorsAssertions.AssertAllowedOrigin(response, allowedOrigin);
             CorsAssertions.AssertAllowedMethods(response, "POST", "GET", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD");

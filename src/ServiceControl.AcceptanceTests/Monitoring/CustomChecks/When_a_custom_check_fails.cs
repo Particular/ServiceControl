@@ -18,7 +18,7 @@
     class When_a_custom_check_fails : AcceptanceTest
     {
         [Test]
-        public async Task Should_result_in_a_custom_check_failed_event()
+        public async Task Should_result_in_a_custom_check_failed_event(CancellationToken cancellationToken = default)
         {
             EventLogItem entry = null;
 
@@ -30,7 +30,7 @@
                     entry = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

@@ -1,6 +1,7 @@
 namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
 {
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.OpenIdConnect;
@@ -41,7 +42,7 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
         public void CleanupAuth() => configuration?.Dispose();
 
         [Test]
-        public async Task Should_omit_offline_access_from_composed_scopes()
+        public async Task Should_omit_offline_access_from_composed_scopes(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
 
@@ -54,7 +55,7 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                         "/api/authentication/configuration");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             await OpenIdConnectAssertions.AssertAuthConfigurationResponse(
                 response,
@@ -62,7 +63,8 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                 expectedClientId: TestClientId,
                 expectedAudience: TestAudience,
                 expectedApiScopes: TestApiScopes,
-                expectedScopes: $"{TestApiScope} openid profile email");
+                expectedScopes: $"{TestApiScope} openid profile email",
+                cancellationToken: cancellationToken);
         }
 
         class Context : ScenarioContext;

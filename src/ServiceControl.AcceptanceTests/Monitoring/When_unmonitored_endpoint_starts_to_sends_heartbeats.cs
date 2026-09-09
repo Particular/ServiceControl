@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.Monitoring
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -19,7 +20,7 @@
         static string EndpointName => Conventions.EndpointNamingConvention(typeof(WithoutHeartbeat));
 
         [Test]
-        public async Task Should_be_marked_as_monitored()
+        public async Task Should_be_marked_as_monitored(CancellationToken cancellationToken = default)
         {
             EndpointsView endpoint = null;
 
@@ -50,7 +51,7 @@
 
                     return result.HasResult;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {
@@ -68,7 +69,7 @@
 
                     return result.HasResult;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

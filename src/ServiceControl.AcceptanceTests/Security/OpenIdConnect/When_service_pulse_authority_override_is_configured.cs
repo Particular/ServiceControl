@@ -1,6 +1,7 @@
 namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
 {
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.OpenIdConnect;
@@ -40,7 +41,7 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
         public void CleanupAuth() => configuration?.Dispose();
 
         [Test]
-        public async Task Should_return_service_pulse_authority_in_configuration()
+        public async Task Should_return_service_pulse_authority_in_configuration(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
 
@@ -53,7 +54,7 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                         "/api/authentication/configuration");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             await OpenIdConnectAssertions.AssertAuthConfigurationResponse(
                 response,
@@ -61,7 +62,8 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                 expectedClientId: TestClientId,
                 expectedAuthority: ServicePulseAuthority,
                 expectedAudience: TestAudience,
-                expectedApiScopes: TestApiScopes);
+                expectedApiScopes: TestApiScopes,
+                cancellationToken: cancellationToken);
         }
 
         class Context : ScenarioContext;

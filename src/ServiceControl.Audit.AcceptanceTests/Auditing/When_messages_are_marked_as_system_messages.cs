@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -16,7 +17,7 @@
     class When_messages_are_marked_as_system_messages : AcceptanceTest
     {
         [Test]
-        public async Task Should_set_the_IsSystemMessage_when_message_type_is_not_a_scheduled_task()
+        public async Task Should_set_the_IsSystemMessage_when_message_type_is_not_a_scheduled_task(CancellationToken cancellationToken = default)
         {
             MessagesView auditMessage = null;
             await Define<SystemMessageTestContext>(ctx =>
@@ -32,14 +33,14 @@
                     auditMessage = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(auditMessage, Is.Not.Null);
             Assert.That(auditMessage.IsSystemMessage, Is.False);
         }
 
         [Test]
-        public async Task Scheduled_task_messages_should_set_IsSystemMessage()
+        public async Task Scheduled_task_messages_should_set_IsSystemMessage(CancellationToken cancellationToken = default)
         {
             MessagesView auditMessage = null;
             await Define<SystemMessageTestContext>(ctx =>
@@ -55,13 +56,13 @@
                     auditMessage = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
             Assert.That(auditMessage, Is.Not.Null);
             Assert.That(auditMessage.IsSystemMessage, Is.True);
         }
 
         [Test]
-        public async Task Control_messages_should_not_be_audited()
+        public async Task Control_messages_should_not_be_audited(CancellationToken cancellationToken = default)
         {
             var containsItem = true;
 
@@ -96,13 +97,13 @@
 
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(containsItem, Is.False);
         }
 
         [Test]
-        public async Task Should_set_the_IsSystemMessage_for_integration_scenario()
+        public async Task Should_set_the_IsSystemMessage_for_integration_scenario(CancellationToken cancellationToken = default)
         {
             MessagesView auditMessage = null;
             await Define<SystemMessageTestContext>(ctx =>
@@ -118,7 +119,7 @@
                     auditMessage = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(auditMessage, Is.Not.Null);
             Assert.That(auditMessage.IsSystemMessage, Is.False);

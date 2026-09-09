@@ -1,6 +1,7 @@
 namespace ServiceControl.AcceptanceTests.RavenDB.Recoverability.MessageFailures
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -15,7 +16,7 @@ namespace ServiceControl.AcceptanceTests.RavenDB.Recoverability.MessageFailures
     class When_body_search_is_disabled : AcceptanceTest
     {
         [Test]
-        public async Task Should_not_be_found()
+        public async Task Should_not_be_found(CancellationToken cancellationToken = default)
         {
             SetSettings = settings => settings.PersisterSpecificSettings.EnableFullTextSearchOnBodies = false;
 
@@ -42,7 +43,7 @@ namespace ServiceControl.AcceptanceTests.RavenDB.Recoverability.MessageFailures
                     c.MessageFound = await this.TryGetMany<MessagesView>($"/api/messages/search/{searchString}");
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

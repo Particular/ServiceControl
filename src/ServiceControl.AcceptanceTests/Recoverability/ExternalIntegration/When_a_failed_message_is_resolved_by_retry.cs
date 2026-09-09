@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -14,7 +15,7 @@
     class When_a_failed_message_is_resolved_by_retry : ExternalIntegrationAcceptanceTest
     {
         [Test]
-        public async Task Should_publish_notification()
+        public async Task Should_publish_notification(CancellationToken cancellationToken = default)
         {
             CustomConfiguration = config => config.OnEndpointSubscribed<Context>((s, ctx) =>
             {
@@ -46,7 +47,7 @@
                         e => e.Status == FailedMessageStatus.Resolved);
                 })
                 .Done(ctx => ctx.EventDelivered) //Done when sequence is finished
-                .Run();
+                .Run(cancellationToken);
 
             var deserializedEvent = JsonSerializer.Deserialize<MessageFailureResolvedByRetry>(context.Event);
             Assert.That(deserializedEvent?.FailedMessageId, Is.EqualTo(context.FailedMessageId.ToString()));

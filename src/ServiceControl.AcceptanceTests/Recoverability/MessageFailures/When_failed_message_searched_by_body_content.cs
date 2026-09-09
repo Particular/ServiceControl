@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -13,7 +14,7 @@
     class When_failed_message_searched_by_body_content : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_found()
+        public async Task Should_be_found(CancellationToken cancellationToken = default)
         {
             var searchString = "forty-two";
 
@@ -37,7 +38,7 @@
                     c.MessageFound = await this.TryGetMany<MessagesView>($"/api/messages/search/{searchString}");
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(context.MessageFound, Is.True);
         }

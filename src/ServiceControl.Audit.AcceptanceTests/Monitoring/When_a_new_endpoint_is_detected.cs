@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Monitoring
 {
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting.EndpointTemplates;
     using NServiceBus;
@@ -12,7 +13,7 @@
     class When_a_new_endpoint_is_detected : AcceptanceTest
     {
         [Test]
-        public async Task Should_notify_service_control()
+        public async Task Should_notify_service_control(CancellationToken cancellationToken = default)
         {
             CustomConfiguration = endpointConfiguration =>
             {
@@ -23,7 +24,7 @@
             var context = await Define<InterceptedMessagesScenarioContext>()
                 .WithEndpoint<Receiver>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(c => c.SentRegisterEndpointCommands.Any())
-                .Run();
+                .Run(cancellationToken);
 
             var command = context.SentRegisterEndpointCommands.Single();
             Assert.That(command.Endpoint.Name, Is.EqualTo(Conventions.EndpointNamingConvention(typeof(Receiver))));

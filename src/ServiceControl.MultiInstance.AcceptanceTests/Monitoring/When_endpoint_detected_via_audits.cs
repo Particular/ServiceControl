@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -16,7 +17,7 @@
     class When_endpoint_detected_via_audits : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_configurable()
+        public async Task Should_be_configurable(CancellationToken cancellationToken = default)
         {
             List<EndpointsView> response = null;
 
@@ -47,7 +48,7 @@
 
                     return false;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(response.First(), Is.Not.Null);
             Assert.That(response.First().MonitorHeartbeat, Is.True);

@@ -3,6 +3,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -17,7 +18,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     class When_deleted_messages_are_restored : AcceptanceTest
     {
         [Test]
-        public async Task Should_restore_a_deleted_selection_and_a_deleted_group()
+        public async Task Should_restore_a_deleted_selection_and_a_deleted_group(CancellationToken cancellationToken = default)
         {
             string[] afterSelectionDeleted = null;
             string[] afterRangeRestored = null;
@@ -115,7 +116,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     return afterGroupRestored != null;
                 })
                 .Done(_ => true)
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

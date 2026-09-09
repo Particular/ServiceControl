@@ -1,6 +1,7 @@
 namespace ServiceControl.Monitoring.AcceptanceTests.Security.OpenIdConnect
 {
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.OpenIdConnect;
@@ -26,7 +27,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.OpenIdConnect
         public void CleanupAuth() => configuration?.Dispose();
 
         [Test]
-        public async Task Should_allow_requests_without_authentication()
+        public async Task Should_allow_requests_without_authentication(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
 
@@ -40,7 +41,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.OpenIdConnect
                         "/monitored-endpoints");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             OpenIdConnectAssertions.AssertNoAuthenticationRequired(response);
         }

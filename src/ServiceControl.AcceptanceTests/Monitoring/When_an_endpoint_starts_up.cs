@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -17,7 +18,7 @@
     class When_an_endpoint_starts_up : AcceptanceTest
     {
         [Test]
-        public async Task Should_result_in_a_startup_event()
+        public async Task Should_result_in_a_startup_event(CancellationToken cancellationToken = default)
         {
             EventLogItem entry = null;
 
@@ -29,7 +30,7 @@
                     entry = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

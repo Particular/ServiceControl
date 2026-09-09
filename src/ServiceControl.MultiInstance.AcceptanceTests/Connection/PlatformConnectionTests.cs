@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MultiInstance.AcceptanceTests
 {
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting.EndpointTemplates;
     using NServiceBus.AcceptanceTesting;
@@ -13,7 +14,7 @@
     class PlatformConnectionTests : AcceptanceTest
     {
         [Test]
-        public async Task ExposesConnectionDetails()
+        public async Task ExposesConnectionDetails(CancellationToken cancellationToken = default)
         {
             var config = await Define<MyContext>()
                 .WithEndpoint<MyEndpoint>()
@@ -23,7 +24,7 @@
                     x.Connection = await result.Content.ReadAsStringAsync();
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Approver.Verify(JsonSerializer.Deserialize<object>(config.Connection));
         }

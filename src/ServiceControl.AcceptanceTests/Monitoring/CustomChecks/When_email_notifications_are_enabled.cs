@@ -20,7 +20,7 @@
     class When_email_notifications_are_enabled : AcceptanceTest
     {
         [Test]
-        public async Task Should_send_custom_check_status_change_emails()
+        public async Task Should_send_custom_check_status_change_emails(CancellationToken cancellationToken = default)
         {
             var emailDropPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(emailDropPath);
@@ -44,7 +44,7 @@
 
                     return emails.Length > 0 && TryReadHeaders(emails[0], out emailHeaders);
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(emailHeaders, Is.Not.Empty);
 

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -18,7 +19,7 @@
     class When_a_native_integration_message_is_retried : AcceptanceTest
     {
         [Test]
-        public async Task Should_not_corrupt_headers()
+        public async Task Should_not_corrupt_headers(CancellationToken cancellationToken = default)
         {
             var context = await Define<TestContext>()
                 .WithEndpoint<VerifyHeader>()
@@ -32,7 +33,7 @@
 
                     return x.Done;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -14,7 +15,7 @@
     class When_querying_queue_length_data : AcceptanceTest
     {
         [Test]
-        public async Task Should_report_via_http()
+        public async Task Should_report_via_http(CancellationToken cancellationToken = default)
         {
             var endpointName = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(SendingEndpoint));
             var instanceId = Guid.NewGuid();
@@ -91,7 +92,7 @@
 
                      return true;
                  })
-                 .Run();
+                 .Run(cancellationToken);
         }
 
         public class SendingEndpoint : EndpointConfigurationBuilder

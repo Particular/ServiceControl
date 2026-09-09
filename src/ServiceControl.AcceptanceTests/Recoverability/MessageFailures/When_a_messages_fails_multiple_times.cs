@@ -9,6 +9,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability
     using System.Collections.Generic;
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting.EndpointTemplates;
     using ServiceControl.Infrastructure;
@@ -20,7 +21,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability
         const string AttemptNumberHeaderKey = "testing.failed_attempt_no";
 
         [Test]
-        public async Task Should_report_the_most_recent_attempt_last()
+        public async Task Should_report_the_most_recent_attempt_last(CancellationToken cancellationToken = default)
         {
             FailedMessage result = null;
 
@@ -39,7 +40,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability
 
                     return result != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(LatestAttemptNumber(result), Is.EqualTo(NumberOfFailedAttempts.ToString()));
         }

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Recoverability
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting.EndpointTemplates;
     using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +16,7 @@
     class When_a_successful_retry_at_old_endpoint_is_detected : AcceptanceTest
     {
         [Test]
-        public async Task Should_send_acknowledgement()
+        public async Task Should_send_acknowledgement(CancellationToken cancellationToken = default)
         {
             var failedMessageId = Guid.NewGuid().ToString();
             var context = await Define<Context>()
@@ -30,7 +31,7 @@
                     return s.Send(new MyMessage(), options);
                 }))
                 .Done(c => c.AcknowledgementSent)
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(context.AcknowledgementSent, Is.True);
         }

@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Net;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
@@ -12,7 +13,7 @@
     class When_a_redirect_is_created : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_added_and_accessible_via_the_api()
+        public async Task Should_be_added_and_accessible_via_the_api(CancellationToken cancellationToken = default)
         {
             var redirect = new RedirectRequest
             {
@@ -31,7 +32,7 @@
                     response = result;
 
                     return result;
-                }).Run();
+                }).Run(cancellationToken);
 
             Assert.That(response.Count, Is.EqualTo(1), "Expected 1 redirect to be created");
             using (Assert.EnterMultipleScope())
@@ -44,7 +45,7 @@
         }
 
         [Test]
-        public async Task Should_fail_validation_with_blank_fromphysicaladdress()
+        public async Task Should_fail_validation_with_blank_fromphysicaladdress(CancellationToken cancellationToken = default)
         {
             var redirect = new RedirectRequest
             {
@@ -57,11 +58,11 @@
                 {
                     await this.Post("/api/redirects", redirect, status => status != HttpStatusCode.BadRequest);
                     return true;
-                }).Run();
+                }).Run(cancellationToken);
         }
 
         [Test]
-        public async Task Should_fail_validation_with_blank_tophysicaladdress()
+        public async Task Should_fail_validation_with_blank_tophysicaladdress(CancellationToken cancellationToken = default)
         {
             var redirect = new RedirectRequest
             {
@@ -74,11 +75,11 @@
                 {
                     await this.Post("/api/redirects", redirect, status => status != HttpStatusCode.BadRequest);
                     return true;
-                }).Run();
+                }).Run(cancellationToken);
         }
 
         [Test]
-        public async Task Should_fail_validation_with_different_tophysicaladdress()
+        public async Task Should_fail_validation_with_different_tophysicaladdress(CancellationToken cancellationToken = default)
         {
             var redirect = new RedirectRequest
             {
@@ -95,11 +96,11 @@
 
                     await this.Post("/api/redirects", redirect, status => status != HttpStatusCode.Conflict);
                     return true;
-                }).Run();
+                }).Run(cancellationToken);
         }
 
         [Test]
-        public async Task Should_ignore_exact_copies()
+        public async Task Should_ignore_exact_copies(CancellationToken cancellationToken = default)
         {
             var redirect = new RedirectRequest
             {
@@ -119,14 +120,14 @@
                     var result = await this.TryGetMany<MessageRedirectFromJson>("/api/redirects");
                     response = result;
                     return result;
-                }).Run();
+                }).Run(cancellationToken);
 
             Assert.That(response.Count, Is.EqualTo(1), "Expected only 1 redirect to be created");
         }
 
 
         [Test]
-        public async Task Should_fail_validation_with_dependent_redirects()
+        public async Task Should_fail_validation_with_dependent_redirects(CancellationToken cancellationToken = default)
         {
             var toAddress = "endpointTo@machineTo";
             var dependentCount = 3;
@@ -151,7 +152,7 @@
                     }, status => status != HttpStatusCode.Conflict);
 
                     return true;
-                }).Run();
+                }).Run(cancellationToken);
         }
 
         class Context : ScenarioContext;

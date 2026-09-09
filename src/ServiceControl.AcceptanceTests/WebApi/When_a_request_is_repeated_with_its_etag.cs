@@ -3,6 +3,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using NServiceBus.AcceptanceTesting;
@@ -35,7 +36,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
         [TestCase("/api/recoverability/groups/no-such-group/errors", "GET")]
         [TestCase("/api/recoverability/groups/no-such-group/errors", "HEAD")]
         [TestCase("/api/conversations/no-such-conversation", "GET")]
-        public async Task Should_answer_not_modified(string url, string method)
+        public async Task Should_answer_not_modified(string url, string method, CancellationToken cancellationToken = default)
         {
             Answer issued = null;
             Answer repeated = null;
@@ -64,7 +65,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
 
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(issued.Etag, Is.Not.Null, $"{method} {url} issued no ETag, so there is nothing for a client to revalidate against");
             Assert.That(repeated.Status, Is.EqualTo(HttpStatusCode.NotModified), $"{method} {url} sent the full payload again for a client that already held {issued.Etag}");
@@ -75,7 +76,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
         }
 
         [Test]
-        public async Task Should_answer_with_a_new_etag_once_the_data_moves()
+        public async Task Should_answer_with_a_new_etag_once_the_data_moves(CancellationToken cancellationToken = default)
         {
             Answer before = null;
             Answer after = null;
@@ -102,7 +103,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
 
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(after.Status, Is.EqualTo(HttpStatusCode.OK),
                 "a redirect was added, so the client's validator is stale and it has to be sent the new list");

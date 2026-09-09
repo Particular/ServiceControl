@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using AcceptanceTesting;
 using AcceptanceTesting.OpenIdConnect;
@@ -48,7 +49,7 @@ class When_my_routes_are_requested : AcceptanceTest
     }
 
     [Test]
-    public async Task Should_reject_requests_without_bearer_token()
+    public async Task Should_reject_requests_without_bearer_token(CancellationToken cancellationToken = default)
     {
         HttpResponseMessage response = null;
 
@@ -59,13 +60,13 @@ class When_my_routes_are_requested : AcceptanceTest
                     HttpClient, HttpMethod.Get, "/api/my/routes");
                 return response != null;
             })
-            .Run();
+            .Run(cancellationToken);
 
         OpenIdConnectAssertions.AssertUnauthorized(response);
     }
 
     [Test]
-    public async Task Should_return_only_the_routes_the_callers_role_permits()
+    public async Task Should_return_only_the_routes_the_callers_role_permits(CancellationToken cancellationToken = default)
     {
         HttpResponseMessage response = null;
 
@@ -81,11 +82,11 @@ class When_my_routes_are_requested : AcceptanceTest
                     HttpClient, HttpMethod.Get, "/api/my/routes", readerToken);
                 return response != null;
             })
-            .Run();
+            .Run(cancellationToken);
 
         OpenIdConnectAssertions.AssertAuthenticated(response);
 
-        var root = JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
+        var root = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken)).RootElement;
 
         var roles = root.GetProperty("roles").EnumerateArray().Select(role => role.GetString());
         Assert.That(roles, Does.Contain("reader"));

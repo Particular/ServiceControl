@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -19,7 +20,7 @@
     class When_processed_message_is_imported : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_accessible_via_the_rest_api()
+        public async Task Should_be_accessible_via_the_rest_api(CancellationToken cancellationToken = default)
         {
             const string Payload = "PAYLOAD";
             MessagesView auditedMessage = null;
@@ -49,7 +50,7 @@
 
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {
@@ -87,7 +88,7 @@
         }
 
         [Test]
-        public async Task Should_be_counted()
+        public async Task Should_be_counted(CancellationToken cancellationToken = default)
         {
             const string Payload = "PAYLOAD";
             List<AuditCount> counts = null;
@@ -114,7 +115,7 @@
 
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(counts, Has.Count.EqualTo(1));
             using (Assert.EnterMultipleScope())

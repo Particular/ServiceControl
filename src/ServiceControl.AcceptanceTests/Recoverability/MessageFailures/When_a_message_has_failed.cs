@@ -30,7 +30,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     class When_a_message_has_failed : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_imported_and_accessible_via_the_rest_api()
+        public async Task Should_be_imported_and_accessible_via_the_rest_api(CancellationToken cancellationToken = default)
         {
             FailedMessage failedMessage = null;
 
@@ -42,7 +42,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     failedMessage = result;
                     return c.MessageId != null && result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {
@@ -61,7 +61,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         [Theory]
         [TestCase(false)]
         [TestCase(true)] // creates body above 85000 bytes to make sure it is ingested into the body storage
-        public async Task Should_be_imported_and_body_via_the_rest_api(bool largeMessage)
+        public async Task Should_be_imported_and_body_via_the_rest_api(bool largeMessage, CancellationToken cancellationToken = default)
         {
             HttpResponseMessage result = null;
 
@@ -83,16 +83,16 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     result = await this.GetRaw("/api/messages/" + c.MessageId + "/body");
                     return result.IsSuccessStatusCode;
                 })
-                .Run();
+                .Run(cancellationToken);
 
-            var stringResult = await result.Content.ReadAsStringAsync();
+            var stringResult = await result.Content.ReadAsStringAsync(cancellationToken);
             var expectedResult = $"{{\"Content\":\"{myMessage.Content}\"}}";
 
             Assert.That(stringResult, Is.EqualTo(expectedResult));
         }
 
         [Test]
-        public async Task Should_be_imported_with_custom_serialization_and_body_via_the_rest_api()
+        public async Task Should_be_imported_with_custom_serialization_and_body_via_the_rest_api(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage result = null;
 
@@ -114,14 +114,14 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     result = await this.GetRaw("/api/messages/" + c.MessageId + "/body");
                     return result.IsSuccessStatusCode;
                 })
-                .Run();
+                .Run(cancellationToken);
 
-            var content = await result.Content.ReadAsStringAsync();
+            var content = await result.Content.ReadAsStringAsync(cancellationToken);
             Assert.That(content, Does.Contain($"<Content>{myMessage.Content}</Content>"));
         }
 
         [Test]
-        public async Task Should_be_listed_in_the_error_list()
+        public async Task Should_be_listed_in_the_error_list(CancellationToken cancellationToken = default)
         {
             FailedMessageView failure = null;
 
@@ -133,7 +133,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     failure = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {
@@ -170,7 +170,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         }
 
         [Test]
-        public async Task Should_add_an_event_log_item()
+        public async Task Should_add_an_event_log_item(CancellationToken cancellationToken = default)
         {
             EventLogItem entry = null;
 
@@ -182,7 +182,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     entry = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {
@@ -194,7 +194,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         }
 
         [Test]
-        public async Task Should_be_able_to_search_queueaddresses()
+        public async Task Should_be_able_to_search_queueaddresses(CancellationToken cancellationToken = default)
         {
             var searchResults = new List<QueueAddress>();
 
@@ -216,7 +216,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     }, (session, ctx) => Task.CompletedTask);
                 })
                 .Done(c => searchResults.Count == 1)
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(searchResults.Count, Is.EqualTo(1), "Result count did not match");
         }

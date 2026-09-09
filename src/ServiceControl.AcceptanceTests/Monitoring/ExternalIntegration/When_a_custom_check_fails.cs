@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -16,7 +17,7 @@
     class When_a_custom_check_fails : AcceptanceTest
     {
         [Test]
-        public async Task Should_publish_notification()
+        public async Task Should_publish_notification(CancellationToken cancellationToken = default)
         {
             var externalProcessorSubscribed = false;
             CustomConfiguration = config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>
@@ -55,7 +56,7 @@
                     }
                 }))
                 .Done(c => c.CustomCheckFailedReceived)
-                .Run();
+                .Run(cancellationToken);
 
             var enclosedType = context.IntegrationEventHeaders[Headers.EnclosedMessageTypes];
             Assert.That(enclosedType, Is.EqualTo("ServiceControl.Contracts.CustomCheckFailed, ServiceControl.Contracts"));

@@ -1,5 +1,6 @@
 namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.ForwardedHeaders;
@@ -14,7 +15,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
     class When_multiple_header_values_are_sent : AcceptanceTest
     {
         [Test]
-        public async Task Original_values_should_be_returned_when_trust_all_proxies()
+        public async Task Original_values_should_be_returned_when_trust_all_proxies(CancellationToken cancellationToken = default)
         {
             RequestInfoResponse requestInfo = null;
 
@@ -34,7 +35,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
                         xForwardedHost: "example.com, internal.proxy.local");
                     return requestInfo != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             ForwardedHeadersAssertions.AssertMultipleHeaderValuesProcessedWithTrustAllProxies(
                 requestInfo,

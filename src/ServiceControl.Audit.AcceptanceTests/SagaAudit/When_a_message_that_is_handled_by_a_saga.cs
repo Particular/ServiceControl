@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -16,7 +17,7 @@
     class When_a_message_that_is_handled_by_a_saga : AcceptanceTest
     {
         [Test]
-        public async Task Message_should_be_enriched_with_saga_state_changes()
+        public async Task Message_should_be_enriched_with_saga_state_changes(CancellationToken cancellationToken = default)
         {
             var messages = new List<MessagesView>();
 
@@ -41,7 +42,7 @@
 
                     return false;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(messages, Has.Count.EqualTo(5));
 

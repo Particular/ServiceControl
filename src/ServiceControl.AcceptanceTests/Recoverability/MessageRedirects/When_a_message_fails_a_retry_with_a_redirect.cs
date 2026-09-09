@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -19,7 +20,7 @@
     class When_a_message_fails_a_retry_with_a_redirect : AcceptanceTest
     {
         [Test]
-        public async Task The_original_failed_message_record_is_updated()
+        public async Task The_original_failed_message_record_is_updated(CancellationToken cancellationToken = default)
         {
             List<FailedMessageView> failedMessages = null;
 
@@ -55,7 +56,7 @@
                     failedMessages = result;
                     return ctx.ProcessedAgain && result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(failedMessages, Is.Not.Null);
             Assert.That(failedMessages, Is.Not.Empty);

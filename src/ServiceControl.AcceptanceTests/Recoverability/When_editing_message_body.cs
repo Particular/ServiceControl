@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -18,7 +19,7 @@
     class When_editing_message_body : AcceptanceTest
     {
         [Test]
-        public async Task A_new_message_with_edited_body_is_sent()
+        public async Task A_new_message_with_edited_body_is_sent(CancellationToken cancellationToken = default)
         {
             var context = await Define<EditMessageContext>()
                 .WithEndpoint<EditedMessageReceiver>(e => e
@@ -61,7 +62,7 @@
                     ctx.OriginalMessageFailure = (await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}")).Item;
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

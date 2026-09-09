@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading;
 using System.Threading.Tasks;
 using AcceptanceTesting;
 using AcceptanceTesting.EndpointTemplates;
@@ -18,14 +19,14 @@ using ServiceControl.MessageFailures.Api;
 class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
 {
     [Test]
-    public async Task Should_be_ingested_when_minimal_required_headers_is_present()
+    public async Task Should_be_ingested_when_minimal_required_headers_is_present(CancellationToken cancellationToken = default)
     {
         var testStartTime = DateTime.UtcNow;
 
         var context = await Define<TestContext>(c => c.AddMinimalRequiredHeaders())
             .WithEndpoint<FailingEndpoint>()
             .Done(async c => await TryGetFailureFromApi(c))
-            .Run();
+            .Run(cancellationToken);
 
         var failure = context.Failure;
 
@@ -40,7 +41,7 @@ class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
     }
 
     [Test]
-    public async Task Should_include_headers_required_by_ServicePulse()
+    public async Task Should_include_headers_required_by_ServicePulse(CancellationToken cancellationToken = default)
     {
         var context = await Define<TestContext>(c =>
             {
@@ -51,7 +52,7 @@ class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
             })
             .WithEndpoint<FailingEndpoint>()
             .Done(async c => await TryGetFailureFromApi(c))
-            .Run();
+            .Run(cancellationToken);
 
         var failure = context.Failure;
 
@@ -66,7 +67,7 @@ class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
     }
 
     [Test]
-    public async Task TimeSent_should_not_be_casted()
+    public async Task TimeSent_should_not_be_casted(CancellationToken cancellationToken = default)
     {
         var sentTime = DateTime.Parse("2014-11-11T02:26:58.000462Z", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
 
@@ -79,7 +80,7 @@ class When_ingesting_failed_message_with_missing_headers : AcceptanceTest
             })
             .WithEndpoint<FailingEndpoint>()
             .Done(async c => await TryGetFailureFromApi(c))
-            .Run();
+            .Run(cancellationToken);
 
         var failure = context.Failure;
 

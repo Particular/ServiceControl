@@ -6,6 +6,7 @@ namespace ServiceControl.AcceptanceTests.Licensing
     using System.IO.Compression;
     using System.Linq;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -21,7 +22,7 @@ namespace ServiceControl.AcceptanceTests.Licensing
     class When_creating_a_usage_report_on_a_non_broker_transport : AcceptanceTest
     {
         [Test]
-        public async Task Should_report_the_corrected_and_redacted_throughput()
+        public async Task Should_report_the_corrected_and_redacted_throughput(CancellationToken cancellationToken = default)
         {
             ReportGenerationState reportState = null;
             ThroughputConnectionSettings connectionSettings = null;
@@ -80,7 +81,7 @@ namespace ServiceControl.AcceptanceTests.Licensing
                     report = ReadReport(archive);
                 })
                 .Done(_ => true)
-                .Run();
+                .Run(cancellationToken);
 
             var queues = report.RootElement.GetProperty("ReportData").GetProperty("Queues").EnumerateArray().ToArray();
 

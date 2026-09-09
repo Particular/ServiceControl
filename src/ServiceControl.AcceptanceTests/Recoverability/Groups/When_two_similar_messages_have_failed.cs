@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -17,7 +18,7 @@
     class When_two_similar_messages_have_failed : AcceptanceTest
     {
         [Test]
-        public async Task They_should_be_grouped_together()
+        public async Task They_should_be_grouped_together(CancellationToken cancellationToken = default)
         {
             List<GroupOperation> exceptionTypeAndStackTraceGroups = null;
             List<GroupOperation> messageTypeGroups = null;
@@ -64,7 +65,7 @@
 
                     return secondFailureResult;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

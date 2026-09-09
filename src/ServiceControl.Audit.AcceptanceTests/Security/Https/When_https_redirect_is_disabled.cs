@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.AcceptanceTests.Security.Https
 {
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.Https;
@@ -25,7 +26,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Https
         public void CleanupHttps() => configuration?.Dispose();
 
         [Test]
-        public async Task Should_not_redirect_http_requests()
+        public async Task Should_not_redirect_http_requests(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
 
@@ -35,7 +36,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.Https
                     response = await this.GetRaw("/api");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             HttpsAssertions.AssertNoHttpsRedirect(response);
         }

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Recoverability
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -14,7 +15,7 @@
     class When_importing_a_message_resolved_by_a_retry : AcceptanceTest
     {
         [Test]
-        public async Task Should_set_status_to_resolved()
+        public async Task Should_set_status_to_resolved(CancellationToken cancellationToken = default)
         {
             CustomConfiguration = endpointConfiguration =>
             {
@@ -43,7 +44,7 @@
 
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(auditedMessage.Status, Is.EqualTo(MessageStatus.ResolvedSuccessfully));
         }

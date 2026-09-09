@@ -2,6 +2,7 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
 {
     using System.Net.Http;
     using System.Security.Claims;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.OpenIdConnect;
@@ -55,7 +56,7 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
         }
 
         [Test]
-        public async Task Should_return_authentication_configuration_with_enabled_true()
+        public async Task Should_return_authentication_configuration_with_enabled_true(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
 
@@ -70,7 +71,7 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                         "/api/authentication/configuration");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             await OpenIdConnectAssertions.AssertAuthConfigurationResponse(
                 response,
@@ -79,11 +80,12 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                 expectedAudience: TestAudience,
                 expectedApiScopes: TestApiScopes,
                 expectedScopes: $"{TestApiScope} openid profile email offline_access",
-                expectedRoleBasedAuthorizationEnabled: true);
+                expectedRoleBasedAuthorizationEnabled: true,
+                cancellationToken: cancellationToken);
         }
 
         [Test]
-        public async Task Should_reject_requests_without_bearer_token()
+        public async Task Should_reject_requests_without_bearer_token(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
 
@@ -98,13 +100,13 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                         "/api/errors");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             OpenIdConnectAssertions.AssertUnauthorized(response);
         }
 
         [Test]
-        public async Task Should_reject_requests_with_invalid_bearer_token()
+        public async Task Should_reject_requests_with_invalid_bearer_token(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
 
@@ -118,13 +120,13 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                         "invalid-token-value");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             OpenIdConnectAssertions.AssertUnauthorized(response);
         }
 
         [Test]
-        public async Task Should_accept_requests_with_valid_bearer_token()
+        public async Task Should_accept_requests_with_valid_bearer_token(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
 
@@ -142,13 +144,13 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                         validToken);
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             OpenIdConnectAssertions.AssertAuthenticated(response);
         }
 
         [Test]
-        public async Task Should_reject_requests_with_expired_token()
+        public async Task Should_reject_requests_with_expired_token(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
 
@@ -163,13 +165,13 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                         expiredToken);
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             OpenIdConnectAssertions.AssertUnauthorized(response);
         }
 
         [Test]
-        public async Task Should_reject_requests_with_wrong_audience()
+        public async Task Should_reject_requests_with_wrong_audience(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
 
@@ -184,13 +186,13 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                         wrongAudienceToken);
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             OpenIdConnectAssertions.AssertUnauthorized(response);
         }
 
         [Test]
-        public async Task Should_reject_requests_with_wrong_issuer()
+        public async Task Should_reject_requests_with_wrong_issuer(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
 
@@ -205,13 +207,13 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                         wrongIssuerToken);
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             OpenIdConnectAssertions.AssertUnauthorized(response);
         }
 
         [Test]
-        public async Task Should_forbid_authenticated_user_lacking_required_permission()
+        public async Task Should_forbid_authenticated_user_lacking_required_permission(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
 
@@ -230,7 +232,7 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                         readerToken);
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             OpenIdConnectAssertions.AssertForbidden(response);
         }

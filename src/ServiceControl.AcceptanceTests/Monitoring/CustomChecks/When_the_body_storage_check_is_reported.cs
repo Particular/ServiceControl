@@ -1,5 +1,6 @@
 namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using NServiceBus.AcceptanceTesting;
@@ -14,7 +15,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
             SetSettings = static s => s.DisableHealthChecks = false;
 
         [Test]
-        public async Task Should_be_classified_internal()
+        public async Task Should_be_classified_internal(CancellationToken cancellationToken = default)
         {
             CustomCheckView bodyStorageCheck = null;
 
@@ -25,7 +26,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
                     bodyStorageCheck = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

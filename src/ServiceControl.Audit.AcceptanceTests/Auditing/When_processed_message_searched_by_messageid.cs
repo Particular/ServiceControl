@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Auditing
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -13,12 +14,12 @@
     class When_processed_message_searched_by_messageid : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_found() =>
+        public async Task Should_be_found(CancellationToken cancellationToken = default) =>
             await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
                 .Done(async c => c.MessageId != null && await this.TryGetMany<MessagesView>("/api/messages/search/" + c.MessageId))
-                .Run();
+                .Run(cancellationToken);
 
         public class Sender : EndpointConfigurationBuilder
         {

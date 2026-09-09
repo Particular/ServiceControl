@@ -1,6 +1,7 @@
 namespace ServiceControl.AcceptanceTests.Security.Cors
 {
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.Cors;
@@ -27,7 +28,7 @@ namespace ServiceControl.AcceptanceTests.Security.Cors
         public void CleanupCors() => configuration?.Dispose();
 
         [Test]
-        public async Task Should_not_return_access_control_allow_origin_header()
+        public async Task Should_not_return_access_control_allow_origin_header(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
             const string testOrigin = "https://app.example.com";
@@ -41,13 +42,13 @@ namespace ServiceControl.AcceptanceTests.Security.Cors
                         endpoint: "/api");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             CorsAssertions.AssertCorsDisabled(response);
         }
 
         [Test]
-        public async Task Preflight_request_should_not_return_cors_headers()
+        public async Task Preflight_request_should_not_return_cors_headers(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
             const string testOrigin = "https://app.example.com";
@@ -61,7 +62,7 @@ namespace ServiceControl.AcceptanceTests.Security.Cors
                         requestMethod: "POST");
                     return response != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             CorsAssertions.AssertCorsDisabled(response);
         }

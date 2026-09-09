@@ -5,6 +5,7 @@ namespace ServiceControl.AcceptanceTests.Licensing
     using System.IO.Compression;
     using System.Linq;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -20,7 +21,7 @@ namespace ServiceControl.AcceptanceTests.Licensing
     class When_reporting_the_environment : AcceptanceTest
     {
         [Test]
-        public async Task Should_describe_how_the_instance_is_deployed()
+        public async Task Should_describe_how_the_instance_is_deployed(CancellationToken cancellationToken = default)
         {
             JsonDocument report = null;
 
@@ -42,7 +43,7 @@ namespace ServiceControl.AcceptanceTests.Licensing
                     return true;
                 })
                 .Done(_ => true)
-                .Run();
+                .Run(cancellationToken);
 
             var data = report.RootElement
                 .GetProperty("ReportData")

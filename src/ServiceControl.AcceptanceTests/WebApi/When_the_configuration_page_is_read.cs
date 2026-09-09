@@ -5,6 +5,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
     using System.Net;
     using System.Net.Http;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using NServiceBus.AcceptanceTesting;
@@ -14,7 +15,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
     class When_the_configuration_page_is_read : AcceptanceTest
     {
         [Test]
-        public async Task Should_report_the_instance_the_same_way_from_both_of_its_routes()
+        public async Task Should_report_the_instance_the_same_way_from_both_of_its_routes(CancellationToken cancellationToken = default)
         {
             string configuration = null;
             string instanceInfo = null;
@@ -27,7 +28,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
 
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {
@@ -40,7 +41,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
         }
 
         [Test]
-        public async Task Should_accept_licensed_endpoint_details_and_report_none_without_the_licence_for_them()
+        public async Task Should_accept_licensed_endpoint_details_and_report_none_without_the_licence_for_them(CancellationToken cancellationToken = default)
         {
             HttpStatusCode upload = default;
             HttpStatusCode read = default;
@@ -64,7 +65,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
 
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

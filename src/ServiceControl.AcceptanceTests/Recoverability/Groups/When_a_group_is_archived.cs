@@ -17,7 +17,7 @@
     class When_a_group_is_archived : AcceptanceTest
     {
         [Test]
-        public async Task All_messages_in_group_should_get_archived()
+        public async Task All_messages_in_group_should_get_archived(CancellationToken cancellationToken = default)
         {
             await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(async bus =>
@@ -59,11 +59,11 @@
                         e => e.Status == FailedMessageStatus.Archived);
                 })
                 .Done(ctx => true) //Done when sequence is finished
-                .Run();
+                .Run(cancellationToken);
         }
 
         [Test]
-        public async Task All_archived_messages_should_be_grouped()
+        public async Task All_archived_messages_should_be_grouped(CancellationToken cancellationToken = default)
         {
             await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(async bus =>
@@ -110,11 +110,11 @@
                     return failedMessages && failedMessages.Items.Count == 1 && failedMessages.Items[0].Count == 2;
                 })
                 .Done(ctx => true) //Done when sequence is finished
-                .Run();
+                .Run(cancellationToken);
         }
 
         [Test]
-        public async Task Archived_messages_group_info_should_be_accessible()
+        public async Task Archived_messages_group_info_should_be_accessible(CancellationToken cancellationToken = default)
         {
             await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(async bus =>
@@ -161,7 +161,7 @@
                     return failedMessages && failedMessages.Item.Count == 2;
                 })
                 .Done(ctx => true) //Done when sequence is finished
-                .Run();
+                .Run(cancellationToken);
         }
 
         [Test]

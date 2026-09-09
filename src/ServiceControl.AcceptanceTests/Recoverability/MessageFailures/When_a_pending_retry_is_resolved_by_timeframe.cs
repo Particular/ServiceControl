@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -17,7 +18,7 @@
     class When_a_pending_retry_is_resolved_by_timeframe : AcceptanceTest
     {
         [Test]
-        public async Task Should_succeed() =>
+        public async Task Should_succeed(CancellationToken cancellationToken = default) =>
             await Define<Context>()
                 .WithEndpoint<Failing>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Do("DetectFailure", async ctx =>
@@ -54,7 +55,7 @@
                         message => message.Status == FailedMessageStatus.Resolved);
                 })
                 .Done(ctx => true) //We're done once the sequence is finished
-                .Run();
+                .Run(cancellationToken);
 
         public class Failing : EndpointConfigurationBuilder
         {

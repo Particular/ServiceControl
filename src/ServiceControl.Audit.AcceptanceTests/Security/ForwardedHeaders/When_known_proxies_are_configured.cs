@@ -1,5 +1,6 @@
 namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.ForwardedHeaders;
@@ -25,7 +26,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
         public void CleanupForwardedHeaders() => configuration?.Dispose();
 
         [Test]
-        public async Task Headers_should_be_applied_when_caller_matches_known_proxy()
+        public async Task Headers_should_be_applied_when_caller_matches_known_proxy(CancellationToken cancellationToken = default)
         {
             RequestInfoResponse requestInfo = null;
 
@@ -40,7 +41,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
                         xForwardedHost: "example.com");
                     return requestInfo != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             ForwardedHeadersAssertions.AssertHeadersAppliedWithKnownProxiesOrNetworks(
                 requestInfo,

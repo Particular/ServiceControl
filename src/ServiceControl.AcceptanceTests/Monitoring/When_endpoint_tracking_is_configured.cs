@@ -2,6 +2,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -15,7 +16,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring
     class When_endpoint_tracking_is_configured : AcceptanceTest
     {
         [Test]
-        public async Task Should_read_and_change_tracking_for_one_endpoint_and_for_the_default()
+        public async Task Should_read_and_change_tracking_for_one_endpoint_and_for_the_default(CancellationToken cancellationToken = default)
         {
             List<SettingsData> initial = null;
             List<SettingsData> afterEndpointChange = null;
@@ -56,7 +57,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring
                     return afterDefaultChange != null;
                 })
                 .Done(_ => true)
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

@@ -5,6 +5,7 @@ namespace ServiceControl.AcceptanceTests.EventLogs
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -18,7 +19,7 @@ namespace ServiceControl.AcceptanceTests.EventLogs
     class When_the_event_log_is_polled_with_an_etag : AcceptanceTest
     {
         [Test]
-        public async Task Should_answer_not_modified_only_for_the_current_etag()
+        public async Task Should_answer_not_modified_only_for_the_current_etag(CancellationToken cancellationToken = default)
         {
             string etag = null;
             HttpStatusCode currentEtagStatus = default;
@@ -70,7 +71,7 @@ namespace ServiceControl.AcceptanceTests.EventLogs
 
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

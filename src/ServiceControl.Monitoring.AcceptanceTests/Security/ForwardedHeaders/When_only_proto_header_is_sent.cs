@@ -1,5 +1,6 @@
 namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.ForwardedHeaders;
@@ -13,7 +14,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
     class When_only_proto_header_is_sent : AcceptanceTest
     {
         [Test]
-        public async Task Only_scheme_should_be_changed()
+        public async Task Only_scheme_should_be_changed(CancellationToken cancellationToken = default)
         {
             RequestInfoResponse requestInfo = null;
 
@@ -26,7 +27,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
                         xForwardedProto: "https");
                     return requestInfo != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             ForwardedHeadersAssertions.AssertPartialHeadersApplied(requestInfo, expectedScheme: "https");
         }

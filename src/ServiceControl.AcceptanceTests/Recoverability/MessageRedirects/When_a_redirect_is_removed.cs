@@ -1,6 +1,7 @@
 namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
 {
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
@@ -10,7 +11,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
     class When_a_redirect_is_removed : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_successfully_deleted()
+        public async Task Should_be_successfully_deleted(CancellationToken cancellationToken = default)
         {
             var redirect = new RedirectRequest
             {
@@ -32,7 +33,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
                     response = result;
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(response, Is.Empty, "Expected no redirects after delete");
         }

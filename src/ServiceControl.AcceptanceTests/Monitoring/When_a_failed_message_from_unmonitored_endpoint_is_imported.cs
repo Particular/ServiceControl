@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -17,7 +18,7 @@
     class When_a_failed_message_from_unmonitored_endpoint_is_imported : AcceptanceTest
     {
         [Test]
-        public async Task It_is_detected()
+        public async Task It_is_detected(CancellationToken cancellationToken = default)
         {
             EndpointsView[] endpoints = null;
 
@@ -29,14 +30,14 @@
                     endpoints = result;
                     return endpoints.Length > 0;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(endpoints.Length, Is.EqualTo(1));
             Assert.That(endpoints.First().Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint));
         }
 
         [Test]
-        public async Task It_is_persisted()
+        public async Task It_is_persisted(CancellationToken cancellationToken = default)
         {
             var endpointName = Conventions.EndpointNamingConvention(typeof(Receiver));
             KnownEndpoint endpoint = default;
@@ -51,7 +52,7 @@
                     endpoint = knownEndpoints.Item;
                     return knownEndpoints.HasResult;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(endpoint.Monitored, Is.False, "Endpoint detected through error ingestion should not be monitored");
         }

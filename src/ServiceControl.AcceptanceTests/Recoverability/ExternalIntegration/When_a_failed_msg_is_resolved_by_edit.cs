@@ -1,6 +1,7 @@
 namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 {
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -15,7 +16,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
     class When_a_failed_msg_is_resolved_by_edit : AcceptanceTest
     {
         [Test]
-        public async Task Should_publish_notification()
+        public async Task Should_publish_notification(CancellationToken cancellationToken = default)
         {
             CustomConfiguration = config => config.OnEndpointSubscribed<EditMessageResolutionContext>((s, ctx) =>
             {
@@ -84,7 +85,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                     }
 
                     return true;
-                }).Run();
+                }).Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

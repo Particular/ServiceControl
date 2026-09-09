@@ -1,5 +1,6 @@
 namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.ForwardedHeaders;
@@ -24,7 +25,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
         public void CleanupForwardedHeaders() => configuration?.Dispose();
 
         [Test]
-        public async Task Headers_should_be_ignored_when_disabled()
+        public async Task Headers_should_be_ignored_when_disabled(CancellationToken cancellationToken = default)
         {
             RequestInfoResponse requestInfo = null;
 
@@ -39,7 +40,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.Security.ForwardedHeaders
                         xForwardedHost: "example.com");
                     return requestInfo != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             ForwardedHeadersAssertions.AssertHeadersIgnoredWhenDisabled(
                 requestInfo,

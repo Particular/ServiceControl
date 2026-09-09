@@ -19,7 +19,7 @@
     {
         [TestCase(true)]
         [TestCase(false)]
-        public async Task Should_not_fail(bool disableHealthChecks)
+        public async Task Should_not_fail(bool disableHealthChecks, CancellationToken cancellationToken = default)
         {
             var remoteInstanceSetting = new RemoteInstanceSetting("http://localhost:12121");
             CustomServiceControlPrimarySettings = settings =>
@@ -44,7 +44,7 @@
             await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c => await this.TryGetMany<MessagesView>("/api/messages/search/" + searchString, instanceName: ServiceControlInstanceName))
-                .Run();
+                .Run(cancellationToken);
         }
 
         class RemoteNotAvailableHandler : HttpMessageHandler

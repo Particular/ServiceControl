@@ -14,7 +14,7 @@
     class When_querying_disconnected_count : AcceptanceTest
     {
         [Test]
-        public async Task Should_report_via_http()
+        public async Task Should_report_via_http(CancellationToken cancellationToken = default)
         {
             TestContext context = null;
 
@@ -74,7 +74,7 @@
                     c.AfterSecondStoppedCount = disconnectedCount;
                     return true;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

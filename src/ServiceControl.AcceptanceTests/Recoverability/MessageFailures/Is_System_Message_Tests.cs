@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -15,7 +16,7 @@
     class Is_System_Message_Tests : AcceptanceTest
     {
         [Test]
-        public async Task Should_set_the_IsSystemMessage_when_message_type_is_not_a_scheduled_task()
+        public async Task Should_set_the_IsSystemMessage_when_message_type_is_not_a_scheduled_task(CancellationToken cancellationToken = default)
         {
             FailedMessageView failure = null;
             await Define<SystemMessageTestContext>(ctx =>
@@ -31,14 +32,14 @@
                     failure = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(failure, Is.Not.Null);
             Assert.That(failure.IsSystemMessage, Is.False);
         }
 
         [Test]
-        public async Task Should_set_the_IsSystemMessage_when_message_type_is_a_scheduled_task()
+        public async Task Should_set_the_IsSystemMessage_when_message_type_is_a_scheduled_task(CancellationToken cancellationToken = default)
         {
             FailedMessageView failure = null;
             await Define<SystemMessageTestContext>(ctx =>
@@ -54,13 +55,13 @@
                     failure = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
             Assert.That(failure, Is.Not.Null);
             Assert.That(failure.IsSystemMessage, Is.True);
         }
 
         [Test]
-        public async Task Should_set_the_IsSystemMessage_when_control_message_header_is_true()
+        public async Task Should_set_the_IsSystemMessage_when_control_message_header_is_true(CancellationToken cancellationToken = default)
         {
             FailedMessageView failure = null;
             await Define<SystemMessageTestContext>(ctx =>
@@ -77,13 +78,13 @@
                     failure = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
             Assert.That(failure, Is.Not.Null);
             Assert.That(failure.IsSystemMessage, Is.True);
         }
 
         [Test]
-        public async Task Should_set_the_IsSystemMessage_when_control_message_header_is_null()
+        public async Task Should_set_the_IsSystemMessage_when_control_message_header_is_null(CancellationToken cancellationToken = default)
         {
             FailedMessageView failure = null;
             await Define<SystemMessageTestContext>(ctx =>
@@ -100,14 +101,14 @@
                     failure = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(failure, Is.Not.Null);
             Assert.That(failure.IsSystemMessage, Is.True);
         }
 
         [Test]
-        public async Task Should_set_the_IsSystemMessage_for_integration_scenario()
+        public async Task Should_set_the_IsSystemMessage_for_integration_scenario(CancellationToken cancellationToken = default)
         {
             FailedMessageView failure = null;
             await Define<SystemMessageTestContext>(ctx =>
@@ -123,7 +124,7 @@
                     failure = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
             Assert.That(failure, Is.Not.Null);
             Assert.That(failure.IsSystemMessage, Is.False);
         }

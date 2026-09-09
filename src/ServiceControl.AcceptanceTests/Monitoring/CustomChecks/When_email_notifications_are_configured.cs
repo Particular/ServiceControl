@@ -23,7 +23,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
     class When_email_notifications_are_configured : AcceptanceTest
     {
         [Test]
-        public async Task Should_gate_notifications_on_the_settings_the_page_saved()
+        public async Task Should_gate_notifications_on_the_settings_the_page_saved(CancellationToken cancellationToken = default)
         {
             var emailDropPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(emailDropPath);
@@ -93,7 +93,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
                         return delivered != null;
                     })
                     .Done(_ => true)
-                    .Run();
+                    .Run(cancellationToken);
 
                 using (Assert.EnterMultipleScope())
                 {

@@ -3,6 +3,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -18,7 +19,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
     class When_a_failing_endpoint_is_triaged_and_retried : AcceptanceTest
     {
         [Test]
-        public async Task Should_narrow_to_the_group_annotate_it_and_clear_it_once_retried()
+        public async Task Should_narrow_to_the_group_annotate_it_and_clear_it_once_retried(CancellationToken cancellationToken = default)
         {
             Dictionary<string, Dictionary<string, int>> summary = null;
             List<FailedMessageView> broken = null;
@@ -126,7 +127,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
                     return history.HasResult;
                 })
                 .Done(_ => true)
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

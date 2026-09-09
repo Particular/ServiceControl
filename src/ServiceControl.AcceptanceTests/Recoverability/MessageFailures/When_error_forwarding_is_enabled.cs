@@ -1,6 +1,7 @@
 namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -11,7 +12,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     class When_error_forwarding_is_enabled : AcceptanceTest
     {
         [Test]
-        public async Task Should_forward_the_failed_message_to_the_error_log_queue()
+        public async Task Should_forward_the_failed_message_to_the_error_log_queue(CancellationToken cancellationToken = default)
         {
             SetSettings = settings =>
             {
@@ -27,7 +28,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 // spy cannot deserialize, so the spy has to tolerate its own failures.
                 .WithEndpoint<Spy>(b => b.DoNotFailOnErrorMessages())
                 .Done(c => c.ForwardedMessageId != null)
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

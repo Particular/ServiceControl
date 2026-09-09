@@ -2,6 +2,7 @@
 {
     using System;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -14,7 +15,7 @@
     class When_a_message_has_failed_detected : AcceptanceTest
     {
         [Test]
-        public async Task Should_publish_notification()
+        public async Task Should_publish_notification(CancellationToken cancellationToken = default)
         {
             CustomConfiguration = config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
@@ -42,7 +43,7 @@
                     }
                 }))
                 .Done(c => c.EventDelivered)
-                .Run();
+                .Run(cancellationToken);
 
             var deserializedEvent = JsonSerializer.Deserialize<MessageFailed>(context.Event);
 

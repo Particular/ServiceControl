@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -15,7 +16,7 @@
     class When_a_message_hitting_multiple_sagas_is_audited : AcceptanceTest
     {
         [Test]
-        public async Task Saga_info_should_be_available_through_the_http_api()
+        public async Task Saga_info_should_be_available_through_the_http_api(CancellationToken cancellationToken = default)
         {
             MessagesView auditedMessage = null;
 
@@ -33,7 +34,7 @@
                     auditedMessage = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(auditedMessage, Is.Not.Null);
 

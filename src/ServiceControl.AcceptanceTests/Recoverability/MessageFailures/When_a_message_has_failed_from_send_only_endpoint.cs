@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -15,7 +16,7 @@
     class When_a_message_has_failed_from_send_only_endpoint : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_listed_in_the_error_list_when_processing_endpoint_header_is_not_present()
+        public async Task Should_be_listed_in_the_error_list_when_processing_endpoint_header_is_not_present(CancellationToken cancellationToken = default)
         {
             FailedMessageView failure = null;
             await Define<MyContext>(ctx =>
@@ -30,13 +31,13 @@
                     failure = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
             Assert.That(failure, Is.Not.Null);
             Assert.That(failure.ReceivingEndpoint.Name, Does.Contain("SomeEndpoint"), $"The sending endpoint should be SomeEndpoint and not {failure.ReceivingEndpoint.Name}");
         }
 
         [Test]
-        public async Task Should_be_listed_in_the_error_list_when_processing_endpoint_header_is_present()
+        public async Task Should_be_listed_in_the_error_list_when_processing_endpoint_header_is_present(CancellationToken cancellationToken = default)
         {
             FailedMessageView failure = null;
             await Define<MyContext>(ctx =>
@@ -51,7 +52,7 @@
                     failure = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
             Assert.That(failure, Is.Not.Null);
             Assert.That(failure.ReceivingEndpoint.Name, Does.Contain("SomeEndpoint"), $"The sending endpoint should be SomeEndpoint and not {failure.ReceivingEndpoint.Name}");
         }

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -18,7 +19,7 @@
     class When_a_message_is_retried_with_a_replyTo_header : AcceptanceTest
     {
         [Test]
-        public async Task The_header_should_not_be_changed()
+        public async Task The_header_should_not_be_changed(CancellationToken cancellationToken = default)
         {
             var context = await Define<ReplyToContext>(ctx => { ctx.ReplyToAddress = "ReplyToAddress@SOMEMACHINE"; })
                 .WithEndpoint<VerifyHeader>()
@@ -32,7 +33,7 @@
 
                     return x.Done;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             Assert.That(context.ReceivedReplyToAddress, Is.EqualTo(context.ReplyToAddress));
         }

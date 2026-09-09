@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Contracts.CustomChecks;
@@ -18,7 +19,7 @@
     class When_a_critical_error_is_triggered : AcceptanceTest
     {
         [Test]
-        public async Task Service_control_is_not_killed_and_error_is_reported_via_custom_check()
+        public async Task Service_control_is_not_killed_and_error_is_reported_via_custom_check(CancellationToken cancellationToken = default)
         {
             CustomizeHostBuilder = builder =>
             {
@@ -50,7 +51,7 @@
                     entry = result;
                     return result;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

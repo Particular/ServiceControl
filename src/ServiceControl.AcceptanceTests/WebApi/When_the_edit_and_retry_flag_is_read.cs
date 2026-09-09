@@ -3,6 +3,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using NServiceBus;
@@ -14,7 +15,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
     {
         [TestCase(true)]
         [TestCase(false)]
-        public async Task Should_agree_with_whether_the_edit_route_answers(bool editingAllowed)
+        public async Task Should_agree_with_whether_the_edit_route_answers(bool editingAllowed, CancellationToken cancellationToken = default)
         {
             SetSettings = settings => settings.AllowMessageEditing = editingAllowed;
 
@@ -33,7 +34,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
 
                     return config != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

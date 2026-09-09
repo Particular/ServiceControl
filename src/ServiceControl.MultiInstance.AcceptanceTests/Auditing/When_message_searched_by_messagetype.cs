@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -17,7 +18,7 @@
     class When_message_searched_by_messagetype : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_found()
+        public async Task Should_be_found(CancellationToken cancellationToken = default)
         {
             var response = new List<MessagesView>();
 
@@ -37,7 +38,7 @@
                     response = result;
                     return result && response.Count == 2;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             var expectedMasterInstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[ServiceControlInstanceName].RootUrl);
             var expectedAuditInstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[ServiceControlAuditInstanceName].RootUrl);

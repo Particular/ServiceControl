@@ -1,5 +1,6 @@
 namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.ForwardedHeaders;
@@ -26,7 +27,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
         public void CleanupForwardedHeaders() => configuration?.Dispose();
 
         [Test]
-        public async Task Headers_should_be_ignored_when_caller_not_in_known_proxies()
+        public async Task Headers_should_be_ignored_when_caller_not_in_known_proxies(CancellationToken cancellationToken = default)
         {
             RequestInfoResponse requestInfo = null;
 
@@ -44,7 +45,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Security.ForwardedHeaders
                         testRemoteIp: "203.0.113.1");
                     return requestInfo != null;
                 })
-                .Run();
+                .Run(cancellationToken);
 
             ForwardedHeadersAssertions.AssertHeadersIgnoredWhenProxyNotTrusted(
                 requestInfo,
