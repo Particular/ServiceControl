@@ -18,6 +18,9 @@ jobs:
   build:
     name: ${{ matrix.os-name }}-${{ matrix.test-category }}
     runs-on: ${{ matrix.os }}
+    # The slowest healthy job finishes in under 18 minutes. Anything still running at 30 has lost its
+    # runner or hung on infrastructure, and without a cap it would occupy the runner for 6 hours.
+    timeout-minutes: 30
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest]
