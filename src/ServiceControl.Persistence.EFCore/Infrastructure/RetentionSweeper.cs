@@ -104,11 +104,20 @@ public class RetentionSweeper(
 
         async Task SweepWithoutAcquiringLock()
         {
+            using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, hostApplicationLifetime.ApplicationStopping);
             try
             {
                 // if the caller doesn't hand over a real cancellation token then use the application lifetime.
-                await SweepBody(errorCutoff, eventsCutoff, false, cancellationToken.CanBeCanceled ? cancellationToken : hostApplicationLifetime.ApplicationStopping);
+                await SweepBody(errorCutoff, eventsCutoff, false, cancellation.Token);
                 lastFinishedAt = timeProvider.GetUtcNow().UtcDateTime;
+            }
+            catch (OperationCanceledException) when (cancellation.Token.IsCancellationRequested)
+            {
+                //smother this exception, cancelling
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Error during retention sweep");
             }
             finally
             {
