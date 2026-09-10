@@ -38,7 +38,7 @@ The copier runs inside the ServiceControl host, so every row and every message b
 
 **Supported locations:**
 
-- **The RavenDB source**: embedded on the ServiceControl host, self-hosted on the same network in a container, VM or bare metal, or RavenDB Cloud
+- **The RavenDB source**: embedded on the ServiceControl host (Windows installations only, see below), self-hosted on the same network in a container, VM or bare metal, or RavenDB Cloud
 - **The SQL target**: SQL Server or PostgreSQL on the ServiceControl host, elsewhere on the same network, in a container, or as a managed cloud service such as Azure SQL, Amazon RDS or Google Cloud SQL
 - **Any combination of the two**, subject to the requirements below
 
@@ -61,6 +61,7 @@ The copier runs inside the ServiceControl host, so every row and every message b
 
 - Any server-to-server copy: no backup and restore, no RavenDB ETL or replication into SQL, no external data pipeline
 - A host that can reach only one of the two databases at a time, so no staged move by way of an offline copy
+- **An embedded RavenDB source when ServiceControl runs in a container.** Reading an embedded database means starting a RavenDB server process, and the container image does not carry one: `ServiceControl.Persistence.RavenDB.csproj:36` excludes the `RavenDBServer` directory from the artifact, and the copy that would restore it at `:44` is conditional on `CI` not being set, which the Dockerfile sets. A containerised instance migrating away from embedded RavenDB has to point at an external RavenDB server rather than at a data directory. Windows installations are unaffected: the installer unzips the server unconditionally
 - Primary and throughput RavenDB databases in different locations
 - Anything but RavenDB as the source, or anything but a ServiceControl EF Core persister as the target
 
@@ -142,7 +143,7 @@ flowchart TB
 
 ### Required
 
-- Unresolved failed messages, with their bodies. Attempt history collapses to the newest attempt, because the SQL model has no attempts table.
+- Unresolved **and retry-issued** failed messages, with their bodies. Attempt history collapses to the newest attempt, because the SQL model has no attempts table. Retry-issued messages are required for the same reason unresolved ones are: issuing a retry deletes the expiry, so they never age out. Leaving one behind means the retry confirmation arrives with no row to mark resolved, and the message stays missing from the customer's list while the retry actually succeeded
 - Message redirects
 - Endpoint settings
 - Known endpoints, including the monitored flag. One category, because the flag is a property of the endpoint row and cannot be copied without it
