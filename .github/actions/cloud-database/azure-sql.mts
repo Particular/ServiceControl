@@ -31,15 +31,17 @@ async function provision(name: string): Promise<void> {
         '--end-ip-address', runnerIp,
         '--only-show-errors', '--output', 'none']);
 
-    // General Purpose with 4 vCores: the suites are DDL heavy and run several assemblies at once, and
-    // a DTU tier that size would spend the run throttled. Local backup redundancy because nothing
-    // here outlives the job.
+    // Business Critical, not General Purpose. The suites create, index and drop a schema per test,
+    // roughly 550 times, so the limit they hit is transaction log throughput rather than CPU. That
+    // is capped an order of magnitude lower on General Purpose, whose log is remote, and a run there
+    // measured 9 to 21 times slower than a local container and timed out. Business Critical keeps
+    // data and log on local SSD. Local backup redundancy because nothing here outlives the job.
     step(`Creating database ${databaseName}`);
     run('az', ['sql', 'db', 'create',
         '--name', databaseName,
         '--resource-group', azure.resourceGroup,
         '--server', name,
-        '--service-objective', 'GP_Gen5_4',
+        '--service-objective', 'BC_Gen5_4',
         '--backup-storage-redundancy', 'Local',
         ...tags,
         '--only-show-errors', '--output', 'none']);
