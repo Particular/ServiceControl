@@ -7,6 +7,8 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
     using Contracts.CustomChecks;
+    using Infrastructure.DomainEvents;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
@@ -23,6 +25,8 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
             CustomCheckView dismissed = null;
             CustomCheckView returned = null;
 
+            CustomizeHostBuilder = hostBuilder => hostBuilder.Services.AddSingleton<IDomainHandler<ServiceControl.CustomChecks.CustomCheckDeleted>, DismissalObserver>();
+
             await Define<Context>()
                 .WithEndpoint<Checked>()
                 .Do("Wait for the check to report a failure", async ctx =>
@@ -36,16 +40,13 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
                 })
                 .Do("Dismiss it from the page", async _ =>
                     await this.Delete($"/api/customchecks/{WithoutPrefix(dismissed.Id)}"))
-                .Do("Wait until it has gone", async _ =>
-                {
-                    var checks = await this.TryGetMany<CustomCheckView>("/api/customchecks");
-
-                    return checks.Items.All(check => check.CustomCheckId != CheckId);
-                })
-                .Do("Wait for the next report from the endpoint", async _ =>
+                .Do("Wait until the dismissal has been processed", ctx => Task.FromResult(ctx.DismissedAt != null))
+                // The endpoint reports every second, so the check is only ever absent for an instant and a
+                // poll cannot be expected to catch it. A report from after the dismissal proves the same thing.
+                .Do("Wait for a report from after the dismissal", async ctx =>
                 {
                     var checks = await this.TryGetMany<CustomCheckView>("/api/customchecks",
-                        check => check.CustomCheckId == CheckId && check.Status == CheckStatus.Fail);
+                        check => check.CustomCheckId == CheckId && check.Status == CheckStatus.Fail && check.ReportedAt > ctx.DismissedAt);
 
                     returned = checks.HasResult ? checks.Items.Single() : null;
 
@@ -67,6 +68,16 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
         class Context : ScenarioContext, ISequenceContext
         {
             public int Step { get; set; }
+            public DateTime? DismissedAt { get; set; }
+        }
+
+        class DismissalObserver(Context context) : IDomainHandler<ServiceControl.CustomChecks.CustomCheckDeleted>
+        {
+            public Task Handle(ServiceControl.CustomChecks.CustomCheckDeleted domainEvent, CancellationToken cancellationToken = default)
+            {
+                context.DismissedAt = DateTime.UtcNow;
+                return Task.CompletedTask;
+            }
         }
 
         public class Checked : EndpointConfigurationBuilder
