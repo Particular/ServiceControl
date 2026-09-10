@@ -1,5 +1,3 @@
-// Provisions and tears down an Azure SQL Database for one run of the cloud database tests.
-
 import { step, run, newAdminPassword, runnerIpAddress, setPersistenceConnectionString, verifyDatabase, teardownStep } from './common.mts';
 import * as azure from './azure.mts';
 
@@ -31,11 +29,6 @@ async function provision(name: string): Promise<void> {
         '--end-ip-address', runnerIp,
         '--only-show-errors', '--output', 'none']);
 
-    // Business Critical, not General Purpose. The suites create, index and drop a schema per test,
-    // roughly 550 times, so the limit they hit is transaction log throughput rather than CPU. That
-    // is capped an order of magnitude lower on General Purpose, whose log is remote, and a run there
-    // measured 9 to 21 times slower than a local container and timed out. Business Critical keeps
-    // data and log on local SSD. Local backup redundancy because nothing here outlives the job.
     step(`Creating database ${databaseName}`);
     run('az', ['sql', 'db', 'create',
         '--name', databaseName,
@@ -55,8 +48,6 @@ async function provision(name: string): Promise<void> {
 }
 
 function teardown(name: string): void {
-    // The resource group is shared and long lived, so only the server goes. Its databases and
-    // firewall rules are children and go with it.
     teardownStep(`Deleting SQL server ${name}`, () =>
         run('az', ['sql', 'server', 'delete', '--name', name, '--resource-group', azure.resourceGroup, '--yes', '--only-show-errors']));
 }

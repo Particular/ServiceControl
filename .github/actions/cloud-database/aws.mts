@@ -33,16 +33,10 @@ function defaultVpcId(): string {
     return created;
 }
 
-// An EC2 security group does not record when it was created, so this tag is what the stale sweep
-// judges age by. Epoch seconds because AWS restricts the characters a tag value may contain.
 function createdTimestamp(): string {
     return Math.floor(Date.now() / 1000).toString();
 }
 
-// RDS needs a subnet group spanning at least two availability zones. A region does not reliably
-// have one called "default", even where a default VPC exists, so this owns one rather than betting
-// on RDS creating it. Like the default VPC it is account infrastructure: created when missing,
-// never deleted, and shared by concurrent runs.
 const subnetGroup = 'servicecontrol-cloud-tests';
 
 function dbSubnetGroupName(): string {
@@ -108,8 +102,6 @@ function deleteSecurityGroup(name: string): void {
         return;
     }
 
-    // The normal outcome, not a problem: the database that used the group takes minutes to finish
-    // deleting and holds it until then. removeStaleSecurityGroups clears it on a later run.
     if (failure.includes('DependencyViolation')) {
         step(`Security group ${name} is still held by a database that is deleting, leaving it for a later run to sweep up`);
         return;

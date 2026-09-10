@@ -7,8 +7,6 @@ const databaseName = 'servicecontrol';
 const adminUser = 'sctestadmin';
 const port = 5432;
 
-// Both AWS targets run at once with the same run name, so each needs its own prefix or they collide
-// on the security group and on RDS identifiers.
 function resources(name: string) {
     return { base: `${name}-aurora`, instance: `${name}-aurora-1` };
 }
@@ -41,8 +39,6 @@ async function provision(name: string): Promise<void> {
         ...tags,
         '--no-cli-pager']);
 
-    // One instance and no replicas: the cluster does not outlive the job. db.r6g.2xlarge rather than a
-    // burstable class, so the run is not throttled part way through.
     step(`Creating instance ${instance}`);
     run('aws', ['rds', 'create-db-instance',
         '--db-instance-identifier', instance,
@@ -71,16 +67,12 @@ async function provision(name: string): Promise<void> {
 function teardown(name: string): void {
     const { base, instance } = resources(name);
 
-    // Without waiting for the deletions to finish: an RDS instance takes minutes to disappear, and
-    // holding the job open for that costs more than letting a later run sweep up does.
     teardownStep(`Deleting instance ${instance}`, () =>
         run('aws', ['rds', 'delete-db-instance', '--db-instance-identifier', instance, '--skip-final-snapshot', '--delete-automated-backups', '--no-cli-pager']));
 
     teardownStep(`Deleting cluster ${base}`, () =>
         run('aws', ['rds', 'delete-db-cluster', '--db-cluster-identifier', base, '--skip-final-snapshot', '--no-cli-pager']));
 
-    // Will refuse while the instance still holds it, which is the normal case. removeStaleSecurityGroups
-    // on a later run is what actually clears it.
     teardownStep(`Deleting security group ${base}`, () => aws.deleteSecurityGroup(base));
 }
 

@@ -1,10 +1,6 @@
 #:package Npgsql@10.0.3
 
 // Waits until the server actually accepts connections on the test database.
-//
-// Only the connection is retried. The provisioning CLIs report a server as available before it is
-// necessarily reachable, so a refused connection is worth waiting out. Anything the server actually
-// answers is a real result, and retrying it would just turn a clear failure into a ten minute one.
 
 using Npgsql;
 

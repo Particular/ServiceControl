@@ -37,8 +37,6 @@ function captureJson(command: string, args: string[]): any {
     return JSON.parse(capture(command, args));
 }
 
-// Satisfies the complexity rules of all four services at once, and avoids the characters that would
-// have to be escaped in a connection string or are rejected outright by RDS (/ " @ and space).
 function newAdminPassword(): string {
     const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
     const lower = 'abcdefghijkmnpqrstuvwxyz';
@@ -60,15 +58,11 @@ function newAdminPassword(): string {
 
     const password = characters.join('');
 
-    // Before it can reach a log line. Everything the password is later embedded in, the connection
-    // string included, is redacted along with it.
     console.log(`::add-mask::${password}`);
 
     return password;
 }
 
-// The servers are reachable from the internet, so each one is firewalled to the single address this
-// job connects from.
 async function runnerIpAddress(): Promise<string> {
     const response = await fetch('https://api.ipify.org', { signal: AbortSignal.timeout(30000) });
 
@@ -85,9 +79,7 @@ function setPersistenceConnectionString(provider: Provider, connectionString: st
     step(`Exported ${name}`);
 }
 
-// Waits until the database is really reachable. The provisioning CLIs return before that is
-// necessarily true, and the alternative to checking here is the test run discovering it far less
-// clearly twenty minutes later.
+// Waits until the database is really reachable.
 function verifyDatabase(provider: Provider, connectionString: string): void {
     const script = provider === 'SqlServer' ? './verify-sqlserver.cs' : './verify-postgresql.cs';
 

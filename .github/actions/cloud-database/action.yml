@@ -8,9 +8,6 @@ inputs:
     description: Name for the resources this run creates, which teardown uses to find them again
     required: true
 runs:
-  # A JavaScript action, not a composite one, because only this kind can declare a post step.
-  # Teardown is that post step, so it cannot be left out of a workflow or skipped by a failure
-  # earlier in the job.
   using: node24
   main: index.mts
   post: index.mts

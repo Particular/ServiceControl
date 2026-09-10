@@ -1,6 +1,3 @@
-// Provisions and tears down an Azure Database for PostgreSQL flexible server for one run of the
-// cloud database tests.
-
 import { step, run, newAdminPassword, runnerIpAddress, setPersistenceConnectionString, verifyDatabase, teardownStep } from './common.mts';
 import * as azure from './azure.mts';
 
@@ -13,11 +10,6 @@ async function provision(name: string): Promise<void> {
     const location = azure.location();
     const tags = azure.tags(name);
 
-    // General Purpose with 8 vCores rather than a burstable tier, so the run is not throttled part
-    // way through. The disk is oversized on purpose: premium SSD IOPS scale with its size here, and
-    // the suites are IO bound rather than short of space. High availability is left at its default of disabled rather than passed
-    // explicitly, because the CLI on the runner does not accept --high-availability.
-    // --public-access opens the firewall to just this runner as part of creation.
     step(`Creating PostgreSQL flexible server ${name} in ${azure.resourceGroup} (${location}), allowing ${runnerIp}`);
     run('az', ['postgres', 'flexible-server', 'create',
         '--name', name,
@@ -36,8 +28,6 @@ async function provision(name: string): Promise<void> {
         '--only-show-errors', '--output', 'none']);
 
     step(`Creating database ${databaseName}`);
-    // --name, not --database-name: that is what this command asks for, whatever the server-level
-    // commands use.
     run('az', ['postgres', 'flexible-server', 'db', 'create',
         '--name', databaseName,
         '--resource-group', azure.resourceGroup,
@@ -53,8 +43,6 @@ async function provision(name: string): Promise<void> {
 }
 
 function teardown(name: string): void {
-    // The resource group is shared and long lived, so only the server goes. Its databases and
-    // firewall rules are children and go with it.
     teardownStep(`Deleting PostgreSQL flexible server ${name}`, () =>
         run('az', ['postgres', 'flexible-server', 'delete', '--name', name, '--resource-group', azure.resourceGroup, '--yes', '--only-show-errors']));
 }

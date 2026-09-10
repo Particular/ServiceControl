@@ -2,11 +2,6 @@
 
 // Waits until the server accepts connections, creates the test database if the provisioning CLI
 // could not, and fails the run if the server has no Full-Text Search.
-//
-// Only the connection is retried. The provisioning CLIs report a server as ready before it is
-// necessarily reachable, and an Azure firewall rule takes a moment to propagate, so a refused
-// connection is worth waiting out. Everything after that is a real answer from the server, and
-// retrying it would just turn a clear failure into a ten minute one.
 
 using Microsoft.Data.SqlClient;
 
