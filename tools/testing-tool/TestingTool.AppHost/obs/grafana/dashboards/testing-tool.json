@@ -2,7 +2,7 @@
   "title": "Testing Tool — Error Load & Observability",
   "uid": "testing-tool",
   "schemaVersion": 39,
-  "version": 5,
+  "version": 6,
   "timezone": "browser",
   "refresh": "5s",
   "tags": ["testing-tool", "servicecontrol", "otel"],
@@ -204,11 +204,11 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(errors_sent_total[$__rate_interval])) + sum(rate(bypass_errors_written_total[$__rate_interval]))",
+          "expr": "avg_over_time((sum(rate(errors_sent_total[1m])) + sum(rate(bypass_errors_written_total[1m])))[2m:15s])",
           "legendFormat": "raised (testing-tool)"
         },
         {
-          "expr": "sum(rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",message_category=\"failed-message\",result=\"success\"}[$__rate_interval]))",
+          "expr": "avg_over_time((sum(rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",message_category=\"failed-message\",result=\"success\"}[1m])))[2m:15s])",
           "legendFormat": "ingested (servicecontrol)"
         }
       ]
@@ -252,7 +252,7 @@
     {
       "id": 20,
       "title": "Ingestion Rate (msg/sec)",
-      "description": "Current successful ingestion rate across both message categories, from the count of sc.error.ingestion.message_duration_seconds with result=success. This is the headline throughput number: what ServiceControl is actually absorbing right now.",
+      "description": "Successful ingestion rate across both message categories, from the count of sc.error.ingestion.message_duration_seconds with result=success. Averaged over a 2-minute window (15s step) to smooth out the stepwise nature of the batched counter, so this is the sustained rate rather than an instantaneous one.",
       "type": "stat",
       "gridPos": { "h": 6, "w": 6, "x": 0, "y": 35 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -271,7 +271,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",result=\"success\"}[$__rate_interval]))",
+          "expr": "avg_over_time((sum(rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",result=\"success\"}[1m])))[2m:15s])",
           "legendFormat": "ingested"
         }
       ]
@@ -279,7 +279,7 @@
     {
       "id": 21,
       "title": "Peak Ingestion Rate (selected range)",
-      "description": "Highest 1-minute ingestion rate seen anywhere in the dashboard's time range, sampled every 15s. Use it to read off what the instance sustained at its best during a load run.",
+      "description": "Highest sustained ingestion rate seen anywhere in the dashboard's time range. The underlying per-message rate is averaged over a 2-minute window (15s step) before the max is taken, so the value reflects what the instance actually sustained rather than a single batch-flush spike.",
       "type": "stat",
       "gridPos": { "h": 6, "w": 6, "x": 6, "y": 35 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -298,7 +298,7 @@
       },
       "targets": [
         {
-          "expr": "max_over_time((sum(rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",result=\"success\"}[$__rate_interval])))[$__range:15s])",
+          "expr": "max_over_time(avg_over_time((sum(rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",result=\"success\"}[1m])))[2m:15s])[$__range:15s])",
           "legendFormat": "peak"
         }
       ]
@@ -384,7 +384,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (result) (rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "expr": "avg_over_time((sum by (result) (rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\"}[1m])))[2m:15s])",
           "legendFormat": "{{result}}"
         }
       ]
@@ -407,7 +407,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (exported_job, message_category) (rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",result=\"success\"}[$__rate_interval]))",
+          "expr": "avg_over_time((sum by (exported_job, message_category) (rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",result=\"success\"}[1m])))[2m:15s])",
           "legendFormat": "{{message_category}} - {{exported_job}}"
         }
       ]
@@ -451,7 +451,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval])) / sum(rate(sc_error_ingestion_batch_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "expr": "avg_over_time((sum(rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\"}[1m])))[2m:15s]) / avg_over_time((sum(rate(sc_error_ingestion_batch_duration_seconds_count{exported_job=~\"$sc_instance\"}[1m])))[2m:15s])",
           "legendFormat": "messages / batch"
         }
       ]
@@ -586,15 +586,15 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(sc_error_ingestion_message_duration_seconds_sum{exported_job=~\"$sc_instance\"}[$__rate_interval])) / sum(rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "expr": "avg_over_time((sum(rate(sc_error_ingestion_message_duration_seconds_sum{exported_job=~\"$sc_instance\"}[1m])) / sum(rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\"}[1m])))[2m:15s])",
           "legendFormat": "message"
         },
         {
-          "expr": "sum(rate(sc_error_ingestion_batch_duration_seconds_sum{exported_job=~\"$sc_instance\"}[$__rate_interval])) / sum(rate(sc_error_ingestion_batch_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "expr": "avg_over_time((sum(rate(sc_error_ingestion_batch_duration_seconds_sum{exported_job=~\"$sc_instance\"}[1m])) / sum(rate(sc_error_ingestion_batch_duration_seconds_count{exported_job=~\"$sc_instance\"}[1m])))[2m:15s])",
           "legendFormat": "batch"
         },
         {
-          "expr": "sum(rate(sc_error_ingestion_storage_duration_seconds_sum{exported_job=~\"$sc_instance\"}[$__rate_interval])) / sum(rate(sc_error_ingestion_storage_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "expr": "avg_over_time((sum(rate(sc_error_ingestion_storage_duration_seconds_sum{exported_job=~\"$sc_instance\"}[1m])) / sum(rate(sc_error_ingestion_storage_duration_seconds_count{exported_job=~\"$sc_instance\"}[1m])))[2m:15s])",
           "legendFormat": "storage write"
         }
       ]
@@ -616,7 +616,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(sc_error_ingestion_storage_duration_seconds_sum{exported_job=~\"$sc_instance\"}[$__rate_interval])) / sum(rate(sc_error_ingestion_batch_duration_seconds_sum{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "expr": "avg_over_time((sum(rate(sc_error_ingestion_storage_duration_seconds_sum{exported_job=~\"$sc_instance\"}[1m])) / sum(rate(sc_error_ingestion_batch_duration_seconds_sum{exported_job=~\"$sc_instance\"}[1m])))[2m:15s])",
           "legendFormat": "storage / batch"
         }
       ]
@@ -644,7 +644,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (result) (rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",message_category=\"failed-message\"}[$__rate_interval]))",
+          "expr": "avg_over_time((sum by (result) (rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",message_category=\"failed-message\"}[1m])))[2m:15s])",
           "legendFormat": "{{result}}"
         }
       ]
