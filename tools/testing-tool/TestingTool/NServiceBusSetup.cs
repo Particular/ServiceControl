@@ -35,9 +35,15 @@ public static class NServiceBusEndpointExtensions
 
         // Route failures to the ServiceControl error queue.
         config.SendFailedMessagesTo(options.ErrorQueueName);
-        
         config.AuditProcessedMessagesTo(options.AuditQueueName);
         config.SendHeartbeatTo(options.ServiceControlInputQueue);
+        
+        // enable metrics
+        var metrics = config.EnableMetrics();
+        metrics.SendMetricDataToServiceControl(
+            serviceControlMetricsAddress: "Particular.Monitoring",
+            interval: TimeSpan.FromSeconds(2)
+        );
 
         // Simplified serializer; the testing tool generates volume, not complex payloads.
         config.UseSerialization<SystemJsonSerializer>();
