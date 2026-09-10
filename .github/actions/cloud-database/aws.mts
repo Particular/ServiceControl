@@ -98,9 +98,24 @@ function allowRunner(groupId: string, port: number, runnerIp: string): void {
 function deleteSecurityGroup(name: string): void {
     const groupId = capture('aws', ['ec2', 'describe-security-groups', '--filters', `Name=group-name,Values=${name}`, '--query', 'SecurityGroups[0].GroupId', '--output', 'text']);
 
-    if (groupId && groupId !== 'None') {
-        run('aws', ['ec2', 'delete-security-group', '--group-id', groupId, '--no-cli-pager']);
+    if (!groupId || groupId === 'None') {
+        return;
     }
+
+    const failure = tryRun('aws', ['ec2', 'delete-security-group', '--group-id', groupId, '--no-cli-pager']);
+
+    if (!failure) {
+        return;
+    }
+
+    // The normal outcome, not a problem: the database that used the group takes minutes to finish
+    // deleting and holds it until then. removeStaleSecurityGroups clears it on a later run.
+    if (failure.includes('DependencyViolation')) {
+        step(`Security group ${name} is still held by a database that is deleting, leaving it for a later run to sweep up`);
+        return;
+    }
+
+    throw new Error(failure);
 }
 
 // A security group cannot be deleted while an instance still holds it, and an RDS instance takes
