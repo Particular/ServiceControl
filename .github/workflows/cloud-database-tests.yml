@@ -6,7 +6,7 @@ on:
       - '[0-9]+.[0-9]+.[0-9]+'
       - '[0-9]+.[0-9]+.[0-9]+-*'
     branches:
-      - john/cloud-ci-tests
+      - john/cloud_ci_tests
   workflow_dispatch:
     inputs:
       target:
