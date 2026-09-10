@@ -35,8 +35,10 @@ async function provision(name: string): Promise<void> {
         '--only-show-errors', '--output', 'none']);
 
     step(`Creating database ${databaseName}`);
+    // --name, not --database-name: that is what this command asks for, whatever the server-level
+    // commands use.
     run('az', ['postgres', 'flexible-server', 'db', 'create',
-        '--database-name', databaseName,
+        '--name', databaseName,
         '--resource-group', azure.resourceGroup,
         '--server-name', name,
         '--only-show-errors', '--output', 'none']);

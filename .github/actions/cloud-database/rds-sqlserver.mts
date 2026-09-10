@@ -15,20 +15,28 @@ const port = 1433;
 // out not to have it, in which case move to sqlserver-se.
 const engine = 'sqlserver-web';
 
+// Both AWS targets run at once with the same run name, so each needs its own prefix or they collide
+// on the security group and on RDS identifiers.
+function instanceName(name: string): string {
+    return `${name}-mssql`;
+}
+
 async function provision(name: string): Promise<void> {
+    const instance = instanceName(name);
+
     aws.removeStaleSecurityGroups();
 
     const password = newAdminPassword();
     const runnerIp = await runnerIpAddress();
-    const { groupId, created } = aws.createSecurityGroup(name);
+    const { groupId, created } = aws.createSecurityGroup(instance);
     aws.allowRunner(groupId, port, runnerIp);
 
     // db.m5.large on gp3, because a t3.small would be throttled by both CPU credits and gp2 burst
     // balance part way through the run. No automated backups and no standby: the instance does not
     // outlive the job, and both slow provisioning down.
-    step(`Creating RDS SQL Server instance ${name}`);
+    step(`Creating RDS SQL Server instance ${instance}`);
     run('aws', ['rds', 'create-db-instance',
-        '--db-instance-identifier', name,
+        '--db-instance-identifier', instance,
         '--engine', engine,
         '--db-instance-class', 'db.m5.large',
         '--allocated-storage', '100',
@@ -41,13 +49,13 @@ async function provision(name: string): Promise<void> {
         '--publicly-accessible',
         '--no-multi-az',
         '--backup-retention-period', '0',
-        ...aws.tags(name, created),
+        ...aws.tags(instance, created),
         '--no-cli-pager']);
 
     step('Waiting for the instance to become available');
-    run('aws', ['rds', 'wait', 'db-instance-available', '--db-instance-identifier', name]);
+    run('aws', ['rds', 'wait', 'db-instance-available', '--db-instance-identifier', instance]);
 
-    const endpoint = capture('aws', ['rds', 'describe-db-instances', '--db-instance-identifier', name, '--query', 'DBInstances[0].Endpoint.Address', '--output', 'text']);
+    const endpoint = capture('aws', ['rds', 'describe-db-instances', '--db-instance-identifier', instance, '--query', 'DBInstances[0].Endpoint.Address', '--output', 'text']);
 
     // Trust Server Certificate because RDS presents an Amazon CA that is not in the runner's trust
     // store. The connection is still encrypted; only the certificate chain goes unverified.
@@ -62,12 +70,14 @@ async function provision(name: string): Promise<void> {
 }
 
 function teardown(name: string): void {
-    teardownStep(`Deleting instance ${name}`, () =>
-        run('aws', ['rds', 'delete-db-instance', '--db-instance-identifier', name, '--skip-final-snapshot', '--delete-automated-backups', '--no-cli-pager']));
+    const instance = instanceName(name);
+
+    teardownStep(`Deleting instance ${instance}`, () =>
+        run('aws', ['rds', 'delete-db-instance', '--db-instance-identifier', instance, '--skip-final-snapshot', '--delete-automated-backups', '--no-cli-pager']));
 
     // Will refuse while the instance still holds it, which is the normal case. removeStaleSecurityGroups
     // on a later run is what actually clears it.
-    teardownStep(`Deleting security group ${name}`, () => aws.deleteSecurityGroup(name));
+    teardownStep(`Deleting security group ${instance}`, () => aws.deleteSecurityGroup(instance));
 }
 
 export { provision, teardown };
