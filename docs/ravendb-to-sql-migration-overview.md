@@ -62,16 +62,13 @@ The copier runs inside the ServiceControl host, so every row and every message b
 - Any server-to-server copy: no backup and restore, no RavenDB ETL or replication into SQL, no external data pipeline
 - A host that can reach only one of the two databases at a time, so no staged move by way of an offline copy
 - Primary and throughput RavenDB databases in different locations
-- 🍅 Merging two ServiceControl instances into one SQL database, or splitting one instance across several
 - Anything but RavenDB as the source, or anything but a ServiceControl EF Core persister as the target
-
-🍅 Unverified: a source whose RavenDB licence has expired. The licence check inside `DatabaseSetup.Execute` is RavenDB's own, polling the server's `/license/status` and refusing an expired one, and the read-only lifecycle never calls it. So the one thing that would have blocked this is removed by design. Whether the RavenDB server itself still serves reads on an expired licence is a question about RavenDB's behaviour and licence terms that reading our code cannot answer, and one test would settle it. A customer whose licence has expired is exactly the one most likely to be leaving RavenDB.
 
 ## Migration workflow
 
 1. Upgrade ServiceControl as normal, still on RavenDB.
 2. Set four things in configuration: the new `PersistenceType`, its connection string, `MigrationMode=true`, and which [optional data](#data-to-be-migrated) they want copied.
-3. Run `--setup` to creates the SQL schema. It fails against a SQL Server instance without Full-Text Search installed.
+3. Run `--setup` to create the SQL schema. It fails against a SQL Server instance without Full-Text Search installed.
 4. Run the [dry run](#dry-run). It reports what it resolved as a source, what each category holds, 🍅 and how long ServiceControl will be closed, so nobody starts a copy without knowing what it will do.
 5. Start ServiceControl (`MigrationMode=true`).
 6. Every check runs before a single row moves. If one fails the host does not start and names which, having copied nothing, so a wrong database name or unconfigured body storage costs a restart rather than a half-finished migration.
@@ -137,6 +134,7 @@ flowchart TB
 - The SQL schema is current
 - Message body storage is writable
 - Both RavenDB databases are reachable
+- The client certificate is valid, where the source is an external server
 - The source is at a version this build can read
 - The selected categories are valid
 
@@ -144,7 +142,7 @@ flowchart TB
 
 ### Required
 
-- Unresolved failed messages, with their bodies. Attempt history collapses to the newest attempt, because the SQL model has no attempts table 🍅 A prerequisite to migration could be for a customer to clean this up first. i.e. archive. This will move the failed message to optional and can be migrated in the background.
+- Unresolved failed messages, with their bodies. Attempt history collapses to the newest attempt, because the SQL model has no attempts table.
 - Message redirects
 - Endpoint settings
 - Known endpoints, including the monitored flag. One category, because the flag is a property of the endpoint row and cannot be copied without it
@@ -171,6 +169,7 @@ flowchart TB
 - `ArchiveBatches`, which exists only because of how RavenDB works
 - Integration events still waiting to be sent when you switch over are never sent
 - Broker and audit service version details, which refill on the throughput collector's next run
+- The last computed licensed-endpoint count, which is recomputed from the throughput data that is being copied
 
 ## Reading from RavenDB
 
@@ -207,6 +206,10 @@ flowchart TB
 - A `UniqueMessageId` that will not parse as a GUID is skipped and counted.
 - A message whose body cannot be read is skipped whole, after three attempts. Exhausted attempts count toward the halt threshold.
 - A bad row does not stop the copy. Its category finishes in a separate complete-with-errors state.
+- A row already past the target's retention cutoff is skipped and counted. The sweeper would delete it within the hour, so copying it would write a body to blob storage for nothing. Two retention periods are in play: the source's reverses `@expires` back into the status-change instant, and the target's current one decides whether that instant is past the cutoff.
+- A group comment whose failure group has no messages left in the target is skipped and counted. RavenDB never expires comments but the SQL sweeper reclaims orphans, so copying one writes a row the sweeper deletes within the hour.
+- The halt threshold is proportional with an absolute floor, and a category halts only when both are exceeded. Proportional alone halts a three-row category on one bad row; absolute alone lets ten thousand failures pass on a five-million-row table as "only 0.2%".
+- Verification therefore cannot treat any count difference as a fault. It accounts for all four skip rules, or it reports every successful migration as broken.
 
 ## Dry run
 
