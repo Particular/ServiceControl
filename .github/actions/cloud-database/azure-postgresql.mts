@@ -14,7 +14,8 @@ async function provision(name: string): Promise<void> {
     const tags = azure.tags(name);
 
     // General Purpose with 4 vCores rather than a burstable tier, so the run is not throttled part
-    // way through. No high availability and no geo-redundant backup: nothing here outlives the job.
+    // way through. High availability is left at its default of disabled rather than passed
+    // explicitly, because the CLI on the runner does not accept --high-availability.
     // --public-access opens the firewall to just this runner as part of creation.
     step(`Creating PostgreSQL flexible server ${name} in ${azure.resourceGroup} (${location}), allowing ${runnerIp}`);
     run('az', ['postgres', 'flexible-server', 'create',
@@ -27,7 +28,6 @@ async function provision(name: string): Promise<void> {
         '--sku-name', 'Standard_D4ds_v5',
         '--storage-size', '128',
         '--version', '16',
-        '--high-availability', 'Disabled',
         '--geo-redundant-backup', 'Disabled',
         '--public-access', runnerIp,
         ...tags,

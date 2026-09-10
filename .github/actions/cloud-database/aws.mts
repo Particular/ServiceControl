@@ -2,14 +2,38 @@
 
 import { step, run, capture, captureJson } from './common.mts';
 
-function defaultVpcId(): string {
+function findDefaultVpc(): string | null {
     const vpcId = capture('aws', ['ec2', 'describe-vpcs', '--filters', 'Name=isDefault,Values=true', '--query', 'Vpcs[0].VpcId', '--output', 'text']);
 
-    if (!vpcId || vpcId === 'None') {
-        throw new Error('This AWS account has no default VPC in this region, so there is no public subnet group for the database to use.');
+    return vpcId && vpcId !== 'None' ? vpcId : null;
+}
+
+// RDS places a publicly accessible instance in the default VPC's subnet group, and an account has at
+// most one default VPC per region. It is account infrastructure rather than this run's, so it is
+// created when missing and never deleted.
+function defaultVpcId(): string {
+    const existing = findDefaultVpc();
+
+    if (existing) {
+        return existing;
     }
 
-    return vpcId;
+    step('This region has no default VPC, creating one');
+
+    try {
+        run('aws', ['ec2', 'create-default-vpc', '--no-cli-pager']);
+    } catch {
+        // Both AWS targets provision at the same time, so the other job may have created it between
+        // the lookup above and this call. The re-read below settles who won.
+    }
+
+    const created = findDefaultVpc();
+
+    if (!created) {
+        throw new Error('This region has no default VPC and one could not be created. Check that the credentials allow ec2:CreateDefaultVpc.');
+    }
+
+    return created;
 }
 
 // An EC2 security group does not record when it was created, so this tag is what the stale sweep
