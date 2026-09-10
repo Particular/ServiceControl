@@ -26,6 +26,7 @@ var raven = platform.AddPersistenceRavenDb("raven");
 
 var primaryErrorInstance = platform
     .AddServiceControlErrorInstance("error", raven)
+    .WithEnvironment("SERVICECONTROL_ALLOWMESSAGEEDITING", "true")
     .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", observability.Collector.GetEndpoint("otlp-grpc"))
     .WithPersistenceType(persistenceType)
     .WithRunMode(PlatformRunMode.SetupAndRun);
@@ -45,8 +46,7 @@ for (int i = 0; i < options.GetValue("error-ingestion-scale-unit", 0); i++) {
         .WithRunMode(PlatformRunMode.Run);
 }
 
-platform.AddServicePulse("pulse", primaryErrorInstance);
-platform.AddServiceControlMonitoringInstance("monitoring");
+platform.AddServicePulse("pulse", primaryErrorInstance, platform.AddServiceControlMonitoringInstance("monitoring"));
 
 for (int i = 0; i < options.GetValue("audit-instances", 0); i++)
 {
