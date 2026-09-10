@@ -16,7 +16,7 @@ async function provision(name: string): Promise<void> {
         '--resource-group', azure.resourceGroup,
         '--location', location,
         '--admin-user', adminUser,
-        '--admin-password', password,
+        `--admin-password=${password}`,
         ...tags,
         '--only-show-errors', '--output', 'none']);
 

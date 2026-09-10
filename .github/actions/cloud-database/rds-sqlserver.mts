@@ -29,7 +29,7 @@ async function provision(name: string): Promise<void> {
         '--allocated-storage', '100',
         '--storage-type', 'gp3',
         '--master-username', adminUser,
-        '--master-user-password', password,
+        `--master-user-password=${password}`,
         '--vpc-security-group-ids', groupId,
         '--db-subnet-group-name', aws.dbSubnetGroupName(),
         '--license-model', 'license-included',

@@ -30,7 +30,7 @@ async function provision(name: string): Promise<void> {
         '--db-cluster-identifier', base,
         '--engine', 'aurora-postgresql',
         '--master-username', adminUser,
-        '--master-user-password', password,
+        `--master-user-password=${password}`,
         '--database-name', databaseName,
         '--vpc-security-group-ids', groupId,
         '--db-subnet-group-name', aws.dbSubnetGroupName(),

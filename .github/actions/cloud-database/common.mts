@@ -41,7 +41,7 @@ function newAdminPassword(): string {
     const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
     const lower = 'abcdefghijkmnpqrstuvwxyz';
     const digit = '23456789';
-    const symbol = '!#$%*()-_+';
+    const symbol = '!#$%*()_+';
     const all = upper + lower + digit + symbol;
 
     const pick = (set: string) => set[randomInt(set.length)];
@@ -55,6 +55,9 @@ function newAdminPassword(): string {
         const j = randomInt(i + 1);
         [characters[i], characters[j]] = [characters[j], characters[i]];
     }
+
+    const letter = characters.findIndex(c => /[A-Za-z]/.test(c));
+    [characters[0], characters[letter]] = [characters[letter], characters[0]];
 
     const password = characters.join('');
 
@@ -83,8 +86,6 @@ function setPersistenceConnectionString(provider: Provider, connectionString: st
 function verifyDatabase(provider: Provider, connectionString: string): void {
     const script = provider === 'SqlServer' ? './verify-sqlserver.cs' : './verify-postgresql.cs';
 
-    // From this folder, because `dotnet run <file>.cs` picks up any project file in the working
-    // directory and the repo root holds a tests.proj by this point.
     execFileSync('dotnet', ['run', script, '--', connectionString], { cwd: import.meta.dirname, stdio: 'inherit' });
 }
 
