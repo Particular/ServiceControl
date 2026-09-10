@@ -33,6 +33,10 @@ class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
         builder.Property(e => e.BodyStoredExternally).IsRequired();
         builder.Property(e => e.BodySize).IsRequired();
 
+        // Drives the group aggregate's MIN/MAX(FirstTimeOfFailure, LastTimeOfFailure) over the
+        // unresolved set. The FirstTimeOfFailure/LastTimeOfFailure INCLUDE columns are added in the
+        // provider DbContexts (the IncludeProperties API is provider-specific and is not available in
+        // this shared project).
         builder.HasIndex(e => new { e.Status, e.LastModified });
         builder.HasIndex(e => e.ReceivingEndpointName);
         builder.HasIndex(e => e.FailingEndpointAddress);
