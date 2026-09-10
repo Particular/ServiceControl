@@ -36,6 +36,7 @@ async function provision(name: string): Promise<void> {
         '--master-username', adminUser,
         '--master-user-password', password,
         '--vpc-security-group-ids', groupId,
+        '--db-subnet-group-name', aws.dbSubnetGroupName(),
         '--license-model', 'license-included',
         '--publicly-accessible',
         '--no-multi-az',

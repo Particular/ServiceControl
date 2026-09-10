@@ -28,6 +28,7 @@ async function provision(name: string): Promise<void> {
         '--master-user-password', password,
         '--database-name', databaseName,
         '--vpc-security-group-ids', groupId,
+        '--db-subnet-group-name', aws.dbSubnetGroupName(),
         '--no-deletion-protection',
         '--backup-retention-period', '1',
         ...tags,

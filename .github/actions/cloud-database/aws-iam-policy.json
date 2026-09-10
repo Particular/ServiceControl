@@ -47,6 +47,7 @@
       "Action": [
         "rds:CreateDBInstance",
         "rds:CreateDBCluster",
+        "rds:CreateDBSubnetGroup",
         "rds:DeleteDBInstance",
         "rds:DeleteDBCluster",
         "rds:DeleteDBInstanceAutomatedBackup",

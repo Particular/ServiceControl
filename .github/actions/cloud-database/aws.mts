@@ -1,6 +1,6 @@
 // Helpers shared by the two AWS targets.
 
-import { step, run, capture, captureJson } from './common.mts';
+import { step, run, tryRun, capture, captureJson } from './common.mts';
 
 function findDefaultVpc(): string | null {
     const vpcId = capture('aws', ['ec2', 'describe-vpcs', '--filters', 'Name=isDefault,Values=true', '--query', 'Vpcs[0].VpcId', '--output', 'text']);
@@ -20,17 +20,14 @@ function defaultVpcId(): string {
 
     step('This region has no default VPC, creating one');
 
-    try {
-        run('aws', ['ec2', 'create-default-vpc', '--no-cli-pager']);
-    } catch {
-        // Both AWS targets provision at the same time, so the other job may have created it between
-        // the lookup above and this call. The re-read below settles who won.
-    }
-
+    // Both AWS targets provision at the same time, so the other job may have created it between the
+    // lookup above and this call. The re-read below settles who won, which is why the failure is
+    // held rather than thrown.
+    const failure = tryRun('aws', ['ec2', 'create-default-vpc', '--no-cli-pager']);
     const created = findDefaultVpc();
 
     if (!created) {
-        throw new Error('This region has no default VPC and one could not be created. Check that the credentials allow ec2:CreateDefaultVpc.');
+        throw new Error(`This region has no default VPC and one could not be created: ${failure}`);
     }
 
     return created;
@@ -40,6 +37,40 @@ function defaultVpcId(): string {
 // judges age by. Epoch seconds because AWS restricts the characters a tag value may contain.
 function createdTimestamp(): string {
     return Math.floor(Date.now() / 1000).toString();
+}
+
+// RDS needs a subnet group spanning at least two availability zones. A region does not reliably
+// have one called "default", even where a default VPC exists, so this owns one rather than betting
+// on RDS creating it. Like the default VPC it is account infrastructure: created when missing,
+// never deleted, and shared by concurrent runs.
+const subnetGroup = 'servicecontrol-cloud-tests';
+
+function dbSubnetGroupName(): string {
+    const existing = capture('aws', ['rds', 'describe-db-subnet-groups', '--query', `length(DBSubnetGroups[?DBSubnetGroupName=='${subnetGroup}'])`, '--output', 'text', '--no-cli-pager']);
+
+    if (existing !== '0') {
+        return subnetGroup;
+    }
+
+    const subnets = capture('aws', ['ec2', 'describe-subnets', '--filters', `Name=vpc-id,Values=${defaultVpcId()}`, 'Name=default-for-az,Values=true', '--query', 'Subnets[].SubnetId', '--output', 'text']).split(/\s+/).filter(Boolean);
+
+    if (subnets.length < 2) {
+        throw new Error(`The default VPC has ${subnets.length} default subnet(s), and RDS needs at least two availability zones.`);
+    }
+
+    step(`Creating DB subnet group ${subnetGroup} across ${subnets.length} subnets`);
+    const failure = tryRun('aws', ['rds', 'create-db-subnet-group',
+        '--db-subnet-group-name', subnetGroup,
+        '--db-subnet-group-description', 'ServiceControl cloud database tests',
+        '--subnet-ids', ...subnets,
+        '--no-cli-pager']);
+
+    // The other AWS target provisions at the same time and may have created it in between.
+    if (failure && capture('aws', ['rds', 'describe-db-subnet-groups', '--query', `length(DBSubnetGroups[?DBSubnetGroupName=='${subnetGroup}'])`, '--output', 'text', '--no-cli-pager']) === '0') {
+        throw new Error(`Could not create the DB subnet group: ${failure}`);
+    }
+
+    return subnetGroup;
 }
 
 function createSecurityGroup(name: string): { groupId: string; created: string } {
@@ -100,4 +131,4 @@ function tags(name: string, created: string): string[] {
     return ['--tags', 'Key=sc-cloud-test,Value=true', `Key=run-id,Value=${name}`, `Key=created,Value=${created}`];
 }
 
-export { createSecurityGroup, allowRunner, deleteSecurityGroup, removeStaleSecurityGroups, tags };
+export { dbSubnetGroupName, createSecurityGroup, allowRunner, deleteSecurityGroup, removeStaleSecurityGroups, tags };

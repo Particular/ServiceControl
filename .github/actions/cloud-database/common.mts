@@ -17,6 +17,18 @@ function run(command: string, args: string[]): void {
     execFileSync(command, args, { stdio: 'inherit' });
 }
 
+// Runs a command that is allowed to fail, returning the reason it gave when it does. Reporting the
+// CLI's own message beats guessing at the cause in an error string.
+function tryRun(command: string, args: string[]): string | null {
+    try {
+        execFileSync(command, args, { stdio: ['ignore', 'inherit', 'pipe'], encoding: 'utf8' });
+        return null;
+    } catch (error) {
+        const stderr = String((error as { stderr?: unknown }).stderr ?? '').trim();
+        return stderr.split('\n').filter(Boolean).pop() ?? (error as Error).message;
+    }
+}
+
 function capture(command: string, args: string[]): string {
     return execFileSync(command, args, { encoding: 'utf8' }).trim();
 }
@@ -99,6 +111,7 @@ function teardownStep(description: string, action: () => void): void {
 export {
     step,
     run,
+    tryRun,
     capture,
     captureJson,
     newAdminPassword,
