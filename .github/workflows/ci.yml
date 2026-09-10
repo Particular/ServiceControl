@@ -166,7 +166,7 @@ jobs:
         with:
           connection-string-name: ServiceControl_TransportTests_IBMMQ_ConnectionString
       - name: Azure login
-        uses: azure/login@v3.0.2
+        uses: azure/login@v3.1.0
         if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues'
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
