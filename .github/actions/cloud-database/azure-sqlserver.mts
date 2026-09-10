@@ -41,7 +41,7 @@ async function provision(name: string): Promise<void> {
         '--name', databaseName,
         '--resource-group', azure.resourceGroup,
         '--server', name,
-        '--service-objective', 'BC_Gen5_4',
+        '--service-objective', 'BC_Gen5_8',
         '--backup-storage-redundancy', 'Local',
         ...tags,
         '--only-show-errors', '--output', 'none']);

@@ -9,7 +9,7 @@
 import { appendFileSync } from 'node:fs';
 import type { Target } from './common.mts';
 
-const targets: Target[] = ['azure-sql', 'azure-postgresql', 'aurora-postgresql', 'rds-sqlserver'];
+const targets: Target[] = ['azure-sqlserver', 'azure-postgresql', 'aurora-postgresql', 'rds-sqlserver'];
 
 function fail(message: string): never {
     console.log(`::error::${message}`);

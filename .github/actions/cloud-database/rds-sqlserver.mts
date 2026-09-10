@@ -31,14 +31,14 @@ async function provision(name: string): Promise<void> {
     const { groupId, created } = aws.createSecurityGroup(instance);
     aws.allowRunner(groupId, port, runnerIp);
 
-    // db.m5.large on gp3, because a t3.small would be throttled by both CPU credits and gp2 burst
-    // balance part way through the run. No automated backups and no standby: the instance does not
+    // db.m5.2xlarge on gp3, because a burstable class would run out of both CPU credits and gp2
+    // burst balance part way through the run. No automated backups and no standby: the instance does not
     // outlive the job, and both slow provisioning down.
     step(`Creating RDS SQL Server instance ${instance}`);
     run('aws', ['rds', 'create-db-instance',
         '--db-instance-identifier', instance,
         '--engine', engine,
-        '--db-instance-class', 'db.m5.large',
+        '--db-instance-class', 'db.m5.2xlarge',
         '--allocated-storage', '100',
         '--storage-type', 'gp3',
         '--master-username', adminUser,

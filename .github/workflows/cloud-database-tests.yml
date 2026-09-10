@@ -16,7 +16,7 @@ on:
         type: choice
         options:
           - all
-          - azure-sql
+          - azure-sqlserver
           - azure-postgresql
           - aurora-postgresql
           - rds-sqlserver
@@ -45,7 +45,7 @@ jobs:
         id: select
         run: |
           $all = @(
-            @{ target = 'azure-sql';          provider = 'SqlServer'  }
+            @{ target = 'azure-sqlserver';    provider = 'SqlServer'  }
             @{ target = 'azure-postgresql';   provider = 'PostgreSql' }
             @{ target = 'aurora-postgresql';  provider = 'PostgreSql' }
             @{ target = 'rds-sqlserver';      provider = 'SqlServer'  }

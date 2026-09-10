@@ -41,14 +41,14 @@ async function provision(name: string): Promise<void> {
         ...tags,
         '--no-cli-pager']);
 
-    // One instance and no replicas: the cluster does not outlive the job. db.r6g.large rather than a
+    // One instance and no replicas: the cluster does not outlive the job. db.r6g.2xlarge rather than a
     // burstable class, so the run is not throttled part way through.
     step(`Creating instance ${instance}`);
     run('aws', ['rds', 'create-db-instance',
         '--db-instance-identifier', instance,
         '--db-cluster-identifier', base,
         '--engine', 'aurora-postgresql',
-        '--db-instance-class', 'db.r6g.large',
+        '--db-instance-class', 'db.r6g.2xlarge',
         '--publicly-accessible',
         ...tags,
         '--no-cli-pager']);

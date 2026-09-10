@@ -5,7 +5,7 @@ import { appendFileSync } from 'node:fs';
 import { randomInt } from 'node:crypto';
 
 export type Provider = 'SqlServer' | 'PostgreSql';
-export type Target = 'azure-sql' | 'azure-postgresql' | 'aurora-postgresql' | 'rds-sqlserver';
+export type Target = 'azure-sqlserver' | 'azure-postgresql' | 'aurora-postgresql' | 'rds-sqlserver';
 
 function step(message: string): void {
     console.log(`==> ${message}`);

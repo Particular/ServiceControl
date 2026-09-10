@@ -13,8 +13,9 @@ async function provision(name: string): Promise<void> {
     const location = azure.location();
     const tags = azure.tags(name);
 
-    // General Purpose with 4 vCores rather than a burstable tier, so the run is not throttled part
-    // way through. High availability is left at its default of disabled rather than passed
+    // General Purpose with 8 vCores rather than a burstable tier, so the run is not throttled part
+    // way through. The disk is oversized on purpose: premium SSD IOPS scale with its size here, and
+    // the suites are IO bound rather than short of space. High availability is left at its default of disabled rather than passed
     // explicitly, because the CLI on the runner does not accept --high-availability.
     // --public-access opens the firewall to just this runner as part of creation.
     step(`Creating PostgreSQL flexible server ${name} in ${azure.resourceGroup} (${location}), allowing ${runnerIp}`);
@@ -25,8 +26,8 @@ async function provision(name: string): Promise<void> {
         '--admin-user', adminUser,
         '--admin-password', password,
         '--tier', 'GeneralPurpose',
-        '--sku-name', 'Standard_D4ds_v5',
-        '--storage-size', '128',
+        '--sku-name', 'Standard_D8ds_v5',
+        '--storage-size', '512',
         '--version', '16',
         '--geo-redundant-backup', 'Disabled',
         '--public-access', runnerIp,
