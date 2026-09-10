@@ -1,12 +1,6 @@
 name: Cloud database tests
 on:
-  pull_request:
-  push:
-    tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
-      - '[0-9]+.[0-9]+.[0-9]+-*'
-    branches:
-      - john/cloud_ci_tests
+  workflow_call:
   workflow_dispatch:
     inputs:
       target:
