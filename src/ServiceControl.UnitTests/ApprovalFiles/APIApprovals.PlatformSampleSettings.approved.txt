@@ -63,6 +63,7 @@
   "VirtualDirectory": "",
   "HeartbeatGracePeriod": "00:00:40",
   "TransportType": "ServiceControl.Transports.Learning.LearningTransportCustomization, ServiceControl.Transports.Learning",
+  "MigrationSourcePersistenceType": "RavenDB",
   "ErrorLogQueue": "error.log",
   "ErrorQueue": "error",
   "ForwardErrorMessages": false,
