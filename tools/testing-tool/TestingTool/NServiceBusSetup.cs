@@ -22,18 +22,21 @@ public static class NServiceBusEndpointExtensions
         var config = new EndpointConfiguration("TestingTool.Load");
 
         var transportConnectionString = configuration.GetConnectionString("transport");
-        if (transportConnectionString?.StartsWith("aqmp:") == true)
+        if (transportConnectionString?.StartsWith("amqp:") == true)
         {
+            Console.WriteLine($"Using RabbitMQ transport");
             var transport = config.UseTransport<RabbitMQTransport>();
             transport.UseConventionalRoutingTopology(QueueType.Quorum);
             transport.ConnectionString(transportConnectionString);
         }
-        if (transportConnectionString?.Contains("Initial Catalog=") == true)
+        else if (transportConnectionString?.Contains("Initial Catalog=") == true)
         {
+            Console.WriteLine($"Using SqlServer transport");
             var transport = config.UseTransport(new SqlServerTransport(transportConnectionString));
         }
         else
         {
+            Console.WriteLine($"Using Learning transport");
             config.UseTransport<LearningTransport>();
         }
 
