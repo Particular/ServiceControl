@@ -101,7 +101,7 @@
   </ItemGroup>
   <ItemGroup Label="Versions to pin transitive references">
     <PackageVersion Include="Azure.Core" Version="1.62.0" />
-    <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.2" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.IdentityModel.Abstractions" Version="8.22.0" />
     <PackageVersion Include="System.Formats.Cbor" Version="$(RuntimeFrameworkVersion)" />
