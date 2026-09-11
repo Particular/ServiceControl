@@ -27,7 +27,7 @@ jobs:
         # Categories are declared by the <TestCategory> property in each test project. A category can
         # span several projects that share infrastructure, so that the container is provisioned once
         # and the union of their build closures is compiled once.
-        test-category: [ DefaultCore, DefaultMonitoring, Raven, SqlServer, PostgreSql, RabbitMQ, AzureServiceBus, AzureStorageQueues, MSMQ, SQS, IBMMQ ]
+        test-category: [ DefaultCore, DefaultMonitoring, Migration, Raven, SqlServer, PostgreSql, RabbitMQ, AzureServiceBus, AzureStorageQueues, MSMQ, SQS, IBMMQ ]
         include:
           - os: windows-latest
             os-name: Windows
@@ -87,7 +87,7 @@ jobs:
         id: select
         run: ./tools/select-test-projects.ps1 -Category ${{ matrix.test-category }}
       - name: Download RavenDB Server
-        if: matrix.test-category == 'DefaultCore'
+        if: contains(fromJSON('["DefaultCore", "Migration"]'), matrix.test-category)
         run: ./tools/download-ravendb-server.ps1
       - name: Build
         id: build
@@ -128,14 +128,14 @@ jobs:
       # purpose: with the VM and the build competing for the runner's memory, jobs have died with "The
       # hosted runner lost communication with the server".
       - name: Setup WSL
-        if: contains(fromJSON('["RabbitMQ", "SqlServer", "PostgreSql", "IBMMQ"]'), matrix.test-category)
+        if: contains(fromJSON('["RabbitMQ", "SqlServer", "PostgreSql", "IBMMQ", "Migration"]'), matrix.test-category)
         uses: Particular/setup-wsl-action@v1.2.0
         with:
           # The action defaults to 4GB. The runner has 16GB, so give the VM real headroom.
           memory: 8GB
       - name: Setup SQL Server
         uses: Particular/install-sql-server-action@v3.0.0
-        if: matrix.test-category == 'SqlServer'
+        if: contains(fromJSON('["SqlServer", "Migration"]'), matrix.test-category)
         with:
           connection-string-env-var: ServiceControl_Persistence_SqlServer_ConnectionString
           catalog: ServiceControl

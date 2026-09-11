@@ -22,6 +22,20 @@ it owns the retry pipeline, the retention sweep, integration event dispatch and 
 Message bodies must be stored somewhere every host can read, so this mode should not be combined with
 file system body storage unless the path is a shared mount.
 
+MIGRATION SOURCE REPORT
+
+   ServiceControl.exe --migration-source-report
+
+Reports what a RavenDB to SQL migration would read: whether the old database is embedded or on its
+own server, which server, both database names with the setting each came from, and a row count for
+every collection.
+
+An EXTERNAL RavenDB source can be reported on while ServiceControl is running. An EMBEDDED source
+cannot: ServiceControl starts its own RavenDB process against that data directory, and a second one
+cannot attach to it. Stop the ServiceControl service first, run the report, and start it again. An
+instance that does not ship the RavenDB server, such as the container image, cannot report on an
+embedded source at all.
+
 SERVICE INSTALL AND UNINSTALL AND CONFIGURATION OPTIONS
 
 As of Service Control 1.7 the command line  uninstall and install switches have been removed.

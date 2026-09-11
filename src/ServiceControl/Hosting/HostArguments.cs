@@ -62,6 +62,15 @@ namespace Particular.ServiceControl.Hosting
                 }
             };
 
+            var migrationSourceReportOptions = new OptionSet
+            {
+                {
+                    "migration-source-report",
+                    "Report what a migration would read from the old RavenDB database, without changing it",
+                    s => Command = typeof(MigrationSourceReportCommand)
+                }
+            };
+
             try
             {
                 externalInstallerOptions.Parse(args);
@@ -88,6 +97,13 @@ namespace Particular.ServiceControl.Hosting
                 errorIngestionOnlyOptions.Parse(args);
 
                 if (Command == typeof(ErrorIngestionOnlyCommand))
+                {
+                    return;
+                }
+
+                migrationSourceReportOptions.Parse(args);
+
+                if (Command == typeof(MigrationSourceReportCommand))
                 {
                     return;
                 }
