@@ -20,6 +20,11 @@ class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
         builder.Property(e => e.LastAttemptedAt).IsRequired();
 
         builder.Property(e => e.MessageId).HasMaxLength(ColumnLengths.ShortTextLength);
+        // 450 and not nvarchar(max): the column has to be indexable to serve sort=message_type, and
+        // SQL Server rejects nvarchar(max) as an index key column. Type names are short-by-nature
+        // (the enricher stores the first comma token of EnclosedMessageTypes); ingestion enforces
+        // the cap so the write path can never fail on a longer value.
+        builder.Property(e => e.MessageType).HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.ConversationId).HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.SendingEndpointName).HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.SendingEndpointHost).HasMaxLength(ColumnLengths.ShortTextLength);
@@ -43,6 +48,13 @@ class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
         // Keyed (Status, LastTimeOfFailure) so the page query streams instead of scanning the
         // clustered table.
         builder.HasIndex(e => new { e.Status, e.LastTimeOfFailure });
+
+        // Serves the failed-messages page sorted by message_type. UniqueMessageId is an explicit
+        // key column and not just the SQL Server row locator: a message type repeats across many
+        // failed messages, and the page query's tie-break (ORDER BY MessageType DESC,
+        // UniqueMessageId DESC) has to come from the index itself on providers without a row
+        // locator concept (PostgreSQL), or the sort degrades to sorting every tie group.
+        builder.HasIndex(e => new { e.Status, e.MessageType, e.UniqueMessageId });
         builder.HasIndex(e => e.ReceivingEndpointName);
         builder.HasIndex(e => e.FailingEndpointAddress);
         builder.HasIndex(e => e.ConversationId);

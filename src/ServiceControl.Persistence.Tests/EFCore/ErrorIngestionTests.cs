@@ -60,6 +60,26 @@ class ErrorIngestionTests : ErrorIngestionTestBase
         }
     }
 
+    // The MessageType column is length-bounded (ShortTextLength) so it can be an index key serving
+    // sort=message_type, and ingestion caps what it writes to it. The full value stays in the
+    // headers: a retry deserializes from the EnclosedMessageTypes header, never from the column.
+    [Test]
+    public async Task An_over_length_message_type_is_capped_in_the_column_but_kept_in_the_headers()
+    {
+        var overLengthType = new string('A', 450) + new string('B', 50);
+        var failure = new IngestedFailure { MessageType = overLengthType };
+
+        await Ingest(failure);
+
+        var row = await GetFailedMessage(failure.UniqueMessageId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(row.MessageType, Is.EqualTo(overLengthType[..450]));
+            Assert.That(row.HeadersJson, Does.Contain(overLengthType), "the headers keep the complete type");
+        }
+    }
+
     [Test]
     public async Task Later_attempt_replaces_the_stored_attempt()
     {
