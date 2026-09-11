@@ -12,8 +12,8 @@ using ServiceControl.Persistence.EFCore.SqlServer;
 namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerServiceControlDbContext))]
-    [Migration("20260911010140_AddStatusLastTimeOfFailureIndex")]
-    partial class AddStatusLastTimeOfFailureIndex
+    [Migration("20260911041253_AddMissingIndexes")]
+    partial class AddMissingIndexes
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -302,7 +302,8 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("MessageType")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("NumberOfProcessingAttempts")
                         .HasColumnType("int");
@@ -356,6 +357,8 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("Status", "LastModified"), new[] { "FirstTimeOfFailure", "LastTimeOfFailure" });
 
                     b.HasIndex("Status", "LastTimeOfFailure");
+
+                    b.HasIndex("Status", "MessageType", "UniqueMessageId");
 
                     b.ToTable("FailedMessages");
                 });

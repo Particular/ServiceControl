@@ -13,15 +13,15 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    [Migration("20260910054603_WidenGroupAggregateIndexes")]
-    partial class WidenGroupAggregateIndexes
+    [Migration("20260911041328_AddMissingIndexes")]
+    partial class AddMissingIndexes
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -374,7 +374,8 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnName("message_id");
 
                     b.Property<string>("MessageType")
-                        .HasColumnType("text")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
                         .HasColumnName("message_type");
 
                     b.Property<int>("NumberOfProcessingAttempts")
@@ -444,6 +445,12 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasDatabaseName("ix_failed_messages_status_last_modified");
 
                     NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("Status", "LastModified"), new[] { "FirstTimeOfFailure", "LastTimeOfFailure" });
+
+                    b.HasIndex("Status", "LastTimeOfFailure")
+                        .HasDatabaseName("ix_failed_messages_status_last_time_of_failure");
+
+                    b.HasIndex("Status", "MessageType", "UniqueMessageId")
+                        .HasDatabaseName("ix_failed_messages_status_message_type_unique_message_id");
 
                     b.ToTable("failed_messages", (string)null);
                 });
