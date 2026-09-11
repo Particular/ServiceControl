@@ -48,7 +48,8 @@ public static class ObservabilityExtensions
         foreach (var c in builder.Resources.OfType<ContainerResource>())
         {
             if (c.TryGetLastAnnotation<ContainerImageAnnotation>(out var image) &&
-                image.Image.StartsWith("particular/servicecontrol"))
+                image.Image.StartsWith("particular/servicecontrol") && 
+                !image.Image.Contains("sql"))
             {
                 builder.CreateResourceBuilder(c)
                     .WithImage($"ghcr.io/{image.Image}", tag);
