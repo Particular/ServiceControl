@@ -38,6 +38,11 @@ class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
         // provider DbContexts (the IncludeProperties API is provider-specific and is not available in
         // this shared project).
         builder.HasIndex(e => new { e.Status, e.LastModified });
+
+        // Serves the failed-messages page sorted by time_of_failure (ServicePulse default sort).
+        // Keyed (Status, LastTimeOfFailure) so the page query streams instead of scanning the
+        // clustered table.
+        builder.HasIndex(e => new { e.Status, e.LastTimeOfFailure });
         builder.HasIndex(e => e.ReceivingEndpointName);
         builder.HasIndex(e => e.FailingEndpointAddress);
         builder.HasIndex(e => e.ConversationId);

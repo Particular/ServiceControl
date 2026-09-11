@@ -29,7 +29,7 @@ public class SqlServerServiceControlDbContext(DbContextOptions<SqlServerServiceC
 
         // Widen the group-aggregate indexes with covering INCLUDE columns so the
         // /api/recoverability/groups/ aggregate is index-only (no key lookups / clustered scan with a
-        // residual Status predicate). See missing-indexes.md. The IncludeProperties API is
+        // residual Status predicate). The IncludeProperties API is
         // provider-specific, so the widening is applied here rather than in the shared configuration.
         modelBuilder.Entity<FailedMessageEntity>()
             .HasIndex(e => new { e.Status, e.LastModified })
