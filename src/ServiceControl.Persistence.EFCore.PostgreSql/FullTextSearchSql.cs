@@ -1,5 +1,7 @@
 namespace ServiceControl.Persistence.EFCore.PostgreSql;
 
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
+
 /// <summary>
 /// Full text search DDL for the failed messages table. EF Core cannot model a GIN index over an
 /// expression, so it is applied by the AddFullTextSearch migration. The statements live here, and
@@ -9,6 +11,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql;
 static class FullTextSearchSql
 {
     const string IndexName = "ix_failed_messages_full_text";
+    const string TableName = "failed_messages";
 
     // 'simple' rather than 'english': message and header content is technical, stemming and
     // stopword removal do more harm than good.
@@ -26,7 +29,34 @@ static class FullTextSearchSql
     public const string IndexedExpression =
         $"""to_tsvector('{Configuration}', headers_json || ' ' || COALESCE(body_text, '') || ' ' || replace(replace(COALESCE(message_type, ''), '.', ' '), '+', ' '))""";
 
-    public const string Up = $"CREATE INDEX {IndexName} ON failed_messages USING GIN ({IndexedExpression})";
+    public static readonly string Up = CreateIndexSql(null);
 
-    public const string Down = $"DROP INDEX IF EXISTS {IndexName}";
+    public static readonly string Down = DropIndexSql(null);
+
+    /// <summary>
+    /// Re-renders the statement the migration carries, this time with the configured schema in it.
+    /// Anything else is left alone: EF Core builds the migrations history table's own SQL through
+    /// the same generator, already pointed at the right schema. MigrationSqlIsSchemaAwareTests is
+    /// what catches a statement of ours that should have been listed here.
+    /// </summary>
+    public static MigrationOperation Rewrite(SqlOperation operation, string schema) =>
+        operation.Sql switch
+        {
+            var sql when sql == Up => WithSql(operation, CreateIndexSql(schema)),
+            var sql when sql == Down => WithSql(operation, DropIndexSql(schema)),
+            _ => operation
+        };
+
+    public static bool IsHandled(string sql) => sql == Up || sql == Down;
+
+    static string CreateIndexSql(string? schema) =>
+        $"CREATE INDEX {IndexName} ON {Qualify(schema, TableName)} USING GIN ({IndexedExpression})";
+
+    // An index belongs to its table's schema, so it is the index that gets qualified here.
+    static string DropIndexSql(string? schema) => $"DROP INDEX IF EXISTS {Qualify(schema, IndexName)}";
+
+    static string Qualify(string? schema, string name) => schema is null ? name : $"\"{schema}\".{name}";
+
+    static SqlOperation WithSql(SqlOperation operation, string sql) =>
+        new() { Sql = sql, SuppressTransaction = operation.SuppressTransaction };
 }
