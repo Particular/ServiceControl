@@ -1,5 +1,4 @@
 using Particular.Aspire.Hosting.ServicePlatform.Platform;
-using Particular.Aspire.Hosting.ServicePlatform.Transport;
 using TestingTool.AppHost;
 
 var options = CliOptions.Parse(args);
@@ -11,21 +10,20 @@ var builder = DistributedApplication.CreateBuilder(args);
 // --- Observability stack (OTel Collector → Jaeger + Prometheus + Grafana) ---
 var observability = builder.AddObservabilityStack();
 
-// --- Particular Platform (ServiceControl + RabbitMQ transport) ---
-var transportUserName = builder.AddParameter("transportUserName", "guest", secret: true);
-var transportPassword = builder.AddParameter("transportPassword", "guest", secret: true);
-var transport = builder.AddRabbitMQ("transport", transportUserName, transportPassword)
-    .WithManagementPlugin(15672)
-    .WithUrlForEndpoint("management", url => url.DisplayText = "RabbitMQ Management");
+// --- Particular Platform ---
 
-var platform = builder
-    .AddParticularPlatform("particular")
-    .WithTransportRabbitMQ(RabbitMqRouting.QuorumConventionalRouting, transport);
+var platform = builder.AddParticularPlatform("particular");
+var transport = platform.AddTransport(options.GetValue("transport", TransportType.RabbitMq));
 
+//need to add this unconditionally because the aspire plugin doens't support sql natively yet.
 var raven = platform.AddPersistenceRavenDb("raven");
 
 var primaryErrorInstance = platform
     .AddServiceControlErrorInstance("error", raven)
+    .WithEnvironment("SERVICECONTROL_MAXIMUMCONCURRENCYLEVEL", "100")
+    .WithEnvironment("SERVICECONTROL_ERRORINGESTIONBATCHSIZE", "25")
+    .WithEnvironment("SERVICECONTROL_ERRORINGESTIONMAXPARALLELWRITERS", "4")
+    .WithEnvironment("SERVICECONTROL_ERRORINGESTIONBATCHTIMEOUT", "00:00:00.100")
     .WithEnvironment("SERVICECONTROL_ALLOWMESSAGEEDITING", "true")
     .WithEnvironment("SERVICECONTROL_DISABLEEXTERNALINTEGRATIONSPUBLISHING", "true")
     .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", observability.Collector.GetEndpoint("otlp-grpc"))
