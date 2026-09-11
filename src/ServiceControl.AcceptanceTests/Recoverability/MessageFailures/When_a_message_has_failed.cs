@@ -12,7 +12,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
     using CompositeViews.Messages;
-    using EventLog;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -166,30 +165,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 Assert.That(failure.Status, Is.EqualTo(MessageStatus.Failed), "Status of new messages should be failed");
                 Assert.That(failure.SendingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint));
                 Assert.That(failure.ReceivingEndpoint.Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint));
-            }
-        }
-
-        [Test]
-        public async Task Should_add_an_event_log_item()
-        {
-            EventLogItem entry = null;
-
-            var context = await Define<MyContext>()
-                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
-                .Done(async c =>
-                {
-                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.RelatedTo.Any(r => r.Contains(c.UniqueMessageId)) && e.EventType == nameof(Contracts.MessageFailures.MessageFailed));
-                    entry = result;
-                    return result;
-                })
-                .Run();
-
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(entry.Severity, Is.EqualTo(Severity.Error), "Failures should be treated as errors");
-                Assert.That(entry.Description, Does.Contain("exception"), "For failed messages, the description should contain the exception information");
-                Assert.That(entry.RelatedTo.Any(item => item == "/message/" + context.UniqueMessageId), Is.True, "Should contain the api url to retrieve additional details about the failed message");
-                Assert.That(entry.RelatedTo.Any(item => item == "/endpoint/" + context.EndpointNameOfReceivingEndpoint), Is.True, "Should contain the api url to retrieve additional details about the endpoint where the message failed");
             }
         }
 

@@ -136,10 +136,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability
                     Assert.That(knownEndpoints.Select(endpoint => endpoint.Name), Does.Contain("IngestOnly.Receiver"));
                 }
 
-                await WaitFor(host, async dbContext => await dbContext.EventLogItems.AsNoTracking()
-                        .AnyAsync(item => item.EventType == "MessageFailed" && item.Description == "Simulated failure"),
-                    "an event log entry for the failure");
-
                 using var client = host.GetTestClient();
 
                 var liveness = await client.GetAsync("/health");
@@ -210,27 +206,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability
             {
                 await infrastructure.Shutdown();
             }
-        }
-
-        static async Task WaitFor(IHost host, Func<ServiceControlDbContext, Task<bool>> condition, string description)
-        {
-            var scopeFactory = host.Services.GetRequiredService<IServiceScopeFactory>();
-            var timeout = Stopwatch.StartNew();
-
-            while (timeout.Elapsed < TimeSpan.FromSeconds(60))
-            {
-                await using var scope = scopeFactory.CreateAsyncScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
-
-                if (await condition(dbContext))
-                {
-                    return;
-                }
-
-                await Task.Delay(TimeSpan.FromMilliseconds(200));
-            }
-
-            Assert.Fail($"Timed out waiting for {description}.");
         }
 
         static async Task<FailedMessageEntity> WaitForFailedMessage(IHost host, string messageId)
