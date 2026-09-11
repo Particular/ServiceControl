@@ -62,6 +62,9 @@ abstract class SqlServerDialect
         return sql.ToString();
     }
 
-    protected static int MaxRowsPerStatement(int columns) => MaxSqlParameters / columns;
-    const int MaxSqlParameters = 2100;
+    protected static int MaxRowsPerStatement(int columns) => MaxParametersPerStatement / columns;
+
+    // SQL Server's ceiling is 2100 (https://learn.microsoft.com/en-us/sql/sql-server/maximum-capacity-specifications-for-sql-server).
+    // The 100 spare absorbs sp_executesql's own two and anything a statement carries outside its rows.
+    const int MaxParametersPerStatement = 2000;
 }

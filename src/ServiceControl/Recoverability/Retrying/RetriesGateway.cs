@@ -36,8 +36,10 @@ namespace ServiceControl.Recoverability
 
             using var preparation = metrics.BeginPreparation(retryType, cancellationToken);
 
-            await operationManager.Preparing(requestId, retryType, numberOfMessages, cancellationToken);
-            await AssignMessagesToBatch(requestId, retryType, new[] { uniqueMessageId }, timeProvider.GetUtcNow().UtcDateTime, cancellationToken, initiatedBy: initiatedBy, operationId: operationId);
+            var startedAt = timeProvider.GetUtcNow().UtcDateTime;
+
+            await operationManager.Preparing(requestId, retryType, numberOfMessages, startedAt, cancellationToken: cancellationToken);
+            await AssignMessagesToBatch(requestId, retryType, new[] { uniqueMessageId }, startedAt, cancellationToken, initiatedBy: initiatedBy, operationId: operationId);
             await operationManager.PreparedBatch(requestId, retryType, numberOfMessages, cancellationToken);
 
             preparation.Complete();
@@ -53,8 +55,10 @@ namespace ServiceControl.Recoverability
 
             using var preparation = metrics.BeginPreparation(retryType, cancellationToken);
 
-            await operationManager.Preparing(requestId, retryType, numberOfMessages, cancellationToken);
-            await AssignMessagesToBatch(requestId, retryType, uniqueMessageIds, timeProvider.GetUtcNow().UtcDateTime, cancellationToken, initiatedBy: initiatedBy, operationId: operationId);
+            var startedAt = timeProvider.GetUtcNow().UtcDateTime;
+
+            await operationManager.Preparing(requestId, retryType, numberOfMessages, startedAt, cancellationToken: cancellationToken);
+            await AssignMessagesToBatch(requestId, retryType, uniqueMessageIds, startedAt, cancellationToken, initiatedBy: initiatedBy, operationId: operationId);
             await operationManager.PreparedBatch(requestId, retryType, numberOfMessages, cancellationToken);
 
             preparation.Complete();
@@ -107,7 +111,7 @@ namespace ServiceControl.Recoverability
             {
                 var numberOfMessagesAdded = 0;
 
-                await operationManager.Preparing(request.RequestId, request.RetryType, totalMessages, cancellationToken);
+                await operationManager.Preparing(request.RequestId, request.RetryType, totalMessages, request.StartTime, request.Originator, cancellationToken);
 
                 for (var i = 0; i < batches.Count; i++)
                 {

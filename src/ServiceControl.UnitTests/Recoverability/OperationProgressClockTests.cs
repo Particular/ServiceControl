@@ -84,7 +84,7 @@ public class OperationProgressClockTests
     {
         var retry = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents(), TestRetryMetrics.Create(new FixedClock(FixedNow)), NullLogger.Instance, new FixedClock(FixedNow));
 
-        await retry.Prepare(1000);
+        await retry.Prepare(1000, FixedNow, null);
         await retry.PrepareBatch(1000);
         await retry.Forwarding();
         await retry.BatchForwarded(1000);

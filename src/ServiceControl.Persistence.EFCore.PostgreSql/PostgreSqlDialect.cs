@@ -53,5 +53,6 @@ abstract class PostgreSqlDialect
         return sql.ToString();
     }
 
+    // Not a ceiling like SQL Server's, which PostgreSQL is nowhere near: a fixed chunk keeps the text down to a full shape and a remainder, so the planner can cache both.
     protected const int MaxRowsPerStatement = 50;
 }
