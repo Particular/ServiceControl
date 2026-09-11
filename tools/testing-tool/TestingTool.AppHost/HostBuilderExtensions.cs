@@ -15,6 +15,10 @@ public static class HostBuilderExtensions
         var password = builder.AddParameter("sql-password", "Password1!", secret: true);
         var server = builder
             .AddSqlServer(resourceName, password)
+            .WithHostPort(1433)
+            //custom image with FTS support
+            .WithImage("particular/servicecontrol-testing-sqlserver")
+            .WithImageRegistry(null)
             .WithDataVolume("migration-sql-data");
         return server.AddDatabase("servicecontrol-sql", databaseName);
     }

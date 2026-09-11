@@ -27,6 +27,7 @@ var raven = platform.AddPersistenceRavenDb("raven");
 var primaryErrorInstance = platform
     .AddServiceControlErrorInstance("error", raven)
     .WithEnvironment("SERVICECONTROL_ALLOWMESSAGEEDITING", "true")
+    .WithEnvironment("SERVICECONTROL_DISABLEEXTERNALINTEGRATIONSPUBLISHING", "true")
     .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", observability.Collector.GetEndpoint("otlp-grpc"))
     .WithPersistenceType(persistenceType)
     .WithRunMode(PlatformRunMode.SetupAndRun);
