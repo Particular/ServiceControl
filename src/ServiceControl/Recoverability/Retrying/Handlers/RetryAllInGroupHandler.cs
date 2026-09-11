@@ -9,7 +9,7 @@ namespace ServiceControl.Recoverability
     using ServiceControl.Persistence.Recoverability;
 
     [Handler]
-    class RetryAllInGroupHandler(RetriesGateway retries, RetryingManager retryingManager, IArchiveMessages archiver, IGroupsDataStore dataStore, ILogger<RetryAllInGroupHandler> logger)
+    class RetryAllInGroupHandler(RetriesGateway retries, RetryingManager retryingManager, IArchiveMessages archiver, IGroupsDataStore dataStore, ILogger<RetryAllInGroupHandler> logger, TimeProvider timeProvider)
         : IHandleMessages<RetryAllInGroup>
     {
         public async Task Handle(RetryAllInGroup message, IMessageHandlerContext context)
@@ -35,7 +35,7 @@ namespace ServiceControl.Recoverability
                 originator = group.Title;
             }
 
-            var started = message.Started ?? DateTime.UtcNow;
+            var started = message.Started ?? timeProvider.GetUtcNow().UtcDateTime;
             await retryingManager.Wait(message.GroupId, RetryType.FailureGroup, started, originator, group?.Type, group?.Last, context.CancellationToken);
 
             var (user, operationId) = AuditHeaders.Read(context.MessageHeaders);

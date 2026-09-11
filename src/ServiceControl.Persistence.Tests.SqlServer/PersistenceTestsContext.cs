@@ -39,7 +39,9 @@ public partial class PersistenceTestsContext : IPersistenceTestsContext
         PersistenceSettings = new SqlServerPersisterSettings
         {
             ConnectionString = connectionStringBuilder.ConnectionString,
-            BodyStorage = new FileSystemBodyStorageSettings { StoragePath = bodyStoragePath }
+            BodyStorage = new FileSystemBodyStorageSettings { StoragePath = bodyStoragePath },
+            ErrorRetentionPeriod = DefaultRetentionPeriod,
+            EventsRetentionPeriod = DefaultRetentionPeriod
         };
 
         var persistence = new SqlServerPersistenceConfiguration().Create(PersistenceSettings);

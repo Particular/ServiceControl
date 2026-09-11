@@ -41,7 +41,7 @@ class QueryTimeoutTests
             QueryTimeout = queryTimeout
         };
 
-        return new ErrorMessagesDataStore(new NeverCompletingSessionProvider(), null, new ExpirationManager(settings), settings, NullLogger<ErrorMessagesDataStore>.Instance);
+        return new ErrorMessagesDataStore(new NeverCompletingSessionProvider(), null, new ExpirationManager(settings, TimeProvider.System), settings, NullLogger<ErrorMessagesDataStore>.Instance);
     }
 
     class NeverCompletingSessionProvider : IRavenSessionProvider

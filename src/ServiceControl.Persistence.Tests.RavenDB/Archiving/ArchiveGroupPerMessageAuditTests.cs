@@ -21,7 +21,7 @@ class ArchiveGroupPerMessageAuditTests : RavenPersistenceTestBase
         {
             services.AddSingleton<ArchiveAllInGroupHandler>();
             services.AddSingleton<RetryingManager>();
-            services.AddSingleton(TestRetryMetrics.Create());
+            services.AddSingleton(TestRetryMetrics.Create(TimeProvider.System));
             services.AddSingleton<IMessageActionAuditLog>(audit);
         };
 

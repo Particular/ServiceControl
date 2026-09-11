@@ -17,7 +17,8 @@ using Raven.Client.Documents.Session;
 
 class LicensingDataStore(
     IRavenDocumentStoreProvider storeProvider,
-    ThroughputDatabaseConfiguration databaseConfiguration) : ILicensingDataStore
+    ThroughputDatabaseConfiguration databaseConfiguration,
+    TimeProvider timeProvider) : ILicensingDataStore
 {
     internal const string ThroughputTimeSeriesName = "INC: throughput data";
     const string AuditServiceMetadataDocumentId = "AuditServiceMetadata";
@@ -142,7 +143,7 @@ class LicensingDataStore(
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
-        var from = DateTime.UtcNow.AddMonths(-ThroughputReporting.ReportedMonths);
+        var from = timeProvider.GetUtcNow().UtcDateTime.AddMonths(-ThroughputReporting.ReportedMonths);
         var query = session.Query<EndpointDocument>()
             .Where(document => document.SanitizedName.In(queueNames))
             .Include(builder => builder.IncludeTimeSeries(ThroughputTimeSeriesName, from));
@@ -270,10 +271,11 @@ class LicensingDataStore(
         return result;
     }
 
-    static async Task<bool> IsThereThroughputForLastXDaysInternal(IRavenQueryable<EndpointDocument> baseQuery, int days, bool includeToday, CancellationToken cancellationToken)
+    async Task<bool> IsThereThroughputForLastXDaysInternal(IRavenQueryable<EndpointDocument> baseQuery, int days, bool includeToday, CancellationToken cancellationToken)
     {
-        DateTime fromDate = DateTime.UtcNow.AddDays(-days).Date;
-        DateTime toDate = includeToday ? DateTime.UtcNow.Date : DateTime.UtcNow.AddDays(-1).Date;
+        DateTime today = timeProvider.GetUtcNow().UtcDateTime.Date;
+        DateTime fromDate = today.AddDays(-days);
+        DateTime toDate = includeToday ? today : today.AddDays(-1);
 
         var documents = await baseQuery
             .Select(e => RavenQuery.TimeSeries(e, ThroughputTimeSeriesName, fromDate, toDate).ToList())

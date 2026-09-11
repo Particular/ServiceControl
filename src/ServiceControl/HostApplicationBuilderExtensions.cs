@@ -70,6 +70,9 @@
             transportCustomization.AddTransportForPrimary(services, transportSettings);
 
             services.Configure<HostOptions>(options => options.ShutdownTimeout = settings.ShutdownTimeout);
+
+            services.TryAddSingleton(TimeProvider.System);
+
             services.AddSingleton<IDomainEvents, DomainEvents>();
 
             // Message-action audit trail. Registered here rather than in AddServiceControlAuthorization

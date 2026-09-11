@@ -20,6 +20,7 @@
             IDomainEvents domainEvents,
             ExpirationManager expirationManager,
             IMessageActionAuditLog auditLog,
+            TimeProvider timeProvider,
             ILogger<MessageArchiver> logger
             )
         {
@@ -30,11 +31,11 @@
             this.logger = logger;
             this.operationsManager = operationsManager;
 
-            archiveDocumentManager = new ArchiveDocumentManager(expirationManager, logger);
-            archivingManager = new ArchivingManager(domainEvents, operationsManager);
+            archiveDocumentManager = new ArchiveDocumentManager(expirationManager, logger, timeProvider);
+            archivingManager = new ArchivingManager(domainEvents, operationsManager, timeProvider);
 
-            unarchiveDocumentManager = new UnarchiveDocumentManager();
-            unarchivingManager = new UnarchivingManager(domainEvents, operationsManager);
+            unarchiveDocumentManager = new UnarchiveDocumentManager(timeProvider);
+            unarchivingManager = new UnarchivingManager(domainEvents, operationsManager, timeProvider);
         }
 
         public async Task ArchiveAllInGroup(string groupId, AuditUser? initiatedBy = null, string operationId = null, CancellationToken cancellationToken = default)

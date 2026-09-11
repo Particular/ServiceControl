@@ -191,6 +191,44 @@ class RetentionSweepTests : ErrorIngestionTestBase
     }
 
     [Test]
+    public async Task Archived_messages_are_swept_after_the_lifecycle_store_updates_the_timestamp()
+    {
+        var messageId = await SeedFailedMessage(FailedMessageStatus.Unresolved, Now.AddDays(-40));
+
+        await FailedMessageLifecycleStore.MarkAsArchived(messageId.ToString());
+
+        var archived = await FindFailedMessage(messageId);
+        Assert.That(archived, Is.Not.Null);
+        Assert.That(archived!.Status, Is.EqualTo(FailedMessageStatus.Archived));
+        Assert.That(archived.StatusChangedAt, Is.EqualTo(Now), "the lifecycle store should stamp the current fake time");
+
+        AdvanceClock(TimeSpan.FromDays(31));
+
+        await RunRetentionSweep();
+
+        Assert.That(await FindFailedMessage(messageId), Is.Null);
+    }
+
+    [Test]
+    public async Task Resolved_messages_are_swept_after_the_lifecycle_store_updates_the_timestamp()
+    {
+        var messageId = await SeedFailedMessage(FailedMessageStatus.Unresolved, Now.AddDays(-40));
+
+        Assert.That(await FailedMessageLifecycleStore.MarkAsResolved(messageId.ToString()), Is.True);
+
+        var resolved = await FindFailedMessage(messageId);
+        Assert.That(resolved, Is.Not.Null);
+        Assert.That(resolved!.Status, Is.EqualTo(FailedMessageStatus.Resolved));
+        Assert.That(resolved.StatusChangedAt, Is.EqualTo(Now), "the lifecycle store should stamp the current fake time");
+
+        AdvanceClock(TimeSpan.FromDays(31));
+
+        await RunRetentionSweep();
+
+        Assert.That(await FindFailedMessage(messageId), Is.Null);
+    }
+
+    [Test]
     public async Task Counts_the_rows_it_deletes()
     {
         EFSettings.EventsRetentionPeriod = TimeSpan.FromDays(14);

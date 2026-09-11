@@ -18,6 +18,9 @@ using Operations;
 
 public partial class PersistenceTestsContext
 {
+    // Advancing the clock wakes the live retention sweeper, so retention has to outrun every advance a test makes.
+    public static readonly TimeSpan DefaultRetentionPeriod = TimeSpan.FromDays(365);
+
     public FakeTimeProvider FakeTime { get; } = new(StorableUtcNow());
 
     // PostgreSQL timestamps only keep microseconds, so a clock seeded straight from

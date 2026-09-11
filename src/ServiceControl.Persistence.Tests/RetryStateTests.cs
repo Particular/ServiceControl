@@ -8,6 +8,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging.Abstractions;
+    using Microsoft.Extensions.Time.Testing;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -26,11 +27,13 @@
     [NonParallelizable]
     class RetryStateTests : PersistenceTestBase
     {
+        readonly FakeTimeProvider fakeTime = new(DateTimeOffset.UtcNow);
+
         [Test]
         public async Task When_a_group_is_processed_it_is_set_to_the_Preparing_state()
         {
             var domainEvents = new FakeDomainEvents();
-            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
+            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(fakeTime), NullLogger<RetryingManager>.Instance, fakeTime);
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, 1);
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
@@ -42,7 +45,7 @@
         public async Task When_a_group_is_prepared_and_SC_is_started_the_group_is_marked_as_failed()
         {
             var domainEvents = new FakeDomainEvents();
-            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
+            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(fakeTime), NullLogger<RetryingManager>.Instance, fakeTime);
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", false, 1);
 
@@ -83,7 +86,7 @@
         public async Task When_a_group_is_prepared_with_three_batches_and_SC_is_restarted_while_the_first_group_is_being_forwarded_then_the_count_still_matches()
         {
             var domainEvents = new FakeDomainEvents();
-            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
+            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(fakeTime), NullLogger<RetryingManager>.Instance, fakeTime);
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, 2001);
 
@@ -100,7 +103,7 @@
                     new ErrorQueueNameCache(),
                     new TestTransportCustomization()),
                 retryManager,
-                TestRetryMetrics.Create(), new Lazy<IMessageDispatcher>(() => sender),
+                TestRetryMetrics.Create(fakeTime), new Lazy<IMessageDispatcher>(() => sender),
                 new RecordingMessageActionAuditLog(),
                 NullLogger<RetryProcessor>.Instance);
 
@@ -110,7 +113,7 @@
             await processor.ProcessBatches(); // mark ready
 
             // Simulate SC restart
-            retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
+            retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(fakeTime), NullLogger<RetryingManager>.Instance, fakeTime);
 
             var documentManager = new CustomRetryDocumentManager(false, RetryBatchStore, retryManager);
 
@@ -128,7 +131,7 @@
                     new ErrorQueueNameCache(),
                     new TestTransportCustomization()),
                 retryManager,
-                TestRetryMetrics.Create(), new Lazy<IMessageDispatcher>(() => sender),
+                TestRetryMetrics.Create(fakeTime), new Lazy<IMessageDispatcher>(() => sender),
                 new RecordingMessageActionAuditLog(),
                 NullLogger<RetryProcessor>.Instance);
 
@@ -142,14 +145,14 @@
         public async Task When_a_group_is_forwarded_the_status_is_Completed()
         {
             var domainEvents = new FakeDomainEvents();
-            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
+            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(fakeTime), NullLogger<RetryingManager>.Instance, fakeTime);
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, 1);
 
             var sender = new TestSender();
 
             var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
-            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, TestRetryMetrics.Create(), new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, TestRetryMetrics.Create(fakeTime), new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
 
             await processor.ProcessBatches(); // mark ready
             await processor.ProcessBatches();
@@ -197,7 +200,7 @@
         public async Task When_there_is_one_poison_message_it_is_removed_from_batch_and_the_status_is_Complete()
         {
             var domainEvents = new FakeDomainEvents();
-            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
+            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(fakeTime), NullLogger<RetryingManager>.Instance, fakeTime);
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, "A", "B", "C");
 
@@ -214,7 +217,7 @@
             };
 
             var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
-            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, TestRetryMetrics.Create(), new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, TestRetryMetrics.Create(fakeTime), new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
 
             bool c;
             do
@@ -246,7 +249,7 @@
         public async Task When_a_group_has_one_batch_out_of_two_forwarded_the_status_is_Forwarding()
         {
             var domainEvents = new FakeDomainEvents();
-            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
+            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(fakeTime), NullLogger<RetryingManager>.Instance, fakeTime);
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, 1001);
 
@@ -254,7 +257,7 @@
 
             var sender = new TestSender();
 
-            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()), retryManager, TestRetryMetrics.Create(), new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()), retryManager, TestRetryMetrics.Create(fakeTime), new Lazy<IMessageDispatcher>(() => sender), new RecordingMessageActionAuditLog(), NullLogger<RetryProcessor>.Instance);
 
             await CompleteDatabaseOperation();
 
@@ -269,7 +272,7 @@
         public async Task When_a_selection_is_staged_each_message_is_audited_as_a_batch()
         {
             var domainEvents = new FakeDomainEvents();
-            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
+            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(fakeTime), NullLogger<RetryingManager>.Instance, fakeTime);
             var user = new AuditUser("alice-sub", "Alice");
             const string operationId = "op-sel";
             var ids = new[] { "A", "B" };
@@ -294,14 +297,14 @@
             await PersistenceTestsContext.InsertFailedMessages(messages);
             await CompleteDatabaseOperation();
 
-            var gateway = new CustomRetriesGateway(true, RetryBatchStore, retryManager);
+            var gateway = new CustomRetriesGateway(true, RetryBatchStore, retryManager, fakeTime);
             await gateway.StartRetryForMessageSelection(ids, user, operationId);
             await CompleteDatabaseOperation();
 
             var audit = new RecordingMessageActionAuditLog();
             var sender = new TestSender();
             var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
-            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, TestRetryMetrics.Create(), new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, TestRetryMetrics.Create(fakeTime), new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
 
             await processor.ProcessBatches(); // stage
             await processor.ProcessBatches(); // forward
@@ -319,7 +322,7 @@
         public async Task When_a_group_is_staged_each_message_is_audited_with_the_initiating_user()
         {
             var domainEvents = new FakeDomainEvents();
-            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance);
+            var retryManager = new RetryingManager(domainEvents, TestRetryMetrics.Create(fakeTime), NullLogger<RetryingManager>.Instance, fakeTime);
             var user = new AuditUser("alice-sub", "Alice");
             const string operationId = "op-abc";
 
@@ -328,7 +331,7 @@
             var audit = new RecordingMessageActionAuditLog();
             var sender = new TestSender();
             var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization());
-            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, TestRetryMetrics.Create(), new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
+            var processor = new RetryProcessor(RetryStagingStore, MessageRedirectsDataStore, domainEvents, returnToSender, retryManager, TestRetryMetrics.Create(fakeTime), new Lazy<IMessageDispatcher>(() => sender), audit, NullLogger<RetryProcessor>.Instance);
 
             await processor.ProcessBatches(); // stage (emits per-message audit)
             await processor.ProcessBatches(); // forward
@@ -363,8 +366,8 @@
                 MessageRedirectsDataStore,
                 domainEvents,
                 new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, NullLogger<ReturnToSender>.Instance), FailedMessageLifecycleStore, domainEvents, "TestEndpoint", new ErrorQueueNameCache(), new TestTransportCustomization()),
-                new RetryingManager(domainEvents, TestRetryMetrics.Create(), NullLogger<RetryingManager>.Instance),
-                TestRetryMetrics.Create(), new Lazy<IMessageDispatcher>(() => sender),
+                new RetryingManager(domainEvents, TestRetryMetrics.Create(fakeTime), NullLogger<RetryingManager>.Instance, fakeTime),
+                TestRetryMetrics.Create(fakeTime), new Lazy<IMessageDispatcher>(() => sender),
                 new RecordingMessageActionAuditLog(),
                 NullLogger<RetryProcessor>.Instance);
 
@@ -411,7 +414,7 @@
             await CompleteDatabaseOperation();
 
             var documentManager = new CustomRetryDocumentManager(progressToStaged, RetryBatchStore, retryManager);
-            var gateway = new CustomRetriesGateway(progressToStaged, RetryBatchStore, retryManager);
+            var gateway = new CustomRetriesGateway(progressToStaged, RetryBatchStore, retryManager, fakeTime);
 
             gateway.EnqueueRetryForFailureGroup(new RetriesGateway.RetryForFailureGroup(groupId, "Test-Context", groupType: null, DateTime.UtcNow, initiatedBy, operationId));
 
@@ -425,8 +428,8 @@
 
         class CustomRetriesGateway : RetriesGateway
         {
-            public CustomRetriesGateway(bool progressToStaged, IRetryBatchStore store, RetryingManager retryManager)
-                : base(store, retryManager, TestRetryMetrics.Create(), NullLogger<RetriesGateway>.Instance)
+            public CustomRetriesGateway(bool progressToStaged, IRetryBatchStore store, RetryingManager retryManager, TimeProvider timeProvider)
+                : base(store, retryManager, TestRetryMetrics.Create(timeProvider), NullLogger<RetriesGateway>.Instance, timeProvider)
             {
                 this.progressToStaged = progressToStaged;
             }
