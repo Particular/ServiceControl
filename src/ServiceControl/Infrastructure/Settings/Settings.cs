@@ -185,6 +185,7 @@
 
         public string TransportType { get; set; }
         public string PersistenceType { get; private set; }
+        public string MigrationSourcePersistenceType => SettingsReader.Read(SettingsRootNamespace, "Migration/SourcePersistenceType", "RavenDB");
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }
 
