@@ -12,7 +12,6 @@ namespace ServiceControl.Persistence.RavenDB
     class RavenPersistenceConfiguration : PersistenceConfiguration, IPersistenceConfiguration
     {
         public const string DataSpaceRemainingThresholdKey = "DataSpaceRemainingThreshold";
-        const string AuditRetentionPeriodKey = "AuditRetentionPeriod";
         const string ErrorRetentionPeriodKey = "ErrorRetentionPeriod";
         const string ExternalIntegrationsDispatchingBatchSizeKey = "ExternalIntegrationsDispatchingBatchSize";
         const string MaintenanceModeKey = "MaintenanceMode";
@@ -38,7 +37,6 @@ namespace ServiceControl.Persistence.RavenDB
                 DataSpaceRemainingThreshold = SettingsReader.Read(settingsRootNamespace, DataSpaceRemainingThresholdKey, CheckFreeDiskSpace.DataSpaceRemainingThresholdDefault),
                 ErrorRetentionPeriod = GetRequiredSetting<TimeSpan>(settingsRootNamespace, ErrorRetentionPeriodKey),
                 EventsRetentionPeriod = ReadEventsRetentionPeriod(settingsRootNamespace, TimeSpan.FromDays(14)),
-                AuditRetentionPeriod = SettingsReader.Read(settingsRootNamespace, AuditRetentionPeriodKey, TimeSpan.Zero),
                 ExternalIntegrationsDispatchingBatchSize = ReadExternalIntegrationsDispatchingBatchSize(settingsRootNamespace),
                 QueryTimeout = QueryTimeLimit.Read(settingsRootNamespace, LoggerUtil.CreateStaticLogger<RavenPersistenceConfiguration>()),
                 MaintenanceMode = SettingsReader.Read(settingsRootNamespace, MaintenanceModeKey, false),
