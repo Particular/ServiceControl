@@ -48,7 +48,6 @@
             TransportConnectionString = GetConnectionString();
             TransportType = transportType ?? SettingsReader.Read<string>(SettingsRootNamespace, "TransportType");
             PersistenceType = persisterType ?? SettingsReader.Read<string>(SettingsRootNamespace, "PersistenceType");
-            AuditRetentionPeriod = GetAuditRetentionPeriod();
             ForwardErrorMessages = forwardErrorMessages ?? GetForwardErrorMessages();
             ErrorRetentionPeriod = errorRetentionPeriod ?? GetErrorRetentionPeriod();
             EventsRetentionPeriod = GetEventRetentionPeriod();
@@ -196,8 +195,6 @@
         // Set by the --error-ingestion-only command, never read from configuration.
         public bool ErrorIngestionOnly { get; set; }
 
-        public TimeSpan? AuditRetentionPeriod { get; set; }
-
         public TimeSpan ErrorRetentionPeriod { get; }
 
         public TimeSpan EventsRetentionPeriod { get; }
@@ -336,41 +333,6 @@
             {
                 message = "ErrorRetentionPeriod settings is invalid, please make sure it is a TimeSpan";
                 logger.LogCritical(message);
-                throw new Exception(message);
-            }
-
-            return result;
-        }
-
-        TimeSpan? GetAuditRetentionPeriod()
-        {
-            string message;
-            var valueRead = SettingsReader.Read<string>(SettingsRootNamespace, "AuditRetentionPeriod");
-            if (valueRead == null)
-            {
-                return null;
-            }
-
-            if (TimeSpan.TryParse(valueRead, out var result))
-            {
-                if (ValidateConfiguration && result < TimeSpan.FromHours(1))
-                {
-                    message = "AuditRetentionPeriod settings is invalid, value should be minimum 1 hour.";
-                    InternalLogger.Fatal(message);
-                    throw new Exception(message);
-                }
-
-                if (ValidateConfiguration && result > TimeSpan.FromDays(365))
-                {
-                    message = "AuditRetentionPeriod settings is invalid, value should be maximum 365 days.";
-                    InternalLogger.Fatal(message);
-                    throw new Exception(message);
-                }
-            }
-            else
-            {
-                message = "AuditRetentionPeriod settings is invalid, please make sure it is a TimeSpan.";
-                InternalLogger.Fatal(message);
                 throw new Exception(message);
             }
 
