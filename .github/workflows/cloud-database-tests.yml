@@ -105,7 +105,7 @@ jobs:
           dotnet build $Env:PERSISTENCE_PROJECT --configuration Release
           dotnet build $Env:ACCEPTANCE_PROJECT --configuration Release
       - name: Azure login
-        uses: azure/login@v3.0.2
+        uses: azure/login@v3.1.0
         if: startsWith(matrix.target, 'azure-')
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
