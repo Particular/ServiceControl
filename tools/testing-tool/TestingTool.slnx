@@ -1,0 +1,7 @@
+<Solution>
+    <Project Path="TestingTool.Contracts/TestingTool.Contracts.csproj"/>
+    <Project Path="TestingTool.Scenarios/TestingTool.Scenarios.csproj"/>
+    <Project Path="TestingTool/TestingTool.csproj"/>
+    <Project Path="TestingTool.SmokeTests/TestingTool.SmokeTests.csproj"/>
+    <Project Path="TestingTool.AppHost/TestingTool.AppHost.csproj"/>
+</Solution>
