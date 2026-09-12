@@ -132,7 +132,10 @@ jobs:
       - name: Wait for build
         wait: build
       - name: Run tests
-        run: ./tools/run-tests.ps1 -Projects "$Env:PERSISTENCE_PROJECT`n$Env:ACCEPTANCE_PROJECT" -MaxParallel 2
+        uses: Particular/run-tests-action@v1.9.0
+        with:
+          projects: ${{ env.PERSISTENCE_PROJECT }};${{ env.ACCEPTANCE_PROJECT }}
+          max-parallel: 2
         env:
           ServiceControl_TESTS_FILTER: ${{ matrix.provider }}
           PARTICULARSOFTWARE_LICENSE: ${{ secrets.LICENSETEXT }}
