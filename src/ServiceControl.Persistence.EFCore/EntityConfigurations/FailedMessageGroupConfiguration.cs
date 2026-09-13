@@ -17,6 +17,8 @@ class FailedMessageGroupConfiguration : IEntityTypeConfiguration<FailedMessageGr
         builder.HasIndex(e => e.GroupId);
 
         // Drives the per-classifier group aggregate, which filters on Type and groups by GroupId.
+        // The Title INCLUDE column is added in the provider DbContexts (the IncludeProperties API
+        // is provider-specific and is not available in this shared project).
         builder.HasIndex(e => new { e.Type, e.GroupId });
 
         builder.HasOne<FailedMessageEntity>()
