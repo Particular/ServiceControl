@@ -1,7 +1,7 @@
 namespace ServiceControl.Auditing
 {
     using System;
-    using ServiceControl.Contracts.Operations;
+    using ServiceControl.Infrastructure.Ingestion;
     using ServiceControl.Operations;
     using ServiceControl.Persistence;
 

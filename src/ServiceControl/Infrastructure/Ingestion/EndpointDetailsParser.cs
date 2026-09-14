@@ -1,8 +1,7 @@
-namespace ServiceControl.Contracts.Operations
+namespace ServiceControl.Infrastructure.Ingestion
 {
     using System;
     using System.Collections.Generic;
-    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Faults;
     using ServiceControl.Operations;

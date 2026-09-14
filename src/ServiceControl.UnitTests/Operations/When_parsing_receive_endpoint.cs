@@ -5,6 +5,7 @@ using NServiceBus.Faults;
 using NUnit.Framework;
 using ServiceControl.Contracts.Operations;
 using ServiceControl.Infrastructure;
+using ServiceControl.Infrastructure.Ingestion;
 
 [TestFixture]
 public class When_parsing_receive_endpoint

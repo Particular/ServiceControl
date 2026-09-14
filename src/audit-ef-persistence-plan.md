@@ -263,9 +263,12 @@ project. The rules, so that the segregation survives the steps below:
 - **Host.** The audit pipeline lives under `ServiceControl/Auditing/` and enters composition through
   `AuditComponent` only. The error pipeline stays under `ServiceControl/Operations/`. Neither folder
   references the other. Anything both use (endpoint details parsing, the import failure circuit
-  breaker, ingestion metrics, the settings reader, the watchdog) lives under
-  `ServiceControl.Infrastructure/Ingestion/` and is owned by neither pipeline. Three of those still
-  sit under `Operations/` today and move as a small commit of their own.
+  breaker, the settings reader, the watchdog, the metric primitives) lives in an `Ingestion`
+  folder under `Infrastructure`, in whichever project it needs, and is owned by neither pipeline.
+  Each pipeline keeps its own metrics class, because the instruments are named per pipeline.
+  `EndpointDetails` and `KnownEndpoint` are persistence contracts that happen to sit in the
+  `ServiceControl.Operations` namespace, so an audit file importing that namespace is not a
+  dependency on the error pipeline.
 - **Settings.** Audit settings are read into their own section rather than interleaved with the
   error settings in `Settings`. The key names do not change.
 - **Persister.** Every audit implementation in the EF projects lives under `Implementation/Audit/`

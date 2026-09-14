@@ -13,6 +13,7 @@ namespace ServiceControl.Auditing
     using ServiceControl.Auditing.Metrics;
     using ServiceControl.Configuration;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.Ingestion;
     using ServiceControl.Operations;
     using ServiceControl.Persistence;
 

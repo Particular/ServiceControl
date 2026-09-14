@@ -2,6 +2,7 @@ namespace ServiceControl.Recoverability
 {
     using System.Collections.Generic;
     using Contracts.Operations;
+    using ServiceControl.Infrastructure.Ingestion;
 
     class EndpointInstanceClassifier : IFailureClassifier
     {

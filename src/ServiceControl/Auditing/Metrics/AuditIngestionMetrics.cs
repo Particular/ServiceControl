@@ -9,10 +9,9 @@ using NServiceBus.Transport;
 using ServiceControl.EndpointPlugin.Messages.SagaState;
 using ServiceControl.Infrastructure;
 using ServiceControl.Infrastructure.Ingestion.Metrics;
-using ServiceControl.Operations.Metrics;
 
 /// <summary>
-/// Mirrors <see cref="IngestionMetrics"/> for the audit queue. Same meter and the same primitives, so
+/// Mirrors the error pipeline's IngestionMetrics for the audit queue. Same meter and the same primitives, so
 /// the two ingestions report the same shapes and one exporter carries both; only the instrument
 /// prefix and the tags differ, because what distinguishes an audit message is its kind rather than
 /// whether it resolved a retry.
