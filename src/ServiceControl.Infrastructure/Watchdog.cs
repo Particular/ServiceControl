@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Infrastructure
+namespace ServiceControl.Infrastructure
 {
     using System;
     using System.Threading;
@@ -109,7 +109,10 @@
             {
                 log.LogDebug("Starting watching {TaskName}", taskName);
                 await shutdownTokenSource.CancelAsync().ConfigureAwait(false);
-                await watchdog.ConfigureAwait(false);
+
+                // A host that failed to start stops every hosted service, including one whose Start
+                // never ran, so there may be nothing to wait for.
+                await (watchdog ?? Task.CompletedTask).ConfigureAwait(false);
             }
             catch (Exception e)
             {

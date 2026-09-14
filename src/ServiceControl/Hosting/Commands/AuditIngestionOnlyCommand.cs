@@ -7,6 +7,7 @@ namespace ServiceControl.Hosting.Commands
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence;
     using ServiceControl.Auditing;
     using ServiceControl.Infrastructure.Health;
     using ServiceControl.Monitoring;
@@ -26,6 +27,8 @@ namespace ServiceControl.Hosting.Commands
 
             var app = BuildHost(settings);
 
+            await app.Services.EnsureDatabaseSchemaIsCurrent(cancellationToken);
+
             await app.RunAsync(settings.RootUrl);
         }
 
@@ -33,6 +36,7 @@ namespace ServiceControl.Hosting.Commands
         {
             settings.AuditIngestionOnly = true;
             settings.IngestAuditMessages = true;
+            settings.AuditDataLocation = AuditDataLocation.Local;
             settings.IngestErrorMessages = false;
             settings.RunRetryProcessor = false;
 

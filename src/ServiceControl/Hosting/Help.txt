@@ -34,6 +34,23 @@ database has already been provisioned by a normal instance. It cannot be combine
 
 The same body storage rule applies as for error ingestion only.
 
+AUDIT INSTANCE
+
+   ServiceControl.exe --audit-instance
+   ServiceControl.exe --audit-instance --setup
+
+Runs the owner of a dedicated audit database: it drains the audit queue into its own database,
+serves the audit routes the primary instance calls through ServiceControl/RemoteInstances, and
+sweeps audit retention. With --setup it provisions that database, the audit queue and body storage.
+Requires SQL Server or PostgreSQL storage and ServiceControl/ServiceControlQueueAddress, the
+primary's input queue, to which it reports its custom checks and the endpoints it detects. The
+primary is configured with ServiceControl/AuditDataLocation set to Remote and lists this host under
+ServiceControl/RemoteInstances.
+
+Audit ingestion can be scaled out for a dedicated audit database too: start --audit-ingestion-only
+workers with the audit database's connection string and ServiceControl/ServiceControlQueueAddress
+set, so they report to the primary the same way.
+
 SERVICE INSTALL AND UNINSTALL AND CONFIGURATION OPTIONS
 
 As of Service Control 1.7 the command line  uninstall and install switches have been removed.

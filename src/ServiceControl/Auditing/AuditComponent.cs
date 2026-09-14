@@ -1,15 +1,15 @@
-﻿namespace ServiceControl.Auditing
+namespace ServiceControl.Auditing
 {
+    using System;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
-    using Microsoft.Extensions.Logging;
     using Particular.LicensingComponent.AuditThroughput;
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Auditing.Metrics;
     using ServiceControl.Connection;
     using ServiceControl.CustomChecks;
-    using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Health;
     using ServiceControl.Persistence;
     using ServiceControl.Transports;
@@ -20,7 +20,7 @@
     {
         public override void Setup(Settings settings, IComponentInstallationContext context, IHostApplicationBuilder hostBuilder)
         {
-            if (!SupportsAuditIngestion(settings))
+            if (!HostsAuditData(settings))
             {
                 return;
             }
@@ -35,14 +35,16 @@
 
         public override void Configure(Settings settings, ITransportCustomization transportCustomization, IHostApplicationBuilder hostBuilder)
         {
-            if (!SupportsAuditIngestion(settings))
+            if (!HostsAuditData(settings))
             {
                 return;
             }
 
-            WarnAboutSettingCollisions(settings);
+            EnsureRemotesAreNotCombinedWithLocalIngestion(settings);
 
             var services = hostBuilder.Services;
+
+            services.TryAddSingleton<IEndpointDetectionReporter, NoEndpointDetectionReporter>();
 
             services.AddSingleton<AuditIngestionMetrics>();
             services.AddSingleton<AuditIngestor>();
@@ -60,7 +62,7 @@
                 services.AddHostedService<AuditIngestion>();
             }
 
-            if (!settings.IngestionOnly)
+            if (settings.Host.HostsApi)
             {
                 // Registered before the licensing component's own fallback, which uses TryAdd.
                 services.AddSingleton<ILocalAuditSource, PrimaryLocalAuditSource>();
@@ -68,22 +70,28 @@
             }
         }
 
-        // ServiceControl and ServiceControl.Audit settings can both be set by bare environment variable
-        // name, and ServiceBus/AuditQueue is literally the same key for both processes, so a combined
-        // primary and a standalone audit instance sharing one environment file collide. That
-        // combination is unsupported, and this is the shape most likely to hit it.
-        static void WarnAboutSettingCollisions(Settings settings)
+        // A primary that ingests audit itself and also lists audit remotes is one of two mistakes:
+        // either the remotes are left over from before audit moved into this database, or the audit
+        // data was meant to be Remote and this instance would ingest a queue that belongs to the
+        // audit host. Both read the same setting names, so a shared environment file also makes the
+        // two processes collide on the audit queue, retention, forwarding and ingestion settings.
+        static void EnsureRemotesAreNotCombinedWithLocalIngestion(Settings settings)
         {
-            if (settings.RemoteInstances.Length == 0)
+            if (settings.RemoteInstances.Length == 0 || !settings.IngestAuditMessages || settings.AuditInstance)
             {
                 return;
             }
 
-            LoggerUtil.CreateStaticLogger(typeof(AuditComponent), settings.LoggingSettings.LogLevel)
-                .LogWarning("This instance ingests audit messages itself and also has {RemoteInstanceCount} audit remote(s) configured. "
-                    + "Running both is not supported: the two processes read the same setting names, so a shared environment file makes them "
-                    + "collide on the audit queue, retention, forwarding and ingestion settings.", settings.RemoteInstances.Length);
+            throw new Exception(
+                $"This instance is configured to ingest audit messages into its own database and also lists {settings.RemoteInstances.Length} remote instance(s). "
+                + "Set ServiceControl/AuditDataLocation to Remote if the audit data lives on a dedicated audit host, "
+                + "set ServiceControl/IngestAuditMessages to false if only workers ingest, or remove the remotes.");
         }
+
+        // Audit support has to be advertised by the persister, and the primary has to be told the data
+        // is local rather than on a dedicated audit host.
+        internal static bool HostsAuditData(Settings settings) =>
+            SupportsAuditIngestion(settings) && settings.AuditDataLocation == AuditDataLocation.Local;
 
         internal static bool SupportsAuditIngestion(Settings settings) =>
             PersistenceManifestLibrary.Find(settings.PersistenceType)?.SupportsAuditIngestion ?? false;

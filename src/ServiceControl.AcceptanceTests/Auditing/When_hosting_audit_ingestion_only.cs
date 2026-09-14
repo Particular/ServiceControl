@@ -13,6 +13,8 @@ namespace ServiceControl.AcceptanceTests.Auditing
     using Particular.LicensingComponent.AuditThroughput;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Auditing;
+    using ServiceControl.Auditing.Reporting;
+    using ServiceControl.CustomChecks;
     using ServiceControl.Hosting.Commands;
     using ServiceControl.Infrastructure;
     using ServiceControl.Persistence;
@@ -51,6 +53,51 @@ namespace ServiceControl.AcceptanceTests.Auditing
                         + "these runs on every ingestion node, so decide whether that is safe before updating "
                         + "this list. Audit ingestion raises no domain events and no integration events, which "
                         + "is why EventLog and ExternalIntegrations are not registered.");
+                }
+            }
+            finally
+            {
+                await host.DisposeAsync();
+            }
+        }
+
+        [Test]
+        public async Task Should_report_to_the_primary_when_given_its_queue()
+        {
+            var settings = await CreateSettings();
+            settings.ServiceControlQueueAddress = $"Primary.{Guid.NewGuid():n}";
+
+            var host = AuditIngestionOnlyCommand.BuildHost(settings);
+
+            try
+            {
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(host.Services.GetService<IMessageSession>(), Is.Not.Null, "a send only endpoint, which claims no queue");
+                    Assert.That(host.Services.GetService<ICustomCheckResultReporter>(), Is.TypeOf<PrimaryCustomCheckResultReporter>());
+                    Assert.That(host.Services.GetService<IEndpointDetectionReporter>(), Is.TypeOf<PrimaryEndpointDetectionReporter>());
+                    Assert.That(host.Services.GetService<IDatabaseMigrator>(), Is.Null, "still a worker: it never changes the schema");
+                }
+            }
+            finally
+            {
+                await host.DisposeAsync();
+            }
+        }
+
+        [Test]
+        public async Task Should_store_its_custom_checks_locally_on_a_shared_database()
+        {
+            var settings = await CreateSettings();
+
+            var host = AuditIngestionOnlyCommand.BuildHost(settings);
+
+            try
+            {
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(host.Services.GetService<ICustomCheckResultReporter>(), Is.TypeOf<LocalCustomCheckResultReporter>());
+                    Assert.That(host.Services.GetService<IEndpointDetectionReporter>(), Is.TypeOf<NoEndpointDetectionReporter>());
                 }
             }
             finally

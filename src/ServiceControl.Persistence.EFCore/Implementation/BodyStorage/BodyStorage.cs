@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Operations.BodyStorage;
+using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Implementation.Audit;
@@ -19,11 +20,11 @@ using ServiceControl.Persistence.Infrastructure;
 /// where BodyText keeps only a search prefix). External storage is authoritative, so check it first.
 /// bodyId is usually a UniqueMessageId (a Guid) but may be a plain MessageId.
 /// </remarks>
-public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersistence storagePersistence) : DataStoreBase(scopeFactory), IBodyStorage
+public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersistence storagePersistence, EFPersisterSettings settings) : DataStoreBase(scopeFactory), IBodyStorage
 {
     public async Task<MessageBodyResult> TryFetch(string bodyId, CancellationToken cancellationToken = default)
     {
-        var row = await ExecuteWithDbContext((dbContext, token) => ResolveBody(dbContext, bodyId, token), cancellationToken);
+        var row = await ExecuteWithDbContext((dbContext, token) => ResolveBody(dbContext, bodyId, settings.HostsAuditData, token), cancellationToken);
 
         if (row == null)
         {
@@ -78,7 +79,7 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
         return MessageBodyResult.Unavailable();
     }
 
-    static async Task<BodyRow?> ResolveBody(ServiceControlDbContext dbContext, string bodyId, CancellationToken cancellationToken)
+    static async Task<BodyRow?> ResolveBody(ServiceControlDbContext dbContext, string bodyId, bool hostsAuditData, CancellationToken cancellationToken)
     {
         if (Guid.TryParse(bodyId, out var uniqueMessageId))
         {
@@ -95,7 +96,7 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
             return byMessageId;
         }
 
-        return Guid.TryParse(bodyId, out var auditUniqueMessageId)
+        return hostsAuditData && Guid.TryParse(bodyId, out var auditUniqueMessageId)
             ? await QueryAudit(dbContext, auditUniqueMessageId, cancellationToken)
             : null;
     }

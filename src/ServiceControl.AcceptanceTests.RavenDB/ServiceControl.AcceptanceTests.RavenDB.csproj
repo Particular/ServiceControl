@@ -44,6 +44,7 @@
     <Compile Remove="..\ServiceControl.AcceptanceTests\MaintenanceModeTests.cs" />
 
     <Compile Remove="..\ServiceControl.AcceptanceTests\Auditing\When_composing_audit_ingestion_in_the_primary.cs" />
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Auditing\When_hosting_an_audit_instance.cs" />
     <Compile Remove="..\ServiceControl.AcceptanceTests\Auditing\When_hosting_audit_ingestion_only.cs" />
   </ItemGroup>
 

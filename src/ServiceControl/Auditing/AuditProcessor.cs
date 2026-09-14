@@ -2,6 +2,7 @@ namespace ServiceControl.Auditing
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
@@ -17,7 +18,7 @@ namespace ServiceControl.Auditing
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.SagaAudit;
 
-    class AuditProcessor(IEnrichImportedAuditMessages[] enrichers, ILogger logger)
+    class AuditProcessor(IEnrichImportedAuditMessages[] enrichers, IEndpointDetectionReporter endpointDetectionReporter, ILogger logger)
     {
         public async Task<IReadOnlyList<MessageContext>> Process(IReadOnlyList<MessageContext> contexts, IIngestionUnitOfWork unitOfWork, IMessageDispatcher dispatcher, CancellationToken cancellationToken = default)
         {
@@ -70,6 +71,8 @@ namespace ServiceControl.Auditing
             {
                 await monitoring.RecordKnownEndpoint(endpoint, cancellationToken);
             }
+
+            await endpointDetectionReporter.Report([.. knownEndpoints.Values.Select(endpoint => endpoint.EndpointDetails)], cancellationToken);
 
             return storedContexts;
         }

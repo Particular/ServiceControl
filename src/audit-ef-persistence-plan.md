@@ -165,8 +165,8 @@ Two consequences follow from owners being upgraded independently:
   host one migration behind the primary.
 - Workers have no schema check. A worker started before its database was migrated fails on the first
   insert rather than at startup, which is today's behaviour for error workers as well. Workers gain a
-  startup probe that reads the migrations history table and refuses to start, with a message naming
-  `--setup` on the owner, when the migration the binary was built against is not applied.
+  startup probe, `IDatabaseSchemaProbe`, that reads the migrations history table and refuses to
+  start, with a message naming setup on the owner, when a migration the binary carries is not applied.
 
 ### The audit host
 
@@ -181,13 +181,13 @@ and `CustomChecksComponent` in reporting mode, see below. The full persister is 
 `RunRetentionSweep` true. `--setup` in this mode provisions the audit queue, migrates the audit
 database and provisions body storage, and does not touch the primary's queues.
 
-The API surface is only the routes the primary calls on a remote, plus health. Taken from the code
-that calls them: `/api` (`CheckRemotes`), `/api/configuration` (`ConfigurationApi` and licensing),
-`/api/connection` (`RemotePlatformConnectionDetailsProvider`), the five message views,
-`/api/messages/{id}/body` (forwarded by instance id from `GetMessagesController`), `/api/sagas/{id}`
-and `/api/endpoints/{name}/audit-count`. They are registered through an
-`IApplicationFeatureProvider<ControllerFeature>` allow list, so a browser or ServicePulse pointed at
-the audit host by mistake gets 404 rather than an empty error instance.
+The audit host serves the primary API as it is. The routes the primary calls on a remote are `/api`
+(`CheckRemotes`), `/api/configuration` (`ConfigurationApi` and licensing), `/api/connection`
+(`RemotePlatformConnectionDetailsProvider`), the five message views, `/api/messages/{id}/body`
+(forwarded by instance id from `GetMessagesController`), `/api/sagas/{id}` and
+`/api/endpoints/{name}/audit-count`. The rest of the API answers with the host's own empty error
+data, which is accepted: the API exists for the scatter-gather, not as a second public surface, and
+an allow list was judged not worth its upkeep (John, 14 Sep 2026).
 
 Authorization: the primary forwards the caller's `Authorization` header to remotes, so the audit host
 runs the same authorization configuration and the same `error:*` policies as the primary. That is how
@@ -196,7 +196,13 @@ two processes must be configured alike.
 
 Startup guards: the persister must support audit; `ServiceControlQueueAddress` must be set;
 `RemoteInstances` must be empty, because an audit host is a leaf; and the mode cannot be combined
-with either ingestion-only flag.
+with either ingestion-only flag. `--setup --audit-instance` provisions the audit host through the
+same flag, with the audit host's component list rather than the primary's.
+
+Components do not branch on the mode. `Settings.Host` is a profile derived once from the flags
+(`HostsApi`, `HostsPrimaryEndpoint`, `OwnsSingletonWork`, `OwnsRetention`, `MonitorsHeartbeats`,
+`ReportsToPrimary`) and each component asks for the capability it needs. The audit host is the
+first mode that is neither a primary nor a worker, which is what made the profile worth having.
 
 ### Reporting back to the primary
 
@@ -212,8 +218,12 @@ and `RegisterNewEndpoint` sent to the primary's queue, which `ReportCustomCheckR
 instance's own key name, names that queue.
 
 The copied audit runtime has no NServiceBus endpoint, only `IMessageDispatcher`. Hosts on the audit
-database get a send-only NServiceBus endpoint for these two messages. Send-only claims no queue, so
-the hosting plan's rule that ingestion-only hosts own no queue holds. The presence of
+database get a send-only NServiceBus endpoint for these two messages, built with the transport
+customization's audit endpoint profile, which is already send-only with publishing disabled. Custom
+check results go through an `ICustomCheckResultReporter` seam, local storage by default and the
+primary's queue on a reporting host; detected endpoints through `IEndpointDetectionReporter` the
+same way. Send-only claims no queue, so the hosting plan's rule that ingestion-only hosts own no
+queue holds. The presence of
 `ServiceControlQueueAddress` is what switches a host from writing custom checks and endpoint
 registrations locally to sending them: required on `--audit-instance`, set on an
 `--audit-ingestion-only` worker only when it feeds a dedicated audit database, and never set on a
@@ -279,9 +289,7 @@ project. The rules, so that the segregation survives the steps below:
   configurations named `Audit*` and `SagaSnapshot*` beside the existing ones. The error side is not
   moved.
 - **API.** The message, saga and audit count routes serve both pipelines by product design, so the
-  API is not split. The subset the audit host exposes is declared on the controllers with a marker
-  attribute that the step 7 allow list reads, so the boundary is visible in code rather than in a
-  list inside a command.
+  API is not split, and the audit host serves it whole.
 - **Host modes.** Components do not branch on the mode name. The hosting command builds a host
   profile once and components ask it for capabilities. Today's `settings.IngestionOnly` checks are
   converted when step 7 adds the third mode and would otherwise multiply them.
@@ -646,10 +654,12 @@ competing consumers against one database, and the primary is the only writer to 
 7. **Dedicated audit database.** `--audit-instance` and its guards, the controller allow list,
    `AuditDataLocation` and the primary's Remote behaviour, `ServiceControlQueueAddress` on the
    primary executable with the send-only endpoint and the reporting switch, and the persister
-   setting that gates the audit retention pass, and the workers' migration probe. Acceptance test:
-   a primary and an audit host against two databases (two schemas in the test harness), audit
-   messages ingested by the host and read through the primary, a custom check and a detected
-   endpoint raised on the host and visible on the primary.
+   setting that gates the audit retention pass, and the workers' migration probe. On
+   `john/audit_ef_8`. Its composition tests build and start the audit host after provisioning it
+   with `--setup --audit-instance`, put the primary in Remote mode, and give a worker the primary's
+   queue. The end to end test of the split topology, two hosts against two databases with audit
+   read through the primary and a custom check and a detected endpoint arriving on it, is still
+   to be written; it needs a second in-process host in the acceptance runner.
 8. **Documentation.** `docs/audit-ingestion-in-the-primary.md` gains the topology tables, the new
    mode and the two settings, and the hosting plan's statement that there is no separate audit HTTP
    service is marked superseded.

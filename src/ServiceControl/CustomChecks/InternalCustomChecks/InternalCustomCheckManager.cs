@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.CustomChecks
+namespace ServiceControl.CustomChecks
 {
     using System;
     using System.Threading;
@@ -15,13 +15,13 @@
             ICustomCheck check,
             EndpointDetails localEndpointDetails,
             IAsyncTimer scheduler,
-            CustomCheckResultProcessor checkResultProcessor,
+            ICustomCheckResultReporter checkResultReporter,
             ILogger logger)
         {
             this.check = check;
             this.localEndpointDetails = localEndpointDetails;
             this.scheduler = scheduler;
-            this.checkResultProcessor = checkResultProcessor;
+            this.checkResultReporter = checkResultReporter;
             this.logger = logger;
         }
 
@@ -63,7 +63,7 @@
                 FailureReason = result.FailureReason
             };
 
-            await checkResultProcessor.ProcessResult(detail, cancellationToken);
+            await checkResultReporter.Report(detail, cancellationToken);
 
             return check.Interval.HasValue
                 ? TimerJobExecutionResult.ScheduleNextExecution
@@ -76,7 +76,7 @@
         readonly ICustomCheck check;
         readonly EndpointDetails localEndpointDetails;
         readonly IAsyncTimer scheduler;
-        readonly CustomCheckResultProcessor checkResultProcessor;
+        readonly ICustomCheckResultReporter checkResultReporter;
         readonly ILogger logger;
     }
 }

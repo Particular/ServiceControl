@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Recoverability
+namespace ServiceControl.Recoverability
 {
     using System;
     using System.Threading;
@@ -81,7 +81,7 @@
             services.AddSingleton<ErrorQueueNameCache>();
             services.AddSingleton<ReturnToSenderDequeuer>();
 
-            if (!settings.IngestionOnly)
+            if (settings.Host.OwnsSingletonWork)
             {
                 services.AddHostedService(provider => provider.GetRequiredService<ReturnToSenderDequeuer>());
             }

@@ -33,6 +33,8 @@ namespace ServiceControl.Hosting.Commands
 
             var app = BuildHost(settings);
 
+            await app.Services.EnsureDatabaseSchemaIsCurrent(cancellationToken);
+
             await app.RunAsync(settings.RootUrl);
         }
 

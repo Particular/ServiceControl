@@ -18,7 +18,7 @@ namespace ServiceControl.ExternalIntegrations
             {
                 services.AddDomainEventHandler<IntegrationEventWriter>();
 
-                if (!settings.IngestionOnly)
+                if (settings.Host.OwnsSingletonWork)
                 {
                     services.AddHostedService<EventDispatcherHostedService>();
                 }

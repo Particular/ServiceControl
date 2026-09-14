@@ -27,6 +27,7 @@ public abstract class BasePersistence
         services.TryAddSingleton(TimeProvider.System);
 
         services.AddSingleton<MinimumRequiredStorageState>();
+        services.AddScoped<IDatabaseSchemaProbe, DatabaseSchemaProbe>();
 
         services.AddSingleton<IServiceControlSubscriptionStorage, SubscriptionStorage>();
         services.AddSingleton<ISubscriptionStorage>(p => p.GetRequiredService<IServiceControlSubscriptionStorage>());

@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Infrastructure.Settings
+namespace ServiceBus.Management.Infrastructure.Settings
 {
     using System;
     using System.Collections.Generic;
@@ -221,12 +221,35 @@
         // Set by the --audit-ingestion-only command, never read from configuration.
         public bool AuditIngestionOnly { get; set; }
 
+        // Set by the --audit-instance command, never read from configuration.
+        public bool AuditInstance { get; set; }
+
         /// <summary>
         /// True in either ingestion only mode. These hosts run no NServiceBus endpoint, own none of the
         /// work a deployment may only do once, and never provision anything.
         /// </summary>
         [JsonIgnore]
         public bool IngestionOnly => ErrorIngestionOnly || AuditIngestionOnly;
+
+        [JsonIgnore]
+        public HostProfile Host => new(
+            HostsApi: !IngestionOnly,
+            HostsPrimaryEndpoint: !IngestionOnly && !AuditInstance,
+            OwnsSingletonWork: !IngestionOnly && !AuditInstance,
+            OwnsRetention: !IngestionOnly,
+            MonitorsHeartbeats: !IngestionOnly && !AuditInstance,
+            ReportsToPrimary: (IngestionOnly || AuditInstance) && !string.IsNullOrWhiteSpace(ServiceControlQueueAddress));
+
+        /// <summary>
+        /// Whether this primary's audit data is in its own database or on a dedicated audit host.
+        /// </summary>
+        public AuditDataLocation AuditDataLocation { get; set; }
+
+        /// <summary>
+        /// The primary's input queue, for a host on a dedicated audit database to report custom checks
+        /// and detected endpoints to. The same key the standalone audit instance reads.
+        /// </summary>
+        public string ServiceControlQueueAddress { get; set; }
 
         public TimeSpan? AuditRetentionPeriod { get; set; }
 
@@ -510,6 +533,33 @@
             }
 
             ForwardAuditMessages = SettingsReader.Read(SettingsRootNamespace, "ForwardAuditMessages", false);
+            AuditDataLocation = ReadAuditDataLocation();
+            ServiceControlQueueAddress = SettingsReader.Read<string>(SettingsRootNamespace, "ServiceControlQueueAddress");
+        }
+
+        AuditDataLocation ReadAuditDataLocation()
+        {
+            var value = SettingsReader.Read<string>(SettingsRootNamespace, "AuditDataLocation");
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return AuditDataLocation.Local;
+            }
+
+            if (Enum.TryParse<AuditDataLocation>(value, ignoreCase: true, out var location))
+            {
+                return location;
+            }
+
+            var message = $"ServiceControl/AuditDataLocation is '{value}', expected Local or Remote.";
+
+            if (ValidateConfiguration)
+            {
+                throw new Exception(message);
+            }
+
+            logger.LogWarning("{Message} Assuming Local.", message);
+            return AuditDataLocation.Local;
         }
 
         void LoadErrorIngestionSettings()

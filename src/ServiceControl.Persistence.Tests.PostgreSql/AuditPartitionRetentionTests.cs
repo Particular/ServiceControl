@@ -54,7 +54,8 @@ class AuditPartitionRetentionTests : AuditRetentionTestBase
         var check = new AuditPartitionCustomCheck(
             ServiceProvider.GetRequiredService<IServiceScopeFactory>(),
             Partitions,
-            ServiceProvider.GetRequiredService<TimeProvider>());
+            ServiceProvider.GetRequiredService<TimeProvider>(),
+            EFSettings);
 
         var beforehand = await check.PerformCheck();
 
@@ -68,6 +69,23 @@ class AuditPartitionRetentionTests : AuditRetentionTestBase
             Assert.That(afterwards.HasFailed, Is.True);
             Assert.That(afterwards.FailureReason, Does.Contain("retention sweep"));
         }
+    }
+
+    [Test]
+    public async Task The_provisioning_check_passes_where_the_audit_data_is_remote()
+    {
+        EFSettings.HostsAuditData = false;
+        var check = new AuditPartitionCustomCheck(
+            ServiceProvider.GetRequiredService<IServiceScopeFactory>(),
+            Partitions,
+            ServiceProvider.GetRequiredService<TimeProvider>(),
+            EFSettings);
+
+        AdvanceClock(AuditHours.Lookahead);
+
+        var result = await check.PerformCheck();
+
+        Assert.That(result.HasFailed, Is.False, "a primary that holds no audit data has no partitions to keep ahead");
     }
 
     async Task<bool> PartitionExists(string table, DateTime hour)

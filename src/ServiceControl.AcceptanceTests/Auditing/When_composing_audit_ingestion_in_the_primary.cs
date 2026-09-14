@@ -75,6 +75,43 @@ namespace ServiceControl.AcceptanceTests.Auditing
             }
         }
 
+        [Test]
+        public async Task Should_stand_aside_from_audit_entirely_when_the_audit_data_is_remote()
+        {
+            var (app, services) = await BuildHost(settings =>
+            {
+                settings.AuditDataLocation = AuditDataLocation.Remote;
+                settings.RemoteInstances = [new RemoteInstanceSetting("http://localhost:44444/api")];
+            });
+
+            try
+            {
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(HostsAuditIngestion(services), Is.False, "the audit host ingests, not this primary");
+                    Assert.That(app.Services.GetService<AuditIngestor>(), Is.Null);
+                    Assert.That(app.Services.GetService<ILocalAuditSource>(), Is.Null, "licensing learns about audit from the remote");
+                    Assert.That(app.Services.GetRequiredService<IAuditCountsDataStore>(), Is.TypeOf<EmptyAuditCountsDataStore>(),
+                        "the local source stands aside so the scatter gather treats this instance as a non-participant");
+                    Assert.That(app.Services.GetRequiredService<ISagaHistoryDataStore>(), Is.TypeOf<EmptySagaHistoryDataStore>());
+                    Assert.That(app.Services.GetService<GetSagaByIdApi>(), Is.Not.Null, "the audit routes still answer, from the remote");
+                }
+            }
+            finally
+            {
+                await app.DisposeAsync();
+            }
+        }
+
+        [Test]
+        public async Task Should_refuse_local_audit_ingestion_alongside_remote_instances()
+        {
+            var exception = Assert.ThrowsAsync<Exception>(() => BuildHost(settings =>
+                settings.RemoteInstances = [new RemoteInstanceSetting("http://localhost:44444/api")]));
+
+            Assert.That(exception.Message, Does.Contain("AuditDataLocation"));
+        }
+
         // The registrations are inspected rather than resolved. A normal primary hosts an NServiceBus
         // endpoint, and constructing every hosted service without starting it fails inside the
         // transport's receive component.

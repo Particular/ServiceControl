@@ -174,7 +174,11 @@ public class RetentionSweeper(
         await RunPass(RetentionEntity.FailedMessages, token => SweepFailedMessages(pace, errorCutoff, token), cancellationToken);
         await RunPass(RetentionEntity.EventLog, token => SweepEventLogItems(pace, eventsCutoff, token), cancellationToken);
         await RunPass(RetentionEntity.GroupComments, SweepOrphanedGroupComments, cancellationToken);
-        await RunPass(RetentionEntity.Audit, token => SweepAudit(pace, token), cancellationToken);
+
+        if (settings.HostsAuditData)
+        {
+            await RunPass(RetentionEntity.Audit, token => SweepAudit(pace, token), cancellationToken);
+        }
     }
 
     // Audit rows are stored by ingestion hour and expire an hour at a time, once the whole hour is

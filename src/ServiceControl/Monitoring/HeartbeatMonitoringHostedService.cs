@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Monitoring
+namespace ServiceControl.Monitoring
 {
     using System;
     using System.Threading;
@@ -24,10 +24,10 @@
         {
             await persistence.WarmupMonitoringFromPersistence(monitor, cancellationToken);
 
-            // An ingestion only host receives no heartbeats, so it has nothing to check and would
-            // only report every endpoint as dead. It still warms the monitor, because the error
-            // enricher asks it whether an endpoint is new before recording it.
-            if (settings.IngestionOnly)
+            // A host that does not monitor heartbeats receives none, so it has nothing to check and
+            // would only report every endpoint as dead. It still warms the monitor, because the
+            // ingestion enrichers ask it whether an endpoint is new before recording it.
+            if (!settings.Host.MonitorsHeartbeats)
             {
                 return;
             }

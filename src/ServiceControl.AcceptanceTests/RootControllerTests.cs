@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.AcceptanceTests.Legacy
+namespace ServiceControl.AcceptanceTests.Legacy
 {
     using System.Text.Json.Nodes;
     using System.Threading.Tasks;
@@ -19,6 +19,8 @@
 
             SetSettings = settings =>
             {
+                // A primary with audit remotes holds no audit data of its own.
+                settings.AuditDataLocation = AuditDataLocation.Remote;
                 settings.RemoteInstances =
                 [
                     new RemoteInstanceSetting(settings.RootUrl),

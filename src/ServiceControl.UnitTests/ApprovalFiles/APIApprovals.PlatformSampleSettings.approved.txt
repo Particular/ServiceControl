@@ -1,4 +1,4 @@
-﻿{
+{
   "LoggingSettings": {
     "LogLevel": "Information",
     "LogPath": "C:\\Logs"
@@ -78,6 +78,9 @@
   "TimeToRestartAuditIngestionAfterFailure": "00:01:00",
   "ErrorIngestionOnly": false,
   "AuditIngestionOnly": false,
+  "AuditInstance": false,
+  "AuditDataLocation": "Local",
+  "ServiceControlQueueAddress": null,
   "AuditRetentionPeriod": null,
   "ErrorRetentionPeriod": "10.00:00:00",
   "EventsRetentionPeriod": "14.00:00:00",

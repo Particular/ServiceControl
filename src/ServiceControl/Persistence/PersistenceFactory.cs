@@ -18,7 +18,8 @@ namespace ServiceControl.Persistence
             //HINT: This is false when executed from acceptance tests
             settings.PersisterSpecificSettings ??= persistenceConfiguration.CreateSettings(Settings.SettingsRootNamespace);
             settings.PersisterSpecificSettings.MaintenanceMode = maintenanceMode;
-            settings.PersisterSpecificSettings.RunRetentionSweep = !settings.IngestionOnly;
+            settings.PersisterSpecificSettings.RunRetentionSweep = settings.Host.OwnsRetention;
+            settings.PersisterSpecificSettings.HostsAuditData = settings.AuditDataLocation == AuditDataLocation.Local;
 
             var persistence = persistenceConfiguration.Create(settings.PersisterSpecificSettings);
             return persistence;

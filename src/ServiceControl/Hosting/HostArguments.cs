@@ -1,4 +1,4 @@
-﻿namespace Particular.ServiceControl.Hosting
+namespace Particular.ServiceControl.Hosting
 {
     using System;
     using System.IO;
@@ -13,6 +13,7 @@
         {
             var errorIngestionOnly = false;
             var auditIngestionOnly = false;
+            var auditInstance = false;
 
             if (SettingsReader.Read<bool>(Settings.SettingsRootNamespace, "MaintenanceMode"))
             {
@@ -56,6 +57,15 @@
                 }
             };
 
+            var auditInstanceOptions = new OptionSet
+            {
+                {
+                    "audit-instance",
+                    "Run as the audit host of a dedicated audit database, reached by a primary through its remote instances",
+                    s => auditInstance = true
+                }
+            };
+
             var ingestionOnlyOptions = new OptionSet
             {
                 {
@@ -72,6 +82,9 @@
 
             try
             {
+                auditInstanceOptions.Parse(args);
+                AuditInstance = auditInstance;
+
                 externalInstallerOptions.Parse(args);
 
                 if (Command == typeof(SetupCommand))
@@ -96,6 +109,13 @@
                 ingestionOnlyOptions.Parse(args);
 
                 IngestionOnlyGuards.EnsureModesAreNotCombined(errorIngestionOnly, auditIngestionOnly);
+                AuditInstanceGuards.EnsureNotCombinedWithIngestionOnly(auditInstance, errorIngestionOnly || auditIngestionOnly);
+
+                if (auditInstance)
+                {
+                    Command = typeof(AuditInstanceCommand);
+                    return;
+                }
 
                 if (errorIngestionOnly)
                 {
@@ -123,6 +143,12 @@
         public bool Help { get; private set; }
 
         public bool SkipQueueCreation { get; private set; }
+
+        /// <summary>
+        /// Set by --audit-instance. Read by setup as well as by the run command, so one flag provisions
+        /// and runs the same host.
+        /// </summary>
+        public bool AuditInstance { get; private set; }
 
         public void PrintUsage()
         {

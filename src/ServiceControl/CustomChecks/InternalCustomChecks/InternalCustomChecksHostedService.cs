@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.CustomChecks
+namespace ServiceControl.CustomChecks
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -15,7 +15,7 @@
         IList<ICustomCheck> customChecks,
         HostInformation hostInfo,
         IAsyncTimer scheduler,
-        CustomCheckResultProcessor checkResultProcessor,
+        ICustomCheckResultReporter checkResultReporter,
         string endpointName,
         ILogger<InternalCustomChecksHostedService> logger)
         : IHostedService
@@ -24,7 +24,7 @@
         {
             foreach (var check in customChecks)
             {
-                var checkManager = new InternalCustomCheckManager(check, localEndpointDetails, scheduler, checkResultProcessor, logger);
+                var checkManager = new InternalCustomCheckManager(check, localEndpointDetails, scheduler, checkResultReporter, logger);
                 checkManager.Start();
 
                 managers.Add(checkManager);

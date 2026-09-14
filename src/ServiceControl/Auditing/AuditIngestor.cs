@@ -22,6 +22,7 @@ namespace ServiceControl.Auditing
             IIngestionUnitOfWorkFactory unitOfWorkFactory,
             IEndpointInstanceMonitoring endpointInstanceMonitoring,
             ITransportCustomization transportCustomization,
+            IEndpointDetectionReporter endpointDetectionReporter,
             ILogger<AuditIngestor> logger)
         {
             this.settings = settings;
@@ -40,7 +41,7 @@ namespace ServiceControl.Auditing
                 new SagaRelationshipsEnricher()
             ];
 
-            processor = new AuditProcessor(enrichers, logger);
+            processor = new AuditProcessor(enrichers, endpointDetectionReporter, logger);
         }
 
         public async Task Ingest(List<MessageContext> contexts, IMessageDispatcher dispatcher, CancellationToken cancellationToken = default)

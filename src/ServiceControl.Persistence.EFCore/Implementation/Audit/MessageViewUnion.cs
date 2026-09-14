@@ -18,24 +18,33 @@ static class MessageViewUnion
     /// </summary>
     public const int TotalCountCap = 100_000;
 
+    /// <param name="audited">Null where this host holds no audit data, which leaves the failed branch alone.</param>
     public static async Task<QueryResult<IList<MessagesView>>> ToPagedMessagesResult(
         IQueryable<MessageRow> failed,
-        IQueryable<MessageRow> audited,
+        IQueryable<MessageRow>? audited,
         PagingInfo pagingInfo,
         SortInfo sortInfo,
         CancellationToken cancellationToken = default)
     {
         var reach = pagingInfo.Offset + pagingInfo.Next;
 
-        var rows = await failed.Sort(sortInfo).Take(reach)
-            .Concat(audited.Sort(sortInfo).Take(reach))
-            .Sort(sortInfo)
+        var page = audited is null
+            ? failed.Sort(sortInfo)
+            : failed.Sort(sortInfo).Take(reach).Concat(audited.Sort(sortInfo).Take(reach)).Sort(sortInfo);
+
+        var rows = await page
             .Skip(pagingInfo.Offset)
             .Take(pagingInfo.Next)
             .ToListAsync(cancellationToken);
 
-        var total = await failed.Select(row => row.UniqueMessageId)
-            .Concat(audited.Select(row => row.UniqueMessageId))
+        var counted = failed.Select(row => row.UniqueMessageId);
+
+        if (audited is not null)
+        {
+            counted = counted.Concat(audited.Select(row => row.UniqueMessageId));
+        }
+
+        var total = await counted
             .Take(TotalCountCap)
             .LongCountAsync(cancellationToken);
 
