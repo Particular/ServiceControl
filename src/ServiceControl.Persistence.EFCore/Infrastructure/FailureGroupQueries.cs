@@ -8,7 +8,7 @@ static class FailureGroupQueries
     public const int MaxGroups = 200;
 
     /// <summary>
-    /// Aggregate with Title in the group key. Used by <see cref="GroupsDataStore.SingleGroup" />
+    /// Aggregate with Title in the group key. Used by <see cref="Implementation.GroupsDataStore.SingleGroup" />
     /// where a single group is fetched and the nvarchar(max) Title cost is negligible.
     /// </summary>
     public static IQueryable<FailureGroupView> AggregateGroups(this IQueryable<FailedMessageGroupEntity> groups, IQueryable<FailedMessageEntity> messages) =>
@@ -53,8 +53,8 @@ static class FailureGroupQueries
 /// </summary>
 sealed class GroupSummary
 {
-    public string Id { get; set; } = null!;
-    public string Type { get; set; } = null!;
+    public required string Id { get; set; }
+    public required string Type { get; set; }
     public int Count { get; set; }
     public DateTime First { get; set; }
     public DateTime Last { get; set; }
