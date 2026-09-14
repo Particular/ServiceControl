@@ -19,16 +19,17 @@ class AuditPartitioningTests : PersistenceTestBase
     {
         using var scope = ServiceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+        var qualifiedTable = dbContext.Schema is null ? table : $"{dbContext.Schema}.{table}";
 
         var strategy = await QueryScalar(dbContext,
-            $"SELECT partstrat::text FROM pg_partitioned_table WHERE partrelid = '{table}'::regclass");
+            $"SELECT partstrat::text FROM pg_partitioned_table WHERE partrelid = '{qualifiedTable}'::regclass");
 
         var partitionKey = await QueryScalar(dbContext,
             $"""
              SELECT a.attname
              FROM pg_partitioned_table p
              JOIN pg_attribute a ON a.attrelid = p.partrelid AND a.attnum = p.partattrs[0]
-             WHERE p.partrelid = '{table}'::regclass
+             WHERE p.partrelid = '{qualifiedTable}'::regclass
              """);
 
         using (Assert.EnterMultipleScope())

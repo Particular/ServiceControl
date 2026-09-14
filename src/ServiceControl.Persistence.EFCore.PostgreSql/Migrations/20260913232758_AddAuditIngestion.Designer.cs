@@ -13,7 +13,7 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    [Migration("20260822095934_AddAuditIngestion")]
+    [Migration("20260913232758_AddAuditIngestion")]
     partial class AddAuditIngestion
     {
         /// <inheritdoc />
@@ -337,7 +337,33 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .IsDescending()
                         .HasDatabaseName("ix_event_log_items_raised_at_id");
 
-                    b.ToTable("EventLogItems", (string)null);
+                    b.ToTable("event_log_items", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.ExternalIntegrationDispatchRequestEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("DispatchContextJson")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("dispatch_context_json");
+
+                    b.Property<string>("DispatchContextTypeName")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("dispatch_context_type_name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_external_integration_dispatch_requests");
+
+                    b.ToTable("external_integration_dispatch_requests", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedAuditImportEntity", b =>
@@ -486,6 +512,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnName("exception_type");
 
                     b.Property<string>("FailingEndpointAddress")
+                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)")
                         .HasColumnName("failing_endpoint_address");

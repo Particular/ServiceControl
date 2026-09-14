@@ -37,11 +37,16 @@ sealed class SchemaStampingNpgsqlMigrationsSqlGenerator(
         MigrationOperation[] stamped =
         [
             .. operations.Select(operation => operation is SqlOperation sql
-                ? FullTextSearchSql.Rewrite(sql, schema)
+                ? Rewrite(sql, schema)
                 : MigrationSchemaStamper.Stamp(operation, schema))
         ];
 
         return base.Generate(stamped, model, options);
     }
+
+    static MigrationOperation Rewrite(SqlOperation sql, string schema) =>
+        FullTextSearchSql.IsHandled(sql.Sql)
+            ? FullTextSearchSql.Rewrite(sql, schema)
+            : AuditPartitioningSql.Rewrite(sql, schema);
 }
 #pragma warning restore EF1001

@@ -123,13 +123,13 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                 columns: new[] { "saga_id", "finish_time" });
 
             // Last, so that the clone picks up the columns, primary keys and indexes above.
-            migrationBuilder.Sql(AuditPartitioningSql.PartitionTables());
+            migrationBuilder.Sql(AuditPartitioningSql.PartitionTables);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql(AuditPartitioningSql.UnpartitionTables());
+            migrationBuilder.Sql(AuditPartitioningSql.UnpartitionTables);
 
             migrationBuilder.DropTable(
                 name: "audit_messages");

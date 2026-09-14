@@ -10,6 +10,11 @@ This is the implementation half of [Host Audit Ingestion in the Primary Instance
 That plan delivered the contracts, the copied runtime, the settings, the fail-fast command and the
 composition. Nothing in it stores an audit message. This plan does.
 
+Revised 14 September 2026 to add a second topology: a dedicated audit database, served by the same
+executable in a new audit-only mode and reached by the primary through the existing scatter-gather.
+See "Topologies". The hosting plan's decision that there is no separate SQL Server or PostgreSQL
+audit HTTP service is superseded by that section.
+
 The audit-only spike ([#5318](https://github.com/Particular/ServiceControl/pull/5318)) remains the
 evidence base for partitioning, retention and full-text search. It is not the design: it targeted a
 standalone audit instance with its own database, its own `DbContext` and its own persistence
@@ -35,18 +40,23 @@ redelivery, and counts and unions computed at query time.
 - Serve audit counts, saga history, and audit body resolution.
 - Keep the spike's PostgreSQL hourly range partitioning and its retention economics.
 - Keep ingestion safe under competing consumers.
-- Flip `SupportsAuditIngestion` to `true` on both EF manifests as the last step.
+- Flip `SupportsAuditIngestion` to `true` on both EF manifests once the shared database works.
+- Let an operator move audit storage to a dedicated database, on the same server or another, without
+  a second audit persister and without changing how RavenDB deployments work.
 
 ## Non-goals
 
 - Any change to RavenDB, on either instance.
 - Migrating existing RavenDB audit data.
-- Changing the audit runtime, the host composition, or the settings surface. Those shipped already.
+- Changing the audit runtime. Host composition and settings change only where the dedicated audit
+  database needs them, and those changes are listed under "Topologies".
+- SCMU and PowerShell support for any of this. It stays with the EF storage type workstream, which
+  now has one more host mode and two more settings to surface.
 - Making `EnableFullTextSearchOnBodies` real. See "Full-text search".
 
 ## Decisions
 
-Settled by interview on 22 Aug 2026.
+Settled by interview on 22 Aug 2026, extended by interview on 14 Sep 2026.
 
 | Decision | Choice |
 | --- | --- |
@@ -59,6 +69,11 @@ Settled by interview on 22 Aug 2026.
 | Audit counts | Aggregate query over the audit table, served by an index on `(receiving_endpoint_name, created_on)`. No rollup table. |
 | `AuditRetentionPeriod` null | 7 days, matching SCMU and the Dockerfile. |
 | Retention ownership | Single owner via `RunRetentionSweep`, plus a session scoped advisory lock ported from the spike so two misconfigured primaries cannot sweep at once. |
+| Dedicated audit database | Supported. The primary executable gains `--audit-instance`, a host that ingests audit, serves the audit routes and sweeps audit retention against its own connection string. The primary lists it under `RemoteInstances` exactly as it lists a RavenDB audit instance. Neither `ServiceControl.Audit.exe` nor a second `DbContext` in the primary is involved. |
+| Schema of a dedicated audit database | The same `ServiceControlDbContext` and the same migration stream. The audit database carries the error tables, empty, and a primary whose audit is remote carries the audit tables, empty. |
+| How the primary knows audit is remote | An explicit setting, `ServiceControl/AuditDataLocation`, `Local` or `Remote`. `Local` is the default where the persister supports audit. Not derived from `IngestAuditMessages` and `RemoteInstances`, because the shared topology where only workers ingest looks the same. |
+| Delivery order | Shared database first, through step 6. The dedicated database is steps 7 and 8, composed from parts that already work by then. |
+| Message view composition | One SQL statement per view: `UNION ALL` of the failed and audit branches, precedence by anti-join on `unique_message_id`, sort, paging and count in the database. Decided 14 Sep 2026, replacing the in-memory merge of two pages, which paged wrongly past page one and could not count. |
 
 ### Why the partition key is the ingestion hour, and why rows are not deduplicated
 
@@ -94,6 +109,152 @@ Mitigations, not fixes:
 
 Revisiting this means letting ingesting hosts issue `CREATE TABLE IF NOT EXISTS` themselves.
 
+## Topologies
+
+Audit volume is what stresses a database. An operator whose business SQL Server copes with the error
+instance but not with audit needs to move only audit to a dedicated server, and nothing else about
+the deployment should have to change when they do. Clustering and replicas are the server's answer
+to load; this is the product's.
+
+Every process is the same executable and the same persister. What differs is the connection string
+each process is given and the mode it is started in.
+
+### Shared database
+
+The default, and the only topology steps 1 to 6 deliver.
+
+| Process | Started as | Database | Runs |
+| --- | --- | --- | --- |
+| Primary | `ServiceControl.exe` | primary | Everything a primary runs, plus the audit receiver unless `IngestAuditMessages` is false, the local audit queries, and the audit retention pass. |
+| Audit worker | `--audit-ingestion-only` | primary | The audit receiver and nothing else, as shipped. |
+| Error worker | `--error-ingestion-only` | primary | As shipped. |
+
+### Dedicated audit database
+
+| Process | Started as | Database | Runs |
+| --- | --- | --- | --- |
+| Primary | `ServiceControl.exe` with `AuditDataLocation=Remote` and `RemoteInstances` naming the audit host | primary | Everything a primary runs, minus the audit receiver, the local audit queries and the audit retention pass. Audit data reaches it through the scatter-gather, as it does from a RavenDB audit instance. |
+| Audit host | `--audit-instance` | audit | The audit receiver, the audit routes, audit retention and partition provisioning, saga audit, failed audit import tooling, platform connection details. No error side. |
+| Audit worker | `--audit-ingestion-only` with `ServiceControlQueueAddress` set | audit | The audit receiver, as shipped. It does not know which database it feeds: that is the connection string it was given. |
+| Error worker | `--error-ingestion-only` | primary | As shipped. Error ingestion only ever shares the primary's database. |
+
+The RavenDB topology is unchanged: `ServiceControl.Audit.exe` with its own database, listed as a remote.
+
+### One owner per database
+
+Every database has exactly one owner, and only owners run setup. The owner of the primary database
+is the primary; the owner of a dedicated audit database is the audit host. The owner is the process
+that runs `--setup`, and so migrations, queue creation and body storage provisioning, and the process
+that runs retention, partition provisioning and the API. Every other process on that database is a
+worker: `--error-ingestion-only` and `--audit-ingestion-only` run none of those, exactly as they do
+today. A worker on a dedicated audit database is not listed under `RemoteInstances`, because it has
+no API to list; only the audit host is.
+
+Two `--audit-instance` processes on one database are a misconfiguration, the same way two primaries
+on one database are. The advisory retention lock is the safety net for both, not a supported shape.
+
+Two consequences follow from owners being upgraded independently:
+
+- The primary database and the audit database run the same migration stream, but their owners are
+  upgraded on their own schedules, so one is routinely a migration behind the other. The primary
+  only ever reaches the audit host over HTTP, which already has to tolerate a RavenDB audit remote
+  on an older version, so the upgrade order does not matter. The acceptance suite covers an audit
+  host one migration behind the primary.
+- Workers have no schema check. A worker started before its database was migrated fails on the first
+  insert rather than at startup, which is today's behaviour for error workers as well. Workers gain a
+  startup probe that reads the migrations history table and refuses to start, with a message naming
+  `--setup` on the owner, when the migration the binary was built against is not applied.
+
+### The audit host
+
+`--audit-instance` is the primary executable composed from the audit side only. Against
+`--audit-ingestion-only` it adds the API, retention, failed audit reimport, platform connection
+details and licensing metadata. Against the normal primary it drops error ingestion, recoverability,
+heartbeat monitoring as a feature, the event log, external integrations, notifications and licensing
+ownership.
+
+Components: `AuditComponent`, `HeartbeatMonitoringComponent` for `IsNewInstance` as in the worker,
+and `CustomChecksComponent` in reporting mode, see below. The full persister is registered with
+`RunRetentionSweep` true. `--setup` in this mode provisions the audit queue, migrates the audit
+database and provisions body storage, and does not touch the primary's queues.
+
+The API surface is only the routes the primary calls on a remote, plus health. Taken from the code
+that calls them: `/api` (`CheckRemotes`), `/api/configuration` (`ConfigurationApi` and licensing),
+`/api/connection` (`RemotePlatformConnectionDetailsProvider`), the five message views,
+`/api/messages/{id}/body` (forwarded by instance id from `GetMessagesController`), `/api/sagas/{id}`
+and `/api/endpoints/{name}/audit-count`. They are registered through an
+`IApplicationFeatureProvider<ControllerFeature>` allow list, so a browser or ServicePulse pointed at
+the audit host by mistake gets 404 rather than an empty error instance.
+
+Authorization: the primary forwards the caller's `Authorization` header to remotes, so the audit host
+runs the same authorization configuration and the same `error:*` policies as the primary. That is how
+a RavenDB audit remote works today with its `audit:*` policies, and the documentation has to say the
+two processes must be configured alike.
+
+Startup guards: the persister must support audit; `ServiceControlQueueAddress` must be set;
+`RemoteInstances` must be empty, because an audit host is a leaf; and the mode cannot be combined
+with either ingestion-only flag.
+
+### Reporting back to the primary
+
+The primary is the only process ServicePulse talks to, and two things it shows come from wherever
+audit is ingested: custom checks (audit ingestion health, failed audit imports) and endpoints
+detected from audit messages.
+
+In the shared topology both land in the primary's tables directly, through the shared unit of work.
+In the dedicated topology the audit host and its workers write to the audit database, which the
+primary never reads, so they need the RavenDB audit instance's mechanism: `ReportCustomCheckResult`
+and `RegisterNewEndpoint` sent to the primary's queue, which `ReportCustomCheckResultHandler` and
+`RegisterNewEndpointHandler` already handle. `ServiceControl/ServiceControlQueueAddress`, the audit
+instance's own key name, names that queue.
+
+The copied audit runtime has no NServiceBus endpoint, only `IMessageDispatcher`. Hosts on the audit
+database get a send-only NServiceBus endpoint for these two messages. Send-only claims no queue, so
+the hosting plan's rule that ingestion-only hosts own no queue holds. The presence of
+`ServiceControlQueueAddress` is what switches a host from writing custom checks and endpoint
+registrations locally to sending them: required on `--audit-instance`, set on an
+`--audit-ingestion-only` worker only when it feeds a dedicated audit database, and never set on a
+shared topology process. Known endpoints are still recorded in the audit database as well, because
+`IsNewInstance` warms from there and the audit host's own queries need them.
+
+The custom check ids need a decision. `FailedAuditImportCustomCheck` in the primary is named
+`Audit Message Ingestion (local)` so that it cannot collide with the RavenDB audit instance's check in
+the same category. That name reads wrongly when reported from a dedicated audit host. Step 7 decides
+whether the id is the same in both topologies or the host reports under the audit instance's id, and
+`InternalCustomCheckClassification` has to know the answer either way.
+
+### The primary in Remote mode
+
+`AuditDataLocation=Remote` turns off, on the primary:
+
+- The audit receiver, regardless of `IngestAuditMessages`.
+- The local audit queries. The existing `Empty*` audit stand-ins are registered instead of the EF
+  stores, so the scatter-gather treats the local instance as a non-participant and a timed-out audit
+  host is reported as a timeout rather than hidden behind an empty local answer. The message views
+  drop their audit branch the same way, and the audit host drops the failed branch, so each host
+  queries only the tables it owns.
+- The audit retention pass and partition provisioning, through a persister setting carried the way
+  `AuditRetentionPeriod` is.
+- `--import-failed-audits`, which fails with a message naming the audit host as the place to run it.
+- The current warning about remotes plus local audit, which becomes a validation error in the
+  opposite direction: `Local` with the receiver on and remotes configured.
+
+Everything else, including `/api/connection` composition and licensing throughput, keeps working the
+way it does with a RavenDB remote today.
+
+### Settings
+
+| Setting | Process | Notes |
+| --- | --- | --- |
+| `ServiceControl/AuditDataLocation` | primary | `Local` (default where the persister supports audit) or `Remote`. Ignored where the persister does not support audit. |
+| `ServiceControl/RemoteInstances` | primary | Already exists. Lists the audit host's API URL. |
+| `ServiceControl/ServiceControlQueueAddress` | audit host, and audit workers on a dedicated database | The primary's input queue. Same key the RavenDB audit instance reads. |
+| `ServiceControl/Database/ConnectionString` | every process | Which database a process feeds. Unchanged. |
+| `ServiceControl/MessageBody/...` | every process | Hosts on one database share one body store: the audit host and its workers share the audit store, the primary and its workers share the primary's. The `audit/` key prefix keeps the two apart if an operator points both at one store. |
+
+`--audit-ingestion-only` needs no new flag. A worker on a different database is the same command with
+a different connection string and `ServiceControlQueueAddress` set.
+
 ## What already exists and is reused
 
 The largest risk in this work is rebuilding something the primary already has. It has more than the
@@ -109,6 +270,8 @@ spike did.
 | Retention | `RetentionSweeper`, a `BackgroundService` gated by `RunRetentionSweep`, already deleting external bodies before rows | Audit retention extends it. |
 | Transactional batch | `EFIngestionUnitOfWork.Complete` runs one execution strategy and one transaction | Audit rows join that transaction. |
 | Body arbitration order | Documented on `IBodyStorage.TryFetch`, exercised by the audit-capable test persister | The EF implementation has to satisfy it, and the order is already stated. |
+| Remote audit instances | `RemoteInstanceSetting`, `ScatterGatherApi`, `CheckRemotes`, `RemotePlatformConnectionDetailsProvider`, body forwarding in `GetMessagesController` | The audit host is one more remote. Nothing on the primary's read side is new for the dedicated topology. |
+| Reporting from an audit instance | `ReportCustomCheckResultHandler`, `RegisterNewEndpointHandler` | The audit host reports the way the RavenDB audit instance does. |
 
 ## Schema
 
@@ -224,6 +387,11 @@ next sweep re-handles, where the reverse leaks bodies.
 `AuditRetentionPeriod` is read from `Settings` into `EFPersisterSettings`, defaulting to 7 days when
 null.
 
+The audit pass and partition provisioning run only where audit data is local: on a primary with
+`AuditDataLocation=Local`, and on the audit host. A persister setting carries that, the way
+`AuditRetentionPeriod` does, so a primary whose audit is remote never provisions partitions for
+tables nothing writes to.
+
 ### Locking
 
 `RunRetentionSweep` is false on every ingestion-only worker, so in a correct deployment there is one
@@ -281,6 +449,10 @@ resolves the audit row by `unique_message_id`, returning the inline `body_text` 
 external body otherwise. Because the audit body key contains the hour, resolving it needs the row
 first, which the query already fetches.
 
+In the dedicated topology the primary never reaches step three: Remote mode removes the local audit
+source, and an audit body is fetched from the audit host by instance id through the forwarding
+`GetMessagesController` already does for a RavenDB remote.
+
 ## Full-text search
 
 The audit index mirrors `FullTextSearchSql` for failed messages: a GIN index over
@@ -297,13 +469,52 @@ sides at once or neither.
 
 ### The five message view queries
 
-Each becomes a union of failed and audited rows, merged through `LocalMessagesView.Merge`, which
-already implements the precedence, paging and counting rules.
+Each view is one SQL statement over both tables. The database applies the filters, the precedence
+rule, the sort, the page and the count; nothing is merged in memory.
 
-The merge is in memory over at most two pages of rows, not in SQL. Two ordered `Take(PageSize)`
-queries, one per source, then merge. A SQL `UNION ALL` with a window function would push the work
-into the database, but it defeats the full-text index on both providers and cannot express
-"failed wins" without a second pass anyway.
+```sql
+SELECT <common projection> FROM failed_messages f WHERE <filters>
+UNION ALL
+SELECT <common projection> FROM audit_messages a
+WHERE <filters>
+  AND NOT EXISTS (SELECT 1 FROM failed_messages f WHERE f.unique_message_id = a.unique_message_id)
+ORDER BY <sort> LIMIT @take OFFSET @skip
+```
+
+The three rules `IMessagesViewDataStore` states are each one clause of that statement:
+
+1. **Precedence.** A message that both failed and was audited shows as failed. The anti-join on the
+   audit branch drops the audit row. `unique_message_id` is the same deterministic value on both
+   tables, message id plus processing endpoint, and it is the primary key of `failed_messages` and
+   indexed on `audit_messages`, so the anti-join is one key probe per surviving audit row. It is not
+   a `ROW_NUMBER() OVER (PARTITION BY ...)`, which would force both tables to be materialised before
+   the first row could be returned.
+2. **Paging.** `OFFSET` and `LIMIT` sit on the union, so page N is exact. Both providers stream a
+   top-N over two ordered index scans (Merge Append on PostgreSQL, Merge Concatenation on SQL
+   Server) and stop at the page boundary rather than reading either table through.
+3. **Counting.** The total is a second statement with the same two predicates, `COUNT(*)` on each
+   branch with the anti-join on the audit side, so a message in both tables counts once.
+
+Each branch keeps its own indexes, including its own full-text index, because the planner plans
+each branch on its own. The full-text predicate reaches each branch through the existing
+`IFullTextSearchDialect` seam, and the audit copy of `FullTextSearchIndexTests` pins the audit
+branch's expression to its index the way the failed one is pinned today. Everything else is LINQ:
+`Concat` over two projections to a shared row type and `Any` for the anti-join, which EF Core
+translates to the statement above on both providers.
+
+Two constraints follow. Both branches must project the same column set, which is why the audit
+columns in "Schema" were chosen from what `MessagesView` shows. And every sortable column must be
+indexed on both tables, or a sort becomes a sort of the whole filtered set: `time_sent` and
+`processed_at` are, and the remaining sort keys the API accepts (`critical_time`, `delivery_time`,
+`processing_time`, `message_type`, `status`) get a decision in step 4, either an index on both
+tables or documented as unindexed sorts.
+
+`LocalMessagesView.Merge` stays only behind the in-memory test persister, which holds both kinds of
+message in memory and has no database to hand the work to. Once step 4 lands it serves no shipped
+code path, and step 6 deletes it with the test persister.
+
+On a Remote-mode primary and on the audit host one branch has no rows by construction, and the
+composition registers an empty source for it rather than querying an empty table. See "Topologies".
 
 `GetAllMessagesByConversation` has no page bound in practice and needs a cap.
 
@@ -346,6 +557,9 @@ One known gap, stated rather than hidden: a redelivered audit message or saga au
 produces a second row. Neither table deduplicates. RavenDB does, so this is a behaviour difference
 between the two audit persisters and not merely a scale-out caveat.
 
+The dedicated topology adds no new kind of writer. The audit host and its workers are the same
+competing consumers against one database, and the primary is the only writer to its own.
+
 ## PR sequence
 
 1. **Schema and migrations.** Entities, configurations, `DbContext` registration, and per-provider
@@ -362,11 +576,23 @@ between the two audit persisters and not merely a scale-out caveat.
    to a sequential scan, which is what the pinning test exists to catch.
 5. **Failed audit imports.** The store, and the `--import-failed-audits` round trip.
 6. **Turn it on.** Flip `SupportsAuditIngestion` in both manifests, update the approval test that
-   asserts it is false, and delete `ServiceControl.Persistence.Tests.AuditCapable` along with the
-   `Empty*` audit data stores it stood in for. Full acceptance runs on both providers.
+   asserts it is false, and delete `ServiceControl.Persistence.Tests.AuditCapable`. The `Empty*`
+   audit stand-ins stay: step 7 registers them on a primary whose audit is remote. Full acceptance
+   runs on both providers.
+7. **Dedicated audit database.** `--audit-instance` and its guards, the controller allow list,
+   `AuditDataLocation` and the primary's Remote behaviour, `ServiceControlQueueAddress` on the
+   primary executable with the send-only endpoint and the reporting switch, and the persister
+   setting that gates the audit retention pass, and the workers' migration probe. Acceptance test:
+   a primary and an audit host against two databases (two schemas in the test harness), audit
+   messages ingested by the host and read through the primary, a custom check and a detected
+   endpoint raised on the host and visible on the primary.
+8. **Documentation.** `docs/audit-ingestion-in-the-primary.md` gains the topology tables, the new
+   mode and the two settings, and the hosting plan's statement that there is no separate audit HTTP
+   service is marked superseded.
 
 Each pull request leaves both EF acceptance suites and the RavenDB suites passing, and steps 1 to 5
-leave `SupportsAuditIngestion` false so nothing activates early.
+leave `SupportsAuditIngestion` false so nothing activates early. Step 1 is on this branch, rebased
+onto master on 14 September 2026.
 
 ## Testing
 
@@ -381,9 +607,25 @@ leave `SupportsAuditIngestion` false so nothing activates early.
 - A redelivered audit message and a redelivered saga audit message each produce two rows. Asserted
   rather than left to chance, because it differs from RavenDB.
 - The precedence, paging and counting rules from `IMessagesViewDataStore`, now against real SQL rather
-  than the in-memory test persister.
+  than the in-memory test persister: a message in both tables shows as failed and counts once, page
+  two is exact when page one held duplicates, and the total matches `failed + audited - overlap`.
+- Query plans, both providers: the union with a sort and a page does not read either table through,
+  and the search view uses both full-text indexes. Asserted from `EXPLAIN` output the way
+  `FullTextSearchIndexTests` already does.
 - The acceptance tests from the hosting plan keep running, and step 6 makes them run against a real
   audit-capable persister for the first time.
+- Dedicated topology, both providers: ingestion on the audit host and on a worker, queries through
+  the primary's scatter-gather, precedence between a failed message on the primary and its audit row
+  on the host, and a body fetched by instance id.
+- Remote mode on the primary: no audit partitions are provisioned, the audit tables stay empty,
+  `--import-failed-audits` refuses, and a timed-out audit host surfaces as a timeout rather than an
+  empty result.
+- Reporting: a custom check and a detected endpoint raised on the audit host appear on the primary,
+  and a shared topology worker with `ServiceControlQueueAddress` unset still writes both locally.
+- Guards: the audit host refuses to start without `ServiceControlQueueAddress`, with remotes
+  configured, or on a persister without audit support.
+- Ownership: an audit host one migration behind the primary still answers the scatter-gather, and a
+  worker started against an unmigrated database refuses to start and names the owner's `--setup`.
 
 ## Open items
 
@@ -392,9 +634,19 @@ leave `SupportsAuditIngestion` false so nothing activates early.
    identity column, or letting SQL Server key on `id` alone, which would dedupe across hour boundaries
    and so behave better than PostgreSQL rather than the same. Needed for step 4, not step 1.
 2. What caps `GetAllMessagesByConversation` and saga history, and what the API returns when a cap is hit.
+   Also whether the total count on an unfiltered message view stays exact, which is a count over
+   the whole audit table on every request, or becomes estimated or capped. This is the one query
+   cost the union does not remove, because no design can count without touching the table.
 3. Whether the audit path should raise the `EndpointDetected` domain event. Carried over from the
    hosting plan, still unanswered, and now cheap to settle because the write path is real.
 4. Whether `SagaUpdatedHandler` should hand the snapshot straight to the audit unit of work instead of
    forwarding it to the audit queue. Also carried over.
 5. Whether the 48 hour partition lookahead and the 12 hour custom check threshold are the right
    numbers, which is a question for whoever runs the load tests.
+6. Whether the audit host reports failed audit imports under `Audit Message Ingestion (local)` or
+   under the RavenDB audit instance's id. See "Reporting back to the primary".
+7. Whether `/api/endpoints/known` on the primary should also merge the audit host's known endpoints
+   through the scatter-gather, which a RavenDB audit instance also serves, rather than relying on
+   `RegisterNewEndpoint` alone.
+8. What the audit host answers on `/api/configuration` for the fields licensing reads, and whether
+   `CheckRemotes` should tell an EF audit host apart from a RavenDB audit instance in its message.

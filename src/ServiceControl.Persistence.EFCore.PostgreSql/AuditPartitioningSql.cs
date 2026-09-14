@@ -1,6 +1,7 @@
 namespace ServiceControl.Persistence.EFCore.PostgreSql;
 
 using System.Linq;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
 /// <summary>
 /// Converts the two audit tables to range partitioned on created_on. EF Core cannot express
@@ -18,21 +19,45 @@ static class AuditPartitioningSql
 {
     static readonly string[] Tables = ["audit_messages", "saga_snapshots"];
 
-    public static string PartitionTables() => Convert(partitioned: true);
+    public static readonly string PartitionTables = Convert(null, partitioned: true);
 
-    public static string UnpartitionTables() => Convert(partitioned: false);
+    public static readonly string UnpartitionTables = Convert(null, partitioned: false);
 
-    static string Convert(bool partitioned)
+    /// <summary>
+    /// Re-renders the statement the migration carries with the configured schema in it, the way
+    /// FullTextSearchSql does for the full text index.
+    /// </summary>
+    public static MigrationOperation Rewrite(SqlOperation operation, string schema) =>
+        operation.Sql switch
+        {
+            var sql when sql == PartitionTables => WithSql(operation, Convert(schema, partitioned: true)),
+            var sql when sql == UnpartitionTables => WithSql(operation, Convert(schema, partitioned: false)),
+            _ => operation
+        };
+
+    public static bool IsHandled(string sql) => sql == PartitionTables || sql == UnpartitionTables;
+
+    static string Convert(string? schema, bool partitioned)
     {
         var partitionBy = partitioned ? " PARTITION BY RANGE (created_on)" : string.Empty;
 
         return string.Concat(Tables.Select(table =>
-            $"""
-             CREATE TABLE {table}_tmp (LIKE {table} INCLUDING ALL);
-             DROP TABLE {table};
-             CREATE TABLE {table} (LIKE {table}_tmp INCLUDING ALL){partitionBy};
-             DROP TABLE {table}_tmp;
+        {
+            var name = Qualify(schema, table);
+            var clone = Qualify(schema, $"{table}_tmp");
 
-             """));
+            return $"""
+                CREATE TABLE {clone} (LIKE {name} INCLUDING ALL);
+                DROP TABLE {name};
+                CREATE TABLE {name} (LIKE {clone} INCLUDING ALL){partitionBy};
+                DROP TABLE {clone};
+
+                """;
+        }));
     }
+
+    static string Qualify(string? schema, string name) => schema is null ? name : $"\"{schema}\".{name}";
+
+    static SqlOperation WithSql(SqlOperation operation, string sql) =>
+        new() { Sql = sql, SuppressTransaction = operation.SuppressTransaction };
 }
