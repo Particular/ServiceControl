@@ -11,23 +11,18 @@ namespace ServiceControl.AcceptanceTests.Auditing
     using NServiceBus;
     using NUnit.Framework;
     using Particular.LicensingComponent.AuditThroughput;
-    using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Auditing;
     using ServiceControl.Hosting.Commands;
     using ServiceControl.Infrastructure;
     using ServiceControl.Persistence;
-    using ServiceControl.Persistence.Tests.AuditCapable;
 
-    // The inner persistence type reaches the test persister through an environment variable, which is
-    // process wide, so these cannot run alongside anything else that sets it.
-    [NonParallelizable]
     class When_hosting_audit_ingestion_only : AcceptanceTest
     {
         [Test]
         public async Task Should_ingest_without_an_endpoint_and_without_the_single_owner_services()
         {
-            var settings = await CreateSettings(auditCapable: true);
+            var settings = await CreateSettings();
 
             var host = AuditIngestionOnlyCommand.BuildHost(settings);
 
@@ -67,7 +62,7 @@ namespace ServiceControl.AcceptanceTests.Auditing
         [Test]
         public async Task Should_report_audit_ingestion_readiness()
         {
-            var settings = await CreateSettings(auditCapable: true);
+            var settings = await CreateSettings();
 
             var host = AuditIngestionOnlyCommand.BuildHost(settings);
 
@@ -90,17 +85,6 @@ namespace ServiceControl.AcceptanceTests.Auditing
             }
         }
 
-        [Test]
-        public async Task Should_refuse_to_start_against_storage_without_audit_support()
-        {
-            var settings = await CreateSettings(auditCapable: false);
-
-            var exception = Assert.ThrowsAsync<Exception>(() =>
-                new AuditIngestionOnlyCommand().Execute(new HostArguments([]), settings));
-
-            Assert.That(exception.Message, Does.Contain("supports audit ingestion"));
-        }
-
         static readonly string[] ExpectedHostedServices =
         [
             "GenericWebHostService",                // health endpoints only, no ServiceControl API
@@ -112,20 +96,9 @@ namespace ServiceControl.AcceptanceTests.Auditing
             "ExternalIntegrationRequestsDataStore"   // registered by the persister; its drain is inert here, nothing calls Subscribe
         ];
 
-        [TearDown]
-        public void ClearInnerPersistenceType() => Environment.SetEnvironmentVariable(InnerPersistenceTypeVariable, null);
-
-        async Task<Settings> CreateSettings(bool auditCapable)
+        async Task<Settings> CreateSettings()
         {
-            var persistenceType = StorageConfiguration.PersistenceType;
-
-            if (auditCapable)
-            {
-                Environment.SetEnvironmentVariable(InnerPersistenceTypeVariable, persistenceType);
-                persistenceType = AuditCapablePersistenceName;
-            }
-
-            var settings = new Settings(TransportIntegration.TypeName, persistenceType,
+            var settings = new Settings(TransportIntegration.TypeName, StorageConfiguration.PersistenceType,
                 CreateLoggingSettings(), forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
             {
                 InstanceName = $"AuditIngestOnly.{Guid.NewGuid():n}",
@@ -145,10 +118,5 @@ namespace ServiceControl.AcceptanceTests.Auditing
             Directory.CreateDirectory(logPath);
             return new LoggingSettings(Settings.SettingsRootNamespace, defaultLevel: LogLevel.Debug, logPath: logPath);
         }
-
-        const string AuditCapablePersistenceName = "AuditCapableTest";
-
-        static readonly string InnerPersistenceTypeVariable =
-            AuditCapableTestPersistenceConfiguration.InnerPersistenceTypeSetting.ToUpperInvariant();
     }
 }

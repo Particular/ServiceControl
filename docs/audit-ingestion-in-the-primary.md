@@ -9,8 +9,9 @@ queue itself instead of relying on a separate ServiceControl.Audit instance.
 The standalone RavenDB audit instance is unaffected. RavenDB does not advertise audit support, does
 not gain combined hosting, and keeps its own executable, settings, API and installers.
 
-No shipped persister advertises audit support yet, so on every existing deployment the audit
-component registers nothing and behavior is unchanged.
+The SQL Server and PostgreSQL persisters advertise audit support, so a primary on either ingests
+the audit queue by default. On RavenDB the audit component registers nothing and behavior is
+unchanged.
 
 ## Deployment modes
 

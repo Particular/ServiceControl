@@ -12,12 +12,10 @@ namespace ServiceControl.UnitTests.Hosting
     [NonParallelizable]
     public class AuditIngestionOnlyCommandTests
     {
-        [TestCase("RavenDB")]
-        [TestCase("SQLServer")]
-        [TestCase("PostgreSQL")]
-        public void Should_refuse_to_start_against_storage_without_audit_support(string persistenceType)
+        [Test]
+        public void Should_refuse_to_start_against_storage_without_audit_support()
         {
-            var settings = CreateSettings(persistenceType);
+            var settings = CreateSettings("RavenDB");
 
             var exception = Assert.ThrowsAsync<Exception>(() =>
                 new AuditIngestionOnlyCommand().Execute(new HostArguments([]), settings));

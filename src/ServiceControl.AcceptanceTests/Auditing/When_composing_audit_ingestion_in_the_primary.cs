@@ -15,23 +15,18 @@ namespace ServiceControl.AcceptanceTests.Auditing
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Auditing;
-    using ServiceControl.CompositeViews.MessageCounting;
     using ServiceControl.Connection;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Persistence;
-    using ServiceControl.Persistence.Tests.AuditCapable;
     using ServiceControl.SagaAudit;
 
-    // The inner persistence type reaches the test persister through an environment variable, which is
-    // process wide, so these cannot run alongside anything else that sets it.
-    [NonParallelizable]
     class When_composing_audit_ingestion_in_the_primary : AcceptanceTest
     {
         [Test]
-        public async Task Should_host_the_audit_runtime_when_the_persister_advertises_audit_support()
+        public async Task Should_host_the_audit_runtime()
         {
-            var (app, services) = await BuildHost(auditCapable: true);
+            var (app, services) = await BuildHost();
 
             try
             {
@@ -62,7 +57,7 @@ namespace ServiceControl.AcceptanceTests.Auditing
         [Test]
         public async Task Should_keep_every_audit_capability_but_the_receiver_when_ingestion_is_disabled()
         {
-            var (app, services) = await BuildHost(auditCapable: true, settings => settings.IngestAuditMessages = false);
+            var (app, services) = await BuildHost(settings => settings.IngestAuditMessages = false);
 
             try
             {
@@ -80,31 +75,6 @@ namespace ServiceControl.AcceptanceTests.Auditing
             }
         }
 
-        [Test]
-        public async Task Should_host_nothing_audit_related_on_a_persister_without_audit_support()
-        {
-            var (app, services) = await BuildHost(auditCapable: false);
-
-            try
-            {
-                using (Assert.EnterMultipleScope())
-                {
-                    Assert.That(HostsAuditIngestion(services), Is.False);
-                    Assert.That(app.Services.GetService<AuditIngestor>(), Is.Null);
-                    Assert.That(app.Services.GetService<AuditIngestionCustomCheck.State>(), Is.Null);
-
-                    Assert.That(app.Services.GetService<GetSagaByIdApi>(), Is.Not.Null,
-                        "the audit routes stay served from the configured remotes, so the APIs must still resolve");
-                    Assert.That(app.Services.GetService<GetAuditCountsForEndpointApi>(), Is.Not.Null);
-                    Assert.That(app.Services.GetService<ILocalAuditSource>(), Is.Null);
-                }
-            }
-            finally
-            {
-                await app.DisposeAsync();
-            }
-        }
-
         // The registrations are inspected rather than resolved. A normal primary hosts an NServiceBus
         // endpoint, and constructing every hosted service without starting it fails inside the
         // transport's receive component.
@@ -112,9 +82,9 @@ namespace ServiceControl.AcceptanceTests.Auditing
             services.Any(descriptor =>
                 descriptor.ServiceType == typeof(IHostedService) && descriptor.ImplementationType == typeof(AuditIngestion));
 
-        async Task<(WebApplication App, IServiceCollection Services)> BuildHost(bool auditCapable, Action<Settings> customize = null)
+        async Task<(WebApplication App, IServiceCollection Services)> BuildHost(Action<Settings> customize = null)
         {
-            var settings = await CreateSettings(auditCapable);
+            var settings = await CreateSettings();
 
             customize?.Invoke(settings);
 
@@ -128,19 +98,9 @@ namespace ServiceControl.AcceptanceTests.Auditing
             return (hostBuilder.Build(), hostBuilder.Services);
         }
 
-        async Task<Settings> CreateSettings(bool auditCapable)
+        async Task<Settings> CreateSettings()
         {
-            var persistenceType = StorageConfiguration.PersistenceType;
-
-            if (auditCapable)
-            {
-                // The test persister delegates everything but the audit contracts to the real one, so the
-                // host under test is the real host apart from the capability its manifest advertises.
-                Environment.SetEnvironmentVariable(InnerPersistenceTypeVariable, persistenceType);
-                persistenceType = AuditCapablePersistenceName;
-            }
-
-            var settings = new Settings(TransportIntegration.TypeName, persistenceType,
+            var settings = new Settings(TransportIntegration.TypeName, StorageConfiguration.PersistenceType,
                 CreateLoggingSettings(), forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
             {
                 InstanceName = $"AuditComposition.{Guid.NewGuid():n}",
@@ -155,19 +115,11 @@ namespace ServiceControl.AcceptanceTests.Auditing
             return settings;
         }
 
-        [TearDown]
-        public void ClearInnerPersistenceType() => Environment.SetEnvironmentVariable(InnerPersistenceTypeVariable, null);
-
         static LoggingSettings CreateLoggingSettings()
         {
             var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(logPath);
             return new LoggingSettings(Settings.SettingsRootNamespace, defaultLevel: LogLevel.Debug, logPath: logPath);
         }
-
-        const string AuditCapablePersistenceName = "AuditCapableTest";
-
-        static readonly string InnerPersistenceTypeVariable =
-            AuditCapableTestPersistenceConfiguration.InnerPersistenceTypeSetting.ToUpperInvariant();
     }
 }

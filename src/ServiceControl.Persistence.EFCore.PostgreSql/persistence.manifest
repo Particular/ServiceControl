@@ -4,7 +4,7 @@
   "Description": "PostgreSQL ServiceControl persister",
   "AssemblyName": "ServiceControl.Persistence.EFCore.PostgreSql",
   "TypeName": "ServiceControl.Persistence.EFCore.PostgreSql.PostgreSqlPersistenceConfiguration, ServiceControl.Persistence.EFCore.PostgreSql",
-  "SupportsAuditIngestion": false,
+  "SupportsAuditIngestion": true,
   "Settings": [
     {
       "Name": "ServiceControl/Database/ConnectionString",

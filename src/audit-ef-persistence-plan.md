@@ -642,7 +642,7 @@ competing consumers against one database, and the primary is the only writer to 
 6. **Turn it on.** Flip `SupportsAuditIngestion` in both manifests, update the approval test that
    asserts it is false, and delete `ServiceControl.Persistence.Tests.AuditCapable`. The `Empty*`
    audit stand-ins stay: step 7 registers them on a primary whose audit is remote. Full acceptance
-   runs on both providers.
+   runs on both providers. On `john/audit_ef_7`.
 7. **Dedicated audit database.** `--audit-instance` and its guards, the controller allow list,
    `AuditDataLocation` and the primary's Remote behaviour, `ServiceControlQueueAddress` on the
    primary executable with the send-only endpoint and the reporting switch, and the persister
