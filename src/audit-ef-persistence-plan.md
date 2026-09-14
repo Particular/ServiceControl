@@ -594,10 +594,14 @@ competing consumers against one database, and the primary is the only writer to 
    migrations including the PostgreSQL partitioning DDL. No behaviour: nothing writes or reads yet,
    and the manifests still say false. The full-text index is not here, see step 4.
 2. **Ingestion write path.** `IAuditIngestionSqlDialect`, `EFAuditIngestionUnitOfWork`, wiring
-   `EFIngestionUnitOfWork.Audit`. Tested through the persistence test base.
-3. **Retention, partitions and locking.** `IAuditPartitionManager` and `IRetentionLock` per provider,
-   the sweeper's audit pass, the body prefix delete on all three body stores, the lookahead custom
-   check.
+   `EFIngestionUnitOfWork.Audit`, one transaction around the failed message and audit rows of a
+   batch. Also the provisioning half of `IAuditPartitionManager`, because on PostgreSQL nothing can
+   be inserted into an hour nobody provisioned: setup provisions the hour before now through the
+   lookahead, and the file system body store creates the hour directory the audit body keys name.
+   Tested through the persistence test base. On `john/audit_ef_3`.
+3. **Retention, partitions and locking.** The rest of `IAuditPartitionManager` (list expired, drop)
+   and `IRetentionLock` per provider, the sweeper's audit pass including the lookahead top-up, the
+   body prefix delete on all three body stores, the lookahead custom check.
 4. **Queries.** The five message view unions, audit counts, saga history, and the third step of body
    arbitration. The full-text index lands here rather than with the schema, because the indexed
    expression and the query expression have to be written together or PostgreSQL silently downgrades
@@ -619,8 +623,8 @@ competing consumers against one database, and the primary is the only writer to 
    service is marked superseded.
 
 Each pull request leaves both EF acceptance suites and the RavenDB suites passing, and steps 1 to 5
-leave `SupportsAuditIngestion` false so nothing activates early. Step 1 is on this branch, rebased
-onto master on 14 September 2026.
+leave `SupportsAuditIngestion` false so nothing activates early. Step 1 is on `john/audit_ef_1`,
+rebased onto master on 14 September 2026; the code layout move is `john/audit_ef_2`.
 
 ## Testing
 

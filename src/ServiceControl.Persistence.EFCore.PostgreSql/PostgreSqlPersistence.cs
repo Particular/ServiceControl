@@ -5,9 +5,12 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
+using ServiceControl.Persistence.EFCore.Implementation.Audit;
 using ServiceControl.Persistence.EFCore.Infrastructure;
+using ServiceControl.Persistence.EFCore.PostgreSql.Audit;
 
 class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersistence, IPersistence
 {
@@ -18,6 +21,8 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersiste
         RegisterDataStores(services, settings);
 
         services.AddSingleton<IFailedMessageIngestionSqlDialect, PostgreSqlFailedMessageIngestionSqlDialect>();
+        services.AddSingleton<IAuditIngestionSqlDialect, PostgreSqlAuditIngestionSqlDialect>();
+        services.AddSingleton<IAuditPartitionManager, PostgreSqlAuditPartitionManager>();
         services.AddSingleton<IRetryBatchSqlDialect, PostgreSqlRetryBatchSqlDialect>();
         services.AddSingleton<IFullTextSearchDialect, PostgreSqlFullTextSearchDialect>();
         services.AddSingleton<IEndpointThroughputDialect, PostgreSqlEndpointThroughputDialect>();
@@ -29,6 +34,8 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersiste
         RegisterSettings(services);
         ConfigureDbContext(services);
 
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddSingleton<IAuditPartitionManager, PostgreSqlAuditPartitionManager>();
         services.AddScoped<IDatabaseMigrator, PostgreSqlDatabaseMigrator>();
         RegisterBodyStorageInstaller(services, settings);
     }

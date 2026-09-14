@@ -46,6 +46,25 @@ class BodyStoragePersistenceTests
 
     [TestCase(InMemory)]
     [TestCase(FileSystem)]
+    public async Task Round_trips_a_body_whose_id_names_a_directory(string kind)
+    {
+        var store = CreateStore(kind);
+        var bodyId = $"audit/2026-09-14-00/{Guid.NewGuid()}";
+        var body = Encoding.UTF8.GetBytes("hello world");
+
+        await store.WriteBody(bodyId, body, "text/plain");
+
+        var result = await store.ReadBody(bodyId);
+
+        Assert.That(result, Is.Not.Null);
+        using (result.Stream)
+        {
+            Assert.That(ReadAll(result.Stream), Is.EqualTo(body));
+        }
+    }
+
+    [TestCase(InMemory)]
+    [TestCase(FileSystem)]
     public async Task Round_trips_a_small_uncompressed_body(string kind)
     {
         var store = CreateStore(kind);

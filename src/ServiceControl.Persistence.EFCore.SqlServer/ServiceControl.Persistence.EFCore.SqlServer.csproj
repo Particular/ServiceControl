@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <!-- Not Private=false or ExcludeAssets because the shared EF Core assembly ships inside this persister's folder -->
+    <ProjectReference Include="../ServiceControl.Audit.Persistence.SagaAudit/ServiceControl.Audit.Persistence.SagaAudit.csproj" Private="false" ExcludeAssets="runtime" />
     <ProjectReference Include="../ServiceControl.Persistence.EFCore/ServiceControl.Persistence.EFCore.csproj" />
   </ItemGroup>
 

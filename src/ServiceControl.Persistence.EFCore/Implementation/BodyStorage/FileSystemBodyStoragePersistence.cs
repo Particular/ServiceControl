@@ -27,6 +27,9 @@ public class FileSystemBodyStoragePersistence(FileSystemBodyStorageSettings sett
             return;
         }
 
+        // Audit body ids carry their ingestion hour as a directory, so the path may not exist yet.
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+
         // A unique temp name lets concurrent writers of the same body race without clobbering.
         var tempFilePath = $"{filePath}.{Guid.NewGuid():N}.tmp";
 

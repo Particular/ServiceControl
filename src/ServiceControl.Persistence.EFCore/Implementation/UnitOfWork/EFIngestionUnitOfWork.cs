@@ -1,40 +1,46 @@
 namespace ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
 
 using System.Collections.Concurrent;
+using Microsoft.EntityFrameworkCore;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
+using ServiceControl.Persistence.EFCore.Implementation.Audit;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.UnitOfWork;
 
-// RecordFailedProcessingAttempt runs concurrently across the batch, so the Record methods only
-// add to thread safe collections. Every database call happens in Complete, on one thread.
+// The Record methods run concurrently across the batch, so they only add to thread safe
+// collections. Every database call happens in Complete, on one thread, inside one transaction
+// shared by the failed message, known endpoint and audit rows of the batch.
 public class EFIngestionUnitOfWork : IIngestionUnitOfWork
 {
     readonly ServiceControlDbContext dbContext;
     readonly IAsyncDisposable scope;
     readonly IFailedMessageIngestionSqlDialect dialect;
+    readonly IAuditIngestionSqlDialect auditDialect;
     readonly TimeProvider timeProvider;
+    readonly EFAuditIngestionUnitOfWork audit;
     readonly ConcurrentQueue<RecordedFailedProcessingAttempt> failedProcessingAttempts = new();
     readonly ConcurrentQueue<Task> bodyWrites = new();
     readonly ConcurrentQueue<KnownEndpoint> knownEndpoints = new();
     readonly ConcurrentQueue<ConfirmedRetry> confirmedRetries = new();
 
-    public EFIngestionUnitOfWork(IAsyncDisposable scope, ServiceControlDbContext dbContext, IBodyStoragePersistence storagePersistence, EFPersisterSettings settings, IFailedMessageIngestionSqlDialect dialect, TimeProvider timeProvider)
+    public EFIngestionUnitOfWork(IAsyncDisposable scope, ServiceControlDbContext dbContext, IBodyStoragePersistence storagePersistence, EFPersisterSettings settings, IFailedMessageIngestionSqlDialect dialect, IAuditIngestionSqlDialect auditDialect, TimeProvider timeProvider)
     {
         this.scope = scope;
         this.dbContext = dbContext;
         this.dialect = dialect;
+        this.auditDialect = auditDialect;
         this.timeProvider = timeProvider;
         Recoverability = new EFRecoverabilityIngestionUnitOfWork(this, storagePersistence, settings);
         Monitoring = new EFMonitoringIngestionUnitOfWork(this);
+        audit = new EFAuditIngestionUnitOfWork(this, storagePersistence, settings, AuditHours.Truncate(timeProvider.GetUtcNow().UtcDateTime));
     }
 
     public IMonitoringIngestionUnitOfWork Monitoring { get; }
 
     public IRecoverabilityIngestionUnitOfWork Recoverability { get; }
 
-    // Stays null until the EF audit persistence lands and the manifest advertises SupportsAuditIngestion.
-    public IAuditIngestionUnitOfWork? Audit => null;
+    public IAuditIngestionUnitOfWork Audit => audit;
 
     internal void Record(RecordedFailedProcessingAttempt attempt) => failedProcessingAttempts.Enqueue(attempt);
 
@@ -49,9 +55,25 @@ public class EFIngestionUnitOfWork : IIngestionUnitOfWork
         // External bodies are written before the rows that point at them
         await Task.WhenAll(bodyWrites);
 
-        var writer = new FailedMessageBatchWriter(dbContext, dialect);
+        if (failedProcessingAttempts.IsEmpty && knownEndpoints.IsEmpty && confirmedRetries.IsEmpty && audit.IsEmpty)
+        {
+            return;
+        }
 
-        await writer.Write(failedProcessingAttempts, knownEndpoints, confirmedRetries, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+        var failedMessageWriter = new FailedMessageBatchWriter(dbContext, dialect);
+        var auditWriter = new AuditBatchWriter(dbContext, auditDialect);
+
+        var strategy = dbContext.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async ct =>
+        {
+            await using var transaction = await dbContext.Database.BeginTransactionAsync(ct);
+
+            await failedMessageWriter.Write(failedProcessingAttempts, knownEndpoints, confirmedRetries, now, ct);
+            await auditWriter.Write(audit.Messages, audit.Snapshots, ct);
+
+            await transaction.CommitAsync(ct);
+        }, cancellationToken);
     }
 
     public async ValueTask DisposeAsync()

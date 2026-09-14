@@ -7,7 +7,9 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
+using ServiceControl.Persistence.EFCore.Implementation.Audit;
 using ServiceControl.Persistence.EFCore.Infrastructure;
+using ServiceControl.Persistence.EFCore.SqlServer.Audit;
 
 class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistence, IPersistence
 {
@@ -18,6 +20,8 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
         RegisterDataStores(services, settings);
 
         services.AddSingleton<IFailedMessageIngestionSqlDialect, SqlServerFailedMessageIngestionSqlDialect>();
+        services.AddSingleton<IAuditIngestionSqlDialect, SqlServerAuditIngestionSqlDialect>();
+        services.AddSingleton<IAuditPartitionManager, SqlServerAuditPartitionManager>();
         services.AddSingleton<IRetryBatchSqlDialect, SqlServerRetryBatchSqlDialect>();
         services.AddSingleton<IFullTextSearchDialect, SqlServerFullTextSearchDialect>();
         services.AddSingleton<IEndpointThroughputDialect, SqlServerEndpointThroughputDialect>();
@@ -29,6 +33,7 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
         RegisterSettings(services);
         ConfigureDbContext(services);
 
+        services.AddSingleton<IAuditPartitionManager, SqlServerAuditPartitionManager>();
         services.AddScoped<IDatabaseMigrator, SqlServerDatabaseMigrator>();
         RegisterBodyStorageInstaller(services, settings);
     }

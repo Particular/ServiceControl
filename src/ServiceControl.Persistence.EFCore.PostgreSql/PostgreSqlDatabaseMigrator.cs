@@ -4,8 +4,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
+using ServiceControl.Persistence.EFCore.Implementation.Audit;
 
-class PostgreSqlDatabaseMigrator(ServiceControlDbContext dbContext, ILogger<PostgreSqlDatabaseMigrator> logger) : IDatabaseMigrator
+class PostgreSqlDatabaseMigrator(
+    ServiceControlDbContext dbContext,
+    IAuditPartitionManager auditPartitions,
+    TimeProvider timeProvider,
+    ILogger<PostgreSqlDatabaseMigrator> logger) : IDatabaseMigrator
 {
     public async Task ApplyMigrations(CancellationToken cancellationToken = default)
     {
@@ -16,10 +21,21 @@ class PostgreSqlDatabaseMigrator(ServiceControlDbContext dbContext, ILogger<Post
 
         await RequireSchema(cancellationToken);
         await dbContext.Database.MigrateAsync(cancellationToken);
+        await ProvisionAuditPartitions(cancellationToken);
 
         dbContext.Database.SetCommandTimeout(previousTimeout);
 
         logger.LogInformation("PostgreSQL database migration completed");
+    }
+
+    // A fresh instance has to ingest before its first retention sweep provisions anything, and the
+    // hour before now is included because a batch started just before the hour rolled still lands
+    // in it.
+    Task ProvisionAuditPartitions(CancellationToken cancellationToken)
+    {
+        var now = AuditHours.Truncate(timeProvider.GetUtcNow().UtcDateTime);
+
+        return auditPartitions.EnsurePartitions(dbContext, now.AddHours(-1), now + AuditHours.Lookahead, cancellationToken);
     }
 
     // EF Core would create the schema on its way to creating the migrations history table, which
