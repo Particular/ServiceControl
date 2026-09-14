@@ -2,6 +2,7 @@ namespace ServiceControl.Infrastructure;
 
 using System;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using ServiceControl.Configuration;
@@ -58,6 +59,12 @@ public class HttpsSettings
     public string CertificatePassword { get; }
 
     /// <summary>
+    /// The certificate loaded from <see cref="CertificatePath"/>, or null when HTTPS is disabled.
+    /// </summary>
+    [JsonIgnore]
+    public X509Certificate2 Certificate { get; private set; }
+
+    /// <summary>
     /// When true, HTTP requests will be redirected to HTTPS.
     /// Requires HTTPS to be properly configured. Default is false.
     /// </summary>
@@ -102,6 +109,29 @@ public class HttpsSettings
             var message = $"Https.CertificatePath does not exist. Current value: '{CertificatePath}'";
             logger.LogCritical(message);
             throw new InvalidOperationException(message);
+        }
+
+        // Loaded here rather than when Kestrel binds its endpoints: an unusable certificate is a
+        // configuration error, and binding happens only after every hosted service has started.
+        try
+        {
+            Certificate = string.IsNullOrEmpty(CertificatePassword)
+                ? X509CertificateLoader.LoadPkcs12FromFile(CertificatePath, null)
+                : X509CertificateLoader.LoadPkcs12FromFile(CertificatePath, CertificatePassword);
+        }
+        catch (Exception ex)
+        {
+            // .NET reports several unrelated causes as "the password may be incorrect", so describe
+            // the file itself too. Never the password, only whether one was configured.
+            var file = new FileInfo(CertificatePath);
+            var message = $"The HTTPS certificate could not be loaded, so this instance cannot start. " +
+                          $"Https.CertificatePath: '{CertificatePath}' ({file.Length} bytes, last modified {file.LastWriteTimeUtc:u}). " +
+                          $"Https.CertificatePassword configured: {!string.IsNullOrEmpty(CertificatePassword)}. " +
+                          $"{ex.GetType().Name}: {ex.Message} " +
+                          $"Check that the file is a PKCS#12/PFX holding both the certificate and its private key, and that Https.CertificatePassword matches it. " +
+                          $"To start without HTTPS while investigating, set Https.Enabled to false.";
+            logger.LogCritical(message);
+            throw new InvalidOperationException(message, ex);
         }
     }
 

@@ -1,7 +1,6 @@
 namespace ServiceControl.Hosting.Https;
 
 using System;
-using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -35,23 +34,18 @@ public static class HostApplicationBuilderExtensions
         // Kestrel HTTPS is disabled by default
         if (settings.Enabled)
         {
+            // The certificate was loaded and validated when HttpsSettings was constructed. Doing it
+            // here instead would defer the failure to endpoint binding, which happens after every
+            // hosted service has already started and has to be torn down again.
+            var certificate = settings.Certificate ?? throw new InvalidOperationException("HTTPS is enabled but no certificate was loaded.");
+
             hostBuilder.WebHost.ConfigureKestrel(kestrel =>
             {
                 kestrel.ConfigureHttpsDefaults(httpsOptions =>
                 {
-                    httpsOptions.ServerCertificate = LoadCertificate(settings);
+                    httpsOptions.ServerCertificate = certificate;
                 });
             });
         }
-    }
-
-    static X509Certificate2 LoadCertificate(HttpsSettings settings)
-    {
-        if (string.IsNullOrEmpty(settings.CertificatePassword))
-        {
-            return X509CertificateLoader.LoadPkcs12FromFile(settings.CertificatePath, null);
-        }
-
-        return X509CertificateLoader.LoadPkcs12FromFile(settings.CertificatePath, settings.CertificatePassword);
     }
 }
