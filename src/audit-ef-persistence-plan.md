@@ -103,8 +103,9 @@ starts failing inserts.
 Mitigations, not fixes:
 
 - Provision a long lookahead (48 hours, against the spike's 6), so the outage has to be sustained.
-- A custom check that fails when the newest provisioned partition is less than 12 hours ahead, so the
-  condition is visible before it bites.
+- A custom check, `Audit partition provisioning`, registered by the PostgreSQL persister only, that
+  fails when the newest provisioned partition ends less than 12 hours ahead, so the condition is
+  visible before it bites.
 - The setup command provisions the initial window, so a fresh instance ingests before the first sweep.
 
 Revisiting this means letting ingesting hosts issue `CREATE TABLE IF NOT EXISTS` themselves.
@@ -389,7 +390,10 @@ ensure partitions exist, list expired partitions, drop a partition.
 ### PostgreSQL
 
 Native `PARTITION BY RANGE (created_on)`, hourly partitions named `{table}_{yyyyMMddHH}`. Dropping an
-expired hour is `DETACH` then `DROP TABLE`, a metadata operation.
+expired hour is a single `DROP TABLE` of the partition, a metadata operation that holds the parent's
+lock for the moment it takes. `DETACH CONCURRENTLY` would avoid even that, but it cannot run inside
+a transaction block and EF Core's raw SQL execution supplies one, so the plain drop is used and the
+brief lock accepted.
 
 ### SQL Server
 
@@ -432,16 +436,22 @@ it.
 Port `TryAcquireLock`/`ReleaseLock` from the spike's `RetentionCleaner`, which already has both
 implementations:
 
-- PostgreSQL: `SELECT pg_try_advisory_lock(hashtext('retention_cleaner'))`, released with
+- PostgreSQL: `SELECT pg_try_advisory_lock(hashtext(@resource))`, released with
   `pg_advisory_unlock`.
 - SQL Server: `sp_getapplock` with `@LockMode = 'Exclusive'`, `@LockOwner = 'Session'` and
   `@LockTimeout = 0`, released with `sp_releaseapplock`.
+
+The resource name is `retention_sweep`, suffixed with the configured schema when there is one, so
+instances that share a database through different schemas do not take turns sweeping. That is also
+what lets the test suites, which run schema-per-test in parallel, hold real locks.
 
 The lifecycle is the spike's, unchanged:
 
 - A dedicated `DbConnection` is opened for the sweep and closed after it. Both locks are session
   scoped, so a host that crashes mid-sweep releases the lock when its connection drops rather than
-  wedging retention until someone intervenes.
+  wedging retention until someone intervenes. The connection is opened with pooling off: a session
+  lock outlives a pooled connection's return to the pool, and a release that failed would otherwise
+  leave the lock held by whichever consumer picked that connection up next.
 - Acquisition has a zero timeout. A sweeper that cannot take the lock logs and skips that pass
   instead of queueing behind the holder, because the work is idempotent and hourly.
 - Release is in a `finally`.
@@ -601,7 +611,7 @@ competing consumers against one database, and the primary is the only writer to 
    Tested through the persistence test base. On `john/audit_ef_3`.
 3. **Retention, partitions and locking.** The rest of `IAuditPartitionManager` (list expired, drop)
    and `IRetentionLock` per provider, the sweeper's audit pass including the lookahead top-up, the
-   body prefix delete on all three body stores, the lookahead custom check.
+   body prefix delete on all three body stores, the lookahead custom check. On `john/audit_ef_4`.
 4. **Queries.** The five message view unions, audit counts, saga history, and the third step of body
    arbitration. The full-text index lands here rather than with the schema, because the indexed
    expression and the query expression have to be written together or PostgreSQL silently downgrades

@@ -9,6 +9,7 @@ using ServiceControl.Persistence;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
+using ServiceControl.Persistence.EFCore.Implementation.Audit;
 using ServiceControl.Persistence.EFCore.Infrastructure.Metrics;
 
 // Deletes rows once they age past their retention period.
@@ -16,7 +17,11 @@ using ServiceControl.Persistence.EFCore.Infrastructure.Metrics;
 // every run so a changed retention setting takes effect without rewriting any row.
 //
 // A manual sweep can be triggered via the API (see IRetentionSweeper / IRetentionApi) with
-// caller-supplied cutoffs. 
+// caller-supplied cutoffs.
+//
+// Every sweep, timed or manual, runs under the database-wide retention lock, so at most one host
+// is sweeping anything at any moment. A host that cannot take the lock skips the pass: the work is
+// idempotent and hourly, so waiting behind the holder would only repeat what it just did.
 public class RetentionSweeper(
     ILogger<RetentionSweeper> logger,
     TimeProvider timeProvider,
@@ -24,6 +29,8 @@ public class RetentionSweeper(
     IBodyStoragePersistence bodyStorage,
     RetentionMetrics metrics,
     EFPersisterSettings settings,
+    IRetentionLock retentionLock,
+    IAuditPartitionManager auditPartitions,
     IHostApplicationLifetime hostApplicationLifetime) : BackgroundService, IRetentionSweeper
 {
     const int BatchSize = 1000;
@@ -108,8 +115,7 @@ public class RetentionSweeper(
             try
             {
                 // if the caller doesn't hand over a real cancellation token then use the application lifetime.
-                await SweepBody(errorCutoff, eventsCutoff, false, cancellation.Token);
-                lastFinishedAt = timeProvider.GetUtcNow().UtcDateTime;
+                await SweepUnderDatabaseLock(errorCutoff, eventsCutoff, false, cancellation.Token);
             }
             catch (OperationCanceledException) when (cancellation.Token.IsCancellationRequested)
             {
@@ -138,14 +144,27 @@ public class RetentionSweeper(
         lastEventsCutoff = eventsCutoff;
         try
         {
-            await SweepBody(errorCutoff, eventsCutoff, pace, cancellationToken);
-            lastFinishedAt = timeProvider.GetUtcNow().UtcDateTime;
+            await SweepUnderDatabaseLock(errorCutoff, eventsCutoff, pace, cancellationToken);
         }
         finally
         {
             isRunning = false;
             sweepLock.Release();
         }
+    }
+
+    async Task SweepUnderDatabaseLock(DateTime? errorCutoff, DateTime? eventsCutoff, bool pace, CancellationToken cancellationToken)
+    {
+        await using var ownership = await retentionLock.TryAcquire(cancellationToken);
+
+        if (ownership is null)
+        {
+            logger.LogInformation("Skipping the retention sweep: another instance holds the retention lock");
+            return;
+        }
+
+        await SweepBody(errorCutoff, eventsCutoff, pace, cancellationToken);
+        lastFinishedAt = timeProvider.GetUtcNow().UtcDateTime;
     }
 
     // The three sub-sweeps, isolated from lock management so both the locked Sweep path and the
@@ -155,6 +174,43 @@ public class RetentionSweeper(
         await RunPass(RetentionEntity.FailedMessages, token => SweepFailedMessages(pace, errorCutoff, token), cancellationToken);
         await RunPass(RetentionEntity.EventLog, token => SweepEventLogItems(pace, eventsCutoff, token), cancellationToken);
         await RunPass(RetentionEntity.GroupComments, SweepOrphanedGroupComments, cancellationToken);
+        await RunPass(RetentionEntity.Audit, token => SweepAudit(pace, token), cancellationToken);
+    }
+
+    // Audit rows are stored by ingestion hour and expire an hour at a time, once the whole hour is
+    // behind the cutoff. The same pass keeps the provisioned window ahead of the clock, because the
+    // sweeper is the only host that issues DDL.
+    async Task SweepAudit(bool pace, CancellationToken cancellationToken)
+    {
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+        var lastExpiredHour = AuditHours.Truncate((now - settings.AuditRetentionPeriod).AddHours(-1));
+
+        using var scope = serviceScopeFactory.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+
+        await auditPartitions.EnsurePartitions(dbContext, AuditHours.Truncate(now), AuditHours.Truncate(now) + AuditHours.Lookahead, cancellationToken);
+
+        foreach (var hour in await auditPartitions.ListExpiredHours(dbContext, lastExpiredHour, cancellationToken))
+        {
+            // Bodies before rows, as for failed messages: a body that will not delete fails the pass
+            // with the hour's rows intact and the next sweep retries it, where the reverse would
+            // leave bodies nothing names any more.
+            await bodyStorage.DeleteBodiesWithPrefix(AuditBodyStorage.Prefix(hour), cancellationToken);
+
+            HourDrop drop;
+
+            do
+            {
+                drop = await auditPartitions.DropHour(dbContext, hour, BatchSize, cancellationToken);
+
+                metrics.RecordRowsDeleted(RetentionEntity.Audit, drop.RowsDeleted);
+
+                if (!drop.Completed && pace)
+                {
+                    await Task.Delay(BatchPause, timeProvider, cancellationToken);
+                }
+            } while (!drop.Completed);
+        }
     }
 
     // Each pass is isolated so one failing kind of row does not stop the others from being

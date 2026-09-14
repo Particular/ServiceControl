@@ -79,7 +79,8 @@ public class RetentionMetrics
     [
         EntityTag("failed_messages"),
         EntityTag("event_log"),
-        EntityTag("group_comments")
+        EntityTag("group_comments"),
+        EntityTag("audit")
     ];
 
     const string MeterVersion = "0.1.0";

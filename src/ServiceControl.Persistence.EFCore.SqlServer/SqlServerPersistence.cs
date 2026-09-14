@@ -22,6 +22,7 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
         services.AddSingleton<IFailedMessageIngestionSqlDialect, SqlServerFailedMessageIngestionSqlDialect>();
         services.AddSingleton<IAuditIngestionSqlDialect, SqlServerAuditIngestionSqlDialect>();
         services.AddSingleton<IAuditPartitionManager, SqlServerAuditPartitionManager>();
+        services.AddSingleton<IRetentionLock, SqlServerRetentionLock>();
         services.AddSingleton<IRetryBatchSqlDialect, SqlServerRetryBatchSqlDialect>();
         services.AddSingleton<IFullTextSearchDialect, SqlServerFullTextSearchDialect>();
         services.AddSingleton<IEndpointThroughputDialect, SqlServerEndpointThroughputDialect>();

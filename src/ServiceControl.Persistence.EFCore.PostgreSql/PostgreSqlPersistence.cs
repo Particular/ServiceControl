@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using ServiceControl.CustomChecks;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Implementation.Audit;
@@ -23,6 +24,8 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersiste
         services.AddSingleton<IFailedMessageIngestionSqlDialect, PostgreSqlFailedMessageIngestionSqlDialect>();
         services.AddSingleton<IAuditIngestionSqlDialect, PostgreSqlAuditIngestionSqlDialect>();
         services.AddSingleton<IAuditPartitionManager, PostgreSqlAuditPartitionManager>();
+        services.AddSingleton<IRetentionLock, PostgreSqlRetentionLock>();
+        services.AddCustomCheck<AuditPartitionCustomCheck>();
         services.AddSingleton<IRetryBatchSqlDialect, PostgreSqlRetryBatchSqlDialect>();
         services.AddSingleton<IFullTextSearchDialect, PostgreSqlFullTextSearchDialect>();
         services.AddSingleton<IEndpointThroughputDialect, PostgreSqlEndpointThroughputDialect>();
