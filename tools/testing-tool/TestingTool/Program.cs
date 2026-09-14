@@ -157,7 +157,7 @@ app.MapPost("/api/jobs/{name}/start", (string name, StartJobRequest? request) =>
         ? TimeSpan.FromSeconds(secs)
         : (TimeSpan?)null;
 
-    if (!jobRunner.TryStart(name, interval, out var error))
+    if (!jobRunner.TryStart(name, interval, request, out var error))
         return Results.BadRequest(new { error });
 
     var snapshot = jobRunner.GetSnapshot()

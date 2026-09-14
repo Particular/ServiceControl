@@ -32,9 +32,12 @@ Recoverability/search jobs are controllable from the web UI (no longer hidden co
 - **Retry** — fetches error groups from ServiceControl and retries each group
 - **Archive** — fetches error groups from ServiceControl and archives each group
 - **Search** — runs canned FTS queries to exercise the ServiceControl search index
-- **Retention sweep** — triggers a manual retention sweep on ServiceControl each cycle,
-  exercising the retention pipeline (full scan-and-delete of aged failures and event-log rows)
-  against the load the other jobs produce
+- **Retention sweep** — triggers a manual retention purge on ServiceControl each cycle
+  (`POST /api/maintenance/retention/purge`), exercising the retention pipeline (full
+  scan-and-delete of aged failures and event-log rows) against the load the other jobs
+  produce. Each purge's cutoffs default to ServiceControl's configured retention periods;
+  supply a cutoff timespan when starting the job (a field on the job card in the UI, or
+  `cutoffTimespan` in the start request) to purge everything older than that instead
 - **Custom check failures** — randomly reports internal-looking ServiceControl custom check
   failures to ServiceControl each cycle. Each cycle it sends a `ReportCustomCheckResult`
   per check in a pool of plausibly-named internal checks (category `ServiceControl Health`),
@@ -45,7 +48,11 @@ Recoverability/search jobs are controllable from the web UI (no longer hidden co
 
 Jobs do not auto-start; start them from the UI (or `/api/jobs`) when needed. Control via:
 - `GET /api/jobs` — list jobs with live status
-- `POST /api/jobs/{name}/start` — `{ "intervalSeconds": 120 }` (omit for the job default)
+- `POST /api/jobs/{name}/start` — `{ "intervalSeconds": 120 }` (omit for the job default).
+  The retention-sweep job also accepts `{ "cutoffTimespan": "14.00:00:00" }` (.NET timespan
+  format) to send explicit purge cutoffs — rows older than `now − timespan` are deleted
+  on every sweep; omit it to let ServiceControl derive cutoffs from its configured
+  retention periods
 - `POST /api/jobs/{name}/stop`
 - `POST /api/jobs/stop-all`
 
@@ -90,7 +97,7 @@ tools/testing-tool/
       RetryJob.cs                # retries all error groups each cycle
       ArchiveJob.cs              # archives all error groups each cycle
       SearchJob.cs               # canned FTS queries each cycle
-      RetentionSweepJob.cs       # triggers a manual retention sweep each cycle
+      RetentionSweepJob.cs       # triggers a manual retention purge each cycle (cutoff timespan settable on start)
     FailingMessageHandler.cs     # NServiceBus handler that throws per scenario logic
     ReleaseTestScenarios.cs      # release-test preset mappings (Phase 5)
     ServiceControlClient.cs      # REST API client (error groups, retry, archive, search)

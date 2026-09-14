@@ -29,7 +29,7 @@ public sealed class TestingToolOptions
     /// scan-and-delete of aged rows on the ServiceControl error instance, so it is heavier than
     /// the retry/archive/search cycles and defaults to a longer interval. Only persisters that
     /// implement the sweeper (e.g. the EFCore SQL persisters) honour it; RavenDB-backed instances
-    /// report <c>not-supported</c> and the job logs that and moves on.
+    /// answer <c>notSupported</c> and the job logs that and moves on.
     /// </summary>
     public TimeSpan RetentionSweepInterval { get; set; } = TimeSpan.FromMinutes(5);
 

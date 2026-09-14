@@ -122,6 +122,7 @@
       width: 70px; padding: .3rem .5rem; border: 1px solid var(--border); border-radius: 4px;
       background: var(--bg); color: var(--text); font-size: .85rem;
     }
+    .scenario-card input.timespan { width: 110px; }
     .scenario-card .field-label { font-size: .75rem; color: var(--muted); }
     .scenario-card .stats { display: flex; gap: 1.2rem; margin-top: .6rem; font-size: .8rem; color: var(--muted); }
     .scenario-card .stats span strong { color: var(--text); }
@@ -502,6 +503,12 @@
 
     function renderJobCard(j) {
       const intervalId = `job-interval-${j.name}`;
+      const cutoffId = `job-cutoff-${j.name}`;
+      // The cutoff timespan is a retention-sweep-specific start setting: rows older than
+      // now - timespan are deleted on every sweep. Empty = ServiceControl's retention defaults.
+      const cutoffField = j.name === 'retention-sweep' ? `
+            <span class="field-label">Cutoff (d.hh:mm:ss):</span>
+            <input type="text" class="timespan" id="${cutoffId}" value="${j.running && j.cutoffTimespan ? esc(j.cutoffTimespan) : ''}" placeholder="e.g. 00:30:00" title="Rows older than now minus this timespan are deleted on every sweep. Empty = ServiceControl derives the cutoffs from its configured retention periods." ${j.running ? 'disabled' : ''} />` : '';
       return `
         <div class="scenario-card ${j.running ? 'running' : ''}" data-job="${esc(j.name)}">
           <div class="header-row">
@@ -519,6 +526,7 @@
           <div class="controls">
             <span class="field-label">Interval (sec):</span>
             <input type="number" id="${intervalId}" value="${j.running ? j.intervalSeconds : j.defaultIntervalSeconds}" min="1" step="1" ${j.running ? 'disabled' : ''} />
+            ${cutoffField}
           </div>
           <div class="stats">
             <span>Cycles: <strong>${fmtNum(j.cycles)}</strong></span>
@@ -532,6 +540,9 @@
       const intervalVal = parseInt(document.getElementById(`job-interval-${name}`)?.value);
       const body = {};
       if (intervalVal && intervalVal > 0) body.intervalSeconds = intervalVal;
+      // Retention-sweep only: the cutoff timespan field (empty = ServiceControl's defaults).
+      const cutoffEl = document.getElementById(`job-cutoff-${name}`);
+      if (cutoffEl?.value.trim()) body.cutoffTimespan = cutoffEl.value.trim();
       try {
         await api('POST', `/api/jobs/${encodeURIComponent(name)}/start`, body);
         toast(`Started job "${name}"`, 'ok');

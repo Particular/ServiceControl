@@ -36,9 +36,13 @@ for (int i = 0; i < options.GetValue("error-ingestion-scale-unit", 0); i++) {
         .WithArgs("--error-ingestion-only")
         .WithEnvironment("SERVICECONTROL_INSTANCENAME", "Error-scale-" + i)
         .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", observability.Collector.GetEndpoint("otlp-grpc"))
+        .WithEnvironment("SERVICECONTROL_DISABLEEXTERNALINTEGRATIONSPUBLISHING", "true")
         
-        //get things working...
-        .WithEnvironment("MAXIMUMCONCURRENCYLEVEL", "2")
+        //scale settings
+        .WithEnvironment("SERVICECONTROL_MAXIMUMCONCURRENCYLEVEL", "100")
+        .WithEnvironment("SERVICECONTROL_ERRORINGESTIONBATCHSIZE", "25")
+        .WithEnvironment("SERVICECONTROL_ERRORINGESTIONMAXPARALLELWRITERS", "4")
+        .WithEnvironment("SERVICECONTROL_ERRORINGESTIONBATCHTIMEOUT", "00:00:00.100")
         
         //.WaitFor(primaryErrorInstance)
         .WithPersistenceType(persistenceType)

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using TestingTool.Contracts;
 
 namespace TestingTool.Jobs;
 
@@ -37,6 +38,13 @@ public abstract class JobBase
     /// <summary>Default cycle interval when none is supplied on start.</summary>
     public abstract TimeSpan DefaultInterval { get; }
 
+    /// <summary>
+    /// Run setting surfaced in the job snapshot for the UI. Only the retention-sweep job uses
+    /// it today — the cutoff timespan its current run was started with; null for every other
+    /// job (and for a retention-sweep run without caller-supplied cutoffs).
+    /// </summary>
+    public virtual string? CutoffTimespan => null;
+
     /// <summary>Whether the job is currently running.</summary>
     public bool IsRunning => _cts is not null;
 
@@ -53,7 +61,7 @@ public abstract class JobBase
     public DateTimeOffset? StartedAt => _cts is null ? null : _startedAt;
 
     /// <summary>Starts the job on the given interval. The first cycle runs immediately.</summary>
-    public bool TryStart(TimeSpan interval, out string? error)
+    public bool TryStart(TimeSpan interval, StartJobRequest? request, out string? error)
     {
         lock (_lock)
         {
@@ -69,6 +77,11 @@ public abstract class JobBase
                 return false;
             }
 
+            // Give the job a chance to consume its own fields from the start request (and reject
+            // the start) before any run state changes.
+            if (!TryConfigure(request, out error))
+                return false;
+
             _interval = interval;
             _startedAt = DateTimeOffset.UtcNow;
             _cycles = 0;
@@ -78,6 +91,18 @@ public abstract class JobBase
         }
 
         OnStarted();
+        error = null;
+        return true;
+    }
+
+    /// <summary>
+    /// Per-run configuration hook: lets a job consume job-specific fields from the start
+    /// request (e.g. the retention sweep's cutoff timespan) and reject the start with an error.
+    /// Called under the start lock before any run state changes; the base implementation
+    /// accepts every start.
+    /// </summary>
+    protected virtual bool TryConfigure(StartJobRequest? request, out string? error)
+    {
         error = null;
         return true;
     }

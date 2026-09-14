@@ -26,8 +26,11 @@ public sealed class JobRunner
     /// <summary>All registered jobs.</summary>
     public IReadOnlyList<JobBase> All => _jobs.Values.ToArray();
 
-    /// <summary>Starts a job, optionally overriding its cycle interval.</summary>
-    public bool TryStart(string name, TimeSpan? interval, out string? error)
+    /// <summary>
+    /// Starts a job, optionally overriding its cycle interval. The request may also carry
+    /// job-specific start settings; each job consumes (or ignores) its own fields.
+    /// </summary>
+    public bool TryStart(string name, TimeSpan? interval, StartJobRequest? request, out string? error)
     {
         if (!_jobs.TryGetValue(name, out var job))
         {
@@ -36,7 +39,7 @@ public sealed class JobRunner
         }
 
         var effectiveInterval = interval ?? job.DefaultInterval;
-        if (!job.TryStart(effectiveInterval, out error))
+        if (!job.TryStart(effectiveInterval, request, out error))
             return false;
 
         _logger.LogInformation("Started job {Job} — interval {Interval}", name, effectiveInterval);
@@ -81,7 +84,8 @@ public sealed class JobRunner
                 DefaultIntervalSeconds = (int)j.DefaultInterval.TotalSeconds,
                 Cycles = j.Cycles,
                 ItemsProcessed = j.ItemsProcessed,
-                StartedAt = j.StartedAt?.ToString("O")
+                StartedAt = j.StartedAt?.ToString("O"),
+                CutoffTimespan = j.CutoffTimespan
             })
             .ToList();
 }

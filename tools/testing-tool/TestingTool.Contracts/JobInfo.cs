@@ -32,4 +32,11 @@ public sealed class JobInfo
 
     /// <summary>When the current run started (UTC ISO 8601, null if idle).</summary>
     public string? StartedAt { get; init; }
+
+    /// <summary>
+    /// The cutoff timespan the current run was started with, in .NET timespan format (e.g.
+    /// <c>14.00:00:00</c>). Only the retention-sweep job uses this — null for the other jobs,
+    /// and null for a retention-sweep run that lets ServiceControl derive its cutoffs.
+    /// </summary>
+    public string? CutoffTimespan { get; init; }
 }
