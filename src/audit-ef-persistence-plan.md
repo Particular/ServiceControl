@@ -662,7 +662,7 @@ competing consumers against one database, and the primary is the only writer to 
    to be written; it needs a second in-process host in the acceptance runner.
 8. **Documentation.** `docs/audit-ingestion-in-the-primary.md` gains the topology tables, the new
    mode and the two settings, and the hosting plan's statement that there is no separate audit HTTP
-   service is marked superseded.
+   service is marked superseded. On `john/audit_ef_9`.
 
 Each pull request leaves both EF acceptance suites and the RavenDB suites passing, and steps 1 to 5
 leave `SupportsAuditIngestion` false so nothing activates early. Step 1 is on `john/audit_ef_1`,

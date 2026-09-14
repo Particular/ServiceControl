@@ -43,7 +43,7 @@ This plan covers the contracts, project boundaries, host composition, settings, 
 
 ### Hosting
 
-- The normal primary retains the existing HTTP routes and serves local audit data through them. There is no separate SQL Server or PostgreSQL audit HTTP service. *Superseded on 14 September 2026: audit load can swamp a database that copes with the error instance, so a customer must be able to move audit to a dedicated database. That database is served by the same executable in `--audit-instance` mode, and the topology is specified in the EF audit persistence plan.*
+- The normal primary retains the existing HTTP routes and serves local audit data through them. There is no separate SQL Server or PostgreSQL audit HTTP service. *Superseded on 14 September 2026 by the "Topologies" section of [the EF audit persistence plan](audit-ef-persistence-plan.md): audit load can swamp a database that copes with the error instance, so a dedicated audit database is served by the same executable in `--audit-instance` mode.*
 - `--audit-ingestion-only` always ingests and does not host an NServiceBus endpoint.
 - `--audit-ingestion-only` and `--error-ingestion-only` are mutually exclusive. Passing both fails at startup with a clear message. Each queue gets its own worker pool so the two can be scaled independently, and each keeps a single, auditable component list. Combining them is a possible follow-up.
 - Disabling ingestion in the normal primary stops only its receiver. Local queries, SagaAudit, failed-import tooling, and other audit capabilities remain active because workers may still ingest.
