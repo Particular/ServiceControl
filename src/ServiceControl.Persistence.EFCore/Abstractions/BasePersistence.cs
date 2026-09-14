@@ -64,6 +64,7 @@ public abstract class BasePersistence
         services.AddSingleton<INotificationsDataStore, NotificationsDataStore>();
         services.AddSingleton<IEventLogDataStore, EventLogDataStore>();
         services.AddSingleton<IFailedErrorImportDataStore, FailedErrorImportDataStore>();
+        services.AddSingleton<IFailedAuditImportDataStore, FailedAuditImportDataStore>();
         services.AddSingleton<IGroupsDataStore, GroupsDataStore>();
         services.AddSingleton<IMessageRedirectsDataStore, MessageRedirectsDataStore>();
         services.AddSingleton<IMonitoringDataStore, MonitoringDataStore>();

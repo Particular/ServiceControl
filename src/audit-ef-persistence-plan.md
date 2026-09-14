@@ -636,7 +636,9 @@ competing consumers against one database, and the primary is the only writer to 
    to a sequential scan, which is what the pinning test exists to catch. On SQL Server the audit
    full-text index keys on a unique index over the identity column alone, added by the same
    migration, because a full-text key index must be a single column. On `john/audit_ef_5`.
-5. **Failed audit imports.** The store, and the `--import-failed-audits` round trip.
+5. **Failed audit imports.** The store, keyed by `FailedAuditImport.DeriveKey` and otherwise the
+   error-side store's twin, so `--import-failed-audits` replays through it unchanged. On
+   `john/audit_ef_6`.
 6. **Turn it on.** Flip `SupportsAuditIngestion` in both manifests, update the approval test that
    asserts it is false, and delete `ServiceControl.Persistence.Tests.AuditCapable`. The `Empty*`
    audit stand-ins stay: step 7 registers them on a primary whose audit is remote. Full acceptance
