@@ -255,6 +255,31 @@ way it does with a RavenDB remote today.
 `--audit-ingestion-only` needs no new flag. A worker on a different database is the same command with
 a different connection string and `ServiceControlQueueAddress` set.
 
+## Code layout
+
+Audit and error are two pipelines in one executable and one persister, segregated by folder, not by
+project. The rules, so that the segregation survives the steps below:
+
+- **Host.** The audit pipeline lives under `ServiceControl/Auditing/` and enters composition through
+  `AuditComponent` only. The error pipeline stays under `ServiceControl/Operations/`. Neither folder
+  references the other. Anything both use (endpoint details parsing, the import failure circuit
+  breaker, ingestion metrics, the settings reader, the watchdog) lives under
+  `ServiceControl.Infrastructure/Ingestion/` and is owned by neither pipeline. Three of those still
+  sit under `Operations/` today and move as a small commit of their own.
+- **Settings.** Audit settings are read into their own section rather than interleaved with the
+  error settings in `Settings`. The key names do not change.
+- **Persister.** Every audit implementation in the EF projects lives under `Implementation/Audit/`
+  (unit of work, stores, partition manager, retention pass, dialect overloads), with entities and
+  configurations named `Audit*` and `SagaSnapshot*` beside the existing ones. The error side is not
+  moved.
+- **API.** The message, saga and audit count routes serve both pipelines by product design, so the
+  API is not split. The subset the audit host exposes is declared on the controllers with a marker
+  attribute that the step 7 allow list reads, so the boundary is visible in code rather than in a
+  list inside a command.
+- **Host modes.** Components do not branch on the mode name. The hosting command builds a host
+  profile once and components ask it for capabilities. Today's `settings.IngestionOnly` checks are
+  converted when step 7 adds the third mode and would otherwise multiply them.
+
 ## What already exists and is reused
 
 The largest risk in this work is rebuilding something the primary already has. It has more than the
