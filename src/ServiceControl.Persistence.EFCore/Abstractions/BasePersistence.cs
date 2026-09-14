@@ -8,6 +8,7 @@ using Particular.LicensingComponent.Persistence;
 using ServiceControl.CustomChecks;
 using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence.EFCore.Implementation;
+using ServiceControl.Persistence.EFCore.Implementation.Audit;
 using ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
 using ServiceControl.Persistence.EFCore.Implementation.Recoverability;
 using ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
@@ -54,6 +55,8 @@ public abstract class BasePersistence
         services.AddSingleton<IArchiveMessages, MessageArchiver>();
         services.AddSingleton<ICustomChecksDataStore, CustomCheckDataStore>();
         services.AddSingleton<IMessagesViewDataStore, MessagesViewDataStore>();
+        services.AddSingleton<IAuditCountsDataStore, AuditCountsDataStore>();
+        services.AddSingleton<ISagaHistoryDataStore, SagaHistoryDataStore>();
         services.AddSingleton<IFailedMessageQueryDataStore, FailedMessageQueryDataStore>();
         services.AddSingleton<IFailedMessageLifecycleDataStore, FailedMessageLifecycleDataStore>();
         services.AddSingleton<IFailedMessageRetryDataStore, FailedMessageRetryDataStore>();

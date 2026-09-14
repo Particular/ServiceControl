@@ -73,7 +73,9 @@ Settled by interview on 22 Aug 2026, extended by interview on 14 Sep 2026.
 | Schema of a dedicated audit database | The same `ServiceControlDbContext` and the same migration stream. The audit database carries the error tables, empty, and a primary whose audit is remote carries the audit tables, empty. |
 | How the primary knows audit is remote | An explicit setting, `ServiceControl/AuditDataLocation`, `Local` or `Remote`. `Local` is the default where the persister supports audit. Not derived from `IngestAuditMessages` and `RemoteInstances`, because the shared topology where only workers ingest looks the same. |
 | Delivery order | Shared database first, through step 6. The dedicated database is steps 7 and 8, composed from parts that already work by then. |
-| Message view composition | One SQL statement per view: `UNION ALL` of the failed and audit branches, precedence by anti-join on `unique_message_id`, sort, paging and count in the database. Decided 14 Sep 2026, replacing the in-memory merge of two pages, which paged wrongly past page one and could not count. |
+| Message view composition | One SQL statement per view: `UNION ALL` of the failed and audit branches, each branch carrying its own sort and limit, precedence by anti-join on `unique_message_id`, sort, paging and count in the database. Decided 14 Sep 2026, replacing the in-memory merge of two pages, which paged wrongly past page one and could not count. |
+| Precedence | Failed wins, whatever its status. Archived failures keep showing as `ArchivedFailure`, as they do today. A "newer row wins" rule was measured and rejected: its failed-side probe into the partitioned audit index made the planner scan the whole table at deep pages (728 ms at page 100 on 3M rows against 8 ms). |
+| Total count | Capped, not exact. An exact count is linear in the audit table (156 ms at 3M rows, tens of seconds at production sizes) and the capped form costs a millisecond. The cap is a constant to tune. |
 
 ### Why the partition key is the ingestion hour, and why rows are not deduplicated
 
@@ -511,13 +513,24 @@ Each view is one SQL statement over both tables. The database applies the filter
 rule, the sort, the page and the count; nothing is merged in memory.
 
 ```sql
-SELECT <common projection> FROM failed_messages f WHERE <filters>
-UNION ALL
-SELECT <common projection> FROM audit_messages a
-WHERE <filters>
-  AND NOT EXISTS (SELECT 1 FROM failed_messages f WHERE f.unique_message_id = a.unique_message_id)
-ORDER BY <sort> LIMIT @take OFFSET @skip
+SELECT * FROM (
+  (SELECT <common projection> FROM failed_messages f WHERE <filters>
+   ORDER BY <sort> LIMIT @skip + @take)
+  UNION ALL
+  (SELECT <common projection> FROM audit_messages a
+   WHERE <filters>
+     AND NOT EXISTS (SELECT 1 FROM failed_messages f WHERE f.unique_message_id = a.unique_message_id)
+   ORDER BY <sort> LIMIT @skip + @take)
+) u ORDER BY <sort> LIMIT @take OFFSET @skip
 ```
+
+The limit inside each branch is what makes this fast, and it was measured rather than assumed: on
+PostgreSQL 16 with three million audit rows over 168 hourly partitions, the same union with the sort
+and limit only on the outside made the planner hash the anti-join and scan every row into a top-N
+sort, 1.2 seconds for page one. With the branch limits it is a merge over two index-ordered scans
+that stops at the page boundary: 5 ms for page one and 8 ms for page one hundred, against 4.5 ms
+for scanning the audit time index alone. Paging stays exact because any row of the global page is
+within the top `skip + take` rows of its own branch.
 
 The three rules `IMessagesViewDataStore` states are each one clause of that statement:
 
@@ -530,8 +543,10 @@ The three rules `IMessagesViewDataStore` states are each one clause of that stat
 2. **Paging.** `OFFSET` and `LIMIT` sit on the union, so page N is exact. Both providers stream a
    top-N over two ordered index scans (Merge Append on PostgreSQL, Merge Concatenation on SQL
    Server) and stop at the page boundary rather than reading either table through.
-3. **Counting.** The total is a second statement with the same two predicates, `COUNT(*)` on each
-   branch with the anti-join on the audit side, so a message in both tables counts once.
+3. **Counting.** The total is a second statement with the same two predicates, counted over the
+   union with a `LIMIT` at the cap, so a message in both tables counts once and a large table costs
+   a millisecond rather than a scan. `Total-Count` and the `Link` paging headers report the cap when
+   it is hit.
 
 Each branch keeps its own indexes, including its own full-text index, because the planner plans
 each branch on its own. The full-text predicate reaches each branch through the existing
@@ -541,11 +556,14 @@ branch's expression to its index the way the failed one is pinned today. Everyth
 translates to the statement above on both providers.
 
 Two constraints follow. Both branches must project the same column set, which is why the audit
-columns in "Schema" were chosen from what `MessagesView` shows. And every sortable column must be
-indexed on both tables, or a sort becomes a sort of the whole filtered set: `time_sent` and
-`processed_at` are, and the remaining sort keys the API accepts (`critical_time`, `delivery_time`,
-`processing_time`, `message_type`, `status`) get a decision in step 4, either an index on both
-tables or documented as unindexed sorts.
+columns in "Schema" were chosen from what `MessagesView` shows; the projection is `MessageRow`, and
+the failed branch resolves its status to the one the view reports so that a sort by status orders
+both kinds of row alike. And every sortable column must be indexed on both tables, or a sort becomes
+a sort of the whole filtered set: `time_sent` and `processed_at` are. The remaining sort keys the
+API accepts (`critical_time`, `delivery_time`, `processing_time`, `message_type`, `status`) are
+unindexed sorts on both tables, as they were on the failed table alone. The three statistics sorts
+fall through to time sent among equal values, which keeps the failed messages, all at zero, in the
+order they had before.
 
 `LocalMessagesView.Merge` stays only behind the in-memory test persister, which holds both kinds of
 message in memory and has no database to hand the work to. Once step 4 lands it serves no shipped
@@ -615,7 +633,9 @@ competing consumers against one database, and the primary is the only writer to 
 4. **Queries.** The five message view unions, audit counts, saga history, and the third step of body
    arbitration. The full-text index lands here rather than with the schema, because the indexed
    expression and the query expression have to be written together or PostgreSQL silently downgrades
-   to a sequential scan, which is what the pinning test exists to catch.
+   to a sequential scan, which is what the pinning test exists to catch. On SQL Server the audit
+   full-text index keys on a unique index over the identity column alone, added by the same
+   migration, because a full-text key index must be a single column. On `john/audit_ef_5`.
 5. **Failed audit imports.** The store, and the `--import-failed-audits` round trip.
 6. **Turn it on.** Flip `SupportsAuditIngestion` in both manifests, update the approval test that
    asserts it is false, and delete `ServiceControl.Persistence.Tests.AuditCapable`. The `Empty*`
@@ -676,9 +696,8 @@ rebased onto master on 14 September 2026; the code layout move is `john/audit_ef
    identity column, or letting SQL Server key on `id` alone, which would dedupe across hour boundaries
    and so behave better than PostgreSQL rather than the same. Needed for step 4, not step 1.
 2. What caps `GetAllMessagesByConversation` and saga history, and what the API returns when a cap is hit.
-   Also whether the total count on an unfiltered message view stays exact, which is a count over
-   the whole audit table on every request, or becomes estimated or capped. This is the one query
-   cost the union does not remove, because no design can count without touching the table.
+   Also what the cap on the total count should be. It bounds both the cost of the count and how far
+   the paging links reach.
 3. Whether the audit path should raise the `EndpointDetected` domain event. Carried over from the
    hosting plan, still unanswered, and now cheap to settle because the write path is real.
 4. Whether `SagaUpdatedHandler` should hand the snapshot straight to the audit unit of work instead of

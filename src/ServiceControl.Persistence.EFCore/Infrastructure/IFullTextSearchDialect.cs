@@ -15,4 +15,10 @@ public interface IFullTextSearchDialect
     /// Callers guarantee the terms are not blank.
     /// </summary>
     IQueryable<FailedMessageEntity> Search(IQueryable<FailedMessageEntity> source, string searchTerms);
+
+    /// <summary>
+    /// The same predicate over the audit messages table, served by the index the
+    /// AddAuditFullTextSearch migration creates.
+    /// </summary>
+    IQueryable<AuditMessageEntity> Search(IQueryable<AuditMessageEntity> source, string searchTerms);
 }

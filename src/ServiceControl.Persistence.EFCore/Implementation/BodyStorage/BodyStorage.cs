@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
+using ServiceControl.Persistence.EFCore.Implementation.Audit;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.Infrastructure;
 
@@ -37,7 +38,7 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
 
         if (row.BodyStoredExternally)
         {
-            var external = await storagePersistence.ReadBody(row.UniqueMessageId.ToString(), cancellationToken);
+            var external = await storagePersistence.ReadBody(row.ExternalBodyId, cancellationToken);
 
             if (external == null)
             {
@@ -88,8 +89,35 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
             }
         }
 
-        return await Query(dbContext, message => message.MessageId == bodyId, cancellationToken);
+        var byMessageId = await Query(dbContext, message => message.MessageId == bodyId, cancellationToken);
+        if (byMessageId != null)
+        {
+            return byMessageId;
+        }
+
+        return Guid.TryParse(bodyId, out var auditUniqueMessageId)
+            ? await QueryAudit(dbContext, auditUniqueMessageId, cancellationToken)
+            : null;
     }
+
+    // The newest row wins when a redelivered message left more than one, since none of them differ.
+    static Task<BodyRow?> QueryAudit(ServiceControlDbContext dbContext, Guid uniqueMessageId, CancellationToken cancellationToken) =>
+        dbContext.AuditMessages
+            .AsNoTracking()
+            .Where(message => message.UniqueMessageId == uniqueMessageId)
+            .OrderByDescending(message => message.CreatedOn)
+            .ThenByDescending(message => message.Id)
+            .Select(message => new BodyRow
+            {
+                UniqueMessageId = message.UniqueMessageId,
+                IngestionHour = message.CreatedOn,
+                BodyText = message.BodyText,
+                BodyStoredExternally = message.BodyStoredExternally,
+                BodySize = message.BodySize,
+                BodyContentType = message.BodyContentType,
+                LastModified = message.CreatedOn
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
     static Task<BodyRow?> Query(ServiceControlDbContext dbContext, Expression<Func<FailedMessageEntity, bool>> predicate, CancellationToken cancellationToken) =>
         dbContext.FailedMessages
@@ -110,7 +138,14 @@ public class BodyStorage(IServiceScopeFactory scopeFactory, IBodyStoragePersiste
     sealed class BodyRow
     {
         public Guid UniqueMessageId { get; init; }
+        public DateTime? IngestionHour { get; init; }
         public string? BodyText { get; init; }
+
+        // Composed here rather than in the query: a Guid rendered by SQL Server is upper case, and
+        // the stored key is the lower case string the ingestion wrote.
+        public string ExternalBodyId => IngestionHour is { } hour
+            ? AuditBodyStorage.BodyId(hour, UniqueMessageId)
+            : UniqueMessageId.ToString();
         public bool BodyStoredExternally { get; init; }
         public int BodySize { get; init; }
         public string? BodyContentType { get; init; }
