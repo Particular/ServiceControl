@@ -2,6 +2,8 @@ namespace ServiceControl.Persistence.Tests.RavenDB.DataMigration;
 
 using System;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Raven.Client.Documents;
@@ -11,7 +13,9 @@ using Raven.Client.Documents.Operations.Expiration;
 using Raven.Client.Documents.Session;
 using Raven.Client.ServerWide;
 using Raven.Client.ServerWide.Operations;
+using ServiceControl.Configuration;
 using ServiceControl.MessageFailures;
+using ServiceControl.Operations.BodyStorage.RavenAttachments;
 using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.RavenDB;
 using ServiceControl.Persistence.RavenDB.DataMigration;
@@ -20,6 +24,8 @@ using ServiceControl.Persistence.Tests;
 [TestFixture]
 class ReadOnlySourceLifecycleTests
 {
+    static readonly SettingsRootNamespace SettingsRoot = new("ServiceControl");
+
     string databaseName;
     IDocumentStore bootstrapStore;
     RavenPersisterSettings sourceSettings;
@@ -61,7 +67,7 @@ class ReadOnlySourceLifecycleTests
     [Test]
     public async Task Opening_the_source_creates_no_index()
     {
-        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings);
+        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot);
         await lifecycle.Open();
 
         var statistics = await bootstrapStore.Maintenance.ForDatabase(databaseName).SendAsync(new GetStatisticsOperation());
@@ -74,7 +80,7 @@ class ReadOnlySourceLifecycleTests
         var absentThroughput = $"{databaseName}-absent";
         sourceSettings.ThroughputDatabaseName = absentThroughput;
 
-        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings);
+        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot);
 
         var exception = Assert.ThrowsAsync<InvalidOperationException>(async () => await lifecycle.Open());
 
@@ -87,7 +93,7 @@ class ReadOnlySourceLifecycleTests
     {
         var before = (await bootstrapStore.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName))).Settings;
 
-        await using (var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings))
+        await using (var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot))
         {
             await lifecycle.Open();
         }
@@ -100,7 +106,7 @@ class ReadOnlySourceLifecycleTests
     [Test]
     public async Task Opening_the_source_configures_no_expiration()
     {
-        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings);
+        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot);
         await lifecycle.Open();
 
         var record = await bootstrapStore.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName));
@@ -111,7 +117,7 @@ class ReadOnlySourceLifecycleTests
     [Test]
     public async Task Writing_through_the_source_store_throws()
     {
-        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings);
+        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot);
         await lifecycle.Open();
 
         using var session = lifecycle.DocumentStore.OpenAsyncSession(new SessionOptions { Database = databaseName });
@@ -126,7 +132,7 @@ class ReadOnlySourceLifecycleTests
     [Test]
     public async Task A_source_session_cannot_even_stage_a_write()
     {
-        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings);
+        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot);
         await lifecycle.Open();
 
         using var session = lifecycle.OpenSession(databaseName);
@@ -134,13 +140,13 @@ class ReadOnlySourceLifecycleTests
         var exception = Assert.ThrowsAsync<InvalidOperationException>(async () =>
             await session.StoreAsync(new FailedMessage { UniqueMessageId = "def", Status = FailedMessageStatus.Unresolved }, "FailedMessages/def"));
 
-        Assert.That(exception.Message, Does.Contain("tracking is disabled"), "OpenSession is NoTracking, so a write through it fails at Store rather than reaching the OnBeforeStore refusal. Both guards have to hold: this one is the only one a copier's own sessions ever meet.");
+        Assert.That(exception.Message, Does.Contain("tracking is disabled"), "OpenSession is NoTracking, so a write through it fails at Store rather than reaching the RefuseWrite request hook. Both guards have to hold: this one is the only one a copier's own sessions ever meet.");
     }
 
     [Test]
     public async Task Failed_message_status_reads_back_as_stored()
     {
-        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings);
+        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot);
         await lifecycle.Open();
 
         using var session = lifecycle.OpenSession(databaseName);
@@ -154,7 +160,7 @@ class ReadOnlySourceLifecycleTests
     {
         sourceSettings.ThroughputDatabaseName = $"{databaseName}-absent";
 
-        var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings);
+        var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot);
 
         Assert.ThrowsAsync<InvalidOperationException>(async () => await lifecycle.Open());
 
@@ -165,29 +171,27 @@ class ReadOnlySourceLifecycleTests
         await lifecycle.DisposeAsync();
     }
     [Test]
-    public async Task The_RavenDB_configuration_opens_a_source_that_describes_itself()
+    public async Task A_source_describes_itself_as_facts_naming_the_setting_each_came_from()
     {
-        var factory = (IMigrationSourceFactory)new RavenPersistenceConfiguration();
-
-        await using var source = factory.CreateSource(sourceSettings);
+        await using var source = new RavenMigrationSource(new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot));
         await source.Open();
         var description = await source.Describe();
+        var facts = description.Facts.ToDictionary(fact => fact.Label);
 
         Assert.Multiple(() =>
         {
-            Assert.That(description.Embedded, Is.False);
-            Assert.That(description.PrimaryDatabase, Is.EqualTo(databaseName));
-            Assert.That(description.ThroughputDatabase, Is.EqualTo($"{databaseName}-throughput"));
-            Assert.That(description.ServerVersion, Does.StartWith("6."));
+            Assert.That(description.Version, Does.StartWith("6."));
+            Assert.That(facts["Mode"].Value, Is.EqualTo("external"));
+            Assert.That(facts["Primary database"].Value, Is.EqualTo(databaseName));
+            Assert.That(facts["Primary database"].SettingKey, Is.EqualTo("ServiceControl/RavenDB/DatabaseName"));
+            Assert.That(facts["Throughput database"].Value, Is.EqualTo($"{databaseName}-throughput"));
         });
     }
 
     [Test]
     public async Task An_unopened_source_refuses_to_describe_itself()
     {
-        var factory = (IMigrationSourceFactory)new RavenPersistenceConfiguration();
-
-        await using var source = factory.CreateSource(sourceSettings);
+        await using var source = new RavenMigrationSource(new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot));
 
         var exception = Assert.ThrowsAsync<InvalidOperationException>(async () => await source.Describe());
 
@@ -195,21 +199,29 @@ class ReadOnlySourceLifecycleTests
     }
 
     [Test]
-    public async Task The_source_counts_the_collections_it_finds()
+    public async Task The_source_inventories_every_collection_by_database()
     {
-        var factory = (IMigrationSourceFactory)new RavenPersistenceConfiguration();
-
-        await using var source = factory.CreateSource(sourceSettings);
+        await using var source = new RavenMigrationSource(new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot));
         await source.Open();
-        var collections = await source.CountCollections(MigrationSourceDatabase.Primary);
+        var inventory = await source.Inventory();
 
-        Assert.That(collections["FailedMessages"], Is.EqualTo(1));
+        Assert.That(inventory.Single(entry => entry.Scope == databaseName && entry.Name == "FailedMessages").Count, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void An_embedded_source_names_the_data_directory_setting()
+    {
+        sourceSettings.ConnectionString = null;
+
+        var location = RavenReadOnlySourceLifecycle.Located(sourceSettings, SettingsRoot);
+
+        Assert.That(location, Does.Contain("'ServiceControl/DbPath'"), "An operator told the embedded source cannot be read needs the setting that points at its data directory.");
     }
 
     [Test]
     public async Task Opening_the_source_twice_is_refused()
     {
-        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings);
+        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot);
         await lifecycle.Open();
 
         var exception = Assert.ThrowsAsync<InvalidOperationException>(async () => await lifecycle.Open());
@@ -223,7 +235,7 @@ class ReadOnlySourceLifecycleTests
         sourceSettings.ConnectionString = null;
         sourceSettings.DatabasePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("n"));
 
-        var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings);
+        var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot);
 
         Assert.CatchAsync(async () => await lifecycle.Open());
 
@@ -237,7 +249,7 @@ class ReadOnlySourceLifecycleTests
     [Test]
     public async Task Generating_an_id_is_refused()
     {
-        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings);
+        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot);
         await lifecycle.Open();
 
         using var session = lifecycle.DocumentStore.OpenAsyncSession(new SessionOptions { Database = databaseName });
@@ -251,7 +263,7 @@ class ReadOnlySourceLifecycleTests
     [Test]
     public async Task A_patch_against_the_source_is_refused()
     {
-        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings);
+        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot);
         await lifecycle.Open();
 
         Assert.CatchAsync(async () =>
@@ -264,7 +276,7 @@ class ReadOnlySourceLifecycleTests
     [Test]
     public async Task A_bulk_insert_into_the_source_is_refused()
     {
-        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings);
+        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot);
         await lifecycle.Open();
 
         Assert.CatchAsync(async () =>
@@ -279,7 +291,7 @@ class ReadOnlySourceLifecycleTests
     [Test]
     public async Task Reconfiguring_expiry_on_the_source_is_refused()
     {
-        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings);
+        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot);
         await lifecycle.Open();
 
         Assert.CatchAsync(async () =>
@@ -294,7 +306,7 @@ class ReadOnlySourceLifecycleTests
     [Test]
     public async Task Deleting_an_untracked_document_is_refused()
     {
-        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings);
+        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot);
         await lifecycle.Open();
 
         using var session = lifecycle.DocumentStore.OpenAsyncSession(new SessionOptions { Database = databaseName });
@@ -308,7 +320,7 @@ class ReadOnlySourceLifecycleTests
     [Test]
     public async Task Reading_the_source_still_works()
     {
-        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings);
+        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot);
         await lifecycle.Open();
 
         using var session = lifecycle.OpenSession(databaseName);
@@ -320,6 +332,31 @@ class ReadOnlySourceLifecycleTests
         {
             Assert.That(loaded, Is.Not.Null, "A guard that fails closed still has to let every read the migration needs through.");
             Assert.That(queried, Has.Count.EqualTo(1));
+        });
+    }
+
+    [Test]
+    public async Task A_source_session_reads_a_message_body_attachment()
+    {
+        using (var session = bootstrapStore.OpenAsyncSession())
+        {
+            using var stored = new MemoryStream(Encoding.UTF8.GetBytes("<order>1</order>"));
+            session.Advanced.Attachments.Store("FailedMessages/abc", RavenAttachmentsBodyStorage.AttachmentName, stored, "text/xml");
+            await session.SaveChangesAsync();
+        }
+
+        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot);
+        await lifecycle.Open();
+
+        using var sourceSession = lifecycle.OpenSession(databaseName);
+        using var attachment = await sourceSession.Advanced.Attachments.GetAsync("FailedMessages/abc", RavenAttachmentsBodyStorage.AttachmentName);
+        using var read = new MemoryStream();
+        await attachment.Stream.CopyToAsync(read);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(Encoding.UTF8.GetString(read.ToArray()), Is.EqualTo("<order>1</order>"), "The body copy reads every attachment through this no-tracking session, so a read that needed tracking would need a second kind of source session.");
+            Assert.That(attachment.Details.ContentType, Is.EqualTo("text/xml"));
         });
     }
 

@@ -26,11 +26,12 @@ MIGRATION SOURCE REPORT
 
    ServiceControl.exe --migration-source-report
 
-Reports what a RavenDB to SQL migration would read: whether the old database is embedded or on its
-own server, which server, both database names with the setting each came from, and a row count for
-every collection.
+Reports what a migration would read from the source persistence named by
+ServiceControl/Migration/SourcePersistenceType: the facts the source reports about itself, with the
+setting each came from, and a row count for everything it holds. The source reads the instance's own
+RavenDB settings, so keep them in place when switching PersistenceType.
 
-An EXTERNAL RavenDB source can be reported on while ServiceControl is running. An EMBEDDED source
+For a RavenDB source: an EXTERNAL server can be reported on while ServiceControl is running. An EMBEDDED source
 cannot: ServiceControl starts its own RavenDB process against that data directory, and a second one
 cannot attach to it. Stop the ServiceControl service first, run the report, and start it again. An
 instance that does not ship the RavenDB server, such as the container image, cannot report on an

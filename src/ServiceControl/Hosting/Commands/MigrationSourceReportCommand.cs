@@ -1,13 +1,12 @@
 namespace ServiceControl.Hosting.Commands
 {
     using System;
-    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence;
-    using ServiceControl.Persistence.DataMigration;
 
     class MigrationSourceReportCommand : AbstractCommand
     {
@@ -19,37 +18,24 @@ namespace ServiceControl.Hosting.Commands
 
             Console.Out.WriteLine("ServiceControl migration source report");
             Console.Out.WriteLine();
-            Console.Out.WriteLine($"Source persistence  : {settings.MigrationSourcePersistenceType} ({(description.Embedded ? "embedded" : "external")})");
-            Console.Out.WriteLine($"Server URL          : {description.ServerUrl}");
-            Console.Out.WriteLine($"Server version      : {description.ServerVersion}");
-            Console.Out.WriteLine($"Primary database    : {description.PrimaryDatabase}  (from ServiceControl/RavenDB/DatabaseName)");
-            Console.Out.WriteLine($"Throughput database : {description.ThroughputDatabase}  (from LicensingComponent/RavenDB/ThroughputDatabaseName)");
+            Console.Out.WriteLine($"{"Source persistence",-20}: {settings.MigrationSourcePersistenceType}");
+            Console.Out.WriteLine($"{"Version",-20}: {description.Version}");
 
-            await PrintCollections(source, MigrationSourceDatabase.Primary, description.PrimaryDatabase, cancellationToken);
-            await PrintCollections(source, MigrationSourceDatabase.Throughput, description.ThroughputDatabase, cancellationToken);
-        }
-
-        static async Task PrintCollections(IMigrationSource source, MigrationSourceDatabase database, string databaseName, CancellationToken cancellationToken)
-        {
-            var counted = new SortedDictionary<string, long>(StringComparer.Ordinal);
-
-            foreach (var collection in await source.CountCollections(database, cancellationToken))
+            foreach (var fact in description.Facts)
             {
-                counted[collection.Key] = collection.Value;
+                var origin = fact.SettingKey is null ? string.Empty : $"  (from {fact.SettingKey})";
+                Console.Out.WriteLine($"{fact.Label,-20}: {fact.Value}{origin}");
             }
 
-            Console.Out.WriteLine();
-            Console.Out.WriteLine($"Collections in {databaseName}:");
-
-            if (counted.Count == 0)
+            foreach (var scope in (await source.Inventory(cancellationToken)).GroupBy(entry => entry.Scope))
             {
-                Console.Out.WriteLine("  (none)");
-                return;
-            }
+                Console.Out.WriteLine();
+                Console.Out.WriteLine($"{scope.Key}:");
 
-            foreach (var collection in counted)
-            {
-                Console.Out.WriteLine($"  {collection.Key,-42}{collection.Value,12:N0}");
+                foreach (var entry in scope.OrderBy(entry => entry.Name, StringComparer.Ordinal))
+                {
+                    Console.Out.WriteLine($"  {entry.Name,-42}{entry.Count,12:N0}");
+                }
             }
         }
     }
