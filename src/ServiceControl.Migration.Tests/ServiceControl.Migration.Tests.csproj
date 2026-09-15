@@ -5,10 +5,8 @@
     <TestCategory>Migration</TestCategory>
   </PropertyGroup>
 
-  <!--
-  Deliberately references neither persister: both must resolve by manifest name into their own
-  PluginAssemblyLoadContext, which is exactly what these tests exist to prove.
-  -->
+  <!-- References no persister, so both resolve by manifest name into their own PluginAssemblyLoadContext.
+  ServiceControl.RavenDB is here only for the embedded server MigrationSourceServer starts. -->
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
     <ProjectReference Include="..\ServiceControl.Persistence\ServiceControl.Persistence.csproj" />
