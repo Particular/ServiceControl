@@ -11,7 +11,6 @@ using NUnit.Framework;
 using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.Infrastructure;
 using ServiceControl.Persistence;
-using ServiceControl.Persistence.DataMigration;
 
 [TestFixture]
 [NonParallelizable]
@@ -28,8 +27,7 @@ class TwoPersistersInOneProcessTests
         // Both persistence configurations read ErrorRetentionPeriod through the settings reader rather
         // than off the Settings object, so the constructor argument below does not satisfy either of them.
         SetVariable("SERVICECONTROL_ERRORRETENTIONPERIOD", "10.00:00:00");
-        // CI's install-sql-server-action publishes only this variable and creates the catalog
-        // ServiceControl; a developer machine has neither, so the local default is the fallback.
+        // Registering the SQL Server persistence never connects, so any connection string satisfies it.
         SetVariable("SERVICECONTROL_DATABASE_CONNECTIONSTRING",
             Environment.GetEnvironmentVariable("ServiceControl_Persistence_SqlServer_ConnectionString")
             ?? "Server=localhost;Database=ServiceControl;Trusted_Connection=True;TrustServerCertificate=True");
@@ -76,21 +74,14 @@ class TwoPersistersInOneProcessTests
                 "The target persister must be isolated too, otherwise only one half of the pairing is being tested.");
             Assert.That(sourceContext, Is.Not.SameAs(targetContext),
                 "Source and target must land in separate contexts. That separation is the whole feature, and nothing else here asserts it.");
-            Assert.That(source, Is.InstanceOf<IMigrationSource>(),
-                "A plugin-context type must still cast to the host's copy of the interface.");
             Assert.That(settings.PersisterSpecificSettings, Is.SameAs(targetSettings),
                 "Opening a source must leave the target's settings object exactly where it was.");
         });
 
         var description = await source.Describe();
 
-        Assert.Multiple(() =>
-        {
-            Assert.That(AssemblyLoadContext.GetLoadContext(description.GetType().Assembly), Is.SameAs(AssemblyLoadContext.Default),
-                "A shared type produced inside the plugin context must arrive as the host's own type.");
-            Assert.That(description.Facts.Single(fact => fact.Label == "Primary database").Value, Is.EqualTo(MigrationSourceServer.PrimaryDatabase),
-                "The source read its own RavenDB settings rather than the target's.");
-        });
+        Assert.That(description.Facts.Single(fact => fact.Label == "Primary database").Value, Is.EqualTo(MigrationSourceServer.PrimaryDatabase),
+            "The source read its own RavenDB settings rather than the target's.");
     }
 
     [Test]

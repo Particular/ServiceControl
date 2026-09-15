@@ -12,7 +12,8 @@ using ServiceControl.Persistence.DataMigration;
 public sealed class InMemoryMigrationSource : IMigrationSource
 {
     readonly Dictionary<string, List<MigrationRow>> rowsByCategory = [];
-    readonly Dictionary<string, Queue<Func<MigrationBody?>>> bodyAttempts = [];
+    readonly Dictionary<string, (int Times, Exception Failure)> bodyFailures = [];
+    readonly Dictionary<string, int> bodyReadAttempts = [];
     readonly Dictionary<string, MigrationBody?> bodies = [];
 
     public MigrationSourceDescription Description { get; set; } = new("in-memory", [new MigrationSourceFact("Store", "in memory")]);
@@ -21,14 +22,9 @@ public sealed class InMemoryMigrationSource : IMigrationSource
 
     public void SetBody(string sourceId, MigrationBody? body) => bodies[sourceId] = body;
 
-    public void QueueBodyAttempt(string sourceId, Func<MigrationBody?> attempt)
-    {
-        if (!bodyAttempts.TryGetValue(sourceId, out var queue))
-        {
-            bodyAttempts[sourceId] = queue = new Queue<Func<MigrationBody?>>();
-        }
-        queue.Enqueue(attempt);
-    }
+    public void FailBodyReads(string sourceId, int times, Exception failure) => bodyFailures[sourceId] = (times, failure);
+
+    public int BodyReadAttempts(string sourceId) => bodyReadAttempts.GetValueOrDefault(sourceId);
 
     public Task Open(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
@@ -73,9 +69,10 @@ public sealed class InMemoryMigrationSource : IMigrationSource
     {
         await Task.Yield();
 
-        if (bodyAttempts.TryGetValue(sourceId, out var queue) && queue.Count > 0)
+        var attempt = bodyReadAttempts[sourceId] = BodyReadAttempts(sourceId) + 1;
+        if (bodyFailures.TryGetValue(sourceId, out var failures) && attempt <= failures.Times)
         {
-            return queue.Dequeue()();
+            throw failures.Failure;
         }
 
         return bodies.GetValueOrDefault(sourceId);

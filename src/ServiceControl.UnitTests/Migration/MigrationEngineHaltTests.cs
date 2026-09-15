@@ -72,13 +72,30 @@ class MigrationEngineHaltTests
     }
 
     [Test]
-    public void Halted_is_distinct_from_Complete_and_CompleteWithErrors()
+    public async Task A_restart_after_a_threshold_halt_counts_only_its_own_skips_and_keeps_the_earlier_ones()
     {
+        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, [.. Enumerable.Range(1, 1_000).Select(i => Row($"row-{i}"))]);
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var failingTarget = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 100 };
+        foreach (var i in Enumerable.Range(1, 1_000).Where(i => i % 5 == 0))
+        {
+            failingTarget.RejectKey($"row-{i}", "Rejected");
+        }
+        var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
+        var halted = await new MigrationEngine(source, failingTarget, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance).RunCategoryAsync(category);
+
+        // The cause is fixed: the remaining rows now write cleanly.
+        var fixedTarget = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 100 };
+        var finished = await new MigrationEngine(source, fixedTarget, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance).RunCategoryAsync(category);
+
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(MigrationCategoryState.Halted, Is.Not.EqualTo(MigrationCategoryState.Complete));
-            Assert.That(MigrationCategoryState.Halted, Is.Not.EqualTo(MigrationCategoryState.CompleteWithErrors));
-            Assert.That(MigrationCategoryState.CompleteWithErrors, Is.Not.EqualTo(MigrationCategoryState.Complete));
+            // 120 skips in 600 rows is the first point past both the floor and 5%.
+            Assert.That((halted.State, halted.CopiedCount, halted.SkippedCount), Is.EqualTo((MigrationCategoryState.Halted, 480L, 120L)));
+            Assert.That(finished.State, Is.EqualTo(MigrationCategoryState.CompleteWithErrors), "the skips still on the row must not halt a run that skips nothing");
+            Assert.That((finished.CopiedCount, finished.SkippedCount), Is.EqualTo((880L, 120L)), "copied, skipped at the end");
         }
     }
 }

@@ -46,10 +46,7 @@ class MigrationEngineSkipReasonTests
         var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("msg-1"), Row("msg-2"));
-        for (var attempt = 0; attempt < MigrationEngine.MaxBodyReadAttempts; attempt++)
-        {
-            source.QueueBodyAttempt("msg-1", () => throw new InvalidOperationException("down"));
-        }
+        source.FailBodyReads("msg-1", MigrationEngine.MaxBodyReadAttempts, new TimeoutException("down"));
         var checkpointStore = new InMemoryMigrationCheckpointStore();
         var target = new InMemoryMigrationTarget(checkpointStore);
         var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []) { BodyRetryBackoff = TimeSpan.Zero };

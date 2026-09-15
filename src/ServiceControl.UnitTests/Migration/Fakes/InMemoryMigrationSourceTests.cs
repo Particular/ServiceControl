@@ -63,16 +63,20 @@ class InMemoryMigrationSourceTests
     }
 
     [Test]
-    public async Task ReadBody_returns_a_queued_attempt_then_falls_back_to_the_seeded_body()
+    public async Task ReadBody_fails_the_configured_number_of_times_then_returns_the_seeded_body()
     {
         var source = new InMemoryMigrationSource();
         var finalBody = new MigrationBody(new byte[] { 9 }, "text/plain");
         source.SetBody("msg-1", finalBody);
-        source.QueueBodyAttempt("msg-1", () => throw new System.Exception("transient"));
+        source.FailBodyReads("msg-1", times: 1, new TimeoutException("transient"));
 
-        Assert.ThrowsAsync<System.Exception>(() => source.ReadBody(MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)!, "msg-1"));
+        Assert.ThrowsAsync<TimeoutException>(() => source.ReadBody(MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)!, "msg-1"));
         var secondAttempt = await source.ReadBody(MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)!, "msg-1");
 
-        Assert.That(secondAttempt, Is.EqualTo(finalBody));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(secondAttempt, Is.EqualTo(finalBody));
+            Assert.That(source.BodyReadAttempts("msg-1"), Is.EqualTo(2));
+        }
     }
 }

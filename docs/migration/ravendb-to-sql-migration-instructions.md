@@ -3,7 +3,7 @@
 This page covers what you can run today. How the migration works, and what is planned, is in the [migration overview](ravendb-to-sql-migration-overview.md) and the [system design diagram](migration-system-design-diagram.png).
 
 > [!NOTE]
-> Copying data is not built yet. The one migration command available is the source report, which reads the RavenDB database and changes nothing.
+> Copying data is not built yet. The one migration command available is the source report. It sends RavenDB only reads, but loading a database lets RavenDB's own expiration, its automatic deletion of documents past their retention date, run against it. If you are keeping the RavenDB database as a fallback, back it up before you run the report, as [Goals](ravendb-to-sql-migration-overview.md#goals) explains.
 
 ## Before you start
 
@@ -38,7 +38,7 @@ From source, build `src/ServiceControl` and run the same command from its output
 
 The report prints the RavenDB server version, whether the source is embedded or external and where it is, both database names with the setting each came from, and a row count for every collection in both databases.
 
-- **External server:** run it while ServiceControl is running. It only reads.
+- **External server:** run it while ServiceControl is running. It sends only reads, and the note above about expiration applies to a server you are keeping as a fallback.
 - **Embedded database:** stop the ServiceControl service, run the report, then start the service again. The report starts its own RavenDB process against the data directory, which cannot happen while the instance holds it.
 - **Container with an embedded database:** not supported, because the container image does not ship the RavenDB server. Point the instance at an external RavenDB server instead.
 

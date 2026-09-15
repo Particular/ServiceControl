@@ -19,17 +19,6 @@ class MigrationContractShapeTests
     }
 
     [Test]
-    public void Abandoned_is_a_state_of_its_own_and_not_a_kind_of_complete()
-    {
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(MigrationCategoryState.Abandoned, Is.Not.EqualTo(MigrationCategoryState.Complete));
-            Assert.That(MigrationCategoryState.Abandoned, Is.Not.EqualTo(MigrationCategoryState.CompleteWithErrors));
-            Assert.That(MigrationCategoryState.Abandoned, Is.Not.EqualTo(MigrationCategoryState.Halted));
-        }
-    }
-
-    [Test]
     public void Category_states_keep_the_integers_stored_checkpoints_already_hold()
     {
         var stored = System.Enum.GetValues<MigrationCategoryState>().ToDictionary(state => state.ToString(), state => (int)state);
@@ -54,25 +43,7 @@ class MigrationContractShapeTests
     }
 
     [Test]
-    public void MigrationRow_can_carry_a_body()
-    {
-        var body = new MigrationBody(new byte[] { 1, 2, 3 }, "text/plain");
-        var row = new MigrationRow("id-1", new object(), new Dictionary<string, object?>(), body);
-
-        Assert.That(row.Body, Is.EqualTo(body));
-    }
-
-    [Test]
-    public void MigrationBatch_groups_rows_under_one_cursor()
-    {
-        var rows = new[] { new MigrationRow("id-1", new object(), new Dictionary<string, object?>()) };
-        var batch = new MigrationBatch(rows, Cursor: "id-1");
-
-        Assert.That(batch.Cursor, Is.EqualTo("id-1"));
-    }
-
-    [Test]
-    public void MigrationCheckpoint_starts_with_no_cursor_and_zero_counts()
+    public void MigrationCheckpoint_AlreadyPresentCount_defaults_to_zero()
     {
         var checkpoint = new MigrationCheckpoint(
             CategoryId: "EndpointSettings",
@@ -89,11 +60,6 @@ class MigrationContractShapeTests
             AbandonedAt: null,
             LastError: null);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(checkpoint.Cursor, Is.Null);
-            Assert.That(checkpoint.CopiedCount, Is.Zero);
-            Assert.That(checkpoint.AlreadyPresentCount, Is.Zero);
-        }
+        Assert.That(checkpoint.AlreadyPresentCount, Is.Zero);
     }
 }

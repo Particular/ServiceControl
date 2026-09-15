@@ -66,7 +66,7 @@ namespace Particular.ServiceControl.Hosting
             {
                 {
                     "migration-source-report",
-                    "Report what a migration would read from the source persistence, without changing it",
+                    "Report what a migration would read from the source persistence",
                     s => Command = typeof(MigrationSourceReportCommand)
                 }
             };

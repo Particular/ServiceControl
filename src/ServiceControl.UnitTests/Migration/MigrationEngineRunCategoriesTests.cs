@@ -24,19 +24,18 @@ class MigrationEngineRunCategoriesTests
         var target = new InMemoryMigrationTarget(checkpointStore);
         var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(),
             new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []), NullLogger<MigrationEngine>.Instance);
-        var ordered = engine.SelectCategories(MigrationCategoryKind.Required).Take(2).ToArray();
-        foreach (var category in ordered)
+        // The reverse of registry order, so an engine that re-sorted by Order would run KnownEndpoints first.
+        MigrationCategory[] given = [MigrationCategoryRegistry.Find("MessageRedirects")!, MigrationCategoryRegistry.Find("KnownEndpoints")!];
+        foreach (var category in given)
         {
             source.Seed(category.Id, Row($"{category.Id}-1"));
         }
 
-        var results = await engine.RunCategories(ordered);
+        var results = await engine.RunCategories(given);
 
         using (Assert.EnterMultipleScope())
         {
-            // KnownEndpoints then EndpointSettings, the order the registry declares, whichever order
-            // the caller passed them in.
-            Assert.That(results.Select(c => c.CategoryId), Is.EqualTo(new[] { "KnownEndpoints", "EndpointSettings" }));
+            Assert.That(results.Select(c => c.CategoryId), Is.EqualTo(new[] { "MessageRedirects", "KnownEndpoints" }));
             Assert.That(results.Select(c => c.State), Is.All.EqualTo(MigrationCategoryState.Complete));
         }
     }
