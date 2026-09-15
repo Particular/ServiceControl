@@ -8,10 +8,8 @@ using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
-class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timeProvider) : DataStoreBase(scopeFactory), ILicensingDataStore
+class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timeProvider, IEndpointThroughputDialect throughputDialect) : DataStoreBase(scopeFactory), ILicensingDataStore
 {
-    const int MaxRecordAttempts = 5;
-
     static readonly string PlatformEndpointIndicator = EndpointIndicator.PlatformEndpoint.ToString();
     static readonly AuditServiceMetadata DefaultAuditServiceMetadata = new([], []);
     static readonly BrokerMetadata DefaultBrokerMetadata = new(null, []);
@@ -162,89 +160,46 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
             return (IDictionary<string, IEnumerable<ThroughputData>>)results;
         }, cancellationToken);
 
-    public async Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IList<EndpointDailyThroughput> throughput, CancellationToken cancellationToken = default)
+    public Task RecordEndpointThroughput(string endpointName, ThroughputSource throughputSource, IList<EndpointDailyThroughput> throughput, CancellationToken cancellationToken = default)
     {
         if (throughput.Count == 0)
         {
-            return;
+            return Task.CompletedTask;
         }
 
-        // Only the first recording of a day can lose a race, and once its row exists every later
-        // writer takes the update path, so a couple of attempts is enough.
-        for (var attempt = 1; attempt <= MaxRecordAttempts; attempt++)
+        return ExecuteWithDbContext(async (context, token) =>
         {
-            var recorded = await ExecuteWithDbContext((context, token) =>
-                TryRecordEndpointThroughput(context, endpointName, throughputSource, throughput, token), cancellationToken);
+            var normalizedName = Normalize(endpointName);
 
-            if (recorded)
+            // Ordered so that concurrent calls covering overlapping days take the row locks in the
+            // same order and cannot deadlock against each other.
+            var dailyThroughput = throughput.OrderBy(entry => entry.DateUTC).ToList();
+
+            var strategy = context.Database.CreateExecutionStrategy();
+
+            await strategy.ExecuteAsync(async () =>
             {
-                return;
-            }
-        }
+                await using var transaction = await context.Database.BeginTransactionAsync(token);
 
-        throw new InvalidOperationException(
-            $"Could not record throughput for {endpointName} from {throughputSource} after {MaxRecordAttempts} attempts because of concurrent updates.");
-    }
+                var endpointExists = await context.LicensingEndpoints
+                    .AnyAsync(endpoint => endpoint.NormalizedName == normalizedName && endpoint.ThroughputSource == throughputSource, token);
 
-    static async Task<bool> TryRecordEndpointThroughput(ServiceControlDbContext context, string endpointName, ThroughputSource throughputSource, IList<EndpointDailyThroughput> throughput, CancellationToken cancellationToken)
-    {
-        var normalizedName = Normalize(endpointName);
+                if (!endpointExists)
+                {
+                    throw new InvalidOperationException($"Endpoint {endpointName} from {throughputSource} does not exist ");
+                }
 
-        // Ordered so that concurrent calls covering overlapping days take the row locks in the same
-        // order and cannot deadlock against each other.
-        var dailyThroughput = throughput.OrderBy(entry => entry.DateUTC).ToList();
-
-        var strategy = context.Database.CreateExecutionStrategy();
-
-        return await strategy.ExecuteAsync(async () =>
-        {
-            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-
-            var endpointExists = await context.LicensingEndpoints
-                .AnyAsync(endpoint => endpoint.NormalizedName == normalizedName && endpoint.ThroughputSource == throughputSource, cancellationToken);
-
-            if (!endpointExists)
-            {
-                throw new InvalidOperationException($"Endpoint {endpointName} from {throughputSource} does not exist ");
-            }
-
-            foreach (var (date, messageCount) in dailyThroughput)
-            {
                 // Recording adds to the day's total, because a source can report the same day
-                // repeatedly. The addition happens in the database, so concurrent writers queue up on
-                // the row instead of overwriting each other's totals.
-                var updated = await context.LicensingEndpointThroughput
-                    .Where(row => row.NormalizedName == normalizedName && row.ThroughputSource == throughputSource && row.DateUtc == date)
-                    .ExecuteUpdateAsync(row => row.SetProperty(p => p.MessageCount, p => p.MessageCount + messageCount), cancellationToken);
+                // repeatedly, and it has to tolerate the same day being recorded concurrently:
+                // monitoring throughput messages are processed with high concurrency, so two
+                // recorders racing on one endpoint/day is routine. The add and the insert happen as
+                // one atomic statement in the database, so there is no check-then-insert window to
+                // race in and no duplicate-key failure left for either recorder to see.
+                await throughputDialect.RecordEndpointThroughput(context, normalizedName, throughputSource, dailyThroughput, token);
 
-                if (updated > 0)
-                {
-                    continue;
-                }
-
-                context.LicensingEndpointThroughput.Add(new LicensingEndpointThroughputEntity
-                {
-                    NormalizedName = normalizedName,
-                    ThroughputSource = throughputSource,
-                    DateUtc = date,
-                    MessageCount = messageCount
-                });
-
-                try
-                {
-                    await context.SaveChangesAsync(cancellationToken);
-                }
-                catch (DbUpdateException exception) when (context.IsDuplicateKeyException(exception))
-                {
-                    // Another writer created the day's row first, so this call has to add to it
-                    // instead. The failed insert leaves the transaction unusable, hence the retry.
-                    return false;
-                }
-            }
-
-            await transaction.CommitAsync(cancellationToken);
-            return true;
-        });
+                await transaction.CommitAsync(token);
+            });
+        }, cancellationToken);
     }
 
     public Task RemoveEndpoints(EndpointIdentifier[] endpointIds, CancellationToken cancellationToken = default) =>
