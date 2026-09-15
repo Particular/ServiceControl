@@ -187,6 +187,10 @@ flowchart TB
 - A failed message with no processing attempts recorded against it. The SQL model keeps the newest attempt and derives the failure time, the failing endpoint and the exception from it, all of which are required columns, so a message with nothing to derive them from cannot be written at all rather than being written blank.
 - A failed message whose body cannot be read after three attempts. **The whole message is skipped, not just its body**, because a message with no body is worse than no message.
 - A subscription whose message type or transport address exceeds 200 characters. The target key columns are capped at 200 characters, so it cannot be stored at all.
+- An archived or resolved failed message, or an event log item, already past its retention period. SQL's retention clean-up would delete it on its first pass, so it is counted rather than copied only to be deleted.
+- A group comment whose failure group has no failed messages in SQL once the messages are copied. SQL's clean-up removes such a comment, where RavenDB never expired one.
+- Endpoint settings for an endpoint ServiceControl does not know. ServiceControl removes those settings shortly after it starts.
+- A row missing a value SQL requires, such as a known endpoint with no name or host, or a failed message with no failing endpoint address. An empty group comment is left behind the same way, because ServiceControl never stores one.
 
 **Things that change shape, and are not counted as skips at all.** The dry run counts these before anything moves, so they are a number you see in advance rather than a discovery afterwards. They are also the ones to read twice:
 
@@ -240,6 +244,7 @@ That window closes the moment ServiceControl opens. From then on new failed mess
 - Deciding whether a row is past the target's retention cutoff needs two retention periods: the source's reverses `@expires` back into the status-change instant, and the target's current one decides whether that instant is past the cutoff.
 - A bad row does not stop the copy. Its category finishes in a separate complete-with-errors state.
 - The halt threshold is proportional with an absolute floor, and a category halts only when both are exceeded. Proportional alone halts a three-row category on one bad row; absolute alone lets ten thousand failures pass on a five-million-row table as "only 0.2%".
+- Rows left behind because SQL would remove them anyway (past retention, orphaned group comments, settings for unknown endpoints) are counted and reported, but never halt a category.
 - Verification therefore cannot treat any count difference as a fault. It accounts for every skip rule, or it reports every successful migration as broken.
 
 ## Dry run
