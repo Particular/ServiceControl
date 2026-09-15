@@ -33,6 +33,10 @@ It's also possible to [locally test containers built from PRs in GitHub Containe
 If the instance is executed for the first time, it must set up the required infrastructure. To do so, once the instance is configured to use the selected transport and persister, run it in setup mode. This can be done by using the `Setup {instance name}` launch profile that is defined in 
 the `launchSettings.json` file of each instance. When started in setup mode, the instance will start as usual, execute the setup process, and exit. At this point the instance can be run normally by using the non-setup launch profile.
 
+## Migrating from RavenDB to SQL Server or PostgreSQL
+
+See [Migrating from RavenDB to SQL Server or PostgreSQL](docs/migration/ravendb-to-sql-migration-instructions.md).
+
 ## Secrets
 
 Testing using the [CI workflow](/.github/workflows/ci.yml) depends on the following secrets. The Particular values for these secrets are stored in the secure note named **ServiceControl Repo Secrets**.

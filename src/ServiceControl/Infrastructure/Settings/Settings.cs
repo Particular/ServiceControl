@@ -16,6 +16,7 @@
     using ServiceControl.Infrastructure.Settings;
     using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.DataMigration;
     using ServiceControl.Transports;
     using ServicePulse;
     using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -184,7 +185,7 @@
 
         public string TransportType { get; set; }
         public string StorageType { get; private set; }
-        public string MigrationSourcePersistenceType => SettingsReader.Read(SettingsRootNamespace, "Migration/SourcePersistenceType", "RavenDB");
+        public string MigrationSourcePersistenceType => SettingsReader.Read(SettingsRootNamespace, MigrationSettings.SourcePersistenceTypeKey, MigrationSettings.DefaultSourcePersistenceType);
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }
 

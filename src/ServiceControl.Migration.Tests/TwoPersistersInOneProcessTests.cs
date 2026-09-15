@@ -3,6 +3,7 @@ namespace ServiceControl.Migration.Tests;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Loader;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -87,7 +88,7 @@ class TwoPersistersInOneProcessTests
         {
             Assert.That(AssemblyLoadContext.GetLoadContext(description.GetType().Assembly), Is.SameAs(AssemblyLoadContext.Default),
                 "A shared type produced inside the plugin context must arrive as the host's own type.");
-            Assert.That(description.PrimaryDatabase, Is.EqualTo(MigrationSourceServer.PrimaryDatabase),
+            Assert.That(description.Facts.Single(fact => fact.Label == "Primary database").Value, Is.EqualTo(MigrationSourceServer.PrimaryDatabase),
                 "The source read its own RavenDB settings rather than the target's.");
         });
     }

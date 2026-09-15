@@ -96,7 +96,7 @@
             return new RavenPersistence(specificSettings);
         }
 
-        public IMigrationSource CreateSource(PersistenceSettings settings) =>
-            new RavenMigrationSource(new RavenReadOnlySourceLifecycle((RavenPersisterSettings)settings));
+        public IMigrationSource CreateSource(SettingsRootNamespace settingsRoot) =>
+            new RavenMigrationSource(new RavenReadOnlySourceLifecycle((RavenPersisterSettings)CreateSettings(settingsRoot), settingsRoot));
     }
 }
