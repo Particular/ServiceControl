@@ -13,12 +13,15 @@ using Raven.Client.Documents.Conventions;
 using Raven.Client.Documents.Operations;
 using Raven.Client.Documents.Session;
 using Raven.Client.Exceptions.Database;
-using Raven.Client.ServerWide.Operations;
+using Raven.Client.Exceptions.Security;
+using ServiceControl.Configuration;
 using ServiceControl.RavenDB;
 
-sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings) : IAsyncDisposable
+sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, SettingsRootNamespace settingsRoot) : IAsyncDisposable
 {
     public RavenPersisterSettings Settings => settings;
+
+    public SettingsRootNamespace SettingsRoot => settingsRoot;
 
     public IDocumentStore DocumentStore => documentStore ?? throw new InvalidOperationException($"The migration source is not open. Call {nameof(Open)} first.");
 
@@ -40,9 +43,7 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings) : IAs
                 await StartupChecks.EnsureServerVersion(documentStore, cancellationToken);
             }
 
-            // The persister cannot reach the host's Settings class for the root namespace, so it is spelled
-            // out here: a customer reads these two keys back out of app.config, not out of code.
-            await EnsureReadable(settings.DatabaseName, $"ServiceControl/{RavenBootstrapper.DatabaseNameKey}", cancellationToken);
+            await EnsureReadable(settings.DatabaseName, $"{settingsRoot}/{RavenBootstrapper.DatabaseNameKey}", cancellationToken);
             await EnsureReadable(settings.ThroughputDatabaseName, $"{ThroughputSettings.SettingsNamespace}/{ThroughputSettings.DatabaseNameKey}", cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -61,18 +62,6 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings) : IAs
         DocumentStore.OpenAsyncSession(new SessionOptions { Database = databaseName, NoTracking = true });
 
     async Task EnsureReadable(string databaseName, string settingKey, CancellationToken cancellationToken)
-    {
-        var record = await DocumentStore.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName), cancellationToken);
-
-        if (record is null)
-        {
-            throw new InvalidOperationException($"The RavenDB migration source at {Located()} has no database named '{databaseName}'. That name comes from the '{settingKey}' setting. Correct it before migrating: a wrong name reads a database that is not there rather than the one that is.");
-        }
-
-        await LoadDatabase(databaseName, settingKey, cancellationToken);
-    }
-
-    async Task LoadDatabase(string databaseName, string settingKey, CancellationToken cancellationToken)
     {
         while (true)
         {
@@ -93,6 +82,14 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings) : IAs
             {
                 throw;
             }
+            catch (DatabaseDoesNotExistException e)
+            {
+                throw new InvalidOperationException($"The RavenDB migration source at {Located()} has no database named '{databaseName}'. That name comes from the '{settingKey}' setting. Correct it before migrating: a wrong name reads a database that is not there rather than the one that is.", e);
+            }
+            catch (AuthorizationException e)
+            {
+                throw new InvalidOperationException($"The RavenDB migration source at {Located()} refused its client certificate access to the database '{databaseName}'. Grant that certificate Read access to '{databaseName}', or supply one that has it in '{settingsRoot}/{RavenBootstrapper.ClientCertificateBase64Key}' or '{settingsRoot}/{RavenBootstrapper.ClientCertificatePathKey}'. If '{databaseName}' is the wrong name, correct the '{settingKey}' setting instead: RavenDB refuses a certificate that has no access to a database whether or not that database exists.", e);
+            }
             catch (Exception e) when (e is not DatabaseLoadTimeoutException)
             {
                 throw new InvalidOperationException($"The RavenDB migration source at {Located()} has a database named '{databaseName}', from the '{settingKey}' setting, but could not load it.", e);
@@ -100,9 +97,11 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings) : IAs
         }
     }
 
-    string Located() => settings.UseEmbeddedServer
-        ? $"{settings.ServerUrl} (embedded, data directory '{settings.DatabasePath}', from 'ServiceControl/DBPath')"
-        : settings.ConnectionString;
+    string Located() => Located(settings, settingsRoot);
+
+    internal static string Located(RavenPersisterSettings sourceSettings, SettingsRootNamespace root) => sourceSettings.UseEmbeddedServer
+        ? $"{sourceSettings.ServerUrl} (embedded, data directory '{sourceSettings.DatabasePath}', from '{root}/{RavenBootstrapper.DatabasePathKey}')"
+        : sourceSettings.ConnectionString;
 
     string StartEmbedded()
     {
@@ -147,7 +146,7 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings) : IAs
         if (method == HttpMethod.Get || method == HttpMethod.Head)
         {
             // HiLo persists the id range it hands out, so it writes despite being a GET.
-            return !path.Contains("/hilo/", StringComparison.OrdinalIgnoreCase);
+            return !path.Contains(HiLoPathSegment, StringComparison.OrdinalIgnoreCase);
         }
 
         return method == HttpMethod.Post && Array.Exists(ReadOnlyPostPaths, suffix => path.EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
@@ -168,6 +167,7 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings) : IAs
         }
     }
 
+    const string HiLoPathSegment = "/hilo/";
     static readonly string[] ReadOnlyPostPaths = ["/queries", "/multi_get", "/streams/queries"];
     static readonly TimeSpan EmbeddedShutdownTimeout = TimeSpan.FromSeconds(30);
     static readonly TimeSpan EmbeddedLoadRetryDelay = TimeSpan.FromMilliseconds(500);
