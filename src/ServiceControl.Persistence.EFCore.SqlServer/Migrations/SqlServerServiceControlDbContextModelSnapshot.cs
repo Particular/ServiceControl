@@ -69,7 +69,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasIndex("Started");
 
-                    b.ToTable("ArchiveOperations", (string)null);
+                    b.ToTable("ArchiveOperations");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.CustomCheckEntity", b =>
@@ -111,7 +111,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasIndex("Status", "ReportedAt");
 
-                    b.ToTable("CustomChecks", (string)null);
+                    b.ToTable("CustomChecks");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.EndpointSettingsEntity", b =>
@@ -125,7 +125,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasKey("Name");
 
-                    b.ToTable("EndpointSettings", (string)null);
+                    b.ToTable("EndpointSettings");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.EventLogItemEntity", b =>
@@ -165,7 +165,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.HasIndex("RaisedAt", "Id")
                         .IsDescending();
 
-                    b.ToTable("EventLogItems", (string)null);
+                    b.ToTable("EventLogItems");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.ExternalIntegrationDispatchRequestEntity", b =>
@@ -187,7 +187,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ExternalIntegrationDispatchRequests", (string)null);
+                    b.ToTable("ExternalIntegrationDispatchRequests");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedErrorImportEntity", b =>
@@ -222,7 +222,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasIndex("FailedAt");
 
-                    b.ToTable("FailedErrorImports", (string)null);
+                    b.ToTable("FailedErrorImports");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageEditEntity", b =>
@@ -239,7 +239,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasIndex("EditId");
 
-                    b.ToTable("FailedMessageEdits", (string)null);
+                    b.ToTable("FailedMessageEdits");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageEntity", b =>
@@ -357,7 +357,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasIndex("Status", "MessageType", "UniqueMessageId");
 
-                    b.ToTable("FailedMessages", (string)null);
+                    b.ToTable("FailedMessages");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageGroupEntity", b =>
@@ -386,7 +386,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("Type", "GroupId"), new[] { "Title" });
 
-                    b.ToTable("FailedMessageGroups", (string)null);
+                    b.ToTable("FailedMessageGroups");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageRetryEntity", b =>
@@ -404,7 +404,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasIndex("RetryBatchId");
 
-                    b.ToTable("FailedMessageRetries", (string)null);
+                    b.ToTable("FailedMessageRetries");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.GroupCommentEntity", b =>
@@ -419,7 +419,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasKey("GroupId");
 
-                    b.ToTable("GroupComments", (string)null);
+                    b.ToTable("GroupComments");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.HistoricRetryOperationEntity", b =>
@@ -458,7 +458,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.HasIndex("CompletionTime", "Id")
                         .IsDescending();
 
-                    b.ToTable("HistoricRetryOperations", (string)null);
+                    b.ToTable("HistoricRetryOperations");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.KnownEndpointEntity", b =>
@@ -484,7 +484,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("KnownEndpoints", (string)null);
+                    b.ToTable("KnownEndpoints");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.LicensingEndpointEntity", b =>
@@ -528,7 +528,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasIndex("NormalizedSanitizedName");
 
-                    b.ToTable("LicensingEndpoints", (string)null);
+                    b.ToTable("LicensingEndpoints");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.LicensingEndpointThroughputEntity", b =>
@@ -550,7 +550,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasIndex("DateUtc");
 
-                    b.ToTable("LicensingEndpointThroughput", (string)null);
+                    b.ToTable("LicensingEndpointThroughput");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.MessageRedirectEntity", b =>
@@ -569,7 +569,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasKey("FromPhysicalAddress");
 
-                    b.ToTable("MessageRedirects", (string)null);
+                    b.ToTable("MessageRedirects");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.RetryBatchEntity", b =>
@@ -630,7 +630,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasIndex("Status", "RetrySessionId");
 
-                    b.ToTable("RetryBatches", (string)null);
+                    b.ToTable("RetryBatches");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.RetryBatchNowForwardingEntity", b =>
@@ -643,7 +643,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("RetryBatchNowForwarding", (string)null);
+                    b.ToTable("RetryBatchNowForwarding");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.SettingEntity", b =>
@@ -658,7 +658,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasKey("Key");
 
-                    b.ToTable("Settings", (string)null);
+                    b.ToTable("Settings");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.SubscriptionEntity", b =>
@@ -678,7 +678,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasKey("MessageType", "TransportAddress");
 
-                    b.ToTable("Subscriptions", (string)null);
+                    b.ToTable("Subscriptions");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.UnacknowledgedRetryOperationEntity", b =>
@@ -714,7 +714,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasKey("RequestId", "RetryType");
 
-                    b.ToTable("UnacknowledgedRetryOperations", (string)null);
+                    b.ToTable("UnacknowledgedRetryOperations");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedMessageGroupEntity", b =>
