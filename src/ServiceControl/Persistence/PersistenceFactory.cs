@@ -35,12 +35,10 @@ namespace ServiceControl.Persistence
 
             if (persistenceConfiguration is not IMigrationSourceFactory sourceFactory)
             {
-                throw new Exception($"The '{persistenceType}' persistence cannot be read as a migration source. Set ServiceControl/Migration/SourcePersistenceType to the persistence that holds the data being migrated away from.");
+                throw new Exception($"The '{persistenceType}' persistence cannot be read as a migration source. Set {Settings.SettingsRootNamespace}/{MigrationSettings.SourcePersistenceTypeKey} to the persistence that holds the data being migrated away from.");
             }
 
-            // Not PersisterSpecificSettings: it is null here, and a host that has populated it put the
-            // target's connection string in it.
-            return sourceFactory.CreateSource(persistenceConfiguration.CreateSettings(Settings.SettingsRootNamespace));
+            return sourceFactory.CreateSource(Settings.SettingsRootNamespace);
         }
 
         public static async Task<IMigrationSource> OpenMigrationSource(Settings settings, CancellationToken cancellationToken = default)
