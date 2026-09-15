@@ -9,15 +9,7 @@ static class FailureGroupQueries
 
     /// <summary>
     /// The group aggregate: membership rows joined to their message, grouped by (GroupId, Type),
-    /// with Count/First/Last per group. Title is fetched by <c>aggregate.First().Title</c>, which EF
-    /// translates into a correlated TOP(1)/LIMIT 1 subquery per output group — bounded by
-    /// <see cref="MaxGroups" /> index seeks, never a scan of the group's members, and never part of
-    /// the group key, so the nvarchar(max)/text Title is neither hashed nor sorted per joined row.
-    /// That title subquery stays cheap only while the classifier index covers it: SQL Server's
-    /// (Type, GroupId) INCLUDE (Title) index also carries the clustered key (FailedMessageUniqueId)
-    /// implicitly, while PostgreSQL's equivalent has to include both Title and FailedMessageUniqueId
-    /// explicitly, because PostgreSQL indexes do not contain the primary key implicitly. Without the
-    /// cover, the planner falls back to a sequential scan per output group.
+    /// with Count/First/Last per group.
     /// </summary>
     public static IQueryable<FailureGroupView> AggregateGroups(this IQueryable<FailedMessageGroupEntity> groups, IQueryable<FailedMessageEntity> messages) =>
         groups
