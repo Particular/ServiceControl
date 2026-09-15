@@ -27,8 +27,6 @@ class MigrationEngineOptionsTests
 
         using (Assert.EnterMultipleScope())
         {
-            // At one second a million-row copy in 50-row batches spends five and a half hours paused
-            // before it does any work at all.
             Assert.That(options.ThrottlePause, Is.EqualTo(TimeSpan.FromMilliseconds(100)));
             Assert.That(options.HaltThresholdPercent, Is.EqualTo(5));
             Assert.That(options.HaltThresholdMinimum, Is.EqualTo(100));

@@ -116,7 +116,7 @@ jobs:
       # prevent and cost the critical path about two minutes; the step timeouts turn a hang into a
       # five minute failure instead of a thirty minute one.
       - name: Setup WSL
-        if: contains(fromJSON('["RabbitMQ", "SqlServer", "PostgreSql", "IBMMQ", "Migration"]'), matrix.test-category)
+        if: contains(fromJSON('["RabbitMQ", "SqlServer", "PostgreSql", "IBMMQ"]'), matrix.test-category)
         uses: Particular/setup-wsl-action@v1.2.0
         timeout-minutes: 5
         with:
@@ -125,7 +125,7 @@ jobs:
           memory: 8GB
       - name: Setup SQL Server
         uses: Particular/install-sql-server-action@v3.0.0
-        if: contains(fromJSON('["SqlServer", "Migration"]'), matrix.test-category)
+        if: matrix.test-category == 'SqlServer'
         with:
           connection-string-env-var: ServiceControl_Persistence_SqlServer_ConnectionString
           catalog: ServiceControl

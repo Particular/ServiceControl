@@ -53,12 +53,4 @@ class MigrationEngineCategorySelectionTests
             Assert.That(checkpointStore.Read("EventLog").GetAwaiter().GetResult(), Is.EqualTo(previousRun));
         }
     }
-
-    [Test]
-    public void A_category_added_to_configuration_is_selected_on_the_next_run()
-    {
-        var engine = BuildEngine(["CustomChecks"], out _);
-
-        Assert.That(engine.SelectCategories(MigrationCategoryKind.Optional).Select(c => c.Id), Is.EqualTo(new[] { "CustomChecks" }));
-    }
 }

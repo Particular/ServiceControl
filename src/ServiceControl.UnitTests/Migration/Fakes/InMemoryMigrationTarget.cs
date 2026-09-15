@@ -14,6 +14,7 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
     readonly Dictionary<string, string> rejectedKeys = [];
 
     public int DefaultBatchSize { get; set; } = 3;
+    public string NoBatchSizeFor { get; set; }
     public int? FailOnCallNumber { get; set; }
     public (int CallNumber, CancellationTokenSource Source)? StopOnCall { get; set; }
     int callCount;
@@ -25,7 +26,8 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
     public IReadOnlyList<MigrationRow> WrittenRows(string categoryId) =>
         writtenRowsByCategory.TryGetValue(categoryId, out var rows) ? rows : [];
 
-    public int BatchSizeFor(MigrationCategory category) => DefaultBatchSize;
+    public int BatchSizeFor(MigrationCategory category) =>
+        category.Id == NoBatchSizeFor ? throw new InvalidOperationException($"No batch size is mapped for category {category.Id}") : DefaultBatchSize;
 
     public async Task<MigrationWriteResult> Write(
         MigrationCategory category,

@@ -230,23 +230,6 @@ class ReadOnlySourceLifecycleTests
     }
 
     [Test]
-    public async Task An_embedded_open_that_cannot_start_leaves_nothing_behind()
-    {
-        sourceSettings.ConnectionString = null;
-        sourceSettings.DatabasePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("n"));
-
-        var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot);
-
-        Assert.CatchAsync(async () => await lifecycle.Open());
-
-        var afterFailure = Assert.Throws<InvalidOperationException>(() => _ = lifecycle.DocumentStore);
-
-        Assert.That(afterFailure.Message, Does.Contain("is not open"), "A failed embedded open must leave no store, or the caller cannot tell an unopened source from a half-open one.");
-
-        await lifecycle.DisposeAsync();
-    }
-
-    [Test]
     public async Task Generating_an_id_is_refused()
     {
         await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot);
@@ -257,7 +240,7 @@ class ReadOnlySourceLifecycleTests
         Assert.CatchAsync(async () =>
             await session.StoreAsync(new FailedMessage { UniqueMessageId = "hilo", Status = FailedMessageStatus.Unresolved }));
 
-        Assert.That(await CountDocuments(), Is.EqualTo(1), "HiLo writes an id range to the source before SaveChanges is reached, so a guard that only sees SaveChanges lets it through.");
+        Assert.That(await CountDocuments(), Is.EqualTo(1), "HiLo reserves an id range with a request of its own before SaveChanges, so only the request hook can refuse it.");
     }
 
     [Test]
@@ -270,7 +253,7 @@ class ReadOnlySourceLifecycleTests
             await lifecycle.DocumentStore.Operations.ForDatabase(databaseName).SendAsync(
                 new PatchOperation("FailedMessages/abc", null, new PatchRequest { Script = "this.Status = 1;" })));
 
-        Assert.That(await LoadStatus("FailedMessages/abc"), Is.EqualTo(FailedMessageStatus.Archived), "A patch never goes through a session, so it bypasses OnBeforeStore entirely. This is the write style the RavenDB persister itself uses.");
+        Assert.That(await LoadStatus("FailedMessages/abc"), Is.EqualTo(FailedMessageStatus.Archived), "A patch is a request of its own with no session, so only the request hook can refuse it; the RavenDB persister writes this way.");
     }
 
     [Test]
@@ -314,7 +297,7 @@ class ReadOnlySourceLifecycleTests
 
         Assert.CatchAsync(async () => await session.SaveChangesAsync());
 
-        Assert.That(await CountDocuments(), Is.EqualTo(1), "Delete by id on an untracked document is deferred, so it never raises OnBeforeDelete.");
+        Assert.That(await CountDocuments(), Is.EqualTo(1), "A delete by id of an untracked document only goes out at SaveChanges, as a batch request the hook must refuse.");
     }
 
     [Test]

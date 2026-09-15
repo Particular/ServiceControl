@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
@@ -90,12 +91,21 @@ class MigrationEngineFailurePathTests
         var halted = await firstRun.RunCategoryAsync(category);
         Assert.That(halted.State, Is.EqualTo(MigrationCategoryState.Halted));
 
+        // Stopped on its first write, so the saved row is the restarted one rather than the completed one.
         target.FailOnCallNumber = null;
-        var secondRun = BuildEngine(source, checkpointStore, target);
-        var finished = await secondRun.RunCategoryAsync(category);
+        using var stopping = new CancellationTokenSource();
+        target.StopOnCall = (3, stopping);
+        Assert.ThrowsAsync<OperationCanceledException>(() => BuildEngine(source, checkpointStore, target).RunCategoryAsync(category, stopping.Token));
+        var restarted = await checkpointStore.Read(category.Id);
+
+        target.StopOnCall = null;
+        var lastRun = BuildEngine(source, checkpointStore, target);
+        var finished = await lastRun.RunCategoryAsync(category);
 
         using (Assert.EnterMultipleScope())
         {
+            Assert.That(restarted!.State, Is.EqualTo(MigrationCategoryState.InProgress));
+            Assert.That(restarted.CompletedAt, Is.Null, "a copy running again does not keep the finish time its halt recorded");
             Assert.That(finished.State, Is.EqualTo(MigrationCategoryState.Complete));
             Assert.That(finished.LastError, Is.Null, "a cleared halt does not leave a stale error on the row");
             Assert.That(finished.CopiedCount, Is.EqualTo(4));
@@ -112,10 +122,7 @@ class MigrationEngineFailurePathTests
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("msg-1"), Row("msg-2"));
         // msg-1's body is unreadable on both runs: every attempt fails on each.
-        for (var attempt = 0; attempt < 2 * MigrationEngine.MaxBodyReadAttempts; attempt++)
-        {
-            source.QueueBodyAttempt("msg-1", () => throw new InvalidOperationException("body store unreachable"));
-        }
+        source.FailBodyReads("msg-1", 2 * MigrationEngine.MaxBodyReadAttempts, new TimeoutException("body store unreachable"));
         source.SetBody("msg-2", new MigrationBody(new byte[] { 2 }, "text/plain"));
         var checkpointStore = new InMemoryMigrationCheckpointStore();
         var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 2, FailOnCallNumber = 1 };
@@ -159,5 +166,75 @@ class MigrationEngineFailurePathTests
             Assert.That(checkpoint, Is.EqualTo(abandoned));
             Assert.That(target.WrittenRows(category.Id), Is.Empty);
         }
+    }
+
+    [Test]
+    public async Task A_target_with_no_batch_size_for_a_category_halts_it_and_the_next_category_still_runs()
+    {
+        var source = new InMemoryMigrationSource();
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var unmapped = MigrationCategoryRegistry.Find("KnownEndpoints")!;
+        var next = MigrationCategoryRegistry.Find("MessageRedirects")!;
+        source.Seed(unmapped.Id, Row("k-1"));
+        source.Seed(next.Id, Row("r-1"));
+        var target = new InMemoryMigrationTarget(checkpointStore) { NoBatchSizeFor = unmapped.Id };
+        var engine = BuildEngine(source, checkpointStore, target);
+
+        var results = await engine.RunCategories([unmapped, next]);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(results[0].State, Is.EqualTo(MigrationCategoryState.Halted));
+            Assert.That(results[0].LastError, Does.Contain("No batch size"));
+            Assert.That(results[1].State, Is.EqualTo(MigrationCategoryState.Complete));
+        }
+    }
+
+    [Test]
+    public void A_halt_whose_save_fails_still_logs_the_exception_that_caused_it()
+    {
+        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"));
+        var checkpointStore = new HaltSaveFailsCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { FailOnCallNumber = 1 };
+        var logger = new CapturingLogger();
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []), logger);
+
+        Assert.ThrowsAsync<TimeoutException>(() => engine.RunCategoryAsync(category));
+
+        Assert.That(logger.Entries.Where(e => e.Level == LogLevel.Error).Select(e => e.Exception?.Message), Does.Contain("Simulated failure on write 1"));
+    }
+
+    [Test]
+    public void A_threshold_halt_whose_save_fails_still_logs_why_it_halted()
+    {
+        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"));
+        var checkpointStore = new HaltSaveFailsCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore);
+        target.RejectKey("a", "Rejected");
+        var logger = new CapturingLogger();
+        // A floor of zero lets the one rejected row halt the category.
+        var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 0, []);
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, logger);
+
+        Assert.ThrowsAsync<TimeoutException>(() => engine.RunCategoryAsync(category));
+
+        Assert.That(logger.Entries.Where(e => e.Level == LogLevel.Error).Select(e => e.Message), Has.Some.Contains("Halted: 1 of 1 rows skipped"));
+    }
+
+    // The store shares the target's database, which has become unreachable by the time the halt is saved.
+    sealed class HaltSaveFailsCheckpointStore : IMigrationCheckpointStore
+    {
+        readonly InMemoryMigrationCheckpointStore saved = new();
+
+        public Task<IReadOnlyList<MigrationCheckpoint>> ReadAll(CancellationToken cancellationToken = default) => saved.ReadAll(cancellationToken);
+
+        public Task<MigrationCheckpoint?> Read(string categoryId, CancellationToken cancellationToken = default) => saved.Read(categoryId, cancellationToken);
+
+        public Task Upsert(MigrationCheckpoint checkpoint, CancellationToken cancellationToken = default) =>
+            checkpoint.State == MigrationCategoryState.Halted ? throw new TimeoutException("checkpoint store unreachable") : saved.Upsert(checkpoint, cancellationToken);
     }
 }

@@ -55,14 +55,15 @@ public sealed class MigrationEngine(
             var predecessor = await checkpointStore.Read(mustFollowId, cancellationToken);
             if (predecessor is not { State: MigrationCategoryState.Complete or MigrationCategoryState.CompleteWithErrors or MigrationCategoryState.Abandoned })
             {
+                var predecessorState = predecessor?.State.ToString() ?? "not started";
                 var blocked = checkpoint with
                 {
                     Selected = true,
-                    LastError = $"Blocked: {category.Id} must follow {mustFollowId}, which is {predecessor?.State.ToString() ?? "not started"}"
+                    LastError = $"Blocked: {category.Id} must follow {mustFollowId}, which is {predecessorState}"
                 };
                 await checkpointStore.Upsert(blocked, cancellationToken);
                 logger.LogWarning("Category {CategoryId} did not run: it must follow {PredecessorId}, which is {PredecessorState}",
-                    category.Id, mustFollowId, predecessor?.State.ToString() ?? "not started");
+                    category.Id, mustFollowId, predecessorState);
                 return blocked;
             }
         }
@@ -74,12 +75,12 @@ public sealed class MigrationEngine(
                 Selected = true,
                 State = MigrationCategoryState.InProgress,
                 StartedAt = checkpoint.StartedAt ?? timeProvider.GetUtcNow().UtcDateTime,
+                CompletedAt = null,
                 LastError = null
             };
             await checkpointStore.Upsert(checkpoint, cancellationToken);
         }
 
-        var batchSize = target.BatchSizeFor(category);
         var isFirstBatch = true;
         // Per run, not the persisted totals: the skips that tripped a halt stay on the row, so
         // counting them again would re-halt a restart whose cause has been fixed.
@@ -88,6 +89,7 @@ public sealed class MigrationEngine(
 
         try
         {
+            var batchSize = target.BatchSizeFor(category);
             await foreach (var batch in source.Read(category, checkpoint.Cursor, batchSize, cancellationToken).WithCancellation(cancellationToken))
             {
                 if (!isFirstBatch && category.Kind == MigrationCategoryKind.Optional)
@@ -102,13 +104,13 @@ public sealed class MigrationEngine(
                 var bodySkips = 0;
                 if (category.CarriesBodies)
                 {
-                    var (withBodies, failedIds) = await FetchBodiesWithRetry(category, batch, cancellationToken);
+                    var (withBodies, failed) = await FetchBodiesWithRetry(category, batch, cancellationToken);
                     batchToWrite = withBodies;
-                    bodySkips = failedIds.Count;
+                    bodySkips = failed.Count;
 
-                    foreach (var id in failedIds)
+                    foreach (var (id, lastAttemptError) in failed)
                     {
-                        logger.LogWarning("Skipped {SourceId} in category {CategoryId}: body unreadable after {MaxAttempts} attempts", id, category.Id, MaxBodyReadAttempts);
+                        logger.LogWarning(lastAttemptError, "Skipped {SourceId} in category {CategoryId}: body unreadable after {MaxAttempts} attempts", id, category.Id, MaxBodyReadAttempts);
                     }
                 }
 
@@ -128,7 +130,7 @@ public sealed class MigrationEngine(
                 {
                     CopiedCount = checkpoint.CopiedCount + result.Copied,
                     SkippedCount = checkpointAfterBatch.SkippedCount + result.Skipped,
-                    AlreadyPresentCount = checkpoint.AlreadyPresentCount + result.AlreadyPresent,
+                    AlreadyPresentCount = checkpointAfterBatch.AlreadyPresentCount + result.AlreadyPresent,
                     SkipReasons = AddSkipReasons(checkpointAfterBatch.SkipReasons, result.SkipReasons)
                 };
 
@@ -148,50 +150,41 @@ public sealed class MigrationEngine(
 
                 if (HaltThreshold.Exceeded(skippedThisRun, processedThisRun, options.HaltThresholdPercent, options.HaltThresholdMinimum))
                 {
-                    checkpoint = checkpoint with
-                    {
-                        State = MigrationCategoryState.Halted,
-                        CompletedAt = timeProvider.GetUtcNow().UtcDateTime,
-                        LastError = $"Halted: {skippedThisRun} of {processedThisRun} rows skipped in this run exceeds the configured threshold of {options.HaltThresholdPercent}% and {options.HaltThresholdMinimum} rows. Fix the cause and restart to resume from the cursor, or abandon the category to accept the loss."
-                    };
-                    await checkpointStore.Upsert(checkpoint, cancellationToken);
-                    logger.LogError("Category {CategoryId} halted at cursor {Cursor}: {LastError}", category.Id, checkpoint.Cursor, checkpoint.LastError);
-                    return checkpoint;
+                    var reason = $"Halted: {skippedThisRun} of {processedThisRun} rows skipped in this run exceeds the configured threshold of {options.HaltThresholdPercent}% and {options.HaltThresholdMinimum} rows. Fix the cause and restart to resume from the cursor, or abandon the category to accept the loss.";
+                    logger.LogError("Category {CategoryId} halted at cursor {Cursor}: {LastError}", category.Id, checkpoint.Cursor, reason);
+                    return await Settle(checkpoint with { State = MigrationCategoryState.Halted, LastError = reason }, cancellationToken);
                 }
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            // The host is stopping. The category stays InProgress and the next start resumes from
-            // the cursor the last committed batch left behind.
+            // The target stored the last committed batch with every row counted as copied, so save its real
+            // split. The category stays InProgress and the next start resumes from the cursor.
+            await checkpointStore.Upsert(checkpoint, CancellationToken.None);
             throw;
         }
         catch (Exception ex)
         {
-            checkpoint = checkpoint with
-            {
-                State = MigrationCategoryState.Halted,
-                CompletedAt = timeProvider.GetUtcNow().UtcDateTime,
-                LastError = $"{ex.GetType().Name} at cursor {checkpoint.Cursor ?? "the start"}: {ex.Message}"
-            };
-            await checkpointStore.Upsert(checkpoint, cancellationToken);
+            var reason = $"{ex.GetType().Name} at cursor {checkpoint.Cursor ?? "the start"}: {ex.Message}";
             logger.LogError(ex, "Category {CategoryId} halted at cursor {Cursor}", category.Id, checkpoint.Cursor);
-            return checkpoint;
+            return await Settle(checkpoint with { State = MigrationCategoryState.Halted, LastError = reason }, cancellationToken);
         }
 
-        checkpoint = checkpoint with
-        {
-            State = checkpoint.SkippedCount > 0 ? MigrationCategoryState.CompleteWithErrors : MigrationCategoryState.Complete,
-            CompletedAt = timeProvider.GetUtcNow().UtcDateTime
-        };
-        await checkpointStore.Upsert(checkpoint, cancellationToken);
-        return checkpoint;
+        return await Settle(checkpoint with { State = checkpoint.SkippedCount > 0 ? MigrationCategoryState.CompleteWithErrors : MigrationCategoryState.Complete }, cancellationToken);
     }
 
-    async Task<(MigrationBatch Batch, IReadOnlyList<string> FailedIds)> FetchBodiesWithRetry(MigrationCategory category, MigrationBatch batch, CancellationToken cancellationToken)
+    // Halts log before settling: the store shares the target's database, so a failed save would hide the cause.
+    async Task<MigrationCheckpoint> Settle(MigrationCheckpoint settled, CancellationToken cancellationToken)
+    {
+        settled = settled with { CompletedAt = timeProvider.GetUtcNow().UtcDateTime };
+        await checkpointStore.Upsert(settled, cancellationToken);
+        return settled;
+    }
+
+    async Task<(MigrationBatch Batch, IReadOnlyList<(string SourceId, Exception LastAttemptError)> Failed)> FetchBodiesWithRetry(MigrationCategory category, MigrationBatch batch, CancellationToken cancellationToken)
     {
         var survivors = new List<MigrationRow>(batch.Rows.Count);
-        var failed = new List<string>();
+        var failed = new List<(string SourceId, Exception LastAttemptError)>();
 
         foreach (var row in batch.Rows)
         {
@@ -202,6 +195,7 @@ public sealed class MigrationEngine(
             }
 
             MigrationBody? body = null;
+            Exception? lastAttemptError = null;
             var succeeded = false;
 
             for (var attempt = 1; attempt <= MaxBodyReadAttempts && !succeeded; attempt++)
@@ -217,8 +211,9 @@ public sealed class MigrationEngine(
                     // recording the message as permanently unreadable would lose a row to a restart.
                     throw;
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (!IsDefect(ex))
                 {
+                    lastAttemptError = ex;
                     logger.LogWarning(ex, "Attempt {Attempt} to read the body for {SourceId} failed", attempt, row.SourceId);
                     if (attempt < MaxBodyReadAttempts)
                     {
@@ -233,12 +228,16 @@ public sealed class MigrationEngine(
             }
             else
             {
-                failed.Add(row.SourceId);
+                failed.Add((row.SourceId, lastAttemptError!));
             }
         }
 
         return (batch with { Rows = survivors }, failed);
     }
+
+    // These fail the same way on every attempt, so retrying would only turn a code defect into skipped messages.
+    static bool IsDefect(Exception exception) =>
+        exception is NotSupportedException or NotImplementedException or InvalidOperationException or ArgumentException or NullReferenceException or InvalidCastException;
 
     static IReadOnlyDictionary<string, long>? AddSkipReasons(IReadOnlyDictionary<string, long>? totals, IReadOnlyDictionary<string, long>? additions)
     {

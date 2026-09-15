@@ -5,11 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ServiceControl.Configuration;
 
-/// <summary>The engine's tuning, read from settings once at startup.</summary>
-/// <param name="ThrottlePause">How long to wait between batches of optional data, so normal work isn't slowed down. Zero means don't wait.</param>
-/// <param name="HaltThresholdPercent">A category halts when more than this percent of the rows handled in this run were skipped, and the minimum below is also passed.</param>
-/// <param name="HaltThresholdMinimum">A category never halts until more than this many rows were skipped in this run, so a few bad rows can't stop a small category.</param>
-/// <param name="SelectedOptionalCategoryIds">The optional categories to copy. Required categories are always copied.</param>
+/// <summary>The engine's tuning: the pause between optional batches, when a category halts, and which optional categories to copy.</summary>
 public sealed record MigrationEngineOptions(
     TimeSpan ThrottlePause,
     int HaltThresholdPercent,

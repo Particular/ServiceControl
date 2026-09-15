@@ -4,6 +4,8 @@
 
 A customer can already point ServiceControl at SQL Server or PostgreSQL. They cannot bring their existing data with them.
 
+This covers the error instance only. The audit instance has no SQL persister, so a customer who finishes this migration still runs RavenDB for audit.
+
 ## Strategy
 
 - Switch over first, and copy only what has to be copied. Retention does most of the work: error retention is between 5 and 45 days and event retention is shorter, so most of the source ages out on its own within weeks. That is why archived and resolved messages are optional rather than required. Retention would have deleted them anyway.
@@ -243,7 +245,7 @@ That window closes the moment ServiceControl opens. From then on new failed mess
 - A body is read up to three times before the message is skipped whole, and the exhausted attempts count toward the halt threshold.
 - Deciding whether a row is past the target's retention cutoff needs two retention periods: the source's reverses `@expires` back into the status-change instant, and the target's current one decides whether that instant is past the cutoff.
 - A bad row does not stop the copy. Its category finishes in a separate complete-with-errors state.
-- The halt threshold is proportional with an absolute floor, and a category halts only when both are exceeded. Proportional alone halts a three-row category on one bad row; absolute alone lets ten thousand failures pass on a five-million-row table as "only 0.2%".
+- The halt threshold is proportional with an absolute floor, and a category halts only when both are exceeded. Proportional alone halts a three-row category on one bad row; absolute alone halts a five-million-row table on its 101st failure at the default floor of 100. Together, a large category keeps going through losses under the percentage and finishes complete with errors, so ten thousand skipped rows out of five million do not halt it.
 - Rows left behind because SQL would remove them anyway (past retention, orphaned group comments, settings for unknown endpoints) are counted and reported, but never halt a category.
 - Verification therefore cannot treat any count difference as a fault. It accounts for every skip rule, or it reports every successful migration as broken.
 
@@ -274,7 +276,7 @@ It reports no duration for the optional categories, and nothing about load on th
 
 `--migration-source-report`, `--migration-verify` and `--migration-dry-run` all open the RavenDB source. **On an embedded source that means stopping the ServiceControl service first**, because a second RavenDB process cannot attach to a data directory the first one holds. Plan the dry run as part of the outage rather than as something you run the day before while the instance keeps serving traffic. On an external source, a container or RavenDB Cloud, all three run against a live instance with no interruption.
 
-One deployment shape they cannot help at all: all three need shell access to the host, so a containerised instance has no easy way to run them, and a containerised instance cannot use an embedded source either.
+A containerised instance runs all three as a one-off `docker run` of the same image with the command's flag, against an external RavenDB server, as the [instructions](ravendb-to-sql-migration-instructions.md#report-on-the-source) show for the source report. It cannot use an embedded source, because the image does not ship the RavenDB server.
 
 `--migration-status` is the exception and is deliberately so: it reads only the checkpoint table in SQL and never opens the source, so it works on every source shape at any time, including during the background copy. It is the command to use for watching progress.
 
