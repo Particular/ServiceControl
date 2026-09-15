@@ -33,6 +33,20 @@ class MigrationSourceReportCommandTests
     [Test]
     public async Task The_report_names_the_databases_the_settings_and_the_collections()
     {
+        var report = await RunReport();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(report, Does.Match(@"Mode\s+: external"));
+            Assert.That(report, Does.Contain(MigrationSourceServer.ServerUrl));
+            Assert.That(report, Does.Contain("from ServiceControl/RavenDB/DatabaseName"));
+            Assert.That(report, Does.Contain("from LicensingComponent/RavenDB/ThroughputDatabaseName"));
+            Assert.That(report, Does.Match(@"EndpointSettings\s+1"), "The report has to render a count, not just name the collection.");
+        });
+    }
+
+    static async Task<string> RunReport()
+    {
         var settings = new Settings(persisterType: "RavenDB", forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10));
 
         var writer = new StringWriter();
@@ -48,15 +62,6 @@ class MigrationSourceReportCommandTests
             Console.SetOut(original);
         }
 
-        var report = writer.ToString();
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(report, Does.Contain("(external)"));
-            Assert.That(report, Does.Contain(MigrationSourceServer.ServerUrl));
-            Assert.That(report, Does.Contain("from ServiceControl/RavenDB/DatabaseName"));
-            Assert.That(report, Does.Contain("from LicensingComponent/RavenDB/ThroughputDatabaseName"));
-            Assert.That(report, Does.Match(@"EndpointSettings\s+1"), "The report has to render a count, not just name the collection.");
-        });
+        return writer.ToString();
     }
 }
