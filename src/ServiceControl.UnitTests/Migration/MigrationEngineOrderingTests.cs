@@ -19,7 +19,7 @@ class MigrationEngineOrderingTests
         new(source, target, checkpointStore, new FakeTimeProvider(), new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []), NullLogger<MigrationEngine>.Instance);
 
     [Test]
-    public async Task LicensingThroughput_does_not_start_before_LicensingEndpoints_completes()
+    public async Task LicensingThroughput_does_not_start_before_LicensingEndpoints_completes_and_says_so_on_its_checkpoint_row()
     {
         var throughputCategory = MigrationCategoryRegistry.Find("LicensingThroughput")!;
         var source = new InMemoryMigrationSource();
@@ -31,28 +31,11 @@ class MigrationEngineOrderingTests
         // LicensingEndpoints has never run: no checkpoint row for it at all.
         var checkpoint = await engine.RunCategoryAsync(throughputCategory);
 
+        var persisted = await checkpointStore.Read(throughputCategory.Id);
         using (Assert.EnterMultipleScope())
         {
             Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.NotStarted));
             Assert.That(target.WrittenRows(throughputCategory.Id), Is.Empty);
-        }
-    }
-
-    [Test]
-    public async Task A_blocked_category_says_so_on_its_checkpoint_row_instead_of_returning_in_silence()
-    {
-        var throughputCategory = MigrationCategoryRegistry.Find("LicensingThroughput")!;
-        var source = new InMemoryMigrationSource();
-        source.Seed(throughputCategory.Id, Row("t-1"));
-        var checkpointStore = new InMemoryMigrationCheckpointStore();
-        var target = new InMemoryMigrationTarget(checkpointStore);
-        var engine = BuildEngine(source, checkpointStore, target);
-
-        await engine.RunCategoryAsync(throughputCategory);
-
-        var persisted = await checkpointStore.Read(throughputCategory.Id);
-        using (Assert.EnterMultipleScope())
-        {
             // A row exists, so status can print it. Without one, an operator cannot tell a category
             // waiting on another from a category nobody asked for.
             Assert.That(persisted, Is.Not.Null);
@@ -83,14 +66,15 @@ class MigrationEngineOrderingTests
         }
     }
 
-    [Test]
-    public async Task GroupComments_does_not_start_before_the_archive_completes()
+    [TestCase(MigrationCategoryState.InProgress)]
+    [TestCase(MigrationCategoryState.Halted)]
+    public async Task GroupComments_does_not_start_before_the_archive_completes(MigrationCategoryState archiveState)
     {
         var comments = MigrationCategoryRegistry.Find("GroupComments")!;
         var source = new InMemoryMigrationSource();
         source.Seed(comments.Id, Row("GroupComment/g-1"));
         var checkpointStore = new InMemoryMigrationCheckpointStore();
-        await checkpointStore.Upsert(new MigrationCheckpoint("ArchivedAndResolvedFailedMessages", true, MigrationCategoryState.InProgress, "m-500", 500, 0, null, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null));
+        await checkpointStore.Upsert(new MigrationCheckpoint("ArchivedAndResolvedFailedMessages", true, archiveState, "m-500", 500, 0, null, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null));
         var target = new InMemoryMigrationTarget(checkpointStore);
         var engine = BuildEngine(source, checkpointStore, target);
 
@@ -99,34 +83,21 @@ class MigrationEngineOrderingTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.NotStarted));
+            Assert.That(checkpoint.LastError, Is.EqualTo($"Blocked: GroupComments must follow ArchivedAndResolvedFailedMessages, which is {archiveState}"));
             Assert.That(target.WrittenRows(comments.Id), Is.Empty);
         }
     }
 
-    [Test]
-    public async Task LicensingThroughput_proceeds_once_LicensingEndpoints_is_Complete()
+    [TestCase(MigrationCategoryState.Complete)]
+    [TestCase(MigrationCategoryState.CompleteWithErrors)]
+    [TestCase(MigrationCategoryState.Abandoned)]
+    public async Task LicensingThroughput_proceeds_once_LicensingEndpoints_is_finished_or_abandoned(MigrationCategoryState endpointsState)
     {
         var throughputCategory = MigrationCategoryRegistry.Find("LicensingThroughput")!;
         var source = new InMemoryMigrationSource();
         source.Seed(throughputCategory.Id, Row("t-1"));
         var checkpointStore = new InMemoryMigrationCheckpointStore();
-        await checkpointStore.Upsert(new MigrationCheckpoint("LicensingEndpoints", true, MigrationCategoryState.Complete, "e-1", 1, 0, 1, null, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, null, null));
-        var target = new InMemoryMigrationTarget(checkpointStore);
-        var engine = BuildEngine(source, checkpointStore, target);
-
-        var checkpoint = await engine.RunCategoryAsync(throughputCategory);
-
-        Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Complete));
-    }
-
-    [Test]
-    public async Task LicensingThroughput_proceeds_when_LicensingEndpoints_is_CompleteWithErrors()
-    {
-        var throughputCategory = MigrationCategoryRegistry.Find("LicensingThroughput")!;
-        var source = new InMemoryMigrationSource();
-        source.Seed(throughputCategory.Id, Row("t-1"));
-        var checkpointStore = new InMemoryMigrationCheckpointStore();
-        await checkpointStore.Upsert(new MigrationCheckpoint("LicensingEndpoints", true, MigrationCategoryState.CompleteWithErrors, "e-1", 9, 1, 10, null, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, null, null));
+        await checkpointStore.Upsert(new MigrationCheckpoint("LicensingEndpoints", true, endpointsState, "e-1", 1, 0, 1, null, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, null, null));
         var target = new InMemoryMigrationTarget(checkpointStore);
         var engine = BuildEngine(source, checkpointStore, target);
 
