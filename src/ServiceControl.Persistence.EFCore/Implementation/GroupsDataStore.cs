@@ -127,44 +127,15 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
         }
     }
 
-    /// <summary>
-    /// Two-step group aggregate:
-    /// 1. Narrow aggregate on (GroupId, Type) — avoids hashing nvarchar(max) Title per joined row.
-    ///    Order by MAX(LastTimeOfFailure) desc, take MaxGroups (200), materialise.
-    /// 2. Fetch Title per output group (≤200 index seeks) from the same filtered group rows.
-    /// Title is functionally dependent on GroupId, so the result is identical to grouping by Title.
-    /// </summary>
-    static async Task<List<FailureGroupView>> GetGroupViews(IQueryable<FailedMessageGroupEntity> groups, IQueryable<FailedMessageEntity> messages, CancellationToken cancellationToken)
-    {
-        var summaries = await groups
-            .AggregateGroupSummaries(messages)
+    // One aggregate statement: Count/First/Last come from the joined message rows and the Title
+    // lookup per output group is bounded by FailureGroupQueries.MaxGroups. See
+    // FailureGroupQueries.AggregateGroups for the provider index shapes this relies on — on
+    // PostgreSQL the classifier and messages indexes must carry the join column or the whole
+    // aggregate degrades to sequential scans of both large tables.
+    static async Task<List<FailureGroupView>> GetGroupViews(IQueryable<FailedMessageGroupEntity> groups, IQueryable<FailedMessageEntity> messages, CancellationToken cancellationToken) =>
+        await groups
+            .AggregateGroups(messages)
             .OrderByDescending(summary => summary.Last)
             .Take(FailureGroupQueries.MaxGroups)
             .ToListAsync(cancellationToken);
-
-        if (summaries.Count == 0)
-        {
-            return [];
-        }
-
-        var groupIds = summaries.Select(summary => summary.Id).ToArray();
-
-        var titles = await groups
-            .Where(group => groupIds.Contains(group.GroupId))
-            .Select(group => new { group.GroupId, group.Title })
-            .Distinct()
-            .ToDictionaryAsync(group => group.GroupId, group => group.Title, cancellationToken);
-
-        return summaries
-            .Select(summary => new FailureGroupView
-            {
-                Id = summary.Id,
-                Title = titles.GetValueOrDefault(summary.Id) ?? string.Empty,
-                Type = summary.Type,
-                Count = summary.Count,
-                First = summary.First,
-                Last = summary.Last
-            })
-            .ToList();
-    }
 }

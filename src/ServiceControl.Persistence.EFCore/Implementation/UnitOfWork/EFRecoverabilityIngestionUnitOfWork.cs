@@ -1,12 +1,11 @@
 namespace ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
 
-using System.Text.Json;
+using EntityConfigurations;
 using NServiceBus;
 using NServiceBus.Transport;
 using ServiceControl.MessageFailures;
 using ServiceControl.Operations;
 using ServiceControl.Persistence.EFCore.Abstractions;
-using ServiceControl.Persistence.EFCore.EntityConfigurations;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.Infrastructure;
 using ServiceControl.Persistence.UnitOfWork;
