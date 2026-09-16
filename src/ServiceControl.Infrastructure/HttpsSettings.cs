@@ -25,7 +25,7 @@ public class HttpsSettings
             CertificatePath = SettingsReader.Read<string>(rootNamespace, "Https.CertificatePath");
             CertificatePassword = SettingsReader.Read<string>(rootNamespace, "Https.CertificatePassword");
 
-            ValidateCertificateConfiguration();
+            Certificate = LoadCertificate();
         }
 
         // HTTPS redirection - disabled by default for backwards compatibility
@@ -46,7 +46,7 @@ public class HttpsSettings
     public bool Enabled { get; }
 
     /// <summary>
-    /// Path to the HTTPS certificate file (.pfx or .pem).
+    /// Path to the HTTPS certificate file (PKCS#12 / .pfx).
     /// Required when Https.Enabled is true.
     /// </summary>
     public string CertificatePath { get; }
@@ -62,7 +62,7 @@ public class HttpsSettings
     /// The certificate loaded from <see cref="CertificatePath"/>, or null when HTTPS is disabled.
     /// </summary>
     [JsonIgnore]
-    public X509Certificate2 Certificate { get; private set; }
+    public X509Certificate2 Certificate { get; }
 
     /// <summary>
     /// When true, HTTP requests will be redirected to HTTPS.
@@ -95,11 +95,11 @@ public class HttpsSettings
     /// </summary>
     public bool HstsIncludeSubDomains { get; }
 
-    void ValidateCertificateConfiguration()
+    X509Certificate2 LoadCertificate()
     {
         if (string.IsNullOrWhiteSpace(CertificatePath))
         {
-            var message = "Https.CertificatePath is required when HTTPS is enabled. Please specify the path to a valid HTTPS certificate file (.pfx or .pem)";
+            var message = "Https.CertificatePath is required when HTTPS is enabled. Please specify the path to a valid PKCS#12 (.pfx) certificate file";
             logger.LogCritical(message);
             throw new InvalidOperationException(message);
         }
@@ -113,9 +113,10 @@ public class HttpsSettings
 
         // Loaded here rather than when Kestrel binds its endpoints: an unusable certificate is a
         // configuration error, and binding happens only after every hosted service has started.
+        X509Certificate2 certificate;
         try
         {
-            Certificate = string.IsNullOrEmpty(CertificatePassword)
+            certificate = string.IsNullOrEmpty(CertificatePassword)
                 ? X509CertificateLoader.LoadPkcs12FromFile(CertificatePath, null)
                 : X509CertificateLoader.LoadPkcs12FromFile(CertificatePath, CertificatePassword);
         }
@@ -123,16 +124,31 @@ public class HttpsSettings
         {
             // .NET reports several unrelated causes as "the password may be incorrect", so describe
             // the file itself too. Never the password, only whether one was configured.
+            var cause = ex.GetBaseException();
             var file = new FileInfo(CertificatePath);
             var message = $"The HTTPS certificate could not be loaded, so this instance cannot start. " +
                           $"Https.CertificatePath: '{CertificatePath}' ({file.Length} bytes, last modified {file.LastWriteTimeUtc:u}). " +
                           $"Https.CertificatePassword configured: {!string.IsNullOrEmpty(CertificatePassword)}. " +
-                          $"{ex.GetType().Name}: {ex.Message} " +
+                          $"{cause.GetType().Name}: {cause.Message} " +
                           $"Check that the file is a PKCS#12/PFX holding both the certificate and its private key, and that Https.CertificatePassword matches it. " +
                           $"To start without HTTPS while investigating, set Https.Enabled to false.";
             logger.LogCritical(message);
             throw new InvalidOperationException(message, ex);
         }
+
+        // Kestrel does not check this when binding. Without the private key every TLS handshake
+        // fails instead, which surfaces only as clients being unable to connect.
+        if (!certificate.HasPrivateKey)
+        {
+            var message = $"The HTTPS certificate does not contain a private key, so this instance cannot start. " +
+                          $"Https.CertificatePath: '{CertificatePath}' (subject '{certificate.Subject}', thumbprint {certificate.Thumbprint}). " +
+                          $"Export the certificate as PKCS#12/PFX including its private key. " +
+                          $"To start without HTTPS while investigating, set Https.Enabled to false.";
+            logger.LogCritical(message);
+            throw new InvalidOperationException(message);
+        }
+
+        return certificate;
     }
 
     void LogConfiguration()
