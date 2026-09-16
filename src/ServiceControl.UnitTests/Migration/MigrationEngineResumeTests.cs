@@ -69,7 +69,7 @@ class MigrationEngineResumeTests
         var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 2, StopOnCall = (3, stopping) };
         // Both in the second batch, the last one to commit before the stop.
         target.SeedExistingKey("row-3");
-        target.RejectKey("row-4", "Rejected");
+        target.RejectKey("row-4", MigrationSkipReason.BodyUnreadable);
         var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []);
         var firstEngine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
 
@@ -86,12 +86,12 @@ class MigrationEngineResumeTests
             Assert.That((afterStop.CopiedCount, afterStop.SkippedCount, afterStop.AlreadyPresentCount), Is.EqualTo((2L, 1L, 1L)), "copied, skipped, already present after the stop");
             Assert.That(finalCheckpoint.State, Is.EqualTo(MigrationCategoryState.CompleteWithErrors));
             Assert.That((finalCheckpoint.CopiedCount, finalCheckpoint.SkippedCount, finalCheckpoint.AlreadyPresentCount), Is.EqualTo((4L, 1L, 1L)), "copied, skipped, already present at the end");
-            Assert.That(finalCheckpoint.SkipReasons, Is.EquivalentTo(new Dictionary<string, long> { ["Rejected"] = 1 }));
+            Assert.That(finalCheckpoint.SkipReasons, Is.EquivalentTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BodyUnreadable] = 1 }));
         }
     }
 
     [Test]
-    public async Task A_hard_crash_after_a_committed_write_is_accepted_to_leave_that_batch_counted_as_copied_and_can_end_Complete()
+    public async Task A_hard_crash_after_a_committed_write_loses_nothing_because_the_target_saved_the_real_split()
     {
         var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
         var source = new InMemoryMigrationSource();
@@ -99,7 +99,7 @@ class MigrationEngineResumeTests
         var committed = new InMemoryMigrationCheckpointStore();
         var target = new InMemoryMigrationTarget(committed) { DefaultBatchSize = 2 };
         target.SeedExistingKey("row-3");
-        target.RejectKey("row-4", "Rejected");
+        target.RejectKey("row-4", MigrationSkipReason.BodyUnreadable);
         var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []);
         var crashingEngine = new MigrationEngine(source, target, new CrashAfterCommitCheckpointStore(committed, crashAfterCursor: "row-4"), new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
         await crashingEngine.RunCategoryAsync(category);
@@ -109,9 +109,9 @@ class MigrationEngineResumeTests
 
         using (Assert.EnterMultipleScope())
         {
-            // Accepted: closing this needs the target to save the real split with the rows.
-            Assert.That(finalCheckpoint.State, Is.EqualTo(MigrationCategoryState.Complete));
-            Assert.That((finalCheckpoint.CopiedCount, finalCheckpoint.SkippedCount, finalCheckpoint.AlreadyPresentCount), Is.EqualTo((4L, 0L, 0L)), "copied, skipped, already present at the end");
+            // The engine's own settle was lost, but every count came from the target's own transaction.
+            Assert.That(finalCheckpoint.State, Is.EqualTo(MigrationCategoryState.CompleteWithErrors));
+            Assert.That((finalCheckpoint.CopiedCount, finalCheckpoint.SkippedCount, finalCheckpoint.AlreadyPresentCount), Is.EqualTo((2L, 1L, 1L)), "copied, skipped, already present at the end");
             Assert.That(target.WrittenRows(category.Id).Select(r => r.SourceId), Is.EqualTo(new[] { "row-1", "row-2" }));
         }
     }
@@ -123,12 +123,9 @@ class MigrationEngineResumeTests
 
         public Task<MigrationCheckpoint?> Read(string categoryId, CancellationToken cancellationToken = default) => committed.Read(categoryId, cancellationToken);
 
-        public async Task Upsert(MigrationCheckpoint checkpoint, CancellationToken cancellationToken = default)
-        {
-            if ((await committed.Read(checkpoint.CategoryId, cancellationToken))?.Cursor != crashAfterCursor)
-            {
-                await committed.Upsert(checkpoint, cancellationToken);
-            }
-        }
+        public async Task<MigrationCheckpoint> Upsert(MigrationCheckpoint checkpoint, CancellationToken cancellationToken = default) =>
+            (await committed.Read(checkpoint.CategoryId, cancellationToken))?.Cursor == crashAfterCursor
+                ? checkpoint
+                : await committed.Upsert(checkpoint, cancellationToken);
     }
 }

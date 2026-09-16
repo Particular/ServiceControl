@@ -20,6 +20,7 @@ public interface IMigrationSource : IAsyncDisposable
     Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default);
 
     /// <summary>Reads a category in batches, after the checkpoint cursor if provided, or from the start when it is null. Throws on a cursor it never issued.</summary>
+    /// <param name="batchSize">A ceiling, not a target: returning fewer costs nothing, returning more fails the target's write.</param>
     IAsyncEnumerable<MigrationBatch> Read(
         MigrationCategory category,
         string? resumeAfter,

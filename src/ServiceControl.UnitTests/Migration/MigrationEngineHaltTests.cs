@@ -29,7 +29,7 @@ class MigrationEngineHaltTests
         var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 100 };
         foreach (var i in Enumerable.Range(1, 1_000).Where(i => i % 5 == 0))
         {
-            target.RejectKey($"row-{i}", "Rejected");
+            target.RejectKey($"row-{i}", MigrationSkipReason.BodyUnreadable);
         }
         var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
         var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
@@ -40,7 +40,7 @@ class MigrationEngineHaltTests
         {
             Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Halted));
             Assert.That(checkpoint.LastError, Does.Contain("Halted"));
-            Assert.That(checkpoint.CompletedAt, Is.Not.Null);
+            Assert.That(checkpoint.SettledAt, Is.Not.Null);
             // Stopped partway: the 1,000th row was never reached.
             Assert.That(target.WrittenRows(category.Id).Count, Is.LessThan(800));
         }
@@ -81,7 +81,7 @@ class MigrationEngineHaltTests
         var failingTarget = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 100 };
         foreach (var i in Enumerable.Range(1, 1_000).Where(i => i % 5 == 0))
         {
-            failingTarget.RejectKey($"row-{i}", "Rejected");
+            failingTarget.RejectKey($"row-{i}", MigrationSkipReason.BodyUnreadable);
         }
         var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
         var halted = await new MigrationEngine(source, failingTarget, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance).RunCategoryAsync(category);

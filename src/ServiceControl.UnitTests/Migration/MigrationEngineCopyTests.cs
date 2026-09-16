@@ -35,7 +35,7 @@ class MigrationEngineCopyTests
             Assert.That(checkpoint.SkippedCount, Is.Zero);
             Assert.That(checkpoint.Cursor, Is.EqualTo("c"));
             Assert.That(checkpoint.StartedAt, Is.Not.Null);
-            Assert.That(checkpoint.CompletedAt, Is.Not.Null);
+            Assert.That(checkpoint.SettledAt, Is.Not.Null);
             Assert.That(target.WrittenRows(category.Id), Has.Count.EqualTo(3));
         }
     }
@@ -47,7 +47,7 @@ class MigrationEngineCopyTests
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("a"));
         var checkpointStore = new InMemoryMigrationCheckpointStore();
-        var alreadyDone = new MigrationCheckpoint(category.Id, true, MigrationCategoryState.Complete, "a", 1, 0, 1, null, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, null, null);
+        var alreadyDone = new MigrationCheckpoint(category.Id, MigrationCategoryState.Complete, "a", 1, 0, 1, null, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, null);
         await checkpointStore.Upsert(alreadyDone);
         var target = new InMemoryMigrationTarget(checkpointStore);
         var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []);
@@ -57,7 +57,7 @@ class MigrationEngineCopyTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(checkpoint, Is.EqualTo(alreadyDone));
+            Assert.That(checkpoint, Is.EqualTo(alreadyDone with { Version = 1 }), "the row is read back untouched, at the version the seeding save left it");
             Assert.That(target.WrittenRows(category.Id), Is.Empty);
         }
     }

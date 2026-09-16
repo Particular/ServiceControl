@@ -30,7 +30,8 @@ class MigrationContractShapeTests
             ["Complete"] = 2,
             ["CompleteWithErrors"] = 3,
             ["Halted"] = 4,
-            ["Abandoned"] = 5
+            ["Abandoned"] = 5,
+            ["Blocked"] = 6
         }), "checkpoints store State as an integer, so a reordered or inserted member silently changes what every saved checkpoint means");
     }
 
@@ -47,7 +48,6 @@ class MigrationContractShapeTests
     {
         var checkpoint = new MigrationCheckpoint(
             CategoryId: "EndpointSettings",
-            Selected: false,
             State: MigrationCategoryState.NotStarted,
             Cursor: null,
             CopiedCount: 0,
@@ -56,8 +56,7 @@ class MigrationContractShapeTests
             SkipReasons: null,
             StartedAt: null,
             LastProgressAt: null,
-            CompletedAt: null,
-            AbandonedAt: null,
+            SettledAt: null,
             LastError: null);
 
         Assert.That(checkpoint.AlreadyPresentCount, Is.Zero);

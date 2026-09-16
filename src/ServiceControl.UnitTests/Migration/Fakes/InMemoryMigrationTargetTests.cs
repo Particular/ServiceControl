@@ -12,53 +12,54 @@ class InMemoryMigrationTargetTests
     static MigrationRow Row(string id) => new(id, new object(), new Dictionary<string, object?>());
 
     static MigrationCheckpoint EmptyCheckpoint(string categoryId) =>
-        new(categoryId, Selected: true, MigrationCategoryState.InProgress, Cursor: null, 0, 0, null, null, null, null, null, null, null);
+        new(categoryId, MigrationCategoryState.InProgress, Cursor: null, 0, 0, null, null, null, null, null, null);
 
     [Test]
-    public async Task Writes_new_rows_and_persists_the_checkpoint_it_was_handed_exactly_as_given()
+    public async Task Writes_new_rows_and_commits_the_extended_checkpoint_with_them()
     {
         var checkpointStore = new InMemoryMigrationCheckpointStore();
         var target = new InMemoryMigrationTarget(checkpointStore);
         var category = MigrationCategoryRegistry.Find("EndpointSettings")!;
         var batch = new MigrationBatch([Row("a"), Row("b")], Cursor: "b");
-        // Absolute post-batch totals, computed by the caller. The target does no arithmetic on them.
-        var checkpointAfterBatch = EmptyCheckpoint(category.Id) with { Cursor = "b", CopiedCount = 2 };
+        // Prior totals and the new cursor. The target adds this batch's own outcome before it saves.
+        var checkpointToExtend = EmptyCheckpoint(category.Id) with { Cursor = "b" };
 
-        var result = await target.Write(category, batch, checkpointAfterBatch);
+        var result = await target.Write(category, batch, checkpointToExtend);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Copied, Is.EqualTo(2));
             Assert.That(result.Skipped, Is.Zero);
             Assert.That(target.WrittenRows(category.Id), Has.Count.EqualTo(2));
-            Assert.That(await checkpointStore.Read(category.Id), Is.EqualTo(checkpointAfterBatch));
+            Assert.That(await checkpointStore.Read(category.Id), Is.EqualTo(checkpointToExtend with { CopiedCount = 2, Version = 1 }));
+            Assert.That(result.Saved, Is.EqualTo(checkpointToExtend with { CopiedCount = 2, Version = 1 }), "the result carries the row as stored");
         }
     }
 
     [Test]
-    public async Task The_persisted_checkpoint_is_not_adjusted_by_what_the_write_actually_did()
+    public async Task The_committed_checkpoint_carries_the_real_split_rather_than_the_rows_handed_over()
     {
-        // The engine's totals already count every row as copied, so a target that corrected them from
-        // its own result would double the counts.
+        // Three rows in, one copied: a checkpoint saying three would survive a crash as three.
         var checkpointStore = new InMemoryMigrationCheckpointStore();
         var target = new InMemoryMigrationTarget(checkpointStore);
         var category = MigrationCategoryRegistry.Find("UnresolvedAndRetryIssuedFailedMessages")!;
         target.SeedExistingKey("already-present");
-        target.RejectKey("rejected", "Rejected");
+        target.RejectKey("rejected", MigrationSkipReason.BodyUnreadable);
         var batch = new MigrationBatch([Row("already-present"), Row("rejected"), Row("new-row")], Cursor: "new-row");
-        var checkpointAfterBatch = EmptyCheckpoint(category.Id) with { Cursor = "new-row", CopiedCount = 3 };
+        var checkpointToExtend = EmptyCheckpoint(category.Id) with { Cursor = "new-row" };
 
-        var result = await target.Write(category, batch, checkpointAfterBatch);
+        var result = await target.Write(category, batch, checkpointToExtend);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Copied, Is.EqualTo(1));
             Assert.That(result.Skipped, Is.EqualTo(1));
             Assert.That(result.SkippedIds, Is.EqualTo(new[] { "rejected" }));
-            Assert.That(result.SkipReasons, Is.EquivalentTo(new Dictionary<string, long> { ["Rejected"] = 1 }));
+            Assert.That(result.SkipReasons, Is.EquivalentTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BodyUnreadable] = 1 }));
             Assert.That(result.AlreadyPresent, Is.EqualTo(1));
             Assert.That(target.WrittenRows(category.Id), Has.Count.EqualTo(1));
-            Assert.That((await checkpointStore.Read(category.Id))!.CopiedCount, Is.EqualTo(3));
+            var stored = (await checkpointStore.Read(category.Id))!;
+            Assert.That((stored.CopiedCount, stored.SkippedCount, stored.AlreadyPresentCount), Is.EqualTo((1L, 1L, 1L)), "copied, skipped, already present as committed");
         }
     }
 

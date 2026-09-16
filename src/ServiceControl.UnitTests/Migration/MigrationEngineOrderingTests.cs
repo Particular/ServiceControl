@@ -34,13 +34,12 @@ class MigrationEngineOrderingTests
         var persisted = await checkpointStore.Read(throughputCategory.Id);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.NotStarted));
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Blocked));
             Assert.That(target.WrittenRows(throughputCategory.Id), Is.Empty);
             // A row exists, so status can print it. Without one, an operator cannot tell a category
             // waiting on another from a category nobody asked for.
             Assert.That(persisted, Is.Not.Null);
-            Assert.That(persisted!.Selected, Is.True);
-            Assert.That(persisted.State, Is.EqualTo(MigrationCategoryState.NotStarted));
+            Assert.That(persisted!.State, Is.EqualTo(MigrationCategoryState.Blocked));
             Assert.That(persisted.LastError, Does.Contain("LicensingEndpoints"));
         }
     }
@@ -61,7 +60,7 @@ class MigrationEngineOrderingTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.NotStarted));
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Blocked));
             Assert.That(target.WrittenRows(settingsCategory.Id), Is.Empty);
         }
     }
@@ -74,7 +73,7 @@ class MigrationEngineOrderingTests
         var source = new InMemoryMigrationSource();
         source.Seed(comments.Id, Row("GroupComment/g-1"));
         var checkpointStore = new InMemoryMigrationCheckpointStore();
-        await checkpointStore.Upsert(new MigrationCheckpoint("ArchivedAndResolvedFailedMessages", true, archiveState, "m-500", 500, 0, null, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null));
+        await checkpointStore.Upsert(new MigrationCheckpoint("ArchivedAndResolvedFailedMessages", archiveState, "m-500", 500, 0, null, null, DateTime.UtcNow, DateTime.UtcNow, null, null));
         var target = new InMemoryMigrationTarget(checkpointStore);
         var engine = BuildEngine(source, checkpointStore, target);
 
@@ -82,7 +81,7 @@ class MigrationEngineOrderingTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.NotStarted));
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Blocked));
             Assert.That(checkpoint.LastError, Is.EqualTo($"Blocked: GroupComments must follow ArchivedAndResolvedFailedMessages, which is {archiveState}"));
             Assert.That(target.WrittenRows(comments.Id), Is.Empty);
         }
@@ -97,7 +96,7 @@ class MigrationEngineOrderingTests
         var source = new InMemoryMigrationSource();
         source.Seed(throughputCategory.Id, Row("t-1"));
         var checkpointStore = new InMemoryMigrationCheckpointStore();
-        await checkpointStore.Upsert(new MigrationCheckpoint("LicensingEndpoints", true, endpointsState, "e-1", 1, 0, 1, null, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, null, null));
+        await checkpointStore.Upsert(new MigrationCheckpoint("LicensingEndpoints", endpointsState, "e-1", 1, 0, 1, null, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, null));
         var target = new InMemoryMigrationTarget(checkpointStore);
         var engine = BuildEngine(source, checkpointStore, target);
 
