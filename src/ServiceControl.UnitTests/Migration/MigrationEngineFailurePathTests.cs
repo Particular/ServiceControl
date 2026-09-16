@@ -105,7 +105,7 @@ class MigrationEngineFailurePathTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(restarted!.State, Is.EqualTo(MigrationCategoryState.InProgress));
-            Assert.That(restarted.CompletedAt, Is.Null, "a copy running again does not keep the finish time its halt recorded");
+            Assert.That(restarted.SettledAt, Is.Null, "a copy running again does not keep the time its halt settled at");
             Assert.That(finished.State, Is.EqualTo(MigrationCategoryState.Complete));
             Assert.That(finished.LastError, Is.Null, "a cleared halt does not leave a stale error on the row");
             Assert.That(finished.CopiedCount, Is.EqualTo(4));
@@ -154,7 +154,7 @@ class MigrationEngineFailurePathTests
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("a"));
         var checkpointStore = new InMemoryMigrationCheckpointStore();
-        var abandoned = new MigrationCheckpoint(category.Id, true, MigrationCategoryState.Abandoned, "a", 1, 3, 4, null, DateTime.UtcNow, DateTime.UtcNow, null, DateTime.UtcNow, "Halted: the body store was unreachable");
+        var abandoned = new MigrationCheckpoint(category.Id, MigrationCategoryState.Abandoned, "a", 1, 3, 4, null, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, "Halted: the body store was unreachable");
         await checkpointStore.Upsert(abandoned);
         var target = new InMemoryMigrationTarget(checkpointStore);
         var engine = BuildEngine(source, checkpointStore, target);
@@ -163,7 +163,7 @@ class MigrationEngineFailurePathTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(checkpoint, Is.EqualTo(abandoned));
+            Assert.That(checkpoint, Is.EqualTo(abandoned with { Version = 1 }), "the row is read back untouched, at the version the seeding save left it");
             Assert.That(target.WrittenRows(category.Id), Is.Empty);
         }
     }
@@ -214,7 +214,7 @@ class MigrationEngineFailurePathTests
         source.Seed(category.Id, Row("a"));
         var checkpointStore = new HaltSaveFailsCheckpointStore();
         var target = new InMemoryMigrationTarget(checkpointStore);
-        target.RejectKey("a", "Rejected");
+        target.RejectKey("a", MigrationSkipReason.BodyUnreadable);
         var logger = new CapturingLogger();
         // A floor of zero lets the one rejected row halt the category.
         var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 0, []);
@@ -234,7 +234,7 @@ class MigrationEngineFailurePathTests
 
         public Task<MigrationCheckpoint?> Read(string categoryId, CancellationToken cancellationToken = default) => saved.Read(categoryId, cancellationToken);
 
-        public Task Upsert(MigrationCheckpoint checkpoint, CancellationToken cancellationToken = default) =>
+        public Task<MigrationCheckpoint> Upsert(MigrationCheckpoint checkpoint, CancellationToken cancellationToken = default) =>
             checkpoint.State == MigrationCategoryState.Halted ? throw new TimeoutException("checkpoint store unreachable") : saved.Upsert(checkpoint, cancellationToken);
     }
 }
