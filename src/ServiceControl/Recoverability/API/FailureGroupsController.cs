@@ -67,7 +67,8 @@
                 classifierFilter = null;
             }
 
-            var results = await fetcher.GetGroups(classifier, classifierFilter, cancellationToken);
+            var pagingInfo = new PagingInfo(page: 1, pageSize: 200);
+            var results = await fetcher.GetGroups(classifier, classifierFilter, pagingInfo, cancellationToken);
             Response.WithQueryStatsInfo(results.ToQueryStatsInfo("groups", results.Length));
             return results;
         }

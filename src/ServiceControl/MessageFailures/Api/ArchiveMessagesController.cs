@@ -10,6 +10,7 @@ namespace ServiceControl.MessageFailures.Api
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
 
     [ApiController]
@@ -47,7 +48,8 @@ namespace ServiceControl.MessageFailures.Api
         [HttpGet]
         public async Task<IActionResult> GetArchiveMessageGroups(string classifier = "Exception Type and Stack Trace", CancellationToken cancellationToken = default)
         {
-            var result = await dataStore.GetArchivedGroupsByClassifier(classifier, cancellationToken);
+            var pagingInfo = new PagingInfo(page: 1, pageSize: 200);
+            var result = await dataStore.GetArchivedGroupsByClassifier(classifier, pagingInfo, cancellationToken);
 
             Response.WithQueryStatsInfo(result.QueryStats);
 
