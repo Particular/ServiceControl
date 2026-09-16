@@ -1,23 +1,18 @@
 # ServiceControl Testing Tool
 
 A stateless, horizontally-scalable .NET 10 service that generates error load and real-world failure
-scenarios against a test ServiceControl instance, with OpenTelemetry observability and a simple web
-UI for manual scenario control.
+scenarios against a test ServiceControl instance to validate its error-ingestion performance, with
+OpenTelemetry observability and a simple web UI for manual scenario control.
 
-See [requirements-test-tool-plan.md](./requirements-test-tool-plan.md) for the full plan.
-
-## Status
-
-All phases complete (0–7): project bootstrap, OTel foundation (traces + metrics + logs),
-NServiceBus error path (handler + direct error-queue bypass writer), scenarios, background jobs,
-web UI, containerization & scaling, Aspire AppHost, observability stack (OTel Collector →
-Jaeger + Prometheus + Grafana with prebuilt dashboard), and smoke tests.
+The tool targets the error ingestion path only — audit testing is out of scope.
 
 ## What it does
 
-The tool runs an NServiceBus endpoint (`TestingTool.Load`) that sends messages through a handler
-which fails based on the active scenario. Failed messages are routed to the `error` queue for
-ServiceControl to ingest. Five scenarios are built in, each producing naturally-grouped errors:
+The tool runs an NServiceBus endpoint (`TestingTool.Load`, Learning transport) that sends messages
+through a handler which fails based on the active scenario. Failed messages are routed to the
+`error` queue for ServiceControl to ingest. Each scenario throws a tagged exception
+(`ExceptionType` + `CorrelationGroup`) so ServiceControl groups the failures naturally, and
+immediate retries are disabled so groups stay clean. Five scenarios are built in:
 
 | Scenario | Category | Failure shape |
 |---|---|---|
@@ -27,9 +22,18 @@ ServiceControl to ingest. Five scenarios are built in, each producing naturally-
 | `deserialization-failure` | Deserialization | 100% fail — grouped by message type (bad deployment) |
 | `background-noise` | Noise | ~3% always-on baseline — rotates through exception types |
 
-Recoverability/search jobs are controllable from the web UI (no longer hidden config-gated
- timers). They run a cycle on a configurable interval until stopped:
-- **Retry** — fetches error groups from ServiceControl and retries each group
+Scenarios are controlled from the web UI, or via:
+- `GET /api/scenarios` — list scenarios with live status (category, rate, error counts)
+- `POST /api/scenarios/{name}/start` — `{ "rate": 100, "durationSeconds": 60 }`; `rate` defaults
+  to the scenario's default, `durationSeconds` omitted (or `0`) means run until explicitly stopped
+- `POST /api/scenarios/{name}/stop`
+- `POST /api/scenarios/stop-all`
+
+Recoverability/search jobs are controllable from the web UI. They run a cycle on a
+configurable interval until stopped:
+- **Retry** — fetches error groups from ServiceControl and retries each group; replayed messages
+  return to the tool's endpoint and succeed (simulating a fix being applied), exercising
+  ServiceControl's retry pipeline
 - **Archive** — fetches error groups from ServiceControl and archives each group
 - **Search** — runs canned FTS queries to exercise the ServiceControl search index
 - **Retention sweep** — triggers a manual retention purge on ServiceControl each cycle
@@ -70,8 +74,8 @@ Each message carries standard NServiceBus failure headers (`NServiceBus.Exceptio
 
 ### Release-test scenario presets
 
-The tool ships with presets mapped from `docs/testing-scenarios.md` so release-test scenarios can
-be kicked off manually by name:
+The tool ships with presets mapped from [docs/testing-scenarios.md](/docs/testing-scenarios.md) so
+release-test scenarios can be kicked off manually by name:
 - `GET /api/release-tests` — list all presets
 - `POST /api/release-tests/{name}/start` — start a preset (e.g. `retry-message-group`, `ingestion-load`)
 
@@ -80,47 +84,16 @@ be kicked off manually by name:
 ```
 tools/testing-tool/
   TestingTool.slnx
-  Directory.Build.props          # repo-style conventions (warnings-as-errors, nullable, analyzers)
-  Dockerfile
-  global.json
-  TestingTool/                   # ASP.NET Core host: Program.cs, web UI, services
-    TestingTool.csproj
-    Program.cs                   # OTel wiring, NServiceBus endpoint, DI, API endpoints
-    appsettings.json             # base config (TestingTool section, overridable by env vars)
-    appsettings.Development.json # Development overrides
-    wwwroot/index.html           # single-page web UI (vanilla JS, no build step)
-    ScenarioRunner.cs            # start/stop, rate control, per-scenario error counting
-    DirectErrorQueueWriter.cs    # bypass path: writes failed-message envelopes directly to error queue
-    Jobs/                        # UI-controllable recoverability/search jobs (retry, archive, search)
-      JobBase.cs                 # periodic job base class (start/stop, cycle counters)
-      JobRunner.cs               # manages job lifecycle, exposes /api/jobs
-      RetryJob.cs                # retries all error groups each cycle
-      ArchiveJob.cs              # archives all error groups each cycle
-      SearchJob.cs               # canned FTS queries each cycle
-      RetentionSweepJob.cs       # triggers a manual retention purge each cycle (cutoff timespan settable on start)
-    FailingMessageHandler.cs     # NServiceBus handler that throws per scenario logic
-    ReleaseTestScenarios.cs      # release-test preset mappings (Phase 5)
-    ServiceControlClient.cs      # REST API client (error groups, retry, archive, search)
-    TelemetrySetup.cs            # OTel traces + metrics + logs + OTLP/Prometheus exporters
-    NServiceBusSetup.cs          # endpoint config (Learning transport, error queue routing)
-    TestingToolOptions.cs        # config (SC URL, retry/archive/search/custom-check intervals, queue names)
-    TestingToolMetrics.cs        # shared live counters for /api/status
-    ShardIdResolver.cs           # shard id from env var, StatefulSet ordinal, or hostname
-    IScenarioRegistry.cs         # scenario registry abstraction (DI)
-    ScenarioRegistry.cs          # default scenario registry implementation
-  TestingTool.Scenarios/         # IScenario contract + 5 scenario implementations
-  TestingTool.Contracts/         # shared DTOs (ScenarioInfo, TestingToolStatus, BypassStatus, etc.)
-  TestingTool.SmokeTests/        # nunit smoke tests (requires running SC + tool)
-  TestingTool.AppHost/           # Aspire AppHost project (platform + tool + observability stack)
-    AppHost.cs                   # top-level orchestration (platform, observability, testing tool)
-    HostBuilderExtensions.cs     # persistence-type extensions (RavenDB / SQL Server / PostgreSQL)
-    ObservabilityExtensions.cs   # AddObservabilityStack() — OTel Collector + Jaeger + Prometheus + Grafana
-    PersistenceType.cs           # persistence enum
-    obs/                         # observability config (collector, Prometheus, Grafana provisioning + dashboard)
-      otel-collector-config.yaml # collector pipeline: traces → Jaeger, metrics → Prometheus exporter
-      prometheus.yml             # scrape config (targets the collector's metrics exporter)
-      grafana/provisioning/      # auto-provisioned data sources (Prometheus + Jaeger) and dashboard provider
-      grafana/dashboards/        # prebuilt "Testing Tool" Grafana dashboard JSON
+  Dockerfile                     # multi-stage container build (build context = repo root)
+  TestingTool/                   # ASP.NET Core host — API endpoints, web UI, NServiceBus endpoint,
+                                 #   scenario runner, bypass writer, recoverability/search jobs,
+                                 #   OTel setup, ServiceControl REST client
+  TestingTool.Scenarios/         # IScenario contract + the five scenario implementations
+  TestingTool.Contracts/         # shared DTOs (scenarios, status, jobs, bypass)
+  TestingTool.SmokeTests/        # NUnit smoke tests (require a running ServiceControl + tool)
+  TestingTool.AppHost/           # Aspire AppHost — orchestrates platform, tool, and observability stack
+    obs/                         # observability config: OTel Collector, Prometheus, Grafana provisioning
+                                 #   + prebuilt dashboard
 ```
 
 ## Run locally
@@ -131,6 +104,22 @@ dotnet run --project tools/testing-tool/TestingTool --configuration Release
 ```
 
 Open http://localhost:5290 (or the port shown in the console).
+
+## Run in a container
+
+The tool ships a multi-stage Dockerfile that uses the same chiseled base image as the ServiceControl
+containers. The build context is the repository root (so `global.json` and `nuget.config` are
+available):
+
+```bash
+docker build -f tools/testing-tool/Dockerfile -t particular/testing-tool .
+docker run --rm -p 8080:8080 \
+  -e TestingTool__ServiceControlApiUrl=http://host.docker.internal:33333 \
+  particular/testing-tool
+```
+
+The container listens on port 8080. CI ([testing-tool-ci.yml](/.github/workflows/testing-tool-ci.yml))
+builds the solution and the container image on every change under `tools/testing-tool/`.
 
 ## Run with Aspire
 
@@ -150,7 +139,7 @@ aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- 
 ```
 
 To select a persistence backend for the ServiceControl error instance (`RavenDb`,
-`SqlServer`, or `PostgreSql`; defaults to `PostgreSql`):
+`SqlServer`, or `PostgreSql`; defaults to `RavenDb`):
 
 ```bash
 aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- --persistence:RavenDb
@@ -215,10 +204,9 @@ TESTING_TOOL_URL=http://localhost:<tool-port> SERVICECONTROL_URL=http://localhos
 
 ## Horizontal scaling
 
-The tool is **stateless** — all state is in-memory per replica. The repo no longer ships
-docker-compose or Kubernetes manifests; run a single instance via `dotnet run` or the Aspire
-AppHost. For multi-replica deployments, bring your own orchestration and give each replica a
-distinct shard id so deterministic failure decisions don't overlap:
+The tool is **stateless** — all state is in-memory per replica. Run a single instance via
+`dotnet run` or the Aspire AppHost; for multi-replica deployments, bring your own orchestration
+and give each replica a distinct shard id so deterministic failure decisions don't overlap:
 
 | Shard id source | When |
 |---|---|
@@ -263,3 +251,10 @@ All configuration is via environment variables (no files, no database). Settings
 | `GET /health/ready` | Readiness — app is ready to serve requests |
 | `GET /api/status` | Full status snapshot (counters, shard, uptime) |
 | `GET /metrics` | Prometheus scraping endpoint |
+
+## Background
+
+The tool was designed with reference to two prior load-generation tools:
+
+- [ServiceControlFeeder](https://github.com/dvdstelt/ServiceControlFeeder) — writes raw failed-message envelopes straight to the ServiceControl error queue; the pattern behind the direct bypass writer
+- [FakeMessageGen](https://github.com/ramonsmits/FakeMessageGen) — high-throughput, rate-controlled fake message generation
