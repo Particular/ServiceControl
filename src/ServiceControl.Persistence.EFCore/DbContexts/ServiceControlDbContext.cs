@@ -27,6 +27,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
     public DbSet<LicensingEndpointEntity> LicensingEndpoints { get; set; }
     public DbSet<LicensingEndpointThroughputEntity> LicensingEndpointThroughput { get; set; }
     public DbSet<ExternalIntegrationDispatchRequestEntity> ExternalIntegrationDispatchRequests { get; set; }
+    public DbSet<MigrationCheckpointEntity> MigrationCheckpoints { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.EnableDetailedErrors();
@@ -56,6 +57,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
         modelBuilder.ApplyConfiguration(new LicensingEndpointConfiguration());
         modelBuilder.ApplyConfiguration(new LicensingEndpointThroughputConfiguration());
         modelBuilder.ApplyConfiguration(new ExternalIntegrationDispatchRequestConfiguration());
+        modelBuilder.ApplyConfiguration(new MigrationCheckpointConfiguration());
     }
 
     public abstract bool IsDuplicateKeyException(DbUpdateException exception);

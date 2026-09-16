@@ -109,6 +109,10 @@ namespace ServiceControl.RavenDB
             return embeddedDatabase;
         }
 
+        // Start only queues the server up, so connecting by the configured URL instead reaches whatever already holds the port.
+        public async Task<string> WaitUntilReady(CancellationToken cancellationToken = default) =>
+            (await EmbeddedServer.Instance.GetServerUriAsync(cancellationToken)).ToString();
+
         void Start(ServerOptions serverOptions)
         {
             this.serverOptions = serverOptions;

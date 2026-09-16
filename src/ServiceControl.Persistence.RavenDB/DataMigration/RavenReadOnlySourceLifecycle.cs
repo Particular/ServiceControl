@@ -34,7 +34,7 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, Setti
 
         try
         {
-            var serverUrl = settings.UseEmbeddedServer ? StartEmbedded() : settings.ConnectionString;
+            var serverUrl = settings.UseEmbeddedServer ? await StartEmbedded(cancellationToken) : settings.ConnectionString;
             documentStore = Connect(serverUrl);
 
             if (!settings.UseEmbeddedServer)
@@ -103,13 +103,24 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, Setti
         ? $"{sourceSettings.ServerUrl} (embedded, data directory '{sourceSettings.DatabasePath}', from '{root}/{RavenBootstrapper.DatabasePathKey}')"
         : sourceSettings.ConnectionString;
 
-    string StartEmbedded()
+    async Task<string> StartEmbedded(CancellationToken cancellationToken)
     {
         var configuration = new EmbeddedDatabaseConfiguration(settings.ServerUrl, settings.DatabaseName, settings.DatabasePath, settings.LogPath, settings.LogsMode);
 
         embedded = EmbeddedDatabase.Start(configuration, lifetime);
 
-        return embedded.ServerUrl;
+        try
+        {
+            return await embedded.WaitUntilReady(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception e)
+        {
+            throw new InvalidOperationException($"The RavenDB migration source could not start a server for the embedded database at {Located()}. A ServiceControl instance still running against that data directory is the usual cause: stop it, run the report, then start it again.", e);
+        }
     }
 
     IDocumentStore Connect(string serverUrl)
