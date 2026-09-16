@@ -75,7 +75,8 @@ class ErrorIngestionTests : ErrorIngestionTestBase
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(row.MessageType, Is.EqualTo(overLengthType[..450]));
+            Assert.That(row.MessageType!.Length, Is.EqualTo(450));
+            Assert.That(overLengthType.EndsWith(row.MessageType), Is.True, "the column is truncated from the start");
             Assert.That(row.HeadersJson, Does.Contain(overLengthType), "the headers keep the complete type");
         }
     }

@@ -40,7 +40,7 @@ public class EFRecoverabilityIngestionUnitOfWork(EFIngestionUnitOfWork parentUni
             Groups = groups,
             HeadersJson = MessageHeaders.Write(processingAttempt.Headers),
             MessageId = processingAttempt.MessageId,
-            MessageType = TruncateForColumn(GetMetadata<string>(processingAttempt, "MessageType")),
+            MessageType = TruncateTypeName(GetMetadata<string>(processingAttempt, "MessageType")),
             TimeSent = GetMetadata<DateTime?>(processingAttempt, "TimeSent"),
             ConversationId = GetMetadata<string>(processingAttempt, "ConversationId"),
             SendingEndpointName = sendingEndpoint?.Name,
@@ -70,13 +70,10 @@ public class EFRecoverabilityIngestionUnitOfWork(EFIngestionUnitOfWork parentUni
     }
 
     // The MessageType column is length-bounded (ColumnLengths.ShortTextLength) so that it can be
-    // an index key serving sort=message_type. The cap is enforced here, like the body size limit
-    // above, because it is an EFCore storage limit the persister owns rather than a shared
-    // ingestion rule. EnclosedMessageTypes' first comma token is a type's full name, so the cap can
-    // only ever bite on pathological generic names, where a truncated sort key still sorts and
-    // groups consistently.
-    static string? TruncateForColumn(string? value) =>
-        value is { Length: > ColumnLengths.ShortTextLength } ? value[..ColumnLengths.ShortTextLength] : value;
+    // an index key serving sort=message_type. This field contains a type name, so it's more useful to 
+    // truncate from the start of the name instead of the end.
+    static string? TruncateTypeName(string? value) =>
+        value is { Length: > ColumnLengths.ShortTextLength } ? value[^ColumnLengths.ShortTextLength..] : value;
 
     static T? GetMetadata<T>(FailedMessage.ProcessingAttempt processingAttempt, string key) =>
         processingAttempt.MessageMetadata.TryGetValue(key, out var value) && value is T typed ? typed : default;
