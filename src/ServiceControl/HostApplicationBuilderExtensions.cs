@@ -151,6 +151,7 @@
             if (settings.EnableMcpServer)
             {
                 // MCP tools are discovered by attribute scan from the ServiceControl assembly.
+                services.AddScoped<global::ServiceControl.Mcp.Authorization.McpAuthorizationService>();
                 services.AddMcpServer()
                     .WithHttpTransport()
                     .WithToolsFromAssembly(typeof(HostApplicationBuilderExtensions).Assembly);

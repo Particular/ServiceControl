@@ -14,12 +14,11 @@ using Recoverability;
 using ServiceControl.Mcp.Authorization;
 
 [McpServerToolType]
-static class RecoverabilityTools
+class RecoverabilityTools(McpAuthorizationService authorization)
 {
     [McpServerTool(Name = "get_failure_groups"), Description("List failure groups by classifier. Available classifiers: 'Exception Type and Stack Trace', 'Message Type', 'Endpoint Address', 'Endpoint Instance', 'Endpoint Name'.")]
-    public static async Task<string> GetFailureGroups(
+    public async Task<string> GetFailureGroups(
         GroupFetcher fetcher,
-        McpAuthorizationService authorization,
         [Description("The classifier to group errors by. Defaults to 'Exception Type and Stack Trace'.")] string classifier = "Exception Type and Stack Trace",
         [Description("Optional filter value within the classifier.")] string? classifierFilter = null,
         CancellationToken cancellationToken = default)
@@ -31,9 +30,8 @@ static class RecoverabilityTools
     }
 
     [McpServerTool(Name = "get_failure_group_errors"), Description("List failed messages within a specific failure group.")]
-    public static async Task<string> GetFailureGroupErrors(
+    public async Task<string> GetFailureGroupErrors(
         IGroupsDataStore store,
-        McpAuthorizationService authorization,
         [Description("The ID of the failure group.")] string groupId,
         [Description("Status filter: Unresolved, Archived, RetryIssued, or Resolved.")] string? status = null,
         [Description("Page number (1-based).")]
@@ -55,11 +53,10 @@ static class RecoverabilityTools
     }
 
     [McpServerTool(Name = "retry_failure_group"), Description("Retry all failed messages in a failure group.")]
-    public static async Task<string> RetryFailureGroup(
+    public async Task<string> RetryFailureGroup(
         IMessageSession bus,
         RetryingManager retryingManager,
         TimeProvider timeProvider,
-        McpAuthorizationService authorization,
         [Description("The ID of the failure group to retry.")] string groupId,
         CancellationToken cancellationToken = default)
     {

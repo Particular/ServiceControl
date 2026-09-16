@@ -13,12 +13,11 @@ using Persistence.Infrastructure;
 using ServiceControl.Mcp.Authorization;
 
 [McpServerToolType]
-static class ErrorTools
+class ErrorTools(McpAuthorizationService authorization)
 {
     [McpServerTool(Name = "get_failed_messages"), Description("List failed messages. Optionally filter by status and queue address.")]
-    public static async Task<string> GetFailedMessages(
+    public async Task<string> GetFailedMessages(
         IFailedMessageQueryDataStore store,
-        McpAuthorizationService authorization,
         [Description("Status filter: unresolved, archived, retryissued, or resolved.")] string? status = null,
         [Description("Filter by queue address.")] string? queueAddress = null,
         [Description("Page number (1-based).")]
@@ -39,9 +38,8 @@ static class ErrorTools
     }
 
     [McpServerTool(Name = "get_failed_message"), Description("Get a specific failed message by its ID.")]
-    public static async Task<string> GetFailedMessage(
+    public async Task<string> GetFailedMessage(
         IFailedMessageQueryDataStore store,
-        McpAuthorizationService authorization,
         [Description("The unique ID of the failed message.")] string messageId,
         CancellationToken cancellationToken = default)
     {
@@ -51,9 +49,8 @@ static class ErrorTools
     }
 
     [McpServerTool(Name = "retry_failed_message"), Description("Retry a single failed message by its ID.")]
-    public static async Task<string> RetryFailedMessage(
+    public async Task<string> RetryFailedMessage(
         IMessageSession messageSession,
-        McpAuthorizationService authorization,
         [Description("The unique ID of the failed message to retry.")] string messageId,
         CancellationToken cancellationToken = default)
     {
