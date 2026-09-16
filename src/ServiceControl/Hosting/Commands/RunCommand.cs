@@ -4,6 +4,7 @@
     using System.Threading.Tasks;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Builder;
+    using ModelContextProtocol.AspNetCore;
     using NServiceBus;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
@@ -38,6 +39,11 @@
                 app.UseServicePulse(settings.ServicePulseSettings);
             }
             app.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
+
+            if (settings.EnableMcpServer)
+            {
+                app.MapMcp("/mcp");
+            }
 
             await app.RunAsync(settings.RootUrl);
         }

@@ -69,6 +69,7 @@
             RetryHistoryDepth = SettingsReader.Read(SettingsRootNamespace, "RetryHistoryDepth", 10);
             AllowMessageEditing = SettingsReader.Read<bool>(SettingsRootNamespace, "AllowMessageEditing");
             EnableIntegratedServicePulse = SettingsReader.Read(SettingsRootNamespace, "EnableIntegratedServicePulse", false);
+            EnableMcpServer = SettingsReader.Read(SettingsRootNamespace, "EnableMcpServer", false);
             if (EnableIntegratedServicePulse)
             {
                 ServicePulseSettings = ServicePulseSettings.GetFromEnvironmentVariables() with
@@ -120,6 +121,7 @@
         public bool AllowMessageEditing { get; set; }
 
         public bool EnableIntegratedServicePulse { get; set; }
+        public bool EnableMcpServer { get; set; }
         public ServicePulseSettings ServicePulseSettings { get; set; }
 
         //HINT: acceptance tests only

@@ -25,6 +25,7 @@
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Hosting.WindowsServices;
     using Microsoft.Extensions.Logging;
+    using ModelContextProtocol.AspNetCore;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Hosting;
@@ -146,6 +147,14 @@
             }
 
             hostBuilder.AddServiceControlComponents(componentSetupContext, settings, transportCustomization, serviceControlComponents);
+
+            if (settings.EnableMcpServer)
+            {
+                // MCP tools are discovered by attribute scan from the ServiceControl assembly.
+                services.AddMcpServer()
+                    .WithHttpTransport()
+                    .WithToolsFromAssembly(typeof(HostApplicationBuilderExtensions).Assembly);
+            }
         }
 
         public static void AddServiceControlInstallers(this IHostApplicationBuilder hostApplicationBuilder, Settings settings)

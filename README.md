@@ -112,6 +112,7 @@ Local testing guides:
 - [Reverse Proxy Testing](docs/reverseproxy-testing.md)
 - [Forward Headers Testing](docs/forward-headers-testing.md)
 - [Authentication Testing](docs/authentication-testing.md)
+- [MCP Server](docs/mcp.md)
 - [Persistence Tests](docs/testing-persistence.md)
 
 ## How to developer test the PowerShell Module
