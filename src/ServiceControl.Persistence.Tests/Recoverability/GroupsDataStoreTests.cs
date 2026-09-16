@@ -183,6 +183,10 @@ class GroupsDataStoreTests : PersistenceTestBase
             Assert.That(
                 secondPage.Results.Select(group => group.Id).Intersect(firstPage.Results.Select(group => group.Id)),
                 Is.Empty);
+            Assert.That(firstPage.QueryStats.TotalCount, Is.EqualTo(5),
+                "the total count should reflect all matching groups, not just the page");
+            Assert.That(secondPage.QueryStats.TotalCount, Is.EqualTo(5),
+                "the total count should reflect all matching groups, not just the page");
         }
     }
 

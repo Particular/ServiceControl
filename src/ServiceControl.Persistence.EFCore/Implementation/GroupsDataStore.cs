@@ -36,13 +36,14 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
     public Task<QueryResult<IList<FailureGroupView>>> GetArchivedGroupsByClassifier(string classifier, PagingInfo pagingInfo, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (dbContext, token) =>
         {
-            var views = await GetGroupViews(
-                ByClassifier(dbContext, classifier),
-                WithStatus(dbContext, FailedMessageStatus.Archived),
-                pagingInfo,
-                token);
+            var groups = ByClassifier(dbContext, classifier);
+            var messages = WithStatus(dbContext, FailedMessageStatus.Archived);
 
-            return new QueryResult<IList<FailureGroupView>>(views, views.ToQueryStatsInfo("groups", views.Count));
+            var views = await GetGroupViews(groups, messages, pagingInfo, token);
+
+            var totalCount = await groups.AggregateGroupSummaries(messages).LongCountAsync(token);
+
+            return new QueryResult<IList<FailureGroupView>>(views, views.ToQueryStatsInfo("groups", totalCount));
         }, cancellationToken);
 
     public Task<QueryResult<FailureGroupView>> GetUnresolvedGroup(string groupId, string? status, string? modified, CancellationToken cancellationToken = default) =>
