@@ -20,10 +20,6 @@ class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
         builder.Property(e => e.LastAttemptedAt).IsRequired();
 
         builder.Property(e => e.MessageId).HasMaxLength(ColumnLengths.ShortTextLength);
-        // 450 and not nvarchar(max): the column has to be indexable to serve sort=message_type, and
-        // SQL Server rejects nvarchar(max) as an index key column. Type names are short-by-nature
-        // (the enricher stores the first comma token of EnclosedMessageTypes); ingestion enforces
-        // the cap so the write path can never fail on a longer value.
         builder.Property(e => e.MessageType).HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.ConversationId).HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.SendingEndpointName).HasMaxLength(ColumnLengths.ShortTextLength);
@@ -37,12 +33,6 @@ class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
         builder.Property(e => e.HeadersJson).IsRequired();
         builder.Property(e => e.BodyStoredExternally).IsRequired();
         builder.Property(e => e.BodySize).IsRequired();
-
-        // Drives the group aggregate's MIN/MAX(FirstTimeOfFailure, LastTimeOfFailure) over the
-        // unresolved set. The FirstTimeOfFailure/LastTimeOfFailure INCLUDE columns are added in the
-        // provider DbContexts (the IncludeProperties API is provider-specific and is not available in
-        // this shared project).
-        builder.HasIndex(e => new { e.Status, e.LastModified });
 
         // Serves the failed-messages page sorted by time_of_failure (ServicePulse default sort).
         // Keyed (Status, LastTimeOfFailure) so the page query streams instead of scanning the
