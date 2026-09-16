@@ -58,27 +58,24 @@ public sealed class MigrationEngine(
                 var predecessorState = predecessor?.State.ToString() ?? "not started";
                 var blocked = checkpoint with
                 {
-                    Selected = true,
+                    State = MigrationCategoryState.Blocked,
                     LastError = $"Blocked: {category.Id} must follow {mustFollowId}, which is {predecessorState}"
                 };
-                await checkpointStore.Upsert(blocked, cancellationToken);
                 logger.LogWarning("Category {CategoryId} did not run: it must follow {PredecessorId}, which is {PredecessorState}",
                     category.Id, mustFollowId, predecessorState);
-                return blocked;
+                return await checkpointStore.Upsert(blocked, cancellationToken);
             }
         }
 
-        if (checkpoint.State is MigrationCategoryState.NotStarted or MigrationCategoryState.Halted)
+        if (checkpoint.State is MigrationCategoryState.NotStarted or MigrationCategoryState.Halted or MigrationCategoryState.Blocked)
         {
-            checkpoint = checkpoint with
+            checkpoint = await checkpointStore.Upsert(checkpoint with
             {
-                Selected = true,
                 State = MigrationCategoryState.InProgress,
                 StartedAt = checkpoint.StartedAt ?? timeProvider.GetUtcNow().UtcDateTime,
-                CompletedAt = null,
+                SettledAt = null,
                 LastError = null
-            };
-            await checkpointStore.Upsert(checkpoint, cancellationToken);
+            }, cancellationToken);
         }
 
         var isFirstBatch = true;
@@ -114,31 +111,17 @@ public sealed class MigrationEngine(
                     }
                 }
 
-                // Absolute totals counting every handed-over row as copied, persisted verbatim with the rows.
-                // The real split comes back in the result and lands on the next checkpoint.
-                var checkpointAfterBatch = checkpoint with
+                // Prior totals, the new cursor, and the rows this engine already skipped. The target adds its own
+                // outcome inside the transaction that writes the rows, so nothing provisional is ever stored.
+                var checkpointToExtend = checkpoint with
                 {
                     Cursor = batch.Cursor,
-                    CopiedCount = checkpoint.CopiedCount + batchToWrite.Rows.Count,
                     SkippedCount = checkpoint.SkippedCount + bodySkips,
-                    SkipReasons = AddSkipReasons(checkpoint.SkipReasons, bodySkips == 0 ? null : new Dictionary<string, long> { [nameof(MigrationSkipReason.BodyUnreadable)] = bodySkips })
+                    SkipReasons = MigrationCheckpoint.AddSkipReasons(checkpoint.SkipReasons, bodySkips == 0 ? null : new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BodyUnreadable] = bodySkips })
                 };
 
-                var result = await target.Write(category, batchToWrite, checkpointAfterBatch, cancellationToken);
-
-                checkpoint = checkpointAfterBatch with
-                {
-                    CopiedCount = checkpoint.CopiedCount + result.Copied,
-                    SkippedCount = checkpointAfterBatch.SkippedCount + result.Skipped,
-                    AlreadyPresentCount = checkpointAfterBatch.AlreadyPresentCount + result.AlreadyPresent,
-                    SkipReasons = AddSkipReasons(checkpointAfterBatch.SkipReasons, result.SkipReasons)
-                };
-
-                var explainedSkips = result.SkipReasons?.Values.Sum() ?? 0;
-                if (explainedSkips != result.Skipped)
-                {
-                    throw new InvalidOperationException($"The target reported {result.Skipped} skipped rows in category {category.Id} but gave reasons for {explainedSkips}. Every skipped row needs a reason, or --migration-verify cannot account for it.");
-                }
+                var result = await target.Write(category, batchToWrite, checkpointToExtend, cancellationToken);
+                checkpoint = result.Saved;
 
                 foreach (var id in result.SkippedIds)
                 {
@@ -156,11 +139,15 @@ public sealed class MigrationEngine(
                 }
             }
         }
+        // A shutdown is not a halt, and there is nothing to reconcile: the last committed batch stored its
+        // real split with its own rows, so the row on disk is already correct and resumable.
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            // The target stored the last committed batch with every row counted as copied, so save its real
-            // split. The category stays InProgress and the next start resumes from the cursor.
-            await checkpointStore.Upsert(checkpoint, CancellationToken.None);
+            throw;
+        }
+        // Another writer holds this row, which no amount of halting resolves. Leave the state alone so their row stands.
+        catch (MigrationCheckpointConflictException)
+        {
             throw;
         }
         catch (Exception ex)
@@ -174,12 +161,8 @@ public sealed class MigrationEngine(
     }
 
     // Halts log before settling: the store shares the target's database, so a failed save would hide the cause.
-    async Task<MigrationCheckpoint> Settle(MigrationCheckpoint settled, CancellationToken cancellationToken)
-    {
-        settled = settled with { CompletedAt = timeProvider.GetUtcNow().UtcDateTime };
-        await checkpointStore.Upsert(settled, cancellationToken);
-        return settled;
-    }
+    Task<MigrationCheckpoint> Settle(MigrationCheckpoint settled, CancellationToken cancellationToken) =>
+        checkpointStore.Upsert(settled with { SettledAt = timeProvider.GetUtcNow().UtcDateTime }, cancellationToken);
 
     async Task<(MigrationBatch Batch, IReadOnlyList<(string SourceId, Exception LastAttemptError)> Failed)> FetchBodiesWithRetry(MigrationCategory category, MigrationBatch batch, CancellationToken cancellationToken)
     {
@@ -239,27 +222,11 @@ public sealed class MigrationEngine(
     static bool IsDefect(Exception exception) =>
         exception is NotSupportedException or NotImplementedException or InvalidOperationException or ArgumentException or NullReferenceException or InvalidCastException;
 
-    static IReadOnlyDictionary<string, long>? AddSkipReasons(IReadOnlyDictionary<string, long>? totals, IReadOnlyDictionary<string, long>? additions)
-    {
-        if (additions is not { Count: > 0 })
-        {
-            return totals;
-        }
-
-        Dictionary<string, long> sum = totals is null ? [] : new(totals);
-        foreach (var (reason, count) in additions)
-        {
-            sum[reason] = sum.GetValueOrDefault(reason) + count;
-        }
-
-        return sum;
-    }
-
     // A configured pause of zero means "do not throttle", and a timer that is never going to be
     // waited on is worse than no timer: against a fake clock nobody advances, it never completes.
     Task Pause(TimeSpan duration, CancellationToken cancellationToken) =>
         duration <= TimeSpan.Zero ? Task.CompletedTask : Task.Delay(duration, timeProvider, cancellationToken);
 
     static MigrationCheckpoint NotStarted(MigrationCategory category) =>
-        new(category.Id, Selected: false, MigrationCategoryState.NotStarted, null, 0, 0, null, null, null, null, null, null, null);
+        new(category.Id, MigrationCategoryState.NotStarted, null, 0, 0, null, null, null, null, null, null);
 }
