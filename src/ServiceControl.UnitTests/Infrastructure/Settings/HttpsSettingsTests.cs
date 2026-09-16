@@ -31,10 +31,16 @@ public class HttpsSettingsTests
         WritePfx(tempCertPath);
     }
 
-    static void WritePfx(string path, string password = null)
+    static void WritePfx(string path, string password = null, string enhancedKeyUsageOid = null)
     {
         using var key = RSA.Create(2048);
         var request = new CertificateRequest("CN=ServiceControl.Tests", key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+
+        if (enhancedKeyUsageOid != null)
+        {
+            request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension([new Oid(enhancedKeyUsageOid)], critical: false));
+        }
+
         using var certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddYears(1));
 
         File.WriteAllBytes(path, certificate.Export(X509ContentType.Pkcs12, password));
@@ -164,6 +170,24 @@ public class HttpsSettingsTests
             Assert.That(ex.Message, Does.Contain("Https.CertificatePassword configured: True"));
             Assert.That(ex.Message, Does.Not.Contain("correct-password"));
             Assert.That(ex.Message, Does.Not.Contain("wrong-password"));
+        }
+    }
+
+    [Test]
+    public void Should_throw_when_certificate_is_not_valid_for_server_authentication()
+    {
+        const string clientAuthenticationOid = "1.3.6.1.5.5.7.3.2";
+        WritePfx(tempCertPath, enhancedKeyUsageOid: clientAuthenticationOid);
+
+        Environment.SetEnvironmentVariable("SERVICECONTROL_HTTPS_ENABLED", "true");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_HTTPS_CERTIFICATEPATH", tempCertPath);
+
+        var ex = Assert.Throws<InvalidOperationException>(() => new HttpsSettings(TestNamespace));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ex.Message, Does.Contain("server authentication"));
+            Assert.That(ex.Message, Does.Contain(tempCertPath));
         }
     }
 

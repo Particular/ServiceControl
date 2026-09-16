@@ -2,6 +2,7 @@ namespace ServiceControl.Infrastructure;
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
@@ -148,7 +149,41 @@ public class HttpsSettings
             throw new InvalidOperationException(message);
         }
 
+        // Kestrel applies this rule when the HTTPS endpoint is bound; checking it here reports it
+        // before any hosted service has started. A certificate without an EKU extension is accepted.
+        if (!IsAllowedForServerAuthentication(certificate))
+        {
+            var message = $"The HTTPS certificate cannot be used for server authentication, so this instance cannot start. " +
+                          $"Https.CertificatePath: '{CertificatePath}' (subject '{certificate.Subject}', thumbprint {certificate.Thumbprint}). " +
+                          $"Its Extended Key Usage extension does not include Server Authentication (OID {ServerAuthenticationOid}). " +
+                          $"To start without HTTPS while investigating, set Https.Enabled to false.";
+            logger.LogCritical(message);
+            throw new InvalidOperationException(message);
+        }
+
         return certificate;
+    }
+
+    const string ServerAuthenticationOid = "1.3.6.1.5.5.7.3.1";
+
+    static bool IsAllowedForServerAuthentication(X509Certificate2 certificate)
+    {
+        var hasEkuExtension = false;
+
+        foreach (var extension in certificate.Extensions.OfType<X509EnhancedKeyUsageExtension>())
+        {
+            hasEkuExtension = true;
+
+            foreach (var oid in extension.EnhancedKeyUsages)
+            {
+                if (string.Equals(oid.Value, ServerAuthenticationOid, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return !hasEkuExtension;
     }
 
     void LogConfiguration()
