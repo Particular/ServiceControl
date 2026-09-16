@@ -42,7 +42,7 @@ class MigrationEngineCategorySelectionTests
     public void A_category_removed_from_configuration_leaves_its_checkpoint_row_untouched()
     {
         var engine = BuildEngine([], out var checkpointStore);
-        var previousRun = new MigrationCheckpoint("EventLog", Selected: true, MigrationCategoryState.CompleteWithErrors, "cursor-99", 40, 2, 42, null, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, null, null);
+        var previousRun = new MigrationCheckpoint("EventLog", MigrationCategoryState.CompleteWithErrors, "cursor-99", 40, 2, 42, null, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, null);
         checkpointStore.Upsert(previousRun).GetAwaiter().GetResult();
 
         var selected = engine.SelectCategories(MigrationCategoryKind.Optional);
@@ -50,7 +50,7 @@ class MigrationEngineCategorySelectionTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(selected.Select(c => c.Id), Does.Not.Contain("EventLog"));
-            Assert.That(checkpointStore.Read("EventLog").GetAwaiter().GetResult(), Is.EqualTo(previousRun));
+            Assert.That(checkpointStore.Read("EventLog").GetAwaiter().GetResult(), Is.EqualTo(previousRun with { Version = 1 }));
         }
     }
 }
