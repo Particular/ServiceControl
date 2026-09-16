@@ -75,6 +75,11 @@ namespace ServiceControl.RavenDB
                 optionalArgs.Add("--RunInMemory=true");
             }
 
+            if (databaseConfiguration.DisableAutoIndexCreation)
+            {
+                optionalArgs.Add("--Indexing.DisableQueryOptimizerGeneratedIndexes=true");
+            }
+
             var serverOptions = new ServerOptions
             {
                 CommandLineArgs =

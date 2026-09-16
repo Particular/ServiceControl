@@ -39,7 +39,7 @@ try
 
     await new CommandRunner(arguments.Command).Execute(arguments, settings);
 
-    return 0;
+    return Environment.ExitCode;
 }
 catch (Exception ex)
 {
