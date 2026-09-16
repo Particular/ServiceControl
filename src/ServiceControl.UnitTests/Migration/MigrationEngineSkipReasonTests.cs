@@ -24,9 +24,10 @@ class MigrationEngineSkipReasonTests
         source.Seed(category.Id, Row("a"), Row("b"), Row("c"), Row("d"));
         var checkpointStore = new InMemoryMigrationCheckpointStore();
         var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 3 };
-        target.RejectKey("a", "KeyTooLong");
-        target.RejectKey("b", "Unparseable");
-        target.RejectKey("d", "KeyTooLong");
+        // One reason exists, so this pins the total rather than the split between reasons.
+        target.RejectKey("a", MigrationSkipReason.BodyUnreadable);
+        target.RejectKey("b", MigrationSkipReason.BodyUnreadable);
+        target.RejectKey("d", MigrationSkipReason.BodyUnreadable);
         var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []);
         var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
 
@@ -35,8 +36,8 @@ class MigrationEngineSkipReasonTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(checkpoint.SkippedCount, Is.EqualTo(3));
-            Assert.That(checkpoint.SkipReasons, Is.EquivalentTo(new Dictionary<string, long> { ["KeyTooLong"] = 2, ["Unparseable"] = 1 }));
-            Assert.That((await checkpointStore.Read(category.Id))!.SkipReasons, Is.EquivalentTo(new Dictionary<string, long> { ["KeyTooLong"] = 2, ["Unparseable"] = 1 }));
+            Assert.That(checkpoint.SkipReasons, Is.EquivalentTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BodyUnreadable] = 3 }));
+            Assert.That((await checkpointStore.Read(category.Id))!.SkipReasons, Is.EquivalentTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BodyUnreadable] = 3 }));
         }
     }
 
@@ -54,7 +55,7 @@ class MigrationEngineSkipReasonTests
 
         var checkpoint = await engine.RunCategoryAsync(category);
 
-        Assert.That(checkpoint.SkipReasons, Is.EquivalentTo(new Dictionary<string, long> { [nameof(MigrationSkipReason.BodyUnreadable)] = 1 }));
+        Assert.That(checkpoint.SkipReasons, Is.EquivalentTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BodyUnreadable] = 1 }));
     }
 
     [Test]
@@ -74,7 +75,7 @@ class MigrationEngineSkipReasonTests
         {
             Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Halted));
             Assert.That(checkpoint.LastError, Does.Contain("reported 1 skipped").And.Contain("reasons for 0"));
-            Assert.That(checkpoint.Cursor, Is.EqualTo("a"), "the target committed the batch, so a restart must carry on after it");
+            Assert.That(checkpoint.Cursor, Is.Null, "the target refused ahead of its commit, so nothing was written and a restart reads the batch again");
         }
     }
 
@@ -82,10 +83,10 @@ class MigrationEngineSkipReasonTests
     {
         public int BatchSizeFor(MigrationCategory category) => 10;
 
-        public async Task<MigrationWriteResult> Write(MigrationCategory category, MigrationBatch batch, MigrationCheckpoint checkpointAfterBatch, CancellationToken cancellationToken = default)
+        public async Task<MigrationWriteResult> Write(MigrationCategory category, MigrationBatch batch, MigrationCheckpoint checkpointToExtend, CancellationToken cancellationToken = default)
         {
-            await checkpointStore.Upsert(checkpointAfterBatch, cancellationToken);
-            return new MigrationWriteResult(0, batch.Rows.Count, []);
+            var saved = await checkpointStore.Upsert(checkpointToExtend.Extend(0, batch.Rows.Count, 0, null), cancellationToken);
+            return new MigrationWriteResult(saved, 0, batch.Rows.Count, []);
         }
 
         public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) => Task.FromResult(0L);

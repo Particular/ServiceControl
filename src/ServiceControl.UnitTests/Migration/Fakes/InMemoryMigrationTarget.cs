@@ -11,7 +11,7 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
     readonly Dictionary<string, HashSet<string>> writtenKeysByCategory = [];
     readonly Dictionary<string, List<MigrationRow>> writtenRowsByCategory = [];
     readonly HashSet<string> preExistingKeys = [];
-    readonly Dictionary<string, string> rejectedKeys = [];
+    readonly Dictionary<string, MigrationSkipReason> rejectedKeys = [];
 
     public int DefaultBatchSize { get; set; } = 3;
     public string NoBatchSizeFor { get; set; }
@@ -21,7 +21,7 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
 
     public void SeedExistingKey(string sourceId) => preExistingKeys.Add(sourceId);
 
-    public void RejectKey(string sourceId, string reason) => rejectedKeys[sourceId] = reason;
+    public void RejectKey(string sourceId, MigrationSkipReason reason) => rejectedKeys[sourceId] = reason;
 
     public IReadOnlyList<MigrationRow> WrittenRows(string categoryId) =>
         writtenRowsByCategory.TryGetValue(categoryId, out var rows) ? rows : [];
@@ -32,7 +32,7 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
     public async Task<MigrationWriteResult> Write(
         MigrationCategory category,
         MigrationBatch batch,
-        MigrationCheckpoint checkpointAfterBatch,
+        MigrationCheckpoint checkpointToExtend,
         CancellationToken cancellationToken = default)
     {
         callCount++;
@@ -54,7 +54,7 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
         var copied = 0;
         var alreadyPresent = 0;
         var skippedIds = new List<string>();
-        var skipReasons = new Dictionary<string, long>();
+        var skipReasons = new Dictionary<MigrationSkipReason, long>();
 
         foreach (var row in batch.Rows)
         {
@@ -75,11 +75,13 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
             copied++;
         }
 
-        // Verbatim and in the same operation as the rows, as the real targets persist it. Adding the
-        // batch's own counts here would double every number the engine already included.
-        await checkpointStore.Upsert(checkpointAfterBatch, cancellationToken);
+        // Extended and saved in the same operation as the rows, as the real targets do, so what lands
+        // is this batch's real split rather than a provisional one the next save has to correct.
+        var saved = await checkpointStore.Upsert(
+            checkpointToExtend.Extend(copied, skippedIds.Count, alreadyPresent, skipReasons),
+            cancellationToken);
 
-        return new MigrationWriteResult(copied, skippedIds.Count, skippedIds, alreadyPresent, skipReasons);
+        return new MigrationWriteResult(saved, copied, skippedIds.Count, skippedIds, alreadyPresent, skipReasons);
     }
 
     public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) =>
