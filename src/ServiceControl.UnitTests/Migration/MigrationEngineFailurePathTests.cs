@@ -225,6 +225,142 @@ class MigrationEngineFailurePathTests
         Assert.That(logger.Entries.Where(e => e.Level == LogLevel.Error).Select(e => e.Message), Has.Some.Contains("Halted: 1 of 1 rows skipped"));
     }
 
+    [Test]
+    public async Task A_checkpoint_conflict_leaves_the_other_writer_alone_instead_of_halting_over_it()
+    {
+        // Two hosts pointed at one target is what the version token exists for. Settling this as halted
+        // would write over the progress of whichever host is still copying.
+        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"), Row("b"));
+        // Save 1 moves the row to in progress; save 2 is the first batch, by which point the other host has moved it on.
+        var checkpointStore = new ConflictOnNthSaveCheckpointStore { ConflictOnSave = 2 };
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 2 };
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []), NullLogger<MigrationEngine>.Instance);
+
+        Assert.ThrowsAsync<MigrationCheckpointConflictException>(() => engine.RunCategoryAsync(category));
+
+        var persisted = await checkpointStore.Read(category.Id);
+        Assert.That(persisted!.State, Is.EqualTo(MigrationCategoryState.InProgress), "no halted row was written over the conflict");
+    }
+
+    [Test]
+    public async Task A_cancellation_that_is_not_a_shutdown_halts_the_category_like_any_other_failure()
+    {
+        // An inner timeout surfaces as the same exception type as a host stopping, and only the token
+        // says which. Treating a timeout as a shutdown would end the run with no reason on the row.
+        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore)
+        {
+            FailOnCallNumber = 1,
+            FailWith = new OperationCanceledException("the query timed out")
+        };
+        var engine = BuildEngine(source, checkpointStore, target);
+
+        var checkpoint = await engine.RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Halted));
+            Assert.That(checkpoint.LastError, Does.Contain("OperationCanceledException").And.Contain("the query timed out"));
+        }
+    }
+
+    [Test]
+    public async Task The_halt_reason_names_the_cursor_the_copy_had_reached()
+    {
+        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"), Row("b"), Row("c"), Row("d"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 2, FailOnCallNumber = 2 };
+        var engine = BuildEngine(source, checkpointStore, target);
+
+        var checkpoint = await engine.RunCategoryAsync(category);
+
+        Assert.That(checkpoint.LastError, Does.Contain("at cursor b"), "the cursor is the only pointer an operator has to where it stopped");
+    }
+
+    [Test]
+    public async Task The_halt_reason_says_at_the_start_when_the_first_batch_never_committed()
+    {
+        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { FailOnCallNumber = 1 };
+        var engine = BuildEngine(source, checkpointStore, target);
+
+        var checkpoint = await engine.RunCategoryAsync(category);
+
+        Assert.That(checkpoint.LastError, Does.Contain("at the start"));
+    }
+
+    [Test]
+    public async Task Every_row_the_target_skips_is_named_in_the_log()
+    {
+        // The counts say how much was left behind. Only the log says which rows, and it is the way back
+        // to them while the RavenDB database still exists.
+        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"), Row("b"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore);
+        target.RejectKey("b", MigrationSkipReason.PastRetention);
+        var logger = new CapturingLogger();
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []), logger);
+
+        await engine.RunCategoryAsync(category);
+
+        Assert.That(logger.Entries.Select(entry => entry.Message), Has.Some.EqualTo("Skipped b in category KnownEndpoints"));
+    }
+
+    [Test]
+    public async Task A_stop_between_batches_leaves_the_row_in_progress_at_the_batch_that_committed()
+    {
+        // The stop lands in the source rather than in a write, so nothing is mid-transaction: the row
+        // still has to describe the batches that did commit, and stay resumable.
+        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"), Row("b"), Row("c"), Row("d"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        using var stopping = new CancellationTokenSource();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 2, CancelOnCall = (1, stopping) };
+        var engine = BuildEngine(source, checkpointStore, target);
+
+        Assert.ThrowsAsync<OperationCanceledException>(() => engine.RunCategoryAsync(category, stopping.Token));
+
+        var persisted = await checkpointStore.Read(category.Id);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(persisted!.State, Is.EqualTo(MigrationCategoryState.InProgress), "a shutdown is not a halt");
+            Assert.That(persisted.Cursor, Is.EqualTo("b"));
+            Assert.That(persisted.CopiedCount, Is.EqualTo(2));
+            Assert.That(persisted.SettledAt, Is.Null);
+        }
+    }
+
+    // Another host moved the row on between this host reading it and saving it.
+    sealed class ConflictOnNthSaveCheckpointStore : IMigrationCheckpointStore
+    {
+        readonly InMemoryMigrationCheckpointStore saved = new();
+        int saves;
+
+        public int ConflictOnSave { get; init; }
+
+        public Task<IReadOnlyList<MigrationCheckpoint>> ReadAll(CancellationToken cancellationToken = default) => saved.ReadAll(cancellationToken);
+
+        public Task<MigrationCheckpoint?> Read(string categoryId, CancellationToken cancellationToken = default) => saved.Read(categoryId, cancellationToken);
+
+        public Task<MigrationCheckpoint> Upsert(MigrationCheckpoint checkpoint, CancellationToken cancellationToken = default) =>
+            ++saves == ConflictOnSave
+                ? throw new MigrationCheckpointConflictException($"Checkpoint {checkpoint.CategoryId} was saved from version {checkpoint.Version}, but the stored row has moved on.")
+                : saved.Upsert(checkpoint, cancellationToken);
+    }
+
     // The store shares the target's database, which has become unreachable by the time the halt is saved.
     sealed class HaltSaveFailsCheckpointStore : IMigrationCheckpointStore
     {

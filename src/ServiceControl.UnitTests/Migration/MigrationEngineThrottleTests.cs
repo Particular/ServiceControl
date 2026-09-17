@@ -49,6 +49,35 @@ class MigrationEngineThrottleTests
     }
 
     [Test]
+    public async Task A_stop_during_a_pause_ends_the_run_as_a_shutdown()
+    {
+        // Most of a throttled background copy's life is spent in this pause, so it is where a host being
+        // stopped most often lands.
+        var category = MigrationCategoryRegistry.Find("EventLog")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"), Row("b"), Row("c"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 1 };
+        var clock = new TimerRecordingTimeProvider();
+        using var stopping = new CancellationTokenSource();
+        var options = new MigrationEngineOptions(TimeSpan.FromSeconds(1), 5, 100, []);
+        var engine = new MigrationEngine(source, target, checkpointStore, clock, options, NullLogger<MigrationEngine>.Instance);
+
+        var runTask = engine.RunCategoryAsync(category, stopping.Token);
+        Assert.That(await clock.TimerCreated.WaitAsync(TimeSpan.FromSeconds(5)), Is.True, "the first pause never started");
+        await stopping.CancelAsync();
+
+        Assert.ThrowsAsync<TaskCanceledException>(() => runTask);
+
+        var persisted = await checkpointStore.Read(category.Id);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(persisted!.State, Is.EqualTo(MigrationCategoryState.InProgress), "a shutdown mid-pause is not a halt");
+            Assert.That(persisted.Cursor, Is.EqualTo("a"), "the batch before the pause committed");
+        }
+    }
+
+    [Test]
     public async Task Required_categories_never_pause()
     {
         var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
@@ -64,33 +93,5 @@ class MigrationEngineThrottleTests
         var checkpoint = await engine.RunCategoryAsync(category).WaitAsync(TimeSpan.FromSeconds(5));
 
         Assert.That(checkpoint.CopiedCount, Is.EqualTo(3));
-    }
-
-    // Signals each timer the engine creates, so the test only advances the clock once a pause is waiting on it.
-    sealed class TimerRecordingTimeProvider : TimeProvider
-    {
-        readonly FakeTimeProvider clock = new();
-
-        public SemaphoreSlim TimerCreated { get; } = new(0);
-
-        public List<TimeSpan> DueTimes { get; } = [];
-
-        public void Advance(TimeSpan delta) => clock.Advance(delta);
-
-        public override DateTimeOffset GetUtcNow() => clock.GetUtcNow();
-
-        public override long GetTimestamp() => clock.GetTimestamp();
-
-        public override long TimestampFrequency => clock.TimestampFrequency;
-
-        public override TimeZoneInfo LocalTimeZone => clock.LocalTimeZone;
-
-        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
-        {
-            var timer = clock.CreateTimer(callback, state, dueTime, period);
-            DueTimes.Add(dueTime);
-            TimerCreated.Release();
-            return timer;
-        }
     }
 }

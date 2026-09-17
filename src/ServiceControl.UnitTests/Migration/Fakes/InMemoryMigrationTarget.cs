@@ -16,6 +16,12 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
     public int DefaultBatchSize { get; set; } = 3;
     public string NoBatchSizeFor { get; set; }
     public int? FailOnCallNumber { get; set; }
+
+    /// <summary>What FailOnCallNumber throws, when the default simulated failure is the wrong shape for the test.</summary>
+    public Exception FailWith { get; set; }
+
+    /// <summary>Cancels the token on this call and then writes normally, so the stop surfaces from the source's next batch.</summary>
+    public (int CallNumber, CancellationTokenSource Source)? CancelOnCall { get; set; }
     public (int CallNumber, CancellationTokenSource Source)? StopOnCall { get; set; }
     int callCount;
 
@@ -45,7 +51,12 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
 
         if (FailOnCallNumber == callCount)
         {
-            throw new InvalidOperationException($"Simulated failure on write {callCount}");
+            throw FailWith ?? new InvalidOperationException($"Simulated failure on write {callCount}");
+        }
+
+        if (CancelOnCall is { } cancel && cancel.CallNumber == callCount)
+        {
+            await cancel.Source.CancelAsync();
         }
 
         var keys = writtenKeysByCategory.TryGetValue(category.Id, out var existingKeys) ? existingKeys : writtenKeysByCategory[category.Id] = [];
