@@ -93,7 +93,7 @@ class RetentionSweepCustomCheckTests : PersistenceTestBase
         var detail = new CustomCheckDetail
         {
             Category = "ServiceControl Health",
-            CustomCheckId = "Retention sweep",
+            CustomCheckId = "ServiceControl Retention",
             HasFailed = result.HasFailed,
             FailureReason = result.FailureReason,
             ReportedAt = Now,

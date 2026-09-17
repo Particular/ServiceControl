@@ -1,2 +1,2 @@
-ServiceControl Health: Retention sweep
+ServiceControl Health: ServiceControl Retention
 Storage space: ServiceControl body storage
