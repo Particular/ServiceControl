@@ -41,7 +41,7 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
 
             var views = await GetGroupViews(groups, messages, pagingInfo, token);
 
-            var totalCount = await groups.AggregateGroupSummaries(messages).LongCountAsync(token);
+            var totalCount = await groups.LongCountAsync(token);
 
             return new QueryResult<IList<FailureGroupView>>(views, views.ToQueryStatsInfo("groups", totalCount));
         }, cancellationToken);
@@ -139,7 +139,7 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
     // FailureGroupQueries.AggregateGroups for the provider index shapes this relies on — on
     // PostgreSQL the classifier and messages indexes must carry the join column or the whole
     // aggregate degrades to sequential scans of both large tables.
-    static async Task<List<FailureGroupView>> GetGroupViews(IQueryable<FailedMessageGroupEntity> groups, IQueryable<FailedMessageEntity> messages, CancellationToken cancellationToken) =>
+    static async Task<List<FailureGroupView>> GetGroupViews(IQueryable<FailedMessageGroupEntity> groups, IQueryable<FailedMessageEntity> messages, PagingInfo pagingInfo, CancellationToken cancellationToken) =>
         await groups
             .AggregateGroups(messages)
             .OrderByDescending(summary => summary.Last)
