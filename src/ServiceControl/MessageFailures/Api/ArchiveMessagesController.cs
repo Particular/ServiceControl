@@ -48,6 +48,8 @@ namespace ServiceControl.MessageFailures.Api
         [HttpGet]
         public async Task<IActionResult> GetArchiveMessageGroups(string classifier = "Exception Type and Stack Trace", CancellationToken cancellationToken = default)
         {
+            // Returning a fixed first page containing the most recently failed groups is a deliberate choice, the assumption is that an actively maintained production
+            // system will have a relatively small number of distinct groups and archived messages by default have a relatively short retention window
             var pagingInfo = new PagingInfo(page: 1, pageSize: 200);
             var result = await dataStore.GetArchivedGroupsByClassifier(classifier, pagingInfo, cancellationToken);
 

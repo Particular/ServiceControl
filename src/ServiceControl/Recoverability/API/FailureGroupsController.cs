@@ -67,6 +67,9 @@
                 classifierFilter = null;
             }
 
+            // Returning a fixed first page containing the most recently failed groups is a deliberate choice.
+            // The assumption is that an actively maintained production system will have a relatively small number of active failure
+            // groups, and the most recently failed are the most important to show
             var pagingInfo = new PagingInfo(page: 1, pageSize: 200);
             var results = await fetcher.GetGroups(classifier, classifierFilter, pagingInfo, cancellationToken);
             Response.WithQueryStatsInfo(results.ToQueryStatsInfo("groups", results.Length));
