@@ -1,0 +1,18 @@
+Required 1: KnownEndpoints
+Required 2: EndpointSettings, after KnownEndpoints
+Required 3: MessageRedirects
+Required 4: Subscriptions
+Required 5: NotificationSettings
+Required 6: TrialEndDate
+Required 7: RetryOperations
+Required 8: LicensingEndpoints
+Required 9: LicensingThroughput, after LicensingEndpoints
+Required 10: LicensingReportMasks
+Required 11: LicensedEndpointDetails
+Required 12: UnresolvedAndRetryIssuedFailedMessages, with bodies
+Optional 1: EventLog
+Optional 2: CustomChecks
+Optional 3: FailedErrorImports, with bodies
+Optional 4: FailedMessageEdits
+Optional 5: ArchivedAndResolvedFailedMessages, with bodies
+Optional 6: GroupComments, after ArchivedAndResolvedFailedMessages
