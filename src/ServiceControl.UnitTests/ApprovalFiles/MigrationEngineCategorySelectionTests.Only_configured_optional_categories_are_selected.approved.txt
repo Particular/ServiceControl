@@ -1,0 +1,6 @@
+Configured: GroupComments, EventLog, ArchivedAndResolvedFailedMessages
+Runs as:
+Optional 1: EventLog
+Optional 5: ArchivedAndResolvedFailedMessages, with bodies
+Optional 6: GroupComments, after ArchivedAndResolvedFailedMessages
+Never copied: CustomChecks, FailedErrorImports, FailedMessageEdits

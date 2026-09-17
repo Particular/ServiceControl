@@ -79,6 +79,40 @@ class MigrationEngineSkipReasonTests
         }
     }
 
+    [Test]
+    public async Task A_target_counting_more_benign_skips_than_skipped_rows_halts_the_category()
+    {
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.KnownEndpoints)!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new OverCountedBenignTarget(checkpointStore);
+        var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []);
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
+
+        var checkpoint = await engine.RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Halted));
+            Assert.That(checkpoint.LastError, Does.Contain("2 benign skips").And.Contain("out of 1 skipped"));
+        }
+    }
+
+    sealed class OverCountedBenignTarget(IMigrationCheckpointStore checkpointStore) : IMigrationTarget
+    {
+        public int BatchSizeFor(MigrationCategory category) => 10;
+
+        public async Task<MigrationWriteResult> Write(MigrationCategory category, MigrationBatch batch, MigrationCheckpoint checkpointToExtend, CancellationToken cancellationToken = default)
+        {
+            var reasons = new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.PastRetention] = batch.Rows.Count };
+            var saved = await checkpointStore.Upsert(checkpointToExtend.Extend(0, batch.Rows.Count, 0, reasons), cancellationToken);
+            return new MigrationWriteResult(saved, 0, batch.Rows.Count, [], 0, reasons, BenignSkipped: batch.Rows.Count + 1);
+        }
+
+        public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) => Task.FromResult(0L);
+    }
+
     sealed class UnexplainedSkipTarget(IMigrationCheckpointStore checkpointStore) : IMigrationTarget
     {
         public int BatchSizeFor(MigrationCategory category) => 10;
