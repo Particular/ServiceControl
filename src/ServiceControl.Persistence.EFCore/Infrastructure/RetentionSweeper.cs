@@ -24,7 +24,7 @@ public class RetentionSweeper(
     IBodyStoragePersistence bodyStorage,
     RetentionMetrics metrics,
     EFPersisterSettings settings,
-    IHostApplicationLifetime hostApplicationLifetime) : BackgroundService, IRetentionSweeper
+    IHostApplicationLifetime hostApplicationLifetime) : BackgroundService, IRetentionSweeper, IRetentionSweepHealth
 {
     const int BatchSize = 1000;
     static readonly TimeSpan Interval = TimeSpan.FromHours(1);
@@ -144,6 +144,16 @@ public class RetentionSweeper(
         lock (failures)
         {
             return failures.Select(failure => (failure.Key, failure.Value)).ToArray();
+        }
+    }
+
+    string? IRetentionSweepHealth.GetFailureSummary()
+    {
+        lock (failures)
+        {
+            return failures.Count == 0
+                ? null
+                : string.Join("; ", failures.Select(failure => $"{failure.Key}: {failure.Value}"));
         }
     }
 

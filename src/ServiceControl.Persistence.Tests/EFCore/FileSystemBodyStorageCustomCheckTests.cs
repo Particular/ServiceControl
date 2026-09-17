@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using EFCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using NServiceBus.CustomChecks;
@@ -136,6 +137,7 @@ class FileSystemBodyStorageCustomCheckTests : BasePersistence
             ConnectionString = "Server=nowhere",
             BodyStorage = CreateSettings(StoragePath, 15)
         });
+        services.AddSingleton<IRetentionSweepHealth, StubRetentionHealth>();
 
         var check = services.BuildServiceProvider().GetServices<ICustomCheck>().OfType<FileSystemBodyStorageCustomCheck>().SingleOrDefault();
 
@@ -196,4 +198,8 @@ class FileSystemBodyStorageCustomCheckTests : BasePersistence
     }
 
     sealed class TestPersisterSettings : EFPersisterSettings;
+    sealed class StubRetentionHealth : IRetentionSweepHealth
+    {
+        public string GetFailureSummary() => "";
+    }
 }
