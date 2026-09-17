@@ -18,6 +18,36 @@ class MigrationEngineResumeTests
     static MigrationRow Row(string id) => new(id, new object(), new Dictionary<string, object?>());
 
     [Test]
+    public async Task A_restart_keeps_the_moment_the_category_first_started()
+    {
+        // StartedAt is what an operator reads to see how long a background copy has been going. Stamping
+        // it again on every restart would report minutes for a copy that has been running for days.
+        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"), Row("b"), Row("c"), Row("d"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 2, FailOnCallNumber = 2 };
+        var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []);
+        var firstStart = new DateTimeOffset(2026, 3, 1, 9, 0, 0, TimeSpan.Zero);
+        var halted = await new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(firstStart), options, NullLogger<MigrationEngine>.Instance)
+            .RunCategoryAsync(category);
+
+        // A day later, the cause is fixed and the host is started again.
+        target.FailOnCallNumber = null;
+        var restart = firstStart.AddDays(1);
+        var finished = await new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(restart), options, NullLogger<MigrationEngine>.Instance)
+            .RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(halted.StartedAt, Is.EqualTo(firstStart.UtcDateTime));
+            Assert.That(finished.State, Is.EqualTo(MigrationCategoryState.Complete));
+            Assert.That(finished.StartedAt, Is.EqualTo(firstStart.UtcDateTime), "the restart carries on a copy that started a day ago");
+            Assert.That(finished.SettledAt, Is.EqualTo(restart.UtcDateTime));
+        }
+    }
+
+    [Test]
     public async Task Restarting_after_a_mid_category_stop_produces_no_duplicates_and_no_gaps()
     {
         var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;

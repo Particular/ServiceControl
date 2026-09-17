@@ -73,6 +73,67 @@ class MigrationEngineHaltTests
         }
     }
 
+    [TestCase(25, MigrationCategoryState.CompleteWithErrors, TestName = "A_mix_of_benign_and_fault_skips_runs_on_while_the_faults_stay_under_the_threshold")]
+    [TestCase(10, MigrationCategoryState.Halted, TestName = "A_mix_of_benign_and_fault_skips_halts_once_the_faults_alone_pass_the_threshold")]
+    public async Task A_batch_mixing_benign_and_fault_skips_is_judged_on_the_faults_alone(int everyNthIsAFault, MigrationCategoryState expected)
+    {
+        // A real archive copy loses rows both ways at once: retention takes some, unreadable bodies take
+        // others. This is the only shape where the subtraction has to do arithmetic rather than pick a side.
+        var category = MigrationCategoryRegistry.Find("ArchivedAndResolvedFailedMessages")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, [.. Enumerable.Range(1, 5_000).Select(i => Row($"row-{i}"))]);
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 100 };
+        // A fifth of the category is past retention either way, which on its own is four times the threshold.
+        foreach (var i in Enumerable.Range(1, 5_000).Where(i => i % 5 == 0))
+        {
+            target.RejectKey($"row-{i}", MigrationSkipReason.PastRetention, benign: true);
+        }
+        // The offset keeps the faults clear of the benign rows: 4% of the category in one case, 10% in the other.
+        foreach (var i in Enumerable.Range(1, 5_000).Where(i => i % everyNthIsAFault == 3))
+        {
+            target.RejectKey($"row-{i}", MigrationSkipReason.BodyUnreadable);
+        }
+        var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
+
+        var checkpoint = await engine.RunCategoryAsync(category);
+
+        Assert.That(checkpoint.State, Is.EqualTo(expected));
+    }
+
+    [Test]
+    public async Task Rows_already_present_keep_a_category_under_the_halt_threshold()
+    {
+        // Already-present rows are in the denominator because the run did handle them. Drop them from it
+        // and this category's 4% fault rate reads as 12%, halting a copy that is merely being re-run.
+        var category = MigrationCategoryRegistry.Find("ArchivedAndResolvedFailedMessages")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, [.. Enumerable.Range(1, 3_000).Select(i => Row($"row-{i}"))]);
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 100 };
+        foreach (var i in Enumerable.Range(1, 2_000))
+        {
+            target.SeedExistingKey($"row-{i}");
+        }
+        // 120 faults spread through the whole category: past the 100-row floor, and 4% of 3,000.
+        foreach (var i in Enumerable.Range(1, 3_000).Where(i => i % 25 == 0))
+        {
+            target.RejectKey($"row-{i}", MigrationSkipReason.BodyUnreadable);
+        }
+        var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
+
+        var checkpoint = await engine.RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.CompleteWithErrors));
+            Assert.That(checkpoint.SkippedCount, Is.EqualTo(120));
+            Assert.That(checkpoint.AlreadyPresentCount, Is.EqualTo(1_920), "the 80 already-present rows that are also faults are refused before the collision check");
+        }
+    }
+
     [Test]
     public async Task Rows_already_present_in_the_target_never_count_toward_the_halt_threshold()
     {

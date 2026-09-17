@@ -159,7 +159,8 @@ public sealed class MigrationEngine(
         }
         catch (Exception ex)
         {
-            var reason = $"{ex.GetType().Name} at cursor {checkpoint.Cursor ?? "the start"}: {ex.Message}";
+            var position = checkpoint.Cursor is null ? "at the start" : $"at cursor {checkpoint.Cursor}";
+            var reason = $"{ex.GetType().Name} {position}: {ex.Message}";
             logger.LogError(ex, "Category {CategoryId} halted at cursor {Cursor}", category.Id, checkpoint.Cursor);
             return await Settle(checkpoint with { State = MigrationCategoryState.Halted, LastError = reason }, cancellationToken);
         }

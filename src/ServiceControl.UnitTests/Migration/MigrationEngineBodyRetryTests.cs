@@ -4,6 +4,7 @@ namespace ServiceControl.UnitTests.Migration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
@@ -43,13 +44,25 @@ class MigrationEngineBodyRetryTests
         }
     }
 
-    [Test]
-    public async Task A_body_read_that_fails_as_a_defect_halts_the_category_on_the_first_attempt_without_skipping_the_message()
+    // Every type the engine treats as a defect. Each fails the same way on every attempt, so retrying one
+    // would only turn a code fault into skipped messages.
+    static readonly Exception[] Defects =
+    [
+        new NotSupportedException("this source cannot read bodies"),
+        new NotImplementedException("not written yet"),
+        new InvalidOperationException("the session is closed"),
+        new ArgumentException("the id is not a document id"),
+        new NullReferenceException("no attachment"),
+        new InvalidCastException("not an attachment")
+    ];
+
+    [TestCaseSource(nameof(Defects))]
+    public async Task A_body_read_that_fails_as_a_defect_halts_the_category_on_the_first_attempt_without_skipping_the_message(Exception defect)
     {
         var category = MigrationCategoryRegistry.Find("UnresolvedAndRetryIssuedFailedMessages")!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("msg-1"));
-        source.FailBodyReads("msg-1", MigrationEngine.MaxBodyReadAttempts, new NotSupportedException("this source cannot read bodies"));
+        source.FailBodyReads("msg-1", MigrationEngine.MaxBodyReadAttempts, defect);
         var checkpointStore = new InMemoryMigrationCheckpointStore();
         var target = new InMemoryMigrationTarget(checkpointStore);
         var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []) { BodyRetryBackoff = TimeSpan.Zero };
@@ -60,10 +73,75 @@ class MigrationEngineBodyRetryTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Halted));
-            Assert.That(checkpoint.LastError, Does.Contain(nameof(NotSupportedException)));
+            Assert.That(checkpoint.LastError, Does.Contain(defect.GetType().Name));
             Assert.That(source.BodyReadAttempts("msg-1"), Is.EqualTo(1));
             Assert.That(checkpoint.SkippedCount, Is.Zero);
             Assert.That(checkpoint.SkipReasons, Is.Null);
+        }
+    }
+
+    [Test]
+    public async Task A_shutdown_during_a_body_read_stops_the_run_instead_of_skipping_the_message()
+    {
+        // Retrying a shutdown to the attempt limit and then recording the message as permanently
+        // unreadable is the one path here that silently loses a customer's failed message.
+        var category = MigrationCategoryRegistry.Find("UnresolvedAndRetryIssuedFailedMessages")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("msg-1"));
+        using var stopping = new CancellationTokenSource();
+        source.StopOnBodyRead = ("msg-1", stopping);
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore);
+        var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []) { BodyRetryBackoff = TimeSpan.Zero };
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
+
+        Assert.ThrowsAsync<OperationCanceledException>(() => engine.RunCategoryAsync(category, stopping.Token));
+
+        var persisted = await checkpointStore.Read(category.Id);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(source.BodyReadAttempts("msg-1"), Is.EqualTo(1), "a shutdown is not a transient body failure, so it is not retried");
+            Assert.That(persisted!.State, Is.EqualTo(MigrationCategoryState.InProgress));
+            Assert.That(persisted.SkippedCount, Is.Zero, "the message is still there to copy on the next run");
+            Assert.That(target.WrittenRows(category.Id), Is.Empty);
+        }
+    }
+
+    [Test]
+    public async Task The_configured_backoff_is_waited_between_body_read_attempts()
+    {
+        // Without the wait, three attempts against a body store that is briefly down all fail inside a
+        // millisecond and the message is skipped for an outage it would have survived.
+        var category = MigrationCategoryRegistry.Find("UnresolvedAndRetryIssuedFailedMessages")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("msg-1"));
+        var body = new MigrationBody(new byte[] { 1 }, "text/plain");
+        source.SetBody("msg-1", body);
+        source.FailBodyReads("msg-1", MigrationEngine.MaxBodyReadAttempts - 1, new TimeoutException("body store unreachable"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore);
+        var clock = new TimerRecordingTimeProvider();
+        var backoff = TimeSpan.FromMilliseconds(200);
+        var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []) { BodyRetryBackoff = backoff };
+        var engine = new MigrationEngine(source, target, checkpointStore, clock, options, NullLogger<MigrationEngine>.Instance);
+
+        var runTask = engine.RunCategoryAsync(category);
+
+        // Two failures, so a wait after each before the attempt that succeeds.
+        for (var waitNumber = 1; waitNumber <= MigrationEngine.MaxBodyReadAttempts - 1; waitNumber++)
+        {
+            Assert.That(await clock.TimerCreated.WaitAsync(TimeSpan.FromSeconds(5)), Is.True, $"backoff {waitNumber} never started");
+            Assert.That(runTask.IsCompleted, Is.False, $"backoff {waitNumber} should still be pending");
+            clock.Advance(backoff);
+        }
+
+        var checkpoint = await runTask.WaitAsync(TimeSpan.FromSeconds(5));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Complete));
+            Assert.That(clock.DueTimes, Is.EqualTo(new[] { backoff, backoff }), "no wait after the final attempt, which has nothing left to retry");
+            Assert.That(target.WrittenRows(category.Id).Single().Body, Is.EqualTo(body));
         }
     }
 
