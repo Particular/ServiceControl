@@ -128,8 +128,15 @@ public sealed class MigrationEngine(
                     logger.LogWarning("Skipped {SourceId} in category {CategoryId}", id, category.Id);
                 }
 
+                // A negative fault count would silently disarm the halt threshold for the rest of the run.
+                if (result.BenignSkipped > result.Skipped)
+                {
+                    throw new InvalidOperationException($"The target reported {result.BenignSkipped} benign skips in category {category.Id} out of {result.Skipped} skipped rows. Benign skips are a subset of the skipped rows.");
+                }
+
                 processedThisRun += bodySkips + result.Copied + result.Skipped + result.AlreadyPresent;
-                skippedThisRun += bodySkips + result.Skipped;
+                // Rows the target would have deleted anyway are not faults, so they never halt a category.
+                skippedThisRun += bodySkips + result.Skipped - result.BenignSkipped;
 
                 if (HaltThreshold.Exceeded(skippedThisRun, processedThisRun, options.HaltThresholdPercent, options.HaltThresholdMinimum))
                 {
