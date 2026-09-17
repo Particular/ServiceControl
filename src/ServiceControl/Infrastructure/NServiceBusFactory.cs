@@ -30,6 +30,7 @@ namespace ServiceBus.Management.Infrastructure
             }
 
             configuration.Handlers.ServiceControlAssembly.AddAll();
+            configuration.Handlers.ParticularLicensingComponentAssembly.AddAll();
 
             configuration.EnableFeature<RegisterPluginMessagesFeature>();
 
@@ -66,6 +67,7 @@ namespace ServiceBus.Management.Infrastructure
                 {
                     SagaAuditMessagesSerializationContext.Default,
                     HeartbeatSerializationContext.Default,
+                    UsageReportingSerializationContext.Default,
                     // This is required until we move all known message types over to source generated contexts
                     new DefaultJsonTypeInfoResolver()
                 }
