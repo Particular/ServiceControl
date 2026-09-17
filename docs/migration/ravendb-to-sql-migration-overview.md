@@ -77,14 +77,14 @@ The copier runs inside the ServiceControl host, so every row and every message b
 6. Every check runs before a single row moves. If one fails the host does not start and names which, having copied nothing, so a wrong database name or unconfigured body storage costs a restart rather than a half-finished migration.
 7. The copying of [required data](#required) starts, with ServiceControl still closed. This is assumed to be a small amount of data.
 8. ServiceControl opens, and whatever [optional data](#optional) they asked for is copied in the background while the instance runs normally. They can watch it from ServicePulse custom checks and events, but not steer it.
-9. They run the verification pass once the background job has completed, which reports row counts on both sides category by category, accounting for deliberate skips so a difference is explained rather than reported as a fault, then set `MigrationMode=false` and restart.
+9. They run the verification pass once the background job has completed, which reports row counts on both sides category by category, accounting for deliberate skips so a difference is explained rather than reported as a fault, then set `MigrationMode=false` and restart. It tolerates more rows in SQL than in RavenDB, because RavenDB keeps expiring rows the copier already took.
 10. RavenDB data can be removed.
 
 - If `MigrationMode=false` is set while a selected category is still incomplete, the host refuses to start and names exactly what is outstanding.
 - A category that ended *complete with errors* counts as complete and does not block, though its skipped count is printed so the loss is stated rather than silent.
 - An explicit override exists for a customer who has changed their mind and accepts leaving data behind. It marks the outstanding categories as abandoned, which is a deliberate end state rather than a failure, so the progress check settles and the guard stays armed for any later migration.
 - **Steps 5 to 7 are the abort window**, which is not the override above: see [the one point you can go back](#the-one-point-you-can-go-back).
-- A category that stops because too many rows failed is *halted*, and restarting will halt it again. Fix the cause and restart to resume it, or abandon it deliberately if you accept the loss.
+- A category that stops because too many rows failed is *halted*, and it stays that way until someone acts: fix the cause and restart to carry on from where it stopped, or abandon it deliberately if you accept the loss. See [a halt stops one category, and clearing it is a restart](#a-halt-stops-one-category-and-clearing-it-is-a-restart).
 
 ## Architecture
 
@@ -172,7 +172,7 @@ flowchart TB
 
 ### Not migrated
 
-- The fifteen RavenDB index definitions, which map to a much smaller set of ordinary SQL indexes, and two of which are dead already
+- The RavenDB index definitions
 - The transient in-flight collections, which are empty when nothing is running: `RetryBatches`, `RetryBatchNowForwardings`, `FailedMessageRetries`, `ArchiveOperations` and `UnarchiveOperations`
 - `ArchiveBatches` and `UnarchiveBatches`, which exist only because of how RavenDB works
 - `ConnectedApplications`, which only versions 6.0 and 6.1 wrote and nothing has read since
@@ -201,11 +201,13 @@ flowchart TB
 - **Endpoint settings for two endpoint names that differ only in case merge onto one row on SQL Server**, because SQL Server's default collation compares names without case, so one of the two settings is kept. PostgreSQL keeps both, and so does a SQL Server database created with a case-sensitive collation. The dry run counts this one too, by asking SQL Server how the name column compares, though for unusual characters its count can differ from what the copy does.
 - **Event log items and historic retry operations are renumbered.** Their keys are database identities and nothing references them, so this is safe, but the old numbers do not survive.
 
+**Rows RavenDB deletes while the copy is running are an absence, not a skip.** Expiration only deletes a document carrying `@expires`, and only two kinds ever get one: a resolved or archived failed message, and an event log item (`ExpirationManager.cs:34,41`). Everything in the [required](#required) set is therefore safe, since unresolved and retry-issued messages have their expiry removed when the retry is issued, so only the archived and resolved messages category and the event log category can shrink underneath the copier, and both copy in the background where the window is longest. A document the sweep removes before the stream reaches it is never read, so it is counted nowhere: the counts are of rows the source actually handed over, and there is no expected total to fall short of. It is the same population as the retention skip above, and which of the two it becomes is a race with the sweep. The consequence to know is that the dry run's count is a snapshot rather than a promise, and for those two categories the difference between it and the final copied count is not attributed to anything.
+
 **A category can finish with a small amount of loss and still count as complete.** A few skipped rows in a large table leave the category in a *complete with errors* state, which blocks nothing. Its skipped count is printed and the ids of the skipped rows are written to the log, so while the RavenDB database still exists you can go and look at exactly what did not make it.
 
 ## The one point you can go back
 
-While ServiceControl is closed and the required copy is running, nothing except the copier has written to SQL, and the migration has written nothing to RavenDB, which is still authoritative. RavenDB's own expiration still runs, though: unless you disabled it, it keeps deleting expired failed messages and event log items, as [Goals](#goals) describes. Back up both RavenDB databases, or disable expiration on them, before you start. If you need your instance back, set `MigrationMode=false`, point `PersistenceType` back at RavenDB, and start. You lose the copy, not your data, and you can start again later.
+While ServiceControl is closed and the required copy is running, nothing except the copier has written to SQL, and the migration has written nothing to RavenDB, which is still authoritative. RavenDB's own expiration still runs, though: unless you disabled it, it keeps deleting expired failed messages and event log items, as [Goals](#goals) describes. If you need your instance back, set `MigrationMode=false`, point `PersistenceType` back at RavenDB, and start. You lose the copy, not your data, and you can start again later.
 
 That window closes the moment ServiceControl opens. From then on new failed messages are ingesting into SQL, RavenDB is no longer current, and there is no rollback: nothing copies SQL rows back. The choice at that point is to finish the migration or to accept losing whatever has not been copied.
 
@@ -222,7 +224,7 @@ That window closes the moment ServiceControl opens. From then on new failed mess
 - `UniqueMessageId` keeps its value, but converts type: the source holds a string and the target column is a `uniqueidentifier`. It is the primary key, the ServicePulse URL, the retry correlation key and the body lookup key at once.
 - `StatusChangedAt` is reconstructed from `@expires` for resolved and archived messages, which is the only place RavenDB sets it. Unresolved and retry-issued messages have no `@expires`, so the copier uses the newest processing attempt's timestamp. The column is `NOT NULL`, so it cannot be left empty, but the value is harmless for those two: the retention sweep only considers resolved and archived rows, so an unresolved message never ages out whatever is written here.
 - Message bodies go through `IBodyStoragePersistence`, which owns the compression threshold and the choice of filesystem, Azure Blob or S3. The separate 102,400-byte inline threshold is not there: it lives on the ingestion path, so the copier has to apply it rather than inherit it.
-- Throughput rows are written directly rather than through the collector, and the write sets each day's count rather than adding to it.
+- Throughput rows are written directly rather than through the collector, and the write sets each day's count rather than adding to it. Throughput is a required category, so it copies while ServiceControl is closed, before any collector has written to SQL. Setting is what makes the category safe to resume after a crash, where adding would double-count. Copying the rows is also what stops the audit and broker collectors re-gathering the same days when the host opens, because `LastCollectedDate` is derived from the newest throughput row rather than stored (`LicensingDataStore.cs:45`). The checkpoint is what stops a second pass overwriting days the collectors have written since.
 - Identifiers narrow on the way across, and the dry run counts every kind. What narrows, merges or cannot be stored at all is in [what does not come across](#what-does-not-come-across).
 
 ## Batching and throttling
@@ -232,12 +234,50 @@ That window closes the moment ServiceControl opens. From then on new failed mess
 
 ## Checkpointing and resume
 
-- The checkpoint table is a new table on the target, created by `--setup` along with the rest of the schema.
-- It holds one row per category: the selection that row ran with, the state, the resume cursor, copied and skipped counts, timings and the last error.
-- Only the copier writes to it. The status command reads it.
-- Rows and the resume cursor commit in one transaction.
-- If a message is in both databases the SQL row wins and the copier skips it, so every category is safe to run twice.
-- Each category has its own cursor, so a half-copied category picks up where it stopped.
+A copy that runs for hours will be interrupted at some point: a restart, a dropped connection, a machine reboot. The checkpoint is what makes an interruption cost only the batch that was in flight. It is one row per category, kept on the target and created by `--setup` along with the rest of the schema, and it is written in the same database transaction as the rows it describes. Only the copier writes to it; the status and verify commands read it.
+
+**What one row holds:** the category it tracks, its state, the resume cursor, how many rows were copied, skipped and already present, a count per skip reason, how many rows the source held when the category started, when it started, when it last made progress, when it settled, the last error, and a version number used to spot a second writer.
+
+**The states, and which ones a restart re-enters.** `Complete`, `CompleteWithErrors` and `Abandoned` are terminal, so a restart passes straight over the category. `Halted` and `Blocked` are not: a halt is resumed from its cursor once the cause is fixed, and a block clears itself once the category it waits on settles, which is how group comments end up behind archived messages. `NotStarted` and `InProgress` both mean there is work to do.
+
+### One batch, and why nothing provisional is ever saved
+
+```mermaid
+sequenceDiagram
+    participant E as Migration engine
+    participant S as RavenDB source
+    participant T as SQL target
+    participant C as Checkpoint row
+
+    E->>C: Read this category's row
+    C-->>E: State, cursor, totals so far
+    loop One batch at a time
+        E->>S: Read the next batch after the cursor
+        S-->>E: Rows, and the cursor they end at
+        opt The category carries message bodies
+            E->>S: Read each body, up to three attempts
+            S-->>E: The bodies, and which ones could not be read
+        end
+        E->>T: Write the rows, with the totals so far,<br/>the unreadable bodies and the new cursor
+        Note over T,C: One transaction. The rows, the target's own skips,<br/>the new totals and the cursor all commit, or none of them do
+        T-->>E: The checkpoint exactly as it committed
+        E->>E: Halt if too much of this run was skipped
+    end
+    E->>C: Settle as complete, complete with errors, or halted
+```
+
+The thing to read twice is that the counts never travel back through the engine to be saved on some later write. The engine hands the target the totals so far, the target adds its own outcome to them and saves the result beside the rows, and the engine then keeps whatever committed. So there is no window in which the stored row claims rows that are not there, and a crash at any instant leaves counts and cursor that both describe exactly the rows in SQL.
+
+**What that buys, and why each part is needed:**
+
+- **Progress never gets ahead of the data.** The rows and the cursor commit together, so a restart cannot skip past rows that were never written.
+- **A crash costs the batch in flight and nothing else.** The next run reads from the committed cursor.
+- **Re-reading a batch cannot double-count it.** Unreadable bodies stay off the checkpoint until the write commits, so a batch that is read twice is counted once, and rows the earlier attempt did write come back as *already present* rather than as fresh copies.
+- **Every skipped row has a reason, or the save is refused.** The checkpoint rejects a batch reporting more skips than it explains, because verification has to account for each one rather than report a healthy migration as broken.
+- **Each category resumes independently**, so a half-copied category picks up where it stopped while its neighbours are untouched.
+- **The halt counters are per run and deliberately not stored.** If the skips that tripped a halt stayed on the row, a restart with the cause fixed would re-trip it on its first batch.
+- **A second writer is caught rather than merged.** Each save carries the version it read, and a save against a row that has moved on is refused, so two hosts pointed at one target cannot quietly interleave their progress.
+- **If a message is already in SQL the SQL row wins and the copier skips it**, which is what makes every category safe to run twice.
 
 ## Error handling
 
@@ -246,8 +286,47 @@ That window closes the moment ServiceControl opens. From then on new failed mess
 - Deciding whether a row is past the target's retention cutoff needs two retention periods: the source's reverses `@expires` back into the status-change instant, and the target's current one decides whether that instant is past the cutoff.
 - A bad row does not stop the copy. Its category finishes in a separate complete-with-errors state.
 - The halt threshold is proportional with an absolute floor, and a category halts only when both are exceeded. Proportional alone halts a three-row category on one bad row; absolute alone halts a five-million-row table on its 101st failure at the default floor of 100. Together, a large category keeps going through losses under the percentage and finishes complete with errors, so ten thousand skipped rows out of five million do not halt it.
-- Rows left behind because SQL would remove them anyway (past retention, orphaned group comments, settings for unknown endpoints) are counted and reported, but never halt a category.
+- Rows left behind because SQL would remove them anyway (past retention, orphaned group comments, settings for unknown endpoints) are counted and reported, but never halt a category. The target reports them apart from its real failures, so they land in the skipped count and the log without moving the category toward a halt.
+- The percentage is measured against what the run has processed so far rather than against the category's total, so a run that starts badly looks worse than it is. The floor is what keeps that harmless, since fewer than 101 skipped rows never consults the percentage at all. More than that, bunched at the start, does halt a category whose overall rate would have been fine, and the cost is one restart: the skipped rows commit with the cursor, so the next run resumes past them with its counters back at zero.
+- A source therefore must not read a category in an order that puts the rows most likely to be skipped at the front of it.
 - Verification therefore cannot treat any count difference as a fault. It accounts for every skip rule, or it reports every successful migration as broken.
+
+### A halt stops one category, and clearing it is a restart
+
+A halt is the copy refusing to keep going on one category because something is wrong beyond the odd bad row. It is not a crash and not data loss: everything already copied is committed, the cursor points at the row after the last one that committed, and the reason is written on the category. Nothing is retried in the background and nothing waits for a timer. The category sits halted until a person does something about it.
+
+```mermaid
+stateDiagram-v2
+    [*] --> NotStarted: nothing has run yet
+    NotStarted --> InProgress: the host starts with MigrationMode = true
+    NotStarted --> Blocked: the category it must follow has not settled
+    Blocked --> InProgress: that category settles, then the next restart
+    InProgress --> InProgress: the host was stopped mid-copy,<br/>so the next start resumes from the cursor
+    InProgress --> Complete: every row reached, none skipped
+    InProgress --> CompleteWithErrors: every row reached, some skipped
+    InProgress --> Halted: too many rows skipped in this run,<br/>or the copy hit an error it did not expect
+    Halted --> InProgress: fix the cause, restart,<br/>carry on from the cursor
+    Halted --> Abandoned: accept the loss, deliberately
+    InProgress --> Abandoned: accept the loss, deliberately
+    Complete --> [*]
+    CompleteWithErrors --> [*]
+    Abandoned --> [*]
+```
+
+**Two things halt a category.** Either the skipped rows in this run pass both the percentage and the floor, which says the failures are systematic rather than incidental, or the copy hits an error it did not expect, in which case the error type and the cursor it stopped at are recorded. A host being shut down is neither: it leaves the category in progress, to be picked up from the cursor next time. Nor is a second host writing to the same checkpoint, which is refused so that the other host's progress stands.
+
+**A halt stops that category and nothing else.** The remaining categories still run, with one exception: a category that must follow the halted one goes to blocked rather than running early, which is how group comments stay behind the archived messages they belong to. A blocked category is not a failure and needs no separate action, since clearing the halt clears the block on the next restart.
+
+**What it costs depends on which category halted.** A halted optional category means the instance keeps serving traffic and that one slice of history is missing until it is resumed. A halted required category means the host stays closed, so the outage carries on until the halt is cleared or the category is abandoned. That is deliberate: opening the host is the point of no return, and it should not happen with required data left behind by accident.
+
+**Clearing it:**
+
+1. Read the reason on the category, in the custom check or the status command. It names the count that tripped the threshold, or the error, and the cursor either way.
+2. Fix the cause. It is usually outside the migration: the body store unreachable, a certificate expired, the source or the target down, or the disk full.
+3. Restart the host with `MigrationMode=true`. The category picks up at its cursor, its run counters start again at zero, and the skips already recorded stay on the row so the totals still add up at the end.
+4. Repeat only if it halts again. A restart that halts at the same point is telling you the cause is still there, and a restart that gets further has made real progress, because the rows it skipped are committed and will not be read again.
+
+**Or abandon it, on purpose.** Abandoning marks the category as deliberately given up rather than failed, which lets the host open and lets the migration end. It is the right answer when the data is not worth the outage, and the wrong one if it was picked by accident, because nothing goes back for an abandoned category afterwards. What it leaves behind is stated in the counts rather than guessed at.
 
 ## Dry run
 

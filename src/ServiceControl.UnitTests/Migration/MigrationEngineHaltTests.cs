@@ -47,6 +47,33 @@ class MigrationEngineHaltTests
     }
 
     [Test]
+    public async Task Rows_the_target_would_have_deleted_anyway_never_count_toward_the_halt_threshold()
+    {
+        var category = MigrationCategoryRegistry.Find("ArchivedAndResolvedFailedMessages")!;
+        var source = new InMemoryMigrationSource();
+        // The same 20% that halts the category above, except these rows are past the target's retention
+        // cutoff, so leaving them behind is the copy working rather than failing.
+        source.Seed(category.Id, [.. Enumerable.Range(1, 1_000).Select(i => Row($"row-{i}"))]);
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 100 };
+        foreach (var i in Enumerable.Range(1, 1_000).Where(i => i % 5 == 0))
+        {
+            target.RejectKey($"row-{i}", MigrationSkipReason.PastRetention, benign: true);
+        }
+        var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
+
+        var checkpoint = await engine.RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.CompleteWithErrors));
+            Assert.That((checkpoint.CopiedCount, checkpoint.SkippedCount), Is.EqualTo((800L, 200L)));
+            Assert.That(target.WrittenRows(category.Id), Has.Count.EqualTo(800), "the last row was reached, so nothing halted partway");
+        }
+    }
+
+    [Test]
     public async Task Rows_already_present_in_the_target_never_count_toward_the_halt_threshold()
     {
         var category = MigrationCategoryRegistry.Find("ArchivedAndResolvedFailedMessages")!;

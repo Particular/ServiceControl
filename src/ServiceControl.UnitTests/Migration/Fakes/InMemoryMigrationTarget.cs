@@ -11,7 +11,7 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
     readonly Dictionary<string, HashSet<string>> writtenKeysByCategory = [];
     readonly Dictionary<string, List<MigrationRow>> writtenRowsByCategory = [];
     readonly HashSet<string> preExistingKeys = [];
-    readonly Dictionary<string, MigrationSkipReason> rejectedKeys = [];
+    readonly Dictionary<string, (MigrationSkipReason Reason, bool Benign)> rejectedKeys = [];
 
     public int DefaultBatchSize { get; set; } = 3;
     public string NoBatchSizeFor { get; set; }
@@ -21,7 +21,7 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
 
     public void SeedExistingKey(string sourceId) => preExistingKeys.Add(sourceId);
 
-    public void RejectKey(string sourceId, MigrationSkipReason reason) => rejectedKeys[sourceId] = reason;
+    public void RejectKey(string sourceId, MigrationSkipReason reason, bool benign = false) => rejectedKeys[sourceId] = (reason, benign);
 
     public IReadOnlyList<MigrationRow> WrittenRows(string categoryId) =>
         writtenRowsByCategory.TryGetValue(categoryId, out var rows) ? rows : [];
@@ -53,15 +53,20 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
 
         var copied = 0;
         var alreadyPresent = 0;
+        var benignSkipped = 0;
         var skippedIds = new List<string>();
         var skipReasons = new Dictionary<MigrationSkipReason, long>();
 
         foreach (var row in batch.Rows)
         {
-            if (rejectedKeys.TryGetValue(row.SourceId, out var reason))
+            if (rejectedKeys.TryGetValue(row.SourceId, out var rejection))
             {
                 skippedIds.Add(row.SourceId);
-                skipReasons[reason] = skipReasons.GetValueOrDefault(reason) + 1;
+                skipReasons[rejection.Reason] = skipReasons.GetValueOrDefault(rejection.Reason) + 1;
+                if (rejection.Benign)
+                {
+                    benignSkipped++;
+                }
                 continue;
             }
 
@@ -81,7 +86,7 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
             checkpointToExtend.Extend(copied, skippedIds.Count, alreadyPresent, skipReasons),
             cancellationToken);
 
-        return new MigrationWriteResult(saved, copied, skippedIds.Count, skippedIds, alreadyPresent, skipReasons);
+        return new MigrationWriteResult(saved, copied, skippedIds.Count, skippedIds, alreadyPresent, skipReasons, benignSkipped);
     }
 
     public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) =>

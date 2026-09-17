@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
+using Particular.Approvals;
 using ServiceControl.Persistence.DataMigration;
 using ServiceControl.UnitTests.Migration.Fakes;
 
@@ -20,22 +21,45 @@ class MigrationEngineCategorySelectionTests
         return new MigrationEngine(new InMemoryMigrationSource(), target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
     }
 
-    [Test]
-    public void All_twelve_required_categories_are_always_selected()
-    {
-        var engine = BuildEngine([], out _);
+    static string Describe(MigrationCategory category) =>
+        $"{category.Kind} {category.Order}: {category.Id}"
+        + (category.CarriesBodies ? ", with bodies" : string.Empty)
+        + (category.MustFollow is null ? string.Empty : $", after {category.MustFollow}");
 
-        Assert.That(engine.SelectCategories(MigrationCategoryKind.Required), Has.Count.EqualTo(12));
+    [Test]
+    public void Every_category_runs_in_a_fixed_order()
+    {
+        var everyOptionalId = MigrationCategoryRegistry.All
+            .Where(category => category.Kind == MigrationCategoryKind.Optional)
+            .Select(category => category.Id)
+            .ToArray();
+        var engine = BuildEngine(everyOptionalId, out _);
+
+        var runOrder = engine.SelectCategories(MigrationCategoryKind.Required)
+            .Concat(engine.SelectCategories(MigrationCategoryKind.Optional))
+            .Select(Describe);
+
+        Approver.Verify(string.Join(Environment.NewLine, runOrder));
     }
 
     [Test]
     public void Only_configured_optional_categories_are_selected()
     {
-        var engine = BuildEngine(["EventLog"], out _);
+        string[] configured = [MigrationCategoryIds.GroupComments, MigrationCategoryIds.EventLog, MigrationCategoryIds.ArchivedAndResolvedFailedMessages];
+        var engine = BuildEngine(configured, out _);
 
         var selected = engine.SelectCategories(MigrationCategoryKind.Optional);
+        var left = MigrationCategoryRegistry.All
+            .Where(category => category.Kind == MigrationCategoryKind.Optional && !selected.Contains(category))
+            .Select(category => category.Id);
 
-        Assert.That(selected.Select(c => c.Id), Is.EqualTo(new[] { "EventLog" }));
+        Approver.Verify(string.Join(Environment.NewLine,
+            [
+                $"Configured: {string.Join(", ", configured)}",
+                "Runs as:",
+                .. selected.Select(Describe),
+                $"Never copied: {string.Join(", ", left)}"
+            ]));
     }
 
     [Test]

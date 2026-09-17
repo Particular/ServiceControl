@@ -23,4 +23,5 @@ public interface IMigrationTarget
 }
 
 /// <summary>What the target did with one batch, and the checkpoint it committed alongside the rows. Every skipped row must have a reason in SkipReasons.</summary>
-public sealed record MigrationWriteResult(MigrationCheckpoint Saved, int Copied, int Skipped, IReadOnlyList<string> SkippedIds, int AlreadyPresent = 0, IReadOnlyDictionary<MigrationSkipReason, long>? SkipReasons = null);
+/// <param name="BenignSkipped">How many of Skipped the target would have deleted anyway, such as a row already past retention. Counted and reported like any skip, but never counted toward the halt threshold.</param>
+public sealed record MigrationWriteResult(MigrationCheckpoint Saved, int Copied, int Skipped, IReadOnlyList<string> SkippedIds, int AlreadyPresent = 0, IReadOnlyDictionary<MigrationSkipReason, long>? SkipReasons = null, int BenignSkipped = 0);
