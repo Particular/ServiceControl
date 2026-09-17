@@ -43,6 +43,7 @@ namespace ServiceControl.Contracts.CustomChecks
                 "Error Database Search Engine",  // RavenDB persister
                 "ServiceControl body storage",   // EF Core persisters
                 "Dead Letter Queue",             // ASBS / IBMMQ / MSMQ
+                "Retention sweep",               // EF Core persisters
 
                 // ----- Audit instance (forwarded to the primary via ReportCustomCheckResult) -----
                 "Audit Message Ingestion",
