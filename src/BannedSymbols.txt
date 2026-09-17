@@ -1,0 +1,4 @@
+P:System.DateTime.Now;Use TimeProvider instead.
+P:System.DateTime.UtcNow;Use TimeProvider instead.
+P:System.DateTimeOffset.Now;Use TimeProvider instead.
+P:System.DateTimeOffset.UtcNow;Use TimeProvider instead.
