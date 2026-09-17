@@ -15,12 +15,14 @@
     <ProjectReference Include="../ServiceControl.Configuration/ServiceControl.Configuration.csproj" Private="false" ExcludeAssets="runtime" />
     <ProjectReference Include="../ServiceControl.Infrastructure/ServiceControl.Infrastructure.csproj" Private="false" ExcludeAssets="runtime" />
     <ProjectReference Include="../ServiceControl.Persistence/ServiceControl.Persistence.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="../Particular.LicensingComponent.Contracts/Particular.LicensingComponent.Contracts.csproj" Private="false" ExcludeAssets="runtime" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' != 'Release'">
     <ProjectReference Include="../ServiceControl.Configuration/ServiceControl.Configuration.csproj" />
     <ProjectReference Include="../ServiceControl.Infrastructure/ServiceControl.Infrastructure.csproj" />
     <ProjectReference Include="../ServiceControl.Persistence/ServiceControl.Persistence.csproj" />
+    <ProjectReference Include="../Particular.LicensingComponent.Contracts/Particular.LicensingComponent.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
