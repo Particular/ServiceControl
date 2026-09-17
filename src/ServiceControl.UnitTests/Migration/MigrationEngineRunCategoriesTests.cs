@@ -41,6 +41,24 @@ class MigrationEngineRunCategoriesTests
     }
 
     [Test]
+    public async Task Running_no_categories_copies_nothing_and_reports_nothing()
+    {
+        // What an instance that selected no optional categories asks for on every background pass.
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore);
+        var engine = new MigrationEngine(new InMemoryMigrationSource(), target, checkpointStore, new FakeTimeProvider(),
+            new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []), NullLogger<MigrationEngine>.Instance);
+
+        var results = await engine.RunCategories([]);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(results, Is.Empty);
+            Assert.That(await checkpointStore.ReadAll(), Is.Empty, "a category nobody ran gets no row");
+        }
+    }
+
+    [Test]
     public async Task One_category_halting_does_not_stop_the_ones_after_it()
     {
         // Everything that can still be copied is copied, and the guard decides what an incomplete migration

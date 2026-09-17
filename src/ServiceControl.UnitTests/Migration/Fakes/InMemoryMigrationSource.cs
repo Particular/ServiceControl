@@ -24,6 +24,9 @@ public sealed class InMemoryMigrationSource : IMigrationSource
 
     public void FailBodyReads(string sourceId, int times, Exception failure) => bodyFailures[sourceId] = (times, failure);
 
+    /// <summary>Makes the body read for this row behave like a host shutting down: the token is cancelled and the read throws.</summary>
+    public (string SourceId, CancellationTokenSource Source)? StopOnBodyRead { get; set; }
+
     public int BodyReadAttempts(string sourceId) => bodyReadAttempts.GetValueOrDefault(sourceId);
 
     public Task Open(CancellationToken cancellationToken = default) => Task.CompletedTask;
@@ -70,6 +73,13 @@ public sealed class InMemoryMigrationSource : IMigrationSource
         await Task.Yield();
 
         var attempt = bodyReadAttempts[sourceId] = BodyReadAttempts(sourceId) + 1;
+
+        if (StopOnBodyRead is { } stop && stop.SourceId == sourceId)
+        {
+            await stop.Source.CancelAsync();
+            throw new OperationCanceledException(stop.Source.Token);
+        }
+
         if (bodyFailures.TryGetValue(sourceId, out var failures) && attempt <= failures.Times)
         {
             throw failures.Failure;
