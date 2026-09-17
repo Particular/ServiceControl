@@ -3,6 +3,7 @@ namespace ServiceControl.UnitTests.Migration;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -56,6 +57,37 @@ class MigrationEngineSkipReasonTests
         var checkpoint = await engine.RunCategoryAsync(category);
 
         Assert.That(checkpoint.SkipReasons, Is.EquivalentTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BodyUnreadable] = 1 }));
+    }
+
+    [Test]
+    public async Task A_batch_that_loses_rows_two_different_ways_records_both_reasons()
+    {
+        // The breakdown is what tells a customer what they lost and why. A merge that overwrote instead of
+        // summing would leave the total right and the reasons wrong, and verification would still balance.
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("msg-1"), Row("msg-2"), Row("msg-3"));
+        // One the engine skips itself because the body will not read, one the target refuses.
+        source.FailBodyReads("msg-1", MigrationEngine.MaxBodyReadAttempts, new TimeoutException("body store unreachable"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 3 };
+        target.RejectKey("msg-2", MigrationSkipReason.PastRetention, benign: true);
+        var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []) { BodyRetryBackoff = TimeSpan.Zero };
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
+
+        var checkpoint = await engine.RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.CompleteWithErrors));
+            Assert.That(checkpoint.SkippedCount, Is.EqualTo(2));
+            Assert.That(checkpoint.SkipReasons, Is.EquivalentTo(new Dictionary<MigrationSkipReason, long>
+            {
+                [MigrationSkipReason.BodyUnreadable] = 1,
+                [MigrationSkipReason.PastRetention] = 1
+            }));
+            Assert.That(target.WrittenRows(category.Id).Select(row => row.SourceId), Is.EqualTo(new[] { "msg-3" }));
+        }
     }
 
     [Test]

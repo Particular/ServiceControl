@@ -36,8 +36,36 @@ class HaltThresholdTests
     [Test]
     public void Exactly_at_both_boundaries_does_not_halt_because_both_must_be_exceeded()
     {
-        // 100 of 2,000 is exactly 5% and exactly the floor. "Exceed" means strictly past, not "at".
+        // Exactly the floor, which settles it before the proportion is ever worked out. "Exceed" means strictly past, not "at".
         var exceeded = HaltThreshold.Exceeded(skippedCount: 100, totalCount: 2_000, percentThreshold: 5, minimumFloor: 100);
+
+        Assert.That(exceeded, Is.False);
+    }
+
+    [Test]
+    public void Exactly_on_the_proportion_does_not_halt_once_the_floor_is_behind_it()
+    {
+        // 101 of 2,020 is exactly 5% with the floor already passed, so this is the only shape that
+        // reaches the proportion comparison and depends on it being strictly greater.
+        var exceeded = HaltThreshold.Exceeded(skippedCount: 101, totalCount: 2_020, percentThreshold: 5, minimumFloor: 100);
+
+        Assert.That(exceeded, Is.False);
+    }
+
+    [Test]
+    public void A_hair_past_the_proportion_halts_once_the_floor_is_behind_it()
+    {
+        // 101 of 2,000 is 5.05%: the same skip count as above, one row's worth over the line.
+        var exceeded = HaltThreshold.Exceeded(skippedCount: 101, totalCount: 2_000, percentThreshold: 5, minimumFloor: 100);
+
+        Assert.That(exceeded, Is.True);
+    }
+
+    [Test]
+    public void A_skip_count_with_nothing_processed_never_halts_and_never_divides_by_zero()
+    {
+        // Past the floor with a zero total, which is the only input that reaches the division guard.
+        var exceeded = HaltThreshold.Exceeded(skippedCount: 101, totalCount: 0, percentThreshold: 5, minimumFloor: 100);
 
         Assert.That(exceeded, Is.False);
     }
