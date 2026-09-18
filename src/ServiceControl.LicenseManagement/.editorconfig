@@ -1,0 +1,3 @@
+[LicenseDetails.cs]
+# Justification: License expiry must be evaluated against current wall-clock time
+dotnet_diagnostic.RS0030.severity = none

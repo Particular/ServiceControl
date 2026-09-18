@@ -65,7 +65,9 @@ public sealed class MessageActionAuditLog : IMessageActionAuditLog
     {
         var ecs = new Dictionary<string, object?>
         {
+#pragma warning disable RS0030 // Do not use banned apis: logging should use real time
             ["@timestamp"] = DateTimeOffset.UtcNow.ToString("O"),
+#pragma warning restore RS0030
             ["ecs"] = new { version = AuthorizationAuditLog.EcsVersion },
             ["event"] = new
             {

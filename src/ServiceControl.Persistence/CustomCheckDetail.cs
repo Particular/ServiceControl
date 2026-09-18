@@ -14,7 +14,9 @@ namespace ServiceControl.Contracts.CustomChecks
     {
         public CustomCheckDetail()
         {
+#pragma warning disable RS0030 // Do not use banned apis: default field value does not need to use external time provider
             ReportedAt = DateTime.UtcNow;
+#pragma warning restore RS0030
         }
 
         public required EndpointDetails OriginatingEndpoint { get; set; }

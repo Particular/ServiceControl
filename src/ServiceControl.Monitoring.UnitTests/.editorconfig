@@ -2,5 +2,6 @@
 
 # Justification: Test project
 dotnet_diagnostic.CA2007.severity = none
+dotnet_diagnostic.RS0030.severity = none
 csharp_style_var_elsewhere = true:error
 csharp_style_var_for_built_in_types = true:error

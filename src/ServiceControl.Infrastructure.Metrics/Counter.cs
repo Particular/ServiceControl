@@ -20,7 +20,9 @@
             eventsPerSecond = new int[2];
             movingAverage = new int[300];
             movingAverageEpochs = new long[300];
+#pragma warning disable RS0030 // Do not use banned apis: metrics do not need to use external time provider
             epoch = DateTime.UtcNow.Minute;
+#pragma warning restore RS0030
         }
 
         public void Mark()

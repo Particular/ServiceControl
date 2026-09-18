@@ -35,7 +35,9 @@
             DisplayName = "ServiceControl Config";
             IsModal = false;
             LoadAppVersion();
+#pragma warning disable RS0030 // Do not use banned apis: UtcNow for copyright is acceptable
             CopyrightInfo = $"{DateTime.UtcNow.Year} © Particular Software";
+#pragma warning restore RS0030
 
             RefreshInstancesCmd = Command.Create(async () =>
             {

@@ -34,7 +34,9 @@ namespace ServiceControl.Infrastructure
 
             NLog.LogManager.Configuration = nlogConfig;
 
+#pragma warning disable RS0030 // Do not use banned apis: logging should use real time
             var logEventInfo = new LogEventInfo { TimeStamp = DateTime.UtcNow };
+#pragma warning restore RS0030
             var fileTarget = nlogConfig.FindTargetByName<FileTarget>("file");
             return AppEnvironment.RunningInContainer ? "console" : fileTarget.FileName.Render(logEventInfo);
         }

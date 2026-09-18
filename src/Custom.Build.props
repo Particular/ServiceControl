@@ -31,6 +31,12 @@
     <InstanceName Include="Particular.ServiceControl.Monitoring" />
   </ItemGroup>
 
+  <!-- WPF-generated XAML compilation projects do not need analyzers. -->
+  <ItemGroup Condition="!$(MSBuildProjectFile.EndsWith('_wpftmp.csproj'))">
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="All" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" Visible="false" />
+  </ItemGroup>
+
   <PropertyGroup>
     <RuntimeIdentifier Condition="'$(WindowsSelfContained)' == 'true'">win-x64</RuntimeIdentifier>
     <RuntimeIdentifier Condition="'$(TargetArch)' == 'amd64'">linux-x64</RuntimeIdentifier>
