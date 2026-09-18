@@ -44,10 +44,11 @@ The report prints the RavenDB server version, whether the source is embedded or 
 
 ## If the report fails
 
-The error names the setting to fix:
+The error says what to fix:
 
 - **"has no database named ..."**: the database name setting it quotes is wrong.
 - **"refused its client certificate access ..."**: grant that certificate Read access to the database, or supply a certificate that has it.
+- **"could not start a server for the embedded database ..."**: a ServiceControl instance is still running against that data directory and holds it. Stop the instance, run the report, then start it again.
 
 ## Not available yet
 
