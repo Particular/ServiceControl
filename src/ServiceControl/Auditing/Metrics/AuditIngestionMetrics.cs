@@ -7,6 +7,7 @@ using System.Threading;
 using NServiceBus;
 using NServiceBus.Transport;
 using ServiceControl.EndpointPlugin.Messages.SagaState;
+using ServiceControl.Infrastructure;
 using ServiceControl.Infrastructure.Ingestion.Metrics;
 using ServiceControl.Operations.Metrics;
 
@@ -18,13 +19,15 @@ using ServiceControl.Operations.Metrics;
 /// </summary>
 public class AuditIngestionMetrics
 {
+    public const string MeterName = ServiceControlMeters.Primary;
+
     public static readonly string BatchDurationInstrumentName = $"{InstrumentPrefix}.batch_duration_seconds";
     public static readonly string MessageDurationInstrumentName = $"{InstrumentPrefix}.message_duration_seconds";
     public static readonly string StorageDurationInstrumentName = $"{InstrumentPrefix}.storage_duration_seconds";
 
     public AuditIngestionMetrics(IMeterFactory meterFactory)
     {
-        var meter = meterFactory.Create(IngestionMetrics.MeterName, MeterVersion);
+        var meter = meterFactory.Create(MeterName, MeterVersion);
 
         batchDuration = meter.CreateHistogram<double>(BatchDurationInstrumentName, unit: "seconds", description: "Audit message batch processing duration in seconds");
         ingestionDuration = meter.CreateHistogram<double>(MessageDurationInstrumentName, unit: "seconds", description: "Audit message processing duration in seconds");

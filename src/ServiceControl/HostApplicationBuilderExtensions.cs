@@ -169,18 +169,10 @@
             }
 
             hostBuilder.Services.AddOpenTelemetry()
-                .ConfigureResource(resource => resource.AddService(
-                    serviceName: settings.InstanceName,
-                    serviceVersion: InstanceVersion,
-                    autoGenerateServiceInstanceId: true))
+                .ConfigureResource(resource => resource.AddServiceControlInstance(settings.InstanceName, InstanceVersion))
                 .WithMetrics(metrics =>
                 {
                     metrics.AddIngestionMetrics();
-
-                    // Audit ingestion shares the meter, so only its instruments' views are added,
-                    // and they are added whether or not this host ingests audit: a view for an
-                    // instrument nobody records is inert, and making it conditional would tie the
-                    // exporter's shape to which component happened to be registered.
                     metrics.AddAuditIngestionMetrics();
 
                     metrics.AddAspNetCoreInstrumentation();

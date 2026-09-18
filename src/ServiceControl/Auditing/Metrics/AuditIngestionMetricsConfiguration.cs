@@ -5,8 +5,8 @@ using ServiceControl.Infrastructure.Ingestion.Metrics;
 
 public static class AuditIngestionMetricsConfiguration
 {
-    // The meter is already added by the error ingestion configuration, which shares it. Only the
-    // audit instruments' bucket boundaries need declaring.
+    // Audit ingestion publishes on the primary instance's meter, which AddIngestionMetrics has
+    // already registered, so only the audit instruments' bucket boundaries need declaring.
     public static void AddAuditIngestionMetrics(this MeterProviderBuilder builder)
     {
         foreach (var instrumentName in DurationInstruments)

@@ -112,6 +112,21 @@ Where one local result set contains both failed and audited messages, three rule
 2. **Paging.** The local result is already at most one page, after deduplication.
 3. **Counting.** A message that both failed and was audited is counted once.
 
+## Telemetry
+
+Both ingestions publish on the primary instance's meter, `Particular.ServiceControl`; a standalone audit instance publishes on `Particular.ServiceControl.Audit`. The meter names the process, not the subject. What a measurement is about is carried by the instrument prefix instead: `sc.error.ingestion.*` for error ingestion and `sc.audit.ingestion.*` for audit ingestion, unchanged whichever instance produced them.
+
+Scaled out workers drain the same queue and so share an instance name, which makes `service.name` identical across the pool. Every process therefore also reports `host.name` and `process.pid`, so a pool can be told apart on a dashboard with nothing configured. `service.instance.id` is generated where none is given: unique per process, but new on every restart, so a dashboard grouped on it alone loses its series each time a worker is recycled.
+
+Naming a worker explicitly is the standard OpenTelemetry environment variables, honored for both metrics and exported logs:
+
+```
+OTEL_SERVICE_NAME=sc-audit-ingestion
+OTEL_RESOURCE_ATTRIBUTES=service.instance.id=worker-1
+```
+
+Anything set there wins, including `host.name` and `process.pid`, so a containerized deployment can report the identity it wants rather than the one the process detects.
+
 ## Packaging
 
 The audit runtime ships inside the existing primary artifact. There is no new assembly and no new

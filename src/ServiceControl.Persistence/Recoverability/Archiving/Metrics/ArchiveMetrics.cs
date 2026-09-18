@@ -12,7 +12,7 @@ using ServiceControl.Infrastructure;
 /// </summary>
 public class ArchiveMetrics
 {
-    public const string MeterName = ServiceControlMeters.Error;
+    public const string MeterName = ServiceControlMeters.Primary;
 
     public static readonly string OperationDurationInstrumentName = $"{InstrumentPrefix}.operation_duration_seconds";
     public static readonly string BatchDurationInstrumentName = $"{InstrumentPrefix}.batch_duration_seconds";

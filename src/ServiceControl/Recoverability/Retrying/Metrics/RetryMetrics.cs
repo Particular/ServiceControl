@@ -11,7 +11,7 @@ using ServiceControl.Persistence;
 
 public class RetryMetrics
 {
-    public const string MeterName = ServiceControlMeters.Error;
+    public const string MeterName = ServiceControlMeters.Primary;
 
     public static readonly string OperationDurationInstrumentName = $"{InstrumentPrefix}.operation_duration_seconds";
     public static readonly string PrepareDurationInstrumentName = $"{InstrumentPrefix}.prepare_duration_seconds";
