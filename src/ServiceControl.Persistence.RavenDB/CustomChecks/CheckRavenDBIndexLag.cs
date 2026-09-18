@@ -39,8 +39,10 @@
             {
                 if (indexStats.IsStale && indexStats.LastIndexingTime.HasValue)
                 {
+#pragma warning disable RS0030
                     // Machine clock on purpose: LastIndexingTime comes from the server, so an injected clock would give a meaningless lag.
                     var indexLag = DateTime.UtcNow - indexStats.LastIndexingTime.Value;
+#pragma warning restore RS0030
 
                     if (indexLag > IndexLagThresholdError)
                     {

@@ -2,3 +2,7 @@
 
 # Justification: ServiceControl app has no synchronization context
 dotnet_diagnostic.CA2007.severity = none
+
+[CustomChecks/CheckRavenDBIndexLag.cs]
+# Justification: The server timestamp must be compared with the system clock
+dotnet_diagnostic.RS0030.severity = none

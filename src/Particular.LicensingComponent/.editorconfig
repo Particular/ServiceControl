@@ -12,3 +12,7 @@ dotnet_diagnostic.IDE0010.severity = suggestion
 
 csharp_style_var_elsewhere = true:error
 csharp_style_var_for_built_in_types = true:error
+
+[{AuditThroughputCollectorHostedService.cs,ThroughputCollector.cs}]
+# Justification: Throughput collection periods are based on current calendar dates
+dotnet_diagnostic.RS0030.severity = none

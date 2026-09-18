@@ -2,3 +2,6 @@
 
 # Justification: Usage is from test projects
 dotnet_diagnostic.CA2007.severity = none
+
+# Justification: Usage is from test projects
+dotnet_diagnostic.RS0030.severity = none

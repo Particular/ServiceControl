@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using NServiceBus;
-    using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
     public class ProcessedMessage
@@ -20,8 +19,11 @@
             MessageMetadata = metadata;
             Headers = headers;
 
-            ProcessedAt = Headers.TryGetValue(NServiceBus.Headers.ProcessingEnded, out var processedAt) ?
-                DateTimeOffsetHelper.ToDateTimeOffset(processedAt).UtcDateTime : DateTime.UtcNow; // best guess
+            ProcessedAt = Headers.TryGetValue(NServiceBus.Headers.ProcessingEnded, out var processedAt)
+                ? DateTimeOffsetHelper.ToDateTimeOffset(processedAt).UtcDateTime
+#pragma warning disable RS0030 // Do not use banned apis: UtcNow for fallback is acceptable, any test scenario will explicitly set the header value
+                : DateTime.UtcNow; // best guess
+#pragma warning restore RS0030
         }
 
         public string? Id { get; set; }
