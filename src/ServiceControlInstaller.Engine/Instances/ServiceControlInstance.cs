@@ -56,8 +56,6 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override SettingInfo MessageBodyStoragePathSetting => ServiceControlSettings.MessageBodyFileSystemStoragePath;
 
-        public TimeSpan? AuditRetentionPeriod { get; set; }
-
         public List<RemoteInstanceSetting> RemoteInstances { get; set; } = [];
 
         public string PersistenceConnectionString { get; set; }
@@ -187,11 +185,6 @@ namespace ServiceControlInstaller.Engine.Instances
                 ErrorRetentionPeriod = errorRetentionPeriod;
             }
 
-            if (TimeSpan.TryParse(AppConfig.Read(ServiceControlSettings.AuditRetentionPeriod, (string)null), out var auditRetentionPeriod))
-            {
-                AuditRetentionPeriod = auditRetentionPeriod;
-            }
-
             var remoteInstancesString = AppConfig.Read(ServiceControlSettings.RemoteInstances, default(string));
             if (!string.IsNullOrWhiteSpace(remoteInstancesString))
             {
@@ -219,9 +212,9 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(ServiceControlSettings.LogPath, LogPath);
             settings.Set(ServiceControlSettings.ForwardAuditMessages, ForwardAuditMessages.ToString(), Version);
             settings.Set(ServiceControlSettings.ForwardErrorMessages, ForwardErrorMessages.ToString(), Version);
-            settings.Set(ServiceControlSettings.AuditRetentionPeriod, AuditRetentionPeriod.ToString(), Version);
             settings.Set(ServiceControlSettings.ErrorRetentionPeriod, ErrorRetentionPeriod.ToString(), Version);
             settings.RemoveIfRetired(ServiceControlSettings.HoursToKeepMessagesBeforeExpiring, Version);
+            settings.RemoveIfRetired(ServiceControlSettings.AuditRetentionPeriod, Version);
             settings.Set(ServiceControlSettings.AuditQueue, AuditQueue, Version);
             settings.Set(ServiceControlSettings.ErrorQueue, ErrorQueue);
             settings.Set(ServiceControlSettings.AuditLogQueue, AuditLogQueue, Version);

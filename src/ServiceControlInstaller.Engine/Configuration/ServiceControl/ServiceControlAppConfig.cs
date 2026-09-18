@@ -33,7 +33,6 @@
             settings.Set(ServiceControlSettings.StorageType, details.PersistenceManifest.Name); // TODO: Why is it set here AND at ServiceControlInstance.ApplySettingsChanges 🤬
             settings.Set(ServiceControlSettings.ErrorQueue, details.ErrorQueue);
             settings.Set(ServiceControlSettings.ErrorLogQueue, details.ForwardErrorMessages ? details.ErrorLogQueue : null);
-            settings.Set(ServiceControlSettings.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
             settings.Set(ServiceControlSettings.ErrorRetentionPeriod, details.ErrorRetentionPeriod.ToString(), version);
             settings.Set(ServiceControlSettings.EnableFullTextSearchOnBodies, details.PersistenceManifest.Settings.Any(s => s.Name == ServiceControlSettings.EnableFullTextSearchOnBodies.Name) ? details.EnableFullTextSearchOnBodies.ToString() : null, version);
             settings.Set(ServiceControlSettings.RemoteInstances, RemoteInstanceConverter.ToJson(details.RemoteInstances), version);
@@ -95,6 +94,7 @@
             settings.Set(ServiceControlSettings.ShutdownTimeout, "00:02:00", version);
 
             // Retired settings
+            settings.RemoveIfRetired(ServiceControlSettings.AuditRetentionPeriod, version);
             settings.RemoveIfRetired(ServiceControlSettings.AuditQueue, version);
             settings.RemoveIfRetired(ServiceControlSettings.AuditLogQueue, version);
             settings.RemoveIfRetired(ServiceControlSettings.ForwardAuditMessages, version);
