@@ -24,6 +24,9 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
     public DbSet<RetryBatchNowForwardingEntity> RetryBatchNowForwarding { get; set; }
     public DbSet<FailedMessageRetryEntity> FailedMessageRetries { get; set; }
     public DbSet<FailedErrorImportEntity> FailedErrorImports { get; set; }
+    public DbSet<AuditMessageEntity> AuditMessages { get; set; }
+    public DbSet<SagaSnapshotEntity> SagaSnapshots { get; set; }
+    public DbSet<FailedAuditImportEntity> FailedAuditImports { get; set; }
     public DbSet<SettingEntity> Settings { get; set; }
     public DbSet<SubscriptionEntity> Subscriptions { get; set; }
     public DbSet<EventLogItemEntity> EventLogItems { get; set; }
@@ -49,6 +52,8 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
 
         modelBuilder.ApplyConfiguration(new CustomCheckConfiguration());
         modelBuilder.ApplyConfiguration(new EndpointSettingsConfiguration());
+        modelBuilder.ApplyConfiguration(new AuditMessageConfiguration());
+        modelBuilder.ApplyConfiguration(new FailedAuditImportConfiguration());
         modelBuilder.ApplyConfiguration(new FailedErrorImportConfiguration());
         modelBuilder.ApplyConfiguration(new FailedMessageConfiguration());
         modelBuilder.ApplyConfiguration(new FailedMessageEditConfiguration());
@@ -60,6 +65,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
         modelBuilder.ApplyConfiguration(new RetryBatchNowForwardingConfiguration());
         modelBuilder.ApplyConfiguration(new KnownEndpointConfiguration());
         modelBuilder.ApplyConfiguration(new SubscriptionConfiguration());
+        modelBuilder.ApplyConfiguration(new SagaSnapshotConfiguration());
         modelBuilder.ApplyConfiguration(new SettingConfiguration());
         modelBuilder.ApplyConfiguration(new EventLogItemConfiguration());
         modelBuilder.ApplyConfiguration(new HistoricRetryOperationConfiguration());

@@ -6,10 +6,11 @@ using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
-// Writes one ingestion batch inside a single transaction. The statements providers genuinely
-// differ on (the upserts) come from the injected dialect; everything portable stays here as
-// set-based EF operations. Statement order matters: a message that fails and is retry-confirmed
-// in the same batch must end Resolved, which the resolve running last is what gives it.
+// Writes the failed message half of one ingestion batch, inside the transaction the unit of work
+// has opened. The statements providers genuinely differ on (the upserts) come from the injected
+// dialect; everything portable stays here as set-based EF operations. Statement order matters: a
+// message that fails and is retry-confirmed in the same batch must end Resolved, which the resolve
+// running last is what gives it.
 class FailedMessageBatchWriter(ServiceControlDbContext dbContext, IFailedMessageIngestionSqlDialect dialect)
 {
     public async Task Write(
@@ -23,34 +24,21 @@ class FailedMessageBatchWriter(ServiceControlDbContext dbContext, IFailedMessage
         var endpoints = BuildEndpointRows(knownEndpoints);
         var retries = FoldRetries(confirmedRetries);
 
-        if (failedMessages.Count == 0 && endpoints.Count == 0 && retries.Length == 0)
+        if (failedMessages.Count > 0)
         {
-            return;
+            await dialect.UpsertFailedMessages(dbContext, failedMessages, cancellationToken);
+            await ReplaceGroups(failedMessages, groups, cancellationToken);
         }
 
-        var strategy = dbContext.Database.CreateExecutionStrategy();
-        await strategy.ExecuteAsync(async ct =>
+        if (endpoints.Count > 0)
         {
-            await using var transaction = await dbContext.Database.BeginTransactionAsync(ct);
+            await dialect.InsertMissingKnownEndpoints(dbContext, endpoints, cancellationToken);
+        }
 
-            if (failedMessages.Count > 0)
-            {
-                await dialect.UpsertFailedMessages(dbContext, failedMessages, ct);
-                await ReplaceGroups(failedMessages, groups, ct);
-            }
-
-            if (endpoints.Count > 0)
-            {
-                await dialect.InsertMissingKnownEndpoints(dbContext, endpoints, ct);
-            }
-
-            if (retries.Length > 0)
-            {
-                await ResolveRetried(retries, now, ct);
-            }
-
-            await transaction.CommitAsync(ct);
-        }, cancellationToken);
+        if (retries.Length > 0)
+        {
+            await ResolveRetried(retries, now, cancellationToken);
+        }
     }
 
     static (List<FailedMessageEntity> Messages, List<FailedMessageGroupEntity> Groups) Fold(

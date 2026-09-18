@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Monitoring
+namespace ServiceControl.Monitoring
 {
     using Connection;
     using Contracts;
@@ -31,7 +31,7 @@
         {
             hostBuilder.Services.AddHostedService<HeartbeatMonitoringHostedService>();
 
-            if (!settings.ErrorIngestionOnly)
+            if (settings.Host.MonitorsHeartbeats)
             {
                 hostBuilder.Services.AddHostedService<HeartbeatEndpointSettingsSyncHostedService>();
             }
@@ -52,7 +52,7 @@
 
             hostBuilder.Services.AddErrorMessageEnricher<DetectNewEndpointsFromErrorImportsEnricher>();
 
-            if (!settings.ErrorIngestionOnly)
+            if (settings.Host.MonitorsHeartbeats)
             {
                 hostBuilder.Services.AddPlatformConnectionProvider<HeartbeatsPlatformConnectionDetailsProvider>();
             }

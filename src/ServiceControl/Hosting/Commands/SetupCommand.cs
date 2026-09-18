@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Hosting.Commands
+namespace ServiceControl.Hosting.Commands
 {
     using System.Runtime.InteropServices;
     using System.Threading;
@@ -18,12 +18,17 @@
     {
         public override async Task Execute(HostArguments args, Settings settings, CancellationToken cancellationToken = default)
         {
+            if (args.AuditInstance)
+            {
+                AuditInstanceCommand.ApplyMode(settings);
+            }
+
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.AddServiceControlInstallers(settings);
 
             var componentSetupContext = new ComponentInstallationContext();
 
-            foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)
+            foreach (ServiceControlComponent component in args.AuditInstance ? AuditInstanceCommand.Components : ServiceControlMainInstance.Components)
             {
                 component.Setup(settings, componentSetupContext, hostBuilder);
             }

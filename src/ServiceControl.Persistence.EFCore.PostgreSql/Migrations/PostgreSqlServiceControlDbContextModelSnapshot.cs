@@ -87,6 +87,136 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.ToTable("archive_operations", (string)null);
                 });
 
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.AuditMessageEntity", b =>
+                {
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_on");
+
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("BodyContentType")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("body_content_type");
+
+                    b.Property<int>("BodySize")
+                        .HasColumnType("integer")
+                        .HasColumnName("body_size");
+
+                    b.Property<bool>("BodyStoredExternally")
+                        .HasColumnType("boolean")
+                        .HasColumnName("body_stored_externally");
+
+                    b.Property<string>("BodyText")
+                        .HasColumnType("text")
+                        .HasColumnName("body_text");
+
+                    b.Property<string>("ConversationId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("conversation_id");
+
+                    b.Property<long?>("CriticalTimeTicks")
+                        .HasColumnType("bigint")
+                        .HasColumnName("critical_time_ticks");
+
+                    b.Property<long?>("DeliveryTimeTicks")
+                        .HasColumnType("bigint")
+                        .HasColumnName("delivery_time_ticks");
+
+                    b.Property<string>("HeadersJson")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("headers_json");
+
+                    b.Property<bool>("IsSystemMessage")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_system_message");
+
+                    b.Property<string>("MessageId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("message_id");
+
+                    b.Property<string>("MessageType")
+                        .HasColumnType("text")
+                        .HasColumnName("message_type");
+
+                    b.Property<DateTime>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_at");
+
+                    b.Property<long?>("ProcessingTimeTicks")
+                        .HasColumnType("bigint")
+                        .HasColumnName("processing_time_ticks");
+
+                    b.Property<string>("ReceivingEndpointHost")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("receiving_endpoint_host");
+
+                    b.Property<Guid?>("ReceivingEndpointHostId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("receiving_endpoint_host_id");
+
+                    b.Property<string>("ReceivingEndpointName")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("receiving_endpoint_name");
+
+                    b.Property<string>("SendingEndpointHost")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("sending_endpoint_host");
+
+                    b.Property<Guid?>("SendingEndpointHostId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sending_endpoint_host_id");
+
+                    b.Property<string>("SendingEndpointName")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("sending_endpoint_name");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime?>("TimeSent")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("time_sent");
+
+                    b.Property<Guid>("UniqueMessageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("unique_message_id");
+
+                    b.HasKey("CreatedOn", "Id")
+                        .HasName("pk_audit_messages");
+
+                    b.HasIndex("ConversationId")
+                        .HasDatabaseName("ix_audit_messages_conversation_id");
+
+                    b.HasIndex("ProcessedAt")
+                        .HasDatabaseName("ix_audit_messages_processed_at");
+
+                    b.HasIndex("TimeSent")
+                        .HasDatabaseName("ix_audit_messages_time_sent");
+
+                    b.HasIndex("UniqueMessageId")
+                        .HasDatabaseName("ix_audit_messages_unique_message_id");
+
+                    b.HasIndex("ReceivingEndpointName", "CreatedOn")
+                        .HasDatabaseName("ix_audit_messages_receiving_endpoint_name_created_on");
+
+                    b.ToTable("audit_messages", (string)null);
+                });
+
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.CustomCheckEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -231,6 +361,50 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasName("pk_external_integration_dispatch_requests");
 
                     b.ToTable("external_integration_dispatch_requests", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedAuditImportEntity", b =>
+                {
+                    b.Property<Guid>("UniqueMessageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("unique_message_id");
+
+                    b.Property<byte[]>("Body")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("body");
+
+                    b.Property<bool>("BodyStoredExternally")
+                        .HasColumnType("boolean")
+                        .HasColumnName("body_stored_externally");
+
+                    b.Property<string>("ExceptionInfo")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("exception_info");
+
+                    b.Property<DateTime>("FailedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("failed_at");
+
+                    b.Property<string>("HeadersJson")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("headers_json");
+
+                    b.Property<string>("MessageId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("message_id");
+
+                    b.HasKey("UniqueMessageId")
+                        .HasName("pk_failed_audit_imports");
+
+                    b.HasIndex("FailedAt")
+                        .HasDatabaseName("ix_failed_audit_imports_failed_at");
+
+                    b.ToTable("failed_audit_imports", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedErrorImportEntity", b =>
@@ -807,6 +981,70 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasName("pk_retry_batch_now_forwarding");
 
                     b.ToTable("retry_batch_now_forwarding", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.SagaSnapshotEntity", b =>
+                {
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_on");
+
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Endpoint")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("endpoint");
+
+                    b.Property<DateTime>("FinishTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("finish_time");
+
+                    b.Property<string>("InitiatingMessageJson")
+                        .HasColumnType("text")
+                        .HasColumnName("initiating_message_json");
+
+                    b.Property<string>("OutgoingMessagesJson")
+                        .HasColumnType("text")
+                        .HasColumnName("outgoing_messages_json");
+
+                    b.Property<DateTime>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_at");
+
+                    b.Property<Guid>("SagaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("saga_id");
+
+                    b.Property<string>("SagaType")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("saga_type");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("start_time");
+
+                    b.Property<string>("StateAfterChange")
+                        .HasColumnType("text")
+                        .HasColumnName("state_after_change");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.HasKey("CreatedOn", "Id")
+                        .HasName("pk_saga_snapshots");
+
+                    b.HasIndex("SagaId", "FinishTime")
+                        .HasDatabaseName("ix_saga_snapshots_saga_id_finish_time");
+
+                    b.ToTable("saga_snapshots", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.SettingEntity", b =>

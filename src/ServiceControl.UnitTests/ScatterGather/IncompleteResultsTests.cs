@@ -16,6 +16,7 @@ using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.Api.Contracts;
 using ServiceControl.Infrastructure.Api;
 using ServiceControl.Infrastructure.WebApi;
+using ServiceControl.Persistence;
 using ServiceControl.Persistence.Infrastructure;
 
 /// <summary>
@@ -133,7 +134,7 @@ class IncompleteResultsTests
         var factory = new FakeHttpClientFactory();
         factory.Register(settings.RemoteInstances[0], Status(HttpStatusCode.GatewayTimeout));
 
-        var api = new GetAuditCountsForEndpointApi(settings, factory, new HttpContextAccessor(), NullLogger<GetAuditCountsForEndpointApi>.Instance);
+        var api = new GetAuditCountsForEndpointApi(new EmptyAuditCountsDataStore(), settings, factory, new HttpContextAccessor(), NullLogger<GetAuditCountsForEndpointApi>.Instance);
 
         Assert.ThrowsAsync<TimeoutException>(() => api.Execute(new AuditCountsForEndpointContext(new PagingInfo(), "Sales"), "/api/endpoints/Sales/audit-count"));
     }
@@ -146,7 +147,7 @@ class IncompleteResultsTests
         factory.Register(settings.RemoteInstances[0], Json<IList<AuditCount>>([new AuditCount { UtcDate = DateTime.UtcNow.Date, Count = 5 }]));
         factory.Register(settings.RemoteInstances[1], Status(HttpStatusCode.GatewayTimeout));
 
-        var auditCountApi = new AuditCountApi(new GetAuditCountsForEndpointApi(settings, factory, new HttpContextAccessor(), NullLogger<GetAuditCountsForEndpointApi>.Instance));
+        var auditCountApi = new AuditCountApi(new GetAuditCountsForEndpointApi(new EmptyAuditCountsDataStore(), settings, factory, new HttpContextAccessor(), NullLogger<GetAuditCountsForEndpointApi>.Instance));
 
         var exception = Assert.CatchAsync(() => auditCountApi.GetEndpointAuditCounts("Sales"));
 

@@ -2,6 +2,7 @@ namespace ServiceControl.Persistence.Tests;
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -43,6 +44,60 @@ class BodyStoragePersistenceTests
         }),
         _ => throw new ArgumentOutOfRangeException(nameof(kind))
     };
+
+    [TestCase(InMemory)]
+    [TestCase(FileSystem)]
+    public async Task Round_trips_a_body_whose_id_names_a_directory(string kind)
+    {
+        var store = CreateStore(kind);
+        var bodyId = $"audit/2026-09-14-00/{Guid.NewGuid()}";
+        var body = Encoding.UTF8.GetBytes("hello world");
+
+        await store.WriteBody(bodyId, body, "text/plain");
+
+        var result = await store.ReadBody(bodyId);
+
+        Assert.That(result, Is.Not.Null);
+        using (result.Stream)
+        {
+            Assert.That(ReadAll(result.Stream), Is.EqualTo(body));
+        }
+    }
+
+    [TestCase(InMemory)]
+    [TestCase(FileSystem)]
+    public async Task Deletes_every_body_under_a_prefix_and_nothing_else(string kind)
+    {
+        var store = CreateStore(kind);
+        var body = Encoding.UTF8.GetBytes("hello world");
+        var expiredHour = "audit/2026-09-14-00/";
+        var liveHour = "audit/2026-09-14-01/";
+        string[] expired = [$"{expiredHour}{Guid.NewGuid()}", $"{expiredHour}{Guid.NewGuid()}"];
+        var live = $"{liveHour}{Guid.NewGuid()}";
+
+        foreach (var bodyId in expired.Append(live))
+        {
+            await store.WriteBody(bodyId, body, "text/plain");
+        }
+
+        await store.DeleteBodiesWithPrefix(expiredHour);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(await store.ReadBody(expired[0]), Is.Null);
+            Assert.That(await store.ReadBody(expired[1]), Is.Null);
+            Assert.That(await store.ReadBody(live), Is.Not.Null);
+        }
+    }
+
+    [TestCase(InMemory)]
+    [TestCase(FileSystem)]
+    public async Task Deleting_a_prefix_nothing_was_written_under_succeeds(string kind)
+    {
+        var store = CreateStore(kind);
+
+        await store.DeleteBodiesWithPrefix("audit/2026-09-14-00/");
+    }
 
     [TestCase(InMemory)]
     [TestCase(FileSystem)]

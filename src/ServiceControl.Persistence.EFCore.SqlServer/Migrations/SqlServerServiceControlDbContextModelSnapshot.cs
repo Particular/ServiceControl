@@ -72,6 +72,106 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.ToTable("ArchiveOperations");
                 });
 
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.AuditMessageEntity", b =>
+                {
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("BodyContentType")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("BodySize")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("BodyStoredExternally")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("BodyText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ConversationId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<long?>("CriticalTimeTicks")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("DeliveryTimeTicks")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("HeadersJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsSystemMessage")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MessageId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("MessageType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ProcessedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("ProcessingTimeTicks")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ReceivingEndpointHost")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid?>("ReceivingEndpointHostId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ReceivingEndpointName")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("SendingEndpointHost")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid?>("SendingEndpointHostId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SendingEndpointName")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("TimeSent")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UniqueMessageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("CreatedOn", "Id");
+
+                    b.HasIndex("ConversationId");
+
+                    b.HasIndex("ProcessedAt");
+
+                    b.HasIndex("TimeSent");
+
+                    b.HasIndex("UniqueMessageId");
+
+                    b.HasIndex("ReceivingEndpointName", "CreatedOn");
+
+                    b.ToTable("AuditMessages");
+                });
+
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.CustomCheckEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -188,6 +288,41 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ExternalIntegrationDispatchRequests");
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedAuditImportEntity", b =>
+                {
+                    b.Property<Guid>("UniqueMessageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("Body")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<bool>("BodyStoredExternally")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ExceptionInfo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("FailedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("HeadersJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MessageId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("UniqueMessageId");
+
+                    b.HasIndex("FailedAt");
+
+                    b.ToTable("FailedAuditImports");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedErrorImportEntity", b =>
@@ -644,6 +779,56 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("RetryBatchNowForwarding");
+                });
+
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.SagaSnapshotEntity", b =>
+                {
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Endpoint")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("FinishTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InitiatingMessageJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OutgoingMessagesJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ProcessedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("SagaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SagaType")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("StateAfterChange")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("CreatedOn", "Id");
+
+                    b.HasIndex("SagaId", "FinishTime");
+
+                    b.ToTable("SagaSnapshots");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.SettingEntity", b =>

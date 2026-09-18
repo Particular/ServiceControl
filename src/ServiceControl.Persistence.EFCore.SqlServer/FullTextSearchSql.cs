@@ -12,6 +12,8 @@ static class FullTextSearchSql
 {
     const string CatalogName = "ServiceControlFullTextCatalog";
     const string TableName = "FailedMessages";
+    const string AuditTableName = "AuditMessages";
+    const string AuditKeyIndexName = "UX_AuditMessages_Id";
 
     // Message search is not optional, so an instance without Full-Text Search installed is not a
     // degraded instance, it is a broken one: every /messages/search request would fail on a missing
@@ -57,6 +59,17 @@ static class FullTextSearchSql
 
     public static readonly string DropIndex = DropIndexSql(null);
 
+    // A full text index needs a single column unique KEY INDEX and the audit primary key is composite,
+    // so the identity column gets a unique index of its own, on SQL Server only: PostgreSQL requires
+    // the partition key in every unique index and does not need one here.
+    public static readonly string CreateAuditKeyIndex = CreateAuditKeyIndexSql(null);
+
+    public static readonly string DropAuditKeyIndex = DropAuditKeyIndexSql(null);
+
+    public static readonly string CreateAuditIndex = CreateAuditIndexSql(null);
+
+    public static readonly string DropAuditIndex = DropAuditIndexSql(null);
+
     /// <summary>
     /// Re-renders the statement the migration carries, this time with the configured schema in it.
     /// Anything else is left alone: EF Core builds the migrations history table's own SQL through
@@ -68,13 +81,18 @@ static class FullTextSearchSql
         {
             var sql when sql == CreateIndex => WithSql(operation, CreateIndexSql(schema)),
             var sql when sql == DropIndex => WithSql(operation, DropIndexSql(schema)),
+            var sql when sql == CreateAuditKeyIndex => WithSql(operation, CreateAuditKeyIndexSql(schema)),
+            var sql when sql == DropAuditKeyIndex => WithSql(operation, DropAuditKeyIndexSql(schema)),
+            var sql when sql == CreateAuditIndex => WithSql(operation, CreateAuditIndexSql(schema)),
+            var sql when sql == DropAuditIndex => WithSql(operation, DropAuditIndexSql(schema)),
             _ => operation
         };
 
     // The catalog statements count as handled without being rewritten: they are server and database
     // scoped, so no schema reaches them.
     public static bool IsHandled(string sql) =>
-        sql == RequireFullTextSearch || sql == CreateCatalog || sql == DropCatalog || sql == CreateIndex || sql == DropIndex;
+        sql == RequireFullTextSearch || sql == CreateCatalog || sql == DropCatalog || sql == CreateIndex || sql == DropIndex
+        || sql == CreateAuditKeyIndex || sql == DropAuditKeyIndex || sql == CreateAuditIndex || sql == DropAuditIndex;
 
     // LANGUAGE 0 (neutral) and STOPLIST = OFF keep the word breaker from applying language rules
     // and from dropping stopwords, both of which lose matches on technical content.
@@ -97,7 +115,40 @@ static class FullTextSearchSql
         END
         """;
 
+    static string CreateAuditKeyIndexSql(string? schema) => $"""
+        IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = '{AuditKeyIndexName}' AND object_id = OBJECT_ID('{QualifyAudit(schema)}'))
+        BEGIN
+            CREATE UNIQUE NONCLUSTERED INDEX [{AuditKeyIndexName}] ON {QualifyAudit(schema)}([Id]);
+        END
+        """;
+
+    static string DropAuditKeyIndexSql(string? schema) => $"""
+        IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = '{AuditKeyIndexName}' AND object_id = OBJECT_ID('{QualifyAudit(schema)}'))
+        BEGIN
+            DROP INDEX [{AuditKeyIndexName}] ON {QualifyAudit(schema)};
+        END
+        """;
+
+    static string CreateAuditIndexSql(string? schema) => $"""
+        IF NOT EXISTS (SELECT 1 FROM sys.fulltext_indexes WHERE object_id = OBJECT_ID('{QualifyAudit(schema)}'))
+        BEGIN
+            EXEC('CREATE FULLTEXT INDEX ON {QualifyAudit(schema)}(HeadersJson LANGUAGE 0, BodyText LANGUAGE 0)
+                      KEY INDEX {AuditKeyIndexName}
+                      ON {CatalogName}
+                      WITH (CHANGE_TRACKING AUTO, STOPLIST = OFF)');
+        END
+        """;
+
+    static string DropAuditIndexSql(string? schema) => $"""
+        IF EXISTS (SELECT 1 FROM sys.fulltext_indexes WHERE object_id = OBJECT_ID('{QualifyAudit(schema)}'))
+        BEGIN
+            DROP FULLTEXT INDEX ON {QualifyAudit(schema)};
+        END
+        """;
+
     static string Qualify(string? schema) => schema is null ? TableName : $"[{schema}].[{TableName}]";
+
+    static string QualifyAudit(string? schema) => schema is null ? AuditTableName : $"[{schema}].[{AuditTableName}]";
 
     static SqlOperation WithSql(SqlOperation operation, string sql) =>
         new() { Sql = sql, SuppressTransaction = operation.SuppressTransaction };

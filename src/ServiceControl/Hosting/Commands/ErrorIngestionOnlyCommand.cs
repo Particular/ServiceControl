@@ -29,8 +29,11 @@ namespace ServiceControl.Hosting.Commands
         public override async Task Execute(HostArguments args, Settings settings, CancellationToken cancellationToken = default)
         {
             EnsureStorageCanScaleOut(settings);
+            IngestionOnlyGuards.EnsureBodyStorageIsReadableByEveryHost("--error-ingestion-only");
 
             var app = BuildHost(settings);
+
+            await app.Services.EnsureDatabaseSchemaIsCurrent(cancellationToken);
 
             await app.RunAsync(settings.RootUrl);
         }

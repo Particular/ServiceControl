@@ -1,8 +1,9 @@
-﻿namespace ServiceControl.EndpointControl.Handlers
+namespace ServiceControl.EndpointControl.Handlers
 {
     using System;
     using Operations;
     using ServiceControl.Contracts.Operations;
+    using ServiceControl.Infrastructure.Ingestion;
     using ServiceControl.Persistence;
 
     class DetectNewEndpointsFromErrorImportsEnricher : IEnrichImportedErrorMessages

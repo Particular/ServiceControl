@@ -78,6 +78,7 @@ sealed class RecordedRetentionMetrics : IDisposable
         RetentionEntity.FailedMessages => "failed_messages",
         RetentionEntity.EventLog => "event_log",
         RetentionEntity.GroupComments => "group_comments",
+        RetentionEntity.Audit => "audit",
         _ => throw new ArgumentOutOfRangeException(nameof(entity))
     };
 

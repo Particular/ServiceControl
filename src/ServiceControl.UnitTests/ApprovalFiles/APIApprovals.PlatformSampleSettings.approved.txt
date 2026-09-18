@@ -1,4 +1,4 @@
-﻿{
+{
   "LoggingSettings": {
     "LogLevel": "Information",
     "LogPath": "C:\\Logs"
@@ -68,7 +68,19 @@
   "ForwardErrorMessages": false,
   "IngestErrorMessages": true,
   "RunRetryProcessor": true,
+  "AuditQueue": "audit",
+  "AuditLogQueue": "audit.log",
+  "ForwardAuditMessages": false,
+  "IngestAuditMessages": true,
+  "AuditIngestionBatchSize": null,
+  "AuditIngestionMaxParallelWriters": null,
+  "AuditIngestionBatchTimeout": "00:00:00",
+  "TimeToRestartAuditIngestionAfterFailure": "00:01:00",
   "ErrorIngestionOnly": false,
+  "AuditIngestionOnly": false,
+  "AuditInstance": false,
+  "AuditDataLocation": "Local",
+  "ServiceControlQueueAddress": null,
   "AuditRetentionPeriod": null,
   "ErrorRetentionPeriod": "10.00:00:00",
   "EventsRetentionPeriod": "14.00:00:00",

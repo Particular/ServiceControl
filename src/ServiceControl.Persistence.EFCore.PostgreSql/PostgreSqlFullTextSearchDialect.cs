@@ -19,6 +19,14 @@ class PostgreSqlFullTextSearchDialect : IFullTextSearchDialect
                     (message.MessageType ?? "").Replace(".", " ").Replace("+", " "))
                 .Matches(EF.Functions.WebSearchToTsQuery(FullTextSearchSql.Configuration, ToOrQuery(searchTerms))));
 
+    public IQueryable<AuditMessageEntity> Search(IQueryable<AuditMessageEntity> source, string searchTerms) =>
+        source.Where(message =>
+            EF.Functions.ToTsVector(FullTextSearchSql.Configuration,
+                    message.HeadersJson + " " +
+                    (message.BodyText ?? "") + " " +
+                    (message.MessageType ?? "").Replace(".", " ").Replace("+", " "))
+                .Matches(EF.Functions.WebSearchToTsQuery(FullTextSearchSql.Configuration, ToOrQuery(searchTerms))));
+
     // websearch_to_tsquery ANDs bare terms; the RavenDB persister ORs them, so the terms are
     // rejoined with the operator that syntax understands. It also never throws on odd input, which
     // a hand built tsquery would.

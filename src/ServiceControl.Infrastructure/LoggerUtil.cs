@@ -28,11 +28,9 @@
         public static string SeqAddress { private get; set; }
 
         // Telemetry resource attached to exported OTLP logs (service.name/service.version/service.instance.id).
-        // Set once at process startup via Initialize() — before any logger is created — so both the host pipeline
-        // and the static bootstrap loggers (CreateStaticLogger) share a single instance identity. Defaults to
-        // CreateDefault() (which still honors OTEL_SERVICE_NAME/OTEL_RESOURCE_ATTRIBUTES) for the rare logger
-        // created before Initialize runs.
-        static ResourceBuilder serviceResourceBuilder = CreateResourcesBuilder();
+        // Built once so every logger in the process, including the static bootstrap ones, reports the same
+        // instance identity as the metrics pipeline.
+        static readonly ResourceBuilder serviceResourceBuilder = CreateResourcesBuilder();
 
         static ResourceBuilder CreateResourcesBuilder()
         {
@@ -40,15 +38,9 @@
             var serviceName = asm.GetName().Name ?? throw new InvalidOperationException("Entry assembly name not found");
             var serviceVersion = FileVersionInfo.GetVersionInfo(asm.Location).ProductVersion;
 
-            // CreateDefault() also reads OTEL_SERVICE_NAME/OTEL_RESOURCE_ATTRIBUTES, so operators can still enrich
-            // the resource with deployment-specific attributes via those environment variables.
             return ResourceBuilder
                 .CreateDefault()
-                .AddService(
-                    serviceName,
-                    serviceVersion: serviceVersion,
-                    autoGenerateServiceInstanceId: true
-                    );
+                .AddServiceControlInstance(serviceName, serviceVersion);
         }
 
         public static bool IsLoggingTo(Loggers logger) => (logger & ActiveLoggers) == logger;

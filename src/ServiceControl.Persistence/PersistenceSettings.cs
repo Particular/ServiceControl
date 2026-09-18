@@ -18,6 +18,13 @@ namespace ServiceControl.Persistence
         /// </summary>
         public bool RunRetentionSweep { get; set; } = true;
 
+        /// <summary>
+        /// Whether the audit data lives in this database. False on a primary whose audit is on a
+        /// dedicated audit host: the audit tables exist, empty, and nothing queries, sweeps or
+        /// provisions them.
+        /// </summary>
+        public bool HostsAuditData { get; set; } = true;
+
         public bool EnableFullTextSearchOnBodies { get; set; } = true;
 
         public TimeSpan? OverrideCustomCheckRepeatTime { get; set; }

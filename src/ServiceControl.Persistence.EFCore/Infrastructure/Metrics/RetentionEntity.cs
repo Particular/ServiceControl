@@ -4,5 +4,6 @@ public enum RetentionEntity
 {
     FailedMessages,
     EventLog,
-    GroupComments
+    GroupComments,
+    Audit
 }

@@ -6,7 +6,7 @@ using ServiceControl.Infrastructure;
 
 public class RetentionMetrics
 {
-    public const string MeterName = ServiceControlMeters.Error;
+    public const string MeterName = ServiceControlMeters.Primary;
 
     public static readonly string CycleDurationInstrumentName = $"{InstrumentPrefix}.cycle_duration_seconds";
     public static readonly string RowsDeletedInstrumentName = $"{InstrumentPrefix}.rows_deleted_total";
@@ -79,7 +79,8 @@ public class RetentionMetrics
     [
         EntityTag("failed_messages"),
         EntityTag("event_log"),
-        EntityTag("group_comments")
+        EntityTag("group_comments"),
+        EntityTag("audit")
     ];
 
     const string MeterVersion = "0.1.0";

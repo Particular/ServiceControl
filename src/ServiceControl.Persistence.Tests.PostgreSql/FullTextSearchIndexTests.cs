@@ -21,6 +21,14 @@ class FullTextSearchIndexTests
     }
 
     [Test]
+    public void Audit_search_uses_the_indexed_expression()
+    {
+        var sql = WithoutTableAlias(AuditSearchQuery("forty-two"), "audit_messages");
+
+        Assert.That(sql, Does.Contain(FullTextSearchSql.IndexedExpression));
+    }
+
+    [Test]
     public void Terms_are_ored()
     {
         var sql = SearchQuery("forty two");
@@ -30,21 +38,35 @@ class FullTextSearchIndexTests
 
     static string SearchQuery(string searchTerms)
     {
-        var options = new DbContextOptionsBuilder<PostgreSqlServiceControlDbContext>()
-            .UseNpgsql("Host=localhost;Database=servicecontrol")
-            .Options;
-
-        using var dbContext = new PostgreSqlServiceControlDbContext(options);
+        using var dbContext = CreateDbContext();
 
         return new PostgreSqlFullTextSearchDialect()
             .Search(dbContext.FailedMessages, searchTerms)
             .ToQueryString();
     }
 
-    // The DDL names the columns bare, the query qualifies them with whatever alias EF picked.
-    static string WithoutTableAlias(string sql)
+    static string AuditSearchQuery(string searchTerms)
     {
-        var alias = Regex.Match(sql, @"FROM failed_messages AS (\w+)").Groups[1].Value;
+        using var dbContext = CreateDbContext();
+
+        return new PostgreSqlFullTextSearchDialect()
+            .Search(dbContext.AuditMessages, searchTerms)
+            .ToQueryString();
+    }
+
+    static PostgreSqlServiceControlDbContext CreateDbContext()
+    {
+        var options = new DbContextOptionsBuilder<PostgreSqlServiceControlDbContext>()
+            .UseNpgsql("Host=localhost;Database=servicecontrol")
+            .Options;
+
+        return new PostgreSqlServiceControlDbContext(options);
+    }
+
+    // The DDL names the columns bare, the query qualifies them with whatever alias EF picked.
+    static string WithoutTableAlias(string sql, string table = "failed_messages")
+    {
+        var alias = Regex.Match(sql, $@"FROM {table} AS (\w+)").Groups[1].Value;
 
         return sql.Replace($"{alias}.", string.Empty);
     }

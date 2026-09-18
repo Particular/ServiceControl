@@ -1,4 +1,4 @@
-﻿namespace Particular.ServiceControl
+namespace Particular.ServiceControl
 {
     using System;
     using System.Diagnostics;
@@ -30,6 +30,8 @@
     using NServiceBus.Hosting;
     using NServiceBus.Transport;
     using OpenTelemetry.Metrics;
+    using global::ServiceControl.Auditing.Metrics;
+    using global::ServiceControl.Auditing.Reporting;
     using OpenTelemetry.Resources;
     using Particular.LicensingComponent;
     using ServiceBus.Management.Infrastructure;
@@ -42,7 +44,7 @@
 
         public static void AddServiceControl(this IHostApplicationBuilder hostBuilder, Settings settings, EndpointConfiguration configuration, params ReadOnlySpan<ServiceControlComponent> components)
         {
-            if (!settings.ErrorIngestionOnly)
+            if (settings.Host.HostsPrimaryEndpoint)
             {
                 ArgumentNullException.ThrowIfNull(configuration);
             }
@@ -107,10 +109,10 @@
             hostBuilder.AddTelemetry(settings);
             services.AddServiceControlHealthChecks();
 
-            if (settings.ErrorIngestionOnly)
+            if (!settings.Host.HostsPrimaryEndpoint)
             {
                 // Ingestion receives through its own transport infrastructure and forwards through
-                // that same infrastructure's dispatcher, so the endpoint is not hosted at all.
+                // that same infrastructure's dispatcher, so the primary endpoint is not hosted at all.
                 var machineName = NServiceBus.Support.RuntimeEnvironment.MachineName;
                 services.AddSingleton(new HostInformation(
                     DeterministicGuid.MakeId(machineName, settings.InstanceName),
@@ -121,6 +123,11 @@
                     provider.GetRequiredService<IHostApplicationLifetime>().StopApplication();
                     return Task.CompletedTask;
                 }));
+
+                if (settings.Host.ReportsToPrimary)
+                {
+                    ReportingEndpoint.Add(services, settings, transportCustomization, transportSettings);
+                }
             }
             else
             {
@@ -168,13 +175,12 @@
             }
 
             hostBuilder.Services.AddOpenTelemetry()
-                .ConfigureResource(resource => resource.AddService(
-                    serviceName: settings.InstanceName,
-                    serviceVersion: InstanceVersion,
-                    autoGenerateServiceInstanceId: true))
+                .ConfigureResource(resource => resource.AddServiceControlInstance(settings.InstanceName, InstanceVersion))
                 .WithMetrics(metrics =>
                 {
                     metrics.AddIngestionMetrics();
+                    metrics.AddAuditIngestionMetrics();
+
                     metrics.AddAspNetCoreInstrumentation();
                     metrics.AddHttpClientInstrumentation();
                     metrics.AddRuntimeInstrumentation();
@@ -201,6 +207,9 @@ Audit Retention Period (optional):  {settings.AuditRetentionPeriod}
 Error Retention Period:             {settings.ErrorRetentionPeriod}
 Ingest Error Messages:              {settings.IngestErrorMessages}
 Error Ingestion Only:               {settings.ErrorIngestionOnly}
+Audit Ingestion Only:               {settings.AuditIngestionOnly}
+Audit Instance:                     {settings.AuditInstance}
+Audit Data Location:                {settings.AuditDataLocation}
 Forwarding Error Messages:          {settings.ForwardErrorMessages}
 ServiceControl Logging Level:       {settings.LoggingSettings.LogLevel}
 Selected Transport Customization:   {settings.TransportType}
