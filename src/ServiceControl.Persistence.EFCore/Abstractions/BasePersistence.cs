@@ -47,6 +47,9 @@ public abstract class BasePersistence
             services.AddSingleton<RetentionSweeper>();
             services.AddHostedService(sp => sp.GetRequiredService<RetentionSweeper>());
             services.AddSingleton<IRetentionSweeper>(sp => sp.GetRequiredService<RetentionSweeper>());
+            services.AddSingleton<IRetentionSweepHealth>(sp => sp.GetRequiredService<RetentionSweeper>());
+
+            services.AddCustomCheck<RetentionSweepCustomCheck>();
         }
 
         services.AddSingleton<OperationsManager>();
