@@ -5,8 +5,6 @@ using ServiceControl.Recoverability;
 
 static class FailureGroupQueries
 {
-    public const int MaxGroups = 200;
-
     /// <summary>
     /// The group aggregate: membership rows joined to their message, grouped by (GroupId, Type),
     /// with Count/First/Last per group.

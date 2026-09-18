@@ -12,7 +12,7 @@ using ServiceControl.Recoverability;
 
 public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IGroupsDataStore
 {
-    public Task<IList<FailureGroupView>> GetUnresolvedGroupsByClassifier(string classifier, string? classifierFilter, CancellationToken cancellationToken = default) =>
+    public Task<IList<FailureGroupView>> GetUnresolvedGroupsByClassifier(string classifier, string? classifierFilter, PagingInfo pagingInfo, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext<IList<FailureGroupView>>(async (dbContext, token) =>
         {
             var groups = ByClassifier(dbContext, classifier);
@@ -22,21 +22,28 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
                 groups = groups.Where(group => group.Title == classifierFilter);
             }
 
-            var views = await GetGroupViews(groups, WithStatus(dbContext, FailedMessageStatus.Unresolved), token);
+            var views = await GetGroupViews(
+                groups,
+                WithStatus(dbContext, FailedMessageStatus.Unresolved),
+                pagingInfo,
+                token);
 
             await AttachComments(dbContext, views, token);
 
             return views;
         }, cancellationToken);
 
-    public Task<QueryResult<IList<FailureGroupView>>> GetArchivedGroupsByClassifier(string classifier, CancellationToken cancellationToken = default) =>
+    public Task<QueryResult<IList<FailureGroupView>>> GetArchivedGroupsByClassifier(string classifier, PagingInfo pagingInfo, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (dbContext, token) =>
         {
             var groups = ByClassifier(dbContext, classifier);
+            var messages = WithStatus(dbContext, FailedMessageStatus.Archived);
 
-            var views = await GetGroupViews(groups, WithStatus(dbContext, FailedMessageStatus.Archived), token);
+            var views = await GetGroupViews(groups, messages, pagingInfo, token);
 
-            return new QueryResult<IList<FailureGroupView>>(views, views.ToQueryStatsInfo("groups", views.Count));
+            var totalCount = await groups.LongCountAsync(token);
+
+            return new QueryResult<IList<FailureGroupView>>(views, views.ToQueryStatsInfo("groups", totalCount));
         }, cancellationToken);
 
     public Task<QueryResult<FailureGroupView>> GetUnresolvedGroup(string groupId, string? status, string? modified, CancellationToken cancellationToken = default) =>
@@ -128,14 +135,15 @@ public class GroupsDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(
     }
 
     // One aggregate statement: Count/First/Last come from the joined message rows and the Title
-    // lookup per output group is bounded by FailureGroupQueries.MaxGroups. See
+    // lookup per output group is bounded by page size. See
     // FailureGroupQueries.AggregateGroups for the provider index shapes this relies on — on
     // PostgreSQL the classifier and messages indexes must carry the join column or the whole
     // aggregate degrades to sequential scans of both large tables.
-    static async Task<List<FailureGroupView>> GetGroupViews(IQueryable<FailedMessageGroupEntity> groups, IQueryable<FailedMessageEntity> messages, CancellationToken cancellationToken) =>
+    static async Task<List<FailureGroupView>> GetGroupViews(IQueryable<FailedMessageGroupEntity> groups, IQueryable<FailedMessageEntity> messages, PagingInfo pagingInfo, CancellationToken cancellationToken) =>
         await groups
             .AggregateGroups(messages)
             .OrderByDescending(summary => summary.Last)
-            .Take(FailureGroupQueries.MaxGroups)
+            .Skip(pagingInfo.Offset)
+            .Take(pagingInfo.PageSize)
             .ToListAsync(cancellationToken);
 }
