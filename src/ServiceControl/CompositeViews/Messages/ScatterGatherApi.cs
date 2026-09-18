@@ -11,6 +11,7 @@ namespace ServiceControl.CompositeViews.Messages
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
+    using Persistence;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
     using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -107,9 +108,10 @@ namespace ServiceControl.CompositeViews.Messages
 
         /// <summary>
         /// Whether this instance's own data store is a source for the query. An API that only forwards to the
-        /// remotes answers "nothing" locally without that meaning anything about the data.
+        /// remotes, or whose local store is one of the empty audit stand-ins, answers "nothing" locally
+        /// without that meaning anything about the data.
         /// </summary>
-        protected virtual bool LocalInstanceParticipates => true;
+        protected virtual bool LocalInstanceParticipates => DataStore is not IEmptyAuditDataStore;
 
         async Task<QueryResult<TOut>> LocalCall(TIn input, string instanceId, CancellationToken cancellationToken)
         {
@@ -152,7 +154,7 @@ namespace ServiceControl.CompositeViews.Messages
         protected abstract TOut ProcessResults(TIn input, QueryResult<TOut>[] results);
 
         protected virtual QueryStatsInfo AggregateStats(TIn input, IEnumerable<QueryResult<TOut>> results, TOut processedResults) =>
-            Aggregate(results);
+            LocalInstanceParticipates ? Aggregate(results) : AggregateStatsFromRemotesOnly(results);
 
         /// <summary>
         /// For an API whose own instance is not a source for the data: its local result is a non-participant

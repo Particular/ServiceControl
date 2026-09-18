@@ -1,0 +1,9 @@
+{
+  "Name": "AuditCapableTest",
+  "DisplayName": "Audit capable test persister",
+  "Description": "Test only persister that advertises audit support and delegates everything else to a real persister",
+  "AssemblyName": "ServiceControl.Persistence.Tests.AuditCapable",
+  "TypeName": "ServiceControl.Persistence.Tests.AuditCapable.AuditCapableTestPersistenceConfiguration, ServiceControl.Persistence.Tests.AuditCapable",
+  "IsSupported": false,
+  "SupportsAuditIngestion": true
+}
