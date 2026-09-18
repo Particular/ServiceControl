@@ -271,6 +271,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
     [TestCase(ThroughputSource.Audit)]
     [TestCase(ThroughputSource.Broker)]
     [TestCase(ThroughputSource.Monitoring)]
+    [TestCase(ThroughputSource.Endpoint)]
     public async Task Should_not_include_throughput_after_report_end_date(ThroughputSource source)
     {
         // Arrange
@@ -293,6 +294,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             ThroughputSource.Audit => queue.DailyThroughputFromAudit,
             ThroughputSource.Broker => queue.DailyThroughputFromBroker,
             ThroughputSource.Monitoring => queue.DailyThroughputFromMonitoring,
+            ThroughputSource.Endpoint => queue.DailyThroughputFromEndpoint,
             _ => throw new ArgumentOutOfRangeException(nameof(source))
         };
 
