@@ -25,8 +25,6 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
 
             public TimeSpan ErrorRetentionPeriod { get; set; }
 
-            public TimeSpan? AuditRetentionPeriod { get; set; }
-
             public List<RemoteInstanceSetting> RemoteInstances { get; set; }
 
             public bool EnableFullTextSearchOnBodies { get; set; }

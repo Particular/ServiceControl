@@ -1486,16 +1486,6 @@
       <command:syntaxItem>
         <maml:name>Invoke-ServiceControlInstanceUpgrade</maml:name>
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="false" position="named">
-          <maml:name>AuditRetentionPeriod</maml:name>
-          <maml:description>
-            <maml:para>
-              AuditRetentionPeriod controls how long ServiceControl retains messages ingested from the Audit queue in the database.  The value must be a TimeSpan within the range 1 hour to 365 days.
-              Use the New-TimeSpan cmdlet to generate a TimeSpan value.
-            </maml:para>
-          </maml:description>
-          <command:parameterValue required="true" variableLength="true">Nullable`1[TimeSpan]</command:parameterValue>
-        </command:parameter>
-        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="false" position="named">
           <maml:name>ErrorRetentionPeriod</maml:name>
           <maml:description>
             <maml:para>
@@ -1536,21 +1526,6 @@
       </command:syntaxItem>
     </command:syntax>
     <command:parameters>
-      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="false" position="named">
-        <maml:name>AuditRetentionPeriod</maml:name>
-        <maml:description>
-          <maml:para>
-            AuditRetentionPeriod controls how long ServiceControl retains messages ingested from the Audit queue in the database.  The value must be a TimeSpan within the range 1 hour to 365 days.
-            Use the New-TimeSpan cmdlet to generate a TimeSpan value.
-          </maml:para>
-        </maml:description>
-        <command:parameterValue required="true" variableLength="true">Nullable`1[TimeSpan]</command:parameterValue>
-        <dev:type>
-          <maml:name>Nullable`1[TimeSpan]</maml:name>
-          <maml:uri/>
-        </dev:type>
-        <dev:defaultValue></dev:defaultValue>
-      </command:parameter>
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="false" position="named">
         <maml:name>ErrorRetentionPeriod</maml:name>
         <maml:description>
@@ -2934,21 +2909,6 @@
         </dev:type>
         <dev:defaultValue></dev:defaultValue>
       </command:parameter>
-      <command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-        <maml:name>AuditRetentionPeriod</maml:name>
-        <maml:description>
-          <maml:para>
-            AuditRetention Period controls how long ServiceControl retains messages ingested from the Audit queue in the database.  The value must be a TimeSpan within the range 1 hour to 365 days.
-            Use the New-TimeSpan cmdlet to generate a TimeSpan value.
-          </maml:para>
-        </maml:description>
-        <command:parameterValue required="true" variableLength="false">timespan</command:parameterValue>
-        <dev:type>
-          <maml:name>timespan</maml:name>
-          <maml:uri/>
-        </dev:type>
-        <dev:defaultValue></dev:defaultValue>
-      </command:parameter>
       <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
         <maml:name>EnableIntegratedServicePulse</maml:name>
         <maml:description>
@@ -3003,7 +2963,6 @@
           <maml:paragraph>PS C:\&gt;</maml:paragraph>
         </maml:introduction>
         <dev:code>
-          $AuditRetention = New-TimeSpan -Days 30
           $ErrorRetention = New-TimeSpan -Days 30
 
           New-ServiceControlInstance -Name &apos;ServiceControlTest&apos; `
@@ -3015,7 +2974,6 @@
           -ErrorQueue error `
           -Transport MSMQ `
           -DisplayName &apos;ServiceControl Test&apos; `
-          -AuditRetentionPeriod $AuditRetention `
           -ErrorRetentionPeriod $ErrorRetention `
           -ForwardErrorMessages:$false `
           -EnableIntegratedServicePulse
