@@ -11,9 +11,14 @@ public static class McpPermissions
 {
     public const string ListFailures = Permissions.ErrorMessagesView;
     public const string GetFailure = Permissions.ErrorMessagesView;
-    public const string RetryFailure = Permissions.ErrorMessagesRetry;
+    public const string GetFailureLastAttempt = Permissions.ErrorMessagesView;
+    public const string GetFailuresByEndpoint = Permissions.ErrorMessagesView;
+    public const string GetErrorsSummary = Permissions.ErrorMessagesView;
 
     public const string ListFailureGroups = Permissions.ErrorRecoverabilityGroupsView;
     public const string GetFailureGroup = Permissions.ErrorRecoverabilityGroupsView;
+    public const string GetRetryHistory = Permissions.ErrorRecoverabilityGroupsView;
+
+    public const string RetryFailure = Permissions.ErrorMessagesRetry;
     public const string RetryFailureGroup = Permissions.ErrorRecoverabilityGroupsRetry;
 }

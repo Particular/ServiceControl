@@ -1,4 +1,4 @@
-﻿{
+{
   "LoggingSettings": {
     "LogLevel": "Information",
     "LogPath": "C:\\Logs"
@@ -44,8 +44,9 @@
   "NotificationsFilter": null,
   "AllowMessageEditing": false,
   "EnableIntegratedServicePulse": false,
+  "EnableMcpServer": false,
+  "EnableMcpServerWriteMode": false,
   "ServicePulseSettings": null,
-  "MessageFilter": null,
   "EmailDropFolder": null,
   "ValidateConfiguration": true,
   "ExternalIntegrationsDispatchingBatchSize": 100,

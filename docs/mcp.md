@@ -4,10 +4,16 @@ ServiceControl can host a Model Context Protocol (MCP) server inside the main Se
 
 ## Enablement
 
-Enable the server with the `ServiceControl/EnableMcpServer` setting.
+Enable the read-only MCP server with the `ServiceControl/EnableMcpServer` setting.
 
 ```xml
 <add key="ServiceControl/EnableMcpServer" value="true" />
+```
+
+If you also want write-capable retry tools, enable `ServiceControl/EnableMcpServerWriteMode` as well:
+
+```xml
+<add key="ServiceControl/EnableMcpServerWriteMode" value="true" />
 ```
 
 When enabled, ServiceControl exposes MCP on `POST /mcp` using the same ASP.NET Core host, authentication, and authorization pipeline as the built-in API.
@@ -26,9 +32,13 @@ The first MCP tools focus on failures and recoverability groups:
 
 - list failed messages
 - get a failed message by id
+- get the last attempt for a failed message
+- get an errors summary
+- list failed messages by endpoint
 - retry a failed message
 - list failure groups
 - get failures in a failure group
+- get retry history
 - retry a failure group
 
 ## Deployment

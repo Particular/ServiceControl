@@ -148,13 +148,28 @@
 
             hostBuilder.AddServiceControlComponents(componentSetupContext, settings, transportCustomization, serviceControlComponents);
 
-            if (settings.EnableMcpServer)
+            if (settings.EnableMcpServer || settings.EnableMcpServerWriteMode)
             {
-                // MCP tools are discovered by attribute scan from the ServiceControl assembly.
                 services.AddScoped<global::ServiceControl.Mcp.Authorization.McpAuthorizationService>();
-                services.AddMcpServer()
-                    .WithHttpTransport()
-                    .WithToolsFromAssembly(typeof(HostApplicationBuilderExtensions).Assembly);
+                services.AddCors(options => options.AddPolicy(global::ServiceControl.Mcp.McpServerConfiguration.CorsPolicyName, policy => policy
+                    .AllowAnyOrigin()
+                    .AllowAnyHeader()
+                    .WithMethods("POST")
+                    .WithExposedHeaders("Mcp-Session-Id")));
+
+                var mcpBuilder = services.AddMcpServer(options => options.ServerInstructions = global::ServiceControl.Mcp.McpServerConfiguration.ServerInstructions)
+                    .WithHttpTransport(options =>
+                    {
+                        options.SessionMode = HttpServerSessionMode.Stateless;
+                    })
+                    .WithPrompts<global::ServiceControl.Mcp.ServiceControlMcpPrompts>()
+                    .WithTools<global::ServiceControl.Mcp.FailedMessageTools>(global::ServiceControl.Mcp.McpJsonOptions.Default)
+                    .WithTools<global::ServiceControl.Mcp.FailureGroupTools>(global::ServiceControl.Mcp.McpJsonOptions.Default);
+
+                if (settings.EnableMcpServerWriteMode)
+                {
+                    mcpBuilder.WithTools<global::ServiceControl.Mcp.RetryTools>(global::ServiceControl.Mcp.McpJsonOptions.Default);
+                }
             }
         }
 

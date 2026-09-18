@@ -13,9 +13,15 @@ public class McpPermissionsTests
     {
         Assert.That(McpPermissions.ListFailures, Is.EqualTo(Permissions.ErrorMessagesView));
         Assert.That(McpPermissions.GetFailure, Is.EqualTo(Permissions.ErrorMessagesView));
-        Assert.That(McpPermissions.RetryFailure, Is.EqualTo(Permissions.ErrorMessagesRetry));
+        Assert.That(McpPermissions.GetFailureLastAttempt, Is.EqualTo(Permissions.ErrorMessagesView));
+        Assert.That(McpPermissions.GetFailuresByEndpoint, Is.EqualTo(Permissions.ErrorMessagesView));
+        Assert.That(McpPermissions.GetErrorsSummary, Is.EqualTo(Permissions.ErrorMessagesView));
+
         Assert.That(McpPermissions.ListFailureGroups, Is.EqualTo(Permissions.ErrorRecoverabilityGroupsView));
         Assert.That(McpPermissions.GetFailureGroup, Is.EqualTo(Permissions.ErrorRecoverabilityGroupsView));
+        Assert.That(McpPermissions.GetRetryHistory, Is.EqualTo(Permissions.ErrorRecoverabilityGroupsView));
+
+        Assert.That(McpPermissions.RetryFailure, Is.EqualTo(Permissions.ErrorMessagesRetry));
         Assert.That(McpPermissions.RetryFailureGroup, Is.EqualTo(Permissions.ErrorRecoverabilityGroupsRetry));
     }
 }

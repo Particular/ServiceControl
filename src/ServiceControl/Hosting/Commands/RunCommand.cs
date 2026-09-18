@@ -4,7 +4,6 @@
     using System.Threading.Tasks;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Builder;
-    using ModelContextProtocol.AspNetCore;
     using NServiceBus;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
@@ -33,17 +32,12 @@
             hostBuilder.AddServiceControlApi(settings.CorsSettings);
 
             var app = hostBuilder.Build();
-            app.UseServiceControl(settings.ForwardedHeadersSettings, settings.HttpsSettings);
+            app.UseServiceControl(settings.ForwardedHeadersSettings, settings.HttpsSettings, settings.EnableMcpServer || settings.EnableMcpServerWriteMode);
             if (settings.EnableIntegratedServicePulse)
             {
                 app.UseServicePulse(settings.ServicePulseSettings);
             }
             app.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
-
-            if (settings.EnableMcpServer)
-            {
-                app.MapMcp("/mcp");
-            }
 
             await app.RunAsync(settings.RootUrl);
         }
