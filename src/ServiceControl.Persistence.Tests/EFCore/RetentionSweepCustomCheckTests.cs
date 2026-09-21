@@ -17,6 +17,7 @@ using ServiceControl.Persistence.EFCore.Infrastructure.Metrics;
 class RetentionSweepCustomCheckTests : PersistenceTestBase
 {
     RetentionSweeper Sweeper => ServiceProvider.GetRequiredService<RetentionSweeper>();
+    RetentionSweepCustomCheck.State State => ServiceProvider.GetRequiredService<RetentionSweepCustomCheck.State>();
 
     RetentionSweepCustomCheck Check =>
         ServiceProvider.GetServices<ICustomCheck>().OfType<RetentionSweepCustomCheck>().Single();
@@ -31,7 +32,7 @@ class RetentionSweepCustomCheckTests : PersistenceTestBase
     [Test]
     public async Task Check_fails_after_a_retention_failure()
     {
-        Sweeper.RecordFailure(RetentionEntity.FailedMessages, "db timeout");
+        State.ReportError(RetentionEntity.FailedMessages, "db timeout");
 
         var result = await Check.PerformCheck();
 
@@ -46,7 +47,7 @@ class RetentionSweepCustomCheckTests : PersistenceTestBase
     [Test]
     public async Task Check_passes_after_a_fully_successful_sweep()
     {
-        Sweeper.RecordFailure(RetentionEntity.FailedMessages, "db timeout");
+        State.ReportError(RetentionEntity.FailedMessages, "db timeout");
 
         await Sweeper.SweepNow();
 
@@ -57,7 +58,7 @@ class RetentionSweepCustomCheckTests : PersistenceTestBase
     [Test]
     public async Task Check_does_not_expire_with_time()
     {
-        Sweeper.RecordFailure(RetentionEntity.FailedMessages, "db timeout");
+        State.ReportError(RetentionEntity.FailedMessages, "db timeout");
         AdvanceClock(TimeSpan.FromHours(2));
 
         var result = await Check.PerformCheck();
@@ -67,8 +68,8 @@ class RetentionSweepCustomCheckTests : PersistenceTestBase
     [Test]
     public async Task Multiple_failing_entities_are_represented()
     {
-        Sweeper.RecordFailure(RetentionEntity.FailedMessages, "body delete failed");
-        Sweeper.RecordFailure(RetentionEntity.EventLog, "batch delete timeout");
+        State.ReportError(RetentionEntity.FailedMessages, "body delete failed");
+        State.ReportError(RetentionEntity.EventLog, "batch delete timeout");
 
         var result = await Check.PerformCheck();
 
@@ -83,9 +84,25 @@ class RetentionSweepCustomCheckTests : PersistenceTestBase
     }
 
     [Test]
+    public async Task Clearing_one_retention_type_keeps_other_failures()
+    {
+        State.ReportError(RetentionEntity.FailedMessages, "body delete failed");
+        State.ReportError(RetentionEntity.EventLog, "batch delete timeout");
+
+        State.Clear(RetentionEntity.FailedMessages);
+
+        var result = await Check.PerformCheck();
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.FailureReason, Does.Not.Contain("FailedMessages"));
+            Assert.That(result.FailureReason, Does.Contain("EventLog"));
+        }
+    }
+
+    [Test]
     public async Task Repeated_failed_results_raise_one_state_change_event()
     {
-        Sweeper.RecordFailure(RetentionEntity.FailedMessages, "db timeout");
+        State.ReportError(RetentionEntity.FailedMessages, "db timeout");
 
         var result = await Check.PerformCheck();
         var domainEvents = (FakeDomainEvents)ServiceProvider.GetRequiredService<IDomainEvents>();

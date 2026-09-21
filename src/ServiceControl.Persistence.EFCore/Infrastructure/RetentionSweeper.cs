@@ -23,15 +23,14 @@ public class RetentionSweeper(
     IServiceScopeFactory serviceScopeFactory,
     IBodyStoragePersistence bodyStorage,
     RetentionMetrics metrics,
+    RetentionSweepCustomCheck.State retentionState,
     EFPersisterSettings settings,
-    IHostApplicationLifetime hostApplicationLifetime) : BackgroundService, IRetentionSweeper, IRetentionSweepHealth
+    IHostApplicationLifetime hostApplicationLifetime) : BackgroundService, IRetentionSweeper
 {
     const int BatchSize = 1000;
     static readonly TimeSpan Interval = TimeSpan.FromHours(1);
     static readonly TimeSpan InitialDelay = TimeSpan.FromMinutes(1);
     static readonly TimeSpan BatchPause = TimeSpan.FromSeconds(1);
-
-    readonly Dictionary<RetentionEntity, string> failures = [];
 
     // Single-flight guard shared by the hourly timer path and the manual API path so two sweeps
     // never overlap. Precedent: ExternalIntegrationRequestsDataStore.drainLock.
@@ -131,32 +130,6 @@ public class RetentionSweeper(
 
     public RetentionSweepCurrentStatus GetStatus() => new(isRunning, lastStartedAt, lastFinishedAt, lastErrorCutoff, lastEventsCutoff);
 
-    internal void RecordFailure(RetentionEntity entity, string reason)
-    {
-        lock (failures)
-        {
-            failures[entity] = reason;
-        }
-    }
-
-    internal (RetentionEntity Entity, string Reason)[] GetActiveFailures()
-    {
-        lock (failures)
-        {
-            return failures.Select(failure => (failure.Key, failure.Value)).ToArray();
-        }
-    }
-
-    string? IRetentionSweepHealth.GetFailureSummary()
-    {
-        lock (failures)
-        {
-            return failures.Count == 0
-                ? null
-                : string.Join("; ", failures.Select(failure => $"{failure.Key}: {failure.Value}"));
-        }
-    }
-
     async Task Sweep(DateTime? errorCutoff, DateTime? eventsCutoff, bool pace, CancellationToken cancellationToken)
     {
         await sweepLock.WaitAsync(cancellationToken);
@@ -180,22 +153,14 @@ public class RetentionSweeper(
     // manual background path (which already holds the lock) share one implementation.
     async Task SweepBody(DateTime? errorCutoff, DateTime? eventsCutoff, bool pace, CancellationToken cancellationToken)
     {
-        var failedMessagesSucceeded = await RunPass(RetentionEntity.FailedMessages, token => SweepFailedMessages(pace, errorCutoff, token), cancellationToken);
-        var eventLogSucceeded = await RunPass(RetentionEntity.EventLog, token => SweepEventLogItems(pace, eventsCutoff, token), cancellationToken);
-        var groupCommentsSucceeded = await RunPass(RetentionEntity.GroupComments, SweepOrphanedGroupComments, cancellationToken);
-
-        if (failedMessagesSucceeded && eventLogSucceeded && groupCommentsSucceeded)
-        {
-            lock (failures)
-            {
-                failures.Clear();
-            }
-        }
+        await RunPass(RetentionEntity.FailedMessages, token => SweepFailedMessages(pace, errorCutoff, token), cancellationToken);
+        await RunPass(RetentionEntity.EventLog, token => SweepEventLogItems(pace, eventsCutoff, token), cancellationToken);
+        await RunPass(RetentionEntity.GroupComments, SweepOrphanedGroupComments, cancellationToken);
     }
 
     // Each pass is isolated so one failing kind of row does not stop the others from being
     // reclaimed, and so the metrics report an outcome for every pass on every run.
-    async Task<bool> RunPass(RetentionEntity entity, Func<CancellationToken, Task> pass, CancellationToken cancellationToken)
+    async Task RunPass(RetentionEntity entity, Func<CancellationToken, Task> pass, CancellationToken cancellationToken)
     {
         using var cycle = metrics.BeginCycle(entity, cancellationToken);
 
@@ -203,15 +168,14 @@ public class RetentionSweeper(
         {
             await pass(cancellationToken);
             cycle.Complete();
-            return true;
+            retentionState.Clear(entity);
         }
 #pragma warning disable PS0019 // The filter already excludes OperationCanceledException, so
         // cancellation propagates; PS0019 only recognises a cancellationToken guard.
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             logger.LogError(ex, "Error during the {RetentionEntity} retention pass", entity);
-            RecordFailure(entity, ex.Message);
-            return false;
+            retentionState.ReportError(entity, ex.Message);
         }
 #pragma warning restore PS0019
     }
