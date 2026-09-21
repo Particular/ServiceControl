@@ -35,7 +35,7 @@ the `launchSettings.json` file of each instance. When started in setup mode, the
 
 ## Migrating from RavenDB to SQL Server or PostgreSQL
 
-See [Migrating from RavenDB to SQL Server or PostgreSQL](docs/migration/ravendb-to-sql-migration-instructions.md).
+- [Migrate from RavenDB to SQL Server or PostgreSQL](docs/migration/ravendb-to-sql-migration-instructions.md): what an operator can run today, and what is not built yet.
 
 ## Secrets
 
