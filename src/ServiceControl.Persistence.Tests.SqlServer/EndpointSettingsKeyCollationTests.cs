@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using ServiceControl.Operations;
@@ -22,19 +24,26 @@ class EndpointSettingsKeyCollationTests : PersistenceTestBase
 
         using (var scope = ServiceProvider.CreateScope())
         {
-            var database = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>().Database;
+            var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+            var database = dbContext.Database;
 
             databaseIgnoresCase = await database
                 .SqlQuery<int>($"SELECT CONVERT(int, DATABASEPROPERTYEX(DB_NAME(), 'ComparisonStyle')) & 1 AS [Value]")
                 .SingleAsync() == 1;
 
+            // Named from the model, because the table sits in the configured schema when the persister has one.
+            var entityType = dbContext.Model.FindEntityType(typeof(EndpointSettingsEntity));
+            var table = dbContext.GetService<ISqlGenerationHelper>().DelimitIdentifier(entityType.GetTableName(), entityType.GetSchema());
+
             // The column is given the opposite of the database default, because a test where the two agree cannot show which one decided.
-            await database.ExecuteSqlRawAsync("""
+            var recollate = $"""
                 DECLARE @columnCollation sysname = IIF(CONVERT(int, DATABASEPROPERTYEX(DB_NAME(), 'ComparisonStyle')) & 1 = 1, N'Latin1_General_CS_AS', N'Latin1_General_CI_AS');
-                ALTER TABLE [EndpointSettings] DROP CONSTRAINT [PK_EndpointSettings];
-                EXEC (N'ALTER TABLE [EndpointSettings] ALTER COLUMN [Name] nvarchar(450) COLLATE ' + @columnCollation + N' NOT NULL');
-                ALTER TABLE [EndpointSettings] ADD CONSTRAINT [PK_EndpointSettings] PRIMARY KEY ([Name]);
-                """);
+                ALTER TABLE {table} DROP CONSTRAINT [PK_EndpointSettings];
+                EXEC (N'ALTER TABLE {table} ALTER COLUMN [Name] nvarchar(450) COLLATE ' + @columnCollation + N' NOT NULL');
+                ALTER TABLE {table} ADD CONSTRAINT [PK_EndpointSettings] PRIMARY KEY ([Name]);
+                """;
+
+            await database.ExecuteSqlRawAsync(recollate);
         }
 
         foreach (var name in new[] { "Sales", "sales" })
