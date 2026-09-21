@@ -5,6 +5,7 @@ namespace ServiceControl.Hosting.Commands
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
@@ -12,8 +13,10 @@ namespace ServiceControl.Hosting.Commands
     using ServiceControl.EventLog;
     using ServiceControl.ExternalIntegrations;
     using ServiceControl.Infrastructure.Health;
+    using ServiceControl.Migration;
     using ServiceControl.Monitoring;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.DataMigration;
     using ServiceControl.Recoverability;
 
     /// <summary>
@@ -24,15 +27,13 @@ namespace ServiceControl.Hosting.Commands
     /// </summary>
     class ErrorIngestionOnlyCommand : AbstractCommand
     {
-        static readonly string[] SupportedStorageNames = ["SQLServer", "PostgreSQL"];
-
         public override async Task Execute(HostArguments args, Settings settings, CancellationToken cancellationToken = default)
         {
             EnsureStorageCanScaleOut(settings);
 
             var app = BuildHost(settings);
 
-            await app.RunAsync(settings.RootUrl);
+            await app.RunAsync();
         }
 
         internal static WebApplication BuildHost(Settings settings, Action<WebApplicationBuilder> customize = null)
@@ -45,11 +46,19 @@ namespace ServiceControl.Hosting.Commands
 
             hostBuilder.AddServiceControl(settings, configuration: null, Components);
 
+            hostBuilder.Services.AddHostedService(provider =>
+                new FinishedCopyBeforeAnIngestionNodeOpens(provider.GetRequiredService<IMigrationCheckpointStore>(), settings));
+
             customize?.Invoke(hostBuilder);
 
             var app = hostBuilder.Build();
 
             app.MapServiceControlHealthChecks();
+
+            // Set here rather than passed to RunAsync, so a caller that starts the host itself gets the
+            // configured address instead of Kestrel's default port.
+            app.Urls.Clear();
+            app.Urls.Add(settings.RootUrl);
 
             return app;
         }
@@ -58,7 +67,7 @@ namespace ServiceControl.Hosting.Commands
         {
             var manifest = PersistenceManifestLibrary.Find(settings.PersistenceType);
 
-            if (manifest == null || !SupportedStorageNames.Contains(manifest.Name, StringComparer.OrdinalIgnoreCase))
+            if (manifest == null || !PersistenceFactory.SqlPersistenceNames.Contains(manifest.Name, StringComparer.OrdinalIgnoreCase))
             {
                 throw new Exception(
                     $"--error-ingestion-only requires SQL Server or PostgreSQL storage, but this instance is configured to use '{settings.PersistenceType}'. Scaling out error ingestion is not supported for this storage type.");

@@ -52,6 +52,7 @@ public abstract class PersistenceTestBase
 
         host = hostBuilder.Build();
 
+        await PersistenceTestsContext.InstallSchema(host);
         await host.StartAsync();
         await PersistenceTestsContext.PostSetup(host);
     }

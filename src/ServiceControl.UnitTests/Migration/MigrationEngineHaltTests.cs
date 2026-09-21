@@ -186,4 +186,159 @@ class MigrationEngineHaltTests
             Assert.That((finished.CopiedCount, finished.SkippedCount), Is.EqualTo((880L, 120L)), "copied, skipped at the end");
         }
     }
+
+    [Test]
+    public async Task A_category_smaller_than_the_floor_that_loses_every_row_halts_rather_than_completing()
+    {
+        // Ninety rows is under the hundred-row floor, so the threshold the engine checks after every batch
+        // can never fire, however many rows are lost.
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.KnownEndpoints)!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, [.. Enumerable.Range(1, 90).Select(i => Row($"row-{i}"))]);
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 30 };
+        foreach (var i in Enumerable.Range(1, 90))
+        {
+            target.RejectKey($"row-{i}", MigrationSkipReason.RequiredValueMissing);
+        }
+        var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
+
+        var checkpoint = await new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance).RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Halted), "a required category that copied nothing must not let the host open");
+            Assert.That(checkpoint.CopiedCount, Is.Zero);
+            Assert.That(checkpoint.LastError, Does.Contain("most of them"));
+        }
+    }
+
+    [Test]
+    public async Task A_category_that_lost_every_row_stays_halted_when_it_is_restarted_with_nothing_fixed()
+    {
+        // The halt tells the operator to restart, and the restart resumes from a cursor already at the end,
+        // so the run that clears the halt is the one that reads nothing and can judge nothing.
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.KnownEndpoints)!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, [.. Enumerable.Range(1, 90).Select(i => Row($"row-{i}"))]);
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 30 };
+        foreach (var i in Enumerable.Range(1, 90))
+        {
+            target.RejectKey($"row-{i}", MigrationSkipReason.RequiredValueMissing);
+        }
+        var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
+
+        var halted = await engine.RunCategoryAsync(category);
+        var restarted = await engine.RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(halted.State, Is.EqualTo(MigrationCategoryState.Halted));
+            Assert.That(restarted.State, Is.EqualTo(MigrationCategoryState.Halted), "a restart that copied nothing reported the category finished, and the host would open on an empty table");
+            Assert.That(restarted.CopiedCount, Is.Zero);
+        }
+    }
+
+    // A transient failure on the last read halts a category that copied everything. The restart reads nothing,
+    // so a rule that asks only whether this run read rows would hold it halted with nothing left to fix.
+    [Test]
+    public async Task A_category_that_copied_every_row_before_it_halted_completes_on_the_restart()
+    {
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.KnownEndpoints)!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, [.. Enumerable.Range(1, 30).Select(i => Row($"row-{i}"))]);
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 30 };
+        var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
+
+        var copied = await engine.RunCategoryAsync(category);
+        await checkpointStore.Upsert(copied with { State = MigrationCategoryState.Halted, LastError = "the source connection reset on the last read" });
+
+        var restarted = await engine.RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(restarted.State, Is.EqualTo(MigrationCategoryState.Complete), "a category holding every one of its rows was left halted with nothing an operator could fix");
+            Assert.That(restarted.CopiedCount, Is.EqualTo(30));
+        }
+    }
+
+    // The halt lives on the row, and the run that clears it is the one that settles. A start killed in between
+    // must not leave the row saying the category is fine.
+    [Test]
+    public async Task A_restart_killed_before_it_settles_does_not_let_the_next_one_report_the_category_finished()
+    {
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.KnownEndpoints)!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, [.. Enumerable.Range(1, 90).Select(i => Row($"row-{i}"))]);
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 30 };
+        foreach (var i in Enumerable.Range(1, 90))
+        {
+            target.RejectKey($"row-{i}", MigrationSkipReason.RequiredValueMissing);
+        }
+        var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
+
+        var halted = await engine.RunCategoryAsync(category);
+        // What a start killed after the InProgress save but before the settle leaves behind.
+        await checkpointStore.Upsert(halted with { State = MigrationCategoryState.InProgress, LastError = null, SettledAt = null });
+
+        var restarted = await engine.RunCategoryAsync(category);
+
+        Assert.That(restarted.State, Is.EqualTo(MigrationCategoryState.Halted), "an interrupted restart erased the halt, so the next one reported an empty category finished and the host would open");
+    }
+
+    [Test]
+    public async Task A_small_category_losing_rows_the_product_would_drop_anyway_still_completes()
+    {
+        // Benign skips are rows the target would have deleted anyway, so no number of them may halt a
+        // category, and the most-of-the-run rule must not be the exception that brings that back.
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.KnownEndpoints)!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, [.. Enumerable.Range(1, 90).Select(i => Row($"row-{i}"))]);
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 30 };
+        foreach (var i in Enumerable.Range(1, 90))
+        {
+            target.RejectKey($"row-{i}", MigrationSkipReason.EndpointNotKnown, benign: true);
+        }
+        var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
+
+        var checkpoint = await new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance).RunCategoryAsync(category);
+
+        Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.CompleteWithErrors));
+    }
+
+    // The restart after a halt reads nothing, so the whole row is judged at once rather than this run alone.
+    // Sixty of these ninety rows are gone and none of them is a loss, so there is nothing to stay halted for.
+    [Test]
+    public async Task A_category_halted_after_losing_only_rows_the_product_would_drop_anyway_completes_on_the_restart()
+    {
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.KnownEndpoints)!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, [.. Enumerable.Range(1, 90).Select(i => Row($"row-{i}"))]);
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 30 };
+        foreach (var i in Enumerable.Range(1, 90).Where(i => i % 3 != 0))
+        {
+            target.RejectKey($"row-{i}", MigrationSkipReason.EndpointNotKnown, benign: true);
+        }
+        var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
+
+        var copied = await engine.RunCategoryAsync(category);
+        await checkpointStore.Upsert(copied with { State = MigrationCategoryState.Halted, LastError = "the source connection reset on the last read" });
+
+        var restarted = await engine.RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(restarted.State, Is.EqualTo(MigrationCategoryState.CompleteWithErrors), "a category that lost nothing the product wanted was left halted for ever, and the host never opens");
+            Assert.That((restarted.CopiedCount, restarted.SkippedCount), Is.EqualTo((30L, 60L)));
+        }
+    }
 }

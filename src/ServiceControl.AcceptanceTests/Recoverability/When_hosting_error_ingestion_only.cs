@@ -18,15 +18,13 @@ namespace ServiceControl.AcceptanceTests.Recoverability
     using NUnit.Framework;
     using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.ExternalIntegrations;
     using ServiceControl.Hosting.Commands;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
+    using ServiceControl.Persistence.DataMigration;
     using ServiceControl.Persistence.EFCore.DbContexts;
     using ServiceControl.Persistence.EFCore.Entities;
-    using ServiceControl.Persistence.EFCore.Infrastructure;
-    using ServiceControl.Recoverability;
     using ServiceControl.Transports;
 
     class When_hosting_error_ingestion_only : AcceptanceTest
@@ -72,8 +70,37 @@ namespace ServiceControl.AcceptanceTests.Recoverability
             "InternalCustomChecksHostedService",    // reports this node's ingestion health to the database
             "MetricsReporterHostedService",
             "HealthCheckPublisherHostedService",  // inert, no IHealthCheckPublisher is registered
-            "ExternalIntegrationRequestsDataStore"  // its drain is inert here, nothing calls Subscribe
+            "ExternalIntegrationRequestsDataStore",  // its drain is inert here, nothing calls Subscribe
+            "CheckpointTableIsReadable",            // reads one table and refuses a start against a schema older than the build
+            "RecordHostOpenedOnTarget",             // this node writes to the target, so the stamp belongs here, and it upserts one settings row
+            "FinishedCopyBeforeAnIngestionNodeOpens"  // keeps this node out of a database a copy has not finished filling
         ];
+
+        [Test]
+        public async Task Should_refuse_to_start_while_a_copy_into_the_database_is_unfinished()
+        {
+            var settings = await CreateSettings();
+
+            await new SetupCommand().Execute(new HostArguments([]), settings);
+
+            var host = ErrorIngestionOnlyCommand.BuildHost(settings);
+
+            try
+            {
+                await host.Services.GetRequiredService<IMigrationCheckpointStore>().Upsert(
+                    new MigrationCheckpoint(MigrationCategoryIds.KnownEndpoints, MigrationCategoryState.InProgress, null, 0, 0, null, null, null, null, null, null));
+
+                var exception = Assert.ThrowsAsync<Exception>(() => host.StartAsync());
+
+                Assert.That(exception.Message, Does.Contain("has not finished")
+                    .And.Contain(MigrationCategoryIds.KnownEndpoints)
+                    .And.Contain(MigrationSettings.AllowIncompleteExitKey));
+            }
+            finally
+            {
+                await host.DisposeAsync();
+            }
+        }
 
         [Test]
         public void Should_refuse_to_start_against_unsupported_storage()

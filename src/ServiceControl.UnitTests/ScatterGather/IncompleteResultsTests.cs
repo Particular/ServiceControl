@@ -189,12 +189,10 @@ class IncompleteResultsTests
         factory.Register(settings.RemoteInstances[3], Delayed(delay, Healthy("msg-4")));
 
         var api = new TestApi(settings, factory, Local("local-msg"));
-        var started = DateTime.UtcNow;
 
         var result = await api.Execute(Context(), "/api/messages");
 
-        Assert.That(DateTime.UtcNow - started, Is.GreaterThanOrEqualTo(delay), "the composite must wait for the remotes that are still answering");
-        Assert.That(result.Results.Select(m => m.MessageId), Is.EquivalentTo(["local-msg", "msg-2", "msg-3", "msg-4"]));
+        Assert.That(result.Results.Select(m => m.MessageId), Is.EquivalentTo(["local-msg", "msg-2", "msg-3", "msg-4"]), "the delay lives in the fake, so these three cannot arrive unless the composite waited for the remotes that are still answering");
         Assert.That(result.IncompleteInstances, Is.EqualTo([new IncompleteInstance(settings.RemoteInstances[0].InstanceId, QueryFailure.TimedOut)]));
         Assert.That(result.QueryStats.TotalCount, Is.EqualTo(4));
     }

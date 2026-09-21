@@ -52,7 +52,13 @@ catch (Exception ex)
         LoggingConfigurator.ConfigureNLog("bootstrap.txt", "./", NLog.LogLevel.Fatal);
         NLog.LogManager.GetCurrentClassLogger().Fatal(ex, "Unrecoverable error");
     }
-    throw;
+
+    // The message goes to the console on its own, because the log above already holds the whole exception.
+    // Rethrowing instead would print the stack trace a second time and fire the unhandled-exception handler
+    // for a third, which buries a configuration mistake in what reads like a crash.
+    await Console.Error.WriteLineAsync(ex.Message);
+
+    return 1;
 }
 finally
 {
