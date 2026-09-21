@@ -5,6 +5,7 @@ namespace ServiceControl.Hosting.Commands
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
@@ -12,8 +13,10 @@ namespace ServiceControl.Hosting.Commands
     using ServiceControl.EventLog;
     using ServiceControl.ExternalIntegrations;
     using ServiceControl.Infrastructure.Health;
+    using ServiceControl.Migration;
     using ServiceControl.Monitoring;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.DataMigration;
     using ServiceControl.Recoverability;
 
     /// <summary>
@@ -43,6 +46,9 @@ namespace ServiceControl.Hosting.Commands
 
             hostBuilder.AddServiceControl(settings, configuration: null, Components);
 
+            hostBuilder.Services.AddHostedService(provider =>
+                new FinishedCopyBeforeAnIngestionNodeOpens(provider.GetRequiredService<IMigrationCheckpointStore>(), settings));
+
             customize?.Invoke(hostBuilder);
 
             var app = hostBuilder.Build();
@@ -64,7 +70,7 @@ namespace ServiceControl.Hosting.Commands
             if (manifest == null || !PersistenceFactory.SqlPersistenceNames.Contains(manifest.Name, StringComparer.OrdinalIgnoreCase))
             {
                 throw new Exception(
-                    $"--error-ingestion-only requires {string.Join(" or ", PersistenceFactory.SqlPersistenceNames)} storage, but this instance is configured to use '{settings.PersistenceType}'. Scaling out error ingestion is not supported for this storage type.");
+                    $"--error-ingestion-only requires SQL Server or PostgreSQL storage, but this instance is configured to use '{settings.PersistenceType}'. Scaling out error ingestion is not supported for this storage type.");
             }
         }
 

@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
@@ -46,8 +48,13 @@ class MigrationTargetReadinessTests : PersistenceTestBase
         using var scope = ServiceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
 
-        // Double quoted so PostgreSQL keeps the capitals, which SQL Server also accepts under its default QUOTED_IDENTIFIER.
-        await dbContext.Database.ExecuteSqlRawAsync("""DELETE FROM "__EFMigrationsHistory" """);
+        // EF's own history repository, because it is the only thing that knows where the history table is once the persister is given a schema.
+        var history = dbContext.GetService<IHistoryRepository>();
+
+        foreach (var row in await history.GetAppliedMigrationsAsync())
+        {
+            await dbContext.Database.ExecuteSqlRawAsync(history.GetDeleteScript(row.MigrationId));
+        }
 
         var exception = Assert.ThrowsAsync<Exception>(() => Readiness.ContributedChecks().OfType<SchemaIsCurrentCheck>().Single().Run());
 
@@ -123,7 +130,7 @@ class MigrationTargetReadinessTests : PersistenceTestBase
 
         await context.Setup(hostBuilder);
         var host = hostBuilder.Build();
-        await context.PostSetup(host);
+        await context.InstallSchema(host);
 
         return (host, context);
     }

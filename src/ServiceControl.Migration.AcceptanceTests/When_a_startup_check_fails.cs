@@ -9,9 +9,10 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using NUnit.Framework;
 using ServiceControl.Hosting.Commands;
-using ServiceControl.Migration.Checks;
 using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.EFCore.Abstractions;
 
@@ -63,8 +64,19 @@ class When_a_startup_check_fails : MigrationAcceptanceTest
     [Test]
     public async Task A_target_whose_schema_migrations_were_never_applied_is_refused()
     {
-        // Double quoted so PostgreSQL keeps the capitals, which SQL Server also accepts under its default QUOTED_IDENTIFIER.
-        await QueryTarget(dbContext => dbContext.Database.ExecuteSqlRawAsync("""DELETE FROM "__EFMigrationsHistory" """));
+        await QueryTarget(async dbContext =>
+        {
+            // EF's own history repository, because it is the only thing that knows where the history table is once the persister is given a schema.
+            var history = dbContext.GetService<IHistoryRepository>();
+            var applied = await history.GetAppliedMigrationsAsync();
+
+            foreach (var row in applied)
+            {
+                await dbContext.Database.ExecuteSqlRawAsync(history.GetDeleteScript(row.MigrationId));
+            }
+
+            return applied.Count;
+        });
 
         var refusal = await RefusedStartup();
 

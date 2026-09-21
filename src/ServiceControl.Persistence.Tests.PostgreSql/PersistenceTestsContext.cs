@@ -53,7 +53,7 @@ public partial class PersistenceTestsContext : IPersistenceTestsContext
         hostBuilder.Services.AddSingleton<TimeProvider>(FakeTime);
     }
 
-    public async Task PostSetup(IHost host)
+    public async Task InstallSchema(IHost host)
     {
         this.host = host;
 
@@ -61,6 +61,8 @@ public partial class PersistenceTestsContext : IPersistenceTestsContext
         var db = scope.ServiceProvider.GetRequiredService<PostgreSqlServiceControlDbContext>();
         await db.Database.MigrateAsync();
     }
+
+    public Task PostSetup(IHost host) => Task.CompletedTask;
 
     public async Task TearDown()
     {

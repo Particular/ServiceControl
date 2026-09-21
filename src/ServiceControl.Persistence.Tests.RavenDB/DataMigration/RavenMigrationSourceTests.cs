@@ -1,6 +1,7 @@
 namespace ServiceControl.Persistence.Tests.RavenDB.DataMigration;
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -92,15 +93,20 @@ class RavenMigrationSourceTests : RavenMigrationSourceTestBase
     [Test]
     public async Task Reading_every_category_creates_no_index()
     {
-        await SeedEndpointSettings(2);
-        await MonitoringDataStore.CreateIfNotExists(new EndpointDetails { Name = "Sales.Orders", HostId = Guid.NewGuid(), Host = "HOST01" });
+        await using var source = await OpenMigrationSource();
+
+        Assert.That(source.SupportedCategoryIds, Is.SubsetOf(Seeds.Keys), "A category read with nothing in it cannot show whether its reader builds an index, so a new reader needs its seed adding here.");
+
+        foreach (var categoryId in source.SupportedCategoryIds)
+        {
+            await Seeds[categoryId](this);
+        }
 
         var before = await IndexNames();
 
-        await using (var source = await OpenMigrationSource())
+        foreach (var categoryId in source.SupportedCategoryIds)
         {
-            await CollectBatches(source, KnownEndpointsCategory);
-            await CollectBatches(source, EndpointSettingsCategory);
+            await CollectBatches(source, MigrationCategoryRegistry.Find(categoryId));
         }
 
         var after = await IndexNames();
@@ -112,6 +118,14 @@ class RavenMigrationSourceTests : RavenMigrationSourceTestBase
         });
     }
 
+    // Keyed by category id so a reader added without seed data fails the index test by name instead of passing
+    // over an empty collection.
+    static readonly Dictionary<string, Func<RavenMigrationSourceTests, Task>> Seeds = new()
+    {
+        [MigrationCategoryIds.EndpointSettings] = tests => tests.SeedEndpointSettings(2),
+        [MigrationCategoryIds.KnownEndpoints] = tests => tests.MonitoringDataStore.CreateIfNotExists(new EndpointDetails { Name = "Sales.Orders", HostId = Guid.NewGuid(), Host = "HOST01" })
+    };
+
     string DatabaseName => ((RavenPersisterSettings)PersistenceSettings).DatabaseName;
 
     async Task<string[]> IndexNames() =>
@@ -120,7 +134,6 @@ class RavenMigrationSourceTests : RavenMigrationSourceTestBase
     const int IndexNamePageSize = 1024;
 
     static readonly MigrationCategory EndpointSettingsCategory = MigrationCategoryRegistry.Find("EndpointSettings");
-    static readonly MigrationCategory KnownEndpointsCategory = MigrationCategoryRegistry.Find("KnownEndpoints");
 
     async Task SeedEndpointSettings(int count)
     {
