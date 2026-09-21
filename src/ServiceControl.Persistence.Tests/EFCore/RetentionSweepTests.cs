@@ -318,12 +318,12 @@ class RetentionSweepTests : ErrorIngestionTestBase
 
         await RunRetentionSweep();
 
-        var failure = ServiceProvider.GetRequiredService<RetentionSweeper>().GetActiveFailures().Single();
+        var failure = ServiceProvider.GetRequiredService<RetentionSweepCustomCheck.State>().GetFailures().Single();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(failure.Entity, Is.EqualTo(RetentionEntity.FailedMessages));
-            Assert.That(failure.Reason, Is.Not.Empty);
+            Assert.That(failure.Key, Is.EqualTo(RetentionEntity.FailedMessages));
+            Assert.That(failure.Value, Is.Not.Empty);
         }
     }
 

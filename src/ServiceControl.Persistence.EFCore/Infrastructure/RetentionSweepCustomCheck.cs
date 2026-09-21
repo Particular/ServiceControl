@@ -2,6 +2,7 @@ namespace ServiceControl.Persistence.EFCore.Infrastructure;
 
 using System.Threading;
 using System.Threading.Tasks;
+using ServiceControl.Persistence.EFCore.Infrastructure.Metrics;
 using NServiceBus.CustomChecks;
 
 // The standard custom-check state-transition pipeline deduplicates repeated results.
@@ -10,17 +11,19 @@ class RetentionSweepCustomCheck(RetentionSweepCustomCheck.State state)
 {
     public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
     {
-        var failureSummary = state.GetFailureSummary();
+        var failures = state.GetFailures();
+        var failureSummary = string.Join("; ", failures.Select(failure => $"{failure.Key}: {failure.Value}"));
 
-        return Task.FromResult(failureSummary is null
+        return Task.FromResult(state.ConsecutiveFailedSweeps < 3
             ? CheckResult.Pass
             : CheckResult.Failed($"Retention processing has failures. Last failure per entity: {failureSummary}. See https://docs.particular.net/servicecontrol/troubleshooting for guidance on resolving the issue."));
     }
 
-    public class State
+    internal class State
     {
         readonly Dictionary<RetentionEntity, string> failures = [];
-        int consecutiveFailedSweeps;
+
+        public int ConsecutiveFailedSweeps { get; private set; }
 
         public void Clear(RetentionEntity entity)
         {
@@ -42,17 +45,15 @@ class RetentionSweepCustomCheck(RetentionSweepCustomCheck.State state)
         {
             lock (failures)
             {
-                consecutiveFailedSweeps = failures.Count == 0 ? 0 : consecutiveFailedSweeps + 1;
+                ConsecutiveFailedSweeps = failures.Count == 0 ? 0 : ConsecutiveFailedSweeps + 1;
             }
         }
 
-        string? GetFailureSummary()
+        internal KeyValuePair<RetentionEntity, string>[] GetFailures()
         {
             lock (failures)
             {
-                return consecutiveFailedSweeps < 3
-                    ? null
-                    : string.Join("; ", failures.Select(failure => $"{failure.Key}: {failure.Value}"));
+                return failures.ToArray();
             }
         }
     }

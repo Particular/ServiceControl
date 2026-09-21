@@ -17,7 +17,7 @@ using ServiceControl.Persistence.EFCore.Infrastructure.Metrics;
 //
 // A manual sweep can be triggered via the API (see IRetentionSweeper / IRetentionApi) with
 // caller-supplied cutoffs. 
-public class RetentionSweeper(
+class RetentionSweeper(
     ILogger<RetentionSweeper> logger,
     TimeProvider timeProvider,
     IServiceScopeFactory serviceScopeFactory,
