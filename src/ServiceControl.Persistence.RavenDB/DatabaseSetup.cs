@@ -10,6 +10,7 @@ namespace ServiceControl.Persistence.RavenDB
     using Raven.Client.ServerWide;
     using Raven.Client.ServerWide.Operations;
     using Raven.Client.ServerWide.Operations.Configuration;
+    using ServiceControl.Persistence.RavenDB.DataMigration;
     using ServiceControl.RavenDB;
 
     class DatabaseSetup(RavenPersisterSettings settings, IDocumentStore documentStore)
@@ -29,6 +30,37 @@ namespace ServiceControl.Persistence.RavenDB
 
             await LicenseStatusCheck.WaitForLicenseOrThrow(documentStore, cancellationToken);
             await ConfigureExpiration(settings, cancellationToken);
+            await StampDataVersion(settings.DatabaseName, cancellationToken);
+            await StampDataVersion(settings.ThroughputDatabaseName, cancellationToken);
+        }
+
+        // Records which ServiceControl build last wrote this database, so a migration can tell whether it reads the
+        // documents the same way. Only ever raised: an older build running again must not hide what a newer one wrote.
+        async Task StampDataVersion(string databaseName, CancellationToken cancellationToken)
+        {
+            using var session = documentStore.OpenAsyncSession(databaseName);
+            var stamp = await session.LoadAsync<RavenDataVersion>(RavenDataVersion.DocumentId, cancellationToken);
+
+            // A version that will not parse is replaced rather than kept, because a migration refuses to start on one it cannot compare.
+            if (stamp is not null && !string.IsNullOrWhiteSpace(stamp.Version)
+                && Version.TryParse(stamp.Version.Split('-')[0], out var stamped)
+                && Version.TryParse(RavenDataVersion.Current.Split('-')[0], out var thisBuild)
+                && stamped >= thisBuild)
+            {
+                return;
+            }
+
+            if (stamp is null)
+            {
+                await session.StoreAsync(new RavenDataVersion { Version = RavenDataVersion.Current, StampedAt = DateTime.UtcNow }, RavenDataVersion.DocumentId, cancellationToken);
+            }
+            else
+            {
+                stamp.Version = RavenDataVersion.Current;
+                stamp.StampedAt = DateTime.UtcNow;
+            }
+
+            await session.SaveChangesAsync(cancellationToken);
         }
 
         async Task CreateDatabase(string databaseName, CancellationToken cancellationToken)

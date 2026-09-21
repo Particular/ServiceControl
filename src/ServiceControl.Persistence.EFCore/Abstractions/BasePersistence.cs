@@ -7,6 +7,7 @@ using Particular.LicensingComponent.Contracts;
 using Particular.LicensingComponent.Persistence;
 using ServiceControl.CustomChecks;
 using ServiceControl.Operations.BodyStorage;
+using ServiceControl.Persistence.EFCore.DataMigration;
 using ServiceControl.Persistence.EFCore.Implementation;
 using ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
 using ServiceControl.Persistence.EFCore.Implementation.Recoverability;
@@ -40,6 +41,10 @@ public abstract class BasePersistence
         services.AddHostedService(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
 
         services.AddSingleton<IMigrationCheckpointStore, EFMigrationCheckpointStore>();
+        services.AddSingleton<IMigrationTargetReadiness, EFCoreMigrationTargetReadiness>();
+        services.AddSingleton<IMigrationTarget, EFCoreMigrationTarget>();
+        services.AddHostedService<CheckpointTableIsReadable>();
+        services.AddHostedService<RecordHostOpenedOnTarget>();
 
         if (settings.RunRetentionSweep)
         {

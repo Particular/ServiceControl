@@ -7,6 +7,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
+/// <summary>
+/// Copies one category at a time from the source to the target, and records where it got to after every batch.
+/// The engine knows nothing about either database: what a row is, how it is written and how big a batch can be
+/// all come from the source and the target. A category that fails comes back as a halted checkpoint rather than
+/// an exception. A shutdown and a checkpoint conflict are the two things that do come out as exceptions, because
+/// neither is the category's fault.
+/// </summary>
 public sealed class MigrationEngine(
     IMigrationSource source,
     IMigrationTarget target,
@@ -15,8 +22,13 @@ public sealed class MigrationEngine(
     MigrationEngineOptions options,
     ILogger<MigrationEngine> logger)
 {
+    /// <summary>How many times a message body is read before the row is skipped as unreadable.</summary>
     public const int MaxBodyReadAttempts = 3;
 
+    /// <summary>
+    /// The categories of one kind to copy, in the order to copy them. Optional categories the operator did not
+    /// ask for are left out.
+    /// </summary>
     public IReadOnlyList<MigrationCategory> SelectCategories(MigrationCategoryKind kind) =>
         MigrationCategoryRegistry.All
             .Where(c => c.Kind == kind)
@@ -24,6 +36,10 @@ public sealed class MigrationEngine(
             .OrderBy(c => c.Order)
             .ToArray();
 
+    /// <summary>
+    /// Copies the categories one after another and returns where each one ended, in the same order. A category
+    /// that halts does not stop the ones after it.
+    /// </summary>
     // Runs in the order given without re-sorting: required and optional orders both start at 1, so
     // sorting a mixed list would put an optional category in front of a required one.
     public async Task<IReadOnlyList<MigrationCheckpoint>> RunCategories(
@@ -40,12 +56,18 @@ public sealed class MigrationEngine(
         return results;
     }
 
+    /// <summary>
+    /// Copies one category, carrying on from its saved cursor, and returns the checkpoint it ended on. A category
+    /// already finished is returned untouched without reading the source.
+    /// </summary>
+    /// <returns>The stored checkpoint, whose state says how it ended and whose LastError says why it halted.</returns>
+    /// <exception cref="MigrationCheckpointConflictException">Another writer saved this category's checkpoint, which means a second instance is copying into the same database. The state is left as that writer set it.</exception>
+    /// <exception cref="OperationCanceledException">The host is shutting down. The last committed batch saved its own counts, so the stored checkpoint is already correct and a restart carries on from it.</exception>
     public async Task<MigrationCheckpoint> RunCategoryAsync(MigrationCategory category, CancellationToken cancellationToken = default)
     {
         var checkpoint = await checkpointStore.Read(category.Id, cancellationToken) ?? NotStarted(category);
 
-        // Halted is deliberately not one of them: a halt says "stopped, and here is why", and a restart after the cause is fixed has to be able to pick it up again.
-        if (checkpoint.State is MigrationCategoryState.Complete or MigrationCategoryState.CompleteWithErrors or MigrationCategoryState.Abandoned)
+        if (checkpoint.State.IsFinished())
         {
             return checkpoint;
         }
@@ -53,7 +75,7 @@ public sealed class MigrationEngine(
         if (category.MustFollow is { } mustFollowId)
         {
             var predecessor = await checkpointStore.Read(mustFollowId, cancellationToken);
-            if (predecessor is not { State: MigrationCategoryState.Complete or MigrationCategoryState.CompleteWithErrors or MigrationCategoryState.Abandoned })
+            if (predecessor?.State.IsFinished() != true)
             {
                 var predecessorState = predecessor?.State.ToString() ?? "not started";
                 var blocked = checkpoint with
@@ -61,8 +83,10 @@ public sealed class MigrationEngine(
                     State = MigrationCategoryState.Blocked,
                     LastError = $"Blocked: {category.Id} must follow {mustFollowId}, which is {predecessorState}"
                 };
+
                 logger.LogWarning("Category {CategoryId} did not run: it must follow {PredecessorId}, which is {PredecessorState}",
                     category.Id, mustFollowId, predecessorState);
+
                 return await checkpointStore.Upsert(blocked, cancellationToken);
             }
         }
@@ -73,6 +97,7 @@ public sealed class MigrationEngine(
             {
                 State = MigrationCategoryState.InProgress,
                 StartedAt = checkpoint.StartedAt ?? timeProvider.GetUtcNow().UtcDateTime,
+                LastProgressAt = timeProvider.GetUtcNow().UtcDateTime,
                 SettledAt = null,
                 LastError = null
             }, cancellationToken);
@@ -87,6 +112,20 @@ public sealed class MigrationEngine(
         try
         {
             var batchSize = target.BatchSizeFor(category);
+
+            // Captured once so a restart keeps the total its first start saw, and saved straight away so a run
+            // killed during the first batch does not walk the whole category again to recount it.
+            if (checkpoint.SourceTotal is null)
+            {
+                var countedRows = await source.Count(category, cancellationToken);
+
+                checkpoint = await checkpointStore.Upsert(checkpoint with
+                {
+                    SourceTotal = countedRows,
+                    LastProgressAt = timeProvider.GetUtcNow().UtcDateTime
+                }, cancellationToken);
+            }
+
             await foreach (var batch in source.Read(category, checkpoint.Cursor, batchSize, cancellationToken).WithCancellation(cancellationToken))
             {
                 if (!isFirstBatch && category.Kind == MigrationCategoryKind.Optional)
@@ -96,8 +135,8 @@ public sealed class MigrationEngine(
                 isFirstBatch = false;
 
                 var batchToWrite = batch;
-                // Stays off checkpoint until the write commits: the catch persists checkpoint, and a restart
-                // re-reads an uncommitted batch and would count these skips again.
+                // Kept out of checkpoint until the write commits: the catch below saves checkpoint, and a
+                // restart re-reads the uncommitted batch and would count these skips twice.
                 var bodySkips = 0;
                 if (category.CarriesBodies)
                 {
@@ -111,17 +150,29 @@ public sealed class MigrationEngine(
                     }
                 }
 
-                // Prior totals, the new cursor, and the rows this engine already skipped. The target adds its own
-                // outcome inside the transaction that writes the rows, so nothing provisional is ever stored.
+                // The target adds its own outcome inside the transaction that writes the rows,
+                // so nothing provisional is ever stored.
                 var checkpointToExtend = checkpoint with
                 {
                     Cursor = batch.Cursor,
+                    LastProgressAt = timeProvider.GetUtcNow().UtcDateTime,
                     SkippedCount = checkpoint.SkippedCount + bodySkips,
                     SkipReasons = MigrationCheckpoint.AddSkipReasons(checkpoint.SkipReasons, bodySkips == 0 ? null : new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BodyUnreadable] = bodySkips })
                 };
 
                 var result = await target.Write(category, batchToWrite, checkpointToExtend, cancellationToken);
+
+                // The target has committed this row, so the engine takes it before anything below can throw. A halt
+                // settling from the older version would be refused by the store as a conflict and lose its reason.
                 checkpoint = result.Saved;
+
+                // The result states the batch's outcome twice, as its own counts and as deltas on the checkpoint
+                // it committed. The halt threshold reads the first and the end-of-run reconciliation the second.
+                var committed = (result.Saved.CopiedCount - checkpointToExtend.CopiedCount, result.Saved.SkippedCount - checkpointToExtend.SkippedCount, result.Saved.AlreadyPresentCount - checkpointToExtend.AlreadyPresentCount);
+                if (committed != (result.Copied, result.Skipped, result.AlreadyPresent))
+                {
+                    throw new InvalidOperationException($"The target reported copying {result.Copied}, skipping {result.Skipped} and finding {result.AlreadyPresent} already present in category {category.Id}, but the checkpoint it committed moved by {committed}. The halt threshold judges the first and the end-of-run reconciliation the second, so they cannot differ.");
+                }
 
                 foreach (var id in result.SkippedIds)
                 {
@@ -135,7 +186,6 @@ public sealed class MigrationEngine(
                 }
 
                 processedThisRun += bodySkips + result.Copied + result.Skipped + result.AlreadyPresent;
-                // Rows the target would have deleted anyway are not faults, so they never halt a category.
                 skippedThisRun += bodySkips + result.Skipped - result.BenignSkipped;
 
                 if (HaltThreshold.Exceeded(skippedThisRun, processedThisRun, options.HaltThresholdPercent, options.HaltThresholdMinimum))
@@ -146,8 +196,8 @@ public sealed class MigrationEngine(
                 }
             }
         }
-        // A shutdown is not a halt, and there is nothing to reconcile: the last committed batch stored its
-        // real split with its own rows, so the row on disk is already correct and resumable.
+        // A shutdown is not a halt: the last committed batch saved its counts with its own rows,
+        // so the checkpoint on disk is already correct and resumable.
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
@@ -165,8 +215,43 @@ public sealed class MigrationEngine(
             return await Settle(checkpoint with { State = MigrationCategoryState.Halted, LastError = reason }, cancellationToken);
         }
 
+        var accountedFor = checkpoint.CopiedCount + checkpoint.SkippedCount + checkpoint.AlreadyPresentCount;
+
+        // The counts on the row are cumulative, so a resumed run is judged on the whole category. Only a
+        // shortfall is a fault: a source that has grown since it was counted is the instance still running.
+        if (checkpoint.SourceTotal is { } sourceTotal && accountedFor < sourceTotal)
+        {
+            var reason = $"Halted: {category.Id} reached the end of the source having accounted for {accountedFor} of the {sourceTotal} rows the source reported: {checkpoint.CopiedCount} copied, {checkpoint.SkippedCount} skipped, {checkpoint.AlreadyPresentCount} already present. A cursor that no longer matches the source is the usual cause. Fix the cause and restart, or abandon the category to accept the loss.";
+            logger.LogError("Category {CategoryId} halted at cursor {Cursor}: {LastError}", category.Id, checkpoint.Cursor, reason);
+            return await Settle(checkpoint with { State = MigrationCategoryState.Halted, LastError = reason }, cancellationToken);
+        }
+
+        // The per-batch threshold cannot see this: a category smaller than the halt floor never reaches the
+        // floor however much of it is lost, so losing most of it reads as complete with a few errors.
+        if (HaltThreshold.MostOfItWasLost(skippedThisRun, processedThisRun))
+        {
+            var reason = $"Halted: {category.Id} reached the end of the source having skipped {skippedThisRun} of the {processedThisRun} rows this run processed, which is most of them. A category this small never reaches the threshold of {options.HaltThresholdMinimum} rows, so losing most of it is judged on its own. Fix the cause and restart to resume from the cursor, or abandon the category to accept the loss.";
+            logger.LogError("Category {CategoryId} halted at cursor {Cursor}: {LastError}", category.Id, checkpoint.Cursor, reason);
+            return await Settle(checkpoint with { State = MigrationCategoryState.Halted, LastError = reason }, cancellationToken);
+        }
+
+        // A halted category resumes from a cursor already at the end of the source, so the restart it was told
+        // to do reads nothing and the per-run rule above can judge nothing. Judge it on every run's totals
+        // instead, or a category that lost all of its rows settles as finished the moment it is restarted.
+        var lostRows = FaultSkips(checkpoint);
+        if (processedThisRun == 0 && HaltThreshold.MostOfItWasLost(lostRows, accountedFor))
+        {
+            var reason = $"Halted: {category.Id} has accounted for {accountedFor} rows across every run, {lostRows} of them skipped as faults, which is most of them. This run reached the end of the source without reading a row, so restarting again cannot change it. Fix the cause and copy the category to a fresh target database, or abandon it to accept the loss.";
+            logger.LogError("Category {CategoryId} stays halted at cursor {Cursor}: {LastError}", category.Id, checkpoint.Cursor, reason);
+            return await Settle(checkpoint with { State = MigrationCategoryState.Halted, LastError = reason }, cancellationToken);
+        }
+
         return await Settle(checkpoint with { State = checkpoint.SkippedCount > 0 ? MigrationCategoryState.CompleteWithErrors : MigrationCategoryState.Complete }, cancellationToken);
     }
+
+    // Skips of rows the product would have removed anyway are not losses, so they cannot make a category look lost.
+    static long FaultSkips(MigrationCheckpoint checkpoint) =>
+        checkpoint.SkipReasons is null ? 0 : checkpoint.SkipReasons.Where(reason => !reason.Key.IsBenign()).Sum(reason => reason.Value);
 
     // Halts log before settling: the store shares the target's database, so a failed save would hide the cause.
     Task<MigrationCheckpoint> Settle(MigrationCheckpoint settled, CancellationToken cancellationToken) =>
@@ -230,8 +315,8 @@ public sealed class MigrationEngine(
     static bool IsDefect(Exception exception) =>
         exception is NotSupportedException or NotImplementedException or InvalidOperationException or ArgumentException or NullReferenceException or InvalidCastException;
 
-    // A configured pause of zero means "do not throttle", and a timer that is never going to be
-    // waited on is worse than no timer: against a fake clock nobody advances, it never completes.
+    // Zero means no throttling, and it must return without waiting: against a fake clock
+    // nobody advances, even a zero-length wait never finishes.
     Task Pause(TimeSpan duration, CancellationToken cancellationToken) =>
         duration <= TimeSpan.Zero ? Task.CompletedTask : Task.Delay(duration, timeProvider, cancellationToken);
 

@@ -10,6 +10,12 @@ namespace ServiceControl.Persistence
 
     static class PersistenceFactory
     {
+        /// <summary>
+        /// The manifest names of the two persisters built on EF Core. Anything that is true of both of them and
+        /// of neither RavenDB nor a future persister is decided by this list.
+        /// </summary>
+        public static readonly string[] SqlPersistenceNames = ["SQLServer", "PostgreSQL"];
+
         public static IPersistence Create(Settings settings, bool maintenanceMode = false)
         {
             var persistenceConfiguration = CreatePersistenceConfiguration(settings.PersistenceType, settings);
@@ -23,6 +29,7 @@ namespace ServiceControl.Persistence
             settings.PersisterSpecificSettings ??= persistenceConfiguration.CreateSettings(Settings.SettingsRootNamespace);
             settings.PersisterSpecificSettings.MaintenanceMode = maintenanceMode;
             settings.PersisterSpecificSettings.RunRetentionSweep = !settings.ErrorIngestionOnly;
+            settings.PersisterSpecificSettings.RetryHistoryDepth = settings.RetryHistoryDepth;
 
             var persistence = persistenceConfiguration.Create(settings.PersisterSpecificSettings);
             return persistence;
