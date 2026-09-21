@@ -4,9 +4,23 @@ using System.Collections.Generic;
 using System.Linq;
 using ServiceControl.MessageFailures;
 
+/// <summary>
+/// Every category a migration can copy, and when each one is copied. This list is the whole of what a migration
+/// covers: a source or a target that cannot handle a category says so through its own supported ids, and the
+/// engine never invents one.
+/// </summary>
 public static class MigrationCategoryRegistry
 {
+    /// <summary>
+    /// The failed message statuses that are copied before the host opens. A message in one of these is waiting on
+    /// somebody, so an operator who cannot see it after the cutover has lost work.
+    /// </summary>
     public static readonly IReadOnlyList<FailedMessageStatus> UnresolvedAndRetryIssuedStatuses = [FailedMessageStatus.Unresolved, FailedMessageStatus.RetryIssued];
+
+    /// <summary>
+    /// The failed message statuses that are copied in the background. These are history, so the instance is usable
+    /// while they are still arriving.
+    /// </summary>
     public static readonly IReadOnlyList<FailedMessageStatus> ArchivedAndResolvedStatuses = [FailedMessageStatus.Archived, FailedMessageStatus.Resolved];
 
     public static readonly IReadOnlyList<MigrationCategory> All =

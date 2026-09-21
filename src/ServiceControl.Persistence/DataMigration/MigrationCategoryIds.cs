@@ -1,5 +1,10 @@
 namespace ServiceControl.Persistence.DataMigration;
 
+/// <summary>
+/// The name of every category a migration can copy. The name is what the checkpoint row is keyed on and what an
+/// operator writes in <see cref="MigrationSettings.OptionalCategoriesKey" />, so renaming one strands the progress
+/// already saved under the old name. <see cref="MigrationCategoryRegistry" /> says when each one is copied.
+/// </summary>
 public static class MigrationCategoryIds
 {
     public const string KnownEndpoints = nameof(KnownEndpoints);

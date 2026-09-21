@@ -15,6 +15,7 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersiste
         RegisterDataStores(services, settings);
 
         services.AddSingleton<IFailedMessageIngestionSqlDialect, PostgreSqlFailedMessageIngestionSqlDialect>();
+        services.AddSingleton<IMigrationSqlDialect, PostgreSqlMigrationSqlDialect>();
         services.AddSingleton<IRetryBatchSqlDialect, PostgreSqlRetryBatchSqlDialect>();
         services.AddSingleton<IFullTextSearchDialect, PostgreSqlFullTextSearchDialect>();
         services.AddSingleton<IDatabaseHostingProbe, PostgreSqlDatabaseHostingProbe>();

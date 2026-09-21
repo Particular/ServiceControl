@@ -24,15 +24,13 @@ namespace ServiceControl.Hosting.Commands
     /// </summary>
     class ErrorIngestionOnlyCommand : AbstractCommand
     {
-        static readonly string[] SupportedStorageNames = ["SQLServer", "PostgreSQL"];
-
         public override async Task Execute(HostArguments args, Settings settings, CancellationToken cancellationToken = default)
         {
             EnsureStorageCanScaleOut(settings);
 
             var app = BuildHost(settings);
 
-            await app.RunAsync(settings.RootUrl);
+            await app.RunAsync();
         }
 
         internal static WebApplication BuildHost(Settings settings, Action<WebApplicationBuilder> customize = null)
@@ -51,6 +49,11 @@ namespace ServiceControl.Hosting.Commands
 
             app.MapServiceControlHealthChecks();
 
+            // Set here rather than passed to RunAsync, so a caller that starts the host itself gets the
+            // configured address instead of Kestrel's default port.
+            app.Urls.Clear();
+            app.Urls.Add(settings.RootUrl);
+
             return app;
         }
 
@@ -58,10 +61,10 @@ namespace ServiceControl.Hosting.Commands
         {
             var manifest = PersistenceManifestLibrary.Find(settings.PersistenceType);
 
-            if (manifest == null || !SupportedStorageNames.Contains(manifest.Name, StringComparer.OrdinalIgnoreCase))
+            if (manifest == null || !PersistenceFactory.SqlPersistenceNames.Contains(manifest.Name, StringComparer.OrdinalIgnoreCase))
             {
                 throw new Exception(
-                    $"--error-ingestion-only requires SQL Server or PostgreSQL storage, but this instance is configured to use '{settings.PersistenceType}'. Scaling out error ingestion is not supported for this storage type.");
+                    $"--error-ingestion-only requires {string.Join(" or ", PersistenceFactory.SqlPersistenceNames)} storage, but this instance is configured to use '{settings.PersistenceType}'. Scaling out error ingestion is not supported for this storage type.");
             }
         }
 

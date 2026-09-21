@@ -15,6 +15,7 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
         RegisterDataStores(services, settings);
 
         services.AddSingleton<IFailedMessageIngestionSqlDialect, SqlServerFailedMessageIngestionSqlDialect>();
+        services.AddSingleton<IMigrationSqlDialect, SqlServerMigrationSqlDialect>();
         services.AddSingleton<IRetryBatchSqlDialect, SqlServerRetryBatchSqlDialect>();
         services.AddSingleton<IFullTextSearchDialect, SqlServerFullTextSearchDialect>();
         services.AddSingleton<IDatabaseHostingProbe, SqlServerDatabaseHostingProbe>();
