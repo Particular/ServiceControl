@@ -20,8 +20,6 @@ namespace ServiceControl.Persistence
 
         public bool EnableFullTextSearchOnBodies { get; set; } = true;
 
-        public TimeSpan? OverrideCustomCheckRepeatTime { get; set; }
-
         /// <summary>
         /// Wall-clock limit for the message view queries, see <see cref="QueryTimeLimit" />.
         /// </summary>

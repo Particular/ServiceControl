@@ -29,7 +29,6 @@
 
                 // Toggle the health checks because the behavior should not depend on the health checks running or not running
                 settings.DisableHealthChecks = disableHealthChecks;
-                settings.PersisterSpecificSettings.OverrideCustomCheckRepeatTime = TimeSpan.FromSeconds(2);
             };
 
             PrimaryHostBuilderCustomization = builder =>
