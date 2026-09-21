@@ -61,14 +61,13 @@ class MigrationEngineOptionsTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => MigrationEngineOptions.FromSettings(Namespace));
 
-        Assert.That(ex.Message, Does.Contain("NoSuchCategory"));
+        Assert.That(ex.Message, Does.Contain("NoSuchCategory").And.Contain(MigrationSettings.OptionalCategoriesKey), "the refusal has to name both the typo and the setting holding it for the customer to fix it");
     }
 
     [Test]
     public void Refuses_a_required_category_id_named_as_optional()
     {
-        // EndpointSettings is required, not optional: naming it here is a customer mistake, not
-        // a valid way to force it. Required categories are never a matter of configuration.
+        // EndpointSettings is required, not optional: naming it here is a customer mistake, not a way to force it.
         Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_OPTIONALCATEGORIES", "EndpointSettings");
 
         var ex = Assert.Throws<InvalidOperationException>(() => MigrationEngineOptions.FromSettings(Namespace));
