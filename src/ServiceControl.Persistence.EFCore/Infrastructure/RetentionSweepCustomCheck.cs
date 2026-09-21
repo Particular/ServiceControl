@@ -14,12 +14,13 @@ class RetentionSweepCustomCheck(RetentionSweepCustomCheck.State state)
 
         return Task.FromResult(failureSummary is null
             ? CheckResult.Pass
-            : CheckResult.Failed($"Retention processing has failures. Last failure per entity: {failureSummary}"));
+            : CheckResult.Failed($"Retention processing has failures. Last failure per entity: {failureSummary}. See https://docs.particular.net/servicecontrol/troubleshooting for guidance on resolving the issue."));
     }
 
     public class State
     {
         readonly Dictionary<RetentionEntity, string> failures = [];
+        int consecutiveFailedSweeps;
 
         public void Clear(RetentionEntity entity)
         {
@@ -37,11 +38,19 @@ class RetentionSweepCustomCheck(RetentionSweepCustomCheck.State state)
             }
         }
 
+        public void SweepComplete()
+        {
+            lock (failures)
+            {
+                consecutiveFailedSweeps = failures.Count == 0 ? 0 : consecutiveFailedSweeps + 1;
+            }
+        }
+
         string? GetFailureSummary()
         {
             lock (failures)
             {
-                return failures.Count == 0
+                return consecutiveFailedSweeps < 3
                     ? null
                     : string.Join("; ", failures.Select(failure => $"{failure.Key}: {failure.Value}"));
             }

@@ -156,6 +156,7 @@ public class RetentionSweeper(
         await RunPass(RetentionEntity.FailedMessages, token => SweepFailedMessages(pace, errorCutoff, token), cancellationToken);
         await RunPass(RetentionEntity.EventLog, token => SweepEventLogItems(pace, eventsCutoff, token), cancellationToken);
         await RunPass(RetentionEntity.GroupComments, SweepOrphanedGroupComments, cancellationToken);
+        retentionState.SweepComplete();
     }
 
     // Each pass is isolated so one failing kind of row does not stop the others from being

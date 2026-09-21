@@ -30,26 +30,35 @@ class RetentionSweepCustomCheckTests : PersistenceTestBase
     }
 
     [Test]
-    public async Task Check_fails_after_a_retention_failure()
+    public async Task Check_remains_passing_until_three_consecutive_failed_sweeps()
     {
         State.ReportError(RetentionEntity.FailedMessages, "db timeout");
 
-        var result = await Check.PerformCheck();
+        State.SweepComplete();
+        Assert.That(await Check.PerformCheck(), Is.EqualTo(CheckResult.Pass));
+        State.SweepComplete();
+        Assert.That(await Check.PerformCheck(), Is.EqualTo(CheckResult.Pass));
+        State.SweepComplete();
 
+        var result = await Check.PerformCheck();
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.HasFailed, Is.True);
             Assert.That(result.FailureReason, Does.Contain("FailedMessages"));
             Assert.That(result.FailureReason, Does.Contain("db timeout"));
+            Assert.That(result.FailureReason, Does.Contain("https://docs.particular.net/servicecontrol/troubleshooting"));
         }
     }
 
     [Test]
-    public async Task Check_passes_after_a_fully_successful_sweep()
+    public async Task Successful_sweep_resets_the_consecutive_failure_count()
     {
         State.ReportError(RetentionEntity.FailedMessages, "db timeout");
+        CompleteThreeSweeps();
 
         await Sweeper.SweepNow();
+        State.ReportError(RetentionEntity.FailedMessages, "another timeout");
+        State.SweepComplete();
 
         var result = await Check.PerformCheck();
         Assert.That(result, Is.EqualTo(CheckResult.Pass));
@@ -59,6 +68,7 @@ class RetentionSweepCustomCheckTests : PersistenceTestBase
     public async Task Check_does_not_expire_with_time()
     {
         State.ReportError(RetentionEntity.FailedMessages, "db timeout");
+        CompleteThreeSweeps();
         AdvanceClock(TimeSpan.FromHours(2));
 
         var result = await Check.PerformCheck();
@@ -70,6 +80,7 @@ class RetentionSweepCustomCheckTests : PersistenceTestBase
     {
         State.ReportError(RetentionEntity.FailedMessages, "body delete failed");
         State.ReportError(RetentionEntity.EventLog, "batch delete timeout");
+        CompleteThreeSweeps();
 
         var result = await Check.PerformCheck();
 
@@ -88,6 +99,7 @@ class RetentionSweepCustomCheckTests : PersistenceTestBase
     {
         State.ReportError(RetentionEntity.FailedMessages, "body delete failed");
         State.ReportError(RetentionEntity.EventLog, "batch delete timeout");
+        CompleteThreeSweeps();
 
         State.Clear(RetentionEntity.FailedMessages);
 
@@ -103,6 +115,7 @@ class RetentionSweepCustomCheckTests : PersistenceTestBase
     public async Task Repeated_failed_results_raise_one_state_change_event()
     {
         State.ReportError(RetentionEntity.FailedMessages, "db timeout");
+        CompleteThreeSweeps();
 
         var result = await Check.PerformCheck();
         var domainEvents = (FakeDomainEvents)ServiceProvider.GetRequiredService<IDomainEvents>();
@@ -126,5 +139,12 @@ class RetentionSweepCustomCheckTests : PersistenceTestBase
         await processor.ProcessResult(detail);
 
         Assert.That(domainEvents.RaisedEvents.OfType<CustomCheckFailed>().Count(), Is.EqualTo(1));
+    }
+
+    void CompleteThreeSweeps()
+    {
+        State.SweepComplete();
+        State.SweepComplete();
+        State.SweepComplete();
     }
 }
