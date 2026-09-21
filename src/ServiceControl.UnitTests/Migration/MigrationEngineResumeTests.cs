@@ -82,9 +82,9 @@ class MigrationEngineResumeTests
         {
             Assert.That(finalCheckpoint.State, Is.EqualTo(MigrationCategoryState.Complete));
             Assert.That(finalCheckpoint.CopiedCount, Is.EqualTo(6));
-            var writtenIds = target.WrittenRows(category.Id).Select(r => r.SourceId).ToArray();
-            Assert.That(writtenIds, Is.EquivalentTo(allIds), "no gaps");
-            Assert.That(writtenIds.Distinct().Count(), Is.EqualTo(writtenIds.Length), "no duplicates");
+            Assert.That(target.WrittenRows(category.Id).Select(r => r.SourceId), Is.EquivalentTo(allIds), "no gaps");
+            // The target de-duplicates, as the real ones do, so what it kept can never show a row sent twice.
+            Assert.That(target.RowsHandedToWrite(category.Id).Select(r => r.SourceId), Is.Unique, "no duplicates: the restart resumes past the rows the first run committed");
         }
     }
 

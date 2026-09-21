@@ -91,7 +91,7 @@ class MigrationEngineFailurePathTests
         var halted = await firstRun.RunCategoryAsync(category);
         Assert.That(halted.State, Is.EqualTo(MigrationCategoryState.Halted));
 
-        // Stopped on its first write, so the saved row is the restarted one rather than the completed one.
+        // Call 3 is the restarted run's first write, so the row read back next is a resumed copy, not a finished one.
         target.FailOnCallNumber = null;
         using var stopping = new CancellationTokenSource();
         target.StopOnCall = (3, stopping);
@@ -109,9 +109,9 @@ class MigrationEngineFailurePathTests
             Assert.That(finished.State, Is.EqualTo(MigrationCategoryState.Complete));
             Assert.That(finished.LastError, Is.Null, "a cleared halt does not leave a stale error on the row");
             Assert.That(finished.CopiedCount, Is.EqualTo(4));
-            var writtenIds = target.WrittenRows(category.Id).Select(r => r.SourceId).ToArray();
-            Assert.That(writtenIds, Is.EquivalentTo(new[] { "a", "b", "c", "d" }));
-            Assert.That(writtenIds.Distinct().Count(), Is.EqualTo(writtenIds.Length), "no duplicates across the halt");
+            Assert.That(target.WrittenRows(category.Id).Select(r => r.SourceId), Is.EquivalentTo(new[] { "a", "b", "c", "d" }));
+            // The target de-duplicates, as the real ones do, so what it kept can never show a row sent twice.
+            Assert.That(target.RowsHandedToWrite(category.Id).Select(r => r.SourceId), Is.Unique, "no duplicates across the halt");
         }
     }
 
@@ -191,7 +191,7 @@ class MigrationEngineFailurePathTests
     }
 
     [Test]
-    public void A_halt_whose_save_fails_still_logs_the_exception_that_caused_it()
+    public void A_write_failure_halt_logs_its_exception_before_it_settles()
     {
         var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
         var source = new InMemoryMigrationSource();
@@ -207,7 +207,7 @@ class MigrationEngineFailurePathTests
     }
 
     [Test]
-    public void A_threshold_halt_whose_save_fails_still_logs_why_it_halted()
+    public void A_threshold_halt_logs_its_reason_before_it_settles()
     {
         var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
         var source = new InMemoryMigrationSource();
@@ -223,6 +223,24 @@ class MigrationEngineFailurePathTests
         Assert.ThrowsAsync<TimeoutException>(() => engine.RunCategoryAsync(category));
 
         Assert.That(logger.Entries.Where(e => e.Level == LogLevel.Error).Select(e => e.Message), Has.Some.Contains("Halted: 1 of 1 rows skipped"));
+    }
+
+    [Test]
+    public async Task A_shortfall_halt_logs_its_reason_before_it_settles()
+    {
+        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("d"), Row("e"));
+        var checkpointStore = new HaltSaveFailsCheckpointStore();
+        // The row is counted at 10 against a source holding 2, so the copy reaches the end short of its total.
+        await checkpointStore.Upsert(new MigrationCheckpoint(category.Id, MigrationCategoryState.InProgress, null, 0, 0, 10, null, DateTime.UtcNow, DateTime.UtcNow, null, null));
+        var target = new InMemoryMigrationTarget(checkpointStore);
+        var logger = new CapturingLogger();
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []), logger);
+
+        Assert.ThrowsAsync<TimeoutException>(() => engine.RunCategoryAsync(category));
+
+        Assert.That(logger.Entries.Where(e => e.Level == LogLevel.Error).Select(e => e.Message), Has.Some.Contains("accounted for 2 of the 10 rows"), "the save that records the reason is the one that failed, so a halt that settles before it logs leaves an operator a copy that stopped with nothing saying why");
     }
 
     [Test]
