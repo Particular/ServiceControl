@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using Particular.Approvals;
 using Particular.LicensingComponent.AuditThroughput;
+using Particular.LicensingComponent.Contracts;
 using Particular.LicensingComponent.UnitTests.Infrastructure;
 using ServiceControl.Api;
 using ServiceControl.Api.Contracts;
@@ -71,6 +72,43 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
             Assert.That(remotes[0].Queues, Does.Contain("audit"), "Should have foind audit queue");
             Assert.That(remotes[0].Queues, Does.Contain("audit.log"), "Should have found audit.log queue");
         }
+    }
+
+    [Test]
+    public async Task Should_return_the_local_audit_source_alongside_the_remotes()
+    {
+        //Arrange
+        var auditQuery = new AuditQuery(NullLogger<AuditQuery>.Instance, new FakeEndpointApi(), new FakeAuditCountApi(),
+            new ConfigurationApi_ReturningOneValidAuditConfig(), new LocalAuditSource_ForThisInstance());
+
+        //Act
+        var remotes = await auditQuery.GetAuditRemotes();
+
+        //Assert
+        Assert.That(remotes, Has.Count.EqualTo(2), "The local audit source and the remote should both be reported");
+
+        var local = remotes.Single(remote => remote.ApiUri == "http://localhost:33333/api/");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(local.Queues, Does.Contain("audit"), "the local audit queue must be recognised as a platform endpoint");
+            Assert.That(local.Queues, Does.Contain("audit.log"));
+            Assert.That(local.Transport, Is.EqualTo("LearningTransport"), "the report's audit service metadata is built from this");
+        }
+    }
+
+    [Test]
+    public async Task Should_not_report_a_local_audit_source_that_is_disabled()
+    {
+        //Arrange
+        var auditQuery = new AuditQuery(NullLogger<AuditQuery>.Instance, new FakeEndpointApi(), new FakeAuditCountApi(),
+            new ConfigurationApi_ReturningOneValidAuditConfig(), new LocalAuditSource_Disabled());
+
+        //Act
+        var remotes = await auditQuery.GetAuditRemotes();
+
+        //Assert
+        Assert.That(remotes, Has.Count.EqualTo(1));
     }
 
     [Test]
@@ -201,6 +239,29 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
             ]);
         }
 
+    }
+
+    class LocalAuditSource_ForThisInstance : ILocalAuditSource
+    {
+        public bool Enabled => true;
+
+        public RemoteInstanceInformation Describe() => new()
+        {
+            ApiUri = "http://localhost:33333/api/",
+            VersionString = "6.0.0",
+            SemanticVersion = new NuGet.Versioning.SemanticVersion(6, 0, 0),
+            Status = "online",
+            Retention = TimeSpan.FromDays(10),
+            Queues = ["audit", "audit.log"],
+            Transport = "LearningTransport"
+        };
+    }
+
+    class LocalAuditSource_Disabled : ILocalAuditSource
+    {
+        public bool Enabled => false;
+
+        public RemoteInstanceInformation Describe() => throw new InvalidOperationException("Describe must not be called when the source is disabled.");
     }
 
     class AuditCountApi_ReturningThreeAuditCounts : IAuditCountApi

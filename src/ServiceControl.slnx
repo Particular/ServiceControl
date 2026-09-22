@@ -51,6 +51,7 @@
     <Project Path="ServiceControl.AcceptanceTests.PostgreSql/ServiceControl.AcceptanceTests.PostgreSql.csproj" />
     <Project Path="ServiceControl.AcceptanceTests.RavenDB/ServiceControl.AcceptanceTests.RavenDB.csproj" />
     <Project Path="ServiceControl.AcceptanceTests.SqlServer/ServiceControl.AcceptanceTests.SqlServer.csproj" />
+    <Project Path="ServiceControl.Persistence.Tests.AuditCapable/ServiceControl.Persistence.Tests.AuditCapable.csproj" />
     <Project Path="ServiceControl.Persistence.Tests.InMemory/ServiceControl.Persistence.Tests.InMemory.csproj" />
     <Project Path="ServiceControl.Persistence.Tests.RavenDB/ServiceControl.Persistence.Tests.RavenDB.csproj" />
     <Project Path="ServiceControl.Persistence.Tests.PostgreSql/ServiceControl.Persistence.Tests.PostgreSql.csproj" />

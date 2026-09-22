@@ -31,7 +31,7 @@
         {
             hostBuilder.Services.AddHostedService<HeartbeatMonitoringHostedService>();
 
-            if (!settings.ErrorIngestionOnly)
+            if (!settings.IngestionOnly)
             {
                 hostBuilder.Services.AddHostedService<HeartbeatEndpointSettingsSyncHostedService>();
             }
@@ -52,7 +52,7 @@
 
             hostBuilder.Services.AddErrorMessageEnricher<DetectNewEndpointsFromErrorImportsEnricher>();
 
-            if (!settings.ErrorIngestionOnly)
+            if (!settings.IngestionOnly)
             {
                 hostBuilder.Services.AddPlatformConnectionProvider<HeartbeatsPlatformConnectionDetailsProvider>();
             }

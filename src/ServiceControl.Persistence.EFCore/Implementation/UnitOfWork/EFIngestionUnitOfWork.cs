@@ -33,6 +33,9 @@ public class EFIngestionUnitOfWork : IIngestionUnitOfWork
 
     public IRecoverabilityIngestionUnitOfWork Recoverability { get; }
 
+    // Stays null until the EF audit persistence lands and the manifest advertises SupportsAuditIngestion.
+    public IAuditIngestionUnitOfWork? Audit => null;
+
     internal void Record(RecordedFailedProcessingAttempt attempt) => failedProcessingAttempts.Enqueue(attempt);
 
     internal void RecordBodyWrite(Task bodyWrite) => bodyWrites.Enqueue(bodyWrite);
