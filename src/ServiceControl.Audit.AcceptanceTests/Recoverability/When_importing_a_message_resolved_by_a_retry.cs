@@ -1,31 +1,30 @@
-﻿namespace ServiceControl.Audit.AcceptanceTests.Recoverability
+namespace ServiceControl.Audit.AcceptanceTests.Recoverability
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
     using Audit.Auditing.MessagesView;
     using Audit.Monitoring;
+    using Contracts.EndpointControl;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;
-    using TestSupport;
 
     class When_importing_a_message_resolved_by_a_retry : AcceptanceTest
     {
         [Test]
         public async Task Should_set_status_to_resolved()
         {
-            CustomConfiguration = endpointConfiguration =>
-            {
-                endpointConfiguration.Pipeline.Register(typeof(InterceptMessagesDestinedToServiceControl),
-                    "Intercepts messages destined to ServiceControl");
-            };
+            SetSettings = settings => settings.ServiceControlQueueAddress = Conventions.EndpointNamingConvention(typeof(ServiceControlSpy));
 
             MessagesView auditedMessage = null;
 
             var messageId = Guid.NewGuid().ToString();
-            await Define<InterceptedMessagesScenarioContext>()
+            var context = await Define<Context>()
+                .WithEndpoint<ServiceControlSpy>()
                 .WithEndpoint<Receiver>(b => b.When(s =>
                 {
                     var options = new SendOptions();
@@ -37,15 +36,44 @@
                 }))
                 .Done(async c =>
                 {
+                    if (!c.SentRegisterEndpointCommands.Any(command => command.Endpoint.Name == Conventions.EndpointNamingConvention(typeof(Receiver))))
+                    {
+                        return false;
+                    }
+
                     var result = await this.TryGetSingle<MessagesView>("/api/messages", m => m.MessageId == messageId);
 
                     auditedMessage = result;
 
-                    return result;
+                    return result && c.SentRegisterEndpointCommands.Any(command => command.Endpoint.Name == Conventions.EndpointNamingConvention(typeof(Receiver)));
                 })
                 .Run();
 
-            Assert.That(auditedMessage.Status, Is.EqualTo(MessageStatus.ResolvedSuccessfully));
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(auditedMessage.Status, Is.EqualTo(MessageStatus.ResolvedSuccessfully));
+                Assert.That(context.SentRegisterEndpointCommands, Has.Some.Matches<RegisterNewEndpoint>(command => command.Endpoint.Name == Conventions.EndpointNamingConvention(typeof(Receiver))));
+            }
+        }
+
+        public class Context : ScenarioContext
+        {
+            public ConcurrentBag<RegisterNewEndpoint> SentRegisterEndpointCommands { get; } = [];
+        }
+
+        public class ServiceControlSpy : EndpointConfigurationBuilder
+        {
+            public ServiceControlSpy() => EndpointSetup<DefaultServerWithoutAudit>();
+
+            [Handler]
+            public class RegisterNewEndpointHandler(Context testContext) : IHandleMessages<RegisterNewEndpoint>
+            {
+                public Task Handle(RegisterNewEndpoint message, IMessageHandlerContext context)
+                {
+                    testContext.SentRegisterEndpointCommands.Add(message);
+                    return Task.CompletedTask;
+                }
+            }
         }
 
         public class Receiver : EndpointConfigurationBuilder
