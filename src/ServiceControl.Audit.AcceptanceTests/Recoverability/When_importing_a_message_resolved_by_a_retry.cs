@@ -2,6 +2,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Recoverability
 {
     using System;
     using System.Collections.Concurrent;
+    using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.EndpointTemplates;
@@ -10,8 +11,8 @@ namespace ServiceControl.Audit.AcceptanceTests.Recoverability
     using Contracts.EndpointControl;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_importing_a_message_resolved_by_a_retry : AcceptanceTest
     {
@@ -24,7 +25,8 @@ namespace ServiceControl.Audit.AcceptanceTests.Recoverability
 
             var messageId = Guid.NewGuid().ToString();
             var context = await Define<Context>()
-                .WithEndpoint<ServiceControlSpy>()
+                // The audit instance probes the primary queue on startup with an empty message the spy cannot deserialize.
+                .WithEndpoint<ServiceControlSpy>(b => b.DoNotFailOnErrorMessages())
                 .WithEndpoint<Receiver>(b => b.When(s =>
                 {
                     var options = new SendOptions();
@@ -36,7 +38,8 @@ namespace ServiceControl.Audit.AcceptanceTests.Recoverability
                 }))
                 .Done(async c =>
                 {
-                    if (!c.SentRegisterEndpointCommands.Any(command => command.Endpoint.Name == Conventions.EndpointNamingConvention(typeof(Receiver))))
+                    var receiverRegistered = c.SentRegisterEndpointCommands.Any(command => command.Endpoint.Name == Conventions.EndpointNamingConvention(typeof(Receiver)));
+                    if (!receiverRegistered)
                     {
                         return false;
                     }
@@ -45,7 +48,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Recoverability
 
                     auditedMessage = result;
 
-                    return result && c.SentRegisterEndpointCommands.Any(command => command.Endpoint.Name == Conventions.EndpointNamingConvention(typeof(Receiver)));
+                    return result && receiverRegistered;
                 })
                 .Run();
 

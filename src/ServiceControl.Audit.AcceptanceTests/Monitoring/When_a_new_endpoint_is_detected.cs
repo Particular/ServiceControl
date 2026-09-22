@@ -7,8 +7,8 @@
     using Contracts.EndpointControl;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_new_endpoint_is_detected : AcceptanceTest
     {
@@ -18,7 +18,8 @@
             SetSettings = settings => settings.ServiceControlQueueAddress = Conventions.EndpointNamingConvention(typeof(ServiceControlSpy));
 
             var context = await Define<Context>()
-                .WithEndpoint<ServiceControlSpy>()
+                // The audit instance probes the primary queue on startup with an empty message the spy cannot deserialize.
+                .WithEndpoint<ServiceControlSpy>(b => b.DoNotFailOnErrorMessages())
                 .WithEndpoint<Receiver>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(c => c.SentRegisterEndpointCommands.Any(command => command.Endpoint.Name == Conventions.EndpointNamingConvention(typeof(Receiver))))
                 .Run();
