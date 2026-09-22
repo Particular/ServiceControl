@@ -39,7 +39,8 @@
             "DateUTC": "2024-04-25",
             "MessageCount": 65
           }
-        ]
+        ],
+        "DailyThroughputFromEndpoint": []
       },
       {
         "QueueName": "Endpoint2",
@@ -70,7 +71,8 @@
             "MessageCount": 64
           }
         ],
-        "DailyThroughputFromMonitoring": []
+        "DailyThroughputFromMonitoring": [],
+        "DailyThroughputFromEndpoint": []
       },
       {
         "QueueName": "Endpoint3",
@@ -110,7 +112,8 @@
             "DateUTC": "2024-04-25",
             "MessageCount": 45
           }
-        ]
+        ],
+        "DailyThroughputFromEndpoint": []
       },
       {
         "QueueName": "Endpoint4",
@@ -131,7 +134,8 @@
           }
         ],
         "DailyThroughputFromAudit": [],
-        "DailyThroughputFromMonitoring": []
+        "DailyThroughputFromMonitoring": [],
+        "DailyThroughputFromEndpoint": []
       },
       {
         "QueueName": "Endpoint5",
@@ -143,7 +147,8 @@
         "ScopeHash": "",
         "DailyThroughputFromBroker": [],
         "DailyThroughputFromAudit": [],
-        "DailyThroughputFromMonitoring": []
+        "DailyThroughputFromMonitoring": [],
+        "DailyThroughputFromEndpoint": []
       }
     ],
     "TotalQueues": 5,
