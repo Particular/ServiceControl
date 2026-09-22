@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Operations
+namespace ServiceControl.Infrastructure.Ingestion
 {
     using System;
     using System.Threading;

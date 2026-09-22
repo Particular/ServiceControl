@@ -12,6 +12,8 @@ static class FullTextSearchSql
 {
     const string IndexName = "ix_failed_messages_full_text";
     const string TableName = "failed_messages";
+    const string AuditIndexName = "ix_audit_messages_full_text";
+    const string AuditTableName = "audit_messages";
 
     // 'simple' rather than 'english': message and header content is technical, stemming and
     // stopword removal do more harm than good.
@@ -29,9 +31,15 @@ static class FullTextSearchSql
     public const string IndexedExpression =
         $"""to_tsvector('{Configuration}', headers_json || ' ' || COALESCE(body_text, '') || ' ' || replace(replace(COALESCE(message_type, ''), '.', ' '), '+', ' '))""";
 
-    public static readonly string Up = CreateIndexSql(null);
+    public static readonly string Up = CreateIndexSql(null, TableName, IndexName);
 
-    public static readonly string Down = DropIndexSql(null);
+    public static readonly string Down = DropIndexSql(null, IndexName);
+
+    // An index created on the partitioned parent is created on every existing partition and on
+    // every partition provisioned later.
+    public static readonly string AuditUp = CreateIndexSql(null, AuditTableName, AuditIndexName);
+
+    public static readonly string AuditDown = DropIndexSql(null, AuditIndexName);
 
     /// <summary>
     /// Re-renders the statement the migration carries, this time with the configured schema in it.
@@ -42,18 +50,20 @@ static class FullTextSearchSql
     public static MigrationOperation Rewrite(SqlOperation operation, string schema) =>
         operation.Sql switch
         {
-            var sql when sql == Up => WithSql(operation, CreateIndexSql(schema)),
-            var sql when sql == Down => WithSql(operation, DropIndexSql(schema)),
+            var sql when sql == Up => WithSql(operation, CreateIndexSql(schema, TableName, IndexName)),
+            var sql when sql == Down => WithSql(operation, DropIndexSql(schema, IndexName)),
+            var sql when sql == AuditUp => WithSql(operation, CreateIndexSql(schema, AuditTableName, AuditIndexName)),
+            var sql when sql == AuditDown => WithSql(operation, DropIndexSql(schema, AuditIndexName)),
             _ => operation
         };
 
-    public static bool IsHandled(string sql) => sql == Up || sql == Down;
+    public static bool IsHandled(string sql) => sql == Up || sql == Down || sql == AuditUp || sql == AuditDown;
 
-    static string CreateIndexSql(string? schema) =>
-        $"CREATE INDEX {IndexName} ON {Qualify(schema, TableName)} USING GIN ({IndexedExpression})";
+    static string CreateIndexSql(string? schema, string tableName, string indexName) =>
+        $"CREATE INDEX {indexName} ON {Qualify(schema, tableName)} USING GIN ({IndexedExpression})";
 
     // An index belongs to its table's schema, so it is the index that gets qualified here.
-    static string DropIndexSql(string? schema) => $"DROP INDEX IF EXISTS {Qualify(schema, IndexName)}";
+    static string DropIndexSql(string? schema, string indexName) => $"DROP INDEX IF EXISTS {Qualify(schema, indexName)}";
 
     static string Qualify(string? schema, string name) => schema is null ? name : $"\"{schema}\".{name}";
 

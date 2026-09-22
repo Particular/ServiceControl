@@ -24,10 +24,10 @@ class MigrationSqlIsSchemaAwareTests : PersistenceTestBase
             .SelectMany(migration => migration.UpOperations.Concat(migration.DownOperations))
             .OfType<SqlOperation>()
             .Select(operation => operation.Sql)
-            .Where(sql => !FullTextSearchSql.IsHandled(sql))
+            .Where(sql => !FullTextSearchSql.IsHandled(sql) && !AuditPartitioningSql.IsHandled(sql))
             .ToArray();
 
         Assert.That(unrecognised, Is.Empty,
-            $"A migration runs SQL that {nameof(FullTextSearchSql)}.{nameof(FullTextSearchSql.Rewrite)} does not recognise. It would run against the connection's search path, whatever Database/Schema is set to. Add it to Rewrite, and to IsHandled if it needs no qualifying.");
+            $"A migration runs SQL that neither {nameof(FullTextSearchSql)}.{nameof(FullTextSearchSql.Rewrite)} nor {nameof(AuditPartitioningSql)}.{nameof(AuditPartitioningSql.Rewrite)} recognises. It would run against the connection's search path, whatever Database/Schema is set to. Add it to a Rewrite, and to IsHandled if it needs no qualifying.");
     }
 }

@@ -13,4 +13,9 @@ class SqlServerFullTextSearchDialect : IFullTextSearchDialect
         source.Where(message =>
             EF.Functions.FreeText(message.HeadersJson, searchTerms) ||
             EF.Functions.FreeText(message.BodyText!, searchTerms));
+
+    public IQueryable<AuditMessageEntity> Search(IQueryable<AuditMessageEntity> source, string searchTerms) =>
+        source.Where(message =>
+            EF.Functions.FreeText(message.HeadersJson, searchTerms) ||
+            EF.Functions.FreeText(message.BodyText!, searchTerms));
 }

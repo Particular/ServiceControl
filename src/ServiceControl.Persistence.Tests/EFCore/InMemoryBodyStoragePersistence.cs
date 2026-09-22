@@ -3,6 +3,7 @@ namespace ServiceControl.Persistence.Tests;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ServiceControl.Persistence.EFCore.Infrastructure;
@@ -12,9 +13,23 @@ class InMemoryBodyStoragePersistence : IBodyStoragePersistence
     readonly object gate = new();
     readonly List<StoredBody> written = [];
     readonly List<string> deleted = [];
+    readonly List<string> deletedPrefixes = [];
     readonly Dictionary<string, StoredBody> store = [];
 
     public HashSet<string> FailDeleteFor { get; } = [];
+
+    public HashSet<string> FailDeletePrefixFor { get; } = [];
+
+    public IReadOnlyList<string> DeletedPrefixes
+    {
+        get
+        {
+            lock (gate)
+            {
+                return [.. deletedPrefixes];
+            }
+        }
+    }
 
     public IReadOnlyList<StoredBody> Written
     {
@@ -90,6 +105,26 @@ class InMemoryBodyStoragePersistence : IBodyStoragePersistence
         {
             deleted.Add(bodyId);
             store.Remove(bodyId);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task DeleteBodiesWithPrefix(string prefix, CancellationToken cancellationToken = default)
+    {
+        if (FailDeletePrefixFor.Contains(prefix))
+        {
+            throw new InvalidOperationException($"Simulated body storage failure for prefix {prefix}");
+        }
+
+        lock (gate)
+        {
+            deletedPrefixes.Add(prefix);
+
+            foreach (var bodyId in store.Keys.Where(bodyId => bodyId.StartsWith(prefix, StringComparison.Ordinal)).ToList())
+            {
+                store.Remove(bodyId);
+            }
         }
 
         return Task.CompletedTask;

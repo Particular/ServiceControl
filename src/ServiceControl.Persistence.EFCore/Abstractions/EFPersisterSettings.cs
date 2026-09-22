@@ -8,6 +8,10 @@ public abstract class EFPersisterSettings : PersistenceSettings
     public const int DefaultExternalIntegrationsDispatchingBatchSize = 100;
     public static readonly TimeSpan DefaultEventsRetentionPeriod = TimeSpan.FromDays(14);
 
+    // The same default the management utility and the container image apply, rather than the
+    // standalone audit instance's 30 days.
+    public static readonly TimeSpan DefaultAuditRetentionPeriod = TimeSpan.FromDays(7);
+
     public static readonly TimeSpan DefaultSubscriptionCacheDuration = TimeSpan.FromSeconds(60);
 
     public required string ConnectionString { get; set; }
@@ -25,6 +29,7 @@ public abstract class EFPersisterSettings : PersistenceSettings
     public int CommandTimeout { get; set; } = DefaultCommandTimeout;
     public TimeSpan ErrorRetentionPeriod { get; set; }
     public TimeSpan EventsRetentionPeriod { get; set; } = DefaultEventsRetentionPeriod;
+    public TimeSpan AuditRetentionPeriod { get; set; } = DefaultAuditRetentionPeriod;
     public required BodyStorageSettings BodyStorage { get; set; }
     public int MaxRetryCount { get; set; } = 5;
     public int MaxRetryDelayInSeconds { get; set; } = 30;

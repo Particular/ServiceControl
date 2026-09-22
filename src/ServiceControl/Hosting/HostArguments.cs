@@ -11,6 +11,10 @@ namespace Particular.ServiceControl.Hosting
     {
         public HostArguments(string[] args)
         {
+            var errorIngestionOnly = false;
+            var auditIngestionOnly = false;
+            var auditInstance = false;
+
             if (SettingsReader.Read<bool>(Settings.SettingsRootNamespace, "MaintenanceMode"))
             {
                 args = [.. args, "-m"];
@@ -53,17 +57,34 @@ namespace Particular.ServiceControl.Hosting
                 }
             };
 
-            var errorIngestionOnlyOptions = new OptionSet
+            var auditInstanceOptions = new OptionSet
+            {
+                {
+                    "audit-instance",
+                    "Run as the audit host of a dedicated audit database, reached by a primary through its remote instances",
+                    s => auditInstance = true
+                }
+            };
+
+            var ingestionOnlyOptions = new OptionSet
             {
                 {
                     "error-ingestion-only",
                     "Run only error ingestion, for scaling out ingestion across several processes",
-                    s => Command = typeof(ErrorIngestionOnlyCommand)
+                    s => errorIngestionOnly = true
+                },
+                {
+                    "audit-ingestion-only",
+                    "Run only audit ingestion, for scaling out ingestion across several processes",
+                    s => auditIngestionOnly = true
                 }
             };
 
             try
             {
+                auditInstanceOptions.Parse(args);
+                AuditInstance = auditInstance;
+
                 externalInstallerOptions.Parse(args);
 
                 if (Command == typeof(SetupCommand))
@@ -85,10 +106,26 @@ namespace Particular.ServiceControl.Hosting
                     return;
                 }
 
-                errorIngestionOnlyOptions.Parse(args);
+                ingestionOnlyOptions.Parse(args);
 
-                if (Command == typeof(ErrorIngestionOnlyCommand))
+                IngestionOnlyGuards.EnsureModesAreNotCombined(errorIngestionOnly, auditIngestionOnly);
+                AuditInstanceGuards.EnsureNotCombinedWithIngestionOnly(auditInstance, errorIngestionOnly || auditIngestionOnly);
+
+                if (auditInstance)
                 {
+                    Command = typeof(AuditInstanceCommand);
+                    return;
+                }
+
+                if (errorIngestionOnly)
+                {
+                    Command = typeof(ErrorIngestionOnlyCommand);
+                    return;
+                }
+
+                if (auditIngestionOnly)
+                {
+                    Command = typeof(AuditIngestionOnlyCommand);
                     return;
                 }
 
@@ -106,6 +143,12 @@ namespace Particular.ServiceControl.Hosting
         public bool Help { get; private set; }
 
         public bool SkipQueueCreation { get; private set; }
+
+        /// <summary>
+        /// Set by --audit-instance. Read by setup as well as by the run command, so one flag provisions
+        /// and runs the same host.
+        /// </summary>
+        public bool AuditInstance { get; private set; }
 
         public void PrintUsage()
         {

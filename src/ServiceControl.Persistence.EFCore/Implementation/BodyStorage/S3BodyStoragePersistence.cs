@@ -96,6 +96,30 @@ public class S3BodyStoragePersistence : IBodyStoragePersistence
     public Task DeleteBodyIfExists(string bodyId, CancellationToken cancellationToken = default) =>
         client.DeleteObjectAsync(bucketName, Key(bodyId), cancellationToken);
 
+    // Listed and deleted a page at a time, so an hour of any size is removed in a bounded number of
+    // requests, one list and one bulk delete per thousand keys.
+    public async Task DeleteBodiesWithPrefix(string prefix, CancellationToken cancellationToken = default)
+    {
+        var request = new ListObjectsV2Request { BucketName = bucketName, Prefix = Key(prefix) };
+        ListObjectsV2Response response;
+
+        do
+        {
+            response = await client.ListObjectsV2Async(request, cancellationToken);
+
+            if (response.S3Objects is { Count: > 0 })
+            {
+                await client.DeleteObjectsAsync(new DeleteObjectsRequest
+                {
+                    BucketName = bucketName,
+                    Objects = [.. response.S3Objects.Select(s3Object => new KeyVersion { Key = s3Object.Key })]
+                }, cancellationToken);
+            }
+
+            request.ContinuationToken = response.NextContinuationToken;
+        } while (response.IsTruncated == true);
+    }
+
     async Task<bool> Exists(string key, CancellationToken cancellationToken)
     {
         try

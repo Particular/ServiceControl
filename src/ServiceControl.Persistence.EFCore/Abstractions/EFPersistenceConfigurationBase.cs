@@ -27,6 +27,7 @@ public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration,
     const string MaxBodySizeToStoreKey = "MaxBodySizeToStore";
     const string ErrorRetentionPeriodKey = "ErrorRetentionPeriod";
     const string EventsRetentionPeriodKey = "EventsRetentionPeriod";
+    const string AuditRetentionPeriodKey = "AuditRetentionPeriod";
     const string SubscriptionCacheDurationKey = "SubscriptionCacheDuration";
     const string ExternalIntegrationsDispatchingBatchSizeKey = "ExternalIntegrationsDispatchingBatchSize";
 
@@ -42,6 +43,7 @@ public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration,
         settings.CommandTimeout = SettingsReader.Read(settingsRootNamespace, CommandTimeoutKey, EFPersisterSettings.DefaultCommandTimeout);
         settings.ErrorRetentionPeriod = GetRequiredSetting<TimeSpan>(settingsRootNamespace, ErrorRetentionPeriodKey);
         settings.EventsRetentionPeriod = SettingsReader.Read(settingsRootNamespace, EventsRetentionPeriodKey, EFPersisterSettings.DefaultEventsRetentionPeriod);
+        settings.AuditRetentionPeriod = SettingsReader.Read(settingsRootNamespace, AuditRetentionPeriodKey, EFPersisterSettings.DefaultAuditRetentionPeriod);
         settings.SubscriptionCacheDuration = SettingsReader.Read(settingsRootNamespace, SubscriptionCacheDurationKey, EFPersisterSettings.DefaultSubscriptionCacheDuration);
         settings.ExternalIntegrationsDispatchingBatchSize = ReadExternalIntegrationsDispatchingBatchSize(settingsRootNamespace);
         settings.QueryTimeout = QueryTimeLimit.Read(settingsRootNamespace, LoggerUtil.CreateStaticLogger<EFPersistenceConfigurationBase>());

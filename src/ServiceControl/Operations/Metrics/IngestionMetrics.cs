@@ -10,7 +10,7 @@ using ServiceControl.Infrastructure.Ingestion.Metrics;
 
 public class IngestionMetrics
 {
-    public const string MeterName = ServiceControlMeters.Error;
+    public const string MeterName = ServiceControlMeters.Primary;
 
     public static readonly string BatchDurationInstrumentName = $"{InstrumentPrefix}.batch_duration_seconds";
     public static readonly string MessageDurationInstrumentName = $"{InstrumentPrefix}.message_duration_seconds";

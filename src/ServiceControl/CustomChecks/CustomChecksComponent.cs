@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.CustomChecks
+namespace ServiceControl.CustomChecks
 {
     using Connection;
     using Contracts;
@@ -29,7 +29,7 @@
             hostBuilder.Services.AddEventLogMapping<CustomCheckFailedDefinition>();
             hostBuilder.Services.AddEventLogMapping<CustomCheckSucceededDefinition>();
 
-            if (!settings.ErrorIngestionOnly)
+            if (settings.Host.HostsApi)
             {
                 hostBuilder.Services.AddPlatformConnectionProvider<CustomChecksPlatformConnectionDetailsProvider>();
             }

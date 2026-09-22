@@ -21,4 +21,11 @@ public interface IBodyStoragePersistence
     /// gone: callers delete the body before the row that names it.
     /// </summary>
     Task DeleteBodyIfExists(string bodyId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes every body whose id starts with the prefix. Audit bodies are keyed by their ingestion
+    /// hour, so retention drops an hour's bodies with one call rather than one per message. Like
+    /// <see cref="DeleteBodyIfExists"/>, throws only when the store itself fails.
+    /// </summary>
+    Task DeleteBodiesWithPrefix(string prefix, CancellationToken cancellationToken = default);
 }

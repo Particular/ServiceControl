@@ -1,5 +1,6 @@
-﻿namespace ServiceControl.Operations
+namespace ServiceControl.Operations
 {
+    using ServiceControl.Infrastructure.Ingestion;
     using System;
     using System.Diagnostics;
     using System.IO;

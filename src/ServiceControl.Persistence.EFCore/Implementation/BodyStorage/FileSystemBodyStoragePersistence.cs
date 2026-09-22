@@ -27,6 +27,9 @@ public class FileSystemBodyStoragePersistence(FileSystemBodyStorageSettings sett
             return;
         }
 
+        // Audit body ids carry their ingestion hour as a directory, so the path may not exist yet.
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+
         // A unique temp name lets concurrent writers of the same body race without clobbering.
         var tempFilePath = $"{filePath}.{Guid.NewGuid():N}.tmp";
 
@@ -141,7 +144,44 @@ public class FileSystemBodyStoragePersistence(FileSystemBodyStorageSettings sett
         return Task.CompletedTask;
     }
 
+    // A prefix that ends in a separator names a directory, and deleting the directory removes every
+    // body of that hour at once. Any other prefix is matched file by file within its directory.
+    public Task DeleteBodiesWithPrefix(string prefix, CancellationToken cancellationToken = default)
+    {
+        var path = Path.Combine(StoragePath, prefix);
+
+        if (prefix.EndsWith('/'))
+        {
+            TryDeleteDirectory(path);
+            return Task.CompletedTask;
+        }
+
+        var directory = Path.GetDirectoryName(path);
+
+        if (directory is not null && Directory.Exists(directory))
+        {
+            foreach (var file in Directory.EnumerateFiles(directory, $"{Path.GetFileName(path)}*"))
+            {
+                TryDelete(file);
+            }
+        }
+
+        return Task.CompletedTask;
+    }
+
     string GetBodyFilePath(string bodyId) => Path.Combine(StoragePath, $"{bodyId}.body");
+
+    static void TryDeleteDirectory(string path)
+    {
+        try
+        {
+            Directory.Delete(path, recursive: true);
+        }
+        catch (DirectoryNotFoundException)
+        {
+            // Nothing to delete.
+        }
+    }
 
     static void TryDelete(string filePath)
     {
