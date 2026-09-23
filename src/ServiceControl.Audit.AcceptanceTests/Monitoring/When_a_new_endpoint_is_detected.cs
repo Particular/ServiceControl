@@ -22,10 +22,10 @@
             var context = await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
                 .WithEndpoint<SpyEndpoint>()
-                .Done(c => c.ReceivedRegisterEndpointCommands.Any())
+                .Done(c => c.SentRegisterEndpointCommands.Any())
                 .Run();
 
-            var command = context.ReceivedRegisterEndpointCommands.Single();
+            var command = context.SentRegisterEndpointCommands.Single();
             Assert.That(command.Endpoint.Name, Is.EqualTo(Conventions.EndpointNamingConvention(typeof(Receiver))));
         }
 
@@ -66,7 +66,7 @@
             {
                 public Task Handle(RegisterNewEndpoint message, IMessageHandlerContext context)
                 {
-                    testContext.ReceivedRegisterEndpointCommands.Add(message);
+                    testContext.SentRegisterEndpointCommands.Add(message);
                     return Task.CompletedTask;
                 }
             }
@@ -76,7 +76,7 @@
 
         public class MyContext : ScenarioContext
         {
-            public ConcurrentBag<RegisterNewEndpoint> ReceivedRegisterEndpointCommands { get; } = [];
+            public ConcurrentBag<RegisterNewEndpoint> SentRegisterEndpointCommands { get; } = [];
         }
     }
 }
