@@ -63,7 +63,16 @@ class RetentionApi(IServiceProvider serviceProvider) : IRetentionApi
             LastStartedAt = status.LastStartedAt,
             LastFinishedAt = status.LastFinishedAt,
             LastErrorCutoff = status.LastErrorCutoff,
-            LastEventsCutoff = status.LastEventsCutoff
+            LastEventsCutoff = status.LastEventsCutoff,
+            LastOutcome = status.LastOutcome switch
+            {
+                null => null,
+                RetentionSweepOutcome.Succeeded => RetentionPurgeOutcome.Succeeded,
+                RetentionSweepOutcome.Failed => RetentionPurgeOutcome.Failed,
+                RetentionSweepOutcome.Cancelled => RetentionPurgeOutcome.Cancelled,
+                _ => throw new ArgumentOutOfRangeException(nameof(status), status.LastOutcome, "Unknown retention sweep outcome.")
+            },
+            LastError = status.LastError
         });
     }
 
