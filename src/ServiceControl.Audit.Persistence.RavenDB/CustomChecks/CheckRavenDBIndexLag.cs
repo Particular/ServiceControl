@@ -38,7 +38,9 @@
             {
                 if (indexStats.IsStale && indexStats.LastIndexingTime.HasValue)
                 {
+#pragma warning disable RS0030 // Do not use banned apis: RavenDB retention, index lag, and date boundaries require current wall-clock time
                     var indexLag = DateTime.UtcNow - indexStats.LastIndexingTime.Value;
+#pragma warning restore RS0030
 
                     if (indexLag > IndexLagThresholdError)
                     {

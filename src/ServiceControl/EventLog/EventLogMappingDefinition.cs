@@ -92,6 +92,8 @@
         Func<T, string> descriptionFunc = m => m.ToString();
         Func<T, Severity> severityFunc = arg => EventLog.Severity.Info;
 
+#pragma warning disable RS0030 // Do not use banned apis: Runtime events, expiry checks, and monitoring thresholds require current wall-clock time
         Func<T, DateTime> raisedAtFunc = arg => DateTime.UtcNow;
+#pragma warning restore RS0030
     }
 }

@@ -87,7 +87,9 @@ class RetentionApi(IServiceProvider serviceProvider) : IRetentionApi
 
         value = value.ToUniversalTime();
 
+#pragma warning disable RS0030 // Do not use banned apis: Runtime events, expiry checks, and monitoring thresholds require current wall-clock time
         if (value > DateTime.UtcNow)
+#pragma warning restore RS0030
         {
             validated = null;
             error = "Cutoffs must not be in the future.";

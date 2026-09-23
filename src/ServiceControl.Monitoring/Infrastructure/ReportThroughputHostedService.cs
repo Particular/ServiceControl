@@ -59,8 +59,10 @@
             {
                 var throughputData = new RecordEndpointThroughputData
                 {
+#pragma warning disable RS0030 // Do not use banned apis: Monitoring windows, cache headers, and activity timestamps require current wall-clock time
                     EndDateTime = DateTime.UtcNow,
                     StartDateTime = DateTime.UtcNow.AddMinutes(-ReportSendingIntervalInMinutes),
+#pragma warning restore RS0030
                     EndpointThroughputData = new EndpointThroughputData[endpointData.Length]
                 };
 

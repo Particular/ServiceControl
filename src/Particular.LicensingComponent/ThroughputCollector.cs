@@ -123,7 +123,9 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
 
         if (reportEndDate is null || reportEndDate == DateTime.MinValue)
         {
+#pragma warning disable RS0030 // Do not use banned apis: Throughput collection periods are based on current calendar dates
             reportEndDate = DateTime.UtcNow.Date;
+#pragma warning restore RS0030
         }
 
         var queueThroughputs = new List<QueueThroughput>();

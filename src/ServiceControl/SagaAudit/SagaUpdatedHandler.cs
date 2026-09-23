@@ -18,7 +18,9 @@
         {
             SagaAuditMisconfigurationCustomCheck.LogMisconfiguredMessage(context);
 
+#pragma warning disable RS0030 // Do not use banned apis: Runtime events, expiry checks, and monitoring thresholds require current wall-clock time
             if (auditQueueName is null || nextAuditQueueNameRefresh < DateTime.UtcNow)
+#pragma warning restore RS0030
             {
                 await RefreshAuditQueue(context.CancellationToken);
             }
@@ -35,6 +37,7 @@
             await context.ForwardCurrentMessageTo(auditQueueName);
         }
 
+#pragma warning disable RS0030 // Do not use banned apis: Runtime events, expiry checks, and monitoring thresholds require current wall-clock time
         async Task RefreshAuditQueue(CancellationToken cancellationToken)
         {
             if (nextAuditQueueNameRefresh > DateTime.UtcNow)
@@ -74,6 +77,7 @@
             {
                 semaphore.Release();
             }
+#pragma warning restore RS0030
         }
 
         static string auditQueueName;

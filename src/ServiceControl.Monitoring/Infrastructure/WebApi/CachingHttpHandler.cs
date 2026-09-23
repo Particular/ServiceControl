@@ -16,7 +16,9 @@
 
             if (!response.Headers.ContainsKey("Last-Modified"))
             {
+#pragma warning disable RS0030 // Do not use banned apis: Monitoring windows, cache headers, and activity timestamps require current wall-clock time
                 response.Headers["Last-Modified"] = DateTime.UtcNow.ToString("R");
+#pragma warning restore RS0030
             }
 
             if (!response.Headers.ContainsKey("Cache-Control"))

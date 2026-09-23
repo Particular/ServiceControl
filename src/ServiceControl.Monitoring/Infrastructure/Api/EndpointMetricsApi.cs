@@ -21,7 +21,9 @@
             foreach (var metric in InstanceMetrics)
             {
                 var store = metricByInstanceLookup[metric.StoreType];
+#pragma warning disable RS0030 // Do not use banned apis: Monitoring windows, cache headers, and activity timestamps require current wall-clock time
                 var intervals = store.GetIntervals(period, DateTime.UtcNow).ToLookup(k => k.Id.EndpointName);
+#pragma warning restore RS0030
 
                 foreach (var endpoint in endpoints)
                 {
@@ -34,7 +36,9 @@
             foreach (var metric in QueueMetrics)
             {
                 var store = metricByQueueLookup[metric.StoreType];
+#pragma warning disable RS0030 // Do not use banned apis: Monitoring windows, cache headers, and activity timestamps require current wall-clock time
                 var intervals = store.GetIntervals(period, DateTime.UtcNow).ToLookup(k => k.Id.EndpointName);
+#pragma warning restore RS0030
 
                 foreach (var endpoint in endpoints)
                 {
@@ -65,7 +69,9 @@
             foreach (var metric in InstanceMetrics)
             {
                 var store = metricByInstanceLookup[metric.StoreType];
+#pragma warning disable RS0030 // Do not use banned apis: Monitoring windows, cache headers, and activity timestamps require current wall-clock time
                 var intervals = store.GetIntervals(period, DateTime.UtcNow);
+#pragma warning restore RS0030
 
                 var intervalsByEndpoint = intervals.ToLookup(k => k.Id.EndpointName);
 
@@ -106,7 +112,9 @@
             foreach (var metric in QueueMetrics)
             {
                 var store = metricByQueueLookup[metric.StoreType];
+#pragma warning disable RS0030 // Do not use banned apis: Monitoring windows, cache headers, and activity timestamps require current wall-clock time
                 var intervals = store.GetIntervals(period, DateTime.UtcNow);
+#pragma warning restore RS0030
 
                 var intervalsByEndpoint = intervals.ToLookup(k => k.Id.EndpointName);
 
@@ -138,7 +146,9 @@
             foreach (var metric in MessageTypeMetrics)
             {
                 var store = metricByMessageTypeLookup[metric.StoreType];
+#pragma warning disable RS0030 // Do not use banned apis: Monitoring windows, cache headers, and activity timestamps require current wall-clock time
                 var intervals = store.GetIntervals(period, DateTime.UtcNow).ToLookup(k => k.Id);
+#pragma warning restore RS0030
 
                 foreach (var messageType in messageTypes)
                 {

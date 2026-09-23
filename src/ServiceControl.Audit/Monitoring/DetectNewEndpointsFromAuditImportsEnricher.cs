@@ -49,7 +49,9 @@
             {
                 context.AddForSend(new RegisterNewEndpoint
                 {
+#pragma warning disable RS0030 // Do not use banned apis: Audit enrichment timestamps must reflect when events are processed
                     DetectedAt = DateTime.UtcNow,
+#pragma warning restore RS0030
                     Endpoint = endpointDetails
                 });
             }

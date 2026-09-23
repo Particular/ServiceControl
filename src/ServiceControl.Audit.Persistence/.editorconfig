@@ -2,7 +2,3 @@
 
 # Justification: ServiceControl app has no synchronization context
 dotnet_diagnostic.CA2007.severity = none
-
-[ProcessedMessage.cs]
-# Justification: Missing message timestamps fall back to the current wall-clock time
-dotnet_diagnostic.RS0030.severity = none

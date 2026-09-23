@@ -34,7 +34,9 @@
                 //and did not send the acknowledgment. We send it here to the acknowledgment queue.
                 var ackMessage = new OutgoingMessage(Guid.NewGuid().ToString(), new Dictionary<string, string>
                 {
+#pragma warning disable RS0030 // Do not use banned apis: Audit enrichment timestamps must reflect when events are processed
                     ["ServiceControl.Retry.Successful"] = DateTimeOffsetHelper.ToWireFormattedString(DateTimeOffset.UtcNow),
+#pragma warning restore RS0030
                     ["ServiceControl.Retry.UniqueMessageId"] = newRetryMessageId
                 }, Array.Empty<byte>());
                 var ackOperation = new TransportOperation(ackMessage, new UnicastAddressTag(ackQueue));

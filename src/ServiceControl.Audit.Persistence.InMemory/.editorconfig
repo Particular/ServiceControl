@@ -2,7 +2,3 @@
 
 # Justification: ServiceControl app has no synchronization context
 dotnet_diagnostic.CA2007.severity = none
-
-[InMemoryLicensingDataStore.cs]
-# Justification: In-memory persistence timestamps mirror production wall-clock behavior
-dotnet_diagnostic.RS0030.severity = none

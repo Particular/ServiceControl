@@ -16,7 +16,9 @@ class SagaAuditMisconfigurationCustomCheck() : CustomCheck("Saga Audit Configura
     {
         var details = lastMisconfiguredMessageDetails;
 
+#pragma warning disable RS0030 // Do not use banned apis: Runtime events, expiry checks, and monitoring thresholds require current wall-clock time
         if (details is null || details.Value.OccurredAt < DateTime.UtcNow.AddMinutes(-5))
+#pragma warning restore RS0030
         {
             return Task.FromResult(CheckResult.Pass);
         }
@@ -36,7 +38,9 @@ class SagaAuditMisconfigurationCustomCheck() : CustomCheck("Saga Audit Configura
 
     readonly struct Details
     {
+#pragma warning disable RS0030 // Do not use banned apis: Runtime events, expiry checks, and monitoring thresholds require current wall-clock time
         public readonly DateTime OccurredAt = DateTime.UtcNow;
+#pragma warning restore RS0030
         public readonly string? Endpoint;
 
         public Details(IMessageHandlerContext context)

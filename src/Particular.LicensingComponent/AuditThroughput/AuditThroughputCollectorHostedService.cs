@@ -91,7 +91,9 @@ public class AuditThroughputCollectorHostedService(
 
             var missingAuditThroughput = auditCounts
                 .Where(auditCount => auditCount.UtcDate > endpoint.LastCollectedDate &&
+#pragma warning disable RS0030 // Do not use banned apis: Throughput collection periods are based on current calendar dates
                                      auditCount.UtcDate < DateOnly.FromDateTime(DateTime.UtcNow))
+#pragma warning restore RS0030
                 .Select(auditCount => new EndpointDailyThroughput(auditCount.UtcDate, auditCount.Count))
                 .ToList();
 

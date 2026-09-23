@@ -146,7 +146,9 @@ namespace ServiceControl.Audit.Persistence.RavenDB
 
             if (oldestMsg != null)
             {
+#pragma warning disable RS0030 // Do not use banned apis: RavenDB retention, index lag, and date boundaries require current wall-clock time
                 var endDate = DateTime.UtcNow.Date.AddDays(1);
+#pragma warning restore RS0030
                 var oldestMsgDate = oldestMsg.ProcessedAt.ToUniversalTime().Date;
                 var thirtyDays = endDate.AddDays(-30);
 
@@ -181,7 +183,9 @@ namespace ServiceControl.Audit.Persistence.RavenDB
                 {
                     results.Add(new AuditCount
                     {
+#pragma warning disable RS0030 // Do not use banned apis: RavenDB retention, index lag, and date boundaries require current wall-clock time
                         UtcDate = DateTime.UtcNow.Date,
+#pragma warning restore RS0030
                         Count = 0
                     });
                 }

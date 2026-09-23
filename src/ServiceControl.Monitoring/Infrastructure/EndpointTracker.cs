@@ -20,7 +20,9 @@
             var instanceId = EndpointInstanceId.From(context.MessageHeaders);
 
             endpointRegistry.Record(instanceId);
+#pragma warning disable RS0030 // Do not use banned apis: Monitoring windows, cache headers, and activity timestamps require current wall-clock time
             activityTracker.Record(instanceId, DateTime.UtcNow);
+#pragma warning restore RS0030
 
             return Task.CompletedTask;
         }

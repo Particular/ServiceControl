@@ -2,7 +2,3 @@
 
 # Justification: ServiceControl app has no synchronization context
 dotnet_diagnostic.CA2007.severity = none
-
-[{UnitOfWork/RavenAuditIngestionUnitOfWork.cs,CustomChecks/CheckRavenDBIndexLag.cs,RavenAuditDataStore.cs}]
-# Justification: RavenDB retention, index lag, and date boundaries require current wall-clock time
-dotnet_diagnostic.RS0030.severity = none

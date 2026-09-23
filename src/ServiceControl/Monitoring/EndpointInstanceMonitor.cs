@@ -60,7 +60,9 @@ namespace ServiceControl.Monitoring
                     await domainEvents.Raise(new HeartbeatingEndpointDetected
                     {
                         Endpoint = Convert(Id),
+#pragma warning disable RS0030 // Do not use banned apis: Runtime events, expiry checks, and monitoring thresholds require current wall-clock time
                         DetectedAt = latestTimestamp ?? DateTime.UtcNow
+#pragma warning restore RS0030
                     }, cancellationToken);
                 }
                 else if (status == HeartbeatStatus.Dead && Monitored)
@@ -68,7 +70,9 @@ namespace ServiceControl.Monitoring
                     await domainEvents.Raise(new EndpointHeartbeatRestored
                     {
                         Endpoint = Convert(Id),
+#pragma warning disable RS0030 // Do not use banned apis: Runtime events, expiry checks, and monitoring thresholds require current wall-clock time
                         RestoredAt = latestTimestamp ?? DateTime.UtcNow
+#pragma warning restore RS0030
                     }, cancellationToken);
                 }
             }
@@ -77,7 +81,9 @@ namespace ServiceControl.Monitoring
                 await domainEvents.Raise(new EndpointFailedToHeartbeat
                 {
                     Endpoint = Convert(Id),
+#pragma warning disable RS0030 // Do not use banned apis: Runtime events, expiry checks, and monitoring thresholds require current wall-clock time
                     DetectedAt = DateTime.UtcNow,
+#pragma warning restore RS0030
                     LastReceivedAt = latestTimestamp ?? DateTime.MinValue
                 }, cancellationToken);
             }

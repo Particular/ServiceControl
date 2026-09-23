@@ -1,4 +1,1 @@
-
-[QueueLengthProvider.cs]
-# Justification: Queue-length samples must use the current wall-clock time
-dotnet_diagnostic.RS0030.severity = none
+[*.cs]

@@ -59,7 +59,9 @@
 
         void UpdateQueueLengths()
         {
+#pragma warning disable RS0030 // Do not use banned apis: Queue-length samples must use the current wall-clock time
             var nowTicks = DateTime.UtcNow.Ticks;
+#pragma warning restore RS0030
 
             foreach (var endpointQueuePair in endpointQueues)
             {

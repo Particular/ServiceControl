@@ -47,7 +47,9 @@
                 }
 
                 //If the trial end date in db has been tampered, invalidate the license
+#pragma warning disable RS0030 // Do not use banned apis: Runtime events, expiry checks, and monitoring thresholds require current wall-clock time
                 if (trialEndDateInDb > DateOnly.FromDateTime(DateTime.UtcNow).AddDays(MaxTrialPeriodInDays))
+#pragma warning restore RS0030
                 {
                     return LicenseDetails.TrialExpired();
                 }

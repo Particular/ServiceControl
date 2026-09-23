@@ -39,7 +39,9 @@
 
         async Task<TimerJobExecutionResult> CheckEndpoints(CancellationToken cancellationToken)
         {
+#pragma warning disable RS0030 // Do not use banned apis: Runtime events, expiry checks, and monitoring thresholds require current wall-clock time
             var inactivityThreshold = DateTime.UtcNow - gracePeriod;
+#pragma warning restore RS0030
 
             logger.LogDebug("Monitoring Endpoint Instances. Inactivity Threshold = {InactivityThreshold}", inactivityThreshold);
 

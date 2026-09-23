@@ -2,7 +2,3 @@
 
 # Justification: ServiceControl app has no synchronization context
 dotnet_diagnostic.CA2007.severity = none
-
-[{DetectSuccessfulRetriesEnricher.cs,DetectNewEndpointsFromAuditImportsEnricher.cs}]
-# Justification: Audit enrichment timestamps must reflect when events are processed
-dotnet_diagnostic.RS0030.severity = none

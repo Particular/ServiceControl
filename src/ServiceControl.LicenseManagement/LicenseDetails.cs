@@ -58,7 +58,9 @@
             return FromLicense(new License
             {
                 LicenseType = "Trial",
+#pragma warning disable RS0030 // Do not use banned apis: License expiry must be evaluated against current wall-clock time
                 ExpirationDate = DateTime.UtcNow.Date.AddDays(-2), //HasLicenseDateExpired uses a grace period of 1 day
+#pragma warning restore RS0030
                 IsExtendedTrial = false,
                 ValidApplications = ["All"]
             });
@@ -74,7 +76,9 @@
                 UpgradeProtectionExpiration = license.UpgradeProtectionExpiration,
                 //If expiration date is greater that 50 years treat is as no expiration date
                 ExpirationDate = license.ExpirationDate.HasValue
+#pragma warning disable RS0030 // Do not use banned apis: License expiry must be evaluated against current wall-clock time
                     ? license.ExpirationDate.Value > DateTime.UtcNow.AddYears(50) ? null : license.ExpirationDate
+#pragma warning restore RS0030
                     : license.ExpirationDate,
                 RegisteredTo = license.RegisteredTo,
                 IsCommercialLicense = license.IsCommercialLicense,
@@ -107,7 +111,9 @@
                 oneDayGrace = licenseDate.AddDays(1);
             }
 
+#pragma warning disable RS0030 // Do not use banned apis: License expiry must be evaluated against current wall-clock time
             return oneDayGrace < DateTime.UtcNow.Date;
+#pragma warning restore RS0030
         }
     }
 

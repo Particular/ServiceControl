@@ -59,7 +59,9 @@ namespace ServiceControl.Monitoring
             {
                 await domainEvents.Raise(new EndpointDetected
                 {
+#pragma warning disable RS0030 // Do not use banned apis: Runtime events, expiry checks, and monitoring thresholds require current wall-clock time
                     DetectedAt = DateTime.UtcNow,
+#pragma warning restore RS0030
                     Endpoint = newEndpointDetails
                 }, cancellationToken);
             }
@@ -93,7 +95,9 @@ namespace ServiceControl.Monitoring
                 {
                     Active = stats.Active,
                     Failing = stats.Failing,
+#pragma warning disable RS0030 // Do not use banned apis: Runtime events, expiry checks, and monitoring thresholds require current wall-clock time
                     RaisedAt = DateTime.UtcNow
+#pragma warning restore RS0030
                 }, cancellationToken);
                 previousStats = stats;
             }

@@ -99,7 +99,9 @@ namespace ServiceControl.Transports.ASBS
             {
                 new QueueLengthEntry
                 {
+#pragma warning disable RS0030 // Do not use banned apis: Queue-length samples must use the current wall-clock time
                     DateTicks =  DateTime.UtcNow.Ticks,
+#pragma warning restore RS0030
                     Value = runtimeInfo.ActiveMessageCount
                 }
             };

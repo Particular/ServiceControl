@@ -43,7 +43,9 @@
         MetadataAsDictionary GetExpirationMetadata() =>
             new()
             {
+#pragma warning disable RS0030 // Do not use banned apis: RavenDB retention, index lag, and date boundaries require current wall-clock time
                 [Constants.Documents.Metadata.Expires] = DateTime.UtcNow.Add(auditRetentionPeriod)
+#pragma warning restore RS0030
             };
 
         public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken = default)

@@ -46,7 +46,9 @@
 
         void UpdateStore(ILookup<string, long?> queueLengths)
         {
+#pragma warning disable RS0030 // Do not use banned apis: Queue-length samples must use the current wall-clock time
             var now = DateTime.UtcNow.Ticks;
+#pragma warning restore RS0030
             foreach (var kvp in endpointsHash)
             {
                 var instance = kvp.Key;

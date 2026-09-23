@@ -2,7 +2,3 @@
 
 # Justification: ServiceControl app has no synchronization context
 dotnet_diagnostic.CA2007.severity = none
-
-[{EventLog/EventLogMappingDefinition.cs,SagaAudit/SagaAuditMisconfigurationCustomCheck.cs,Monitoring/Contracts/HeartbeatMonitoring/HeartbeatsUpdated.cs,SagaAudit/SagaUpdatedHandler.cs,Licensing/ActiveLicense.cs,Infrastructure/Api/RetentionApi.cs,CustomChecks/CustomChecksUpdated.cs,Monitoring/EndpointInstanceMonitoring.cs,Monitoring/HeartbeatMonitoringHostedService.cs,Monitoring/EndpointInstanceMonitor.cs}]
-# Justification: Runtime events, expiry checks, and monitoring thresholds require current wall-clock time
-dotnet_diagnostic.RS0030.severity = none

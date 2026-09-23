@@ -134,19 +134,25 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         await Task.CompletedTask;
     }
 
+#pragma warning disable RS0030 // Do not use banned apis: Throughput is based on external clocks
     public async Task<bool> IsThereThroughputForLastXDays(int days, CancellationToken cancellationToken = default) => await Task.FromResult(
         allThroughput.Any(endpointThroughput => endpointThroughput.Value.Any(
             t => t.Key >= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-days) &&
                  t.Key <= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1))));
+#pragma warning restore RS0030
 
     public async Task<bool> IsThereThroughputForLastXDaysForSource(int days, ThroughputSource throughputSource, bool includeToday, CancellationToken cancellationToken = default)
     {
+#pragma warning disable RS0030 // Do not use banned apis: Throughput is based on external clocks
         var endDate = includeToday ? DateOnly.FromDateTime(DateTime.UtcNow) : DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
+#pragma warning restore RS0030
 
         return await Task.FromResult(
             allThroughput.Any(
                 endpointThroughput => endpointThroughput.Key.ThroughputSource == throughputSource &&
+#pragma warning disable RS0030 // Do not use banned apis: Throughput is based on external clocks
                 endpointThroughput.Value.Any(t => t.Key >= DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-days) && t.Key <= endDate)));
+#pragma warning restore RS0030
     }
 
     List<Endpoint> GetAllConnectedEndpoints(string name) => endpoints.Where(w => w.SanitizedName == name || w.Id.Name == name).ToList();

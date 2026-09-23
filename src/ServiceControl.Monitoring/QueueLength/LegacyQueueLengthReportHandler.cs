@@ -28,7 +28,9 @@
         {
             public bool TryAdd(string id)
             {
+#pragma warning disable RS0030 // Do not use banned apis: Monitoring windows, cache headers, and activity timestamps require current wall-clock time
                 var nowTicks = DateTime.UtcNow.Ticks;
+#pragma warning restore RS0030
 
                 if (Volatile.Read(ref lastCleanTicks) + cleanIntervalTicks < nowTicks)
                 {
@@ -41,7 +43,9 @@
             }
 
             readonly ConcurrentDictionary<string, string> registeredInstances = new ConcurrentDictionary<string, string>();
+#pragma warning disable RS0030 // Do not use banned apis: Monitoring windows, cache headers, and activity timestamps require current wall-clock time
             long lastCleanTicks = DateTime.UtcNow.Ticks;
+#pragma warning restore RS0030
             static readonly long cleanIntervalTicks = TimeSpan.FromHours(1).Ticks;
         }
     }

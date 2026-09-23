@@ -2,7 +2,3 @@
 
 # Justification: Application synchronization contexts don't require ConfigureAwait(false)
 dotnet_diagnostic.CA2007.severity = none
-
-[{QueueLength/LegacyQueueLengthReportHandler.cs,Infrastructure/EndpointTracker.cs,Infrastructure/WebApi/CachingHttpHandler.cs,Infrastructure/ReportThroughputHostedService.cs,Infrastructure/Api/EndpointMetricsApi.cs}]
-# Justification: Monitoring windows, cache headers, and activity timestamps require current wall-clock time
-dotnet_diagnostic.RS0030.severity = none
