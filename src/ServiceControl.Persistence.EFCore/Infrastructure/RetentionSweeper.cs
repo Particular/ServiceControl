@@ -17,12 +17,13 @@ using ServiceControl.Persistence.EFCore.Infrastructure.Metrics;
 //
 // A manual sweep can be triggered via the API (see IRetentionSweeper / IRetentionApi) with
 // caller-supplied cutoffs. 
-public class RetentionSweeper(
+class RetentionSweeper(
     ILogger<RetentionSweeper> logger,
     TimeProvider timeProvider,
     IServiceScopeFactory serviceScopeFactory,
     IBodyStoragePersistence bodyStorage,
     RetentionMetrics metrics,
+    RetentionSweepCustomCheck.State retentionState,
     EFPersisterSettings settings,
     IHostApplicationLifetime hostApplicationLifetime) : BackgroundService, IRetentionSweeper
 {
@@ -155,6 +156,7 @@ public class RetentionSweeper(
         await RunPass(RetentionEntity.FailedMessages, token => SweepFailedMessages(pace, errorCutoff, token), cancellationToken);
         await RunPass(RetentionEntity.EventLog, token => SweepEventLogItems(pace, eventsCutoff, token), cancellationToken);
         await RunPass(RetentionEntity.GroupComments, SweepOrphanedGroupComments, cancellationToken);
+        retentionState.SweepComplete();
     }
 
     // Each pass is isolated so one failing kind of row does not stop the others from being
@@ -166,14 +168,15 @@ public class RetentionSweeper(
         try
         {
             await pass(cancellationToken);
-
             cycle.Complete();
+            retentionState.Clear(entity);
         }
 #pragma warning disable PS0019 // The filter already excludes OperationCanceledException, so
         // cancellation propagates; PS0019 only recognises a cancellationToken guard.
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             logger.LogError(ex, "Error during the {RetentionEntity} retention pass", entity);
+            retentionState.ReportError(entity, ex.Message);
         }
 #pragma warning restore PS0019
     }

@@ -10,6 +10,7 @@ using NUnit.Framework;
 using ServiceControl.EventLog;
 using ServiceControl.MessageFailures;
 using ServiceControl.Persistence.EFCore.Entities;
+using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.EFCore.Infrastructure.Metrics;
 using ServiceControl.Persistence.Infrastructure;
 
@@ -305,6 +306,24 @@ class RetentionSweepTests : ErrorIngestionTestBase
             Assert.That(recorded.Cycles(RetentionEntity.EventLog).Select(cycle => cycle.Result), Is.EqualTo(new[] { "success" }));
             Assert.That(recorded.Cycles(RetentionEntity.GroupComments).Select(cycle => cycle.Result), Is.EqualTo(new[] { "success" }));
             Assert.That(await GetRemainingMarkers(), Does.Not.Contain("expired"));
+        }
+    }
+
+    [Test]
+    public async Task A_failing_pass_is_tracked()
+    {
+        // Subtracting this from the clock cannot be represented, so the failed messages pass throws
+        // before it reaches the database.
+        EFSettings.ErrorRetentionPeriod = TimeSpan.FromDays(1_000_000);
+
+        await RunRetentionSweep();
+
+        var failure = ServiceProvider.GetRequiredService<RetentionSweepCustomCheck.State>().GetFailures().Single();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(failure.Key, Is.EqualTo(RetentionEntity.FailedMessages));
+            Assert.That(failure.Value, Is.Not.Empty);
         }
     }
 
