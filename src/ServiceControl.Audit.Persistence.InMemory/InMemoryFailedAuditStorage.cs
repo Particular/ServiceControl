@@ -25,7 +25,15 @@
         public Task SaveFailedAuditImport(FailedAuditImport message, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            dataStore.failedAuditImports.Add(message);
+            var existing = message.Id == null ? -1 : dataStore.failedAuditImports.FindIndex(x => x.Id == message.Id);
+            if (existing >= 0)
+            {
+                dataStore.failedAuditImports[existing] = message;
+            }
+            else
+            {
+                dataStore.failedAuditImports.Add(message);
+            }
             return Task.CompletedTask;
         }
 

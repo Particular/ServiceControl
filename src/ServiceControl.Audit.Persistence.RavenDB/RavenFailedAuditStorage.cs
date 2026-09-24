@@ -15,6 +15,10 @@
         public async Task SaveFailedAuditImport(FailedAuditImport message, CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
+            if (message.Id != null && !message.Id.StartsWith("FailedAuditImports/", StringComparison.OrdinalIgnoreCase))
+            {
+                message.Id = $"FailedAuditImports/{message.Id}";
+            }
             await session.StoreAsync(message, token: cancellationToken);
             await session.SaveChangesAsync(cancellationToken);
         }
