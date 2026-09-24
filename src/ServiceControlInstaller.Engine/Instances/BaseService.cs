@@ -87,7 +87,7 @@
                     }
                 });
 
-                return t.Wait(TimeSpan.FromSeconds(5));
+                return t.Wait(TimeSpan.FromSeconds(60));
             }
             catch (TimeoutException)
             {
