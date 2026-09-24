@@ -49,10 +49,36 @@
         public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken = default)
             => bulkInsert.StoreAsync(sagaSnapshot, GetExpirationMetadata());
 
+        bool completed;
+
+        public async Task Complete(CancellationToken cancellationToken = default)
+        {
+            // Closing the bulk insert flushes its remaining buffered documents.
+            await bulkInsert.DisposeAsync();
+            completed = true;
+        }
+
         public async ValueTask DisposeAsync()
         {
-            await bulkInsert.DisposeAsync();
-            timedCancellationSource.Dispose();
+            try
+            {
+                if (!completed)
+                {
+                    // Bulk inserts are not atomic; abort prevents further writes, not earlier ones.
+                    try
+                    {
+                        await bulkInsert.AbortAsync();
+                    }
+                    finally
+                    {
+                        await bulkInsert.DisposeAsync();
+                    }
+                }
+            }
+            finally
+            {
+                timedCancellationSource.Dispose();
+            }
         }
     }
 }

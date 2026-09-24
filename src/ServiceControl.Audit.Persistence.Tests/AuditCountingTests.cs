@@ -137,12 +137,12 @@
 
         async Task IngestProcessedMessagesAudits(params ProcessedMessage[] processedMessages)
         {
-            var unitOfWork = await StartAuditUnitOfWork(processedMessages.Length);
+            await using var unitOfWork = await StartAuditUnitOfWork(processedMessages.Length);
             foreach (var processedMessage in processedMessages)
             {
                 await unitOfWork.RecordProcessedMessage(processedMessage);
             }
-            await unitOfWork.DisposeAsync();
+            await unitOfWork.Complete();
             await configuration.CompleteDBOperation();
         }
     }
