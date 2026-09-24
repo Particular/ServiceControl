@@ -64,6 +64,25 @@ namespace ServiceControl.AcceptanceTests.Recoverability
             }
         }
 
+        [Test]
+        public async Task Should_default_the_concurrency_to_10_when_none_is_configured()
+        {
+            var settings = await CreateSettings();
+            settings.MaximumConcurrencyLevel = null;
+
+            var host = ErrorIngestionOnlyCommand.BuildHost(settings);
+
+            try
+            {
+                Assert.DoesNotThrow(() => host.Services.GetServices<IHostedService>().ToArray());
+                Assert.That(host.Services.GetRequiredService<TransportSettings>().MaxConcurrency, Is.EqualTo(10));
+            }
+            finally
+            {
+                await host.DisposeAsync();
+            }
+        }
+
         static readonly string[] ExpectedHostedServices =
         [
             "GenericWebHostService",                // health endpoint only, no ServiceControl API
