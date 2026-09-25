@@ -11,6 +11,7 @@
     using Raven.Client;
     using Raven.Client.Documents.BulkInsert;
     using Raven.Client.Json;
+    using ServiceControl.Audit.Persistence.Infrastructure;
     using ServiceControl.Infrastructure;
     using ServiceControl.SagaAudit;
 
@@ -23,6 +24,11 @@
     {
         public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default)
         {
+            var processingStartedTicks = processedMessage.Headers.TryGetValue(Headers.ProcessingStarted, out var processingStartedValue)
+                ? DateTimeOffsetHelper.ToDateTimeOffset(processingStartedValue).UtcDateTime.Ticks
+                : DateTime.UtcNow.Ticks;
+            processedMessage.Id ??= $"ProcessedMessages-{processingStartedTicks}-{processedMessage.GetProcessingId()}";
+
             processedMessage.MessageMetadata["ContentLength"] = body.Length;
             if (!body.IsEmpty)
             {

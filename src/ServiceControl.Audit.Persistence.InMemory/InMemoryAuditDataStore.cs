@@ -196,6 +196,7 @@
 
         public Task SaveProcessedMessage(ProcessedMessage processedMessage, CancellationToken cancellationToken = default)
         {
+            processedMessage.Id ??= processedMessage.GetProcessingId();
             if (processedMessages.Any(pm => pm.Id == processedMessage.Id))
             {
                 return Task.CompletedTask;
