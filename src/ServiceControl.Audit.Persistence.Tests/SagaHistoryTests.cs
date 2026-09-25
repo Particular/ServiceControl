@@ -61,12 +61,12 @@
 
         async Task IngestSagaAudits(params SagaSnapshot[] snapshots)
         {
-            var unitOfWork = await StartAuditUnitOfWork(snapshots.Length);
+            await using var unitOfWork = await StartAuditUnitOfWork(snapshots.Length);
             foreach (var snapshot in snapshots)
             {
                 await unitOfWork.RecordSagaSnapshot(snapshot);
             }
-            await unitOfWork.DisposeAsync();
+            await unitOfWork.Complete();
             await configuration.CompleteDBOperation();
         }
     }

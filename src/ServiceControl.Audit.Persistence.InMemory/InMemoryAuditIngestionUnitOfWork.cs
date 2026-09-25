@@ -15,6 +15,9 @@
     {
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
+        // InMemory writes are immediate, so Complete has nothing to commit.
+        public Task Complete(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
         public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default)
         {
             if (!body.IsEmpty)

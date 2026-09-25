@@ -28,7 +28,7 @@
 
             await IngestProcessedMessagesAudits(
                 message
-                );
+            );
 
             var queryResult = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
 
@@ -77,11 +77,12 @@
 
             Assert.That(queryResult.Results, Has.Count.EqualTo(2));
         }
+
         [Test]
         public async Task Can_roundtrip_message_body()
         {
             string expectedContentType = "text/plain";
-            var unitOfWork = await StartAuditUnitOfWork(1);
+            await using var unitOfWork = await StartAuditUnitOfWork(1);
 
             var body = new byte[100];
             Random.Shared.NextBytes(body);
@@ -89,7 +90,7 @@
 
             await unitOfWork.RecordProcessedMessage(processedMessage, body);
 
-            await unitOfWork.DisposeAsync();
+            await unitOfWork.Complete();
 
             var bodyId = GetBodyId(processedMessage);
 
@@ -118,7 +119,7 @@
         [Test]
         public async Task Message_body_validator_is_stable_across_reads()
         {
-            var unitOfWork = await StartAuditUnitOfWork(1);
+            await using var unitOfWork = await StartAuditUnitOfWork(1);
 
             var body = new byte[100];
             Random.Shared.NextBytes(body);
@@ -126,7 +127,7 @@
 
             await unitOfWork.RecordProcessedMessage(processedMessage, body);
 
-            await unitOfWork.DisposeAsync();
+            await unitOfWork.Complete();
 
             var bodyId = GetBodyId(processedMessage);
 
@@ -140,7 +141,7 @@
         [Test]
         public async Task Does_respect_max_message_body()
         {
-            var unitOfWork = await StartAuditUnitOfWork(1);
+            await using var unitOfWork = await StartAuditUnitOfWork(1);
 
             var body = new byte[MAX_BODY_SIZE + 1000];
             Random.Shared.NextBytes(body);
@@ -148,7 +149,7 @@
 
             await unitOfWork.RecordProcessedMessage(processedMessage, body);
 
-            await unitOfWork.DisposeAsync();
+            await unitOfWork.Complete();
 
             var bodyId = GetBodyId(processedMessage);
 
@@ -160,13 +161,12 @@
                 Assert.That(retrievedMessage.Found, Is.True);
                 Assert.That(retrievedMessage.HasContent, Is.False);
             }
-
         }
 
         [Test]
         public async Task Deduplicates_messages_in_same_batch()
         {
-            var unitOfWork = await StartAuditUnitOfWork(1);
+            await using var unitOfWork = await StartAuditUnitOfWork(1);
             var messageId = "duplicatedId";
             var processingEndpoint = "endpoint";
             var processingStarted = DateTimeOffset.UtcNow;
@@ -176,7 +176,7 @@
             await unitOfWork.RecordProcessedMessage(processedMessage);
             await unitOfWork.RecordProcessedMessage(duplicatedMessage);
 
-            await unitOfWork.DisposeAsync();
+            await unitOfWork.Complete();
 
             await configuration.CompleteDBOperation();
 
@@ -193,14 +193,14 @@
             var processingStarted = DateTimeOffset.UtcNow;
 
             var processedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
-            var unitOfWork1 = await StartAuditUnitOfWork(1);
+            await using var unitOfWork1 = await StartAuditUnitOfWork(1);
             await unitOfWork1.RecordProcessedMessage(processedMessage);
-            await unitOfWork1.DisposeAsync();
+            await unitOfWork1.Complete();
 
             var duplicatedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
-            var unitOfWork2 = await StartAuditUnitOfWork(1);
+            await using var unitOfWork2 = await StartAuditUnitOfWork(1);
             await unitOfWork2.RecordProcessedMessage(duplicatedMessage);
-            await unitOfWork2.DisposeAsync();
+            await unitOfWork2.Complete();
 
             await configuration.CompleteDBOperation();
 
@@ -212,7 +212,7 @@
         [Test]
         public async Task Does_not_deduplicate_with_different_processing_started_header()
         {
-            var unitOfWork = await StartAuditUnitOfWork(1);
+            await using var unitOfWork = await StartAuditUnitOfWork(1);
             var messageId = "duplicatedId";
             var processingEndpoint = "endpoint";
             var processingStarted = DateTimeOffset.UtcNow;
@@ -223,7 +223,7 @@
             await unitOfWork.RecordProcessedMessage(processedMessage);
             await unitOfWork.RecordProcessedMessage(duplicatedMessage);
 
-            await unitOfWork.DisposeAsync();
+            await unitOfWork.Complete();
 
             await configuration.CompleteDBOperation();
 
@@ -294,12 +294,13 @@
 
         async Task IngestProcessedMessagesAudits(params ProcessedMessage[] processedMessages)
         {
-            var unitOfWork = await StartAuditUnitOfWork(processedMessages.Length);
+            await using var unitOfWork = await StartAuditUnitOfWork(processedMessages.Length);
             foreach (var processedMessage in processedMessages)
             {
                 await unitOfWork.RecordProcessedMessage(processedMessage);
             }
-            await unitOfWork.DisposeAsync();
+
+            await unitOfWork.Complete();
             await configuration.CompleteDBOperation();
         }
 
