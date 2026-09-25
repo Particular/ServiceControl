@@ -43,6 +43,8 @@ namespace ServiceControl.Audit.Persistence.RavenDB
             QueryTimeoutInSecondsKey
         };
 
+        public bool SupportsMaintenanceMode => true;
+
         public string Name => "RavenDB";
 
         public IPersistence Create(PersistenceSettings settings)
