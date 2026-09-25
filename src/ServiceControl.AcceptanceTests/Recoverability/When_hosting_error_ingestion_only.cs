@@ -5,8 +5,12 @@ namespace ServiceControl.AcceptanceTests.Recoverability
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Net.Http;
     using System.Runtime.Loader;
+    using System.Security.Cryptography;
+    using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +22,8 @@ namespace ServiceControl.AcceptanceTests.Recoverability
     using NUnit.Framework;
     using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.AcceptanceTesting;
+    using ServiceControl.AcceptanceTesting.Https;
     using ServiceControl.ExternalIntegrations;
     using ServiceControl.Hosting.Commands;
     using ServiceControl.Infrastructure;
@@ -161,6 +167,70 @@ namespace ServiceControl.AcceptanceTests.Recoverability
                 await host.StopAsync();
                 await host.DisposeAsync();
             }
+        }
+
+        [Test]
+        [NonParallelizable]
+        public async Task Should_serve_health_over_https_with_the_configured_certificate()
+        {
+            var certificatePath = Path.Combine(Path.GetTempPath(), $"sc-test-{Guid.NewGuid():n}.pfx");
+            using var https = new HttpsTestConfiguration(ServiceControlInstanceType.Primary).WithKestrelHttps(certificatePath);
+            WebApplication host = null;
+
+            try
+            {
+                var configuredThumbprint = WriteSelfSignedPfx(certificatePath);
+
+                var settings = await CreateSettings();
+                await new SetupCommand().Execute(new HostArguments([]), settings);
+
+                host = ErrorIngestionOnlyCommand.BuildHost(settings);
+                host.Urls.Add("https://127.0.0.1:0");
+
+                await host.StartAsync();
+
+                var url = host.Urls.Single();
+                string servedThumbprint = null;
+                using var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = (_, certificate, _, _) =>
+                    {
+                        servedThumbprint = certificate?.Thumbprint;
+                        return true;
+                    }
+                };
+                using var client = new HttpClient(handler);
+
+                using var response = await client.GetAsync($"{url}/health");
+
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(response.IsSuccessStatusCode, Is.True);
+                    // A machine with an ASP.NET Core development certificate binds without the configured one, so only the thumbprint tells them apart.
+                    Assert.That(servedThumbprint, Is.EqualTo(configuredThumbprint));
+                }
+            }
+            finally
+            {
+                File.Delete(certificatePath);
+
+                if (host != null)
+                {
+                    await host.StopAsync();
+                    await host.DisposeAsync();
+                }
+            }
+        }
+
+        static string WriteSelfSignedPfx(string path)
+        {
+            using var key = RSA.Create(2048);
+            var request = new CertificateRequest("CN=localhost", key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            using var certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddYears(1));
+
+            File.WriteAllBytes(path, certificate.Export(X509ContentType.Pkcs12));
+
+            return certificate.Thumbprint;
         }
 
         static async Task DispatchFailedMessage(Settings settings, string messageId)
