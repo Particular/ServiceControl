@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using ServiceControl.Infrastructure;
 using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence.Infrastructure;
 

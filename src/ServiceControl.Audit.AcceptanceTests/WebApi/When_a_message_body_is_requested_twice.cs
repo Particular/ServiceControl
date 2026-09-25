@@ -58,7 +58,59 @@ namespace ServiceControl.Audit.AcceptanceTests.WebApi
                 .Run();
 
             Assert.That(issued, Is.Not.Null, "the body response carried no validator, so a client can never revalidate it");
+            Assert.That(issued, Does.StartWith("W/"), "the body ETag must be weak-tagged (W/...) so it carries clients through the upgrade");
             Assert.That(repeated, Is.EqualTo(HttpStatusCode.NotModified), $"the body was sent again to a client that already held {issued}");
+        }
+
+        [Test]
+        public async Task Should_answer_not_modified_for_an_old_strong_tag()
+        {
+            string issued = null;
+            HttpStatusCode? repeated = null;
+
+            await Define<MyContext>()
+                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage { Payload = "PAYLOAD" })))
+                .Done(async c =>
+                {
+                    if (c.MessageId == null)
+                    {
+                        return false;
+                    }
+
+                    MessagesView audited = await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId);
+
+                    if (audited == null)
+                    {
+                        return false;
+                    }
+
+                    var url = $"/api{audited.BodyUrl}";
+
+                    using var first = await this.GetRaw(url);
+
+                    if (!first.Headers.TryGetValues("ETag", out var values))
+                    {
+                        return false;
+                    }
+
+                    issued = string.Join(string.Empty, values);
+
+                    // Strip the W/ prefix to simulate an old strong tag from a pre-upgrade client
+                    var strongTag = issued.StartsWith("W/") ? issued[2..] : issued;
+
+                    var request = new HttpRequestMessage(HttpMethod.Get, url);
+                    request.Headers.TryAddWithoutValidation("If-None-Match", strongTag);
+
+                    using var second = await HttpClient.SendAsync(request);
+                    repeated = second.StatusCode;
+
+                    return true;
+                })
+                .Run();
+
+            Assert.That(issued, Is.Not.Null, "the body response carried no validator, so a client can never revalidate it");
+            Assert.That(repeated, Is.EqualTo(HttpStatusCode.NotModified),
+                "weak comparison ignores the W/ prefix, so an old strong tag must still match the new weak tag");
         }
 
         public class Receiver : EndpointConfigurationBuilder

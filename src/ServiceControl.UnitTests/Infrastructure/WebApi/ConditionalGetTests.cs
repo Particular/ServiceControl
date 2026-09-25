@@ -1,5 +1,7 @@
 namespace ServiceControl.UnitTests.Infrastructure.WebApi;
 
+using ServiceControl.Infrastructure;
+
 using System.Collections.Generic;
 using System.Net;
 using Microsoft.AspNetCore.Http;

@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.UnitTests
 {
+    using ServiceControl.Infrastructure;
     using System.Collections.Generic;
     using NUnit.Framework;
     using ServiceControl.Persistence.Infrastructure;

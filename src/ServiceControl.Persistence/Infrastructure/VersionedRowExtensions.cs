@@ -1,6 +1,7 @@
 namespace ServiceControl.Persistence.Infrastructure
 {
     using System.Collections.Generic;
+    using ServiceControl.Infrastructure;
 
     public static class VersionedRowExtensions
     {
@@ -8,6 +9,6 @@ namespace ServiceControl.Persistence.Infrastructure
         /// Creates a QueryStatsInfo from a collection of rows, and versions it over those rows.
         /// </summary>
         public static QueryStatsInfo ToQueryStatsInfo<TRow>(this IReadOnlyCollection<TRow> rows, string name, long totalCount)
-            where TRow : IVersionedRow => new(DataVersion.OverRows([(name, totalCount)], rows), totalCount);
+            where TRow : IVersionedRow => new(DataVersion.OverRows([(name, totalCount)], rows, row => row.GetVersionFields()), totalCount);
     }
 }

@@ -1,6 +1,7 @@
 #nullable enable
 namespace ServiceControl.UnitTests.Infrastructure
 {
+    using ServiceControl.Infrastructure;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -75,7 +76,7 @@ namespace ServiceControl.UnitTests.Infrastructure
             }
         }
 
-        static DataVersion VersionOf(IVersionedRow row) => DataVersion.OverRows([("rows", 1)], [row]);
+        static DataVersion VersionOf(IVersionedRow row) => DataVersion.OverRows([("rows", 1)], [row], r => r.GetVersionFields());
 
         static PropertyInfo[] Rendered(Type type) =>
             [.. type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(property => property.CanWrite)];

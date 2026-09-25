@@ -102,7 +102,7 @@
                 Assert.That(retrievedMessage.Found, Is.True);
                 Assert.That(retrievedMessage.HasContent, Is.True);
                 Assert.That(retrievedMessage.ContentLength, Is.EqualTo(body.Length));
-                Assert.That(retrievedMessage.ETag, Is.Not.Null.And.Not.Empty);
+                Assert.That(retrievedMessage.Version.HasValue, Is.True);
                 Assert.That(retrievedMessage.StreamContent, Is.Not.Null);
                 Assert.That(retrievedMessage.ContentType, Is.EqualTo(expectedContentType));
             }
@@ -134,8 +134,8 @@
             var first = await DataStore.GetMessageBody(bodyId, TestContext.CurrentContext.CancellationToken);
             var second = await DataStore.GetMessageBody(bodyId, TestContext.CurrentContext.CancellationToken);
 
-            Assert.That(first.ETag, Is.Not.Null.And.Not.Empty, "a body with no validator cannot be revalidated, so conditional GET is dead on it");
-            Assert.That(second.ETag, Is.EqualTo(first.ETag), "the body did not change, so neither may its validator");
+            Assert.That(first.Version.HasValue, Is.True, "a body with no validator cannot be revalidated, so conditional GET is dead on it");
+            Assert.That(second.Version, Is.EqualTo(first.Version), "the body did not change, so neither may its validator");
         }
 
         [Test]

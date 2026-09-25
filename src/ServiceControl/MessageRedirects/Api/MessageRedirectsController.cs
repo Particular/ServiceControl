@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.MessageRedirects.Api
 {
+    using ServiceControl.Infrastructure;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -174,7 +175,7 @@
         {
             var redirects = await store.GetRedirects(cancellationToken);
 
-            Response.WithEtag(DataVersion.OverRows([("redirects", redirects.Count)], redirects));
+            Response.WithEtag(DataVersion.OverRows([("redirects", redirects.Count)], redirects, r => ((IVersionedRow)r).GetVersionFields()));
             Response.WithTotalCount(redirects.Count);
         }
 
@@ -190,7 +191,7 @@
                 .Paging(pagingInfo)
                 .ToList();
 
-            Response.WithQueryStatsAndPagingInfo(new QueryStatsInfo(DataVersion.OverRows([("redirects", redirects.Count)], page), redirects.Count), pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(new QueryStatsInfo(DataVersion.OverRows([("redirects", redirects.Count)], page, r => ((IVersionedRow)r).GetVersionFields()), redirects.Count), pagingInfo);
 
             return page.Select(r => new RedirectsQueryResult
             (

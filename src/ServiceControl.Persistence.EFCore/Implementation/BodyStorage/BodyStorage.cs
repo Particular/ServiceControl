@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
 
+using ServiceControl.Infrastructure;
 using System.Linq.Expressions;
 using System.Text;
 using Microsoft.EntityFrameworkCore;

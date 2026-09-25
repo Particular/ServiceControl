@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence
 {
+    using ServiceControl.Infrastructure;
     using Raven.Client.Documents.Session;
     using ServiceControl.Persistence.Infrastructure;
 

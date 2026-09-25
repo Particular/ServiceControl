@@ -124,7 +124,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB
                 result.Stream,
                 result.Details.ContentType,
                 (int)result.Details.Size,
-                result.Details.ChangeVector
+                DataVersion.FromToken(result.Details.ChangeVector)
             );
         }
 
