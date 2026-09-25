@@ -94,6 +94,7 @@ class When_triggering_a_manual_retention_purge : AcceptanceTest
             Assert.That(completion, Is.Not.Null, "the background purge must complete");
             Assert.That(completion.IsRunning, Is.False);
             Assert.That(completion.LastFinishedAt, Is.Not.Null, "a completed run records its finish time");
+            Assert.That(completion.LastOutcome, Is.EqualTo(RetentionPurgeOutcome.Succeeded), "a run with no failed pass reports success");
         }
     }
 

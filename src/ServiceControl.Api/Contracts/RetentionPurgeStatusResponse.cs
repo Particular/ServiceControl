@@ -18,6 +18,17 @@ public class RetentionPurgeStatusResponse
 
     public DateTime? LastEventsCutoff { get; set; }
 
+    /// <summary>
+    /// How the most recent purge ended. Null while it is still running or before any has run.
+    /// </summary>
+    public RetentionPurgeOutcome? LastOutcome { get; set; }
+
+    /// <summary>
+    /// What went wrong in each pass that failed, or null when none did. 
+    /// A cancelled purge keeps the errors from before the cancellation. The full detail is in the log.
+    /// </summary>
+    public string LastError { get; set; }
+
     /// <summary>Present only on the 501 Not Implemented response.</summary>
     public string Reason { get; set; }
 }
