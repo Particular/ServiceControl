@@ -58,12 +58,15 @@ namespace Particular.ServiceControl.Hosting
                 {
                     "error-ingestion-only",
                     "Run only error ingestion, for scaling out ingestion across several processes",
-                    s => Command = typeof(ErrorIngestionOnlyCommand)
+                    s => ErrorIngestionOnly = true
                 }
             };
 
             try
             {
+                // Parsed before setup returns, so setup can refuse to provision an ingestion-only worker.
+                errorIngestionOnlyOptions.Parse(args);
+
                 externalInstallerOptions.Parse(args);
 
                 if (Command == typeof(SetupCommand))
@@ -85,10 +88,9 @@ namespace Particular.ServiceControl.Hosting
                     return;
                 }
 
-                errorIngestionOnlyOptions.Parse(args);
-
-                if (Command == typeof(ErrorIngestionOnlyCommand))
+                if (ErrorIngestionOnly)
                 {
+                    Command = typeof(ErrorIngestionOnlyCommand);
                     return;
                 }
 
@@ -106,6 +108,8 @@ namespace Particular.ServiceControl.Hosting
         public bool Help { get; private set; }
 
         public bool SkipQueueCreation { get; private set; }
+
+        public bool ErrorIngestionOnly { get; private set; }
 
         public void PrintUsage()
         {

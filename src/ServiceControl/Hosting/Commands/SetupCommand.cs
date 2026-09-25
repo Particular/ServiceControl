@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Hosting.Commands
 {
+    using System;
     using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
@@ -18,6 +19,12 @@
     {
         public override async Task Execute(HostArguments args, Settings settings, CancellationToken cancellationToken = default)
         {
+            if (args.ErrorIngestionOnly)
+            {
+                throw new Exception(
+                    "--error-ingestion-only runs no setup: the queues and database belong to the normal instance, which provisions them. Start this worker with --error-ingestion-only alone, without --setup or --setup-and-run.");
+            }
+
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.AddServiceControlInstallers(settings);
 

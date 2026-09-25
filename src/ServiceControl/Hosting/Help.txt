@@ -18,6 +18,7 @@ Runs a host that only drains the error queue into the configured database, so se
 share the ingestion load. Requires SQL Server or PostgreSQL storage, and requires that the database
 has already been provisioned by a normal instance. Exactly one normal instance must still be running:
 it owns the retry pipeline, the retention sweep, integration event dispatch and heartbeat monitoring.
+This mode runs no setup, so combining it with --setup or --setup-and-run is refused.
 
 Message bodies must be stored somewhere every host can read, so this mode should not be combined with
 file system body storage unless the path is a shared mount.
