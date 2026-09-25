@@ -11,7 +11,9 @@
 
     class PersistenceTestsConfiguration
     {
-        public IAuditDataStore AuditDataStore { get; private set; }
+        public IAuditMessagesViewDataStore MessagesViewStore { get; private set; }
+
+        public ISagaHistoryDataStore SagaHistoryStore { get; private set; }
 
         public IFailedAuditStorage FailedAuditStorage { get; private set; }
 
@@ -48,7 +50,8 @@
             host = hostBuilder.Build();
             await host.StartAsync();
 
-            AuditDataStore = host.Services.GetRequiredService<IAuditDataStore>();
+            MessagesViewStore = host.Services.GetRequiredService<IAuditMessagesViewDataStore>();
+            SagaHistoryStore = host.Services.GetRequiredService<ISagaHistoryDataStore>();
             FailedAuditStorage = host.Services.GetRequiredService<IFailedAuditStorage>();
             BodyStorage = host.Services.GetService<IBodyStorage>();
             AuditIngestionUnitOfWorkFactory = host.Services.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();

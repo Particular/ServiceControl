@@ -12,7 +12,7 @@ using ServiceControl.Infrastructure.Auth;
 
 [ApiController]
 [Route("api")]
-public class GetMessages2Controller(IAuditDataStore dataStore) : ControllerBase
+public class GetMessages2Controller(IAuditMessagesViewDataStore dataStore) : ControllerBase
 {
     [Authorize(Policy = Permissions.AuditMessageView)]
     [Route("messages2")]

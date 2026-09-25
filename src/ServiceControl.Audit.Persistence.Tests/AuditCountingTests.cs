@@ -46,9 +46,9 @@
 
             await IngestProcessedMessagesAudits(messages);
 
-            var endpointA = (await DataStore.QueryAuditCounts("EndpointA", TestContext.CurrentContext.CancellationToken)).Results;
-            var endpointB = (await DataStore.QueryAuditCounts("EndpointB", TestContext.CurrentContext.CancellationToken)).Results;
-            var sysMsgEndpoint = (await DataStore.QueryAuditCounts("SystemEndpoint", TestContext.CurrentContext.CancellationToken)).Results;
+            var endpointA = (await MessagesViewStore.QueryAuditCounts("EndpointA", TestContext.CurrentContext.CancellationToken)).Results;
+            var endpointB = (await MessagesViewStore.QueryAuditCounts("EndpointB", TestContext.CurrentContext.CancellationToken)).Results;
+            var sysMsgEndpoint = (await MessagesViewStore.QueryAuditCounts("SystemEndpoint", TestContext.CurrentContext.CancellationToken)).Results;
 
             Assert.That(sysMsgEndpoint, Is.Empty);
 
@@ -83,7 +83,7 @@
             await IngestProcessedMessagesAudits(messages);
 
             // Act
-            var result = (await DataStore.QueryAuditCounts(sendOnlyEndpoint, TestContext.CurrentContext.CancellationToken)).Results;
+            var result = (await MessagesViewStore.QueryAuditCounts(sendOnlyEndpoint, TestContext.CurrentContext.CancellationToken)).Results;
 
             // Assert
             Assert.That(result, Is.Not.Empty, "Expected non-empty result for endpoint that only sent messages");

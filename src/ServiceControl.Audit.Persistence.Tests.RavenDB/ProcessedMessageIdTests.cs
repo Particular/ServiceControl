@@ -33,7 +33,7 @@
             var expectedId = $"ProcessedMessages-{started.UtcDateTime.Ticks}-{message.GetProcessingId()}";
             Assert.That(message.Id, Is.EqualTo(expectedId));
             Assert.That(message.MessageMetadata["BodyUrl"], Is.EqualTo($"/messages/{expectedId}/body"));
-            var body = await DataStore.GetMessageBody(expectedId);
+            var body = await MessagesViewStore.GetMessageBody(expectedId);
             Assert.That(body.HasContent, Is.True);
             body.StreamContent.Dispose();
         }
