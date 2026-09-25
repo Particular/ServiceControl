@@ -1,12 +1,12 @@
 # Engineering context
 
-This page points to sources that help explain ServiceControl's design, behavior, and testing practices.
+This page points to sources that explain why ServiceControl is designed the way it is. Each entry says which question it answers. How-to material such as testing setup stays in the pages linked under Start here.
 
 ## Start here
 
 - [ServiceControl documentation](https://docs.particular.net/servicecontrol/) — public documentation entry point
 - [README.md](../README.md) — how to run and debug ServiceControl, ServiceControl.Audit, and ServiceControl.Monitoring locally
-- [Testing overview](testing.md) — index of test kinds and how to run each locally
+- [Testing overview](testing.md) — index of test kinds, local setup for each, and the scenario checklists to rerun after a change
 - [Coding and design guidelines](coding-and-design-guidelines.md) — conventions for new code
 - [Deployment](deployment.md) and [Packaging](packaging.md) — how instances are packaged and deployed
 
@@ -22,18 +22,6 @@ This page points to sources that help explain ServiceControl's design, behavior,
 - [Handling unavailable runtime dependencies](handling-unavailable-runtime-dependencies.md) — how instances react when a dependency is unavailable
 - [Telemetry](telemetry.md) — telemetry configuration and emitted metrics
 - [Throughput collection](throughput-collection.md) — why and how usage data is collected
-
-## Testing guidance
-
-- [Testing overview](testing.md)
-- [Testing scenarios](testing-scenarios.md)
-- [Local testing of persistence providers](testing-persistence.md)
-- [Writing acceptance tests](writing-acceptance-tests.md)
-- [Authentication testing](authentication-testing.md)
-- [Forward headers testing](forward-headers-testing.md)
-- [HTTPS testing](https-testing.md)
-- [Reverse proxy testing](reverseproxy-testing.md)
-- [Multi-version, multi-instance smoke test](multiversion-multiinstance-smoke-test.md)
 
 ## Decisions and rationale
 
