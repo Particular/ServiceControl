@@ -2,7 +2,6 @@ namespace ServiceControl.Persistence.Tests;
 
 using NUnit.Framework;
 using ServiceControl.Infrastructure;
-using ServiceControl.Persistence.Infrastructure;
 
 static class VersionAssert
 {
@@ -24,7 +23,7 @@ static class VersionAssert
             Assert.That(second.Matches(first), Is.True, because);
         }
     }
-    
+
     public static bool Matches(this DataVersion one, DataVersion other) =>
         one.HasValue && other.HasValue && one.Equals(other);
 }
