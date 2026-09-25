@@ -1,6 +1,6 @@
 # AGENTS.md
 
-ServiceControl is the monitoring component of the Particular Service Platform: it ingests audit and error messages, tracks endpoint heartbeats, and exposes results over an HTTP API consumed by ServicePulse. For local run/debug steps see `README.md`, for test categories and setup see `docs/testing.md`, and for coding conventions see `docs/coding-and-design-guidelines.md`.
+ServiceControl is the monitoring component of the Particular Service Platform: it ingests audit and error messages, tracks endpoint heartbeats, and exposes results over an HTTP API consumed by ServicePulse. For local run/debug steps see `README.md`, for test categories and setup see `docs/testing.md`, and for coding conventions see `docs/coding-and-design-guidelines.md`. This file changes only when the workflow changes; decisions and rationale go in the sources it points to.
 
 ## Repository map
 
@@ -18,7 +18,7 @@ Start here when investigating existing behavior or making a change whose rationa
 - [Architecture and design decisions](docs/decisions/)
 - [Contributing guidance](CONTRIBUTING.md)
 
-Prefer public records close to the implementation. Keep `docs/README.md` current when a canonical public source is added, replaced, or retired; update its links rather than copying rationale into the index. This file describes the workflow, not repository facts: answer from the index, the code, and pull requests, not from this file alone.
+Prefer public records close to the implementation. Keep `docs/README.md` current when a canonical public source is added, replaced, or retired; update its links rather than copying rationale into the index. The index lists sources that explain why, with one clause each naming the question it answers, and points to existing indexes for how-to material instead of repeating them. This file describes the workflow, not repository facts: answer from the index, the code, and pull requests, not from this file alone.
 
 1. Identify the decision area and the precise question. For example: "Why can batches in the ingestion pipeline be written in parallel for some persisters but not others?"
 2. Start with the public source linked by `docs/README.md`. Read the current public contract, relevant code, tests, and linked pull requests or ADRs. Follow relevant pointer comments as routing hints; the linked source remains canonical. A Git commit can identify a pull request number without containing its description: a squash-merge commit carries a trailing `(#NNNN)`, and a merge commit reads `Merge pull request #NNNN`. Retrieve the pull request with `gh pr view <number> --repo Particular/ServiceControl`. If the pull request cannot be retrieved, report that rather than infer its rationale. Public records control public behavior and contribution requirements.
