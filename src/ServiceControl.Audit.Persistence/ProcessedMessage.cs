@@ -19,20 +19,13 @@
             MessageMetadata = metadata;
             Headers = headers;
 
-            var processingStartedTicks =
-                headers.TryGetValue(NServiceBus.Headers.ProcessingStarted, out var processingStartedValue)
-                    ? DateTimeOffsetHelper.ToDateTimeOffset(processingStartedValue).UtcDateTime.Ticks.ToString()
-                    : DateTime.UtcNow.Ticks.ToString();
-
-            var documentId = $"{processingStartedTicks}-{headers.ProcessingId()}";
-
-            Id = $"ProcessedMessages-{documentId}";
-
             ProcessedAt = Headers.TryGetValue(NServiceBus.Headers.ProcessingEnded, out var processedAt) ?
                 DateTimeOffsetHelper.ToDateTimeOffset(processedAt).UtcDateTime : DateTime.UtcNow; // best guess
         }
 
         public string Id { get; set; }
+
+        public string GetProcessingId() => Headers.ProcessingId();
 
         public string UniqueMessageId { get; set; }
 
