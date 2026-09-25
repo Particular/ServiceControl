@@ -146,9 +146,7 @@
                 }
                 else
                 {
-                    var compatibleStorageEngine = baseInstance.PersistenceManifest.Name == StorageEngineNames.RavenDB;
-
-                    if (!compatibleStorageEngine)
+                    if (!IsUpgradableStorageEngine(baseInstance.PersistenceManifest))
                     {
                         await NotifyForIncompatibleStorageEngine(baseInstance, cancellationToken).ConfigureAwait(false);
                         return false;
@@ -172,6 +170,9 @@
 
             return true;
         }
+
+        // RavenDB 3.5 and unknown persisters are the ones marked unsupported, and neither can be upgraded in place.
+        internal static bool IsUpgradableStorageEngine(PersistenceManifest manifest) => manifest.IsSupported;
 
         async Task<bool> OldVersionOfServiceControlInstalled(CancellationToken cancellationToken)
         {
