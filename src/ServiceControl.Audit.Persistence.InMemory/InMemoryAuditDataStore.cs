@@ -9,6 +9,8 @@
     using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Auditing.MessagesView;
     using ServiceControl.Audit.Infrastructure;
+    using ServiceControl.Audit.Persistence;
+    using ServiceControl.Infrastructure;
     using ServiceControl.SagaAudit;
 
     class InMemoryAuditDataStore : IAuditDataStore
@@ -34,7 +36,7 @@
                 return await Task.FromResult(QueryResult<SagaHistory>.Empty());
             }
 
-            return await Task.FromResult(new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo(string.Empty, 1)));
+            return await Task.FromResult(new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo(DataVersion.None, 1)));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default)
@@ -45,7 +47,7 @@
                     (timeSentRange == null || !timeSentRange.To.HasValue || w.TimeSent <= timeSentRange.To.Value))
                 .ToList();
 
-            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count)));
+            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(DataVersion.None, matched.Count)));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default)
@@ -57,7 +59,7 @@
                     (timeSentRange == null || !timeSentRange.From.HasValue || w.TimeSent >= timeSentRange.From.Value) &&
                     (timeSentRange == null || !timeSentRange.To.HasValue || w.TimeSent <= timeSentRange.To.Value))
                 .ToList();
-            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count())));
+            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(DataVersion.None, matched.Count())));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default)
@@ -68,7 +70,7 @@
                     (timeSentRange == null || !timeSentRange.From.HasValue || w.TimeSent >= timeSentRange.From.Value) &&
                     (timeSentRange == null || !timeSentRange.To.HasValue || w.TimeSent <= timeSentRange.To.Value))
                 .ToList();
-            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count)));
+            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(DataVersion.None, matched.Count)));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange, CancellationToken cancellationToken = default)
@@ -77,13 +79,13 @@
                     (timeSentRange == null || !timeSentRange.From.HasValue || w.TimeSent >= timeSentRange.From.Value) &&
                     (timeSentRange == null || !timeSentRange.To.HasValue || w.TimeSent <= timeSentRange.To.Value))
                 .ToList();
-            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count)));
+            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(DataVersion.None, matched.Count)));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken = default)
         {
             var matched = messageViews.Where(w => w.ConversationId == conversationId).ToList();
-            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count)));
+            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(DataVersion.None, matched.Count)));
         }
 
         public async Task<MessageBodyView> GetMessageBody(string messageId, CancellationToken cancellationToken = default)
@@ -127,21 +129,10 @@
              .Select(pm => pm.MessageMetadata["MessageId"] as string)
              .ToList();
         }
+
         async Task<MessageBodyView> GetMessageBodyFromAttachments(string messageId, CancellationToken cancellationToken)
         {
-            var fromBodyStorage = await bodyStorage.TryFetch(messageId, cancellationToken);
-
-            if (fromBodyStorage.HasResult)
-            {
-                return MessageBodyView.FromStream(
-                    fromBodyStorage.Stream,
-                    fromBodyStorage.ContentType,
-                    fromBodyStorage.BodySize,
-                    fromBodyStorage.Etag
-                );
-            }
-
-            return MessageBodyView.NotFound();
+            return await bodyStorage.TryFetch(messageId, cancellationToken);
         }
 
         Task<MessageBodyView> GetMessageBodyFromMetadata(string messageId, CancellationToken cancellationToken)
@@ -168,7 +159,7 @@
                 return Task.FromResult(MessageBodyView.NotFound());
             }
 
-            return Task.FromResult(MessageBodyView.FromString(body, contentType, bodySize, messageId));
+            return Task.FromResult(MessageBodyView.FromString(body, contentType, bodySize, DataVersion.FromToken(messageId)));
         }
 
         public Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName, CancellationToken cancellationToken = default)

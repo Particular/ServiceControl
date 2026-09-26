@@ -1,5 +1,6 @@
 namespace ServiceControl.UnitTests.ScatterGather
 {
+    using ServiceControl.Infrastructure;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;

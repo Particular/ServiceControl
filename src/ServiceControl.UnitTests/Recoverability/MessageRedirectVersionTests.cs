@@ -1,5 +1,6 @@
 namespace ServiceControl.UnitTests.Operations
 {
+    using ServiceControl.Infrastructure;
     using System;
     using System.Collections.Generic;
     using NUnit.Framework;

@@ -1,5 +1,6 @@
 namespace ServiceControl.Infrastructure.WebApi
 {
+    using ServiceControl.Infrastructure;
     using System;
     using System.Collections.Generic;
     using System.Globalization;

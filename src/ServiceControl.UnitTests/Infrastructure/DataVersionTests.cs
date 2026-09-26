@@ -1,5 +1,7 @@
 namespace ServiceControl.UnitTests.Infrastructure;
 
+using ServiceControl.Infrastructure;
+
 using System;
 using NUnit.Framework;
 using ServiceControl.Persistence.Infrastructure;

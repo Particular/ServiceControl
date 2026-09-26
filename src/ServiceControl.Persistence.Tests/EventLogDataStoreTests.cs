@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using ServiceControl.EventLog;
+using ServiceControl.Infrastructure;
 using ServiceControl.Persistence.Infrastructure;
 
 class EventLogDataStoreTests : PersistenceTestBase

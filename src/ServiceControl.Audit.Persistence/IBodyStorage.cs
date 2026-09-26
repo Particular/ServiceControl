@@ -1,21 +1,13 @@
-﻿namespace ServiceControl.Audit.Auditing.BodyStorage
+namespace ServiceControl.Audit.Auditing.BodyStorage
 {
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
+    using ServiceControl.Audit.Persistence;
 
     public interface IBodyStorage
     {
         Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream, CancellationToken cancellationToken = default);
-        Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken = default);
-    }
-
-    public class StreamResult
-    {
-        public bool HasResult;
-        public Stream Stream;
-        public string ContentType;
-        public int BodySize;
-        public string Etag;
+        Task<MessageBodyView> TryFetch(string bodyId, CancellationToken cancellationToken = default);
     }
 }

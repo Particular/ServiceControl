@@ -18,6 +18,7 @@
     using Persistence;
     using Persistence.Infrastructure;
     using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Operations;
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Recoverability;

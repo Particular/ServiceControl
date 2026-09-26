@@ -1,5 +1,7 @@
 namespace ServiceControl.Persistence.Infrastructure
 {
+    using ServiceControl.Infrastructure;
+
     public readonly struct QueryStatsInfo
     {
         public readonly DataVersion Version;

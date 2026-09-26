@@ -17,6 +17,7 @@ using ServiceControl.Api.Contracts;
 using ServiceControl.Infrastructure.Api;
 using ServiceControl.Infrastructure.WebApi;
 using ServiceControl.Persistence.Infrastructure;
+using ServiceControl.Infrastructure;
 
 /// <summary>
 /// A timed-out or failed instance is not an instance with no data: the composite keeps what the others

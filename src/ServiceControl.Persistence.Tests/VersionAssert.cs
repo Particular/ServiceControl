@@ -1,7 +1,7 @@
 namespace ServiceControl.Persistence.Tests;
 
 using NUnit.Framework;
-using ServiceControl.Persistence.Infrastructure;
+using ServiceControl.Infrastructure;
 
 static class VersionAssert
 {

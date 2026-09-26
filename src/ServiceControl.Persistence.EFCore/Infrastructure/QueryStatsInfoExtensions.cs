@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.Infrastructure;
 
+using ServiceControl.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.Infrastructure;
@@ -26,6 +27,7 @@ static class QueryStatsInfoExtensions
     public static QueryStatsInfo ToQueryStatsInfo(this RetryHistory history) =>
         new QueryStatsInfo(DataVersion.OverRows(
                 [("historic", history.HistoricOperations.Count), ("unacknowledged", history.UnacknowledgedOperations.Count)],
-                history.HistoricOperations.Concat<IVersionedRow>(history.UnacknowledgedOperations)),
+                history.HistoricOperations.Concat<IVersionedRow>(history.UnacknowledgedOperations),
+                row => row.GetVersionFields()),
             history.HistoricOperations.Count);
 }
