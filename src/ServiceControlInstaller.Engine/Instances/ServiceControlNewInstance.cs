@@ -66,9 +66,6 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        [XmlElement(typeof(XmlNullableTimeSpan))]
-        public TimeSpan? AuditRetentionPeriod { get; set; }
-
         [XmlElement(typeof(XmlTimeSpan))]
         public TimeSpan ErrorRetentionPeriod { get; set; }
 
@@ -122,11 +119,6 @@ namespace ServiceControlInstaller.Engine.Instances
             var doc = new XmlDocument();
             doc.Load(path);
             if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ForwardErrorMessages") == null)
-            {
-                throw new InvalidDataException("The supplied file is using an old format. Which is no longer supported.");
-            }
-
-            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/AuditRetentionPeriod") == null)
             {
                 throw new InvalidDataException("The supplied file is using an old format. Which is no longer supported.");
             }
