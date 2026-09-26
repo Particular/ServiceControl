@@ -1,6 +1,14 @@
 # Engineering context
 
-This page points to sources that explain why ServiceControl is designed the way it is. Each entry says which question it answers. How-to material such as testing setup stays in the pages linked under Start here.
+## About this repository
+
+ServiceControl is the monitoring component of the Particular Service Platform: it ingests audit and error messages, tracks endpoint heartbeats, and exposes results over an HTTP API consumed by ServicePulse. For local run and debug steps see the `README.md`, for test categories and setup see `testing.md`, and for coding conventions see `coding-and-design-guidelines.md`.
+
+- `src/` — ServiceControl, ServiceControl.Audit, ServiceControl.Monitoring instances, persisters, and their test projects
+- `docs/` — design rationale, testing guidance, and architecture decision records
+- `deploy/` — PowerShell installation and management modules for ServiceControl instances
+- `tools/` — build and CI helper scripts
+- `.github/workflows/` — CI pipelines for build, test, container publishing, and dependency maintenance
 
 ## Start here
 
@@ -11,6 +19,8 @@ This page points to sources that explain why ServiceControl is designed the way 
 - [Deployment](deployment.md) and [Packaging](packaging.md) — how instances are packaged and deployed
 
 ## Architecture and design
+
+This section points to sources that explain why ServiceControl is designed the way it is. Each entry says which question it answers. How-to material such as testing setup stays in the pages linked under Start here.
 
 - [Ingestion pipeline](ingestion-pipeline.md) — why batch parallelism is a storage decision, not an instance decision
 - [Error ingestion design](error-ingestion-design.md) — relational-persister error ingestion design
