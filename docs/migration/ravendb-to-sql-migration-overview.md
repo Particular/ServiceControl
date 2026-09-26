@@ -75,12 +75,12 @@ The copier runs inside the ServiceControl host, so every row and every message b
 4. Run the [dry run](#dry-run). It reports what it resolved as a source, what each category holds, and an estimate of how long ServiceControl will be closed. Read [what the dry run reports](#dry-run) before booking an outage around its estimate.
 5. Start ServiceControl (`MigrationMode=true`).
 6. Every check runs before a single row moves. If one fails the host does not start and names which, having copied nothing, so a wrong database name or unconfigured body storage costs a restart rather than a half-finished migration.
-7. The copying of [required data](#required) starts, with ServiceControl still closed. This is assumed to be a small amount of data.
-8. ServiceControl opens, and whatever [optional data](#optional) they asked for is copied in the background while the instance runs normally. They can watch it from ServicePulse custom checks and events, but not steer it.
+7. The copying of [required data](#required) starts, with ServiceControl still closed: the copy runs inside that same start, before the API begins listening and before any background service runs. This is assumed to be a small amount of data.
+8. ServiceControl opens by itself the moment the required copy finishes, with no second restart to perform, and whatever [optional data](#optional) they asked for is copied in the background while the instance runs normally. They can watch it from ServicePulse custom checks and events, but not steer it.
 9. They run the verification pass once the background job has completed, which reports row counts on both sides category by category, accounting for deliberate skips so a difference is explained rather than reported as a fault, then set `MigrationMode=false` and restart. It tolerates more rows in SQL than in RavenDB, because RavenDB keeps expiring rows the copier already took.
 10. RavenDB data can be removed.
 
-- If `MigrationMode=false` is set while a selected category is still incomplete, the host refuses to start and names exactly what is outstanding.
+- If `MigrationMode=false` is set while a selected category is still incomplete, the startup is gated: it refuses and names exactly what is outstanding, or, where the [free abort](#the-one-point-you-can-go-back) is still open, starts with a warning that says so. See [turning migration mode off is a gated startup too](#turning-migration-mode-off-is-a-gated-startup-too).
 - A category that ended *complete with errors* counts as complete and does not block, though its skipped count is printed so the loss is stated rather than silent.
 - An explicit override exists for a customer who has changed their mind and accepts leaving data behind. It marks the outstanding categories as abandoned, which is a deliberate end state rather than a failure, so the progress check settles and the guard stays armed for any later migration.
 - **Steps 5 to 7 are the abort window**, which is not the override above: see [the one point you can go back](#the-one-point-you-can-go-back).
@@ -122,17 +122,24 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    A["Restart with MigrationMode = true"] --> B["Open the SQL target, exactly as today"]
+    A["Restart"] --> M{"MigrationMode?"}
+
+    M -->|"On"| B["Open the SQL target, exactly as today"]
     B --> C["Open the old RavenDB, read only"]
     C --> D{"All checks pass?"}
     D -->|"No"| E["Host does not start.<br/>Says which check failed.<br/>Nothing has been copied."]
-    D -->|"Yes"| F["Copy what cannot be recreated.<br/>Minutes. ServiceControl still closed."]
-    F --> G["ServiceControl opens.<br/>New failed messages go straight to SQL."]
+    D -->|"Yes"| F["Copy what cannot be recreated.<br/>Minutes. The API is not listening yet<br/>and no hosted service has started."]
+    F -->|"no restart: the same start carries on"| G["ServiceControl opens.<br/>New failed messages go straight to SQL."]
     G --> H["Copy the selected history in the background,<br/>throttled behind normal ingestion"]
-    H --> I["Verify row counts on both sides,<br/>category by category"]
-    I --> J{"MigrationMode = false,<br/>everything complete?"}
-    J -->|"No"| K["Host does not start.<br/>Names what is outstanding.<br/>An override exists."]
-    J -->|"Yes"| L["RavenDB is never opened again"]
+    H --> I["Verify row counts on both sides,<br/>category by category,<br/>then set MigrationMode = false and restart,<br/>which comes back through this same gate"]
+
+    M -->|"Off"| N{"Any checkpoint row<br/>still outstanding?"}
+    N -->|"No, or no checkpoint table at all"| L["ServiceControl opens.<br/>RavenDB is never opened again."]
+    N -->|"Yes"| O{"Override set?"}
+    O -->|"Yes"| P["Records each outstanding category as abandoned,<br/>logs what each one leaves behind,<br/>and opens."]
+    O -->|"No"| Q{"Has this instance<br/>ever opened on SQL?"}
+    Q -->|"No, so the abort is still free"| R["Opens, with a warning naming the two moves:<br/>stop now and point PersistenceType back at RavenDB,<br/>or carry on and lose the way back."]
+    Q -->|"Yes"| S["Host does not start.<br/>Names every outstanding category,<br/>its counts, and every route out."]
 ```
 
 **Checked before a single row moves:**
@@ -144,6 +151,20 @@ flowchart TB
 - The source is at a version this build can read
 - The selected categories are valid
 - `RetryHistoryDepth` is greater than zero. At zero or less, the first completed retry after the migration deletes the entire copied retry history, and no row count would ever show it
+
+### Turning migration mode off is a gated startup too
+
+*The right-hand branch above is the half a customer meets last and expects least, so it is worth reading before the migration starts rather than at the end of one.*
+
+Every startup on a SQL Server or PostgreSQL instance looks at the checkpoint table before ServiceControl opens, whether `MigrationMode` is on or off. That is what stops a migration ending by accident, and it costs nothing on an instance that has never migrated: a RavenDB instance has no checkpoint table at all, a SQL instance whose schema predates this feature says it holds no checkpoint state, and a SQL instance whose categories all finished has nothing outstanding. All three start exactly as they do today.
+
+With `MigrationMode` off and at least one category still outstanding, one of three things happens, and each is said out loud at startup rather than discovered weeks later:
+
+- **The override is set.** Every outstanding category is recorded as abandoned, with its copied and skipped counts left as they are, and the host starts. Each one is logged saying what state it was in, how much it had copied, and that whatever it had not copied stays only in RavenDB. Abandoning is final: selecting that category in a later migration does not copy it again.
+- **The override is not set, and this instance has never opened on SQL.** This is the [free abort](#the-one-point-you-can-go-back), so the host starts and warns rather than refusing. The warning names the two moves: stop now and point `PersistenceType` back at RavenDB, which discards the partial copy and costs nothing else, or carry on, which opens ServiceControl on a partly copied database and ends the free abort. It deliberately does not mention the override, because at that moment nothing is lost yet.
+- **The override is not set, and this instance has already opened on SQL.** The host does not start. The error names every outstanding category, its state, its copied and skipped counts and its last error, and then the three routes out: restart with `MigrationMode=true` to let the copy finish or to resume a halted category once its cause is fixed, set the override to abandon what is outstanding and start without it, or, if RavenDB is already gone, abandon, because that is the only exit left.
+
+**Which is why the source stays until verification passes.** A customer who decommissions RavenDB while a category is outstanding has both doors shut: `MigrationMode=true` cannot start, because it opens the source before it copies anything, and `MigrationMode=false` refuses. Abandoning is then the only way to start the instance, and it is a real loss whose size is the counts in that message.
 
 ## Data to be migrated (Categories)
 

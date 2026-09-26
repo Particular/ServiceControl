@@ -44,7 +44,20 @@ namespace ServiceControl.Persistence
         public static async Task<IMigrationSource> OpenMigrationSource(Settings settings, CancellationToken cancellationToken = default)
         {
             var source = CreateMigrationSource(settings);
-            await source.Open(cancellationToken);
+            var opened = false;
+
+            try
+            {
+                await source.Open(cancellationToken);
+                opened = true;
+            }
+            finally
+            {
+                if (!opened)
+                {
+                    await source.DisposeAsync();
+                }
+            }
 
             return source;
         }

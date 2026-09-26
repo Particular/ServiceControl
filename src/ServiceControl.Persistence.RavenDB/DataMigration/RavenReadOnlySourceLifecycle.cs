@@ -3,6 +3,7 @@
 namespace ServiceControl.Persistence.RavenDB.DataMigration;
 
 using System;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,7 +35,7 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, Setti
 
         try
         {
-            var serverUrl = settings.UseEmbeddedServer ? StartEmbedded() : settings.ConnectionString;
+            var serverUrl = settings.UseEmbeddedServer ? await StartEmbedded(cancellationToken) : settings.ConnectionString;
             documentStore = Connect(serverUrl);
 
             if (!settings.UseEmbeddedServer)
@@ -63,6 +64,8 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, Setti
 
     async Task EnsureReadable(string databaseName, string settingKey, CancellationToken cancellationToken)
     {
+        var elapsed = Stopwatch.StartNew();
+
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -72,10 +75,15 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, Setti
                 await DocumentStore.Maintenance.ForDatabase(databaseName).SendAsync(new GetStatisticsOperation(), cancellationToken);
                 return;
             }
+            // A large embedded database routinely exceeds the load timeout on first open, which
+            // RavenEmbeddedPersistenceLifecycle already allows for the same way. A locked or corrupt data
+            // directory never loads at all, so the budget is what stops that becoming a silent hang.
+            catch (DatabaseLoadTimeoutException e) when (settings.UseEmbeddedServer && elapsed.Elapsed >= EmbeddedLoadBudget)
+            {
+                throw new InvalidOperationException($"The RavenDB migration source at {Located()} has a database named '{databaseName}', from the '{settingKey}' setting, but it did not finish loading within {EmbeddedLoadBudget.TotalMinutes:N0} minutes. A data directory held by another process, or one that is corrupt, is the usual cause.", e);
+            }
             catch (DatabaseLoadTimeoutException) when (settings.UseEmbeddedServer)
             {
-                // A large embedded database routinely exceeds the load timeout on first open, which
-                // RavenEmbeddedPersistenceLifecycle already allows for the same way.
                 await Task.Delay(EmbeddedLoadRetryDelay, cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -103,13 +111,26 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, Setti
         ? $"{sourceSettings.ServerUrl} (embedded, data directory '{sourceSettings.DatabasePath}', from '{root}/{RavenBootstrapper.DatabasePathKey}')"
         : sourceSettings.ConnectionString;
 
-    string StartEmbedded()
+    async Task<string> StartEmbedded(CancellationToken cancellationToken)
     {
-        var configuration = new EmbeddedDatabaseConfiguration(settings.ServerUrl, settings.DatabaseName, settings.DatabasePath, settings.LogPath, settings.LogsMode);
+        // A dynamic query is a POST to /queries, which the request guard allows and which builds an auto-index
+        // on the customer's fallback database. This makes the server refuse it rather than trusting every reader.
+        var configuration = new EmbeddedDatabaseConfiguration(settings.ServerUrl, settings.DatabaseName, settings.DatabasePath, settings.LogPath, settings.LogsMode) { DisableAutoIndexCreation = true };
 
         embedded = EmbeddedDatabase.Start(configuration, lifetime);
 
-        return embedded.ServerUrl;
+        try
+        {
+            return await embedded.WaitUntilReady(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception e)
+        {
+            throw new InvalidOperationException($"The RavenDB migration source could not start a server for the embedded database at {Located()}. A ServiceControl instance still running against that data directory is the usual cause: stop it, run the report, then start it again.", e);
+        }
     }
 
     IDocumentStore Connect(string serverUrl)
@@ -171,6 +192,8 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, Setti
     static readonly string[] ReadOnlyPostPaths = ["/queries", "/multi_get", "/streams/queries"];
     static readonly TimeSpan EmbeddedShutdownTimeout = TimeSpan.FromSeconds(30);
     static readonly TimeSpan EmbeddedLoadRetryDelay = TimeSpan.FromMilliseconds(500);
+    // Generous because one DatabaseLoadTimeoutException already means RavenDB waited its own load timeout.
+    static readonly TimeSpan EmbeddedLoadBudget = TimeSpan.FromMinutes(5);
 
     IDocumentStore? documentStore;
     EmbeddedDatabase? embedded;
