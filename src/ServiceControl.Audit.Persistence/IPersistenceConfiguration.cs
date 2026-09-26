@@ -4,6 +4,8 @@
 
     public interface IPersistenceConfiguration
     {
+        bool SupportsMaintenanceMode { get; }
+
         string Name { get; }
 
         IEnumerable<string> ConfigurationKeys { get; }
