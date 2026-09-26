@@ -10,7 +10,8 @@
         {
             services.AddSingleton(persistenceSettings);
             services.AddSingleton<InMemoryAuditDataStore>();
-            services.AddSingleton<IAuditDataStore>(sp => sp.GetRequiredService<InMemoryAuditDataStore>());
+            services.AddSingleton<IAuditMessagesViewDataStore>(sp => sp.GetRequiredService<InMemoryAuditDataStore>());
+            services.AddSingleton<ISagaHistoryDataStore>(sp => sp.GetRequiredService<InMemoryAuditDataStore>());
             services.AddSingleton<IBodyStorage, InMemoryAttachmentsBodyStorage>();
             services.AddSingleton<IFailedAuditStorage, InMemoryFailedAuditStorage>();
             services.AddSingleton<IAuditIngestionUnitOfWorkFactory, InMemoryAuditIngestionUnitOfWorkFactory>();

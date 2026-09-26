@@ -16,7 +16,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB
     using Transformers;
 
     class RavenAuditDataStore(IRavenSessionProvider sessionProvider, DatabaseConfiguration databaseConfiguration)
-        : IAuditDataStore
+        : IAuditMessagesViewDataStore, ISagaHistoryDataStore
     {
         public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input, CancellationToken cancellationToken = default)
         {

@@ -7,12 +7,9 @@
     using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Auditing.MessagesView;
     using ServiceControl.Audit.Infrastructure;
-    using ServiceControl.Audit.Monitoring;
-    using ServiceControl.SagaAudit;
 
-    public interface IAuditDataStore
+    public interface IAuditMessagesViewDataStore
     {
-        Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input, CancellationToken cancellationToken = default);
         Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange = null, CancellationToken cancellationToken = default);
         Task<QueryResult<IList<MessagesView>>> QueryMessages(string searchParam, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange = null, CancellationToken cancellationToken = default);
         Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange timeSentRange = null, CancellationToken cancellationToken = default);
