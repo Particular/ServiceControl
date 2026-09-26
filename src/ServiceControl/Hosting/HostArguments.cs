@@ -62,6 +62,15 @@ namespace Particular.ServiceControl.Hosting
                 }
             };
 
+            var migrationSourceReportOptions = new OptionSet
+            {
+                {
+                    "migration-source-report",
+                    "Report what a migration would read from the source persistence",
+                    s => Command = typeof(MigrationSourceReportCommand)
+                }
+            };
+
             try
             {
                 // Parsed before setup returns, so setup can refuse to provision an ingestion-only worker.
@@ -91,6 +100,13 @@ namespace Particular.ServiceControl.Hosting
                 if (ErrorIngestionOnly)
                 {
                     Command = typeof(ErrorIngestionOnlyCommand);
+                    return;
+                }
+
+                migrationSourceReportOptions.Parse(args);
+
+                if (Command == typeof(MigrationSourceReportCommand))
+                {
                     return;
                 }
 
