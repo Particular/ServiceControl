@@ -1,0 +1,49 @@
+name: Testing Tool CI
+
+on:
+  push:
+    branches:
+      - master
+      - release-*
+    paths:
+      - 'tools/testing-tool/**'
+      - '.github/workflows/testing-tool-ci.yml'
+  pull_request:
+    paths:
+      - 'tools/testing-tool/**'
+      - '.github/workflows/testing-tool-ci.yml'
+  workflow_dispatch:
+
+env:
+  DOTNET_NOLOGO: true
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  build:
+    name: Build solution
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: dotnet build tools/testing-tool/TestingTool.slnx --configuration Release
+
+      - name: Build container image
+        uses: docker/build-push-action@v7.2.0
+        with:
+          context: .
+          file: tools/testing-tool/Dockerfile
+          push: false
+          load: true
+          tags: particular/testing-tool:ci
