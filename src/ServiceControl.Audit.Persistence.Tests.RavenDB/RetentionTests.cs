@@ -43,7 +43,7 @@
             Assert.That(queryResultAfterExpiration.Results, Is.Empty);
 
             Task<QueryResult<IList<MessagesView>>> QueryMessages(CancellationToken cancellationToken) =>
-                DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"), cancellationToken: cancellationToken);
+                MessagesViewStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"), cancellationToken: cancellationToken);
         }
 
         [Test]
@@ -70,7 +70,7 @@
             Assert.That(queryResultAfterExpiration.Results, Is.Null);
 
             Task<QueryResult<SagaHistory>> QuerySagaHistory(CancellationToken cancellationToken) =>
-                DataStore.QuerySagaHistoryById(sagaId, cancellationToken);
+                SagaHistoryStore.QuerySagaHistoryById(sagaId, cancellationToken);
         }
 
         // The retention window starts at ingestion, so building the indexes of the fresh database must

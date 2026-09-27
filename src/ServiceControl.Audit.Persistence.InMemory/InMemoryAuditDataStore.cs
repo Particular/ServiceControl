@@ -11,7 +11,7 @@
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.SagaAudit;
 
-    class InMemoryAuditDataStore : IAuditDataStore
+    class InMemoryAuditDataStore : IAuditMessagesViewDataStore, ISagaHistoryDataStore
     {
         IBodyStorage bodyStorage;
         public List<FailedAuditImport> failedAuditImports;

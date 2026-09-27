@@ -32,7 +32,9 @@
 
         protected string PersisterName => configuration.Name;
 
-        protected IAuditDataStore DataStore => configuration.AuditDataStore;
+        protected IAuditMessagesViewDataStore MessagesViewStore => configuration.MessagesViewStore;
+
+        protected ISagaHistoryDataStore SagaHistoryStore => configuration.SagaHistoryStore;
 
         protected IFailedAuditStorage FailedAuditStorage => configuration.FailedAuditStorage;
 

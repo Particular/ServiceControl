@@ -13,7 +13,7 @@ namespace ServiceControl.Audit.SagaAudit
 
     [ApiController]
     [Route("api")]
-    public class SagasController(IAuditDataStore dataStore) : ControllerBase
+    public class SagasController(ISagaHistoryDataStore dataStore) : ControllerBase
     {
         [Authorize(Policy = Permissions.AuditSagaView)]
         [Route("sagas/{id}")]

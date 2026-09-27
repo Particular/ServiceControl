@@ -13,7 +13,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 
     [ApiController]
     [Route("api")]
-    public class GetMessagesController(IAuditDataStore dataStore) : ControllerBase
+    public class GetMessagesController(IAuditMessagesViewDataStore dataStore) : ControllerBase
     {
         [Authorize(Policy = Permissions.AuditMessageView)]
         [Route("messages")]

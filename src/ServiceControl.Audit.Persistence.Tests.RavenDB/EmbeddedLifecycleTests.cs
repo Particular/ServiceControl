@@ -37,7 +37,7 @@
         [Test]
         public async Task Verify_embedded_database()
         {
-            await DataStore.GetMessages(false, new PagingInfo(), new SortInfo("Id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
+            await MessagesViewStore.GetMessages(false, new PagingInfo(), new SortInfo("Id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
 
             using (Assert.EnterMultipleScope())
             {

@@ -30,7 +30,7 @@
                 message
             );
 
-            var queryResult = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
+            var queryResult = await MessagesViewStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResult.Results, Has.Count.EqualTo(1));
             Assert.That(queryResult.Results[0].MessageId, Is.EqualTo("MyMessageId"));
@@ -40,7 +40,7 @@
         public async Task Handles_no_results_gracefully()
         {
             var nonExistingMessage = Guid.NewGuid().ToString();
-            var queryResult = await DataStore.QueryMessages(nonExistingMessage, new PagingInfo(), new SortInfo("Id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
+            var queryResult = await MessagesViewStore.QueryMessages(nonExistingMessage, new PagingInfo(), new SortInfo("Id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResult.Results, Is.Empty);
         }
@@ -57,7 +57,7 @@
                 MakeMessage(conversationId: conversationId)
             );
 
-            var queryResult = await DataStore.QueryMessagesByConversationId(conversationId, new PagingInfo(),
+            var queryResult = await MessagesViewStore.QueryMessagesByConversationId(conversationId, new PagingInfo(),
                 new SortInfo("message_id", "asc"), TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResult.Results, Has.Count.EqualTo(2));
@@ -72,7 +72,7 @@
                 MakeMessage(messageType: "MyMessageType")
             );
 
-            var queryResult = await DataStore.QueryMessages("MyMessageType", new PagingInfo(),
+            var queryResult = await MessagesViewStore.QueryMessages("MyMessageType", new PagingInfo(),
                 new SortInfo("message_id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResult.Results, Has.Count.EqualTo(2));
@@ -94,7 +94,7 @@
 
             var bodyId = GetBodyId(processedMessage);
 
-            var retrievedMessage = await DataStore.GetMessageBody(bodyId, TestContext.CurrentContext.CancellationToken);
+            var retrievedMessage = await MessagesViewStore.GetMessageBody(bodyId, TestContext.CurrentContext.CancellationToken);
 
             Assert.That(retrievedMessage, Is.Not.Null);
             using (Assert.EnterMultipleScope())
@@ -131,8 +131,8 @@
 
             var bodyId = GetBodyId(processedMessage);
 
-            var first = await DataStore.GetMessageBody(bodyId, TestContext.CurrentContext.CancellationToken);
-            var second = await DataStore.GetMessageBody(bodyId, TestContext.CurrentContext.CancellationToken);
+            var first = await MessagesViewStore.GetMessageBody(bodyId, TestContext.CurrentContext.CancellationToken);
+            var second = await MessagesViewStore.GetMessageBody(bodyId, TestContext.CurrentContext.CancellationToken);
 
             Assert.That(first.ETag, Is.Not.Null.And.Not.Empty, "a body with no validator cannot be revalidated, so conditional GET is dead on it");
             Assert.That(second.ETag, Is.EqualTo(first.ETag), "the body did not change, so neither may its validator");
@@ -153,7 +153,7 @@
 
             var bodyId = GetBodyId(processedMessage);
 
-            var retrievedMessage = await DataStore.GetMessageBody(bodyId, TestContext.CurrentContext.CancellationToken);
+            var retrievedMessage = await MessagesViewStore.GetMessageBody(bodyId, TestContext.CurrentContext.CancellationToken);
 
             Assert.That(retrievedMessage, Is.Not.Null);
             using (Assert.EnterMultipleScope())
@@ -180,7 +180,7 @@
 
             await configuration.CompleteDBOperation();
 
-            var queryResult = await DataStore.GetMessages(false, new PagingInfo(), new SortInfo("message_id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
+            var queryResult = await MessagesViewStore.GetMessages(false, new PagingInfo(), new SortInfo("message_id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResult.QueryStats.TotalCount, Is.EqualTo(1));
         }
@@ -204,7 +204,7 @@
 
             await configuration.CompleteDBOperation();
 
-            var queryResult = await DataStore.GetMessages(false, new PagingInfo(), new SortInfo("message_id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
+            var queryResult = await MessagesViewStore.GetMessages(false, new PagingInfo(), new SortInfo("message_id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResult.QueryStats.TotalCount, Is.EqualTo(1));
         }
@@ -227,7 +227,7 @@
 
             await configuration.CompleteDBOperation();
 
-            var queryResult = await DataStore.GetMessages(false, new PagingInfo(), new SortInfo("message_id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
+            var queryResult = await MessagesViewStore.GetMessages(false, new PagingInfo(), new SortInfo("message_id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResult.QueryStats.TotalCount, Is.EqualTo(2));
         }
