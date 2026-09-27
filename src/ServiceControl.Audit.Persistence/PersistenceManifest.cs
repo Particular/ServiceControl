@@ -42,13 +42,7 @@
 
             try
             {
-                foreach (var manifestFile in Directory.EnumerateFiles(assemblyDirectory, "persistence.manifest", SearchOption.AllDirectories))
-                {
-                    var manifest = JsonSerializer.Deserialize<PersistenceManifest>(File.ReadAllText(manifestFile));
-                    manifest.Location = Path.GetDirectoryName(manifestFile);
-
-                    PersistenceManifests.Add(manifest);
-                }
+                PersistenceManifests.AddRange(LoadManifests(Directory.EnumerateFiles(assemblyDirectory, "persistence.manifest", SearchOption.AllDirectories)));
             }
             catch (Exception ex)
             {
@@ -57,13 +51,7 @@
 
             try
             {
-                foreach (var manifestFile in DevelopmentPersistenceLocations.ManifestFiles)
-                {
-                    var manifest = JsonSerializer.Deserialize<PersistenceManifest>(File.ReadAllText(manifestFile));
-                    manifest.Location = Path.GetDirectoryName(manifestFile);
-
-                    PersistenceManifests.Add(manifest);
-                }
+                PersistenceManifests.AddRange(LoadManifests(DevelopmentPersistenceLocations.ManifestFiles));
             }
             catch (Exception ex)
             {
@@ -71,6 +59,34 @@
             }
 
             PersistenceManifests.ForEach(m => logger.LogInformation("Found persistence manifest for {ManifestDisplayName}", m.DisplayName));
+        }
+
+        // One unreadable manifest must not hide the persisters enumerated after it
+        internal static List<PersistenceManifest> LoadManifests(IEnumerable<string> manifestFiles)
+        {
+            var manifests = new List<PersistenceManifest>();
+
+            foreach (var manifestFile in manifestFiles)
+            {
+                try
+                {
+                    manifests.Add(DeserializeManifest(manifestFile));
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Failed to load persistence manifest {ManifestFile}", manifestFile);
+                }
+            }
+
+            return manifests;
+        }
+
+        static PersistenceManifest DeserializeManifest(string manifestFile)
+        {
+            var manifest = JsonSerializer.Deserialize<PersistenceManifest>(File.ReadAllText(manifestFile))
+                ?? throw new InvalidDataException($"The persistence manifest '{manifestFile}' is empty or invalid.");
+            manifest.Location = Path.GetDirectoryName(manifestFile);
+            return manifest;
         }
 
         static string GetAssemblyDirectory()

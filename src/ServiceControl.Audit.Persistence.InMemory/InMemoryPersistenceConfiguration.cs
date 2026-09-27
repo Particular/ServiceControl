@@ -4,6 +4,8 @@
 
     public class InMemoryPersistenceConfiguration : IPersistenceConfiguration
     {
+        public bool SupportsMaintenanceMode => false;
+
         public string Name => "InMemory";
 
         public IEnumerable<string> ConfigurationKeys => new string[0];
