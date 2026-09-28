@@ -1,5 +1,6 @@
 ﻿namespace Particular.LicensingComponent.WebApi
 {
+    using System.Globalization;
     using System.IO.Compression;
     using System.Text;
     using System.Text.Json;
@@ -66,7 +67,7 @@
                 null,
                 cancellationToken);
 
-            var fileName = $"{report.ReportData.CustomerName}.throughput-report-{report.ReportData.EndTime:yyyyMMdd-HHmmss}";
+            var fileName = $"{report.ReportData.CustomerName}.throughput-report-{report.ReportData.EndTime.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)}";
 
             HttpContext.Response.ContentType = "application/zip";
             HttpContext.Response.Headers[HeaderNames.ContentDisposition] = new ContentDispositionHeaderValue("attachment")
