@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="ServiceControl.Audit.AcceptanceTests.RavenDB" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj" />
     <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDB\ServiceControl.Audit.Persistence.RavenDB.csproj" />
@@ -24,9 +28,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\ServiceControl.Audit.AcceptanceTests\**\*.cs" Exclude="..\ServiceControl.Audit.AcceptanceTests\AcceptanceTestStorageConfiguration.cs;..\ServiceControl.Audit.AcceptanceTests\obj\**\*.*;..\ServiceControl.Audit.AcceptanceTests\bin\**\*.*" />
+    <Compile Include="..\ServiceControl.Audit.AcceptanceTests\**\*.cs" Exclude="..\ServiceControl.Audit.AcceptanceTests\obj\**\*.*;..\ServiceControl.Audit.AcceptanceTests\bin\**\*.*" LinkBase="Shared" />
     <Compile Include="..\ServiceControl.Audit.Persistence.Tests.RavenDB\SharedEmbeddedServer.cs" />
     <Compile Include="..\ServiceControl.Audit.Persistence.Tests.RavenDB\StopSharedDatabase.cs" />
+
+    <!-- RavenDB supports maintenance mode, so it has nothing to refuse. -->
+    <Compile Remove="..\ServiceControl.Audit.AcceptanceTests\MaintenanceModeTests.cs" />
   </ItemGroup>
 
 </Project>

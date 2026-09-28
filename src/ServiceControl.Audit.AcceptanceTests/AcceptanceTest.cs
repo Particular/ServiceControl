@@ -72,7 +72,7 @@ namespace ServiceControl.Audit.AcceptanceTests
         protected Action<IDictionary<string, string>> SetStorageConfiguration = _ => { };
         protected Action<IHostApplicationBuilder> CustomizeHostBuilder = _ => { };
         protected ITransportIntegration TransportIntegration;
-        protected AcceptanceTestStorageConfiguration StorageConfiguration;
+        protected IAcceptanceTestStorageConfiguration StorageConfiguration;
 
         ServiceControlComponentBehavior serviceControlRunnerBehavior;
         TextWriterTraceListener textWriterTraceListener;

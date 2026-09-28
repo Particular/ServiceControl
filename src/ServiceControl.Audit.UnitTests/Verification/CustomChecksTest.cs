@@ -19,7 +19,7 @@ namespace ServiceControl.Audit.UnitTests.API
         [Test]
         public void VerifyCustomChecks()
         {
-            var settings = (object)new Settings("LearningTransport", "InMemory");
+            var settings = (object)new Settings("LearningTransport", "RavenDB");
 
             var discovered =
                 from type in typeof(Settings).Assembly.GetTypes()

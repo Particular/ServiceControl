@@ -26,8 +26,7 @@
     <!-- The InternalCustomCheckClassification code does not exist in Audit, including it here allows an 
          approval test instead of a very expensive acceptance test. -->
     <Compile Include="..\ServiceControl.Persistence\InternalCustomCheckClassification.cs" />
-    <Compile Include="..\ServiceControl.Audit.Persistence.Tests\*.cs" LinkBase="Shared" />
-    <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\PersistenceManifestLibraryTests.cs" />
+    <Compile Include="..\ServiceControl.Audit.Persistence.Tests\**\*.cs" Exclude="..\ServiceControl.Audit.Persistence.Tests\obj\**\*.*;..\ServiceControl.Audit.Persistence.Tests\bin\**\*.*" LinkBase="Shared" />
   </ItemGroup>
 
 </Project>

@@ -29,7 +29,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
     public class ServiceControlComponentRunner(
         ITransportIntegration transportToUse,
-        AcceptanceTestStorageConfiguration persistenceToUse,
+        IAcceptanceTestStorageConfiguration persistenceToUse,
         Action<Settings> setSettings,
         Action<EndpointConfiguration> customConfiguration,
         Action<IDictionary<string, string>> setStorageConfiguration,
@@ -49,7 +49,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             // 1. ConfigurationManager.AppSettings is process-global and not thread-safe
             // 2. The embedded RavenDB server does not support concurrent database create/delete/index operations
             // The test scenario execution (after this method returns) still runs in parallel.
-            using var _ = await AcceptanceTestStorageConfiguration.UseDatabaseLifecycleLock();
+            using var _ = await persistenceToUse.UseDatabaseLifecycleLock();
             await InitializeServiceControlCore(context);
         }
 

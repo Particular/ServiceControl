@@ -14,7 +14,7 @@
     using ServiceControl.Audit.Persistence.RavenDB;
     using UnitOfWork;
 
-    class PersistenceTestsConfiguration
+    class PersistenceTestsConfiguration : IPersistenceTestsConfiguration
     {
         public IAuditMessagesViewDataStore MessagesViewStore { get; private set; }
 

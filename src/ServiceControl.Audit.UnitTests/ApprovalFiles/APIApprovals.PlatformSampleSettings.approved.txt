@@ -50,7 +50,7 @@
   "Hostname": "localhost",
   "VirtualDirectory": "",
   "TransportType": "LearningTransport",
-  "PersistenceType": "InMemory",
+  "PersistenceType": "RavenDB",
   "AuditQueue": "audit",
   "ForwardAuditMessages": false,
   "IngestAuditMessages": true,

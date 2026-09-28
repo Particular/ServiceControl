@@ -1,7 +1,6 @@
 <Project>
 
   <ItemGroup Label="Persisters">
-    <ProjectReference Include="..\ServiceControl.Audit.Persistence.InMemory\ServiceControl.Audit.Persistence.InMemory.csproj" ReferenceOutputAssembly="false" Private="false" />
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDB\ServiceControl.Audit.Persistence.RavenDB.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 

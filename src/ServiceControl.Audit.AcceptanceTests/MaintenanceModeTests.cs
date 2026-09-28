@@ -1,4 +1,4 @@
-namespace ServiceControl.Audit.UnitTests.Infrastructure
+namespace ServiceControl.Audit.AcceptanceTests
 {
     using System;
     using System.Runtime.Loader;
@@ -8,12 +8,12 @@ namespace ServiceControl.Audit.UnitTests.Infrastructure
     using Audit.Infrastructure.Settings;
     using NUnit.Framework;
 
-    class MaintenanceModeTests
+    class MaintenanceModeTests : AcceptanceTest
     {
         [Test]
         public void Should_refuse_unsupported_persister_before_starting_host()
         {
-            var settings = new Settings(persisterType: "InMemory")
+            var settings = new Settings(persisterType: StorageConfiguration.PersistenceType)
             {
                 AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default
             };
@@ -21,7 +21,7 @@ namespace ServiceControl.Audit.UnitTests.Infrastructure
             var exception = Assert.ThrowsAsync<InvalidOperationException>(async () =>
                 await new MaintenanceModeCommand().Execute(new HostArguments([]), settings));
 
-            Assert.That(exception.Message, Does.Contain("Maintenance mode is not supported").And.Contain("InMemory"));
+            Assert.That(exception.Message, Does.Contain("Maintenance mode is not supported").And.Contain(StorageConfiguration.PersistenceType));
         }
     }
 }

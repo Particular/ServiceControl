@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="ServiceControl.Audit.Persistence.Tests" />
+    <InternalsVisibleTo Include="ServiceControl.Audit.UnitTests" />
   </ItemGroup>
 
 </Project>
