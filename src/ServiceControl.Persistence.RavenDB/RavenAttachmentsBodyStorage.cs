@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Operations.BodyStorage.RavenAttachments
 {
+    using ServiceControl.Infrastructure;
     using System;
     using System.Linq;
     using System.Threading;

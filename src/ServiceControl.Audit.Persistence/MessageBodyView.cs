@@ -1,6 +1,7 @@
-﻿namespace ServiceControl.Audit.Persistence
+namespace ServiceControl.Audit.Persistence
 {
     using System.IO;
+    using ServiceControl.Infrastructure;
 
     public class MessageBodyView
     {
@@ -10,13 +11,13 @@
         public string StringContent { get; private set; }
         public string ContentType { get; private set; }
         public int ContentLength { get; private set; }
-        public string ETag { get; private set; }
+        public DataVersion Version { get; private set; }
 
         public static MessageBodyView NotFound() => new MessageBodyView { Found = false, HasContent = false };
 
         public static MessageBodyView NoContent() => new MessageBodyView { Found = true, HasContent = false };
 
-        public static MessageBodyView FromString(string content, string contentType, int contentLength, string etag)
+        public static MessageBodyView FromString(string content, string contentType, int contentLength, DataVersion version)
             => new MessageBodyView
             {
                 Found = true,
@@ -24,10 +25,10 @@
                 StringContent = content,
                 ContentType = contentType,
                 ContentLength = contentLength,
-                ETag = etag
+                Version = version
             };
 
-        public static MessageBodyView FromStream(Stream content, string contentType, int contentLength, string etag)
+        public static MessageBodyView FromStream(Stream content, string contentType, int contentLength, DataVersion version)
             => new MessageBodyView
             {
                 Found = true,
@@ -35,7 +36,7 @@
                 StreamContent = content,
                 ContentType = contentType,
                 ContentLength = contentLength,
-                ETag = etag
+                Version = version
             };
     }
 }

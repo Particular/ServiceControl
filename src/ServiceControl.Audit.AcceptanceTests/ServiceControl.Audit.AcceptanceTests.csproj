@@ -23,4 +23,9 @@
     <PackageReference Include="NUnit3TestAdapter" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- InMemory does not version list queries, so its list endpoints carry no ETag -->
+    <Compile Remove="WebApi\When_a_list_endpoint_is_revalidated.cs" />
+  </ItemGroup>
+
 </Project>

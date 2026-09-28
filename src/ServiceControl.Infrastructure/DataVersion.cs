@@ -1,4 +1,5 @@
-namespace ServiceControl.Persistence.Infrastructure
+#nullable enable
+namespace ServiceControl.Infrastructure
 {
     using System;
     using System.Collections.Generic;
@@ -66,10 +67,6 @@ namespace ServiceControl.Persistence.Infrastructure
 
             return Compose([.. terms]);
         }
-
-        public static DataVersion OverRows<TRow>((string Name, object? Value)[]? summary, IEnumerable<TRow> rows)
-            where TRow : IVersionedRow =>
-            OverRows(summary, rows, row => row.GetVersionFields());
 
         /// <summary>
         /// One version for a result gathered from several instances. Missing anywhere means missing overall.

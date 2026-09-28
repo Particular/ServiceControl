@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
     using Raven.Client.Documents.BulkInsert;
+    using ServiceControl.Infrastructure;
 
     class RavenAttachmentsBodyStorage(
         IRavenSessionProvider sessionProvider,
@@ -23,24 +24,21 @@
                 .StoreAsync("body", bodyStream, contentType, cancellationToken);
         }
 
-        public async Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken = default)
+        public async Task<MessageBodyView> TryFetch(string bodyId, CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var result = await session.Advanced.Attachments.GetAsync($"MessageBodies/{bodyId}", "body", cancellationToken);
 
             if (result == null)
             {
-                return new StreamResult { HasResult = false };
+                return MessageBodyView.NotFound();
             }
 
-            return new StreamResult
-            {
-                HasResult = true,
-                Stream = result.Stream,
-                BodySize = (int)result.Details.Size,
-                ContentType = result.Details.ContentType,
-                Etag = result.Details.ChangeVector
-            };
+            return MessageBodyView.FromStream(
+                result.Stream,
+                result.Details.ContentType,
+                (int)result.Details.Size,
+                DataVersion.FromToken(result.Details.ChangeVector));
         }
     }
 }

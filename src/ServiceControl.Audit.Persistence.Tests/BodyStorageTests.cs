@@ -13,7 +13,7 @@
             var nonExistentBodyId = Guid.NewGuid().ToString();
             var result = await BodyStorage.TryFetch(nonExistentBodyId, TestContext.CurrentContext.CancellationToken);
 
-            Assert.That(result.HasResult, Is.False);
+            Assert.That(result.Found, Is.False);
         }
     }
 }

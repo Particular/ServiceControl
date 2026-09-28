@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Operations.BodyStorage
 {
+    using ServiceControl.Infrastructure;
     using System;
     using System.IO;
     using System.Threading;

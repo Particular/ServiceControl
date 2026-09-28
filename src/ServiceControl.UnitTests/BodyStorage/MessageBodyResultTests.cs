@@ -5,6 +5,7 @@ using System.IO;
 using NUnit.Framework;
 using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence.Infrastructure;
+using ServiceControl.Infrastructure;
 
 [TestFixture]
 public class MessageBodyResultTests

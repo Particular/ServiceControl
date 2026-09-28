@@ -1,11 +1,14 @@
 ﻿namespace ServiceControl.Audit.Persistence.InMemory
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using ServiceControl.Audit.Auditing.BodyStorage;
+    using ServiceControl.Audit.Persistence;
+    using ServiceControl.Infrastructure;
 
     class InMemoryAttachmentsBodyStorage : IBodyStorage
     {
@@ -35,6 +38,7 @@
             }
 
             messageBody.ContentType = contentType;
+            messageBody.Version = DataVersion.FromToken(Guid.NewGuid().ToString("N"));
 
             if (needToAdd)
             {
@@ -44,25 +48,17 @@
             return Task.CompletedTask;
         }
 
-        public async Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken = default)
+        public Task<MessageBodyView> TryFetch(string bodyId, CancellationToken cancellationToken = default)
         {
             var messageBody = messageBodies.FirstOrDefault(w => w.BodyId == bodyId);
 
-            return await Task.FromResult(messageBody == null
-                ? new StreamResult
-                {
-                    HasResult = false,
-                    Stream = null
-                }
-                : new StreamResult
-                {
-                    HasResult = true,
-                    Stream = new MemoryStream(messageBody.Content),
-                    ContentType = messageBody.ContentType,
-                    BodySize = messageBody.BodySize,
-                    // Bodies are immutable per message, so the id is a stable validator
-                    Etag = bodyId
-                });
+            return Task.FromResult(messageBody == null
+                ? MessageBodyView.NotFound()
+                : MessageBodyView.FromStream(
+                    new MemoryStream(messageBody.Content),
+                    messageBody.ContentType,
+                    messageBody.BodySize,
+                    messageBody.Version));
         }
 
         class MessageBody
@@ -71,6 +67,7 @@
             public string ContentType { get; set; }
             public int BodySize { get; set; }
             public byte[] Content { get; set; }
+            public DataVersion Version { get; set; }
         }
     }
 }
