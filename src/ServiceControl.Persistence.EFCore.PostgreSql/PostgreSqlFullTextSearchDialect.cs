@@ -15,7 +15,7 @@ class PostgreSqlFullTextSearchDialect : IFullTextSearchDialect
         source.Where(message =>
             EF.Functions.ToTsVector(FullTextSearchSql.Configuration,
                     message.HeadersJson + " " +
-                    (message.BodyText ?? "") + " " +
+                    (message.BodyText ?? "").Substring(0, FullTextSearchSql.IndexedBodyLength) + " " +
                     (message.MessageType ?? "").Replace(".", " ").Replace("+", " "))
                 .Matches(EF.Functions.WebSearchToTsQuery(FullTextSearchSql.Configuration, ToOrQuery(searchTerms))));
 

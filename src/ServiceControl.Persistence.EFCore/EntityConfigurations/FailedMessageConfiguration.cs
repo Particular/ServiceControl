@@ -19,9 +19,11 @@ class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
         builder.Property(e => e.LastTimeOfFailure).IsRequired();
         builder.Property(e => e.LastAttemptedAt).IsRequired();
 
-        builder.Property(e => e.MessageId).HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.MessageType).HasMaxLength(ColumnLengths.ShortTextLength);
-        builder.Property(e => e.ConversationId).HasMaxLength(ColumnLengths.ShortTextLength);
+        // The converter also runs on every value a query compares with the column, so a lookup by the full id finds the stored form.
+        builder.Property(e => e.ConversationId)
+            .HasMaxLength(ColumnLengths.ShortTextLength)
+            .HasConversion(value => ColumnLengths.FitToIndex(value), value => value);
         builder.Property(e => e.SendingEndpointName).HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.SendingEndpointHost).HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.ReceivingEndpointName).HasMaxLength(ColumnLengths.ShortTextLength);

@@ -72,8 +72,8 @@ static class FailedMessageQueryFilters
 
         try
         {
-            from = DateTime.Parse(filters[0], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
-            to = DateTime.Parse(filters[1], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+            from = AsUtc(DateTime.Parse(filters[0], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind));
+            to = AsUtc(DateTime.Parse(filters[1], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind));
         }
         catch (Exception)
         {
@@ -116,16 +116,27 @@ static class FailedMessageQueryFilters
     {
         if (timeSentRange?.From is { } from)
         {
-            source = source.Where(message => message.TimeSent >= from);
+            var fromUtc = AsUtc(from);
+            source = source.Where(message => message.TimeSent >= fromUtc);
         }
 
         if (timeSentRange?.To is { } to)
         {
-            source = source.Where(message => message.TimeSent <= to);
+            var toUtc = AsUtc(to);
+            source = source.Where(message => message.TimeSent <= toUtc);
         }
 
         return source;
     }
+
+    // Npgsql refuses to write a Local or Unspecified value to timestamptz. A value without a zone is taken as UTC, as SQL Server's UtcDateTimeConverter already does.
+    static DateTime AsUtc(DateTime value) => value.Kind switch
+    {
+        DateTimeKind.Utc => value,
+        DateTimeKind.Local => value.ToUniversalTime(),
+        DateTimeKind.Unspecified => DateTime.SpecifyKind(value, DateTimeKind.Utc),
+        _ => throw new ArgumentOutOfRangeException(nameof(value), value.Kind, "Unknown DateTimeKind")
+    };
 
     public static IQueryable<FailedMessageEntity> IncludeSystemMessagesWhere(this IQueryable<FailedMessageEntity> source, bool includeSystemMessages) =>
         includeSystemMessages ? source : source.Where(message => !message.IsSystemMessage);

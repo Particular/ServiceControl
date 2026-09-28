@@ -232,6 +232,65 @@ class MessagesViewDataStoreTests : ErrorIngestionTestBase
     }
 
     [Test]
+    public async Task Filters_by_an_over_length_conversation()
+    {
+        var inConversation = new IngestedFailure { ConversationId = new string('c', 600) };
+
+        await Ingest(inConversation, new IngestedFailure());
+
+        var result = await MessagesViewStore.GetAllMessagesByConversation(inConversation.ConversationId, new PagingInfo(), new SortInfo(), false);
+
+        Assert.That(result.Results.Select(view => view.Id), Is.EqualTo(new[] { inConversation.UniqueMessageIdString }));
+    }
+
+    [Test]
+    public async Task Filters_by_the_reported_id_of_an_over_length_conversation()
+    {
+        var inConversation = new IngestedFailure { ConversationId = new string('c', 600) };
+
+        await Ingest(inConversation, new IngestedFailure());
+
+        var all = await MessagesViewStore.GetAllMessages(new PagingInfo(), new SortInfo(), true);
+        var reportedId = all.Results.Single(view => view.Id == inConversation.UniqueMessageIdString).ConversationId;
+
+        var result = await MessagesViewStore.GetAllMessagesByConversation(reportedId, new PagingInfo(), new SortInfo(), false);
+
+        Assert.That(result.Results.Select(view => view.Id), Is.EqualTo(new[] { inConversation.UniqueMessageIdString }));
+    }
+
+    [Test]
+    public async Task Keeps_over_length_conversations_that_share_a_prefix_apart()
+    {
+        var sharedPrefix = new string('c', 450);
+        var first = new IngestedFailure { ConversationId = sharedPrefix + new string('1', 150) };
+        var second = new IngestedFailure { ConversationId = sharedPrefix + new string('2', 150) };
+
+        await Ingest(first, second);
+
+        var firstConversation = await MessagesViewStore.GetAllMessagesByConversation(first.ConversationId, new PagingInfo(), new SortInfo(), false);
+        var secondConversation = await MessagesViewStore.GetAllMessagesByConversation(second.ConversationId, new PagingInfo(), new SortInfo(), false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(firstConversation.Results.Select(view => view.Id), Is.EqualTo(new[] { first.UniqueMessageIdString }));
+            Assert.That(secondConversation.Results.Select(view => view.Id), Is.EqualTo(new[] { second.UniqueMessageIdString }));
+        }
+    }
+
+    [Test]
+    public async Task Keeps_a_surrogate_pair_whole_when_shortening_a_conversation_id()
+    {
+        var conversationId = new string('c', 384) + char.ConvertFromUtf32(0x1F600) + new string('c', 214);
+        var failure = new IngestedFailure { ConversationId = conversationId };
+
+        await Ingest(failure);
+
+        var view = await SingleMessage();
+
+        Assert.That(view.ConversationId, Does.StartWith(new string('c', 384) + "#"), "The pair straddles the end of the kept prefix, so it has to be left out whole");
+    }
+
+    [Test]
     public async Task Searches_the_headers()
     {
         var matching = new IngestedFailure { ExceptionMessage = "the zarquon overheated" };
@@ -239,6 +298,16 @@ class MessagesViewDataStoreTests : ErrorIngestionTestBase
         await Ingest(matching, new IngestedFailure());
 
         await AssertSearchFinds("zarquon", matching);
+    }
+
+    [Test]
+    public async Task Searches_a_non_ascii_word_in_the_headers()
+    {
+        var matching = new IngestedFailure { ExceptionMessage = "Bestellprüfung fehlgeschlagen" };
+
+        await Ingest(matching, new IngestedFailure());
+
+        await AssertSearchFinds("Bestellprüfung", matching);
     }
 
     [Test]

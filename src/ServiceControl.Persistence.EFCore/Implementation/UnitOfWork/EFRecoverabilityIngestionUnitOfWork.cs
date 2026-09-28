@@ -41,7 +41,8 @@ public class EFRecoverabilityIngestionUnitOfWork(EFIngestionUnitOfWork parentUni
             MessageId = processingAttempt.MessageId,
             MessageType = TruncateTypeName(GetMetadata<string>(processingAttempt, "MessageType")),
             TimeSent = GetMetadata<DateTime?>(processingAttempt, "TimeSent"),
-            ConversationId = GetMetadata<string>(processingAttempt, "ConversationId"),
+            // The ingestion upsert is hand-written SQL, which skips the value converter on the column.
+            ConversationId = ColumnLengths.FitToIndex(GetMetadata<string>(processingAttempt, "ConversationId")),
             SendingEndpointName = sendingEndpoint?.Name,
             SendingEndpointHostId = sendingEndpoint?.HostId,
             SendingEndpointHost = sendingEndpoint?.Host,
