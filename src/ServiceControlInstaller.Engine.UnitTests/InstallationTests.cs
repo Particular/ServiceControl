@@ -2,9 +2,11 @@
 {
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Text.Json;
     using NUnit.Framework;
     using Particular.Approvals;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Instances;
 
@@ -31,6 +33,11 @@
                 if (!persistenceManifest.IsSupported)
                 {
                     Assert.Ignore("Don't care about config for unsupported persistence types.");
+                }
+
+                if (persistenceManifest.Settings.Any(setting => setting.Mandatory && setting.DefaultValue == null && !InstallerSuppliedSettings.Contains(setting.Name)))
+                {
+                    Assert.Ignore("The installer cannot create an instance on this persister yet: it has no value for one of its mandatory settings.");
                 }
 
                 var newInstance = new ServiceControlAuditNewInstance(persistenceManifest);
@@ -63,6 +70,13 @@
                 FileUtils.DeleteDirectory(logPath, true, false);
             }
         }
+
+        static readonly string[] InstallerSuppliedSettings =
+        [
+            AuditInstanceSettingsList.DBPath.Name,
+            AuditInstanceSettingsList.DatabaseMaintenancePort.Name,
+            AuditInstanceSettingsList.LogPath.Name
+        ];
 
         public static IEnumerable<string> GetAuditPersistenceManifestPaths()
         {

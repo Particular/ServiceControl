@@ -51,6 +51,7 @@ namespace ServiceControl.Contracts.CustomChecks
                 "Audit Database Index Lag",
                 "Audit Database Search Engine",
                 "ServiceControl.Audit database",
+                "Audit partition provisioning",  // EF Core PostgreSQL persister
             };
 
         /// <summary>

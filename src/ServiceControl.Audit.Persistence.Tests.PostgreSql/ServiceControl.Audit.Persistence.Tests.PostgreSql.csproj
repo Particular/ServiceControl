@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <TestCategory>PostgreSql</TestCategory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.EFCore.PostgreSql\ServiceControl.Audit.Persistence.EFCore.PostgreSql.csproj" />
+    <!-- Needed to bring the dependencies that the persistence plugin excludes -->
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" />
+    <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GitHubActionsTestLogger" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit.Analyzers" />
+    <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="Particular.Approvals" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The InternalCustomCheckClassification code does not exist in Audit, including it here allows an
+         approval test instead of a very expensive acceptance test. -->
+    <Compile Include="..\ServiceControl.Persistence\InternalCustomCheckClassification.cs" />
+    <Compile Include="..\ServiceControl.Audit.Persistence.Tests\**\*.cs" Exclude="..\ServiceControl.Audit.Persistence.Tests\obj\**\*.*;..\ServiceControl.Audit.Persistence.Tests\bin\**\*.*" LinkBase="Shared" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.PostgreSql\PostgreSqlSharedContainer.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.PostgreSql\TestSchema.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.PostgreSql\StopSharedPostgreSql.cs" />
+
+    <!-- The EF Core persisters do not deduplicate, a redelivered message is stored again. -->
+    <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\AuditTests.Deduplication.cs" />
+
+    <!-- The EF Core persisters store text bodies only. -->
+    <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\AuditTests.BinaryBody.cs" />
+  </ItemGroup>
+
+</Project>

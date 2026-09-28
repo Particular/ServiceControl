@@ -1,0 +1,21 @@
+{
+  "Name": "SQLServer",
+  "DisplayName": "SQL Server",
+  "Description": "SQL Server ServiceControl Audit persister",
+  "AssemblyName": "ServiceControl.Audit.Persistence.EFCore.SqlServer",
+  "TypeName": "ServiceControl.Audit.Persistence.EFCore.SqlServer.SqlServerPersistenceConfiguration, ServiceControl.Audit.Persistence.EFCore.SqlServer",
+  "Settings": [
+    {
+      "Name": "ServiceControl.Audit/Database/ConnectionString",
+      "Mandatory": true
+    },
+    {
+      "Name": "ServiceControl.Audit/Database/Schema",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl.Audit/Database/CommandTimeout",
+      "Mandatory": false
+    }
+  ]
+}

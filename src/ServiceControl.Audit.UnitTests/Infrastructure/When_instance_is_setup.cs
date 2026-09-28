@@ -16,6 +16,7 @@
     using Persistence;
     using Transports;
 
+    [NonParallelizable]
     class When_instance_is_setup
     {
         [Test]

@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Private=false & ExcludeAssets=runtime prevent repeatedly including binary dependencies of ServiceControl.Audit.Persistence and its dependencies in each persister directory -->
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.SagaAudit\ServiceControl.Audit.Persistence.SagaAudit.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" Private="false" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+    <PackageReference Include="NServiceBus.CustomChecks" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The audit host compiles the saga audit sources into itself rather than referencing them, so a persister has to do the same to read saga relationships from headers -->
+    <Compile Include="..\ServiceControl.SagaAudit\InvokedSagasParser.cs" LinkBase="SagaAudit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.Audit.Persistence.EFCore.PostgreSql" />
+    <InternalsVisibleTo Include="ServiceControl.Audit.Persistence.EFCore.SqlServer" />
+    <InternalsVisibleTo Include="ServiceControl.Audit.Persistence.Tests.PostgreSql" />
+    <InternalsVisibleTo Include="ServiceControl.Audit.Persistence.Tests.SqlServer" />
+  </ItemGroup>
+
+</Project>
