@@ -14,7 +14,7 @@ namespace ServiceControl.Audit.AcceptanceTests.WebApi
     class When_a_list_endpoint_is_revalidated : AcceptanceTest
     {
         [Test]
-        public async Task Should_answer_not_modified_for_a_raven_list_endpoint()
+        public async Task Should_answer_not_modified_for_a_list_endpoint()
         {
             Answer issued = null;
             Answer repeated = null;
@@ -38,11 +38,6 @@ namespace ServiceControl.Audit.AcceptanceTests.WebApi
 
                     issued = await Ask("GET", "/api/messages?include_system_messages=false&sort=id", ifNoneMatch: null);
 
-                    if (issued.Etag == null)
-                    {
-                        return false;
-                    }
-
                     repeated = await Ask("GET", "/api/messages?include_system_messages=false&sort=id", issued.Etag);
 
                     return true;
@@ -55,7 +50,7 @@ namespace ServiceControl.Audit.AcceptanceTests.WebApi
         }
 
         [Test]
-        public async Task Should_answer_not_modified_for_an_empty_raven_list_endpoint()
+        public async Task Should_answer_not_modified_for_an_empty_list_endpoint()
         {
             Answer issued = null;
             Answer repeated = null;
@@ -65,18 +60,13 @@ namespace ServiceControl.Audit.AcceptanceTests.WebApi
                 {
                     issued = await Ask("GET", "/api/conversations/no-such-conversation", ifNoneMatch: null);
 
-                    if (issued.Etag == null)
-                    {
-                        return false;
-                    }
-
                     repeated = await Ask("GET", "/api/conversations/no-such-conversation", issued.Etag);
 
                     return true;
                 })
                 .Run();
 
-            Assert.That(issued.Etag, Is.Not.Null, "an empty result should still carry the Raven query token as its ETag");
+            Assert.That(issued.Etag, Is.Not.Null, "an empty result should still carry an ETag of its own");
             Assert.That(repeated.Status, Is.EqualTo(HttpStatusCode.NotModified), $"the empty list was sent again to a client that already held {issued.Etag}");
         }
 
