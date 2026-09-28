@@ -12,7 +12,7 @@ namespace ServiceControl.Audit.Persistence.Tests
         [Test]
         public async Task In_memory_list_queries_remain_unversioned()
         {
-            var result = await DataStore.GetMessages(false, new PagingInfo(), new SortInfo("message_id", "asc"));
+            var result = await MessagesViewStore.GetMessages(false, new PagingInfo(), new SortInfo("message_id", "asc"));
 
             Assert.That(result.QueryStats.Version.HasValue, Is.False);
         }
