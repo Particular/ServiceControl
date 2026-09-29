@@ -74,6 +74,16 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
     }
 
     [Test]
+    public async Task Should_flag_only_remotes_whose_configuration_has_an_audit_queue_as_audit_instances()
+    {
+        var auditQuery = new AuditQuery(NullLogger<AuditQuery>.Instance, new FakeEndpointApi(), new FakeAuditCountApi(), new ConfigurationApi_ReturningAuditPrimaryAndUnreachableRemotes());
+
+        var remotes = await auditQuery.GetAuditRemotes();
+
+        Assert.That(remotes.Select(remote => remote.RespondedAsAuditInstance), Is.EqualTo(new[] { true, false, false }));
+    }
+
+    [Test]
     public async Task Should_return_successful_audit_connection_if_instances_exist_and_are_online()
     {
         //Arrange
@@ -163,6 +173,21 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
 
             return Task.FromResult<RemoteConfiguration[]>([remote]);
         }
+
+        public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+    }
+
+    class ConfigurationApi_ReturningAuditPrimaryAndUnreachableRemotes : IConfigurationApi
+    {
+        public Task<object> GetConfig(CancellationToken cancellationToken = default) => throw new NotImplementedException();
+
+        public Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken = default) =>
+            Task.FromResult<RemoteConfiguration[]>(
+            [
+                new RemoteConfiguration { ApiUri = "http://audit:44444/api/", Status = "online", Version = "6.2.0", Configuration = JsonNode.Parse("""{"transport":{"transport_type":"RabbitMQ.QuorumConventionalRouting","audit_queue":"audit"}}""") },
+                new RemoteConfiguration { ApiUri = "http://primary:33333/api/", Status = "online", Version = "6.2.0", Configuration = JsonNode.Parse("""{"transport":{"transport_type":"RabbitMQ.QuorumConventionalRouting","error_queue":"error"}}""") },
+                new RemoteConfiguration { ApiUri = "http://decommissioned:44444/api/", Status = "unavailable", Version = "Unknown" }
+            ]);
 
         public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }

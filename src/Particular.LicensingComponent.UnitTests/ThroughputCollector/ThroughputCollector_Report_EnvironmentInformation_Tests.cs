@@ -196,4 +196,36 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
         Assert.That(report.ReportData.ScopeType, Is.Not.Null, $"Missing ScopeType from report");
         Assert.That(report.ReportData.ScopeType, Is.EqualTo(expectedScopeType), $"Invalid ScopeType on report");
     }
+
+    [Test]
+    public async Task Should_include_audit_instance_counts_in_environment_data()
+    {
+        await DataStore.SaveAuditServiceMetadata(new AuditServiceMetadata([], []) { ConfiguredInstances = 50, LiveInstances = 2 });
+
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
+
+        var environmentData = report.ReportData.EnvironmentInformation.EnvironmentData;
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(environmentData, Does.ContainKey("Audit.ConfiguredInstances").WithValue("50"));
+            Assert.That(environmentData, Does.ContainKey("Audit.LiveInstances").WithValue("2"));
+        }
+    }
+
+    [Test]
+    public async Task Should_leave_audit_instance_counts_out_of_environment_data_when_none_are_stored()
+    {
+        await DataStore.SaveAuditServiceMetadata(new AuditServiceMetadata(
+            new Dictionary<string, int> { ["6.2.0"] = 1 },
+            new Dictionary<string, int> { ["RabbitMQ.QuorumConventionalRouting"] = 1 }));
+
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
+
+        var environmentData = report.ReportData.EnvironmentInformation.EnvironmentData;
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(environmentData, Does.Not.ContainKey("Audit.ConfiguredInstances"));
+            Assert.That(environmentData, Does.Not.ContainKey("Audit.LiveInstances"));
+        }
+    }
 }
