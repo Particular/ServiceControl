@@ -47,10 +47,9 @@
 
                 if (remotes.Any())
                 {
-                    List<string> queues = [];
-
                     foreach (var remote in remotes)
                     {
+                        List<string> queues = [];
                         string? retention = null;
                         string? transportTypeUsed = null;
                         var respondedAsAuditInstance = false;

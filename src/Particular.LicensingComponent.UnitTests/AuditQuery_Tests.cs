@@ -76,11 +76,28 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
     [Test]
     public async Task Should_flag_only_remotes_whose_configuration_has_an_audit_queue_as_audit_instances()
     {
-        var auditQuery = new AuditQuery(NullLogger<AuditQuery>.Instance, new FakeEndpointApi(), new FakeAuditCountApi(), new ConfigurationApi_ReturningAuditPrimaryAndUnreachableRemotes());
+        var configurationApi = new ConfigurationApi_ReturningRemotes(
+            new RemoteConfiguration { ApiUri = "http://audit:44444/api/", Status = "online", Version = "6.2.0", Configuration = JsonNode.Parse("""{"transport":{"transport_type":"RabbitMQ.QuorumConventionalRouting","audit_queue":"audit"}}""") },
+            new RemoteConfiguration { ApiUri = "http://primary:33333/api/", Status = "online", Version = "6.2.0", Configuration = JsonNode.Parse("""{"transport":{"transport_type":"RabbitMQ.QuorumConventionalRouting","error_queue":"error"}}""") },
+            new RemoteConfiguration { ApiUri = "http://decommissioned:44444/api/", Status = "unavailable", Version = "Unknown" });
+        var auditQuery = new AuditQuery(NullLogger<AuditQuery>.Instance, new FakeEndpointApi(), new FakeAuditCountApi(), configurationApi);
 
         var remotes = await auditQuery.GetAuditRemotes();
 
         Assert.That(remotes.Select(remote => remote.RespondedAsAuditInstance), Is.EqualTo(new[] { true, false, false }));
+    }
+
+    [Test]
+    public async Task Should_return_each_remote_with_only_its_own_queues()
+    {
+        var configurationApi = new ConfigurationApi_ReturningRemotes(
+            new RemoteConfiguration { ApiUri = "http://audit-a:44444/api/", Status = "online", Version = "6.2.0", Configuration = JsonNode.Parse("""{"transport":{"audit_queue":"audit.a","audit_log_queue":"audit.a.log"}}""") },
+            new RemoteConfiguration { ApiUri = "http://audit-b:44444/api/", Status = "online", Version = "6.2.0", Configuration = JsonNode.Parse("""{"transport":{"audit_queue":"audit.b","audit_log_queue":"audit.b.log"}}""") });
+        var auditQuery = new AuditQuery(NullLogger<AuditQuery>.Instance, new FakeEndpointApi(), new FakeAuditCountApi(), configurationApi);
+
+        var remotes = await auditQuery.GetAuditRemotes();
+
+        Assert.That(remotes.Select(remote => remote.Queues), Is.EqualTo(new[] { new[] { "audit.a", "audit.a.log" }, new[] { "audit.b", "audit.b.log" } }));
     }
 
     [Test]
@@ -177,17 +194,11 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
         public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 
-    class ConfigurationApi_ReturningAuditPrimaryAndUnreachableRemotes : IConfigurationApi
+    class ConfigurationApi_ReturningRemotes(params RemoteConfiguration[] remotes) : IConfigurationApi
     {
         public Task<object> GetConfig(CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
-        public Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken = default) =>
-            Task.FromResult<RemoteConfiguration[]>(
-            [
-                new RemoteConfiguration { ApiUri = "http://audit:44444/api/", Status = "online", Version = "6.2.0", Configuration = JsonNode.Parse("""{"transport":{"transport_type":"RabbitMQ.QuorumConventionalRouting","audit_queue":"audit"}}""") },
-                new RemoteConfiguration { ApiUri = "http://primary:33333/api/", Status = "online", Version = "6.2.0", Configuration = JsonNode.Parse("""{"transport":{"transport_type":"RabbitMQ.QuorumConventionalRouting","error_queue":"error"}}""") },
-                new RemoteConfiguration { ApiUri = "http://decommissioned:44444/api/", Status = "unavailable", Version = "Unknown" }
-            ]);
+        public Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken = default) => Task.FromResult(remotes);
 
         public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
