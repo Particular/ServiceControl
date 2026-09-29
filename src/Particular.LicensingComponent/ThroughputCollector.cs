@@ -1,6 +1,7 @@
 ﻿namespace Particular.LicensingComponent;
 
 using System;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using AuditThroughput;
@@ -185,6 +186,16 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
         report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.ServicePulseVersion.ToString()] = spVersion;
         report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.AuditEnabled.ToString()] = systemHasAuditEnabled.ToString();
         report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.MonitoringEnabled.ToString()] = systemHasMonitoringEnabled.ToString();
+
+        if (auditServiceMetadata.ConfiguredInstances is { } configuredAuditInstances)
+        {
+            report.EnvironmentInformation.EnvironmentData["Audit.ConfiguredInstances"] = configuredAuditInstances.ToString(CultureInfo.InvariantCulture);
+        }
+
+        if (auditServiceMetadata.LiveInstances is { } liveAuditInstances)
+        {
+            report.EnvironmentInformation.EnvironmentData["Audit.LiveInstances"] = liveAuditInstances.ToString(CultureInfo.InvariantCulture);
+        }
 
         foreach (var environmentDataProvider in environmentDataProviders)
         {

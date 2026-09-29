@@ -245,6 +245,33 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         }
     }
 
+    [Test]
+    public async Task Should_store_how_many_audit_instances_are_configured_and_how_many_are_live()
+    {
+        var liveAuditInstance = new RemoteInstanceInformation { Status = "online", VersionString = "6.2.0", SemanticVersion = new SemanticVersion(6, 2, 0), RespondedAsAuditInstance = true };
+        var primaryInstanceListedAsRemote = new RemoteInstanceInformation { Status = "online", VersionString = "6.2.0", SemanticVersion = new SemanticVersion(6, 2, 0) };
+        var auditInstanceWithoutVersionHeader = new RemoteInstanceInformation { Status = "online", VersionString = "Missing", RespondedAsAuditInstance = true };
+        var unreachableRemote = new RemoteInstanceInformation { Status = "unavailable", VersionString = "Unknown" };
+        var auditQuery = new AuditQuery_WithRemotes([liveAuditInstance, primaryInstanceListedAsRemote, auditInstanceWithoutVersionHeader, unreachableRemote]);
+
+        using var auditThroughputCollectorHostedService = new AuditThroughputCollectorHostedService(
+            NullLogger<AuditThroughputCollectorHostedService>.Instance, configuration.ThroughputSettings, DataStore,
+            auditQuery, new FakeTimeProvider())
+        { DelayStart = TimeSpan.Zero };
+
+        await auditThroughputCollectorHostedService.StartAsync(CancellationToken.None);
+        await auditQuery.KnownEndpointsRequested.WaitAsync(TimeSpan.FromSeconds(30));
+        await auditThroughputCollectorHostedService.StopAsync(CancellationToken.None);
+
+        var auditServiceMetadata = await DataStore.GetAuditServiceMetadata();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(auditServiceMetadata.ConfiguredInstances, Is.EqualTo(4));
+            Assert.That(auditServiceMetadata.LiveInstances, Is.EqualTo(1));
+        }
+    }
+
     class AuditQuery_NoAuditRemotes : IAuditQuery
     {
         public SemanticVersion MinAuditCountsVersion => new(4, 29, 0);
@@ -422,5 +449,31 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         readonly string endpointWithCounts;
         readonly DateOnly throughputDate;
         readonly long throughputCount;
+    }
+
+    class AuditQuery_WithRemotes(List<RemoteInstanceInformation> remotes) : IAuditQuery
+    {
+        public Task KnownEndpointsRequested => knownEndpointsRequested.Task;
+
+        public SemanticVersion MinAuditCountsVersion => new(4, 29, 0);
+        public Func<RemoteInstanceInformation, bool> ValidRemoteInstances => _ => true;
+
+        public Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken = default) =>
+            Task.FromResult(remotes);
+
+        public Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken = default)
+        {
+            knownEndpointsRequested.TrySetResult();
+
+            return Task.FromResult<IEnumerable<ServiceControlEndpoint>>([]);
+        }
+
+        public Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName, CancellationToken cancellationToken = default) =>
+            Task.FromResult<IEnumerable<AuditCount>>([]);
+
+        public Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken = default) =>
+            throw new NotImplementedException();
+
+        readonly TaskCompletionSource knownEndpointsRequested = new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 }

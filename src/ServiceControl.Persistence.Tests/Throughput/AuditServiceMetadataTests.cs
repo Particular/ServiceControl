@@ -31,6 +31,20 @@ class AuditServiceMetadataTests : PersistenceTestBase
     }
 
     [Test]
+    public async Task Should_retrieve_saved_audit_instance_counts()
+    {
+        await LicensingDataStore.SaveAuditServiceMetadata(new AuditServiceMetadata([], []) { ConfiguredInstances = 50, LiveInstances = 2 });
+
+        var retrievedAuditServiceMetadata = await LicensingDataStore.GetAuditServiceMetadata();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(retrievedAuditServiceMetadata.ConfiguredInstances, Is.EqualTo(50));
+            Assert.That(retrievedAuditServiceMetadata.LiveInstances, Is.EqualTo(2));
+        }
+    }
+
+    [Test]
     public async Task Should_update_existing_audit_service_metadata_if_already_exists()
     {
         // Arrange

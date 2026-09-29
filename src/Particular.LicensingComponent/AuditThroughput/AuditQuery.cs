@@ -47,12 +47,12 @@
 
                 if (remotes.Any())
                 {
-                    List<string> queues = [];
-
                     foreach (var remote in remotes)
                     {
+                        List<string> queues = [];
                         string? retention = null;
                         string? transportTypeUsed = null;
+                        var respondedAsAuditInstance = false;
                         if (remote.Configuration != null)
                         {
                             retention = remote.Configuration.AsObject().TryGetPropertyValue("data_retention", out var dataRetention) &&
@@ -71,6 +71,7 @@
                                 if (transport?.AsObject().TryGetPropertyValue("audit_queue", out var auditQueue) == true)
                                 {
                                     queues.Add(auditQueue!.GetValue<string>());
+                                    respondedAsAuditInstance = true;
                                 }
                                 if (transport?.AsObject().TryGetPropertyValue("audit_log_queue", out var auditLogQueue) == true)
                                 {
@@ -90,7 +91,8 @@
                             Status = remote.Status,
                             Retention = TimeSpan.TryParse(retention, out var ts) ? ts : TimeSpan.Zero,
                             Queues = queues,
-                            Transport = transportTypeUsed ?? ""
+                            Transport = transportTypeUsed ?? "",
+                            RespondedAsAuditInstance = respondedAsAuditInstance
                         };
 
                         remoteInstance.SemanticVersion = SemanticVersion.TryParse(remoteInstance.VersionString ?? string.Empty, out var v) ? v : null;
