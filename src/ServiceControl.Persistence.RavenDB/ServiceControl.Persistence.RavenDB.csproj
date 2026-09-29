@@ -46,6 +46,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="ServiceControl.AcceptanceTests.RavenDB" />
+    <InternalsVisibleTo Include="ServiceControl.MultiInstance.AcceptanceTests" />
     <InternalsVisibleTo Include="ServiceControl.Persistence.Tests.RavenDB" />
   </ItemGroup>
 

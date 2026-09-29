@@ -13,7 +13,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
     class ServiceControlComponentBehavior(
         ITransportIntegration transportToUse,
-        AcceptanceTestStorageConfiguration persistenceToUse,
+        IAcceptanceTestStorageConfiguration persistenceToUse,
         Action<Settings> setSettings,
         Action<EndpointConfiguration> customConfiguration,
         Action<IDictionary<string, string>> setStorageConfiguration,

@@ -13,6 +13,7 @@
     using NServiceBus;
     using NServiceBus.Transport;
     using NUnit.Framework;
+    using Persistence;
     using Transports;
 
     class When_instance_is_setup
@@ -33,9 +34,17 @@
 
             TransportManifestLibrary.TransportManifests.Add(manifest);
 
+            PersistenceManifestLibrary.PersistenceManifests.Add(new PersistenceManifest
+            {
+                Name = "FakePersistence",
+                Location = AppContext.BaseDirectory,
+                AssemblyName = Assembly.GetExecutingAssembly().GetName().Name,
+                TypeName = typeof(FakePersistenceConfiguration).AssemblyQualifiedName
+            });
+
             var instanceInputQueueName = "SomeInstanceQueue";
 
-            var settings = new Settings("FakeTransport", "InMemory")
+            var settings = new Settings("FakeTransport", "FakePersistence")
             {
                 InstanceName = instanceInputQueueName,
                 ForwardAuditMessages = true,
@@ -91,5 +100,25 @@
             CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
         public string ToTransportQualifiedQueueName(string queueName) => queueName;
+    }
+
+    class FakePersistenceConfiguration : IPersistenceConfiguration
+    {
+        public bool SupportsMaintenanceMode => false;
+
+        public string Name => "FakePersistence";
+
+        public IEnumerable<string> ConfigurationKeys => [];
+
+        public IPersistence Create(PersistenceSettings settings) => new FakePersistence();
+    }
+
+    class FakePersistence : IPersistence
+    {
+        public void AddPersistence(IServiceCollection services) => throw new NotImplementedException();
+
+        public void AddInstaller(IServiceCollection services)
+        {
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Persistence.Tests
+﻿namespace ServiceControl.Audit.UnitTests.Infrastructure
 {
     using System.Collections.Generic;
     using System.IO;
@@ -95,27 +95,16 @@
                                  }
                                  """;
 
-        const string InMemory = """
-                                {
-                                  "Name": "InMemory",
-                                  "DisplayName": "In-memory",
-                                  "Description": "InMemory ServiceControl Audit persister",
-                                  "AssemblyName": "ServiceControl.Audit.Persistence.InMemory",
-                                  "TypeName": "ServiceControl.Audit.Persistence.InMemory.InMemoryPersistenceConfiguration, ServiceControl.Audit.Persistence.InMemory"
-                                }
-                                """;
-
         [Test]
         public void Legacy_manifest_without_an_assembly_does_not_hide_the_persisters_after_it()
         {
             var manifests = LoadFrom(new()
             {
                 ["RavenDB"] = RavenDB,
-                ["RavenDB35"] = RavenDB35,
-                ["InMemory"] = InMemory
+                ["RavenDB35"] = RavenDB35
             });
 
-            Assert.That(manifests.Select(m => m.Name), Is.EquivalentTo(["RavenDB", "RavenDB35", "InMemory"]));
+            Assert.That(manifests.Select(m => m.Name), Is.EquivalentTo(["RavenDB", "RavenDB35"]));
         }
 
         [Test]
@@ -124,10 +113,10 @@
             var manifests = LoadFrom(new()
             {
                 ["Corrupt"] = "{ this is not json",
-                ["InMemory"] = InMemory
+                ["RavenDB"] = RavenDB
             });
 
-            Assert.That(manifests.Select(m => m.Name), Is.EqualTo(["InMemory"]));
+            Assert.That(manifests.Select(m => m.Name), Is.EqualTo(["RavenDB"]));
         }
 
         static List<PersistenceManifest> LoadFrom(Dictionary<string, string> persisters)

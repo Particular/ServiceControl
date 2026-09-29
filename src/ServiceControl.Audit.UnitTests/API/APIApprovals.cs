@@ -172,6 +172,6 @@
             Approver.Verify(settings);
         }
 
-        static Settings CreateTestSettings() => new("LearningTransport", "InMemory");
+        static Settings CreateTestSettings() => new("LearningTransport", "RavenDB");
     }
 }

@@ -17,6 +17,10 @@
         public virtual Task Setup()
         {
             configuration = new PersistenceTestsConfiguration();
+            if (configuration is not IPersistenceTestsConfiguration)
+            {
+                throw new Exception($"{nameof(PersistenceTestsConfiguration)} must implement {nameof(IPersistenceTestsConfiguration)}");
+            }
 
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
 

@@ -7,10 +7,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.AcceptanceTests.RavenDB\ServiceControl.AcceptanceTests.RavenDB.csproj" />
-    <ProjectReference Include="..\ServiceControl.Audit.AcceptanceTests\ServiceControl.Audit.AcceptanceTests.csproj" />
+    <ProjectReference Include="..\ServiceControl.Audit.AcceptanceTests.RavenDB\ServiceControl.Audit.AcceptanceTests.RavenDB.csproj" />
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
     <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj" />
-    <ProjectReference Include="..\ServiceControl.Audit.Persistence.InMemory\ServiceControl.Audit.Persistence.InMemory.csproj" />
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDB\ServiceControl.Audit.Persistence.RavenDB.csproj" />
     <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
     <ProjectReference Include="..\ServiceControl.Persistence.RavenDB\ServiceControl.Persistence.RavenDB.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
@@ -25,6 +25,11 @@
     <PackageReference Include="NUnit.Analyzers" />
     <PackageReference Include="NUnit3TestAdapter" />
     <PackageReference Include="Particular.Approvals" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\SharedEmbeddedServer.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\StopSharedDatabase.cs" />
   </ItemGroup>
 
 </Project>
