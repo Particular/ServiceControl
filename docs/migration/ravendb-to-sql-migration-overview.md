@@ -24,7 +24,7 @@ This covers the error instance only. The audit instance has no SQL persister, so
 - **No duplicates and no gaps**. Rows and the resume cursor, a marker of the last row copied, commit in one transaction, so a crash needs no reconciliation.
 - **Every identifier anything depends on is carried across**. The event log, historic retry operations and pending integration events are renumbered, because nothing references their keys.
 - **Refuse rather than half-migrate**. Every check runs before the first row moves, and a failure is a host that will not start.
-- **No silent loss**. A migration cannot end with a selected category still in progress or halted. Each one must be finished or explicitly abandoned. Abandoning is a deliberate choice, and an abandoned category lets the host open. Skipped rows are counted and reported. The one exception is rows RavenDB's own expiration deletes while the copy runs: they are never read, so they are not skips, and the recount is what tells them apart from a real loss. See [what does not come across](#what-does-not-come-across).
+- **No silent loss**. A migration cannot end with a selected category still in progress or halted. Each one must be finished or explicitly abandoned. Abandoning is a deliberate choice, and an abandoned category lets the host open. Skipped rows are counted and reported. The one exception is rows RavenDB's own expiration deletes while the copy runs: they are never read, so they are not skips, and a planned recount will tell them apart from a real loss. See [what does not come across](#what-does-not-come-across).
 - **Bounded impact on a live instance**. The copy is streamed, so memory does not track the size of the database, and a configurable pause sits between the batches of an optional category.
 - **Known before it starts, visible while it runs**. A dry run reports what will move and how long ServiceControl is closed, and every category transition is reported as it happens.
 - **Use existing functionality where possible**. Progress is planned to go through custom checks and the activity feed, so no new client or screen is needed.
@@ -142,7 +142,8 @@ flowchart TB
     D -->|"Yes"| F["Copy the required categories.<br/>The API is not listening."]
     F -->|"A required category halts"| V["Host stays closed.<br/>Fix the cause and restart,<br/>or abandon the category."]
     F -->|"Required categories settled"| G["ServiceControl opens.<br/>New failed messages go to SQL."]
-    G --> H["Copy the selected optional categories<br/>in the background, a pause between batches"]
+    G --> H["Copy the optional category, if selected,<br/>in the background, a pause between batches"]
+    H --> I["Verify row counts on both sides,<br/>category by category,<br/>then set Migration/Enabled = false and restart,<br/>which comes back through this same gate"]
 
     M -->|"Off"| N{"Any category<br/>outstanding?"}
     N -->|"No"| L["ServiceControl opens.<br/>RavenDB is not opened."]
@@ -153,7 +154,7 @@ flowchart TB
     Q -->|"Yes"| S["Host does not start.<br/>Names every outstanding category,<br/>its counts, and every route out."]
 ```
 
-The `Off` branch of that diagram, from node `N` down, is **planned**. Today `ServiceControl/Migration/Enabled=false` means only that the copy is not registered, and nothing inspects the checkpoint rows for outstanding categories.
+The `Off` branch of that diagram, from node `N` down, is **planned**. Today `ServiceControl/Migration/Enabled=false` means only that the copy is not registered on the main host. The one start that already inspects the checkpoint rows is an `--error-ingestion-only` worker's: it refuses while any category is unfinished, unless `ServiceControl/Migration/AllowIncompleteExit` is set.
 
 **Checked before a single row moves,** in this order:
 
@@ -170,7 +171,7 @@ The `Off` branch of that diagram, from node `N` down, is **planned**. Today `Ser
 
 ### Turning migration mode off is a gated startup too
 
-**Planned.** None of this section runs today. `ServiceControl/Migration/Enabled=false` currently means only that the copy is not registered: nothing reads `HasHostOpened`, nothing reads `ServiceControl/Migration/AllowIncompleteExit`, and no code path sets a category to `Abandoned`. What is already wired is the marker the gate will need, which is stamped on any host start over a database that holds checkpoint rows.
+**Planned.** None of this section runs today. `ServiceControl/Migration/Enabled=false` currently means only that the copy is not registered: nothing reads `HasHostOpened`, the main host does not read `ServiceControl/Migration/AllowIncompleteExit`, and no code path sets a category to `Abandoned`. The only reader of that setting today is the `--error-ingestion-only` start gate described above. What is already wired is the marker the gate will need, which is stamped on any host start over a database that holds checkpoint rows.
 
 *The right-hand branch above is the half a customer meets last and expects least, so it is worth reading before the migration starts rather than at the end of one.*
 
@@ -249,7 +250,7 @@ There are eighteen categories, seventeen required and one optional. Today only `
 - **Endpoint settings for two endpoint names that differ only in case merge onto one row on SQL Server**, because the collation of the name column decides the comparison and the default collation compares names without case, so one of the two settings is kept. It is the column's own collation that decides, not the database default, so a case-sensitive database whose name column was given a case-insensitive collation still merges. PostgreSQL keeps both. The dry run counts this one too, by asking SQL Server how the name column compares, though for unusual characters its count can differ from what the copy does.
 - **Event log items, historic retry operations and pending integration events are renumbered.** Their keys are database identities and nothing references them, so this is safe, but the old numbers do not survive.
 
-**Rows RavenDB deletes while the copy is running are an absence, not a skip.** Expiration only deletes a document carrying `@expires`, and only two kinds ever get one: a resolved or archived failed message, and an event log item (`ExpirationManager.cs:34,41`). A failed message loses its expiry whenever it becomes unresolved or retry-issued again: when it fails again, when it is unarchived, or when a retry is issued. The exception is a message that failed again after being archived or resolved while the instance ran version 6.18 or earlier: it kept its old expiry, and upgrading does not remove it, so a few unresolved messages can still expire during the copy. Apart from those, only the archived and resolved messages category and the event log can shrink underneath the copier. Archived and resolved messages copy in the background, where the window is longest. The event log's 7 days copy while ServiceControl is closed, and at the default 14-day event retention even the oldest of them is a week from expiring on a source that stopped recently, so the sweep reaches the window only on a source left stopped for days before the move. A document the sweep removes before the stream reaches it is never read, so it is counted nowhere. The copier counts each category before it starts, and if the copy comes up short of that count it counts the source again: rows that no longer exist were removed by RavenDB and are an absence, while rows that still exist but were never read halt the category. The dry run's count is a snapshot rather than a promise, and the recount is what shows that RavenDB removed rows while the copy ran.
+**Rows RavenDB deletes while the copy is running are an absence, not a skip.** Expiration only deletes a document carrying `@expires`, and only two kinds ever get one: a resolved or archived failed message, and an event log item (`ExpirationManager.cs:34,41`). A failed message loses its expiry whenever it becomes unresolved or retry-issued again: when it fails again, when it is unarchived, or when a retry is issued. The exception is a message that failed again after being archived or resolved while the instance ran version 6.18 or earlier: it kept its old expiry, and upgrading does not remove it, so a few unresolved messages can still expire during the copy. Apart from those, only the archived and resolved messages category and the event log can shrink underneath the copier. Archived and resolved messages copy in the background, where the window is longest. The event log's 7 days copy while ServiceControl is closed, and at the default 14-day event retention even the oldest of them is a week from expiring on a source that stopped recently, so the sweep reaches the window only on a source left stopped for days before the move. A document the sweep removes before the stream reaches it is never read, so it is counted nowhere. The copier counts each category before it starts. **Planned:** if the copy comes up short of that count it will count the source again: rows that no longer exist were removed by RavenDB and are an absence, while rows that still exist but were never read halt the category. Today any shortfall halts the category. The dry run's count is a snapshot rather than a promise, and the recount is what will show that RavenDB removed rows while the copy ran.
 
 **A category can finish with a small amount of loss and still count as complete.** A few skipped rows in a large table leave the category in `CompleteWithErrors`, which blocks nothing. Its skipped count is printed and the ids of the skipped rows are written to the log, so while the RavenDB database still exists you can go and look at exactly what did not make it.
 
@@ -280,7 +281,7 @@ That window closes the moment ServiceControl opens. From then on new failed mess
 ## Batching and throttling
 
 - Batch size comes from the provider: SQL Server divides its own parameter budget by the column count, PostgreSQL uses a flat 50 rows.
-- The throttle is a pause between batches, defaulting to 100 ms and set by `ServiceControl/Migration/ThrottlePauseMilliseconds`. It applies to optional categories only, and not to the first batch of one. A required category is never throttled, because it runs with ServiceControl closed and nothing is competing with it.
+- The throttle is a pause between batches, defaulting to 100 ms and set by `ServiceControl/Migration/ThrottlePauseMilliseconds`. It applies to the optional category only, and not to its first batch. A required category is never throttled, because it runs with ServiceControl closed and nothing is competing with it.
 - **Raising** the pause is what relieves a copy competing with production, because the pause is how long the engine waits between batches. Turning `ServiceControl/Migration/Enabled` off is not a remedy: while a selected category is unfinished the host refuses to start, unless you abandon that category. Because both implemented categories are required, the pause does nothing at all today.
 
 ## Checkpointing and resume
@@ -407,7 +408,7 @@ It counts, before anything moves, the rows the target says it would skip or merg
 - Subscriptions whose message type or transport address exceeds the 200-character key limit
 - Rows already past their retention period, and rows missing a value SQL requires
 
-It reports no duration for the optional categories, and nothing about load on the source.
+It reports no duration for the optional category, and nothing about load on the source.
 
 ### When you can run the read-only commands
 
