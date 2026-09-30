@@ -3,7 +3,6 @@ namespace ServiceControl.Audit.Persistence.EFCore.Infrastructure;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.Unicode;
 
 static class MessageHeaders
 {
@@ -13,7 +12,8 @@ static class MessageHeaders
     public static Dictionary<string, string> Read(string headersJson) =>
         JsonSerializer.Deserialize(headersJson, context.DictionaryStringString) ?? [];
 
-    static readonly HeadersJsonContext context = new(new JsonSerializerOptions { Encoder = JavaScriptEncoder.Create(UnicodeRanges.All) });
+    // The relaxed encoder is only unsafe for JSON embedded in HTML, and this JSON never reaches HTML. Full text search needs apostrophes, plus signs and non-ASCII letters written as they are, or it cannot find the words next to them.
+    static readonly HeadersJsonContext context = new(new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
 }
 
 [JsonSerializable(typeof(Dictionary<string, string>))]

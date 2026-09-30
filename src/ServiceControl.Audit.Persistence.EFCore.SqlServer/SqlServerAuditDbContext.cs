@@ -7,14 +7,6 @@ using ServiceControl.Audit.Persistence.EFCore.Entities;
 
 public class SqlServerAuditDbContext(DbContextOptions<SqlServerAuditDbContext> options) : AuditDbContext(options)
 {
-    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
-    {
-        base.ConfigureConventions(configurationBuilder);
-
-        configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
-        configurationBuilder.Properties<DateTime?>().HaveConversion<NullableUtcDateTimeConverter>();
-    }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

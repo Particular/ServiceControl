@@ -18,26 +18,16 @@ static class MessageQueries
     {
         if (timeSentRange?.From is { } from)
         {
-            var fromUtc = AsUtc(from);
-            source = source.Where(message => message.TimeSent >= fromUtc);
+            source = source.Where(message => message.TimeSent >= from);
         }
 
         if (timeSentRange?.To is { } to)
         {
-            var toUtc = AsUtc(to);
-            source = source.Where(message => message.TimeSent <= toUtc);
+            source = source.Where(message => message.TimeSent <= to);
         }
 
         return source;
     }
-
-    static DateTime AsUtc(DateTime value) => value.Kind switch
-    {
-        DateTimeKind.Utc => value,
-        DateTimeKind.Local => value.ToUniversalTime(),
-        DateTimeKind.Unspecified => DateTime.SpecifyKind(value, DateTimeKind.Utc),
-        _ => throw new ArgumentOutOfRangeException(nameof(value), value.Kind, "Unknown DateTimeKind")
-    };
 
     public static IOrderedQueryable<AuditMessageEntity> Sort(this IQueryable<AuditMessageEntity> source, SortInfo? sortInfo)
     {

@@ -1,23 +1,26 @@
 namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Monitoring;
     using NServiceBus;
     using NUnit.Framework;
+    using ServiceControl.Audit.Auditing.MessagesView;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Persistence.EFCore.EntityConfigurations;
 
     class EFQueryTests : EFPersistenceTestFixture
     {
-        [Test]
-        public async Task Filters_on_a_time_range_given_with_an_offset()
+        [TestCaseSource(nameof(TimeRangeRoutes))]
+        public async Task Filters_on_a_time_range_given_with_an_offset(Func<IAuditMessagesViewDataStore, DateTimeRange, CancellationToken, Task<QueryResult<IList<MessagesView>>>> route)
         {
-            await Ingest(MakeMessage());
+            await Ingest(MakeMessage(extraHeaders: new Dictionary<string, string> { [SearchableHeader] = SearchableWord }));
 
-            var inRange = await MessagesViewStore.GetMessages(true, new PagingInfo(), new SortInfo("time_sent", "desc"), new DateTimeRange("2026-09-01T12:00:00+02:00", "2026-09-01T12:45:00+02:00"));
-            var outOfRange = await MessagesViewStore.GetMessages(true, new PagingInfo(), new SortInfo("time_sent", "desc"), new DateTimeRange("2026-09-01T12:45:00+02:00"));
+            var inRange = await route(MessagesViewStore, new DateTimeRange("2026-09-01T12:00:00+02:00", "2026-09-01T12:45:00+02:00"), TestTimeoutCancellationToken);
+            var outOfRange = await route(MessagesViewStore, new DateTimeRange("2026-09-01T12:45:00+02:00"), TestTimeoutCancellationToken);
 
             using (Assert.EnterMultipleScope())
             {
@@ -26,12 +29,55 @@ namespace ServiceControl.Audit.Persistence.Tests
             }
         }
 
+        [TestCaseSource(nameof(TimeRangeRoutes))]
+        public async Task Filters_on_a_time_range_given_without_a_zone(Func<IAuditMessagesViewDataStore, DateTimeRange, CancellationToken, Task<QueryResult<IList<MessagesView>>>> route)
+        {
+            await Ingest(MakeMessage(extraHeaders: new Dictionary<string, string> { [SearchableHeader] = SearchableWord }));
+
+            var inRange = await route(MessagesViewStore, new DateTimeRange("2026-09-01T10:15:00", "2026-09-01T10:45:00"), TestTimeoutCancellationToken);
+            var outOfRange = await route(MessagesViewStore, new DateTimeRange("2026-09-01T10:45:00"), TestTimeoutCancellationToken);
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(inRange.Results, Has.Count.EqualTo(1));
+                Assert.That(outOfRange.Results, Is.Empty);
+            }
+        }
+
+        static IEnumerable<TestCaseData> TimeRangeRoutes()
+        {
+            yield return Route(nameof(IAuditMessagesViewDataStore.GetMessages),
+                (store, range, token) => store.GetMessages(true, new PagingInfo(), new SortInfo("time_sent", "desc"), range, token));
+            yield return Route(nameof(IAuditMessagesViewDataStore.QueryMessages),
+                (store, range, token) => store.QueryMessages(SearchableWord, new PagingInfo(), new SortInfo("time_sent", "desc"), range, token));
+            yield return Route(nameof(IAuditMessagesViewDataStore.QueryMessagesByReceivingEndpointAndKeyword),
+                (store, range, token) => store.QueryMessagesByReceivingEndpointAndKeyword("Receiver", SearchableWord, new PagingInfo(), new SortInfo("time_sent", "desc"), range, token));
+            yield return Route(nameof(IAuditMessagesViewDataStore.QueryMessagesByReceivingEndpoint),
+                (store, range, token) => store.QueryMessagesByReceivingEndpoint(true, "Receiver", new PagingInfo(), new SortInfo("time_sent", "desc"), range, token));
+        }
+
+        static TestCaseData Route(string name, Func<IAuditMessagesViewDataStore, DateTimeRange, CancellationToken, Task<QueryResult<IList<MessagesView>>>> route) =>
+            new TestCaseData(route).SetArgDisplayNames(name);
+
+        const string SearchableHeader = "Order.Reference";
+        const string SearchableWord = "meridian";
+
         [Test]
         public async Task Finds_a_header_value_that_is_not_ascii()
         {
             await Ingest(MakeMessage(extraHeaders: new Dictionary<string, string> { ["Shipping.Step"] = "Bestellprüfung" }));
 
             var found = await MessagesViewStore.QueryMessages("Bestellprüfung", new PagingInfo(), new SortInfo("time_sent", "desc"));
+
+            Assert.That(found.Results, Has.Count.EqualTo(1));
+        }
+
+        [Test]
+        public async Task Finds_a_word_that_is_quoted_in_single_quotes()
+        {
+            await Ingest(MakeMessage(extraHeaders: new Dictionary<string, string> { ["Faults.Message"] = "The given key 'CustomerId' was not present in the dictionary." }));
+
+            var found = await MessagesViewStore.QueryMessages("CustomerId", new PagingInfo(), new SortInfo("time_sent", "desc"));
 
             Assert.That(found.Results, Has.Count.EqualTo(1));
         }
@@ -89,7 +135,17 @@ namespace ServiceControl.Audit.Persistence.Tests
         {
             var value = new string('x', 384) + "😀" + new string('y', 100);
 
-            Assert.That(ColumnLengths.FitToIndex(value), Does.StartWith(new string('x', 384) + "#"));
+            Assert.That(ColumnLengths.FitToIndex(value), Does.StartWith(new string('x', 384) + "~"));
+        }
+
+        [Test]
+        public async Task Reports_an_over_length_conversation_id_that_needs_no_url_encoding()
+        {
+            await Ingest(MakeMessage(conversationId: new string('c', 600)));
+
+            var view = (await MessagesViewStore.GetMessages(true, new PagingInfo(), new SortInfo("time_sent", "desc"))).Results.Single();
+
+            Assert.That(Uri.EscapeDataString(view.ConversationId), Is.EqualTo(view.ConversationId), "ServicePulse puts the conversation id into a URL path without encoding it");
         }
     }
 }

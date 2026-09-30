@@ -42,8 +42,8 @@ sealed class AuditIngestionUnitOfWork(IServiceScopeFactory scopeFactory, EFPersi
             UniqueMessageId = uniqueMessageId,
             MessageId = GetMetadata<string>(metadata, "MessageId"),
             MessageType = GetMetadata<string>(metadata, "MessageType"),
-            TimeSent = AsUtc(GetMetadata<DateTime?>(metadata, "TimeSent")),
-            ProcessedAt = AsUtc(processedMessage.ProcessedAt),
+            TimeSent = GetMetadata<DateTime?>(metadata, "TimeSent"),
+            ProcessedAt = processedMessage.ProcessedAt,
             ConversationId = GetMetadata<string>(metadata, "ConversationId"),
             IsSystemMessage = GetMetadata<bool>(metadata, "IsSystemMessage"),
             Status = GetMetadata<bool>(metadata, "IsRetried") ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful,
@@ -74,9 +74,9 @@ sealed class AuditIngestionUnitOfWork(IServiceScopeFactory scopeFactory, EFPersi
             SagaId = sagaSnapshot.SagaId,
             SagaType = sagaSnapshot.SagaType,
             Status = sagaSnapshot.Status,
-            StartTime = AsUtc(sagaSnapshot.StartTime),
-            FinishTime = AsUtc(sagaSnapshot.FinishTime),
-            ProcessedAt = AsUtc(sagaSnapshot.ProcessedAt),
+            StartTime = sagaSnapshot.StartTime,
+            FinishTime = sagaSnapshot.FinishTime,
+            ProcessedAt = sagaSnapshot.ProcessedAt,
             Endpoint = sagaSnapshot.Endpoint,
             StateAfterChange = sagaSnapshot.StateAfterChange,
             InitiatingMessageJson = SagaSnapshotJson.Write(sagaSnapshot.InitiatingMessage),
@@ -111,16 +111,6 @@ sealed class AuditIngestionUnitOfWork(IServiceScopeFactory scopeFactory, EFPersi
         uniqueMessageId is null ? Guid.NewGuid()
         : Guid.TryParse(uniqueMessageId, out var parsed) ? parsed
         : DeterministicGuid.MakeId(uniqueMessageId);
-
-    static DateTime AsUtc(DateTime value) => value.Kind switch
-    {
-        DateTimeKind.Utc => value,
-        DateTimeKind.Local => value.ToUniversalTime(),
-        DateTimeKind.Unspecified => DateTime.SpecifyKind(value, DateTimeKind.Utc),
-        _ => throw new ArgumentOutOfRangeException(nameof(value), value.Kind, "Unknown DateTimeKind")
-    };
-
-    static DateTime? AsUtc(DateTime? value) => value is { } dateTime ? AsUtc(dateTime) : null;
 
     static T? GetMetadata<T>(Dictionary<string, object> metadata, string key) =>
         metadata.TryGetValue(key, out var value) && value is T typed ? typed : default;

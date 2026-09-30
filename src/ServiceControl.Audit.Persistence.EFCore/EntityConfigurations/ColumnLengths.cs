@@ -22,6 +22,6 @@ static class ColumnLengths
             prefixLength--;
         }
 
-        return $"{value[..prefixLength]}#{hash}";
+        return $"{value[..prefixLength]}~{hash}";
     }
 }

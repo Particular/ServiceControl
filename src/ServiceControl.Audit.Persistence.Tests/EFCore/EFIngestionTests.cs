@@ -49,6 +49,60 @@ namespace ServiceControl.Audit.Persistence.Tests
         }
 
         [Test]
+        public async Task Stores_message_times_of_local_and_unspecified_kinds_as_utc()
+        {
+            var localTimeSent = new DateTime(2026, 9, 1, 8, 30, 0, DateTimeKind.Local);
+            var unspecifiedProcessedAt = new DateTime(2026, 9, 1, 9, 0, 0, DateTimeKind.Unspecified);
+
+            var message = MakeMessage();
+            message.MessageMetadata["TimeSent"] = localTimeSent;
+            message.ProcessedAt = unspecifiedProcessedAt;
+
+            await Ingest(message);
+
+            var view = (await MessagesViewStore.GetMessages(true, new PagingInfo(), new SortInfo("time_sent", "desc"))).Results.Single();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(view.TimeSent, Is.EqualTo(localTimeSent.ToUniversalTime()));
+                Assert.That(view.TimeSent!.Value.Kind, Is.EqualTo(DateTimeKind.Utc));
+                Assert.That(view.ProcessedAt, Is.EqualTo(unspecifiedProcessedAt));
+                Assert.That(view.ProcessedAt.Kind, Is.EqualTo(DateTimeKind.Utc));
+            }
+        }
+
+        [Test]
+        public async Task Stores_saga_times_of_local_and_unspecified_kinds_as_utc()
+        {
+            var sagaId = Guid.NewGuid();
+            var localStartTime = new DateTime(2026, 9, 1, 8, 30, 0, DateTimeKind.Local);
+            var unspecifiedFinishTime = new DateTime(2026, 9, 1, 9, 0, 0, DateTimeKind.Unspecified);
+
+            await using (var unitOfWork = await StartAuditUnitOfWork(1))
+            {
+                await unitOfWork.RecordSagaSnapshot(new SagaSnapshot
+                {
+                    SagaId = sagaId,
+                    SagaType = "Shipping.ShippingPolicy",
+                    Status = SagaStateChangeStatus.Updated,
+                    StartTime = localStartTime,
+                    FinishTime = unspecifiedFinishTime
+                });
+                await unitOfWork.Complete();
+            }
+
+            var change = (await SagaHistoryStore.QuerySagaHistoryById(sagaId)).Results.Changes.Single();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(change.StartTime, Is.EqualTo(localStartTime.ToUniversalTime()));
+                Assert.That(change.StartTime.Kind, Is.EqualTo(DateTimeKind.Utc));
+                Assert.That(change.FinishTime, Is.EqualTo(unspecifiedFinishTime));
+                Assert.That(change.FinishTime.Kind, Is.EqualTo(DateTimeKind.Utc));
+            }
+        }
+
+        [Test]
         public async Task Stores_a_redelivered_message_again()
         {
             var message = MakeMessage();
