@@ -30,6 +30,7 @@
             services.AddSingleton<ISagaHistoryDataStore>(sp => sp.GetRequiredService<RavenAuditDataStore>());
             services.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenAuditIngestionUnitOfWorkFactory>();
             services.AddSingleton<IFailedAuditStorage, RavenFailedAuditStorage>();
+            services.AddSingleton<IEnvironmentDataProvider, RavenEnvironmentDataProvider>();
             services.AddSingleton<MinimumRequiredStorageState>();
         }
 
