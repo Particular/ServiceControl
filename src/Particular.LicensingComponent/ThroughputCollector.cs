@@ -69,6 +69,8 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
 
         await foreach (var endpointData in GetDistinctEndpointData(null, cancellationToken))
         {
+            var dailyThroughput = endpointData.ThroughputData.DailyThroughput();
+
             var endpointSummary = new EndpointThroughputSummary
             {
                 Name = endpointData.Name,
@@ -77,9 +79,9 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
                 ScopeHash = string.IsNullOrEmpty(endpointData.Scope) ? null : OneWayHasher.CalculateOneWayHash(endpointData.Scope),
                 UserIndicator = endpointData.UserIndicator ?? (endpointData.IsKnownEndpoint ? Contracts.UserIndicator.NServiceBusEndpoint.ToString() : string.Empty),
                 IsKnownEndpoint = endpointData.IsKnownEndpoint,
-                MaxDailyThroughput = endpointData.ThroughputData.MaxDailyThroughput(),
-                MonthlyThroughput = endpointData.ThroughputData.MonthlyThroughput(),
-                AverageMonthlyThroughput = endpointData.ThroughputData.AverageMonthlyThroughput()
+                MaxDailyThroughput = dailyThroughput.MaxDailyThroughput(),
+                MonthlyThroughput = dailyThroughput.MonthlyThroughput(),
+                AverageMonthlyThroughput = dailyThroughput.AverageMonthlyThroughput()
             };
 
             endpointSummaries.Add(endpointSummary);
@@ -144,7 +146,7 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
                 NoDataOrSendOnly = endpointData.ThroughputData.Sum() == 0,
                 ScopeHash = string.IsNullOrEmpty(endpointData.Scope) ? "" : OneWayHasher.CalculateOneWayHash(endpointData.Scope),
                 Scope = masker.Mask(endpointData.Scope ?? ""),
-                Throughput = endpointData.ThroughputData.MaxDailyThroughput(),
+                Throughput = endpointData.ThroughputData.DailyThroughput().MaxDailyThroughput(),
                 DailyThroughputFromAudit = endpointData.ThroughputData.FromSource(ThroughputSource.Audit).Select(s => new DailyThroughput { DateUTC = s.DateUTC, MessageCount = s.MessageCount }).ToArray(),
                 DailyThroughputFromMonitoring = endpointData.ThroughputData.FromSource(ThroughputSource.Monitoring).Select(s => new DailyThroughput { DateUTC = s.DateUTC, MessageCount = s.MessageCount }).ToArray(),
                 DailyThroughputFromBroker = notAnNsbEndpoint ? [] : endpointData.ThroughputData.FromSource(ThroughputSource.Broker).Select(s => new DailyThroughput { DateUTC = s.DateUTC, MessageCount = s.MessageCount }).ToArray(),
