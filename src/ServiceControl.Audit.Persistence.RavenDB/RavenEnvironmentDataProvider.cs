@@ -9,7 +9,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB
     using Raven.Client.ServerWide.Operations;
     using static ServiceControl.Audit.Persistence.EnvironmentDatum;
 
-    class RavenEnvironmentDataProvider(DatabaseConfiguration databaseConfiguration, IRavenDocumentStoreProvider documentStoreProvider) : IEnvironmentDataProvider
+    class RavenEnvironmentDataProvider(DatabaseConfiguration databaseConfiguration, IRavenDocumentStoreProvider documentStoreProvider, IFailedAuditStorage failedAuditStorage) : IEnvironmentDataProvider
     {
         public IEnumerable<EnvironmentDatum> GetData() =>
         [
@@ -22,6 +22,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB
             Value("Storage.ServiceObjective", () => "NotApplicable"),
             Deferred("Storage.SizeGB", SizeGB),
             Deferred("Storage.MessageCount", ProcessedMessageCount),
+            Deferred("Health.FailedImports", async cancellationToken => (await failedAuditStorage.GetFailedAuditsCount(cancellationToken)).ToString(CultureInfo.InvariantCulture)),
             Value("Storage.FullTextSearch", () => databaseConfiguration.EnableFullTextSearch ? "Enabled" : "Disabled")
         ];
 

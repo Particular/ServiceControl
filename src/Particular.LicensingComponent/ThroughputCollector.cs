@@ -214,8 +214,8 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
             var windowStart = report.StartTime.UtcDateTime.Date;
             var windowEnd = ((DateTime)reportEndDate).Date;
 
-            EmitIngestion(report, "Ingestion.Error", IngestionHistory.ErrorSource, ingestionHistory, windowStart, windowEnd, includeStorage: true);
-            EmitIngestion(report, "Audit.Ingestion", IngestionHistory.AuditSource, ingestionHistory, windowStart, windowEnd, includeStorage: false);
+            EmitIngestion(report, "Ingestion.Error", "Health.Error", IngestionHistory.ErrorSource, ingestionHistory, windowStart, windowEnd, includeStorage: true);
+            EmitIngestion(report, "Audit.Ingestion", "Audit.Health", IngestionHistory.AuditSource, ingestionHistory, windowStart, windowEnd, includeStorage: false);
         }
 
         foreach (var environmentDataProvider in environmentDataProviders)
@@ -254,7 +254,7 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
         return throughputReport;
     }
 
-    static void EmitIngestion(Report.Report report, string prefix, string source, IngestionHistory ingestionHistory, DateTime windowStart, DateTime windowEnd, bool includeStorage)
+    static void EmitIngestion(Report.Report report, string prefix, string healthPrefix, string source, IngestionHistory ingestionHistory, DateTime windowStart, DateTime windowEnd, bool includeStorage)
     {
         var days = ingestionHistory.Days
             .Where(day => day.Source == source && day.Date >= windowStart && day.Date <= windowEnd)
@@ -276,7 +276,21 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
         {
             environmentData[$"{prefix}.PeakHourStorageMsPerMessage"] = Math.Round(peakDay.PeakHourStorageSeconds / peakDay.PeakHourMessages * 1000, MidpointRounding.AwayFromZero).ToString("F0", CultureInfo.InvariantCulture);
         }
+
+        environmentData[$"{healthPrefix}.Restarts"] = days.Sum(day => day.Restarts).ToString(CultureInfo.InvariantCulture);
+
+        var lagKnown = days.Sum(day => day.LagKnownMessages);
+
+        if (lagKnown > 0)
+        {
+            environmentData[$"{healthPrefix}.LagOver1MinPercent"] = LagPercent(days.Sum(day => day.LagOverOneMinuteMessages), lagKnown);
+            environmentData[$"{healthPrefix}.LagOver10MinPercent"] = LagPercent(days.Sum(day => day.LagOverTenMinutesMessages), lagKnown);
+            environmentData[$"{healthPrefix}.LagOver60MinPercent"] = LagPercent(days.Sum(day => day.LagOverSixtyMinutesMessages), lagKnown);
+        }
     }
+
+    static string LagPercent(long over, long known) =>
+        Math.Round(over / (double)known * 100, MidpointRounding.AwayFromZero).ToString("F0", CultureInfo.InvariantCulture);
 
     async IAsyncEnumerable<EndpointData> GetDistinctEndpointData(DateOnly? throughputMaxDate, [EnumeratorCancellation] CancellationToken cancellationToken)
     {

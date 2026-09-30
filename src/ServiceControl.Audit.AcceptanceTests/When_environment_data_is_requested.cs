@@ -42,6 +42,7 @@ namespace ServiceControl.Audit.AcceptanceTests
                 Assert.That(double.Parse((string)environmentData["Storage.SizeGB"], CultureInfo.InvariantCulture), Is.GreaterThanOrEqualTo(0));
                 Assert.That((string)environmentData["Storage.MessageCount"], Is.EqualTo("0"));
                 Assert.That((string)environmentData["Storage.ServerEdition"], Is.EqualTo("NotApplicable"));
+                Assert.That((string)environmentData["Health.FailedImports"], Is.EqualTo("0"));
                 Assert.That((string)environmentData["Host.Model"], Is.AnyOf("Container", "WindowsService", "Console"));
                 Assert.That((string)environmentData["Host.ProcessorCount"], Is.Not.Null.And.Not.Empty);
                 Assert.That((string)body["machine_id_hash"], Is.Not.Null.And.Not.Empty);

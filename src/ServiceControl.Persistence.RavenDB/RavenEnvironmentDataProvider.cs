@@ -30,6 +30,7 @@ class RavenEnvironmentDataProvider(RavenPersisterSettings settings, IRavenDocume
         Deferred("Storage.SizeGB", SizeGB),
         Deferred("Storage.MessageCount", FailedMessageCount),
         Deferred("Storage.UnresolvedFailedMessages", UnresolvedFailedMessages),
+        Deferred("Health.Error.FailedImports", FailedImports),
         Value("Storage.FullTextSearch", () => settings.EnableFullTextSearchOnBodies ? "Enabled" : "Disabled"),
         Value("Storage.BodyStorage.Type", () => "RavenAttachments"),
         Value("Storage.LogLevel", () => settings.LogsMode),
@@ -53,6 +54,16 @@ class RavenEnvironmentDataProvider(RavenPersisterSettings settings, IRavenDocume
         var statistics = await documentStore.Maintenance.SendAsync(new GetCollectionStatisticsOperation(), cancellationToken);
 
         return statistics.Collections.TryGetValue("FailedMessages", out var count)
+            ? count.ToString(CultureInfo.InvariantCulture)
+            : "0";
+    }
+
+    async ValueTask<string> FailedImports(CancellationToken cancellationToken)
+    {
+        var documentStore = await documentStoreProvider.GetDocumentStore(cancellationToken);
+        var statistics = await documentStore.Maintenance.SendAsync(new GetCollectionStatisticsOperation(), cancellationToken);
+
+        return statistics.Collections.TryGetValue("FailedErrorImports", out var count)
             ? count.ToString(CultureInfo.InvariantCulture)
             : "0";
     }

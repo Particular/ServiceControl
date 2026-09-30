@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.Implementation;
 
+using System;
 using System.Globalization;
 using Abstractions;
 using DbContexts;
@@ -37,6 +38,8 @@ class EFEnvironmentDataProvider(EFPersisterSettings settings, IDatabaseHostingPr
             Deferred("Storage.SizeGB", async cancellationToken => SizeGB((await Footprint(cancellationToken))?.SizeGB)),
             Deferred("Storage.MessageCount", async cancellationToken => Count((await Footprint(cancellationToken))?.MessageCount)),
             Deferred("Storage.UnresolvedFailedMessages", UnresolvedFailedMessages),
+            Deferred("Health.Error.FailedImports", FailedImports),
+            Deferred("Health.Error.RetentionBehindHours", RetentionBehindHours),
             Value("Storage.FullTextSearch", () => settings.EnableFullTextSearchOnBodies ? "Enabled" : "Disabled"),
             Value("Storage.BodyStorage.Type", () => BodyStorageType(settings.BodyStorage)),
             Value("Limits.MaxBodySizeToStore", () => settings.BodyStorage.MaxBodySizeToStore.ToString(CultureInfo.InvariantCulture)),
@@ -57,6 +60,33 @@ class EFEnvironmentDataProvider(EFPersisterSettings settings, IDatabaseHostingPr
         var count = await dbContext.Set<FailedMessageEntity>().CountAsync(m => m.Status == FailedMessageStatus.Unresolved, cancellationToken);
 
         return Count(count);
+    }
+
+    async ValueTask<string> FailedImports(CancellationToken cancellationToken)
+    {
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+
+        var count = await dbContext.Set<FailedErrorImportEntity>().CountAsync(cancellationToken);
+
+        return Count(count);
+    }
+
+    async ValueTask<string> RetentionBehindHours(CancellationToken cancellationToken)
+    {
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+
+        var oldest = await dbContext.Set<FailedMessageEntity>().MinAsync(m => (DateTime?)m.StatusChangedAt, cancellationToken);
+
+        if (oldest is null)
+        {
+            return Count(0);
+        }
+
+        var behind = DateTime.UtcNow - settings.ErrorRetentionPeriod - oldest.Value;
+
+        return Count(behind > TimeSpan.Zero ? (long)behind.TotalHours : 0);
     }
 
     static string SizeGB(double? sizeGB) =>

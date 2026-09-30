@@ -51,7 +51,7 @@ static class AuditEnvironmentDataAggregator
             }
         }
 
-        if (key == "Storage.MessageCount")
+        if (key is "Storage.MessageCount" or "Health.FailedImports")
         {
             var sum = SumOncePerDatabase(contributions, value => long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var count) ? count : null);
 

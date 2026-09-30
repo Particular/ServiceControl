@@ -96,7 +96,13 @@ public class IngestionHistoryCollectorHostedService(
         {
             if (state.Baselines.TryGetValue(apiUri, out var last))
             {
-                var delta = snapshot.ProcessStartUtc != last.ProcessStartUtc ? snapshot : Diff(snapshot, last);
+                var restarted = snapshot.ProcessStartUtc != last.ProcessStartUtc;
+                var delta = restarted ? snapshot : Diff(snapshot, last);
+
+                if (restarted)
+                {
+                    state.Restarts++;
+                }
 
                 state.HourMessages[now.Hour] += delta.Messages;
                 state.HourBusySeconds[now.Hour] += delta.BusySeconds;
@@ -160,6 +166,7 @@ public class IngestionHistoryCollectorHostedService(
         public long LagOverTenMinutes { get; set; }
         public long LagOverSixtyMinutes { get; set; }
         public long LagKnown { get; set; }
+        public long Restarts { get; set; }
         public Dictionary<string, IngestionCountersSnapshot> Baselines { get; } = [];
         public IngestionDay? Base { get; set; }
 
@@ -173,6 +180,7 @@ public class IngestionHistoryCollectorHostedService(
             LagOverTenMinutes = 0;
             LagOverSixtyMinutes = 0;
             LagKnown = 0;
+            Restarts = 0;
             Base = null;
         }
 
@@ -201,7 +209,10 @@ public class IngestionHistoryCollectorHostedService(
                 Base.LagOverOneMinuteMessages + LagOverOneMinute,
                 Base.LagOverTenMinutesMessages + LagOverTenMinutes,
                 Base.LagOverSixtyMinutesMessages + LagOverSixtyMinutes,
-                Base.LagKnownMessages + LagKnown);
+                Base.LagKnownMessages + LagKnown)
+            {
+                Restarts = Base.Restarts + Restarts
+            };
         }
     }
 

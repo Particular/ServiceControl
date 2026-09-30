@@ -290,9 +290,9 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
     {
         await DataStore.SaveAuditEnvironmentMetadata(new AuditEnvironmentMetadata(
         [
-            new Dictionary<string, string> { ["Storage.SizeGB"] = "10.0", ["Storage.MessageCount"] = "100", [AuditEnvironmentMetadata.DatabaseKey] = "server-a/db-1" },
-            new Dictionary<string, string> { ["Storage.SizeGB"] = "10.2", ["Storage.MessageCount"] = "90", [AuditEnvironmentMetadata.DatabaseKey] = "server-a/db-1" },
-            new Dictionary<string, string> { ["Storage.SizeGB"] = "5.0", ["Storage.MessageCount"] = "10" }
+            new Dictionary<string, string> { ["Storage.SizeGB"] = "10.0", ["Storage.MessageCount"] = "100", ["Health.FailedImports"] = "3", [AuditEnvironmentMetadata.DatabaseKey] = "server-a/db-1" },
+            new Dictionary<string, string> { ["Storage.SizeGB"] = "10.2", ["Storage.MessageCount"] = "90", ["Health.FailedImports"] = "3", [AuditEnvironmentMetadata.DatabaseKey] = "server-a/db-1" },
+            new Dictionary<string, string> { ["Storage.SizeGB"] = "5.0", ["Storage.MessageCount"] = "10", ["Health.FailedImports"] = "4" }
         ]));
 
         var report = await ThroughputCollector.GenerateThroughputReport("", null);
@@ -302,6 +302,7 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
         {
             Assert.That(environmentData, Does.ContainKey("Audit.Storage.SizeGB").WithValue("15.2"));
             Assert.That(environmentData, Does.ContainKey("Audit.Storage.MessageCount").WithValue("110"));
+            Assert.That(environmentData, Does.ContainKey("Audit.Health.FailedImports").WithValue("7"));
             Assert.That(environmentData.Keys, Has.None.StartsWith("Audit._"));
         }
     }
@@ -322,7 +323,7 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
         var outsideWindow = reportEndDate.AddDays(-10);
         await DataStore.SaveIngestionHistory(new IngestionHistory(
         [
-            new IngestionDay(insideWindow, IngestionHistory.ErrorSource, 2400, 600, 1800, 60, 0, 0, 0, 0),
+            new IngestionDay(insideWindow, IngestionHistory.ErrorSource, 2400, 600, 1800, 60, 100, 50, 10, 1000) { Restarts = 2 },
             new IngestionDay(insideWindow, IngestionHistory.AuditSource, 1200, 300, 360, 0, 0, 0, 0, 0),
             new IngestionDay(outsideWindow, IngestionHistory.ErrorSource, 999999, 99999, 3600, 999, 0, 0, 0, 0)
         ]));
@@ -340,6 +341,12 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
             Assert.That(environmentData, Does.ContainKey("Audit.Ingestion.PeakHourMessages").WithValue("300"));
             Assert.That(environmentData, Does.ContainKey("Audit.Ingestion.PeakHourBusyPercent").WithValue("10"));
             Assert.That(environmentData, Does.Not.ContainKey("Audit.Ingestion.PeakHourStorageMsPerMessage"));
+            Assert.That(environmentData, Does.ContainKey("Health.Error.Restarts").WithValue("2"));
+            Assert.That(environmentData, Does.ContainKey("Health.Error.LagOver1MinPercent").WithValue("10"));
+            Assert.That(environmentData, Does.ContainKey("Health.Error.LagOver10MinPercent").WithValue("5"));
+            Assert.That(environmentData, Does.ContainKey("Health.Error.LagOver60MinPercent").WithValue("1"));
+            Assert.That(environmentData, Does.ContainKey("Audit.Health.Restarts").WithValue("0"));
+            Assert.That(environmentData, Does.Not.ContainKey("Audit.Health.LagOver1MinPercent"));
         }
     }
 
