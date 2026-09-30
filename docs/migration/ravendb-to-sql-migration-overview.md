@@ -160,11 +160,11 @@ flowchart TB
 - Licensing report masks
 - The uploaded licensed endpoint details file, which nothing recomputes: skipping it means the customer re-downloads it from the licence portal and uploads it again
 - Subscriptions
+- The last 7 days of the event log, so the ServicePulse activity feed shows what led up to the failures you are about to act on the moment ServiceControl opens. The 7 days count back from the newest event in RavenDB rather than from when the copy runs, so a restart copies the same window. Older events are not copied and age out of RavenDB on their own: at the default 14-day event retention that is at most another 7 days of history
 
 ### Optional
 
 - Archived and resolved failed messages: the biggest category by far, and most of the copying time
-- The event log, without which the ServicePulse activity feed starts empty
 - Custom checks, which cost almost nothing to skip because every check re-reports on its next interval
 - Failed error imports, the record of errors that could not be ingested
 - Group comments, **copied last of everything**, after archived and resolved messages. A comment survives only once the failed messages its group is built from have arrived, so on a large archive the comments are the last thing to appear. An empty comment field partway through a migration is the copy still running, not data loss
@@ -181,7 +181,7 @@ flowchart TB
 
 ## What does not come across
 
-**Whole categories are never copied.** Which ones, and why nothing needs them, is the [not migrated](#not-migrated) list above. Anything in an optional category you did not select is also never copied, and nothing later goes back for it.
+**Whole categories are never copied.** Which ones, and why nothing needs them, is the [not migrated](#not-migrated) list above. Anything in an optional category you did not select is also never copied, and nothing later goes back for it. Neither is an event log item raised more than 7 days before the newest one, which falls outside the [required](#required) event log window rather than being skipped.
 
 **Rows skipped one at a time, and counted.** Each of these shows up in the skipped count for its category, broken out by reason, so you can see how much went and why:
 
@@ -201,7 +201,7 @@ flowchart TB
 - **Endpoint settings for two endpoint names that differ only in case merge onto one row on SQL Server**, because SQL Server's default collation compares names without case, so one of the two settings is kept. PostgreSQL keeps both, and so does a SQL Server database created with a case-sensitive collation. The dry run counts this one too, by asking SQL Server how the name column compares, though for unusual characters its count can differ from what the copy does.
 - **Event log items and historic retry operations are renumbered.** Their keys are database identities and nothing references them, so this is safe, but the old numbers do not survive.
 
-**Rows RavenDB deletes while the copy is running are an absence, not a skip.** Expiration only deletes a document carrying `@expires`, and only two kinds ever get one: a resolved or archived failed message, and an event log item (`ExpirationManager.cs:34,41`). Everything in the [required](#required) set is therefore safe, since unresolved and retry-issued messages have their expiry removed when the retry is issued, so only the archived and resolved messages category and the event log category can shrink underneath the copier, and both copy in the background where the window is longest. A document the sweep removes before the stream reaches it is never read, so it is counted nowhere: the counts are of rows the source actually handed over, and there is no expected total to fall short of. It is the same population as the retention skip above, and which of the two it becomes is a race with the sweep. The consequence to know is that the dry run's count is a snapshot rather than a promise, and for those two categories the difference between it and the final copied count is not attributed to anything.
+**Rows RavenDB deletes while the copy is running are an absence, not a skip.** Expiration only deletes a document carrying `@expires`, and only two kinds ever get one: a resolved or archived failed message, and an event log item (`ExpirationManager.cs:34,41`). Unresolved and retry-issued messages have their expiry removed when the retry is issued, so only the archived and resolved messages category and the event log can shrink underneath the copier. Archived and resolved messages copy in the background, where the window is longest. The event log's 7 days copy while ServiceControl is closed, and at the default 14-day event retention even the oldest of them is a week from expiring on a source that stopped recently, so the sweep reaches the window only on a source left stopped for days before the move. A document the sweep removes before the stream reaches it is never read, so it is counted nowhere: the counts are of rows the source actually handed over, and there is no expected total to fall short of. It is the same population as the retention skip above, and which of the two it becomes is a race with the sweep. The consequence to know is that the dry run's count is a snapshot rather than a promise, and for those two categories the difference between it and the final copied count is not attributed to anything.
 
 **A category can finish with a small amount of loss and still count as complete.** A few skipped rows in a large table leave the category in a *complete with errors* state, which blocks nothing. Its skipped count is printed and the ids of the skipped rows are written to the log, so while the RavenDB database still exists you can go and look at exactly what did not make it.
 
