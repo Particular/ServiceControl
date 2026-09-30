@@ -60,22 +60,40 @@ public class MessageArchiver : IArchiveMessages
 
         // ── Start in-memory tracking ──
         await archivingManager.StartArchiving(operationEntity, cancellationToken);
+
         // ── Batch loop ──
-        string[] batchIds;
-        do
+        // Bound the live query by the original batch budget; later arrivals remain for another operation.
+        while (operationEntity.CurrentBatch < operationEntity.NumberOfBatches
+               && operationEntity.NumberOfMessagesProcessed < operationEntity.TotalNumberOfMessages)
         {
+            string[] batchIds;
+            int affectedRows;
+
             await using var batchScope = scopeFactory.CreateAsyncScope();
             var batchDbContext = batchScope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
 
             operationEntity = await batchDbContext.ArchiveOperations.FindAsync([groupId, ArchiveType.FailureGroup, ArchiveOperationType.Archive], cancellationToken)
                               ?? throw new InvalidOperationException($"No in progress Archive Operation found for {groupId}");
 
-            batchIds = await UpdateGroupStatusAsync(batchDbContext, groupId, FailedMessageStatus.Unresolved, FailedMessageStatus.Archived, batchSize, cancellationToken);
-            await archivingManager.BatchArchived(groupId, ArchiveType.FailureGroup, batchIds.Length, cancellationToken);
+            (batchIds, affectedRows) = await UpdateGroupStatusAsync(batchDbContext, groupId, FailedMessageStatus.Unresolved, FailedMessageStatus.Archived, batchSize, cancellationToken);
+
+            if (batchIds.Length == 0)
+            {
+                // No group members left in the source status; the plan cannot make progress.
+                break;
+            }
+
+            await archivingManager.BatchArchived(groupId, ArchiveType.FailureGroup, affectedRows, cancellationToken);
 
             // Update progress tracking
             operationEntity.CurrentBatch++;
-            operationEntity.NumberOfMessagesProcessed += batchIds.Length;
+            operationEntity.NumberOfMessagesProcessed += affectedRows;
+
+            if (operationEntity.NumberOfMessagesProcessed > operationEntity.TotalNumberOfMessages)
+            {
+                operationEntity.TotalNumberOfMessages = operationEntity.NumberOfMessagesProcessed;
+            }
+
             await batchDbContext.SaveChangesAsync(cancellationToken);
 
             // Raise batch domain event
@@ -85,9 +103,22 @@ public class MessageArchiver : IArchiveMessages
             AuditArchivedMessages(MessageActionKind.Archive, Permissions.ErrorRecoverabilityGroupsArchive, auditUser, auditOperationId, batchIds);
 
             logger.LogInformation("Archiving of {MessageCount} messages from group {GroupId} completed", batchIds.Length, groupId);
-        } while (batchIds.Length >= batchSize);
+
+            if (batchIds.Length < batchSize)
+            {
+                // Partial fetched batch: fewer source-status members remain than a full batch.
+                break;
+            }
+        }
 
         // ── Finalize ──
+        if (operationEntity.NumberOfMessagesProcessed > operationEntity.TotalNumberOfMessages)
+        {
+            // Only reachable for a resumed row persisted by a version that did not reconcile the
+            // two counts and whose plan was already complete, so no batch ran to widen it.
+            operationEntity.TotalNumberOfMessages = operationEntity.NumberOfMessagesProcessed;
+        }
+
         logger.LogInformation("Archiving of group {GroupId} is complete", groupId);
         await archivingManager.ArchiveOperationFinalizing(groupId, ArchiveType.FailureGroup, cancellationToken);
         await archivingManager.ArchiveOperationCompleted(groupId, ArchiveType.FailureGroup, cancellationToken);
@@ -139,21 +170,39 @@ public class MessageArchiver : IArchiveMessages
         }
 
         await unarchivingManager.StartUnarchiving(operationEntity, cancellationToken);
-        string[] batchIds;
-        do
+
+        // ── Batch loop ──
+        // Bound the live query by the original batch budget; later arrivals remain for another operation.
+        while (operationEntity.CurrentBatch < operationEntity.NumberOfBatches
+               && operationEntity.NumberOfMessagesProcessed < operationEntity.TotalNumberOfMessages)
         {
+            string[] batchIds;
+            int affectedRows;
+
             await using var batchScope = scopeFactory.CreateAsyncScope();
             var batchDbContext = batchScope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
             operationEntity = await batchDbContext.ArchiveOperations.FindAsync([groupId, ArchiveType.FailureGroup, ArchiveOperationType.UnArchive], cancellationToken)
                               ?? throw new InvalidOperationException($"No in progress Unarchive Operation found for {groupId}");
 
-            batchIds = await UpdateGroupStatusAsync(batchDbContext, groupId, FailedMessageStatus.Archived, FailedMessageStatus.Unresolved, batchSize, cancellationToken);
+            (batchIds, affectedRows) = await UpdateGroupStatusAsync(batchDbContext, groupId, FailedMessageStatus.Archived, FailedMessageStatus.Unresolved, batchSize, cancellationToken);
 
-            await unarchivingManager.BatchUnarchived(groupId, ArchiveType.FailureGroup, batchIds.Length, cancellationToken);
+            if (batchIds.Length == 0)
+            {
+                // No group members left in the source status; the plan cannot make progress.
+                break;
+            }
+
+            await unarchivingManager.BatchUnarchived(groupId, ArchiveType.FailureGroup, affectedRows, cancellationToken);
 
             // Update progress tracking
             operationEntity.CurrentBatch++;
-            operationEntity.NumberOfMessagesProcessed += batchIds.Length;
+            operationEntity.NumberOfMessagesProcessed += affectedRows;
+
+            if (operationEntity.NumberOfMessagesProcessed > operationEntity.TotalNumberOfMessages)
+            {
+                operationEntity.TotalNumberOfMessages = operationEntity.NumberOfMessagesProcessed;
+            }
+
             await batchDbContext.SaveChangesAsync(cancellationToken);
 
             // Raise batch domain event
@@ -163,9 +212,22 @@ public class MessageArchiver : IArchiveMessages
             AuditArchivedMessages(MessageActionKind.Unarchive, Permissions.ErrorRecoverabilityGroupsUnarchive, auditUser, auditOperationId, batchIds);
 
             logger.LogInformation("Unarchiving of {MessageCount} messages from group {GroupId} completed", batchIds.Length, groupId);
-        } while (batchIds.Length >= batchSize);
+
+            if (batchIds.Length < batchSize)
+            {
+                // Partial fetched batch: fewer source-status members remain than a full batch.
+                break;
+            }
+        }
 
         // ── Finalize ──
+        if (operationEntity.NumberOfMessagesProcessed > operationEntity.TotalNumberOfMessages)
+        {
+            // Only reachable for a resumed row persisted by a version that did not reconcile the
+            // two counts and whose plan was already complete, so no batch ran to widen it.
+            operationEntity.TotalNumberOfMessages = operationEntity.NumberOfMessagesProcessed;
+        }
+
         logger.LogInformation("Unarchiving of group {GroupId} is complete", groupId);
         await unarchivingManager.UnarchiveOperationFinalizing(groupId, ArchiveType.FailureGroup, cancellationToken);
         await unarchivingManager.UnarchiveOperationCompleted(groupId, ArchiveType.FailureGroup, cancellationToken);
@@ -278,26 +340,27 @@ public class MessageArchiver : IArchiveMessages
         }
     }
 
-    async Task<string[]> UpdateGroupStatusAsync(ServiceControlDbContext dbContext, string groupId, FailedMessageStatus fromStatus, FailedMessageStatus toStatus, int batchSize, CancellationToken cancellationToken)
+    async Task<(string[] BatchIds, int AffectedRows)> UpdateGroupStatusAsync(ServiceControlDbContext dbContext, string groupId, FailedMessageStatus fromStatus, FailedMessageStatus toStatus, int batchSize, CancellationToken cancellationToken)
     {
         var batchIds = await GetNextBatch(dbContext, groupId, fromStatus, batchSize)
             .Select(x => x.UniqueMessageId)
             .ToListAsync(cancellationToken);
 
+        var affectedRows = 0;
         if (batchIds.Count > 0)
         {
             var now = timeProvider.GetUtcNow().UtcDateTime;
 
-            // Bulk status change with re-asserted status filter
-            await dbContext.FailedMessages
-                .Where(fm => batchIds.Contains(fm.UniqueMessageId))
+            // A fetched row may have changed status before the update.
+            affectedRows = await dbContext.FailedMessages
+                .Where(fm => batchIds.Contains(fm.UniqueMessageId) && fm.Status == fromStatus)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(fm => fm.Status, toStatus)
                     .SetProperty(fm => fm.StatusChangedAt, now)
                     .SetProperty(fm => fm.LastModified, now), cancellationToken);
         }
 
-        return batchIds.Select(id => id.ToString()).ToArray();
+        return (batchIds.Select(id => id.ToString()).ToArray(), affectedRows);
     }
 
     static async Task<(int count, string groupName)> GetGroupDetails(

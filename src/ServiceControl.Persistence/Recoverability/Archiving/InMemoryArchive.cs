@@ -46,6 +46,12 @@
 
         public Task Start(CancellationToken cancellationToken = default)
         {
+            if (NumberOfMessagesArchived > TotalNumberOfMessages)
+            {
+                // Reconcile progress from an older persisted operation.
+                TotalNumberOfMessages = NumberOfMessagesArchived;
+            }
+
             ArchiveState = ArchiveState.ArchiveStarted;
             CompletionTime = null;
             operationMetrics?.Started();
@@ -63,6 +69,12 @@
         {
             ArchiveState = ArchiveState.ArchiveProgressing;
             NumberOfMessagesArchived += numberOfMessagesArchivedInBatch;
+
+            if (NumberOfMessagesArchived > TotalNumberOfMessages)
+            {
+                TotalNumberOfMessages = NumberOfMessagesArchived;
+            }
+
             CurrentBatch++;
             Last = timeProvider.GetUtcNow().UtcDateTime;
             operationMetrics?.BatchCompleted(numberOfMessagesArchivedInBatch);
