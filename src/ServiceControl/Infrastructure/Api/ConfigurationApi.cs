@@ -207,6 +207,57 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
         return await Task.WhenAll(tasks);
     }
 
+    public async Task<RemoteIngestionCounters[]> GetRemoteIngestionCounters(CancellationToken cancellationToken = default)
+    {
+        var tasks = settings.RemoteInstances
+            .Select(async remote =>
+            {
+                RemoteIngestionCounterValues counters = null;
+                HttpClient httpClient = httpClientFactory.CreateClient(remote.InstanceId);
+
+                try
+                {
+                    using var response = await httpClient.GetAsync("/api/environment", cancellationToken);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        await using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                        var body = await JsonNode.ParseAsync(stream, cancellationToken: cancellationToken);
+
+                        if (body?.AsObject().TryGetPropertyValue("ingestion_counters", out var node) == true && node is JsonObject countersObject)
+                        {
+                            counters = new RemoteIngestionCounterValues
+                            {
+                                ProcessStartUtc = countersObject["process_start_utc"]!.GetValue<DateTime>(),
+                                MessagesTotal = countersObject["messages_total"]!.GetValue<long>(),
+                                BusySecondsTotal = countersObject["busy_seconds_total"]!.GetValue<double>(),
+                                StorageSecondsTotal = countersObject["storage_seconds_total"]!.GetValue<double>(),
+                                LagOverOneMinuteMessages = countersObject["lag_over_one_minute_messages"]!.GetValue<long>(),
+                                LagOverTenMinutesMessages = countersObject["lag_over_ten_minutes_messages"]!.GetValue<long>(),
+                                LagOverSixtyMinutesMessages = countersObject["lag_over_sixty_minutes_messages"]!.GetValue<long>(),
+                                LagKnownMessages = countersObject["lag_known_messages"]!.GetValue<long>()
+                            };
+                        }
+                    }
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception)
+                {
+                }
+
+                return new RemoteIngestionCounters
+                {
+                    ApiUri = remote.BaseAddress,
+                    Counters = counters
+                };
+            });
+
+        return await Task.WhenAll(tasks);
+    }
+
     async Task<HashedStorageIdentity> LocalStorageIdentity(CancellationToken cancellationToken)
     {
         var provider = storageIdentityProviders.FirstOrDefault();

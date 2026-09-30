@@ -9,6 +9,7 @@ namespace ServiceControl.Audit.UnitTests.Infrastructure
     using ServiceControl.Audit.Infrastructure.WebApi;
     using ServiceControl.Audit.Persistence;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.Ingestion;
 
     [TestFixture]
     class EnvironmentControllerTests
@@ -20,7 +21,7 @@ namespace ServiceControl.Audit.UnitTests.Infrastructure
             [
                 new Provider(EnvironmentDatum.Value("Storage.Type", () => "RavenDB")),
                 new Provider(EnvironmentDatum.Value("Host.ProcessorCount", () => "8"))
-            ], [], NullLogger<EnvironmentController>.Instance);
+            ], [], Counters(), NullLogger<EnvironmentController>.Instance);
 
             var result = await controller.Environment();
 
@@ -40,7 +41,7 @@ namespace ServiceControl.Audit.UnitTests.Infrastructure
                 new Provider(
                     EnvironmentDatum.Value("Storage.Type", () => "RavenDB"),
                     EnvironmentDatum.Deferred("Storage.ServerVersion", _ => throw new InvalidOperationException("server down")))
-            ], [], NullLogger<EnvironmentController>.Instance);
+            ], [], Counters(), NullLogger<EnvironmentController>.Instance);
 
             var result = await controller.Environment();
 
@@ -59,7 +60,7 @@ namespace ServiceControl.Audit.UnitTests.Infrastructure
             [
                 new ThrowingProvider(),
                 new Provider(EnvironmentDatum.Value("Host.ProcessorCount", () => "8"))
-            ], [], NullLogger<EnvironmentController>.Instance);
+            ], [], Counters(), NullLogger<EnvironmentController>.Instance);
 
             var result = await controller.Environment();
 
@@ -83,7 +84,7 @@ namespace ServiceControl.Audit.UnitTests.Infrastructure
                     cancellationToken.ThrowIfCancellationRequested();
                     return new ValueTask<string>("unreached");
                 }))
-            ], [], NullLogger<EnvironmentController>.Instance);
+            ], [], Counters(), NullLogger<EnvironmentController>.Instance);
 
             Assert.ThrowsAsync<OperationCanceledException>(() => controller.Environment(cancellationTokenSource.Token));
         }
@@ -94,6 +95,7 @@ namespace ServiceControl.Audit.UnitTests.Infrastructure
             var controller = new EnvironmentController(
                 [new Provider(EnvironmentDatum.Value("Storage.Type", () => "RavenDB"))],
                 [new IdentityProvider(new StorageIdentity("RavenDB", "http://server:8080", "audit", null))],
+                Counters(),
                 NullLogger<EnvironmentController>.Instance);
 
             var result = await controller.Environment();
@@ -116,6 +118,7 @@ namespace ServiceControl.Audit.UnitTests.Infrastructure
             var controller = new EnvironmentController(
                 [new Provider(EnvironmentDatum.Value("Storage.Type", () => "RavenDB"))],
                 [new ThrowingIdentityProvider()],
+                Counters(),
                 NullLogger<EnvironmentController>.Instance);
 
             var result = await controller.Environment();
@@ -127,6 +130,8 @@ namespace ServiceControl.Audit.UnitTests.Infrastructure
                 Assert.That(response.EnvironmentData, Does.ContainKey("Storage.Type"));
             }
         }
+
+        static IngestionCounters Counters() => new(TimeProvider.System);
 
         class Provider(params EnvironmentDatum[] data) : IEnvironmentDataProvider
         {
