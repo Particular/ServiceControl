@@ -48,7 +48,7 @@ static class ThroughputDataExtensions
 
     public static MonthlyThroughput[] MonthlyThroughput(this Dictionary<DateOnly, long> dailyThroughput) => [
         ..dailyThroughput
-        .GroupBy(kvp => $"{kvp.Key:yyyy-MM}", kvp => kvp.Value)
+        .GroupBy(kvp => kvp.Key.ToString("yyyy-MM", CultureInfo.InvariantCulture), kvp => kvp.Value)
         .Select(group => new MonthlyThroughput(group.Key, group.Sum()))
     ];
 
