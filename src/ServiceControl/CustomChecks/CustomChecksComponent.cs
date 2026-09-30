@@ -6,6 +6,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Particular.ServiceControl;
+    using PlatformHealth;
     using ServiceBus.Management.Infrastructure.Settings;
     using Transports;
 
@@ -34,6 +35,7 @@
                 hostBuilder.Services.AddPlatformConnectionProvider<CustomChecksPlatformConnectionDetailsProvider>();
             }
             hostBuilder.Services.AddSingleton<CustomCheckResultProcessor>();
+            hostBuilder.Services.AddSingleton<PlatformHealthState>();
         }
     }
 }

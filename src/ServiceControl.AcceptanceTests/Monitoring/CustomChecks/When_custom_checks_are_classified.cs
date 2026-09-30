@@ -11,6 +11,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Api.Contracts;
     using CustomCheckView = global::ServiceControl.Contracts.CustomChecks.CustomCheckView;
     using CheckStatus = global::ServiceControl.Persistence.Status;
 
@@ -28,6 +29,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
 
             CustomCheckView internalCheck = null;
             CustomCheckView endpointCheck = null;
+            PlatformHealthView platformHealth = null;
             string wireBody = null;
 
             await Define<Context>()
@@ -47,7 +49,12 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
                         wireBody = await raw.Content.ReadAsStringAsync();
                     }
 
-                    return internalCheck != null && endpointCheck != null && wireBody != null;
+                    if (internalCheck != null && endpointCheck != null && platformHealth == null)
+                    {
+                        platformHealth = await this.TryGet<PlatformHealthView>("/api/platform-health");
+                    }
+
+                    return internalCheck != null && endpointCheck != null && wireBody != null && platformHealth != null;
                 })
                 .Run();
 
@@ -58,6 +65,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
 
                 Assert.That(endpointCheck, Is.Not.Null);
                 Assert.That(endpointCheck.Internal, Is.False);
+                Assert.That(platformHealth.Alerts, Has.None.Matches<PlatformHealthAlert>(alert => alert.CheckId == "MyCustomCheckId"));
 
                 // What the wire actually carries:
                 Assert.That(wireBody, Does.Contain("\"internal\":true"), "internal checks must render internal:true on the wire");

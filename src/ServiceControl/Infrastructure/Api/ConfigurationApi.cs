@@ -44,6 +44,7 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
             ArchivedGroupsUrl = baseUrl + "errors/groups/{classifier?}",
             GetArchiveGroup = baseUrl + "archive/groups/id/{groupId}",
             MyRoutesUrl = baseUrl + "my/routes",
+            PlatformHealth = baseUrl + "platform-health",
         };
 
         return Task.FromResult(model);
