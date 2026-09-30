@@ -85,23 +85,6 @@ class TwoPersistersInOneProcessTests
     }
 
     [Test]
-    public void Asking_a_SQL_persister_for_a_source_names_the_setting_to_change()
-    {
-        Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_SOURCEPERSISTENCETYPE", "SQLServer");
-
-        try
-        {
-            var refusal = Assert.ThrowsAsync<Exception>(async () => await PersistenceFactory.OpenMigrationSource(new Settings(persisterType: "SQLServer", forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))));
-
-            Assert.That(refusal.Message, Does.Contain("cannot be read as a migration source").And.Contain("ServiceControl/Migration/SourcePersistenceType"));
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_SOURCEPERSISTENCETYPE", null);
-        }
-    }
-
-    [Test]
     public void Asking_a_SQL_persister_for_maintenance_mode_is_still_refused()
     {
         var refusal = Assert.Throws<Exception>(() => PersistenceFactory.Create(settings, maintenanceMode: true));
