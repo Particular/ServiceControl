@@ -49,7 +49,7 @@
             catch (Exception ex)
             {
                 var customCheckType = check.GetType();
-                var reason = $"`{customCheckType}` implementation failed to run.";
+                var reason = $"`{customCheckType}` implementation failed to run. {ex.Message}";
                 result = CheckResult.Failed(reason);
                 logger.LogError(ex, "`{CustomCheckType}` implementation failed to run", customCheckType);
             }
