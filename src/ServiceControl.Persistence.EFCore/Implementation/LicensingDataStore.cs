@@ -309,6 +309,12 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
     public Task SaveAuditEnvironmentMetadata(AuditEnvironmentMetadata auditEnvironmentMetadata, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((context, token) => context.StoreSetting(SettingKeys.AuditEnvironmentMetadata, auditEnvironmentMetadata, token), cancellationToken);
 
+    public Task<IngestionHistory?> GetIngestionHistory(CancellationToken cancellationToken = default) =>
+        ExecuteWithDbContext((context, token) => context.GetSetting<IngestionHistory>(SettingKeys.IngestionHistory, token), cancellationToken);
+
+    public Task SaveIngestionHistory(IngestionHistory ingestionHistory, CancellationToken cancellationToken = default) =>
+        ExecuteWithDbContext((context, token) => context.StoreSetting(SettingKeys.IngestionHistory, ingestionHistory, token), cancellationToken);
+
     public Task<List<string>> GetReportMasks(CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (context, token) =>
             await context.GetSetting<List<string>>(SettingKeys.ReportMasks, token) ?? [], cancellationToken);

@@ -15,6 +15,7 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
     BrokerMetadata brokerMetadata = new(null, []);
     AuditServiceMetadata auditServiceMetadata = new([], []);
     AuditEnvironmentMetadata? auditEnvironmentMetadata;
+    IngestionHistory? ingestionHistory;
     List<string> reportMasks = [];
     LicensedEndpointDetails? endpointDetails = null;
 
@@ -173,6 +174,14 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
     public Task SaveAuditEnvironmentMetadata(AuditEnvironmentMetadata auditEnvironmentMetadata, CancellationToken cancellationToken = default)
     {
         this.auditEnvironmentMetadata = auditEnvironmentMetadata;
+        return Task.CompletedTask;
+    }
+
+    public Task<IngestionHistory?> GetIngestionHistory(CancellationToken cancellationToken = default) => Task.FromResult(ingestionHistory);
+
+    public Task SaveIngestionHistory(IngestionHistory ingestionHistory, CancellationToken cancellationToken = default)
+    {
+        this.ingestionHistory = ingestionHistory;
         return Task.CompletedTask;
     }
 

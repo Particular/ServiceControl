@@ -1,5 +1,6 @@
 ﻿namespace Particular.LicensingComponent.UnitTests;
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -311,6 +312,43 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
         var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData.Keys, Has.None.StartsWith("Audit.Storage."));
+    }
+
+    [Test]
+    public async Task Should_report_ingestion_rates_from_days_inside_the_report_window()
+    {
+        var reportEndDate = new DateTime(2026, 9, 30, 0, 0, 0, DateTimeKind.Utc);
+        var insideWindow = reportEndDate.AddDays(-1);
+        var outsideWindow = reportEndDate.AddDays(-10);
+        await DataStore.SaveIngestionHistory(new IngestionHistory(
+        [
+            new IngestionDay(insideWindow, IngestionHistory.ErrorSource, 2400, 600, 1800, 60, 0, 0, 0, 0),
+            new IngestionDay(insideWindow, IngestionHistory.AuditSource, 1200, 300, 360, 0, 0, 0, 0, 0),
+            new IngestionDay(outsideWindow, IngestionHistory.ErrorSource, 999999, 99999, 3600, 999, 0, 0, 0, 0)
+        ]));
+
+        var report = await ThroughputCollector.GenerateThroughputReport("", reportEndDate);
+
+        var environmentData = report.ReportData.EnvironmentInformation.EnvironmentData;
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(environmentData, Does.ContainKey("Ingestion.Error.AvgDailyMessages").WithValue("2400"));
+            Assert.That(environmentData, Does.ContainKey("Ingestion.Error.PeakHourMessages").WithValue("600"));
+            Assert.That(environmentData, Does.ContainKey("Ingestion.Error.PeakHourBusyPercent").WithValue("50"));
+            Assert.That(environmentData, Does.ContainKey("Ingestion.Error.PeakHourStorageMsPerMessage").WithValue("100"));
+            Assert.That(environmentData, Does.ContainKey("Audit.Ingestion.AvgDailyMessages").WithValue("1200"));
+            Assert.That(environmentData, Does.ContainKey("Audit.Ingestion.PeakHourMessages").WithValue("300"));
+            Assert.That(environmentData, Does.ContainKey("Audit.Ingestion.PeakHourBusyPercent").WithValue("10"));
+            Assert.That(environmentData, Does.Not.ContainKey("Audit.Ingestion.PeakHourStorageMsPerMessage"));
+        }
+    }
+
+    [Test]
+    public async Task Should_leave_ingestion_rates_out_when_never_collected()
+    {
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
+
+        Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData.Keys, Has.None.StartsWith("Ingestion."));
     }
 
     [Test]

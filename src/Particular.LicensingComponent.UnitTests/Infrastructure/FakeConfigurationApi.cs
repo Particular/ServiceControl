@@ -11,6 +11,8 @@
         public Task<object> GetConfig(CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<RemoteEnvironment[]> GetRemoteEnvironments(CancellationToken cancellationToken = default) => throw new NotImplementedException();
+
+        public Task<RemoteIngestionCounters[]> GetRemoteIngestionCounters(CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 }

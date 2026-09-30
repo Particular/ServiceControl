@@ -23,6 +23,7 @@ class LicensingDataStore(
     internal const string ThroughputTimeSeriesName = "INC: throughput data";
     const string AuditServiceMetadataDocumentId = "AuditServiceMetadata";
     const string AuditEnvironmentMetadataDocumentId = "AuditEnvironmentMetadata";
+    const string IngestionHistoryDocumentId = "IngestionHistory";
     const string BrokerMetadataDocumentId = "BrokerMetadata";
     const string ReportMasksDocumentId = "ReportMasks";
     const string LicencedEndpointDetailsDocumentId = "LicensedEndpointDetails";
@@ -333,6 +334,23 @@ class LicensingDataStore(
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
         await session.StoreAsync(auditEnvironmentMetadata, AuditEnvironmentMetadataDocumentId, cancellationToken);
+        await session.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<IngestionHistory?> GetIngestionHistory(CancellationToken cancellationToken = default)
+    {
+        var store = await storeProvider.GetDocumentStore(cancellationToken);
+        using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
+
+        return await session.LoadAsync<IngestionHistory>(IngestionHistoryDocumentId, cancellationToken);
+    }
+
+    public async Task SaveIngestionHistory(IngestionHistory ingestionHistory, CancellationToken cancellationToken = default)
+    {
+        var store = await storeProvider.GetDocumentStore(cancellationToken);
+        using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
+
+        await session.StoreAsync(ingestionHistory, IngestionHistoryDocumentId, cancellationToken);
         await session.SaveChangesAsync(cancellationToken);
     }
 

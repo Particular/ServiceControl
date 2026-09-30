@@ -13,5 +13,7 @@
         Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken = default);
 
         Task<RemoteEnvironment[]> GetRemoteEnvironments(CancellationToken cancellationToken = default);
+
+        Task<RemoteIngestionCounters[]> GetRemoteIngestionCounters(CancellationToken cancellationToken = default);
     }
 }

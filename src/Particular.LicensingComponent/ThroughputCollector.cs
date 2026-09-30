@@ -207,6 +207,17 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
             }
         }
 
+        var ingestionHistory = await dataStore.GetIngestionHistory(cancellationToken);
+
+        if (ingestionHistory is not null)
+        {
+            var windowStart = report.StartTime.UtcDateTime.Date;
+            var windowEnd = ((DateTime)reportEndDate).Date;
+
+            EmitIngestion(report, "Ingestion.Error", IngestionHistory.ErrorSource, ingestionHistory, windowStart, windowEnd, includeStorage: true);
+            EmitIngestion(report, "Audit.Ingestion", IngestionHistory.AuditSource, ingestionHistory, windowStart, windowEnd, includeStorage: false);
+        }
+
         foreach (var environmentDataProvider in environmentDataProviders)
         {
             EnvironmentDatum[] environmentData;
@@ -241,6 +252,30 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
 
         var throughputReport = new SignedReport { ReportData = report, Signature = Signature.SignReport(report) };
         return throughputReport;
+    }
+
+    static void EmitIngestion(Report.Report report, string prefix, string source, IngestionHistory ingestionHistory, DateTime windowStart, DateTime windowEnd, bool includeStorage)
+    {
+        var days = ingestionHistory.Days
+            .Where(day => day.Source == source && day.Date >= windowStart && day.Date <= windowEnd)
+            .ToArray();
+
+        if (days.Length == 0)
+        {
+            return;
+        }
+
+        var environmentData = report.EnvironmentInformation.EnvironmentData;
+        var peakDay = days.MaxBy(day => day.PeakHourMessages)!;
+
+        environmentData[$"{prefix}.AvgDailyMessages"] = Math.Round(days.Average(day => day.Messages), MidpointRounding.AwayFromZero).ToString("F0", CultureInfo.InvariantCulture);
+        environmentData[$"{prefix}.PeakHourMessages"] = peakDay.PeakHourMessages.ToString(CultureInfo.InvariantCulture);
+        environmentData[$"{prefix}.PeakHourBusyPercent"] = Math.Min(100, Math.Round(peakDay.PeakHourBusySeconds / 3600 * 100, MidpointRounding.AwayFromZero)).ToString("F0", CultureInfo.InvariantCulture);
+
+        if (includeStorage && peakDay.PeakHourMessages > 0)
+        {
+            environmentData[$"{prefix}.PeakHourStorageMsPerMessage"] = Math.Round(peakDay.PeakHourStorageSeconds / peakDay.PeakHourMessages * 1000, MidpointRounding.AwayFromZero).ToString("F0", CultureInfo.InvariantCulture);
+        }
     }
 
     async IAsyncEnumerable<EndpointData> GetDistinctEndpointData(DateOnly? throughputMaxDate, [EnumeratorCancellation] CancellationToken cancellationToken)

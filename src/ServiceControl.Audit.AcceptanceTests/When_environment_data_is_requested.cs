@@ -1,5 +1,6 @@
 namespace ServiceControl.Audit.AcceptanceTests
 {
+    using System;
     using System.Globalization;
     using System.Text.Json.Nodes;
     using System.Threading.Tasks;
@@ -48,6 +49,9 @@ namespace ServiceControl.Audit.AcceptanceTests
                 Assert.That((string)storageIdentity["engine"], Is.Not.Null.And.Not.Empty);
                 Assert.That((string)storageIdentity["server_hash"], Has.Length.EqualTo(64));
                 Assert.That((string)storageIdentity["database_hash"], Has.Length.EqualTo(64));
+                Assert.That(body["ingestion_counters"], Is.Not.Null);
+                Assert.That((DateTime)body["ingestion_counters"]["process_start_utc"], Is.Not.EqualTo(default(DateTime)));
+                Assert.That((long)body["ingestion_counters"]["messages_total"], Is.GreaterThanOrEqualTo(0));
             }
         }
 

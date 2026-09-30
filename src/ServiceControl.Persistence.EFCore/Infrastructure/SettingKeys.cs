@@ -7,6 +7,7 @@ static class SettingKeys
     public const string BrokerMetadata = "BrokerMetadata";
     public const string AuditServiceMetadata = "AuditServiceMetadata";
     public const string AuditEnvironmentMetadata = "AuditEnvironmentMetadata";
+    public const string IngestionHistory = "IngestionHistory";
     public const string ReportMasks = "ReportMasks";
     public const string LicensedEndpointDetails = "LicensedEndpointDetails";
     public const string NotificationEmails = "NotificationEmails";
