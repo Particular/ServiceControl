@@ -27,7 +27,8 @@ class AuditPartitionCustomCheck(IServiceScopeFactory scopeFactory, IAuditPartiti
         {
             return CheckResult.Failed(
                 $"Audit partitions are provisioned only until {end:u}, less than {Threshold.TotalHours:0} hours ahead. " +
-                "The retention sweep provisions them and has not been able to. Audit ingestion stops once the last provisioned hour passes.");
+                "The retention sweep provisions them and has not been able to. Audit ingestion stops once the last provisioned hour passes. " +
+                "Check this instance's logs for the sweep failures, and run setup for this instance to provision partitions immediately.");
         }
 
         return CheckResult.Pass;

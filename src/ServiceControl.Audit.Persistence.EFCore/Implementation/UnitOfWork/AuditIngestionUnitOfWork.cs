@@ -23,7 +23,7 @@ sealed class AuditIngestionUnitOfWork(IServiceScopeFactory scopeFactory, EFPersi
         var headers = processedMessage.Headers;
         var metadata = processedMessage.MessageMetadata;
         var uniqueMessageId = ToGuid(processedMessage.UniqueMessageId);
-        var (bodyState, bodyText) = BodyClassifier.Classify(headers, body, settings.MaxBodySizeToStore);
+        var (bodyState, bodyText) = MessageBodyClassifier.Classify(headers, body, settings.MaxBodySizeToStore);
         var bodyId = AuditBodyId.Format(createdOn, uniqueMessageId);
 
         processedMessage.Id ??= bodyId;

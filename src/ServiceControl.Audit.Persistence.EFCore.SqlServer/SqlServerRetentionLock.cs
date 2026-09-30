@@ -5,9 +5,9 @@ using Microsoft.Data.SqlClient;
 using ServiceControl.Audit.Persistence.EFCore.Abstractions;
 using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
 
-// Unpooled, because a session lock would stay with a pooled connection after it returns to the pool.
 class SqlServerRetentionLock(EFPersisterSettings settings) : IRetentionLock
 {
+    // Unpooled, because a session lock would stay with a pooled connection after it returns to the pool.
     readonly string connectionString = new SqlConnectionStringBuilder(settings.ConnectionString) { Pooling = false }.ConnectionString;
     readonly string resource = RetentionLock.ResourceName(settings.Schema);
 

@@ -5,9 +5,9 @@ using Npgsql;
 using ServiceControl.Audit.Persistence.EFCore.Abstractions;
 using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
 
-// Unpooled, because a session lock would stay with a pooled connection after it returns to the pool.
 class PostgreSqlRetentionLock(EFPersisterSettings settings, ILogger<PostgreSqlRetentionLock> logger) : IRetentionLock
 {
+    // Unpooled, because a session lock would stay with a pooled connection after it returns to the pool.
     readonly string connectionString = new NpgsqlConnectionStringBuilder(settings.ConnectionString) { Pooling = false }.ConnectionString;
     readonly string resource = RetentionLock.ResourceName(settings.Schema);
 

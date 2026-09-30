@@ -4,7 +4,7 @@ using System.Text;
 using NServiceBus;
 using ServiceControl.Audit.Persistence.EFCore.Entities;
 
-static class BodyClassifier
+static class MessageBodyClassifier
 {
     public static (BodyState State, string? Text) Classify(IReadOnlyDictionary<string, string> headers, ReadOnlyMemory<byte> body, int maxBodySizeToStore)
     {
@@ -16,7 +16,7 @@ static class BodyClassifier
         var tooLarge = body.Length > maxBodySizeToStore;
         var notStored = tooLarge ? BodyState.TooLarge : BodyState.NotText;
 
-        if (!MayBeText(headers))
+        if (!MightBeText(headers))
         {
             return (notStored, null);
         }
@@ -43,7 +43,7 @@ static class BodyClassifier
         return (tooLarge ? BodyState.TooLarge : BodyState.Stored, text);
     }
 
-    static bool MayBeText(IReadOnlyDictionary<string, string> headers)
+    static bool MightBeText(IReadOnlyDictionary<string, string> headers)
     {
         if (headers.ContainsKey("Content-Encoding"))
         {
