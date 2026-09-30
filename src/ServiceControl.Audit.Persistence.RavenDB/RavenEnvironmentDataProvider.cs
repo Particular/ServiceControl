@@ -2,8 +2,10 @@ namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Threading;
     using System.Threading.Tasks;
+    using Raven.Client.Documents.Operations;
     using Raven.Client.ServerWide.Operations;
     using static ServiceControl.Audit.Persistence.EnvironmentDatum;
 
@@ -16,8 +18,30 @@ namespace ServiceControl.Audit.Persistence.RavenDB
             Value("Storage.Hosting", () => Hosting().Hosting),
             Deferred("Storage.ServerVersion", ServerVersion),
             Value("Storage.HostingSource", () => Hosting().Source),
+            Value("Storage.ServerEdition", () => "NotApplicable"),
+            Value("Storage.ServiceObjective", () => "NotApplicable"),
+            Deferred("Storage.SizeGB", SizeGB),
+            Deferred("Storage.MessageCount", ProcessedMessageCount),
             Value("Storage.FullTextSearch", () => databaseConfiguration.EnableFullTextSearch ? "Enabled" : "Disabled")
         ];
+
+        async ValueTask<string> SizeGB(CancellationToken cancellationToken)
+        {
+            var documentStore = await documentStoreProvider.GetDocumentStore(cancellationToken);
+            var statistics = await documentStore.Maintenance.ForDatabase(databaseConfiguration.Name).SendAsync(new GetStatisticsOperation(), cancellationToken);
+
+            return (statistics.SizeOnDisk.SizeInBytes / BytesPerGigabyte).ToString("F1", CultureInfo.InvariantCulture);
+        }
+
+        async ValueTask<string> ProcessedMessageCount(CancellationToken cancellationToken)
+        {
+            var documentStore = await documentStoreProvider.GetDocumentStore(cancellationToken);
+            var statistics = await documentStore.Maintenance.ForDatabase(databaseConfiguration.Name).SendAsync(new GetCollectionStatisticsOperation(), cancellationToken);
+
+            return statistics.Collections.TryGetValue("ProcessedMessages", out var count)
+                ? count.ToString(CultureInfo.InvariantCulture)
+                : "0";
+        }
 
         (string Hosting, string Source) Hosting()
         {
@@ -41,5 +65,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB
 
             return buildNumber.ProductVersion ?? DatabaseHostClassifier.Unknown;
         }
+
+        const double BytesPerGigabyte = 1024d * 1024 * 1024;
     }
 }

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Configuration;
 using Monitoring.HeartbeatMonitoring;
+using Particular.LicensingComponent.Contracts;
 using Particular.ServiceControl.Licensing;
 using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.Api;
@@ -176,8 +177,15 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
                                 }
                             }
 
+                            var remoteStorageIdentity = ReadStorageIdentity(body);
+
                             environmentData["SameMachine"] = AuditSharingClassifier.SameMachine(localMachineIdHash, ReadString(body, "machine_id_hash"));
-                            environmentData["DatabaseSharing"] = AuditSharingClassifier.DatabaseSharing(localStorageIdentity, ReadStorageIdentity(body));
+                            environmentData["DatabaseSharing"] = AuditSharingClassifier.DatabaseSharing(localStorageIdentity, remoteStorageIdentity);
+
+                            if (remoteStorageIdentity is not null)
+                            {
+                                environmentData[AuditEnvironmentMetadata.DatabaseKey] = $"{remoteStorageIdentity.ServerHash}/{remoteStorageIdentity.DatabaseHash}";
+                            }
                         }
                     }
                 }

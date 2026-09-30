@@ -24,7 +24,7 @@ class SqlServerDatabaseHostingProbe(SqlServerPersisterSettings settings, IServic
             await using var command = dbContext.Database.GetDbConnection().CreateCommand();
             // ProductVersion rather than ProductMajorVersion: the latter is documented as SQL Server
             // only and comes back null on Azure SQL Database, Managed Instance and Synapse.
-            command.CommandText = "SELECT SERVERPROPERTY('EngineEdition'), SERVERPROPERTY('ProductVersion'), DB_ID('rdsadmin')";
+            command.CommandText = "SELECT SERVERPROPERTY('EngineEdition'), SERVERPROPERTY('ProductVersion'), DB_ID('rdsadmin'), CAST(SERVERPROPERTY('Edition') AS nvarchar(128)), CAST(DATABASEPROPERTYEX(DB_NAME(), 'ServiceObjective') AS nvarchar(64))";
             command.CommandTimeout = ProbeTimeoutSeconds;
 
             await dbContext.Database.OpenConnectionAsync(cancellationToken);
@@ -40,7 +40,12 @@ class SqlServerDatabaseHostingProbe(SqlServerPersisterSettings settings, IServic
 
             var rds = !reader.IsDBNull(2);
 
-            return new DatabaseHosting(HostingFor(engineEdition, rds, ConfiguredHost), MajorVersion(reader), DatabaseHostingSource.Probe);
+            return new DatabaseHosting(
+                HostingFor(engineEdition, rds, ConfiguredHost),
+                MajorVersion(reader),
+                DatabaseHostingSource.Probe,
+                reader.IsDBNull(3) ? DatabaseHosting.NotApplicable : reader.GetString(3),
+                reader.IsDBNull(4) ? DatabaseHosting.NotApplicable : reader.GetString(4));
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
