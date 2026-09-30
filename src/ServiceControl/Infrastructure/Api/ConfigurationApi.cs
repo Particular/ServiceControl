@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Infrastructure.Api;
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -138,5 +139,56 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
         var results = await Task.WhenAll(tasks);
 
         return results;
+    }
+
+    public async Task<RemoteEnvironment[]> GetRemoteEnvironments(CancellationToken cancellationToken = default)
+    {
+        var tasks = settings.RemoteInstances
+            .Select(async remote =>
+            {
+                Dictionary<string, string> environmentData = null;
+                HttpClient httpClient = httpClientFactory.CreateClient(remote.InstanceId);
+
+                try
+                {
+                    using var response = await httpClient.GetAsync("/api/environment", cancellationToken);
+
+                    // An unreachable remote and one predating the endpoint both leave the data null,
+                    // and the report omits their keys rather than guessing.
+                    if (response.IsSuccessStatusCode)
+                    {
+                        await using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                        var body = await JsonNode.ParseAsync(stream, cancellationToken: cancellationToken);
+
+                        if (body?.AsObject().TryGetPropertyValue("environment_data", out var data) == true && data is JsonObject dataObject)
+                        {
+                            environmentData = [];
+
+                            foreach (var pair in dataObject)
+                            {
+                                if (pair.Value is not null)
+                                {
+                                    environmentData[pair.Key] = pair.Value.GetValue<string>();
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception)
+                {
+                }
+
+                return new RemoteEnvironment
+                {
+                    ApiUri = remote.BaseAddress,
+                    EnvironmentData = environmentData
+                };
+            });
+
+        return await Task.WhenAll(tasks);
     }
 }

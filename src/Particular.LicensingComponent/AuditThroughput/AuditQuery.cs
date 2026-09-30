@@ -114,6 +114,25 @@
             }
         }
 
+        public async Task<List<Dictionary<string, string>>> GetAuditEnvironments(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var remoteEnvironments = await configurationApi.GetRemoteEnvironments(cancellationToken);
+
+                return [.. remoteEnvironments.Where(remote => remote.EnvironmentData is not null).Select(remote => remote.EnvironmentData)];
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to get Audit Environments");
+                return [];
+            }
+        }
+
         public async Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken = default)
         {
             var connectionTestResult = new ConnectionSettingsTestResult { ConnectionSuccessful = true };

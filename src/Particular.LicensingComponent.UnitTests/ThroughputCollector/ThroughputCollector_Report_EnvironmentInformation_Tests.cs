@@ -228,4 +228,57 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
             Assert.That(environmentData, Does.Not.ContainKey("Audit.LiveInstances"));
         }
     }
+
+    [Test]
+    public async Task Should_report_audit_environment_data_aggregated_across_instances()
+    {
+        await DataStore.SaveAuditEnvironmentMetadata(new AuditEnvironmentMetadata(
+        [
+            new Dictionary<string, string>
+            {
+                ["Storage.Type"] = "RavenDB",
+                ["Storage.ServerVersion"] = "6.2.1",
+                ["Host.ProcessorCount"] = "4",
+                ["Host.AvailableMemoryGB"] = "16",
+                ["Host.OSPlatform"] = "Linux"
+            },
+            new Dictionary<string, string>
+            {
+                ["Storage.Type"] = "RavenDB",
+                ["Storage.ServerVersion"] = "5.4.200",
+                ["Host.ProcessorCount"] = "8",
+                ["Host.AvailableMemoryGB"] = "Unknown"
+            }
+        ]));
+
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
+
+        var environmentData = report.ReportData.EnvironmentInformation.EnvironmentData;
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(environmentData, Does.ContainKey("Audit.Storage.Type").WithValue("RavenDB"));
+            Assert.That(environmentData, Does.ContainKey("Audit.Storage.ServerVersion").WithValue("Mixed"));
+            Assert.That(environmentData, Does.ContainKey("Audit.Host.ProcessorCount").WithValue("8"));
+            Assert.That(environmentData, Does.ContainKey("Audit.Host.AvailableMemoryGB").WithValue("Mixed"));
+            Assert.That(environmentData, Does.ContainKey("Audit.Host.OSPlatform").WithValue("Linux"));
+        }
+    }
+
+    [Test]
+    public async Task Should_leave_audit_environment_data_out_when_it_was_never_collected()
+    {
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
+
+        Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData.Keys, Has.None.StartsWith("Audit.Storage."));
+    }
+
+    [Test]
+    public async Task Should_leave_audit_environment_data_out_when_no_instance_responded()
+    {
+        await DataStore.SaveAuditEnvironmentMetadata(new AuditEnvironmentMetadata([]));
+
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
+
+        Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData.Keys, Has.None.StartsWith("Audit.Storage."));
+    }
 }

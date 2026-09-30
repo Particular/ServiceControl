@@ -6,6 +6,7 @@ static class SettingKeys
     public const string TrialEndDate = "TrialEndDate";
     public const string BrokerMetadata = "BrokerMetadata";
     public const string AuditServiceMetadata = "AuditServiceMetadata";
+    public const string AuditEnvironmentMetadata = "AuditEnvironmentMetadata";
     public const string ReportMasks = "ReportMasks";
     public const string LicensedEndpointDetails = "LicensedEndpointDetails";
     public const string NotificationEmails = "NotificationEmails";

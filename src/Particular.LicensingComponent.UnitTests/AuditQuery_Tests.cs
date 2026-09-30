@@ -192,6 +192,8 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
         }
 
         public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+
+        public Task<RemoteEnvironment[]> GetRemoteEnvironments(CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 
     class ConfigurationApi_ReturningRemotes(params RemoteConfiguration[] remotes) : IConfigurationApi
@@ -201,6 +203,8 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
         public Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken = default) => Task.FromResult(remotes);
 
         public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+
+        public Task<RemoteEnvironment[]> GetRemoteEnvironments(CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 
     class ConfigurationApi_Configurable : IConfigurationApi
@@ -220,6 +224,8 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
         }
 
         public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+
+        public Task<RemoteEnvironment[]> GetRemoteEnvironments(CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
         public bool ReturnAuditConfig { get; set; }
         public string RemoteStatus { get; set; }

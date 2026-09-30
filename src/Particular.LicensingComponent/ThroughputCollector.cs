@@ -197,6 +197,16 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
             report.EnvironmentInformation.EnvironmentData["Audit.LiveInstances"] = liveAuditInstances.ToString(CultureInfo.InvariantCulture);
         }
 
+        var auditEnvironmentMetadata = await dataStore.GetAuditEnvironmentMetadata(cancellationToken);
+
+        if (auditEnvironmentMetadata is not null)
+        {
+            foreach (var (key, value) in AuditEnvironmentDataAggregator.Aggregate(auditEnvironmentMetadata.Instances))
+            {
+                report.EnvironmentInformation.EnvironmentData["Audit." + key] = value;
+            }
+        }
+
         foreach (var environmentDataProvider in environmentDataProviders)
         {
             EnvironmentDatum[] environmentData;

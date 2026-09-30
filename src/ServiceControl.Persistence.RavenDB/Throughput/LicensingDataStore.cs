@@ -22,6 +22,7 @@ class LicensingDataStore(
 {
     internal const string ThroughputTimeSeriesName = "INC: throughput data";
     const string AuditServiceMetadataDocumentId = "AuditServiceMetadata";
+    const string AuditEnvironmentMetadataDocumentId = "AuditEnvironmentMetadata";
     const string BrokerMetadataDocumentId = "BrokerMetadata";
     const string ReportMasksDocumentId = "ReportMasks";
     const string LicencedEndpointDetailsDocumentId = "LicensedEndpointDetails";
@@ -315,6 +316,23 @@ class LicensingDataStore(
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
         await session.StoreAsync(auditServiceMetadata, AuditServiceMetadataDocumentId, cancellationToken);
+        await session.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<AuditEnvironmentMetadata?> GetAuditEnvironmentMetadata(CancellationToken cancellationToken = default)
+    {
+        var store = await storeProvider.GetDocumentStore(cancellationToken);
+        using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
+
+        return await session.LoadAsync<AuditEnvironmentMetadata>(AuditEnvironmentMetadataDocumentId, cancellationToken);
+    }
+
+    public async Task SaveAuditEnvironmentMetadata(AuditEnvironmentMetadata auditEnvironmentMetadata, CancellationToken cancellationToken = default)
+    {
+        var store = await storeProvider.GetDocumentStore(cancellationToken);
+        using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
+
+        await session.StoreAsync(auditEnvironmentMetadata, AuditEnvironmentMetadataDocumentId, cancellationToken);
         await session.SaveChangesAsync(cancellationToken);
     }
 
