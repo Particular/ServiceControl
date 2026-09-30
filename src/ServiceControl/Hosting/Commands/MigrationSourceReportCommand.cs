@@ -18,7 +18,7 @@ namespace ServiceControl.Hosting.Commands
 
             Console.Out.WriteLine("ServiceControl migration source report");
             Console.Out.WriteLine();
-            Console.Out.WriteLine($"{"Source persistence",-20}: {settings.MigrationSourcePersistenceType}");
+            Console.Out.WriteLine($"{"Source persistence",-20}: {PersistenceFactory.MigrationSourcePersistenceType}");
             Console.Out.WriteLine($"{"Version",-20}: {description.Version}");
 
             foreach (var fact in description.Facts)

@@ -18,8 +18,6 @@ The source is a ServiceControl error instance on RavenDB. Keep its RavenDB setti
 | `ServiceControl/RavenDB/ClientCertificatePath` or `ServiceControl/RavenDB/ClientCertificateBase64`, with `ServiceControl/RavenDB/ClientCertificatePassword` | `SERVICECONTROL_RAVENDB_CLIENTCERTIFICATEPATH` and so on | A secured external server's client certificate |
 | `ServiceControl/ErrorRetentionPeriod` | `SERVICECONTROL_ERRORRETENTIONPERIOD` | Required. Don't change it during the move |
 
-`ServiceControl/Migration/SourcePersistenceType` defaults to `RavenDB` and needs no setting.
-
 ## Report on the source
 
 Run the instance's executable with `--migration-source-report`:

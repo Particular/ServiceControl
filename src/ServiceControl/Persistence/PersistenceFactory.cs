@@ -28,15 +28,14 @@ namespace ServiceControl.Persistence
             return persistence;
         }
 
+        /// <summary>
+        /// The persistence a migration copies from. RavenDB is the only source supported today.
+        /// </summary>
+        public const string MigrationSourcePersistenceType = "RavenDB";
+
         public static IMigrationSource CreateMigrationSource(Settings settings)
         {
-            var persistenceType = settings.MigrationSourcePersistenceType;
-            var persistenceConfiguration = CreatePersistenceConfiguration(persistenceType, settings);
-
-            if (persistenceConfiguration is not IMigrationSourceFactory sourceFactory)
-            {
-                throw new Exception($"The '{persistenceType}' persistence cannot be read as a migration source. Set {Settings.SettingsRootNamespace}/{MigrationSettings.SourcePersistenceTypeKey} to the persistence that holds the data being migrated away from.");
-            }
+            var sourceFactory = (IMigrationSourceFactory)CreatePersistenceConfiguration(MigrationSourcePersistenceType, settings);
 
             return sourceFactory.CreateSource(Settings.SettingsRootNamespace);
         }
