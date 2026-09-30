@@ -37,6 +37,18 @@ class FailedErrorImportTests : ErrorIngestionTestBase
     }
 
     [Test]
+    public async Task Stores_and_replays_a_failed_import_with_an_over_length_message_id()
+    {
+        var nativeId = new string('n', 600);
+
+        await StoreImport(WellFormedHeaders(), Encoding.UTF8.GetBytes("<order>1</order>"), nativeId: nativeId);
+
+        var replayed = await Replay();
+
+        Assert.That(replayed.Select(message => message.Id), Is.EqualTo(new[] { nativeId }));
+    }
+
+    [Test]
     public async Task Round_trips_a_binary_body_with_nul_bytes()
     {
         var headers = WellFormedHeaders();

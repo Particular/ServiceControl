@@ -82,6 +82,18 @@ class ErrorIngestionTests : ErrorIngestionTestBase
     }
 
     [Test]
+    public async Task An_over_length_message_id_is_stored_in_full()
+    {
+        var failure = new IngestedFailure { MessageId = new string('m', 600) };
+
+        await Ingest(failure);
+
+        var row = await GetFailedMessage(failure.UniqueMessageId);
+
+        Assert.That(row.MessageId, Is.EqualTo(failure.MessageId));
+    }
+
+    [Test]
     public async Task Later_attempt_replaces_the_stored_attempt()
     {
         var first = new IngestedFailure();

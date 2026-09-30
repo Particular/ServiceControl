@@ -8,9 +8,9 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
     public partial class AddFullTextSearch : Migration
     {
         /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder) => migrationBuilder.Sql(FullTextSearchSql.Up);
+        protected override void Up(MigrationBuilder migrationBuilder) => migrationBuilder.Sql(FullTextSearchSql.CreateUncappedIndex);
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.Sql(FullTextSearchSql.Down);
+        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.Sql(FullTextSearchSql.DropIndex);
     }
 }
