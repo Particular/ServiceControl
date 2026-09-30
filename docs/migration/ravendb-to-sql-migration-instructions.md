@@ -1,9 +1,9 @@
 # Migrating from RavenDB to SQL Server or PostgreSQL
 
-This page covers what you can run today. How the migration works, and what is planned, is in the [migration overview](ravendb-to-sql-migration-overview.md) and the [system design diagram](migration-system-design-diagram.png).
+This page covers reporting on the RavenDB source before you migrate. How the migration works is in the [migration overview](ravendb-to-sql-migration-overview.md) and the [system design diagram](migration-system-design-diagram.png).
 
 > [!NOTE]
-> Copying data is not built yet. The one migration command available is the source report. It sends RavenDB only reads, but loading a database lets RavenDB's own expiration, its automatic deletion of documents past their retention date, run against it. If you are keeping the RavenDB database as a fallback, back it up before you run the report, as [Goals](ravendb-to-sql-migration-overview.md#goals) explains.
+> The source report sends RavenDB only reads, but loading a database lets RavenDB's own expiration, its automatic deletion of documents past their retention date, run against it. If you are keeping the RavenDB database as a fallback, back it up before you run the report, as [Goals](ravendb-to-sql-migration-overview.md#goals) explains.
 
 ## Before you start
 

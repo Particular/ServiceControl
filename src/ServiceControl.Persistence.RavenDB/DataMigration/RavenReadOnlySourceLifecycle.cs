@@ -75,9 +75,6 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, Setti
                 await DocumentStore.Maintenance.ForDatabase(databaseName).SendAsync(new GetStatisticsOperation(), cancellationToken);
                 return;
             }
-            // A large embedded database routinely exceeds the load timeout on first open, which
-            // RavenEmbeddedPersistenceLifecycle already allows for the same way. A locked or corrupt data
-            // directory never loads at all, so the budget is what stops that becoming a silent hang.
             catch (DatabaseLoadTimeoutException e) when (settings.UseEmbeddedServer && elapsed.Elapsed >= EmbeddedLoadBudget)
             {
                 throw new InvalidOperationException($"The RavenDB migration source at {Located()} has a database named '{databaseName}', from the '{settingKey}' setting, but it did not finish loading within {EmbeddedLoadBudget.TotalMinutes:N0} minutes. A data directory held by another process, or one that is corrupt, is the usual cause.", e);
