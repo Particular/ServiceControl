@@ -11,7 +11,7 @@ namespace ServiceControl.Audit.AcceptanceTests
         [Test]
         public async Task Should_serve_host_and_storage_facts()
         {
-            JsonObject environmentData = null;
+            JsonObject body = null;
 
             _ = await Define<Context>()
                 .Done(async ctx =>
@@ -23,12 +23,14 @@ namespace ServiceControl.Audit.AcceptanceTests
                         return false;
                     }
 
-                    var body = await JsonNode.ParseAsync(await response.Content.ReadAsStreamAsync());
-                    environmentData = body?["environment_data"]?.AsObject();
+                    body = (await JsonNode.ParseAsync(await response.Content.ReadAsStreamAsync()))?.AsObject();
 
-                    return environmentData is not null;
+                    return body?["environment_data"] is not null;
                 })
                 .Run();
+
+            var environmentData = body["environment_data"].AsObject();
+            var storageIdentity = body["storage_identity"]?.AsObject();
 
             using (Assert.EnterMultipleScope())
             {
@@ -37,6 +39,11 @@ namespace ServiceControl.Audit.AcceptanceTests
                 Assert.That((string)environmentData["Storage.FullTextSearch"], Is.AnyOf("Enabled", "Disabled"));
                 Assert.That((string)environmentData["Host.Model"], Is.AnyOf("Container", "WindowsService", "Console"));
                 Assert.That((string)environmentData["Host.ProcessorCount"], Is.Not.Null.And.Not.Empty);
+                Assert.That((string)body["machine_id_hash"], Is.Not.Null.And.Not.Empty);
+                Assert.That(storageIdentity, Is.Not.Null);
+                Assert.That((string)storageIdentity["engine"], Is.Not.Null.And.Not.Empty);
+                Assert.That((string)storageIdentity["server_hash"], Has.Length.EqualTo(64));
+                Assert.That((string)storageIdentity["database_hash"], Has.Length.EqualTo(64));
             }
         }
 

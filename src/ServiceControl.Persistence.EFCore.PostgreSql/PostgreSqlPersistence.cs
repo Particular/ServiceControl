@@ -22,6 +22,7 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersiste
         services.AddSingleton<IFullTextSearchDialect, PostgreSqlFullTextSearchDialect>();
         services.AddSingleton<IEndpointThroughputDialect, PostgreSqlEndpointThroughputDialect>();
         services.AddSingleton<IDatabaseHostingProbe, PostgreSqlDatabaseHostingProbe>();
+        services.AddSingleton<IStorageIdentityProvider, PostgreSqlStorageIdentityProvider>();
     }
 
     public void AddInstaller(IServiceCollection services)

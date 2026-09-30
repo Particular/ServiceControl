@@ -265,6 +265,26 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
     }
 
     [Test]
+    public async Task Should_report_the_most_shared_database_class_and_mixed_machines()
+    {
+        await DataStore.SaveAuditEnvironmentMetadata(new AuditEnvironmentMetadata(
+        [
+            new Dictionary<string, string> { ["DatabaseSharing"] = "SeparateServer", ["SameMachine"] = "True" },
+            new Dictionary<string, string> { ["DatabaseSharing"] = "SameServer", ["SameMachine"] = "False" },
+            new Dictionary<string, string> { ["DatabaseSharing"] = "Unknown", ["SameMachine"] = "True" }
+        ]));
+
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
+
+        var environmentData = report.ReportData.EnvironmentInformation.EnvironmentData;
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(environmentData, Does.ContainKey("Audit.DatabaseSharing").WithValue("SameServer"));
+            Assert.That(environmentData, Does.ContainKey("Audit.SameMachine").WithValue("Mixed"));
+        }
+    }
+
+    [Test]
     public async Task Should_leave_audit_environment_data_out_when_it_was_never_collected()
     {
         var report = await ThroughputCollector.GenerateThroughputReport("", null);

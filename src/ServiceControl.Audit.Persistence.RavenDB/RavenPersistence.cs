@@ -31,6 +31,7 @@
             services.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenAuditIngestionUnitOfWorkFactory>();
             services.AddSingleton<IFailedAuditStorage, RavenFailedAuditStorage>();
             services.AddSingleton<IEnvironmentDataProvider, RavenEnvironmentDataProvider>();
+            services.AddSingleton<IStorageIdentityProvider, RavenStorageIdentityProvider>();
             services.AddSingleton<MinimumRequiredStorageState>();
         }
 

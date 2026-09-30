@@ -11,6 +11,7 @@ using Contracts;
 static class AuditEnvironmentDataAggregator
 {
     static readonly string[] MaximumKeys = ["Host.ProcessorCount", "Host.AvailableMemoryGB"];
+    static readonly string[] SharingPrecedence = ["SameSchema", "SameDatabase", "SameServer", "SeparateServer", "NotApplicable", "Unknown"];
 
     public static IEnumerable<KeyValuePair<string, string>> Aggregate(List<Dictionary<string, string>> instances)
     {
@@ -34,6 +35,19 @@ static class AuditEnvironmentDataAggregator
         if (values.Distinct(StringComparer.Ordinal).Count() == 1)
         {
             return values[0];
+        }
+
+        // The most-shared class across instances, because one shared database matters however many
+        // separate ones sit beside it.
+        if (key == "DatabaseSharing")
+        {
+            foreach (var sharing in SharingPrecedence)
+            {
+                if (values.Contains(sharing, StringComparer.Ordinal))
+                {
+                    return sharing;
+                }
+            }
         }
 
         if (MaximumKeys.Contains(key, StringComparer.Ordinal))

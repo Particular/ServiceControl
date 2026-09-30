@@ -22,6 +22,7 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
         services.AddSingleton<IFullTextSearchDialect, SqlServerFullTextSearchDialect>();
         services.AddSingleton<IEndpointThroughputDialect, SqlServerEndpointThroughputDialect>();
         services.AddSingleton<IDatabaseHostingProbe, SqlServerDatabaseHostingProbe>();
+        services.AddSingleton<IStorageIdentityProvider, SqlServerStorageIdentityProvider>();
     }
 
     public void AddInstaller(IServiceCollection services)
