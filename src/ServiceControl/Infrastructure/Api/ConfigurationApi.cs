@@ -14,8 +14,9 @@ using Particular.ServiceControl.Licensing;
 using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.Api;
 using ServiceControl.Api.Contracts;
+using ServiceControl.Persistence;
 
-class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFactory httpClientFactory, MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus) : IConfigurationApi
+class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFactory httpClientFactory, MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus, IEnumerable<IStorageIdentityProvider> storageIdentityProviders) : IConfigurationApi
 {
     public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken = default)
     {
@@ -143,6 +144,9 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
 
     public async Task<RemoteEnvironment[]> GetRemoteEnvironments(CancellationToken cancellationToken = default)
     {
+        var localMachineIdHash = MachineIdentity.Hash;
+        var localStorageIdentity = await LocalStorageIdentity(cancellationToken);
+
         var tasks = settings.RemoteInstances
             .Select(async remote =>
             {
@@ -171,6 +175,9 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
                                     environmentData[pair.Key] = pair.Value.GetValue<string>();
                                 }
                             }
+
+                            environmentData["SameMachine"] = AuditSharingClassifier.SameMachine(localMachineIdHash, ReadString(body, "machine_id_hash"));
+                            environmentData["DatabaseSharing"] = AuditSharingClassifier.DatabaseSharing(localStorageIdentity, ReadStorageIdentity(body));
                         }
                     }
                 }
@@ -191,4 +198,49 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
 
         return await Task.WhenAll(tasks);
     }
+
+    async Task<HashedStorageIdentity> LocalStorageIdentity(CancellationToken cancellationToken)
+    {
+        var provider = storageIdentityProviders.FirstOrDefault();
+
+        if (provider is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            return AuditSharingClassifier.Hash(await provider.GetIdentity(cancellationToken));
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    static HashedStorageIdentity ReadStorageIdentity(JsonNode body)
+    {
+        if (body?.AsObject().TryGetPropertyValue("storage_identity", out var identity) != true || identity is not JsonObject identityObject)
+        {
+            return null;
+        }
+
+        var engine = ReadString(identityObject, "engine");
+        var serverHash = ReadString(identityObject, "server_hash");
+        var databaseHash = ReadString(identityObject, "database_hash");
+
+        if (engine is null || serverHash is null || databaseHash is null)
+        {
+            return null;
+        }
+
+        return new HashedStorageIdentity(engine, serverHash, databaseHash, ReadString(identityObject, "schema_hash"));
+    }
+
+    static string ReadString(JsonNode node, string propertyName) =>
+        node?.AsObject().TryGetPropertyValue(propertyName, out var value) == true && value is JsonValue ? value.GetValue<string>() : null;
 }

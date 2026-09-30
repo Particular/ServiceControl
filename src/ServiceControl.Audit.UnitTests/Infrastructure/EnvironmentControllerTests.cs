@@ -8,6 +8,7 @@ namespace ServiceControl.Audit.UnitTests.Infrastructure
     using NUnit.Framework;
     using ServiceControl.Audit.Infrastructure.WebApi;
     using ServiceControl.Audit.Persistence;
+    using ServiceControl.Infrastructure;
 
     [TestFixture]
     class EnvironmentControllerTests
@@ -19,7 +20,7 @@ namespace ServiceControl.Audit.UnitTests.Infrastructure
             [
                 new Provider(EnvironmentDatum.Value("Storage.Type", () => "RavenDB")),
                 new Provider(EnvironmentDatum.Value("Host.ProcessorCount", () => "8"))
-            ], NullLogger<EnvironmentController>.Instance);
+            ], [], NullLogger<EnvironmentController>.Instance);
 
             var result = await controller.Environment();
 
@@ -39,7 +40,7 @@ namespace ServiceControl.Audit.UnitTests.Infrastructure
                 new Provider(
                     EnvironmentDatum.Value("Storage.Type", () => "RavenDB"),
                     EnvironmentDatum.Deferred("Storage.ServerVersion", _ => throw new InvalidOperationException("server down")))
-            ], NullLogger<EnvironmentController>.Instance);
+            ], [], NullLogger<EnvironmentController>.Instance);
 
             var result = await controller.Environment();
 
@@ -58,7 +59,7 @@ namespace ServiceControl.Audit.UnitTests.Infrastructure
             [
                 new ThrowingProvider(),
                 new Provider(EnvironmentDatum.Value("Host.ProcessorCount", () => "8"))
-            ], NullLogger<EnvironmentController>.Instance);
+            ], [], NullLogger<EnvironmentController>.Instance);
 
             var result = await controller.Environment();
 
@@ -82,14 +83,64 @@ namespace ServiceControl.Audit.UnitTests.Infrastructure
                     cancellationToken.ThrowIfCancellationRequested();
                     return new ValueTask<string>("unreached");
                 }))
-            ], NullLogger<EnvironmentController>.Instance);
+            ], [], NullLogger<EnvironmentController>.Instance);
 
             Assert.ThrowsAsync<OperationCanceledException>(() => controller.Environment(cancellationTokenSource.Token));
+        }
+
+        [Test]
+        public async Task Serves_the_hashed_storage_identity()
+        {
+            var controller = new EnvironmentController(
+                [new Provider(EnvironmentDatum.Value("Storage.Type", () => "RavenDB"))],
+                [new IdentityProvider(new StorageIdentity("RavenDB", "http://server:8080", "audit", null))],
+                NullLogger<EnvironmentController>.Instance);
+
+            var result = await controller.Environment();
+
+            var response = (EnvironmentController.EnvironmentDataResponse)result.Value;
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(response.StorageIdentity.Engine, Is.EqualTo("RavenDB"));
+                Assert.That(response.StorageIdentity.ServerHash, Is.EqualTo(IdentityHash.Compute("http://server:8080")));
+                Assert.That(response.StorageIdentity.DatabaseHash, Is.EqualTo(IdentityHash.Compute("audit")));
+                Assert.That(response.StorageIdentity.SchemaHash, Is.Null);
+                Assert.That(response.MachineIdHash, Is.EqualTo(MachineIdentity.Hash));
+                Assert.That(response.EnvironmentData.Keys, Has.None.Contains("Hash"));
+            }
+        }
+
+        [Test]
+        public async Task A_storage_identity_that_cannot_be_read_is_not_served()
+        {
+            var controller = new EnvironmentController(
+                [new Provider(EnvironmentDatum.Value("Storage.Type", () => "RavenDB"))],
+                [new ThrowingIdentityProvider()],
+                NullLogger<EnvironmentController>.Instance);
+
+            var result = await controller.Environment();
+
+            var response = (EnvironmentController.EnvironmentDataResponse)result.Value;
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(response.StorageIdentity, Is.Null);
+                Assert.That(response.EnvironmentData, Does.ContainKey("Storage.Type"));
+            }
         }
 
         class Provider(params EnvironmentDatum[] data) : IEnvironmentDataProvider
         {
             public IEnumerable<EnvironmentDatum> GetData() => data;
+        }
+
+        class IdentityProvider(StorageIdentity identity) : IStorageIdentityProvider
+        {
+            public ValueTask<StorageIdentity> GetIdentity(CancellationToken cancellationToken = default) => new(identity);
+        }
+
+        class ThrowingIdentityProvider : IStorageIdentityProvider
+        {
+            public ValueTask<StorageIdentity> GetIdentity(CancellationToken cancellationToken = default) => throw new InvalidOperationException("storage down");
         }
 
         class ThrowingProvider : IEnvironmentDataProvider
