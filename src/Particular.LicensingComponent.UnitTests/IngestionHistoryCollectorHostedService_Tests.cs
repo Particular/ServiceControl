@@ -78,7 +78,11 @@ class IngestionHistoryCollectorHostedService_Tests : ThroughputCollectorTestFixt
 
         Assert.That(history, Is.Not.Null);
         var errorDay = history.Days.Single(day => day.Source == IngestionHistory.ErrorSource);
-        Assert.That(errorDay.Messages, Is.EqualTo(25));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(errorDay.Messages, Is.EqualTo(25));
+            Assert.That(errorDay.Restarts, Is.EqualTo(1));
+        }
     }
 
     async Task RunTwoPolls(FakeTimeProvider fakeTimeProvider, QueuedErrorSnapshots errorProvider, AuditQuery_WithIngestionSnapshots auditQuery)

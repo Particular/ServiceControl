@@ -25,4 +25,10 @@ public record IngestionDay(
     long LagOverOneMinuteMessages,
     long LagOverTenMinutesMessages,
     long LagOverSixtyMinutesMessages,
-    long LagKnownMessages);
+    long LagKnownMessages)
+{
+    /// <summary>
+    /// Process start time changes observed between polls, summed across a source's instances.
+    /// </summary>
+    public long Restarts { get; init; }
+}
