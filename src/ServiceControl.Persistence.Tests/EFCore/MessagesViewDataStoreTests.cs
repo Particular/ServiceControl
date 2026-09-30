@@ -259,6 +259,16 @@ class MessagesViewDataStoreTests : ErrorIngestionTestBase
     }
 
     [Test]
+    public async Task Reports_an_over_length_conversation_id_that_needs_no_url_encoding()
+    {
+        await Ingest(new IngestedFailure { ConversationId = new string('c', 600) });
+
+        var view = await SingleMessage();
+
+        Assert.That(Uri.EscapeDataString(view.ConversationId), Is.EqualTo(view.ConversationId), "ServicePulse puts the conversation id into a URL path without encoding it");
+    }
+
+    [Test]
     public async Task Keeps_over_length_conversations_that_share_a_prefix_apart()
     {
         var sharedPrefix = new string('c', 450);
@@ -287,7 +297,7 @@ class MessagesViewDataStoreTests : ErrorIngestionTestBase
 
         var view = await SingleMessage();
 
-        Assert.That(view.ConversationId, Does.StartWith(new string('c', 384) + "#"), "The pair straddles the end of the kept prefix, so it has to be left out whole");
+        Assert.That(view.ConversationId, Does.StartWith(new string('c', 384) + "~"), "The pair straddles the end of the kept prefix, so it has to be left out whole");
     }
 
     [Test]
@@ -308,6 +318,16 @@ class MessagesViewDataStoreTests : ErrorIngestionTestBase
         await Ingest(matching, new IngestedFailure());
 
         await AssertSearchFinds("Bestellprüfung", matching);
+    }
+
+    [Test]
+    public async Task Searches_a_single_quoted_word_in_the_headers()
+    {
+        var matching = new IngestedFailure { ExceptionMessage = "The given key 'CustomerId' was not present in the dictionary." };
+
+        await Ingest(matching, new IngestedFailure());
+
+        await AssertSearchFinds("CustomerId", matching);
     }
 
     [Test]

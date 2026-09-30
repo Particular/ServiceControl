@@ -28,7 +28,7 @@ static class ColumnLengths
     // 900 byte index key limit.
     public const int LicensingEndpointNameLength = 300;
 
-    // Cutting an indexed value short could make two different values look up as equal, so a longer value keeps as much of its start as fits, followed by # and the SHA-256 of the whole value. The result is never longer than ShortTextLength, so fitting it again returns it unchanged.
+    // Cutting an indexed value short could make two different values look up as equal, so a longer value keeps as much of its start as fits, followed by ~ and the SHA-256 of the whole value. The result is never longer than ShortTextLength, so fitting it again returns it unchanged.
     [return: NotNullIfNotNull(nameof(value))]
     public static string? FitToIndex(string? value)
     {
@@ -45,6 +45,6 @@ static class ColumnLengths
             prefixLength--;
         }
 
-        return $"{value[..prefixLength]}#{hash}";
+        return $"{value[..prefixLength]}~{hash}";
     }
 }
