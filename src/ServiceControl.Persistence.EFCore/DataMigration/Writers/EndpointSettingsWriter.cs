@@ -4,7 +4,6 @@ using DbContexts;
 using Entities;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Persistence.DataMigration;
 
 /// <summary>
@@ -13,22 +12,11 @@ using ServiceControl.Persistence.DataMigration;
 /// product undoes. That judgment holds only while the endpoints themselves copied cleanly, which is why this
 /// writer reads the KnownEndpoints checkpoint before it decides a skip was no loss.
 /// </summary>
-sealed class EndpointSettingsWriter(IServiceScopeFactory scopeFactory, IMigrationSqlDialect migrationDialect) : IMigrationCategoryWriter
+sealed class EndpointSettingsWriter(IMigrationSqlDialect migrationDialect) : IMigrationCategoryWriter
 {
     public string CategoryId => MigrationCategoryIds.EndpointSettings;
 
-    // Opens a scope of its own, because BatchSize is handed no DbContext, unlike Prepare and Count.
-    public int BatchSize
-    {
-        get
-        {
-            using var scope = scopeFactory.CreateScope();
-            var entityType = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>().Model.FindEntityType(typeof(EndpointSettingsEntity))
-                ?? throw new InvalidOperationException($"{nameof(EndpointSettingsEntity)} is not an entity in the EF Core model.");
-
-            return migrationDialect.RowsPerStatement(entityType.GetProperties().Count());
-        }
-    }
+    public int BatchSize(ServiceControlDbContext dbContext) => migrationDialect.RowsPerStatement(MigrationInsert<EndpointSettingsEntity>.For(dbContext).Columns.Count);
 
     public Task<long> Count(ServiceControlDbContext dbContext, CancellationToken cancellationToken = default) =>
         dbContext.EndpointSettings.LongCountAsync(cancellationToken);

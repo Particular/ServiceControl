@@ -448,7 +448,7 @@ abstract class MigrationAcceptanceTest
 
         public Task Open(CancellationToken cancellationToken = default) => inner.Open(cancellationToken);
 
-        public int BatchSizeFor(MigrationCategory category) => inner.BatchSizeFor(category);
+        public Task<int> BatchSizeFor(MigrationCategory category, CancellationToken cancellationToken = default) => inner.BatchSizeFor(category, cancellationToken);
 
         public async Task<MigrationWriteResult> Write(MigrationCategory category, MigrationBatch batch, MigrationCheckpoint checkpointToExtend, CancellationToken cancellationToken = default)
         {

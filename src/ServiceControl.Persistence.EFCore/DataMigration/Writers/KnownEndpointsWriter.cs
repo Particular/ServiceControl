@@ -4,29 +4,17 @@ using DbContexts;
 using Entities;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Persistence.DataMigration;
 
 /// <summary>
 /// Writes the endpoints ServiceControl has heard from. The row's key is worked out from the endpoint's own
 /// details rather than carried over, so the same endpoint lands on the same row whichever side wrote it first.
 /// </summary>
-sealed class KnownEndpointsWriter(IServiceScopeFactory scopeFactory, IMigrationSqlDialect migrationDialect) : IMigrationCategoryWriter
+sealed class KnownEndpointsWriter(IMigrationSqlDialect migrationDialect) : IMigrationCategoryWriter
 {
     public string CategoryId => MigrationCategoryIds.KnownEndpoints;
 
-    // Opens a scope of its own, because BatchSize is handed no DbContext, unlike Prepare and Count.
-    public int BatchSize
-    {
-        get
-        {
-            using var scope = scopeFactory.CreateScope();
-            var entityType = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>().Model.FindEntityType(typeof(KnownEndpointEntity))
-                ?? throw new InvalidOperationException($"{nameof(KnownEndpointEntity)} is not an entity in the EF Core model.");
-
-            return migrationDialect.RowsPerStatement(entityType.GetProperties().Count());
-        }
-    }
+    public int BatchSize(ServiceControlDbContext dbContext) => migrationDialect.RowsPerStatement(MigrationInsert<KnownEndpointEntity>.For(dbContext).Columns.Count);
 
     public Task<long> Count(ServiceControlDbContext dbContext, CancellationToken cancellationToken = default) =>
         dbContext.KnownEndpoints.LongCountAsync(cancellationToken);

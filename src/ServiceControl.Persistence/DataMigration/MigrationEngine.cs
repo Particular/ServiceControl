@@ -111,7 +111,7 @@ public sealed class MigrationEngine(
 
         try
         {
-            var batchSize = target.BatchSizeFor(category);
+            var batchSize = await target.BatchSizeFor(category, cancellationToken);
 
             // Captured once so a restart keeps the total its first start saw, and saved straight away so a run
             // killed during the first batch does not walk the whole category again to recount it.

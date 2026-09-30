@@ -19,7 +19,7 @@ class MigrationTargetCoverageTests : PersistenceTestBase
         {
             var category = MigrationCategoryRegistry.Find(id)!;
 
-            Assert.That(target.BatchSizeFor(category), Is.Positive, $"{id}: every supported category has a batch size");
+            Assert.That(await target.BatchSizeFor(category, CancellationToken.None), Is.Positive, $"{id}: every supported category has a batch size");
             Assert.That(await target.Count(category, CancellationToken.None), Is.Zero, id);
         }
     }

@@ -158,7 +158,7 @@ class MigrationEngineSkipReasonTests
     {
         public Task Open(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
-        public int BatchSizeFor(MigrationCategory category) => 10;
+        public Task<int> BatchSizeFor(MigrationCategory category, CancellationToken cancellationToken = default) => Task.FromResult(10);
 
         public async Task<MigrationWriteResult> Write(MigrationCategory category, MigrationBatch batch, MigrationCheckpoint checkpointToExtend, CancellationToken cancellationToken = default)
         {
@@ -178,7 +178,7 @@ class MigrationEngineSkipReasonTests
     {
         public Task Open(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
-        public int BatchSizeFor(MigrationCategory category) => 10;
+        public Task<int> BatchSizeFor(MigrationCategory category, CancellationToken cancellationToken = default) => Task.FromResult(10);
 
         public async Task<MigrationWriteResult> Write(MigrationCategory category, MigrationBatch batch, MigrationCheckpoint checkpointToExtend, CancellationToken cancellationToken = default)
         {
@@ -197,7 +197,7 @@ class MigrationEngineSkipReasonTests
     {
         public Task Open(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
-        public int BatchSizeFor(MigrationCategory category) => 10;
+        public Task<int> BatchSizeFor(MigrationCategory category, CancellationToken cancellationToken = default) => Task.FromResult(10);
 
         public async Task<MigrationWriteResult> Write(MigrationCategory category, MigrationBatch batch, MigrationCheckpoint checkpointToExtend, CancellationToken cancellationToken = default)
         {

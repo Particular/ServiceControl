@@ -54,8 +54,8 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
 
     public Task Open(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
-    public int BatchSizeFor(MigrationCategory category) =>
-        category.Id == NoBatchSizeFor ? throw new InvalidOperationException($"No batch size is mapped for category {category.Id}") : DefaultBatchSize;
+    public Task<int> BatchSizeFor(MigrationCategory category, CancellationToken cancellationToken = default) =>
+        category.Id == NoBatchSizeFor ? throw new InvalidOperationException($"No batch size is mapped for category {category.Id}") : Task.FromResult(DefaultBatchSize);
 
     public async Task<MigrationWriteResult> Write(
         MigrationCategory category,

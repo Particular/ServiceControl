@@ -43,8 +43,8 @@ sealed class FaultingMigrationTarget(IMigrationTarget inner, int failingWrite) :
     public Task Open(CancellationToken cancellationToken = default) => inner.Open(cancellationToken);
 
     // Two rows a batch, so five settings take three writes and a failure on the second leaves exactly one batch committed.
-    public int BatchSizeFor(MigrationCategory category) =>
-        category.Id == MigrationCategoryIds.EndpointSettings ? 2 : inner.BatchSizeFor(category);
+    public Task<int> BatchSizeFor(MigrationCategory category, CancellationToken cancellationToken = default) =>
+        category.Id == MigrationCategoryIds.EndpointSettings ? Task.FromResult(2) : inner.BatchSizeFor(category, cancellationToken);
 
     public Task<MigrationWriteResult> Write(MigrationCategory category, MigrationBatch batch, MigrationCheckpoint checkpointToExtend, CancellationToken cancellationToken = default) =>
         category.Id == MigrationCategoryIds.EndpointSettings && ++endpointSettingsWrites == failingWrite
@@ -63,7 +63,7 @@ sealed class ParkingMigrationTarget(IMigrationTarget inner, TaskCompletionSource
 
     public Task Open(CancellationToken cancellationToken = default) => inner.Open(cancellationToken);
 
-    public int BatchSizeFor(MigrationCategory category) => inner.BatchSizeFor(category);
+    public Task<int> BatchSizeFor(MigrationCategory category, CancellationToken cancellationToken = default) => inner.BatchSizeFor(category, cancellationToken);
 
     public async Task<MigrationWriteResult> Write(MigrationCategory category, MigrationBatch batch, MigrationCheckpoint checkpointToExtend, CancellationToken cancellationToken = default)
     {

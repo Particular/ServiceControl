@@ -18,14 +18,15 @@ sealed class EFCoreMigrationTarget(IServiceScopeFactory scopeFactory, IMigration
 {
     readonly FrozenDictionary<string, IMigrationCategoryWriter> writers = new IMigrationCategoryWriter[]
     {
-        new KnownEndpointsWriter(scopeFactory, migrationDialect),
-        new EndpointSettingsWriter(scopeFactory, migrationDialect)
+        new KnownEndpointsWriter(migrationDialect),
+        new EndpointSettingsWriter(migrationDialect)
     }.ToFrozenDictionary(writer => writer.CategoryId, StringComparer.Ordinal);
 
     public Task Open(CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((dbContext, token) => migrationDialect.Open(dbContext, token), cancellationToken);
 
-    public int BatchSizeFor(MigrationCategory category) => WriterFor(category).BatchSize;
+    public Task<int> BatchSizeFor(MigrationCategory category, CancellationToken cancellationToken = default) =>
+        ExecuteWithDbContext((dbContext, _) => Task.FromResult(WriterFor(category).BatchSize(dbContext)), cancellationToken);
 
     public Task<MigrationWriteResult> Write(
         MigrationCategory category,

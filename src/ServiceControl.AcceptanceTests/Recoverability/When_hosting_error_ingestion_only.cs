@@ -232,6 +232,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability
                 await new SetupCommand().Execute(new HostArguments([]), settings);
 
                 host = ErrorIngestionOnlyCommand.BuildHost(settings);
+                host.Urls.Clear();
                 host.Urls.Add("https://127.0.0.1:0");
 
                 await host.StartAsync();

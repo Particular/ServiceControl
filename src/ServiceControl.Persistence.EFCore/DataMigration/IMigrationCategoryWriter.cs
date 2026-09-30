@@ -14,9 +14,9 @@ interface IMigrationCategoryWriter
 
     /// <summary>
     /// The most rows the target will take from the source in one batch. It comes from how many values each row
-    /// carries and how many parameters one statement can hold, so a wider table takes fewer rows.
+    /// carries and how many parameters one statement can hold, so a wider table takes fewer rows. The context is read for its model only.
     /// </summary>
-    int BatchSize { get; }
+    int BatchSize(ServiceControlDbContext dbContext);
 
     /// <summary>
     /// Turns one batch of source documents into the rows to insert and the rows to skip, writing nothing: the insert it returns runs later, inside the target's transaction.

@@ -18,7 +18,7 @@ public interface IMigrationTarget
     /// The most rows a source may return in one batch for this category.
     /// The target picks it because its own database sets the limit, and a bigger batch fails the write.
     /// </summary>
-    int BatchSizeFor(MigrationCategory category);
+    Task<int> BatchSizeFor(MigrationCategory category, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Saves the batch's rows and the checkpoint in one transaction, so progress never gets ahead of the data.
