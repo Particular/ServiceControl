@@ -17,13 +17,13 @@ class EFEnvironmentDataProvider(EFPersisterSettings settings, IDatabaseHostingPr
 
         return
         [
-            Value("Persistence.Type", () => hostingProbe.StorageName),
-            Deferred("Persistence.Hosting", async cancellationToken => (await Hosting(cancellationToken)).Hosting),
-            Deferred("Persistence.ServerVersion", async cancellationToken => (await Hosting(cancellationToken)).ServerVersion),
-            Deferred("Persistence.HostingSource", async cancellationToken => (await Hosting(cancellationToken)).Source),
-            Value("Persistence.FullTextSearch", () => settings.EnableFullTextSearchOnBodies ? "Enabled" : "Disabled"),
-            Value("Persistence.BodyStorage.Type", () => BodyStorageType(settings.BodyStorage)),
-            Value("Persistence.BodyStorage.Auth", () => BodyStorageAuth(settings.BodyStorage)),
+            Value("Storage.Type", () => hostingProbe.StorageName),
+            Deferred("Storage.Hosting", async cancellationToken => (await Hosting(cancellationToken)).Hosting),
+            Deferred("Storage.ServerVersion", async cancellationToken => (await Hosting(cancellationToken)).ServerVersion),
+            Deferred("Storage.HostingSource", async cancellationToken => (await Hosting(cancellationToken)).Source),
+            Value("Storage.FullTextSearch", () => settings.EnableFullTextSearchOnBodies ? "Enabled" : "Disabled"),
+            Value("Storage.BodyStorage.Type", () => BodyStorageType(settings.BodyStorage)),
+            Value("Storage.BodyStorage.Auth", () => BodyStorageAuth(settings.BodyStorage)),
             Value("Limits.MaxBodySizeToStore", () => settings.BodyStorage.MaxBodySizeToStore.ToString(CultureInfo.InvariantCulture))
         ];
     }

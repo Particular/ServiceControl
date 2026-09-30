@@ -56,10 +56,10 @@ namespace ServiceControl.AcceptanceTests.Licensing
                 Assert.That(data.Keys, Is.SupersetOf(ExpectedKeys));
 
                 Assert.That(data["Host.Model"], Is.AnyOf("Container", "WindowsService", "Console"));
-                Assert.That(data["Persistence.Type"], Is.Not.Empty);
-                Assert.That(data["Persistence.BodyStorage.Type"], Is.Not.Empty);
-                Assert.That(data["Persistence.BodyStorage.Auth"], Is.AnyOf("ManagedIdentity", "SharedKeyOrSas", "IamRole", "StaticCredentials", "NotApplicable"));
-                Assert.That(data["Persistence.HostingSource"], Is.AnyOf("Probe", "Configuration", "ConnectionString", "None"));
+                Assert.That(data["Storage.Type"], Is.Not.Empty);
+                Assert.That(data["Storage.BodyStorage.Type"], Is.Not.Empty);
+                Assert.That(data["Storage.BodyStorage.Auth"], Is.AnyOf("ManagedIdentity", "SharedKeyOrSas", "IamRole", "StaticCredentials", "NotApplicable"));
+                Assert.That(data["Storage.HostingSource"], Is.AnyOf("Probe", "Configuration", "ConnectionString", "None"));
                 Assert.That(data["Security.Authentication"], Is.AnyOf("Enabled", "Disabled"));
                 Assert.That(data["Features.EmailNotifications"], Is.AnyOf("Enabled", "Disabled", "NotConfigured", "ReadFailed"));
                 Assert.That(int.Parse(data["Retention.ErrorHours"]), Is.GreaterThan(0));
@@ -79,13 +79,13 @@ namespace ServiceControl.AcceptanceTests.Licensing
             "Host.RuntimeVersion",
             "Host.ProcessorCount",
             "Host.AvailableMemoryGB",
-            "Persistence.Type",
-            "Persistence.Hosting",
-            "Persistence.ServerVersion",
-            "Persistence.HostingSource",
-            "Persistence.FullTextSearch",
-            "Persistence.BodyStorage.Type",
-            "Persistence.BodyStorage.Auth",
+            "Storage.Type",
+            "Storage.Hosting",
+            "Storage.ServerVersion",
+            "Storage.HostingSource",
+            "Storage.FullTextSearch",
+            "Storage.BodyStorage.Type",
+            "Storage.BodyStorage.Auth",
             "Security.Authentication",
             "Security.RoleBasedAuthorization",
             "Security.Https",
