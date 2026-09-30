@@ -102,15 +102,27 @@ class EFEnvironmentDataProviderTests
     static async Task<Dictionary<string, string>> GetData(BodyStorageSettings bodyStorage, IDatabaseHostingProbe hostingProbe = null)
     {
         var settings = new TestPersisterSettings { ConnectionString = "Host=localhost", BodyStorage = bodyStorage };
-        var provider = new EFEnvironmentDataProvider(settings, hostingProbe ?? new TestHostingProbe());
+        var provider = new EFEnvironmentDataProvider(settings, hostingProbe ?? new TestHostingProbe(), new TestFootprintProbe(), null);
         var data = new Dictionary<string, string>();
 
         foreach (var datum in provider.GetData())
         {
-            data[datum.Key] = await datum.ReadValue(CancellationToken.None);
+            try
+            {
+                data[datum.Key] = await datum.ReadValue(CancellationToken.None);
+            }
+            catch (Exception)
+            {
+                data[datum.Key] = Particular.LicensingComponent.Contracts.EnvironmentDatum.ReadFailed;
+            }
         }
 
         return data;
+    }
+
+    class TestFootprintProbe : IStorageFootprintProbe
+    {
+        public Task<StorageFootprint> Probe(CancellationToken cancellationToken = default) => Task.FromResult<StorageFootprint>(null);
     }
 
     class TestPersisterSettings : EFPersisterSettings;

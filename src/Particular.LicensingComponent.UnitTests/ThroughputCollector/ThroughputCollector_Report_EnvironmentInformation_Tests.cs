@@ -285,6 +285,27 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
     }
 
     [Test]
+    public async Task Should_sum_sizes_and_counts_once_per_database()
+    {
+        await DataStore.SaveAuditEnvironmentMetadata(new AuditEnvironmentMetadata(
+        [
+            new Dictionary<string, string> { ["Storage.SizeGB"] = "10.0", ["Storage.MessageCount"] = "100", [AuditEnvironmentMetadata.DatabaseKey] = "server-a/db-1" },
+            new Dictionary<string, string> { ["Storage.SizeGB"] = "10.2", ["Storage.MessageCount"] = "90", [AuditEnvironmentMetadata.DatabaseKey] = "server-a/db-1" },
+            new Dictionary<string, string> { ["Storage.SizeGB"] = "5.0", ["Storage.MessageCount"] = "10" }
+        ]));
+
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
+
+        var environmentData = report.ReportData.EnvironmentInformation.EnvironmentData;
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(environmentData, Does.ContainKey("Audit.Storage.SizeGB").WithValue("15.2"));
+            Assert.That(environmentData, Does.ContainKey("Audit.Storage.MessageCount").WithValue("110"));
+            Assert.That(environmentData.Keys, Has.None.StartsWith("Audit._"));
+        }
+    }
+
+    [Test]
     public async Task Should_leave_audit_environment_data_out_when_it_was_never_collected()
     {
         var report = await ThroughputCollector.GenerateThroughputReport("", null);

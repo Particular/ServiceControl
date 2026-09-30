@@ -2,20 +2,29 @@ namespace ServiceControl.Persistence.EFCore.Implementation;
 
 using System.Globalization;
 using Abstractions;
+using DbContexts;
+using Entities;
 using Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Particular.LicensingComponent.Contracts;
 using ServiceControl.Configuration;
 using ServiceControl.Infrastructure;
+using ServiceControl.MessageFailures;
 using static Particular.LicensingComponent.Contracts.EnvironmentDatum;
 
-class EFEnvironmentDataProvider(EFPersisterSettings settings, IDatabaseHostingProbe hostingProbe) : IEnvironmentDataProvider
+class EFEnvironmentDataProvider(EFPersisterSettings settings, IDatabaseHostingProbe hostingProbe, IStorageFootprintProbe footprintProbe, IServiceScopeFactory scopeFactory) : IEnvironmentDataProvider
 {
     public IEnumerable<EnvironmentDatum> GetData()
     {
-        // The three hosting keys share one probe, so the database is asked once per report and they
-        // stand or fall together, which is right because they have a single cause.
+        // The hosting keys share one probe, so the database is asked once per report and they
+        // stand or fall together, which is right because they have a single cause. The footprint
+        // keys share theirs for the same reason.
         Task<DatabaseHosting>? probe = null;
         Task<DatabaseHosting> Hosting(CancellationToken cancellationToken) => probe ??= hostingProbe.Probe(cancellationToken);
+
+        Task<StorageFootprint?>? footprint = null;
+        Task<StorageFootprint?> Footprint(CancellationToken cancellationToken) => footprint ??= footprintProbe.Probe(cancellationToken);
 
         return
         [
@@ -23,6 +32,11 @@ class EFEnvironmentDataProvider(EFPersisterSettings settings, IDatabaseHostingPr
             Deferred("Storage.Hosting", async cancellationToken => (await Hosting(cancellationToken)).Hosting),
             Deferred("Storage.ServerVersion", async cancellationToken => (await Hosting(cancellationToken)).ServerVersion),
             Deferred("Storage.HostingSource", async cancellationToken => (await Hosting(cancellationToken)).Source),
+            Deferred("Storage.ServerEdition", async cancellationToken => (await Hosting(cancellationToken)).ServerEdition),
+            Deferred("Storage.ServiceObjective", async cancellationToken => (await Hosting(cancellationToken)).ServiceObjective),
+            Deferred("Storage.SizeGB", async cancellationToken => SizeGB((await Footprint(cancellationToken))?.SizeGB)),
+            Deferred("Storage.MessageCount", async cancellationToken => Count((await Footprint(cancellationToken))?.MessageCount)),
+            Deferred("Storage.UnresolvedFailedMessages", UnresolvedFailedMessages),
             Value("Storage.FullTextSearch", () => settings.EnableFullTextSearchOnBodies ? "Enabled" : "Disabled"),
             Value("Storage.BodyStorage.Type", () => BodyStorageType(settings.BodyStorage)),
             Value("Limits.MaxBodySizeToStore", () => settings.BodyStorage.MaxBodySizeToStore.ToString(CultureInfo.InvariantCulture)),
@@ -34,6 +48,22 @@ class EFEnvironmentDataProvider(EFPersisterSettings settings, IDatabaseHostingPr
             Value("Storage.FreeSpaceThresholdPercent", FreeSpaceThreshold)
         ];
     }
+
+    async ValueTask<string> UnresolvedFailedMessages(CancellationToken cancellationToken)
+    {
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+
+        var count = await dbContext.Set<FailedMessageEntity>().CountAsync(m => m.Status == FailedMessageStatus.Unresolved, cancellationToken);
+
+        return Count(count);
+    }
+
+    static string SizeGB(double? sizeGB) =>
+        sizeGB is null ? "Unknown" : sizeGB.Value.ToString("F1", CultureInfo.InvariantCulture);
+
+    static string Count(long? count) =>
+        count is null ? "Unknown" : count.Value.ToString(CultureInfo.InvariantCulture);
 
     string FreeSpaceThreshold() => settings.BodyStorage is FileSystemBodyStorageSettings fileSystem
         ? WhenConfigured(EFPersistenceConfigurationBase.FileSystemDataSpaceRemainingThresholdKey, () => Number(fileSystem.DataSpaceRemainingThreshold))
