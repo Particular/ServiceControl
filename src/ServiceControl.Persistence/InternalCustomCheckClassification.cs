@@ -52,6 +52,7 @@ namespace ServiceControl.Contracts.CustomChecks
                 "Audit Database Search Engine",
                 "ServiceControl.Audit database",
                 "Audit partition provisioning",  // EF Core PostgreSQL persister
+                "Audit retention",               // EF Core persisters
             };
 
         /// <summary>

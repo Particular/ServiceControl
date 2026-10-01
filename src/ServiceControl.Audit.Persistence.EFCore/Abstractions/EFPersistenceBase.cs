@@ -20,6 +20,7 @@ abstract class EFPersistenceBase(EFPersisterSettings settings) : IPersistence
         services.AddSingleton<IAuditIngestionUnitOfWorkFactory, AuditIngestionUnitOfWorkFactory>();
         services.AddSingleton<IFailedAuditStorage, FailedAuditStorage>();
 
+        services.AddSingleton<AuditRetentionCustomCheck.State>();
         services.AddHostedService<AuditRetention>();
 
         if (services.SingleOrDefault(s => s.ServiceType == typeof(EndpointConfiguration)) is
@@ -27,6 +28,7 @@ abstract class EFPersistenceBase(EFPersisterSettings settings) : IPersistence
                 ImplementationInstance: EndpointConfiguration endpointConfiguration
             })
         {
+            endpointConfiguration.AddCustomCheck<AuditRetentionCustomCheck>();
             AddCustomChecks(endpointConfiguration);
         }
     }

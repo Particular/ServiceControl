@@ -11,6 +11,7 @@ sealed class AuditRetention(
     IServiceScopeFactory scopeFactory,
     IAuditPartitionManager partitions,
     IRetentionLock retentionLock,
+    AuditRetentionCustomCheck.State retentionState,
     EFPersisterSettings settings,
     TimeProvider timeProvider,
     ILogger<AuditRetention> logger) : BackgroundService
@@ -66,13 +67,32 @@ sealed class AuditRetention(
 
     async Task Sweep(bool pace, CancellationToken cancellationToken)
     {
-        await using var handle = await retentionLock.TryAcquire(cancellationToken);
-        if (handle is null)
+        try
         {
-            logger.LogWarning("Skipping the audit retention sweep because another instance holds the retention lock. Only one audit instance should own a database.");
-            return;
-        }
+            await using (var handle = await retentionLock.TryAcquire(cancellationToken))
+            {
+                if (handle is null)
+                {
+                    logger.LogWarning("Skipping the audit retention sweep because another instance holds the retention lock. Only one audit instance should own a database.");
+                    return;
+                }
 
+                await RemoveExpired(pace, cancellationToken);
+            }
+
+            retentionState.SweepSucceeded();
+        }
+#pragma warning disable PS0019 // Filtered on the token alone because SqlClient reports a cancelled command as a SqlException.
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+        {
+            retentionState.SweepFailed(ex.Message);
+            throw;
+        }
+#pragma warning restore PS0019
+    }
+
+    async Task RemoveExpired(bool pace, CancellationToken cancellationToken)
+    {
         await using var scope = scopeFactory.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AuditDbContext>();
 
