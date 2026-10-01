@@ -7,11 +7,11 @@ using ServiceControl.Infrastructure;
 public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration, IPersistenceConfiguration
 {
     const string ConnectionStringKey = "Database/ConnectionString";
-    const string SchemaKey = "Database/Schema";
-    const string CommandTimeoutKey = "Database/CommandTimeout";
+    internal const string SchemaKey = "Database/Schema";
+    internal const string CommandTimeoutKey = "Database/CommandTimeout";
     const string BodyStorageTypeKey = "MessageBody/StorageType";
     const string FileSystemStoragePathKey = "MessageBody/FileSystem/StoragePath";
-    const string FileSystemDataSpaceRemainingThresholdKey = "MessageBody/FileSystem/DataSpaceRemainingThreshold";
+    internal const string FileSystemDataSpaceRemainingThresholdKey = "MessageBody/FileSystem/DataSpaceRemainingThreshold";
     const string AzureConnectionStringKey = "MessageBody/Azure/ConnectionString";
     const string AzureServiceUriKey = "MessageBody/Azure/ServiceUri";
     const string AzureManagedIdentityClientIdKey = "MessageBody/Azure/ManagedIdentityClientId";
@@ -23,11 +23,11 @@ public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration,
     const string S3ServiceUrlKey = "MessageBody/S3/ServiceUrl";
     const string S3AccessKeyIdKey = "MessageBody/S3/AccessKeyId";
     const string S3SecretAccessKeyKey = "MessageBody/S3/SecretAccessKey";
-    const string MinBodySizeForCompressionKey = "MessageBody/MinCompressionSize";
+    internal const string MinBodySizeForCompressionKey = "MessageBody/MinCompressionSize";
     const string MaxBodySizeToStoreKey = "MaxBodySizeToStore";
     const string ErrorRetentionPeriodKey = "ErrorRetentionPeriod";
     const string EventsRetentionPeriodKey = "EventsRetentionPeriod";
-    const string SubscriptionCacheDurationKey = "SubscriptionCacheDuration";
+    internal const string SubscriptionCacheDurationKey = "SubscriptionCacheDuration";
     const string ExternalIntegrationsDispatchingBatchSizeKey = "ExternalIntegrationsDispatchingBatchSize";
 
     public bool SupportsMaintenanceMode => false;

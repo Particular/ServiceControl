@@ -53,11 +53,13 @@ public class SQSTransportConnectionString
         }
 
 
-        if (builder.TryGetValue("ReservedBytesInMessageSize", out object reservedBytes))
+        if (builder.TryGetValue(ReservedBytesInMessageSizeKey, out object reservedBytes))
         {
             ReservedBytesInMessageSize = Convert.ToInt32(reservedBytes);
         }
     }
+
+    public const string ReservedBytesInMessageSizeKey = "ReservedBytesInMessageSize";
 
     public string AccessKey { get; }
     public string SecretKey { get; }

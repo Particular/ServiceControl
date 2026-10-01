@@ -84,6 +84,9 @@
             services.AddSingleton(settings);
             services.AddEnvironmentDataProvider<ServiceControlErrorInstanceEnvironmentDataProvider>();
             services.AddEnvironmentDataProvider<HostEnvironmentDataProvider>();
+            services.AddEnvironmentDataProvider<ErrorInstanceTuningEnvironmentDataProvider>();
+            services.AddEnvironmentDataProvider<ErrorInstanceStoredChoicesEnvironmentDataProvider>();
+            services.AddEnvironmentDataProvider<TransportEnvironmentDataProvider>();
 
             services.AddHttpLogging(options =>
             {

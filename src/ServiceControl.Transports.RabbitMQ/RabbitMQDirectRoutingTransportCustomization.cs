@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Transports.RabbitMQ
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using BrokerThroughput;
     using Microsoft.Extensions.DependencyInjection;
@@ -31,6 +32,15 @@
                 return transport.ManagementClient;
             }
         }
+
+        protected override string GetAuthenticationMode(TransportSettings transportSettings) =>
+            RabbitMQTransportExtensions.GetAuthenticationMode(transportSettings.ConnectionString);
+
+        protected override bool RelaxesCertificateValidation(TransportSettings transportSettings) =>
+            RabbitMQTransportExtensions.RelaxesCertificateValidation(transportSettings.ConnectionString);
+
+        protected override IEnumerable<TransportEnvironmentDatum> GetEnvironmentDataCore(TransportSettings transportSettings) =>
+            RabbitMQTransportExtensions.GetEnvironmentData(transportSettings.ConnectionString);
 
         protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition, TransportSettings transportSettings) => transport = transportDefinition;
 

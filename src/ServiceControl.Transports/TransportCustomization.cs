@@ -26,6 +26,8 @@ namespace ServiceControl.Transports
         string ToTransportQualifiedQueueName(string queueName);
 
         Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, CancellationToken, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly, CancellationToken cancellationToken = default);
+
+        IEnumerable<TransportEnvironmentDatum> GetEnvironmentData(TransportSettings transportSettings) => [];
     }
 
     public abstract class TransportCustomization<TTransport> : ITransportCustomization where TTransport : TransportDefinition
@@ -47,6 +49,19 @@ namespace ServiceControl.Transports
         protected virtual void AddTransportForPrimaryCore(IServiceCollection services, TransportSettings transportSettings)
         {
         }
+
+        public IEnumerable<TransportEnvironmentDatum> GetEnvironmentData(TransportSettings transportSettings) =>
+        [
+            new("Transport.Auth", () => GetAuthenticationMode(transportSettings)),
+            new("Transport.CertificateValidation", () => RelaxesCertificateValidation(transportSettings) ? "Relaxed" : "Default"),
+            .. GetEnvironmentDataCore(transportSettings)
+        ];
+
+        protected virtual string GetAuthenticationMode(TransportSettings transportSettings) => "NotApplicable";
+
+        protected virtual bool RelaxesCertificateValidation(TransportSettings transportSettings) => false;
+
+        protected virtual IEnumerable<TransportEnvironmentDatum> GetEnvironmentDataCore(TransportSettings transportSettings) => [];
 
         public void AddTransportForAudit(IServiceCollection services, TransportSettings transportSettings)
         {
