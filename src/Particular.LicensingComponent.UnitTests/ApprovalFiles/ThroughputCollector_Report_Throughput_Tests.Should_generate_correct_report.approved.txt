@@ -45,7 +45,7 @@
       {
         "QueueName": "Endpoint2",
         "NameHash": "936C4C33C71B498D9C60C90F78138AF1ECF3C9F72089F054563E125C94B0A224",
-        "Throughput": 65,
+        "Throughput": 64,
         "EndpointIndicators": [
           "KnownEndpoint"
         ],
@@ -77,7 +77,7 @@
       {
         "QueueName": "Endpoint3",
         "NameHash": "8035D54FFAF0523F509245E1556BB1BD18C37B76A2D7DB4C928024B348A13132",
-        "Throughput": 57,
+        "Throughput": 47,
         "EndpointIndicators": [
           "KnownEndpoint"
         ],
