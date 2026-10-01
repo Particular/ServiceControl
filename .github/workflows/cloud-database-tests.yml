@@ -65,12 +65,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.plan.outputs.targets) }}
-    # The two suites that exercise the persister. Named outright rather than selected by test
-    # category, because the category also carries the transport tests, which test the queue
-    # transport against its own connection string and have no business running here.
+    # The suites that exercise the primary and audit persisters. Named outright rather than
+    # selected by test category, because the category also carries the transport tests, which test
+    # the queue transport against its own connection string and have no business running here.
     env:
       PERSISTENCE_PROJECT: src/ServiceControl.Persistence.Tests.${{ matrix.provider }}/ServiceControl.Persistence.Tests.${{ matrix.provider }}.csproj
       ACCEPTANCE_PROJECT: src/ServiceControl.AcceptanceTests.${{ matrix.provider }}/ServiceControl.AcceptanceTests.${{ matrix.provider }}.csproj
+      AUDIT_PERSISTENCE_PROJECT: src/ServiceControl.Audit.Persistence.Tests.${{ matrix.provider }}/ServiceControl.Audit.Persistence.Tests.${{ matrix.provider }}.csproj
+      AUDIT_ACCEPTANCE_PROJECT: src/ServiceControl.Audit.AcceptanceTests.${{ matrix.provider }}/ServiceControl.Audit.AcceptanceTests.${{ matrix.provider }}.csproj
     steps:
       - name: Check for secrets
         env:
@@ -104,6 +106,8 @@ jobs:
         run: |
           dotnet build $Env:PERSISTENCE_PROJECT --configuration Release
           dotnet build $Env:ACCEPTANCE_PROJECT --configuration Release
+          dotnet build $Env:AUDIT_PERSISTENCE_PROJECT --configuration Release
+          dotnet build $Env:AUDIT_ACCEPTANCE_PROJECT --configuration Release
       - name: Azure login
         uses: azure/login@v3.1.0
         if: startsWith(matrix.target, 'azure-')
@@ -134,7 +138,7 @@ jobs:
       - name: Run tests
         uses: Particular/run-tests-action@v1.9.0
         with:
-          projects: ${{ env.PERSISTENCE_PROJECT }};${{ env.ACCEPTANCE_PROJECT }}
+          projects: ${{ env.PERSISTENCE_PROJECT }};${{ env.ACCEPTANCE_PROJECT }};${{ env.AUDIT_PERSISTENCE_PROJECT }};${{ env.AUDIT_ACCEPTANCE_PROJECT }}
           max-parallel: 2
         env:
           ServiceControl_TESTS_FILTER: ${{ matrix.provider }}

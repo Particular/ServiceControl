@@ -1,0 +1,21 @@
+{
+  "Name": "PostgreSQL",
+  "DisplayName": "PostgreSQL",
+  "Description": "PostgreSQL ServiceControl Audit persister",
+  "AssemblyName": "ServiceControl.Audit.Persistence.EFCore.PostgreSql",
+  "TypeName": "ServiceControl.Audit.Persistence.EFCore.PostgreSql.PostgreSqlPersistenceConfiguration, ServiceControl.Audit.Persistence.EFCore.PostgreSql",
+  "Settings": [
+    {
+      "Name": "ServiceControl.Audit/Database/ConnectionString",
+      "Mandatory": true
+    },
+    {
+      "Name": "ServiceControl.Audit/Database/Schema",
+      "Mandatory": false
+    },
+    {
+      "Name": "ServiceControl.Audit/Database/CommandTimeout",
+      "Mandatory": false
+    }
+  ]
+}

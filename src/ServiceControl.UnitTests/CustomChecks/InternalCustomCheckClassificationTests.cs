@@ -34,6 +34,7 @@ namespace ServiceControl.UnitTests.CustomChecks
         [TestCase("Dead Letter Queue")]
         [TestCase("ServiceControl body storage")]
         [TestCase("ServiceControl Retention")]
+        [TestCase("Audit retention")]
         [TestCase("Audit Message Ingestion Process")]
         public void Every_shipped_check_is_internal(string id)
         {

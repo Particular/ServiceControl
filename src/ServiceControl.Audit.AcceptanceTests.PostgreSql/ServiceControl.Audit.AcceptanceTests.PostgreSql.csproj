@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <TestCategory>PostgreSql</TestCategory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="ServiceControl.Audit.AcceptanceTests.PostgreSql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj" />
+    <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.EFCore.PostgreSql\ServiceControl.Audit.Persistence.EFCore.PostgreSql.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
+    <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GitHubActionsTestLogger" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NServiceBus.SagaAudit" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit.Analyzers" />
+    <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.Audit.AcceptanceTests\**\*.cs" Exclude="..\ServiceControl.Audit.AcceptanceTests\obj\**\*.*;..\ServiceControl.Audit.AcceptanceTests\bin\**\*.*" LinkBase="Shared" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.PostgreSql\PostgreSqlSharedContainer.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.PostgreSql\TestSchema.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.PostgreSql\StopSharedPostgreSql.cs" />
+
+    <!-- The EF Core persisters always index bodies for full text search, whatever EnableFullTextSearchOnBodies says. -->
+    <Compile Remove="..\ServiceControl.Audit.AcceptanceTests\Auditing\When_processed_message_searched_by_body_content.FullTextSearchDisabled.cs" />
+  </ItemGroup>
+
+</Project>

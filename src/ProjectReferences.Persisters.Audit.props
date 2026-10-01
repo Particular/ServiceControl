@@ -1,6 +1,8 @@
 <Project>
 
   <ItemGroup Label="Persisters">
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.EFCore.PostgreSql\ServiceControl.Audit.Persistence.EFCore.PostgreSql.csproj" ReferenceOutputAssembly="false" Private="false" />
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.EFCore.SqlServer\ServiceControl.Audit.Persistence.EFCore.SqlServer.csproj" ReferenceOutputAssembly="false" Private="false" />
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDB\ServiceControl.Audit.Persistence.RavenDB.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 

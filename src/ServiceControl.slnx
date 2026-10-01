@@ -18,13 +18,20 @@
     <Project Path="ServiceControl.Audit/ServiceControl.Audit.csproj" />
   </Folder>
   <Folder Name="/Instances/Audit/Persistence/">
+    <Project Path="ServiceControl.Audit.Persistence.EFCore.PostgreSql/ServiceControl.Audit.Persistence.EFCore.PostgreSql.csproj" />
+    <Project Path="ServiceControl.Audit.Persistence.EFCore.SqlServer/ServiceControl.Audit.Persistence.EFCore.SqlServer.csproj" />
+    <Project Path="ServiceControl.Audit.Persistence.EFCore/ServiceControl.Audit.Persistence.EFCore.csproj" />
     <Project Path="ServiceControl.Audit.Persistence.RavenDB/ServiceControl.Audit.Persistence.RavenDB.csproj" />
     <Project Path="ServiceControl.Audit.Persistence.SagaAudit/ServiceControl.Audit.Persistence.SagaAudit.csproj" />
     <Project Path="ServiceControl.Audit.Persistence/ServiceControl.Audit.Persistence.csproj" />
   </Folder>
   <Folder Name="/Instances/Audit/Testing/">
+    <Project Path="ServiceControl.Audit.AcceptanceTests.PostgreSql/ServiceControl.Audit.AcceptanceTests.PostgreSql.csproj" />
     <Project Path="ServiceControl.Audit.AcceptanceTests.RavenDB/ServiceControl.Audit.AcceptanceTests.RavenDB.csproj" />
+    <Project Path="ServiceControl.Audit.AcceptanceTests.SqlServer/ServiceControl.Audit.AcceptanceTests.SqlServer.csproj" />
+    <Project Path="ServiceControl.Audit.Persistence.Tests.PostgreSql/ServiceControl.Audit.Persistence.Tests.PostgreSql.csproj" />
     <Project Path="ServiceControl.Audit.Persistence.Tests.RavenDB/ServiceControl.Audit.Persistence.Tests.RavenDB.csproj" />
+    <Project Path="ServiceControl.Audit.Persistence.Tests.SqlServer/ServiceControl.Audit.Persistence.Tests.SqlServer.csproj" />
     <Project Path="ServiceControl.Audit.UnitTests/ServiceControl.Audit.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Instances/Monitoring/">

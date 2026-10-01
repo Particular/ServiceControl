@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Text;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using Auditing;
@@ -10,7 +11,7 @@
     using ServiceControl.Audit.Infrastructure;
 
     [TestFixture]
-    class AuditTests : PersistenceTestFixture
+    partial class AuditTests : PersistenceTestFixture
     {
         public override Task Setup()
         {
@@ -79,50 +80,11 @@
         }
 
         [Test]
-        public async Task Can_roundtrip_message_body()
-        {
-            string expectedContentType = "text/plain";
-            await using var unitOfWork = await StartAuditUnitOfWork(1);
-
-            var body = new byte[100];
-            Random.Shared.NextBytes(body);
-            var processedMessage = MakeMessage();
-
-            await unitOfWork.RecordProcessedMessage(processedMessage, body);
-
-            await unitOfWork.Complete();
-
-            var bodyId = GetBodyId(processedMessage);
-
-            var retrievedMessage = await MessagesViewStore.GetMessageBody(bodyId, TestContext.CurrentContext.CancellationToken);
-
-            Assert.That(retrievedMessage, Is.Not.Null);
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(retrievedMessage.Found, Is.True);
-                Assert.That(retrievedMessage.HasContent, Is.True);
-                Assert.That(retrievedMessage.ContentLength, Is.EqualTo(body.Length));
-                Assert.That(retrievedMessage.Version.HasValue, Is.True);
-                Assert.That(retrievedMessage.StreamContent, Is.Not.Null);
-                Assert.That(retrievedMessage.ContentType, Is.EqualTo(expectedContentType));
-            }
-
-            var resultBody = new byte[body.Length];
-            var readBytes = await retrievedMessage.StreamContent.ReadAsync(resultBody, 0, body.Length);
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(readBytes, Is.EqualTo(body.Length));
-                Assert.That(resultBody, Is.EqualTo(body));
-            }
-        }
-
-        [Test]
         public async Task Message_body_validator_is_stable_across_reads()
         {
             await using var unitOfWork = await StartAuditUnitOfWork(1);
 
-            var body = new byte[100];
-            Random.Shared.NextBytes(body);
+            var body = Encoding.UTF8.GetBytes("{\"Text\":\"The body\"}");
             var processedMessage = MakeMessage();
 
             await unitOfWork.RecordProcessedMessage(processedMessage, body);
@@ -161,52 +123,6 @@
                 Assert.That(retrievedMessage.Found, Is.True);
                 Assert.That(retrievedMessage.HasContent, Is.False);
             }
-        }
-
-        [Test]
-        public async Task Deduplicates_messages_in_same_batch()
-        {
-            await using var unitOfWork = await StartAuditUnitOfWork(1);
-            var messageId = "duplicatedId";
-            var processingEndpoint = "endpoint";
-            var processingStarted = DateTimeOffset.UtcNow;
-
-            var processedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
-            var duplicatedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
-            await unitOfWork.RecordProcessedMessage(processedMessage);
-            await unitOfWork.RecordProcessedMessage(duplicatedMessage);
-
-            await unitOfWork.Complete();
-
-            await configuration.CompleteDBOperation();
-
-            var queryResult = await MessagesViewStore.GetMessages(false, new PagingInfo(), new SortInfo("message_id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
-
-            Assert.That(queryResult.QueryStats.TotalCount, Is.EqualTo(1));
-        }
-
-        [Test]
-        public async Task Deduplicates_messages_in_different_batches()
-        {
-            var messageId = "duplicatedId";
-            var processingEndpoint = "endpoint";
-            var processingStarted = DateTimeOffset.UtcNow;
-
-            var processedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
-            await using var unitOfWork1 = await StartAuditUnitOfWork(1);
-            await unitOfWork1.RecordProcessedMessage(processedMessage);
-            await unitOfWork1.Complete();
-
-            var duplicatedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
-            await using var unitOfWork2 = await StartAuditUnitOfWork(1);
-            await unitOfWork2.RecordProcessedMessage(duplicatedMessage);
-            await unitOfWork2.Complete();
-
-            await configuration.CompleteDBOperation();
-
-            var queryResult = await MessagesViewStore.GetMessages(false, new PagingInfo(), new SortInfo("message_id", "asc"), cancellationToken: TestContext.CurrentContext.CancellationToken);
-
-            Assert.That(queryResult.QueryStats.TotalCount, Is.EqualTo(1));
         }
 
         [Test]
