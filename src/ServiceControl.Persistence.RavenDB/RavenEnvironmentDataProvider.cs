@@ -12,14 +12,14 @@ class RavenEnvironmentDataProvider(RavenPersisterSettings settings, IRavenDocume
 {
     public IEnumerable<EnvironmentDatum> GetData() =>
     [
-        Value("Persistence.Type", () => "RavenDB"),
-        Value("Persistence.RavenServer", () => settings.UseEmbeddedServer ? "Embedded" : "External"),
-        Value("Persistence.Hosting", () => Hosting().Hosting),
-        Deferred("Persistence.ServerVersion", ServerVersion),
-        Value("Persistence.HostingSource", () => Hosting().Source),
-        Value("Persistence.FullTextSearch", () => settings.EnableFullTextSearchOnBodies ? "Enabled" : "Disabled"),
-        Value("Persistence.BodyStorage.Type", () => "RavenAttachments"),
-        Value("Persistence.BodyStorage.Auth", () => "NotApplicable")
+        Value("Storage.Type", () => "RavenDB"),
+        Value("Storage.RavenServer", () => settings.UseEmbeddedServer ? "Embedded" : "External"),
+        Value("Storage.Hosting", () => Hosting().Hosting),
+        Deferred("Storage.ServerVersion", ServerVersion),
+        Value("Storage.HostingSource", () => Hosting().Source),
+        Value("Storage.FullTextSearch", () => settings.EnableFullTextSearchOnBodies ? "Enabled" : "Disabled"),
+        Value("Storage.BodyStorage.Type", () => "RavenAttachments"),
+        Value("Storage.BodyStorage.Auth", () => "NotApplicable")
     ];
 
     (string Hosting, string Source) Hosting()

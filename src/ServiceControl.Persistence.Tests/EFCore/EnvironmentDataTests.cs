@@ -54,8 +54,8 @@ class EFEnvironmentDataProviderTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(data["Persistence.BodyStorage.Type"], Is.EqualTo("AzureBlob"));
-            Assert.That(data["Persistence.BodyStorage.Auth"], Is.EqualTo("ManagedIdentity"));
+            Assert.That(data["Storage.BodyStorage.Type"], Is.EqualTo("AzureBlob"));
+            Assert.That(data["Storage.BodyStorage.Auth"], Is.EqualTo("ManagedIdentity"));
         });
     }
 
@@ -67,7 +67,7 @@ class EFEnvironmentDataProviderTests
             Authentication = new AzureBlobSharedKeyAuthentication { ConnectionString = "UseDevelopmentStorage=true" }
         });
 
-        Assert.That(data["Persistence.BodyStorage.Auth"], Is.EqualTo("SharedKeyOrSas"));
+        Assert.That(data["Storage.BodyStorage.Auth"], Is.EqualTo("SharedKeyOrSas"));
     }
 
     [Test]
@@ -77,8 +77,8 @@ class EFEnvironmentDataProviderTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(data["Persistence.BodyStorage.Type"], Is.EqualTo("S3"));
-            Assert.That(data["Persistence.BodyStorage.Auth"], Is.EqualTo("IamRole"));
+            Assert.That(data["Storage.BodyStorage.Type"], Is.EqualTo("S3"));
+            Assert.That(data["Storage.BodyStorage.Auth"], Is.EqualTo("IamRole"));
         });
     }
 
@@ -91,7 +91,7 @@ class EFEnvironmentDataProviderTests
             Credentials = new S3StaticCredentials { AccessKeyId = "key", SecretAccessKey = "secret" }
         });
 
-        Assert.That(data["Persistence.BodyStorage.Auth"], Is.EqualTo("StaticCredentials"));
+        Assert.That(data["Storage.BodyStorage.Auth"], Is.EqualTo("StaticCredentials"));
     }
 
     [Test]
@@ -101,8 +101,8 @@ class EFEnvironmentDataProviderTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(data["Persistence.BodyStorage.Type"], Is.EqualTo("FileSystem"));
-            Assert.That(data["Persistence.BodyStorage.Auth"], Is.EqualTo("NotApplicable"));
+            Assert.That(data["Storage.BodyStorage.Type"], Is.EqualTo("FileSystem"));
+            Assert.That(data["Storage.BodyStorage.Auth"], Is.EqualTo("NotApplicable"));
         });
     }
 
@@ -128,9 +128,9 @@ class EFEnvironmentDataProviderTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(data["Persistence.Hosting"], Is.EqualTo("Unknown"));
-            Assert.That(data["Persistence.ServerVersion"], Is.EqualTo("Unknown"));
-            Assert.That(data["Persistence.HostingSource"], Is.EqualTo("None"));
+            Assert.That(data["Storage.Hosting"], Is.EqualTo("Unknown"));
+            Assert.That(data["Storage.ServerVersion"], Is.EqualTo("Unknown"));
+            Assert.That(data["Storage.HostingSource"], Is.EqualTo("None"));
         });
     }
 
