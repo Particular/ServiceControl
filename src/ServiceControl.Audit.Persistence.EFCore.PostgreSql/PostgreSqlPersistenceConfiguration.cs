@@ -14,7 +14,7 @@ class PostgreSqlPersistenceConfiguration : EFPersistenceConfigurationBase
         if (settings.AuditRetentionPeriod < MinimumRetentionPeriod || settings.AuditRetentionPeriod > MaximumRetentionPeriod)
         {
             throw new InvalidOperationException(
-                $"AuditRetentionPeriod is {settings.AuditRetentionPeriod}, but the PostgreSQL persister keeps audit data for 1 to 90 days. Set AuditRetentionPeriod within that range.");
+                $"AuditRetentionPeriod is {settings.AuditRetentionPeriod}, but PostgreSQL storage keeps audit data for 1 to 90 days. Set AuditRetentionPeriod within that range.");
         }
 
         return new PostgreSqlPersistence(settings);
