@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServiceControl.Persistence.EFCore.PostgreSql;
@@ -12,9 +13,11 @@ using ServiceControl.Persistence.EFCore.PostgreSql;
 namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 {
     [DbContext(typeof(PostgreSqlServiceControlDbContext))]
-    partial class PostgreSqlServiceControlDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260916125150_AddMigrationCheckpoints")]
+    partial class AddMigrationCheckpoints
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -264,7 +267,8 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 
                     b.Property<string>("MessageId")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
                         .HasColumnName("message_id");
 
                     b.HasKey("UniqueMessageId")
@@ -365,12 +369,12 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnName("last_time_of_failure");
 
                     b.Property<string>("MessageId")
-                        .HasColumnType("text")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
                         .HasColumnName("message_id");
 
                     b.Property<string>("MessageType")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasColumnType("text")
                         .HasColumnName("message_type");
 
                     b.Property<int>("NumberOfProcessingAttempts")
@@ -436,16 +440,8 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.HasIndex("TimeSent")
                         .HasDatabaseName("ix_failed_messages_time_sent");
 
-                    b.HasIndex("Status", "LastTimeOfFailure")
-                        .HasDatabaseName("ix_failed_messages_status_last_time_of_failure");
-
-                    b.HasIndex("Status", "LastModified", "UniqueMessageId")
-                        .HasDatabaseName("ix_failed_messages_status_last_modified_unique_message_id");
-
-                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("Status", "LastModified", "UniqueMessageId"), new[] { "FirstTimeOfFailure", "LastTimeOfFailure" });
-
-                    b.HasIndex("Status", "MessageType", "UniqueMessageId")
-                        .HasDatabaseName("ix_failed_messages_status_message_type_unique_message_id");
+                    b.HasIndex("Status", "LastModified")
+                        .HasDatabaseName("ix_failed_messages_status_last_modified");
 
                     b.ToTable("failed_messages", (string)null);
                 });
@@ -480,8 +476,6 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 
                     b.HasIndex("Type", "GroupId")
                         .HasDatabaseName("ix_failed_message_groups_type_group_id");
-
-                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("Type", "GroupId"), new[] { "FailedMessageUniqueId", "Title" });
 
                     b.ToTable("failed_message_groups", (string)null);
                 });

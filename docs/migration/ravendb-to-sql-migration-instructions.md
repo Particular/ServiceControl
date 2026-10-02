@@ -1,9 +1,9 @@
 # Migrating from RavenDB to SQL Server or PostgreSQL
 
-This page covers what you can run today. How the migration works, and what is planned, is in the [migration overview](ravendb-to-sql-migration-overview.md) and the [system design diagram](migration-system-design-diagram.png).
+This page covers reporting on the RavenDB source before you migrate. How the migration works is in the [migration overview](ravendb-to-sql-migration-overview.md) and the [system design diagram](migration-system-design-diagram.png).
 
 > [!NOTE]
-> Copying data is not built yet. The one migration command available is the source report. It sends RavenDB only reads, but loading a database lets RavenDB's own expiration, its automatic deletion of documents past their retention date, run against it. If you are keeping the RavenDB database as a fallback, back it up before you run the report, as [Goals](ravendb-to-sql-migration-overview.md#goals) explains.
+> The source report sends RavenDB only reads, but loading a database lets RavenDB's own expiration, its automatic deletion of documents past their retention date, run against it. If you are keeping the RavenDB database as a fallback, back it up before you run the report, as [Goals](ravendb-to-sql-migration-overview.md#goals) explains.
 
 ## Before you start
 
@@ -42,10 +42,11 @@ The report prints the RavenDB server version, whether the source is embedded or 
 
 ## If the report fails
 
-The error names the setting to fix:
+The error says what to fix:
 
 - **"has no database named ..."**: the database name setting it quotes is wrong.
 - **"refused its client certificate access ..."**: grant that certificate Read access to the database, or supply a certificate that has it.
+- **"could not start a server for the embedded database ..."**: a ServiceControl instance is still running against that data directory and holds it. Stop the instance, run the report, then start it again.
 
 ## Not available yet
 

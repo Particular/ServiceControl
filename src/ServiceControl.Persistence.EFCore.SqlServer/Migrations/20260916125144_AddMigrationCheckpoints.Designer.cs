@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ServiceControl.Persistence.EFCore.SqlServer;
 
@@ -11,9 +12,11 @@ using ServiceControl.Persistence.EFCore.SqlServer;
 namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerServiceControlDbContext))]
-    partial class SqlServerServiceControlDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260916125144_AddMigrationCheckpoints")]
+    partial class AddMigrationCheckpoints
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -215,7 +218,8 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.Property<string>("MessageId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("UniqueMessageId");
 
@@ -294,11 +298,11 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("MessageId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MessageType")
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("MessageType")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("NumberOfProcessingAttempts")
                         .HasColumnType("int");
@@ -349,12 +353,6 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasIndex("Status", "LastModified");
 
-                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("Status", "LastModified"), new[] { "FirstTimeOfFailure", "LastTimeOfFailure" });
-
-                    b.HasIndex("Status", "LastTimeOfFailure");
-
-                    b.HasIndex("Status", "MessageType", "UniqueMessageId");
-
                     b.ToTable("FailedMessages");
                 });
 
@@ -381,8 +379,6 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.HasIndex("GroupId");
 
                     b.HasIndex("Type", "GroupId");
-
-                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("Type", "GroupId"), new[] { "Title" });
 
                     b.ToTable("FailedMessageGroups");
                 });
