@@ -62,8 +62,8 @@ public static class ObservabilityExtensions
     static IResourceBuilder<ContainerResource> AddJaeger(IDistributedApplicationBuilder builder) =>
         builder.AddContainer("jaeger", "jaegertracing/all-in-one:1.62.0")
             .WithHttpEndpoint(16686, 16686, "ui")
-            .WithEndpoint(4317, 4317, scheme: "http", name: "otlp-grpc")
-            .WithHttpEndpoint(4318, 4318, "otlp-http")
+            .WithEndpoint(targetPort: 4317, scheme: "http", name: "otlp-grpc")
+            .WithHttpEndpoint(targetPort: 4318, name: "otlp-http")
             .WithUrlForEndpoint("ui", url => url.DisplayText = "Jaeger UI — Traces");
 
     // --- OTel Collector: receives OTLP, fans out traces → Jaeger, metrics → Prometheus exporter ---

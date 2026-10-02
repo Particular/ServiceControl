@@ -37,6 +37,7 @@ public static class HostBuilderExtensions
         var postgresPassword = builder.AddParameter("postgres-password", "Password1!", secret: true);
         var postgres = builder
             .AddPostgres("postgres", password: postgresPassword)
+            .WithHostPort(5432)
             .WithPgAdmin()
             .WithDataVolume("test-tool-postgres-data");
         return postgres.AddDatabase(databaseResource, databaseName);

@@ -90,7 +90,6 @@ tools/testing-tool/
                                  #   OTel setup, ServiceControl REST client
   TestingTool.Scenarios/         # IScenario contract + the five scenario implementations
   TestingTool.Contracts/         # shared DTOs (scenarios, status, jobs, bypass)
-  TestingTool.SmokeTests/        # NUnit smoke tests (require a running ServiceControl + tool)
   TestingTool.AppHost/           # Aspire AppHost — orchestrates platform, tool, and observability stack
     obs/                         # observability config: OTel Collector, Prometheus, Grafana provisioning
                                  #   + prebuilt dashboard
@@ -184,23 +183,6 @@ and bypass paths emitted separately and combined into the raised total), search 
 replay/archive rates, and — using ServiceControl's own OTel ingestion metrics
 (`sc.error.ingestion.*`) — side-by-side comparison of errors raised vs errors ingested (rate
 and cumulative), ingestion duration p95, and ingestion outcome by result.
-
-## Run smoke tests
-
-The smoke tests require a running ServiceControl + testing tool (e.g. via the Aspire AppHost above,
-or `dotnet run` against an existing ServiceControl):
-
-```bash
-# Start the stack first (see Run with Aspire)
-dotnet test tools/testing-tool/TestingTool.SmokeTests
-```
-
-The test URLs default to `http://localhost:8080` (tool) and `http://localhost:33333` (ServiceControl).
-Override them to match your run — Aspire assigns dynamic ports, shown in the Aspire dashboard:
-```bash
-TESTING_TOOL_URL=http://localhost:<tool-port> SERVICECONTROL_URL=http://localhost:<sc-port> \
-  dotnet test tools/testing-tool/TestingTool.SmokeTests
-```
 
 ## Horizontal scaling
 
