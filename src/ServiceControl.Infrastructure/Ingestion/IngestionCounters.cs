@@ -3,10 +3,6 @@ namespace ServiceControl.Infrastructure.Ingestion;
 using System;
 using System.Threading;
 
-/// <summary>
-/// Running totals since process start, kept in memory for the licensing collector to poll and turn
-/// into hourly deltas. Restarts reset them, which the poller detects through the start time.
-/// </summary>
 public class IngestionCounters(TimeProvider timeProvider)
 {
     public DateTime ProcessStartUtc { get; } = timeProvider.GetUtcNow().UtcDateTime;

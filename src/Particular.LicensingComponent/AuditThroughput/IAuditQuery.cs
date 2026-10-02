@@ -13,7 +13,6 @@
         Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName, CancellationToken cancellationToken = default);
         Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken = default);
         Task<List<Dictionary<string, string>>> GetAuditEnvironments(CancellationToken cancellationToken = default);
-        Task<List<AuditIngestionSnapshot>> GetAuditIngestionSnapshots(CancellationToken cancellationToken = default);
         Task<ConnectionSettingsTestResult> TestAuditConnection(CancellationToken cancellationToken = default);
 
     }

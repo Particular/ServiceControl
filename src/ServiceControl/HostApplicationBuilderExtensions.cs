@@ -164,7 +164,7 @@
         {
             hostBuilder.Services.TryAddSingleton(TimeProvider.System);
             hostBuilder.Services.AddSingleton<global::ServiceControl.Infrastructure.Ingestion.IngestionCounters>();
-            hostBuilder.Services.AddSingleton<IErrorIngestionSnapshotProvider, ErrorIngestionSnapshotProvider>();
+            hostBuilder.Services.AddEnvironmentDataProvider<ErrorIngestionEnvironmentDataProvider>();
             hostBuilder.Services.AddSingleton<IngestionMetrics>();
             hostBuilder.Services.AddSingleton<RetryMetrics>();
 

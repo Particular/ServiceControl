@@ -53,6 +53,7 @@ static class HostApplicationBuilderExtensions
         services.AddSingleton<EndpointInstanceMonitoring>();
         services.AddSingleton<IEnvironmentDataProvider, HostEnvironmentDataProvider>();
         services.AddSingleton<ServiceControl.Infrastructure.Ingestion.IngestionCounters>();
+        services.AddSingleton<IEnvironmentDataProvider, IngestionEnvironmentDataProvider>();
         services.AddSingleton<AuditIngestor>();
         services.AddSingleton<ImportFailedAudits>();
         services.AddSingleton<AuditIngestionCustomCheck.State>(); // required by the ingestion custom check which is auto-loaded
