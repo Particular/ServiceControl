@@ -1,8 +1,10 @@
 ﻿namespace ServiceControl.Transports.SqlServer
 {
+    using System.Collections.Generic;
     using System.Linq;
     using System.Runtime.CompilerServices;
     using BrokerThroughput;
+    using Microsoft.Data.SqlClient;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
@@ -49,6 +51,32 @@
             services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
         }
+
+        protected override string GetAuthenticationMode(TransportSettings transportSettings)
+        {
+            var builder = new SqlConnectionStringBuilder(transportSettings.ConnectionString.RemoveCustomConnectionStringParts(out _, out _));
+
+            if (builder.Authentication is SqlAuthenticationMethod.NotSpecified)
+            {
+                return builder.IntegratedSecurity ? "Integrated" : "SqlPassword";
+            }
+
+            return builder.Authentication is SqlAuthenticationMethod.SqlPassword ? "SqlPassword" : "EntraId";
+        }
+
+        protected override IEnumerable<TransportEnvironmentDatum> GetEnvironmentDataCore(TransportSettings transportSettings) =>
+        [
+            new("Transport.SQLServer.QueueSchema", () =>
+            {
+                transportSettings.ConnectionString.RemoveCustomConnectionStringParts(out var schema, out _);
+                return schema is null ? "Default" : "Custom";
+            }),
+            new("Transport.SQLServer.SubscriptionsTable", () =>
+            {
+                transportSettings.ConnectionString.RemoveCustomConnectionStringParts(out _, out var subscriptionsTable);
+                return subscriptionsTable is null ? "Default" : "Custom";
+            })
+        ];
 
         protected override SqlServerTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {

@@ -31,6 +31,7 @@ namespace ServiceControl.Transports
         void CustomizeAuditEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         void CustomizeMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         void CustomizePrimaryEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
+        System.Collections.Generic.IEnumerable<ServiceControl.Transports.TransportEnvironmentDatum> GetEnvironmentData(ServiceControl.Transports.TransportSettings transportSettings);
         System.Threading.Tasks.Task ProvisionQueues(ServiceControl.Transports.TransportSettings transportSettings, System.Collections.Generic.IEnumerable<string> additionalQueues, System.Threading.CancellationToken cancellationToken = default);
         string ToTransportQualifiedQueueName(string queueName);
     }
@@ -59,9 +60,19 @@ namespace ServiceControl.Transports
         protected abstract void CustomizeTransportForAuditEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TTransport transportDefinition, ServiceControl.Transports.TransportSettings transportSettings);
         protected abstract void CustomizeTransportForMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TTransport transportDefinition, ServiceControl.Transports.TransportSettings transportSettings);
         protected abstract void CustomizeTransportForPrimaryEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, TTransport transportDefinition, ServiceControl.Transports.TransportSettings transportSettings);
+        protected virtual string GetAuthenticationMode(ServiceControl.Transports.TransportSettings transportSettings) { }
+        public System.Collections.Generic.IEnumerable<ServiceControl.Transports.TransportEnvironmentDatum> GetEnvironmentData(ServiceControl.Transports.TransportSettings transportSettings) { }
+        protected virtual System.Collections.Generic.IEnumerable<ServiceControl.Transports.TransportEnvironmentDatum> GetEnvironmentDataCore(ServiceControl.Transports.TransportSettings transportSettings) { }
         public virtual System.Threading.Tasks.Task ProvisionQueues(ServiceControl.Transports.TransportSettings transportSettings, System.Collections.Generic.IEnumerable<string> additionalQueues, System.Threading.CancellationToken cancellationToken = default) { }
+        protected virtual bool RelaxesCertificateValidation(ServiceControl.Transports.TransportSettings transportSettings) { }
         public string ToTransportQualifiedQueueName(string queueName) { }
         protected virtual string ToTransportQualifiedQueueNameCore(string queueName) { }
+    }
+    public sealed class TransportEnvironmentDatum : System.IEquatable<ServiceControl.Transports.TransportEnvironmentDatum>
+    {
+        public TransportEnvironmentDatum(string Key, System.Func<string> ReadValue) { }
+        public string Key { get; init; }
+        public System.Func<string> ReadValue { get; init; }
     }
     public static class TransportFactory
     {

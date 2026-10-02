@@ -5,6 +5,7 @@
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
+    using Azure.Identity;
     using Azure.Messaging.ServiceBus;
     using Azure.Messaging.ServiceBus.Administration;
     using BrokerThroughput;
@@ -17,12 +18,47 @@
 
     public class ASBSTransportCustomization : TransportCustomization<AzureServiceBusTransport>
     {
+        static readonly SettingsRootNamespace TopologySettingsNamespace = new("ServiceControl.Transport.ASBS");
+        const string TopologySettingName = "Topology";
+
         protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition, TransportSettings transportSettings) => transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
         protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition, TransportSettings transportSettings) => transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
         protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
+
+        protected override string GetAuthenticationMode(TransportSettings transportSettings) =>
+            ConnectionStringParser.Parse(transportSettings.ConnectionString).AuthenticationMethod switch
+            {
+                SharedAccessSignatureAuthentication => "SharedAccessKey",
+                TokenCredentialAuthentication { Credential: ManagedIdentityCredential } => "ManagedIdentity",
+                TokenCredentialAuthentication => "DefaultAzureCredential",
+                _ => "Unknown"
+            };
+
+        protected override IEnumerable<TransportEnvironmentDatum> GetEnvironmentDataCore(TransportSettings transportSettings)
+        {
+            ConnectionSettings Parse() => ConnectionStringParser.Parse(transportSettings.ConnectionString);
+
+            return
+            [
+                new("Transport.AzureServiceBus.Topology", () => Topology(Parse())),
+                new("Transport.AzureServiceBus.Partitioning", () => Parse().EnablePartitioning ? "Enabled" : "Disabled"),
+                new("Transport.AzureServiceBus.WebSockets", () => Parse().UseWebSockets ? "Enabled" : "Disabled"),
+                new("Transport.AzureServiceBus.HierarchyNamespace", () => string.IsNullOrEmpty(Parse().HierarchyNamespace) ? "None" : "Configured")
+            ];
+        }
+
+        static string Topology(ConnectionSettings connectionSettings)
+        {
+            if (connectionSettings.TopicName != null)
+            {
+                return "Migration";
+            }
+
+            return SettingsReader.TryRead<string>(TopologySettingsNamespace, TopologySettingName, out _) ? "Custom" : "TopicPerEvent";
+        }
 
         protected override AzureServiceBusTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
@@ -66,7 +102,6 @@
             var connectionSettings = ConnectionStringParser.Parse(transportSettings.ConnectionString);
             TopicTopology selectedTopology;
 
-            var serviceBusRootNamespace = new SettingsRootNamespace("ServiceControl.Transport.ASBS");
             if (connectionSettings.TopicName != null)
             {
                 //Bundle name provided -> use migration topology
@@ -80,7 +115,7 @@
                     EventsToMigrateMap = [.. transportSettings.EventTypesPublished.Select(t => t.FullName)]
                 });
             }
-            else if (SettingsReader.TryRead<string>(serviceBusRootNamespace, "Topology", out var topologyJson))
+            else if (SettingsReader.TryRead<string>(TopologySettingsNamespace, TopologySettingName, out var topologyJson))
             {
                 //Load topology from json
                 selectedTopology = TopicTopology.FromOptions(JsonSerializer.Deserialize(topologyJson, TopologyOptionsSerializationContext.Default.TopologyOptions));

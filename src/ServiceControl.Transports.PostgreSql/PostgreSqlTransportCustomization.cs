@@ -1,10 +1,12 @@
 ﻿namespace ServiceControl.Transports.PostgreSql;
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using BrokerThroughput;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 using NServiceBus;
 using NServiceBus.Transport.PostgreSql;
 using ServiceControl.Infrastructure;
@@ -41,6 +43,32 @@ public class PostgreSqlTransportCustomization() : TransportCustomization<Postgre
         services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
         services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
     }
+
+    protected override string GetAuthenticationMode(TransportSettings transportSettings)
+    {
+        var builder = new NpgsqlConnectionStringBuilder(transportSettings.ConnectionString.RemoveCustomConnectionStringParts(out _, out _));
+
+        if (!string.IsNullOrEmpty(builder.SslCertificate))
+        {
+            return "ClientCertificate";
+        }
+
+        return !string.IsNullOrEmpty(builder.Password) || !string.IsNullOrEmpty(builder.Passfile) ? "Password" : "None";
+    }
+
+    protected override IEnumerable<TransportEnvironmentDatum> GetEnvironmentDataCore(TransportSettings transportSettings) =>
+    [
+        new("Transport.PostgreSQL.QueueSchema", () =>
+        {
+            transportSettings.ConnectionString.RemoveCustomConnectionStringParts(out var schema, out _);
+            return schema is null ? "Default" : "Custom";
+        }),
+        new("Transport.PostgreSQL.SubscriptionsTable", () =>
+        {
+            transportSettings.ConnectionString.RemoveCustomConnectionStringParts(out _, out var subscriptionsTable);
+            return subscriptionsTable is null ? "Default" : "Custom";
+        })
+    ];
 
     protected override PostgreSqlTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
     {
