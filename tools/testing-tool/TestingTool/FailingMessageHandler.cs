@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.ExceptionServices;
 using Microsoft.Extensions.Logging;
 using NServiceBus;
 using TestingTool.Scenarios;
@@ -33,9 +34,10 @@ public sealed class FailingMessageHandler(IScenarioRegistry registry, ILogger<Fa
         {
             var ex = scenario.CreateException();
             activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.SetTag("exception.type", (ex as ScenarioException)?.ExceptionType ?? ex.GetType().Name);
-            activity?.SetTag("exception.group", (ex as ScenarioException)?.CorrelationGroup);
-            throw ex;
+            activity?.SetTag("exception.type", ex.GetType().FullName);
+            activity?.SetTag("exception.group", ScenarioBase.GetCorrelationGroup(ex));
+            // Rethrow preserving the scenario's original frames — ServiceControl groups on the first one.
+            ExceptionDispatchInfo.Throw(ex);
         }
 
         activity?.SetTag("result", "success");

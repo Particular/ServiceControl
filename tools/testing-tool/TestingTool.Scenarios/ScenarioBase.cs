@@ -4,7 +4,7 @@ namespace TestingTool.Scenarios;
 
 /// <summary>
 /// Base class providing common functionality for scenarios: deterministic hashing for per-shard
-/// failure decisions, activity source management, and exception tagging.
+/// failure decisions, activity source management, and capturing thrown scenario exceptions.
 /// </summary>
 public abstract class ScenarioBase : IScenario
 {
@@ -40,9 +40,29 @@ public abstract class ScenarioBase : IScenario
         return hash / (double)uint.MaxValue;
     }
 
-    /// <summary>Creates an exception with correlation tags that ServiceControl uses for grouping.</summary>
-    protected static Exception CreateException(string type, string message, string correlationGroup)
+    /// <summary>
+    /// Invokes <paramref name="fail"/> (which must throw) and returns the caught exception with a real
+    /// stack trace. ServiceControl's default grouping is exception type + first stack frame, so each
+    /// distinct failure should throw from its own method. The correlation group is attached as
+    /// <see cref="Exception.Data"/> for telemetry only — ServiceControl does not group by it.
+    /// </summary>
+    protected static Exception Capture(Action fail, string correlationGroup)
     {
-        return new ScenarioException(type, message, correlationGroup);
+        try
+        {
+            fail();
+        }
+        catch (Exception ex)
+        {
+            ex.Data[CorrelationGroupKey] = correlationGroup;
+            return ex;
+        }
+
+        throw new UnreachableException("Scenario failure method did not throw.");
     }
+
+    /// <summary>Reads the correlation group attached by <see cref="Capture"/>, if any.</summary>
+    public static string? GetCorrelationGroup(Exception ex) => ex.Data[CorrelationGroupKey] as string;
+
+    private const string CorrelationGroupKey = "TestingTool.CorrelationGroup";
 }

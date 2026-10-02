@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace TestingTool.Scenarios;
 
@@ -20,8 +21,9 @@ public sealed class PoisonMessageScenario(string shardId) : ScenarioBase(shardId
     public override bool ShouldFail(string messageId) => Hash(messageId) < PoisonRatio;
 
     public override Exception CreateException() =>
-        CreateException(
-            "System.InvalidOperationException",
-            "The message payload is corrupt and cannot be processed. This message will always fail.",
-            "poison:invalid-payload");
+        Capture(ProcessPayload, "poison:invalid-payload");
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void ProcessPayload() =>
+        throw new InvalidOperationException("The message payload is corrupt and cannot be processed. This message will always fail.");
 }

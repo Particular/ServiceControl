@@ -10,17 +10,17 @@ The tool targets the error ingestion path only — audit testing is out of scope
 
 The tool runs an NServiceBus endpoint (`TestingTool.Load`, Learning transport) that sends messages
 through a handler which fails based on the active scenario. Failed messages are routed to the
-`error` queue for ServiceControl to ingest. Each scenario throws a tagged exception
-(`ExceptionType` + `CorrelationGroup`) so ServiceControl groups the failures naturally, and
-immediate retries are disabled so groups stay clean. Five scenarios are built in:
+`error` queue for ServiceControl to ingest. Each scenario throws a real exception type
+from its own method, so ServiceControl's default grouping (exception type + first stack frame)
+puts each failure shape in its own group, and immediate retries are disabled so groups stay clean. Five scenarios are built in:
 
 | Scenario | Category | Failure shape |
 |---|---|---|
-| `third-party-outage` | Outage | 100% fail for 20s bursts, 30s cooldown — grouped by downstream host |
-| `timeout-spike` | Timeout | Oscillating 10–70% fail rate — grouped by 5-min batch bucket |
+| `third-party-outage` | Outage | 100% fail for 20s bursts, 30s cooldown — one `HttpRequestException` group |
+| `timeout-spike` | Timeout | Oscillating 10–70% fail rate — one `TimeoutException` group |
 | `poison-message` | Poison | 15% deterministic always-fail messages — retry storm |
-| `deserialization-failure` | Deserialization | 100% fail — grouped by message type (bad deployment) |
-| `background-noise` | Noise | ~3% always-on baseline — rotates through exception types |
+| `deserialization-failure` | Deserialization | 100% fail with `SerializationException` (bad deployment) |
+| `background-noise` | Noise | ~3% always-on baseline — rotates through four exception types (four small groups) |
 
 Scenarios are controlled from the web UI, or via:
 - `GET /api/scenarios` — list scenarios with live status (category, rate, error counts)
@@ -67,7 +67,8 @@ All telemetry is exported via OTLP (traces + metrics + logs) and a Prometheus `/
 In addition to the handler path, the tool can write failed-message envelopes directly to the
 ServiceControl error queue, bypassing the handler entirely for high-throughput error load.
 Each message carries standard NServiceBus failure headers (`NServiceBus.ExceptionInfo.*`,
-`NServiceBus.FailedQ`) so ServiceControl ingests it as a genuine failed message. Control via:
+including a real stack trace, and `NServiceBus.FailedQ`) so ServiceControl ingests it as a genuine
+failed message and groups it like the equivalent handler failure. Control via:
 - `POST /api/bypass/start` — `{ "scenario": "third-party-outage", "rate": 100, "durationSeconds": 60 }`
 - `POST /api/bypass/stop`
 - `GET /api/bypass/status`

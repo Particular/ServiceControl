@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace TestingTool.Scenarios;
 
@@ -18,19 +19,36 @@ public sealed class RandomBackgroundNoiseScenario(string shardId) : ScenarioBase
 
     public override bool ShouldFail(string messageId) => Hash(messageId) < NoiseRate;
 
+    // Rotate through a few exception types, each thrown from its own method, so we get a handful
+    // of small groups.
+    private static readonly (Action Fail, string Group)[] Failures =
+    [
+        (DereferenceNull, "noise:nre"),
+        (IndexPastEnd, "noise:oor"),
+        (ParseInput, "noise:fmt"),
+        (CastValue, "noise:cast"),
+    ];
+
     public override Exception CreateException()
     {
-        // Rotate through a few exception types so we get a handful of small groups.
-        var types = new[]
-        {
-            ("System.NullReferenceException", "Object reference not set to an instance of an object.", "noise:nre"),
-            ("System.IndexOutOfRangeException", "Index was outside the bounds of the array.", "noise:oor"),
-            ("System.FormatException", "The input string was not in a correct format.", "noise:fmt"),
-            ("System.InvalidCastException", "Unable to cast object of type 'System.String' to type 'System.Int32'.", "noise:cast"),
-        };
-
-        var idx = (int)(Hash(Guid.NewGuid().ToString("N")) * types.Length) % types.Length;
-        var (type, msg, group) = types[idx];
-        return CreateException(type, msg, group);
+        var idx = (int)(Hash(Guid.NewGuid().ToString("N")) * Failures.Length) % Failures.Length;
+        var (fail, group) = Failures[idx];
+        return Capture(fail, group);
     }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void DereferenceNull() =>
+        throw new NullReferenceException("Object reference not set to an instance of an object.");
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void IndexPastEnd() =>
+        throw new IndexOutOfRangeException("Index was outside the bounds of the array.");
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void ParseInput() =>
+        throw new FormatException("The input string was not in a correct format.");
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void CastValue() =>
+        throw new InvalidCastException("Unable to cast object of type 'System.String' to type 'System.Int32'.");
 }

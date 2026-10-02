@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace TestingTool.Scenarios;
 
@@ -17,8 +18,10 @@ public sealed class DeserializationScenario(string shardId) : ScenarioBase(shard
     public override bool ShouldFail(string messageId) => true;
 
     public override Exception CreateException() =>
-        CreateException(
-            "NServiceBus.MessageDeserializationException",
-            "Unable to deserialize message: unexpected token at position 0. Expected a valid message envelope.",
-            "deser:SampleCommand:v2-incompatible");
+        Capture(DeserializeEnvelope, "deser:SampleCommand:v2-incompatible");
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void DeserializeEnvelope() =>
+        throw new System.Runtime.Serialization.SerializationException(
+            "Unable to deserialize message: unexpected token at position 0. Expected a valid message envelope.");
 }

@@ -1,16 +1,17 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace TestingTool.Scenarios;
 
 /// <summary>
 /// Intermittent timeout spikes: a configurable percentage of messages fail with
-/// <see cref="TimeoutException"/>, correlated by batch id so ServiceControl groups them
-/// into timeout-related error groups. The failure rate oscillates to simulate periodic spikes.
+/// <see cref="TimeoutException"/>, which ServiceControl groups into a single timeout error group.
+/// The failure rate oscillates to simulate periodic spikes.
 /// </summary>
 public sealed class TimeoutSpikeScenario(string shardId) : ScenarioBase(shardId)
 {
     public override string Name => "timeout-spike";
-    public override string Description => "Intermittent timeout exceptions with correlated batch ids. Failure rate oscillates to simulate spikes.";
+    public override string Description => "Intermittent timeout exceptions. Failure rate oscillates to simulate spikes.";
     public override string Category => "Timeout";
     public override double DefaultRate => 30;
 
@@ -31,11 +32,13 @@ public sealed class TimeoutSpikeScenario(string shardId) : ScenarioBase(shardId)
 
     public override Exception CreateException()
     {
-        // Correlate by 5-minute bucket so timeouts cluster into time-based groups.
+        // The 5-minute bucket is telemetry-only: ServiceControl groups these as one
+        // TimeoutException group because the type and throwing frame are always the same.
         var bucket = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 300;
-        return CreateException(
-            "System.TimeoutException",
-            "The operation has timed out waiting for a response from the downstream service.",
-            $"timeout-batch:{bucket}");
+        return Capture(WaitForDownstreamResponse, $"timeout-batch:{bucket}");
     }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void WaitForDownstreamResponse() =>
+        throw new TimeoutException("The operation has timed out waiting for a response from the downstream service.");
 }

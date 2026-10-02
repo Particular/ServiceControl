@@ -168,13 +168,13 @@ public sealed class DirectErrorQueueWriter
         long sequence = 0;
 
         // Pre-compute the failure metadata from the scenario so all messages in this run
-        // share the same exception type, message, and correlation group — ServiceControl
-        // will group them as one error group.
+        // share the same exception type and stack trace — ServiceControl groups on type + first
+        // frame, so they land in the same group as the equivalent handler-path failures.
         var exception = scenario.CreateException();
-        var scenarioEx = exception as ScenarioException;
-        var exceptionType = scenarioEx?.ExceptionType ?? exception.GetType().FullName!;
+        var exceptionType = exception.GetType().FullName!;
         var exceptionMessage = exception.Message;
-        var correlationGroup = scenarioEx?.CorrelationGroup ?? "";
+        var stackTrace = exception.ToString();
+        var correlationGroup = ScenarioBase.GetCorrelationGroup(exception) ?? "";
 
         try
         {
@@ -193,12 +193,13 @@ public sealed class DirectErrorQueueWriter
                 sendOptions.SetDestination(_options.ErrorQueueName);
 
                 // Set failure headers so ServiceControl recognises the message as a failed message
-                // and groups it by exception type + correlation group, exactly like handler failures.
+                // and groups it by exception type + stack trace, exactly like handler failures.
                 sendOptions.SetHeader("TestingTool.Scenario", scenario.Name);
                 sendOptions.SetHeader("TestingTool.Bypass", "true");
                 sendOptions.SetHeader("TestingTool.CorrelationGroup", correlationGroup);
                 sendOptions.SetHeader("NServiceBus.ExceptionInfo.ExceptionType", exceptionType);
                 sendOptions.SetHeader("NServiceBus.ExceptionInfo.Message", exceptionMessage);
+                sendOptions.SetHeader("NServiceBus.ExceptionInfo.StackTrace", stackTrace);
                 sendOptions.SetHeader("NServiceBus.ExceptionInfo.Source", "TestingTool.Load");
                 sendOptions.SetHeader("NServiceBus.FailedQ", "TestingTool.Load");
 

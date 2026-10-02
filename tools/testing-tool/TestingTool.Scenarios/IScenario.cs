@@ -27,7 +27,10 @@ public interface IScenario
     /// <summary>Determines whether a given message should fail. Must be deterministic per shard.</summary>
     bool ShouldFail(string messageId);
 
-    /// <summary>Creates the grouped, typed exception emitted when <see cref="ShouldFail"/> returns true.</summary>
+    /// <summary>
+    /// Creates the exception emitted when <see cref="ShouldFail"/> returns true. It must already have been
+    /// thrown (see <see cref="ScenarioBase.Capture"/>) so it carries the stack trace ServiceControl groups on.
+    /// </summary>
     Exception CreateException();
 
     /// <summary>Burst shape: optional cooldown between failure bursts.</summary>

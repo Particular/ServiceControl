@@ -1,11 +1,12 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace TestingTool.Scenarios;
 
 /// <summary>
 /// Simulates a third-party service outage: 100% of messages fail for a burst period, then recover.
-/// All failures share the same downstream host header so ServiceControl groups them as one
-/// "third-party outage" error group. After the burst, messages succeed (cooldown), then the
+/// All failures throw the same <see cref="HttpRequestException"/> from the same call site, so
+/// ServiceControl groups them as one "third-party outage" error group. After the burst, messages succeed (cooldown), then the
 /// cycle repeats — modelling a flaky external dependency.
 /// </summary>
 public sealed class ThirdPartyOutageScenario(string shardId) : ScenarioBase(shardId)
@@ -28,8 +29,9 @@ public sealed class ThirdPartyOutageScenario(string shardId) : ScenarioBase(shar
     }
 
     public override Exception CreateException() =>
-        CreateException(
-            "System.Net.Http.HttpRequestException",
-            "The third-party service at https://api.downstream.example.com did not respond within the timeout period.",
-            "downstream:api.downstream.example.com");
+        Capture(CallDownstreamApi, "downstream:api.downstream.example.com");
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void CallDownstreamApi() =>
+        throw new HttpRequestException("The third-party service at https://api.downstream.example.com did not respond within the timeout period.");
 }
