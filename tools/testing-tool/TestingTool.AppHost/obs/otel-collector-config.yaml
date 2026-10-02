@@ -1,0 +1,46 @@
+# OpenTelemetry Collector configuration for the testing-tool observability stack.
+#
+# Receives OTLP (traces + metrics) from the testing tool and fans out:
+#   traces   → Jaeger (all-in-one OTLP receiver)
+#   metrics  → Prometheus-compatible exporter scraped by Prometheus
+#   logs     → dropped (console logs remain visible in the Aspire dashboard console view)
+#
+# Container DNS names match the Aspire resource names ("jaeger") so the collector can
+# reach Jaeger on the shared container network.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+
+exporters:
+  # Traces → Jaeger all-in-one OTLP gRPC receiver.
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+
+  # Metrics → Prometheus scraping endpoint (Prometheus pulls from :8889).
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    resource_to_telemetry_conversion:
+      enabled: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/jaeger]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus]
+    # No logs pipeline: logs are accepted by the OTLP receiver but dropped (no exporter).
+    # Console logs remain visible in the Aspire dashboard's console view.
