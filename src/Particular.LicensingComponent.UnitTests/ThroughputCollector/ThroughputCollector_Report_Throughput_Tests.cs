@@ -175,8 +175,8 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
         using (Assert.EnterMultipleScope())
         {
             Assert.That(report.ReportData.Queues.First(w => w.QueueName == "Endpoint1").Throughput, Is.EqualTo(65), $"Incorrect Throughput recorded for Endpoint1");
-            Assert.That(report.ReportData.Queues.First(w => w.QueueName == "Endpoint2").Throughput, Is.EqualTo(65), $"Incorrect Throughput recorded for Endpoint2");
-            Assert.That(report.ReportData.Queues.First(w => w.QueueName == "Endpoint3").Throughput, Is.EqualTo(57), $"Incorrect Throughput recorded for Endpoint3");
+            Assert.That(report.ReportData.Queues.First(w => w.QueueName == "Endpoint2").Throughput, Is.EqualTo(64), $"Incorrect Throughput recorded for Endpoint2");
+            Assert.That(report.ReportData.Queues.First(w => w.QueueName == "Endpoint3").Throughput, Is.EqualTo(47), $"Incorrect Throughput recorded for Endpoint3");
             Assert.That(report.ReportData.TotalQueues, Is.EqualTo(3), $"Incorrect TotalQueues recorded");
         }
     }
@@ -239,7 +239,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             Assert.That(report.ReportData.Queues[0].QueueName, Is.EqualTo("Endpoint1_"), $"Incorrect Name for Endpoint1");
 
             //even though the names are different, we should have matched on the sanitized name and hence displayed max throughput from the 2 endpoints
-            Assert.That(report.ReportData.Queues[0].Throughput, Is.EqualTo(75), $"Incorrect Throughput recorded for Endpoint1");
+            Assert.That(report.ReportData.Queues[0].Throughput, Is.EqualTo(65), $"Incorrect Throughput recorded for Endpoint1");
 
             Assert.That(report.ReportData.TotalQueues, Is.EqualTo(1), $"Incorrect TotalQueues recorded");
         }
@@ -271,6 +271,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
     [TestCase(ThroughputSource.Audit)]
     [TestCase(ThroughputSource.Broker)]
     [TestCase(ThroughputSource.Monitoring)]
+    [TestCase(ThroughputSource.Endpoint)]
     public async Task Should_not_include_throughput_after_report_end_date(ThroughputSource source)
     {
         // Arrange
@@ -293,6 +294,7 @@ class ThroughputCollector_Report_Throughput_Tests : ThroughputCollectorTestFixtu
             ThroughputSource.Audit => queue.DailyThroughputFromAudit,
             ThroughputSource.Broker => queue.DailyThroughputFromBroker,
             ThroughputSource.Monitoring => queue.DailyThroughputFromMonitoring,
+            ThroughputSource.Endpoint => queue.DailyThroughputFromEndpoint,
             _ => throw new ArgumentOutOfRangeException(nameof(source))
         };
 

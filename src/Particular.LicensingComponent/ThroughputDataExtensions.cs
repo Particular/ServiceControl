@@ -12,44 +12,53 @@ static class ThroughputDataExtensions
 
     public static long Sum(this List<ThroughputData> throughputs) => throughputs.SelectMany(t => t).Sum(kvp => kvp.Value);
 
-    public static long MaxDailyThroughput(this List<ThroughputData> throughputs)
-    {
-        var items = throughputs.SelectMany(t => t).ToArray();
-
-        if (items.Any())
+    public static long MaxDailyThroughput(this Dictionary<DateOnly, long> dailyThroughput)
+        => dailyThroughput switch
         {
-            return items.Max(kvp => kvp.Value);
-        }
+            { Count: 0 } => 0,
+            var x => x.Values.Max()
+        };
 
-        return 0;
-    }
+    public static Dictionary<DateOnly, long> DailyThroughput(this List<ThroughputData> throughputs) =>
+        throughputs.SelectMany(
+            throughput => throughput.Select(
+                daily => (
+                    Source: throughput.ThroughputSource,
+                    Date: daily.Key,
+                    Throughput: daily.Value
+                )
+            )
+        )
+        // Older SQL Reports could return a negative value for daily throughput. These are not valid. See https://github.com/Particular/ServiceControl/pull/5404
+        .Where(entry => entry.Throughput >= 0)
+        .GroupBy(entry => entry.Date)
+        .ToDictionary(
+            entries => entries.Key,
+            entries => entries.OrderBy(entry => entry.Source switch
+                {
+                    ThroughputSource.Endpoint => 0,
+                    ThroughputSource.Audit or ThroughputSource.Monitoring => 1,
+                    ThroughputSource.Broker => 2,
+                    _ => int.MaxValue
+                })
+                .ThenByDescending(entry => entry.Throughput)
+                .Select(entry => entry.Throughput)
+                .First()
+        );
 
-    public static MonthlyThroughput[] MonthlyThroughput(this List<ThroughputData> throughputs) => [.. throughputs
-            .SelectMany(data => data)
-            // Older SQL Reports could return a negative value for daily throughput. These are not valid. See https://github.com/Particular/ServiceControl/pull/5404
-            .Where(x => x.Value >= 0)
-            .GroupBy(x => x.Key, x => x.Value)
-            .ToLookup(x => x.Key, x => x.Max())
-            .GroupBy(kvp => kvp.Key.ToString("yyyy-MM", CultureInfo.InvariantCulture), x => x.Sum())
-            .Select(group => new MonthlyThroughput(group.Key, group.Sum()))];
+    public static MonthlyThroughput[] MonthlyThroughput(this Dictionary<DateOnly, long> dailyThroughput) => [
+        ..dailyThroughput
+        .GroupBy(kvp => kvp.Key.ToString("yyyy-MM", CultureInfo.InvariantCulture), kvp => kvp.Value)
+        .Select(group => new MonthlyThroughput(group.Key, group.Sum()))
+    ];
 
-    public static long AverageMonthlyThroughput(this List<ThroughputData> throughputs)
-    {
-        if (!throughputs.Any(x => x.Any()))
+
+    public static long AverageMonthlyThroughput(this Dictionary<DateOnly, long> dailyThroughput)
+        => dailyThroughput switch
         {
-            return 0;
-        }
-
-        // keep this in sync with the internal licensing calculation
-        var maxDailyThroughput = throughputs
-            .SelectMany(x => x)
-            .Where(x => x.Value >= 0)
-            .GroupBy(x => x.Key, x => x.Value)
-            .ToLookup(x => x.Key, x => x.Max())
-            .ToDictionary(x => x.Key, x => x.Sum());
-
-        return (long)Math.Truncate(maxDailyThroughput.Sum(x => x.Value) / (decimal)maxDailyThroughput.Count * 365 / 12);
-    }
+            { Count: 0 } => 0,
+            var throughput => (long)Math.Truncate(throughput.Sum(x => x.Value) / (decimal)throughput.Count * 365 / 12)
+        };
 
     public static bool HasDataFromSource(this IDictionary<string, IEnumerable<ThroughputData>> throughputPerQueue, ThroughputSource source) =>
         throughputPerQueue.Any(queueThroughput => queueThroughput.Value.Any(data => data.ThroughputSource == source && data.Count > 0));
