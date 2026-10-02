@@ -60,7 +60,7 @@ public sealed class ScenarioRunner
         var runtime = new ScenarioRuntime(scenario, targetRate, duration, _meter, _logger);
         if (_running.TryAdd(scenarioName, runtime))
         {
-            runtime.Start(GenerateLoadAsync);
+            runtime.Start(GenerateLoadAsync, OnLoopCompleted);
             UpdateAggregateMetrics();
             _logger.LogInformation("Started scenario {Scenario} at {Rate:F1} msg/s{Duration}",
                 scenarioName, targetRate, duration is null ? "" : $" for {duration.Value}");
@@ -86,6 +86,21 @@ public sealed class ScenarioRunner
         return false;
     }
 
+    /// <summary>
+    /// Called when a scenario's load loop exits on its own (duration elapsed or crash) so it
+    /// stops reporting as running. Only removes this exact runtime, never a newer restart.
+    /// </summary>
+    private void OnLoopCompleted(ScenarioRuntime runtime)
+    {
+        if (_running.TryRemove(KeyValuePair.Create(runtime.Scenario.Name, runtime)))
+        {
+            runtime.Stop();
+            UpdateAggregateMetrics();
+            _logger.LogInformation("Scenario {Scenario} finished after {Sent} messages, {Errors} errors",
+                runtime.Scenario.Name, runtime.MessagesSent, runtime.ErrorsSent);
+        }
+    }
+
     /// <summary>Stops all running scenarios (used on shutdown).</summary>
     public void StopAll()
     {
@@ -106,6 +121,8 @@ public sealed class ScenarioRunner
                 Category = scenario.Category,
                 Running = runtime is not null,
                 CurrentRate = runtime?.TargetRate ?? 0,
+                AchievedRate = Math.Round(runtime?.AchievedRate ?? 0, 1),
+                MessagesSent = runtime?.MessagesSent ?? 0,
                 ErrorsSent = runtime?.ErrorsSent ?? 0,
                 DefaultRate = scenario.DefaultRate,
                 Cooldown = scenario.Cooldown?.ToString()
@@ -120,54 +137,74 @@ public sealed class ScenarioRunner
         _metrics.SetCurrentRate(_running.Values.Sum(r => r.TargetRate));
     }
 
-    /// <summary>The load generation loop: sends LoadMessages at the target rate until cancelled.</summary>
+    // Timer tick bounds for the load loop. The floor keeps PeriodicTimer valid (it rejects
+    // sub-millisecond periods) and avoids spinning; the ceiling keeps low-rate scenarios responsive.
+    private static readonly TimeSpan MinTick = TimeSpan.FromMilliseconds(10);
+    private static readonly TimeSpan MaxTick = TimeSpan.FromSeconds(1);
+
+    /// <summary>
+    /// The load generation loop: sends LoadMessages at the target rate until cancelled.
+    /// Pacing is by elapsed time rather than one message per tick: each tick sends however many
+    /// messages are owed (<c>floor(elapsed * rate) - sent</c>), so timer coarseness (~15.6 ms on
+    /// Windows) and send latency are caught up on the next tick instead of lowering the rate.
+    /// </summary>
     private async Task GenerateLoadAsync(ScenarioRuntime runtime, CancellationToken ct)
     {
-        var scenario = runtime.Scenario;
-        var interval = TimeSpan.FromSeconds(1.0 / runtime.TargetRate);
-        using var timer = new PeriodicTimer(interval);
+        var tick = TimeSpan.FromSeconds(Math.Clamp(1.0 / runtime.TargetRate, MinTick.TotalSeconds, MaxTick.TotalSeconds));
+        using var timer = new PeriodicTimer(tick);
+        var clock = Stopwatch.StartNew();
         long sequence = 0;
 
         try
         {
             while (await timer.WaitForNextTickAsync(ct))
             {
-                var seq = Interlocked.Increment(ref sequence);
-
-                // Plausible JSON body (~3–6 KB) seeded with searchable terms so ServiceControl's
-                // full-text search index has real content to exercise.
-                var textBody = MessageTextGenerator.GenerateBody(seq);
-
-                // Deterministic message id shared with the handler: FailingMessageHandler calls
-                // scenario.ShouldFail(context.MessageId), so setting the id here ensures the
-                // failure decision counted below matches the decision the handler actually makes.
-                var messageId = $"{scenario.Name}-{seq}-{runtime.StartedAt.Ticks}";
-
-                var sendOptions = new SendOptions();
-                sendOptions.RouteToThisEndpoint();
-                sendOptions.SetMessageId(messageId);
-                sendOptions.SetHeader("TestingTool.Scenario", scenario.Name);
-
-                try
+                var due = (long)(clock.Elapsed.TotalSeconds * runtime.TargetRate);
+                while (sequence < due && !ct.IsCancellationRequested)
                 {
-                    await _session.Send(new LoadMessage { Sequence = seq, TextBody = textBody }, sendOptions, ct);
-
-                    // If the scenario fails for this message id (same decision as the handler),
-                    // count it as an error sent.
-                    if (scenario.ShouldFail(messageId))
-                    {
-                        runtime.IncrementErrors();
-                        _metrics.AddErrorsSent(1);
-                        runtime.ErrorsCounter.Add(1, new KeyValuePair<string, object?>("scenario", scenario.Name));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogDebug(ex, "Send failed for scenario {Scenario} seq {Seq}", scenario.Name, seq);
+                    await SendOneAsync(runtime, ++sequence, ct);
                 }
             }
         }
         catch (OperationCanceledException) { }
+    }
+
+    private async Task SendOneAsync(ScenarioRuntime runtime, long seq, CancellationToken ct)
+    {
+        var scenario = runtime.Scenario;
+
+        // Plausible JSON body (~3–6 KB) seeded with searchable terms so ServiceControl's
+        // full-text search index has real content to exercise.
+        var textBody = MessageTextGenerator.GenerateBody(seq);
+
+        // Deterministic message id shared with the handler: FailingMessageHandler calls
+        // scenario.ShouldFail(context.MessageId), so setting the id here ensures the
+        // failure decision counted below matches the decision the handler actually makes.
+        var messageId = $"{scenario.Name}-{seq}-{runtime.StartedAt.Ticks}";
+
+        var sendOptions = new SendOptions();
+        sendOptions.RouteToThisEndpoint();
+        sendOptions.SetMessageId(messageId);
+        sendOptions.SetHeader("TestingTool.Scenario", scenario.Name);
+
+        try
+        {
+            await _session.Send(new LoadMessage { Sequence = seq, TextBody = textBody }, sendOptions, ct);
+            runtime.IncrementSent();
+
+            // If the scenario fails for this message id (same decision as the handler),
+            // count it as an error sent.
+            if (scenario.ShouldFail(messageId))
+            {
+                runtime.IncrementErrors();
+                _metrics.AddErrorsSent(1);
+                runtime.ErrorsCounter.Add(1, new KeyValuePair<string, object?>("scenario", scenario.Name));
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Send failed for scenario {Scenario} seq {Seq}", scenario.Name, seq);
+        }
     }
 }
 
@@ -178,6 +215,7 @@ internal sealed class ScenarioRuntime
     private readonly ILogger _logger;
     private readonly Counter<long> _errorsCounter;
     private long _errorsSent;
+    private long _messagesSent;
     private CancellationTokenSource? _cts;
     private Task? _loop;
 
@@ -197,28 +235,51 @@ internal sealed class ScenarioRuntime
     public TimeSpan? Duration { get; }
     public DateTimeOffset StartedAt { get; }
     public long ErrorsSent => Interlocked.Read(ref _errorsSent);
+    public long MessagesSent => Interlocked.Read(ref _messagesSent);
     public Counter<long> ErrorsCounter => _errorsCounter;
 
-    public long IncrementErrors() => Interlocked.Increment(ref _errorsSent);
+    /// <summary>Messages actually sent per second since start, for comparison with <see cref="TargetRate"/>.</summary>
+    public double AchievedRate
+    {
+        get
+        {
+            var elapsed = (DateTimeOffset.UtcNow - StartedAt).TotalSeconds;
+            return elapsed > 0 ? MessagesSent / elapsed : 0;
+        }
+    }
 
-    public void Start(Func<ScenarioRuntime, CancellationToken, Task> generate)
+    public long IncrementErrors() => Interlocked.Increment(ref _errorsSent);
+    public long IncrementSent() => Interlocked.Increment(ref _messagesSent);
+
+    /// <summary>
+    /// Starts the load loop. <paramref name="completed"/> runs whenever the loop exits, whether
+    /// from <see cref="Stop"/>, the duration elapsing, or a crash.
+    /// </summary>
+    public void Start(Func<ScenarioRuntime, CancellationToken, Task> generate, Action<ScenarioRuntime> completed)
     {
         _cts = Duration is { } d
             ? new CancellationTokenSource(d)
             : new CancellationTokenSource();
 
+        // Captured so Stop() nulling/disposing _cts can't race the loop's startup. No token is
+        // passed to Task.Run so the body (and the completion callback) always runs.
+        var token = _cts.Token;
         _loop = Task.Run(async () =>
         {
             try
             {
-                await generate(this, _cts.Token);
+                await generate(this, token);
             }
             catch (OperationCanceledException) { }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Load generation loop for {Scenario} crashed", Scenario.Name);
             }
-        }, _cts.Token);
+            finally
+            {
+                completed(this);
+            }
+        });
     }
 
     public void Stop()

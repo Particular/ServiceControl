@@ -15,6 +15,9 @@ public sealed class BypassStatus
     /// <summary>Current target emission rate in messages/second (0 if idle).</summary>
     public double Rate { get; init; }
 
+    /// <summary>Envelopes actually written per second during the current run (0 if idle).</summary>
+    public double AchievedRate { get; init; }
+
     /// <summary>Total failed-message envelopes written directly to the error queue since process start.</summary>
     public long ErrorsWritten { get; init; }
 

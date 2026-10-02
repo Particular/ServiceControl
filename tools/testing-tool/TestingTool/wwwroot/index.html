@@ -423,7 +423,7 @@
           </div>
           <div class="stats">
             <span>Errors sent: <strong>${fmtNum(s.errorsSent)}</strong></span>
-            <span>Rate: <strong>${s.currentRate ?? 0} msg/s</strong></span>
+            <span>Rate: <strong>${s.running ? `${s.achievedRate ?? 0} / ${s.currentRate} msg/s` : '0 msg/s'}</strong></span>
             ${s.cooldown ? `<span>Cooldown: <strong>${esc(s.cooldown)}</strong></span>` : ''}
           </div>
         </div>`;
@@ -620,7 +620,7 @@
         stats.innerHTML = `
           <span>Status: <strong>${bypass.running ? 'running' : 'idle'}</strong></span>
           ${bypass.scenario ? `<span>Scenario: <strong>${bypass.scenario}</strong></span>` : ''}
-          ${bypass.running ? `<span>Rate: <strong>${bypass.rate ?? 0} msg/s</strong></span>` : ''}
+          ${bypass.running ? `<span>Rate: <strong>${bypass.achievedRate ?? 0} / ${bypass.rate ?? 0} msg/s</strong></span>` : ''}
           <span>Errors written: <strong>${fmtNum(bypass.errorsWritten)}</strong></span>
           ${bypass.errorsFailed ? `<span style="color:var(--err)">Failed: <strong>${fmtNum(bypass.errorsFailed)}</strong></span>` : ''}
         `;
@@ -650,7 +650,7 @@
           if (stats) {
             stats.innerHTML = `
               <span>Errors sent: <strong>${fmtNum(s.errorsSent)}</strong></span>
-              <span>Rate: <strong>${s.currentRate ?? 0} msg/s</strong></span>
+              <span>Rate: <strong>${s.running ? `${s.achievedRate ?? 0} / ${s.currentRate} msg/s` : '0 msg/s'}</strong></span>
               ${s.cooldown ? `<span>Cooldown: <strong>${s.cooldown}</strong></span>` : ''}
             `;
           }

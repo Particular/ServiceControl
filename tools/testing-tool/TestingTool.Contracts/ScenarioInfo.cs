@@ -21,6 +21,12 @@ public sealed class ScenarioInfo
     /// <summary>Current target rate in messages/second (0 if idle).</summary>
     public double CurrentRate { get; init; }
 
+    /// <summary>Messages actually sent per second since the scenario started (0 if idle).</summary>
+    public double AchievedRate { get; init; }
+
+    /// <summary>Messages sent by the current run (0 if idle).</summary>
+    public long MessagesSent { get; init; }
+
     /// <summary>Errors emitted by this scenario since process start.</summary>
     public long ErrorsSent { get; init; }
 
