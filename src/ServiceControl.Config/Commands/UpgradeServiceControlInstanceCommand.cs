@@ -63,19 +63,6 @@
                 upgradeOptions.OverrideEnableErrorForwarding = !result.Value;
             }
 
-            //Grab old setting if it exists
-            if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.AuditRetentionPeriod.Name))
-            {
-                if (instance.AppConfig.AppSettingExists(ServiceControlSettings.HoursToKeepMessagesBeforeExpiring.Name))
-                {
-                    var i = instance.AppConfig.Read(ServiceControlSettings.HoursToKeepMessagesBeforeExpiring.Name, -1);
-                    if (i != -1)
-                    {
-                        upgradeOptions.AuditRetentionPeriod = TimeSpan.FromHours(i);
-                    }
-                }
-            }
-
             if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.ErrorRetentionPeriod.Name))
             {
                 var viewModel = new SliderDialogViewModel("INPUT REQUIRED - DATABASE RETENTION",

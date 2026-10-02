@@ -6,7 +6,6 @@ namespace ServiceControlInstaller.Engine.Instances
     {
         public bool? OverrideEnableErrorForwarding { get; set; }
         public TimeSpan? ErrorRetentionPeriod { get; set; }
-        public TimeSpan? AuditRetentionPeriod { get; set; }
         public int? MaintenancePort { get; set; }
         public bool SkipQueueCreation { get; set; }
         public string RemoteUrl { get; set; }
@@ -36,11 +35,6 @@ namespace ServiceControlInstaller.Engine.Instances
             if (ErrorRetentionPeriod.HasValue)
             {
                 instance.ErrorRetentionPeriod = ErrorRetentionPeriod.Value;
-            }
-
-            if (AuditRetentionPeriod.HasValue)
-            {
-                instance.AuditRetentionPeriod = AuditRetentionPeriod.Value;
             }
 
             if (MaintenancePort.HasValue)

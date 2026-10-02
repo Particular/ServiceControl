@@ -44,8 +44,6 @@
 
         public bool ForwardAuditMessages { get; set; }
 
-        public TimeSpan? AuditRetentionPeriod { get; set; }
-
         public string ServiceAccount { get; set; }
 
         public SemanticVersion Version { get; set; }
@@ -77,7 +75,6 @@
                 AuditQueue = instance.AuditQueue,
                 AuditLogQueue = instance.ForwardAuditMessages ? instance.AuditLogQueue : null,
                 ForwardAuditMessages = instance.ForwardAuditMessages,
-                AuditRetentionPeriod = instance.AuditRetentionPeriod,
                 ErrorRetentionPeriod = instance.ErrorRetentionPeriod,
                 EnableFullTextSearchOnBodies = instance.EnableFullTextSearchOnBodies,
                 RemoteInstances = instance.RemoteInstances.Select<RemoteInstanceSetting, object>(i =>
