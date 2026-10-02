@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using Persistence.RavenDB;
 using Persistence.RavenDB.Indexes;
+using Raven.Client;
 using Raven.Client.Documents.Indexes;
 using Raven.Client.Documents.Operations.Indexes;
 using Raven.Client.Exceptions;
@@ -37,7 +38,7 @@ class IndexSetupTests : PersistenceTestFixture
     [Test]
     public async Task Startup_check_should_report_indexes_using_corax()
     {
-        var index = new MessagesViewIndexWithFullTextSearch { Configuration = { ["Indexing.Static.SearchEngineType"] = SearchEngineType.Corax.ToString() } };
+        var index = new MessagesViewIndexWithFullTextSearch { Configuration = { [IndexDeployment.StaticSearchEngineTypeKey] = SearchEngineType.Corax.ToString() } };
 
         await UpdateIndex(index);
 
@@ -69,31 +70,9 @@ class IndexSetupTests : PersistenceTestFixture
     }
 
     [Test]
-    public async Task Indexes_should_be_reset_on_setup()
+    public async Task Search_engine_configured_on_the_index_should_be_preserved_on_setup()
     {
-        var index = new MessagesViewIndexWithFullTextSearch { Configuration = { ["Indexing.Static.SearchEngineType"] = SearchEngineType.Corax.ToString() } };
-
-        var indexWithCustomConfigStats = await UpdateIndex(index);
-
-        Assert.That(indexWithCustomConfigStats.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
-
-        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
-
-        await WaitForIndexDefinitionUpdate(indexWithCustomConfigStats);
-
-        var indexAfterResetStats = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName));
-
-        Assert.That(indexAfterResetStats.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
-    }
-
-    [Test]
-    public async Task Indexes_should_not_be_reset_on_setup_when_locked_as_ignore()
-    {
-        var index = new MessagesViewIndexWithFullTextSearch
-        {
-            Configuration = { ["Indexing.Static.SearchEngineType"] = SearchEngineType.Corax.ToString() },
-            LockMode = IndexLockMode.LockedIgnore
-        };
+        var index = new MessagesViewIndexWithFullTextSearch { Configuration = { [IndexDeployment.StaticSearchEngineTypeKey] = SearchEngineType.Corax.ToString() } };
 
         var indexStatsBefore = await UpdateIndex(index);
 
@@ -101,25 +80,105 @@ class IndexSetupTests : PersistenceTestFixture
 
         await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
 
-        // raven will ignore the update since index was locked, so best we can do is wait a bit and check that settings hasn't changed
+        var replacement = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(Constants.Documents.Indexing.SideBySideIndexNamePrefix + index.IndexName), TestTimeoutCancellationToken);
+        var indexStatsAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName), TestTimeoutCancellationToken);
+
+        Assert.That(replacement, Is.Null, "Setup should not trigger a rebuild of an index whose only difference is the configured search engine");
+        Assert.That(indexStatsAfter.CreatedTimestamp, Is.EqualTo(indexStatsBefore.CreatedTimestamp));
+        Assert.That(indexStatsAfter.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
+    }
+
+    [Test]
+    public async Task Indexes_should_be_reset_on_setup_keeping_the_configured_search_engine()
+    {
+        var customizedStats = await PutCustomizedIndex(SearchEngineType.Corax);
+
+        Assert.That(customizedStats.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
+
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+
+        var resetStats = await WaitForIndexDefinitionUpdate(customizedStats);
+        var resetDefinition = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(customizedStats.Name), TestTimeoutCancellationToken);
+
+        Assert.That(resetDefinition.Fields, Does.Not.ContainKey(CustomizedField), "Customizations made to the index definition should be reset");
+        Assert.That(resetStats.SearchEngineType, Is.EqualTo(SearchEngineType.Corax), "The search engine configured on the index should be kept when the index is rebuilt");
+    }
+
+    [Test]
+    public async Task Pending_replacement_using_the_database_default_should_be_discarded_in_favor_of_the_configured_search_engine()
+    {
+        var index = new MessagesViewIndexWithFullTextSearch { Configuration = { [IndexDeployment.StaticSearchEngineTypeKey] = SearchEngineType.Corax.ToString() } };
+        var replacementName = Constants.Documents.Indexing.SideBySideIndexNamePrefix + index.IndexName;
+
+        var originalStats = await UpdateIndex(index);
+
+        // Keep replacements from catching up and swapping, like a large database under load would
+        await configuration.DocumentStore.Maintenance.SendAsync(new StopIndexingOperation(), TestTimeoutCancellationToken);
+
+        try
+        {
+            // What versions before the fix did: deploy the definition without the configured search engine,
+            // creating a replacement that uses the database default
+            await IndexCreation.CreateIndexesAsync([new MessagesViewIndexWithFullTextSearch()], configuration.DocumentStore, null, null, TestTimeoutCancellationToken);
+
+            var defaultReplacement = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(replacementName), TestTimeoutCancellationToken);
+            Assert.That(defaultReplacement.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
+
+            await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+
+            var replacementAfterSetup = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(replacementName), TestTimeoutCancellationToken);
+            var originalAfterSetup = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName), TestTimeoutCancellationToken);
+
+            Assert.That(replacementAfterSetup, Is.Null, "The definition matches the existing index again, so the pending replacement should be discarded");
+            Assert.That(originalAfterSetup.CreatedTimestamp, Is.EqualTo(originalStats.CreatedTimestamp));
+            Assert.That(originalAfterSetup.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
+        }
+        finally
+        {
+            await configuration.DocumentStore.Maintenance.SendAsync(new StartIndexingOperation(), TestTimeoutCancellationToken);
+        }
+    }
+
+    [Test]
+    public async Task Indexes_should_not_be_reset_on_setup_when_locked_as_ignore()
+    {
+        var customizedStats = await PutCustomizedIndex(SearchEngineType.Corax, IndexLockMode.LockedIgnore);
+
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+
+        // raven will ignore the update since index was locked, so best we can do is wait a bit and check that the definition hasn't changed
         await Task.Delay(1000);
 
-        var indexStatsAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName));
+        var definitionAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(customizedStats.Name), TestTimeoutCancellationToken);
+        var indexStatsAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(customizedStats.Name), TestTimeoutCancellationToken);
+
+        Assert.That(definitionAfter.Fields, Does.ContainKey(CustomizedField));
         Assert.That(indexStatsAfter.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
     }
 
     [Test]
     public async Task Indexes_should_not_be_reset_on_setup_when_locked_as_error()
     {
-        var index = new MessagesViewIndexWithFullTextSearch
-        {
-            Configuration = { ["Indexing.Static.SearchEngineType"] = SearchEngineType.Corax.ToString() },
-            LockMode = IndexLockMode.LockedError
-        };
-
-        await UpdateIndex(index);
+        await PutCustomizedIndex(SearchEngineType.Corax, IndexLockMode.LockedError);
 
         Assert.ThrowsAsync<IndexCreationException>(async () => await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken));
+    }
+
+    // Simulates an index modified outside ServiceControl, e.g. through RavenDB Studio, with a definition that differs from ours
+    async Task<IndexStats> PutCustomizedIndex(SearchEngineType searchEngineType, IndexLockMode lockMode = IndexLockMode.Unlock)
+    {
+        var index = new MessagesViewIndexWithFullTextSearch { Conventions = configuration.DocumentStore.Conventions };
+        var definition = index.CreateIndexDefinition();
+        definition.Name = index.IndexName;
+        definition.LockMode = lockMode;
+        definition.Configuration[IndexDeployment.StaticSearchEngineTypeKey] = searchEngineType.ToString();
+        definition.Fields[CustomizedField] = new IndexFieldOptions { Storage = FieldStorage.Yes };
+
+        var statsBefore = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName), TestTimeoutCancellationToken);
+
+        await configuration.DocumentStore.Maintenance.SendAsync(new PutIndexesOperation(definition), TestTimeoutCancellationToken);
+
+        return await WaitForIndexDefinitionUpdate(statsBefore);
     }
 
     async Task<IndexStats> UpdateIndex(IAbstractIndexCreationTask index)
@@ -130,6 +189,8 @@ class IndexSetupTests : PersistenceTestFixture
 
         return await WaitForIndexDefinitionUpdate(statsBefore);
     }
+
+    const string CustomizedField = nameof(MessagesViewIndex.SortAndFilterOptions.MessageId);
 
     // How many consecutive RavenExceptions from the stats query below get tolerated before letting one propagate for real.
     // RavenDB can throw a variety of transient errors for that race (seen so far: OperationCanceledException
