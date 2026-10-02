@@ -58,6 +58,7 @@ builder.Services.AddSingleton<JobRunner>();
 // --- Application pipeline ---
 
 var app = builder.Build();
+app.Logger.LogInformation("Using {Transport} transport", app.Services.GetRequiredService<SelectedTransport>().Name);
 app.UseStaticFiles();
 app.UseOpenTelemetryPrometheusScrapingEndpoint("/metrics");
 

@@ -8,7 +8,7 @@ The tool targets the error ingestion path only — audit testing is out of scope
 
 ## What it does
 
-The tool runs an NServiceBus endpoint (`TestingTool.Load`, Learning transport) that sends messages
+The tool runs an NServiceBus endpoint (`TestingTool.Load`) that sends messages
 through a handler which fails based on the active scenario. Failed messages are routed to the
 `error` queue for ServiceControl to ingest. Each scenario throws a real exception type
 from its own method, so ServiceControl's default grouping (exception type + first stack frame)
@@ -115,8 +115,12 @@ available):
 docker build -f tools/testing-tool/Dockerfile -t particular/testing-tool .
 docker run --rm -p 8080:8080 \
   -e TestingTool__ServiceControlApiUrl=http://host.docker.internal:33333 \
+  -e ConnectionStrings__transport=amqp://guest:guest@host.docker.internal:5672 \
   particular/testing-tool
 ```
+
+Set `ConnectionStrings__transport` to the same broker ServiceControl uses. If it's not set, the tool
+uses the Learning transport and nothing reaches ServiceControl (see [Transport](#transport)).
 
 The container listens on port 8080. CI ([testing-tool-ci.yml](/.github/workflows/testing-tool-ci.yml))
 builds the solution and the container image on every change under `tools/testing-tool/`.
@@ -124,7 +128,7 @@ builds the solution and the container image on every change under `tools/testing
 ## Run with Aspire
 
 The Aspire AppHost orchestrates the testing tool together with the full Particular platform
-(ServiceControl + Learning transport + RavenDB + ServicePulse) and a complete observability
+(ServiceControl + RabbitMQ or SQL Server transport + RavenDB/SQL Server/PostgreSQL persistence + ServicePulse) and a complete observability
 stack (OTel Collector, Jaeger, Prometheus, Grafana), so a single command brings up the whole
 system locally:
 
@@ -159,8 +163,10 @@ separator) or `--name:value` (colon separator):
 | Flag | Default | Values | Description |
 |---|---|---|---|
 | `--persistence` | `RavenDb` | `RavenDb`, `SqlServer`, `PostgreSql` | Persistence backend for the ServiceControl error instance |
+| `--transport` | `RabbitMq` | `RabbitMq`, `SqlServer` | Transport shared by ServiceControl and the testing tool. `SqlServer` reuses the persistence SQL Server container with a separate `Transport` database |
 | `--tag` | *(none — uses the current build's image)* | any image tag, e.g. `pr-1234` or `6.3.1` | Override the ServiceControl container image tag (useful for testing PR-based prereleases) |
 | `--error-ingestion-scale-unit` | `0` | non-negative integer | Number of additional error-ingestion-only scale-out instances to spin up alongside the primary error instance (each runs with `--error-ingestion-only`) |
+| `--audit-instances` | `0` | non-negative integer | Number of ServiceControl audit instances to add |
 
 The Aspire dashboard provides allocated ports for each service. The testing tool automatically
 connects to ServiceControl via the platform's transport and REST API URL, and sends its OTLP
@@ -201,6 +207,21 @@ To achieve a target aggregate rate of R msg/s across N replicas, set each replic
 to R/N. The web UI and `/api/status` endpoint report per-replica counters; aggregate across
 replicas via Prometheus queries or the OTLP backend.
 
+## Transport
+
+The endpoint's transport is picked from the `transport` connection string
+(`ConnectionStrings__transport`). The Aspire AppHost sets this automatically; when running the tool
+on its own, set it to the broker your ServiceControl instance uses:
+
+| Connection string | Transport |
+|---|---|
+| starts with `amqp:` or `amqps:` (e.g. `amqp://guest:guest@localhost:5672`) | RabbitMQ — quorum queues, conventional routing topology |
+| SQL Server connection string with `Initial Catalog` or `Database` (e.g. `Server=localhost;Database=Transport;...`) | SQL Server |
+| not set or empty | Learning transport (local standalone runs only — ServiceControl won't see the messages) |
+| anything else | startup fails with an error naming `ConnectionStrings__transport` |
+
+The selected transport is logged at startup (`Using RabbitMQ transport` etc.).
+
 ## Configuration
 
 All configuration is via environment variables (no files, no database). Settings are in
@@ -209,6 +230,7 @@ All configuration is via environment variables (no files, no database). Settings
 
 | Setting | Default | Description |
 |---|---|---|
+| `ConnectionStrings__transport` (env) | *(none — Learning transport)* | Transport connection string; see [Transport](#transport) |
 | `TestingTool__ServiceControlApiUrl` | `http://localhost:33333` | ServiceControl REST API base URL |
 | `TestingTool__ReplayInterval` | `00:02:00` | Default interval for the retry job |
 | `TestingTool__ReplayMinGroupSize` | `1` | Min messages in a group before retrying |
@@ -220,6 +242,8 @@ All configuration is via environment variables (no files, no database). Settings
 | `TestingTool__CustomCheckInterval` | `00:00:30` | Default interval for the custom-check-failures job |
 | `TestingTool__CustomCheckHost` | `ServiceControl` | `Host` field on injected custom-check reports |
 | `TestingTool__CustomCheckFailureProbability` | `0.4` | Probability (0–1) a given check is reported failed each cycle |
+| `TestingTool__AuditQueueName` | `audit` | NServiceBus audit queue for processed messages |
+| `TestingTool__MonitoringQueueName` | `Particular.Monitoring` | ServiceControl monitoring instance queue that endpoint metrics are sent to |
 | `TestingTool__ErrorQueueName` | `error` | NServiceBus error queue (ServiceControl monitors this) |
 | `TestingTool__AutoStartBackgroundNoise` | `false` | Auto-start the background-noise scenario on startup |
 | `SHARD_ID` (env) | *(auto: hostname ordinal or machine name)* | Shard id for disjoint scenario slices when scaled |

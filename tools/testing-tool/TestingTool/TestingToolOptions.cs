@@ -68,4 +68,7 @@ public sealed class TestingToolOptions
     public double CustomCheckFailureProbability { get; set; } = 0.4;
 
     public string AuditQueueName { get; set; } = "audit";
+
+    /// <summary>ServiceControl monitoring instance input queue that endpoint metrics are sent to.</summary>
+    public string MonitoringQueueName { get; set; } = "Particular.Monitoring";
 }
