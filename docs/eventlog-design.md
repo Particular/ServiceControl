@@ -2,7 +2,7 @@
 
 ## What it is
 
-The event log is the primary instance's activity feed: the chronological "what has this instance noticed" list that ServicePulse shows. Message failures, retries, redirects, heartbeats, custom checks and integration failures all surface here.
+The event log is the primary instance's activity feed: the chronological "what has this instance noticed" list that ServicePulse shows. Retries, redirects, heartbeats, custom checks and integration failures all surface here. Message failures do not: they are visible on the failed messages screen instead, and recording one row per failure in the feed was removed as write and retention overhead on the hot ingest path.
 
 It is a **projection of domain events, not a log file**. Nothing writes to it directly. Components raise domain events for their own reasons, and the event log turns a chosen subset of those into feed items. An event only appears if someone has declared how it should read, which makes the feed an editorial selection rather than a dump.
 
