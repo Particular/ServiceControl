@@ -14,7 +14,9 @@ class SqlServerFullTextSearchDialect : IFullTextSearchDialect
 
         return source.Where(message =>
             EF.Functions.Contains(message.HeadersJson, searchCondition) ||
-            EF.Functions.Contains(message.BodyText!, searchCondition));
+            EF.Functions.Contains(message.BodyText!, searchCondition) ||
+            message.MessageId == searchTerms ||
+            message.ConversationId == searchTerms);
     }
 
     // CONTAINS parses its argument as query syntax, where two bare words in a row are an error. A

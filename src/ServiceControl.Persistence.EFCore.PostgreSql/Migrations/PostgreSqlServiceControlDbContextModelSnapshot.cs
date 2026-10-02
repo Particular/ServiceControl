@@ -426,6 +426,9 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.HasIndex("FailingEndpointAddress")
                         .HasDatabaseName("ix_failed_messages_failing_endpoint_address");
 
+                    b.HasIndex("MessageId")
+                        .HasDatabaseName("ix_failed_messages_message_id");
+
                     b.HasIndex("ReceivingEndpointName")
                         .HasDatabaseName("ix_failed_messages_receiving_endpoint_name");
 

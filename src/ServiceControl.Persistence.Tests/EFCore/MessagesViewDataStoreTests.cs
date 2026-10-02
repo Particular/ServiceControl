@@ -383,6 +383,79 @@ class MessagesViewDataStoreTests : ErrorIngestionTestBase
         await AssertSearchFinds(matching.MessageId, matching);
     }
 
+    // Distinct endpoints keep derived unique IDs separate after removing the MessageId header.
+    [Test]
+    public async Task Searches_a_message_id_that_is_only_in_the_id_column()
+    {
+        var matching = new IngestedFailure();
+        matching.Headers.Remove(NServiceBus.Headers.MessageId);
+        matching.Headers.Remove(NServiceBus.Headers.ConversationId);
+        var other = new IngestedFailure { EndpointName = "Billing" };
+        other.Headers.Remove(NServiceBus.Headers.MessageId);
+        other.Headers.Remove(NServiceBus.Headers.ConversationId);
+
+        await Ingest(matching, other);
+
+        await AssertSearchFinds(matching.MessageId, matching);
+    }
+
+    [Test]
+    public async Task Searches_a_conversation_id_that_is_only_in_the_conversation_id_column()
+    {
+        var matching = new IngestedFailure();
+        matching.Headers.Remove(NServiceBus.Headers.MessageId);
+        matching.Headers.Remove(NServiceBus.Headers.ConversationId);
+        var other = new IngestedFailure { EndpointName = "Billing" };
+        other.Headers.Remove(NServiceBus.Headers.MessageId);
+        other.Headers.Remove(NServiceBus.Headers.ConversationId);
+
+        await Ingest(matching, other);
+
+        await AssertSearchFinds(matching.ConversationId, matching);
+    }
+
+    [Test]
+    public async Task Does_not_find_an_id_no_message_has()
+    {
+        var first = new IngestedFailure { ExceptionMessage = "the zarquon overheated" };
+        var second = new IngestedFailure { ExceptionMessage = "the flux capacitor melted" };
+
+        await Ingest(first, second);
+
+        // SQL Server fills its full text index asynchronously, so a non match only proves something
+        // once both messages are known to be in it.
+        await AssertSearchFinds("zarquon capacitor", first, second);
+
+        var result = await MessagesViewStore.GetAllMessagesForSearch("qqqqwwww-yyyy-zzzz-vvvv-uuuuttttssss", new PagingInfo(), new SortInfo());
+
+        Assert.That(result.Results, Is.Empty);
+    }
+
+    [Test]
+    public async Task Searches_a_message_id_within_an_endpoint()
+    {
+        var billing = new IngestedFailure
+        {
+            EndpointName = "Billing",
+            ReceivingEndpoint = new EndpointDetails { Name = "Billing", Host = "BillingHost", HostId = Guid.NewGuid() }
+        };
+        billing.Headers.Remove(NServiceBus.Headers.MessageId);
+        billing.Headers.Remove(NServiceBus.Headers.ConversationId);
+        var sales = new IngestedFailure { EndpointName = "Sales" };
+        sales.Headers.Remove(NServiceBus.Headers.MessageId);
+        sales.Headers.Remove(NServiceBus.Headers.ConversationId);
+
+        await Ingest(billing, sales);
+
+        await WaitForSearchResults(
+            () => MessagesViewStore.SearchEndpointMessages("Billing", billing.MessageId, new PagingInfo(), new SortInfo()),
+            billing);
+
+        var wrongEndpoint = await MessagesViewStore.SearchEndpointMessages("Sales", billing.MessageId, new PagingInfo(), new SortInfo());
+
+        Assert.That(wrongEndpoint.Results, Is.Empty);
+    }
+
     [Test]
     public async Task Ors_the_search_terms()
     {
