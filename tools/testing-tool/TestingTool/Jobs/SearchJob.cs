@@ -53,6 +53,7 @@ public sealed class SearchJob(
         {
             ct.ThrowIfCancellationRequested();
 
+            // SearchAsync throws on failure, failing the cycle before anything below is recorded.
             var sw = Stopwatch.StartNew();
             var result = await sc.SearchAsync(query, ct);
             sw.Stop();
@@ -65,7 +66,7 @@ public sealed class SearchJob(
             _searchCounter.Add(1, new KeyValuePair<string, object?>("query", query));
 
             logger.LogDebug("Search '{Query}' → {Count} results in {Ms:F1}ms",
-                query, result?.MessageCount, sw.Elapsed.TotalMilliseconds);
+                query, result.MessageCount, sw.Elapsed.TotalMilliseconds);
         }
     }
 

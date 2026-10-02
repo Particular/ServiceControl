@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace TestingTool;
@@ -61,22 +62,32 @@ public sealed class ServiceControlClient(HttpClient http, ILogger<ServiceControl
         }
     }
 
-    /// <summary>Executes a full-text search query against ServiceControl.</summary>
-    public async Task<SearchResult?> SearchAsync(string query, CancellationToken ct = default)
+    /// <summary>
+    /// Executes a full-text search query against ServiceControl. Unlike the other calls this
+    /// throws on failure rather than returning null, so the search job's cycle fails visibly
+    /// instead of recording a search that never happened.
+    /// </summary>
+    public async Task<SearchResult> SearchAsync(string query, CancellationToken ct = default)
     {
         try
         {
-            var response = await http.GetAsync($"/api/errors/search?q={Uri.EscapeDataString(query)}", ct);
-            if (!response.IsSuccessStatusCode)
-                return null;
+            var response = await http.GetAsync($"/api/messages/search?q={Uri.EscapeDataString(query)}", ct);
+            response.EnsureSuccessStatusCode();
 
-            var body = await response.Content.ReadFromJsonAsync<SearchResponse>(ct);
-            return new SearchResult(body?.MessageCount ?? 0);
+            // The body is a single page of matching messages; the total across all pages is in
+            // the Total-Count header. Fall back to the page size if the header is missing.
+            if (response.Headers.TryGetValues("Total-Count", out var values)
+                && int.TryParse(values.FirstOrDefault(), out var totalCount))
+                return new SearchResult(totalCount);
+
+            var page = await response.Content.ReadFromJsonAsync<List<JsonElement>>(ct);
+            return new SearchResult(page?.Count ?? 0);
         }
-        catch (Exception ex)
+        catch (OperationCanceledException ex) when (!ct.IsCancellationRequested)
         {
-            logger.LogWarning(ex, "Search '{Query}' failed", query);
-            return null;
+            // An HttpClient timeout surfaces as TaskCanceledException. Rethrow it as a timeout so
+            // the job treats it as a failed cycle rather than as being stopped.
+            throw new TimeoutException($"Search '{query}' timed out", ex);
         }
     }
 
@@ -87,8 +98,6 @@ public sealed class ServiceControlClient(HttpClient http, ILogger<ServiceControl
         [property: JsonPropertyName("type")] string? Type,
         [property: JsonPropertyName("first")] string? First,
         [property: JsonPropertyName("last")] string? Last);
-
-    public sealed record SearchResponse([property: JsonPropertyName("messageCount")] int MessageCount);
 
     public sealed record SearchResult(int MessageCount);
 
