@@ -2,13 +2,17 @@ namespace ServiceControl.Persistence
 {
     using System;
     using System.IO;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence.DataMigration;
 
     static class PersistenceFactory
     {
         public static IPersistence Create(Settings settings, bool maintenanceMode = false)
         {
-            var persistenceConfiguration = CreatePersistenceConfiguration(settings);
+            var persistenceConfiguration = CreatePersistenceConfiguration(settings.PersistenceType, settings);
 
             if (maintenanceMode && !persistenceConfiguration.SupportsMaintenanceMode)
             {
@@ -24,11 +28,38 @@ namespace ServiceControl.Persistence
             return persistence;
         }
 
-        static IPersistenceConfiguration CreatePersistenceConfiguration(Settings settings)
+        /// <summary>
+        /// The persistence a migration copies from. RavenDB is the only source supported today.
+        /// </summary>
+        public const string MigrationSourcePersistenceType = "RavenDB";
+
+        public static IMigrationSource CreateMigrationSource(Settings settings)
         {
+            var sourceFactory = (IMigrationSourceFactory)CreatePersistenceConfiguration(MigrationSourcePersistenceType, settings);
+
+            return sourceFactory.CreateSource(Settings.SettingsRootNamespace);
+        }
+
+        public static async Task<IMigrationSource> OpenMigrationSource(Settings settings, CancellationToken cancellationToken = default)
+        {
+            var source = CreateMigrationSource(settings);
+            await source.Open(cancellationToken);
+
+            return source;
+        }
+
+        static IPersistenceConfiguration CreatePersistenceConfiguration(string persistenceType, Settings settings)
+        {
+            var persistenceManifest = PersistenceManifestLibrary.Find(persistenceType)
+                ?? throw new Exception($"There is no persistence named '{persistenceType}'. Available: {string.Join(", ", PersistenceManifestLibrary.PersistenceManifests.Where(m => m.IsSupported).Select(m => m.Name))}.");
+
+            if (persistenceManifest.TypeName is null)
+            {
+                throw new Exception($"The '{persistenceManifest.DisplayName}' persistence no longer ships an assembly and cannot be loaded.");
+            }
+
             try
             {
-                var persistenceManifest = PersistenceManifestLibrary.Find(settings.PersistenceType);
                 var assemblyPath = Path.Combine(persistenceManifest.Location, $"{persistenceManifest.AssemblyName}.dll");
                 var loadContext = settings.AssemblyLoadContextResolver(assemblyPath);
                 var customizationType = Type.GetType(persistenceManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
@@ -37,7 +68,7 @@ namespace ServiceControl.Persistence
             }
             catch (Exception e)
             {
-                throw new Exception($"Could not load persistence customization type {settings.PersistenceType}.", e);
+                throw new Exception($"Could not load persistence customization type {persistenceType}.", e);
             }
         }
     }

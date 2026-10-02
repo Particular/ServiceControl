@@ -5,11 +5,13 @@ namespace ServiceControl.Persistence.RavenDB
     using System.Reflection;
     using Configuration;
     using CustomChecks;
+    using DataMigration;
     using Microsoft.Extensions.Logging;
     using Particular.LicensingComponent.Contracts;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Persistence.DataMigration;
 
-    class RavenPersistenceConfiguration : PersistenceConfiguration, IPersistenceConfiguration
+    class RavenPersistenceConfiguration : PersistenceConfiguration, IPersistenceConfiguration, IMigrationSourceFactory
     {
         public const string DataSpaceRemainingThresholdKey = "DataSpaceRemainingThreshold";
         const string AuditRetentionPeriodKey = "AuditRetentionPeriod";
@@ -90,5 +92,8 @@ namespace ServiceControl.Persistence.RavenDB
             var specificSettings = (RavenPersisterSettings)settings;
             return new RavenPersistence(specificSettings);
         }
+
+        public IMigrationSource CreateSource(SettingsRootNamespace settingsRoot) =>
+            new RavenMigrationSource(new RavenReadOnlySourceLifecycle((RavenPersisterSettings)CreateSettings(settingsRoot), settingsRoot));
     }
 }
