@@ -27,6 +27,10 @@ public sealed class ScenarioInfo
     /// <summary>Messages sent by the current run (0 if idle).</summary>
     public long MessagesSent { get; init; }
 
+    /// <summary>Sends that failed in the current run (0 if idle). Non-zero usually means the
+    /// transport/broker is unreachable; see logs (Warning level) for details.</summary>
+    public long SendsFailed { get; init; }
+
     /// <summary>Errors emitted by this scenario since process start.</summary>
     public long ErrorsSent { get; init; }
 

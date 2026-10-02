@@ -139,10 +139,9 @@ public sealed class CustomCheckFailureJob(
             }
             catch (Exception ex)
             {
-                // Most likely the ServiceControl input queue is unreachable (e.g. running the tool
-                // standalone on the Learning transport with no ServiceControl). Log at debug to avoid
-                // spamming; the job is a no-op in that environment.
-                logger.LogDebug(ex, "Failed to send custom check report '{Check}' to {Destination}", check.Id, destination);
+                // Most likely the ServiceControl input queue or the broker is unreachable. Warning
+                // so this is visible at the default log level instead of the job silently doing nothing.
+                logger.LogWarning(ex, "Failed to send custom check report '{Check}' to {Destination}", check.Id, destination);
             }
         }
     }

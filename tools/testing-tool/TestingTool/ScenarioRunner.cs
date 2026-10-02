@@ -123,6 +123,7 @@ public sealed class ScenarioRunner
                 CurrentRate = runtime?.TargetRate ?? 0,
                 AchievedRate = Math.Round(runtime?.AchievedRate ?? 0, 1),
                 MessagesSent = runtime?.MessagesSent ?? 0,
+                SendsFailed = runtime?.SendsFailed ?? 0,
                 ErrorsSent = runtime?.ErrorsSent ?? 0,
                 DefaultRate = scenario.DefaultRate,
                 Cooldown = scenario.Cooldown?.ToString()
@@ -201,9 +202,18 @@ public sealed class ScenarioRunner
                 runtime.ErrorsCounter.Add(1, new KeyValuePair<string, object?>("scenario", scenario.Name));
             }
         }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            // Cancellation is expected on stop/timeout — let it propagate to the loop.
+            throw;
+        }
         catch (Exception ex)
         {
-            _logger.LogDebug(ex, "Send failed for scenario {Scenario} seq {Seq}", scenario.Name, seq);
+            runtime.IncrementSendsFailed();
+
+            // Warning so transport/broker failures are visible at the default log level; otherwise
+            // a dead broker leaves the scenario "running" with 0 errors and no explanation.
+            _logger.LogWarning(ex, "Send failed for scenario {Scenario} seq {Seq}", scenario.Name, seq);
         }
     }
 }
@@ -216,6 +226,7 @@ internal sealed class ScenarioRuntime
     private readonly Counter<long> _errorsCounter;
     private long _errorsSent;
     private long _messagesSent;
+    private long _sendsFailed;
     private CancellationTokenSource? _cts;
     private Task? _loop;
 
@@ -236,6 +247,7 @@ internal sealed class ScenarioRuntime
     public DateTimeOffset StartedAt { get; }
     public long ErrorsSent => Interlocked.Read(ref _errorsSent);
     public long MessagesSent => Interlocked.Read(ref _messagesSent);
+    public long SendsFailed => Interlocked.Read(ref _sendsFailed);
     public Counter<long> ErrorsCounter => _errorsCounter;
 
     /// <summary>Messages actually sent per second since start, for comparison with <see cref="TargetRate"/>.</summary>
@@ -250,6 +262,7 @@ internal sealed class ScenarioRuntime
 
     public long IncrementErrors() => Interlocked.Increment(ref _errorsSent);
     public long IncrementSent() => Interlocked.Increment(ref _messagesSent);
+    public long IncrementSendsFailed() => Interlocked.Increment(ref _sendsFailed);
 
     /// <summary>
     /// Starts the load loop. <paramref name="completed"/> runs whenever the loop exits, whether

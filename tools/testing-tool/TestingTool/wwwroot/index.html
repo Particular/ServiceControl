@@ -424,6 +424,7 @@
           <div class="stats">
             <span>Errors sent: <strong>${fmtNum(s.errorsSent)}</strong></span>
             <span>Rate: <strong>${s.running ? `${s.achievedRate ?? 0} / ${s.currentRate} msg/s` : '0 msg/s'}</strong></span>
+            ${s.sendsFailed ? `<span style="color:var(--err)">Send failures: <strong>${fmtNum(s.sendsFailed)}</strong></span>` : ''}
             ${s.cooldown ? `<span>Cooldown: <strong>${esc(s.cooldown)}</strong></span>` : ''}
           </div>
         </div>`;
@@ -651,6 +652,7 @@
             stats.innerHTML = `
               <span>Errors sent: <strong>${fmtNum(s.errorsSent)}</strong></span>
               <span>Rate: <strong>${s.running ? `${s.achievedRate ?? 0} / ${s.currentRate} msg/s` : '0 msg/s'}</strong></span>
+            ${s.sendsFailed ? `<span style="color:var(--err)">Send failures: <strong>${fmtNum(s.sendsFailed)}</strong></span>` : ''}
               ${s.cooldown ? `<span>Cooldown: <strong>${s.cooldown}</strong></span>` : ''}
             `;
           }
