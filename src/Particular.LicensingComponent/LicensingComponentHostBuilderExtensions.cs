@@ -17,7 +17,6 @@ public static class LicensingComponentHostBuilderExtensions
         var throughputSettings = new ThroughputSettings(serviceControlQueue, errorQueue, transportType, customerName, serviceControlVersion);
         services.AddSingleton(throughputSettings);
         services.AddHostedService<AuditThroughputCollectorHostedService>();
-        services.AddHostedService<IngestionHistoryCollectorHostedService>();
         services.AddHostedService<MonitoringThroughputHostedService>();
         services.AddSingleton<IThroughputCollector, ThroughputCollector>();
         services.AddSingleton<IAuditQuery, AuditQuery>();

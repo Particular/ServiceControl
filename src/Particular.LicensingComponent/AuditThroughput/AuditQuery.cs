@@ -5,7 +5,6 @@
     using Microsoft.Extensions.Logging;
     using NuGet.Versioning;
     using ServiceControl.Api;
-    using ServiceControl.Infrastructure.Ingestion;
     using AuditCount = Contracts.AuditCount;
 
     public class AuditQuery(ILogger<AuditQuery> logger, IEndpointsApi endpointsApi, IAuditCountApi auditCountApi, IConfigurationApi configurationApi) : IAuditQuery
@@ -130,38 +129,6 @@
             catch (Exception ex)
             {
                 logger.LogError(ex, "Failed to get Audit Environments");
-                return [];
-            }
-        }
-
-        public async Task<List<AuditIngestionSnapshot>> GetAuditIngestionSnapshots(CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var remoteCounters = await configurationApi.GetRemoteIngestionCounters(cancellationToken);
-
-                return
-                [
-                    .. remoteCounters
-                        .Where(remote => remote.Counters is not null)
-                        .Select(remote => new AuditIngestionSnapshot(remote.ApiUri, new IngestionCountersSnapshot(
-                            remote.Counters.ProcessStartUtc,
-                            remote.Counters.MessagesTotal,
-                            remote.Counters.BusySecondsTotal,
-                            remote.Counters.StorageSecondsTotal,
-                            remote.Counters.LagOverOneMinuteMessages,
-                            remote.Counters.LagOverTenMinutesMessages,
-                            remote.Counters.LagOverSixtyMinutesMessages,
-                            remote.Counters.LagKnownMessages)))
-                ];
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Failed to get Audit Ingestion Snapshots");
                 return [];
             }
         }

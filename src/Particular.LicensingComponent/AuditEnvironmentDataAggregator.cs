@@ -5,14 +5,16 @@ using Contracts;
 
 /// <summary>
 /// Folds the environment data of every responding audit instance into one value per key: values
-/// that agree pass through, capacity numbers take the maximum, sizes and counts sum with instances
-/// on one database counted once, the sharing class takes the most shared, and anything else that
-/// differs reports Mixed rather than guessing which instance is representative. Keys starting with
-/// an underscore carry collection bookkeeping and are never emitted.
+/// that agree pass through, capacity and saturation numbers take the maximum, uptime takes the
+/// minimum, sizes and counts sum with instances on one database counted once, ingestion rates sum
+/// across all instances, the sharing class takes the most shared, and anything else that differs
+/// reports Mixed rather than guessing which instance is representative. Keys starting with an
+/// underscore carry collection bookkeeping and are never emitted.
 /// </summary>
 static class AuditEnvironmentDataAggregator
 {
-    static readonly string[] MaximumKeys = ["Host.ProcessorCount", "Host.AvailableMemoryGB"];
+    static readonly string[] MaximumKeys = ["Host.ProcessorCount", "Host.AvailableMemoryGB", "Ingestion.BusyPercent", "Health.LagOver1MinPercent", "Health.LagOver10MinPercent", "Health.LagOver60MinPercent"];
+    static readonly string[] MinimumKeys = ["Health.UptimeHours"];
     static readonly string[] SharingPrecedence = ["SameSchema", "SameDatabase", "SameServer", "SeparateServer", "NotApplicable", "Unknown"];
 
     public static IEnumerable<KeyValuePair<string, string>> Aggregate(List<Dictionary<string, string>> instances)
@@ -63,6 +65,16 @@ static class AuditEnvironmentDataAggregator
 
         var values = contributions.Select(contribution => contribution.Value).ToArray();
 
+        if (key == "Ingestion.AvgDailyMessages")
+        {
+            var parsed = values.Select(value => (Parsed: long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number), Number: number)).ToArray();
+
+            if (parsed.All(value => value.Parsed))
+            {
+                return parsed.Sum(value => value.Number).ToString(CultureInfo.InvariantCulture);
+            }
+        }
+
         if (values.Distinct(StringComparer.Ordinal).Count() == 1)
         {
             return values[0];
@@ -81,13 +93,15 @@ static class AuditEnvironmentDataAggregator
             }
         }
 
-        if (MaximumKeys.Contains(key, StringComparer.Ordinal))
+        if (MaximumKeys.Contains(key, StringComparer.Ordinal) || MinimumKeys.Contains(key, StringComparer.Ordinal))
         {
             var parsed = values.Select(value => (Parsed: long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number), Number: number)).ToArray();
 
             if (parsed.All(value => value.Parsed))
             {
-                return parsed.Max(value => value.Number).ToString(CultureInfo.InvariantCulture);
+                var numbers = parsed.Select(value => value.Number);
+
+                return (MinimumKeys.Contains(key, StringComparer.Ordinal) ? numbers.Min() : numbers.Max()).ToString(CultureInfo.InvariantCulture);
             }
         }
 

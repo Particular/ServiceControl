@@ -10,13 +10,12 @@ namespace ServiceControl.Audit.Infrastructure.WebApi
     using Microsoft.Extensions.Logging;
     using ServiceControl.Audit.Persistence;
     using ServiceControl.Infrastructure;
-    using ServiceControl.Infrastructure.Ingestion;
 
     // the /api/environment endpoint is polled by the primary instance for its usage report. This currently needs to be anonymous
     [AllowAnonymous]
     [ApiController]
     [Route("api")]
-    public class EnvironmentController(IEnumerable<IEnvironmentDataProvider> providers, IEnumerable<IStorageIdentityProvider> storageIdentityProviders, IngestionCounters ingestionCounters, ILogger<EnvironmentController> logger) : ControllerBase
+    public class EnvironmentController(IEnumerable<IEnvironmentDataProvider> providers, IEnumerable<IStorageIdentityProvider> storageIdentityProviders, ILogger<EnvironmentController> logger) : ControllerBase
     {
         [Route("environment")]
         [HttpGet]
@@ -60,8 +59,7 @@ namespace ServiceControl.Audit.Infrastructure.WebApi
             {
                 EnvironmentData = environmentData,
                 MachineIdHash = MachineIdentity.Hash,
-                StorageIdentity = await ReadStorageIdentity(cancellationToken),
-                IngestionCounters = IngestionCountersResponse.From(ingestionCounters.GetSnapshot())
+                StorageIdentity = await ReadStorageIdentity(cancellationToken)
             });
         }
 
@@ -108,31 +106,6 @@ namespace ServiceControl.Audit.Infrastructure.WebApi
             public Dictionary<string, string> EnvironmentData { get; set; }
             public string MachineIdHash { get; set; }
             public StorageIdentityResponse StorageIdentity { get; set; }
-            public IngestionCountersResponse IngestionCounters { get; set; }
-        }
-
-        public class IngestionCountersResponse
-        {
-            public DateTime ProcessStartUtc { get; set; }
-            public long MessagesTotal { get; set; }
-            public double BusySecondsTotal { get; set; }
-            public double StorageSecondsTotal { get; set; }
-            public long LagOverOneMinuteMessages { get; set; }
-            public long LagOverTenMinutesMessages { get; set; }
-            public long LagOverSixtyMinutesMessages { get; set; }
-            public long LagKnownMessages { get; set; }
-
-            public static IngestionCountersResponse From(IngestionCountersSnapshot snapshot) => new()
-            {
-                ProcessStartUtc = snapshot.ProcessStartUtc,
-                MessagesTotal = snapshot.Messages,
-                BusySecondsTotal = snapshot.BusySeconds,
-                StorageSecondsTotal = snapshot.StorageSeconds,
-                LagOverOneMinuteMessages = snapshot.LagOverOneMinuteMessages,
-                LagOverTenMinutesMessages = snapshot.LagOverTenMinutesMessages,
-                LagOverSixtyMinutesMessages = snapshot.LagOverSixtyMinutesMessages,
-                LagKnownMessages = snapshot.LagKnownMessages
-            };
         }
 
         public class StorageIdentityResponse

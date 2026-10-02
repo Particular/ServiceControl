@@ -258,12 +258,6 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
         public Task SaveAuditEnvironmentMetadata(AuditEnvironmentMetadata auditEnvironmentMetadata, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
-        public Task<IngestionHistory> GetIngestionHistory(CancellationToken cancellationToken = default) =>
-            throw new NotSupportedException();
-
-        public Task SaveIngestionHistory(IngestionHistory ingestionHistory, CancellationToken cancellationToken = default) =>
-            throw new NotSupportedException();
-
         public Task<List<string>> GetReportMasks(CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 

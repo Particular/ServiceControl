@@ -121,7 +121,8 @@ namespace ServiceControl.AcceptanceTests.Licensing
             "Recoverability.RetryHistoryDepth",
             "Licensing.ReportMasks",
             "Retention.ErrorHours",
-            "Retention.EventsHours"
+            "Retention.EventsHours",
+            "Health.Error.UptimeHours"
         ];
 
         [Test]

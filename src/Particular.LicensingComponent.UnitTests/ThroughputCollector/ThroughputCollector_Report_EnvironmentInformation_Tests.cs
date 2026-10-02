@@ -316,46 +316,24 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
     }
 
     [Test]
-    public async Task Should_report_ingestion_rates_from_days_inside_the_report_window()
+    public async Task Should_sum_audit_ingestion_rates_and_keep_the_worst_saturation_lag_and_uptime()
     {
-        var reportEndDate = new DateTime(2026, 9, 30, 0, 0, 0, DateTimeKind.Utc);
-        var insideWindow = reportEndDate.AddDays(-1);
-        var outsideWindow = reportEndDate.AddDays(-10);
-        await DataStore.SaveIngestionHistory(new IngestionHistory(
+        await DataStore.SaveAuditEnvironmentMetadata(new AuditEnvironmentMetadata(
         [
-            new IngestionDay(insideWindow, IngestionHistory.ErrorSource, 2400, 600, 1800, 60, 100, 50, 10, 1000) { Restarts = 2 },
-            new IngestionDay(insideWindow, IngestionHistory.AuditSource, 1200, 300, 360, 0, 0, 0, 0, 0),
-            new IngestionDay(outsideWindow, IngestionHistory.ErrorSource, 999999, 99999, 3600, 999, 0, 0, 0, 0)
+            new Dictionary<string, string> { ["Ingestion.AvgDailyMessages"] = "1000", ["Ingestion.BusyPercent"] = "10", ["Health.UptimeHours"] = "500", ["Health.LagOver1MinPercent"] = "1", [AuditEnvironmentMetadata.DatabaseKey] = "server-a/db-1" },
+            new Dictionary<string, string> { ["Ingestion.AvgDailyMessages"] = "500", ["Ingestion.BusyPercent"] = "40", ["Health.UptimeHours"] = "3", ["Health.LagOver1MinPercent"] = "7", [AuditEnvironmentMetadata.DatabaseKey] = "server-a/db-1" }
         ]));
 
-        var report = await ThroughputCollector.GenerateThroughputReport("", reportEndDate);
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         var environmentData = report.ReportData.EnvironmentInformation.EnvironmentData;
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(environmentData, Does.ContainKey("Ingestion.Error.AvgDailyMessages").WithValue("2400"));
-            Assert.That(environmentData, Does.ContainKey("Ingestion.Error.PeakHourMessages").WithValue("600"));
-            Assert.That(environmentData, Does.ContainKey("Ingestion.Error.PeakHourBusyPercent").WithValue("50"));
-            Assert.That(environmentData, Does.ContainKey("Ingestion.Error.PeakHourStorageMsPerMessage").WithValue("100"));
-            Assert.That(environmentData, Does.ContainKey("Audit.Ingestion.AvgDailyMessages").WithValue("1200"));
-            Assert.That(environmentData, Does.ContainKey("Audit.Ingestion.PeakHourMessages").WithValue("300"));
-            Assert.That(environmentData, Does.ContainKey("Audit.Ingestion.PeakHourBusyPercent").WithValue("10"));
-            Assert.That(environmentData, Does.Not.ContainKey("Audit.Ingestion.PeakHourStorageMsPerMessage"));
-            Assert.That(environmentData, Does.ContainKey("Health.Error.Restarts").WithValue("2"));
-            Assert.That(environmentData, Does.ContainKey("Health.Error.LagOver1MinPercent").WithValue("10"));
-            Assert.That(environmentData, Does.ContainKey("Health.Error.LagOver10MinPercent").WithValue("5"));
-            Assert.That(environmentData, Does.ContainKey("Health.Error.LagOver60MinPercent").WithValue("1"));
-            Assert.That(environmentData, Does.ContainKey("Audit.Health.Restarts").WithValue("0"));
-            Assert.That(environmentData, Does.Not.ContainKey("Audit.Health.LagOver1MinPercent"));
+            Assert.That(environmentData, Does.ContainKey("Audit.Ingestion.AvgDailyMessages").WithValue("1500"));
+            Assert.That(environmentData, Does.ContainKey("Audit.Ingestion.BusyPercent").WithValue("40"));
+            Assert.That(environmentData, Does.ContainKey("Audit.Health.UptimeHours").WithValue("3"));
+            Assert.That(environmentData, Does.ContainKey("Audit.Health.LagOver1MinPercent").WithValue("7"));
         }
-    }
-
-    [Test]
-    public async Task Should_leave_ingestion_rates_out_when_never_collected()
-    {
-        var report = await ThroughputCollector.GenerateThroughputReport("", null);
-
-        Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData.Keys, Has.None.StartsWith("Ingestion."));
     }
 
     [Test]

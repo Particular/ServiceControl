@@ -306,9 +306,6 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         public Task<List<Dictionary<string, string>>> GetAuditEnvironments(CancellationToken cancellationToken = default) =>
             Task.FromResult<List<Dictionary<string, string>>>([]);
 
-        public Task<List<AuditIngestionSnapshot>> GetAuditIngestionSnapshots(CancellationToken cancellationToken = default) =>
-            Task.FromResult<List<AuditIngestionSnapshot>>([]);
-
         public Func<RemoteInstanceInformation, bool> ValidRemoteInstances => r => true;
 
         public Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName,
@@ -345,9 +342,6 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         public Task<List<Dictionary<string, string>>> GetAuditEnvironments(CancellationToken cancellationToken = default) =>
             Task.FromResult<List<Dictionary<string, string>>>([]);
 
-        public Task<List<AuditIngestionSnapshot>> GetAuditIngestionSnapshots(CancellationToken cancellationToken = default) =>
-            Task.FromResult<List<AuditIngestionSnapshot>>([]);
-
         public Func<RemoteInstanceInformation, bool> ValidRemoteInstances => r => true;
 
         public Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName,
@@ -382,9 +376,6 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
 
         public Task<List<Dictionary<string, string>>> GetAuditEnvironments(CancellationToken cancellationToken = default) =>
             Task.FromResult<List<Dictionary<string, string>>>([]);
-
-        public Task<List<AuditIngestionSnapshot>> GetAuditIngestionSnapshots(CancellationToken cancellationToken = default) =>
-            Task.FromResult<List<AuditIngestionSnapshot>>([]);
 
         public Func<RemoteInstanceInformation, bool> ValidRemoteInstances => r => true;
 
@@ -469,9 +460,6 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         public Task<List<Dictionary<string, string>>> GetAuditEnvironments(CancellationToken cancellationToken = default) =>
             Task.FromResult<List<Dictionary<string, string>>>([]);
 
-        public Task<List<AuditIngestionSnapshot>> GetAuditIngestionSnapshots(CancellationToken cancellationToken = default) =>
-            Task.FromResult<List<AuditIngestionSnapshot>>([]);
-
         public Func<RemoteInstanceInformation, bool> ValidRemoteInstances => _ => true;
 
         public Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken = default) =>
@@ -513,9 +501,6 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
 
         public Task<List<Dictionary<string, string>>> GetAuditEnvironments(CancellationToken cancellationToken = default) =>
             Task.FromResult(Environments);
-
-        public Task<List<AuditIngestionSnapshot>> GetAuditIngestionSnapshots(CancellationToken cancellationToken = default) =>
-            Task.FromResult<List<AuditIngestionSnapshot>>([]);
 
         public Func<RemoteInstanceInformation, bool> ValidRemoteInstances => _ => true;
 
