@@ -57,11 +57,11 @@ class MigrationEnabledSettingsTests
             .Concat(typeof(MigrationEngineOptions).Assembly.GetTypes())
             .Where(type => type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
                 .Any(method => method.Name is "FromSettings" or "Read" or "Resolve"
-                    && method.GetParameters() is [{ ParameterType.Name: nameof(SettingsRootNamespace) }]))
+                    && method.GetParameters() is [{ ParameterType.Name: nameof(SettingsRootNamespace) }, ..]))
             .Select(type => type.Name)
             .ToArray();
 
         Assert.That(parsers, Is.EquivalentTo(new[] { nameof(MigrationEngineOptions) }),
-            "Migration/ThrottlePauseMilliseconds and its three neighbours have exactly one parser. A second one drifts its defaults and its refusal message away from this one, and nothing fails until a customer types a category name wrong.");
+            "Migration/ThrottlePauseMilliseconds and its neighbours have exactly one parser. A second one drifts its defaults and its refusal message away from this one, and nothing fails until a customer types a window wrong.");
     }
 }

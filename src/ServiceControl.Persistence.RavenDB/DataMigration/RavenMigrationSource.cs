@@ -29,7 +29,7 @@ sealed class RavenMigrationSource(RavenReadOnlySourceLifecycle lifecycle) : IMig
 
     public Task Open(CancellationToken cancellationToken = default) => lifecycle.Open(cancellationToken);
 
-    public IReadOnlyList<IMigrationStartupCheck> ContributedChecks() => [new SourceDataVersionIsReadableCheck(lifecycle)];
+    public IReadOnlyList<IMigrationStartupCheck> ContributedChecks() => [];
 
     public async Task<MigrationSourceDescription> Describe(CancellationToken cancellationToken = default)
     {

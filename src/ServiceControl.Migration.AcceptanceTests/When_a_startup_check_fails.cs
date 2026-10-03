@@ -2,7 +2,6 @@ namespace ServiceControl.Migration.AcceptanceTests;
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -13,7 +12,6 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using NUnit.Framework;
 using ServiceControl.Hosting.Commands;
-using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.EFCore.Abstractions;
 
 [TestFixture]
@@ -23,16 +21,15 @@ using ServiceControl.Persistence.EFCore.Abstractions;
 class When_a_startup_check_fails : MigrationAcceptanceTest
 {
     const string HostOpenedSetting = "Migration/HostOpenedOnTarget";
-    const string DataVersionDocumentId = "ServiceControl/DataVersion";
 
     [Test]
-    public async Task An_unknown_category_name_is_refused()
+    public async Task An_optional_category_window_that_is_not_a_time_span_is_refused()
     {
-        SetSourceVariable("SERVICECONTROL_MIGRATION_OPTIONALCATEGORIES", "NotACategory");
+        SetSourceVariable("SERVICECONTROL_MIGRATION_EVENTLOGWINDOW", "a week");
 
         var refusal = await RefusedStartup();
 
-        Assert.That(refusal.Message, Does.Contain("the selected categories are coherent").And.Contain("NotACategory"));
+        Assert.That(refusal.Message, Does.Contain("the optional category windows are valid").And.Contain("a week"));
     }
 
     [Test]
@@ -117,51 +114,17 @@ class When_a_startup_check_fails : MigrationAcceptanceTest
             .And.Contain("LicensingComponent/RavenDB/ThroughputDatabaseName"));
     }
 
+    // Without this check a build that copies the required set commits a customer to SQL before the rest of the migration exists.
     [Test]
-    public async Task A_source_that_carries_no_data_version_stamp_is_refused()
+    public async Task A_build_without_the_whole_migration_is_refused()
     {
-        await DeleteSourceDataVersion();
+        SetSourceVariable("SERVICECONTROL_MIGRATION_EVENTLOGWINDOW", "a week");
 
-        var refusal = await RefusedStartup();
+        var refusal = await RefusedStartup(allowUnreleasedMigration: false);
 
-        Assert.That(refusal.Message, Does.Contain("the source is at a data version this build can read")
-            .And.Contain("carries no ServiceControl data version stamp"));
-    }
-
-    // The case a customer reaches by upgrading their binaries and turning the migration on without running the new build against RavenDB, which is what restamps the version.
-    [Test]
-    public async Task A_source_last_written_by_an_older_major_version_is_refused()
-    {
-        await DeleteSourceDataVersion();
-        await SeedSourceDataVersion("1.0.0");
-
-        var refusal = await RefusedStartup();
-
-        Assert.That(refusal.Message, Does.Contain("the source is at a data version this build can read")
-            .And.Contain("1.0.0")
-            .And.Contain("brings the source up to date and restamps it"));
-    }
-
-    // Without this check a customer on an intermediate build fills a database they can never finish.
-    [Test]
-    public async Task A_build_that_cannot_copy_every_required_category_is_refused()
-    {
-        SetSourceVariable("SERVICECONTROL_MIGRATION_OPTIONALCATEGORIES", "NotACategory");
-
-        var copyable = MigrationStartup.CopyableCategoryIds(await SourceSupportedCategoryIds(), Target.SupportedCategoryIds);
-        var stillMissing = MigrationCategoryRegistry.All
-            .Where(category => category.Kind == MigrationCategoryKind.Required && !copyable.Contains(category.Id))
-            .Select(category => category.Id)
-            .FirstOrDefault();
-
-        Assert.That(stillMissing, Is.Not.Null, "this build can now copy every required category, so this test has outlived its subject and should be deleted");
-
-        var refusal = await RefusedStartup(allowIncompleteCategorySet: false);
-
-        Assert.That(refusal.Message, Does.Contain("this build can copy every required category")
-            .And.Contain(stillMissing)
-            .And.Not.Contain("the selected categories are coherent"),
-            "this refusal arrives before every check that follows it, including the one the broken setting above would trip");
+        Assert.That(refusal.Message, Does.Contain("this build carries the whole migration")
+            .And.Not.Contain("the optional category windows are valid"),
+            "this refusal comes first, so no other check is consulted on an unreleased build");
     }
 
     [Test]
@@ -173,7 +136,7 @@ class When_a_startup_check_fails : MigrationAcceptanceTest
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
         var exception = Assert.ThrowsAsync<Exception>(async () =>
-            await RunCommand.Run(Settings, AllowingAnIncompleteCategorySet(builder => builder.HaltTheEndpointSettingsCategory()), cancellation.Token));
+            await RunCommand.Run(Settings, AllowingAnUnreleasedMigration(builder => builder.HaltTheEndpointSettingsCategory()), cancellation.Token));
 
         Assert.Multiple(() =>
         {
@@ -185,8 +148,8 @@ class When_a_startup_check_fails : MigrationAcceptanceTest
     }
 
     // Every refusal is asserted against a source that has rows to copy: an empty target proves nothing otherwise.
-    // Only the test about the required-set check itself withholds the marker; every other refusal has to get past it.
-    async Task<Exception> RefusedStartup(bool allowIncompleteCategorySet = true)
+    // Only the release gate's own test withholds the marker; every other refusal has to get past it.
+    async Task<Exception> RefusedStartup(bool allowUnreleasedMigration = true)
     {
         await SeedSourceKnownEndpoints("Sales");
         await SeedSourceEndpointSettings(("Sales", true));
@@ -194,7 +157,7 @@ class When_a_startup_check_fails : MigrationAcceptanceTest
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
         var refusal = Assert.ThrowsAsync<Exception>(async () =>
-            await RunCommand.Run(Settings, allowIncompleteCategorySet ? AllowingAnIncompleteCategorySet() : null, cancellation.Token));
+            await RunCommand.Run(Settings, allowUnreleasedMigration ? AllowingAnUnreleasedMigration() : null, cancellation.Token));
 
         using (Assert.EnterMultipleScope())
         {
@@ -208,16 +171,6 @@ class When_a_startup_check_fails : MigrationAcceptanceTest
 
     Task<int> TargetEndpointSettingsCount() =>
         QueryTarget(dbContext => dbContext.EndpointSettings.CountAsync());
-
-    // The fixture stamps the source in its SetUp, so the two data version refusals start by removing that stamp.
-    async Task DeleteSourceDataVersion()
-    {
-        using var session = SourceStore.OpenAsyncSession(Source.PrimaryDatabase);
-
-        session.Delete(DataVersionDocumentId);
-
-        await session.SaveChangesAsync();
-    }
 
     static string ExpiredClientCertificate(DateTimeOffset notBefore, DateTimeOffset notAfter)
     {

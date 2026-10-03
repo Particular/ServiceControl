@@ -46,7 +46,7 @@ class MigrationEngineCategorySelectionTests
     [Test]
     public void Only_configured_optional_categories_are_selected()
     {
-        string[] configured = [MigrationCategoryIds.GroupComments, MigrationCategoryIds.EventLog, MigrationCategoryIds.ArchivedAndResolvedFailedMessages];
+        string[] configured = [MigrationCategoryIds.EventLog];
         var engine = BuildEngine(configured);
 
         var selected = engine.SelectCategories(MigrationCategoryKind.Optional);
@@ -68,19 +68,19 @@ class MigrationEngineCategorySelectionTests
     {
         // Dropping a category from the configuration must not restart, reset or delete what it already
         // copied: those rows are in the target, and a row wound back to the start copies every one again.
-        var stillConfigured = MigrationCategoryIds.CustomChecks;
+        var stillConfigured = MigrationCategoryIds.EventLog;
         var checkpointStore = new InMemoryMigrationCheckpointStore();
         var source = new InMemoryMigrationSource();
         source.Seed(stillConfigured, new MigrationRow("check-1", new object(), new Dictionary<string, object>()));
         var target = new InMemoryMigrationTarget(checkpointStore);
         var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, [stillConfigured]);
         var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
-        var previousRun = new MigrationCheckpoint(MigrationCategoryIds.EventLog, MigrationCategoryState.CompleteWithErrors, "cursor-99", 40, 2, 42, null, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, null);
+        var previousRun = new MigrationCheckpoint(MigrationCategoryIds.ArchivedAndResolvedFailedMessages, MigrationCategoryState.CompleteWithErrors, "cursor-99", 40, 2, 42, null, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, null);
         await checkpointStore.Upsert(previousRun);
 
         var results = await engine.RunCategories(engine.SelectCategories(MigrationCategoryKind.Optional));
 
-        var deselected = await checkpointStore.Read(MigrationCategoryIds.EventLog);
+        var deselected = await checkpointStore.Read(MigrationCategoryIds.ArchivedAndResolvedFailedMessages);
         using (Assert.EnterMultipleScope())
         {
             Assert.That(results.Select(c => c.CategoryId), Is.EqualTo(new[] { stillConfigured }), "the run touched only the configured category");

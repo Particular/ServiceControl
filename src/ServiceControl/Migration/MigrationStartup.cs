@@ -37,6 +37,7 @@ static class MigrationStartup
     {
         await MigrationStartupCheckRunner.Run(
         [
+            new MigrationIsReleasedCheck(services.GetService<AllowUnreleasedMigration>()),
             new MigrationPairIsSupportedCheck(settings)
         ], cancellationToken);
 
@@ -50,7 +51,7 @@ static class MigrationStartup
 
         var copyable = CopyableCategoryIds(source.SupportedCategoryIds, target.SupportedCategoryIds);
 
-        var options = await RunChecksAndOpen(services, source, copyable, cancellationToken);
+        var options = await RunChecksAndOpen(services, settings, source, cancellationToken);
 
         var engine = new MigrationEngine(
             source,
@@ -60,8 +61,8 @@ static class MigrationStartup
             options,
             loggerFactory.CreateLogger<MigrationEngine>());
 
-        var selected = engine.SelectCategories(MigrationCategoryKind.Required)
-            .Concat(engine.SelectCategories(MigrationCategoryKind.Optional))
+        // Optional categories copy beside the running services, so only the required ones hold those services back.
+        var holdingBack = engine.SelectCategories(MigrationCategoryKind.Required)
             .Select(category => category.Id)
             .ToArray();
 
@@ -99,7 +100,7 @@ static class MigrationStartup
 
         if (services.GetRequiredService<IMigrationState>() is CheckpointMigrationState state)
         {
-            await state.Seed(selected, cancellationToken);
+            await state.Seed(holdingBack, cancellationToken);
         }
     }
 
@@ -108,19 +109,19 @@ static class MigrationStartup
     /// them. The order is what the operator sees: a check that costs nothing comes before one that connects to a
     /// database, and the source's own checks run last because they need it open.
     /// </summary>
-    /// <param name="copyableCategoryIds">The categories both ends can handle, which is what the check on this build's coverage is given.</param>
-    /// <returns>The options read from the settings, which the coherence check parsed on its way past.</returns>
+    /// <param name="settings">The instance settings, whose retention periods are the optional category windows when none is set, and whose retry history depth the copy must not be thrown away by.</param>
+    /// <returns>The options read from the settings, which the window check parsed on its way past.</returns>
     /// <exception cref="Exception">A check refused. The message names the check and says what to do, and nothing has been copied.</exception>
-    public static async Task<MigrationEngineOptions> RunChecksAndOpen(IServiceProvider services, IMigrationSource source, IReadOnlyCollection<string> copyableCategoryIds, CancellationToken cancellationToken = default)
+    public static async Task<MigrationEngineOptions> RunChecksAndOpen(IServiceProvider services, Settings settings, IMigrationSource source, CancellationToken cancellationToken = default)
     {
         var target = services.GetRequiredService<IMigrationTarget>();
         var readiness = services.GetRequiredService<IMigrationTargetReadiness>();
-        var categories = new SelectedCategoriesAreCoherentCheck();
+        var categories = new OptionalCategoryWindowsAreValidCheck(settings.EventsRetentionPeriod, settings.ErrorRetentionPeriod);
 
         await MigrationStartupCheckRunner.Run(
         [
-            new EveryRequiredCategoryCanBeCopiedCheck(copyableCategoryIds, services.GetService<AllowIncompleteCategorySet>()),
             categories,
+            new RetryHistoryDepthIsSafeCheck(settings.RetryHistoryDepth),
             .. readiness.ContributedChecks(),
             new Step("the migration target opens", target.Open),
             new Step("the migration source opens", source.Open)
@@ -240,6 +241,12 @@ static class MigrationStartup
     {
         foreach (var checkpoint in finished)
         {
+            // The refusal that follows names it, and here it would read as a copy that found nothing to copy.
+            if (checkpoint.State == MigrationCategoryState.NotStarted)
+            {
+                continue;
+            }
+
             // A category already finished when this run began is returned without being run, so its counts are
             // an earlier run's. Reporting them in the same words as a fresh copy reads as a second copy against
             // a target that is already serving traffic.

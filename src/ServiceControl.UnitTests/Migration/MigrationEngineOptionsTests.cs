@@ -10,6 +10,8 @@ using ServiceControl.Persistence.DataMigration;
 class MigrationEngineOptionsTests
 {
     static readonly SettingsRootNamespace Namespace = new("ServiceControl");
+    static readonly TimeSpan EventRetention = TimeSpan.FromDays(3);
+    static readonly TimeSpan ErrorRetention = TimeSpan.FromDays(11);
 
     [TearDown]
     public void ClearEnvironmentVariables()
@@ -17,20 +19,25 @@ class MigrationEngineOptionsTests
         Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_THROTTLEPAUSEMILLISECONDS", null);
         Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_HALTTHRESHOLDPERCENT", null);
         Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_HALTTHRESHOLDMINIMUM", null);
-        Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_OPTIONALCATEGORIES", null);
+        Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_EVENTLOGWINDOW", null);
+        Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_ARCHIVEDANDRESOLVEDFAILEDMESSAGESWINDOW", null);
     }
+
+    static MigrationEngineOptions Read() => MigrationEngineOptions.FromSettings(Namespace, EventRetention, ErrorRetention);
 
     [Test]
     public void Defaults_match_the_contract_when_nothing_is_configured()
     {
-        var options = MigrationEngineOptions.FromSettings(Namespace);
+        var options = Read();
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(options.ThrottlePause, Is.EqualTo(TimeSpan.FromMilliseconds(100)));
             Assert.That(options.HaltThresholdPercent, Is.EqualTo(5));
             Assert.That(options.HaltThresholdMinimum, Is.EqualTo(100));
-            Assert.That(options.SelectedOptionalCategoryIds, Is.Empty);
+            Assert.That(options.SelectedOptionalCategoryIds, Is.EquivalentTo(new[] { MigrationCategoryIds.EventLog, MigrationCategoryIds.ArchivedAndResolvedFailedMessages }), "both optional categories are copied unless turned off");
+            Assert.That(options.EventLogWindow, Is.EqualTo(EventRetention), "the event log window defaults to the event retention period");
+            Assert.That(options.ArchivedAndResolvedFailedMessagesWindow, Is.EqualTo(ErrorRetention), "the archived and resolved window defaults to the error retention period");
             Assert.That(options.BodyRetryBackoff, Is.EqualTo(TimeSpan.FromMilliseconds(200)));
         }
     }
@@ -41,37 +48,41 @@ class MigrationEngineOptionsTests
         Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_THROTTLEPAUSEMILLISECONDS", "2500");
         Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_HALTTHRESHOLDPERCENT", "10");
         Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_HALTTHRESHOLDMINIMUM", "50");
-        Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_OPTIONALCATEGORIES", "EventLog, CustomChecks");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_EVENTLOGWINDOW", "2.00:00:00");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_ARCHIVEDANDRESOLVEDFAILEDMESSAGESWINDOW", "5.12:00:00");
 
-        var options = MigrationEngineOptions.FromSettings(Namespace);
+        var options = Read();
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(options.ThrottlePause, Is.EqualTo(TimeSpan.FromMilliseconds(2500)));
             Assert.That(options.HaltThresholdPercent, Is.EqualTo(10));
             Assert.That(options.HaltThresholdMinimum, Is.EqualTo(50));
-            Assert.That(options.SelectedOptionalCategoryIds, Is.EquivalentTo(new[] { "EventLog", "CustomChecks" }));
+            Assert.That(options.EventLogWindow, Is.EqualTo(TimeSpan.FromDays(2)));
+            Assert.That(options.ArchivedAndResolvedFailedMessagesWindow, Is.EqualTo(TimeSpan.FromDays(5.5)));
+            Assert.That(options.SelectedOptionalCategoryIds, Is.EquivalentTo(new[] { MigrationCategoryIds.EventLog, MigrationCategoryIds.ArchivedAndResolvedFailedMessages }));
         }
     }
 
-    [Test]
-    public void Refuses_an_unknown_optional_category_id()
+    [TestCase("SERVICECONTROL_MIGRATION_EVENTLOGWINDOW", MigrationCategoryIds.ArchivedAndResolvedFailedMessages)]
+    [TestCase("SERVICECONTROL_MIGRATION_ARCHIVEDANDRESOLVEDFAILEDMESSAGESWINDOW", MigrationCategoryIds.EventLog)]
+    public void A_zero_window_turns_its_category_off(string variable, string stillSelected)
     {
-        Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_OPTIONALCATEGORIES", "NoSuchCategory");
+        Environment.SetEnvironmentVariable(variable, "0");
 
-        var ex = Assert.Throws<InvalidOperationException>(() => MigrationEngineOptions.FromSettings(Namespace));
+        var options = Read();
 
-        Assert.That(ex.Message, Does.Contain("NoSuchCategory").And.Contain(MigrationSettings.OptionalCategoriesKey), "the refusal has to name both the typo and the setting holding it for the customer to fix it");
+        Assert.That(options.SelectedOptionalCategoryIds, Is.EquivalentTo(new[] { stillSelected }));
     }
 
-    [Test]
-    public void Refuses_a_required_category_id_named_as_optional()
+    [TestCase("a week")]
+    [TestCase("-1.00:00:00")]
+    public void Refuses_a_window_that_is_not_a_time_span_of_zero_or_more(string value)
     {
-        // EndpointSettings is required, not optional: naming it here is a customer mistake, not a way to force it.
-        Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_OPTIONALCATEGORIES", "EndpointSettings");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_EVENTLOGWINDOW", value);
 
-        var ex = Assert.Throws<InvalidOperationException>(() => MigrationEngineOptions.FromSettings(Namespace));
+        var ex = Assert.Throws<InvalidOperationException>(() => Read());
 
-        Assert.That(ex.Message, Does.Contain("EndpointSettings"));
+        Assert.That(ex.Message, Does.Contain(value).And.Contain(MigrationSettings.EventLogWindowKey), "the refusal has to name both the value and the setting holding it for the customer to fix it");
     }
 }

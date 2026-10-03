@@ -38,14 +38,26 @@ public sealed class MigrationEngine(
 
     /// <summary>
     /// Copies the categories one after another and returns where each one ended, in the same order. A category
-    /// that halts does not stop the ones after it.
+    /// that halts does not stop the ones after it. Before copying anything it saves a not-started checkpoint for
+    /// every category that has none, so a copy stopped between two categories still lists the ones it never reached.
     /// </summary>
+    /// <exception cref="MigrationCheckpointConflictException">Another writer saved one of these checkpoints, which means a second instance is copying into the same database.</exception>
+    /// <exception cref="OperationCanceledException">The host is shutting down.</exception>
     // Runs in the order given without re-sorting: required and optional orders both start at 1, so
     // sorting a mixed list would put an optional category in front of a required one.
     public async Task<IReadOnlyList<MigrationCheckpoint>> RunCategories(
         IReadOnlyList<MigrationCategory> categories,
         CancellationToken cancellationToken = default)
     {
+        // The gates that keep a host off an unfinished copy read only the rows that exist.
+        foreach (var category in categories)
+        {
+            if (await checkpointStore.Read(category.Id, cancellationToken) is null)
+            {
+                await checkpointStore.Upsert(NotStarted(category), cancellationToken);
+            }
+        }
+
         var results = new List<MigrationCheckpoint>(categories.Count);
 
         foreach (var category in categories)

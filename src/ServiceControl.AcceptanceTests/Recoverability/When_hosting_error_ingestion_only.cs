@@ -97,8 +97,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability
             "MetricsReporterHostedService",
             "HealthCheckPublisherHostedService",  // inert, no IHealthCheckPublisher is registered
             "ExternalIntegrationRequestsDataStore",  // its drain is inert here, nothing calls Subscribe
-            "CheckpointTableIsReadable",            // reads one table and refuses a start against a schema older than the build
-            "RecordHostOpenedOnTarget",             // this node writes to the target, so the stamp belongs here, and it upserts one settings row
             "FinishedCopyBeforeAnIngestionNodeOpens"  // keeps this node out of a database a copy has not finished filling
         ];
 

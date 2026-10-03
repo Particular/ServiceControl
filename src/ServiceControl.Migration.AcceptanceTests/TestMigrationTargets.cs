@@ -20,6 +20,20 @@ static class TestMigrationTargets
     public static void HaltTheEndpointSettingsCategory(this WebApplicationBuilder builder) =>
         builder.DecorateMigrationTarget(inner => new FaultingMigrationTarget(inner, failingWrite: 1));
 
+    public static void StopAfterTheFirstCategorySettles(this WebApplicationBuilder builder, CancellationTokenSource stopping)
+    {
+        var registered = builder.Services.Last(service => service.ServiceType == typeof(IMigrationCheckpointStore));
+
+        if (registered.ImplementationType is null)
+        {
+            throw new InvalidOperationException(
+                "IMigrationCheckpointStore is registered by a factory rather than by type, so the test decorator cannot rebuild the inner store. Register it as AddSingleton<IMigrationCheckpointStore, TStore>() or give the decorator a different seam.");
+        }
+
+        builder.Services.AddSingleton<IMigrationCheckpointStore>(provider =>
+            new StoppingAfterTheFirstSettleCheckpointStore((IMigrationCheckpointStore)ActivatorUtilities.CreateInstance(provider, registered.ImplementationType), stopping));
+    }
+
     public static void DecorateMigrationTarget(this WebApplicationBuilder builder, Func<IMigrationTarget, IMigrationTarget> decorate)
     {
         var registered = builder.Services.Last(service => service.ServiceType == typeof(IMigrationTarget));
@@ -54,6 +68,27 @@ sealed class FaultingMigrationTarget(IMigrationTarget inner, int failingWrite) :
     public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) => inner.Count(category, cancellationToken);
 
     public IReadOnlyCollection<string> SupportedCategoryIds => inner.SupportedCategoryIds;
+}
+
+// Stops the copy the moment the first category settles, which is the only way to stop it between two categories.
+sealed class StoppingAfterTheFirstSettleCheckpointStore(IMigrationCheckpointStore inner, CancellationTokenSource stopping) : IMigrationCheckpointStore
+{
+    public Task<IReadOnlyList<MigrationCheckpoint>> ReadAll(CancellationToken cancellationToken = default) => inner.ReadAll(cancellationToken);
+
+    public Task<MigrationCheckpoint> Read(string categoryId, CancellationToken cancellationToken = default) => inner.Read(categoryId, cancellationToken);
+
+    public async Task<MigrationCheckpoint> Upsert(MigrationCheckpoint checkpoint, CancellationToken cancellationToken = default)
+    {
+        var stored = await inner.Upsert(checkpoint, cancellationToken);
+
+        if (stored.State.IsFinished())
+        {
+            await stopping.CancelAsync();
+            throw new OperationCanceledException(stopping.Token);
+        }
+
+        return stored;
+    }
 }
 
 // Holds the copy open at a moment a test can observe, which is the only way to ask what the API answers mid-copy.

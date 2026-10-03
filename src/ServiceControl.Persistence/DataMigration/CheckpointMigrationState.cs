@@ -18,7 +18,7 @@ public sealed class CheckpointMigrationState(IMigrationCheckpointStore? checkpoi
     /// <summary>
     /// Reads every checkpoint and fixes the answer for the life of the host.
     /// </summary>
-    /// <param name="selectedIds">The categories this instance was asked to copy. They are passed in because the store holds a row only for a category some run has already started.</param>
+    /// <param name="selectedIds">The required categories this instance copies, which are the only ones that hold back the services that delete or overwrite copied data. They are passed in because the store holds a row only for a category some run has already been given.</param>
     public async Task Seed(IReadOnlyCollection<string> selectedIds, CancellationToken cancellationToken = default)
     {
         // Only a persister that can be migrated into keeps checkpoints, so no store means no migration has run.

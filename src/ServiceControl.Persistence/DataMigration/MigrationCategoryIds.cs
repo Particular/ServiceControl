@@ -1,9 +1,8 @@
 namespace ServiceControl.Persistence.DataMigration;
 
 /// <summary>
-/// The name of every category a migration can copy. The name is what the checkpoint row is keyed on and what an
-/// operator writes in <see cref="MigrationSettings.OptionalCategoriesKey" />, so renaming one strands the progress
-/// already saved under the old name. <see cref="MigrationCategoryRegistry" /> says when each one is copied.
+/// The name of every category a migration can copy. The name is what the checkpoint row is keyed on, so renaming
+/// one strands the progress already saved under the old name. <see cref="MigrationCategoryRegistry" /> says when each one is copied.
 /// </summary>
 public static class MigrationCategoryIds
 {
@@ -23,7 +22,6 @@ public static class MigrationCategoryIds
     public const string EventLog = nameof(EventLog);
     public const string CustomChecks = nameof(CustomChecks);
     public const string FailedErrorImports = nameof(FailedErrorImports);
-    public const string FailedMessageEdits = nameof(FailedMessageEdits);
     public const string ArchivedAndResolvedFailedMessages = nameof(ArchivedAndResolvedFailedMessages);
     public const string GroupComments = nameof(GroupComments);
 }

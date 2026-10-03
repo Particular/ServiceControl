@@ -41,6 +41,75 @@ class MigrationEngineRunCategoriesTests
     }
 
     [Test]
+    public async Task Every_category_it_is_given_has_a_row_before_the_first_one_copies_anything()
+    {
+        // A copy stopped between two categories must not leave a table that reads as finished, because the
+        // gates that keep a host off an unfinished copy look only at the rows that exist.
+        var source = new InMemoryMigrationSource();
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        IReadOnlyList<MigrationCheckpoint>? rowsAtFirstWrite = null;
+        var target = new InMemoryMigrationTarget(checkpointStore) { BeforeWrite = _ => rowsAtFirstWrite ??= checkpointStore.ReadAll().GetAwaiter().GetResult() };
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(),
+            new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []), NullLogger<MigrationEngine>.Instance);
+        // Three, so recording only the next category would still leave the last one missing.
+        MigrationCategory[] given = [MigrationCategoryRegistry.Find("KnownEndpoints")!, MigrationCategoryRegistry.Find("EndpointSettings")!, MigrationCategoryRegistry.Find("MessageRedirects")!];
+        foreach (var category in given)
+        {
+            source.Seed(category.Id, Row($"{category.Id}-1"));
+        }
+
+        await engine.RunCategories(given);
+
+        Assert.That(rowsAtFirstWrite, Is.Not.Null, "the copy never wrote a batch");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(rowsAtFirstWrite!.Select(c => c.CategoryId), Is.EquivalentTo(new[] { "KnownEndpoints", "EndpointSettings", "MessageRedirects" }));
+            Assert.That(rowsAtFirstWrite!.Where(c => c.CategoryId != "KnownEndpoints").Select(c => c.State), Is.All.EqualTo(MigrationCategoryState.NotStarted));
+        }
+    }
+
+    [Test]
+    public async Task A_halted_category_resumes_from_its_row_rather_than_being_reset()
+    {
+        var firstStarted = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var source = new InMemoryMigrationSource();
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        await checkpointStore.Upsert(new MigrationCheckpoint("KnownEndpoints", MigrationCategoryState.Halted, "KnownEndpoints-1", 1, 0, 2, null, firstStarted, firstStarted, firstStarted, "Halted: earlier run"));
+        var target = new InMemoryMigrationTarget(checkpointStore);
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(),
+            new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []), NullLogger<MigrationEngine>.Instance);
+        source.Seed("KnownEndpoints", Row("KnownEndpoints-1"), Row("KnownEndpoints-2"));
+
+        var results = await engine.RunCategories([MigrationCategoryRegistry.Find("KnownEndpoints")!, MigrationCategoryRegistry.Find("EndpointSettings")!]);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(target.RowsHandedToWrite("KnownEndpoints").Select(row => row.SourceId), Is.EqualTo(new[] { "KnownEndpoints-2" }), "the halted category's cursor was reset");
+            Assert.That(results[0].StartedAt, Is.EqualTo(firstStarted), "the halted category's row was replaced");
+        }
+    }
+
+    [Test]
+    public async Task A_finished_category_is_not_copied_again()
+    {
+        var source = new InMemoryMigrationSource();
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        await checkpointStore.Upsert(new MigrationCheckpoint("KnownEndpoints", MigrationCategoryState.Complete, "KnownEndpoints-1", 1, 0, 1, null, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, null));
+        var target = new InMemoryMigrationTarget(checkpointStore);
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(),
+            new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []), NullLogger<MigrationEngine>.Instance);
+        source.Seed("KnownEndpoints", Row("KnownEndpoints-1"));
+
+        var results = await engine.RunCategories([MigrationCategoryRegistry.Find("KnownEndpoints")!, MigrationCategoryRegistry.Find("EndpointSettings")!]);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(target.RowsHandedToWrite("KnownEndpoints"), Is.Empty);
+            Assert.That(results[0].State, Is.EqualTo(MigrationCategoryState.Complete));
+        }
+    }
+
+    [Test]
     public async Task Running_no_categories_copies_nothing_and_reports_nothing()
     {
         // What an instance that selected no optional categories asks for on every background pass.

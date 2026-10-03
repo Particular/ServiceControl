@@ -67,13 +67,13 @@ class MigrationEngineOrderingTests
 
     [TestCase(MigrationCategoryState.InProgress)]
     [TestCase(MigrationCategoryState.Halted)]
-    public async Task GroupComments_does_not_start_before_the_archive_completes(MigrationCategoryState archiveState)
+    public async Task GroupComments_does_not_start_before_the_unresolved_failed_messages_complete(MigrationCategoryState predecessorState)
     {
         var comments = MigrationCategoryRegistry.Find("GroupComments")!;
         var source = new InMemoryMigrationSource();
         source.Seed(comments.Id, Row("GroupComment/g-1"));
         var checkpointStore = new InMemoryMigrationCheckpointStore();
-        await checkpointStore.Upsert(new MigrationCheckpoint("ArchivedAndResolvedFailedMessages", archiveState, "m-500", 500, 0, null, null, DateTime.UtcNow, DateTime.UtcNow, null, null));
+        await checkpointStore.Upsert(new MigrationCheckpoint("UnresolvedAndRetryIssuedFailedMessages", predecessorState, "m-500", 500, 0, null, null, DateTime.UtcNow, DateTime.UtcNow, null, null));
         var target = new InMemoryMigrationTarget(checkpointStore);
         var engine = BuildEngine(source, checkpointStore, target);
 
@@ -82,7 +82,7 @@ class MigrationEngineOrderingTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Blocked));
-            Assert.That(checkpoint.LastError, Is.EqualTo($"Blocked: GroupComments must follow ArchivedAndResolvedFailedMessages, which is {archiveState}"));
+            Assert.That(checkpoint.LastError, Is.EqualTo($"Blocked: GroupComments must follow UnresolvedAndRetryIssuedFailedMessages, which is {predecessorState}"));
             Assert.That(target.WrittenRows(comments.Id), Is.Empty);
         }
     }
@@ -90,15 +90,14 @@ class MigrationEngineOrderingTests
     [Test]
     public async Task A_blocked_category_runs_once_the_category_it_follows_settles()
     {
-        // Every real migration starts group comments blocked, so a block nothing can clear would strand
-        // the last category and leave the migration unable to end.
+        // A block nothing can clear would strand group comments and keep the host closed for good.
         var comments = MigrationCategoryRegistry.Find("GroupComments")!;
-        var archive = MigrationCategoryRegistry.Find("ArchivedAndResolvedFailedMessages")!;
+        var unresolved = MigrationCategoryRegistry.Find("UnresolvedAndRetryIssuedFailedMessages")!;
         var source = new InMemoryMigrationSource();
         source.Seed(comments.Id, Row("GroupComment/g-1"));
         var checkpointStore = new InMemoryMigrationCheckpointStore();
-        var archiveRunning = new MigrationCheckpoint(archive.Id, MigrationCategoryState.InProgress, "m-500", 500, 0, null, null, DateTime.UtcNow, DateTime.UtcNow, null, null);
-        var saved = await checkpointStore.Upsert(archiveRunning);
+        var predecessorRunning = new MigrationCheckpoint(unresolved.Id, MigrationCategoryState.InProgress, "m-500", 500, 0, null, null, DateTime.UtcNow, DateTime.UtcNow, null, null);
+        var saved = await checkpointStore.Upsert(predecessorRunning);
         var target = new InMemoryMigrationTarget(checkpointStore);
 
         var blocked = await BuildEngine(source, checkpointStore, target).RunCategoryAsync(comments);
@@ -133,7 +132,7 @@ class MigrationEngineOrderingTests
 
     [TestCase(MigrationCategoryState.NotStarted)]
     [TestCase(MigrationCategoryState.Blocked)]
-    public async Task A_predecessor_that_has_a_row_but_has_not_run_is_named_by_the_state_on_that_row(MigrationCategoryState archiveState)
+    public async Task A_predecessor_that_has_a_row_but_has_not_run_is_named_by_the_state_on_that_row(MigrationCategoryState predecessorState)
     {
         // A missing row reads as "not started"; a row that exists says what it actually holds, which is
         // how an operator tells a category waiting its turn from one waiting on a chain.
@@ -141,7 +140,7 @@ class MigrationEngineOrderingTests
         var source = new InMemoryMigrationSource();
         source.Seed(comments.Id, Row("GroupComment/g-1"));
         var checkpointStore = new InMemoryMigrationCheckpointStore();
-        await checkpointStore.Upsert(new MigrationCheckpoint("ArchivedAndResolvedFailedMessages", archiveState, null, 0, 0, null, null, null, null, null, null));
+        await checkpointStore.Upsert(new MigrationCheckpoint("UnresolvedAndRetryIssuedFailedMessages", predecessorState, null, 0, 0, null, null, null, null, null, null));
         var target = new InMemoryMigrationTarget(checkpointStore);
 
         var checkpoint = await BuildEngine(source, checkpointStore, target).RunCategoryAsync(comments);
@@ -149,7 +148,7 @@ class MigrationEngineOrderingTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Blocked));
-            Assert.That(checkpoint.LastError, Is.EqualTo($"Blocked: GroupComments must follow ArchivedAndResolvedFailedMessages, which is {archiveState}"));
+            Assert.That(checkpoint.LastError, Is.EqualTo($"Blocked: GroupComments must follow UnresolvedAndRetryIssuedFailedMessages, which is {predecessorState}"));
         }
     }
 

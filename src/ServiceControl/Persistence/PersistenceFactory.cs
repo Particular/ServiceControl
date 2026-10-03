@@ -29,7 +29,6 @@ namespace ServiceControl.Persistence
             settings.PersisterSpecificSettings ??= persistenceConfiguration.CreateSettings(Settings.SettingsRootNamespace);
             settings.PersisterSpecificSettings.MaintenanceMode = maintenanceMode;
             settings.PersisterSpecificSettings.RunRetentionSweep = !settings.ErrorIngestionOnly;
-            settings.PersisterSpecificSettings.RetryHistoryDepth = settings.RetryHistoryDepth;
 
             var persistence = persistenceConfiguration.Create(settings.PersisterSpecificSettings);
             return persistence;

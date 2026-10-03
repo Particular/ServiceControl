@@ -113,6 +113,17 @@ class RequiredCopyGateTests
         });
     }
 
+    // A stall returns every row the copy listed, and one it never reached would read as a copy that found nothing.
+    [Test]
+    public void A_category_the_copy_never_reached_is_not_reported_as_copied()
+    {
+        var logger = new CapturingLogger();
+
+        MigrationStartup.ReportWhatTheCopyLeftBehind([Settled(MigrationCategoryState.NotStarted, copied: 0, skipped: 0, null)], logger, RunStartedAt);
+
+        Assert.That(logger.Entries, Is.Empty);
+    }
+
     [Test]
     public void A_category_that_skipped_nothing_says_so_without_raising_a_warning()
     {

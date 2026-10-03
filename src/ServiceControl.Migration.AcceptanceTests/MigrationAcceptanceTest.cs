@@ -6,7 +6,6 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -64,8 +63,6 @@ abstract class MigrationAcceptanceTest
     {
         Source = await MigrationSourceServer.CreateDatabases();
         SourceStore = await (await MigrationSourceServer.GetInstance()).Connect();
-
-        await SeedSourceDataVersion();
 
         SetSourceVariable("SERVICECONTROL_RAVENDB_CONNECTIONSTRING", Source.ServerUrl);
         SetSourceVariable("SERVICECONTROL_RAVENDB_DATABASENAME", Source.PrimaryDatabase);
@@ -160,23 +157,6 @@ abstract class MigrationAcceptanceTest
             .Select(name => new KnownEndpoint { EndpointDetails = new EndpointDetails { Name = name, HostId = Guid.NewGuid(), Host = "HOST01" } })
             .Select(endpoint => ($"KnownEndpoints/{endpoint.EndpointDetails.GetDeterministicId()}", (object)endpoint))]);
 
-    // What DatabaseSetup.StampDataVersion writes on a real instance, in both databases because the
-    // check reads both. Without it every startup check refuses.
-    protected async Task SeedSourceDataVersion(string version = null)
-    {
-        foreach (var database in new[] { Source.PrimaryDatabase, Source.ThroughputDatabase })
-        {
-            await SeedSource(database, (RavenDataVersionDocumentId, new SourceDataVersion { Version = version ?? ThisBuildVersion, StampedAt = DateTime.UtcNow }));
-        }
-    }
-
-    // Spelled out rather than referenced: the acceptance projects cannot see the RavenDB persister's types.
-    const string RavenDataVersionDocumentId = "ServiceControl/DataVersion";
-
-    static readonly string ThisBuildVersion =
-        typeof(Settings).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]
-        ?? typeof(Settings).Assembly.GetName().Version!.ToString(3);
-
     protected Task<IMigrationSource> OpenSource(CancellationToken cancellationToken = default) =>
         PersistenceFactory.OpenMigrationSource(Settings, cancellationToken);
 
@@ -196,11 +176,11 @@ abstract class MigrationAcceptanceTest
     }
 
 
-    // This build cannot copy every required category yet, so without the marker every host test is refused at startup.
-    protected static Action<WebApplicationBuilder> AllowingAnIncompleteCategorySet(Action<WebApplicationBuilder> customize = null) =>
+    // No build carries the whole migration until its last phase ships, so without this marker every copy is refused.
+    protected static Action<WebApplicationBuilder> AllowingAnUnreleasedMigration(Action<WebApplicationBuilder> customize = null) =>
         builder =>
         {
-            builder.Services.AddSingleton<AllowIncompleteCategorySet>();
+            builder.Services.AddSingleton<AllowUnreleasedMigration>();
             customize?.Invoke(builder);
         };
 
@@ -209,15 +189,16 @@ abstract class MigrationAcceptanceTest
         await StopHost();
 
         hostCancellation = new CancellationTokenSource();
-        runningHost = RunCommand.Run(Settings, AllowingAnIncompleteCategorySet(customize), hostCancellation.Token);
+        runningHost = RunCommand.Run(Settings, AllowingAnUnreleasedMigration(customize), hostCancellation.Token);
 
         await WaitForEndpointSettingsResponse(TimeSpan.FromMinutes(2));
     }
 
-    protected Settings SettingsWithMigrationEnabled(string optionalCategories = null, Action<Settings> customize = null)
+    protected Settings SettingsWithMigrationEnabled(bool copyEventLog = false, Action<Settings> customize = null)
     {
         SetSourceVariable("SERVICECONTROL_MIGRATION_ENABLED", "true");
-        SetSourceVariable("SERVICECONTROL_MIGRATION_OPTIONALCATEGORIES", optionalCategories);
+        SetSourceVariable("SERVICECONTROL_MIGRATION_EVENTLOGWINDOW", copyEventLog ? null : "0");
+        SetSourceVariable("SERVICECONTROL_MIGRATION_ARCHIVEDANDRESOLVEDFAILEDMESSAGESWINDOW", "0");
         customize?.Invoke(Settings);
         return Settings;
     }
@@ -227,7 +208,7 @@ abstract class MigrationAcceptanceTest
         bool leaveOptionalIncomplete = false,
         CancellationToken cancellationToken = default)
     {
-        SettingsWithMigrationEnabled(optionalCategories: leaveOptionalIncomplete ? "EventLog" : null);
+        SettingsWithMigrationEnabled(copyEventLog: leaveOptionalIncomplete);
 
         await RunHostUntilTheApiAnswers(builder => customize?.Invoke(builder.Services));
 
@@ -460,13 +441,5 @@ abstract class MigrationAcceptanceTest
         public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) => inner.Count(category, cancellationToken);
 
         public IReadOnlyCollection<string> SupportedCategoryIds => inner.SupportedCategoryIds;
-    }
-
-    // The stamp the RavenDB persister reads back, spelled out because this project cannot see its type.
-    sealed class SourceDataVersion
-    {
-        public string Version { get; set; }
-
-        public DateTime StampedAt { get; set; }
     }
 }

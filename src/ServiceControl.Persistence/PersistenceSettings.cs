@@ -38,12 +38,6 @@ namespace ServiceControl.Persistence
         public bool EnableFullTextSearchOnBodies { get; set; } = true;
 
         /// <summary>
-        /// How many completed retry operations the history keeps, copied from the ServiceControl/RetryHistoryDepth
-        /// setting. At 0 it keeps none, so the next retry to complete clears the history.
-        /// </summary>
-        public int RetryHistoryDepth { get; set; }
-
-        /// <summary>
         /// The wall clock limit for a message query, see <see cref="QueryTimeLimit" />. It is also how long
         /// this instance waits for a remote instance to answer.
         /// </summary>

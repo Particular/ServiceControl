@@ -1,6 +1,5 @@
 namespace ServiceControl.Persistence.EFCore.DataMigration;
 
-using Abstractions;
 using Implementation;
 using Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,14 +13,12 @@ using ServiceControl.Persistence.DataMigration;
 public class EFCoreMigrationTargetReadiness(
     IServiceScopeFactory scopeFactory,
     IBodyStoragePersistence bodyStorage,
-    EFPersisterSettings settings,
     TimeProvider timeProvider) : DataStoreBase(scopeFactory), IMigrationTargetReadiness
 {
-    // Cheapest first: the setting is already in memory, the schema costs one query, and the body store costs a
-    // round trip to a file share or a cloud service.
+    // Cheapest first: the schema costs one query, and the body store costs a round trip to a file share or a
+    // cloud service.
     public IReadOnlyList<IMigrationStartupCheck> ContributedChecks() =>
     [
-        new RetryHistoryDepthIsSafeCheck(settings.RetryHistoryDepth),
         new SchemaIsCurrentCheck(scopeFactory),
         new BodyStorageIsWritableCheck(bodyStorage)
     ];

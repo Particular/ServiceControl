@@ -43,8 +43,6 @@ public abstract class BasePersistence
         services.AddSingleton<IMigrationCheckpointStore, EFMigrationCheckpointStore>();
         services.AddSingleton<IMigrationTargetReadiness, EFCoreMigrationTargetReadiness>();
         services.AddSingleton<IMigrationTarget, EFCoreMigrationTarget>();
-        services.AddHostedService<CheckpointTableIsReadable>();
-        services.AddHostedService<RecordHostOpenedOnTarget>();
 
         if (settings.RunRetentionSweep)
         {

@@ -47,6 +47,7 @@
             if (settings.MigrationEnabled)
             {
                 hostBuilder.Services.AddHostedService(provider => new RequiredCopyBeforeTheHostOpens(provider, settings));
+                hostBuilder.Services.AddHostedService(provider => new RecordHostOpenedOnTarget(provider));
             }
 
             // A start that refuses would otherwise leave everything the host built undisposed.
@@ -63,8 +64,12 @@
             app.Urls.Clear();
             app.Urls.Add(settings.RootUrl);
 
-            // Starting the host is what marks the target as opened, through the EF Core persistence's
-            // RecordHostOpenedOnTarget hosted service, so nothing here does it.
+            // Read before RunAsync, which disposes the host before the filter below runs, so reading it there would
+            // throw and the catch would never fire.
+            var lifetime = app.Lifetime;
+
+            // Starting the host is what marks the target as opened, through the RecordHostOpenedOnTarget hosted
+            // service registered above, so nothing here does it.
             try
             {
                 await app.RunAsync(cancellationToken);
@@ -72,7 +77,7 @@
             // Stopping the service during the required copy cancels it inside host start, and that is a stop
             // rather than a failure: every committed batch is durable and the next start resumes from the cursor.
 #pragma warning disable PS0020 // The host cancels on its own lifetime token, not the caller's, so that is the one to filter on
-            catch (OperationCanceledException) when (app.Lifetime.ApplicationStopping.IsCancellationRequested)
+            catch (OperationCanceledException) when (settings.MigrationEnabled && lifetime.ApplicationStopping.IsCancellationRequested)
 #pragma warning restore PS0020
             {
             }

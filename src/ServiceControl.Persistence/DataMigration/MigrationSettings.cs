@@ -10,9 +10,15 @@ public static class MigrationSettings
     public const string HaltThresholdPercentKey = "Migration/HaltThresholdPercent";
     public const string HaltThresholdMinimumKey = "Migration/HaltThresholdMinimum";
     /// <summary>
-    /// A comma-separated list of the optional categories to copy, such as "EventLog, CustomChecks".
+    /// How far back the event log copy goes, as a time span. Unset means the event retention period, and zero
+    /// turns the category off.
     /// </summary>
-    public const string OptionalCategoriesKey = "Migration/OptionalCategories";
+    public const string EventLogWindowKey = "Migration/EventLogWindow";
+    /// <summary>
+    /// How far back the archived and resolved failed messages copy goes, as a time span. Unset means the error
+    /// retention period, and zero turns the category off.
+    /// </summary>
+    public const string ArchivedAndResolvedFailedMessagesWindowKey = "Migration/ArchivedAndResolvedFailedMessagesWindow";
     /// <summary>
     /// Turns the migration on: the required copy runs before the host opens.
     /// </summary>

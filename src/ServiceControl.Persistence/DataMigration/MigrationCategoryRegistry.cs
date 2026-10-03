@@ -38,14 +38,13 @@ public static class MigrationCategoryRegistry
         new(MigrationCategoryIds.LicensingReportMasks, MigrationCategoryKind.Required, CarriesBodies: false, Order: 10),
         new(MigrationCategoryIds.LicensedEndpointDetails, MigrationCategoryKind.Required, CarriesBodies: false, Order: 11),
         new(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages, MigrationCategoryKind.Required, CarriesBodies: true, Order: 12),
+        new(MigrationCategoryIds.CustomChecks, MigrationCategoryKind.Required, CarriesBodies: false, Order: 14),
+        new(MigrationCategoryIds.FailedErrorImports, MigrationCategoryKind.Required, CarriesBodies: true, Order: 15),
+        new(MigrationCategoryIds.GroupComments, MigrationCategoryKind.Required, CarriesBodies: false, Order: 16, MustFollow: MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages),
 
         // Optional, copied in the background once the host is open.
         new(MigrationCategoryIds.EventLog, MigrationCategoryKind.Optional, CarriesBodies: false, Order: 1),
-        new(MigrationCategoryIds.CustomChecks, MigrationCategoryKind.Optional, CarriesBodies: false, Order: 2),
-        new(MigrationCategoryIds.FailedErrorImports, MigrationCategoryKind.Optional, CarriesBodies: true, Order: 3),
-        new(MigrationCategoryIds.FailedMessageEdits, MigrationCategoryKind.Optional, CarriesBodies: false, Order: 4),
-        new(MigrationCategoryIds.ArchivedAndResolvedFailedMessages, MigrationCategoryKind.Optional, CarriesBodies: true, Order: 5),
-        new(MigrationCategoryIds.GroupComments, MigrationCategoryKind.Optional, CarriesBodies: false, Order: 6, MustFollow: MigrationCategoryIds.ArchivedAndResolvedFailedMessages),
+        new(MigrationCategoryIds.ArchivedAndResolvedFailedMessages, MigrationCategoryKind.Optional, CarriesBodies: true, Order: 2),
     ];
 
     public static MigrationCategory? Find(string id) => All.FirstOrDefault(c => c.Id == id);

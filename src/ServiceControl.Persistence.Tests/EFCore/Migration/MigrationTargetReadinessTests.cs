@@ -22,17 +22,14 @@ class MigrationTargetReadinessTests : PersistenceTestBase
     IMigrationTargetReadiness Readiness => ServiceProvider.GetRequiredService<IMigrationTargetReadiness>();
 
     [Test]
-    public void The_target_contributes_the_three_checks_only_it_can_make() =>
+    public void The_target_contributes_the_two_checks_only_it_can_make() =>
         Assert.That(
             Readiness.ContributedChecks().Select(check => check.GetType()),
-            Is.EqualTo(new[] { typeof(RetryHistoryDepthIsSafeCheck), typeof(SchemaIsCurrentCheck), typeof(BodyStorageIsWritableCheck) }));
+            Is.EqualTo(new[] { typeof(SchemaIsCurrentCheck), typeof(BodyStorageIsWritableCheck) }));
 
     [Test]
     public void Every_contributed_check_passes_against_a_migrated_database()
     {
-        // PersistenceFactory.Create is what carries the host's depth onto the persister, and the test container never runs it.
-        PersistenceSettings.RetryHistoryDepth = 10;
-
         using (Assert.EnterMultipleScope())
         {
             foreach (var check in Readiness.ContributedChecks())
@@ -88,18 +85,6 @@ class MigrationTargetReadinessTests : PersistenceTestBase
         {
             File.Delete(parentThatIsAFile);
         }
-    }
-
-    [Test]
-    public void The_retry_history_depth_check_passes_at_the_default_depth() =>
-        Assert.DoesNotThrowAsync(() => new RetryHistoryDepthIsSafeCheck(10).Run());
-
-    [Test]
-    public void The_retry_history_depth_check_refuses_a_depth_that_empties_the_table()
-    {
-        var exception = Assert.ThrowsAsync<Exception>(() => new RetryHistoryDepthIsSafeCheck(0).Run());
-
-        Assert.That(exception.Message, Does.Contain("RetryHistoryDepth").And.Contain("HistoricRetryOperations"));
     }
 
     // The copy runs before any hosted service starts, so a target that only works once one has started is broken exactly when the migration needs it.

@@ -3,7 +3,7 @@
 This page tells you what you can do today. [The migration overview](ravendb-to-sql-migration-overview.md) tells you how the migration will work. [How the migration is put together](ravendb-to-sql-migration-system-design.md) tells you which class does what.
 
 > [!NOTE]
-> You cannot copy data yet. This build has one migration command, the source report. If you set `ServiceControl/Migration/Enabled` to `true`, ServiceControl does not start. [What is not built yet](#what-is-not-built-yet-and-what-happens-if-you-turn-it-on) tells you why.
+> You cannot copy data yet. This build has one migration command, the source report. If you set `ServiceControl/Migration/Enabled` to `true`, the main ServiceControl instance does not start. [What is not built yet](#what-is-not-built-yet-and-what-happens-if-you-turn-it-on) tells you why.
 >
 > The report opens RavenDB read-only, and the client refuses every write. But RavenDB deletes documents that are past their retention date, and this deletion starts when RavenDB loads a database. If you keep the RavenDB database as a fallback, make a backup of it before you start the report.
 
@@ -24,7 +24,7 @@ In an environment variable you can omit the `SERVICECONTROL_` prefix. `ServiceCo
 
 A SQL Server target must have Full-Text Search installed. Message search needs it, so `--setup` fails without it. A stock SQL Server container image does not have it. PostgreSQL needs nothing extra.
 
-Start `ServiceControl.exe` with the `--setup` argument on every instance that already uses SQL Server or PostgreSQL. Do this when you upgrade to this build, and do it even if you do not intend to migrate. `--setup` adds the `MigrationCheckpoints` table. Every SQL instance reads this table one time at startup, to make sure that the table is there. An instance that you upgrade without `--setup` does not have the table, and it does not start.
+Start `ServiceControl.exe` with the `--setup` argument on every instance that already uses SQL Server or PostgreSQL. Do this when you upgrade to this build. `--setup` creates the `MigrationCheckpoints` table along with the rest of the SQL schema, so every SQL database has it. An instance that does not migrate never reads it, apart from an `--error-ingestion-only` worker, whose start gate checks it for an unfinished copy.
 
 Not built yet: when the copy is available, you must not change `ServiceControl/ErrorRetentionPeriod` during the move. The copier will use it to decide which rows are past the retention period.
 
@@ -76,11 +76,8 @@ The error message tells you what to correct.
 
 This build does not have the copy, the dry run, the status command or the verify command. [Migration workflow](ravendb-to-sql-migration-overview.md#migration-workflow) gives the planned steps.
 
-If you set `ServiceControl/Migration/Enabled` to `true`, the migration startup checks run before ServiceControl opens. One check always fails in this build. The host does not start, nothing is copied, and nothing is opened on the target. Leave the setting at its default of `false`.
+If you set `ServiceControl/Migration/Enabled` to `true`, the migration startup checks run before the main ServiceControl instance opens. One check always fails in this build. The host does not start, nothing is copied, and nothing is opened on the target. Leave the setting at its default of `false`.
 
-Which check fails depends on `ServiceControl/PersistenceType`:
+The first check refuses, whatever `ServiceControl/PersistenceType` is set to, with the message `This build of ServiceControl does not yet carry the whole migration from RavenDB, so it will not copy anything`. Every build refuses here until the whole migration has shipped.
 
-- `RavenDB`: the first check refuses the pair, with the message `Migrating from 'RavenDB' to 'RavenDB' is not supported`.
-- SQL Server or PostgreSQL: the check that asks whether this build can copy every required category fails. This build can copy 2 of the 12 required categories, and the message names the 10 that it cannot copy.
-
-Five more settings sit beside `ServiceControl/Migration/Enabled`: `ServiceControl/Migration/OptionalCategories`, `ServiceControl/Migration/ThrottlePauseMilliseconds`, `ServiceControl/Migration/HaltThresholdPercent`, `ServiceControl/Migration/HaltThresholdMinimum` and `ServiceControl/Migration/AllowIncompleteExit`. The code reads the first four only after the check that always fails, so they do nothing in this build. The fifth does one thing today. An `--error-ingestion-only` worker refuses to start while a copy into its database is unfinished, because ingesting into a part-copied database means the copy can no longer be abandoned without loss. Setting `ServiceControl/Migration/AllowIncompleteExit` to `true` lets that worker start anyway. Its main purpose, the exit gate when `ServiceControl/Migration/Enabled` is turned off, is not built yet.
+Six more settings sit beside `ServiceControl/Migration/Enabled`: `ServiceControl/Migration/EventLogWindow`, `ServiceControl/Migration/ArchivedAndResolvedFailedMessagesWindow`, `ServiceControl/Migration/ThrottlePauseMilliseconds`, `ServiceControl/Migration/HaltThresholdPercent`, `ServiceControl/Migration/HaltThresholdMinimum` and `ServiceControl/Migration/AllowIncompleteExit`. The code reads the first five only after the check that always fails, so they do nothing in this build. The sixth does one thing today. An `--error-ingestion-only` worker refuses to start while a copy into its database is unfinished, because ingesting into a part-copied database means the copy can no longer be abandoned without loss. Setting `ServiceControl/Migration/AllowIncompleteExit` to `true` lets that worker start anyway. Its main purpose, the exit gate when `ServiceControl/Migration/Enabled` is turned off, is not built yet.

@@ -24,7 +24,7 @@ class When_the_api_is_called_during_the_required_copy : MigrationAcceptanceTest
         var releaseTheCopy = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-        var host = RunCommand.Run(Settings, AllowingAnIncompleteCategorySet(builder => builder.ParkFirstMigrationWrite(copyIsParked, releaseTheCopy.Task)), cancellation.Token);
+        var host = RunCommand.Run(Settings, AllowingAnUnreleasedMigration(builder => builder.ParkFirstMigrationWrite(copyIsParked, releaseTheCopy.Task)), cancellation.Token);
 
         await copyIsParked.Task.WaitAsync(TimeSpan.FromMinutes(2));
         Assert.That(releaseTheCopy.Task.IsCompleted, Is.False, "the copy must still be parked for this assertion to mean anything");

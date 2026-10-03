@@ -111,13 +111,13 @@ public sealed record MigrationCheckpoint(
 public interface IMigrationCheckpointStore
 {
     /// <summary>
-    /// Every checkpoint the store holds. A category no run has started has no row, so it is absent rather than
-    /// returned as not started.
+    /// Every checkpoint the store holds. A run saves a not-started row for every category it will copy before it
+    /// copies any of them, so a category is absent when no run has recorded it.
     /// </summary>
     Task<IReadOnlyList<MigrationCheckpoint>> ReadAll(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// One category's checkpoint, or null when no run has started it.
+    /// One category's checkpoint, or null when no run has recorded it.
     /// </summary>
     Task<MigrationCheckpoint?> Read(string categoryId, CancellationToken cancellationToken = default);
 

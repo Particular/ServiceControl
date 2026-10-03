@@ -6,7 +6,8 @@ namespace ServiceControl.Persistence.DataMigration;
 public interface IMigrationState
 {
     /// <summary>
-    /// True while any selected category is unfinished. Services that delete or overwrite copied data stand down while it is true.
+    /// True while any required category is unfinished. Services that delete or overwrite copied data stand down while it
+    /// is true. Optional categories never make it true, because they copy beside those services.
     /// </summary>
     bool AnyCategoryIncomplete { get; }
 }
