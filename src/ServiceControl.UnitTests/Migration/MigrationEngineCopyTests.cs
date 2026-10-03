@@ -41,6 +41,109 @@ class MigrationEngineCopyTests
     }
 
     [Test]
+    public async Task A_first_run_captures_the_source_total_and_every_batch_moves_LastProgressAt()
+    {
+        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"), Row("b"), Row("c"), Row("d"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 2 };
+        var startedAt = new DateTimeOffset(2026, 3, 4, 5, 6, 7, TimeSpan.Zero);
+        var betweenBatches = TimeSpan.FromMinutes(1);
+        var clock = new FakeTimeProvider(startedAt);
+        var stamps = new List<DateTime?>();
+        // The engine stamps the checkpoint before the target sees it, so moving the clock in here is what
+        // makes a stamp that never moves show up as two identical entries.
+        target.BeforeWrite = extending =>
+        {
+            stamps.Add(extending.LastProgressAt);
+            clock.Advance(betweenBatches);
+        };
+        var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []);
+        var engine = new MigrationEngine(source, target, checkpointStore, clock, options, NullLogger<MigrationEngine>.Instance);
+
+        var checkpoint = await engine.RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checkpoint.SourceTotal, Is.EqualTo(4), "the progress line and the verify percentage both read this");
+            Assert.That(stamps, Is.EqualTo(new DateTime?[] { startedAt.UtcDateTime, (startedAt + betweenBatches).UtcDateTime }), "the stall watchdog stops a copy whose LastProgressAt stops moving, so every batch has to move it");
+            Assert.That(checkpoint.LastProgressAt, Is.EqualTo((startedAt + betweenBatches).UtcDateTime), "the saved row carries the last batch's stamp");
+        }
+    }
+
+    [Test]
+    public async Task A_category_that_read_fewer_rows_than_the_source_holds_halts_instead_of_settling_complete()
+    {
+        // The row was counted at 10 against a source that yields 2, so without the shortfall check the
+        // category settles Complete with 8 rows never copied.
+        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("d"), Row("e"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        await checkpointStore.Upsert(new MigrationCheckpoint(category.Id, MigrationCategoryState.InProgress, null, 0, 0, 10, null, DateTime.UtcNow, DateTime.UtcNow, null, null));
+        var target = new InMemoryMigrationTarget(checkpointStore);
+        var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []);
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
+
+        var checkpoint = await engine.RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Halted));
+            Assert.That(checkpoint.LastError, Does.Contain("KnownEndpoints").And.Contain("10").And.Contain("2 copied"));
+            Assert.That(checkpoint.SettledAt, Is.Not.Null);
+        }
+    }
+
+    [Test]
+    public async Task A_resumed_category_is_reconciled_on_the_totals_the_row_carries_not_the_rows_this_run_copied()
+    {
+        // Judging this run on the two rows it copies, rather than the four the row ends up counting,
+        // would halt every copy that was ever restarted.
+        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"), Row("b"), Row("c"), Row("d"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        await checkpointStore.Upsert(new MigrationCheckpoint(category.Id, MigrationCategoryState.InProgress, "b", 2, 0, 4, null, DateTime.UtcNow, DateTime.UtcNow, null, null));
+        var target = new InMemoryMigrationTarget(checkpointStore);
+        var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []);
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
+
+        var checkpoint = await engine.RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Complete));
+            Assert.That(checkpoint.CopiedCount, Is.EqualTo(4));
+        }
+    }
+
+    [Test]
+    public async Task A_source_that_grew_since_it_was_counted_still_settles_complete()
+    {
+        // The row was counted at 2 and the source now holds 3: the source instance was still ingesting
+        // while the copy ran.
+        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"), Row("b"), Row("c"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        await checkpointStore.Upsert(new MigrationCheckpoint(category.Id, MigrationCategoryState.InProgress, null, 0, 0, 2, null, DateTime.UtcNow, DateTime.UtcNow, null, null));
+        var target = new InMemoryMigrationTarget(checkpointStore);
+        var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []);
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
+
+        var checkpoint = await engine.RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Complete));
+            Assert.That(checkpoint.CopiedCount, Is.EqualTo(3));
+            Assert.That(checkpoint.SourceTotal, Is.EqualTo(2), "re-counting would rebase the total the shortfall halt compares against, and the second run is the one a stale cursor is found on");
+        }
+    }
+
+    [Test]
     public async Task A_category_with_no_rows_finishes_Complete_without_a_cursor()
     {
         // The ordinary state of several required categories on a small instance: nothing to copy is a

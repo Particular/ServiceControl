@@ -13,6 +13,7 @@ public sealed class InMemoryMigrationSource : IMigrationSource
 {
     readonly Dictionary<string, List<MigrationRow>> rowsByCategory = [];
     readonly Dictionary<string, (int Times, Exception Failure)> bodyFailures = [];
+    readonly Dictionary<string, Exception[]> bodyFailuresInTurn = [];
     readonly Dictionary<string, int> bodyReadAttempts = [];
     readonly Dictionary<string, MigrationBody?> bodies = [];
 
@@ -24,12 +25,21 @@ public sealed class InMemoryMigrationSource : IMigrationSource
 
     public void FailBodyReads(string sourceId, int times, Exception failure) => bodyFailures[sourceId] = (times, failure);
 
-    /// <summary>Makes the body read for this row behave like a host shutting down: the token is cancelled and the read throws.</summary>
+    /// <summary>
+    /// Fails the body reads for this row with one exception per attempt, in order, so a test can tell one attempt's error from another's. An attempt past the end of the list reads the body normally.
+    /// </summary>
+    public void FailBodyReadsInTurn(string sourceId, params Exception[] failuresInAttemptOrder) => bodyFailuresInTurn[sourceId] = failuresInAttemptOrder;
+
+    /// <summary>
+    /// Makes the body read for this row behave like a host shutting down: the token is cancelled and the read throws.
+    /// </summary>
     public (string SourceId, CancellationTokenSource Source)? StopOnBodyRead { get; set; }
 
     public int BodyReadAttempts(string sourceId) => bodyReadAttempts.GetValueOrDefault(sourceId);
 
     public Task Open(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+    public IReadOnlyList<IMigrationStartupCheck> ContributedChecks() => [];
 
     public Task<MigrationSourceDescription> Describe(CancellationToken cancellationToken = default) => Task.FromResult(Description);
 
@@ -38,7 +48,7 @@ public sealed class InMemoryMigrationSource : IMigrationSource
             [.. rowsByCategory.Select(pair => new MigrationSourceInventoryEntry("memory", pair.Key, pair.Value.Count))]);
 
     public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) =>
-        Task.FromResult((long)(rowsByCategory.TryGetValue(category.Id, out var rows) ? rows.Count : 0));
+        Task.FromResult<long>(rowsByCategory.TryGetValue(category.Id, out var rows) ? rows.Count : 0);
 
     public async IAsyncEnumerable<MigrationBatch> Read(
         MigrationCategory category,
@@ -85,8 +95,17 @@ public sealed class InMemoryMigrationSource : IMigrationSource
             throw failures.Failure;
         }
 
+        if (bodyFailuresInTurn.TryGetValue(sourceId, out var failuresInTurn) && attempt <= failuresInTurn.Length)
+        {
+            throw failuresInTurn[attempt - 1];
+        }
+
         return bodies.GetValueOrDefault(sourceId);
     }
+
+    // Every registered category, not just the seeded ones: Seed writes rowsByCategory after construction,
+    // and the interface promises an answer that does not change across Open.
+    public IReadOnlyCollection<string> SupportedCategoryIds => [.. MigrationCategoryRegistry.All.Select(category => category.Id)];
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }

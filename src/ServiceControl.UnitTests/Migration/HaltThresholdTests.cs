@@ -62,6 +62,42 @@ class HaltThresholdTests
     }
 
     [Test]
+    public void A_large_category_losing_a_small_share_does_not_halt_once_past_the_floor()
+    {
+        // 101 of 5,000,000 is 0.002%. The floor is already behind it, so only the proportion can stop a halt
+        // here, and a rule that halted on the floor alone would stop a healthy copy of a huge category.
+        var exceeded = HaltThreshold.Exceeded(skippedCount: 101, totalCount: 5_000_000, percentThreshold: 5, minimumFloor: 100);
+
+        Assert.That(exceeded, Is.False);
+    }
+
+    [Test]
+    public void Losing_every_row_of_a_run_is_losing_most_of_it()
+    {
+        Assert.That(HaltThreshold.MostOfItWasLost(skippedCount: 90, totalCount: 90), Is.True);
+    }
+
+    [Test]
+    public void Losing_all_but_one_row_of_a_run_is_losing_most_of_it()
+    {
+        Assert.That(HaltThreshold.MostOfItWasLost(skippedCount: 99, totalCount: 100), Is.True);
+    }
+
+    [Test]
+    public void Losing_exactly_half_a_run_is_not_losing_most_of_it()
+    {
+        // The rule needs strictly more than half, so an exact half is the one input that separates it from a
+        // rule that halted at half as well.
+        Assert.That(HaltThreshold.MostOfItWasLost(skippedCount: 50, totalCount: 100), Is.False);
+    }
+
+    [Test]
+    public void A_run_that_processed_nothing_lost_nothing()
+    {
+        Assert.That(HaltThreshold.MostOfItWasLost(skippedCount: 0, totalCount: 0), Is.False);
+    }
+
+    [Test]
     public void A_skip_count_with_nothing_processed_never_halts_and_never_divides_by_zero()
     {
         // Past the floor with a zero total, which is the only input that reaches the division guard.

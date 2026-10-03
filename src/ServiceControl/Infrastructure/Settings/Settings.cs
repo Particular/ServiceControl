@@ -16,6 +16,7 @@
     using ServiceControl.Infrastructure.Settings;
     using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.DataMigration;
     using ServiceControl.Transports;
     using ServicePulse;
     using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -185,6 +186,8 @@
 
         public string TransportType { get; set; }
         public string PersistenceType { get; private set; }
+        public bool MigrationEnabled => SettingsReader.Read(SettingsRootNamespace, MigrationSettings.EnabledKey, MigrationSettings.DefaultEnabled);
+        public bool MigrationAllowIncompleteExit => SettingsReader.Read(SettingsRootNamespace, MigrationSettings.AllowIncompleteExitKey, MigrationSettings.DefaultAllowIncompleteExit);
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }
 
