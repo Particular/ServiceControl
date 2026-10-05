@@ -82,20 +82,19 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                 expectedRoleBasedAuthorizationEnabled: true);
         }
 
-        [Test]
-        public async Task Should_reject_requests_without_bearer_token()
+        [TestCase("/api/errors")]
+        [TestCase("/api/platform-health")]
+        public async Task Should_reject_requests_without_bearer_token(string path)
         {
             HttpResponseMessage response = null;
 
             _ = await Define<Context>()
                 .Done(async ctx =>
                 {
-                    // Use /api/errors which does NOT have [AllowAnonymous] so it should require authentication
-                    // Note: /api is marked [AllowAnonymous] for server-to-server configuration fetching
                     response = await OpenIdConnectAssertions.SendRequestWithoutAuth(
                         HttpClient,
                         HttpMethod.Get,
-                        "/api/errors");
+                        path);
                     return response != null;
                 })
                 .Run();
@@ -123,28 +122,44 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
             OpenIdConnectAssertions.AssertUnauthorized(response);
         }
 
-        [Test]
-        public async Task Should_accept_requests_with_valid_bearer_token()
+        [TestCase("/api/errors")]
+        [TestCase("/api/platform-health")]
+        public async Task Should_accept_requests_with_valid_bearer_token(string path)
         {
             HttpResponseMessage response = null;
 
             _ = await Define<Context>()
                 .Done(async ctx =>
                 {
-                    // The "reader" role grants every :view permission, including error:messages:view
-                    // required by /api/errors. Without a role-bearing claim the request would be 403.
                     var validToken = mockOidcServer.GenerateToken(
                         additionalClaims: new[] { new Claim("roles", "reader") });
                     response = await OpenIdConnectAssertions.SendRequestWithBearerToken(
                         HttpClient,
                         HttpMethod.Get,
-                        "/api/errors",
+                        path,
                         validToken);
                     return response != null;
                 })
                 .Run();
 
             OpenIdConnectAssertions.AssertAuthenticated(response);
+        }
+
+        [Test]
+        public async Task Should_forbid_platform_health_without_a_read_role()
+        {
+            HttpResponseMessage response = null;
+
+            await Define<Context>()
+                .Done(async _ =>
+                {
+                    response = await OpenIdConnectAssertions.SendRequestWithBearerToken(
+                        HttpClient, HttpMethod.Get, "/api/platform-health", mockOidcServer.GenerateToken());
+                    return response != null;
+                })
+                .Run();
+
+            OpenIdConnectAssertions.AssertForbidden(response);
         }
 
         [Test]

@@ -8,6 +8,7 @@
     using Particular.ServiceControl;
     using PlatformHealth;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Api;
     using Transports;
 
     class CustomChecksComponent : ServiceControlComponent
@@ -33,6 +34,7 @@
             if (!settings.ErrorIngestionOnly)
             {
                 hostBuilder.Services.AddPlatformConnectionProvider<CustomChecksPlatformConnectionDetailsProvider>();
+                hostBuilder.Services.AddSingleton<IPlatformHealthApi, PlatformHealthApi>();
             }
             hostBuilder.Services.AddSingleton<CustomCheckResultProcessor>();
             hostBuilder.Services.AddSingleton<PlatformHealthState>();

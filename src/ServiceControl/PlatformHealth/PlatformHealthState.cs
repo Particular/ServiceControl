@@ -16,7 +16,7 @@ namespace ServiceControl.PlatformHealth
             }
 
             var id = detail.GetDeterministicId();
-            checks[id] = new CheckState
+            var report = new CheckState
             {
                 Id = id,
                 CheckId = detail.CustomCheckId,
@@ -28,15 +28,22 @@ namespace ServiceControl.PlatformHealth
                 Host = detail.OriginatingEndpoint.Host,
                 HostId = detail.OriginatingEndpoint.HostId
             };
+
+            checks.AddOrUpdate(id, report, (_, previous) => report.ReportedAt >= previous.ReportedAt ? report : previous);
         }
 
-        public PlatformHealthView GetHealth()
+        internal CheckState[] GetChecks() => checks.Values
+            .OrderBy(check => check.InstanceName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(check => check.CheckId, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(check => check.Id)
+            .ToArray();
+
+        public PlatformHealthView GetHealth() => GetHealth(GetChecks());
+
+        internal static PlatformHealthView GetHealth(CheckState[] currentChecks)
         {
-            var currentChecks = checks.Values.ToArray();
             var failedChecks = currentChecks
                 .Where(check => check.HasFailed)
-                .OrderBy(check => check.InstanceName, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(check => check.CheckId, StringComparer.OrdinalIgnoreCase)
                 .ToArray();
 
             return new PlatformHealthView
@@ -59,7 +66,7 @@ namespace ServiceControl.PlatformHealth
 
         readonly ConcurrentDictionary<Guid, CheckState> checks = new();
 
-        class CheckState
+        internal sealed record CheckState
         {
             public Guid Id { get; init; }
             public string CheckId { get; init; }

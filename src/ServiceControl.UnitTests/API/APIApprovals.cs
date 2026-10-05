@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Reflection;
     using System.Text;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using Api.Contracts;
     using Microsoft.AspNetCore.Authorization;
@@ -15,6 +16,7 @@
     using Microsoft.AspNetCore.Routing;
     using Microsoft.Extensions.Logging.Abstractions;
     using NServiceBus.CustomChecks;
+    using NServiceBus.Hosting;
     using NUnit.Framework;
     using Particular.Approvals;
     using Particular.ServiceControl.Licensing;
@@ -38,7 +40,8 @@
                 new ActiveLicense(null, NullLogger<ActiveLicense>.Instance) { IsValid = true },
                 new Settings(),
                 null,
-                new MassTransitConnectorHeartbeatStatus());
+                new MassTransitConnectorHeartbeatStatus(),
+                new HostInformation(Guid.Empty, "localhost"));
 
             var controller = new RootController(configurationApi)
             {
@@ -49,6 +52,23 @@
             RootUrls result = await controller.Urls();
 
             Approver.Verify(result);
+        }
+
+        [Test]
+        public async Task Configuration_reports_the_instance_type_and_reporting_host_id()
+        {
+            var hostId = Guid.NewGuid();
+            var configuration = new ConfigurationApi(null, new Settings { DisableHealthChecks = true }, null,
+                new MassTransitConnectorHeartbeatStatus(), new HostInformation(hostId, "localhost"));
+
+            using var json = JsonDocument.Parse(JsonSerializer.Serialize(await configuration.GetConfig(), SerializerOptions.Default));
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(json.RootElement.GetProperty("instance_type").GetString(), Is.EqualTo("error"));
+                Assert.That(json.RootElement.GetProperty("host").GetProperty("host_id").GetGuid(), Is.EqualTo(hostId));
+                Assert.That(json.RootElement.GetProperty("health_checks_enabled").GetBoolean(), Is.False);
+            }
         }
 
         [Test]

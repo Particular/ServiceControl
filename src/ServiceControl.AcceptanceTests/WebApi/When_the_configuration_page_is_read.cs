@@ -1,5 +1,6 @@
 namespace ServiceControl.AcceptanceTests.WebApi
 {
+    using System;
     using System.IO;
     using System.IO.Compression;
     using System.Net;
@@ -29,6 +30,7 @@ namespace ServiceControl.AcceptanceTests.WebApi
                 })
                 .Run();
 
+            using var json = JsonDocument.Parse(configuration);
             using (Assert.EnterMultipleScope())
             {
                 Assert.That(configuration, Is.EqualTo(instanceInfo),
@@ -36,6 +38,9 @@ namespace ServiceControl.AcceptanceTests.WebApi
 
                 Assert.That(configuration, Does.Contain(Settings.InstanceName),
                     "The configuration page names the instance it is describing");
+                Assert.That(json.RootElement.GetProperty("instance_type").GetString(), Is.EqualTo("error"));
+                Assert.That(json.RootElement.GetProperty("host").GetProperty("host_id").GetGuid(), Is.Not.EqualTo(Guid.Empty));
+                Assert.That(json.RootElement.GetProperty("health_checks_enabled").GetBoolean(), Is.False);
             }
         }
 

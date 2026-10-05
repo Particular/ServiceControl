@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Reflection;
     using System.Text;
+    using System.Text.Json;
     using Audit.Infrastructure.Settings;
     using Audit.Infrastructure.WebApi;
     using Microsoft.AspNetCore.Authorization;
@@ -13,6 +14,7 @@
     using Microsoft.AspNetCore.Mvc.Controllers;
     using Microsoft.AspNetCore.Mvc.Routing;
     using Microsoft.AspNetCore.Routing;
+    using NServiceBus.Hosting;
     using NUnit.Framework;
     using Particular.Approvals;
     using ServiceControl.Hosting.Auth;
@@ -30,7 +32,7 @@
 
             var settings = CreateTestSettings();
 
-            var controller = new RootController(settings)
+            var controller = new RootController(settings, new HostInformation(Guid.Empty, "localhost"))
             {
                 ControllerContext = controllerContext,
                 Url = new UrlHelper(actionContext)
@@ -39,6 +41,22 @@
             var result = controller.Urls();
 
             Approver.Verify(result.Value);
+        }
+
+        [Test]
+        public void Configuration_reports_the_instance_type_and_reporting_host_id()
+        {
+            var hostId = Guid.NewGuid();
+            var controller = new RootController(CreateTestSettings(), new HostInformation(hostId, "localhost"));
+
+            using var json = JsonDocument.Parse(JsonSerializer.Serialize(controller.Config().Value,
+                new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower }));
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(json.RootElement.GetProperty("instance_type").GetString(), Is.EqualTo("audit"));
+                Assert.That(json.RootElement.GetProperty("host").GetProperty("host_id").GetGuid(), Is.EqualTo(hostId));
+            }
         }
 
         [Test]
