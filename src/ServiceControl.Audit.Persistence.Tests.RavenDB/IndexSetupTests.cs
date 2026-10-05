@@ -70,6 +70,36 @@ class IndexSetupTests : PersistenceTestFixture
     }
 
     [Test]
+    public async Task New_indexes_should_be_created_with_lucene()
+    {
+        var index = new FailedAuditImportIndex();
+
+        await configuration.DocumentStore.Maintenance.SendAsync(new DeleteIndexOperation(index.IndexName), TestTimeoutCancellationToken);
+
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+
+        var definition = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(index.IndexName), TestTimeoutCancellationToken);
+
+        // Pinned on the index rather than inherited, so it also applies to databases that still default to Corax
+        Assert.That(definition.Configuration, Does.ContainKey(IndexDeployment.StaticSearchEngineTypeKey).WithValue(SearchEngineType.Lucene.ToString()));
+    }
+
+    [TestCase(true, TestName = "Search engine set in the index definition through SearchEngineType should take precedence over the one on the server")]
+    [TestCase(false, TestName = "Search engine set in the index definition through Configuration should take precedence over the one on the server")]
+    public async Task Search_engine_set_in_the_index_definition_should_take_precedence_over_the_one_on_the_server(bool useSearchEngineTypeProperty)
+    {
+        var statsBefore = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(nameof(FailedAuditImportIndex)), TestTimeoutCancellationToken);
+
+        Assert.That(statsBefore.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
+
+        await IndexDeployment.CreateIndexesAsync([new FailedAuditImportIndexPinnedToCorax(useSearchEngineTypeProperty)], configuration.DocumentStore, TestTimeoutCancellationToken);
+
+        var statsAfter = await WaitForIndexDefinitionUpdate(statsBefore);
+
+        Assert.That(statsAfter.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
+    }
+
+    [Test]
     public async Task Search_engine_configured_on_the_index_should_be_preserved_on_setup()
     {
         var index = new MessagesViewIndexWithFullTextSearch { Configuration = { [IndexDeployment.StaticSearchEngineTypeKey] = SearchEngineType.Corax.ToString() } };
@@ -188,6 +218,23 @@ class IndexSetupTests : PersistenceTestFixture
         await IndexCreation.CreateIndexesAsync([index], configuration.DocumentStore, null, null, TestTimeoutCancellationToken);
 
         return await WaitForIndexDefinitionUpdate(statsBefore);
+    }
+
+    class FailedAuditImportIndexPinnedToCorax : FailedAuditImportIndex
+    {
+        public FailedAuditImportIndexPinnedToCorax(bool useSearchEngineTypeProperty)
+        {
+            if (useSearchEngineTypeProperty)
+            {
+                SearchEngineType = Raven.Client.Documents.Indexes.SearchEngineType.Corax;
+            }
+            else
+            {
+                Configuration[IndexDeployment.StaticSearchEngineTypeKey] = Raven.Client.Documents.Indexes.SearchEngineType.Corax.ToString();
+            }
+        }
+
+        public override string IndexName => nameof(FailedAuditImportIndex);
     }
 
     const string CustomizedField = nameof(MessagesViewIndex.SortAndFilterOptions.MessageId);
