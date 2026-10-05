@@ -51,7 +51,6 @@
             {
                 transport.HierarchyNamespaceOptions = new HierarchyNamespaceOptions { HierarchyNamespace = connectionSettings.HierarchyNamespace };
             }
-
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
 
             return transport;
