@@ -2,10 +2,12 @@ namespace ServiceControl.RavenDB
 {
     using System.Reflection;
     using System.Threading;
+    using Microsoft.Extensions.Logging;
     using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Indexes;
     using Raven.Client.Documents.Operations.Indexes;
+    using ServiceControl.Infrastructure;
 
     public static class IndexDeployment
     {
@@ -53,6 +55,7 @@ namespace ServiceControl.RavenDB
                     || TryGetSearchEngineType(existingByName, index.IndexName, out searchEngineType))
                 {
                     index.Configuration[StaticSearchEngineTypeKey] = searchEngineType;
+                    Logger.LogInformation("Keeping the {SearchEngineType} search engine configured on index {IndexName}", searchEngineType, index.IndexName);
                 }
                 // 3. Indexes that don't exist yet are created with Lucene, which performs better for our workload, also in
                 // existing databases that still default to Corax. Pinning it on the index keeps it on Lucene even if the
@@ -60,6 +63,7 @@ namespace ServiceControl.RavenDB
                 else if (!existingByName.ContainsKey(index.IndexName) && !existingByName.ContainsKey(replacementName))
                 {
                     index.Configuration[StaticSearchEngineTypeKey] = nameof(SearchEngineType.Lucene);
+                    Logger.LogInformation("Creating index {IndexName} with the Lucene search engine", index.IndexName);
                 }
 
                 // 4. Existing indexes without a search engine of their own keep inheriting the database default. Setting
@@ -80,5 +84,7 @@ namespace ServiceControl.RavenDB
         }
 
         public const string StaticSearchEngineTypeKey = "Indexing.Static.SearchEngineType";
+
+        static readonly ILogger Logger = LoggerUtil.CreateStaticLogger(typeof(IndexDeployment));
     }
 }
