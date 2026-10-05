@@ -24,20 +24,20 @@ namespace ServiceControl.RavenDB
         {
             var indexList = indexes.ToList();
 
-            // Our index definitions don't set a search engine, so RavenDB uses the database default for them. Operators can
-            // switch an individual index to another search engine in RavenDB Studio (e.g. from Corax to Lucene, as the
-            // migration guide recommends), which stores the choice in the configuration of that index only. RavenDB treats
-            // the configuration as part of the index definition, so at the next start-up our definition, without a search
-            // engine, would no longer match the one on the server. RavenDB would then build a side-by-side replacement using
-            // the database default, which is Corax for databases created before Lucene became the default, silently undoing
-            // the migration and triggering a full rebuild of the index that can take days on large databases.
-            // To prevent that, the search engine of each index is resolved before deploying it:
+            // Our index definitions do not set a search engine. RavenDB then uses the database default for them.
+            // An operator can set a different search engine on one index in RavenDB Studio, for example Lucene instead of
+            // Corax, as the migration guide recommends. RavenDB stores that choice in the configuration of that index only.
+            // RavenDB compares the configuration as part of the index definition. At the next start-up, our definition has
+            // no search engine and does not match the definition on the server. RavenDB then builds a side-by-side
+            // replacement with the database default. For databases created before Lucene became the default, that default
+            // is Corax. This undoes the migration and starts a full rebuild of the index. On a large database, the rebuild
+            // can take days. To prevent this, the search engine of each index is resolved before deployment:
             var existingDefinitions = await store.Maintenance.SendAsync(new GetIndexesOperation(0, int.MaxValue), cancellationToken);
             var existingByName = existingDefinitions.ToDictionary(d => d.Name, StringComparer.OrdinalIgnoreCase);
 
             foreach (var index in indexList)
             {
-                // 1. A search engine set explicitly in our index definition, through SearchEngineType or Configuration, always wins
+                // 1. A search engine set in our index definition always wins. It can be set through SearchEngineType or Configuration.
                 if (index.SearchEngineType.HasValue
                     || (index.Configuration.TryGetValue(StaticSearchEngineTypeKey, out var configuredSearchEngineType) && !string.IsNullOrEmpty(configuredSearchEngineType)))
                 {
@@ -46,28 +46,29 @@ namespace ServiceControl.RavenDB
 
                 var replacementName = Constants.Documents.Indexing.SideBySideIndexNamePrefix + index.IndexName;
 
-                // 2. Otherwise keep the search engine set on the index on the server, so the definitions match and nothing
-                // gets rebuilt. A pending replacement is checked first: it can be the operator switching the search engine,
-                // in which case its configuration is the latest choice. It can also have been created by ServiceControl
-                // 6.20.0 or 6.21.0 resetting a migrated index at start-up; that replacement has no search engine set, so the
-                // one on the original index is used and RavenDB discards the replacement as the definition matches again.
+                // 2. Keep the search engine set on the index on the server. The definitions then match and RavenDB does not
+                // rebuild the index. A pending replacement is checked first. When the operator changes the search engine,
+                // the replacement holds the latest choice. ServiceControl 6.20.0 and 6.21.0 also created replacements when
+                // they reset a migrated index at start-up. Those replacements have no search engine. The search engine of
+                // the original index is then used. The definition matches the original index again and RavenDB discards
+                // the replacement.
                 if (TryGetSearchEngineType(existingByName, replacementName, out var searchEngineType)
                     || TryGetSearchEngineType(existingByName, index.IndexName, out searchEngineType))
                 {
                     index.Configuration[StaticSearchEngineTypeKey] = searchEngineType;
-                    Logger.LogInformation("Keeping the {SearchEngineType} search engine configured on index {IndexName}", searchEngineType, index.IndexName);
+                    Logger.LogInformation("Index {IndexName} keeps the configured {SearchEngineType} search engine", index.IndexName, searchEngineType);
                 }
-                // 3. Indexes that don't exist yet are created with Lucene, which performs better for our workload, also in
-                // existing databases that still default to Corax. Pinning it on the index keeps it on Lucene even if the
-                // database default changes later.
+                // 3. An index that does not exist yet is created with Lucene. Lucene performs better for our workload, also
+                // in databases that still default to Corax. The search engine is set on the index itself. The index then
+                // stays on Lucene when the database default changes.
                 else if (!existingByName.ContainsKey(index.IndexName) && !existingByName.ContainsKey(replacementName))
                 {
                     index.Configuration[StaticSearchEngineTypeKey] = nameof(SearchEngineType.Lucene);
-                    Logger.LogInformation("Creating index {IndexName} with the Lucene search engine", index.IndexName);
+                    Logger.LogInformation("Index {IndexName} is created with the Lucene search engine", index.IndexName);
                 }
 
-                // 4. Existing indexes without a search engine of their own keep inheriting the database default. Setting
-                // one now would change their definition and trigger the full rebuild this is meant to avoid.
+                // 4. An existing index without a search engine of its own continues to use the database default. A search
+                // engine set now changes the definition and starts the full rebuild that this code prevents.
             }
 
             await IndexCreation.CreateIndexesAsync(indexList, store, null, null, cancellationToken);

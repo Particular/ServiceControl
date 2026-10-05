@@ -40,7 +40,7 @@ namespace ServiceControl.Persistence.Tests.RavenDB
             }
             finally
             {
-                // The database is shared across tests, restore the index as setup creates it
+                // Tests share the database. Restore the index to the state that setup creates.
                 await IndexCreation.CreateIndexesAsync([new CustomChecksIndex { Configuration = { [IndexDeployment.StaticSearchEngineTypeKey] = SearchEngineType.Lucene.ToString() } }], DocumentStore);
                 await WaitForIndexDefinitionUpdate(customizedStats);
             }

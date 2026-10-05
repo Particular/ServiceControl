@@ -80,7 +80,7 @@ class IndexSetupTests : PersistenceTestFixture
 
         var definition = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(index.IndexName), TestTimeoutCancellationToken);
 
-        // Pinned on the index rather than inherited, so it also applies to databases that still default to Corax
+        // The search engine is set on the index, not inherited. It then also applies to databases that default to Corax.
         Assert.That(definition.Configuration, Does.ContainKey(IndexDeployment.StaticSearchEngineTypeKey).WithValue(SearchEngineType.Lucene.ToString()));
     }
 
@@ -142,13 +142,13 @@ class IndexSetupTests : PersistenceTestFixture
 
         var originalStats = await UpdateIndex(index);
 
-        // Keep replacements from catching up and swapping, like a large database under load would
+        // Stop indexing so that the replacement cannot catch up and swap. A large database under load shows the same behavior.
         await configuration.DocumentStore.Maintenance.SendAsync(new StopIndexingOperation(), TestTimeoutCancellationToken);
 
         try
         {
-            // What versions before the fix did: deploy the definition without the configured search engine,
-            // creating a replacement that uses the database default
+            // Versions before the fix deployed the definition without the configured search engine.
+            // This creates a replacement that uses the database default.
             await IndexCreation.CreateIndexesAsync([new MessagesViewIndexWithFullTextSearch()], configuration.DocumentStore, null, null, TestTimeoutCancellationToken);
 
             var defaultReplacement = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(replacementName), TestTimeoutCancellationToken);
@@ -176,7 +176,7 @@ class IndexSetupTests : PersistenceTestFixture
 
         await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
 
-        // raven will ignore the update since index was locked, so best we can do is wait a bit and check that the definition hasn't changed
+        // RavenDB ignores the update because the index is locked. Wait a moment and then make sure that the definition did not change.
         await Task.Delay(1000);
 
         var definitionAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(customizedStats.Name), TestTimeoutCancellationToken);
@@ -194,7 +194,7 @@ class IndexSetupTests : PersistenceTestFixture
         Assert.ThrowsAsync<IndexCreationException>(async () => await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken));
     }
 
-    // Simulates an index modified outside ServiceControl, e.g. through RavenDB Studio, with a definition that differs from ours
+    // Simulates an index changed outside ServiceControl, for example in RavenDB Studio. Its definition is different from ours.
     async Task<IndexStats> PutCustomizedIndex(SearchEngineType searchEngineType, IndexLockMode lockMode = IndexLockMode.Unlock)
     {
         var index = new MessagesViewIndexWithFullTextSearch { Conventions = configuration.DocumentStore.Conventions };
