@@ -22,7 +22,7 @@ namespace ServiceControl.Persistence.Tests.RavenDB.Operations
             await StoreFailure(headers, "the first failure");
             await StoreFailure(headers, "the second failure");
 
-            DocumentStore.WaitForIndexing();
+            await DocumentStore.WaitForIndexingAsync();
 
             using var session = DocumentStore.OpenAsyncSession();
             var documents = await session.Query<FailedErrorImport>().ToListAsync();

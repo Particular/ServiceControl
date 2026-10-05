@@ -44,7 +44,7 @@
                 await session.SaveChangesAsync();
             }
 
-            DocumentStore.WaitForIndexing();
+            await DocumentStore.WaitForIndexingAsync();
 
             var customCheck = ServiceProvider.GetRequiredService<FailedErrorImportCustomCheck>();
 
