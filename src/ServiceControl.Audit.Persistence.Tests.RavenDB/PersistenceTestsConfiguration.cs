@@ -95,11 +95,7 @@
             AuditIngestionUnitOfWorkFactory = host.Services.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
         }
 
-        public Task CompleteDBOperation()
-        {
-            DocumentStore.WaitForIndexing();
-            return Task.CompletedTask;
-        }
+        public Task CompleteDBOperation() => DocumentStore.WaitForIndexingAsync();
 
         public async Task Cleanup()
         {

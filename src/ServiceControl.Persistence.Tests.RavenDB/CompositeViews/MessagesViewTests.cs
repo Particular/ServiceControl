@@ -17,7 +17,7 @@
     class MessagesViewTests : RavenPersistenceTestBase
     {
         [Test]
-        public void Filter_out_system_messages()
+        public async Task Filter_out_system_messages()
         {
             using (var session = DocumentStore.OpenSession())
             {
@@ -40,7 +40,7 @@
                 session.SaveChanges();
             }
 
-            DocumentStore.WaitForIndexing();
+            await DocumentStore.WaitForIndexingAsync();
 
             using (var session = DocumentStore.OpenSession())
             {
@@ -55,7 +55,7 @@
         }
 
         [Test]
-        public void Order_by_critical_time()
+        public async Task Order_by_critical_time()
         {
             using (var session = DocumentStore.OpenSession())
             {
@@ -87,7 +87,7 @@
                 session.SaveChanges();
             }
 
-            DocumentStore.WaitForIndexing();
+            await DocumentStore.WaitForIndexingAsync();
 
             using (var session = DocumentStore.OpenSession())
             {
@@ -109,7 +109,7 @@
         }
 
         [Test]
-        public void Order_by_time_sent()
+        public async Task Order_by_time_sent()
         {
             using (var session = DocumentStore.OpenSession())
             {
@@ -134,7 +134,7 @@
                 session.SaveChanges();
             }
 
-            DocumentStore.WaitForIndexing();
+            await DocumentStore.WaitForIndexingAsync();
 
             using (var session = DocumentStore.OpenSession())
             {
@@ -184,7 +184,7 @@
                 session.SaveChanges();
             }
 
-            DocumentStore.WaitForIndexing();
+            await DocumentStore.WaitForIndexingAsync();
 
             using (var session = DocumentStore.OpenAsyncSession())
             {
@@ -232,7 +232,7 @@
                 session.SaveChanges();
             }
 
-            DocumentStore.WaitForIndexing();
+            await DocumentStore.WaitForIndexingAsync();
 
             using (var session = DocumentStore.OpenAsyncSession())
             {
@@ -275,7 +275,7 @@
                 session.SaveChanges();
             }
 
-            DocumentStore.WaitForIndexing();
+            await DocumentStore.WaitForIndexingAsync();
 
             using (var session = DocumentStore.OpenAsyncSession())
             {

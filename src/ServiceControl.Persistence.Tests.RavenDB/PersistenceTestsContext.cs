@@ -92,11 +92,7 @@ public class PersistenceTestsContext : IPersistenceTestsContext
 
     public DateTime UtcNow => FakeTime.GetUtcNow().UtcDateTime;
 
-    public Task CompleteDatabaseOperation()
-    {
-        DocumentStore.WaitForIndexing();
-        return Task.CompletedTask;
-    }
+    public Task CompleteDatabaseOperation() => DocumentStore.WaitForIndexingAsync();
 
     [Conditional("DEBUG")]
     public void BlockToInspectDatabase()
