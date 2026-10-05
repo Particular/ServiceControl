@@ -4,7 +4,6 @@ namespace ServiceControl.Persistence.RavenDB
     using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
-    using Raven.Client.Documents.Indexes;
     using Raven.Client.Documents.Operations.Expiration;
     using Raven.Client.Exceptions;
     using Raven.Client.ServerWide;
@@ -22,7 +21,7 @@ namespace ServiceControl.Persistence.RavenDB
             await UpdateDatabaseSettings(settings.DatabaseName, cancellationToken);
             await UpdateDatabaseSettings(settings.ThroughputDatabaseName, cancellationToken);
 
-            await IndexCreation.CreateIndexesAsync(typeof(DatabaseSetup).Assembly, documentStore, null, null, cancellationToken);
+            await IndexDeployment.CreateIndexesAsync(typeof(DatabaseSetup).Assembly, documentStore, cancellationToken);
 
             await StartupChecks.WarnIfIndexesUseCorax(documentStore, settings.DatabaseName, cancellationToken);
             await StartupChecks.WarnIfIndexesUseCorax(documentStore, settings.ThroughputDatabaseName, cancellationToken);
