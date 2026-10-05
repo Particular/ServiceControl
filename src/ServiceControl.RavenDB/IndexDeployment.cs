@@ -24,7 +24,9 @@ namespace ServiceControl.RavenDB
         {
             var indexList = indexes.ToList();
 
-            // Our index definitions do not set a search engine. RavenDB then uses the database default for them.
+            // Our index definitions do not set a search engine. RavenDB then uses the database default for them,
+            // which, starting in 6.20, ServiceControl sets to Lucene when creating new databases; existing
+            // databases are left untouched. 
             // An operator can set a different search engine on one index in RavenDB Studio, for example Lucene instead of
             // Corax, as the migration guide recommends. RavenDB stores that choice in the configuration of that index only.
             // RavenDB compares the configuration as part of the index definition. At the next start-up, our definition has
