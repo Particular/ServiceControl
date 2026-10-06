@@ -113,6 +113,7 @@ Local testing guides:
 - [Forward Headers Testing](docs/forward-headers-testing.md)
 - [Authentication Testing](docs/authentication-testing.md)
 - [Persistence Tests](docs/testing-persistence.md)
+- [Load Testing](docs/load-testing.md)
 
 ## How to developer test the PowerShell Module
 
