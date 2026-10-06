@@ -26,7 +26,7 @@ class EndpointUsageReportHandler(
 
         if (endpoint is null)
         {
-            // TODO: Fill in more of the endpoint details if needed
+            // TODO: Fill in more of the endpoint details if needed, e.g. Scope if it becomes available
 
             endpoint = new Particular.LicensingComponent.Contracts.Endpoint(endpointId)
             {

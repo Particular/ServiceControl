@@ -2,6 +2,7 @@
 
 using System.Globalization;
 using Contracts;
+using DailyThroughputValues = Dictionary<DateOnly, long>;
 
 static class ThroughputDataExtensions
 {
@@ -12,14 +13,15 @@ static class ThroughputDataExtensions
 
     public static long Sum(this List<ThroughputData> throughputs) => throughputs.SelectMany(t => t).Sum(kvp => kvp.Value);
 
-    public static long MaxDailyThroughput(this Dictionary<DateOnly, long> dailyThroughput)
+    public static long MaxDailyThroughput(this DailyThroughputValues dailyThroughput)
         => dailyThroughput switch
         {
             { Count: 0 } => 0,
             var x => x.Values.Max()
         };
 
-    public static Dictionary<DateOnly, long> DailyThroughput(this List<ThroughputData> throughputs) =>
+    // NOTE: This calculation needs to be kept in sync the internal tools
+    public static DailyThroughputValues DailyThroughput(this List<ThroughputData> throughputs) =>
         throughputs.SelectMany(
             throughput => throughput.Select(
                 daily => (
@@ -46,14 +48,14 @@ static class ThroughputDataExtensions
                 .First()
         );
 
-    public static MonthlyThroughput[] MonthlyThroughput(this Dictionary<DateOnly, long> dailyThroughput) => [
+    public static MonthlyThroughput[] MonthlyThroughput(this DailyThroughputValues dailyThroughput) => [
         ..dailyThroughput
         .GroupBy(kvp => kvp.Key.ToString("yyyy-MM", CultureInfo.InvariantCulture), kvp => kvp.Value)
         .Select(group => new MonthlyThroughput(group.Key, group.Sum()))
     ];
 
 
-    public static long AverageMonthlyThroughput(this Dictionary<DateOnly, long> dailyThroughput)
+    public static long AverageMonthlyThroughput(this DailyThroughputValues dailyThroughput)
         => dailyThroughput switch
         {
             { Count: 0 } => 0,
