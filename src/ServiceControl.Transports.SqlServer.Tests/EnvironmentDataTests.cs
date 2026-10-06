@@ -9,13 +9,6 @@ using Transports.SqlServer;
 [TestFixture]
 class EnvironmentDataTests
 {
-    [TestCase("Server=.;Database=nsb;Integrated Security=true", "Integrated")]
-    [TestCase("Server=.;Database=nsb;User Id=sa;Password=contoso-secret", "SqlPassword")]
-    [TestCase("Server=tcp:contoso.database.windows.net;Database=nsb;Authentication=Active Directory Managed Identity", "EntraId")]
-    [TestCase("Server=tcp:contoso.database.windows.net;Database=nsb;Authentication=Active Directory Default", "EntraId")]
-    public void Should_report_the_authentication_mode(string connectionString, string expected) =>
-        Assert.That(Read(connectionString)["Transport.Auth"], Is.EqualTo(expected));
-
     [Test]
     public void Should_report_default_schema_and_subscriptions_table()
     {
@@ -25,7 +18,6 @@ class EnvironmentDataTests
         {
             Assert.That(data["Transport.SQLServer.QueueSchema"], Is.EqualTo("Default"));
             Assert.That(data["Transport.SQLServer.SubscriptionsTable"], Is.EqualTo("Default"));
-            Assert.That(data["Transport.CertificateValidation"], Is.EqualTo("Default"));
         }
     }
 
@@ -36,12 +28,21 @@ class EnvironmentDataTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(data["Transport.Auth"], Is.EqualTo("SqlPassword"));
             Assert.That(data["Transport.SQLServer.QueueSchema"], Is.EqualTo("Custom"));
             Assert.That(data["Transport.SQLServer.SubscriptionsTable"], Is.EqualTo("Custom"));
             Assert.That(string.Join("|", data.Values), Does.Not.Contain("contoso").IgnoreCase);
         }
     }
+
+    [TestCase(3, "16.0.4225.2")]
+    [TestCase(8, "16.0.4165.4")]
+    public void Should_report_only_the_major_sql_version(int engineEdition, string productVersion) =>
+        Assert.That(DatabaseDetails.VersionFor(engineEdition, productVersion), Is.EqualTo("16"));
+
+    [Test]
+    public void Should_report_azure_sql_database_by_name_rather_than_by_version() =>
+        Assert.That(DatabaseDetails.VersionFor(5, "12.0.2000.8"), Is.EqualTo("AzureSql"),
+            "Azure SQL Database always reports 12, which would read as SQL Server 2014");
 
     static Dictionary<string, string> Read(string connectionString) =>
         new SqlServerTransportCustomization()

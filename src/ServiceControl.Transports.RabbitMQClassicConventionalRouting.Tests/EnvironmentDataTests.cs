@@ -17,8 +17,6 @@ class EnvironmentDataTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(data["Transport.Auth"], Is.EqualTo("Password"));
-            Assert.That(data["Transport.CertificateValidation"], Is.EqualTo("Default"));
             Assert.That(data["Transport.RabbitMQ.DeliveryLimitValidation"], Is.EqualTo("Enabled"));
             Assert.That(data["Transport.RabbitMQ.ManagementApi"], Is.EqualTo("Default"));
         }
@@ -27,7 +25,7 @@ class EnvironmentDataTests
     [Test]
     public void Should_report_selected_options_on_either_routing_topology_without_their_values()
     {
-        const string connectionString = "host=rabbit.contoso.local;UseExternalAuthMechanism=true;DisableRemoteCertificateValidation=true;ValidateDeliveryLimits=false;ManagementApiUrl=https://rabbit.contoso.local:15671";
+        const string connectionString = "host=rabbit.contoso.local;ValidateDeliveryLimits=false;ManagementApiUrl=https://rabbit.contoso.local:15671";
 
         foreach (var customization in new ITransportCustomization[] { new RabbitMQClassicConventionalRoutingTransportCustomization(), new RabbitMQQuorumDirectRoutingTransportCustomization() })
         {
@@ -35,8 +33,6 @@ class EnvironmentDataTests
 
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(data["Transport.Auth"], Is.EqualTo("ExternalCertificate"));
-                Assert.That(data["Transport.CertificateValidation"], Is.EqualTo("Relaxed"));
                 Assert.That(data["Transport.RabbitMQ.DeliveryLimitValidation"], Is.EqualTo("Disabled"));
                 Assert.That(data["Transport.RabbitMQ.ManagementApi"], Is.EqualTo("Configured"));
                 Assert.That(string.Join("|", data.Values), Does.Not.Contain("contoso").IgnoreCase);

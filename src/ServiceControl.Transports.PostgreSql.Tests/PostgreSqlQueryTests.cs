@@ -93,6 +93,7 @@ class PostgreSqlQueryTests : TransportTestFixture
 
         IBrokerQueue queue = queueNames.Find(name => ((BrokerQueueTable)name).SanitizedName == transportSettings.EndpointName);
         Assert.That(queue, Is.Not.Null);
+        Assert.That(query.Data["SqlVersion"], Does.Match(@"^\d+$"));
 
         long total = 0L;
 

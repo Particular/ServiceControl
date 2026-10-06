@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Npgsql;
@@ -69,9 +70,11 @@ public class DatabaseDetails
     {
         await using var conn = await OpenConnectionAsync(cancellationToken);
         await using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT version()";
+        cmd.CommandText = "SELECT current_setting('server_version_num')::int";
 
-        return (string)await cmd.ExecuteScalarAsync(cancellationToken);
+        var versionNumber = (int)await cmd.ExecuteScalarAsync(cancellationToken);
+
+        return (versionNumber / 10000).ToString(CultureInfo.InvariantCulture);
     }
 
     public async Task<List<BrokerQueueTable>> GetTables(CancellationToken cancellationToken = default)

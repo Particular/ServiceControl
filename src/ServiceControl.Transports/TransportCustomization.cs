@@ -50,18 +50,7 @@ namespace ServiceControl.Transports
         {
         }
 
-        public IEnumerable<TransportEnvironmentDatum> GetEnvironmentData(TransportSettings transportSettings) =>
-        [
-            new("Transport.Auth", () => GetAuthenticationMode(transportSettings)),
-            new("Transport.CertificateValidation", () => RelaxesCertificateValidation(transportSettings) ? "Relaxed" : "Default"),
-            .. GetEnvironmentDataCore(transportSettings)
-        ];
-
-        protected virtual string GetAuthenticationMode(TransportSettings transportSettings) => "NotApplicable";
-
-        protected virtual bool RelaxesCertificateValidation(TransportSettings transportSettings) => false;
-
-        protected virtual IEnumerable<TransportEnvironmentDatum> GetEnvironmentDataCore(TransportSettings transportSettings) => [];
+        public virtual IEnumerable<TransportEnvironmentDatum> GetEnvironmentData(TransportSettings transportSettings) => [];
 
         public void AddTransportForAudit(IServiceCollection services, TransportSettings transportSettings)
         {

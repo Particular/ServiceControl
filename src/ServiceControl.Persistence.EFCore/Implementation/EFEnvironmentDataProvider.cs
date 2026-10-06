@@ -25,7 +25,6 @@ class EFEnvironmentDataProvider(EFPersisterSettings settings, IDatabaseHostingPr
             Deferred("Storage.HostingSource", async cancellationToken => (await Hosting(cancellationToken)).Source),
             Value("Storage.FullTextSearch", () => settings.EnableFullTextSearchOnBodies ? "Enabled" : "Disabled"),
             Value("Storage.BodyStorage.Type", () => BodyStorageType(settings.BodyStorage)),
-            Value("Storage.BodyStorage.Auth", () => BodyStorageAuth(settings.BodyStorage)),
             Value("Limits.MaxBodySizeToStore", () => settings.BodyStorage.MaxBodySizeToStore.ToString(CultureInfo.InvariantCulture)),
             Value("Storage.Schema", () => settings.Schema is null ? "Default" : "Custom"),
             Value("Storage.CommandTimeoutSeconds", () => WhenConfigured(EFPersistenceConfigurationBase.CommandTimeoutKey, () => Number(settings.CommandTimeout))),
@@ -54,18 +53,6 @@ class EFEnvironmentDataProvider(EFPersisterSettings settings, IDatabaseHostingPr
         AzureBlobBodyStorageSettings => nameof(Abstractions.BodyStorageType.AzureBlob),
         S3BodyStorageSettings => nameof(Abstractions.BodyStorageType.S3),
         _ => "Unknown"
-    };
-
-    static string BodyStorageAuth(BodyStorageSettings bodyStorage) => bodyStorage switch
-    {
-        AzureBlobBodyStorageSettings azureBlob => azureBlob.Authentication switch
-        {
-            AzureBlobManagedIdentityAuthentication => "ManagedIdentity",
-            AzureBlobSharedKeyAuthentication => "SharedKeyOrSas",
-            _ => "Unknown"
-        },
-        S3BodyStorageSettings s3 => s3.Credentials is null ? "IamRole" : "StaticCredentials",
-        _ => "NotApplicable"
     };
 
     static readonly SettingsRootNamespace SettingsNamespace = new("ServiceControl");

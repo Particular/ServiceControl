@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
-using Particular.LicensingComponent.Contracts;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Infrastructure;
@@ -18,7 +17,6 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersiste
         ConfigureDbContext(services);
         RegisterDataStores(services, settings);
 
-        services.AddSingleton<IEnvironmentDataProvider, PostgreSqlStorageAuthenticationEnvironmentDataProvider>();
         services.AddSingleton<IFailedMessageIngestionSqlDialect, PostgreSqlFailedMessageIngestionSqlDialect>();
         services.AddSingleton<IRetryBatchSqlDialect, PostgreSqlRetryBatchSqlDialect>();
         services.AddSingleton<IFullTextSearchDialect, PostgreSqlFullTextSearchDialect>();

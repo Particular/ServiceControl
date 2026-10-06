@@ -31,7 +31,7 @@ static class RabbitMQTransportExtensions
             transport.ValidateRemoteCertificate = !disableRemoteCertificateValidation;
         }
 
-        if (UsesExternalAuthMechanism(dictionary))
+        if (dictionary.TryGetValue("UseExternalAuthMechanism", out var useExternalAuthMechanismString) && bool.TryParse(useExternalAuthMechanismString, out var useExternalAuthMechanism) && useExternalAuthMechanism)
         {
             transport.AuthMechanisms = [new ExternalMechanismFactory()];
         }
@@ -47,15 +47,6 @@ static class RabbitMQTransportExtensions
         }),
         new("Transport.RabbitMQ.ManagementApi", () => ReadConnectionStringOptions(connectionString).ContainsKey("ManagementApiUrl") ? "Configured" : "Default")
     ];
-
-    public static string GetAuthenticationMode(string connectionString) =>
-        UsesExternalAuthMechanism(ReadConnectionStringOptions(connectionString)) ? "ExternalCertificate" : "Password";
-
-    public static bool RelaxesCertificateValidation(string connectionString) =>
-        ReadConnectionStringOptions(connectionString).TryGetValue("DisableRemoteCertificateValidation", out var value) && bool.TryParse(value, out var disabled) && disabled;
-
-    static bool UsesExternalAuthMechanism(Dictionary<string, string> options) =>
-        options.TryGetValue("UseExternalAuthMechanism", out var value) && bool.TryParse(value, out var useExternalAuthMechanism) && useExternalAuthMechanism;
 
     static Dictionary<string, string> ReadConnectionStringOptions(string connectionString)
     {

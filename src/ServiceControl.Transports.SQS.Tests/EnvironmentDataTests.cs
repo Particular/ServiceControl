@@ -16,8 +16,6 @@ class EnvironmentDataTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(data["Transport.Auth"], Is.EqualTo("IamRole"));
-            Assert.That(data["Transport.CertificateValidation"], Is.EqualTo("Default"));
             Assert.That(data["Transport.AmazonSQS.NamePrefixes"], Is.EqualTo("None"));
             Assert.That(data["Transport.AmazonSQS.LargeMessageBucket"], Is.EqualTo("None"));
             Assert.That(data["Transport.AmazonSQS.MessageWrapping"], Is.EqualTo("Enabled"));
@@ -32,7 +30,6 @@ class EnvironmentDataTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(data["Transport.Auth"], Is.EqualTo("StaticCredentials"));
             Assert.That(data["Transport.AmazonSQS.NamePrefixes"], Is.EqualTo("Queue"));
             Assert.That(data["Transport.AmazonSQS.LargeMessageBucket"], Is.EqualTo("Configured"));
             Assert.That(data["Transport.AmazonSQS.MessageWrapping"], Is.EqualTo("Disabled"));

@@ -13,13 +13,6 @@ namespace ServiceControl.Transports.UnitTests.ASBS
         [TearDown]
         public void TearDown() => Environment.SetEnvironmentVariable(TopologyVariable, null);
 
-        [TestCase("Endpoint=sb://contoso.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=c2VjcmV0", "SharedAccessKey")]
-        [TestCase("Endpoint=sb://contoso.servicebus.windows.net/;Authentication=Managed Identity", "ManagedIdentity")]
-        [TestCase("Endpoint=sb://contoso.servicebus.windows.net/;Authentication=Managed Identity;ClientId=11111111-2222-3333-4444-555555555555", "ManagedIdentity")]
-        [TestCase("contoso.servicebus.windows.net", "DefaultAzureCredential")]
-        public void Should_report_the_authentication_mode(string connectionString, string expected) =>
-            Assert.That(Read(connectionString)["Transport.Auth"], Is.EqualTo(expected));
-
         [Test]
         public void Should_report_defaults_when_the_connection_string_selects_no_options()
         {
@@ -27,7 +20,6 @@ namespace ServiceControl.Transports.UnitTests.ASBS
 
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(data["Transport.CertificateValidation"], Is.EqualTo("Default"));
                 Assert.That(data["Transport.AzureServiceBus.Topology"], Is.EqualTo("TopicPerEvent"));
                 Assert.That(data["Transport.AzureServiceBus.Partitioning"], Is.EqualTo("Disabled"));
                 Assert.That(data["Transport.AzureServiceBus.WebSockets"], Is.EqualTo("Disabled"));

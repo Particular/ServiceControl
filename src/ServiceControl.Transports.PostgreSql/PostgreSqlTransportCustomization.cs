@@ -6,7 +6,6 @@ using System.Runtime.CompilerServices;
 using BrokerThroughput;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Npgsql;
 using NServiceBus;
 using NServiceBus.Transport.PostgreSql;
 using ServiceControl.Infrastructure;
@@ -44,19 +43,7 @@ public class PostgreSqlTransportCustomization() : TransportCustomization<Postgre
         services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
     }
 
-    protected override string GetAuthenticationMode(TransportSettings transportSettings)
-    {
-        var builder = new NpgsqlConnectionStringBuilder(transportSettings.ConnectionString.RemoveCustomConnectionStringParts(out _, out _));
-
-        if (!string.IsNullOrEmpty(builder.SslCertificate))
-        {
-            return "ClientCertificate";
-        }
-
-        return !string.IsNullOrEmpty(builder.Password) || !string.IsNullOrEmpty(builder.Passfile) ? "Password" : "None";
-    }
-
-    protected override IEnumerable<TransportEnvironmentDatum> GetEnvironmentDataCore(TransportSettings transportSettings) =>
+    public override IEnumerable<TransportEnvironmentDatum> GetEnvironmentData(TransportSettings transportSettings) =>
     [
         new("Transport.PostgreSQL.QueueSchema", () =>
         {

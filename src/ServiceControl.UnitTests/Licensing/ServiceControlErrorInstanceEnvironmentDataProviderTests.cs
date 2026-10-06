@@ -25,68 +25,13 @@ class ServiceControlErrorInstanceEnvironmentDataProviderTests
     }
 
     [Test]
-    public async Task Should_report_default_security_posture_when_nothing_is_configured()
-    {
-        var data = await GetData();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(data["Security.TokenValidation"], Is.EqualTo("NotApplicable"));
-            Assert.That(data["Security.ClaimMapping"], Is.EqualTo("NotApplicable"));
-            Assert.That(data["Security.ServicePulseOfflineAccess"], Is.EqualTo("NotApplicable"));
-            Assert.That(data["Security.HttpsHardening"], Is.EqualTo("None"));
-            Assert.That(data["Security.Cors"], Is.EqualTo("AnyOrigin"));
-            Assert.That(data["Security.ForwardedHeaders"], Is.EqualTo("TrustAllProxies"));
-        }
-    }
-
-    [Test]
-    public async Task Should_report_relaxed_token_validation_and_custom_claims_without_naming_them()
+    public async Task Should_report_configuration_validation_disabled()
     {
         Environment.SetEnvironmentVariable("SERVICECONTROL_VALIDATECONFIG", "false");
-        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_ENABLED", "true");
-        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_REQUIREHTTPSMETADATA", "false");
-        Environment.SetEnvironmentVariable("SERVICECONTROL_AUTHENTICATION_ROLESCLAIM", "contoso_roles");
 
         var data = await GetData();
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(data["Security.TokenValidation"], Is.EqualTo("Relaxed"));
-            Assert.That(data["Security.ClaimMapping"], Is.EqualTo("Custom"));
-            Assert.That(data["Security.ServicePulseOfflineAccess"], Is.EqualTo("Enabled"));
-            Assert.That(data["Features.ConfigurationValidation"], Is.EqualTo("Disabled"));
-            Assert.That(Reported(data), Does.Not.Contain("contoso").IgnoreCase);
-        }
-    }
-
-    [Test]
-    public async Task Should_report_restricted_web_access_without_naming_origins_or_proxies()
-    {
-        Environment.SetEnvironmentVariable("SERVICECONTROL_CORS_ALLOWEDORIGINS", "https://pulse.contoso.com");
-        Environment.SetEnvironmentVariable("SERVICECONTROL_FORWARDEDHEADERS_KNOWNPROXIES", "10.0.0.7");
-        Environment.SetEnvironmentVariable("SERVICECONTROL_HTTPS_REDIRECTHTTPTOHTTPS", "true");
-        Environment.SetEnvironmentVariable("SERVICECONTROL_HTTPS_ENABLEHSTS", "true");
-
-        var data = await GetData();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(data["Security.Cors"], Is.EqualTo("Restricted"));
-            Assert.That(data["Security.ForwardedHeaders"], Is.EqualTo("KnownProxies"));
-            Assert.That(data["Security.HttpsHardening"], Is.EqualTo("RedirectAndHsts"));
-            Assert.That(Reported(data), Does.Not.Contain("contoso").IgnoreCase.And.Not.Contain("10.0.0.7"));
-        }
-    }
-
-    [Test]
-    public async Task Should_report_forwarded_headers_disabled()
-    {
-        Environment.SetEnvironmentVariable("SERVICECONTROL_FORWARDEDHEADERS_ENABLED", "false");
-
-        var data = await GetData();
-
-        Assert.That(data["Security.ForwardedHeaders"], Is.EqualTo("Disabled"));
+        Assert.That(data["Features.ConfigurationValidation"], Is.EqualTo("Disabled"));
     }
 
     [Test]
@@ -208,14 +153,6 @@ class ServiceControlErrorInstanceEnvironmentDataProviderTests
     static readonly string[] Variables =
     [
         "SERVICECONTROL_VALIDATECONFIG",
-        "SERVICECONTROL_AUTHENTICATION_ENABLED",
-        "SERVICECONTROL_AUTHENTICATION_REQUIREHTTPSMETADATA",
-        "SERVICECONTROL_AUTHENTICATION_ROLESCLAIM",
-        "SERVICECONTROL_CORS_ALLOWEDORIGINS",
-        "SERVICECONTROL_FORWARDEDHEADERS_KNOWNPROXIES",
-        "SERVICECONTROL_FORWARDEDHEADERS_ENABLED",
-        "SERVICECONTROL_HTTPS_REDIRECTHTTPTOHTTPS",
-        "SERVICECONTROL_HTTPS_ENABLEHSTS",
         "SERVICECONTROL_ENABLEINTEGRATEDSERVICEPULSE",
         "MONITORING_URL",
         "DEFAULT_ROUTE",

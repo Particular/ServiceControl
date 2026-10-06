@@ -21,31 +21,17 @@ class RavenEnvironmentDataProviderConfigurationTests
     }
 
     [Test]
-    public async Task Should_report_an_embedded_server_with_its_defaults()
+    public async Task Should_report_defaults_when_nothing_is_configured()
     {
         var data = await GetData(new RavenPersisterSettings());
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(data["Storage.Auth"], Is.EqualTo("NotApplicable"));
             Assert.That(data["Storage.LogLevel"], Is.EqualTo("Operations"));
             Assert.That(data["Storage.QueryTimeoutSeconds"], Is.EqualTo("Default"));
             Assert.That(data["Storage.FreeSpaceThresholdPercent"], Is.EqualTo("Default"));
             Assert.That(data["Storage.MinimumFreeSpaceForIngestionPercent"], Is.EqualTo("Default"));
             Assert.That(data["Storage.ExpirationIntervalSeconds"], Is.EqualTo("Default"));
-        }
-    }
-
-    [TestCase(null, "None")]
-    [TestCase("/certs/contoso.pfx", "ClientCertificate")]
-    public async Task Should_report_how_an_external_server_authenticates_without_naming_it(string clientCertificatePath, string expected)
-    {
-        var data = await GetData(new RavenPersisterSettings { ConnectionString = "https://raven.contoso.local:8080", ClientCertificatePath = clientCertificatePath });
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(data["Storage.Auth"], Is.EqualTo(expected));
-            Assert.That(string.Join("|", data.Values), Does.Not.Contain("contoso"));
         }
     }
 
@@ -82,7 +68,6 @@ class RavenEnvironmentDataProviderConfigurationTests
 
     static readonly HashSet<string> ConfigurationKeys =
     [
-        "Storage.Auth",
         "Storage.LogLevel",
         "Storage.QueryTimeoutSeconds",
         "Storage.FreeSpaceThresholdPercent",

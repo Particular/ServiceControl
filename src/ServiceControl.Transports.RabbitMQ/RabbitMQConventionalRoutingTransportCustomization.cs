@@ -33,13 +33,7 @@
             }
         }
 
-        protected override string GetAuthenticationMode(TransportSettings transportSettings) =>
-            RabbitMQTransportExtensions.GetAuthenticationMode(transportSettings.ConnectionString);
-
-        protected override bool RelaxesCertificateValidation(TransportSettings transportSettings) =>
-            RabbitMQTransportExtensions.RelaxesCertificateValidation(transportSettings.ConnectionString);
-
-        protected override IEnumerable<TransportEnvironmentDatum> GetEnvironmentDataCore(TransportSettings transportSettings) =>
+        public override IEnumerable<TransportEnvironmentDatum> GetEnvironmentData(TransportSettings transportSettings) =>
             RabbitMQTransportExtensions.GetEnvironmentData(transportSettings.ConnectionString);
 
         protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition, TransportSettings transportSettings) => transport = transportDefinition;

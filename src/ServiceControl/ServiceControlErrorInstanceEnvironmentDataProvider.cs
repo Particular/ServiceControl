@@ -17,15 +17,6 @@ class ServiceControlErrorInstanceEnvironmentDataProvider(Settings settings, INot
 {
     public IEnumerable<EnvironmentDatum> GetData() =>
     [
-        Value("Security.Authentication", () => Toggle(settings.OpenIdConnectSettings.Enabled)),
-        Value("Security.RoleBasedAuthorization", () => Toggle(settings.OpenIdConnectSettings.RoleBasedAuthorizationEnabled)),
-        Value("Security.TokenValidation", TokenValidation),
-        Value("Security.ClaimMapping", ClaimMapping),
-        Value("Security.ServicePulseOfflineAccess", ServicePulseOfflineAccess),
-        Value("Security.Https", () => Toggle(settings.HttpsSettings.Enabled)),
-        Value("Security.HttpsHardening", HttpsHardening),
-        Value("Security.Cors", () => settings.CorsSettings.AllowAnyOrigin ? "AnyOrigin" : "Restricted"),
-        Value("Security.ForwardedHeaders", ForwardedHeaders),
         Value("Features.IntegratedServicePulse", () => Toggle(settings.EnableIntegratedServicePulse)),
         Value("Features.MessageEditing", () => Toggle(settings.AllowMessageEditing)),
         Value("Features.ExternalIntegrationsPublishing", () => Toggle(!settings.DisableExternalIntegrationsPublishing)),
@@ -48,63 +39,6 @@ class ServiceControlErrorInstanceEnvironmentDataProvider(Settings settings, INot
 
     static string Hours(TimeSpan retentionPeriod) =>
         Math.Round(retentionPeriod.TotalHours, MidpointRounding.AwayFromZero).ToString("F0", CultureInfo.InvariantCulture);
-
-    string TokenValidation()
-    {
-        var authentication = settings.OpenIdConnectSettings;
-
-        if (!authentication.Enabled)
-        {
-            return NotApplicable;
-        }
-
-        var allValidationOn = authentication.ValidateIssuer
-            && authentication.ValidateAudience
-            && authentication.ValidateLifetime
-            && authentication.ValidateIssuerSigningKey
-            && authentication.RequireHttpsMetadata;
-
-        return allValidationOn ? "Default" : "Relaxed";
-    }
-
-    string ClaimMapping()
-    {
-        var authentication = settings.OpenIdConnectSettings;
-
-        if (!authentication.Enabled)
-        {
-            return NotApplicable;
-        }
-
-        var defaultClaims = authentication.RolesClaim == OpenIdConnectSettings.DefaultRolesClaim
-            && authentication.SubjectIdClaim == OpenIdConnectSettings.DefaultSubjectIdClaim
-            && authentication.SubjectNameClaim == OpenIdConnectSettings.DefaultSubjectNameClaim;
-
-        return defaultClaims ? "Default" : "Custom";
-    }
-
-    string ServicePulseOfflineAccess() =>
-        settings.OpenIdConnectSettings.Enabled ? Toggle(settings.OpenIdConnectSettings.ServicePulseOfflineAccessScopeEnabled) : NotApplicable;
-
-    string HttpsHardening() => (settings.HttpsSettings.RedirectHttpToHttps, settings.HttpsSettings.EnableHsts) switch
-    {
-        (true, true) => "RedirectAndHsts",
-        (true, false) => "Redirect",
-        (false, true) => "Hsts",
-        _ => "None"
-    };
-
-    string ForwardedHeaders()
-    {
-        var forwardedHeaders = settings.ForwardedHeadersSettings;
-
-        if (!forwardedHeaders.Enabled)
-        {
-            return "Disabled";
-        }
-
-        return forwardedHeaders.TrustAllProxies ? "TrustAllProxies" : "KnownProxies";
-    }
 
     async ValueTask<string> EmailNotifications(CancellationToken cancellationToken)
     {

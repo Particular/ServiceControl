@@ -4,7 +4,6 @@
     using System.Linq;
     using System.Runtime.CompilerServices;
     using BrokerThroughput;
-    using Microsoft.Data.SqlClient;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
@@ -52,19 +51,7 @@
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
         }
 
-        protected override string GetAuthenticationMode(TransportSettings transportSettings)
-        {
-            var builder = new SqlConnectionStringBuilder(transportSettings.ConnectionString.RemoveCustomConnectionStringParts(out _, out _));
-
-            if (builder.Authentication is SqlAuthenticationMethod.NotSpecified)
-            {
-                return builder.IntegratedSecurity ? "Integrated" : "SqlPassword";
-            }
-
-            return builder.Authentication is SqlAuthenticationMethod.SqlPassword ? "SqlPassword" : "EntraId";
-        }
-
-        protected override IEnumerable<TransportEnvironmentDatum> GetEnvironmentDataCore(TransportSettings transportSettings) =>
+        public override IEnumerable<TransportEnvironmentDatum> GetEnvironmentData(TransportSettings transportSettings) =>
         [
             new("Transport.SQLServer.QueueSchema", () =>
             {

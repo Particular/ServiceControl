@@ -5,7 +5,6 @@
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.Identity;
     using Azure.Messaging.ServiceBus;
     using Azure.Messaging.ServiceBus.Administration;
     using BrokerThroughput;
@@ -28,16 +27,7 @@
         protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-        protected override string GetAuthenticationMode(TransportSettings transportSettings) =>
-            ConnectionStringParser.Parse(transportSettings.ConnectionString).AuthenticationMethod switch
-            {
-                SharedAccessSignatureAuthentication => "SharedAccessKey",
-                TokenCredentialAuthentication { Credential: ManagedIdentityCredential } => "ManagedIdentity",
-                TokenCredentialAuthentication => "DefaultAzureCredential",
-                _ => "Unknown"
-            };
-
-        protected override IEnumerable<TransportEnvironmentDatum> GetEnvironmentDataCore(TransportSettings transportSettings)
+        public override IEnumerable<TransportEnvironmentDatum> GetEnvironmentData(TransportSettings transportSettings)
         {
             ConnectionSettings Parse() => ConnectionStringParser.Parse(transportSettings.ConnectionString);
 

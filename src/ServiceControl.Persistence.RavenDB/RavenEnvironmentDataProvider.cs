@@ -22,8 +22,6 @@ class RavenEnvironmentDataProvider(RavenPersisterSettings settings, IRavenDocume
         Value("Storage.HostingSource", () => Hosting().Source),
         Value("Storage.FullTextSearch", () => settings.EnableFullTextSearchOnBodies ? "Enabled" : "Disabled"),
         Value("Storage.BodyStorage.Type", () => "RavenAttachments"),
-        Value("Storage.BodyStorage.Auth", () => "NotApplicable"),
-        Value("Storage.Auth", Authentication),
         Value("Storage.LogLevel", () => settings.LogsMode),
         Value("Storage.QueryTimeoutSeconds", () => WhenConfigured(QueryTimeLimit.SettingName, () => Number((int)Math.Round(settings.QueryTimeout.TotalSeconds, MidpointRounding.AwayFromZero)))),
         Value("Storage.FreeSpaceThresholdPercent", () => WhenConfigured(RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey, () => Number(settings.DataSpaceRemainingThreshold))),
@@ -50,16 +48,6 @@ class RavenEnvironmentDataProvider(RavenPersisterSettings settings, IRavenDocume
         var buildNumber = await documentStore.Maintenance.Server.SendAsync(new GetBuildNumberOperation(), cancellationToken);
 
         return buildNumber.ProductVersion ?? DatabaseHostClassifier.Unknown;
-    }
-
-    string Authentication()
-    {
-        if (settings.UseEmbeddedServer)
-        {
-            return "NotApplicable";
-        }
-
-        return string.IsNullOrWhiteSpace(settings.ClientCertificatePath) && string.IsNullOrWhiteSpace(settings.ClientCertificateBase64) ? "None" : "ClientCertificate";
     }
 
     static string WhenConfigured(string key, Func<string> readValue) =>

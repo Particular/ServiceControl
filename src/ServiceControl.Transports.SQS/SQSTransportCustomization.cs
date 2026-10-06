@@ -44,13 +44,7 @@
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
         }
 
-        protected override string GetAuthenticationMode(TransportSettings transportSettings)
-        {
-            var connectionString = new SQSTransportConnectionString(transportSettings.ConnectionString);
-            return connectionString.AccessKey != null || connectionString.SecretKey != null ? "StaticCredentials" : "IamRole";
-        }
-
-        protected override IEnumerable<TransportEnvironmentDatum> GetEnvironmentDataCore(TransportSettings transportSettings)
+        public override IEnumerable<TransportEnvironmentDatum> GetEnvironmentData(TransportSettings transportSettings)
         {
             SQSTransportConnectionString Parse() => new(transportSettings.ConnectionString);
 

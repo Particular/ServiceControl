@@ -24,7 +24,7 @@ class SqlServerDatabaseHostingProbe(SqlServerPersisterSettings settings, IServic
             await using var command = dbContext.Database.GetDbConnection().CreateCommand();
             // ProductVersion rather than ProductMajorVersion: the latter is documented as SQL Server
             // only and comes back null on Azure SQL Database, Managed Instance and Synapse.
-            command.CommandText = "SELECT SERVERPROPERTY('EngineEdition'), SERVERPROPERTY('ProductVersion')";
+            command.CommandText = "SELECT SERVERPROPERTY('EngineEdition'), SERVERPROPERTY('ProductVersion'), DB_ID('rdsadmin')";
             command.CommandTimeout = ProbeTimeoutSeconds;
 
             await dbContext.Database.OpenConnectionAsync(cancellationToken);
@@ -38,7 +38,9 @@ class SqlServerDatabaseHostingProbe(SqlServerPersisterSettings settings, IServic
 
             var engineEdition = Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture);
 
-            return new DatabaseHosting(HostingFor(engineEdition, ConfiguredHost), MajorVersion(reader), DatabaseHostingSource.Probe);
+            var rds = !reader.IsDBNull(2);
+
+            return new DatabaseHosting(HostingFor(engineEdition, rds, ConfiguredHost), MajorVersion(reader), DatabaseHostingSource.Probe);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -59,12 +61,12 @@ class SqlServerDatabaseHostingProbe(SqlServerPersisterSettings settings, IServic
     /// Synapse and Fabric are not mapped: ServiceControl does not run on them, and an edition we do
     /// not recognise is not evidence of an ordinary SQL Server, so it falls to the host name.
     /// </summary>
-    internal static string HostingFor(int engineEdition, string? host) => engineEdition switch
+    internal static string HostingFor(int engineEdition, bool rds, string? host) => engineEdition switch
     {
         AzureSqlDatabase => "AzureSql",
         AzureSqlManagedInstance => "AzureSqlManagedInstance",
         AzureSqlEdge => "AzureSqlEdge",
-        PersonalOrDesktop or Standard or Enterprise or Express => ManagedOrSelfHosted(host),
+        PersonalOrDesktop or Standard or Enterprise or Express => rds ? "AwsRds" : ManagedOrSelfHosted(host),
         _ => DatabaseHostClassifier.Classify(host)
     };
 

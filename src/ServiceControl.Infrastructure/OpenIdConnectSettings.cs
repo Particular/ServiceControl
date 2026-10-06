@@ -11,10 +11,6 @@ using ServiceControl.Configuration;
 /// </summary>
 public class OpenIdConnectSettings
 {
-    public const string DefaultRolesClaim = "roles";
-    public const string DefaultSubjectIdClaim = "sub";
-    public const string DefaultSubjectNameClaim = "preferred_username";
-
     readonly ILogger logger = LoggerUtil.CreateStaticLogger<OpenIdConnectSettings>();
 
     /// <summary>
@@ -37,15 +33,15 @@ public class OpenIdConnectSettings
         ValidateIssuerSigningKey = SettingsReader.Read(rootNamespace, "Authentication.ValidateIssuerSigningKey", true);
         RequireHttpsMetadata = SettingsReader.Read(rootNamespace, "Authentication.RequireHttpsMetadata", true);
 
-        RolesClaim = SettingsReader.Read(rootNamespace, "Authentication.RolesClaim", DefaultRolesClaim);
+        RolesClaim = SettingsReader.Read(rootNamespace, "Authentication.RolesClaim", "roles");
         RoleBasedAuthorizationEnabled = SettingsReader.Read(rootNamespace, "Authentication.RoleBasedAuthorizationEnabled", false);
 
         // Claims that identify the principal in the authorization audit log. The handler treats both
         // as required — a missing or empty value is a sign that the IdP isn't emitting the expected
         // claim and the operator needs to fix the configuration, so the handler will throw rather
         // than substitute a placeholder.
-        SubjectIdClaim = SettingsReader.Read(rootNamespace, "Authentication.SubjectIdClaim", DefaultSubjectIdClaim);
-        SubjectNameClaim = SettingsReader.Read(rootNamespace, "Authentication.SubjectNameClaim", DefaultSubjectNameClaim);
+        SubjectIdClaim = SettingsReader.Read(rootNamespace, "Authentication.SubjectIdClaim", "sub");
+        SubjectNameClaim = SettingsReader.Read(rootNamespace, "Authentication.SubjectNameClaim", "preferred_username");
 
         // ServicePulse settings are only relevant for the primary ServiceControl instance
         // which serves the OIDC configuration endpoint that ServicePulse uses for login
