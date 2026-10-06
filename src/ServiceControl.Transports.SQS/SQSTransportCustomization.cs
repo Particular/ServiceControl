@@ -1,6 +1,9 @@
 ﻿namespace ServiceControl.Transports.SQS
 {
     using System;
+    using System.Collections.Generic;
+    using System.Data.Common;
+    using System.Globalization;
     using System.Linq;
     using Amazon;
     using Amazon.Runtime;
@@ -40,6 +43,30 @@
             services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
         }
+
+        public override IEnumerable<TransportEnvironmentDatum> GetEnvironmentData(TransportSettings transportSettings)
+        {
+            SQSTransportConnectionString Parse() => new(transportSettings.ConnectionString);
+
+            return
+            [
+                new("Transport.AmazonSQS.NamePrefixes", () => NamePrefixes(Parse())),
+                new("Transport.AmazonSQS.LargeMessageBucket", () => string.IsNullOrEmpty(Parse().S3BucketForLargeMessages) ? "None" : "Configured"),
+                new("Transport.AmazonSQS.MessageWrapping", () => Parse().DoNotWrapOutgoingMessages ? "Disabled" : "Enabled"),
+                new("Transport.AmazonSQS.ReservedBytesInMessageSize", () => new DbConnectionStringBuilder { ConnectionString = transportSettings.ConnectionString }.ContainsKey(SQSTransportConnectionString.ReservedBytesInMessageSizeKey)
+                    ? Parse().ReservedBytesInMessageSize.ToString(CultureInfo.InvariantCulture)
+                    : "Default")
+            ];
+        }
+
+        static string NamePrefixes(SQSTransportConnectionString connectionString) =>
+            (string.IsNullOrEmpty(connectionString.QueueNamePrefix), string.IsNullOrEmpty(connectionString.TopicNamePrefix)) switch
+            {
+                (false, false) => "QueueAndTopic",
+                (false, true) => "Queue",
+                (true, false) => "Topic",
+                _ => "None"
+            };
 
         protected override SqsTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {

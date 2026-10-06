@@ -26,6 +26,8 @@ namespace ServiceControl.Transports
         string ToTransportQualifiedQueueName(string queueName);
 
         Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, CancellationToken, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly, CancellationToken cancellationToken = default);
+
+        IEnumerable<TransportEnvironmentDatum> GetEnvironmentData(TransportSettings transportSettings) => [];
     }
 
     public abstract class TransportCustomization<TTransport> : ITransportCustomization where TTransport : TransportDefinition
@@ -47,6 +49,8 @@ namespace ServiceControl.Transports
         protected virtual void AddTransportForPrimaryCore(IServiceCollection services, TransportSettings transportSettings)
         {
         }
+
+        public virtual IEnumerable<TransportEnvironmentDatum> GetEnvironmentData(TransportSettings transportSettings) => [];
 
         public void AddTransportForAudit(IServiceCollection services, TransportSettings transportSettings)
         {

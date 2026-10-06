@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Data.SqlClient;
@@ -90,10 +91,26 @@
         {
             await using var conn = await OpenConnectionAsync(cancellationToken);
             await using var cmd = conn.CreateCommand();
-            cmd.CommandText = "select @@VERSION";
+            cmd.CommandText = "SELECT SERVERPROPERTY('EngineEdition'), SERVERPROPERTY('ProductVersion')";
 
-            return (string)await cmd.ExecuteScalarAsync(cancellationToken);
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+            return await reader.ReadAsync(cancellationToken) ? VersionFor(reader.GetValue(0), reader.GetValue(1)) : "Unknown";
         }
+
+        internal static string VersionFor(object engineEdition, object productVersion)
+        {
+            if (engineEdition is AzureSqlDatabaseEngineEdition)
+            {
+                return "AzureSql";
+            }
+
+            var major = Convert.ToString(productVersion, CultureInfo.InvariantCulture)?.Split('.')[0];
+
+            return string.IsNullOrWhiteSpace(major) ? "Unknown" : major;
+        }
+
+        const int AzureSqlDatabaseEngineEdition = 5;
 
         public async Task<List<BrokerQueueTable>> GetTables(CancellationToken cancellationToken = default)
         {

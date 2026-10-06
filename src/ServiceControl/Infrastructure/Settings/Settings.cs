@@ -65,8 +65,8 @@
             }
 
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
-            MaximumConcurrencyLevel = SettingsReader.Read<int?>(SettingsRootNamespace, "MaximumConcurrencyLevel");
-            RetryHistoryDepth = SettingsReader.Read(SettingsRootNamespace, "RetryHistoryDepth", 10);
+            MaximumConcurrencyLevel = SettingsReader.Read<int?>(SettingsRootNamespace, MaximumConcurrencyLevelKey);
+            RetryHistoryDepth = SettingsReader.Read(SettingsRootNamespace, RetryHistoryDepthKey, 10);
             AllowMessageEditing = SettingsReader.Read<bool>(SettingsRootNamespace, "AllowMessageEditing");
             EnableIntegratedServicePulse = SettingsReader.Read(SettingsRootNamespace, "EnableIntegratedServicePulse", false);
             if (EnableIntegratedServicePulse)
@@ -86,7 +86,7 @@
             ErrorIngestionBatchTimeout = IngestionSettingsReader.ReadBatchTimeout(SettingsRootNamespace, nameof(ErrorIngestionBatchTimeout), ValidateConfiguration);
             DisableExternalIntegrationsPublishing = SettingsReader.Read(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", false);
             TrackInstancesInitialValue = SettingsReader.Read(SettingsRootNamespace, "TrackInstancesInitialValue", true);
-            ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, "ShutdownTimeout", ShutdownTimeout);
+            ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, ShutdownTimeoutKey, ShutdownTimeout);
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
         }
 
@@ -130,7 +130,7 @@
 
         public bool ValidateConfiguration => SettingsReader.Read(SettingsRootNamespace, "ValidateConfig", true);
 
-        public int ExternalIntegrationsDispatchingBatchSize => SettingsReader.Read(SettingsRootNamespace, "ExternalIntegrationsDispatchingBatchSize", 100);
+        public int ExternalIntegrationsDispatchingBatchSize => SettingsReader.Read(SettingsRootNamespace, ExternalIntegrationsDispatchingBatchSizeKey, 100);
 
         public bool DisableExternalIntegrationsPublishing { get; set; }
 
@@ -381,7 +381,7 @@
         {
             try
             {
-                return TimeSpan.Parse(SettingsReader.Read(SettingsRootNamespace, "HeartbeatGracePeriod", "00:00:40"));
+                return TimeSpan.Parse(SettingsReader.Read(SettingsRootNamespace, HeartbeatGracePeriodKey, "00:00:40"));
             }
             catch (Exception ex)
             {
@@ -393,7 +393,7 @@
         TimeSpan GetTimeToRestartErrorIngestionAfterFailure()
         {
             string message;
-            var valueRead = SettingsReader.Read<string>(SettingsRootNamespace, "TimeToRestartErrorIngestionAfterFailure");
+            var valueRead = SettingsReader.Read<string>(SettingsRootNamespace, TimeToRestartErrorIngestionAfterFailureKey);
             if (valueRead == null)
             {
                 return TimeSpan.FromSeconds(60);
@@ -483,6 +483,12 @@
         readonly ILogger logger = LoggerUtil.CreateStaticLogger<Settings>();
 
         public const string DEFAULT_INSTANCE_NAME = "Particular.ServiceControl";
+        public const string MaximumConcurrencyLevelKey = "MaximumConcurrencyLevel";
+        public const string RetryHistoryDepthKey = "RetryHistoryDepth";
+        public const string ShutdownTimeoutKey = "ShutdownTimeout";
+        public const string ExternalIntegrationsDispatchingBatchSizeKey = "ExternalIntegrationsDispatchingBatchSize";
+        public const string HeartbeatGracePeriodKey = "HeartbeatGracePeriod";
+        public const string TimeToRestartErrorIngestionAfterFailureKey = "TimeToRestartErrorIngestionAfterFailure";
         public static readonly SettingsRootNamespace SettingsRootNamespace = new("ServiceControl");
     }
 }

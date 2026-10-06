@@ -113,6 +113,7 @@ class SqlServerQueryTests : TransportTestFixture
 
         IBrokerQueue queue = queueNames.Find(name => ((BrokerQueueTable)name).Name == transportSettings.EndpointName);
         Assert.That(queue, Is.Not.Null);
+        Assert.That(query.Data["SqlVersion"], Does.Match(@"^(\d+|AzureSql)$"));
 
         long total = 0L;
 
