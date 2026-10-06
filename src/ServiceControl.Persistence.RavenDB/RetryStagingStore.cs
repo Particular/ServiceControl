@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.RavenDB
+﻿namespace ServiceControl.Persistence.RavenDB
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -22,7 +22,9 @@ namespace ServiceControl.Persistence.RavenDB
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
 
-            var batch = await session.Query<RetryBatch>()
+            // Query through the static index. A dynamic query makes RavenDB create and keep an
+            // Auto/RetryBatches/ByStatus index, which has no per-index search engine setting.
+            var batch = await session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
                 .FirstOrDefaultAsync(b => b.Status == RetryBatchStatus.Staging, cancellationToken);
 
             return batch?.ToContract();
