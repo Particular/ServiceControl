@@ -4,7 +4,9 @@ The primary instance builds the usage report when a user downloads it from Servi
 
 ## Rules for a value
 
-The report names the licensee in `CustomerName`, and the queue list carries masked queue names. `EnvironmentData` must add nothing that identifies the customer's infrastructure, people or data. That rules out host names, URLs, connection strings, paths, queue and endpoint names, addresses, user names, client ids and secrets. It also rules out a hash or prefix of any of them.
+The report names the licensee in `CustomerName`. Its queue list carries queue names and, on the SQL Server and PostgreSQL transports, a `Scope` of `[Database].[Schema]`. These are masked only when the customer configures report masks. Otherwise they are in clear text. `EnvironmentData` must add nothing that identifies the customer's infrastructure, people or data. That rules out host names, URLs, connection strings, paths, queue and endpoint names, addresses, user names, client ids and secrets. It also rules out a hash or prefix of any of them.
+
+`EnvironmentData` also says nothing about security configuration: how the customer authenticates callers or connections, encrypts traffic, validates certificates or tokens, or restricts access.
 
 A value is always one of these:
 
@@ -31,8 +33,8 @@ A key name is permanent. Analysis compares reports across versions, and a rename
 
 A pull request that adds a setting, a runtime choice, or a new mode of an existing setting does one of two things:
 
-1. It adds a key. That means an `IEnvironmentDataProvider` in the component that owns the setting, a row in the tables below, and an entry in `ExpectedKeys` in `When_reporting_the_environment` when the key is emitted on every storage.
-2. It adds a row to [Not reported](#not-reported) with one of the three reasons.
+1. It adds a key. That means an `IEnvironmentDataProvider` in the component that owns the setting, a row in the tables below, and an entry in `ExpectedKeys` in `When_reporting_the_environment` when the key is emitted on every storage. A transport adds its key to `GetEnvironmentData` on its transport customization instead of an `IEnvironmentDataProvider`.
+2. It adds a row to [Not reported](#not-reported) with one of the four reasons.
 
 A pull request that does neither gets a review finding.
 
@@ -48,11 +50,14 @@ A pull request that does neither gets a review finding.
 | `ServicePulseVersion` | version | the `spVersion` query parameter ServicePulse sends | 5.4.0 |
 | `AuditEnabled` | `True`, `False` | any audit throughput in the report window | 5.4.0 |
 | `MonitoringEnabled` | `True`, `False` | any monitoring throughput in the report window | 5.4.0 |
-| `RabbitMQVersion`, `SqlVersion` | version | the broker throughput query, when the transport has one | 5.4.0 |
+| `RabbitMQVersion` | version | the broker throughput query on RabbitMQ | 5.4.0 |
+| `SqlVersion` | major version, or `AzureSql` on Azure SQL Database | the broker throughput query on SQL Server and PostgreSQL | 5.4.0 |
 | `Audit.ConfiguredInstances` | count | entries in `ServiceControl/RemoteInstances` | Unreleased |
 | `Audit.LiveInstances` | count | remotes that answer as an audit instance | Unreleased |
 
 `MonitoringEnabled` does not mean a monitoring instance is installed. It means a monitoring instance delivered non-zero throughput to this primary on at least one day of the report window, which covers the last 14 months and excludes today. It is `False` when monitoring is installed but no endpoint sends metrics, or when the throughput queue names do not match. It stays `True` for up to 14 months after monitoring is removed.
+
+Releases up to 6.21.0 report `SqlVersion` as the full text of `@@VERSION` on SQL Server or `version()` on PostgreSQL. That text includes the patch level, edition and operating system build. Later releases report only the major version. Azure SQL Database always reports version 12, which cannot be compared with SQL Server's version numbers. On Azure SQL Database, `SqlVersion` is `AzureSql` instead.
 
 ### Host
 
@@ -79,19 +84,17 @@ A pull request that does neither gets a review finding.
 | `Storage.RavenServer` | `Embedded`, `External` | RavenDB only | 6.20.0 |
 | `Storage.Hosting` | a fixed hosting class from `DatabaseHostClassifier` | the database host, and the engine's own answer where it gives one | 6.20.0 |
 | `Storage.HostingSource` | how `Storage.Hosting` was decided | the persister | 6.20.0 |
-| `Storage.ServerVersion` | major version | the engine | 6.20.0 |
+| `Storage.ServerVersion` | major version on SQL Server and PostgreSQL, major.minor on RavenDB. Always 12 on Azure SQL Database, so read it with `Storage.Hosting` | the engine | 6.20.0 |
 | `Storage.FullTextSearch` | `Enabled`, `Disabled` | `EnableFullTextSearchOnBodies` | 6.20.0 |
 | `Storage.BodyStorage.Type` | `RavenAttachments`, `FileSystem`, `AzureBlob`, `S3` | the persister | 6.20.0 |
-| `Storage.BodyStorage.Auth` | `ManagedIdentity`, `SharedKeyOrSas`, `IamRole`, `StaticCredentials`, `NotApplicable` | the body storage settings | 6.20.0 |
 | `Limits.MaxBodySizeToStore` | bytes | `MaxBodySizeToStore`, SQL Server and PostgreSQL only | 6.20.0 |
-| `Storage.Auth` | RavenDB: `ClientCertificate`, `None`, `NotApplicable` when embedded. SQL Server: `SqlPassword`, `Integrated`, `EntraId`. PostgreSQL: `Password`, `Integrated`, `ClientCertificate` | the database connection settings, read through the provider's connection string builder | Planned |
 | `Storage.Schema` | `Default`, `Custom` | `Database/Schema`, SQL Server and PostgreSQL only | Planned |
 | `Storage.LogLevel` | `None`, `Information`, `Operations` | `RavenDBLogLevel`, RavenDB only | Planned |
 | `Storage.CommandTimeoutSeconds` | `Default` or number | `Database/CommandTimeout`, SQL Server and PostgreSQL only | Planned |
 | `Storage.QueryTimeoutSeconds` | `Default` or number | `QueryTimeoutInSeconds` | Planned |
 | `Storage.SubscriptionCacheSeconds` | `Default` or number | `SubscriptionCacheDuration`, SQL Server and PostgreSQL only | Planned |
 | `Storage.BodyStorage.MinCompressionBytes` | `Default` or number | `MessageBody/MinCompressionSize`, SQL Server and PostgreSQL only | Planned |
-| `Storage.FreeSpaceThresholdPercent` | `Default` or number | `DataSpaceRemainingThreshold` on RavenDB, `MessageBody/FileSystem/DataSpaceRemainingThreshold` on file system body storage | Planned |
+| `Storage.FreeSpaceThresholdPercent` | `Default` or number. `NotApplicable` on SQL Server and PostgreSQL when body storage is not the file system | `DataSpaceRemainingThreshold` on RavenDB, `MessageBody/FileSystem/DataSpaceRemainingThreshold` on file system body storage | Planned |
 | `Storage.MinimumFreeSpaceForIngestionPercent` | `Default` or number | `MinimumStorageLeftRequiredForIngestion`, RavenDB only | Planned |
 | `Storage.ExpirationIntervalSeconds` | `Default` or number | `ExpirationProcessTimerInSeconds`, RavenDB only | Planned |
 
@@ -99,13 +102,11 @@ A pull request that does neither gets a review finding.
 
 The report's top-level `MessageTransport` carries the broker family name (`RabbitMQ`) whenever the transport has a broker throughput query. The RabbitMQ queue type and routing topology are lost there, so `Transport.Type` carries the full manifest name. `MessageTransport` stays as it is for analysis that already reads it.
 
-Keys under `Transport.<Name>.*` are emitted only by that transport.
+The primary's `TransportEnvironmentDataProvider` emits `Transport.Type` and adds the keys the transport returns from `ITransportCustomization.GetEnvironmentData`. Keys under `Transport.<Name>.*` are emitted only by that transport.
 
 | Key | Values | Source | Status |
 | --- | --- | --- | --- |
 | `Transport.Type` | the manifest name, for example `RabbitMQ.QuorumConventionalRouting` | `ServiceControl/TransportType`, resolved through the manifest | Planned |
-| `Transport.Auth` | Azure Service Bus: `SharedAccessKey`, `ManagedIdentity`. Amazon SQS: `StaticCredentials`, `IamRole`. RabbitMQ: `Password`, `ExternalCertificate`. SQL Server: `SqlPassword`, `Integrated`, `EntraId`. PostgreSQL: `Password`, `Integrated`, `ClientCertificate`. Otherwise `NotApplicable` | the transport connection string, parsed by the transport | Planned |
-| `Transport.CertificateValidation` | `Default`, `Relaxed` | RabbitMQ `DisableRemoteCertificateValidation`. `Default` on every other transport | Planned |
 | `Transport.AzureServiceBus.Topology` | `TopicPerEvent`, `Migration`, `Custom` | `TopicName` in the connection string, then `ServiceControl.Transport.ASBS/Topology` | Planned |
 | `Transport.AzureServiceBus.Partitioning` | `Enabled`, `Disabled` | `EnablePartitioning` | Planned |
 | `Transport.AzureServiceBus.WebSockets` | `Enabled`, `Disabled` | `TransportType=AmqpWebSockets` | Planned |
@@ -116,22 +117,10 @@ Keys under `Transport.<Name>.*` are emitted only by that transport.
 | `Transport.AmazonSQS.ReservedBytesInMessageSize` | `Default` or number | `ReservedBytesInMessageSize` | Planned |
 | `Transport.RabbitMQ.DeliveryLimitValidation` | `Enabled`, `Disabled` | `ValidateDeliveryLimits` | Planned |
 | `Transport.RabbitMQ.ManagementApi` | `Default`, `Configured` | `ManagementApiUrl` | Planned |
-
-### Security
-
-Security keys work at the level of an area, never one key per flag, because the report names the customer. A relaxed area shows the pattern without listing which protection a named customer has turned off.
-
-| Key | Values | Source | Status |
-| --- | --- | --- | --- |
-| `Security.Authentication` | `Enabled`, `Disabled` | `Authentication.Enabled` | 6.20.0 |
-| `Security.RoleBasedAuthorization` | `Enabled`, `Disabled` | `Authentication.RoleBasedAuthorizationEnabled` | 6.20.0 |
-| `Security.Https` | `Enabled`, `Disabled` | `Https.Enabled` | 6.20.0 |
-| `Security.TokenValidation` | `Default`, `Relaxed`, `NotApplicable` | `Relaxed` when any of `Authentication.ValidateIssuer`, `ValidateAudience`, `ValidateLifetime`, `ValidateIssuerSigningKey` or `RequireHttpsMetadata` is false. `NotApplicable` when authentication is off | Planned |
-| `Security.ClaimMapping` | `Default`, `Custom`, `NotApplicable` | `Authentication.RolesClaim`, `SubjectIdClaim`, `SubjectNameClaim` | Planned |
-| `Security.ServicePulseOfflineAccess` | `Enabled`, `Disabled`, `NotApplicable` | `Authentication.ServicePulse.OfflineAccessScopeEnabled` | Planned |
-| `Security.HttpsHardening` | `None`, `Redirect`, `Hsts`, `RedirectAndHsts` | `Https.RedirectHttpToHttps`, `Https.EnableHsts` | Planned |
-| `Security.Cors` | `AnyOrigin`, `Restricted` | the effective value of `Cors.AllowAnyOrigin` and `Cors.AllowedOrigins` | Planned |
-| `Security.ForwardedHeaders` | `Disabled`, `TrustAllProxies`, `KnownProxies` | the effective value of the `ForwardedHeaders.*` settings | Planned |
+| `Transport.SQLServer.QueueSchema` | `Default`, `Custom` | `Queue Schema` in the connection string | Planned |
+| `Transport.SQLServer.SubscriptionsTable` | `Default`, `Custom` | `Subscriptions Table` in the connection string | Planned |
+| `Transport.PostgreSQL.QueueSchema` | `Default`, `Custom` | `Queue Schema` in the connection string | Planned |
+| `Transport.PostgreSQL.SubscriptionsTable` | `Default`, `Custom` | `Subscriptions Table` in the connection string | Planned |
 
 ### Features
 
@@ -144,12 +133,6 @@ Security keys work at the level of an area, never one key per flag, because the 
 | `Features.EmailNotifications` | `Enabled`, `Disabled`, `NotConfigured` | the stored email settings | 6.20.0 |
 | `Features.ErrorIngestion` | `Enabled`, `Disabled` | `ServiceControl/IngestErrorMessages` | Planned |
 | `Features.ConfigurationValidation` | `Enabled`, `Disabled` | `ServiceControl/ValidateConfig` | Planned |
-| `Features.EmailNotifications.Filter` | `Default`, `Custom` | `ServiceControl/NotificationsFilter` | Planned |
-| `Features.EmailNotifications.Tls` | `Enabled`, `Disabled`, `NotApplicable` | stored `EnableTLS`. `NotApplicable` when no SMTP server is stored | Planned |
-| `Features.EmailNotifications.Authentication` | `Authenticated`, `Anonymous`, `NotApplicable` | whether an account is stored | Planned |
-| `Features.EmailNotifications.Port` | `25`, `465`, `587`, `2525`, `Other`, `NotApplicable` | stored `SmtpPort`, bucketed | Planned |
-| `Features.EmailNotifications.Recipients` | count, `NotApplicable` | stored `To`, split on commas | Planned |
-| `Features.EmailNotifications.Hosting` | a fixed provider class, `SelfHosted`, `Unknown`, `NotApplicable` | the stored SMTP server, classified by host suffix the way `DatabaseHostClassifier` classifies database hosts | Planned |
 | `Limits.ExternalIntegrationsBatchSize` | `Default` or number | `ExternalIntegrationsDispatchingBatchSize` | Planned |
 
 ### Integrated ServicePulse
@@ -183,19 +166,18 @@ These keys are `NotApplicable` when `Features.IntegratedServicePulse` is `Disabl
 
 ### Heartbeats, recoverability and licensing
 
-These are choices users make in ServicePulse. They are read from storage when the report is built.
+Most of these are choices users make in ServicePulse, or the heartbeat state those choices apply to. `Heartbeats.GracePeriodSeconds` and `Recoverability.RetryHistoryDepth` are configuration settings. Every value is read when the report is built.
 
 | Key | Values | Source | Status |
 | --- | --- | --- | --- |
 | `Heartbeats.TrackInstancesDefault` | `Enabled`, `Disabled` | the stored default endpoint settings row. Falls back to `ServiceControl/TrackInstancesInitialValue` when no row is stored | Planned |
 | `Heartbeats.TrackInstancesOverrides` | count | stored endpoint settings rows whose value differs from the default | Planned |
-| `Heartbeats.KnownInstances` | count | `IMonitoringDataStore.GetAllKnownEndpoints` | Planned |
+| `Heartbeats.KnownInstances` | count | `IEndpointInstanceMonitoring.GetEndpoints` | Planned |
 | `Heartbeats.MonitoredInstances` | count | the same, where `Monitored` is true | Planned |
 | `Heartbeats.GracePeriodSeconds` | `Default` or number | `ServiceControl/HeartbeatGracePeriod` | Planned |
 | `Recoverability.Redirects` | count | `IMessageRedirectsDataStore.GetRedirects` | Planned |
 | `Recoverability.RetryHistoryDepth` | `Default` or number | `ServiceControl/RetryHistoryDepth` | Planned |
 | `Licensing.ReportMasks` | count | `ILicensingDataStore.GetReportMasks` | Planned |
-| `Licensing.EndpointDetails` | `NotUploaded`, `Uploaded`, `LicenseMismatch` | `ILicensingDataStore.GetLicensedEndpointDetails`, compared with the active license | Planned |
 
 An instance becomes monitored on its first heartbeat. An instance first seen in an ingested message starts unmonitored. So `KnownInstances` minus `MonitoredInstances` counts instances that a user stopped monitoring together with instances that have never sent a heartbeat. Storage cannot separate the two.
 
@@ -221,11 +203,14 @@ These come from the `GET /api/configuration` response of each live audit instanc
 
 ## Not reported
 
-Every setting below is left out for one of three reasons:
+Every setting below is left out for one of four reasons:
 
 - Identifies: the setting is a name, address, path or secret, or a hash or prefix of one.
 - Not a choice: the setting is a test hook, a dead setting, an action, or a mode in which the instance cannot build a report.
+- Security configuration: the setting describes how the instance authenticates callers or connections, encrypts traffic, validates certificates or tokens, or restricts access.
 - Out of scope: the coverage decision leaves it out.
+
+A setting that identifies and is also security configuration is listed as Identifies.
 
 | Setting | Reason | Notes |
 | --- | --- | --- |
@@ -233,20 +218,29 @@ Every setting below is left out for one of three reasons:
 | `ServiceBus/ErrorQueue`, `ServiceBus/ErrorLogQueue` | Identifies | |
 | `ServiceControl/Hostname`, `ServiceControl/Port` | Identifies | Together they form the instance's address. |
 | `ServiceControl/VirtualDirectory` value | Identifies | Reported as `Host.VirtualDirectory`. |
-| Transport connection string | Identifies | The modes it selects are reported under Transport. |
+| Transport connection string | Identifies | Some of its options are reported under Transport as fixed values. Its authentication, encryption and certificate validation options are security configuration. |
 | `ServiceControl/RemoteInstances` | Identifies | Counted by `Audit.ConfiguredInstances` and `Audit.LiveInstances`. |
-| `Database/ConnectionString`, `RavenDB/ConnectionString`, `RavenDB/DatabaseName`, `DbPath` | Identifies | The auth mode is reported as `Storage.Auth`. |
-| `RavenDB/ClientCertificatePath`, `ClientCertificateBase64`, `ClientCertificatePassword` | Identifies | Reported as `Storage.Auth=ClientCertificate`. |
+| `Database/ConnectionString`, `RavenDB/ConnectionString`, `RavenDB/DatabaseName`, `DbPath` | Identifies | The hosting class and server version are reported under Storage. |
+| `RavenDB/ClientCertificatePath`, `ClientCertificateBase64`, `ClientCertificatePassword` | Identifies | |
 | `Database/Schema` value | Identifies | Reported as `Storage.Schema`. |
-| `MessageBody/*` path, container, bucket, key prefix, region, service URL, credentials, managed identity client id, authority host | Identifies | The type and auth mode are reported under Storage. |
+| `MessageBody/*` path, container, bucket, key prefix, region, service URL, credentials, managed identity client id, authority host | Identifies | The type is reported as `Storage.BodyStorage.Type`. |
 | `LogPath`, `SeqAddress`, the `OTEL_EXPORTER_OTLP_ENDPOINT` value | Identifies | The providers and OTLP use are reported. |
 | `Https.CertificatePath`, `Https.CertificatePassword` | Identifies | |
-| `Authentication.Authority`, `Audience`, `ServicePulse.ClientId`, `ServicePulse.ApiScopes`, `ServicePulse.Authority`, claim names | Identifies | Claim names are reported as `Security.ClaimMapping`. |
-| `Cors.AllowedOrigins`, `ForwardedHeaders.KnownProxies`, `ForwardedHeaders.KnownNetworks` | Identifies | Reported at area level under Security. |
-| Email server, sender, recipients, account and password | Identifies | Reported as the `Features.EmailNotifications.*` classes and counts. |
-| `ServiceControl/NotificationsFilter` check ids | Identifies | Reported as `Features.EmailNotifications.Filter`. |
-| Report mask strings, redirect addresses, endpoint names, licensed endpoint details | Identifies | Reported as counts or a status. |
+| `Authentication.Authority`, `Audience`, `ServicePulse.ClientId`, `ServicePulse.ApiScopes`, `ServicePulse.Authority`, claim names | Identifies | |
+| `Cors.AllowedOrigins`, `ForwardedHeaders.KnownProxies`, `ForwardedHeaders.KnownNetworks` | Identifies | |
+| Email server, sender, recipients, account and password | Identifies | Only whether email notifications are on is reported, as `Features.EmailNotifications`. |
+| `ServiceControl/NotificationsFilter` check ids | Identifies | |
+| Report mask strings, redirect addresses, endpoint names, licensed endpoint details | Identifies | Masks and redirects are reported as counts. |
 | `MONITORING_URL`, `DEFAULT_ROUTE` values, `SERVICECONTROL_URL` | Identifies | The integrated ServicePulse keys report `Default` or `Custom`. |
+| `Authentication.Enabled`, `RoleBasedAuthorizationEnabled`, `ValidateIssuer`, `ValidateAudience`, `ValidateLifetime`, `ValidateIssuerSigningKey`, `RequireHttpsMetadata`, `ServicePulse.OfflineAccessScopeEnabled`, and whether claim names differ from the defaults | Security configuration | 6.20.0 and 6.21.0 report the first two as `Security.Authentication` and `Security.RoleBasedAuthorization`. |
+| `Https.Enabled`, `RedirectHttpToHttps`, `EnableHsts`, `HstsMaxAgeSeconds`, `HstsIncludeSubDomains`, `Https.Port` | Security configuration | 6.20.0 and 6.21.0 report `Https.Enabled` as `Security.Https`. |
+| `Cors.AllowAnyOrigin` and whether origins are restricted | Security configuration | |
+| `ForwardedHeaders.Enabled`, `TrustAllProxies` and whether proxies are restricted | Security configuration | |
+| Transport authentication, encryption and certificate validation options in the connection string, for example RabbitMQ `UseExternalAuthMechanism` and `DisableRemoteCertificateValidation` | Security configuration | |
+| Database authentication, encryption and certificate validation options, for example SQL Server `Encrypt` and `TrustServerCertificate` or PostgreSQL `SSL Mode`, and whether a RavenDB client certificate is used | Security configuration | |
+| Body storage authentication mode | Security configuration | 6.20.0 and 6.21.0 report it as `Persistence.BodyStorage.Auth`. |
+| Email notification TLS and SMTP authentication | Security configuration | |
+| Audit instance security settings | Security configuration | `GET /api/configuration` does not return them. |
 | `ServiceControl/PrintMetrics` | Not a choice | Nothing reads it. |
 | `ServiceControl/AuditRetentionPeriod` on the primary | Not a choice | It is displayed and returned by `api/configuration`, but nothing acts on it. |
 | `EmailDropFolder`, `MessageFilter` | Not a choice | Acceptance tests only. |
@@ -257,8 +251,8 @@ Every setting below is left out for one of three reasons:
 | `DOTNET_RUNNING_IN_CONTAINER` | Not a choice | Already covered by `Host.Model`. |
 | Retry, archive, unarchive, resolve, edit and group comment operations | Not a choice | These are actions. Their on/off switch, where one exists, is reported. |
 | Custom checks | Not a choice | Endpoints report them and ServiceControl stores them. Deleting one does not keep a muted state. |
-| `Https.Port`, `Https.HstsMaxAgeSeconds`, `Https.HstsIncludeSubDomains` | Out of scope | Covered at area level by `Security.HttpsHardening`. |
-| Individual `Authentication.Validate*` and `RequireHttpsMetadata` flags | Out of scope | Covered at area level by `Security.TokenValidation`. |
+| Email notification details: whether a filter is set, port, number of recipients and mail provider | Out of scope | Only `Features.EmailNotifications` is reported. |
+| Whether licensed endpoint details are uploaded, and whether they match the license | Out of scope | They only apply to Endpoint Size licenses with endpoint metadata. |
 | Transport `QueueLengthQueryDelayInterval`, `QueueLengthQueryMaxDelayInterval` | Out of scope | Only the monitoring instance reads them. |
 | Every monitoring instance setting | Out of scope | |
-| Audit instance settings that `GET /api/configuration` does not return | Out of scope | Includes `IngestAuditMessages`, full-text search, embedded or external RavenDB, security, logging providers, OTLP, ingestion and RavenDB tuning, `ServiceControlQueueAddress`, `VirtualDirectory` and maintenance mode. |
+| Audit instance settings that `GET /api/configuration` does not return | Out of scope | Includes `IngestAuditMessages`, full-text search, embedded or external RavenDB, logging providers, OTLP, ingestion and RavenDB tuning, `ServiceControlQueueAddress`, `VirtualDirectory` and maintenance mode. Audit security settings are listed under Security configuration. |
