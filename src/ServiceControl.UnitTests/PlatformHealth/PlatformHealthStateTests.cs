@@ -157,19 +157,11 @@ namespace ServiceControl.UnitTests.PlatformHealth
                     ObservedAt = new DateTimeOffset(2026, 9, 30, 12, 0, 0, TimeSpan.Zero),
                     ForwardErrorMessages = false,
                     ErrorRetentionPeriod = TimeSpan.FromDays(14)
-                }],
-                License = new PlatformHealthLicense
-                {
-                    Availability = "available",
-                    LicenseStatus = "InvalidDueToExpiredSubscription",
-                    TrialLicense = false,
-                    LicenseExtensionUrl = "https://particular.net/extend-your-trial?p=servicepulse"
-                }
+                }]
             };
 
             using var json = JsonDocument.Parse(JsonSerializer.Serialize(health, SerializerOptions.Default));
             var instance = json.RootElement.GetProperty("instances")[0];
-            var license = json.RootElement.GetProperty("license");
 
             using (Assert.EnterMultipleScope())
             {
@@ -183,9 +175,7 @@ namespace ServiceControl.UnitTests.PlatformHealth
                 Assert.That(instance.GetProperty("health_signals_status").GetString(), Is.EqualTo("unreported"));
                 Assert.That(instance.TryGetProperty("audit_retention_period", out _), Is.False);
                 Assert.That(instance.TryGetProperty("last_reported_at", out _), Is.False);
-                Assert.That(license.GetProperty("license_status").GetString(), Is.EqualTo("InvalidDueToExpiredSubscription"));
-                Assert.That(license.GetProperty("trial_license").GetBoolean(), Is.False);
-                Assert.That(license.TryGetProperty("expiration_date", out _), Is.False);
+                Assert.That(json.RootElement.TryGetProperty("license", out _), Is.False);
             }
         }
 

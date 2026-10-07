@@ -80,7 +80,6 @@ class When_inspecting_platform_health : AcceptanceTest
             Assert.That(unavailable.Version, Is.Null);
             Assert.That(recoveredAudit.Health, Is.EqualTo("healthy"));
             Assert.That(recoveredAudit.Issues, Is.Empty);
-            Assert.That(recovered.License.Availability, Is.EqualTo("available"));
         }
     }
 

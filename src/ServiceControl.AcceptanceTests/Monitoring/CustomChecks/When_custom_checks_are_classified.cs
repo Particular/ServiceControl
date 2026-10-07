@@ -89,8 +89,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
                 Assert.That(instance.ErrorRetentionPeriod, Is.EqualTo(Settings.ErrorRetentionPeriod));
                 Assert.That(instanceJson.GetProperty("health_signals_status").GetString(), Is.EqualTo("reported"));
                 Assert.That(instanceJson.GetProperty("forward_error_messages").GetBoolean(), Is.EqualTo(Settings.ForwardErrorMessages));
-                Assert.That(healthJson.RootElement.GetProperty("license").GetProperty("availability").GetString(), Is.EqualTo("available"));
-                Assert.That(platformHealth.License.LicenseStatus, Is.Not.Null.And.Not.Empty);
+                Assert.That(healthJson.RootElement.TryGetProperty("license", out _), Is.False);
 
                 // What the wire actually carries:
                 Assert.That(wireBody, Does.Contain("\"internal\":true"), "internal checks must render internal:true on the wire");

@@ -3,7 +3,6 @@ namespace ServiceControl.PlatformHealth;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -12,8 +11,6 @@ using Api;
 using Api.Contracts;
 using Infrastructure;
 using Infrastructure.WebApi;
-using Licensing;
-using Monitoring.HeartbeatMonitoring;
 using NServiceBus.Hosting;
 using NServiceBus.Logging;
 using ServiceBus.Management.Infrastructure.Settings;
@@ -23,20 +20,15 @@ sealed class PlatformHealthApi(
     HostInformation hostInformation,
     PlatformHealthState state,
     IConfigurationApi configurationApi,
-    ILicenseInfoProvider licenseInfoProvider,
-    MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus,
     TimeProvider timeProvider) : IPlatformHealthApi
 {
     public async Task<PlatformHealthView> GetHealth(string baseUrl, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var observedAt = timeProvider.GetUtcNow();
-        var remoteTask = GetRemoteConfigurations(cancellationToken);
-        var licenseTask = GetLicense(cancellationToken);
-        await Task.WhenAll(remoteTask, licenseTask);
+        var remotes = await GetRemoteConfigurations(cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var remotes = await remoteTask;
         var instances = new List<PlatformHealthInstance>
         {
             new()
@@ -113,7 +105,6 @@ sealed class PlatformHealthApi(
                 Issues = issues
             };
         }).ToArray();
-        response.License = await licenseTask;
         return response;
     }
 
@@ -202,43 +193,6 @@ sealed class PlatformHealthApi(
             return [];
         }
     }
-
-    async Task<PlatformHealthLicense> GetLicense(CancellationToken cancellationToken)
-    {
-        var hasConnector = connectorHeartbeatStatus.LastHeartbeat != null;
-        try
-        {
-            var license = await licenseInfoProvider.GetLicense(true, "servicepulse", cancellationToken);
-            if (!string.IsNullOrWhiteSpace(license?.LicenseStatus))
-            {
-                return new PlatformHealthLicense
-                {
-                    Availability = "available",
-                    Status = license.Status,
-                    LicenseStatus = license.LicenseStatus,
-                    LicenseType = license.LicenseType,
-                    TrialLicense = license.TrialLicense,
-                    ExpirationDate = ParseDate(license.ExpirationDate),
-                    UpgradeProtectionExpiration = ParseDate(license.UpgradeProtectionExpiration),
-                    LicenseExtensionUrl = license.LicenseExtensionUrl,
-                    HasMassTransitConnector = hasConnector
-                };
-            }
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception exception)
-        {
-            log.Warn("Unable to refresh license information for platform health.", exception);
-        }
-
-        return new PlatformHealthLicense { HasMassTransitConnector = hasConnector };
-    }
-
-    static DateTimeOffset? ParseDate(string value) =>
-        DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var date) ? date : null;
 
     readonly ConcurrentDictionary<string, PlatformHealthInstance> lastKnownRemotes = new(StringComparer.Ordinal);
     static readonly ILog log = LogManager.GetLogger<PlatformHealthApi>();

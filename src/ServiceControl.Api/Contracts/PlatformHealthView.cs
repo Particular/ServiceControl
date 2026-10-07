@@ -8,7 +8,6 @@ namespace ServiceControl.Api.Contracts
         public string Severity { get; set; }
         public PlatformHealthAlert[] Alerts { get; set; }
         public PlatformHealthInstance[] Instances { get; set; } = [];
-        public PlatformHealthLicense License { get; set; } = new();
     }
 
     public class PlatformHealthAlert
@@ -51,16 +50,4 @@ namespace ServiceControl.Api.Contracts
         public TimeSpan? AuditRetentionPeriod { get; init; }
     }
 
-    public sealed record PlatformHealthLicense
-    {
-        public string Availability { get; init; } = "unavailable";
-        public string? Status { get; init; }
-        public string? LicenseStatus { get; init; }
-        public string? LicenseType { get; init; }
-        public bool? TrialLicense { get; init; }
-        public DateTimeOffset? ExpirationDate { get; init; }
-        public DateTimeOffset? UpgradeProtectionExpiration { get; init; }
-        public string? LicenseExtensionUrl { get; init; }
-        public bool HasMassTransitConnector { get; init; }
-    }
 }

@@ -15,8 +15,6 @@ using ServiceControl.Api;
 using ServiceControl.Api.Contracts;
 using ServiceControl.Contracts.CustomChecks;
 using ServiceControl.Infrastructure;
-using ServiceControl.Licensing;
-using ServiceControl.Monitoring.HeartbeatMonitoring;
 using ServiceControl.Operations;
 using ServiceControl.PlatformHealth;
 
@@ -37,10 +35,9 @@ class PlatformHealthApiTests
         };
         state = new PlatformHealthState();
         configuration = new FakeConfigurationApi();
-        licensing = new FakeLicenseInfoProvider();
         clock = new FakeTimeProvider(new DateTimeOffset(2026, 9, 30, 12, 0, 0, TimeSpan.Zero));
         api = new PlatformHealthApi(settings, new HostInformation(PrimaryHostId, "primary-host"), state,
-            configuration, licensing, new MassTransitConnectorHeartbeatStatus(), clock);
+            configuration, clock);
     }
 
     [Test]
@@ -68,8 +65,6 @@ class PlatformHealthApiTests
             Assert.That(primary.ErrorLogQueue, Is.EqualTo("error.log"));
             Assert.That(primary.ForwardErrorMessages, Is.False);
             Assert.That(primary.ErrorRetentionPeriod, Is.EqualTo(settings.ErrorRetentionPeriod));
-            Assert.That(licensing.Refresh, Is.True);
-            Assert.That(licensing.ClientName, Is.EqualTo("servicepulse"));
         }
     }
 
@@ -213,7 +208,6 @@ class PlatformHealthApiTests
             Assert.That(result.Instances, Has.Length.EqualTo(3));
             Assert.That(result.Instances.Single(instance => instance.Id == malformed.InstanceId).Health, Is.EqualTo("unavailable"));
             Assert.That(result.Instances.Single(instance => instance.Id == valid.InstanceId).Health, Is.EqualTo("healthy"));
-            Assert.That(result.License.Availability, Is.EqualTo("available"));
         }
     }
 
@@ -264,11 +258,10 @@ class PlatformHealthApiTests
     }
 
     [Test]
-    public async Task License_failure_and_remote_failure_do_not_hide_local_health()
+    public async Task Remote_failure_does_not_hide_local_health()
     {
         settings.RemoteInstances = [new RemoteInstanceSetting("https://offline")];
         configuration.Failure = new InvalidOperationException("Remote unavailable");
-        licensing.Failure = new InvalidOperationException("License unavailable");
         state.Record(Report("Primary", PrimaryHostId));
 
         var result = await api.GetHealth("https://primary/api/");
@@ -278,34 +271,6 @@ class PlatformHealthApiTests
             Assert.That(result.Instances, Has.Length.EqualTo(2));
             Assert.That(result.Instances[0].Health, Is.EqualTo("degraded"));
             Assert.That(result.Instances[1].Health, Is.EqualTo("unavailable"));
-            Assert.That(result.License.Availability, Is.EqualTo("unavailable"));
-            Assert.That(result.License.Status, Is.Null);
-            Assert.That(result.License.LicenseStatus, Is.Null);
-        }
-    }
-
-    [TestCase("Valid")]
-    [TestCase("ValidWithExpiringTrial")]
-    [TestCase("InvalidDueToExpiredTrial")]
-    [TestCase("InvalidDueToExpiredSubscription")]
-    [TestCase("InvalidDueToExpiredUpgradeProtection")]
-    public async Task License_status_and_renewal_fields_preserve_the_license_api_values(string licenseStatus)
-    {
-        licensing.Info.LicenseStatus = licenseStatus;
-        licensing.Info.ExpirationDate = "2026-10-01T00:00:00.0000000Z";
-        licensing.Info.UpgradeProtectionExpiration = "";
-
-        var result = await api.GetHealth("https://primary/api/");
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.License.Availability, Is.EqualTo("available"));
-            Assert.That(result.License.LicenseStatus, Is.EqualTo(licenseStatus));
-            Assert.That(result.License.LicenseType, Is.EqualTo(licensing.Info.LicenseType));
-            Assert.That(result.License.TrialLicense, Is.EqualTo(licensing.Info.TrialLicense));
-            Assert.That(result.License.LicenseExtensionUrl, Is.EqualTo(licensing.Info.LicenseExtensionUrl));
-            Assert.That(result.License.ExpirationDate, Is.EqualTo(new DateTimeOffset(2026, 10, 1, 0, 0, 0, TimeSpan.Zero)));
-            Assert.That(result.License.UpgradeProtectionExpiration, Is.Null);
         }
     }
 
@@ -333,15 +298,11 @@ class PlatformHealthApiTests
     {
         settings.RemoteInstances = [new RemoteInstanceSetting("https://audit")];
         using var cancellation = new CancellationTokenSource();
-        licensing.BeforeRead = cancellation.Cancel;
-        licensing.Failure = new OperationCanceledException(cancellation.Token);
+        configuration.BeforeRead = cancellation.Cancel;
+        configuration.Failure = new OperationCanceledException(cancellation.Token);
 
         Assert.That(async () => await api.GetHealth("https://primary/api/", cancellation.Token), Throws.InstanceOf<OperationCanceledException>());
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(configuration.CancellationToken, Is.EqualTo(cancellation.Token));
-            Assert.That(licensing.CancellationToken, Is.EqualTo(cancellation.Token));
-        }
+        Assert.That(configuration.CancellationToken, Is.EqualTo(cancellation.Token));
     }
 
     static RemoteConfiguration Remote(RemoteInstanceSetting setting, string name, Guid? hostId = null)
@@ -372,10 +333,12 @@ class PlatformHealthApiTests
         public RemoteConfiguration[] Remotes { get; set; } = [];
         public Exception Failure { get; set; }
         public CancellationToken CancellationToken { get; private set; }
+        public Action BeforeRead { get; set; }
 
         public Task<RemoteConfiguration[]> GetRemoteConfigs(CancellationToken cancellationToken = default)
         {
             CancellationToken = cancellationToken;
+            BeforeRead?.Invoke();
             return Failure == null ? Task.FromResult(Remotes) : Task.FromException<RemoteConfiguration[]>(Failure);
         }
 
@@ -383,36 +346,9 @@ class PlatformHealthApiTests
         public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 
-    sealed class FakeLicenseInfoProvider : ILicenseInfoProvider
-    {
-        public LicenseInfo Info { get; } = new()
-        {
-            Status = "valid",
-            LicenseStatus = "Valid",
-            LicenseType = "Trial",
-            TrialLicense = true,
-            LicenseExtensionUrl = "https://particular.net/extend-your-trial?p=servicepulse"
-        };
-        public Exception Failure { get; set; }
-        public bool Refresh { get; private set; }
-        public string ClientName { get; private set; }
-        public CancellationToken CancellationToken { get; private set; }
-        public Action BeforeRead { get; set; }
-
-        public Task<LicenseInfo> GetLicense(bool refresh, string clientName, CancellationToken cancellationToken = default)
-        {
-            Refresh = refresh;
-            ClientName = clientName;
-            CancellationToken = cancellationToken;
-            BeforeRead?.Invoke();
-            return Failure == null ? Task.FromResult(Info) : Task.FromException<LicenseInfo>(Failure);
-        }
-    }
-
     Settings settings;
     PlatformHealthState state;
     FakeConfigurationApi configuration;
-    FakeLicenseInfoProvider licensing;
     FakeTimeProvider clock;
     PlatformHealthApi api;
     static readonly Guid PrimaryHostId = Guid.Parse("BD444A23-93E3-42E5-A9C2-15CD7436756E");
