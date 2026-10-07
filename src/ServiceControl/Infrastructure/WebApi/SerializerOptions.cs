@@ -1,4 +1,4 @@
-namespace ServiceControl.Infrastructure.WebApi
+﻿namespace ServiceControl.Infrastructure.WebApi
 {
     using System.Text.Json;
     using System.Text.Json.Serialization;
