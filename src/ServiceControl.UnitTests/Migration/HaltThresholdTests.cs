@@ -72,32 +72,6 @@ class HaltThresholdTests
     }
 
     [Test]
-    public void Losing_every_row_of_a_run_is_losing_most_of_it()
-    {
-        Assert.That(HaltThreshold.MostOfItWasLost(skippedCount: 90, totalCount: 90), Is.True);
-    }
-
-    [Test]
-    public void Losing_all_but_one_row_of_a_run_is_losing_most_of_it()
-    {
-        Assert.That(HaltThreshold.MostOfItWasLost(skippedCount: 99, totalCount: 100), Is.True);
-    }
-
-    [Test]
-    public void Losing_exactly_half_a_run_is_not_losing_most_of_it()
-    {
-        // The rule needs strictly more than half, so an exact half is the one input that separates it from a
-        // rule that halted at half as well.
-        Assert.That(HaltThreshold.MostOfItWasLost(skippedCount: 50, totalCount: 100), Is.False);
-    }
-
-    [Test]
-    public void A_run_that_processed_nothing_lost_nothing()
-    {
-        Assert.That(HaltThreshold.MostOfItWasLost(skippedCount: 0, totalCount: 0), Is.False);
-    }
-
-    [Test]
     public void A_skip_count_with_nothing_processed_never_halts_and_never_divides_by_zero()
     {
         // Past the floor with a zero total, which is the only input that reaches the division guard.

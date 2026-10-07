@@ -6,7 +6,6 @@ namespace ServiceControl.Hosting.Commands
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
     using NServiceBus;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
@@ -52,10 +51,7 @@ namespace ServiceControl.Hosting.Commands
             hostBuilder.Services.AddHostedService(provider =>
                 new FinishedCopyBeforeAnIngestionNodeOpens(
                     provider.GetRequiredService<IMigrationCheckpointStore>(),
-                    provider.GetRequiredService<IMigrationTargetReadiness>(),
-                    settings,
-                    "this error ingestion only host",
-                    provider.GetRequiredService<ILogger<FinishedCopyBeforeAnIngestionNodeOpens>>()));
+                    "this error ingestion only host"));
 
             if (settings.MigrationEnabled)
             {

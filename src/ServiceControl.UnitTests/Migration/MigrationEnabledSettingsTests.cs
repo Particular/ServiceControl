@@ -19,19 +19,12 @@ class MigrationEnabledSettingsTests
     public void ClearEnvironmentVariables()
     {
         Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_ENABLED", null);
-        Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_ALLOWINCOMPLETEEXIT", null);
     }
 
     [Test]
-    public void Both_default_to_off()
+    public void Migration_defaults_to_off()
     {
-        var settings = NewSettings();
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(settings.MigrationEnabled, Is.False);
-            Assert.That(settings.MigrationAllowIncompleteExit, Is.False);
-        });
+        Assert.That(NewSettings().MigrationEnabled, Is.False);
     }
 
     [Test]
@@ -40,14 +33,6 @@ class MigrationEnabledSettingsTests
         Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_ENABLED", "true");
 
         Assert.That(NewSettings().MigrationEnabled, Is.True);
-    }
-
-    [Test]
-    public void AllowIncompleteExit_is_read_from_the_environment()
-    {
-        Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_ALLOWINCOMPLETEEXIT", "true");
-
-        Assert.That(NewSettings().MigrationAllowIncompleteExit, Is.True);
     }
 
     [Test]

@@ -81,40 +81,7 @@ class EndpointSettingsMigrationTargetTests : PersistenceTestBase
             Assert.That(result.Copied, Is.EqualTo(1));
             Assert.That(result.SkippedIds, Is.EqualTo(new[] { "EndpointSettings/1" }));
             Assert.That(result.SkipReasons[MigrationSkipReason.EndpointNotKnown], Is.EqualTo(1), "the heartbeat settings sync deletes this row twenty seconds after the host opens, so verify has to see it as a skip");
-            Assert.That(result.BenignSkipped, Is.EqualTo(1), "a setting left behind on purpose is reported, but a source full of them must not halt a required category");
             Assert.That((await EndpointSettingsStore.GetAllEndpointSettings().ToListAsync()).Select(settings => settings.Name), Is.EqualTo(new[] { "Sales" }));
-        }
-    }
-
-    [Test]
-    public async Task An_unknown_endpoint_stays_a_benign_skip_while_known_endpoints_dropped_nothing()
-    {
-        await SeedKnownEndpoints("Sales");
-        await SaveKnownEndpointsCheckpoint(skipped: 0);
-
-        var result = await Target.Write(
-            EndpointSettingsCategory,
-            BatchOf(("EndpointSettings/1", new EndpointSettings { Name = "Retired", TrackInstances = true })),
-            CheckpointAfter("EndpointSettings/1"));
-
-        Assert.That(result.BenignSkipped, Is.EqualTo(1), "the endpoint is unknown in the source too, so the sync would delete this setting whatever the migration did");
-    }
-
-    [Test]
-    public async Task An_unknown_endpoint_stops_being_a_benign_skip_once_known_endpoints_dropped_a_row()
-    {
-        await SeedKnownEndpoints("Sales");
-        await SaveKnownEndpointsCheckpoint(skipped: 1);
-
-        var result = await Target.Write(
-            EndpointSettingsCategory,
-            BatchOf(("EndpointSettings/1", new EndpointSettings { Name = "Retired", TrackInstances = true })),
-            CheckpointAfter("EndpointSettings/1"));
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.Skipped, Is.EqualTo(1));
-            Assert.That(result.BenignSkipped, Is.Zero, "the endpoint may be unknown only because KnownEndpoints dropped it, and a setting the sync would have kept has to reach the halt threshold");
         }
     }
 
@@ -173,21 +140,6 @@ class EndpointSettingsMigrationTargetTests : PersistenceTestBase
 
     async Task<bool> TrackInstancesFor(string name) =>
         (await EndpointSettingsStore.GetAllEndpointSettings().ToListAsync()).Single(settings => settings.Name == name).TrackInstances;
-
-    // The target reads this checkpoint to tell an endpoint the source never had from one KnownEndpoints dropped.
-    Task SaveKnownEndpointsCheckpoint(long skipped) =>
-        CheckpointStore.Upsert(new MigrationCheckpoint(
-            MigrationCategoryIds.KnownEndpoints,
-            skipped == 0 ? MigrationCategoryState.Complete : MigrationCategoryState.CompleteWithErrors,
-            "KnownEndpoints/9",
-            CopiedCount: 9,
-            SkippedCount: skipped,
-            SourceTotal: null,
-            SkipReasons: skipped == 0 ? null : new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.RequiredValueMissing] = skipped },
-            StartedAt: null,
-            LastProgressAt: null,
-            SettledAt: null,
-            LastError: null));
 
     // The target copies a named setting only when its endpoint is known, because the heartbeat settings sync keeps only those.
     async Task SeedKnownEndpoints(params string[] names)

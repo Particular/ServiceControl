@@ -63,10 +63,7 @@
                 hostBuilder.Services.AddHostedService(provider =>
                     new FinishedCopyBeforeAnIngestionNodeOpens(
                         provider.GetRequiredService<IMigrationCheckpointStore>(),
-                        provider.GetRequiredService<IMigrationTargetReadiness>(),
-                        settings,
-                        "--import-failed-errors",
-                        provider.GetRequiredService<ILogger<FinishedCopyBeforeAnIngestionNodeOpens>>()));
+                        "--import-failed-errors"));
             }
 
             return hostBuilder.Build();

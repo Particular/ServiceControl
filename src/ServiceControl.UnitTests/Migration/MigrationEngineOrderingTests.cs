@@ -67,6 +67,7 @@ class MigrationEngineOrderingTests
 
     [TestCase(MigrationCategoryState.InProgress)]
     [TestCase(MigrationCategoryState.Halted)]
+    [TestCase(MigrationCategoryState.CompleteWithErrors)]
     public async Task GroupComments_does_not_start_before_the_unresolved_failed_messages_complete(MigrationCategoryState predecessorState)
     {
         var comments = MigrationCategoryRegistry.Find("GroupComments")!;
@@ -153,7 +154,6 @@ class MigrationEngineOrderingTests
     }
 
     [TestCase(MigrationCategoryState.Complete)]
-    [TestCase(MigrationCategoryState.CompleteWithErrors)]
     [TestCase(MigrationCategoryState.Abandoned)]
     public async Task LicensingThroughput_proceeds_once_LicensingEndpoints_is_finished_or_abandoned(MigrationCategoryState endpointsState)
     {

@@ -8,8 +8,6 @@ using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
 
 [TestFixture]
-// Mandatory, not stylistic: this assembly is Parallelizable(ParallelScope.All) and these fixtures set
-// process-global environment variables. One fixture added without it makes the whole suite intermittent.
 [NonParallelizable]
 class When_endpoint_settings_are_migrated : MigrationAcceptanceTest
 {

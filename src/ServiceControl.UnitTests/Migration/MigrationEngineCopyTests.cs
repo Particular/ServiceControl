@@ -41,7 +41,7 @@ class MigrationEngineCopyTests
     }
 
     [Test]
-    public async Task A_first_run_captures_the_source_total_and_every_batch_moves_LastProgressAt()
+    public async Task A_first_run_leaves_the_source_total_null_and_every_batch_moves_LastProgressAt()
     {
         var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
         var source = new InMemoryMigrationSource();
@@ -66,17 +66,17 @@ class MigrationEngineCopyTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(checkpoint.SourceTotal, Is.EqualTo(4), "the progress line and the verify percentage both read this");
+            Assert.That(checkpoint.SourceTotal, Is.Null, "counting the source is a full pass over it, which on a big category could trip the stall watchdog before a row is copied");
             Assert.That(stamps, Is.EqualTo(new DateTime?[] { startedAt.UtcDateTime, (startedAt + betweenBatches).UtcDateTime }), "the stall watchdog stops a copy whose LastProgressAt stops moving, so every batch has to move it");
             Assert.That(checkpoint.LastProgressAt, Is.EqualTo((startedAt + betweenBatches).UtcDateTime), "the saved row carries the last batch's stamp");
         }
     }
 
     [Test]
-    public async Task A_category_that_read_fewer_rows_than_the_source_holds_halts_instead_of_settling_complete()
+    public async Task A_category_that_read_fewer_rows_than_the_source_holds_still_settles_complete()
     {
-        // The row was counted at 10 against a source that yields 2, so without the shortfall check the
-        // category settles Complete with 8 rows never copied.
+        // The row says the source held 10 and the source yields 2. The engine judges only its own accounting,
+        // so a read that ends early is not something it can see, and only --migration-verify shows it.
         var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("d"), Row("e"));
@@ -90,57 +90,53 @@ class MigrationEngineCopyTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Halted));
-            Assert.That(checkpoint.LastError, Does.Contain("KnownEndpoints").And.Contain("10").And.Contain("2 copied"));
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Complete));
+            Assert.That(checkpoint.CopiedCount, Is.EqualTo(2));
             Assert.That(checkpoint.SettledAt, Is.Not.Null);
         }
     }
 
     [Test]
-    public async Task A_resumed_category_is_reconciled_on_the_totals_the_row_carries_not_the_rows_this_run_copied()
+    public async Task An_optional_category_whose_outcomes_do_not_add_up_to_the_rows_read_settles_halted()
     {
-        // Judging this run on the two rows it copies, rather than the four the row ends up counting,
-        // would halt every copy that was ever restarted.
-        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
-        var source = new InMemoryMigrationSource();
-        source.Seed(category.Id, Row("a"), Row("b"), Row("c"), Row("d"));
-        var checkpointStore = new InMemoryMigrationCheckpointStore();
-        await checkpointStore.Upsert(new MigrationCheckpoint(category.Id, MigrationCategoryState.InProgress, "b", 2, 0, 4, null, DateTime.UtcNow, DateTime.UtcNow, null, null));
-        var target = new InMemoryMigrationTarget(checkpointStore);
-        var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []);
-        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
-
-        var checkpoint = await engine.RunCategoryAsync(category);
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.EventLog)!;
+        var checkpoint = await RunWithOneRowUnaccountedFor(category);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Complete));
-            Assert.That(checkpoint.CopiedCount, Is.EqualTo(4));
+            Assert.That(category.Kind, Is.EqualTo(MigrationCategoryKind.Optional));
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Halted));
+            Assert.That(checkpoint.LastError, Does.Contain("read 4 rows").And.Contain("accounted for 3"));
+            Assert.That(checkpoint.LastError, Does.Not.Contain("--migration-retry").And.Not.Contain("--migration-abandon"));
         }
     }
 
     [Test]
-    public async Task A_source_that_grew_since_it_was_counted_still_settles_complete()
+    public async Task A_required_category_whose_outcomes_do_not_add_up_to_the_rows_read_settles_halted()
     {
-        // The row was counted at 2 and the source now holds 3: the source instance was still ingesting
-        // while the copy ran.
-        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
-        var source = new InMemoryMigrationSource();
-        source.Seed(category.Id, Row("a"), Row("b"), Row("c"));
-        var checkpointStore = new InMemoryMigrationCheckpointStore();
-        await checkpointStore.Upsert(new MigrationCheckpoint(category.Id, MigrationCategoryState.InProgress, null, 0, 0, 2, null, DateTime.UtcNow, DateTime.UtcNow, null, null));
-        var target = new InMemoryMigrationTarget(checkpointStore);
-        var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []);
-        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
-
-        var checkpoint = await engine.RunCategoryAsync(category);
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.KnownEndpoints)!;
+        var checkpoint = await RunWithOneRowUnaccountedFor(category);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Complete));
-            Assert.That(checkpoint.CopiedCount, Is.EqualTo(3));
-            Assert.That(checkpoint.SourceTotal, Is.EqualTo(2), "re-counting would rebase the total the shortfall halt compares against, and the second run is the one a stale cursor is found on");
+            Assert.That(category.Kind, Is.EqualTo(MigrationCategoryKind.Required));
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Halted));
+            Assert.That(checkpoint.LastError, Does.Contain("read 4 rows").And.Contain("accounted for 3"));
+            Assert.That(checkpoint.LastError, Does.Not.Contain("--migration-retry").And.Not.Contain("--migration-abandon"));
         }
+    }
+
+    // The target commits a checkpoint and a result that agree with each other, so only the rows read can show the one it lost.
+    static Task<MigrationCheckpoint> RunWithOneRowUnaccountedFor(MigrationCategory category)
+    {
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"), Row("b"), Row("c"), Row("d"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 4, UnderReportBy = 1 };
+        var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []);
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
+
+        return engine.RunCategoryAsync(category);
     }
 
     [Test]
@@ -187,8 +183,7 @@ class MigrationEngineCopyTests
     [Test]
     public async Task A_category_already_CompleteWithErrors_is_left_alone_on_a_second_run()
     {
-        // Finished with a few skips is finished. Re-reading it would copy the whole category again and
-        // count its skips a second time.
+        // Failed waits for the operator, so a start returns the row as it is rather than reading the category again.
         var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("a"), Row("b"));
@@ -205,6 +200,29 @@ class MigrationEngineCopyTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(checkpoint, Is.EqualTo(finishedWithSkips with { Version = 1 }), "the row is read back untouched, at the version the seeding save left it");
+            Assert.That(target.WrittenRows(category.Id), Is.Empty);
+        }
+    }
+
+    [Test]
+    public async Task A_category_already_Halted_is_left_alone_on_a_second_run()
+    {
+        // Failed waits for the operator, so a start returns the row as it is rather than reading the category again.
+        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"), Row("b"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var halted = new MigrationCheckpoint(category.Id, MigrationCategoryState.Halted, "a", 1, 0, null, null, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, "Halted: the target was unreachable");
+        await checkpointStore.Upsert(halted);
+        var target = new InMemoryMigrationTarget(checkpointStore);
+        var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []);
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
+
+        var checkpoint = await engine.RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checkpoint, Is.EqualTo(halted with { Version = 1 }), "the row is read back untouched, at the version the seeding save left it");
             Assert.That(target.WrittenRows(category.Id), Is.Empty);
         }
     }

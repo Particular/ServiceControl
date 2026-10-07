@@ -27,7 +27,7 @@ class CheckpointMigrationStateTests
     {
         var store = new InMemoryMigrationCheckpointStore();
         await store.Upsert(Checkpoint("KnownEndpoints", MigrationCategoryState.Complete));
-        await store.Upsert(Checkpoint("EndpointSettings", MigrationCategoryState.CompleteWithErrors));
+        await store.Upsert(Checkpoint("EndpointSettings", MigrationCategoryState.Complete));
 
         var state = new CheckpointMigrationState(store);
         await state.Seed(["KnownEndpoints", "EndpointSettings"], CancellationToken.None);
@@ -39,6 +39,7 @@ class CheckpointMigrationStateTests
     [TestCase(MigrationCategoryState.NotStarted)]
     [TestCase(MigrationCategoryState.Halted)]
     [TestCase(MigrationCategoryState.Blocked)]
+    [TestCase(MigrationCategoryState.CompleteWithErrors)]
     public async Task One_selected_category_short_of_finished_holds_the_guard_on(MigrationCategoryState unfinished)
     {
         var store = new InMemoryMigrationCheckpointStore();
@@ -77,17 +78,33 @@ class CheckpointMigrationStateTests
     }
 
     [Test]
-    public void Exactly_complete_complete_with_errors_and_abandoned_are_finished() =>
+    public void Exactly_complete_and_abandoned_are_finished() =>
         Assert.That(
             Enum.GetValues<MigrationCategoryState>().Where(state => state.IsFinished()),
-            Is.EquivalentTo(new[] { MigrationCategoryState.Complete, MigrationCategoryState.CompleteWithErrors, MigrationCategoryState.Abandoned }));
+            Is.EquivalentTo(new[] { MigrationCategoryState.Complete, MigrationCategoryState.Abandoned }));
 
     [Test]
-    public void Exactly_EndpointNotKnown_is_benign_and_every_other_skip_reason_counts_as_a_loss() =>
+    public void Exactly_halted_and_complete_with_errors_are_failed() =>
+        Assert.That(
+            Enum.GetValues<MigrationCategoryState>().Where(state => state.IsFailed()),
+            Is.EquivalentTo(new[] { MigrationCategoryState.Halted, MigrationCategoryState.CompleteWithErrors }));
+
+    [Test]
+    public void Exactly_the_three_harmless_reasons_are_harmless_and_every_other_skip_reason_is_a_fault() =>
         Assert.That(
             Enum.GetValues<MigrationSkipReason>().Where(reason => reason.IsBenign()),
-            Is.EquivalentTo(new[] { MigrationSkipReason.EndpointNotKnown }),
-            "a benign reason is exempt from the halt threshold, so any number of rows lost to one settles the category as complete");
+            Is.EquivalentTo(new[] { MigrationSkipReason.PastRetention, MigrationSkipReason.EndpointNotKnown, MigrationSkipReason.BlankGroupComment }),
+            "a harmless reason is exempt from the halt threshold and the settle rule, so any number of rows lost to one settles the category Done");
+
+    [Test]
+    public void Unknown_stays_the_last_skip_reason() =>
+        Assert.That(Enum.GetValues<MigrationSkipReason>().Last(), Is.EqualTo(MigrationSkipReason.Unknown));
+
+    [Test]
+    public void Exactly_the_reasons_no_retry_can_fix_are_permanent() =>
+        Assert.That(
+            Enum.GetValues<MigrationSkipReason>().Where(reason => reason.IsPermanent()),
+            Is.EquivalentTo(new[] { MigrationSkipReason.RequiredValueMissing }));
 
     static MigrationCheckpoint Checkpoint(string categoryId, MigrationCategoryState state) =>
         new(categoryId, state, null, 0, 0, null, null, null, null, null, null);

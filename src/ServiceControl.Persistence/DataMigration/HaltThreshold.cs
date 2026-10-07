@@ -1,7 +1,7 @@
 namespace ServiceControl.Persistence.DataMigration;
 
 /// <summary>
-/// The two rules that decide a category has lost too much to keep copying.
+/// The rule that stops a category early because it has lost too much to keep copying.
 /// </summary>
 public static class HaltThreshold
 {
@@ -24,15 +24,4 @@ public static class HaltThreshold
         var percent = skippedCount * 100m / totalCount;
         return percent > percentThreshold;
     }
-
-    /// <summary>
-    /// Whether more than half the rows were skipped, which catches a category too small ever to reach
-    /// <see cref="Exceeded" />'s floor. Ask it only at the end of a run, over that run or over every run
-    /// together. Part way through, the same ratio is no more than a bad first batch.
-    /// </summary>
-    /// <param name="skippedCount">Rows skipped as faults.</param>
-    /// <param name="totalCount">Rows dealt with over the same stretch as <paramref name="skippedCount" />.</param>
-    /// <returns>True when the skipped rows are more than half, which means the category stops.</returns>
-    public static bool MostOfItWasLost(long skippedCount, long totalCount) =>
-        totalCount > 0 && skippedCount * 2 > totalCount;
 }

@@ -48,10 +48,9 @@ public interface IMigrationTarget
 /// What the target did with one batch, and the checkpoint it committed alongside the rows. Every skipped row must have a reason in SkipReasons.
 /// </summary>
 /// <param name="Saved">The checkpoint as the target stored it, carrying the version that save landed on. The engine carries on from this one, never from the one it passed in.</param>
-/// <param name="Copied">Rows this batch wrote. The same number must show up as the rise in the saved copied count, because the halt threshold reads one and the end-of-run reconciliation the other.</param>
+/// <param name="Copied">Rows this batch wrote. The same number must show up as the rise in the saved copied count, because the halt threshold reads one and status and verify read the other.</param>
 /// <param name="Skipped">Rows this batch could not write, benign ones included.</param>
 /// <param name="SkippedIds">The source ids of those rows, so the engine can name each one in the log.</param>
 /// <param name="AlreadyPresent">Rows the target already held. They were neither copied nor skipped, and they still count as accounted for.</param>
 /// <param name="SkipReasons">How many rows each reason skipped. The counts have to add up to Skipped, or the checkpoint refuses the batch.</param>
-/// <param name="BenignSkipped">How many of Skipped the target would have deleted anyway, such as a row already past retention. Reported like any other skip, but never counted toward the halt threshold.</param>
-public sealed record MigrationWriteResult(MigrationCheckpoint Saved, int Copied, int Skipped, IReadOnlyList<string> SkippedIds, int AlreadyPresent = 0, IReadOnlyDictionary<MigrationSkipReason, long>? SkipReasons = null, int BenignSkipped = 0);
+public sealed record MigrationWriteResult(MigrationCheckpoint Saved, int Copied, int Skipped, IReadOnlyList<string> SkippedIds, int AlreadyPresent = 0, IReadOnlyDictionary<MigrationSkipReason, long>? SkipReasons = null);

@@ -608,6 +608,9 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<long?>("StartedWindowSeconds")
+                        .HasColumnType("bigint");
+
                     b.Property<int>("State")
                         .HasColumnType("int");
 

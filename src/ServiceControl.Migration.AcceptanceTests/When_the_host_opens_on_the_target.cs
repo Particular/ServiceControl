@@ -1,6 +1,7 @@
 namespace ServiceControl.Migration.AcceptanceTests;
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -21,6 +22,7 @@ using ServiceControl.Hosting.Commands;
 class When_the_host_opens_on_the_target : MigrationAcceptanceTest
 {
     const string HostOpenedSetting = "Migration/HostOpenedOnTarget";
+    const string CategoryFromANewerBuild = "CategoryFromANewerBuild";
 
     [Test]
     public async Task The_row_does_not_exist_while_the_required_copy_is_still_running()
@@ -72,25 +74,72 @@ class When_the_host_opens_on_the_target : MigrationAcceptanceTest
     }
 
     [Test]
-    public async Task An_ingestion_only_host_let_in_by_AllowIncompleteExit_records_the_row()
+    public async Task An_ingestion_only_host_is_refused_while_a_required_category_is_failed()
     {
         Settings.MaximumConcurrencyLevel = 1;
         SetSourceVariable("SERVICECONTROL_MIGRATION_ENABLED", "false");
-        SetSourceVariable("SERVICECONTROL_MIGRATION_ALLOWINCOMPLETEEXIT", "true");
-        await SeedCheckpoint(MigrationCategoryIds.KnownEndpoints, MigrationCategoryState.InProgress);
+        await SeedRequiredCategoriesComplete(except: MigrationCategoryIds.MessageRedirects);
+        await SeedCheckpoint(MigrationCategoryIds.MessageRedirects, MigrationCategoryState.CompleteWithErrors);
 
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
         var app = ErrorIngestionOnlyCommand.BuildHost(Settings, AllowingAnUnreleasedMigration());
 
-        await app.StartAsync(cancellation.Token);
-
         try
         {
-            Assert.That(await ReadSetting(HostOpenedSetting), Is.Not.Null, "the worker ingests into a database whose copy is unfinished, so the abort is no longer free");
+            var refusal = Assert.ThrowsAsync<Exception>(async () => await app.StartAsync(cancellation.Token));
+
+            Assert.That(refusal.Message, Does.Contain("MessageRedirects is Failed (CompleteWithErrors)")
+                .And.Contain("--migration-retry MessageRedirects")
+                .And.Contain("--migration-abandon MessageRedirects"));
         }
         finally
         {
+            await app.DisposeAsync();
+        }
+    }
+
+    [Test]
+    public async Task An_ingestion_only_host_starts_while_an_optional_category_is_still_copying_or_failed()
+    {
+        Settings.MaximumConcurrencyLevel = 1;
+        SetSourceVariable("SERVICECONTROL_MIGRATION_ENABLED", "false");
+        await SeedRequiredCategoriesComplete();
+        await SeedCheckpoint(MigrationCategoryIds.EventLog, MigrationCategoryState.InProgress);
+        await SeedCheckpoint(MigrationCategoryIds.ArchivedAndResolvedFailedMessages, MigrationCategoryState.CompleteWithErrors);
+
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+        var app = ErrorIngestionOnlyCommand.BuildHost(Settings, AllowingAnUnreleasedMigration());
+
+        try
+        {
+            Assert.That(async () => await app.StartAsync(cancellation.Token), Throws.Nothing, "an optional category copies in the background after the host opens, so it never holds a worker back");
             await app.StopAsync(cancellation.Token);
+        }
+        finally
+        {
+            await app.DisposeAsync();
+        }
+    }
+
+    [Test]
+    public async Task An_ingestion_only_host_is_refused_over_a_category_this_build_does_not_know()
+    {
+        Settings.MaximumConcurrencyLevel = 1;
+        SetSourceVariable("SERVICECONTROL_MIGRATION_ENABLED", "false");
+        await SeedRequiredCategoriesComplete();
+        await SeedCheckpoint(CategoryFromANewerBuild, MigrationCategoryState.InProgress);
+
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+        var app = ErrorIngestionOnlyCommand.BuildHost(Settings, AllowingAnUnreleasedMigration());
+
+        try
+        {
+            var refusal = Assert.ThrowsAsync<Exception>(async () => await app.StartAsync(cancellation.Token));
+
+            Assert.That(refusal.Message, Does.Contain($"{CategoryFromANewerBuild} is Copying (InProgress)"), "nobody here can say whether an id this build does not hold is optional, so it holds the worker back");
+        }
+        finally
+        {
             await app.DisposeAsync();
         }
     }
@@ -106,29 +155,22 @@ class When_the_host_opens_on_the_target : MigrationAcceptanceTest
 
         var refusal = Assert.ThrowsAsync<Exception>(async () => await host.StartAsync(cancellation.Token));
 
-        Assert.That(refusal.Message, Does.Contain("--import-failed-errors will not start").And.Contain("KnownEndpoints is InProgress"));
+        Assert.That(refusal.Message, Does.Contain("--import-failed-errors will not start").And.Contain("KnownEndpoints is Copying (InProgress)"));
     }
 
     [Test]
-    public async Task Importing_failed_errors_let_in_by_AllowIncompleteExit_records_the_row()
+    public async Task Importing_failed_errors_starts_while_an_optional_category_is_still_copying_or_failed()
     {
         SetSourceVariable("SERVICECONTROL_MIGRATION_ENABLED", "false");
-        SetSourceVariable("SERVICECONTROL_MIGRATION_ALLOWINCOMPLETEEXIT", "true");
-        await SeedCheckpoint(MigrationCategoryIds.KnownEndpoints, MigrationCategoryState.InProgress);
+        await SeedRequiredCategoriesComplete();
+        await SeedCheckpoint(MigrationCategoryIds.EventLog, MigrationCategoryState.InProgress);
+        await SeedCheckpoint(MigrationCategoryIds.ArchivedAndResolvedFailedMessages, MigrationCategoryState.CompleteWithErrors);
 
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
         using var host = ImportFailedErrorsCommand.BuildHost(Settings);
 
-        await host.StartAsync(cancellation.Token);
-
-        try
-        {
-            Assert.That(await ReadSetting(HostOpenedSetting), Is.Not.Null, "importing into a database whose copy is unfinished ends the free abort");
-        }
-        finally
-        {
-            await host.StopAsync(cancellation.Token);
-        }
+        Assert.That(async () => await host.StartAsync(cancellation.Token), Throws.Nothing, "an optional category copies in the background after the host opens, so it never holds the import back");
+        await host.StopAsync(cancellation.Token);
     }
 
     // A customer whose migration never started must not be told they have passed the point of no return.
@@ -194,6 +236,14 @@ class When_the_host_opens_on_the_target : MigrationAcceptanceTest
         {
             await app.StopAsync(cancellation.Token);
             await app.DisposeAsync();
+        }
+    }
+
+    async Task SeedRequiredCategoriesComplete(string except = null)
+    {
+        foreach (var category in MigrationCategoryRegistry.All.Where(category => category.Kind == MigrationCategoryKind.Required && category.Id != except))
+        {
+            await SeedCheckpoint(category.Id);
         }
     }
 

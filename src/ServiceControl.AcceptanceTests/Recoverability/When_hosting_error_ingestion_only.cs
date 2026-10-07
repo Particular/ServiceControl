@@ -112,13 +112,13 @@ namespace ServiceControl.AcceptanceTests.Recoverability
             try
             {
                 await host.Services.GetRequiredService<IMigrationCheckpointStore>().Upsert(
-                    new MigrationCheckpoint(MigrationCategoryIds.KnownEndpoints, MigrationCategoryState.InProgress, null, 0, 0, null, null, null, null, null, null));
+                    new MigrationCheckpoint(MigrationCategoryIds.KnownEndpoints, MigrationCategoryState.Halted, null, 0, 0, null, null, null, null, null, "The source stopped responding."));
 
                 var exception = Assert.ThrowsAsync<Exception>(() => host.StartAsync());
 
                 Assert.That(exception.Message, Does.Contain("has not finished")
                     .And.Contain(MigrationCategoryIds.KnownEndpoints)
-                    .And.Contain(MigrationSettings.AllowIncompleteExitKey));
+                    .And.Contain("--migration-abandon KnownEndpoints"));
             }
             finally
             {

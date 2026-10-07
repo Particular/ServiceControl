@@ -14,6 +14,7 @@ using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DataMigration;
 using ServiceControl.Persistence.EFCore.DbContexts;
+using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
@@ -22,10 +23,10 @@ class MigrationTargetReadinessTests : PersistenceTestBase
     IMigrationTargetReadiness Readiness => ServiceProvider.GetRequiredService<IMigrationTargetReadiness>();
 
     [Test]
-    public void The_target_contributes_the_two_checks_only_it_can_make() =>
+    public void The_target_contributes_the_three_checks_only_it_can_make() =>
         Assert.That(
             Readiness.ContributedChecks().Select(check => check.GetType()),
-            Is.EqualTo(new[] { typeof(SchemaIsCurrentCheck), typeof(BodyStorageIsWritableCheck) }));
+            Is.EqualTo(new[] { typeof(SchemaIsCurrentCheck), typeof(TargetHoldsNoServiceControlDataCheck), typeof(BodyStorageIsWritableCheck) }));
 
     [Test]
     public void Every_contributed_check_passes_against_a_migrated_database()
@@ -37,6 +38,80 @@ class MigrationTargetReadinessTests : PersistenceTestBase
                 Assert.DoesNotThrowAsync(() => check.Run(), $"a healthy target must pass every contributed check, and it failed '{check.Name}'");
             }
         }
+    }
+
+    [Test]
+    public async Task A_target_holding_a_row_is_refused_while_no_checkpoint_exists()
+    {
+        await EndpointSettingsStore.UpdateEndpointSettings(new EndpointSettings { Name = "Sales", TrackInstances = true });
+
+        var exception = Assert.ThrowsAsync<Exception>(() => TargetCheck.Run());
+
+        Assert.That(exception.Message, Does.Contain(TableName<EndpointSettingsEntity>()).And.Contain("--setup"));
+    }
+
+    // A plain start writes this row first, so a key someone later ignores fails here before it reaches a customer.
+    [Test]
+    public async Task A_settings_row_counts_as_data()
+    {
+        await ServiceProvider.GetRequiredService<ITrialLicenseDataProvider>().StoreTrialEndDate(new DateOnly(2030, 1, 1));
+
+        var exception = Assert.ThrowsAsync<Exception>(() => TargetCheck.Run());
+
+        Assert.That(exception.Message, Does.Contain(TableName<SettingEntity>()));
+    }
+
+    [Test]
+    public async Task A_target_with_a_required_checkpoint_row_is_not_judged()
+    {
+        await EndpointSettingsStore.UpdateEndpointSettings(new EndpointSettings { Name = "Sales", TrackInstances = true });
+        await SeedCheckpoint(MigrationCategoryIds.KnownEndpoints, MigrationCategoryState.Complete);
+
+        Assert.DoesNotThrowAsync(() => TargetCheck.Run());
+    }
+
+    [Test]
+    public async Task A_row_under_an_id_this_build_does_not_know_counts_as_a_started_copy()
+    {
+        await EndpointSettingsStore.UpdateEndpointSettings(new EndpointSettings { Name = "Sales", TrackInstances = true });
+        await SeedCheckpoint("SomeCategoryFromANewerBuild", MigrationCategoryState.InProgress);
+
+        Assert.DoesNotThrowAsync(() => TargetCheck.Run());
+    }
+
+    // --migration-abandon writes this row before any copy has run, so on a database that already served on SQL it must not switch the check off.
+    [Test]
+    public async Task An_abandoned_optional_row_alone_does_not_skip_the_check()
+    {
+        await EndpointSettingsStore.UpdateEndpointSettings(new EndpointSettings { Name = "Sales", TrackInstances = true });
+        await SeedCheckpoint(MigrationCategoryIds.EventLog, MigrationCategoryState.Abandoned);
+
+        var exception = Assert.ThrowsAsync<Exception>(() => TargetCheck.Run());
+
+        Assert.That(exception.Message, Does.Contain(TableName<EndpointSettingsEntity>()));
+    }
+
+    [Test]
+    public void Every_mapped_entity_but_the_checkpoint_is_judged()
+    {
+        using var scope = ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+
+        var mapped = dbContext.Model.GetEntityTypes().Select(type => type.ClrType).Where(type => type != typeof(MigrationCheckpointEntity));
+
+        Assert.That(TargetHoldsNoServiceControlDataCheck.Tables.Select(entry => entry.Entity), Is.EquivalentTo(mapped));
+    }
+
+    IMigrationStartupCheck TargetCheck => Readiness.ContributedChecks().OfType<TargetHoldsNoServiceControlDataCheck>().Single();
+
+    Task SeedCheckpoint(string categoryId, MigrationCategoryState state) =>
+        ServiceProvider.GetRequiredService<IMigrationCheckpointStore>().Upsert(new MigrationCheckpoint(categoryId, state, null, 0, 0, null, null, null, null, null, null));
+
+    string TableName<T>()
+    {
+        using var scope = ServiceProvider.CreateScope();
+
+        return scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>().Model.FindEntityType(typeof(T))!.GetTableName()!;
     }
 
     [Test]

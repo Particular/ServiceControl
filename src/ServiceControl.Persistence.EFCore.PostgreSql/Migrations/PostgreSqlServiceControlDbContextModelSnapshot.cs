@@ -762,6 +762,10 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("started_at");
 
+                    b.Property<long?>("StartedWindowSeconds")
+                        .HasColumnType("bigint")
+                        .HasColumnName("started_window_seconds");
+
                     b.Property<int>("State")
                         .HasColumnType("integer")
                         .HasColumnName("state");

@@ -33,7 +33,7 @@ public interface IMigrationSource : IAsyncDisposable
     Task<IReadOnlyList<MigrationSourceInventoryEntry>> Inventory(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// How many rows the source holds for one category, for progress and verify.
+    /// How many rows the source holds for one category, which --migration-verify reports.
     /// </summary>
     Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default);
 

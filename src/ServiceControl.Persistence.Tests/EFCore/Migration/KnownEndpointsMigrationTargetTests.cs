@@ -96,7 +96,6 @@ class KnownEndpointsMigrationTargetTests : PersistenceTestBase
             Assert.That(result.Copied, Is.Zero);
             Assert.That(result.AlreadyPresent, Is.Zero, "no key was looked up, so no row may be counted as one the target already held");
             Assert.That(result.Skipped, Is.EqualTo(2));
-            Assert.That(result.BenignSkipped, Is.Zero, "a missing NOT NULL column is a fault, and faults have to reach the halt threshold");
             Assert.That(await MonitoringDataStore.GetAllKnownEndpoints(), Is.Empty);
             Assert.That(stored.Cursor, Is.EqualTo("KnownEndpoints/2"), "a batch that copied nothing still has to commit the cursor past it, or the restart reads the same rows forever");
         }
@@ -185,7 +184,7 @@ class KnownEndpointsMigrationTargetTests : PersistenceTestBase
     {
         // The already-present count is a subtraction, so it only catches a writer that over-reports. A row dropped in silence under-reports, and without this guard it is counted as a row the target already held.
         var batch = BatchOf(("KnownEndpoints/1", new object()), ("KnownEndpoints/2", new object()));
-        var prepared = new PreparedBatch((_, _) => Task.FromResult(1), PreparedRowCount: 1, Skips: []);
+        var prepared = new PreparedBatch((_, _) => Task.FromResult(1), PreparedRowCount: 1, Skips: [], Merges: []);
 
         var exception = Assert.Throws<InvalidOperationException>(() => EFCoreMigrationTarget.AccountForEveryRow(KnownEndpointsCategory, batch, prepared));
 

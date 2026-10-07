@@ -63,14 +63,18 @@ sealed class EFCoreMigrationTarget(IServiceScopeFactory scopeFactory, IMigration
                 logger.LogWarning("Skipped {SourceId} in category {CategoryId} as {SkipReason}: {Detail}", sourceId, category.Id, reason, detail);
             }
 
+            foreach (var (sourceId, detail) in prepared.Merges)
+            {
+                logger.LogWarning("Merged {SourceId} in category {CategoryId} into a row with the same key: {Detail}", sourceId, category.Id, detail);
+            }
+
             return new MigrationWriteResult(
                 saved,
                 copied,
                 prepared.Skips.Count,
                 [.. prepared.Skips.Select(skip => skip.SourceId)],
                 AlreadyPresent: alreadyPresent,
-                SkipReasons: skipReasons,
-                BenignSkipped: prepared.BenignSkipCount);
+                SkipReasons: skipReasons);
         }, cancellationToken);
 
     // Checked before the insert, because the subtraction below can only catch a writer that over-reports.

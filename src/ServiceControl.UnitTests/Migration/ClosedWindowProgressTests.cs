@@ -2,8 +2,6 @@
 namespace ServiceControl.UnitTests.Migration;
 
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,18 +19,38 @@ class ClosedWindowProgressTests
     static readonly TimeSpan StallLimit = MigrationStartup.ClosedWindowProgress.StallLimit;
 
     [Test]
-    public async Task A_category_that_commits_nothing_for_the_stall_limit_has_its_copy_stopped()
+    public async Task A_category_that_commits_nothing_for_the_stall_limit_is_stopped()
     {
         var clock = new TimerRecordingTimeProvider();
         var store = new PollObservingCheckpointStore(clock);
         await store.Upsert(InProgress(MigrationCategoryIds.KnownEndpoints, lastProgressAt: clock.GetUtcNow().UtcDateTime));
-        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints);
+        using var stop = new CancellationTokenSource();
+        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints, stop);
 
         clock.Advance(StallLimit + PollInterval);
 
-        Assert.That(progress.Token.WaitHandle.WaitOne(TimeSpan.FromSeconds(10)), Is.True, "a copy that committed nothing for longer than the limit was never stopped");
+        Assert.That(stop.Token.WaitHandle.WaitOne(TimeSpan.FromSeconds(10)), Is.True, "a category that committed nothing for longer than the limit was never stopped");
         await progress.DisposeAsync();
-        Assert.That(progress.StalledCategoryId, Is.EqualTo(MigrationCategoryIds.KnownEndpoints), "the refusal message names the category from this");
+    }
+
+    // A call that ignores its token never returns, so the row stays in progress and every later poll sees the same stall.
+    [Test]
+    public async Task A_category_already_stopped_is_reported_once_however_long_it_stays_stuck()
+    {
+        var clock = new TimerRecordingTimeProvider();
+        var store = new PollObservingCheckpointStore(clock);
+        await store.Upsert(InProgress(MigrationCategoryIds.KnownEndpoints, lastProgressAt: clock.GetUtcNow().UtcDateTime));
+        var logger = new CapturingLogger();
+        using var stop = new CancellationTokenSource();
+        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints, stop, logger: logger);
+
+        clock.Advance(StallLimit + PollInterval);
+        await store.WaitForAPollAtTheCurrentTime();
+        clock.Advance(PollInterval);
+        await store.WaitForAPollAtTheCurrentTime();
+        await progress.DisposeAsync();
+
+        Assert.That(logger.Entries.Count(entry => entry.Level == LogLevel.Error), Is.EqualTo(1), "the same stall was reported again on the next poll");
     }
 
     [Test]
@@ -43,29 +61,31 @@ class ClosedWindowProgressTests
         var clock = new TimerRecordingTimeProvider();
         var store = new PollObservingCheckpointStore(clock);
         await store.Upsert(InProgress(MigrationCategoryIds.KnownEndpoints, lastProgressAt: clock.GetUtcNow().UtcDateTime - TimeSpan.FromHours(2)));
-        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints);
+        using var stop = new CancellationTokenSource();
+        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints, stop);
 
         clock.Advance(PollInterval);
-        await WaitForAPollAtTheCurrentTime(store, clock);
+        await store.WaitForAPollAtTheCurrentTime();
         await progress.DisposeAsync();
 
-        Assert.That(progress.StalledCategoryId, Is.Null, "the window runs from when this watch began, not from a stamp the previous run left");
+        Assert.That(stop.IsCancellationRequested, Is.False, "the window runs from when this category's run began, not from a stamp the previous run left");
     }
 
     [Test]
-    public async Task A_row_left_running_by_another_run_is_not_this_copys_to_stop()
+    public async Task A_row_other_than_the_running_category_is_not_judged()
     {
-        // ReadAll returns every row in the target, including ones this run never attempted.
+        // Both were attempted, but only KnownEndpoints is running, and it has no row yet.
         var clock = new TimerRecordingTimeProvider();
         var store = new PollObservingCheckpointStore(clock);
         await store.Upsert(InProgress(MigrationCategoryIds.EndpointSettings, lastProgressAt: clock.GetUtcNow().UtcDateTime));
-        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints);
+        using var stop = new CancellationTokenSource();
+        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints, stop, [MigrationCategoryIds.KnownEndpoints, MigrationCategoryIds.EndpointSettings]);
 
         clock.Advance(StallLimit + PollInterval);
-        await WaitForAPollAtTheCurrentTime(store, clock);
+        await store.WaitForAPollAtTheCurrentTime();
         await progress.DisposeAsync();
 
-        Assert.That(progress.StalledCategoryId, Is.Null, "a category this run never attempted was named as the reason its copy stopped");
+        Assert.That(stop.IsCancellationRequested, Is.False, "the running category was stopped over a row nobody is copying");
     }
 
     [Test]
@@ -74,30 +94,31 @@ class ClosedWindowProgressTests
         var clock = new TimerRecordingTimeProvider();
         var store = new PollObservingCheckpointStore(clock);
         await store.Upsert(InProgress(MigrationCategoryIds.KnownEndpoints, lastProgressAt: clock.GetUtcNow().UtcDateTime));
-        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints);
+        using var stop = new CancellationTokenSource();
+        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints, stop);
 
         clock.Advance(StallLimit);
-        await WaitForAPollAtTheCurrentTime(store, clock);
+        await store.WaitForAPollAtTheCurrentTime();
         await progress.DisposeAsync();
 
-        Assert.That(progress.StalledCategoryId, Is.Null, "the limit is the point at which a copy has not yet stalled");
+        Assert.That(stop.IsCancellationRequested, Is.False, "the limit is the point at which a copy has not yet stalled");
     }
 
     [Test]
-    public async Task A_category_that_has_committed_nothing_since_this_watch_began_is_stopped()
+    public async Task A_category_that_has_committed_nothing_since_its_run_began_is_stopped()
     {
-        // The engine stamps a category when it marks it running, so the window covers counting the source
-        // and the first read, which is where a copy that never gets going actually hangs.
+        // The engine stamps a category when it marks it running, so the window covers the first read, which is
+        // where a copy that never gets going actually hangs. When the category first started does not matter.
         var clock = new TimerRecordingTimeProvider();
         var store = new PollObservingCheckpointStore(clock);
         await store.Upsert(InProgress(MigrationCategoryIds.KnownEndpoints, lastProgressAt: clock.GetUtcNow().UtcDateTime, startedAt: clock.GetUtcNow().UtcDateTime - TimeSpan.FromDays(3)));
-        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints);
+        using var stop = new CancellationTokenSource();
+        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints, stop);
 
         clock.Advance(StallLimit + PollInterval);
 
-        Assert.That(progress.Token.WaitHandle.WaitOne(TimeSpan.FromSeconds(10)), Is.True, "a category that has committed nothing since the watch began was never stopped");
+        Assert.That(stop.Token.WaitHandle.WaitOne(TimeSpan.FromSeconds(10)), Is.True, "a category that has committed nothing since its run began was never stopped");
         await progress.DisposeAsync();
-        Assert.That(progress.StalledCategoryId, Is.EqualTo(MigrationCategoryIds.KnownEndpoints));
     }
 
     [Test]
@@ -106,30 +127,30 @@ class ClosedWindowProgressTests
         var clock = new TimerRecordingTimeProvider();
         var store = new PollObservingCheckpointStore(clock);
         await store.Upsert(InProgress(MigrationCategoryIds.KnownEndpoints, lastProgressAt: null, startedAt: clock.GetUtcNow().UtcDateTime - TimeSpan.FromDays(3)));
-        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints);
+        using var stop = new CancellationTokenSource();
+        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints, stop);
 
         clock.Advance(StallLimit + PollInterval);
 
-        Assert.That(progress.Token.WaitHandle.WaitOne(TimeSpan.FromSeconds(10)), Is.True, "an unstamped row was left unwatched for ever");
+        Assert.That(stop.Token.WaitHandle.WaitOne(TimeSpan.FromSeconds(10)), Is.True, "an unstamped row was left unwatched for ever");
         await progress.DisposeAsync();
-        Assert.That(progress.StalledCategoryId, Is.EqualTo(MigrationCategoryIds.KnownEndpoints));
     }
 
     [Test]
     public async Task A_category_this_run_finished_is_not_stopped_for_having_gone_quiet()
     {
-        // Required categories run one at a time, so a small one settles early and its stamp then ages
-        // for as long as the next category takes.
+        // The watch moves to the next category only when that one starts, so a settled row can still be the one watched.
         var clock = new TimerRecordingTimeProvider();
         var store = new PollObservingCheckpointStore(clock);
         await store.Upsert(Settled(MigrationCategoryIds.KnownEndpoints, MigrationCategoryState.Complete, lastProgressAt: clock.GetUtcNow().UtcDateTime));
-        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints);
+        using var stop = new CancellationTokenSource();
+        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints, stop);
 
         clock.Advance(StallLimit + PollInterval);
-        await WaitForAPollAtTheCurrentTime(store, clock);
+        await store.WaitForAPollAtTheCurrentTime();
         await progress.DisposeAsync();
 
-        Assert.That(progress.StalledCategoryId, Is.Null, "a category that finished was named as the reason the copy stopped");
+        Assert.That(stop.IsCancellationRequested, Is.False, "a category that finished was stopped");
     }
 
     [Test]
@@ -139,13 +160,14 @@ class ClosedWindowProgressTests
         var clock = new TimerRecordingTimeProvider();
         var store = new PollObservingCheckpointStore(clock);
         await store.Upsert(Settled(MigrationCategoryIds.KnownEndpoints, MigrationCategoryState.Halted, lastProgressAt: clock.GetUtcNow().UtcDateTime));
-        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints);
+        using var stop = new CancellationTokenSource();
+        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints, stop);
 
         clock.Advance(StallLimit + PollInterval);
-        await WaitForAPollAtTheCurrentTime(store, clock);
+        await store.WaitForAPollAtTheCurrentTime();
         await progress.DisposeAsync();
 
-        Assert.That(progress.StalledCategoryId, Is.Null, "a halted category was named as the reason the copy stopped");
+        Assert.That(stop.IsCancellationRequested, Is.False, "a halted category was stopped");
     }
 
     // The watch has no total limit, so a copy that keeps committing outlives any length of run.
@@ -155,19 +177,20 @@ class ClosedWindowProgressTests
         var clock = new TimerRecordingTimeProvider();
         var store = new PollObservingCheckpointStore(clock);
         var committed = await store.Upsert(InProgress(MigrationCategoryIds.KnownEndpoints, lastProgressAt: clock.GetUtcNow().UtcDateTime));
-        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints);
+        using var stop = new CancellationTokenSource();
+        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints, stop);
 
         // Four times the limit, committing a batch every poll, which a total timeout would have killed long ago.
         for (var elapsed = TimeSpan.Zero; elapsed < StallLimit * 4; elapsed += PollInterval)
         {
             clock.Advance(PollInterval);
-            await WaitForAPollAtTheCurrentTime(store, clock);
+            await store.WaitForAPollAtTheCurrentTime();
             committed = await store.Upsert(committed with { LastProgressAt = clock.GetUtcNow().UtcDateTime });
         }
 
         await progress.DisposeAsync();
 
-        Assert.That(progress.StalledCategoryId, Is.Null, "a copy committing a batch every poll was stopped, so the watch is a deadline rather than a stall detector");
+        Assert.That(stop.IsCancellationRequested, Is.False, "a copy committing a batch every poll was stopped, so the watch is a deadline rather than a stall detector");
     }
 
     [Test]
@@ -179,44 +202,26 @@ class ClosedWindowProgressTests
         store.FailReadAll(1, storeFailure);
         await store.Upsert(InProgress(MigrationCategoryIds.KnownEndpoints, lastProgressAt: clock.GetUtcNow().UtcDateTime));
         var logger = new CapturingLogger();
-        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints, logger);
+        using var stop = new CancellationTokenSource();
+        var progress = await StartWatching(store, clock, MigrationCategoryIds.KnownEndpoints, stop, logger: logger);
 
         clock.Advance(PollInterval);
-        await WaitForAPollAtTheCurrentTime(store, clock);
+        await store.WaitForAPollAtTheCurrentTime();
         clock.Advance(StallLimit + PollInterval);
 
-        Assert.That(progress.Token.WaitHandle.WaitOne(TimeSpan.FromSeconds(10)), Is.True, "a watch that stopped at the first blip never noticed the stall that followed");
+        Assert.That(stop.Token.WaitHandle.WaitOne(TimeSpan.FromSeconds(10)), Is.True, "a watch that stopped at the first blip never noticed the stall that followed");
         await progress.DisposeAsync();
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(progress.StalledCategoryId, Is.EqualTo(MigrationCategoryIds.KnownEndpoints));
-            Assert.That(logger.Entries.Where(entry => entry.Level == LogLevel.Error).Select(entry => entry.Exception), Has.Member(storeFailure), "a watch that has gone deaf has to say so");
-        }
+        Assert.That(logger.Entries.Where(entry => entry.Level == LogLevel.Error).Select(entry => entry.Exception), Has.Member(storeFailure), "a watch that has gone deaf has to say so");
     }
 
-    static async Task<MigrationStartup.ClosedWindowProgress> StartWatching(PollObservingCheckpointStore store, TimerRecordingTimeProvider clock, string attemptedCategoryId, ILogger? logger = null)
+    static async Task<MigrationStartup.ClosedWindowProgress> StartWatching(PollObservingCheckpointStore store, TimerRecordingTimeProvider clock, string runningCategoryId, CancellationTokenSource stop, string[]? attemptedCategoryIds = null, ILogger? logger = null)
     {
-        var progress = new MigrationStartup.ClosedWindowProgress(store, clock, logger ?? new CapturingLogger(), [attemptedCategoryId]);
+        var progress = new MigrationStartup.ClosedWindowProgress(store, clock, logger ?? new CapturingLogger(), attemptedCategoryIds ?? [runningCategoryId]);
+        progress.Watch(runningCategoryId, clock.GetUtcNow().UtcDateTime, stop);
 
         Assert.That(await clock.TimerCreated.WaitAsync(TimeSpan.FromSeconds(10)), Is.True, "the watch never started its timer, so advancing the clock would tick nothing");
 
         return progress;
-    }
-
-    // Without this, a test asserting the watch did nothing would just be asking before the watch had looked.
-    static async Task WaitForAPollAtTheCurrentTime(PollObservingCheckpointStore store, TimerRecordingTimeProvider clock)
-    {
-        var now = clock.GetUtcNow().UtcDateTime;
-
-        while (true)
-        {
-            Assert.That(await store.Polled.WaitAsync(TimeSpan.FromSeconds(10)), Is.True, $"no poll read the checkpoints at {now:O}; a watch that stopped polling never reaches one");
-
-            if (store.PolledAt.TryDequeue(out var polledAt) && polledAt == now)
-            {
-                return;
-            }
-        }
     }
 
     static MigrationCheckpoint InProgress(string categoryId, DateTime? lastProgressAt, DateTime? startedAt = null) =>
@@ -224,40 +229,4 @@ class ClosedWindowProgressTests
 
     static MigrationCheckpoint Settled(string categoryId, MigrationCategoryState state, DateTime lastProgressAt) =>
         new(categoryId, state, null, 0, 0, null, null, lastProgressAt, lastProgressAt, lastProgressAt, null);
-
-    // Records when each poll read the rows, so a test can wait for a poll that saw the state it is judging.
-    sealed class PollObservingCheckpointStore(TimeProvider clock) : IMigrationCheckpointStore
-    {
-        readonly InMemoryMigrationCheckpointStore inner = new();
-        Exception? readAllFailure;
-        int readAllFailuresLeft;
-
-        public SemaphoreSlim Polled { get; } = new(0);
-
-        public ConcurrentQueue<DateTime> PolledAt { get; } = new();
-
-        public void FailReadAll(int times, Exception failure)
-        {
-            readAllFailuresLeft = times;
-            readAllFailure = failure;
-        }
-
-        public Task<IReadOnlyList<MigrationCheckpoint>> ReadAll(CancellationToken cancellationToken = default)
-        {
-            PolledAt.Enqueue(clock.GetUtcNow().UtcDateTime);
-            Polled.Release();
-
-            if (readAllFailuresLeft > 0)
-            {
-                readAllFailuresLeft--;
-                return Task.FromException<IReadOnlyList<MigrationCheckpoint>>(readAllFailure!);
-            }
-
-            return inner.ReadAll(cancellationToken);
-        }
-
-        public Task<MigrationCheckpoint?> Read(string categoryId, CancellationToken cancellationToken = default) => inner.Read(categoryId, cancellationToken);
-
-        public Task<MigrationCheckpoint> Upsert(MigrationCheckpoint checkpoint, CancellationToken cancellationToken = default) => inner.Upsert(checkpoint, cancellationToken);
-    }
 }

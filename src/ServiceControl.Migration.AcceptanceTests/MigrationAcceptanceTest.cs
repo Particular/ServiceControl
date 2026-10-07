@@ -324,7 +324,8 @@ abstract class MigrationAcceptanceTest
 
         var after = await engine.RunCategoryAsync(category, cancellationToken);
 
-        if (!after.State.IsFinished())
+        // Both reached the end of the source, so a test can assert a Failed category's skips as well as a Done one's.
+        if (after.State is not (MigrationCategoryState.Complete or MigrationCategoryState.CompleteWithErrors))
         {
             throw new InvalidOperationException($"Copying '{categoryId}' ended {after.State}: {after.LastError}");
         }

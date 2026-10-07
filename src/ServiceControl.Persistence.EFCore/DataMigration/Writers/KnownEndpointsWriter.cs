@@ -48,6 +48,7 @@ sealed class KnownEndpointsWriter(IMigrationSqlDialect migrationDialect) : IMigr
         return Task.FromResult(new PreparedBatch(
             async (context, token) => (await migrationDialect.InsertMissing(context, rows, token)).Count,
             rows.Count,
-            skips));
+            skips,
+            Merges: []));
     }
 }

@@ -23,14 +23,9 @@ public static class MigrationSettings
     /// Turns the migration on: the required copy runs before the host opens.
     /// </summary>
     public const string EnabledKey = "Migration/Enabled";
-    /// <summary>
-    /// Accepts permanent loss on an instance that has already served traffic on the target.
-    /// </summary>
-    public const string AllowIncompleteExitKey = "Migration/AllowIncompleteExit";
 
     public const int DefaultThrottlePauseMilliseconds = 100;
     public const int DefaultHaltThresholdPercent = 5;
     public const int DefaultHaltThresholdMinimum = 100;
     public const bool DefaultEnabled = false;
-    public const bool DefaultAllowIncompleteExit = false;
 }

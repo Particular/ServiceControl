@@ -13,7 +13,7 @@ static class MigrationStartupCheckRunner
 {
     /// <summary>
     /// Runs each check in turn, and wraps whatever a failing one throws in a message naming the check and
-    /// saying that nothing has been copied.
+    /// saying that this start has copied nothing, because every check runs before this start's copy.
     /// </summary>
     /// <exception cref="Exception">A check failed. The check's own message is kept, and its exception is the inner one.</exception>
     public static async Task Run(IReadOnlyList<IMigrationStartupCheck> checks, CancellationToken cancellationToken = default)
@@ -32,7 +32,7 @@ static class MigrationStartupCheckRunner
             catch (Exception exception)
             {
                 throw new Exception(
-                    $"Migration startup check '{check.Name}' failed, so ServiceControl will not start and nothing has been copied. {exception.Message}", exception);
+                    $"Migration startup check '{check.Name}' failed, so ServiceControl will not start, and this start has copied nothing. {exception.Message}", exception);
             }
         }
     }

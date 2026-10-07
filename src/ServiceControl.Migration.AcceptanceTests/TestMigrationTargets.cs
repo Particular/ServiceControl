@@ -70,7 +70,7 @@ sealed class FaultingMigrationTarget(IMigrationTarget inner, int failingWrite) :
     public IReadOnlyCollection<string> SupportedCategoryIds => inner.SupportedCategoryIds;
 }
 
-// Stops the copy the moment the first category settles, which is the only way to stop it between two categories.
+// Stops the copy the moment the first category settles Done or Abandoned, which is the only way to stop it between two categories.
 sealed class StoppingAfterTheFirstSettleCheckpointStore(IMigrationCheckpointStore inner, CancellationTokenSource stopping) : IMigrationCheckpointStore
 {
     public Task<IReadOnlyList<MigrationCheckpoint>> ReadAll(CancellationToken cancellationToken = default) => inner.ReadAll(cancellationToken);

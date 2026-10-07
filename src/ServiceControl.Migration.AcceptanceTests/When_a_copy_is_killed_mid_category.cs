@@ -11,10 +11,9 @@ using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
 using ServiceControl.Hosting.Commands;
 using ServiceControl.Persistence.DataMigration;
+using ServiceControl.Persistence.EFCore;
 
 [TestFixture]
-// Mandatory, not stylistic: this assembly is Parallelizable(ParallelScope.All) and these fixtures set
-// process-global environment variables. One fixture added without it makes the whole suite intermittent.
 [NonParallelizable]
 class When_a_copy_is_killed_mid_category : MigrationAcceptanceTest
 {
@@ -61,6 +60,14 @@ class When_a_copy_is_killed_mid_category : MigrationAcceptanceTest
 
         Assert.That(killed, Is.Not.Null);
         Assert.That(await TargetEndpointSettingsCount(), Is.EqualTo(2), "the first batch and its cursor should have committed together");
+
+        var refusedAgain = Assert.ThrowsAsync<Exception>(async () =>
+            await RunCommand.Run(Settings, AllowingAnUnreleasedMigration(), cancellation.Token));
+        Assert.That(refusedAgain.Message, Is.EqualTo(killed.Message), "a start re-ran a Failed category the operator had not put back");
+
+        // The row a kill part way through the category leaves: still copying, with the first batch's cursor and counts.
+        var halted = await ReadCheckpoint("EndpointSettings");
+        await QueryTarget(dbContext => dbContext.UpsertCheckpoint(halted with { State = MigrationCategoryState.InProgress, LastError = null, SettledAt = null }));
 
         await RunHostUntilTheApiAnswers();
 
@@ -115,7 +122,7 @@ class When_a_copy_is_killed_mid_category : MigrationAcceptanceTest
             {
                 Assert.That((await ReadCheckpoint(MigrationCategoryIds.KnownEndpoints))?.State, Is.EqualTo(MigrationCategoryState.Complete), "the stop has to land between the two categories for this test to mean anything");
                 Assert.That(async () => await worker.StartAsync(cancellation.Token),
-                    Throws.Exception.With.Message.Contain("EndpointSettings is NotStarted").And.Message.Not.Contain("KnownEndpoints is"),
+                    Throws.Exception.With.Message.Contain("EndpointSettings is Copying (NotStarted)").And.Message.Not.Contain("KnownEndpoints is"),
                     "a worker let into a database whose copy stopped after its first category");
                 Assert.That((await ReadCheckpoint(MigrationCategoryIds.EndpointSettings))?.State, Is.EqualTo(MigrationCategoryState.NotStarted));
             }

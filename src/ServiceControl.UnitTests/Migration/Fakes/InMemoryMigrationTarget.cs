@@ -13,7 +13,7 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
     readonly Dictionary<string, List<MigrationRow>> writtenRowsByCategory = [];
     readonly Dictionary<string, List<MigrationRow>> rowsHandedToWriteByCategory = [];
     readonly HashSet<string> preExistingKeys = [];
-    readonly Dictionary<string, (MigrationSkipReason Reason, bool Benign)> rejectedKeys = [];
+    readonly Dictionary<string, MigrationSkipReason> rejectedKeys = [];
 
     public int DefaultBatchSize { get; set; } = 3;
     public string NoBatchSizeFor { get; set; }
@@ -23,6 +23,11 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
     /// What FailOnCallNumber throws, when the default simulated failure is the wrong shape for the test.
     /// </summary>
     public Exception FailWith { get; set; }
+
+    /// <summary>
+    /// How many rows each write leaves out of the outcome it reports and commits, without failing, so the two still agree with each other.
+    /// </summary>
+    public int UnderReportBy { get; set; }
 
     /// <summary>
     /// Runs at the start of every write, before any simulated failure, with the checkpoint the engine is extending, so a test can watch a stamp move between batches.
@@ -37,11 +42,15 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
     /// Cancels the token on this call and throws instead of writing, so the stop surfaces from the write itself.
     /// </summary>
     public (int CallNumber, CancellationTokenSource Source)? StopOnCall { get; set; }
+    /// <summary>
+    /// Waits on this call until the token is cancelled and then throws, as a write stuck on a database that stopped answering does.
+    /// </summary>
+    public int? HangOnCall { get; set; }
     int callCount;
 
     public void SeedExistingKey(string sourceId) => preExistingKeys.Add(sourceId);
 
-    public void RejectKey(string sourceId, MigrationSkipReason reason, bool benign = false) => rejectedKeys[sourceId] = (reason, benign);
+    public void RejectKey(string sourceId, MigrationSkipReason reason) => rejectedKeys[sourceId] = reason;
 
     public IReadOnlyList<MigrationRow> WrittenRows(string categoryId) =>
         writtenRowsByCategory.TryGetValue(categoryId, out var rows) ? rows : [];
@@ -65,6 +74,11 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
     {
         callCount++;
         BeforeWrite?.Invoke(checkpointToExtend);
+
+        if (HangOnCall == callCount)
+        {
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+        }
 
         if (StopOnCall is { } stop && stop.CallNumber == callCount)
         {
@@ -92,20 +106,15 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
 
         var copied = 0;
         var alreadyPresent = 0;
-        var benignSkipped = 0;
         var skippedIds = new List<string>();
         var skipReasons = new Dictionary<MigrationSkipReason, long>();
 
         foreach (var row in batch.Rows)
         {
-            if (rejectedKeys.TryGetValue(row.SourceId, out var rejection))
+            if (rejectedKeys.TryGetValue(row.SourceId, out var reason))
             {
                 skippedIds.Add(row.SourceId);
-                skipReasons[rejection.Reason] = skipReasons.GetValueOrDefault(rejection.Reason) + 1;
-                if (rejection.Benign)
-                {
-                    benignSkipped++;
-                }
+                skipReasons[reason] = skipReasons.GetValueOrDefault(reason) + 1;
                 continue;
             }
 
@@ -119,13 +128,15 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
             copied++;
         }
 
+        copied -= UnderReportBy;
+
         // The real targets extend and save the checkpoint in the transaction that writes the rows,
         // so this fake saves it here too.
         var saved = await checkpointStore.Upsert(
             checkpointToExtend.Extend(copied, skippedIds.Count, alreadyPresent, skipReasons),
             cancellationToken);
 
-        return new MigrationWriteResult(saved, copied, skippedIds.Count, skippedIds, alreadyPresent, skipReasons, benignSkipped);
+        return new MigrationWriteResult(saved, copied, skippedIds.Count, skippedIds, alreadyPresent, skipReasons);
     }
 
     public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) =>

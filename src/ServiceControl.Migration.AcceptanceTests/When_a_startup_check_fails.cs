@@ -2,6 +2,7 @@ namespace ServiceControl.Migration.AcceptanceTests;
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -12,11 +13,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using NUnit.Framework;
 using ServiceControl.Hosting.Commands;
+using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.EFCore.Abstractions;
+using ServiceControl.Persistence.EFCore.Entities;
 
 [TestFixture]
-// Mandatory, not stylistic: this assembly is Parallelizable(ParallelScope.All) and these fixtures set
-// process-global environment variables. One fixture added without it makes the whole suite intermittent.
 [NonParallelizable]
 class When_a_startup_check_fails : MigrationAcceptanceTest
 {
@@ -65,6 +66,21 @@ class When_a_startup_check_fails : MigrationAcceptanceTest
         var refusal = await RefusedStartup();
 
         Assert.That(refusal.Message, Does.Contain("the target schema is current").And.Contain("--setup"));
+    }
+
+    [Test]
+    public async Task A_target_that_already_holds_data_is_refused()
+    {
+        await QueryTarget(dbContext =>
+        {
+            dbContext.Settings.Add(new SettingEntity { Key = "NotificationEmails", Value = "{}" });
+            return dbContext.SaveChangesAsync();
+        });
+        var settingsTable = await QueryTarget(dbContext => Task.FromResult(dbContext.Model.FindEntityType(typeof(SettingEntity))!.GetTableName()!));
+
+        var refusal = await RefusedStartup();
+
+        Assert.That(refusal.Message, Does.Contain("the migration target holds no ServiceControl data").And.Contain(settingsTable).And.Contain("--setup"));
     }
 
     [Test]
@@ -142,9 +158,76 @@ class When_a_startup_check_fails : MigrationAcceptanceTest
         {
             Assert.That(exception.Message, Does.Contain("EndpointSettings").And.Contain("Halted"));
             Assert.That(exception.Message, Does.Contain("nothing has been lost"));
-            Assert.That(exception.Message, Does.Not.Contain("AllowIncompleteExit"), "the clean abort is the answer here, not the flag that accepts loss");
+            Assert.That(exception.Message, Does.Contain("--migration-retry EndpointSettings").And.Contain("--migration-abandon EndpointSettings"), "a Failed category waits for the operator, so the refusal has to name what moves it on");
             Assert.That(async () => await HttpClient.GetAsync(EndpointSettingsUrl), Throws.InstanceOf<HttpRequestException>(), "Kestrel bound its socket behind a halted required category");
         });
+    }
+
+    [Test]
+    public async Task A_source_that_will_not_open_once_the_required_copy_settled_still_lets_the_host_open()
+    {
+        await SeedSourceKnownEndpoints("Sales");
+        await SeedSourceEndpointSettings(("Sales", true));
+        await RunHostUntilTheApiAnswers();
+
+        var missing = $"{Source.PrimaryDatabase}-does-not-exist";
+        SetSourceVariable("SERVICECONTROL_MIGRATION_EVENTLOGWINDOW", null);
+        SetSourceVariable("SERVICECONTROL_RAVENDB_DATABASENAME", missing);
+
+        await RunHostUntilTheApiAnswers();
+
+        var endpointSettings = await GetEndpointSettings();
+        var eventLog = await ReadCheckpoint(MigrationCategoryIds.EventLog);
+        var archived = await ReadCheckpoint(MigrationCategoryIds.ArchivedAndResolvedFailedMessages);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(endpointSettings.Select(setting => setting.Name), Does.Contain("Sales"));
+            Assert.That(eventLog?.State, Is.EqualTo(MigrationCategoryState.NotStarted));
+            Assert.That(eventLog?.LastError, Does.Contain(missing).And.Not.Contain("will not start"), "status reads the outage from the row, on a start that did open");
+            Assert.That(archived?.State, Is.EqualTo(MigrationCategoryState.NotStarted));
+            Assert.That(archived?.LastError, Does.Contain(missing));
+        }
+    }
+
+    [Test]
+    public async Task A_source_that_will_not_open_before_the_required_copy_settled_still_refuses()
+    {
+        await SeedCheckpoint(MigrationCategoryIds.KnownEndpoints);
+        await SeedCheckpoint(MigrationCategoryIds.EndpointSettings, MigrationCategoryState.InProgress);
+
+        var missing = $"{Source.PrimaryDatabase}-does-not-exist";
+        SetSourceVariable("SERVICECONTROL_RAVENDB_DATABASENAME", missing);
+
+        var refusal = await RefusedStartup();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(refusal.Message, Does.Contain("the migration source opens").And.Contain(missing));
+            Assert.That(refusal.Message, Does.Contain("--migration-abandon"), "a required category that never started has no exit once the source is gone, and the refusal has to say so");
+            Assert.That(await ReadCheckpoint(MigrationCategoryIds.EventLog), Is.Null, "a refusal writes nothing");
+        }
+    }
+
+    [Test]
+    public async Task A_failed_optional_row_does_not_stop_the_host_opening()
+    {
+        await SeedSourceKnownEndpoints("Sales");
+        await SeedSourceEndpointSettings(("Sales", true));
+        await RunHostUntilTheApiAnswers();
+
+        await SeedCheckpoint(MigrationCategoryIds.EventLog, MigrationCategoryState.CompleteWithErrors);
+        SetSourceVariable("SERVICECONTROL_RAVENDB_DATABASENAME", $"{Source.PrimaryDatabase}-does-not-exist");
+
+        await RunHostUntilTheApiAnswers();
+
+        var eventLog = await ReadCheckpoint(MigrationCategoryIds.EventLog);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(eventLog?.State, Is.EqualTo(MigrationCategoryState.CompleteWithErrors));
+            Assert.That(eventLog?.LastError, Is.Null, "the outage leaves a Failed row alone");
+        }
     }
 
     // Every refusal is asserted against a source that has rows to copy: an empty target proves nothing otherwise.
@@ -161,7 +244,7 @@ class When_a_startup_check_fails : MigrationAcceptanceTest
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(refusal.Message, Does.Contain("nothing has been copied"));
+            Assert.That(refusal.Message, Does.Contain("this start has copied nothing"));
             Assert.That(await TargetEndpointSettingsCount(), Is.Zero, "a check that fires after rows have moved is worse than no check");
             Assert.That(await ReadSetting(HostOpenedSetting), Is.Null, "a refused startup has opened on nothing, so the abort is still free");
         }

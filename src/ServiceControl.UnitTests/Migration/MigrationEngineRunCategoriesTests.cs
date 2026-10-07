@@ -69,23 +69,28 @@ class MigrationEngineRunCategoriesTests
     }
 
     [Test]
-    public async Task A_halted_category_resumes_from_its_row_rather_than_being_reset()
+    public async Task A_halted_category_is_left_untouched_and_the_next_category_still_runs()
     {
         var firstStarted = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         var source = new InMemoryMigrationSource();
         var checkpointStore = new InMemoryMigrationCheckpointStore();
-        await checkpointStore.Upsert(new MigrationCheckpoint("KnownEndpoints", MigrationCategoryState.Halted, "KnownEndpoints-1", 1, 0, 2, null, firstStarted, firstStarted, firstStarted, "Halted: earlier run"));
+        var halted = await checkpointStore.Upsert(new MigrationCheckpoint("KnownEndpoints", MigrationCategoryState.Halted, "KnownEndpoints-1", 1, 0, null, null, firstStarted, firstStarted, firstStarted, "Halted: earlier run"));
         var target = new InMemoryMigrationTarget(checkpointStore);
         var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(),
             new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []), NullLogger<MigrationEngine>.Instance);
         source.Seed("KnownEndpoints", Row("KnownEndpoints-1"), Row("KnownEndpoints-2"));
+        // MessageRedirects does not follow KnownEndpoints, so a Failed KnownEndpoints cannot hold it back.
+        source.Seed("MessageRedirects", Row("MessageRedirects-1"));
 
-        var results = await engine.RunCategories([MigrationCategoryRegistry.Find("KnownEndpoints")!, MigrationCategoryRegistry.Find("EndpointSettings")!]);
+        var results = await engine.RunCategories([MigrationCategoryRegistry.Find("KnownEndpoints")!, MigrationCategoryRegistry.Find("MessageRedirects")!]);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(target.RowsHandedToWrite("KnownEndpoints").Select(row => row.SourceId), Is.EqualTo(new[] { "KnownEndpoints-2" }), "the halted category's cursor was reset");
-            Assert.That(results[0].StartedAt, Is.EqualTo(firstStarted), "the halted category's row was replaced");
+            Assert.That(target.RowsHandedToWrite("KnownEndpoints"), Is.Empty, "a Failed category waits for the operator");
+            Assert.That(results[0], Is.EqualTo(halted), "the halted category's row was changed");
+            Assert.That(await checkpointStore.Read("KnownEndpoints"), Is.EqualTo(halted));
+            Assert.That(results[1].State, Is.EqualTo(MigrationCategoryState.Complete));
+            Assert.That(target.WrittenRows("MessageRedirects").Select(row => row.SourceId), Is.EqualTo(new[] { "MessageRedirects-1" }));
         }
     }
 

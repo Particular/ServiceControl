@@ -71,7 +71,7 @@ class MigrationEngineSkipReasonTests
         source.FailBodyReads("msg-1", MigrationEngine.MaxBodyReadAttempts, new TimeoutException("body store unreachable"));
         var checkpointStore = new InMemoryMigrationCheckpointStore();
         var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 3 };
-        target.RejectKey("msg-2", MigrationSkipReason.PastRetention, benign: true);
+        target.RejectKey("msg-2", MigrationSkipReason.PastRetention);
         var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []) { BodyRetryBackoff = TimeSpan.Zero };
         var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
 
@@ -112,26 +112,6 @@ class MigrationEngineSkipReasonTests
     }
 
     [Test]
-    public async Task A_target_counting_more_benign_skips_than_skipped_rows_halts_the_category()
-    {
-        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.KnownEndpoints)!;
-        var source = new InMemoryMigrationSource();
-        source.Seed(category.Id, Row("a"));
-        var checkpointStore = new InMemoryMigrationCheckpointStore();
-        var target = new OverCountedBenignTarget(checkpointStore);
-        var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []);
-        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
-
-        var checkpoint = await engine.RunCategoryAsync(category);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Halted));
-            Assert.That(checkpoint.LastError, Does.Contain("2 benign skips").And.Contain("out of 1 skipped"));
-        }
-    }
-
-    [Test]
     public async Task A_target_whose_reported_counts_disagree_with_the_checkpoint_it_committed_never_finishes_the_category()
     {
         var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.KnownEndpoints)!;
@@ -154,22 +134,30 @@ class MigrationEngineSkipReasonTests
         }
     }
 
-    sealed class OverCountedBenignTarget(IMigrationCheckpointStore checkpointStore) : IMigrationTarget
+    [Test]
+    public async Task An_optional_category_whose_reported_counts_disagree_with_the_checkpoint_it_committed_settles_halted()
     {
-        public Task Open(CancellationToken cancellationToken = default) => Task.CompletedTask;
+        // An optional category stays copying after an exception, and this check must not become one of those.
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.EventLog)!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, [.. Enumerable.Range(1, 300).Select(i => Row($"row-{i}"))]);
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new MiscountedCopyTarget(checkpointStore);
+        var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []);
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
 
-        public Task<int> BatchSizeFor(MigrationCategory category, CancellationToken cancellationToken = default) => Task.FromResult(10);
+        var settled = await engine.RunCategoryAsync(category);
 
-        public async Task<MigrationWriteResult> Write(MigrationCategory category, MigrationBatch batch, MigrationCheckpoint checkpointToExtend, CancellationToken cancellationToken = default)
+        var stored = await checkpointStore.Read(category.Id);
+
+        using (Assert.EnterMultipleScope())
         {
-            var reasons = new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.PastRetention] = batch.Rows.Count };
-            var saved = await checkpointStore.Upsert(checkpointToExtend.Extend(0, batch.Rows.Count, 0, reasons), cancellationToken);
-            return new MigrationWriteResult(saved, 0, batch.Rows.Count, [], 0, reasons, BenignSkipped: batch.Rows.Count + 1);
+            Assert.That(category.Kind, Is.EqualTo(MigrationCategoryKind.Optional));
+            Assert.That(settled.State, Is.EqualTo(MigrationCategoryState.Halted));
+            Assert.That(stored!.State, Is.EqualTo(MigrationCategoryState.Halted));
+            Assert.That(stored.LastError, Does.Contain("reported copying 10").And.Contain("but the checkpoint it committed moved by"));
+            Assert.That(stored.LastError, Does.Not.Contain("--migration-retry").And.Not.Contain("--migration-abandon"));
         }
-
-        public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) => Task.FromResult(0L);
-
-        public IReadOnlyCollection<string> SupportedCategoryIds => [.. MigrationCategoryRegistry.All.Select(category => category.Id)];
     }
 
     // Commits half of every batch as skipped and reports the whole batch copied. The saved counts still add up

@@ -17,10 +17,11 @@ public class MigrationCheckpointEntity
     public string? LastError { get; set; }
     public long AlreadyPresentCount { get; set; }
     public long Version { get; set; }
+    public long? StartedWindowSeconds { get; set; }
 
     internal MigrationCheckpoint ToCheckpoint() => new(
         CategoryId, State, Cursor,
         CopiedCount, SkippedCount, SourceTotal, SkipReasons,
         StartedAt, LastProgressAt, SettledAt, LastError,
-        AlreadyPresentCount, Version);
+        AlreadyPresentCount, Version, StartedWindowSeconds);
 }

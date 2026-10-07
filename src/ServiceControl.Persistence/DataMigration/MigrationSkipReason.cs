@@ -20,8 +20,14 @@ public enum MigrationSkipReason
     EndpointNotKnown,
 
     /// <summary>
-    /// Nothing ever writes this. A reason only a newer build knows reads back as Unknown, so an older host still
-    /// starts instead of throwing.
+    /// The group comment is null or blank, and the product keeps no row for a blank comment.
+    /// </summary>
+    BlankGroupComment,
+
+    /// <summary>
+    /// A reason a newer build wrote and this one cannot name, so an older host still starts instead of throwing.
+    /// Nothing in this build writes it. It counts as a fault, because harmless would let this build settle a
+    /// category Done over rows the newer build lost; a false Failed from it is cleared by one retry.
     /// </summary>
     Unknown
 }

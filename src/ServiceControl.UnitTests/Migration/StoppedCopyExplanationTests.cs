@@ -6,117 +6,127 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
 using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.Migration;
 using ServiceControl.Persistence.DataMigration;
+using ServiceControl.UnitTests.Migration.Fakes;
 
-// The copy can stop three ways that are not the engine's to report: the stall watchdog cancelling it, the
-// checkpoint store going down with the stall, and a second instance writing to the same database.
+// The copy can stop three ways that are not the engine's to report: the stall watchdog stopping one category,
+// the host shutting down, and a second instance writing to the same database.
 [TestFixture]
 class StoppedCopyExplanationTests
 {
+    static readonly TimeSpan PollInterval = MigrationStartup.ClosedWindowProgress.PollInterval;
+    static readonly TimeSpan StallLimit = MigrationStartup.ClosedWindowProgress.StallLimit;
+
     [Test]
-    public async Task A_copy_the_stall_watchdog_stopped_comes_back_with_what_the_store_holds()
+    public async Task A_stall_settles_the_stalled_category_failed_and_the_next_category_still_runs()
     {
-        var store = Holding(InProgress(MigrationCategoryIds.KnownEndpoints), Finished(MigrationCategoryIds.EndpointSettings));
+        var clock = new TimerRecordingTimeProvider();
+        var store = new CancellationHonouringCheckpointStore();
+        var writing = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var target = new InMemoryMigrationTarget(store) { HangOnCall = 1, BeforeWrite = _ => writing.TrySetResult() };
+        var source = new InMemoryMigrationSource();
+        source.Seed(MigrationCategoryIds.KnownEndpoints, Row("KnownEndpoints-1"));
+        // MessageRedirects does not follow KnownEndpoints, so a Failed KnownEndpoints cannot hold it back.
+        source.Seed(MigrationCategoryIds.MessageRedirects, Row("MessageRedirects-1"));
 
-        var finished = await MigrationStartup.CopyOrExplainWhyItStopped(
-            CancelledCopy,
-            () => MigrationCategoryIds.KnownEndpoints,
-            store,
-            Attempted(MigrationCategoryIds.KnownEndpoints, MigrationCategoryIds.EndpointSettings),
-            NewSettings());
+        var run = Task.Run(() => MigrationStartup.RunRequiredCategories(
+            Engine(source, target, store, clock), Categories(MigrationCategoryIds.KnownEndpoints, MigrationCategoryIds.MessageRedirects), store, clock, new CapturingLogger()));
 
-        Assert.That(finished.Select(checkpoint => checkpoint.CategoryId).ToArray(), Is.EquivalentTo(new[] { MigrationCategoryIds.KnownEndpoints, MigrationCategoryIds.EndpointSettings }),
-            "the refusal names what is outstanding from these, so a stall that lets the cancellation out instead tells the operator only that something stopped");
+        Assert.That(await clock.TimerCreated.WaitAsync(TimeSpan.FromSeconds(10)), Is.True, "the watchdog never started its timer, so advancing the clock would tick nothing");
+        await writing.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        clock.Advance(StallLimit + PollInterval);
+        var results = await run.WaitAsync(TimeSpan.FromSeconds(10));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(results.Select(checkpoint => checkpoint.CategoryId), Is.EqualTo(new[] { MigrationCategoryIds.KnownEndpoints, MigrationCategoryIds.MessageRedirects }));
+            Assert.That(results[0].State, Is.EqualTo(MigrationCategoryState.Halted), "a stalled category is Failed, so it waits for the operator rather than for the next start");
+            Assert.That(results[0].SettledAt, Is.EqualTo(clock.GetUtcNow().UtcDateTime));
+            Assert.That(results[0].LastError, Does.Contain($"committed nothing for {StallLimit.TotalMinutes:0.#} minutes").And.Not.Contain("--migration-"),
+                "the row says what happened, and the refusal is what names the commands");
+            Assert.That(await store.Read(MigrationCategoryIds.KnownEndpoints), Is.EqualTo(results[0]), "the stall was reported but never saved, so the next start would copy it again");
+            Assert.That(results[1].State, Is.EqualTo(MigrationCategoryState.Complete), "one stalled category ended the whole start");
+            Assert.That(target.WrittenRows(MigrationCategoryIds.MessageRedirects).Select(row => row.SourceId), Is.EqualTo(new[] { "MessageRedirects-1" }));
+        }
     }
 
     [Test]
-    public async Task A_category_this_run_never_attempted_is_left_out_of_what_comes_back()
+    public async Task A_host_stopping_mid_category_leaves_it_copying_and_the_stop_propagates()
     {
-        var store = Holding(InProgress(MigrationCategoryIds.KnownEndpoints), InProgress(MigrationCategoryIds.EndpointSettings));
+        var store = new InMemoryMigrationCheckpointStore();
+        using var host = new CancellationTokenSource();
+        var target = new InMemoryMigrationTarget(store) { DefaultBatchSize = 2, StopOnCall = (2, host) };
+        var source = new InMemoryMigrationSource();
+        source.Seed(MigrationCategoryIds.KnownEndpoints, Row("KnownEndpoints-1"), Row("KnownEndpoints-2"), Row("KnownEndpoints-3"), Row("KnownEndpoints-4"));
+        source.Seed(MigrationCategoryIds.MessageRedirects, Row("MessageRedirects-1"));
+        var clock = new FakeTimeProvider();
 
-        var finished = await MigrationStartup.CopyOrExplainWhyItStopped(
-            CancelledCopy,
-            () => MigrationCategoryIds.KnownEndpoints,
-            store,
-            Attempted(MigrationCategoryIds.KnownEndpoints),
-            NewSettings());
+        var run = MigrationStartup.RunRequiredCategories(
+            Engine(source, target, store, clock), Categories(MigrationCategoryIds.KnownEndpoints, MigrationCategoryIds.MessageRedirects), store, clock, new CapturingLogger(), host.Token);
 
-        Assert.That(finished.Select(checkpoint => checkpoint.CategoryId).ToArray(), Is.EqualTo(new[] { MigrationCategoryIds.KnownEndpoints }),
-            "a row an earlier run left in progress would otherwise keep this host closed over a category it never tried to copy");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(async () => await run, Throws.InstanceOf<OperationCanceledException>(), "a shutdown is not the category's fault, so it must not come back as a settled row");
+
+            var stopped = await store.Read(MigrationCategoryIds.KnownEndpoints);
+
+            Assert.That(stopped!.State, Is.EqualTo(MigrationCategoryState.InProgress), "a shutdown settled Halted makes every restart refuse until the operator runs --migration-retry");
+            Assert.That(stopped.Cursor, Is.EqualTo("KnownEndpoints-2"), "the next start resumes from the first batch's cursor");
+            Assert.That(stopped.CopiedCount, Is.EqualTo(2));
+            Assert.That(stopped.SettledAt, Is.Null);
+            Assert.That(stopped.LastError, Is.Null);
+            Assert.That((await store.Read(MigrationCategoryIds.MessageRedirects))!.State, Is.EqualTo(MigrationCategoryState.NotStarted), "a stopping host started the next category");
+            Assert.That(target.RowsHandedToWrite(MigrationCategoryIds.MessageRedirects), Is.Empty);
+        }
     }
 
     [Test]
-    public void A_cancellation_with_no_stall_behind_it_stays_a_cancellation()
+    public async Task A_stale_in_progress_row_the_start_has_not_reached_is_not_judged_a_stall()
     {
-        var store = Holding(InProgress(MigrationCategoryIds.KnownEndpoints));
+        var clock = new TimerRecordingTimeProvider();
+        var store = new PollObservingCheckpointStore(clock);
+        var twoHoursAgo = clock.GetUtcNow().UtcDateTime - TimeSpan.FromHours(2);
+        await store.Upsert(new MigrationCheckpoint(MigrationCategoryIds.EndpointSettings, MigrationCategoryState.InProgress, null, 0, 0, null, null, twoHoursAgo, twoHoursAgo, null, null));
+        var target = new InMemoryMigrationTarget(store)
+        {
+            DefaultBatchSize = 1,
+            // Each KnownEndpoints batch takes five minutes, and the next one waits until the watchdog has looked at the time.
+            BeforeWrite = checkpoint =>
+            {
+                if (checkpoint.CategoryId == MigrationCategoryIds.KnownEndpoints)
+                {
+                    clock.Advance(TimeSpan.FromMinutes(5));
+                    store.WaitForAPollAtTheCurrentTime().GetAwaiter().GetResult();
+                }
+            }
+        };
+        var source = new InMemoryMigrationSource();
+        source.Seed(MigrationCategoryIds.KnownEndpoints, [.. Enumerable.Range(1, 8).Select(index => Row($"KnownEndpoints-{index}"))]);
+        source.Seed(MigrationCategoryIds.EndpointSettings, Row("EndpointSettings-1"));
 
-        Assert.That(async () => await MigrationStartup.CopyOrExplainWhyItStopped(CancelledCopy, NoStall, store, Attempted(MigrationCategoryIds.KnownEndpoints), NewSettings()),
-            Throws.InstanceOf<OperationCanceledException>(),
-            "only the watchdog turns a cancellation into a refusal, and it did not fire here");
+        var results = await Task.Run(() => MigrationStartup.RunRequiredCategories(
+                Engine(source, target, store, clock), Categories(MigrationCategoryIds.KnownEndpoints, MigrationCategoryIds.EndpointSettings), store, clock, new CapturingLogger()))
+            .WaitAsync(TimeSpan.FromSeconds(30));
 
-        Assert.That(store.Reads, Is.Zero, "reading the store means the recovery ran for a stall that never happened");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(results.Select(checkpoint => checkpoint.State), Is.All.EqualTo(MigrationCategoryState.Complete),
+                "forty minutes copying KnownEndpoints were judged against a row the start had not reached yet");
+            Assert.That(target.WrittenRows(MigrationCategoryIds.KnownEndpoints), Has.Count.EqualTo(8));
+            Assert.That(target.WrittenRows(MigrationCategoryIds.EndpointSettings).Select(row => row.SourceId), Is.EqualTo(new[] { "EndpointSettings-1" }));
+        }
     }
 
     [Test]
-    public void A_host_shutting_down_while_a_category_is_stalled_stays_a_cancellation()
-    {
-        using var shuttingDown = new CancellationTokenSource();
-        shuttingDown.Cancel();
-        var store = Holding(InProgress(MigrationCategoryIds.KnownEndpoints));
-
-        Assert.That(async () => await MigrationStartup.CopyOrExplainWhyItStopped(
-                CancelledCopy,
-                () => MigrationCategoryIds.KnownEndpoints,
-                store,
-                Attempted(MigrationCategoryIds.KnownEndpoints),
-                NewSettings(),
-                shuttingDown.Token),
+    public void A_cancelled_copy_stays_a_cancellation() =>
+        Assert.That(async () => await MigrationStartup.CopyOrExplainWhyItStopped(Task.FromCanceled<IReadOnlyList<MigrationCheckpoint>>(new CancellationToken(canceled: true)), NewSettings()),
             Throws.InstanceOf<OperationCanceledException>(),
             "a shutdown is not a failure, so it must not come out as a refusal telling the operator to go looking at the source and the target");
-    }
-
-    [Test]
-    public void A_stall_the_store_cannot_be_read_after_reports_the_stall_first_and_the_store_second()
-    {
-        var unreachable = new TimeoutException("checkpoint store unreachable");
-
-        var exception = Assert.ThrowsAsync<Exception>(async () => await MigrationStartup.CopyOrExplainWhyItStopped(
-            CancelledCopy,
-            () => MigrationCategoryIds.KnownEndpoints,
-            Failing(unreachable),
-            Attempted(MigrationCategoryIds.KnownEndpoints),
-            NewSettings()));
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(exception!.Message, Does.Contain($"committed nothing for {MigrationStartup.ClosedWindowProgress.StallLimit.TotalMinutes:0.#} minutes"),
-                "the stall is why the copy stopped, and a store error reported in its place sends the operator after the wrong thing");
-            Assert.That(exception.Message, Does.Contain("the checkpoint store is unreachable as well: checkpoint store unreachable"),
-                "without the store's own words there is nothing to act on");
-            Assert.That(exception.Message, Does.Contain("Nothing has opened on SQLServer yet"), "every other refusal says how to go back, and this one is the worst to be stuck in");
-            Assert.That(exception.InnerException, Is.SameAs(unreachable));
-        });
-    }
-
-    [Test]
-    public void A_shutdown_that_lands_during_the_read_back_is_not_reported_as_an_unreachable_store()
-    {
-        using var shuttingDown = new CancellationTokenSource();
-        var store = Failing(new OperationCanceledException(), shuttingDown.Cancel);
-
-        Assert.That(async () => await MigrationStartup.CopyOrExplainWhyItStopped(
-                CancelledCopy,
-                () => MigrationCategoryIds.KnownEndpoints,
-                store,
-                Attempted(MigrationCategoryIds.KnownEndpoints),
-                NewSettings(),
-                shuttingDown.Token),
-            Throws.InstanceOf<OperationCanceledException>(),
-            "the host is stopping, so the store is not unreachable and saying it is would have an operator checking a database that is fine");
-    }
 
     [Test]
     public void A_checkpoint_saved_by_another_instance_says_which_instance_to_stop()
@@ -125,9 +135,6 @@ class StoppedCopyExplanationTests
 
         var exception = Assert.ThrowsAsync<Exception>(async () => await MigrationStartup.CopyOrExplainWhyItStopped(
             Task.FromException<IReadOnlyList<MigrationCheckpoint>>(conflict),
-            NoStall,
-            Holding(),
-            Attempted(MigrationCategoryIds.KnownEndpoints),
             NewSettings()));
 
         Assert.Multiple(() =>
@@ -142,62 +149,46 @@ class StoppedCopyExplanationTests
     }
 
     [Test]
-    public async Task A_copy_that_finished_is_reported_as_it_returned_without_the_store_being_asked()
+    public async Task A_copy_that_finished_is_returned_as_it_came_back()
     {
-        var copied = new[] { Finished(MigrationCategoryIds.KnownEndpoints) };
-        var store = Holding(InProgress(MigrationCategoryIds.EndpointSettings));
+        IReadOnlyList<MigrationCheckpoint> copied = [new(MigrationCategoryIds.KnownEndpoints, MigrationCategoryState.Complete, null, 3, 0, null, null, null, null, null, null)];
 
-        var finished = await MigrationStartup.CopyOrExplainWhyItStopped(
-            Task.FromResult<IReadOnlyList<MigrationCheckpoint>>(copied),
-            NoStall,
-            store,
-            Attempted(MigrationCategoryIds.KnownEndpoints),
-            NewSettings());
+        var finished = await MigrationStartup.CopyOrExplainWhyItStopped(Task.FromResult(copied), NewSettings());
 
-        Assert.Multiple(() =>
-        {
-            Assert.That(finished, Is.SameAs(copied), "what the engine returned is what the run did; the store is only for a copy that did not get to return anything");
-            Assert.That(store.Reads, Is.Zero);
-        });
+        Assert.That(finished, Is.SameAs(copied));
     }
 
-    static Task<IReadOnlyList<MigrationCheckpoint>> CancelledCopy => Task.FromCanceled<IReadOnlyList<MigrationCheckpoint>>(new CancellationToken(canceled: true));
+    static MigrationRow Row(string id) => new(id, new object(), new Dictionary<string, object?>());
 
-    static string NoStall() => null!;
+    static MigrationCategory[] Categories(params string[] categoryIds) => [.. categoryIds.Select(categoryId => MigrationCategoryRegistry.Find(categoryId)!)];
 
-    static IReadOnlySet<string> Attempted(params string[] categoryIds) => categoryIds.ToHashSet(StringComparer.Ordinal);
-
-    static MigrationCheckpoint InProgress(string categoryId) =>
-        new(categoryId, MigrationCategoryState.InProgress, "a", 3, 0, null, null, null, null, null, null);
-
-    static MigrationCheckpoint Finished(string categoryId) =>
-        new(categoryId, MigrationCategoryState.Complete, null, 3, 0, null, null, null, null, null, null);
-
-    static ReadAllCheckpointStore Holding(params MigrationCheckpoint[] checkpoints) => new(_ => checkpoints);
-
-    static ReadAllCheckpointStore Failing(Exception failure, Action? firstDo = null) => new(_ =>
-    {
-        firstDo?.Invoke();
-        throw failure;
-    });
+    static MigrationEngine Engine(InMemoryMigrationSource source, InMemoryMigrationTarget target, IMigrationCheckpointStore store, TimeProvider clock) =>
+        new(source, target, store, clock, new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []), NullLogger<MigrationEngine>.Instance);
 
     static Settings NewSettings() =>
         new(transportType: "LearningTransport", persisterType: "SQLServer", errorRetentionPeriod: TimeSpan.FromDays(10));
 
-    // Only ReadAll is reachable from here, and the store shares the target's database, so a target that has gone
-    // away takes this read with it.
-    sealed class ReadAllCheckpointStore(Func<CancellationToken, IReadOnlyList<MigrationCheckpoint>> readAll) : IMigrationCheckpointStore
+    // Refuses a cancelled token as the EF Core store does, so a settle made on the stalled category's token fails here too.
+    sealed class CancellationHonouringCheckpointStore : IMigrationCheckpointStore
     {
-        public int Reads { get; private set; }
+        readonly InMemoryMigrationCheckpointStore inner = new();
 
         public Task<IReadOnlyList<MigrationCheckpoint>> ReadAll(CancellationToken cancellationToken = default)
         {
-            Reads++;
-            return Task.FromResult(readAll(cancellationToken));
+            cancellationToken.ThrowIfCancellationRequested();
+            return inner.ReadAll(cancellationToken);
         }
 
-        public Task<MigrationCheckpoint?> Read(string categoryId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<MigrationCheckpoint?> Read(string categoryId, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return inner.Read(categoryId, cancellationToken);
+        }
 
-        public Task<MigrationCheckpoint> Upsert(MigrationCheckpoint checkpoint, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<MigrationCheckpoint> Upsert(MigrationCheckpoint checkpoint, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return inner.Upsert(checkpoint, cancellationToken);
+        }
     }
 }

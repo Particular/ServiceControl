@@ -8,29 +8,44 @@ using System.Threading.Tasks;
 
 /// <summary>
 /// Where one category has got to. <see cref="MigrationCategoryStateExtensions.IsFinished" /> says which of these
-/// let the host open, and a restart picks up every category that is not one of those.
+/// let the host open, and <see cref="MigrationCategoryStateExtensions.IsFailed" /> which wait for the operator. A
+/// start picks up every category that is neither.
 /// </summary>
 public enum MigrationCategoryState
 {
     /// <summary>No run has read a row of this category yet.</summary>
     NotStarted,
 
-    /// <summary>A run is copying this category, or a run stopped without settling it.</summary>
+    /// <summary>
+    /// A run is copying this category, or a run stopped without settling it. On an optional category, a LastError
+    /// means an exception stopped it or a start could not open the source, and the next start resumes it.
+    /// </summary>
     InProgress,
 
-    /// <summary>The category reached the end of the source with nothing skipped.</summary>
+    /// <summary>
+    /// The category reached the end of the source with no fault skips. Harmless ones stay counted.
+    /// </summary>
     Complete,
 
-    /// <summary>The category reached the end of the source, but some rows were skipped and stay only in the old database.</summary>
+    /// <summary>
+    /// The category reached the end of the source with fault skips, so it is Failed until the operator retries or abandons it.
+    /// </summary>
     CompleteWithErrors,
 
-    /// <summary>Too many rows failed, so the category stopped and waits for a person. Fix the cause and restart to carry on from the cursor.</summary>
+    /// <summary>
+    /// The category stopped early. It waits for --migration-retry or --migration-abandon, and no start re-reads it.
+    /// </summary>
     Halted,
 
-    /// <summary>A person accepted the loss and stopped copying this category. Nothing copies it again, even in a later migration.</summary>
+    /// <summary>
+    /// The operator gave up on a Failed or started required category, on any optional one, or on one whose rows
+    /// depend on such a category. It is final: nothing copies it again, even in a later migration.
+    /// </summary>
     Abandoned,
 
-    /// <summary>This category has to follow another one, and that one is not finished, so it did not run. A restart clears it once the other one settles.</summary>
+    /// <summary>
+    /// This category follows a category that is not Done or Abandoned, so it did not run. A restart clears it once that one is.
+    /// </summary>
     Blocked
 }
 
@@ -39,12 +54,13 @@ public enum MigrationCategoryState
 /// Every count is the total across every run, not this run alone.
 /// </summary>
 /// <param name="Cursor">The point the last committed batch reached. A restart reads the source after it. Null means nothing has been read.</param>
-/// <param name="SourceTotal">How many rows the source held when the category first started. It is captured once, so a source that has grown since does not move it.</param>
+/// <param name="SourceTotal">No longer written: the engine does not count the source, so this is null on every row it saves. The column stays only because dropping it is a schema change.</param>
 /// <param name="SkipReasons">How many rows each reason skipped. The counts here add up to <paramref name="SkippedCount" />.</param>
 /// <param name="SettledAt">The moment the category stopped running, whatever state it stopped in. Read it beside <paramref name="State" />, because a halt settles too.</param>
-/// <param name="LastError">Why the category halted, in the words the operator is shown. Null when it has not halted.</param>
-/// <param name="AlreadyPresentCount">Rows the target already held, so they were neither copied nor skipped. They still count as accounted for when the run checks the category against <paramref name="SourceTotal" />.</param>
+/// <param name="LastError">Why the category stopped or did not run, in the words the operator is shown: a halt, a category it must follow that is not finished, an exception that left an optional category copying, or a source a start could not open, on an optional category still copying or not started. It stays until a start runs the category again.</param>
+/// <param name="AlreadyPresentCount">Rows the target already held, so they were neither copied nor skipped. They still count as accounted for.</param>
 /// <param name="Version">The optimistic concurrency token, which is the guard against two writers. A store sets it on save and refuses a checkpoint carrying a value the stored row no longer holds.</param>
+/// <param name="StartedWindowSeconds">The window, in whole seconds, an optional category started with. It is null until the copier writes it, and always null for a required category.</param>
 public sealed record MigrationCheckpoint(
     string CategoryId,
     MigrationCategoryState State,
@@ -58,7 +74,8 @@ public sealed record MigrationCheckpoint(
     DateTime? SettledAt,
     string? LastError,
     long AlreadyPresentCount = 0,
-    long Version = 0)
+    long Version = 0,
+    long? StartedWindowSeconds = null)
 {
     /// <summary>
     /// Adds one batch's outcome to this checkpoint. A target calls it inside the transaction that writes the rows,

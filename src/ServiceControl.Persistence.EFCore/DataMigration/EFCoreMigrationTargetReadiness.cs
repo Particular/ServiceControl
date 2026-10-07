@@ -20,6 +20,7 @@ public class EFCoreMigrationTargetReadiness(
     public IReadOnlyList<IMigrationStartupCheck> ContributedChecks() =>
     [
         new SchemaIsCurrentCheck(scopeFactory),
+        new TargetHoldsNoServiceControlDataCheck(scopeFactory),
         new BodyStorageIsWritableCheck(bodyStorage)
     ];
 
