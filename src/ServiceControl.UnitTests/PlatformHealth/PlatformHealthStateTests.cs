@@ -144,7 +144,6 @@ namespace ServiceControl.UnitTests.PlatformHealth
             {
                 Status = "unknown",
                 Severity = "unknown",
-                Alerts = [],
                 Instances = [new PlatformHealthInstance
                 {
                     Id = "primary",
@@ -176,6 +175,32 @@ namespace ServiceControl.UnitTests.PlatformHealth
                 Assert.That(instance.TryGetProperty("audit_retention_period", out _), Is.False);
                 Assert.That(instance.TryGetProperty("last_reported_at", out _), Is.False);
                 Assert.That(json.RootElement.TryGetProperty("license", out _), Is.False);
+            }
+        }
+
+        [TestCase(null)]
+        [TestCase("primary")]
+        public void Alerts_round_trip_with_optional_instance_id(string instanceId)
+        {
+            var state = new PlatformHealthState();
+            var detail = Detail("ServiceControl Primary Instance", hasFailed: true);
+            state.Record(detail);
+            var health = state.GetHealth();
+            health.Alerts[0].InstanceId = instanceId;
+
+            var body = JsonSerializer.Serialize(health, SerializerOptions.Default);
+            using var json = JsonDocument.Parse(body);
+            var deserialized = JsonSerializer.Deserialize<PlatformHealthView>(body, SerializerOptions.Default);
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(json.RootElement.GetProperty("alerts")[0].TryGetProperty("instance_id", out _), Is.EqualTo(instanceId is not null));
+                Assert.That(deserialized.Status, Is.EqualTo(health.Status));
+                Assert.That(deserialized.Severity, Is.EqualTo(health.Severity));
+                Assert.That(deserialized.Alerts, Has.Length.EqualTo(1));
+                Assert.That(deserialized.Alerts[0].InstanceId, Is.EqualTo(instanceId));
+                Assert.That(deserialized.Alerts[0].CheckId, Is.EqualTo(detail.CustomCheckId));
+                Assert.That(deserialized.Alerts[0].Message, Is.EqualTo(detail.FailureReason));
             }
         }
 
