@@ -21,10 +21,9 @@ namespace ServiceControl.CustomChecks
 
         public async Task ProcessResult(CustomCheckDetail checkDetail, CancellationToken cancellationToken = default)
         {
-            platformHealthState?.Record(checkDetail);
-
             try
             {
+                platformHealthState?.Record(checkDetail);
                 var statusChange = await store.UpdateCustomCheckStatus(checkDetail, cancellationToken);
                 await RaiseEvents(statusChange, checkDetail, cancellationToken);
 
