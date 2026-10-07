@@ -8,11 +8,43 @@ using Contracts;
 /// that agree pass through, capacity and saturation numbers take the maximum, uptime takes the
 /// minimum, sizes and counts sum with instances on one database counted once, ingestion rates sum
 /// across all instances, the sharing class takes the most shared, and anything else that differs
-/// reports Mixed rather than guessing which instance is representative. Keys starting with an
-/// underscore carry collection bookkeeping and are never emitted.
+/// reports Mixed rather than guessing which instance is representative. Only keys in
+/// <see cref="ReportedKeys"/> are emitted, so a key an audit instance of another version serves, or
+/// the bookkeeping keys the primary adds, never reach the report unreviewed.
 /// </summary>
 static class AuditEnvironmentDataAggregator
 {
+    static readonly HashSet<string> ReportedKeys = new(StringComparer.Ordinal)
+    {
+        "Host.Model",
+        "Host.Orchestrator",
+        "Host.OSPlatform",
+        "Host.OSVersion",
+        "Host.Architecture",
+        "Host.RuntimeVersion",
+        "Host.ProcessorCount",
+        "Host.AvailableMemoryGB",
+        "Storage.Type",
+        "Storage.RavenServer",
+        "Storage.Hosting",
+        "Storage.ServerVersion",
+        "Storage.HostingSource",
+        "Storage.ServerEdition",
+        "Storage.ServiceObjective",
+        "Storage.SizeGB",
+        "Storage.MessageCount",
+        "Storage.FullTextSearch",
+        "Health.FailedImports",
+        "Health.UptimeHours",
+        "Health.LagOver1MinPercent",
+        "Health.LagOver10MinPercent",
+        "Health.LagOver60MinPercent",
+        "Ingestion.AvgDailyMessages",
+        "Ingestion.BusyPercent",
+        "SameMachine",
+        "DatabaseSharing"
+    };
+
     static readonly string[] MaximumKeys = ["Host.ProcessorCount", "Host.AvailableMemoryGB", "Ingestion.BusyPercent", "Health.LagOver1MinPercent", "Health.LagOver10MinPercent", "Health.LagOver60MinPercent"];
     static readonly string[] MinimumKeys = ["Health.UptimeHours"];
     static readonly string[] SharingPrecedence = ["SameSchema", "SameDatabase", "SameServer", "SeparateServer", "NotApplicable", "Unknown"];
@@ -26,7 +58,7 @@ static class AuditEnvironmentDataAggregator
 
         var keys = instances
             .SelectMany(instance => instance.Keys)
-            .Where(key => !key.StartsWith('_'))
+            .Where(ReportedKeys.Contains)
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal);
 

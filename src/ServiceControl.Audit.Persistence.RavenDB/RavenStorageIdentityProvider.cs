@@ -14,7 +14,10 @@ namespace ServiceControl.Audit.Persistence.RavenDB
             return new ValueTask<StorageIdentity>(new StorageIdentity("RavenDB", NormalizeServer(configuredServer), databaseConfiguration.Name, null));
         }
 
-        static string NormalizeServer(string configuredServer) =>
-            Uri.TryCreate(configuredServer, UriKind.Absolute, out var url) ? $"{url.Host}:{url.Port}" : configuredServer ?? "";
+        // A loopback address names a different server on every machine, embedded servers included.
+        internal static string NormalizeServer(string configuredServer) =>
+            Uri.TryCreate(configuredServer, UriKind.Absolute, out var url)
+                ? $"{(url.IsLoopback ? Environment.MachineName : url.Host)}:{url.Port}"
+                : configuredServer ?? "";
     }
 }

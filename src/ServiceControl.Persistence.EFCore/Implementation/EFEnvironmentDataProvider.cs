@@ -77,7 +77,9 @@ class EFEnvironmentDataProvider(EFPersisterSettings settings, IDatabaseHostingPr
         await using var scope = scopeFactory.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
 
-        var oldest = await dbContext.Set<FailedMessageEntity>().MinAsync(m => (DateTime?)m.StatusChangedAt, cancellationToken);
+        var oldest = await dbContext.Set<FailedMessageEntity>()
+            .Where(m => m.Status == FailedMessageStatus.Resolved || m.Status == FailedMessageStatus.Archived)
+            .MinAsync(m => (DateTime?)m.StatusChangedAt, cancellationToken);
 
         if (oldest is null)
         {

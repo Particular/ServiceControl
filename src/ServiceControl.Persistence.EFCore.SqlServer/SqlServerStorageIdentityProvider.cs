@@ -16,7 +16,8 @@ class SqlServerStorageIdentityProvider(SqlServerPersisterSettings settings, ISer
             var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
 
             await using var command = dbContext.Database.GetDbConnection().CreateCommand();
-            command.CommandText = "SELECT CAST(SERVERPROPERTY('ServerName') AS nvarchar(256)), DB_NAME()";
+            // SCHEMA_NAME() is where unqualified tables go when no schema is configured.
+            command.CommandText = "SELECT CAST(SERVERPROPERTY('ServerName') AS nvarchar(256)), DB_NAME(), SCHEMA_NAME()";
             command.CommandTimeout = ProbeTimeoutSeconds;
 
             await dbContext.Database.OpenConnectionAsync(cancellationToken);
@@ -28,7 +29,7 @@ class SqlServerStorageIdentityProvider(SqlServerPersisterSettings settings, ISer
                 return null;
             }
 
-            return new StorageIdentity("SQLServer", reader.GetString(0), reader.GetString(1), settings.Schema ?? DefaultSchema);
+            return new StorageIdentity("SQLServer", reader.GetString(0), reader.GetString(1), settings.Schema ?? (reader.IsDBNull(2) ? null : reader.GetString(2)));
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -43,5 +44,4 @@ class SqlServerStorageIdentityProvider(SqlServerPersisterSettings settings, ISer
     }
 
     const int ProbeTimeoutSeconds = 5;
-    const string DefaultSchema = "dbo";
 }

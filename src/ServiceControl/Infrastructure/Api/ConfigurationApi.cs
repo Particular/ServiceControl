@@ -145,7 +145,7 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
 
     public async Task<RemoteEnvironment[]> GetRemoteEnvironments(CancellationToken cancellationToken = default)
     {
-        var localMachineIdHash = MachineIdentity.Hash;
+        var localMachineNameHash = MachineIdentity.Hash;
         var localStorageIdentity = await LocalStorageIdentity(cancellationToken);
 
         var tasks = settings.RemoteInstances
@@ -179,12 +179,12 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
 
                             var remoteStorageIdentity = ReadStorageIdentity(body);
 
-                            environmentData["SameMachine"] = AuditSharingClassifier.SameMachine(localMachineIdHash, ReadString(body, "machine_id_hash"));
+                            environmentData["SameMachine"] = AuditSharingClassifier.SameMachine(localMachineNameHash, ReadString(body, "machine_name_hash"));
                             environmentData["DatabaseSharing"] = AuditSharingClassifier.DatabaseSharing(localStorageIdentity, remoteStorageIdentity);
 
                             if (remoteStorageIdentity is not null)
                             {
-                                environmentData[AuditEnvironmentMetadata.DatabaseKey] = $"{remoteStorageIdentity.ServerHash}/{remoteStorageIdentity.DatabaseHash}";
+                                environmentData[AuditEnvironmentMetadata.DatabaseKey] = AuditSharingClassifier.StoreKey(remoteStorageIdentity);
                             }
                         }
                     }

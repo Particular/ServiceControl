@@ -56,6 +56,14 @@ public class AuditSharingClassifierTests
         Assert.That(AuditSharingClassifier.DatabaseSharing(Identity(engine: "RavenDB", schema: null), Identity(engine: "RavenDB", schema: null)), Is.EqualTo("SameDatabase"));
 
     [Test]
+    public void A_schema_is_a_store_of_its_own() =>
+        Assert.That(AuditSharingClassifier.StoreKey(Identity()), Is.EqualTo($"{IdentityHash.Compute("server")}/{IdentityHash.Compute("database")}/{IdentityHash.Compute("schema")}"));
+
+    [Test]
+    public void Schemaless_engines_are_one_store_per_database() =>
+        Assert.That(AuditSharingClassifier.StoreKey(Identity(engine: "RavenDB", schema: null)), Is.EqualTo($"{IdentityHash.Compute("server")}/{IdentityHash.Compute("database")}"));
+
+    [Test]
     public void Hashing_normalises_case_and_whitespace()
     {
         var hashed = AuditSharingClassifier.Hash(new StorageIdentity("SQLServer", " PRODSQL01 ", "ServiceControl", "dbo"));

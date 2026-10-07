@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.PostgreSql;
 
+using System.Data;
 using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,7 +18,6 @@ class PostgreSqlStorageFootprintProbe(PostgreSqlPersisterSettings settings, ISer
             await using var scope = scopeFactory.CreateAsyncScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
             var failedMessagesTable = dbContext.Model.FindEntityType(typeof(FailedMessageEntity))?.GetTableName();
-            var schema = settings.Schema ?? "public";
 
             await using var command = dbContext.Database.GetDbConnection().CreateCommand();
             command.CommandText = """
@@ -25,17 +25,18 @@ class PostgreSqlStorageFootprintProbe(PostgreSqlPersisterSettings settings, ISer
                     (SELECT SUM(pg_total_relation_size(c.oid)) / 1073741824.0
                      FROM pg_class c
                      JOIN pg_namespace n ON n.oid = c.relnamespace
-                     WHERE n.nspname = @schema AND c.relkind IN ('r', 'm')),
+                     WHERE n.nspname = COALESCE(@schema, current_schema()) AND c.relkind IN ('r', 'm')),
                     (SELECT CASE WHEN c.reltuples < 0 THEN NULL ELSE c.reltuples::bigint END
                      FROM pg_class c
                      JOIN pg_namespace n ON n.oid = c.relnamespace
-                     WHERE n.nspname = @schema AND c.relname = @table)
+                     WHERE n.nspname = COALESCE(@schema, current_schema()) AND c.relname = @table)
                 """;
             command.CommandTimeout = ProbeTimeoutSeconds;
 
             var schemaParameter = command.CreateParameter();
             schemaParameter.ParameterName = "@schema";
-            schemaParameter.Value = schema;
+            schemaParameter.DbType = DbType.String;
+            schemaParameter.Value = (object?)settings.Schema ?? DBNull.Value;
             command.Parameters.Add(schemaParameter);
 
             var tableParameter = command.CreateParameter();

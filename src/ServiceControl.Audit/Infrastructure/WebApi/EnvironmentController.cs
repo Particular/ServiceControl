@@ -58,7 +58,7 @@ namespace ServiceControl.Audit.Infrastructure.WebApi
             return Ok(new EnvironmentDataResponse
             {
                 EnvironmentData = environmentData,
-                MachineIdHash = MachineIdentity.Hash,
+                MachineNameHash = MachineIdentity.Hash,
                 StorageIdentity = await ReadStorageIdentity(cancellationToken)
             });
         }
@@ -104,7 +104,7 @@ namespace ServiceControl.Audit.Infrastructure.WebApi
         public class EnvironmentDataResponse
         {
             public Dictionary<string, string> EnvironmentData { get; set; }
-            public string MachineIdHash { get; set; }
+            public string MachineNameHash { get; set; }
             public StorageIdentityResponse StorageIdentity { get; set; }
         }
 

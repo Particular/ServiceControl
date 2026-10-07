@@ -105,7 +105,7 @@ namespace ServiceControl.Audit.UnitTests.Infrastructure
                 Assert.That(response.StorageIdentity.ServerHash, Is.EqualTo(IdentityHash.Compute("http://server:8080")));
                 Assert.That(response.StorageIdentity.DatabaseHash, Is.EqualTo(IdentityHash.Compute("audit")));
                 Assert.That(response.StorageIdentity.SchemaHash, Is.Null);
-                Assert.That(response.MachineIdHash, Is.EqualTo(MachineIdentity.Hash));
+                Assert.That(response.MachineNameHash, Is.EqualTo(MachineIdentity.Hash));
                 Assert.That(response.EnvironmentData.Keys, Has.None.Contains("Hash"));
             }
         }

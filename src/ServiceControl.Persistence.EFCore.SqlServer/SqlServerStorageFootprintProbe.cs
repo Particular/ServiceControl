@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.SqlServer;
 
+using System.Data;
 using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,28 +18,30 @@ class SqlServerStorageFootprintProbe(SqlServerPersisterSettings settings, IServi
             await using var scope = scopeFactory.CreateAsyncScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
             var failedMessagesTable = dbContext.Model.FindEntityType(typeof(FailedMessageEntity))?.GetTableName();
-            var schema = settings.Schema ?? "dbo";
 
             await using var command = dbContext.Database.GetDbConnection().CreateCommand();
+            // Full-text index fragments live in internal tables under the indexed table, so they are counted too.
             command.CommandText = """
+                DECLARE @resolved sysname = COALESCE(@schema, SCHEMA_NAME());
                 SELECT
                     (SELECT SUM(a.total_pages) * 8.0 / 1048576
-                     FROM sys.tables t
-                     JOIN sys.schemas s ON s.schema_id = t.schema_id
-                     JOIN sys.partitions p ON p.object_id = t.object_id
+                     FROM sys.partitions p
                      JOIN sys.allocation_units a ON a.container_id = p.partition_id
-                     WHERE s.name = @schema),
+                     WHERE p.object_id IN (
+                         SELECT t.object_id FROM sys.tables t WHERE t.schema_id = SCHEMA_ID(@resolved)
+                         UNION ALL
+                         SELECT it.object_id FROM sys.internal_tables it JOIN sys.tables t ON t.object_id = it.parent_id WHERE t.schema_id = SCHEMA_ID(@resolved))),
                     (SELECT SUM(p.rows)
                      FROM sys.tables t
-                     JOIN sys.schemas s ON s.schema_id = t.schema_id
                      JOIN sys.partitions p ON p.object_id = t.object_id
-                     WHERE s.name = @schema AND t.name = @table AND p.index_id IN (0, 1))
+                     WHERE t.schema_id = SCHEMA_ID(@resolved) AND t.name = @table AND p.index_id IN (0, 1))
                 """;
             command.CommandTimeout = ProbeTimeoutSeconds;
 
             var schemaParameter = command.CreateParameter();
             schemaParameter.ParameterName = "@schema";
-            schemaParameter.Value = schema;
+            schemaParameter.DbType = DbType.String;
+            schemaParameter.Value = (object?)settings.Schema ?? DBNull.Value;
             command.Parameters.Add(schemaParameter);
 
             var tableParameter = command.CreateParameter();
