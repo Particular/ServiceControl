@@ -56,4 +56,11 @@ class SqlServerPersistence(EFPersisterSettings settings) : EFPersistenceBase(set
         services.AddSingleton<IFullTextSearchDialect, SqlServerFullTextSearchDialect>();
         services.AddSingleton<IRetentionLock, SqlServerRetentionLock>();
     }
+
+    protected override void AddEnvironmentProbes(IServiceCollection services)
+    {
+        services.AddSingleton<IDatabaseHostingProbe, SqlServerDatabaseHostingProbe>();
+        services.AddSingleton<IStorageFootprintProbe, SqlServerStorageFootprintProbe>();
+        services.AddSingleton<IStorageIdentityProvider, SqlServerStorageIdentityProvider>();
+    }
 }

@@ -13,19 +13,19 @@ static class AuditSharingClassifier
     public const string Unknown = "Unknown";
     public const string NotApplicable = "NotApplicable";
 
-    public static string SameMachine(string localMachineIdHash, string remoteMachineIdHash)
+    public static string SameMachine(string localMachineNameHash, string remoteMachineNameHash)
     {
-        if (localMachineIdHash is null || remoteMachineIdHash is null)
+        if (localMachineNameHash is null || remoteMachineNameHash is null)
         {
             return Unknown;
         }
 
-        if (localMachineIdHash == MachineIdentity.NotApplicable || remoteMachineIdHash == MachineIdentity.NotApplicable)
+        if (localMachineNameHash == MachineIdentity.NotApplicable || remoteMachineNameHash == MachineIdentity.NotApplicable)
         {
             return NotApplicable;
         }
 
-        return string.Equals(localMachineIdHash, remoteMachineIdHash, StringComparison.Ordinal) ? "True" : "False";
+        return string.Equals(localMachineNameHash, remoteMachineNameHash, StringComparison.Ordinal) ? "True" : "False";
     }
 
     public static string DatabaseSharing(HashedStorageIdentity local, HashedStorageIdentity remote)
@@ -57,6 +57,15 @@ static class AuditSharingClassifier
 
         return "SameDatabase";
     }
+
+    /// <summary>
+    /// What the report counts once when summing sizes and counts. Instances writing to the same
+    /// schema share one store; instances in different schemas of one database each have their own.
+    /// </summary>
+    public static string StoreKey(HashedStorageIdentity identity) =>
+        identity.SchemaHash is null
+            ? $"{identity.ServerHash}/{identity.DatabaseHash}"
+            : $"{identity.ServerHash}/{identity.DatabaseHash}/{identity.SchemaHash}";
 
     public static HashedStorageIdentity Hash(StorageIdentity identity) =>
         identity is null

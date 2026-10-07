@@ -1,10 +1,12 @@
-namespace ServiceControl.Persistence.EFCore.Infrastructure;
+namespace ServiceControl.Audit.Persistence.EFCore.Infrastructure;
 
-using ServiceControl.Persistence;
+using ServiceControl.Audit.Persistence;
 
 /// <summary>
-/// How the database this instance stores its data in is hosted. Reported in usage telemetry, so
-/// every value is a fixed classification and never carries a host name, database name or credential.
+/// How the database this instance stores its data in is hosted. Served to the primary instance for
+/// its usage report, so every value is a fixed classification and never carries a host name,
+/// database name or credential. Copied from the primary instance's EF persistence on purpose: the
+/// audit persistence stack does not share projects with the primary's.
 /// </summary>
 public interface IDatabaseHostingProbe
 {
@@ -20,7 +22,7 @@ public interface IDatabaseHostingProbe
     Task<DatabaseHosting> Probe(CancellationToken cancellationToken = default);
 }
 
-/// <param name="Hosting">One of AzureSql, AzureSqlManagedInstance, AzureSqlEdge, AzurePostgres, AzureMySql, AwsRds, GoogleCloudSql, RavenCloud, SelfHosted or Unknown.</param>
+/// <param name="Hosting">One of AzureSql, AzureSqlManagedInstance, AzureSqlEdge, AzurePostgres, AwsRds, GoogleCloudSql, SelfHosted or Unknown.</param>
 /// <param name="ServerVersion">The engine major version, or Unknown.</param>
 /// <param name="Source">A <see cref="DatabaseHostingSource"/> value.</param>
 /// <param name="ServerEdition">The SQL Server edition family: Express, Standard, Enterprise or Other. NotApplicable on the managed Azure services and on engines without editions.</param>

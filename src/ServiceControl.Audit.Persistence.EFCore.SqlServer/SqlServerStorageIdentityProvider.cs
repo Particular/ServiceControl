@@ -1,19 +1,22 @@
-namespace ServiceControl.Persistence.EFCore.SqlServer;
+namespace ServiceControl.Audit.Persistence.EFCore.SqlServer;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using ServiceControl.Persistence;
-using ServiceControl.Persistence.EFCore.DbContexts;
+using ServiceControl.Audit.Persistence;
+using ServiceControl.Audit.Persistence.EFCore.Abstractions;
+using ServiceControl.Audit.Persistence.EFCore.DbContexts;
 
-class SqlServerStorageIdentityProvider(SqlServerPersisterSettings settings, IServiceScopeFactory scopeFactory, ILogger<SqlServerStorageIdentityProvider> logger) : IStorageIdentityProvider
+// The query and the default schema must stay identical to the primary instance's provider, or the
+// two sides hash different values for one database and DatabaseSharing never matches.
+class SqlServerStorageIdentityProvider(EFPersisterSettings settings, IServiceScopeFactory scopeFactory, ILogger<SqlServerStorageIdentityProvider> logger) : IStorageIdentityProvider
 {
     public async ValueTask<StorageIdentity?> GetIdentity(CancellationToken cancellationToken = default)
     {
         try
         {
             await using var scope = scopeFactory.CreateAsyncScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+            var dbContext = scope.ServiceProvider.GetRequiredService<AuditDbContext>();
 
             await using var command = dbContext.Database.GetDbConnection().CreateCommand();
             // SCHEMA_NAME() is where unqualified tables go when no schema is configured.

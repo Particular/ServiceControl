@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.EFCore.SqlServer;
+namespace ServiceControl.Audit.Persistence.EFCore.SqlServer;
 
 using System.Data.Common;
 using System.Globalization;
@@ -6,11 +6,12 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using ServiceControl.Persistence;
-using ServiceControl.Persistence.EFCore.DbContexts;
-using ServiceControl.Persistence.EFCore.Infrastructure;
+using ServiceControl.Audit.Persistence;
+using ServiceControl.Audit.Persistence.EFCore.Abstractions;
+using ServiceControl.Audit.Persistence.EFCore.DbContexts;
+using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
 
-class SqlServerDatabaseHostingProbe(SqlServerPersisterSettings settings, IServiceScopeFactory scopeFactory, ILogger<SqlServerDatabaseHostingProbe> logger) : IDatabaseHostingProbe
+class SqlServerDatabaseHostingProbe(EFPersisterSettings settings, IServiceScopeFactory scopeFactory, ILogger<SqlServerDatabaseHostingProbe> logger) : IDatabaseHostingProbe
 {
     public string StorageName => "SQLServer";
 
@@ -19,7 +20,7 @@ class SqlServerDatabaseHostingProbe(SqlServerPersisterSettings settings, IServic
         try
         {
             await using var scope = scopeFactory.CreateAsyncScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+            var dbContext = scope.ServiceProvider.GetRequiredService<AuditDbContext>();
 
             await using var command = dbContext.Database.GetDbConnection().CreateCommand();
             // ProductVersion rather than ProductMajorVersion: the latter is documented as SQL Server

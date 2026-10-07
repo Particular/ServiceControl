@@ -39,12 +39,12 @@ namespace ServiceControl.Audit.AcceptanceTests
                 Assert.That((string)environmentData["Storage.ServerVersion"], Is.Not.Null.And.Not.Empty);
                 Assert.That((string)environmentData["Storage.FullTextSearch"], Is.AnyOf("Enabled", "Disabled"));
                 Assert.That(double.Parse((string)environmentData["Storage.SizeGB"], CultureInfo.InvariantCulture), Is.GreaterThanOrEqualTo(0));
-                Assert.That((string)environmentData["Storage.MessageCount"], Is.EqualTo("0"));
-                Assert.That((string)environmentData["Storage.ServerEdition"], Is.EqualTo("NotApplicable"));
+                Assert.That((string)environmentData["Storage.MessageCount"], Is.AnyOf("0", "Unknown"));
+                Assert.That((string)environmentData["Storage.ServerEdition"], Is.AnyOf("Express", "Standard", "Enterprise", "NotApplicable"));
                 Assert.That((string)environmentData["Health.FailedImports"], Is.EqualTo("0"));
                 Assert.That((string)environmentData["Host.Model"], Is.AnyOf("Container", "WindowsService", "Console"));
                 Assert.That((string)environmentData["Host.ProcessorCount"], Is.Not.Null.And.Not.Empty);
-                Assert.That((string)body["machine_id_hash"], Is.Not.Null.And.Not.Empty);
+                Assert.That((string)body["machine_name_hash"], Is.Not.Null.And.Not.Empty);
                 Assert.That(storageIdentity, Is.Not.Null);
                 Assert.That((string)storageIdentity["engine"], Is.Not.Null.And.Not.Empty);
                 Assert.That((string)storageIdentity["server_hash"], Has.Length.EqualTo(64));

@@ -29,10 +29,14 @@ class StorageFootprintProbeTests : PersistenceTestBase
 
         var hosting = await probe.Probe();
 
+        var managed = hosting.Hosting is "AzureSql" or "AzureSqlManagedInstance";
+
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(hosting.ServerEdition, Is.Not.EqualTo(DatabaseHosting.NotApplicable));
-            Assert.That(hosting.ServiceObjective, Is.EqualTo(DatabaseHosting.NotApplicable));
+            Assert.That(hosting.ServerEdition, managed ? Is.EqualTo(DatabaseHosting.NotApplicable) : Is.AnyOf("Express", "Standard", "Enterprise"));
+            Assert.That(hosting.ServiceObjective, hosting.Hosting == "AzureSql" ? Is.AnyOf(ServiceTiers) : Is.EqualTo(DatabaseHosting.NotApplicable));
         }
     }
+
+    static readonly object[] ServiceTiers = ["Basic", "Standard", "Premium", "GeneralPurpose", "BusinessCritical", "Hyperscale", "ElasticPool"];
 }

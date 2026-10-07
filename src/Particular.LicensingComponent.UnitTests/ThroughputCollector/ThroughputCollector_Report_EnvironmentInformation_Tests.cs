@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -199,6 +200,17 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
     }
 
     [Test]
+    public async Task Should_leave_the_stored_broker_metadata_unchanged()
+    {
+        await DataStore.SaveBrokerMetadata(new BrokerMetadata("testingScope", new Dictionary<string, string> { [EnvironmentDataType.BrokerVersion.ToString()] = "1.2" }));
+
+        await ThroughputCollector.GenerateThroughputReport("", null);
+
+        var stored = await DataStore.GetBrokerMetadata();
+        Assert.That(stored.Data.Keys, Is.EquivalentTo(new[] { EnvironmentDataType.BrokerVersion.ToString() }));
+    }
+
+    [Test]
     public async Task Should_include_audit_instance_counts_in_environment_data()
     {
         await DataStore.SaveAuditServiceMetadata(new AuditServiceMetadata([], []) { ConfiguredInstances = 50, LiveInstances = 2 });
@@ -344,5 +356,44 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
         var report = await ThroughputCollector.GenerateThroughputReport("", null);
 
         Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData.Keys, Has.None.StartsWith("Audit.Storage."));
+    }
+
+    [Test]
+    public async Task Should_report_every_key_an_audit_instance_serves()
+    {
+        string[] served =
+        [
+            "Host.Model", "Host.Orchestrator", "Host.OSPlatform", "Host.OSVersion", "Host.Architecture", "Host.RuntimeVersion", "Host.ProcessorCount", "Host.AvailableMemoryGB",
+            "Storage.Type", "Storage.RavenServer", "Storage.Hosting", "Storage.ServerVersion", "Storage.HostingSource", "Storage.ServerEdition", "Storage.ServiceObjective",
+            "Storage.SizeGB", "Storage.MessageCount", "Storage.FullTextSearch",
+            "Health.FailedImports", "Health.UptimeHours", "Health.LagOver1MinPercent", "Health.LagOver10MinPercent", "Health.LagOver60MinPercent",
+            "Ingestion.AvgDailyMessages", "Ingestion.BusyPercent",
+            "SameMachine", "DatabaseSharing"
+        ];
+        await DataStore.SaveAuditEnvironmentMetadata(new AuditEnvironmentMetadata([served.ToDictionary(key => key, _ => "1")]));
+
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
+
+        Assert.That(report.ReportData.EnvironmentInformation.EnvironmentData.Keys.Where(key => key.StartsWith("Audit.") && key is not "Audit.ConfiguredInstances" and not "Audit.LiveInstances"),
+            Is.EquivalentTo(served.Select(key => "Audit." + key)));
+    }
+
+    [Test]
+    public async Task Should_leave_out_audit_keys_the_primary_does_not_report()
+    {
+        await DataStore.SaveAuditEnvironmentMetadata(new AuditEnvironmentMetadata(
+        [
+            new Dictionary<string, string> { ["Storage.Type"] = "RavenDB", ["Security.Authentication"] = "Enabled", ["Storage.Auth"] = "Integrated" }
+        ]));
+
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
+
+        var environmentData = report.ReportData.EnvironmentInformation.EnvironmentData;
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(environmentData, Does.ContainKey("Audit.Storage.Type").WithValue("RavenDB"));
+            Assert.That(environmentData, Does.Not.ContainKey("Audit.Security.Authentication"));
+            Assert.That(environmentData, Does.Not.ContainKey("Audit.Storage.Auth"));
+        }
     }
 }

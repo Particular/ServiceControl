@@ -1,19 +1,22 @@
-namespace ServiceControl.Persistence.EFCore.PostgreSql;
+namespace ServiceControl.Audit.Persistence.EFCore.PostgreSql;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using ServiceControl.Persistence;
-using ServiceControl.Persistence.EFCore.DbContexts;
+using ServiceControl.Audit.Persistence;
+using ServiceControl.Audit.Persistence.EFCore.Abstractions;
+using ServiceControl.Audit.Persistence.EFCore.DbContexts;
 
-class PostgreSqlStorageIdentityProvider(PostgreSqlPersisterSettings settings, IServiceScopeFactory scopeFactory, ILogger<PostgreSqlStorageIdentityProvider> logger) : IStorageIdentityProvider
+// The query and the default schema must stay identical to the primary instance's provider, or the
+// two sides hash different values for one database and DatabaseSharing never matches.
+class PostgreSqlStorageIdentityProvider(EFPersisterSettings settings, IServiceScopeFactory scopeFactory, ILogger<PostgreSqlStorageIdentityProvider> logger) : IStorageIdentityProvider
 {
     public async ValueTask<StorageIdentity?> GetIdentity(CancellationToken cancellationToken = default)
     {
         try
         {
             await using var scope = scopeFactory.CreateAsyncScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+            var dbContext = scope.ServiceProvider.GetRequiredService<AuditDbContext>();
 
             await using var command = dbContext.Database.GetDbConnection().CreateCommand();
             // The cluster's initialisation identifier rather than an address: every connection to

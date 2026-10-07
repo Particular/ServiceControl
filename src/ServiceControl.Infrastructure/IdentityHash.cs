@@ -6,9 +6,10 @@ using System.Security.Cryptography;
 using System.Text;
 
 /// <summary>
-/// Hashes an identity value so that two instances can compare what they are running on without
-/// either side revealing the value itself. The hashes are exchanged between the customer's own
-/// instances and never appear in a usage report; only the comparison result does.
+/// Hashes an identity value so that two instances can compare what they are running on. The hash is
+/// unsalted and the audit instance serves it on its anonymous environment endpoint, so anyone who
+/// can reach that endpoint can confirm a guessed value. It never appears in a usage report; only the
+/// comparison result does.
 /// </summary>
 public static class IdentityHash
 {
