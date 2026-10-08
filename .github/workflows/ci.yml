@@ -189,6 +189,8 @@ jobs:
         with:
           projects: ${{ steps.select.outputs.test-projects }}
           max-parallel: ${{ matrix.max-parallel || 1 }}
+          # Experiment: these share one database server, so starting the slowest assemblies together may slow them all down.
+          cache-timings: ${{ !contains(fromJSON('["SqlServer", "PostgreSql"]'), matrix.test-category) }}
         env:
           ServiceControl_TESTS_FILTER: ${{ matrix.test-category }}
           PARTICULARSOFTWARE_LICENSE: ${{ secrets.LICENSETEXT }}
