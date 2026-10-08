@@ -114,7 +114,7 @@ namespace ServiceControl.Audit.Persistence.Tests
         {
             await dbContext.Database.OpenConnectionAsync(token);
             await using var command = dbContext.Database.GetDbConnection().CreateCommand();
-            command.CommandText = sql;
+            command.CommandText = "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED; " + sql;
             var schema = command.CreateParameter();
             schema.ParameterName = "@schema";
             schema.Value = dbContext.Schema;
