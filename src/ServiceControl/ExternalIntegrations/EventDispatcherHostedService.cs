@@ -9,6 +9,7 @@
     using Microsoft.Extensions.Logging;
     using NServiceBus;
     using Persistence;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     class EventDispatcherHostedService : IHostedService
     {
@@ -16,11 +17,15 @@
             IExternalIntegrationRequestsDataStore store,
             IDomainEvents domainEvents,
             IEnumerable<IEventPublisher> eventPublishers,
+            IEnumerable<IIntegrationEventSink> eventSinks,
             IMessageSession messageSession,
+            Settings settings,
             ILogger<EventDispatcherHostedService> logger)
         {
             this.store = store;
             this.eventPublishers = eventPublishers;
+            this.eventSinks = eventSinks;
+            publishToBus = !settings.DisableExternalIntegrationsPublishing;
             this.domainEvents = domainEvents;
             this.messageSession = messageSession;
             this.logger = logger;
@@ -40,6 +45,21 @@
             {
                 var events = await publisher.PublishEventsForOwnContexts(allContexts, cancellationToken);
                 eventsToBePublished.AddRange(events);
+            }
+
+            if (eventsToBePublished.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var sink in eventSinks)
+            {
+                await sink.Dispatch(eventsToBePublished, cancellationToken);
+            }
+
+            if (!publishToBus)
+            {
+                return;
             }
 
             foreach (var eventToBePublished in eventsToBePublished)
@@ -83,6 +103,8 @@
 
         readonly IMessageSession messageSession;
         readonly IEnumerable<IEventPublisher> eventPublishers;
+        readonly IEnumerable<IIntegrationEventSink> eventSinks;
+        readonly bool publishToBus;
         readonly IExternalIntegrationRequestsDataStore store;
         readonly IDomainEvents domainEvents;
 

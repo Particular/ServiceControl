@@ -14,6 +14,7 @@
     using global::ServiceControl.Infrastructure.Metrics;
     using global::ServiceControl.Infrastructure.WebApi;
     using global::ServiceControl.Notifications.Email;
+    using global::ServiceControl.Notifications.Webhooks;
     using global::ServiceControl.Operations.Metrics;
     using global::ServiceControl.Recoverability.Retrying.Metrics;
     using global::ServiceControl.Persistence;
@@ -136,6 +137,7 @@
                 hostBuilder.Services.AddNServiceBusEndpoint(configuration);
 
                 hostBuilder.AddEmailNotifications();
+                hostBuilder.AddWebhookNotifications(settings);
             }
 
             hostBuilder.AddAsyncTimer();

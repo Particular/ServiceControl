@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="JUST.net" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
     <PackageReference Include="Microsoft.Data.SqlClient.Extensions.Azure" />
@@ -42,6 +43,7 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
     <PackageReference Include="Particular.ServicePulse.Core" />
+    <PackageReference Include="Polly.Core" />
     <PackageReference Include="ServiceControl.Contracts" />
     <PackageReference Include="Yarp.ReverseProxy" />
   </ItemGroup>

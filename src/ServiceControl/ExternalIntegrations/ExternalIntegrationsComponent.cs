@@ -14,7 +14,8 @@ namespace ServiceControl.ExternalIntegrations
             var services = hostBuilder.Services;
             services.AddEventLogMapping<ExternalIntegrationEventFailedToBePublishedDefinition>();
 
-            if (!settings.DisableExternalIntegrationsPublishing)
+            // Webhook notifications are fed from the same outbox as the integration events published on the bus
+            if (!settings.DisableExternalIntegrationsPublishing || settings.Webhooks.Length > 0)
             {
                 services.AddDomainEventHandler<IntegrationEventWriter>();
 

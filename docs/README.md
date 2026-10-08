@@ -28,6 +28,7 @@ This section points to sources that explain why ServiceControl is designed the w
 - [Retries over Azure Storage Queues transport](retries-asq-transport.md) — transport-specific retry handling
 - [Data versioning design](data-versioning-design.md) — the cache-versioning invariant for API responses
 - [Event log design](eventlog-design.md) — what the event log is and what it records
+- [Webhook notifications design](webhook-notifications-design.md) — how failures, heartbeats, and custom checks reach incident response tools as Alertmanager-shaped webhooks, and why delivery runs through the outbox and a self-sent command
 - [Multiple ServiceControl instances communication](multipleservicecontrolinstancescommunication.md) — how primary, audit, and monitoring instances talk to each other
 - [Handling unavailable runtime dependencies](handling-unavailable-runtime-dependencies.md) — how instances react when a dependency is unavailable
 - [Telemetry](telemetry.md) — telemetry configuration and emitted metrics

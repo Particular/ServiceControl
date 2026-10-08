@@ -44,6 +44,7 @@
   "NotificationsFilter": null,
   "AllowMessageEditing": false,
   "EnableIntegratedServicePulse": false,
+  "ServicePulseUrl": null,
   "ServicePulseSettings": null,
   "MessageFilter": null,
   "EmailDropFolder": null,

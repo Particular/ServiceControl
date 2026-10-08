@@ -15,6 +15,7 @@
     using ServiceControl.Infrastructure.Ingestion;
     using ServiceControl.Infrastructure.Settings;
     using ServiceControl.Infrastructure.WebApi;
+    using ServiceControl.Notifications.Webhooks;
     using ServiceControl.Persistence;
     using ServiceControl.Transports;
     using ServicePulse;
@@ -79,6 +80,8 @@
             }
             NotificationsFilter = SettingsReader.Read<string>(SettingsRootNamespace, "NotificationsFilter");
             RemoteInstances = GetRemoteInstances().ToArray();
+            ServicePulseUrl = GetServicePulseUrl();
+            Webhooks = GetWebhooks();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             HeartbeatGracePeriod = GetHeartbeatGracePeriod();
             ErrorIngestionBatchSize = IngestionSettingsReader.ReadBatchSize(SettingsRootNamespace, nameof(ErrorIngestionBatchSize), ValidateConfiguration);
@@ -120,6 +123,17 @@
         public bool AllowMessageEditing { get; set; }
 
         public bool EnableIntegratedServicePulse { get; set; }
+
+        /// <summary>
+        /// Public ServicePulse URL used to create deep links in notifications
+        /// </summary>
+        public string ServicePulseUrl { get; set; }
+
+        /// <summary>
+        /// Webhook notification targets. Excluded from serialization because URLs and headers can contain secrets.
+        /// </summary>
+        [JsonIgnore]
+        public WebhookTarget[] Webhooks { get; set; } = [];
         public ServicePulseSettings ServicePulseSettings { get; set; }
 
         //HINT: acceptance tests only
@@ -438,6 +452,50 @@
 
         internal static RemoteInstanceSetting[] ParseRemoteInstances(string value) =>
             JsonSerializer.Deserialize<RemoteInstanceSetting[]>(value, SerializerOptions.Default) ?? [];
+
+        string GetServicePulseUrl()
+        {
+            var valueRead = SettingsReader.Read<string>(SettingsRootNamespace, "ServicePulseUrl");
+            if (string.IsNullOrWhiteSpace(valueRead))
+            {
+                return null;
+            }
+
+            if (!Uri.TryCreate(valueRead.Trim(), UriKind.Absolute, out var uri) || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+            {
+                var message = "ServicePulseUrl setting is invalid, value should be an absolute http or https URL";
+                logger.LogCritical(message);
+                throw new Exception(message);
+            }
+
+            return uri.GetLeftPart(UriPartial.Path).TrimEnd('/');
+        }
+
+        WebhookTarget[] GetWebhooks()
+        {
+            WebhookTarget[] webhooks;
+            try
+            {
+                webhooks = WebhookSettingsParser.Parse(SettingsReader.Read<string>(SettingsRootNamespace, "Webhooks"));
+            }
+            catch (WebhookConfigurationException e)
+            {
+                logger.LogCritical(e, "Webhooks setting is invalid");
+                throw;
+            }
+
+            if (webhooks.Length > 0)
+            {
+                logger.LogInformation("Webhook notifications enabled for {WebhookCount} webhook(s): {WebhookNames}", webhooks.Length, string.Join(", ", webhooks.Select(w => w.Name)));
+            }
+
+            foreach (var webhook in webhooks.Where(w => w.TemplateError != null))
+            {
+                logger.LogError("The template for webhook {WebhookName} is invalid and notifications to it will fail until it is fixed: {TemplateError}", webhook.Name, webhook.TemplateError);
+            }
+
+            return webhooks;
+        }
 
         static string Subscope(string address)
         {
