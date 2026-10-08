@@ -144,6 +144,11 @@
                     ["MessageIntent"] = context.Headers.MessageIntent()
                 };
 
+                foreach (var property in context.ReceiveProperties)
+                {
+                    context.Headers.TryAdd($"ServiceControl.ReceiveProperties.{property.Key}", property.Value);
+                }
+
                 var commandsToEmit = new List<ICommand>();
                 var messagesToEmit = new List<TransportOperation>();
                 var enricherContext = new AuditEnricherContext(context.Headers, commandsToEmit, messagesToEmit, metadata);
