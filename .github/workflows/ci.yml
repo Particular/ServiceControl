@@ -185,7 +185,7 @@ jobs:
           azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
           tag: ServiceControl
       - name: Run tests
-        uses: Particular/run-tests-action@v1.9.0
+        uses: Particular/run-tests-action@cbc16079167d28d764dd096654d8ddea5010eaa8 # parallel-auto-and-timing-order, temporary
         with:
           projects: ${{ steps.select.outputs.test-projects }}
           max-parallel: ${{ matrix.max-parallel || 1 }}
