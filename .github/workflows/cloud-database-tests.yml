@@ -136,7 +136,7 @@ jobs:
       - name: Wait for build
         wait: build
       - name: Run tests
-        uses: Particular/run-tests-action@7b44ea49c36daa078a5ea6372996c623c6017391 # parallel-auto-and-timing-order, temporary
+        uses: Particular/run-tests-action@1c9082d0d2c9b07de57656ab138ba75914ad303a # parallel-auto-and-timing-order, temporary
         with:
           projects: ${{ env.PERSISTENCE_PROJECT }};${{ env.ACCEPTANCE_PROJECT }};${{ env.AUDIT_PERSISTENCE_PROJECT }};${{ env.AUDIT_ACCEPTANCE_PROJECT }}
           max-parallel: 2
