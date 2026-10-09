@@ -114,10 +114,11 @@ class MigrationEngineBodyRetryTests
         // millisecond and the message is skipped for an outage it would have survived.
         var category = MigrationCategoryRegistry.Find("UnresolvedAndRetryIssuedFailedMessages")!;
         var source = new InMemoryMigrationSource();
-        source.Seed(category.Id, Row("msg-1"));
-        var body = new MigrationBody(new byte[] { 1 }, "text/plain");
-        source.SetBody("msg-1", body);
-        source.FailBodyReads("msg-1", MigrationEngine.MaxBodyReadAttempts - 1, new TimeoutException("body store unreachable"));
+        source.Seed(category.Id, Row("msg-1"), Row("msg-2"));
+        // Every attempt on msg-1 fails, so the guard against a wait after the final one is the only thing
+        // keeping the third timer from being created.
+        source.FailBodyReads("msg-1", MigrationEngine.MaxBodyReadAttempts, new TimeoutException("body store unreachable"));
+        source.SetBody("msg-2", new MigrationBody(new byte[] { 2 }, "text/plain"));
         var checkpointStore = new InMemoryMigrationCheckpointStore();
         var target = new InMemoryMigrationTarget(checkpointStore);
         var clock = new TimerRecordingTimeProvider();
@@ -127,7 +128,8 @@ class MigrationEngineBodyRetryTests
 
         var runTask = engine.RunCategoryAsync(category);
 
-        // Two failures, so a wait after each before the attempt that succeeds.
+        // A wait after the first two failures only. A third would never complete, because the clock is
+        // not advanced again and the run below would time out waiting for it.
         for (var waitNumber = 1; waitNumber <= MigrationEngine.MaxBodyReadAttempts - 1; waitNumber++)
         {
             Assert.That(await clock.TimerCreated.WaitAsync(TimeSpan.FromSeconds(5)), Is.True, $"backoff {waitNumber} never started");
@@ -139,20 +141,24 @@ class MigrationEngineBodyRetryTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Complete));
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.CompleteWithErrors));
+            Assert.That(checkpoint.SkippedCount, Is.EqualTo(1), "msg-1 was given up on, so all three attempts ran");
             Assert.That(clock.DueTimes, Is.EqualTo(new[] { backoff, backoff }), "no wait after the final attempt, which has nothing left to retry");
-            Assert.That(target.WrittenRows(category.Id).Single().Body, Is.EqualTo(body));
         }
     }
 
     [Test]
     public async Task The_skip_warning_for_an_unreadable_body_carries_the_last_attempts_exception()
     {
+        // The first failure of a retry run is usually a transient connect error. The last one says what the
+        // body store was doing when the message was given up on, and it is all the operator gets.
         var category = MigrationCategoryRegistry.Find("UnresolvedAndRetryIssuedFailedMessages")!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("msg-1"));
-        var failure = new TimeoutException("body store unreachable");
-        source.FailBodyReads("msg-1", MigrationEngine.MaxBodyReadAttempts, failure);
+        var failures = Enumerable.Range(1, MigrationEngine.MaxBodyReadAttempts)
+            .Select(attempt => new TimeoutException($"body store unreachable on attempt {attempt}"))
+            .ToArray();
+        source.FailBodyReadsInTurn("msg-1", failures);
         var checkpointStore = new InMemoryMigrationCheckpointStore();
         var target = new InMemoryMigrationTarget(checkpointStore);
         var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []) { BodyRetryBackoff = TimeSpan.Zero };
@@ -161,7 +167,7 @@ class MigrationEngineBodyRetryTests
 
         await engine.RunCategoryAsync(category);
 
-        Assert.That(logger.Entries.Single(e => e.Message.StartsWith("Skipped msg-1")).Exception, Is.SameAs(failure));
+        Assert.That(logger.Entries.Single(e => e.Message.StartsWith("Skipped msg-1")).Exception, Is.SameAs(failures[^1]));
     }
 
     [Test]

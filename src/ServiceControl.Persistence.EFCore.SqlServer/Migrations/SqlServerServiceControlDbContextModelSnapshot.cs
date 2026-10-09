@@ -572,6 +572,57 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.ToTable("MessageRedirects");
                 });
 
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.MigrationCheckpointEntity", b =>
+                {
+                    b.Property<string>("CategoryId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<long>("AlreadyPresentCount")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CopiedCount")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Cursor")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastError")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LastProgressAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("SettledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SkipReasons")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("SkippedCount")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("SourceTotal")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("StartedWindowSeconds")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("State")
+                        .HasColumnType("int");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.HasKey("CategoryId");
+
+                    b.ToTable("MigrationCheckpoints");
+                });
+
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.RetryBatchEntity", b =>
                 {
                     b.Property<Guid>("Id")

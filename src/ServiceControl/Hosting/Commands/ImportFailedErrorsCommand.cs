@@ -14,6 +14,9 @@
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Migration;
+    using ServiceControl.Persistence;
+    using ServiceControl.Persistence.DataMigration;
 
     class ImportFailedErrorsCommand : AbstractCommand
     {
@@ -53,6 +56,15 @@
 
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.AddServiceControl(settings, endpointConfiguration, new RecoverabilityComponent());
+
+            // Importing writes failed messages into the database, so on SQL it waits for an unfinished copy as an ingestion-only worker does.
+            if (PersistenceFactory.SqlPersistenceNames.Contains(PersistenceManifestLibrary.Find(settings.PersistenceType)?.Name, StringComparer.OrdinalIgnoreCase))
+            {
+                hostBuilder.Services.AddHostedService(provider =>
+                    new FinishedCopyBeforeAnIngestionNodeOpens(
+                        provider.GetRequiredService<IMigrationCheckpointStore>(),
+                        "--import-failed-errors"));
+            }
 
             return hostBuilder.Build();
         }

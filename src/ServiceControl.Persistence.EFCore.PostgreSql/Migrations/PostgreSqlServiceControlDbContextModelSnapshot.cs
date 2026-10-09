@@ -715,6 +715,72 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.ToTable("message_redirects", (string)null);
                 });
 
+            modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.MigrationCheckpointEntity", b =>
+                {
+                    b.Property<string>("CategoryId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("category_id");
+
+                    b.Property<long>("AlreadyPresentCount")
+                        .HasColumnType("bigint")
+                        .HasColumnName("already_present_count");
+
+                    b.Property<long>("CopiedCount")
+                        .HasColumnType("bigint")
+                        .HasColumnName("copied_count");
+
+                    b.Property<string>("Cursor")
+                        .HasColumnType("text")
+                        .HasColumnName("cursor");
+
+                    b.Property<string>("LastError")
+                        .HasColumnType("text")
+                        .HasColumnName("last_error");
+
+                    b.Property<DateTime?>("LastProgressAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_progress_at");
+
+                    b.Property<DateTime?>("SettledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("settled_at");
+
+                    b.Property<string>("SkipReasons")
+                        .HasColumnType("text")
+                        .HasColumnName("skip_reasons");
+
+                    b.Property<long>("SkippedCount")
+                        .HasColumnType("bigint")
+                        .HasColumnName("skipped_count");
+
+                    b.Property<long?>("SourceTotal")
+                        .HasColumnType("bigint")
+                        .HasColumnName("source_total");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<long?>("StartedWindowSeconds")
+                        .HasColumnType("bigint")
+                        .HasColumnName("started_window_seconds");
+
+                    b.Property<int>("State")
+                        .HasColumnType("integer")
+                        .HasColumnName("state");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint")
+                        .HasColumnName("version");
+
+                    b.HasKey("CategoryId")
+                        .HasName("pk_migration_checkpoints");
+
+                    b.ToTable("migration_checkpoints", (string)null);
+                });
+
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.RetryBatchEntity", b =>
                 {
                     b.Property<Guid>("Id")
