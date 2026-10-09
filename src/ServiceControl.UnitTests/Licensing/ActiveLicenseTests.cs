@@ -4,9 +4,14 @@
     using System.Threading;
     using System.Threading.Tasks;
     using LicenseManagement;
+    using Microsoft.Extensions.Logging.Abstractions;
     using NUnit.Framework;
     using Particular.ServiceControl.Licensing;
     using Persistence;
+    using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Connector.MassTransit;
+    using ServiceControl.Licensing;
+    using ServiceControl.Monitoring.HeartbeatMonitoring;
 
     [TestFixture]
     public class ActiveLicenseTests
@@ -58,6 +63,46 @@
 
             Assert.That(checkedDetails.ExpirationDate, Is.GreaterThanOrEqualTo(today));
             Assert.That(checkedDetails.HasLicenseExpired, Is.False);
+        }
+
+        [TestCase(false, true, "https://particular.net/extend-your-trial?p=servicepulse")]
+        [TestCase(true, true, "https://particular.net/license/mt?p=servicepulse&t=0")]
+        [TestCase(true, false, "https://particular.net/license/mt?p=servicepulse&t=1")]
+        public async Task License_information_preserves_the_existing_mapping_and_renewal_links(bool massTransit, bool evaluation, string expectedUrl)
+        {
+            var details = LicenseDetails.TrialFromEndDate(new DateOnly(2026, 9, 30));
+            var active = new ActiveLicense(null, NullLogger<ActiveLicense>.Instance)
+            {
+                Details = details,
+                IsValid = false,
+                IsEvaluation = evaluation
+            };
+            var connector = new MassTransitConnectorHeartbeatStatus();
+            if (massTransit)
+            {
+                connector.Update(new MassTransitConnectorHeartbeat
+                {
+                    Version = "1.0.0",
+                    ErrorQueues = [],
+                    Logs = [],
+                    SentDateTimeOffset = DateTimeOffset.MinValue
+                });
+            }
+
+            var provider = new LicenseInfoProvider(active, new Settings { InstanceName = "Primary" }, connector);
+            var result = await provider.GetLicense(false, "servicepulse");
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(result.LicenseExtensionUrl, Is.EqualTo(expectedUrl));
+                Assert.That(result.LicenseStatus, Is.EqualTo(details.Status));
+                Assert.That(result.Status, Is.EqualTo("invalid"));
+                Assert.That(result.TrialLicense, Is.True);
+                Assert.That(result.LicenseType, Is.EqualTo(details.LicenseType));
+                Assert.That(result.ExpirationDate, Is.EqualTo(details.ExpirationDate?.ToString("O")));
+                Assert.That(result.UpgradeProtectionExpiration, Is.Empty);
+                Assert.That(result.InstanceName, Is.EqualTo("Primary"));
+            }
         }
 
         class FakeDataProvider : ITrialLicenseDataProvider

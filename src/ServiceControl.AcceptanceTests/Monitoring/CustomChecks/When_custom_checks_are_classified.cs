@@ -2,6 +2,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
 {
     using System;
     using System.Linq;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
@@ -11,6 +12,9 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Api.Contracts;
+    using ServiceControl.Infrastructure;
+    using ApiSerializerOptions = global::ServiceControl.Infrastructure.WebApi.SerializerOptions;
     using CustomCheckView = global::ServiceControl.Contracts.CustomChecks.CustomCheckView;
     using CheckStatus = global::ServiceControl.Persistence.Status;
 
@@ -28,7 +32,10 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
 
             CustomCheckView internalCheck = null;
             CustomCheckView endpointCheck = null;
+            PlatformHealthView platformHealth = null;
+            RootUrls urls = null;
             string wireBody = null;
+            string healthWireBody = null;
 
             await Define<Context>()
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
@@ -47,9 +54,21 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
                         wireBody = await raw.Content.ReadAsStringAsync();
                     }
 
-                    return internalCheck != null && endpointCheck != null && wireBody != null;
+                    if (internalCheck != null && endpointCheck != null && platformHealth == null)
+                    {
+                        urls = await this.TryGet<RootUrls>("/api");
+                        using var response = await this.GetRaw("/api/platform-health");
+                        healthWireBody = await response.Content.ReadAsStringAsync();
+                        platformHealth = JsonSerializer.Deserialize<PlatformHealthView>(healthWireBody, ApiSerializerOptions.Default);
+                    }
+
+                    return internalCheck != null && endpointCheck != null && wireBody != null && platformHealth != null;
                 })
                 .Run();
+
+            using var healthJson = JsonDocument.Parse(healthWireBody);
+            var instanceJson = healthJson.RootElement.GetProperty("instances")[0];
+            var instance = platformHealth.Instances.Single(item => item.Role == "primary-error");
 
             using (Assert.EnterMultipleScope())
             {
@@ -58,6 +77,19 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
 
                 Assert.That(endpointCheck, Is.Not.Null);
                 Assert.That(endpointCheck.Internal, Is.False);
+                Assert.That(platformHealth.Alerts, Has.None.Matches<PlatformHealthAlert>(alert => alert.CheckId == "MyCustomCheckId"));
+                Assert.That(urls.PlatformHealth, Does.EndWith("/api/platform-health"));
+                Assert.That(instance.Id, Is.EqualTo(Settings.InstanceId));
+                Assert.That(instance.Name, Is.EqualTo(Settings.InstanceName));
+                Assert.That(instance.HostId, Is.EqualTo(internalCheck.OriginatingEndpoint.HostId));
+                Assert.That(instance.HealthSignalsStatus, Is.EqualTo("reported"));
+                Assert.That(instance.Version, Is.EqualTo(ServiceControlVersion.GetFileVersion()));
+                Assert.That(instance.ApiUrl.TrimEnd('/'), Is.EqualTo(urls.PlatformHealth[..^"/platform-health".Length]));
+                Assert.That(instance.ErrorQueue, Is.EqualTo(Settings.ErrorQueue));
+                Assert.That(instance.ErrorRetentionPeriod, Is.EqualTo(Settings.ErrorRetentionPeriod));
+                Assert.That(instanceJson.GetProperty("health_signals_status").GetString(), Is.EqualTo("reported"));
+                Assert.That(instanceJson.GetProperty("forward_error_messages").GetBoolean(), Is.EqualTo(Settings.ForwardErrorMessages));
+                Assert.That(healthJson.RootElement.TryGetProperty("license", out _), Is.False);
 
                 // What the wire actually carries:
                 Assert.That(wireBody, Does.Contain("\"internal\":true"), "internal checks must render internal:true on the wire");

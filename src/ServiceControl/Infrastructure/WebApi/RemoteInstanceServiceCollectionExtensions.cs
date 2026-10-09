@@ -37,7 +37,7 @@ static class RemoteInstanceServiceCollectionExtensions
             {
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 // Application settings might contain remote URLs with /api. We strip that away to be a real base address.
-                client.BaseAddress = new Uri(remoteInstance.BaseAddress);
+                client.BaseAddress = new Uri(remoteInstance.BaseAddress.TrimEnd('/') + "/");
                 // This instance's query time limit bounds the whole composite: a remote that has not answered by then
                 // is reported as missing, whatever its own limit is. Its own limit still ends the query on its side.
                 client.Timeout = serviceProvider.GetRequiredService<PersistenceSettings>().QueryTimeout;

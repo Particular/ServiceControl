@@ -57,6 +57,7 @@ PATCH /pendingretries/queues/resolve => ServiceControl.MessageFailures.Api.Resol
 POST /pendingretries/queues/retry => ServiceControl.MessageFailures.Api.PendingRetryMessagesController:RetryBy(PendingRetryRequest request, CancellationToken cancellationToken)
 PATCH /pendingretries/resolve => ServiceControl.MessageFailures.Api.ResolveMessagesController:ResolveBy(UniqueMessageIdsModel request, CancellationToken cancellationToken)
 POST /pendingretries/retry => ServiceControl.MessageFailures.Api.PendingRetryMessagesController:RetryBy(String[] ids, CancellationToken cancellationToken)
+GET /platform-health => ServiceControl.PlatformHealth.PlatformHealthController:Get(CancellationToken cancellationToken)
 GET /recoverability/classifiers => ServiceControl.Recoverability.API.FailureGroupsController:GetSupportedClassifiers()
 GET /recoverability/groups/{classifier?} => ServiceControl.Recoverability.API.FailureGroupsController:GetAllGroups(String classifier, String classifierFilter, CancellationToken cancellationToken)
 DELETE /recoverability/groups/{groupId:required:minlength(1)}/comment => ServiceControl.Recoverability.API.FailureGroupsController:DeleteComment(String groupId, CancellationToken cancellationToken)
