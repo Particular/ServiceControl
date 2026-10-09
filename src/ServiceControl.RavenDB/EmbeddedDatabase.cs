@@ -55,6 +55,15 @@ namespace ServiceControl.RavenDB
             // HINT: RavenDB 7 removed the client-side Sparrow logging configuration (LoggingSource/LogMode) and the
             // 'Logs.Mode' server setting. The embedded server runs in its own process, so its logging is driven by
             // the 'Logs.MinLevel' server setting passed below together with ServerOptions.LogsPath.
+            //
+            // The server only creates the logs folder when it actually writes an entry, so with the quiet 'Warn'
+            // minimum level the configured folder would never appear. Create it up front so the configured LogPath
+            // always exists and warnings always have somewhere to land.
+            if (!string.IsNullOrWhiteSpace(databaseConfiguration.LogPath))
+            {
+                Directory.CreateDirectory(databaseConfiguration.LogPath);
+            }
+
             logger.LogInformation("Loading RavenDB license from {LicenseFileName}", licenseFileNameAndServerDirectory.LicenseFileName);
 
             List<string> optionalArgs = [];
