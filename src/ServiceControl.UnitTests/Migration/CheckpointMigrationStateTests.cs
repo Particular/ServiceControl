@@ -90,10 +90,10 @@ class CheckpointMigrationStateTests
             Is.EquivalentTo(new[] { MigrationCategoryState.Halted, MigrationCategoryState.CompleteWithErrors }));
 
     [Test]
-    public void Exactly_the_three_harmless_reasons_are_harmless_and_every_other_skip_reason_is_a_fault() =>
+    public void Exactly_the_two_harmless_reasons_are_harmless_and_every_other_skip_reason_is_a_fault() =>
         Assert.That(
             Enum.GetValues<MigrationSkipReason>().Where(reason => reason.IsBenign()),
-            Is.EquivalentTo(new[] { MigrationSkipReason.PastRetention, MigrationSkipReason.EndpointNotKnown, MigrationSkipReason.BlankGroupComment }),
+            Is.EquivalentTo(new[] { MigrationSkipReason.PastRetention, MigrationSkipReason.BlankGroupComment }),
             "a harmless reason is exempt from the halt threshold and the settle rule, so any number of rows lost to one settles the category Done");
 
     [Test]

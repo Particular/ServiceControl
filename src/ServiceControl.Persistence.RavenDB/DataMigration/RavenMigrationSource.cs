@@ -62,8 +62,7 @@ sealed class RavenMigrationSource(RavenReadOnlySourceLifecycle lifecycle) : IMig
         return entries;
     }
 
-    // Counted by streaming the same documents Read walks, not from RavenDB's collection statistics: a total that
-    // counted anything Read leaves out would halt the category for a shortfall that never happened.
+    // Counted through the reader the copy uses, not from RavenDB's collection statistics, because a collection does not map one to one onto a category.
     public async Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default)
     {
         var total = 0L;
@@ -89,6 +88,8 @@ sealed class RavenMigrationSource(RavenReadOnlySourceLifecycle lifecycle) : IMig
         throw new NotSupportedException($"The RavenDB migration source cannot read bodies for category {category.Id} yet");
 
     public IReadOnlyCollection<string> SupportedCategoryIds => readers.Keys;
+
+    public IReadOnlyDictionary<string, Type> DocumentTypes => readers.ToFrozenDictionary(pair => pair.Key, pair => pair.Value.DocumentType, StringComparer.Ordinal);
 
     public ValueTask DisposeAsync() => lifecycle.DisposeAsync();
 

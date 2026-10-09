@@ -152,11 +152,14 @@ Keep RavenDB running until every category is Done or Abandoned. If RavenDB goes 
 
 ## Step 8: Finish the migration
 
-1. Run `--migration-verify`. It shows the row counts in RavenDB and in SQL, and explains the skipped and merged rows. It exits with 0 only when every category is Done or Abandoned.
-2. Set `ServiceControl/Migration/Enabled` to `false`.
-3. Restart ServiceControl.
+1. Stop ServiceControl.
+2. Run `--migration-verify`. It counts the rows in RavenDB again, and compares them with the rows that the copy read. It also shows the skipped and merged rows. It exits with 0 only when every category is Done or Abandoned.
+3. Set `ServiceControl/Migration/Enabled` to `false`.
+4. Start ServiceControl.
 
-The counts on the two sides can be different when nothing is wrong. [The overview](ravendb-to-sql-migration-overview.md#the-dry-run) explains why.
+Verify reads all the data in RavenDB again, but not the message bodies. On a large instance this takes time, and ServiceControl is stopped during that time.
+
+If verify shows rows that the copy did not read, keep RavenDB. Those rows are only in RavenDB. RavenDB can show fewer rows than the copy read when nothing is wrong, because RavenDB deletes old rows. [The overview](ravendb-to-sql-migration-overview.md#the-dry-run) explains why.
 
 If you turn the migration off before every category is Done or Abandoned, ServiceControl refuses to start. The refusal names each unfinished category and the ways to continue.
 

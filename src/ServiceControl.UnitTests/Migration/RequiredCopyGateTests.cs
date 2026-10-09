@@ -190,7 +190,7 @@ class RequiredCopyGateTests
         MigrationStartup.ReportWhatTheCopyLeftBehind(
             [Settled(MigrationCategoryState.CompleteWithErrors, copied: 7, skipped: 6, new Dictionary<MigrationSkipReason, long>
             {
-                [MigrationSkipReason.EndpointNotKnown] = 3,
+                [MigrationSkipReason.PastRetention] = 3,
                 [MigrationSkipReason.RequiredValueMissing] = 2,
                 [MigrationSkipReason.BodyUnreadable] = 1
             })],
@@ -203,7 +203,7 @@ class RequiredCopyGateTests
         {
             Assert.That(entry.Level, Is.EqualTo(LogLevel.Warning), "rows left behind are not an informational matter");
             Assert.That(entry.Message, Does.Contain("6 skipped"), "the total is the number the operator decides on");
-            Assert.That(entry.Message, Does.Contain("EndpointNotKnown 3").And.Contain("RequiredValueMissing 2").And.Contain("BodyUnreadable 1"), "a total with no reasons cannot be acted on");
+            Assert.That(entry.Message, Does.Contain("PastRetention 3").And.Contain("RequiredValueMissing 2").And.Contain("BodyUnreadable 1"), "a total with no reasons cannot be acted on");
             Assert.That(entry.Message, Does.Contain("stay only in the source database").And.Contain($"--migration-retry {MigrationCategoryIds.EndpointSettings} re-reads them"),
                 "without this the operator either waits for a copy that is already over or never learns the rows can still come across");
             Assert.That(entry.Message, Does.Contain("No retry can fix the RequiredValueMissing ones"), "the retry brings the unreadable bodies across but leaves these behind again");
@@ -218,7 +218,7 @@ class RequiredCopyGateTests
         MigrationStartup.ReportWhatTheCopyLeftBehind(
             [Settled(MigrationCategoryState.CompleteWithErrors, copied: 7, skipped: 5, new Dictionary<MigrationSkipReason, long>
             {
-                [MigrationSkipReason.EndpointNotKnown] = 3,
+                [MigrationSkipReason.PastRetention] = 3,
                 [MigrationSkipReason.RequiredValueMissing] = 2
             })],
             logger,
@@ -239,7 +239,7 @@ class RequiredCopyGateTests
     {
         var logger = new CapturingLogger();
 
-        var stoppedByAnException = Settled(MigrationCategoryState.Halted, copied: 7, skipped: 3, new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.EndpointNotKnown] = 3 })
+        var stoppedByAnException = Settled(MigrationCategoryState.Halted, copied: 7, skipped: 3, new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.PastRetention] = 3 })
             with
         { LastError = "TimeoutException at cursor r-7: the target did not answer" };
 
@@ -255,7 +255,7 @@ class RequiredCopyGateTests
         var logger = new CapturingLogger();
 
         MigrationStartup.ReportWhatTheCopyLeftBehind(
-            [Settled(MigrationCategoryState.Complete, copied: 7, skipped: 3, new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.EndpointNotKnown] = 3 })],
+            [Settled(MigrationCategoryState.Complete, copied: 7, skipped: 3, new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.PastRetention] = 3 })],
             logger,
             RunStartedAt);
 
@@ -263,7 +263,7 @@ class RequiredCopyGateTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(entry.Message, Does.Contain("3 skipped").And.Contain("EndpointNotKnown 3"));
+            Assert.That(entry.Message, Does.Contain("3 skipped").And.Contain("PastRetention 3"));
             Assert.That(entry.Message, Does.Contain("harmless").And.Contain("stay only in the source database"));
             Assert.That(entry.Message, Does.Not.Contain("--migration-retry"), "a Done category cannot be retried, so offering it sends the operator to a command that refuses");
         });

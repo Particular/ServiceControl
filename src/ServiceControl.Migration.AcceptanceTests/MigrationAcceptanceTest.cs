@@ -442,5 +442,7 @@ abstract class MigrationAcceptanceTest
         public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) => inner.Count(category, cancellationToken);
 
         public IReadOnlyCollection<string> SupportedCategoryIds => inner.SupportedCategoryIds;
+
+        public IReadOnlyDictionary<string, Type> DocumentTypes => inner.DocumentTypes;
     }
 }

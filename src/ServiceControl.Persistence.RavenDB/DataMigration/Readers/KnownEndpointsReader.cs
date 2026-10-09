@@ -9,18 +9,10 @@ using ServiceControl.Persistence.DataMigration;
 /// <summary>
 /// Reads the endpoints ServiceControl has heard from, whole, out of the primary database.
 /// </summary>
-sealed class KnownEndpointsReader(RavenReadOnlySourceLifecycle lifecycle) : IMigrationCategoryReader
+sealed class KnownEndpointsReader(RavenReadOnlySourceLifecycle lifecycle) : MigrationCategoryReader<KnownEndpoint>(lifecycle)
 {
-    public string CategoryId => MigrationCategoryIds.KnownEndpoints;
+    public override string CategoryId => MigrationCategoryIds.KnownEndpoints;
 
-    public IAsyncEnumerable<MigrationBatch> Read(string? resumeAfter, int batchSize, CancellationToken cancellationToken = default) =>
-        RavenDocumentStream.ByPrefix<KnownEndpoint>(
-            lifecycle,
-            CategoryId,
-            lifecycle.Settings.DatabaseName,
-            RavenMonitoringDataStore.KnownEndpointsCollectionName + "/",
-            resumeAfter,
-            batchSize,
-            RavenDocumentStream.WholeDocument,
-            cancellationToken);
+    public override IAsyncEnumerable<MigrationBatch> Read(string? resumeAfter, int batchSize, CancellationToken cancellationToken = default) =>
+        WholeDocuments(RavenMonitoringDataStore.KnownEndpointsCollectionName + "/", resumeAfter, batchSize, cancellationToken);
 }

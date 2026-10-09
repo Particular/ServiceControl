@@ -30,7 +30,6 @@ public static class MigrationSkipReasonExtensions
     /// </summary>
     public static bool IsBenign(this MigrationSkipReason reason) =>
         reason is MigrationSkipReason.PastRetention
-               or MigrationSkipReason.EndpointNotKnown
                or MigrationSkipReason.BlankGroupComment;
 
     /// <summary>

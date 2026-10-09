@@ -7,57 +7,30 @@ using Microsoft.EntityFrameworkCore;
 using ServiceControl.Persistence.DataMigration;
 
 /// <summary>
-/// Writes the per-endpoint settings, and only for endpoints the target already knows. A setting for an unknown
-/// endpoint is dropped by the heartbeat sync soon after the instance starts, so copying it would be work the
-/// product undoes. That judgment holds because this category runs only once KnownEndpoints is Done or Abandoned,
-/// so every endpoint that was going to be copied already has been. On a target whose name column ignores case,
-/// two names that differ only in case are one row, and the writer reports each setting the insert drops as a merge.
+/// Writes every per-endpoint setting as stored. A setting for an endpoint the target does not know is copied too,
+/// and the heartbeat settings sync removes it by its own rule once the instance opens. On a target whose name
+/// column ignores case, two names that differ only in case are one row, and the writer reports each setting the
+/// insert drops as a merge.
 /// </summary>
-sealed class EndpointSettingsWriter(IMigrationSqlDialect migrationDialect) : IMigrationCategoryWriter
+sealed class EndpointSettingsWriter(IMigrationSqlDialect migrationDialect) : MigrationCategoryWriter<EndpointSettings>
 {
-    public string CategoryId => MigrationCategoryIds.EndpointSettings;
+    public override string CategoryId => MigrationCategoryIds.EndpointSettings;
 
-    public int BatchSize(ServiceControlDbContext dbContext) => migrationDialect.RowsPerStatement(MigrationInsert<EndpointSettingsEntity>.For(dbContext).Columns.Count);
+    public override int BatchSize(ServiceControlDbContext dbContext) => migrationDialect.RowsPerStatement(MigrationInsert<EndpointSettingsEntity>.For(dbContext).Columns.Count);
 
-    public Task<long> Count(ServiceControlDbContext dbContext, CancellationToken cancellationToken = default) =>
+    public override Task<long> Count(ServiceControlDbContext dbContext, CancellationToken cancellationToken = default) =>
         dbContext.EndpointSettings.LongCountAsync(cancellationToken);
 
-    public async Task<PreparedBatch> Prepare(ServiceControlDbContext dbContext, MigrationBatch batch, CancellationToken cancellationToken = default)
+    protected override async Task<PreparedBatch> PrepareDocuments(ServiceControlDbContext dbContext, IReadOnlyList<(MigrationRow Row, EndpointSettings Document)> documents, CancellationToken cancellationToken = default)
     {
-        // Only the names this batch asks about: the whole table is a scan per batch, and a large instance
-        // has as many settings as endpoints, so the cost grows with the square of the endpoint count.
-        string[] batchNames = [.. batch.Rows.Select(row => ((EndpointSettings)row.Document).Name).Distinct(StringComparer.Ordinal)];
-
-        // Ordinal, because HeartbeatEndpointSettingsSyncHostedService matches names in a default HashSet<string>.
-        var knownNames = (await dbContext.KnownEndpoints.AsNoTracking()
-            .Select(endpoint => endpoint.Name)
-            .Where(name => batchNames.Contains(name))
-            .ToListAsync(cancellationToken)).ToHashSet(StringComparer.Ordinal);
-
-        var rows = new List<EndpointSettingsEntity>(batch.Rows.Count);
-        var rowSourceIds = new List<string>(batch.Rows.Count);
-        var skips = new List<(string SourceId, MigrationSkipReason Reason, string Detail)>();
-
-        foreach (var row in batch.Rows)
-        {
-            var settings = (EndpointSettings)row.Document;
-
-            // The empty name is the row holding the default for every endpoint, which the sync keeps whatever endpoints are known.
-            if (settings.Name != string.Empty && !knownNames.Contains(settings.Name))
-            {
-                skips.Add((row.SourceId, MigrationSkipReason.EndpointNotKnown, $"no known endpoint is named '{settings.Name}', so the heartbeat settings sync would delete this setting"));
-                continue;
-            }
-
-            rows.Add(new EndpointSettingsEntity { Name = settings.Name, TrackInstances = settings.TrackInstances });
-            rowSourceIds.Add(row.SourceId);
-        }
+        List<EndpointSettingsEntity> rows = [.. documents.Select(document => new EndpointSettingsEntity { Name = document.Document.Name, TrackInstances = document.Document.TrackInstances })];
+        List<string> rowSourceIds = [.. documents.Select(document => document.Row.SourceId)];
 
         // The source yields document-id order, and the statement keeps the first of any keys the database treats as one.
         return new PreparedBatch(
             async (context, token) => (await migrationDialect.InsertMissing(context, rows, token)).Count,
             rows.Count,
-            skips,
+            [],
             await MergesIn(dbContext, rows, rowSourceIds, cancellationToken));
     }
 

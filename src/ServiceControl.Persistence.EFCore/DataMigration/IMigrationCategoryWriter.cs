@@ -13,6 +13,12 @@ interface IMigrationCategoryWriter
     string CategoryId { get; }
 
     /// <summary>
+    /// The type of <see cref="MigrationRow.Document" /> <see cref="Prepare" /> takes. A row holding any other type
+    /// fails the batch with an <see cref="InvalidCastException" />.
+    /// </summary>
+    Type DocumentType { get; }
+
+    /// <summary>
     /// The most rows the target will take from the source in one batch. It comes from how many values each row
     /// carries and how many parameters one statement can hold, so a wider table takes fewer rows. The context is read for its model only.
     /// </summary>

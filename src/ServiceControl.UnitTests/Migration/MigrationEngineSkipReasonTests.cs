@@ -28,7 +28,7 @@ class MigrationEngineSkipReasonTests
         // Two reasons over two batches: a and b land in the first, d in the second, so the saved map has to merge both.
         target.RejectKey("a", MigrationSkipReason.RequiredValueMissing);
         target.RejectKey("b", MigrationSkipReason.RequiredValueMissing);
-        target.RejectKey("d", MigrationSkipReason.EndpointNotKnown);
+        target.RejectKey("d", MigrationSkipReason.PastRetention);
         var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []);
         var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
 
@@ -37,8 +37,8 @@ class MigrationEngineSkipReasonTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(checkpoint.SkippedCount, Is.EqualTo(3));
-            Assert.That(checkpoint.SkipReasons, Is.EquivalentTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.RequiredValueMissing] = 2, [MigrationSkipReason.EndpointNotKnown] = 1 }));
-            Assert.That((await checkpointStore.Read(category.Id))!.SkipReasons, Is.EquivalentTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.RequiredValueMissing] = 2, [MigrationSkipReason.EndpointNotKnown] = 1 }));
+            Assert.That(checkpoint.SkipReasons, Is.EquivalentTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.RequiredValueMissing] = 2, [MigrationSkipReason.PastRetention] = 1 }));
+            Assert.That((await checkpointStore.Read(category.Id))!.SkipReasons, Is.EquivalentTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.RequiredValueMissing] = 2, [MigrationSkipReason.PastRetention] = 1 }));
         }
     }
 
@@ -179,6 +179,8 @@ class MigrationEngineSkipReasonTests
         public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) => Task.FromResult(0L);
 
         public IReadOnlyCollection<string> SupportedCategoryIds => [.. MigrationCategoryRegistry.All.Select(category => category.Id)];
+
+        public IReadOnlyDictionary<string, Type> DocumentTypes => MigrationCategoryRegistry.All.ToDictionary(category => category.Id, _ => typeof(object));
     }
 
     sealed class UnexplainedSkipTarget(IMigrationCheckpointStore checkpointStore) : IMigrationTarget
@@ -196,5 +198,7 @@ class MigrationEngineSkipReasonTests
         public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) => Task.FromResult(0L);
 
         public IReadOnlyCollection<string> SupportedCategoryIds => [.. MigrationCategoryRegistry.All.Select(category => category.Id)];
+
+        public IReadOnlyDictionary<string, Type> DocumentTypes => MigrationCategoryRegistry.All.ToDictionary(category => category.Id, _ => typeof(object));
     }
 }

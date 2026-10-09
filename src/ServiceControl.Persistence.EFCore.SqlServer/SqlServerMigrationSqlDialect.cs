@@ -106,11 +106,6 @@ class SqlServerMigrationSqlDialect : SqlServerDialect, IMigrationSqlDialect
 
     OpenedKeys Keys => OpenedState ?? throw new InvalidOperationException($"The SQL Server migration dialect is not open. Call {nameof(Open)} first.");
 
-    // SqlServerDialect.ParameterRows numbers the parameters the same way, but has no room for the position each row arrived in, which the de-duplication orders by.
-    static string ParameterRowsWithOrdinal(int rowCount, int columnCount) =>
-        string.Join(",\n", Enumerable.Range(0, rowCount).Select(row =>
-            $"({string.Join(", ", Enumerable.Range(0, columnCount).Select(column => $"@p{(row * columnCount) + column}"))}, {row})"));
-
     sealed record OpenedKeys(
         IReadOnlyDictionary<(string Table, string Column), string> Collations,
         IReadOnlyDictionary<(Type EntityType, string Property), IEqualityComparer<string>> Comparers);

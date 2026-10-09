@@ -242,7 +242,7 @@ class MigrationEngineHaltTests
         var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 30 };
         foreach (var i in Enumerable.Range(1, 90))
         {
-            target.RejectKey($"row-{i}", MigrationSkipReason.EndpointNotKnown);
+            target.RejectKey($"row-{i}", MigrationSkipReason.PastRetention);
         }
         var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
 
@@ -280,7 +280,7 @@ class MigrationEngineHaltTests
         var checkpointStore = new InMemoryMigrationCheckpointStore();
         var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 2 };
         target.RejectKey("a", MigrationSkipReason.PastRetention);
-        target.RejectKey("b", MigrationSkipReason.EndpointNotKnown);
+        target.RejectKey("b", MigrationSkipReason.PastRetention);
         target.RejectKey("c", MigrationSkipReason.BlankGroupComment);
         var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
 
@@ -292,8 +292,7 @@ class MigrationEngineHaltTests
             Assert.That((checkpoint.CopiedCount, checkpoint.SkippedCount), Is.EqualTo((1L, 3L)), "a harmless skip is still a skip, and status and verify count it");
             Assert.That(checkpoint.SkipReasons, Is.EquivalentTo(new Dictionary<MigrationSkipReason, long>
             {
-                [MigrationSkipReason.PastRetention] = 1,
-                [MigrationSkipReason.EndpointNotKnown] = 1,
+                [MigrationSkipReason.PastRetention] = 2,
                 [MigrationSkipReason.BlankGroupComment] = 1
             }));
         }

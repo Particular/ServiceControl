@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.DataMigration;
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,6 +43,13 @@ public interface IMigrationTarget
     /// Answers before Open and does not change across it.
     /// </summary>
     IReadOnlyCollection<string> SupportedCategoryIds { get; }
+
+    /// <summary>
+    /// The type of <see cref="MigrationRow.Document" /> this target takes, for each category in
+    /// <see cref="SupportedCategoryIds" />. A row holding any other type fails its batch with an
+    /// <see cref="InvalidCastException" />. Answers before Open and does not change across it.
+    /// </summary>
+    IReadOnlyDictionary<string, Type> DocumentTypes { get; }
 }
 
 /// <summary>

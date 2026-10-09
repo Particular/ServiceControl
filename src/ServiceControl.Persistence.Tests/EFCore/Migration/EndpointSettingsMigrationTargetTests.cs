@@ -1,13 +1,11 @@
 namespace ServiceControl.Persistence.Tests;
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using ServiceControl.Operations;
 using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.EFCore.DbContexts;
 
@@ -25,8 +23,6 @@ class EndpointSettingsMigrationTargetTests : PersistenceTestBase
     [Test]
     public async Task Every_setting_in_a_batch_arrives_with_its_track_instances_value()
     {
-        await SeedKnownEndpoints("Sales", "Billing", "Shipping");
-
         var result = await Target.Write(
             EndpointSettingsCategory,
             BatchOf(
@@ -47,7 +43,6 @@ class EndpointSettingsMigrationTargetTests : PersistenceTestBase
     [Test]
     public async Task A_name_already_in_the_target_is_left_alone_and_counted_as_already_present()
     {
-        await SeedKnownEndpoints("Sales");
         await EndpointSettingsStore.UpdateEndpointSettings(new EndpointSettings { Name = "Sales", TrackInstances = true });
 
         var result = await Target.Write(
@@ -65,34 +60,35 @@ class EndpointSettingsMigrationTargetTests : PersistenceTestBase
     }
 
     [Test]
-    public async Task A_named_setting_whose_endpoint_is_not_known_is_skipped_as_endpoint_not_known()
+    public async Task A_setting_whose_endpoint_is_not_known_is_copied_and_left_to_the_heartbeat_sync()
     {
-        await SeedKnownEndpoints("Sales");
-
         var result = await Target.Write(
             EndpointSettingsCategory,
             BatchOf(
-                ("EndpointSettings/1", new EndpointSettings { Name = "Retired", TrackInstances = true }),
-                ("EndpointSettings/2", new EndpointSettings { Name = "Sales", TrackInstances = true })),
+                ("EndpointSettings/1", new EndpointSettings { Name = string.Empty, TrackInstances = true }),
+                ("EndpointSettings/2", new EndpointSettings { Name = "Retired", TrackInstances = false })),
             CheckpointAfter("EndpointSettings/2"));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Copied, Is.EqualTo(1));
-            Assert.That(result.SkippedIds, Is.EqualTo(new[] { "EndpointSettings/1" }));
-            Assert.That(result.SkipReasons[MigrationSkipReason.EndpointNotKnown], Is.EqualTo(1), "the heartbeat settings sync deletes this row twenty seconds after the host opens, so verify has to see it as a skip");
-            Assert.That((await EndpointSettingsStore.GetAllEndpointSettings().ToListAsync()).Select(settings => settings.Name), Is.EqualTo(new[] { "Sales" }));
+            Assert.That(result.Copied, Is.EqualTo(2));
+            Assert.That(result.Skipped, Is.Zero, "whether a setting outlives its endpoint is the heartbeat sync's rule, not the migration's");
+            Assert.That(await TrackInstancesFor(string.Empty), Is.True);
+            Assert.That(await TrackInstancesFor("Retired"), Is.False);
         }
     }
 
     [Test]
-    public async Task A_batch_of_nothing_but_skips_saves_the_cursor_and_writes_no_rows()
+    public async Task A_batch_that_copies_nothing_still_saves_the_cursor()
     {
+        await EndpointSettingsStore.UpdateEndpointSettings(new EndpointSettings { Name = "Sales", TrackInstances = true });
+        await EndpointSettingsStore.UpdateEndpointSettings(new EndpointSettings { Name = "Billing", TrackInstances = true });
+
         var result = await Target.Write(
             EndpointSettingsCategory,
             BatchOf(
-                ("EndpointSettings/1", new EndpointSettings { Name = "Retired", TrackInstances = true }),
-                ("EndpointSettings/2", new EndpointSettings { Name = "Decommissioned", TrackInstances = false })),
+                ("EndpointSettings/1", new EndpointSettings { Name = "Sales", TrackInstances = false }),
+                ("EndpointSettings/2", new EndpointSettings { Name = "Billing", TrackInstances = false })),
             CheckpointAfter("EndpointSettings/2"));
 
         var stored = await CheckpointStore.Read(MigrationCategoryIds.EndpointSettings);
@@ -100,30 +96,14 @@ class EndpointSettingsMigrationTargetTests : PersistenceTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Copied, Is.Zero);
-            Assert.That(result.AlreadyPresent, Is.Zero, "no name was looked up, so no row may be counted as one the target already held");
-            Assert.That(result.Skipped, Is.EqualTo(2));
-            Assert.That(await EndpointSettingsStore.GetAllEndpointSettings().ToListAsync(), Is.Empty);
+            Assert.That(result.AlreadyPresent, Is.EqualTo(2));
             Assert.That(stored.Cursor, Is.EqualTo("EndpointSettings/2"), "a batch that copied nothing still has to commit the cursor past it, or the restart reads the same rows forever");
-        }
-    }
-
-    [Test]
-    public async Task The_empty_name_default_is_copied_when_no_endpoint_is_known()
-    {
-        var result = await Target.Write(EndpointSettingsCategory, BatchOf(("EndpointSettings/1", new EndpointSettings { Name = string.Empty, TrackInstances = true })), CheckpointAfter("EndpointSettings/1"));
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.Copied, Is.EqualTo(1));
-            Assert.That(result.Skipped, Is.Zero, "the sync keeps the default whatever endpoints are known");
-            Assert.That(await TrackInstancesFor(string.Empty), Is.True);
         }
     }
 
     [Test]
     public async Task Every_mapped_column_is_set_from_a_fully_populated_document()
     {
-        await SeedKnownEndpoints("Sales");
         await Target.Write(EndpointSettingsCategory, BatchOf(("EndpointSettings/1", new EndpointSettings { Name = "Sales", TrackInstances = true })), CheckpointAfter("EndpointSettings/1"));
 
         using var scope = ServiceProvider.CreateScope();
@@ -141,20 +121,9 @@ class EndpointSettingsMigrationTargetTests : PersistenceTestBase
     async Task<bool> TrackInstancesFor(string name) =>
         (await EndpointSettingsStore.GetAllEndpointSettings().ToListAsync()).Single(settings => settings.Name == name).TrackInstances;
 
-    // The target copies a named setting only when its endpoint is known, because the heartbeat settings sync keeps only those.
-    async Task SeedKnownEndpoints(params string[] names)
-    {
-        foreach (var name in names)
-        {
-            await MonitoringDataStore.CreateIfNotExists(new EndpointDetails { Name = name, HostId = Guid.NewGuid(), Host = "HOST01" });
-        }
-    }
-
     [Test]
     public async Task Two_names_in_one_batch_differing_only_in_case_are_each_copied_or_already_present()
     {
-        await SeedKnownEndpoints("Sales", "sales");
-
         var result = await Target.Write(
             EndpointSettingsCategory,
             BatchOf(

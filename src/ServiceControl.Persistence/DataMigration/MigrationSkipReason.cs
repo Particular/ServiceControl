@@ -16,9 +16,6 @@ public enum MigrationSkipReason
     /// <summary>The source row has no value for something the target column requires.</summary>
     RequiredValueMissing,
 
-    /// <summary>The row names an endpoint the target does not know, so what it holds would be deleted after the cutover anyway.</summary>
-    EndpointNotKnown,
-
     /// <summary>
     /// The group comment is null or blank, and the product keeps no row for a blank comment.
     /// </summary>

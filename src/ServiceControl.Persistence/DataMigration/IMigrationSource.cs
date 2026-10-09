@@ -57,4 +57,11 @@ public interface IMigrationSource : IAsyncDisposable
     /// Answers before Open and does not change across it.
     /// </summary>
     IReadOnlyCollection<string> SupportedCategoryIds { get; }
+
+    /// <summary>
+    /// The type of <see cref="MigrationRow.Document" /> in every row this source reads, for each category in
+    /// <see cref="SupportedCategoryIds" />. The target's writer for the same category must take that type.
+    /// Answers before Open and does not change across it.
+    /// </summary>
+    IReadOnlyDictionary<string, Type> DocumentTypes { get; }
 }

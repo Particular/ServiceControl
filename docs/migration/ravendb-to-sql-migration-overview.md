@@ -213,12 +213,11 @@ Every skipped row is counted under a reason, and its id is written to the log.
 | A failed message with no processing attempts, so nothing to fill its required failure time, failing endpoint and exception from | Fault | No |
 | A subscription whose message type or address is over 200 characters, the SQL key limit | Fault | No |
 | A row missing a value SQL requires, such as a known endpoint with no name | Fault | No |
-| Endpoint settings for an endpoint ServiceControl does not know, which it would delete shortly after starting | Harmless | Not needed |
 | A blank group comment, which SQL never stores | Harmless | Not needed |
 | An archived or resolved message, or event log item, already past its retention period | Harmless | Not needed |
 
 - **Any fault skip makes the category [Failed](#failed-categories)**, even one. Harmless skips leave it Done.
-- **Endpoint settings waits until known endpoints is settled**, so an unknown endpoint is always the source's own, never something the migration lost.
+- **Endpoint settings for an endpoint ServiceControl does not know are copied, not skipped.** ServiceControl removes them shortly after it opens, by the same rule it always applies, so the migration does not repeat that rule.
 - **Rows outside a window are not skips.** They are simply not part of the copy.
 - **Rows RavenDB expires during the copy are not skips either.** A deleted row is never read, so it is an absence, not a loss.
   - Expiration only deletes a document carrying `@expires`, and only two kinds ever get one: archived or resolved failed messages, and event log items (`ExpirationManager.cs`).
@@ -292,7 +291,7 @@ flowchart LR
 
 ### Progress and checkpoints
 
-The checkpoint is one row per category, kept in the SQL database and created by `--setup`. It holds the category's *state*, its cursor, its copied, skipped and already-present counts, the count per skip reason, timings, the last error, the window it copies with, and a version number to catch a second writer.
+The checkpoint is one row per category, kept in the SQL database and created by `--setup`. It holds the category's *state*, its cursor, its copied, skipped and already-present counts, how many of the already-present rows were merges, the count per skip reason, how many rows SQL held for the category when it settled, timings, the last error, the window it copies with, and a version number to catch a second writer.
 
 ```mermaid
 sequenceDiagram
@@ -342,8 +341,9 @@ A category is *Failed* when something went wrong. Everything already copied stay
 
 **What the checks cannot see, and accept:**
 
-- **Nothing compares SQL with the source automatically.** Too much moves the numbers on a healthy copy: RavenDB expiry, merges, and SQL's own clean-up once open. `--migration-verify` prints both sides for a person to read.
-- **So a read that ends early, or a write that silently stores fewer rows, still ends Done.** Already present is what is left over after copied and skipped, so the counts balance. The counts check does catch rows dropped while a batch is prepared.
+- **Nothing counts RavenDB during the copy.** So a read that ends early, or skips a range, still balances, and the category ends Done. `--migration-verify` finds it afterwards, by counting RavenDB again and comparing that with the rows the copy read (see [the read-only commands](#the-dry-run)).
+- **Verify counts with the same reader the copy used.** So it finds rows one run missed, but not a reader that always misses the same rows, or a source pointed at the wrong database. Tests on each reader cover those.
+- **A write that silently stores fewer rows still ends Done.** Already present is what is left over after copied and skipped, so the counts balance. The counts check does catch rows dropped while a batch is prepared. Verify prints how many already-present rows were merges, so on a category copied once, already-present rows that merges do not explain point to it.
 - **The threshold judges this run only.** A bad start can stop a category whose overall rate would have been fine, and the source must not read the rows most likely to be skipped first.
 
 ### Retry and abandon
@@ -436,13 +436,22 @@ It says nothing about load on the source.
 | --- | --- | --- |
 | `--migration-source-report` | Source facts and a document count per collection | Yes |
 | `--migration-dry-run` | The report above | Yes |
-| `--migration-verify` | Row counts on both sides, with skips and merges explained. A windowed category is counted inside its window on both sides. Exits 0 only when every category is Done or Abandoned, so a script can ask whether the migration is finished. Counts that differ on a Done category are shown, not failed | Yes |
+| `--migration-verify` | Counts RavenDB again and compares each category with the rows the copy read, with skips and merges broken out. Exits 0 only when every category is Done or Abandoned, so a script can ask whether the migration is finished. Rows the copy never read are shown, not failed | Yes |
 | `--migration-status` | Each category's state, progress, last error and the commands it can take | No, so it runs any time |
 
 - **On an embedded source, stop the ServiceControl service before any command that opens RavenDB.** A second RavenDB process cannot use a data directory the first one holds, so the dry run is part of the outage.
+- **Verify reads every selected category in full**, though not the message bodies. On a big instance that takes a while, and on an embedded source that time is part of the outage too.
 - **On an external source** they all run against a live instance.
 - **In a container**, run each as a one-off `docker run` of the same image against an external RavenDB server.
-- **Row counts on the two sides can differ without anything being wrong.** SQL can hold more, because RavenDB keeps expiring rows the copier already took. SQL can hold fewer, because once open, ServiceControl sends pending integration events, removes comments on empty groups and removes failed error imports once imported.
+
+**What verify compares:**
+
+- **RavenDB against the rows the copy read, never against SQL as it is now.** Once ServiceControl opens, normal use changes most categories' SQL rows within minutes: ingestion, heartbeats, retries, archiving, the licensing collectors, ServiceControl's own custom checks and the retention sweep. A SQL count then measures that use, not the copy.
+- **RavenDB holding more rows than the copy read means rows were never read.** Nothing writes to RavenDB once the copy starts, so it can only shrink. Verify flags these rows. They are not in SQL, so keep RavenDB. The same flag shows if something other than this migration wrote to RavenDB since, such as an old instance still running on it.
+- **RavenDB holding fewer is shown, not judged.** RavenDB's expiry keeps deleting archived and resolved messages, event log items and a few unresolved messages from 6.18 or earlier, after the copy has read them.
+- **The same expiry can hide rows that were never read**, because a deleted row and a missed row cancel out. A window shorter than the retention period keeps a windowed category clear of this, by the difference between the two.
+- **A windowed category is counted inside the window it started with**, on RavenDB only.
+- **Verify also prints how many rows SQL held for each category when it settled.** Before ServiceControl opens nothing else writes, so for a required category that is exactly what the copy left in SQL. For the two optional categories it includes what ServiceControl wrote while they copied.
 
 ### Monitoring and settings
 

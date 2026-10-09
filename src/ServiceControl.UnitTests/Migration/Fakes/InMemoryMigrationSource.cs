@@ -107,5 +107,7 @@ public sealed class InMemoryMigrationSource : IMigrationSource
     // and the interface promises an answer that does not change across Open.
     public IReadOnlyCollection<string> SupportedCategoryIds => [.. MigrationCategoryRegistry.All.Select(category => category.Id)];
 
+    public IReadOnlyDictionary<string, Type> DocumentTypes => MigrationCategoryRegistry.All.ToDictionary(category => category.Id, _ => typeof(object));
+
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }

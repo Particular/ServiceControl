@@ -68,6 +68,8 @@ sealed class FaultingMigrationTarget(IMigrationTarget inner, int failingWrite) :
     public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) => inner.Count(category, cancellationToken);
 
     public IReadOnlyCollection<string> SupportedCategoryIds => inner.SupportedCategoryIds;
+
+    public IReadOnlyDictionary<string, Type> DocumentTypes => inner.DocumentTypes;
 }
 
 // Stops the copy the moment the first category settles Done or Abandoned, which is the only way to stop it between two categories.
@@ -114,4 +116,6 @@ sealed class ParkingMigrationTarget(IMigrationTarget inner, TaskCompletionSource
     public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) => inner.Count(category, cancellationToken);
 
     public IReadOnlyCollection<string> SupportedCategoryIds => inner.SupportedCategoryIds;
+
+    public IReadOnlyDictionary<string, Type> DocumentTypes => inner.DocumentTypes;
 }

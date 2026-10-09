@@ -29,6 +29,7 @@ class MigrationCategoryCoverageTests
         SetVariable("SERVICECONTROL_MESSAGEBODY_FILESYSTEM_STORAGEPATH",
             Path.Combine(TestContext.CurrentContext.WorkDirectory, "Bodies", Guid.NewGuid().ToString("n")));
 
+        // SQL Server stands in for PostgreSQL too, because both register the same EFCoreMigrationTarget and its writer list does not depend on the provider.
         settings = new Settings(persisterType: "SQLServer", forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10));
     }
 
@@ -63,6 +64,29 @@ class MigrationCategoryCoverageTests
         {
             Assert.That(readerOnly, Is.Empty, $"the reader claims a category the writer does not: {string.Join(", ", readerOnly)}");
             Assert.That(writerOnly, Is.Empty, $"the writer claims a category the reader does not: {string.Join(", ", writerOnly)}");
+        }
+    }
+
+    [Test]
+    public async Task Every_reader_and_its_writer_agree_on_the_document_type()
+    {
+        await using var source = PersistenceFactory.CreateMigrationSource(settings);
+
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddPersistence(settings);
+        await using var provider = services.BuildServiceProvider();
+        var target = provider.GetRequiredService<IMigrationTarget>();
+
+        var shared = source.DocumentTypes.Keys.Intersect(target.DocumentTypes.Keys).ToArray();
+        Assert.That(shared, Is.Not.Empty, "the test proves nothing if no category has both a reader and a writer");
+
+        using (Assert.EnterMultipleScope())
+        {
+            foreach (var categoryId in shared)
+            {
+                Assert.That(target.DocumentTypes[categoryId], Is.EqualTo(source.DocumentTypes[categoryId]), $"the {categoryId} reader yields a document type its writer does not take");
+            }
         }
     }
 

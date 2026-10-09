@@ -10,24 +10,22 @@ using ServiceControl.Persistence.DataMigration;
 /// Writes the endpoints ServiceControl has heard from. The row's key is worked out from the endpoint's own
 /// details rather than carried over, so the same endpoint lands on the same row whichever side wrote it first.
 /// </summary>
-sealed class KnownEndpointsWriter(IMigrationSqlDialect migrationDialect) : IMigrationCategoryWriter
+sealed class KnownEndpointsWriter(IMigrationSqlDialect migrationDialect) : MigrationCategoryWriter<KnownEndpoint>
 {
-    public string CategoryId => MigrationCategoryIds.KnownEndpoints;
+    public override string CategoryId => MigrationCategoryIds.KnownEndpoints;
 
-    public int BatchSize(ServiceControlDbContext dbContext) => migrationDialect.RowsPerStatement(MigrationInsert<KnownEndpointEntity>.For(dbContext).Columns.Count);
+    public override int BatchSize(ServiceControlDbContext dbContext) => migrationDialect.RowsPerStatement(MigrationInsert<KnownEndpointEntity>.For(dbContext).Columns.Count);
 
-    public Task<long> Count(ServiceControlDbContext dbContext, CancellationToken cancellationToken = default) =>
+    public override Task<long> Count(ServiceControlDbContext dbContext, CancellationToken cancellationToken = default) =>
         dbContext.KnownEndpoints.LongCountAsync(cancellationToken);
 
-    public Task<PreparedBatch> Prepare(ServiceControlDbContext dbContext, MigrationBatch batch, CancellationToken cancellationToken = default)
+    protected override Task<PreparedBatch> PrepareDocuments(ServiceControlDbContext dbContext, IReadOnlyList<(MigrationRow Row, KnownEndpoint Document)> documents, CancellationToken cancellationToken = default)
     {
-        var rows = new List<KnownEndpointEntity>(batch.Rows.Count);
+        var rows = new List<KnownEndpointEntity>(documents.Count);
         var skips = new List<(string SourceId, MigrationSkipReason Reason, string Detail)>();
 
-        foreach (var row in batch.Rows)
+        foreach (var (row, endpoint) in documents)
         {
-            var endpoint = (KnownEndpoint)row.Document;
-
             if (endpoint.EndpointDetails?.Name is null || endpoint.EndpointDetails.Host is null)
             {
                 var column = endpoint.EndpointDetails?.Name is null ? nameof(KnownEndpointEntity.Name) : nameof(KnownEndpointEntity.Host);

@@ -104,6 +104,8 @@ sealed class EFCoreMigrationTarget(IServiceScopeFactory scopeFactory, IMigration
 
     public IReadOnlyCollection<string> SupportedCategoryIds => writers.Keys;
 
+    public IReadOnlyDictionary<string, Type> DocumentTypes => writers.ToFrozenDictionary(pair => pair.Key, pair => pair.Value.DocumentType, StringComparer.Ordinal);
+
     IMigrationCategoryWriter WriterFor(MigrationCategory category) =>
         writers.TryGetValue(category.Id, out var writer)
             ? writer
