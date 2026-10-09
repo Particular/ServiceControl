@@ -22,9 +22,10 @@ class When_the_api_is_called_during_the_required_copy : MigrationAcceptanceTest
 
         var copyIsParked = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var releaseTheCopy = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-        var host = RunCommand.Run(Settings, AllowingAnUnreleasedMigration(builder => builder.ParkFirstMigrationWrite(copyIsParked, releaseTheCopy.Task)), cancellation.Token);
+        var host = RunCommand.Run(Settings, AllowingAnUnreleasedMigration(SignallingOnceStarted(started, builder => builder.ParkFirstMigrationWrite(copyIsParked, releaseTheCopy.Task))), cancellation.Token);
 
         await copyIsParked.Task.WaitAsync(TimeSpan.FromMinutes(2));
         Assert.That(releaseTheCopy.Task.IsCompleted, Is.False, "the copy must still be parked for this assertion to mean anything");
@@ -36,6 +37,7 @@ class When_the_api_is_called_during_the_required_copy : MigrationAcceptanceTest
 
         Assert.That(settings.Select(row => row.Name), Is.SupersetOf(new[] { "Sales", "Billing", "Shipping" }));
 
+        await started.Task.WaitAsync(TimeSpan.FromMinutes(1));
         await cancellation.CancelAsync();
         await host;
     }

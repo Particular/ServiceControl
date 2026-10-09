@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using NServiceBus.Extensibility;
 using NServiceBus.Transport;
@@ -188,10 +189,33 @@ abstract class MigrationAcceptanceTest
     {
         await StopHost();
 
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         hostCancellation = new CancellationTokenSource();
-        runningHost = RunCommand.Run(Settings, AllowingAnUnreleasedMigration(customize), hostCancellation.Token);
+        runningHost = RunCommand.Run(Settings, AllowingAnUnreleasedMigration(SignallingOnceStarted(started, customize)), hostCancellation.Token);
 
         await WaitForEndpointSettingsResponse(TimeSpan.FromMinutes(2));
+
+        // The API answers before StartedAsync runs, and a stop before StartedAsync finishes cancels the start, which RunCommand rightly treats as a failure.
+        await await Task.WhenAny(started.Task, runningHost).WaitAsync(TimeSpan.FromMinutes(1));
+    }
+
+    // ApplicationStarted fires only after every hosted service's StartedAsync, which is where the marker is written.
+    protected static Action<WebApplicationBuilder> SignallingOnceStarted(TaskCompletionSource started, Action<WebApplicationBuilder> customize) =>
+        builder =>
+        {
+            builder.Services.AddHostedService(provider => new SignalWhenStarted(provider.GetRequiredService<IHostApplicationLifetime>(), started));
+            customize?.Invoke(builder);
+        };
+
+    sealed class SignalWhenStarted(IHostApplicationLifetime lifetime, TaskCompletionSource started) : IHostedService
+    {
+        public Task StartAsync(CancellationToken cancellationToken = default)
+        {
+            lifetime.ApplicationStarted.Register(() => started.TrySetResult());
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 
     protected Settings SettingsWithMigrationEnabled(bool copyEventLog = false, Action<Settings> customize = null)

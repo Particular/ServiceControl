@@ -32,15 +32,17 @@ class When_the_host_opens_on_the_target : MigrationAcceptanceTest
 
         var copyIsParked = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var releaseTheCopy = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-        var host = RunCommand.Run(Settings, AllowingAnUnreleasedMigration(builder => builder.ParkFirstMigrationWrite(copyIsParked, releaseTheCopy.Task)), cancellation.Token);
+        var host = RunCommand.Run(Settings, AllowingAnUnreleasedMigration(SignallingOnceStarted(started, builder => builder.ParkFirstMigrationWrite(copyIsParked, releaseTheCopy.Task))), cancellation.Token);
 
         await copyIsParked.Task.WaitAsync(TimeSpan.FromMinutes(2));
         Assert.That(await ReadSetting(HostOpenedSetting), Is.Null, "the abort is still free at this moment, and this row is what says it is not");
 
         releaseTheCopy.SetResult();
         await WaitForEndpointSettingsResponse(TimeSpan.FromMinutes(2));
+        await started.Task.WaitAsync(TimeSpan.FromMinutes(1));
 
         Assert.That(await ReadSetting(HostOpenedSetting), Is.Not.Null);
 
@@ -53,10 +55,8 @@ class When_the_host_opens_on_the_target : MigrationAcceptanceTest
     {
         await SeedCheckpoint(MigrationCategoryIds.KnownEndpoints);
         SetSourceVariable("SERVICECONTROL_MIGRATION_ENABLED", "false");
-        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        await RunHostUntilTheApiAnswers(SignallingOnceStarted(started));
-        await started.Task.WaitAsync(TimeSpan.FromMinutes(1));
+        await RunHostUntilTheApiAnswers();
 
         Assert.That(await ReadSetting(HostOpenedSetting), Is.Null, "only a start with the migration on may write the marker");
     }
@@ -66,11 +66,8 @@ class When_the_host_opens_on_the_target : MigrationAcceptanceTest
     {
         await DropTheCheckpointTable();
         SetSourceVariable("SERVICECONTROL_MIGRATION_ENABLED", "false");
-        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        await RunHostUntilTheApiAnswers(SignallingOnceStarted(started));
-
-        Assert.That(async () => await started.Task.WaitAsync(TimeSpan.FromMinutes(1)), Throws.Nothing, "every hosted service, StartedAsync included, ran without touching the missing table");
+        Assert.That(async () => await RunHostUntilTheApiAnswers(), Throws.Nothing, "every hosted service, StartedAsync included, ran without touching the missing table");
     }
 
     [Test]
@@ -245,21 +242,6 @@ class When_the_host_opens_on_the_target : MigrationAcceptanceTest
         {
             await SeedCheckpoint(category.Id);
         }
-    }
-
-    // ApplicationStarted fires only after every hosted service's StartedAsync, which is where the marker is written.
-    static Action<WebApplicationBuilder> SignallingOnceStarted(TaskCompletionSource started) =>
-        builder => builder.Services.AddHostedService(provider => new SignalWhenStarted(provider.GetRequiredService<IHostApplicationLifetime>(), started));
-
-    sealed class SignalWhenStarted(IHostApplicationLifetime lifetime, TaskCompletionSource started) : IHostedService
-    {
-        public Task StartAsync(CancellationToken cancellationToken = default)
-        {
-            lifetime.ApplicationStarted.Register(() => started.TrySetResult());
-            return Task.CompletedTask;
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 
     Task<int> DropTheCheckpointTable() =>
