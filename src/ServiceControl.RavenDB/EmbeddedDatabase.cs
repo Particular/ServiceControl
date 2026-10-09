@@ -15,7 +15,6 @@ namespace ServiceControl.RavenDB
     using Raven.Client.Documents.Conventions;
     using Raven.Embedded;
     using ServiceControl.Infrastructure;
-    using Sparrow.Logging;
 
     public sealed class EmbeddedDatabase : IDisposable
     {
@@ -53,20 +52,9 @@ namespace ServiceControl.RavenDB
 
             var nugetPackagesPath = Path.Combine(databaseConfiguration.DbPath, "Packages", "NuGet");
 
-            var logMode = Enum.Parse<LogMode>(databaseConfiguration.LogsMode);
-
-            if (logMode == LogMode.Information) // Most verbose
-            {
-                LoggingSource.Instance.EnableConsoleLogging();
-                LoggingSource.Instance.SetupLogMode(
-                    logMode,
-                    Path.Combine(databaseConfiguration.LogPath, "Raven.Embedded"),
-                    retentionTime: TimeSpan.FromDays(14),
-                    retentionSize: 1024 * 1024 * 10,
-                    compress: false
-                );
-            }
-
+            // HINT: RavenDB 7 removed the client-side Sparrow logging configuration (LoggingSource/LogMode) and the
+            // 'Logs.Mode' server setting. The embedded server runs in its own process, so its logging is driven by
+            // the 'Logs.MinLevel' server setting passed below together with ServerOptions.LogsPath.
             logger.LogInformation("Loading RavenDB license from {LicenseFileName}", licenseFileNameAndServerDirectory.LicenseFileName);
 
             List<string> optionalArgs = [];
@@ -79,7 +67,7 @@ namespace ServiceControl.RavenDB
             {
                 CommandLineArgs =
                 [
-                    $"--Logs.Mode={databaseConfiguration.LogsMode}",
+                    $"--Logs.MinLevel={databaseConfiguration.LogsMode}",
                     // HINT: If this is not set, then Raven will pick a default location relative to the server binaries
                     // See https://github.com/ravendb/ravendb/issues/15694
                     $"--Indexing.NuGetPackagesPath=\"{nugetPackagesPath}\"",
