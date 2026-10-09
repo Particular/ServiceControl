@@ -55,7 +55,7 @@ platform.AddServicePulse("pulse", primaryErrorInstance, platform.AddServiceContr
 // EF persistence lives in the audit instance itself, so audit load needs a real audit container.
 // The platform persistence argument stays RavenDB because the Aspire package only knows about
 // platform persistences; the SQL wiring is layered on with WithPersistenceType.
-var auditInstanceCount = options.GetValue("audit-instances", 0);
+var auditInstanceCount = options.GetValue("audit-instances", 1);
 
 if (auditInstanceCount > 0 && persistenceType != PersistenceType.RavenDb && string.IsNullOrWhiteSpace(imageTag))
 {
