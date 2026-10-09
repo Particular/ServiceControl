@@ -9,5 +9,8 @@
         public string LogsMode { get; } = logsMode;
 
         public bool RunInMemory { get; set; }
+
+        /// <summary>Makes a dynamic query fail instead of building an auto-index for it. For a server started only to read, where creating an index would be a write.</summary>
+        public bool DisableAutoIndexCreation { get; set; }
     }
 }

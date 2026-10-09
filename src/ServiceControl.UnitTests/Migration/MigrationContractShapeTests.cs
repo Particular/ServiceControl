@@ -61,4 +61,23 @@ class MigrationContractShapeTests
 
         Assert.That(checkpoint.AlreadyPresentCount, Is.Zero);
     }
+
+    [Test]
+    public void MigrationCheckpoint_StartedWindowSeconds_defaults_to_null()
+    {
+        var checkpoint = new MigrationCheckpoint(
+            CategoryId: "EndpointSettings",
+            State: MigrationCategoryState.NotStarted,
+            Cursor: null,
+            CopiedCount: 0,
+            SkippedCount: 0,
+            SourceTotal: null,
+            SkipReasons: null,
+            StartedAt: null,
+            LastProgressAt: null,
+            SettledAt: null,
+            LastError: null);
+
+        Assert.That(checkpoint.StartedWindowSeconds, Is.Null);
+    }
 }

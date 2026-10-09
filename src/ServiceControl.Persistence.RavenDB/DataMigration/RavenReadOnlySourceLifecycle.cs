@@ -3,7 +3,9 @@
 namespace ServiceControl.Persistence.RavenDB.DataMigration;
 
 using System;
+using System.Diagnostics;
 using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
@@ -17,6 +19,11 @@ using Raven.Client.Exceptions.Security;
 using ServiceControl.Configuration;
 using ServiceControl.RavenDB;
 
+/// <summary>
+/// The connection to the RavenDB database a migration reads from, and the embedded server it starts when that
+/// database is a data directory rather than a URL. Nothing here writes, so the old database stays exactly as it
+/// was and the copy can still be thrown away.
+/// </summary>
 sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, SettingsRootNamespace settingsRoot) : IAsyncDisposable
 {
     public RavenPersisterSettings Settings => settings;
@@ -34,7 +41,7 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, Setti
 
         try
         {
-            var serverUrl = settings.UseEmbeddedServer ? StartEmbedded() : settings.ConnectionString;
+            var serverUrl = settings.UseEmbeddedServer ? await StartEmbedded(cancellationToken) : settings.ConnectionString;
             documentStore = Connect(serverUrl);
 
             if (!settings.UseEmbeddedServer)
@@ -63,6 +70,8 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, Setti
 
     async Task EnsureReadable(string databaseName, string settingKey, CancellationToken cancellationToken)
     {
+        var elapsed = Stopwatch.StartNew();
+
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -72,10 +81,12 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, Setti
                 await DocumentStore.Maintenance.ForDatabase(databaseName).SendAsync(new GetStatisticsOperation(), cancellationToken);
                 return;
             }
+            catch (DatabaseLoadTimeoutException e) when (settings.UseEmbeddedServer && elapsed.Elapsed >= EmbeddedLoadBudget)
+            {
+                throw new InvalidOperationException($"The RavenDB migration source at {Located()} has a database named '{databaseName}', from the '{settingKey}' setting, but it did not finish loading within {EmbeddedLoadBudget.TotalMinutes:N0} minutes. A data directory held by another process, or one that is corrupt, is the usual cause.", e);
+            }
             catch (DatabaseLoadTimeoutException) when (settings.UseEmbeddedServer)
             {
-                // A large embedded database routinely exceeds the load timeout on first open, which
-                // RavenEmbeddedPersistenceLifecycle already allows for the same way.
                 await Task.Delay(EmbeddedLoadRetryDelay, cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -92,7 +103,7 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, Setti
             }
             catch (Exception e) when (e is not DatabaseLoadTimeoutException)
             {
-                throw new InvalidOperationException($"The RavenDB migration source at {Located()} has a database named '{databaseName}', from the '{settingKey}' setting, but could not load it.", e);
+                throw new InvalidOperationException($"The RavenDB migration source at {Located()} has a database named '{databaseName}', from the '{settingKey}' setting, but could not load it: {e.Message}", e);
             }
         }
     }
@@ -103,13 +114,26 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, Setti
         ? $"{sourceSettings.ServerUrl} (embedded, data directory '{sourceSettings.DatabasePath}', from '{root}/{RavenBootstrapper.DatabasePathKey}')"
         : sourceSettings.ConnectionString;
 
-    string StartEmbedded()
+    async Task<string> StartEmbedded(CancellationToken cancellationToken)
     {
-        var configuration = new EmbeddedDatabaseConfiguration(settings.ServerUrl, settings.DatabaseName, settings.DatabasePath, settings.LogPath, settings.LogsMode);
+        // A dynamic query is a POST to /queries, which the read-only guard allows, and it builds an auto-index on the
+        // customer's database. Nothing on the client can tell those queries apart, so the server is told to refuse them.
+        var configuration = new EmbeddedDatabaseConfiguration(settings.ServerUrl, settings.DatabaseName, settings.DatabasePath, settings.LogPath, settings.LogsMode) { DisableAutoIndexCreation = true };
 
         embedded = EmbeddedDatabase.Start(configuration, lifetime);
 
-        return embedded.ServerUrl;
+        try
+        {
+            return await embedded.WaitUntilReady(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception e)
+        {
+            throw new InvalidOperationException($"The RavenDB migration source could not start a server for the embedded database at {Located()}: {e.Message} A ServiceControl instance still holding that data directory is one cause, and stopping it lets the report run; a port already in use or a missing RavenDB server are others, which the message above tells apart.", e);
+        }
     }
 
     IDocumentStore Connect(string serverUrl)
@@ -124,11 +148,36 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, Setti
         if (!settings.UseEmbeddedServer)
         {
             store.Certificate = RavenClientCertificate.FindClientCertificate(settings);
+            RefuseUnusableCertificate(store.Certificate);
         }
 
         store.OnBeforeRequest += RefuseWrite;
 
         return store.Initialize();
+    }
+
+    // An unusable certificate otherwise surfaces on the first request as a refused connection, which says nothing about the cause.
+    void RefuseUnusableCertificate(X509Certificate2? certificate)
+    {
+        if (certificate is null)
+        {
+            if (settings.ConnectionString.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException($"The RavenDB migration source at '{settings.ConnectionString}' is secured but no client certificate is configured. Set '{settingsRoot}/{RavenBootstrapper.ClientCertificatePathKey}' or '{settingsRoot}/{RavenBootstrapper.ClientCertificateBase64Key}'.");
+            }
+
+            return;
+        }
+
+        // X509Certificate2 reports both bounds in local time, so they move to UTC before the comparison.
+        var notBefore = certificate.NotBefore.ToUniversalTime();
+        var notAfter = certificate.NotAfter.ToUniversalTime();
+        var now = DateTime.UtcNow;
+
+        if (now < notBefore || now > notAfter)
+        {
+            throw new InvalidOperationException($"The RavenDB client certificate '{certificate.Subject}' is valid from {notBefore:u} to {notAfter:u}, which does not include now.");
+        }
     }
 
     static void RefuseWrite(object? sender, BeforeRequestEventArgs e)
@@ -171,6 +220,8 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, Setti
     static readonly string[] ReadOnlyPostPaths = ["/queries", "/multi_get", "/streams/queries"];
     static readonly TimeSpan EmbeddedShutdownTimeout = TimeSpan.FromSeconds(30);
     static readonly TimeSpan EmbeddedLoadRetryDelay = TimeSpan.FromMilliseconds(500);
+    // Generous because one DatabaseLoadTimeoutException already means RavenDB waited its own load timeout.
+    static readonly TimeSpan EmbeddedLoadBudget = TimeSpan.FromMinutes(5);
 
     IDocumentStore? documentStore;
     EmbeddedDatabase? embedded;

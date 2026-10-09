@@ -89,6 +89,20 @@ class ReadOnlySourceLifecycleTests
     }
 
     [Test]
+    public async Task Opening_the_source_refuses_a_missing_primary_database()
+    {
+        var absentPrimary = $"{databaseName}-absent";
+        sourceSettings.DatabaseName = absentPrimary;
+
+        await using var lifecycle = new RavenReadOnlySourceLifecycle(sourceSettings, SettingsRoot);
+
+        var exception = Assert.ThrowsAsync<InvalidOperationException>(async () => await lifecycle.Open());
+
+        Assert.That(exception.Message, Does.Contain(absentPrimary).And.Contain("ServiceControl/RavenDB/DatabaseName"));
+        Assert.That(await bootstrapStore.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(absentPrimary)), Is.Null, "Opening a migration source must not create a primary database that was missing.");
+    }
+
+    [Test]
     public async Task Opening_the_source_writes_no_database_settings()
     {
         var before = (await bootstrapStore.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName))).Settings;

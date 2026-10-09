@@ -12,6 +12,23 @@ namespace ServiceControl.Hosting.Commands
     {
         public override async Task Execute(HostArguments args, Settings settings, CancellationToken cancellationToken = default)
         {
+            try
+            {
+                await Report(settings, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                await Console.Error.WriteLineAsync(e.Message);
+                Environment.ExitCode = 1;
+            }
+        }
+
+        static async Task Report(Settings settings, CancellationToken cancellationToken)
+        {
             await using var source = await PersistenceFactory.OpenMigrationSource(settings, cancellationToken);
 
             var description = await source.Describe(cancellationToken);

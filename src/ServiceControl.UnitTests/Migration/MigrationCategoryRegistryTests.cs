@@ -12,12 +12,12 @@ using ServiceControl.Persistence.DataMigration;
 class MigrationCategoryRegistryTests
 {
     [Test]
-    public void Contains_all_eighteen_categories_with_unique_ids()
+    public void Contains_all_seventeen_categories_with_unique_ids()
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(MigrationCategoryRegistry.All, Has.Count.EqualTo(18));
-            Assert.That(MigrationCategoryRegistry.All.Select(c => c.Id).Distinct().Count(), Is.EqualTo(18));
+            Assert.That(MigrationCategoryRegistry.All, Has.Count.EqualTo(17));
+            Assert.That(MigrationCategoryRegistry.All.Select(c => c.Id).Distinct().Count(), Is.EqualTo(17));
         }
     }
 
@@ -35,7 +35,8 @@ class MigrationCategoryRegistryTests
             "KnownEndpoints", "EndpointSettings", "MessageRedirects", "Subscriptions",
             "NotificationSettings", "TrialEndDate", "RetryOperations",
             "LicensingEndpoints", "LicensingThroughput", "LicensingReportMasks",
-            "LicensedEndpointDetails", "UnresolvedAndRetryIssuedFailedMessages"
+            "LicensedEndpointDetails", "UnresolvedAndRetryIssuedFailedMessages",
+            "CustomChecks", "FailedErrorImports", "GroupComments"
         }));
     }
 
@@ -50,8 +51,7 @@ class MigrationCategoryRegistryTests
 
         Assert.That(optionalIds, Is.EqualTo(new[]
         {
-            "EventLog", "CustomChecks", "FailedErrorImports",
-            "FailedMessageEdits", "ArchivedAndResolvedFailedMessages", "GroupComments"
+            "EventLog", "ArchivedAndResolvedFailedMessages"
         }));
     }
 
@@ -71,7 +71,7 @@ class MigrationCategoryRegistryTests
             ["EndpointSettings"] = "KnownEndpoints",
             // A group comment whose failed messages have not arrived reads as an orphan to the
             // retention sweeper, which deletes it.
-            ["GroupComments"] = "ArchivedAndResolvedFailedMessages"
+            ["GroupComments"] = "UnresolvedAndRetryIssuedFailedMessages"
         }));
     }
 
