@@ -44,7 +44,7 @@
                 })
                 .Run();
 
-            var hasReceivedProperties = auditedMessage.Headers.Any(x => x.Key.Equals("ServiceControl.ReceiveProperties.LearningTransport.ReceiveProperties."));
+            var hasReceivedProperties = auditedMessage.Headers.Any(x => x.Key.Equals("ServiceControl.ReceiveProperties.LearningTransport.FileCreatedAt"));
 
             var receivedProperties = new KeyValuePair<string, string>();
             if (hasReceivedProperties)
