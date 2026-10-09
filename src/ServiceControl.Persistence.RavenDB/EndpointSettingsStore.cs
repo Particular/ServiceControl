@@ -47,5 +47,5 @@ class EndpointSettingsStore(IRavenSessionProvider sessionProvider) : IEndpointSe
         await session.SaveChangesAsync(cancellationToken);
     }
 
-    const string CollectionName = "EndpointSettings";
+    internal const string CollectionName = "EndpointSettings";
 }

@@ -91,5 +91,6 @@ public static class MigrationCheckpointExtensions
         entity.SettledAt = checkpoint.SettledAt;
         entity.LastError = checkpoint.LastError;
         entity.AlreadyPresentCount = checkpoint.AlreadyPresentCount;
+        entity.StartedWindowSeconds = checkpoint.StartedWindowSeconds;
     }
 }

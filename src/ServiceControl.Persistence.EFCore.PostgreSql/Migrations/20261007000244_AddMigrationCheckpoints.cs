@@ -27,7 +27,8 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     settled_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     last_error = table.Column<string>(type: "text", nullable: true),
                     already_present_count = table.Column<long>(type: "bigint", nullable: false),
-                    version = table.Column<long>(type: "bigint", nullable: false)
+                    version = table.Column<long>(type: "bigint", nullable: false),
+                    started_window_seconds = table.Column<long>(type: "bigint", nullable: true)
                 },
                 constraints: table =>
                 {

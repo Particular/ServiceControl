@@ -27,7 +27,8 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     SettledAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     LastError = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AlreadyPresentCount = table.Column<long>(type: "bigint", nullable: false),
-                    Version = table.Column<long>(type: "bigint", nullable: false)
+                    Version = table.Column<long>(type: "bigint", nullable: false),
+                    StartedWindowSeconds = table.Column<long>(type: "bigint", nullable: true)
                 },
                 constraints: table =>
                 {

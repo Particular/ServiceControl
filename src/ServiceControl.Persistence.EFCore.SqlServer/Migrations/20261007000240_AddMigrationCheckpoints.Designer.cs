@@ -12,7 +12,7 @@ using ServiceControl.Persistence.EFCore.SqlServer;
 namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 {
     [DbContext(typeof(SqlServerServiceControlDbContext))]
-    [Migration("20260916125144_AddMigrationCheckpoints")]
+    [Migration("20261007000240_AddMigrationCheckpoints")]
     partial class AddMigrationCheckpoints
     {
         /// <inheritdoc />
@@ -302,7 +302,8 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("MessageType")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("NumberOfProcessingAttempts")
                         .HasColumnType("int");
@@ -353,6 +354,12 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasIndex("Status", "LastModified");
 
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("Status", "LastModified"), new[] { "FirstTimeOfFailure", "LastTimeOfFailure" });
+
+                    b.HasIndex("Status", "LastTimeOfFailure");
+
+                    b.HasIndex("Status", "MessageType", "UniqueMessageId");
+
                     b.ToTable("FailedMessages");
                 });
 
@@ -379,6 +386,8 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.HasIndex("GroupId");
 
                     b.HasIndex("Type", "GroupId");
+
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("Type", "GroupId"), new[] { "Title" });
 
                     b.ToTable("FailedMessageGroups");
                 });
@@ -601,6 +610,9 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<long?>("StartedWindowSeconds")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("State")
                         .HasColumnType("int");

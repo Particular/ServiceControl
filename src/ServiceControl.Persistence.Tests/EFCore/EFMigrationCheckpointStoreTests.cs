@@ -23,7 +23,8 @@ class EFMigrationCheckpointStoreTests : PersistenceTestBase
     {
         var checkpoint = new MigrationCheckpoint(
             "EndpointSettings", MigrationCategoryState.CompleteWithErrors, "cursor-1", 5, 2, 40,
-            new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BodyUnreadable] = 2 }, Now, Now, Now, "body storage unavailable", AlreadyPresentCount: 33);
+            new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BodyUnreadable] = 2 }, Now, Now, Now, "body storage unavailable", AlreadyPresentCount: 33,
+            StartedWindowSeconds: (long)TimeSpan.FromDays(14).TotalSeconds);
 
         var saved = await Store.Upsert(checkpoint);
         var stored = await Store.Read("EndpointSettings");

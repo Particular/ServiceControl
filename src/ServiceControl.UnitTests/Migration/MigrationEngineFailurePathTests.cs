@@ -35,6 +35,7 @@ class MigrationEngineFailurePathTests
 
         using (Assert.EnterMultipleScope())
         {
+            Assert.That(category.Kind, Is.EqualTo(MigrationCategoryKind.Required));
             Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Halted));
             Assert.That(checkpoint.LastError, Does.Contain("Simulated failure"));
             // The first batch committed, so the cursor is real and a later run resumes from it.
@@ -78,40 +79,43 @@ class MigrationEngineFailurePathTests
     }
 
     [Test]
-    public async Task A_halted_category_is_re_attempted_on_the_next_run_and_resumes_from_its_cursor()
+    public async Task A_halted_category_is_left_alone_until_the_operator_puts_it_back_in_progress()
     {
-        // A halt that no restart can clear would leave abandoning the category as the only way out of
-        // a fault the customer has already repaired.
         var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, Row("a"), Row("b"), Row("c"), Row("d"));
         var checkpointStore = new InMemoryMigrationCheckpointStore();
         var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 2, FailOnCallNumber = 2 };
-        var firstRun = BuildEngine(source, checkpointStore, target);
-        var halted = await firstRun.RunCategoryAsync(category);
+        var halted = await BuildEngine(source, checkpointStore, target).RunCategoryAsync(category);
         Assert.That(halted.State, Is.EqualTo(MigrationCategoryState.Halted));
 
-        // Stopped on its first write, so the saved row is the restarted one rather than the completed one.
+        // The cause is fixed, but nothing re-runs a Failed category until the operator says so.
         target.FailOnCallNumber = null;
-        using var stopping = new CancellationTokenSource();
-        target.StopOnCall = (3, stopping);
-        Assert.ThrowsAsync<OperationCanceledException>(() => BuildEngine(source, checkpointStore, target).RunCategoryAsync(category, stopping.Token));
-        var restarted = await checkpointStore.Read(category.Id);
+        var untouched = await BuildEngine(source, checkpointStore, target).RunCategoryAsync(category);
 
-        target.StopOnCall = null;
-        var lastRun = BuildEngine(source, checkpointStore, target);
-        var finished = await lastRun.RunCategoryAsync(category);
+        // The reset --migration-retry writes: a re-read from the start that keeps only when the category first started.
+        await checkpointStore.Upsert(untouched with
+        {
+            State = MigrationCategoryState.NotStarted,
+            Cursor = null,
+            SkipReasons = null,
+            SettledAt = null,
+            LastError = null,
+            CopiedCount = 0,
+            SkippedCount = 0,
+            AlreadyPresentCount = 0
+        });
+        var finished = await BuildEngine(source, checkpointStore, target).RunCategoryAsync(category);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(restarted!.State, Is.EqualTo(MigrationCategoryState.InProgress));
-            Assert.That(restarted.SettledAt, Is.Null, "a copy running again does not keep the time its halt settled at");
+            Assert.That(untouched, Is.EqualTo(halted), "a start re-ran a Failed category the operator had not put back");
             Assert.That(finished.State, Is.EqualTo(MigrationCategoryState.Complete));
-            Assert.That(finished.LastError, Is.Null, "a cleared halt does not leave a stale error on the row");
-            Assert.That(finished.CopiedCount, Is.EqualTo(4));
-            var writtenIds = target.WrittenRows(category.Id).Select(r => r.SourceId).ToArray();
-            Assert.That(writtenIds, Is.EquivalentTo(new[] { "a", "b", "c", "d" }));
-            Assert.That(writtenIds.Distinct().Count(), Is.EqualTo(writtenIds.Length), "no duplicates across the halt");
+            Assert.That(finished.LastError, Is.Null, "a retried category does not keep the error it failed with");
+            Assert.That(finished.SourceTotal, Is.Null);
+            Assert.That(target.WrittenRows(category.Id).Select(r => r.SourceId), Is.EquivalentTo(new[] { "a", "b", "c", "d" }));
+            // Rows a and b were committed before the failure, so the re-read finds them already present.
+            Assert.That((finished.CopiedCount, finished.AlreadyPresentCount), Is.EqualTo((2L, 2L)));
         }
     }
 
@@ -130,6 +134,8 @@ class MigrationEngineFailurePathTests
         var firstRun = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
         var halted = await firstRun.RunCategoryAsync(category);
 
+        // The row a crash just before the failing batch commits leaves, which a start resumes from its cursor.
+        await checkpointStore.Upsert(halted with { State = MigrationCategoryState.InProgress, LastError = null, SettledAt = null });
         target.FailOnCallNumber = null;
         var secondRun = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
         var finished = await secondRun.RunCategoryAsync(category);
@@ -191,7 +197,7 @@ class MigrationEngineFailurePathTests
     }
 
     [Test]
-    public void A_halt_whose_save_fails_still_logs_the_exception_that_caused_it()
+    public void A_write_failure_halt_logs_its_exception_before_it_settles()
     {
         var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
         var source = new InMemoryMigrationSource();
@@ -207,7 +213,7 @@ class MigrationEngineFailurePathTests
     }
 
     [Test]
-    public void A_threshold_halt_whose_save_fails_still_logs_why_it_halted()
+    public void A_threshold_halt_logs_its_reason_before_it_settles()
     {
         var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
         var source = new InMemoryMigrationSource();
@@ -223,6 +229,78 @@ class MigrationEngineFailurePathTests
         Assert.ThrowsAsync<TimeoutException>(() => engine.RunCategoryAsync(category));
 
         Assert.That(logger.Entries.Where(e => e.Level == LogLevel.Error).Select(e => e.Message), Has.Some.Contains("Halted: 1 of 1 rows skipped"));
+    }
+
+    [Test]
+    public void An_optional_threshold_halt_whose_save_fails_throws_rather_than_staying_copying()
+    {
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.EventLog)!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"));
+        var checkpointStore = new HaltSaveFailsCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore);
+        target.RejectKey("a", MigrationSkipReason.BodyUnreadable);
+        // A floor of zero lets the one rejected row halt the category.
+        var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 0, []);
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
+
+        Assert.ThrowsAsync<TimeoutException>(() => engine.RunCategoryAsync(category));
+
+        var stored = checkpointStore.Read(category.Id).GetAwaiter().GetResult();
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(stored!.State, Is.EqualTo(MigrationCategoryState.InProgress));
+            Assert.That(stored.LastError, Is.Null, "the failed save of a halt was recorded as the category's own error, which leaves a Failed category reading as still copying");
+        }
+    }
+
+    [Test]
+    public async Task An_optional_category_that_throws_stays_copying_with_the_error_and_its_cursor()
+    {
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.EventLog)!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"), Row("b"), Row("c"), Row("d"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 2, FailOnCallNumber = 2 };
+
+        var checkpoint = await BuildEngine(source, checkpointStore, target).RunCategoryAsync(category);
+
+        var stored = await checkpointStore.Read(category.Id);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(category.Kind, Is.EqualTo(MigrationCategoryKind.Optional));
+            foreach (var row in new[] { checkpoint, stored! })
+            {
+                Assert.That(row.State, Is.EqualTo(MigrationCategoryState.InProgress));
+                Assert.That(row.Cursor, Is.EqualTo("b"));
+                Assert.That(row.CopiedCount, Is.EqualTo(2));
+                Assert.That(row.SettledAt, Is.Null);
+                Assert.That(row.LastError, Does.Contain("Simulated failure"));
+                Assert.That(row.LastError, Does.Not.Contain("--migration-abandon").And.Not.Contain("--migration-retry"));
+            }
+        }
+    }
+
+    [Test]
+    public async Task An_optional_category_an_exception_left_copying_resumes_on_the_next_start_and_clears_its_error()
+    {
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.EventLog)!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"), Row("b"), Row("c"), Row("d"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 2, FailOnCallNumber = 2 };
+        await BuildEngine(source, checkpointStore, target).RunCategoryAsync(category);
+
+        target.FailOnCallNumber = null;
+        var finished = await BuildEngine(source, checkpointStore, target).RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(finished.State, Is.EqualTo(MigrationCategoryState.Complete));
+            Assert.That(finished.LastError, Is.Null, "the error stays on the row only until a start tries again");
+            Assert.That(finished.CopiedCount, Is.EqualTo(4));
+            Assert.That(target.RowsHandedToWrite(category.Id).Select(r => r.SourceId), Is.EqualTo(new[] { "a", "b", "c", "d" }), "the resume did not carry on from the cursor");
+        }
     }
 
     [Test]

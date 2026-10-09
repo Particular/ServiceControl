@@ -32,8 +32,19 @@ class MigrationEngineResumeTests
         var halted = await new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(firstStart), options, NullLogger<MigrationEngine>.Instance)
             .RunCategoryAsync(category);
 
-        // A day later, the cause is fixed and the host is started again.
+        // A day later, the cause is fixed and the operator puts the category back as --migration-retry does.
         target.FailOnCallNumber = null;
+        await checkpointStore.Upsert(halted with
+        {
+            State = MigrationCategoryState.NotStarted,
+            Cursor = null,
+            SkipReasons = null,
+            SettledAt = null,
+            LastError = null,
+            CopiedCount = 0,
+            SkippedCount = 0,
+            AlreadyPresentCount = 0
+        });
         var restart = firstStart.AddDays(1);
         var finished = await new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(restart), options, NullLogger<MigrationEngine>.Instance)
             .RunCategoryAsync(category);
@@ -42,7 +53,7 @@ class MigrationEngineResumeTests
         {
             Assert.That(halted.StartedAt, Is.EqualTo(firstStart.UtcDateTime));
             Assert.That(finished.State, Is.EqualTo(MigrationCategoryState.Complete));
-            Assert.That(finished.StartedAt, Is.EqualTo(firstStart.UtcDateTime), "the restart carries on a copy that started a day ago");
+            Assert.That(finished.StartedAt, Is.EqualTo(firstStart.UtcDateTime), "a retried category keeps the moment it first started");
             Assert.That(finished.SettledAt, Is.EqualTo(restart.UtcDateTime));
         }
     }
@@ -82,9 +93,9 @@ class MigrationEngineResumeTests
         {
             Assert.That(finalCheckpoint.State, Is.EqualTo(MigrationCategoryState.Complete));
             Assert.That(finalCheckpoint.CopiedCount, Is.EqualTo(6));
-            var writtenIds = target.WrittenRows(category.Id).Select(r => r.SourceId).ToArray();
-            Assert.That(writtenIds, Is.EquivalentTo(allIds), "no gaps");
-            Assert.That(writtenIds.Distinct().Count(), Is.EqualTo(writtenIds.Length), "no duplicates");
+            Assert.That(target.WrittenRows(category.Id).Select(r => r.SourceId), Is.EquivalentTo(allIds), "no gaps");
+            // The target de-duplicates, as the real ones do, so what it kept can never show a row sent twice.
+            Assert.That(target.RowsHandedToWrite(category.Id).Select(r => r.SourceId), Is.Unique, "no duplicates: the restart resumes past the rows the first run committed");
         }
     }
 

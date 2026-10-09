@@ -110,6 +110,23 @@ class MigrationCheckpointTableTests : PersistenceTestBase
     }
 
     [Test]
+    public void A_blank_group_comment_skip_round_trips_by_name()
+    {
+        using var scope = ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+        var converter = dbContext.Model.FindEntityType(typeof(MigrationCheckpointEntity))!.FindProperty("SkipReasons")!.GetValueConverter()!;
+
+        var json = (string)converter.ConvertToProvider(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BlankGroupComment] = 3 })!;
+        var reasons = (IReadOnlyDictionary<MigrationSkipReason, long>)converter.ConvertFromProvider(json)!;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(json, Does.Contain("BlankGroupComment"));
+            Assert.That(reasons, Is.EquivalentTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BlankGroupComment] = 3 }));
+        }
+    }
+
+    [Test]
     public void A_reason_name_this_build_does_not_know_is_read_as_Unknown_rather_than_throwing()
     {
         // The rows a newer build wrote are what a downgraded instance meets, and the read path that would
@@ -145,7 +162,7 @@ class MigrationCheckpointTableTests : PersistenceTestBase
             Assert.That(entityType.GetProperties().Select(property => property.Name), Is.EquivalentTo(new[]
             {
                 "CategoryId", "State", "Cursor", "CopiedCount", "SkippedCount", "SourceTotal",
-                "SkipReasons", "StartedAt", "LastProgressAt", "SettledAt", "LastError", "AlreadyPresentCount", "Version"
+                "SkipReasons", "StartedAt", "LastProgressAt", "SettledAt", "LastError", "AlreadyPresentCount", "Version", "StartedWindowSeconds"
             }));
 
             // Underscores stripped so one assertion covers MigrationCheckpoints and migration_checkpoints.
