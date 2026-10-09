@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 using ServiceControl.Infrastructure;
 using ServiceControl.Infrastructure.Auth;
 
@@ -22,7 +23,8 @@ using ServiceControl.Infrastructure.Auth;
 /// </summary>
 public sealed class PermissionVerbHandler(
     IAuthorizationAuditLog auditLog,
-    OpenIdConnectSettings oidcSettings)
+    OpenIdConnectSettings oidcSettings,
+    ILogger<PermissionVerbHandler> logger)
     : AuthorizationHandler<PermissionRequirement>
 {
     protected override Task HandleRequirementAsync(
@@ -37,8 +39,25 @@ public sealed class PermissionVerbHandler(
             return Task.CompletedTask;
         }
 
-        var subjectId = context.User.RequireClaim(oidcSettings.SubjectIdClaim, "Authentication.SubjectIdClaim");
-        var subjectName = context.User.RequireClaim(oidcSettings.SubjectNameClaim, "Authentication.SubjectNameClaim");
+        var subjectId = context.User.FindFirst(oidcSettings.SubjectIdClaim)?.Value;
+        var subjectName = context.User.FindFirst(oidcSettings.SubjectNameClaim)?.Value;
+
+        // The audit log needs both values to identify the caller. Without them the request is
+        // forbidden (403), not an unhandled exception (500).
+        if (string.IsNullOrEmpty(subjectId) || string.IsNullOrEmpty(subjectName))
+        {
+            var (claimType, settingName) = string.IsNullOrEmpty(subjectId)
+                ? (oidcSettings.SubjectIdClaim, "Authentication.SubjectIdClaim")
+                : (oidcSettings.SubjectNameClaim, "Authentication.SubjectNameClaim");
+
+            logger.LogWarning(
+                "Access denied: the token has no '{ClaimType}' claim, which is configured by {SettingName}. Configure the identity provider to emit this claim, or change the setting to a claim that the identity provider emits",
+                claimType, settingName);
+
+            context.Fail(new AuthorizationFailureReason(this, $"The token has no '{claimType}' claim, which is configured by {settingName}"));
+            return Task.CompletedTask;
+        }
+
         var roles = context.User.FindAll(ClaimTypes.Role).Select(claim => claim.Value).ToArray();
         var permission = requirement.Permission;
 
