@@ -100,6 +100,37 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
         Assert.That(remotes.Select(remote => remote.Queues), Is.EqualTo(new[] { new[] { "audit.a", "audit.a.log" }, new[] { "audit.b", "audit.b.log" } }));
     }
 
+    [TestCase("6.21.0", "instance_name")]
+    [TestCase("5.4.0", "service_name")]
+    public async Task Should_include_the_input_queue_named_after_the_audit_instance(string version, string instanceNameProperty)
+    {
+        var configuration = $$"""
+            {
+              "host": {
+                "{{instanceNameProperty}}": "Contoso.Audit",
+                "logging": { "log_path": "/var/log/servicecontrol-audit", "logging_level": "debug" }
+              },
+              "data_retention": { "audit_retention_period": "30.00:00:00" },
+              "performance_tunning": { "max_body_size_to_store": 102400 },
+              "transport": {
+                "transport_type": "LearningTransport",
+                "audit_log_queue": "audit.log",
+                "audit_queue": "audit",
+                "forward_audit_messages": false
+              },
+              "persistence": { "persistence_type": "PostgreSQL" },
+              "plugins": {}
+            }
+            """;
+        var configurationApi = new ConfigurationApi_ReturningRemotes(
+            new RemoteConfiguration { ApiUri = "http://audit:44444/api/", Status = "online", Version = version, Configuration = JsonNode.Parse(configuration) });
+        var auditQuery = new AuditQuery(NullLogger<AuditQuery>.Instance, new FakeEndpointApi(), new FakeAuditCountApi(), configurationApi);
+
+        var remotes = await auditQuery.GetAuditRemotes();
+
+        Assert.That(remotes.Single().Queues, Is.EquivalentTo(new[] { "Contoso.Audit", "audit", "audit.log" }));
+    }
+
     [Test]
     public async Task Should_return_successful_audit_connection_if_instances_exist_and_are_online()
     {
