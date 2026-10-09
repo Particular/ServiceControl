@@ -49,7 +49,7 @@
             var receivedProperties = new KeyValuePair<string, string>();
             if (hasReceivedProperties)
             {
-                receivedProperties = auditedMessage.Headers.First(x => x.Key.Equals("ServiceControl.ReceiveProperties.LearningTransport.ReceiveProperties."));
+                receivedProperties = auditedMessage.Headers.First(x => x.Key.Equals("ServiceControl.ReceiveProperties.LearningTransport.FileCreatedAt"));
             }
 
             using (Assert.EnterMultipleScope())
