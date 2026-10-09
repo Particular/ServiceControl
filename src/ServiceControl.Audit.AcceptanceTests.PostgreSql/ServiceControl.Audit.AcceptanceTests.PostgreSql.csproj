@@ -36,10 +36,6 @@
 
     <!-- The EF Core persisters always index bodies for full text search, whatever EnableFullTextSearchOnBodies says. -->
     <Compile Remove="..\ServiceControl.Audit.AcceptanceTests\Auditing\When_processed_message_searched_by_body_content.FullTextSearchDisabled.cs" />
-    <Compile Update="..\ServiceControl.Audit.AcceptanceTests\Auditing\When_a_message_processed_with_receive_properties.cs">
-      <LinkBase>Shared\</LinkBase>
-      <Link>Shared\Auditing\When_a_message_sent_with_receiveproperties.cs</Link>
-    </Compile>
   </ItemGroup>
 
 </Project>
