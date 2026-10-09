@@ -23,7 +23,15 @@ class FullTextSearchIndexTests
     {
         var sql = SearchQuery("forty two");
 
-        Assert.That(sql, Does.Contain("='forty OR two'"));
+        Assert.That(sql, Does.Contain("'forty' | 'two'"));
+    }
+
+    [Test]
+    public void A_trailing_star_makes_a_term_a_prefix()
+    {
+        var sql = SearchQuery("forty*");
+
+        Assert.That(sql, Does.Contain("'forty':*"));
     }
 
     static string SearchQuery(string searchTerms)
