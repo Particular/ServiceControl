@@ -1,34 +1,50 @@
 {
-  "title": "Testing Tool — Error Load & Observability",
+  "title": "Testing Tool: Error and Audit Load & Observability",
   "uid": "testing-tool",
   "schemaVersion": 39,
-  "version": 6,
+  "version": 8,
   "timezone": "browser",
   "refresh": "5s",
-  "tags": ["testing-tool", "servicecontrol", "otel"],
+  "tags": [
+    "testing-tool",
+    "servicecontrol",
+    "otel"
+  ],
   "templating": {
     "list": [
       {
         "name": "scenario",
         "type": "query",
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
         "query": "label_values(errors_sent_total, scenario)",
         "refresh": 2,
         "includeAll": true,
         "multi": true,
-        "current": { "text": "All", "value": "$__all" }
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
       },
       {
         "name": "sc_instance",
         "label": "ServiceControl instance",
         "type": "query",
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "query": "label_values(sc_error_ingestion_message_duration_seconds_count, exported_job)",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "query": "label_values({__name__=~\"sc_(error|audit)_ingestion_message_duration_seconds_count\"}, exported_job)",
         "refresh": 2,
         "includeAll": true,
         "allValue": ".*",
         "multi": true,
-        "current": { "text": "All", "value": "$__all" }
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
       }
     ]
   },
@@ -38,20 +54,37 @@
       "type": "row",
       "title": "Load generation (testing tool)",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
       "panels": []
     },
     {
       "id": 1,
-      "title": "Errors Raised / sec — handler path (by scenario)",
-      "description": "Errors sent to the ServiceControl error queue via the NServiceBus handler path (errors_sent_total), broken down by scenario. The bypass path is emitted separately — see the 'Bypass Errors Written / sec' panel — and combined with this in the 'Errors Raised vs Ingested' panels.",
+      "title": "Errors Raised / sec \u2014 handler path (by scenario)",
+      "description": "Errors sent to the ServiceControl error queue via the NServiceBus handler path (errors_sent_total), broken down by scenario. The bypass path is emitted separately \u2014 see the 'Bypass Errors Written / sec' panel \u2014 and combined with this in the 'Errors Raised vs Ingested' panels.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 1 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
         }
       },
       "targets": [
@@ -66,12 +99,24 @@
       "title": "Bypass Errors Written / sec (by scenario)",
       "description": "Errors written directly to the ServiceControl error queue by the bypass path (bypass_errors_written_total), bypassing the handler. Emitted separately from errors_sent_total so handler and bypass load can be told apart; the 'Errors Raised vs Ingested' panels combine the two into the total raised.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 1 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
         }
       },
       "targets": [
@@ -82,15 +127,60 @@
       ]
     },
     {
-      "id": 3,
-      "title": "Errors Replayed / sec",
+      "id": 41,
+      "title": "Audit Envelopes Written / sec (by kind)",
+      "description": "Envelopes written directly to the audit queue by the direct audit-queue writer (bypass_audit_messages_written_total), split into processed-message envelopes and saga-update snapshots. Only a ServiceControl.Audit instance drains that queue, so this is zero unless --audit-instances is running.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 9 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (kind) (rate(bypass_audit_messages_written_total[$__rate_interval]))",
+          "legendFormat": "audit: {{kind}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Errors Replayed / sec",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 9
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
         }
       },
       "targets": [
@@ -104,12 +194,24 @@
       "id": 4,
       "title": "Errors Archived / sec",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 9 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 9
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
         }
       },
       "targets": [
@@ -123,12 +225,24 @@
       "id": 6,
       "title": "Searches Executed / sec",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 9 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 9
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "ops",
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
         }
       },
       "targets": [
@@ -142,12 +256,24 @@
       "id": 2,
       "title": "Search Latency p95 (ms)",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 17 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 17
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "ms",
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
         }
       },
       "targets": [
@@ -162,17 +288,37 @@
       "title": "Total Errors Raised (cumulative)",
       "description": "Cumulative errors raised by the testing tool, combining the handler path (errors_sent_total) and the bypass path (bypass_errors_written_total). Compare against 'Errors Ingested' in the 'Errors Raised vs Ingested' panels to gauge ingestion backlog.",
       "type": "stat",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 17 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 17
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "color": { "mode": "thresholds" },
-          "thresholds": { "steps": [ { "color": "green" } ] }
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          }
         }
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] }
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
       },
       "targets": [
         {
@@ -184,69 +330,135 @@
     {
       "id": 101,
       "type": "row",
-      "title": "Raised vs ingested",
+      "title": "Raised vs ingested (error and audit)",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 25 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 25
+      },
       "panels": []
     },
     {
       "id": 9,
-      "title": "Errors Raised vs Ingested / sec",
-      "description": "Compares the rate of errors the testing tool raises — combining the handler path (errors_sent_total) and the bypass path (bypass_errors_written_total) — against the rate ServiceControl successfully ingests (sc.error.ingestion.message_duration_seconds, message_category=failed-message, result=success). The raised series should lead the ingested series; a widening gap indicates an ingestion backlog or failures.",
+      "title": "Raised vs Ingested / sec (error and audit)",
+      "description": "Compares the rate of errors the testing tool raises \u2014 combining the handler path (errors_sent_total) and the bypass path (bypass_errors_written_total) \u2014 against the rate ServiceControl successfully ingests (sc.error.ingestion.message_duration_seconds, message_category=failed-message, result=success). The raised series should lead the ingested series; a widening gap indicates an ingestion backlog or failures. The audit pair covers both audit paths: envelopes the direct audit-queue writer sends, and the messages this tool's own endpoint handles successfully, which AuditProcessedMessagesTo forwards to the same queue.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 26 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 26
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
         }
       },
       "targets": [
         {
+          "refId": "A",
           "expr": "avg_over_time((sum(rate(errors_sent_total[1m])) + sum(rate(bypass_errors_written_total[1m])))[2m:15s])",
-          "legendFormat": "raised (testing-tool)"
+          "legendFormat": "error raised (testing-tool)"
         },
         {
+          "refId": "B",
           "expr": "avg_over_time((sum(rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",message_category=\"failed-message\",result=\"success\"}[1m])))[2m:15s])",
-          "legendFormat": "ingested (servicecontrol)"
+          "legendFormat": "error ingested (servicecontrol)"
+        },
+        {
+          "refId": "C",
+          "expr": "avg_over_time((sum(rate(bypass_audit_messages_written_total[1m])) + sum(rate(endpoint_audited_messages_total[1m])))[2m:15s])",
+          "legendFormat": "audit raised (testing-tool)"
+        },
+        {
+          "refId": "D",
+          "expr": "avg_over_time((sum(rate(sc_audit_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",result=\"success\"}[1m])))[2m:15s])",
+          "legendFormat": "audit ingested (servicecontrol.audit)"
         }
       ]
     },
     {
       "id": 10,
-      "title": "Errors Raised vs Ingested (cumulative)",
+      "title": "Raised vs Ingested, cumulative (error and audit)",
       "description": "Cumulative comparison: total errors raised by the testing tool (handler + bypass) vs total failed messages ServiceControl successfully ingested. A persistent delta is the ingestion backlog (still queued or failed).",
       "type": "stat",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 26 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 26
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "color": { "mode": "thresholds" },
-          "thresholds": { "steps": [ { "color": "green" } ] }
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          }
         }
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] }
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
       },
       "targets": [
         {
+          "refId": "A",
           "expr": "sum(errors_sent_total) + sum(bypass_errors_written_total)",
-          "legendFormat": "raised"
+          "legendFormat": "error raised"
         },
         {
+          "refId": "B",
           "expr": "sum(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",message_category=\"failed-message\",result=\"success\"})",
-          "legendFormat": "ingested"
+          "legendFormat": "error ingested"
+        },
+        {
+          "refId": "C",
+          "expr": "sum(bypass_audit_messages_written_total) + sum(endpoint_audited_messages_total)",
+          "legendFormat": "audit raised"
+        },
+        {
+          "refId": "D",
+          "expr": "sum(sc_audit_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",result=\"success\"})",
+          "legendFormat": "audit ingested"
         }
       ]
     },
     {
       "id": 102,
       "type": "row",
-      "title": "ServiceControl ingestion — rate & throughput",
+      "title": "ServiceControl ingestion: rate and throughput (error and audit)",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 34 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 34
+      },
       "panels": []
     },
     {
@@ -254,25 +466,51 @@
       "title": "Ingestion Rate (msg/sec)",
       "description": "Successful ingestion rate across both message categories, from the count of sc.error.ingestion.message_duration_seconds with result=success. Averaged over a 2-minute window (15s step) to smooth out the stepwise nature of the batched counter, so this is the sustained rate rather than an instantaneous one.",
       "type": "stat",
-      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 35 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 35
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
           "decimals": 1,
-          "color": { "mode": "thresholds" },
-          "thresholds": { "steps": [ { "color": "green" } ] }
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          }
         }
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "graphMode": "area",
         "colorMode": "value"
       },
       "targets": [
         {
           "expr": "avg_over_time((sum(rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",result=\"success\"}[1m])))[2m:15s])",
-          "legendFormat": "ingested"
+          "legendFormat": "error: ingested",
+          "refId": "A"
+        },
+        {
+          "expr": "avg_over_time((sum(rate(sc_audit_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",result=\"success\"}[1m])))[2m:15s])",
+          "legendFormat": "audit: ingested",
+          "refId": "B"
         }
       ]
     },
@@ -281,25 +519,51 @@
       "title": "Peak Ingestion Rate (selected range)",
       "description": "Highest sustained ingestion rate seen anywhere in the dashboard's time range. The underlying per-message rate is averaged over a 2-minute window (15s step) before the max is taken, so the value reflects what the instance actually sustained rather than a single batch-flush spike.",
       "type": "stat",
-      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 35 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 35
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
           "decimals": 1,
-          "color": { "mode": "thresholds" },
-          "thresholds": { "steps": [ { "color": "blue" } ] }
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "blue"
+              }
+            ]
+          }
         }
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "graphMode": "none",
         "colorMode": "value"
       },
       "targets": [
         {
           "expr": "max_over_time(avg_over_time((sum(rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",result=\"success\"}[1m])))[2m:15s])[$__range:15s])",
-          "legendFormat": "peak"
+          "legendFormat": "error: peak",
+          "refId": "A"
+        },
+        {
+          "expr": "max_over_time(avg_over_time((sum(rate(sc_audit_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",result=\"success\"}[1m])))[2m:15s])[$__range:15s])",
+          "legendFormat": "audit: peak",
+          "refId": "B"
         }
       ]
     },
@@ -308,56 +572,111 @@
       "title": "Total Messages Ingested",
       "description": "Cumulative count of messages ServiceControl ingested successfully, both failed messages and retry confirmations.",
       "type": "stat",
-      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 35 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 35
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "color": { "mode": "thresholds" },
-          "thresholds": { "steps": [ { "color": "green" } ] }
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          }
         }
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "graphMode": "area"
       },
       "targets": [
         {
           "expr": "sum(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",result=\"success\"})",
-          "legendFormat": "ingested"
+          "legendFormat": "error: ingested",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(sc_audit_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",result=\"success\"})",
+          "legendFormat": "audit: ingested",
+          "refId": "B"
         }
       ]
     },
     {
       "id": 23,
       "title": "Consecutive Batch Failures",
-      "description": "sc.error.ingestion.consecutive_batch_failures_total — the ingestor's own circuit-breaker signal. It resets to 0 on the first batch that writes, so anything above 0 means storage is currently rejecting batches.",
+      "description": "sc.error.ingestion.consecutive_batch_failures_total \u2014 the ingestor's own circuit-breaker signal. It resets to 0 on the first batch that writes, so anything above 0 means storage is currently rejecting batches.",
       "type": "stat",
-      "gridPos": { "h": 6, "w": 6, "x": 18, "y": 35 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 35
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "orange", "value": 1 },
-              { "color": "red", "value": 3 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
             ]
           }
         }
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "graphMode": "area",
         "colorMode": "background"
       },
       "targets": [
         {
           "expr": "max(sc_error_ingestion_consecutive_batch_failures_total{exported_job=~\"$sc_instance\"})",
-          "legendFormat": "consecutive failures"
+          "legendFormat": "error: consecutive failures",
+          "refId": "A"
+        },
+        {
+          "expr": "max(sc_audit_ingestion_consecutive_batch_failures_total{exported_job=~\"$sc_instance\"})",
+          "legendFormat": "audit: consecutive failures",
+          "refId": "B"
         }
       ]
     },
@@ -366,8 +685,16 @@
       "title": "Ingestion Rate / sec (by result)",
       "description": "Every message the ingestor completed, split by outcome: success, skipped (nothing to store) and failed. Stacked, the total is the rate messages left the ingestion pipeline at, regardless of outcome.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 41 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 41
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
@@ -375,40 +702,81 @@
             "drawStyle": "line",
             "lineInterpolation": "smooth",
             "fillOpacity": 25,
-            "stacking": { "mode": "normal", "group": "A" }
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
           }
         }
       },
       "options": {
-        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
       },
       "targets": [
         {
           "expr": "avg_over_time((sum by (result) (rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\"}[1m])))[2m:15s])",
-          "legendFormat": "{{result}}"
+          "legendFormat": "error: {{result}}",
+          "refId": "A"
+        },
+        {
+          "expr": "avg_over_time((sum by (result) (rate(sc_audit_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\"}[1m])))[2m:15s])",
+          "legendFormat": "audit: {{result}}",
+          "refId": "B"
         }
       ]
     },
     {
       "id": 25,
       "title": "Ingestion Rate / sec (by message category and instance)",
-      "description": "Successful ingestion rate split by message.category — failed-message vs retry-confirmation — and by instance. Retry confirmations are much cheaper than failed messages, so a rate that climbs while latency stays flat is usually a shift in this mix, not extra capacity.",
+      "description": "Successful ingestion rate split by message.category \u2014 failed-message vs retry-confirmation \u2014 and by instance. Retry confirmations are much cheaper than failed messages, so a rate that climbs while latency stays flat is usually a shift in this mix, not extra capacity.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 41 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 41
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
         }
       },
       "options": {
-        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
       },
       "targets": [
         {
           "expr": "avg_over_time((sum by (exported_job, message_category) (rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",result=\"success\"}[1m])))[2m:15s])",
-          "legendFormat": "{{message_category}} - {{exported_job}}"
+          "legendFormat": "error: {{message_category}} - {{exported_job}}",
+          "refId": "A"
+        },
+        {
+          "expr": "avg_over_time((sum by (exported_job, message_category) (rate(sc_audit_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",result=\"success\"}[1m])))[2m:15s])",
+          "legendFormat": "audit: {{message_category}} - {{exported_job}}",
+          "refId": "B"
         }
       ]
     },
@@ -417,21 +785,46 @@
       "title": "Batches Written / sec (by result)",
       "description": "Count of sc.error.ingestion.batch_duration_seconds by result. 'full' means the batch hit the maximum size, so the ingestor was never waiting for messages: a sustained run of full batches means the load generator, not ServiceControl, is setting the pace.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 49 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 49
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
         }
       },
       "options": {
-        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
       },
       "targets": [
         {
           "expr": "sum by (result) (rate(sc_error_ingestion_batch_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
-          "legendFormat": "{{result}}"
+          "legendFormat": "error: {{result}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (result) (rate(sc_audit_ingestion_batch_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "legendFormat": "audit: {{result}}",
+          "refId": "B"
         }
       ]
     },
@@ -440,72 +833,145 @@
       "title": "Effective Batch Size (messages per batch)",
       "description": "Message rate divided by batch rate: how many messages each batch actually carried. Sitting at the configured maximum means batching is saturated; a low number under high load points at the ingestor being starved rather than storage being slow.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 49 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 49
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
           "decimals": 1,
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
         }
       },
       "targets": [
         {
           "expr": "avg_over_time((sum(rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\"}[1m])))[2m:15s]) / avg_over_time((sum(rate(sc_error_ingestion_batch_duration_seconds_count{exported_job=~\"$sc_instance\"}[1m])))[2m:15s])",
-          "legendFormat": "messages / batch"
+          "legendFormat": "error: messages / batch",
+          "refId": "A"
+        },
+        {
+          "expr": "avg_over_time((sum(rate(sc_audit_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\"}[1m])))[2m:15s]) / avg_over_time((sum(rate(sc_audit_ingestion_batch_duration_seconds_count{exported_job=~\"$sc_instance\"}[1m])))[2m:15s])",
+          "legendFormat": "audit: messages / batch",
+          "refId": "B"
         }
       ]
     },
     {
       "id": 103,
       "type": "row",
-      "title": "ServiceControl ingestion — latency",
+      "title": "ServiceControl ingestion: latency (error and audit)",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 57 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 57
+      },
       "panels": []
     },
     {
       "id": 11,
       "title": "ServiceControl Ingestion Duration (s)",
-      "description": "ServiceControl OTel histogram sc.error.ingestion.message_duration_seconds for failed messages — p50, p95 and p99 end-to-end duration per ingested error message. Spikes here explain why 'ingested' lags 'raised'. Buckets top out at 5s, so a p99 pinned at 5 means 'at least 5s'.",
+      "description": "ServiceControl OTel histogram sc.error.ingestion.message_duration_seconds for failed messages \u2014 p50, p95 and p99 end-to-end duration per ingested error message. Spikes here explain why 'ingested' lags 'raised'. Buckets top out at 5s, so a p99 pinned at 5 means 'at least 5s'.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 58 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 58
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "s",
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
         }
       },
       "targets": [
         {
           "expr": "histogram_quantile(0.5, sum by (le, exported_job) (rate(sc_error_ingestion_message_duration_seconds_bucket{exported_job=~\"$sc_instance\",message_category=\"failed-message\"}[$__rate_interval])))",
-          "legendFormat": "Message P50 - {{exported_job}}"
+          "legendFormat": "error: Message P50 - {{exported_job}}",
+          "refId": "A"
         },
         {
           "expr": "histogram_quantile(0.95, sum by (le, exported_job) (rate(sc_error_ingestion_message_duration_seconds_bucket{exported_job=~\"$sc_instance\",message_category=\"failed-message\"}[$__rate_interval])))",
-          "legendFormat": "Message P95 - {{exported_job}}"
+          "legendFormat": "error: Message P95 - {{exported_job}}",
+          "refId": "B"
         },
         {
           "expr": "histogram_quantile(0.99, sum by (le, exported_job) (rate(sc_error_ingestion_message_duration_seconds_bucket{exported_job=~\"$sc_instance\",message_category=\"failed-message\"}[$__rate_interval])))",
-          "legendFormat": "Message P99 - {{exported_job}}"
+          "legendFormat": "error: Message P99 - {{exported_job}}",
+          "refId": "C"
+        },
+        {
+          "expr": "histogram_quantile(0.5, sum by (le, exported_job) (rate(sc_audit_ingestion_message_duration_seconds_bucket{exported_job=~\"$sc_instance\",message_category=~\"audit-message|saga-update\"}[$__rate_interval])))",
+          "legendFormat": "audit: Message P50 - {{exported_job}}",
+          "refId": "D"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, exported_job) (rate(sc_audit_ingestion_message_duration_seconds_bucket{exported_job=~\"$sc_instance\",message_category=~\"audit-message|saga-update\"}[$__rate_interval])))",
+          "legendFormat": "audit: Message P95 - {{exported_job}}",
+          "refId": "E"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le, exported_job) (rate(sc_audit_ingestion_message_duration_seconds_bucket{exported_job=~\"$sc_instance\",message_category=~\"audit-message|saga-update\"}[$__rate_interval])))",
+          "legendFormat": "audit: Message P99 - {{exported_job}}",
+          "refId": "F"
         }
       ]
     },
     {
       "id": 28,
-      "title": "Ingestion Duration Distribution (heatmap)",
+      "title": "Error Ingestion Duration Distribution (heatmap)",
       "description": "The whole message_duration_seconds histogram over time rather than a single quantile. Bucket boundaries are 10ms, 50ms, 100ms, 500ms, 1s and 5s. A band drifting upward under load is the shape of the instance running out of headroom.",
       "type": "heatmap",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 58 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 58
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "options": {
         "calculate": false,
         "cellGap": 1,
-        "color": { "mode": "scheme", "scheme": "Spectral", "steps": 64, "reverse": false },
-        "yAxis": { "unit": "s" },
-        "legend": { "show": true },
-        "tooltip": { "show": true, "yHistogram": true }
+        "color": {
+          "mode": "scheme",
+          "scheme": "Spectral",
+          "steps": 64,
+          "reverse": false
+        },
+        "yAxis": {
+          "unit": "s"
+        },
+        "legend": {
+          "show": true
+        },
+        "tooltip": {
+          "show": true,
+          "yHistogram": true
+        }
       },
       "targets": [
         {
@@ -516,16 +982,72 @@
       ]
     },
     {
+      "id": 42,
+      "title": "Audit Ingestion Duration Distribution (heatmap)",
+      "description": "Bucket distribution of audit message ingestion duration. Buckets top out at 5s, so a p99 pinned at 5 means the histogram is saturated.",
+      "type": "heatmap",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 58
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "calculate": false,
+        "cellGap": 1,
+        "color": {
+          "mode": "scheme",
+          "scheme": "Spectral",
+          "steps": 64,
+          "reverse": false
+        },
+        "yAxis": {
+          "unit": "s"
+        },
+        "legend": {
+          "show": true
+        },
+        "tooltip": {
+          "show": true,
+          "yHistogram": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (le) (increase(sc_audit_ingestion_message_duration_seconds_bucket{exported_job=~\"$sc_instance\",message_category=~\"audit-message|saga-update\"}[$__rate_interval]))",
+          "legendFormat": "{{le}}",
+          "format": "heatmap"
+        }
+      ]
+    },
+    {
       "id": 29,
-      "title": "Storage Write Duration (s)",
-      "description": "sc.error.ingestion.storage_duration_seconds — the batch's storage write on its own, with announcing and forwarding excluded. Compare against batch duration below to see whether the persister or the rest of the pipeline is the constraint.",
+      "title": "Storage Write Duration (s), error only",
+      "description": "sc.error.ingestion.storage_duration_seconds \u2014 the batch's storage write on its own, with announcing and forwarding excluded. Compare against batch duration below to see whether the persister or the rest of the pipeline is the constraint. Error instance only: ServiceControl.Audit emits no sc.audit.ingestion.storage_duration_seconds, so there is no audit equivalent to chart.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 66 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 66
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "s",
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
         }
       },
       "targets": [
@@ -546,72 +1068,139 @@
     {
       "id": 30,
       "title": "Batch Duration (s)",
-      "description": "sc.error.ingestion.batch_duration_seconds — the whole batch, storage write plus announcing and forwarding. Batch duration multiplied by concurrent ingestion is what caps the achievable ingestion rate.",
+      "description": "sc.error.ingestion.batch_duration_seconds \u2014 the whole batch, storage write plus announcing and forwarding. Batch duration multiplied by concurrent ingestion is what caps the achievable ingestion rate.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 66 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 66
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "s",
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
         }
       },
       "targets": [
         {
           "expr": "histogram_quantile(0.5, sum by (le) (rate(sc_error_ingestion_batch_duration_seconds_bucket{exported_job=~\"$sc_instance\"}[$__rate_interval])))",
-          "legendFormat": "p50"
+          "legendFormat": "error: p50",
+          "refId": "A"
         },
         {
           "expr": "histogram_quantile(0.95, sum by (le) (rate(sc_error_ingestion_batch_duration_seconds_bucket{exported_job=~\"$sc_instance\"}[$__rate_interval])))",
-          "legendFormat": "p95"
+          "legendFormat": "error: p95",
+          "refId": "B"
         },
         {
           "expr": "histogram_quantile(0.99, sum by (le) (rate(sc_error_ingestion_batch_duration_seconds_bucket{exported_job=~\"$sc_instance\"}[$__rate_interval])))",
-          "legendFormat": "p99"
+          "legendFormat": "error: p99",
+          "refId": "C"
+        },
+        {
+          "expr": "histogram_quantile(0.5, sum by (le) (rate(sc_audit_ingestion_batch_duration_seconds_bucket{exported_job=~\"$sc_instance\"}[$__rate_interval])))",
+          "legendFormat": "audit: p50",
+          "refId": "D"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(sc_audit_ingestion_batch_duration_seconds_bucket{exported_job=~\"$sc_instance\"}[$__rate_interval])))",
+          "legendFormat": "audit: p95",
+          "refId": "E"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(sc_audit_ingestion_batch_duration_seconds_bucket{exported_job=~\"$sc_instance\"}[$__rate_interval])))",
+          "legendFormat": "audit: p99",
+          "refId": "F"
         }
       ]
     },
     {
       "id": 31,
-      "title": "Mean Duration — message / batch / storage write (s)",
+      "title": "Mean Duration \u2014 message / batch / storage write (s)",
       "description": "Histogram sum divided by histogram count, so these are true means rather than quantiles and are not clipped by the 5s top bucket. Mean message duration times the ingestion rate gives the concurrency the instance is sustaining.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 74 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 74
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "s",
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
         }
       },
       "targets": [
         {
           "expr": "avg_over_time((sum(rate(sc_error_ingestion_message_duration_seconds_sum{exported_job=~\"$sc_instance\"}[1m])) / sum(rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\"}[1m])))[2m:15s])",
-          "legendFormat": "message"
+          "legendFormat": "error: message",
+          "refId": "A"
         },
         {
           "expr": "avg_over_time((sum(rate(sc_error_ingestion_batch_duration_seconds_sum{exported_job=~\"$sc_instance\"}[1m])) / sum(rate(sc_error_ingestion_batch_duration_seconds_count{exported_job=~\"$sc_instance\"}[1m])))[2m:15s])",
-          "legendFormat": "batch"
+          "legendFormat": "error: batch",
+          "refId": "B"
         },
         {
           "expr": "avg_over_time((sum(rate(sc_error_ingestion_storage_duration_seconds_sum{exported_job=~\"$sc_instance\"}[1m])) / sum(rate(sc_error_ingestion_storage_duration_seconds_count{exported_job=~\"$sc_instance\"}[1m])))[2m:15s])",
-          "legendFormat": "storage write"
+          "legendFormat": "error: storage write",
+          "refId": "C"
+        },
+        {
+          "expr": "avg_over_time((sum(rate(sc_audit_ingestion_message_duration_seconds_sum{exported_job=~\"$sc_instance\"}[1m])) / sum(rate(sc_audit_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\"}[1m])))[2m:15s])",
+          "legendFormat": "audit: message",
+          "refId": "D"
+        },
+        {
+          "expr": "avg_over_time((sum(rate(sc_audit_ingestion_batch_duration_seconds_sum{exported_job=~\"$sc_instance\"}[1m])) / sum(rate(sc_audit_ingestion_batch_duration_seconds_count{exported_job=~\"$sc_instance\"}[1m])))[2m:15s])",
+          "legendFormat": "audit: batch",
+          "refId": "E"
         }
       ]
     },
     {
       "id": 32,
-      "title": "Storage Share of Batch Time",
-      "description": "Total time spent in storage writes divided by total time spent in batches. Near 100% means the persister owns the batch and tuning belongs there; a low share means announcing and forwarding are where the batch time goes.",
+      "title": "Storage Share of Batch Time, error only",
+      "description": "Total time spent in storage writes divided by total time spent in batches. Near 100% means the persister owns the batch and tuning belongs there; a low share means announcing and forwarding are where the batch time goes. Error instance only: ServiceControl.Audit emits no sc.audit.ingestion.storage_duration_seconds, so there is no audit equivalent to chart.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 74 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 74
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
           "min": 0,
           "max": 1,
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 20 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 20
+          }
         }
       },
       "targets": [
@@ -624,9 +1213,14 @@
     {
       "id": 104,
       "type": "row",
-      "title": "ServiceControl ingestion — failures & batch health",
+      "title": "ServiceControl ingestion: failures and batch health (error and audit)",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 82 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 82
+      },
       "panels": []
     },
     {
@@ -634,51 +1228,102 @@
       "title": "ServiceControl Ingestion Outcome / sec (by result)",
       "description": "ServiceControl OTel histogram sc.error.ingestion.message_duration_seconds count, broken down by ingestion result (success / failed / skipped). 'success' is what counts as ingested; 'failed'/'skipped' explain the gap between raised and ingested.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 83 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 83
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
         }
       },
       "targets": [
         {
           "expr": "avg_over_time((sum by (result) (rate(sc_error_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",message_category=\"failed-message\"}[1m])))[2m:15s])",
-          "legendFormat": "{{result}}"
+          "legendFormat": "error: {{result}}",
+          "refId": "A"
+        },
+        {
+          "expr": "avg_over_time((sum by (result) (rate(sc_audit_ingestion_message_duration_seconds_count{exported_job=~\"$sc_instance\",message_category=~\"audit-message|saga-update\"}[1m])))[2m:15s])",
+          "legendFormat": "audit: {{result}}",
+          "refId": "B"
         }
       ]
     },
     {
       "id": 33,
       "title": "Ingestion Failures / sec (by disposition)",
-      "description": "sc.error.ingestion.failures_total — messages the ingestor could not handle, split by what it did with them: 'retry' means the transport will redeliver, 'stored-poison' means it gave up and wrote a failed import. Rising stored-poison is permanent data loss from the load run's point of view.",
+      "description": "sc.error.ingestion.failures_total \u2014 messages the ingestor could not handle, split by what it did with them: 'retry' means the transport will redeliver, 'stored-poison' means it gave up and wrote a failed import. Rising stored-poison is permanent data loss from the load run's point of view.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 83 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 83
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
         }
       },
       "options": {
-        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
       },
       "targets": [
         {
           "expr": "sum by (result, message_category) (rate(sc_error_ingestion_failures_total{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
-          "legendFormat": "{{result}} / {{message_category}}"
+          "legendFormat": "error: {{result}} / {{message_category}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (result, message_category) (rate(sc_audit_ingestion_failures_total{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "legendFormat": "audit: {{result}} / {{message_category}}",
+          "refId": "B"
         }
       ]
     },
     {
       "id": 34,
       "title": "Batch Outcome Share",
-      "description": "Share of batches ending full, partial or failed. A high 'full' share is a healthy saturated pipeline; any sustained 'failed' share is what drives the consecutive-batch-failure circuit breaker.",
+      "description": "Share of batches ending full, partial or failed. A high 'full' share is a healthy saturated pipeline; any sustained 'failed' share is what drives the consecutive-batch-failure circuit breaker. Error and audit batches stack in separate groups: each share sums to 1 on its own, so stacking them together would overflow the axis.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 83 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 83
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
@@ -688,23 +1333,54 @@
             "drawStyle": "line",
             "lineInterpolation": "smooth",
             "fillOpacity": 30,
-            "stacking": { "mode": "normal", "group": "A" }
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
           }
-        }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "custom.stacking",
+                "value": {
+                  "mode": "normal",
+                  "group": "audit"
+                }
+              }
+            ]
+          }
+        ]
       },
       "targets": [
         {
           "expr": "sum by (result) (rate(sc_error_ingestion_batch_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval])) / on() group_left() sum(rate(sc_error_ingestion_batch_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
-          "legendFormat": "{{result}}"
+          "legendFormat": "error: {{result}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (result) (rate(sc_audit_ingestion_batch_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval])) / on() group_left() sum(rate(sc_audit_ingestion_batch_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "legendFormat": "audit: {{result}}",
+          "refId": "B"
         }
       ]
     },
     {
       "id": 105,
       "type": "row",
-      "title": "ServiceControl recoverability — retry, archive & retention",
+      "title": "ServiceControl recoverability \u2014 retry, archive & retention",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 91 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 91
+      },
       "panels": []
     },
     {
@@ -712,8 +1388,16 @@
       "title": "Recoverability Throughput / sec (messages moved)",
       "description": "Combined view of items moving through the three recoverability pipelines: sc.retry.messages_total (messages staged/forwarded/skipped by retry type), sc.archive.messages_total (messages archived/unarchived), and sc.retention.rows_deleted_total (rows deleted by entity). Stacked, the total is the rate of recoverability work ServiceControl is doing. Compare against the testing tool's own errors_replayed_total and errors_archived_total to see whether ServiceControl is keeping up with the requested work.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 92 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 92
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
@@ -721,12 +1405,22 @@
             "drawStyle": "line",
             "lineInterpolation": "smooth",
             "fillOpacity": 25,
-            "stacking": { "mode": "normal", "group": "A" }
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
           }
         }
       },
       "options": {
-        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
       },
       "targets": [
         {
@@ -746,18 +1440,36 @@
     {
       "id": 36,
       "title": "Operations In Progress (retry & archive)",
-      "description": "sc.retry.operations_in_progress and sc.archive.operations_in_progress — the count of retry and archive operations currently in flight, split by type and state. Retry states are waiting / preparing / forwarding; archive states are started / progressing / finalizing. A non-zero forwarding count under load means retries are actively being dispatched; a stuck preparing count points at a slow store scan.",
+      "description": "sc.retry.operations_in_progress and sc.archive.operations_in_progress \u2014 the count of retry and archive operations currently in flight, split by type and state. Retry states are waiting / preparing / forwarding; archive states are started / progressing / finalizing. A non-zero forwarding count under load means retries are actively being dispatched; a stuck preparing count points at a slow store scan.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 92 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 92
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
         }
       },
       "options": {
-        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull"] }
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
       },
       "targets": [
         {
@@ -772,19 +1484,38 @@
     },
     {
       "id": 37,
-      "title": "Retry Durations (s) — mean by phase",
+      "title": "Retry Durations (s) \u2014 mean by phase",
       "description": "Mean duration for each phase of the retry pipeline: sc.retry.operation_duration_seconds (request to completion), sc.retry.prepare_duration_seconds (store scan + batch creation), sc.retry.stage_duration_seconds (batch staging), and sc.retry.forward_duration_seconds (batch forwarding). Computed as histogram sum / count so these are true means, not clipped by bucket boundaries. Mirrors the ingestion 'Mean Duration' panel (id 31). Operation duration spans the whole retry; the phase breakdown shows where the time goes.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 100 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 100
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "s",
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
         }
       },
       "options": {
-        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
       },
       "targets": [
         {
@@ -807,19 +1538,38 @@
     },
     {
       "id": 38,
-      "title": "Archive & Retention Durations (s) — mean",
+      "title": "Archive & Retention Durations (s) \u2014 mean",
       "description": "Mean duration for the remaining recoverability pipelines: sc.archive.operation_duration_seconds (full archive/unarchive operation), sc.archive.batch_duration_seconds (individual archive batch), and sc.retention.cycle_duration_seconds (retention sweep pass). True means (histogram sum / count). Archive operation duration spans the whole group; batch duration is the per-batch write. Retention cycle is the full sweep pass, split by entity in the legend.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 100 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 100
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "s",
-          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
         }
       },
       "options": {
-        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
       },
       "targets": [
         {
@@ -839,26 +1589,49 @@
     {
       "id": 39,
       "title": "Consecutive Retention Failures",
-      "description": "sc.retention.consecutive_failures_total — the retention sweep's own circuit-breaker signal, split by entity (failed_messages, event_log, group_comments). Resets to 0 on the first successful sweep. Anything above 0 means the sweep is currently failing. Mirrors the ingestion 'Consecutive Batch Failures' panel (id 23).",
+      "description": "sc.retention.consecutive_failures_total \u2014 the retention sweep's own circuit-breaker signal, split by entity (failed_messages, event_log, group_comments). Resets to 0 on the first successful sweep. Anything above 0 means the sweep is currently failing. Mirrors the ingestion 'Consecutive Batch Failures' panel (id 23).",
       "type": "stat",
-      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 108 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 108
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "orange", "value": 1 },
-              { "color": "red", "value": 3 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
             ]
           }
         }
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "graphMode": "area",
         "colorMode": "background"
       },
@@ -872,26 +1645,49 @@
     {
       "id": 40,
       "title": "Pending Bulk Retry Requests",
-      "description": "sc.retry.pending_bulk_requests — bulk retry requests queued for preparation. A rising value means retry preparation cannot keep up with incoming bulk retry requests; at zero the retry pipeline is idle or keeping pace.",
+      "description": "sc.retry.pending_bulk_requests \u2014 bulk retry requests queued for preparation. A rising value means retry preparation cannot keep up with incoming bulk retry requests; at zero the retry pipeline is idle or keeping pace.",
       "type": "stat",
-      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 108 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 108
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "orange", "value": 1 },
-              { "color": "red", "value": 10 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
             ]
           }
         }
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "graphMode": "area",
         "colorMode": "value"
       },
