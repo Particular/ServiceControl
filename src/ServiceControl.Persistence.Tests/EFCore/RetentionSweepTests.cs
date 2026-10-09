@@ -478,11 +478,18 @@ class RetentionSweepTests : ErrorIngestionTestBase
 
     IRetentionSweeper GetSweeper() => ServiceProvider.GetRequiredService<IRetentionSweeper>();
 
+    // The sweeps under test delete at most a few batches, so the wait returns within a second or two
+    // when nothing is wrong. On CI a batch delete can stall for over ten seconds, because every
+    // parallel test schema shares one full-text catalog and a delete on the full-text indexed table
+    // waits for the other tests' index DDL. The default 10 second budget lost that race, so this one
+    // is larger. It only costs time when the sweep is stuck.
+    static readonly TimeSpan SweepWaitBudget = TimeSpan.FromSeconds(60);
+
     async Task WaitForManualSweepToFinish()
     {
         var sweeper = GetSweeper();
         await WaitUntil(() => Task.FromResult(!sweeper.GetStatus().IsRunning),
-            "the manual sweep to finish");
+            "the manual sweep to finish", SweepWaitBudget);
     }
 
     [Test]
