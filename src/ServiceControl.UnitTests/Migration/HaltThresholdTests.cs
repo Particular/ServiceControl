@@ -62,6 +62,16 @@ class HaltThresholdTests
     }
 
     [Test]
+    public void A_large_category_losing_a_small_share_does_not_halt_once_past_the_floor()
+    {
+        // 101 of 5,000,000 is 0.002%. The floor is already behind it, so only the proportion can stop a halt
+        // here, and a rule that halted on the floor alone would stop a healthy copy of a huge category.
+        var exceeded = HaltThreshold.Exceeded(skippedCount: 101, totalCount: 5_000_000, percentThreshold: 5, minimumFloor: 100);
+
+        Assert.That(exceeded, Is.False);
+    }
+
+    [Test]
     public void A_skip_count_with_nothing_processed_never_halts_and_never_divides_by_zero()
     {
         // Past the floor with a zero total, which is the only input that reaches the division guard.

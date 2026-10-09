@@ -58,7 +58,7 @@ class MigrationEngineHaltTests
         var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 100 };
         foreach (var i in Enumerable.Range(1, 1_000).Where(i => i % 5 == 0))
         {
-            target.RejectKey($"row-{i}", MigrationSkipReason.PastRetention, benign: true);
+            target.RejectKey($"row-{i}", MigrationSkipReason.PastRetention);
         }
         var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
         var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
@@ -67,7 +67,7 @@ class MigrationEngineHaltTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.CompleteWithErrors));
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Complete));
             Assert.That((checkpoint.CopiedCount, checkpoint.SkippedCount), Is.EqualTo((800L, 200L)));
             Assert.That(target.WrittenRows(category.Id), Has.Count.EqualTo(800), "the last row was reached, so nothing halted partway");
         }
@@ -78,7 +78,7 @@ class MigrationEngineHaltTests
     public async Task A_batch_mixing_benign_and_fault_skips_is_judged_on_the_faults_alone(int everyNthIsAFault, MigrationCategoryState expected)
     {
         // A real archive copy loses rows both ways at once: retention takes some, unreadable bodies take
-        // others. This is the only shape where the subtraction has to do arithmetic rather than pick a side.
+        // others. This is the only shape where the sum has to leave some reasons out.
         var category = MigrationCategoryRegistry.Find("ArchivedAndResolvedFailedMessages")!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, [.. Enumerable.Range(1, 5_000).Select(i => Row($"row-{i}"))]);
@@ -87,7 +87,7 @@ class MigrationEngineHaltTests
         // A fifth of the category is past retention either way, which on its own is four times the threshold.
         foreach (var i in Enumerable.Range(1, 5_000).Where(i => i % 5 == 0))
         {
-            target.RejectKey($"row-{i}", MigrationSkipReason.PastRetention, benign: true);
+            target.RejectKey($"row-{i}", MigrationSkipReason.PastRetention);
         }
         // The offset keeps the faults clear of the benign rows: 4% of the category in one case, 10% in the other.
         foreach (var i in Enumerable.Range(1, 5_000).Where(i => i % everyNthIsAFault == 3))
@@ -160,30 +160,167 @@ class MigrationEngineHaltTests
     }
 
     [Test]
-    public async Task A_restart_after_a_threshold_halt_counts_only_its_own_skips_and_keeps_the_earlier_ones()
+    public async Task A_resumed_run_counts_only_its_own_skips_and_keeps_the_earlier_ones()
     {
         var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
         var source = new InMemoryMigrationSource();
         source.Seed(category.Id, [.. Enumerable.Range(1, 1_000).Select(i => Row($"row-{i}"))]);
         var checkpointStore = new InMemoryMigrationCheckpointStore();
-        var failingTarget = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 100 };
-        foreach (var i in Enumerable.Range(1, 1_000).Where(i => i % 5 == 0))
-        {
-            failingTarget.RejectKey($"row-{i}", MigrationSkipReason.BodyUnreadable);
-        }
+        // What a shutdown after the sixth batch leaves: 120 fault skips in 600 rows, past both the floor and 5% if counted again.
+        await checkpointStore.Upsert(new MigrationCheckpoint(category.Id, MigrationCategoryState.InProgress, "row-600", 480, 120, null,
+            new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BodyUnreadable] = 120 }, DateTime.UtcNow, DateTime.UtcNow, null, null));
         var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
-        var halted = await new MigrationEngine(source, failingTarget, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance).RunCategoryAsync(category);
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 100 };
 
-        // The cause is fixed: the remaining rows now write cleanly.
-        var fixedTarget = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 100 };
-        var finished = await new MigrationEngine(source, fixedTarget, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance).RunCategoryAsync(category);
+        var finished = await new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance).RunCategoryAsync(category);
 
         using (Assert.EnterMultipleScope())
         {
-            // 120 skips in 600 rows is the first point past both the floor and 5%.
-            Assert.That((halted.State, halted.CopiedCount, halted.SkippedCount), Is.EqualTo((MigrationCategoryState.Halted, 480L, 120L)));
             Assert.That(finished.State, Is.EqualTo(MigrationCategoryState.CompleteWithErrors), "the skips still on the row must not halt a run that skips nothing");
             Assert.That((finished.CopiedCount, finished.SkippedCount), Is.EqualTo((880L, 120L)), "copied, skipped at the end");
+        }
+    }
+
+    [Test]
+    public async Task A_category_smaller_than_the_floor_that_loses_every_row_ends_Failed_rather_than_Done()
+    {
+        // Ninety rows is under the hundred-row floor, so the threshold the engine checks after every batch
+        // can never fire, however many rows are lost.
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.KnownEndpoints)!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, [.. Enumerable.Range(1, 90).Select(i => Row($"row-{i}"))]);
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 30 };
+        foreach (var i in Enumerable.Range(1, 90))
+        {
+            target.RejectKey($"row-{i}", MigrationSkipReason.RequiredValueMissing);
+        }
+        var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
+
+        var checkpoint = await new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance).RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.CompleteWithErrors));
+            Assert.That(checkpoint.State.IsFinished(), Is.False, "a required category that copied nothing must not let the host open");
+            Assert.That(checkpoint.CopiedCount, Is.Zero);
+        }
+    }
+
+    [Test]
+    public async Task A_halted_category_is_returned_untouched_and_its_source_is_not_read()
+    {
+        // Failed waits for the operator, so a start that read the category again would copy rows nobody asked for.
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.KnownEndpoints)!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, [.. Enumerable.Range(1, 90).Select(i => Row($"row-{i}"))]);
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var halted = new MigrationCheckpoint(category.Id, MigrationCategoryState.Halted, null, 0, 0, null, null, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, "Halted: the target was unreachable");
+        await checkpointStore.Upsert(halted);
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 30 };
+        var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
+
+        var checkpoint = await engine.RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checkpoint, Is.EqualTo(halted with { Version = 1 }), "the row is read back untouched, at the version the seeding save left it");
+            Assert.That(target.RowsHandedToWrite(category.Id), Is.Empty);
+        }
+    }
+
+    [Test]
+    public async Task A_small_category_losing_rows_the_product_would_drop_anyway_still_completes()
+    {
+        // Harmless skips are rows the target would have deleted anyway, so no number of them may stop a
+        // category or leave it Failed, however small the category is.
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.KnownEndpoints)!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, [.. Enumerable.Range(1, 90).Select(i => Row($"row-{i}"))]);
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 30 };
+        foreach (var i in Enumerable.Range(1, 90))
+        {
+            target.RejectKey($"row-{i}", MigrationSkipReason.PastRetention);
+        }
+        var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
+
+        var checkpoint = await new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance).RunCategoryAsync(category);
+
+        Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Complete));
+    }
+
+    [Test]
+    public async Task A_run_that_ends_with_one_fault_skip_settles_CompleteWithErrors_however_small_the_share()
+    {
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.KnownEndpoints)!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, [.. Enumerable.Range(1, 1_000).Select(i => Row($"row-{i}"))]);
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 100 };
+        target.RejectKey("row-500", MigrationSkipReason.RequiredValueMissing);
+        var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
+
+        var checkpoint = await new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance).RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.CompleteWithErrors), "one row in a thousand is far under the threshold, and it is still a row the product wanted");
+            Assert.That((checkpoint.CopiedCount, checkpoint.SkippedCount), Is.EqualTo((999L, 1L)));
+        }
+    }
+
+    [Test]
+    public async Task A_run_whose_only_skips_are_harmless_settles_Complete_and_keeps_its_reasons()
+    {
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.KnownEndpoints)!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"), Row("b"), Row("c"), Row("d"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 2 };
+        target.RejectKey("a", MigrationSkipReason.PastRetention);
+        target.RejectKey("b", MigrationSkipReason.PastRetention);
+        target.RejectKey("c", MigrationSkipReason.BlankGroupComment);
+        var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
+
+        var checkpoint = await new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance).RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Complete));
+            Assert.That((checkpoint.CopiedCount, checkpoint.SkippedCount), Is.EqualTo((1L, 3L)), "a harmless skip is still a skip, and status and verify count it");
+            Assert.That(checkpoint.SkipReasons, Is.EquivalentTo(new Dictionary<MigrationSkipReason, long>
+            {
+                [MigrationSkipReason.PastRetention] = 2,
+                [MigrationSkipReason.BlankGroupComment] = 1
+            }));
+        }
+    }
+
+    [Test]
+    public async Task The_threshold_halt_names_its_counts_and_no_command()
+    {
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.ArchivedAndResolvedFailedMessages)!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, [.. Enumerable.Range(1, 1_000).Select(i => Row($"row-{i}"))]);
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore) { DefaultBatchSize = 100 };
+        foreach (var i in Enumerable.Range(1, 1_000).Where(i => i % 5 == 0))
+        {
+            target.RejectKey($"row-{i}", MigrationSkipReason.BodyUnreadable);
+        }
+        var options = new MigrationEngineOptions(TimeSpan.Zero, HaltThresholdPercent: 5, HaltThresholdMinimum: 100, []);
+
+        var checkpoint = await new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance).RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Halted));
+            // 120 skips in 600 rows is the first point past both the floor and 5%.
+            Assert.That(checkpoint.LastError, Does.Contain("120 of 600").And.Contain("5%").And.Contain("100 rows"));
+            // The engine cannot know which commands a category may take, so the readers of the row add them.
+            Assert.That(checkpoint.LastError, Does.Not.Contain("--migration-retry").And.Not.Contain("--migration-abandon").And.Not.Contain("restart to resume"));
         }
     }
 }

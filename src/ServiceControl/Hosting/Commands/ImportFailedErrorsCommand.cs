@@ -17,6 +17,9 @@
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Migration;
+    using ServiceControl.Persistence;
+    using ServiceControl.Persistence.DataMigration;
 
     class ImportFailedErrorsCommand : AbstractCommand
     {
@@ -61,6 +64,15 @@
             // Without the enricher, a re-imported message loses its sending and receiving endpoints, and they never reach the known endpoints.
             hostBuilder.Services.AddSingleton<IEndpointInstanceMonitoring, EndpointInstanceMonitoring>();
             hostBuilder.Services.AddErrorMessageEnricher<DetectNewEndpointsFromErrorImportsEnricher>();
+
+            // Importing writes failed messages into the database, so on SQL it waits for an unfinished copy as an ingestion-only worker does.
+            if (PersistenceFactory.SqlPersistenceNames.Contains(PersistenceManifestLibrary.Find(settings.PersistenceType)?.Name, StringComparer.OrdinalIgnoreCase))
+            {
+                hostBuilder.Services.AddHostedService(provider =>
+                    new FinishedCopyBeforeAnIngestionNodeOpens(
+                        provider.GetRequiredService<IMigrationCheckpointStore>(),
+                        "--import-failed-errors"));
+            }
 
             return hostBuilder.Build();
         }

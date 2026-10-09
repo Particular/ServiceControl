@@ -10,8 +10,8 @@
 
         public bool RunInMemory { get; set; }
 
-        // Makes RavenDB throw on a query that would create an auto index, instead of creating it. Tests use it to fail
-        // on dynamic queries, which must go through a static index.
+        // Makes RavenDB throw on a query that would create an auto index, instead of creating it. Tests use it to catch
+        // dynamic queries, and the migration source uses it because creating an index would be a write.
         public bool DisableAutoIndexes { get; set; }
     }
 }
