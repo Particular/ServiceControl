@@ -4,7 +4,7 @@ A stateless, horizontally-scalable .NET 10 service that generates error load and
 scenarios against a test ServiceControl instance to validate its error-ingestion performance, with
 OpenTelemetry observability and a simple web UI for manual scenario control.
 
-The tool targets the error ingestion path only — audit testing is out of scope.
+The tool drives both ingestion paths: failed messages into the primary ServiceControl instance, and audited messages and saga snapshots into a ServiceControl.Audit instance.
 
 ## What it does
 
@@ -72,6 +72,28 @@ failed message and groups it like the equivalent handler failure. Control via:
 - `POST /api/bypass/start` — `{ "scenario": "third-party-outage", "rate": 100, "durationSeconds": 60 }`
 - `POST /api/bypass/stop`
 - `GET /api/bypass/status`
+
+### Direct audit-queue writer
+
+The audit-queue counterpart of the bypass writer. It writes audit envelopes straight to the ServiceControl.Audit instance's audit queue, so audit ingestion can be loaded without any endpoint ever processing a message. Control via:
+
+- `POST /api/audit-bypass/start` — `{ "rate": 100, "parallelism": 4, "sagaSnapshotRatio": 0.2, "durationSeconds": 60 }`
+- `POST /api/audit-bypass/stop`
+- `GET /api/audit-bypass/status`
+
+Most claims emit one processed-message envelope carrying the headers a real endpoint would have stamped: `NServiceBus.ProcessingEndpoint`, the host ids, and `TimeSent`, `ProcessingStarted` and `ProcessingEnded` spread so delivery, processing and critical times are not zero. They rotate across a pool of simulated endpoints, message types and conversations.
+
+A share of claims instead emit a whole **saga episode**: the three messages that drove one saga through New, Updated and Completed, each followed by the snapshot it produced. The episode is written by a single worker so the phases reach the queue in order, and the pieces are linked the way a real deployment links them:
+
+- each driving message carries `NServiceBus.InvokedSagas` (`SagaType:SagaId`) and `ServiceControl.SagaStateChange` (`SagaId:New|Updated|Completed`), which is the only thing that lets the audit instance attach saga information to an audited message
+- each snapshot's `Initiator.InitiatingMessageId` is the id of the message directly before it, so drill-through from the saga view resolves to a real audited message
+- the snapshot body is written in exact CLR casing, because ServiceControl deserializes it with a source-generated, case-sensitive context, and its `EnclosedMessageTypes` header is the bare unqualified type name, which is what the audit instance compares against to route a message to its saga branch
+
+`sagaSnapshotRatio` is saga snapshots per processed message; the default `0.2` emits two saga snapshots for every ten processed messages. `0` disables saga episodes.
+
+Audit ingestion needs a ServiceControl.Audit instance on SQL Server or PostgreSQL, so pair `--audit-instances` with `--persistence:PostgreSql` or `--persistence:SqlServer`. Under `--persistence:RavenDb` the audit instance runs on RavenDB and the EF path is not exercised.
+
+The testing tool's own endpoint also audits its successfully handled load messages to the same queue, which is what makes its installers create the queue before the writer first sends into it.
 
 ### Release-test scenario presets
 
@@ -162,11 +184,11 @@ separator) or `--name:value` (colon separator):
 
 | Flag | Default | Values | Description |
 |---|---|---|---|
-| `--persistence` | `RavenDb` | `RavenDb`, `SqlServer`, `PostgreSql` | Persistence backend for the ServiceControl error instance |
+| `--persistence` | `RavenDb` | `RavenDb`, `SqlServer`, `PostgreSql` | Persistence backend for the ServiceControl error instance and for the audit instances |
 | `--transport` | `RabbitMq` | `RabbitMq`, `SqlServer` | Transport shared by ServiceControl and the testing tool. `SqlServer` reuses the persistence SQL Server container with a separate `Transport` database |
 | `--tag` | *(none — uses the current build's image)* | any image tag, e.g. `pr-1234` or `6.3.1` | Override the ServiceControl container image tag (useful for testing PR-based prereleases) |
 | `--error-ingestion-scale-unit` | `0` | non-negative integer | Number of additional error-ingestion-only scale-out instances to spin up alongside the primary error instance (each runs with `--error-ingestion-only`) |
-| `--audit-instances` | `0` | non-negative integer | Number of ServiceControl audit instances to add |
+| `--audit-instances` | `1` | non-negative integer | Number of ServiceControl.Audit instances to add. They take the same `--persistence` backend, report custom checks to the primary and export OTel to the collector |
 
 The Aspire dashboard provides allocated ports for each service. The testing tool automatically
 connects to ServiceControl via the platform's transport and REST API URL, and sends its OTLP
@@ -242,7 +264,8 @@ All configuration is via environment variables (no files, no database). Settings
 | `TestingTool__CustomCheckInterval` | `00:00:30` | Default interval for the custom-check-failures job |
 | `TestingTool__CustomCheckHost` | `ServiceControl` | `Host` field on injected custom-check reports |
 | `TestingTool__CustomCheckFailureProbability` | `0.4` | Probability (0–1) a given check is reported failed each cycle |
-| `TestingTool__AuditQueueName` | `audit` | NServiceBus audit queue for processed messages |
+| `TestingTool__AuditQueueName` | `audit` | NServiceBus audit queue the ServiceControl.Audit instance drains |
+| `TestingTool__AuditSagaSnapshotRatio` | `0.2` | Default saga snapshots per processed message for the audit-queue writer |
 | `TestingTool__MonitoringQueueName` | `Particular.Monitoring` | ServiceControl monitoring instance queue that endpoint metrics are sent to |
 | `TestingTool__ErrorQueueName` | `error` | NServiceBus error queue (ServiceControl monitors this) |
 | `TestingTool__AutoStartBackgroundNoise` | `false` | Auto-start the background-noise scenario on startup |

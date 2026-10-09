@@ -47,6 +47,15 @@ public sealed class TestingToolStatus
     /// transport/broker issues on the bypass path — the handler path may be unaffected.</summary>
     public long BypassErrorsFailed { get; init; }
 
+    /// <summary>Total processed-message envelopes written to the audit queue since process start.</summary>
+    public long AuditMessagesWritten { get; init; }
+
+    /// <summary>Total saga-update snapshots written to the audit queue since process start.</summary>
+    public long AuditSagaSnapshotsWritten { get; init; }
+
+    /// <summary>Total audit-queue sends that failed since process start.</summary>
+    public long AuditMessagesFailed { get; init; }
+
     /// <summary>
     /// Total internal-looking custom check failures reported to ServiceControl since process start
     /// (via the custom-check-failures job). Each failure is a <c>ReportCustomCheckResult</c> sent

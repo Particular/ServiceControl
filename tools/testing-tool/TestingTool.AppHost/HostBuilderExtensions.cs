@@ -70,6 +70,52 @@ public static class HostBuilderExtensions
     
     
 
+    /// <summary>
+    /// Points a ServiceControl.Audit instance at the same SQL Server or PostgreSQL container the
+    /// primary uses. The keys are namespaced to the audit instance, and there is no body storage:
+    /// the audit EF persisters store bodies inline in the audit row, capped by MaxBodySizeToStore.
+    /// </summary>
+    /// <remarks>
+    /// The setting root namespace is "ServiceControl.Audit", and the settings reader rewrites both
+    /// the dot and the slash to an underscore, so ServiceControl.Audit/Database/ConnectionString is
+    /// SERVICECONTROL_AUDIT_DATABASE_CONNECTIONSTRING. The unprefixed names the audit container's
+    /// Dockerfile bakes in (PersistenceType, AuditRetentionPeriod) are later in the lookup order,
+    /// so the namespaced form wins.
+    /// </remarks>
+    public static IResourceBuilder<ServiceControlAuditInstanceResource> WithPersistenceType(
+        this IResourceBuilder<ServiceControlAuditInstanceResource> audit, PersistenceType type)
+    {
+        if (type == PersistenceType.RavenDb)
+        {
+            return audit;
+        }
+
+        var db = type switch
+        {
+            PersistenceType.SqlServer => audit.ApplicationBuilder.AddSqlServerPersistence("ServiceControl"),
+            PersistenceType.PostgreSql => audit.ApplicationBuilder.AddPostgresPersistence("servicecontrol"),
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+        };
+
+        return audit
+            .WaitFor(db)
+            .WithEnvironment("SERVICECONTROL_AUDIT_PERSISTENCETYPE", PersistenceTypeName(type))
+            .WithEnvironment("SERVICECONTROL_AUDIT_DATABASE_CONNECTIONSTRING", db);
+    }
+
+    /// <summary>
+    /// The audit equivalent of the ingestion tuning the primary carries. The setting names are
+    /// AuditIngestion*, and they are read under the audit namespace, so the primary's
+    /// SERVICECONTROL_ERRORINGESTION* values have no effect here.
+    /// </summary>
+    public static IResourceBuilder<ServiceControlAuditInstanceResource> WithIngestionTuning(
+        this IResourceBuilder<ServiceControlAuditInstanceResource> audit) =>
+        audit
+            .WithEnvironment("SERVICECONTROL_AUDIT_MAXIMUMCONCURRENCYLEVEL", "100")
+            .WithEnvironment("SERVICECONTROL_AUDIT_AUDITINGESTIONBATCHSIZE", "25")
+            .WithEnvironment("SERVICECONTROL_AUDIT_AUDITINGESTIONMAXPARALLELWRITERS", "4")
+            .WithEnvironment("SERVICECONTROL_AUDIT_AUDITINGESTIONBATCHTIMEOUT", "00:00:00.100");
+
     public static IResourceBuilder<IResourceWithConnectionString> AddTransport(
         this IResourceBuilder<ParticularPlatformResource> platform, TransportType type)
     {

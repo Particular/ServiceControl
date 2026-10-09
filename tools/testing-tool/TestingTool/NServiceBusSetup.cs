@@ -1,6 +1,7 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using NServiceBus;
+using TestingTool.Auditing;
 
 namespace TestingTool;
 
@@ -62,6 +63,10 @@ public static class NServiceBusEndpointExtensions
         // Route failures to the ServiceControl error queue.
         config.SendFailedMessagesTo(options.ErrorQueueName);
         config.AuditProcessedMessagesTo(options.AuditQueueName);
+
+        // Lets the direct audit-queue writer replace the wire message after serialization, which is
+        // the only stage late enough to control NServiceBus.EnclosedMessageTypes and the timestamps.
+        config.Pipeline.Register(new RawAuditPayloadBehavior(), "Applies raw audit envelopes from the direct audit-queue writer");
         config.SendHeartbeatTo(options.ServiceControlInputQueue);
         
         // enable metrics
