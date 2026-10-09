@@ -302,7 +302,7 @@
                 }
             }
 
-            return TimeSpan.FromDays(14);
+            return SettingsReader.Read(SettingsRootNamespace, "EventsRetentionPeriod", TimeSpan.FromDays(14));
         }
 
         TimeSpan GetErrorRetentionPeriod()

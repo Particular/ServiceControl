@@ -44,7 +44,7 @@ Timestamps are when the thing happened, so an item can land in the middle of the
 
 ## Retention
 
-Items age out on their own after `EventsRetentionPeriod`, 14 days by default. Nothing a user does removes one and there is no API to try. Enforcement is left to each storage backend and is invisible through the seam, so a change to the setting applies retrospectively on some backends and to new items only on others.
+Items age out on their own after `EventRetentionPeriod`, 14 days by default. An install that still sets the older `EventsRetentionPeriod` spelling keeps that value, and `EventRetentionPeriod` takes precedence when both are set. Nothing a user does removes one and there is no API to try. Enforcement is left to each storage backend and is invisible through the seam, so a change to the setting applies retrospectively on some backends and to new items only on others.
 
 ## Failure behaviour
 
