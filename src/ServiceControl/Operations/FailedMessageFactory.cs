@@ -6,6 +6,7 @@
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.Faults;
+    using NServiceBus.Transport;
     using Recoverability;
     using FailedMessage = MessageFailures.FailedMessage;
 
@@ -61,9 +62,9 @@
             return exceptionDetails;
         }
 
-        public FailedMessage.ProcessingAttempt CreateProcessingAttempt(Dictionary<string, string> headers, Dictionary<string, object> metadata, FailureDetails failureDetails)
+        public FailedMessage.ProcessingAttempt CreateProcessingAttempt(Dictionary<string, string> headers, ReceiveProperties receiveProperties, Dictionary<string, object> metadata, FailureDetails failureDetails)
         {
-            return new FailedMessage.ProcessingAttempt
+            var processingAttempt = new FailedMessage.ProcessingAttempt
             {
                 AttemptedAt = failureDetails.TimeOfFailure,
                 FailureDetails = failureDetails,
@@ -71,6 +72,11 @@
                 MessageId = headers[Headers.MessageId],
                 Headers = headers
             };
+            foreach (var property in receiveProperties)
+            {
+                headers["ServiceControl.ReceiveProperties." + property.Key] = property.Value;
+            }
+            return processingAttempt;
         }
 
         IFailedMessageEnricher[] failedEnrichers;
