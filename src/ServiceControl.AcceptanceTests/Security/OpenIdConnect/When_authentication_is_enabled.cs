@@ -1,10 +1,13 @@
 namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
 {
+    using System.Collections.Generic;
     using System.Net.Http;
     using System.Security.Claims;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.OpenIdConnect;
+    using Microsoft.AspNetCore.Routing;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
 
@@ -233,6 +236,24 @@ namespace ServiceControl.AcceptanceTests.Security.OpenIdConnect
                 .Run();
 
             OpenIdConnectAssertions.AssertForbidden(response);
+        }
+
+        [Test]
+        public async Task Should_reject_anonymous_requests_on_every_protected_route()
+        {
+            IReadOnlyList<string> notRejected = null;
+
+            _ = await Define<Context>()
+                .Done(async ctx =>
+                {
+                    notRejected = await ProtectedRoutes.FindRoutesNotRejectingAnonymousRequests(
+                        HttpClient,
+                        ServiceProvider.GetRequiredService<EndpointDataSource>());
+                    return true;
+                })
+                .Run();
+
+            Assert.That(notRejected, Is.Empty, "Protected routes that did not answer 401 to a request without a token");
         }
 
         class Context : ScenarioContext;

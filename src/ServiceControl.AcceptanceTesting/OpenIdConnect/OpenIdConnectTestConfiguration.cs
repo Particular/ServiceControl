@@ -21,7 +21,7 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
         /// </summary>
         public OpenIdConnectTestConfiguration WithAuthenticationEnabled()
         {
-            SetEnvironmentVariable("AUTHENTICATION_ENABLED", "true");
+            SetEnvironmentVariable("AUTHENTICATION_ENABLED", bool.TrueString);
             return this;
         }
 
@@ -30,19 +30,19 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
         /// </summary>
         public OpenIdConnectTestConfiguration WithAuthenticationDisabled()
         {
-            SetEnvironmentVariable("AUTHENTICATION_ENABLED", "false");
+            SetEnvironmentVariable("AUTHENTICATION_ENABLED", bool.FalseString);
             return this;
         }
 
         /// <summary>
         /// Enables role-based authorization. When on, controllers carrying
         /// <c>[Authorize(Policy = Permissions.X)]</c> require the caller's "roles" claim to map to a
-        /// role that grants the permission via <c>RolePermissions</c>. When off, the policy provider
-        /// returns allow-all policies and any authenticated request reaches the controller.
+        /// role that grants the permission via <c>RolePermissions</c>. When off, any authenticated
+        /// request reaches the controller.
         /// </summary>
         public OpenIdConnectTestConfiguration WithRoleBasedAuthorizationEnabled()
         {
-            SetEnvironmentVariable("AUTHENTICATION_ROLEBASEDAUTHORIZATIONENABLED", "true");
+            SetEnvironmentVariable("AUTHENTICATION_ROLEBASEDAUTHORIZATIONENABLED", bool.TrueString);
             return this;
         }
 
@@ -52,7 +52,7 @@ namespace ServiceControl.AcceptanceTesting.OpenIdConnect
         /// </summary>
         public OpenIdConnectTestConfiguration WithConfigurationValidationDisabled()
         {
-            SetEnvironmentVariable("VALIDATECONFIG", "false");
+            SetEnvironmentVariable("VALIDATECONFIG", bool.FalseString);
             return this;
         }
 
