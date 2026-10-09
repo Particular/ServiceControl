@@ -198,6 +198,17 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
     }
 
     [Test]
+    public async Task Should_leave_the_stored_broker_metadata_unchanged()
+    {
+        await DataStore.SaveBrokerMetadata(new BrokerMetadata("testingScope", new Dictionary<string, string> { [EnvironmentDataType.BrokerVersion.ToString()] = "1.2" }));
+
+        await ThroughputCollector.GenerateThroughputReport("", null);
+
+        var stored = await DataStore.GetBrokerMetadata();
+        Assert.That(stored.Data.Keys, Is.EquivalentTo(new[] { EnvironmentDataType.BrokerVersion.ToString() }));
+    }
+
+    [Test]
     public async Task Should_include_audit_instance_counts_in_environment_data()
     {
         await DataStore.SaveAuditServiceMetadata(new AuditServiceMetadata([], []) { ConfiguredInstances = 50, LiveInstances = 2 });
