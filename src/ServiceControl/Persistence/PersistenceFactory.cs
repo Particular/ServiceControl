@@ -10,6 +10,12 @@ namespace ServiceControl.Persistence
 
     static class PersistenceFactory
     {
+        /// <summary>
+        /// The manifest names of the two persisters built on EF Core. Anything that is true of both of them and
+        /// of neither RavenDB nor a future persister is decided by this list.
+        /// </summary>
+        public static readonly string[] SqlPersistenceNames = ["SQLServer", "PostgreSQL"];
+
         public static IPersistence Create(Settings settings, bool maintenanceMode = false)
         {
             var persistenceConfiguration = CreatePersistenceConfiguration(settings.PersistenceType, settings);
@@ -43,7 +49,20 @@ namespace ServiceControl.Persistence
         public static async Task<IMigrationSource> OpenMigrationSource(Settings settings, CancellationToken cancellationToken = default)
         {
             var source = CreateMigrationSource(settings);
-            await source.Open(cancellationToken);
+            var opened = false;
+
+            try
+            {
+                await source.Open(cancellationToken);
+                opened = true;
+            }
+            finally
+            {
+                if (!opened)
+                {
+                    await source.DisposeAsync();
+                }
+            }
 
             return source;
         }
