@@ -22,6 +22,11 @@
         {
             var notificationsSettings = await store.LoadSettings(cancellationToken);
 
+            // The SMTP password is write-only. It is a credential for the customer's mail system, so it
+            // never leaves the instance, whatever the caller's permissions. LoadSettings returns a detached
+            // snapshot, so this does not change the stored password.
+            notificationsSettings.Email.AuthenticationPassword = null;
+
             return notificationsSettings.Email;
         }
 
@@ -52,7 +57,19 @@
             emailSettings.SmtpPort = request.SmtpPort;
 
             emailSettings.AuthenticationAccount = request.AuthorizationAccount;
-            emailSettings.AuthenticationPassword = request.AuthorizationPassword;
+
+            // The settings route does not return the password, so ServicePulse sends its form back without
+            // one. An empty password keeps the stored one. Without an account the password is never used,
+            // so it is removed.
+            if (string.IsNullOrEmpty(request.AuthorizationAccount))
+            {
+                emailSettings.AuthenticationPassword = null;
+            }
+            else if (!string.IsNullOrEmpty(request.AuthorizationPassword))
+            {
+                emailSettings.AuthenticationPassword = request.AuthorizationPassword;
+            }
+
             emailSettings.EnableTLS = request.EnableTLS;
 
             emailSettings.From = request.From;
