@@ -17,11 +17,27 @@ class PostgreSqlFullTextSearchDialect : IFullTextSearchDialect
                     message.HeadersJson + " " +
                     (message.BodyText ?? "").Substring(0, FullTextSearchSql.IndexedBodyLength) + " " +
                     (message.MessageType ?? "").Replace(".", " ").Replace("+", " "))
-                .Matches(EF.Functions.WebSearchToTsQuery(FullTextSearchSql.Configuration, ToOrQuery(searchTerms))));
+                .Matches(EF.Functions.ToTsQuery(FullTextSearchSql.Configuration, ToOrQuery(searchTerms))));
 
-    // websearch_to_tsquery ANDs bare terms; the RavenDB persister ORs them, so the terms are
-    // rejoined with the operator that syntax understands. It also never throws on odd input, which
-    // a hand built tsquery would.
     static string ToOrQuery(string searchTerms) =>
-        string.Join(" OR ", searchTerms.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+        string.Join(" | ", searchTerms
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(ToPhrase)
+            .OfType<string>());
+
+    // A quoted lexeme is parsed into a phrase of the words it contains, and :* makes each of them a
+    // prefix. to_tsquery throws on an unescaped backslash or quote, and on an empty pair of quotes,
+    // which is what a bare * would leave.
+    static string? ToPhrase(string term)
+    {
+        var word = term.TrimEnd('*');
+        if (word.Length == 0)
+        {
+            return null;
+        }
+
+        var phrase = $"'{word.Replace(@"\", @"\\").Replace("'", "''")}'";
+
+        return word.Length < term.Length ? phrase + ":*" : phrase;
+    }
 }
