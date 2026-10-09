@@ -12,7 +12,6 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
 {
     static readonly string PlatformEndpointIndicator = EndpointIndicator.PlatformEndpoint.ToString();
     static readonly AuditServiceMetadata DefaultAuditServiceMetadata = new([], []);
-    static readonly BrokerMetadata DefaultBrokerMetadata = new(null, []);
 
     public Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (context, token) =>
@@ -291,7 +290,7 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
 
     public Task<BrokerMetadata> GetBrokerMetadata(CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (context, token) =>
-            await context.GetSetting<BrokerMetadata>(SettingKeys.BrokerMetadata, token) ?? DefaultBrokerMetadata, cancellationToken);
+            await context.GetSetting<BrokerMetadata>(SettingKeys.BrokerMetadata, token) ?? new BrokerMetadata(null, []), cancellationToken);
 
     public Task SaveBrokerMetadata(BrokerMetadata brokerMetadata, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((context, token) => context.StoreSetting(SettingKeys.BrokerMetadata, brokerMetadata, token), cancellationToken);
