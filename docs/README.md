@@ -32,6 +32,7 @@ This section points to sources that explain why ServiceControl is designed the w
 - [Handling unavailable runtime dependencies](handling-unavailable-runtime-dependencies.md) — how instances react when a dependency is unavailable
 - [Telemetry](telemetry.md) — telemetry configuration and emitted metrics
 - [Throughput collection](throughput-collection.md) — why and how usage data is collected
+- [Primary instance scale-out](primary-instance-scale-out.md): which parts of the primary may run as several processes, which must run once, and what a failover of the full instance needs
 
 ## Decisions and rationale
 
