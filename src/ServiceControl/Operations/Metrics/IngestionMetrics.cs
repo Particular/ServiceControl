@@ -1,11 +1,14 @@
 ﻿namespace ServiceControl.Operations.Metrics;
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Threading;
+using NServiceBus;
 using NServiceBus.Transport;
 using ServiceControl.Infrastructure;
+using ServiceControl.Infrastructure.Ingestion;
 using ServiceControl.Infrastructure.Ingestion.Metrics;
 
 public class IngestionMetrics
@@ -16,8 +19,9 @@ public class IngestionMetrics
     public static readonly string MessageDurationInstrumentName = $"{InstrumentPrefix}.message_duration_seconds";
     public static readonly string StorageDurationInstrumentName = $"{InstrumentPrefix}.storage_duration_seconds";
 
-    public IngestionMetrics(IMeterFactory meterFactory)
+    public IngestionMetrics(IMeterFactory meterFactory, IngestionCounters counters)
     {
+        this.counters = counters;
         var meter = meterFactory.Create(MeterName, MeterVersion);
 
         batchDuration = meter.CreateHistogram<double>(BatchDurationInstrumentName, unit: "seconds", description: "Message batch processing duration in seconds");
@@ -27,17 +31,38 @@ public class IngestionMetrics
         failureCounter = meter.CreateCounter<long>($"{InstrumentPrefix}.failures_total", description: "Error ingestion failure count");
     }
 
-    public MessageMetrics BeginIngestion(MessageContext messageContext) => new(GetMessageTags(messageContext.Headers), ingestionDuration);
+    public MessageMetrics BeginIngestion(MessageContext messageContext)
+    {
+        RecordLag(messageContext.Headers);
+
+        return new(GetMessageTags(messageContext.Headers), ingestionDuration);
+    }
 
     public FailureMetrics BeginErrorHandling(ErrorContext errorContext) => new(GetMessageTags(errorContext.Headers), failureCounter);
 
-    public BatchMetrics BeginBatch(int maxBatchSize) => new(maxBatchSize, batchDuration, RecordBatchOutcome);
+    public BatchMetrics BeginBatch(int maxBatchSize) => new(maxBatchSize, batchDuration, RecordBatchOutcome, counters.RecordBatch);
 
     /// <summary>
     /// The storage write on its own, which is the part of a batch that is neither announcing nor
     /// forwarding.
     /// </summary>
-    public DurationScope MeasureStorageWrite() => new(storageDuration);
+    public DurationScope MeasureStorageWrite() => new(storageDuration, counters.RecordStorage);
+
+    void RecordLag(Dictionary<string, string> headers)
+    {
+        if (!headers.TryGetValue("NServiceBus.TimeOfFailure", out var timeOfFailure))
+        {
+            return;
+        }
+
+        try
+        {
+            counters.RecordLag(DateTime.UtcNow - DateTimeOffsetHelper.ToDateTimeOffset(timeOfFailure).UtcDateTime);
+        }
+        catch (FormatException)
+        {
+        }
+    }
 
     // The same split the ingestor makes: a retry acknowledgement resolves a message, everything
     // else records a failure, and they cost quite different amounts of work.
@@ -70,6 +95,7 @@ public class IngestionMetrics
     readonly Histogram<double> ingestionDuration;
     readonly Histogram<double> storageDuration;
     readonly Counter<long> failureCounter;
+    readonly IngestionCounters counters;
 
     const string MeterVersion = "0.1.0";
     const string InstrumentPrefix = "sc.error.ingestion";

@@ -40,6 +40,7 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddSingleton<MinimumRequiredStorageState>();
         services.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
         services.AddSingleton<IEnvironmentDataProvider, RavenEnvironmentDataProvider>();
+        services.AddSingleton<IStorageIdentityProvider, RavenStorageIdentityProvider>();
 
         services.AddSingleton<ExternalIntegrationRequestsDataStore>();
         services.AddSingleton<IExternalIntegrationRequestsDataStore>(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());

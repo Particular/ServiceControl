@@ -303,6 +303,12 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
     public Task SaveAuditServiceMetadata(AuditServiceMetadata auditServiceMetadata, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((context, token) => context.StoreSetting(SettingKeys.AuditServiceMetadata, auditServiceMetadata, token), cancellationToken);
 
+    public Task<AuditEnvironmentMetadata?> GetAuditEnvironmentMetadata(CancellationToken cancellationToken = default) =>
+        ExecuteWithDbContext((context, token) => context.GetSetting<AuditEnvironmentMetadata>(SettingKeys.AuditEnvironmentMetadata, token), cancellationToken);
+
+    public Task SaveAuditEnvironmentMetadata(AuditEnvironmentMetadata auditEnvironmentMetadata, CancellationToken cancellationToken = default) =>
+        ExecuteWithDbContext((context, token) => context.StoreSetting(SettingKeys.AuditEnvironmentMetadata, auditEnvironmentMetadata, token), cancellationToken);
+
     public Task<List<string>> GetReportMasks(CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (context, token) =>
             await context.GetSetting<List<string>>(SettingKeys.ReportMasks, token) ?? [], cancellationToken);

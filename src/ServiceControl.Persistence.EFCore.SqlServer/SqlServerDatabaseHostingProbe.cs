@@ -24,7 +24,7 @@ class SqlServerDatabaseHostingProbe(SqlServerPersisterSettings settings, IServic
             await using var command = dbContext.Database.GetDbConnection().CreateCommand();
             // ProductVersion rather than ProductMajorVersion: the latter is documented as SQL Server
             // only and comes back null on Azure SQL Database, Managed Instance and Synapse.
-            command.CommandText = "SELECT SERVERPROPERTY('EngineEdition'), SERVERPROPERTY('ProductVersion'), DB_ID('rdsadmin')";
+            command.CommandText = "SELECT SERVERPROPERTY('EngineEdition'), SERVERPROPERTY('ProductVersion'), DB_ID('rdsadmin'), CAST(DATABASEPROPERTYEX(DB_NAME(), 'ServiceObjective') AS nvarchar(64))";
             command.CommandTimeout = ProbeTimeoutSeconds;
 
             await dbContext.Database.OpenConnectionAsync(cancellationToken);
@@ -40,7 +40,12 @@ class SqlServerDatabaseHostingProbe(SqlServerPersisterSettings settings, IServic
 
             var rds = !reader.IsDBNull(2);
 
-            return new DatabaseHosting(HostingFor(engineEdition, rds, ConfiguredHost), MajorVersion(reader), DatabaseHostingSource.Probe);
+            return new DatabaseHosting(
+                HostingFor(engineEdition, rds, ConfiguredHost),
+                MajorVersion(reader),
+                DatabaseHostingSource.Probe,
+                EditionFamily(engineEdition),
+                ServiceObjectiveTier(reader.IsDBNull(3) ? null : reader.GetString(3)));
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -69,6 +74,48 @@ class SqlServerDatabaseHostingProbe(SqlServerPersisterSettings settings, IServic
         PersonalOrDesktop or Standard or Enterprise or Express => rds ? "AwsRds" : ManagedOrSelfHosted(host),
         _ => DatabaseHostClassifier.Classify(host)
     };
+
+    /// <summary>
+    /// Developer and Evaluation run the Enterprise engine and report Enterprise, so the report never
+    /// says which licence an instance runs under. The managed Azure services have no edition.
+    /// </summary>
+    internal static string EditionFamily(int engineEdition) => engineEdition switch
+    {
+        Standard => "Standard",
+        Enterprise => "Enterprise",
+        Express => "Express",
+        AzureSqlDatabase or AzureSqlManagedInstance => DatabaseHosting.NotApplicable,
+        _ => "Other"
+    };
+
+    /// <summary>
+    /// Keeps only the tier. The full service objective also encodes the hardware series, and a
+    /// DC-series name suggests Always Encrypted with secure enclaves.
+    /// </summary>
+    internal static string ServiceObjectiveTier(string? serviceObjective)
+    {
+        if (string.IsNullOrWhiteSpace(serviceObjective))
+        {
+            return DatabaseHosting.NotApplicable;
+        }
+
+        var objective = serviceObjective.Trim().ToUpperInvariant();
+
+        return objective switch
+        {
+            "BASIC" => "Basic",
+            "ELASTICPOOL" => "ElasticPool",
+            _ when objective.StartsWith("GP_", StringComparison.Ordinal) => "GeneralPurpose",
+            _ when objective.StartsWith("BC_", StringComparison.Ordinal) => "BusinessCritical",
+            _ when objective.StartsWith("HS_", StringComparison.Ordinal) => "Hyperscale",
+            _ when IsDtuObjective(objective, 'S') => "Standard",
+            _ when IsDtuObjective(objective, 'P') => "Premium",
+            _ => "Other"
+        };
+    }
+
+    static bool IsDtuObjective(string objective, char tier) =>
+        objective.Length > 1 && objective[0] == tier && objective.AsSpan(1).IndexOfAnyExceptInRange('0', '9') < 0;
 
     static string ManagedOrSelfHosted(string? host)
     {
@@ -101,8 +148,8 @@ class SqlServerDatabaseHostingProbe(SqlServerPersisterSettings settings, IServic
         var host = ConfiguredHost;
 
         return host is null
-            ? DatabaseHosting.Unclassified
-            : new DatabaseHosting(DatabaseHostClassifier.Classify(host), DatabaseHostClassifier.Unknown, DatabaseHostingSource.ConnectionString);
+            ? DatabaseHosting.Unclassified with { ServerEdition = DatabaseHostClassifier.Unknown, ServiceObjective = DatabaseHostClassifier.Unknown }
+            : new DatabaseHosting(DatabaseHostClassifier.Classify(host), DatabaseHostClassifier.Unknown, DatabaseHostingSource.ConnectionString, DatabaseHostClassifier.Unknown, DatabaseHostClassifier.Unknown);
     }
 
     string? ConfiguredHost

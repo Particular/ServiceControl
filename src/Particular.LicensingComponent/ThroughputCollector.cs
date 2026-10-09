@@ -168,7 +168,7 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
             IgnoredQueues = [.. ignoredQueueNames],
             Queues = [.. queueThroughputs],
             TotalQueues = queueThroughputs.Count,
-            EnvironmentInformation = new EnvironmentInformation { AuditServicesData = new AuditServicesData(auditServiceMetadata.Versions, auditServiceMetadata.Transports), EnvironmentData = brokerMetaData.Data }
+            EnvironmentInformation = new EnvironmentInformation { AuditServicesData = new AuditServicesData(auditServiceMetadata.Versions, auditServiceMetadata.Transports), EnvironmentData = new Dictionary<string, string>(brokerMetaData.Data) }
         };
 
         var auditThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromAudit);
@@ -195,6 +195,16 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
         if (auditServiceMetadata.LiveInstances is { } liveAuditInstances)
         {
             report.EnvironmentInformation.EnvironmentData["Audit.LiveInstances"] = liveAuditInstances.ToString(CultureInfo.InvariantCulture);
+        }
+
+        var auditEnvironmentMetadata = await dataStore.GetAuditEnvironmentMetadata(cancellationToken);
+
+        if (auditEnvironmentMetadata is not null)
+        {
+            foreach (var (key, value) in AuditEnvironmentDataAggregator.Aggregate(auditEnvironmentMetadata.Instances))
+            {
+                report.EnvironmentInformation.EnvironmentData["Audit." + key] = value;
+            }
         }
 
         foreach (var environmentDataProvider in environmentDataProviders)
