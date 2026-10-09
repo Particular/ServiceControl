@@ -69,6 +69,11 @@ abstract class SqlServerDialect
         return sql.ToString();
     }
 
+    // The same rows as ParameterRows, each ending with its position in the batch, so a statement can keep the first of two duplicate keys.
+    protected static string ParameterRowsWithOrdinal(int rowCount, int columnCount) =>
+        string.Join(",\n", Enumerable.Range(0, rowCount).Select(row =>
+            $"({string.Join(", ", Enumerable.Range(0, columnCount).Select(column => $"@p{(row * columnCount) + column}"))}, {row})"));
+
     protected static int MaxRowsPerStatement(int columns) => MaxParametersPerStatement / columns;
 
     // SQL Server's ceiling is 2100 (https://learn.microsoft.com/en-us/sql/sql-server/maximum-capacity-specifications-for-sql-server).
