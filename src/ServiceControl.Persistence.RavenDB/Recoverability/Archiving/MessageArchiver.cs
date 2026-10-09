@@ -6,6 +6,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
+    using Raven.Client.Documents.Session;
     using RavenDB;
     using ServiceControl.Infrastructure.Auth;
     using ServiceControl.Infrastructure.DomainEvents;
@@ -44,7 +45,7 @@
 
             using (var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken))
             {
-                session.Advanced.UseOptimisticConcurrency = true; // Ensure 2 messages don't split the same operation into batches at once
+                session.Advanced.OptimisticConcurrencyMode = OptimisticConcurrencyMode.Writes; // Ensure 2 messages don't split the same operation into batches at once
 
                 archiveOperation = await archiveDocumentManager.LoadArchiveOperation(session, groupId, ArchiveType.FailureGroup, cancellationToken);
 
@@ -144,7 +145,7 @@
 
             using (var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken))
             {
-                session.Advanced.UseOptimisticConcurrency = true; // Ensure 2 messages don't split the same operation into batches at once
+                session.Advanced.OptimisticConcurrencyMode = OptimisticConcurrencyMode.Writes; // Ensure 2 messages don't split the same operation into batches at once
 
                 unarchiveOperation = await unarchiveDocumentManager.LoadUnarchiveOperation(session, groupId, ArchiveType.FailureGroup, cancellationToken);
 

@@ -349,7 +349,7 @@
             var documentId = FailedMessageIdGenerator.MakeDocumentId(failedMessageId);
 
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            session.Advanced.UseOptimisticConcurrency = true;
+            session.Advanced.OptimisticConcurrencyMode = OptimisticConcurrencyMode.Writes;
 
             var failedMessage = await session.LoadAsync<FailedMessage>(documentId, cancellationToken);
 
@@ -443,7 +443,7 @@
             Dictionary<string, FailedMessage> failedMessages;
 
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            session.Advanced.UseOptimisticConcurrency = true;
+            session.Advanced.OptimisticConcurrencyMode = OptimisticConcurrencyMode.Writes;
 
             var documentIds = failedMessageIds.Select(FailedMessageIdGenerator.MakeDocumentId);
 
