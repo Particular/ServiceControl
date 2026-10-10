@@ -612,15 +612,19 @@ class RetentionSweepTests : ErrorIngestionTestBase
     [Test]
     public async Task A_cancelled_sweep_keeps_the_errors_of_passes_that_failed_first()
     {
+        // The failed messages pass overflows the cutoff and throws before any database call, so its
+        // error is already recorded by the time the cancellation lands in the event log pass.
         EFSettings.ErrorRetentionPeriod = TimeSpan.FromDays(1_000_000);
+        EFSettings.EventsRetentionPeriod = TimeSpan.FromDays(14);
+        await Store([.. Enumerable.Range(0, 1500).Select(i => EventLogRow($"expired-{i}", Now.AddDays(-15)))]);
 
         using var cancellation = new CancellationTokenSource();
-        var sweeper = GetSweeper();
+        // The cancellation is raised from inside the sweep's own batch loop rather than from the test
+        // thread, so it cannot arrive after the sweep has finished and been reported as Failed.
+        cancelAfterBatchDelete.Cancellation = cancellation;
 
-        // The failed messages pass throws before any database call, so by the time the start returns
-        // the event log pass is waiting on the database and the cancellation lands there.
+        var sweeper = GetSweeper();
         sweeper.TryStartManualSweep(null, null, cancellation.Token);
-        await cancellation.CancelAsync();
 
         await WaitForManualSweepToFinish();
 
