@@ -1,0 +1,14 @@
+name: NuGet cache location
+description: Moves the NuGet package and HTTP caches to the runner temp drive on GitHub-hosted Windows runners
+runs:
+  using: composite
+  steps:
+    - name: Move NuGet caches to the temp drive
+      if: runner.os == 'Windows' && runner.environment == 'github-hosted'
+      shell: pwsh
+      run: |
+        $packages = Join-Path $Env:RUNNER_TEMP 'nuget\packages'
+        $httpCache = Join-Path $Env:RUNNER_TEMP 'nuget\http-cache'
+        New-Item -ItemType Directory -Force -Path $packages, $httpCache | Out-Null
+        "NUGET_PACKAGES=$packages" >> $Env:GITHUB_ENV
+        "NUGET_HTTP_CACHE_PATH=$httpCache" >> $Env:GITHUB_ENV
