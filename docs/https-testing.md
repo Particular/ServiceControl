@@ -1,20 +1,20 @@
-# Local Testing with Direct HTTPS
+# Local testing with direct HTTPS
 
-This guide provides scenario-based tests for ServiceControl's direct HTTPS features. Use this to verify Kestrel HTTPS behavior without a reverse proxy.
+This guide provides scenario-based tests for the direct HTTPS features of ServiceControl. Use it to verify Kestrel HTTPS behavior without a reverse proxy.
 
 > [!NOTE]
-> HTTP to HTTPS redirection (`RedirectHttpToHttps`) is designed for reverse proxy scenarios where the proxy forwards HTTP requests to ServiceControl. When running with direct HTTPS, ServiceControl only binds to a single port (HTTPS). To test HTTP to HTTPS redirection, see [Reverse Proxy Testing](reverseproxy-testing.md).
+> HTTP to HTTPS redirection (`RedirectHttpToHttps`) is designed for reverse proxy scenarios where the proxy forwards HTTP requests to ServiceControl. When running with direct HTTPS, ServiceControl only binds to a single port (HTTPS). To test HTTP to HTTPS redirection, see [Local testing with NGINX reverse proxy](reverseproxy-testing.md).
 
-## Instance Reference
+## Instance reference
 
-| Instance                  | Project Directory               | Default Port | Environment Variable Prefix | App.config Key Prefix   |
+| Instance                  | Project directory               | Default port | Environment variable prefix | App.config key prefix   |
 |---------------------------|---------------------------------|--------------|-----------------------------|-------------------------|
 | ServiceControl (Primary)  | `src\ServiceControl`            | 33333        | `SERVICECONTROL_`           | `ServiceControl/`       |
 | ServiceControl.Audit      | `src\ServiceControl.Audit`      | 44444        | `SERVICECONTROL_AUDIT_`     | `ServiceControl.Audit/` |
 | ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633        | `MONITORING_`               | `Monitoring/`           |
 
 > [!NOTE]
-> Environment variables must include the instance prefix (e.g., `SERVICECONTROL_HTTPS_ENABLED` for the primary instance).
+> Environment variables must include the instance prefix (for example `SERVICECONTROL_HTTPS_ENABLED` for the primary instance).
 
 ## Prerequisites
 
@@ -23,7 +23,7 @@ This guide provides scenario-based tests for ServiceControl's direct HTTPS featu
 - curl (included with Windows 10/11, Git Bash, or WSL)
 - (Optional) For formatted JSON output: `npm install -g json` then pipe curl output through `| json`
 
-## Enabling Debug Logs
+## Enabling debug logs
 
 To enable detailed logging for troubleshooting, set the `LogLevel` environment variable before starting each instance:
 
@@ -40,7 +40,7 @@ set MONITORING_LOGLEVEL=Debug
 
 **Valid log levels:** `Trace`, `Debug`, `Information` (or `Info`), `Warning` (or `Warn`), `Error`, `Critical` (or `Fatal`), `None` (or `Off`)
 
-Debug logs will show detailed HTTPS configuration and certificate loading information.
+Debug logs show detailed HTTPS configuration and certificate loading information.
 
 ### Installing mkcert
 
@@ -77,16 +77,16 @@ After installing, run `mkcert -install` to install the local CA in your system t
 
 ## Setup
 
-### Step 1: Create the Local Development Folder
+### Step 1: Create the local development folder
 
-Create a `.local` folder in the repository root (this folder is gitignored):
+Create a `.local` folder in the repository root (Git ignores this folder):
 
 ```bash
 mkdir .local
 mkdir .local/certs
 ```
 
-### Step 2: Generate PFX Certificates
+### Step 2: Generate PFX certificates
 
 Kestrel requires certificates in PFX format. Use mkcert to generate them:
 
@@ -101,20 +101,20 @@ cd .local/certs
 mkcert -p12-file localhost.pfx -pkcs12 localhost 127.0.0.1 ::1 servicecontrol servicecontrol-audit servicecontrol-monitor
 ```
 
-When prompted for a password, you can use an empty password by pressing Enter, or set a password (e.g., `changeit`) and note it for the configuration step.
+When mkcert prompts for a password, press Enter to use an empty password, or set a password (for example `changeit`) and note it for the configuration step.
 
-## Test Scenarios
+## Test scenarios
 
 All scenarios use environment variables for configuration.
 
 > [!NOTE]
-> The `RemoteInstances` setting on the primary ServiceControl instance needs the correct schema. e.g.; `https://localhost:44444/api/`
+> The `RemoteInstances` setting on the primary ServiceControl instance needs the correct scheme, for example `https://localhost:44444/api/`
 
-### Test Grouping by Configuration
+### Test grouping by configuration
 
-Both scenarios use the same HTTPS configuration, so you only need to start the service once to run all tests.
+Both scenarios use the same HTTPS configuration, so start each instance once and run all tests.
 
-## HTTPS Enabled Configuration
+## HTTPS enabled configuration
 
 **Start the instance once, then run all tests (Scenarios 1, 2).**
 
@@ -150,7 +150,7 @@ set MONITORING_FORWARDEDHEADERS_ENABLED=false
 dotnet run
 ```
 
-### Scenario 1: Basic HTTPS Connectivity
+### Scenario 1: Basic HTTPS connectivity
 
 Verify that HTTPS is working with a valid certificate.
 
@@ -178,9 +178,9 @@ curl --ssl-no-revoke -v https://localhost:33633/ 2>&1 | findstr /C:"HTTP/" /C:"S
 < HTTP/1.1 200 OK
 ```
 
-The request succeeds over HTTPS. The exact SSL output varies by curl version and platform, but you should see `HTTP/1.1 200 OK` confirming success.
+The exact SSL output varies by curl version and platform. `HTTP/1.1 200 OK` confirms success.
 
-### Scenario 2: HTTP Disabled (HTTPS Only)
+### Scenario 2: HTTP disabled (HTTPS only)
 
 Verify that HTTP requests fail when only HTTPS is enabled.
 
@@ -218,7 +218,7 @@ Ensure the `CertificatePath` is an absolute path and the file exists.
 
 If you set a password when generating the PFX, ensure it matches `CertificatePassword` in the config.
 
-### Certificate errors in browser/curl
+### Certificate errors in the browser or curl
 
 1. Ensure mkcert's root CA is installed: `mkcert -install`
 2. Restart your browser after installing the root CA
@@ -271,8 +271,8 @@ set MONITORING_HTTPS_HSTSINCLUDESUBDOMAINS=
 set MONITORING_FORWARDEDHEADERS_ENABLED=
 ```
 
-## See Also
+## See also
 
-- [Hosting Guide](https://docs.particular.net/servicecontrol/security/hosting-guide) - Detailed configuration reference for all deployment scenarios
-- [Reverse Proxy Testing](reverseproxy-testing.md) - Testing with a reverse proxy (NGINX)
-- [Forwarded Headers Testing](forward-headers-testing.md) - Testing forwarded headers without a reverse proxy
+- [Hosting Guide](https://docs.particular.net/servicecontrol/security/hosting-guide): Detailed configuration reference for all deployment scenarios
+- [Local testing with NGINX reverse proxy](reverseproxy-testing.md): Testing with a reverse proxy (NGINX)
+- [Local testing of forwarded headers without NGINX](forward-headers-testing.md): Testing forwarded headers without a reverse proxy

@@ -1,12 +1,12 @@
 # Telemetry
 
-Instances can be configured to emit telemetry to aid in performance testing or troubleshooting performance-related issues.
+Instances emit telemetry when configured to do so. Use it for performance testing and to troubleshoot performance issues.
 
 Both the error and the audit instance report their ingestion the same way. Exporting is configured with the standard [OpenTelemetry environment variables](https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options), not with instance settings, so the same variables that configure any other OpenTelemetry process apply here. Setting `OTEL_EXPORTER_OTLP_ENDPOINT` is enough to turn metrics on. Both gRPC and HTTP endpoints are supported, and `OTEL_EXPORTER_OTLP_PROTOCOL` selects between them.
 
-The signal-specific variables, `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` and its siblings, have no effect. The SDK only honours those under `UseOtlpExporter`, and instances use `AddOtlpExporter` so that OTLP applies to metrics without also being turned on for every other signal.
+The signal-specific variables, `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` and its siblings, have no effect. The SDK honors those only under `UseOtlpExporter`, and instances use `AddOtlpExporter` so that OTLP applies to metrics without also being turned on for every other signal.
 
-Logs are exported separately. Add `Otlp` to the instance's `LoggingProviders` setting, which is what turns the OTLP log exporter on, and it then reads the same environment variables for its endpoint.
+Logs are exported separately. Add `Otlp` to the `LoggingProviders` setting of the instance to turn the OTLP log exporter on. The exporter reads its endpoint from the same environment variables.
 
 The instruments differ only in their prefix and in the categories a message can fall into, so the same dashboard works for both with the prefix swapped. What the batches being measured actually are is covered in [ingestion-pipeline.md](ingestion-pipeline.md).
 
@@ -25,7 +25,7 @@ Meter `Particular.ServiceControl`.
   - `result` - How the failure was resolved: `retry` or `stored-poison`
 - `sc.error.ingestion.consecutive_batch_failures_total` - Consecutive batch failures
 
-`ServiceControl/PrintMetrics` predates this and no longer has anything to print.
+The `ServiceControl/PrintMetrics` setting no longer prints anything.
 
 ### Retry
 
@@ -41,12 +41,12 @@ Every instrument carries `retry.type`, one of `all`, `endpoint`, `group`, `queue
   - `result` - `success`, `failed`, `empty` for a batch that had no messages left and was discarded, or `cancelled` if shutdown cut the staging short
 - `sc.retry.forward_duration_seconds` - Forwarding one batch back to the senders
   - `result` - `success`, `failed`, or `cancelled` if shutdown cut the forwarding short
-  - `mode` - `counting`, or `timeout` when recovering from a premature shutdown. Timeout mode only ends on the forwarder's 45 second idle timer, so its distribution has a floor at that value.
+  - `mode` - `counting`, or `timeout` when recovering from a premature shutdown. Timeout mode only ends on the forwarder's 45-second idle timer, so its distribution has a floor at that value.
 - `sc.retry.messages_total` - Messages moved through the pipeline
   - `result` - `staged`, `forwarded`, `skipped`, `staging_retried`, or `abandoned` for a message that hit the staging retry limit and was dropped from its batch. `abandoned` is the one to alert on: it is a message the user asked to retry that will not be retried.
 - `sc.retry.operations_in_progress` - Retry operations currently in progress
   - `retry.state` - `waiting`, `preparing` or `forwarding`
-- `sc.retry.pending_bulk_requests` - Bulk retry requests queued behind each other, drained one per five second tick
+- `sc.retry.pending_bulk_requests` - Bulk retry requests queued behind each other, drained one per five-second tick
 
 A retry that hangs never records a duration, so on the histograms alone a stuck operation looks identical to no traffic. `operations_in_progress` holding a non-zero value while the duration histograms stay flat is the stuck-operation signal.
 
@@ -103,7 +103,7 @@ What the shapes mean when tuning:
   failure the watchdog acts on. A gauge climbing while health stays clear means batches are failing
   and being retried.
 
-Example Grafana dashboard - https://github.com/andreasohlund/Docker/blob/main/otel-monitoring/grafana-platform-template.json
+Example Grafana dashboard: https://github.com/andreasohlund/Docker/blob/main/otel-monitoring/grafana-platform-template.json
 
 ## Retention
 
@@ -144,7 +144,7 @@ No telemetry is currently available.
 To emit and visualize RavenDB telemetry:
 
 1. Install a RavenDB developer license (needed to get support for emitting telemetry)
-2. [Enable and configure Raven to emit telemetry](https://ravendb.net/docs/article-page/6.2/csharp/server/administration/monitoring/open-telemetry) (the example below shows targeting a local OTEL collector)
+2. [Enable and configure RavenDB to emit telemetry](https://ravendb.net/docs/article-page/6.2/csharp/server/administration/monitoring/open-telemetry) (the example below shows targeting a local OTEL collector)
     ```
     environment:
       RAVEN_Monitoring_OpenTelemetry_Enabled: true
@@ -156,10 +156,10 @@ To emit and visualize RavenDB telemetry:
 
 ## OTEL Collector
 
-It's recommended to use a local [OTEL Collector](https://opentelemetry.io/docs/collector/) to collect, batch and export the metrics to the relevant observability backend being used.
+Use a local [OTEL Collector](https://opentelemetry.io/docs/collector/) to collect, batch, and export the metrics to your observability backend.
 
 Example configuration: https://github.com/andreasohlund/Docker/tree/main/otel-monitoring
 
 ### Azure Monitor
 
-User the [exporter for Azure Monitor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/azuremonitorexporter/README.md) to push telemetry to application insights.
+Use the [exporter for Azure Monitor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/azuremonitorexporter/README.md) to push telemetry to Application Insights.
