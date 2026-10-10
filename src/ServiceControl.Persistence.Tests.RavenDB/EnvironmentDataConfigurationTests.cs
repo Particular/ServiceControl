@@ -27,7 +27,9 @@ class RavenEnvironmentDataProviderConfigurationTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(data["Storage.LogLevel"], Is.EqualTo("Operations"));
+            // RavenDB 7 replaced 'Logs.Mode' (None/Operations/Information) with 'Logs.MinLevel', which
+            // takes a Sparrow.Logging.LogLevel name, so the quiet default now reports as "Warn".
+            Assert.That(data["Storage.LogLevel"], Is.EqualTo("Warn"));
             Assert.That(data["Storage.QueryTimeoutSeconds"], Is.EqualTo("Default"));
             Assert.That(data["Storage.FreeSpaceThresholdPercent"], Is.EqualTo("Default"));
             Assert.That(data["Storage.MinimumFreeSpaceForIngestionPercent"], Is.EqualTo("Default"));
