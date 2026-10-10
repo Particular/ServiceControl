@@ -1,20 +1,20 @@
-# Local Authentication Testing
+# Local authentication testing
 
 This guide explains how to test authentication configuration for ServiceControl instances. This approach uses curl to test authentication enforcement and configuration endpoints.
 
 ## Prerequisites
 
 - ServiceControl built locally (see [main README for instructions](../README.md#how-to-rundebug-locally))
-- **Identity Provider (IdP) configured** - For real authentication testing (Scenarios 7+), you need an OIDC provider configured with:
+- An identity provider (IdP), configured for real authentication testing (Scenarios 7+). You need an OIDC provider configured with:
   - An API application registration (for ServiceControl)
   - A client application registration (for ServicePulse)
   - API scopes configured and permissions granted
   - See [ServiceControl Authentication](https://docs.particular.net/servicecontrol/security/configuration/authentication) for example setups
 - curl (included with Windows 10/11, Git Bash, or WSL)
-- HTTP Request logging to view comms to and from instances
+- HTTP request logging to view communication to and from instances
 - (Optional) For formatted JSON output: `npm install -g json` then pipe curl output through `| json`
 
-## Enabling Debug Logs
+## Enabling debug logs
 
 To enable detailed logging for troubleshooting, set the `LogLevel` environment variable before starting each instance:
 
@@ -26,11 +26,11 @@ set MONITORING_LOGLEVEL=Debug
 
 **Valid log levels:** `Trace`, `Debug`, `Information` (or `Info`), `Warning` (or `Warn`), `Error`, `Critical` (or `Fatal`), `None` (or `Off`)
 
-Debug logs will show detailed authentication flow information including token validation, claims processing, and authorization decisions.
+Debug logs show detailed authentication flow information including token validation, claims processing, and authorization decisions.
 
-### HTTP Request Logs
+### HTTP request logs
 
-HTTP logs can be enabled by adding a `nlog.config` file in beside the exe:
+HTTP logs can be enabled by adding a `nlog.config` file next to the executable:
 
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
@@ -55,7 +55,7 @@ HTTP logs can be enabled by adding a `nlog.config` file in beside the exe:
 </nlog>
 ```
 
-## Instance Reference
+## Instance reference
 
 | Instance                  | Project Directory               | Default Port | Environment Variable Prefix |
 |---------------------------|---------------------------------|--------------|-----------------------------|
@@ -63,7 +63,7 @@ HTTP logs can be enabled by adding a `nlog.config` file in beside the exe:
 | ServiceControl.Audit      | `src\ServiceControl.Audit`      | 44444        | `SERVICECONTROL_AUDIT_`     |
 | ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633        | `MONITORING_`               |
 
-## How Authentication Works
+## How authentication works
 
 When authentication is enabled:
 
@@ -72,22 +72,22 @@ When authentication is enabled:
 3. Requests without a valid token receive a `401 Unauthorized` response
 4. The `/api/authentication/configuration` endpoint returns authentication configuration for clients (like ServicePulse)
 
-## Configuration Methods
+## Configuration methods
 
 Settings can be configured via:
 
-1. **Environment variables** (recommended for testing) - Easy to change between scenarios, no file edits needed
-2. **App.config** - Persisted settings, requires app restart after changes
+1. Environment variables (recommended for testing): Easy to change between scenarios, no file edits needed
+2. App.config: Persisted settings, requires an app restart after changes
 
 Both methods work identically. This guide uses environment variables for convenience during iterative testing.
 
-## Test Scenarios
+## Test scenarios
 
 > [!IMPORTANT]
 > Set environment variables in the same terminal where you run `dotnet run`. Environment variables are scoped to the terminal session.
 > Check the application startup logs to verify which settings were applied. The authentication configuration is logged at startup.
 
-### Test Grouping by Configuration
+### Test grouping by configuration
 
 To minimize service restarts during testing, scenarios are grouped by configuration. Run all tests within a group before changing configuration:
 
@@ -104,7 +104,7 @@ To minimize service restarts during testing, scenarios are grouped by configurat
 
 ---
 
-## Group A: Authentication Disabled Configuration
+## Group A: Authentication disabled configuration
 
 **Start the instance once (Scenario 1).**
 
@@ -139,7 +139,7 @@ set MONITORING_AUTHENTICATION_VALIDATEAUDIENCE=
 dotnet run
 ```
 
-### Scenario 1: Authentication Disabled (Default)
+### Scenario 1: Authentication disabled (default)
 
 Test the default behavior where authentication is disabled and all requests are allowed.
 
@@ -192,7 +192,7 @@ The configuration indicates authentication is disabled. Other fields are omitted
 
 ---
 
-## Group B: Authentication Enabled (Test Authority) Configuration
+## Group B: Authentication enabled (test authority) configuration
 
 **Restart the instance with this configuration, then run all tests in this group (Scenarios 2, 3, 4).**
 
@@ -229,9 +229,9 @@ dotnet run
 ```
 
 > [!NOTE]
-> This configuration uses a test authority URL. For testing authentication enforcement without a real provider, any HTTP URL works - requests fail before token validation because no valid token is provided.
+> This configuration uses a test authority URL. For testing authentication enforcement without a real provider, any HTTP URL works. Requests fail before token validation because no valid token is provided.
 
-### Scenario 2: Authentication Enabled (No Token)
+### Scenario 2: Authentication enabled (no token)
 
 Test that requests without a token are rejected when authentication is enabled.
 
@@ -258,12 +258,12 @@ curl -v http://localhost:33633/monitored-endpoints 2>&1 | findstr /C:"HTTP/"
 Requests without a token are rejected with `401 Unauthorized`.
 
 > [!NOTE]
-> The endpoint `/api/authentication/configuration` are marked as anonymous and will return `200 OK` even with authentication enabled. Test protected endpoints like `/api/endpoints` to verify authentication enforcement.
+> The endpoint `/api/authentication/configuration` is marked as anonymous and returns `200 OK` even with authentication enabled. Test protected endpoints like `/api/endpoints` to verify authentication enforcement.
 
 #### Check authentication configuration endpoint (no auth required)
 
 > [!NOTE]
-> Only the primary instance has this endpoint. Requesting this endpoint from the audit and monitoring instance will return unauthorized.
+> Only the primary instance has this endpoint. Requesting this endpoint from the audit and monitoring instances returns unauthorized.
 
 ```cmd
 rem ServiceControl (Primary)
@@ -290,7 +290,7 @@ curl http://localhost:33633/api/authentication/configuration | json
 
 The authentication configuration endpoint is accessible without authentication and returns the configuration that clients need to authenticate. The `authority` field is omitted when `ServicePulse.Authority` is not explicitly set (it defaults to the main Authority for ServicePulse clients). The `audience` field is copied from the `ServiceControl/Authentication.Audience` value. The `apiScopes` field is the raw JSON array as configured. The `scopes` field is the complete, space-separated scope string ServicePulse should request, composed by ServiceControl by parsing the `apiScopes` JSON array and adding the fixed `openid profile email` scopes plus `offline_access` unless `ServiceControl/Authentication.ServicePulse.OfflineAccessScopeEnabled` is set to `false`.
 
-### Scenario 3: Authentication with Invalid Token
+### Scenario 3: Authentication with invalid token
 
 Test that requests with an invalid token are rejected.
 
@@ -316,7 +316,7 @@ curl -v -H "Authorization: Bearer invalid-token-here" http://localhost:33633/mon
 
 Invalid tokens are rejected with `401 Unauthorized`.
 
-### Scenario 4: Anonymous Endpoints
+### Scenario 4: Anonymous endpoints
 
 Test that anonymous endpoints remain accessible when authentication is enabled.
 
@@ -346,7 +346,7 @@ See [Authentication](https://docs.particular.net/servicecontrol/security/#authen
 
 ---
 
-## Group C: Relaxed Validation Configuration
+## Group C: Relaxed validation configuration
 
 **Restart the instance with this configuration (Scenario 5).**
 
@@ -381,7 +381,7 @@ set MONITORING_AUTHENTICATION_VALIDATEAUDIENCE=false
 dotnet run
 ```
 
-### Scenario 5: Validation Settings Warnings
+### Scenario 5: Validation settings warnings
 
 Test that disabling validation settings produces warnings in the logs.
 
@@ -396,7 +396,7 @@ The application warns about insecure validation settings.
 
 ---
 
-## Group D: Missing Settings Configuration (Startup Failure Test)
+## Group D: Missing settings configuration (startup failure test)
 
 **Attempt to start the instance with this configuration (Scenario 6). The instance should fail to start.**
 
@@ -431,7 +431,7 @@ set MONITORING_AUTHENTICATION_VALIDATEAUDIENCE=
 dotnet run
 ```
 
-### Scenario 6: Missing Required Settings
+### Scenario 6: Missing required settings
 
 Test that missing required settings prevent startup.
 
@@ -445,16 +445,16 @@ Authentication.Authority is required when authentication is enabled. Please prov
 
 ---
 
-## Group E: Real Identity Provider Configuration
+## Group E: Real identity provider configuration
 
 > [!IMPORTANT]
-> This group requires a configured OIDC provider (e.g., Microsoft Entra ID, Auth0, Okta).
+> This group requires a configured OIDC provider (for example Microsoft Entra ID, Auth0, Okta).
 > See [ServiceControl Authentication](https://docs.particular.net/servicecontrol/security/configuration/authentication) for setup examples.
 
 **Start all instances with this configuration, then run all tests in this group (Scenarios 7, 8, 10, 11, 14).**
 
 > [!NOTE]
-> See [HTTPS Testing](https-testing.md) for certificate setup instructions using mkcert.
+> See [Local testing with direct HTTPS](https-testing.md) for certificate setup instructions using mkcert.
 
 ```cmd
 rem ServiceControl (Primary)
@@ -497,7 +497,7 @@ set MONITORING_AUTHENTICATION_VALIDATEAUDIENCE=
 dotnet run
 ```
 
-### Scenario 7: Authentication with Valid Token (Real Identity Provider)
+### Scenario 7: Authentication with valid token (real identity provider)
 
 Test end-to-end authentication with a valid token from a real OIDC provider.
 
@@ -527,9 +527,9 @@ curl --ssl-no-revoke -H "Authorization: Bearer %TOKEN%" https://localhost:33633/
 []
 ```
 
-Requests with a valid token are processed successfully. The response will be an empty array if no data exists, or a list of items if data exists.
+Requests with a valid token are processed successfully. The response is an empty array if no data exists, or a list of items if data exists.
 
-### Scenario 8: Scatter-Gather with Authentication (Token Forwarding)
+### Scenario 8: Scatter-gather with authentication (token forwarding)
 
 Test that the primary instance forwards authentication tokens to remote instances during scatter-gather operations.
 
@@ -545,7 +545,7 @@ set TOKEN=$(az account get-access-token --resource api://servicecontrol --query 
 curl --ssl-no-revoke -H "Authorization: Bearer %TOKEN%" https://localhost:33333/api/messages | json
 ```
 
-Ensure `Debug` logs are enabled. Take a look at the primary and audit logs. You should see the requests being sent/received indicating if an auth header is included.
+Ensure `Debug` logs are enabled. Check the primary and audit logs. They show the requests that were sent and received and whether an auth header is included.
 
 #### Test with no token (should fail)
 
@@ -561,7 +561,7 @@ No audit logs, and:
 < HTTP/1.1 401 Unauthorized
 ```
 
-### Scenario 10: Remote Instance Health Checks with Authentication
+### Scenario 10: Remote instance health checks with authentication
 
 Test that the primary instance can check remote instance health when authentication is enabled.
 
@@ -591,7 +591,7 @@ You should see a log in the audit instance stating a request was received at the
 
 The health check should succeed because `/api` is an anonymous endpoint.
 
-### Scenario 11: Platform Connection Details with Authentication
+### Scenario 11: Platform connection details with authentication
 
 Test that platform connection details can be retrieved when authentication is enabled on remote instances.
 
@@ -606,9 +606,9 @@ curl --ssl-no-revoke -H "Authorization: Bearer %TOKEN%" https://localhost:33333/
 
 **Expected behavior:**
 
-The platform connection response includes connection details from both the primary and remote instances. The audit log will show the request.
+The platform connection response includes connection details from both the primary and remote instances. The audit log shows the request.
 
-### Scenario 14: Expired Token Forwarding
+### Scenario 14: Expired token forwarding
 
 Test how scatter-gather handles expired tokens being forwarded to remote instances.
 
@@ -628,12 +628,12 @@ The primary instance rejects the expired token before any remote requests are ma
 
 ---
 
-## Group F: Mismatched Audiences Configuration
+## Group F: Mismatched audiences configuration
 
 **Restart all instances with this configuration (Scenario 9). Note the DIFFERENT audience for Audit.**
 
 > [!NOTE]
-> See [HTTPS Testing](https-testing.md) for certificate setup instructions using mkcert.
+> See [Local testing with direct HTTPS](https-testing.md) for certificate setup instructions using mkcert.
 
 ```cmd
 rem ServiceControl (Primary)
@@ -676,7 +676,7 @@ set MONITORING_AUTHENTICATION_VALIDATEAUDIENCE=
 dotnet run
 ```
 
-### Scenario 9: Scatter-Gather with Mismatched Authentication Configuration
+### Scenario 9: Scatter-gather with mismatched authentication configuration
 
 Test that scatter-gather fails gracefully when remote instances have different authentication settings.
 
@@ -686,7 +686,7 @@ Test that scatter-gather fails gracefully when remote instances have different a
 curl --ssl-no-revoke -H "Authorization: Bearer %TOKEN%" https://localhost:33333/api/messages | json
 ```
 
-You should see a warning logged in the primary isntance.
+The primary instance logs a warning.
 
    ```text
    warn: Authentication failed when querying remote instance at https://localhost:44444. Ensure authentication is correctly configured.
@@ -694,12 +694,12 @@ You should see a warning logged in the primary isntance.
 
 ---
 
-## Group G: Mixed Configuration (Primary Only Auth)
+## Group G: Mixed configuration (primary only auth)
 
 **Restart all instances with this configuration (Scenario 12). Primary has auth, Audit and Monitoring do not.**
 
 > [!NOTE]
-> See [HTTPS Testing](https-testing.md) for certificate setup instructions using mkcert.
+> See [Local testing with direct HTTPS](https-testing.md) for certificate setup instructions using mkcert.
 
 ```cmd
 rem ServiceControl (Primary) - WITH authentication
@@ -742,7 +742,7 @@ set MONITORING_AUTHENTICATION_VALIDATEAUDIENCE=
 dotnet run
 ```
 
-### Scenario 12: Mixed Authentication Configuration (Primary Only)
+### Scenario 12: Mixed authentication configuration (primary only)
 
 Test behavior when only the primary instance has authentication enabled, but remote instances do not.
 
@@ -765,12 +765,12 @@ Logs in the primary instance show that the request was sent successfully (with a
 
 ---
 
-## Group H: Mixed Configuration (Remotes Only Auth)
+## Group H: Mixed configuration (remotes only auth)
 
 **Restart all instances with this configuration (Scenario 13). Audit and Monitoring have auth, Primary does not.**
 
 > [!NOTE]
-> See [HTTPS Testing](https-testing.md) for certificate setup instructions using mkcert.
+> See [Local testing with direct HTTPS](https-testing.md) for certificate setup instructions using mkcert.
 
 ```cmd
 rem ServiceControl (Primary) - WITHOUT authentication
@@ -813,11 +813,11 @@ set MONITORING_AUTHENTICATION_VALIDATEAUDIENCE=
 dotnet run
 ```
 
-### Scenario 13: Mixed Authentication Configuration (Remotes Only)
+### Scenario 13: Mixed authentication configuration (remotes only)
 
 Test behavior when remote instances have authentication enabled, but the primary does not.
 
-Chech the primary logs. All health checks (service-to-service) calls complete successfully as these are anonymous endpoints.
+Check the primary logs. All health check calls (service-to-service) complete successfully, because these are anonymous endpoints.
 
 #### Query without a token
 
@@ -825,7 +825,7 @@ Chech the primary logs. All health checks (service-to-service) calls complete su
 curl --ssl-no-revoke https://localhost:33333/api/messages | json
 ```
 
-The original request to the primary instance will be successfull and give the below output. If you check the primary instance logs however, there will be an error message saying the call to the audit instance failed due to authentication issues.
+The original request to the primary instance succeeds and returns the output below. The primary instance logs an error message saying that the call to the audit instance failed due to authentication issues.
 
    **Expected output:**
 
@@ -838,8 +838,8 @@ The original request to the primary instance will be successfull and give the be
 
 ---
 
-## See Also
+## See also
 
-- [Authentication Configuration](https://docs.particular.net/servicecontrol/security/configuration/authentication#configuration) - Configuration reference for authentication settings
-- [TLS Configuration](https://docs.particular.net/servicecontrol/security/configuration/tls#configuration) - HTTPS/TLS is recommended when authentication is enabled
-- [Forwarded Headers Testing](forward-headers-testing.md) - Testing forwarded headers
+- [Authentication Configuration](https://docs.particular.net/servicecontrol/security/configuration/authentication#configuration): Configuration reference for authentication settings
+- [TLS Configuration](https://docs.particular.net/servicecontrol/security/configuration/tls#configuration): HTTPS/TLS is recommended when authentication is enabled
+- [Local testing of forwarded headers without NGINX](forward-headers-testing.md): Testing forwarded headers

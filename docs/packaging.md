@@ -1,8 +1,8 @@
 # Packaging
 
-Each product (ServiceControl, ServiceControl.Monitoring and ServiceControl.Audit), is packaged into its own versioned zip file in the `zip` folder. These zip files are included as resources in the ServiceControlInstaller.Engine project, to be used to create new app instances from both ServiceControl Management as well as the PowerShell module.
+Each product (ServiceControl, ServiceControl.Monitoring, and ServiceControl.Audit) is packaged into its own versioned zip file in the `zip` folder. These zip files are included as resources in the ServiceControlInstaller.Engine project. ServiceControl Management and the PowerShell module use them to create new app instances.
 
-The zip files are crafted to minimize duplication in order to control the overall file size of each installer. The zips for each app contain only the specific app code as well as persistence code unique to that application.
+The zip files minimize duplication to control the overall file size of each installer. The zip file for each app contains only the specific app code and the persistence code unique to that application.
 
 - `ServiceControl.zip`
 - `ServiceControl.Audit.zip`
@@ -12,19 +12,19 @@ The zip files are crafted to minimize duplication in order to control the overal
 
 ## The mechanics
 
-The [Microsoft.Build.Artifacts](https://github.com/microsoft/MSBuildSdks/tree/main/src/Artifacts) package is used to define artifacts that are placed into the `deploy` folder when the solution is built. Each project that contributes artifacts has an `Artifact` definition in its project file.
-To ensure proper build ordering, the `ServiceControlInstaller.Packaging` project needs to have a `ProjectReference` to every project that has an artifact definition.
+The [Microsoft.Build.Artifacts](https://github.com/microsoft/MSBuildSdks/tree/main/src/Artifacts) package defines artifacts that the solution build places into the `deploy` folder. Each project that contributes artifacts has an `Artifact` definition in its project file.
+To ensure the correct build order, the `ServiceControlInstaller.Packaging` project needs a `ProjectReference` to every project that has an artifact definition.
 
-Every project that uses the artifacts then has to have a build ordering `ProjectReference` to the `ServiceControlInstaller.Packaging` project. The projects that use the artifacts are:
+Every project that uses the artifacts needs a build-order `ProjectReference` to the `ServiceControlInstaller.Packaging` project. The projects that use the artifacts are:
 
 - The `ServiceControlInstaller.Engine` project to create the above-mentioned required zip files
 - The `Particular.PlatformSample.ServiceControl` project to create the Platform sample required NuGet package
 
 ## Assembly version mismatches
 
-There can be an issue when the main instance folder and the selected transport/persister component each have a copy of the same assembly but reference different versions. At install time, one version or the other will be copied into the instance binary folder and things may break unexpectedly at runtime.
+There can be an issue when the main instance folder and the selected transport/persister component each have a copy of the same assembly but reference different versions. At install time, one of the two versions is copied into the instance binary folder, and the instance may fail at runtime.
 
-To prevent this, the unit test `DeploymentPackageTests.DuplicateAssemblyShouldHaveMatchingVersions` tests if duplicated assemblies might be deployed. If their versions match, then the test passes. If not then the test will fail with:
+To prevent this, the unit test `DeploymentPackageTests.DuplicateAssemblyShouldHaveMatchingVersions` checks assemblies that could be deployed twice. The test passes if their versions match. Otherwise it fails with:
 
 ```
   Component assembly version mismatch detected
@@ -34,4 +34,4 @@ To prevent this, the unit test `DeploymentPackageTests.DuplicateAssemblyShouldHa
 
 ### How to resolve
 
-The repo uses [NuGet central package management](https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management) to ensure that the same version of dependencies are used in each project. When a test fails with a version mismatch, add the package that provides the assembly to the `Versions to pin transitive references` ItemGroup in the `Directory.packages.props` file.
+The repo uses [NuGet central package management](https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management) so that each project uses the same version of a dependency. When the test fails with a version mismatch, add the package that provides the assembly to the `Versions to pin transitive references` ItemGroup in the `Directory.packages.props` file.

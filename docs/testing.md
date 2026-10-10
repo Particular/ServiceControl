@@ -1,6 +1,6 @@
 # Testing
 
-ServiceControl tests are designed to test different components and behaviors. This document outlines the tests in the repository and what they are meant to test.
+ServiceControl tests cover different components and behaviors.
 
 ## Unit tests
 
@@ -15,7 +15,7 @@ Packaging tests check:
 
 ## Installation engine tests
 
-Installation engine tests run partial installations and checks:
+Installation engine tests run partial installations and check:
 
 - That the generated configuration is correct.
 - That transport and persistence are correctly extracted.
@@ -23,15 +23,15 @@ Installation engine tests run partial installations and checks:
 ## Persistence tests
 
 Persistence tests check assumptions at the persistence seam level by exercising each persister.
-For local setup details, see [Local Testing of Persistence Providers](testing-persistence.md).
+For local setup details, see [Local testing of persistence providers](testing-persistence.md).
 
 ## Transport tests
 
-Transport tests are done by executing the transport test suite for each transport.
+Transport tests run the transport test suite for each transport.
 
 ## Acceptance tests
 
-Run ServiceControl full version and use the HTTP API to validate results. LearningTransport is used for all tests.
+Acceptance tests run the full ServiceControl and use the HTTP API to validate results. LearningTransport is used for all tests.
 
 For how to write one that fails when it should, see [Writing acceptance tests](writing-acceptance-tests.md).
 
@@ -61,7 +61,7 @@ Multi-instance tests validate the interaction between different ServiceControl i
 
 ## Container tests
 
-Container images generated for all builds are pushed to the [GitHub container registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry). Once pushed, all images are tested by [spinning them all up for each supported transport](/src/container-integration-test/).
+Container images generated for all builds are pushed to the [GitHub container registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry). Once pushed, all images are tested by [starting them all for each supported transport](/src/container-integration-test/).
 
 Containers built by a PR and stored on GitHub Container Registry can be tested locally:
 
@@ -72,36 +72,36 @@ Containers built by a PR and stored on GitHub Container Registry can be tested l
        ```shell
        docker login ghcr.io
        ```
-      you will be prompted for a username (your particular.net email) and a password (the token)
-    - ensure that you get a successful login message.
-    - Use `docker logout ghcr.io` once the following steps are complete and consider removing the token from github if its no longer needed
-2. In the terminal, navigate to [`/docs/test-ghcr-tag`](/docs/test/ghcr-tag).
+      Docker prompts for a username (your particular.net email) and a password (the token).
+    - Confirm that the login succeeds.
+    - Use `docker logout ghcr.io` once the following steps are complete. Consider removing the token from GitHub if you no longer need it.
+2. In the terminal, go to [`/docs/test-ghcr-tag`](/docs/test/ghcr-tag).
 3. Edit the [`.env` file](/docs/test-ghcr-tag/.env) to specify the PR-based tag (in the form `pr-####`) to test.
 4. Run `docker compose up -d`.
-5. Services will be available at the following URLs:
+5. Open the services at the following URLs:
     * [RabbitMQ Management](http://localhost:15672) (Login: `guest`/`guest`)
     * [RavenDB](http://localhost:8080)
     * [ServiceControl API](http://localhost:33333/api)
     * [Audit API](http://localhost:44444/api)
     * [Monitoring API](http://localhost:33633)
     * [ServicePulse (latest from Docker Hub)](http://localhost:9090)
-6. Tear down services using `docker compose down`.
+6. Stop the services using `docker compose down`.
 
 ## Container tests using Aspire
 
-The [Particular.Aspire.Hosting.ServicePlatform](https://github.com/Particular/Particular.Aspire.Hosting.ServicePlatform) package integrates the Particular Platform with the Aspire hosting platform. This package configures environment variables to attach the platform. There is a single file apphost in [`test-ghcr-tag-aspire`](/docs/test-ghcr-tag-aspire) to start up serviceconrol from a prerelease container image.
+The [Particular.Aspire.Hosting.ServicePlatform](https://github.com/Particular/Particular.Aspire.Hosting.ServicePlatform) package integrates the Particular Platform with the Aspire hosting platform. This package configures environment variables to attach the platform. A single-file apphost in [`test-ghcr-tag-aspire`](/docs/test-ghcr-tag-aspire) starts ServiceControl from a prerelease container image.
 
 Containers built by a PR and stored on GitHub Container Registry can be tested locally:
 
-1. Set up your github container registry credentials as described in the [Container tests](#container-tests) section above.
-2. Make sure you have the [Aspire CLI installed](https://aspire.dev/get-started/install-cli/).
-3. Run `aspire update` to ensure that the testing AppHost file `docs/test-ghcr-tag-aspire/AppHost.cs` is running the latest aspire SDK and RabbitMQ integration package.
-4. Run `aspire run docs/test-ghcr-tag-aspire/AppHost.cs -- tag` to start the application, where `tag` is the PR-based tag (in the form `pr-####`) to test. If no tag is provided, it will default to the `latest` tag.
-5. Once running you can open the dashboard from the link in the terminal, this dashboard will provide the assigned ports for each service.
+1. Set up your GitHub Container Registry credentials as described in the [Container tests](#container-tests) section above.
+2. Install the [Aspire CLI](https://aspire.dev/get-started/install-cli/).
+3. Run `aspire update` so that the testing AppHost file `docs/test-ghcr-tag-aspire/AppHost.cs` uses the latest Aspire SDK and RabbitMQ integration package.
+4. Run `aspire run docs/test-ghcr-tag-aspire/AppHost.cs -- tag` to start the application, where `tag` is the PR-based tag (in the form `pr-####`) to test. Without a tag, the command uses the `latest` tag.
+5. Open the dashboard from the link in the terminal. The dashboard shows the assigned ports for each service:
     * RabbitMQ Management (Login: `guest`/`guest`)
     * RavenDB
     * ServiceControl API
     * Audit API
     * Monitoring API
     * ServicePulse (latest from Docker Hub)
-6. Aspire will automatically tear down the application when you exit the CLI process.
+6. Exit the CLI process. Aspire stops the application automatically.
