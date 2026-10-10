@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.RavenDB
+namespace ServiceControl.Persistence.RavenDB
 {
     using System;
     using System.IO;
@@ -17,6 +17,8 @@
         const string EventsRetentionPeriodKey = "EventsRetentionPeriod";
         const string ExternalIntegrationsDispatchingBatchSizeKey = "ExternalIntegrationsDispatchingBatchSize";
         const string MaintenanceModeKey = "MaintenanceMode";
+
+        public bool SupportsMaintenanceMode => true;
 
         public PersistenceSettings CreateSettings(SettingsRootNamespace settingsRootNamespace)
         {
@@ -39,6 +41,7 @@
                 EventsRetentionPeriod = SettingsReader.Read(settingsRootNamespace, EventsRetentionPeriodKey, TimeSpan.FromDays(14)),
                 AuditRetentionPeriod = SettingsReader.Read(settingsRootNamespace, AuditRetentionPeriodKey, TimeSpan.Zero),
                 ExternalIntegrationsDispatchingBatchSize = ReadExternalIntegrationsDispatchingBatchSize(settingsRootNamespace),
+                QueryTimeout = QueryTimeLimit.Read(settingsRootNamespace, LoggerUtil.CreateStaticLogger<RavenPersistenceConfiguration>()),
                 MaintenanceMode = SettingsReader.Read(settingsRootNamespace, MaintenanceModeKey, false),
                 LogPath = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.LogsPathKey, DefaultLogLocation()),
                 LogsMode = logsMode,

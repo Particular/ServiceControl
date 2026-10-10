@@ -9,16 +9,17 @@ using System.Threading.Tasks;
 using EFCore.PostgreSql;
 using MessageFailures;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Npgsql;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
 public partial class PersistenceTestsContext : IPersistenceTestsContext
 {
     IHost host;
-    string databaseName;
+    string connectionString;
+    string schema;
     string bodyStoragePath;
 
     public void AdvanceClock(TimeSpan by) => FakeTime.Advance(by);
@@ -27,19 +28,19 @@ public partial class PersistenceTestsContext : IPersistenceTestsContext
 
     public async Task Setup(IHostApplicationBuilder hostBuilder)
     {
-        databaseName = $"sc_test_{Guid.NewGuid():n}";
-
-        var connectionStringBuilder = new NpgsqlConnectionStringBuilder(await PostgreSqlSharedContainer.GetConnectionStringAsync())
-        {
-            Database = databaseName
-        };
+        schema = $"sc_test_{Guid.NewGuid():n}";
+        connectionString = await PostgreSqlSharedContainer.GetConnectionStringAsync();
+        await TestSchema.Create(connectionString, schema);
 
         bodyStoragePath = Directory.CreateTempSubdirectory("sc_test_bodies_").FullName;
 
         PersistenceSettings = new PostgreSqlPersisterSettings
         {
-            ConnectionString = connectionStringBuilder.ConnectionString,
-            BodyStorage = new FileSystemBodyStorageSettings { StoragePath = bodyStoragePath }
+            ConnectionString = connectionString,
+            Schema = schema,
+            BodyStorage = new FileSystemBodyStorageSettings { StoragePath = bodyStoragePath },
+            ErrorRetentionPeriod = DefaultRetentionPeriod,
+            EventsRetentionPeriod = DefaultRetentionPeriod
         };
 
         var persistence = new PostgreSqlPersistenceConfiguration().Create(PersistenceSettings);
@@ -55,19 +56,14 @@ public partial class PersistenceTestsContext : IPersistenceTestsContext
         this.host = host;
 
         using var scope = host.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<PostgreSqlServiceControlDbContext>();
-        await db.Database.MigrateAsync();
+        await scope.ServiceProvider.GetRequiredService<IDatabaseMigrator>().ApplyMigrations();
     }
 
     public async Task TearDown()
     {
         DeleteBodyStorage();
 
-        await using var connection = new NpgsqlConnection(await PostgreSqlSharedContainer.GetConnectionStringAsync());
-        await connection.OpenAsync();
-        await using var command = connection.CreateCommand();
-        command.CommandText = $"DROP DATABASE IF EXISTS \"{databaseName}\" WITH (FORCE)";
-        await command.ExecuteNonQueryAsync();
+        await TestSchema.Drop(connectionString, schema);
     }
 
     // Drain every insert-only reconciler so that ingested data is visible to the data stores,
@@ -81,6 +77,17 @@ public partial class PersistenceTestsContext : IPersistenceTestsContext
     }
 
     public PersistenceSettings PersistenceSettings { get; set; }
+
+    /// <summary>
+    /// Adds an EF Core interceptor to the persistence's own DbContext registration.
+    /// </summary>
+    public void InterceptDatabaseCommands(IServiceCollection services, IInterceptor interceptor) =>
+        services.ConfigureDbContext<PostgreSqlServiceControlDbContext>(options => options.AddInterceptors(interceptor));
+
+    /// <summary>
+    /// SQL that makes the server sleep, to prepend to a query that has to still be running when a deadline fires.
+    /// </summary>
+    public string SqlToDelayFor(TimeSpan delay) => $"SELECT pg_sleep({delay.TotalSeconds:0});";
 
     public string GenerateFailedMessageRecordId(string messageId) => messageId;
 

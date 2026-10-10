@@ -17,6 +17,10 @@
         public virtual Task Setup()
         {
             configuration = new PersistenceTestsConfiguration();
+            if (configuration is not IPersistenceTestsConfiguration)
+            {
+                throw new Exception($"{nameof(PersistenceTestsConfiguration)} must implement {nameof(IPersistenceTestsConfiguration)}");
+            }
 
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
 
@@ -32,7 +36,9 @@
 
         protected string PersisterName => configuration.Name;
 
-        protected IAuditDataStore DataStore => configuration.AuditDataStore;
+        protected IAuditMessagesViewDataStore MessagesViewStore => configuration.MessagesViewStore;
+
+        protected ISagaHistoryDataStore SagaHistoryStore => configuration.SagaHistoryStore;
 
         protected IFailedAuditStorage FailedAuditStorage => configuration.FailedAuditStorage;
 

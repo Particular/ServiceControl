@@ -16,6 +16,11 @@ class InMemoryBodyStoragePersistence : IBodyStoragePersistence
 
     public HashSet<string> FailDeleteFor { get; } = [];
 
+    /// <summary>
+    /// Extra lines added to the simulated delete failure, the way a storage SDK appends response detail.
+    /// </summary>
+    public string DeleteFailureDetail { get; set; }
+
     public IReadOnlyList<StoredBody> Written
     {
         get
@@ -83,7 +88,8 @@ class InMemoryBodyStoragePersistence : IBodyStoragePersistence
     {
         if (FailDeleteFor.Contains(bodyId))
         {
-            throw new InvalidOperationException($"Simulated body storage failure for {bodyId}");
+            var detail = DeleteFailureDetail is null ? "" : Environment.NewLine + DeleteFailureDetail;
+            throw new InvalidOperationException($"Simulated body storage failure for {bodyId}{detail}");
         }
 
         lock (gate)

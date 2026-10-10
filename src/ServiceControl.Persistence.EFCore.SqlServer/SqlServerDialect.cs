@@ -5,9 +5,16 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using ServiceControl.Persistence.EFCore.DbContexts;
+using ServiceControl.Persistence.EFCore.Infrastructure;
 
 abstract class SqlServerDialect
 {
+    /// <summary>
+    /// The delimited, schema qualified name of the table an entity is mapped to. Every statement
+    /// below names its target this way so that a configured schema reaches the raw SQL too.
+    /// </summary>
+    protected static string Table<TEntity>(ServiceControlDbContext dbContext) => SchemaQualifiedTableName.For<TEntity>(dbContext);
+
     protected static async Task Execute(ServiceControlDbContext dbContext, string sql, IEnumerable<object?[]> rows, CancellationToken cancellationToken = default)
     {
         await using var command = dbContext.Database.GetDbConnection().CreateCommand();
@@ -62,6 +69,9 @@ abstract class SqlServerDialect
         return sql.ToString();
     }
 
-    protected static int MaxRowsPerStatement(int columns) => MaxSqlParameters / columns;
-    const int MaxSqlParameters = 2100;
+    protected static int MaxRowsPerStatement(int columns) => MaxParametersPerStatement / columns;
+
+    // SQL Server's ceiling is 2100 (https://learn.microsoft.com/en-us/sql/sql-server/maximum-capacity-specifications-for-sql-server).
+    // The 100 spare absorbs sp_executesql's own two and anything a statement carries outside its rows.
+    const int MaxParametersPerStatement = 2000;
 }

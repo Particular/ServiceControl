@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.Hosting.Commands
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
@@ -13,6 +14,11 @@
         public override async Task Execute(HostArguments args, Settings settings, CancellationToken cancellationToken = default)
         {
             var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings);
+            if (!persistenceConfiguration.SupportsMaintenanceMode)
+            {
+                throw new InvalidOperationException($"Maintenance mode is not supported by the {settings.PersistenceType} persister.");
+            }
+
             var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
 
             persistenceSettings.MaintenanceMode = true;

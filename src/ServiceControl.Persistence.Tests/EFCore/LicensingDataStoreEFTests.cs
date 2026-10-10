@@ -1,9 +1,14 @@
 namespace ServiceControl.Persistence.Tests;
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using EFCore.DbContexts;
+using EFCore.Entities;
+using EFCore.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Particular.LicensingComponent.Contracts;
 
@@ -200,6 +205,26 @@ class LicensingDataStoreEFTests : PersistenceTestBase
         {
             Assert.That(endpoint.Scope, Is.EqualTo("updated"));
             Assert.That(throughput[Today], Is.EqualTo(11));
+        }
+    }
+
+    [Test]
+    public async Task Audit_service_metadata_saved_before_the_instance_counts_existed_reads_back_without_them()
+    {
+        await using (var scope = ServiceProvider.CreateAsyncScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
+            dbContext.Settings.Add(new SettingEntity { Key = SettingKeys.AuditServiceMetadata, Value = """{"Versions":{"6.2.0":2},"Transports":{"RabbitMQ.QuorumConventionalRouting":2}}""" });
+            await dbContext.SaveChangesAsync();
+        }
+
+        var auditServiceMetadata = await LicensingDataStore.GetAuditServiceMetadata();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(auditServiceMetadata.Versions, Is.EquivalentTo(new Dictionary<string, int> { ["6.2.0"] = 2 }));
+            Assert.That(auditServiceMetadata.ConfiguredInstances, Is.Null);
+            Assert.That(auditServiceMetadata.LiveInstances, Is.Null);
         }
     }
 

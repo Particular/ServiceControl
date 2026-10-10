@@ -11,7 +11,7 @@ ServiceControl, ServiceControl.Audit, and ServiceControl.Monitoring can be run/d
 - Edit the `app.config` file of the instance type that needs to be run/debugged to select which transport and persistence to use.
   - The configuration file contains commented settings for each supported transport and persistence. It also provides some guidance on additional required settings for specific persisters.
   - ServiceControl works with a RavenDB persistence
-  - ServiceControl.Audit can work with RavenDB or an InMemory persistence
+  - ServiceControl.Audit works with a RavenDB persistence
 - Run or debug the project as usual
 
 A video demo showing how to set it up is available on the Particular YouTube channel:
@@ -113,6 +113,7 @@ Local testing guides:
 - [Forward Headers Testing](docs/forward-headers-testing.md)
 - [Authentication Testing](docs/authentication-testing.md)
 - [Persistence Tests](docs/testing-persistence.md)
+- [Load Testing](docs/load-testing.md)
 
 ## How to developer test the PowerShell Module
 

@@ -5,6 +5,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Persistence.Recoverability;
 
     public class GroupFetcher
@@ -18,9 +19,9 @@
             this.archiver = archiver;
         }
 
-        public async Task<GroupOperation[]> GetGroups(string classifier, string classifierFilter, CancellationToken cancellationToken = default)
+        public async Task<GroupOperation[]> GetGroups(string classifier, string classifierFilter, PagingInfo pagingInfo, CancellationToken cancellationToken = default)
         {
-            var dbGroups = await store.GetUnresolvedGroupsByClassifier(classifier, classifierFilter, cancellationToken);
+            var dbGroups = await store.GetUnresolvedGroupsByClassifier(classifier, classifierFilter, pagingInfo, cancellationToken);
             var retryHistory = (await retryStore.GetRetryHistory(cancellationToken)).Results;
             var unacknowledgedRetries = retryHistory.GetUnacknowledgedByClassifier(classifier);
 

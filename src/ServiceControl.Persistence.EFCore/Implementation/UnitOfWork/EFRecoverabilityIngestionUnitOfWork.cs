@@ -1,6 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
 
-using System.Text.Json;
+using EntityConfigurations;
 using NServiceBus;
 using NServiceBus.Transport;
 using ServiceControl.MessageFailures;
@@ -39,9 +39,10 @@ public class EFRecoverabilityIngestionUnitOfWork(EFIngestionUnitOfWork parentUni
             Groups = groups,
             HeadersJson = MessageHeaders.Write(processingAttempt.Headers),
             MessageId = processingAttempt.MessageId,
-            MessageType = GetMetadata<string>(processingAttempt, "MessageType"),
+            MessageType = TruncateTypeName(GetMetadata<string>(processingAttempt, "MessageType")),
             TimeSent = GetMetadata<DateTime?>(processingAttempt, "TimeSent"),
-            ConversationId = GetMetadata<string>(processingAttempt, "ConversationId"),
+            // The ingestion upsert is hand-written SQL, which skips the value converter on the column.
+            ConversationId = ColumnLengths.FitToIndex(GetMetadata<string>(processingAttempt, "ConversationId")),
             SendingEndpointName = sendingEndpoint?.Name,
             SendingEndpointHostId = sendingEndpoint?.HostId,
             SendingEndpointHost = sendingEndpoint?.Host,
@@ -67,6 +68,12 @@ public class EFRecoverabilityIngestionUnitOfWork(EFIngestionUnitOfWork parentUni
 
         return Task.CompletedTask;
     }
+
+    // The MessageType column is length-bounded (ColumnLengths.ShortTextLength) so that it can be
+    // an index key serving sort=message_type. This field contains a type name, so it's more useful to 
+    // truncate from the start of the name instead of the end.
+    static string? TruncateTypeName(string? value) =>
+        value is { Length: > ColumnLengths.ShortTextLength } ? value[^ColumnLengths.ShortTextLength..] : value;
 
     static T? GetMetadata<T>(FailedMessage.ProcessingAttempt processingAttempt, string key) =>
         processingAttempt.MessageMetadata.TryGetValue(key, out var value) && value is T typed ? typed : default;

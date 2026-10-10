@@ -22,13 +22,15 @@ namespace ServiceControl.Persistence.RavenDB.Editing
         public async Task SaveSettings(NotificationsSettings settings, CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            var document = new NotificationsSettingsDocument
+            // Changed in place because RavenDB will not move a document to another collection, and older databases hold this one in the NotificationsSettings collection.
+            var document = await session.LoadAsync<NotificationsSettingsDocument>(SingleDocumentId, cancellationToken);
+            if (document == null)
             {
-                Id = SingleDocumentId,
-                Email = Copy(settings.Email)
-            };
+                document = new NotificationsSettingsDocument { Id = SingleDocumentId };
+                await session.StoreAsync(document, SingleDocumentId, cancellationToken);
+            }
 
-            await session.StoreAsync(document, SingleDocumentId, cancellationToken);
+            document.Email = Copy(settings.Email);
             await session.SaveChangesAsync(cancellationToken);
         }
 

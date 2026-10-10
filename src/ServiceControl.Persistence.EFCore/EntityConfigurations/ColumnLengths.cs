@@ -1,5 +1,9 @@
 namespace ServiceControl.Persistence.EFCore.EntityConfigurations;
 
+using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography;
+using System.Text;
+
 static class ColumnLengths
 {
     // Indexed and short-by-nature values get a length so that SQL Server can index them,
@@ -23,4 +27,24 @@ static class ColumnLengths
     // int, and the throughput key adds a date on top, so ShortTextLength would exceed SQL Server's
     // 900 byte index key limit.
     public const int LicensingEndpointNameLength = 300;
+
+    // Cutting an indexed value short could make two different values look up as equal, so a longer value keeps as much of its start as fits, followed by ~ and the SHA-256 of the whole value. The result is never longer than ShortTextLength, so fitting it again returns it unchanged.
+    [return: NotNullIfNotNull(nameof(value))]
+    public static string? FitToIndex(string? value)
+    {
+        if (value is null || value.Length <= ShortTextLength)
+        {
+            return value;
+        }
+
+        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
+        var prefixLength = ShortTextLength - hash.Length - 1;
+
+        if (char.IsHighSurrogate(value[prefixLength - 1]))
+        {
+            prefixLength--;
+        }
+
+        return $"{value[..prefixLength]}~{hash}";
+    }
 }

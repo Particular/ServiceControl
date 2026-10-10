@@ -2,24 +2,31 @@ namespace ServiceControl.Persistence.RavenDB;
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Particular.LicensingComponent.Contracts;
 using Raven.Client.ServerWide.Operations;
+using ServiceControl.Configuration;
+using ServiceControl.Infrastructure;
 using static Particular.LicensingComponent.Contracts.EnvironmentDatum;
 
 class RavenEnvironmentDataProvider(RavenPersisterSettings settings, IRavenDocumentStoreProvider documentStoreProvider) : IEnvironmentDataProvider
 {
     public IEnumerable<EnvironmentDatum> GetData() =>
     [
-        Value("Persistence.Type", () => "RavenDB"),
-        Value("Persistence.RavenServer", () => settings.UseEmbeddedServer ? "Embedded" : "External"),
-        Value("Persistence.Hosting", () => Hosting().Hosting),
-        Deferred("Persistence.ServerVersion", ServerVersion),
-        Value("Persistence.HostingSource", () => Hosting().Source),
-        Value("Persistence.FullTextSearch", () => settings.EnableFullTextSearchOnBodies ? "Enabled" : "Disabled"),
-        Value("Persistence.BodyStorage.Type", () => "RavenAttachments"),
-        Value("Persistence.BodyStorage.Auth", () => "NotApplicable")
+        Value("Storage.Type", () => "RavenDB"),
+        Value("Storage.RavenServer", () => settings.UseEmbeddedServer ? "Embedded" : "External"),
+        Value("Storage.Hosting", () => Hosting().Hosting),
+        Deferred("Storage.ServerVersion", ServerVersion),
+        Value("Storage.HostingSource", () => Hosting().Source),
+        Value("Storage.FullTextSearch", () => settings.EnableFullTextSearchOnBodies ? "Enabled" : "Disabled"),
+        Value("Storage.BodyStorage.Type", () => "RavenAttachments"),
+        Value("Storage.LogLevel", () => settings.LogsMode),
+        Value("Storage.QueryTimeoutSeconds", () => WhenConfigured(QueryTimeLimit.SettingName, () => Number((int)Math.Round(settings.QueryTimeout.TotalSeconds, MidpointRounding.AwayFromZero)))),
+        Value("Storage.FreeSpaceThresholdPercent", () => WhenConfigured(RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey, () => Number(settings.DataSpaceRemainingThreshold))),
+        Value("Storage.MinimumFreeSpaceForIngestionPercent", () => WhenConfigured(RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, () => Number(settings.MinimumStorageLeftRequiredForIngestion))),
+        Value("Storage.ExpirationIntervalSeconds", () => WhenConfigured(RavenBootstrapper.ExpirationProcessTimerInSecondsKey, () => Number(settings.ExpirationProcessTimerInSeconds)))
     ];
 
     (string Hosting, string Source) Hosting()
@@ -42,4 +49,11 @@ class RavenEnvironmentDataProvider(RavenPersisterSettings settings, IRavenDocume
 
         return buildNumber.ProductVersion ?? DatabaseHostClassifier.Unknown;
     }
+
+    static string WhenConfigured(string key, Func<string> readValue) =>
+        SettingsReader.TryRead<string>(SettingsNamespace, key, out _) ? readValue() : "Default";
+
+    static string Number(int value) => value.ToString(CultureInfo.InvariantCulture);
+
+    static readonly SettingsRootNamespace SettingsNamespace = new("ServiceControl");
 }

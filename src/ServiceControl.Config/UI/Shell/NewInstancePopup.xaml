@@ -1,161 +1,221 @@
-﻿<UserControl x:Class="ServiceControl.Config.UI.Shell.NewInstanceOverlay"
+<UserControl x:Class="ServiceControl.Config.UI.Shell.NewInstanceOverlay"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
-             d:DesignHeight="300" d:DesignWidth="600">
-    <Grid Margin="0" Background="Black">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="2*" />
-        </Grid.ColumnDefinitions>
+             d:DesignHeight="500" d:DesignWidth="600">
+    <UserControl.Resources>
+        <Style x:Key="ModeButton" TargetType="RadioButton">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="border"
+                                Background="{StaticResource Gray10Brush}"
+                                BorderBrush="{StaticResource Gray20Brush}"
+                                BorderThickness="1"
+                                Padding="10,8"
+                                Cursor="Hand"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource Gray20Brush}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource DarkThemeBrush}" />
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource ThemeBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ModeLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="TextAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="ModeSubLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="Foreground" Value="{StaticResource Gray60Brush}" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,2,0,0" />
+        </Style>
+        <!-- Legible against both the unselected (Gray10) and selected (DarkTheme) tab backgrounds -->
+        <Style x:Key="ModeSubLabelHighlight" TargetType="TextBlock" BasedOn="{StaticResource ModeSubLabel}">
+            <Setter Property="Foreground" Value="{StaticResource WhiteBrush}" />
+            <Setter Property="Opacity" Value="0.85" />
+        </Style>
+        <!-- Installed components are outcomes, not controls, so they are ticks rather than
+             check boxes: the only box on the screen is the only thing worth clicking. -->
+        <Style x:Key="CheckGlyph" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource LightThemeBrush}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Width" Value="16" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Margin" Value="0,1,0,0" />
+        </Style>
+        <Style x:Key="ComponentCheckBox" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style x:Key="ComponentLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style x:Key="ComponentDescription" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource Gray60Brush}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="0,2,0,0" />
+        </Style>
+    </UserControl.Resources>
 
-        <Grid Grid.Column="0" Margin="20">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="14" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="40" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+    <Grid Background="Black" MinWidth="500">
+        <StackPanel Margin="20">
 
-            <Border Margin="-5,5,0,5" Height="40" Grid.Row="0" Grid.ColumnSpan="2">
-                <Grid>
+            <!-- Header -->
+            <TextBlock FontSize="15"
+                       FontWeight="SemiBold"
+                       Foreground="White"
+                       Margin="0,0,0,15"
+                       Text="Choose a setup scenario" />
+
+            <!-- Scenario selection. These are mutually exclusive, so they are the only
+                 thing driving what gets installed. -->
+            <UniformGrid Columns="4" Margin="0,0,0,20">
+                <RadioButton x:Name="ModeErrorHandling"
+                             GroupName="SetupMode"
+                             Style="{StaticResource ModeButton}"
+                             Checked="Mode_Checked">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource ModeLabel}" Text="Error handling" />
+                        <TextBlock Style="{StaticResource ModeSubLabel}" Text="Failed messages" />
+                    </StackPanel>
+                </RadioButton>
+                <RadioButton x:Name="ModeErrorAndAudit"
+                             GroupName="SetupMode"
+                             IsChecked="True"
+                             Style="{StaticResource ModeButton}"
+                             Checked="Mode_Checked">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource ModeLabel}" Text="Error + Audit" />
+                        <TextBlock Style="{StaticResource ModeSubLabelHighlight}" Text="Failed and audit messages" />
+                    </StackPanel>
+                </RadioButton>
+                <RadioButton x:Name="ModeAuditOnly"
+                             GroupName="SetupMode"
+                             Style="{StaticResource ModeButton}"
+                             Checked="Mode_Checked">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource ModeLabel}" Text="Audit only" />
+                        <TextBlock Style="{StaticResource ModeSubLabel}" Text="Add to existing Error instance" />
+                    </StackPanel>
+                </RadioButton>
+                <RadioButton x:Name="ModeMonitoringOnly"
+                             GroupName="SetupMode"
+                             Style="{StaticResource ModeButton}"
+                             Checked="Mode_Checked">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource ModeLabel}" Text="Monitoring only" />
+                        <TextBlock Style="{StaticResource ModeSubLabel}" Text="Add to existing Error instance" />
+                    </StackPanel>
+                </RadioButton>
+            </UniformGrid>
+
+            <TextBlock FontSize="13"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource Gray70Brush}"
+                       Margin="0,0,0,5"
+                       Text="This will install:" />
+
+            <!-- MinHeight keeps the popup from resizing as scenarios with different
+                 numbers of components are selected. -->
+            <StackPanel MinHeight="150">
+
+                <Grid x:Name="ServiceControlRow" Margin="0,8,0,0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="30" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-
-                    <ContentControl Grid.Column="0"
-                                    Width="16"
-                                    Height="16"
-                                    SnapsToDevicePixels="True"
-                                    Template="{StaticResource NewControlInstanceIcon}" />
-
-                    <TextBlock Grid.Column="1"
-                               Margin="10"
-                               FontSize="13"
-                               FontWeight="SemiBold"
-                               VerticalAlignment="Center">
-                        <Hyperlink Command="{Binding AddInstance}"  Style="{StaticResource UnderlinedLink}">Add ServiceControl and Audit Instances...</Hyperlink>
-                    </TextBlock>
-
+                    <TextBlock Grid.Column="0" Style="{StaticResource CheckGlyph}" Text="&#x2713;" />
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                        <TextBlock Style="{StaticResource ComponentLabel}" Text="ServiceControl Instance" />
+                        <TextBlock Style="{StaticResource ComponentDescription}"
+                                   Text="Ability to retry failed / dead lettered messages" />
+                    </StackPanel>
                 </Grid>
-            </Border>
 
-            <TextBlock Grid.Column="0" Grid.Row="1"
-                       Margin="1,10,0,0"
-                       HorizontalAlignment="Left"
-                       VerticalAlignment="Top"
-                       Text="•"
-                       Foreground="{StaticResource Gray90Brush}" />
+                <!-- Nested under the instance that hosts it, and the one genuine choice here -->
+                <CheckBox x:Name="CbServicePulse"
+                          Style="{StaticResource ComponentCheckBox}"
+                          Margin="26,8,0,0"
+                          IsChecked="True"
+                          Checked="ServicePulse_Changed"
+                          Unchecked="ServicePulse_Changed">
+                    <StackPanel Margin="5,0,0,0">
+                        <TextBlock Style="{StaticResource ComponentLabel}" Text="Integrated ServicePulse" />
+                        <TextBlock Style="{StaticResource ComponentDescription}"
+                                   Text="Built-in web UI hosted by the Error instance" />
+                    </StackPanel>
+                </CheckBox>
 
-            <TextBlock Grid.Column="0" Grid.Row="2"
-                       Margin="1,10,0,0"
-                       HorizontalAlignment="Left"
-                       VerticalAlignment="Top"
-                       Text="•"
-                       Foreground="{StaticResource Gray90Brush}" />
-
-            <TextBlock Grid.Column="1" Grid.Row="1"
-                       FontSize="13"
-                       Foreground="{StaticResource Gray90Brush}"
-                       Margin="0,10,10,10"
-                       Text="Collects Audited messages for visualization with ServiceInsight"
-                       TextWrapping="Wrap" />
-
-            <TextBlock Grid.Column="1" Grid.Row="2"
-                    FontSize="13"
-                    Foreground="{StaticResource Gray90Brush}"
-                    Margin="0,10,10,10"
-                    Text="Collects Failed messages to be retried with ServicePulse or ServiceInsight"
-                    TextWrapping="Wrap" />
-        </Grid>
-
-        <Rectangle Grid.Column="1"
-                   Width="1"
-                   Fill="{StaticResource Gray20Brush}"
-                   Margin="10"
-                   />
-
-        <Grid Grid.Column="2" Margin="20">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="14" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="40" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-
-            <Border Margin="-5,0,5,0" Height="40" Grid.ColumnSpan="2" Grid.Row="0">
-                <Grid>
+                <Grid x:Name="AuditRow" Margin="0,8,0,0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="30" />
                         <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-
-                    <ContentControl Grid.Column="0"
-                                    Width="16"
-                                    Height="16"
-                                    SnapsToDevicePixels="True"
-                                    Template="{StaticResource NewMonitoringInstanceIcon}" />
-
-                    <TextBlock Grid.Column="1"
-                               Margin="10"
-                               FontSize="13"
-                               FontWeight="SemiBold"
-                               VerticalAlignment="Center">
-                        <Hyperlink Command="{Binding AddMonitoringInstance}" Style="{StaticResource UnderlinedLink}">Add monitoring instance...</Hyperlink>
-                    </TextBlock>
-
+                    <TextBlock Grid.Column="0" Style="{StaticResource CheckGlyph}" Text="&#x2713;" />
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                        <TextBlock Style="{StaticResource ComponentLabel}" Text="ServiceControl Audit Instance" />
+                        <TextBlock Style="{StaticResource ComponentDescription}"
+                                   Text="Collects audited messages from endpoints for visualization with ServicePulse" />
+                    </StackPanel>
                 </Grid>
-            </Border>
 
-            <TextBlock Grid.Column="0" Grid.Row="1"
-                       Margin="1,10,0,10"
-                       HorizontalAlignment="Left"
-                       VerticalAlignment="Top"
-                       Text="•"
-                       Foreground="{StaticResource Gray90Brush}" />
+                <Grid x:Name="MonitoringRow" Margin="0,8,0,0" Visibility="Collapsed">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Style="{StaticResource CheckGlyph}" Text="&#x2713;" />
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                        <TextBlock Style="{StaticResource ComponentLabel}" Text="Monitoring Instance" />
+                        <TextBlock Style="{StaticResource ComponentDescription}"
+                                   Text="Collects monitoring data from endpoints for visualization with ServicePulse" />
+                    </StackPanel>
+                </Grid>
 
-            <TextBlock Grid.Column="1" Grid.Row="1"
-                       Foreground="{StaticResource Gray90Brush}"
-                       FontSize="13"
-                       Margin="0,10,10,10"
-                       Text="Collects Monitoring data from endpoints running the NServiceBus.Metrics.ServiceControl plugin"
-                       TextWrapping="Wrap" />
+            </StackPanel>
 
-            <ContentControl Grid.Column="0"
-                            Grid.Row="2"
-                            Margin="0,5,3,0"
-                            VerticalContentAlignment="Center" VerticalAlignment="Center"
-                            Width="12"
-                            Height="12"
-                            SnapsToDevicePixels="True"
-                            Foreground="White"
-                            Template="{StaticResource ExternalLink}"
-                            Visibility="Hidden" />
-
-            <TextBlock Grid.Row="2" Grid.Column="1"
-                       Margin="0,10,10,10"
-                       FontSize="13"
-                       FontWeight="Normal"
+            <TextBlock FontSize="11"
+                       FontStyle="Italic"
+                       Foreground="{StaticResource Gray50Brush}"
                        TextWrapping="Wrap"
-                       VerticalAlignment="Center"
-                       Visibility="Hidden">
-                <Hyperlink Foreground="White"
-                           TextDecorations="Underline"
-                           Command="{Binding}">Learn more about monitoring</Hyperlink>
-            </TextBlock>
+                       Margin="0,14,0,0"
+                       Text="Pick a scenario above to change what gets installed." />
 
-        </Grid>
-
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Margin="0,15,0,5">
+                <Button Content="Cancel"
+                        Style="{StaticResource BasicButton}"
+                        Padding="30,8"
+                        Click="Cancel_Click" />
+                <Button Content="Next"
+                        Style="{StaticResource HiliteButton}"
+                        Padding="30,8"
+                        Margin="10,0,0,0"
+                        Click="Next_Click" />
+            </StackPanel>
+        </StackPanel>
     </Grid>
 </UserControl>

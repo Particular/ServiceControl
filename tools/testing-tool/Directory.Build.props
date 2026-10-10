@@ -1,0 +1,24 @@
+<Project>
+
+  <!--
+    The testing tool is a self-contained, stateless .NET 10 service kept outside the main
+    ServiceControl `src/` tree so it is not swept into the platform build. These properties mirror
+    the conventions used by the rest of the repository (warnings-as-errors, code-style enforcement,
+    nullable reference types, implicit usings) without inheriting the platform packaging targets.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors Condition="'$(Configuration)' != 'Debug'">true</TreatWarningsAsErrors>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <NuGetAuditLevel>low</NuGetAuditLevel>
+    <NuGetAuditMode Condition="'$(NuGetAuditMode)' == ''">all</NuGetAuditMode>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(CI)' != ''">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+</Project>

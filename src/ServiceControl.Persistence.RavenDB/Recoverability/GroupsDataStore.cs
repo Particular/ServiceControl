@@ -14,7 +14,7 @@ namespace ServiceControl.Persistence.RavenDB.Recoverability
 
     class GroupsDataStore(IRavenSessionProvider sessionProvider) : IGroupsDataStore
     {
-        public async Task<IList<FailureGroupView>> GetUnresolvedGroupsByClassifier(string classifier, string classifierFilter, CancellationToken cancellationToken = default)
+        public async Task<IList<FailureGroupView>> GetUnresolvedGroupsByClassifier(string classifier, string classifierFilter, PagingInfo pagingInfo, CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var query = Queryable.Where(session.Query<FailureGroupView, FailureGroupsViewIndex>(), v => v.Type == classifier);
@@ -24,8 +24,9 @@ namespace ServiceControl.Persistence.RavenDB.Recoverability
                 query = query.Where(v => v.Title == classifierFilter);
             }
 
-            var groups = await query.OrderByDescending(x => x.Last)
-                .Take(200)
+            var groups = await query
+                .OrderByDescending(view => view.Last)
+                .Paging(pagingInfo)
                 .ToListAsync(cancellationToken);
 
             var commentIds = groups.Select(x => MakeId(x.Id)).ToArray();
@@ -40,7 +41,7 @@ namespace ServiceControl.Persistence.RavenDB.Recoverability
             return groups;
         }
 
-        public async Task<QueryResult<IList<FailureGroupView>>> GetArchivedGroupsByClassifier(string classifier, CancellationToken cancellationToken = default)
+        public async Task<QueryResult<IList<FailureGroupView>>> GetArchivedGroupsByClassifier(string classifier, PagingInfo pagingInfo, CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var groups = session
@@ -49,8 +50,8 @@ namespace ServiceControl.Persistence.RavenDB.Recoverability
                 .Where(v => v.Type == classifier);
 
             var results = await groups
-                .OrderByDescending(x => x.Last)
-                .Take(200) // only show 200 groups
+                .OrderByDescending(view => view.Last)
+                .Paging(pagingInfo)
                 .ToListAsync(cancellationToken);
 
             return new QueryResult<IList<FailureGroupView>>(results, stats.ToQueryStatsInfo());

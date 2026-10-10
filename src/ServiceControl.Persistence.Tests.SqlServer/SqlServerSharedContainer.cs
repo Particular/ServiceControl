@@ -3,11 +3,19 @@ namespace ServiceControl.Persistence.Tests;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 using Testcontainers.MsSql;
 
 static class SqlServerSharedContainer
 {
     const string docsPath = "docs/testing-persistence.md#sql-server";
+
+    /// <summary>
+    /// Tests share one database and take a schema each, so the connection string is used as it
+    /// comes and the database it names has to exist. The container has only master until this
+    /// creates one.
+    /// </summary>
+    const string testDatabaseName = "ServiceControlTests";
 
     public static async Task<string> GetConnectionStringAsync(CancellationToken cancellationToken = default)
     {
@@ -17,16 +25,21 @@ static class SqlServerSharedContainer
             return envConnStr;
         }
 
-        if (container != null)
+        if (connectionString != null)
         {
-            return container.GetConnectionString();
+            return connectionString;
         }
 
         await semaphore.WaitAsync(cancellationToken);
         try
         {
-            container ??= await StartContainerAsync(cancellationToken);
-            return container.GetConnectionString();
+            if (connectionString == null)
+            {
+                container ??= await StartContainerAsync(cancellationToken);
+                connectionString = await CreateTestDatabase(container.GetConnectionString(), cancellationToken);
+            }
+
+            return connectionString;
         }
         finally
         {
@@ -57,6 +70,19 @@ static class SqlServerSharedContainer
         return c;
     }
 
+    static async Task<string> CreateTestDatabase(string serverConnectionString, CancellationToken cancellationToken)
+    {
+        await using var connection = new SqlConnection(serverConnectionString);
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = $"IF DB_ID(N'{testDatabaseName}') IS NULL CREATE DATABASE [{testDatabaseName}]";
+        await command.ExecuteNonQueryAsync(cancellationToken);
+
+        return new SqlConnectionStringBuilder(serverConnectionString) { InitialCatalog = testDatabaseName }.ConnectionString;
+    }
+
     static MsSqlContainer container;
+    static string connectionString;
     static readonly SemaphoreSlim semaphore = new(1, 1);
 }

@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
-    <ProjectReference Include="..\ServiceControl.Audit.Persistence.InMemory\ServiceControl.Audit.Persistence.InMemory.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
     <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
   </ItemGroup>
@@ -22,6 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The InternalCustomCheckClassification code does not exist in Audit, including it here allows an 
+         approval test instead of a very expensive acceptance test. -->
+    <Compile Include="..\ServiceControl.Persistence\InternalCustomCheckClassification.cs" />
     <Compile Include="..\ServiceControl.UnitTests\NUnitParallelRunnerSettings.cs" />
   </ItemGroup>
 </Project>

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
@@ -45,7 +46,7 @@
 
         static string MakeId(Guid id) => $"CustomChecks/{id}";
 
-        public async Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string status = null, CancellationToken cancellationToken = default)
+        public async Task<QueryResult<IList<CustomCheckView>>> GetStats(PagingInfo paging, string status = null, CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var query =
@@ -57,8 +58,24 @@
                 .Paging(paging)
                 .ToListAsync(cancellationToken);
 
-            return new QueryResult<IList<CustomCheck>>(results, stats.ToQueryStatsInfo());
+            // Project to the read model right away: the API gets a copy, never the tracked document.
+            var views = results
+                .Select(ToCustomCheckView)
+                .ToList();
+
+            return new QueryResult<IList<CustomCheckView>>(views, stats.ToQueryStatsInfo());
         }
+
+        static CustomCheckView ToCustomCheckView(CustomCheck customCheck) => new()
+        {
+            Id = customCheck.Id,
+            CustomCheckId = customCheck.CustomCheckId,
+            Category = customCheck.Category,
+            Status = customCheck.Status,
+            ReportedAt = customCheck.ReportedAt,
+            FailureReason = customCheck.FailureReason,
+            OriginatingEndpoint = customCheck.OriginatingEndpoint
+        };
 
         public async Task DeleteCustomCheck(Guid id, CancellationToken cancellationToken = default)
         {

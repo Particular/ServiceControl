@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Transports.SqlServer
 {
+    using System.Collections.Generic;
     using System.Linq;
     using System.Runtime.CompilerServices;
     using BrokerThroughput;
@@ -49,6 +50,20 @@
             services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
             services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
         }
+
+        public override IEnumerable<TransportEnvironmentDatum> GetEnvironmentData(TransportSettings transportSettings) =>
+        [
+            new("Transport.SQLServer.QueueSchema", () =>
+            {
+                transportSettings.ConnectionString.RemoveCustomConnectionStringParts(out var schema, out _);
+                return schema is null ? "Default" : "Custom";
+            }),
+            new("Transport.SQLServer.SubscriptionsTable", () =>
+            {
+                transportSettings.ConnectionString.RemoveCustomConnectionStringParts(out _, out var subscriptionsTable);
+                return subscriptionsTable is null ? "Default" : "Custom";
+            })
+        ];
 
         protected override SqlServerTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {

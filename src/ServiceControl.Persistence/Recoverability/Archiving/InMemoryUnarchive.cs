@@ -8,12 +8,13 @@
 
     public class InMemoryUnarchive // in memory
     {
-        public InMemoryUnarchive(string requestId, ArchiveType archiveType, IDomainEvents domainEvents, ArchiveMetrics? metrics = null)
+        public InMemoryUnarchive(string requestId, ArchiveType archiveType, IDomainEvents domainEvents, TimeProvider timeProvider, ArchiveMetrics? metrics = null)
         {
             RequestId = requestId;
             ArchiveType = archiveType;
             this.domainEvents = domainEvents;
             operationMetrics = metrics?.CreateOperation(ArchiveOperationKind.Unarchive);
+            this.timeProvider = timeProvider;
         }
 
         public int TotalNumberOfMessages { get; set; }
@@ -45,6 +46,12 @@
 
         public Task Start(CancellationToken cancellationToken = default)
         {
+            if (NumberOfMessagesUnarchived > TotalNumberOfMessages)
+            {
+                // Reconcile progress from an older persisted operation.
+                TotalNumberOfMessages = NumberOfMessagesUnarchived;
+            }
+
             ArchiveState = ArchiveState.ArchiveStarted;
             CompletionTime = null;
             operationMetrics?.Started();
@@ -62,8 +69,14 @@
         {
             ArchiveState = ArchiveState.ArchiveProgressing;
             NumberOfMessagesUnarchived += numberOfMessagesUnarchivedInBatch;
+
+            if (NumberOfMessagesUnarchived > TotalNumberOfMessages)
+            {
+                TotalNumberOfMessages = NumberOfMessagesUnarchived;
+            }
+
             CurrentBatch++;
-            Last = DateTime.UtcNow;
+            Last = timeProvider.GetUtcNow().UtcDateTime;
             operationMetrics?.BatchCompleted(numberOfMessagesUnarchivedInBatch);
 
             return domainEvents.Raise(new UnarchiveOperationBatchCompleted
@@ -80,7 +93,7 @@
         {
             ArchiveState = ArchiveState.ArchiveFinalizing;
             NumberOfMessagesUnarchived = TotalNumberOfMessages;
-            Last = DateTime.UtcNow;
+            Last = timeProvider.GetUtcNow().UtcDateTime;
             operationMetrics?.Finalizing();
 
             return domainEvents.Raise(new UnarchiveOperationFinalizing
@@ -97,8 +110,9 @@
         {
             ArchiveState = ArchiveState.ArchiveCompleted;
             NumberOfMessagesUnarchived = TotalNumberOfMessages;
-            CompletionTime = DateTime.UtcNow;
-            Last = DateTime.UtcNow;
+            var completedAt = timeProvider.GetUtcNow().UtcDateTime;
+            CompletionTime = completedAt;
+            Last = completedAt;
             operationMetrics?.Completed();
 
             return domainEvents.Raise(new UnarchiveOperationCompleted
@@ -120,5 +134,6 @@
 
         IDomainEvents domainEvents;
         readonly ArchiveOperationMetrics? operationMetrics;
+        readonly TimeProvider timeProvider;
     }
 }

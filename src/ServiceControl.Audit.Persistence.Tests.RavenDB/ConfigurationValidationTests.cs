@@ -104,6 +104,57 @@
             Assert.Throws<InvalidOperationException>(() => RavenPersistenceConfiguration.GetDatabaseConfiguration(settings));
         }
 
+        [Test]
+        public void Should_default_query_timeout_to_one_minute()
+        {
+            var settings = BuildSettings();
+
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = "connection string";
+
+            var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings);
+
+            Assert.That(configuration.QueryTimeout, Is.EqualTo(TimeSpan.FromMinutes(1)));
+        }
+
+        [Test]
+        public void Should_apply_query_timeout_setting()
+        {
+            var settings = BuildSettings();
+
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = "connection string";
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.QueryTimeoutInSecondsKey] = "120";
+
+            var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings);
+
+            Assert.That(configuration.QueryTimeout, Is.EqualTo(TimeSpan.FromSeconds(120)));
+        }
+
+        [Test]
+        public void Should_fall_back_to_default_query_timeout_when_value_is_not_positive()
+        {
+            var settings = BuildSettings();
+
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = "connection string";
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.QueryTimeoutInSecondsKey] = "0";
+
+            var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings);
+
+            Assert.That(configuration.QueryTimeout, Is.EqualTo(TimeSpan.FromMinutes(1)));
+        }
+
+        [Test]
+        public void Should_fall_back_to_default_query_timeout_when_value_exceeds_maximum()
+        {
+            var settings = BuildSettings();
+
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = "connection string";
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.QueryTimeoutInSecondsKey] = "3700";
+
+            var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings);
+
+            Assert.That(configuration.QueryTimeout, Is.EqualTo(TimeSpan.FromMinutes(1)));
+        }
+
         PersistenceSettings BuildSettings()
         {
             return new PersistenceSettings(TimeSpan.FromMinutes(2), true, 100000);

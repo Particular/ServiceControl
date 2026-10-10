@@ -7,10 +7,11 @@ using ServiceControl.Infrastructure;
 public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration, IPersistenceConfiguration
 {
     const string ConnectionStringKey = "Database/ConnectionString";
-    const string CommandTimeoutKey = "Database/CommandTimeout";
+    internal const string SchemaKey = "Database/Schema";
+    internal const string CommandTimeoutKey = "Database/CommandTimeout";
     const string BodyStorageTypeKey = "MessageBody/StorageType";
     const string FileSystemStoragePathKey = "MessageBody/FileSystem/StoragePath";
-    const string FileSystemDataSpaceRemainingThresholdKey = "MessageBody/FileSystem/DataSpaceRemainingThreshold";
+    internal const string FileSystemDataSpaceRemainingThresholdKey = "MessageBody/FileSystem/DataSpaceRemainingThreshold";
     const string AzureConnectionStringKey = "MessageBody/Azure/ConnectionString";
     const string AzureServiceUriKey = "MessageBody/Azure/ServiceUri";
     const string AzureManagedIdentityClientIdKey = "MessageBody/Azure/ManagedIdentityClientId";
@@ -22,12 +23,14 @@ public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration,
     const string S3ServiceUrlKey = "MessageBody/S3/ServiceUrl";
     const string S3AccessKeyIdKey = "MessageBody/S3/AccessKeyId";
     const string S3SecretAccessKeyKey = "MessageBody/S3/SecretAccessKey";
-    const string MinBodySizeForCompressionKey = "MessageBody/MinCompressionSize";
+    internal const string MinBodySizeForCompressionKey = "MessageBody/MinCompressionSize";
     const string MaxBodySizeToStoreKey = "MaxBodySizeToStore";
     const string ErrorRetentionPeriodKey = "ErrorRetentionPeriod";
     const string EventsRetentionPeriodKey = "EventsRetentionPeriod";
-    const string SubscriptionCacheDurationKey = "SubscriptionCacheDuration";
+    internal const string SubscriptionCacheDurationKey = "SubscriptionCacheDuration";
     const string ExternalIntegrationsDispatchingBatchSizeKey = "ExternalIntegrationsDispatchingBatchSize";
+
+    public bool SupportsMaintenanceMode => false;
 
     public PersistenceSettings CreateSettings(SettingsRootNamespace settingsRootNamespace)
     {
@@ -35,11 +38,13 @@ public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration,
             GetRequiredSetting<string>(settingsRootNamespace, ConnectionStringKey),
             CreateBodyStorageSettings(settingsRootNamespace));
 
+        settings.Schema = ReadSchema(settingsRootNamespace);
         settings.CommandTimeout = SettingsReader.Read(settingsRootNamespace, CommandTimeoutKey, EFPersisterSettings.DefaultCommandTimeout);
         settings.ErrorRetentionPeriod = GetRequiredSetting<TimeSpan>(settingsRootNamespace, ErrorRetentionPeriodKey);
         settings.EventsRetentionPeriod = SettingsReader.Read(settingsRootNamespace, EventsRetentionPeriodKey, EFPersisterSettings.DefaultEventsRetentionPeriod);
         settings.SubscriptionCacheDuration = SettingsReader.Read(settingsRootNamespace, SubscriptionCacheDurationKey, EFPersisterSettings.DefaultSubscriptionCacheDuration);
         settings.ExternalIntegrationsDispatchingBatchSize = ReadExternalIntegrationsDispatchingBatchSize(settingsRootNamespace);
+        settings.QueryTimeout = QueryTimeLimit.Read(settingsRootNamespace, LoggerUtil.CreateStaticLogger<EFPersistenceConfigurationBase>());
 
         return settings;
     }
@@ -47,6 +52,25 @@ public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration,
     public abstract IPersistence Create(PersistenceSettings settings);
 
     protected abstract EFPersisterSettings CreateSettings(string connectionString, BodyStorageSettings bodyStorage);
+
+    static string? ReadSchema(SettingsRootNamespace settingsRootNamespace)
+    {
+        var schema = SettingsReader.Read<string>(settingsRootNamespace, SchemaKey);
+
+        if (string.IsNullOrWhiteSpace(schema))
+        {
+            return null;
+        }
+
+        try
+        {
+            return SchemaName.Validate(schema);
+        }
+        catch (ArgumentException e)
+        {
+            throw new Exception($"Setting {SchemaKey} is invalid. {e.Message}", e);
+        }
+    }
 
     static BodyStorageSettings CreateBodyStorageSettings(SettingsRootNamespace settingsRootNamespace)
     {

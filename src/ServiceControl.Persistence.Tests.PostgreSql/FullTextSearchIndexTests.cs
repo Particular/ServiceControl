@@ -6,9 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 
 /// <summary>
-/// PostgreSQL only uses the GIN index of the AddFullTextSearch migration when the query expression
-/// parses to the same tree as the indexed one. A mismatch is silent: search keeps working, on a
-/// sequential scan of every failed message. These tests need no database.
+/// PostgreSQL only uses the full text GIN index when the query expression parses to the same tree as the indexed one. A mismatch is silent: search keeps working, on a sequential scan of every failed message. These tests need no database.
 /// </summary>
 class FullTextSearchIndexTests
 {

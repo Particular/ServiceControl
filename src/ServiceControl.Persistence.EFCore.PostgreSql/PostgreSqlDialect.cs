@@ -4,9 +4,16 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using ServiceControl.Persistence.EFCore.DbContexts;
+using ServiceControl.Persistence.EFCore.Infrastructure;
 
 abstract class PostgreSqlDialect
 {
+    /// <summary>
+    /// The delimited, schema qualified name of the table an entity is mapped to. Every statement
+    /// below names its target this way so that a configured schema reaches the raw SQL too.
+    /// </summary>
+    protected static string Table<TEntity>(ServiceControlDbContext dbContext) => SchemaQualifiedTableName.For<TEntity>(dbContext);
+
     protected static async Task Execute(ServiceControlDbContext dbContext, string sql, IEnumerable<object?[]> rows, CancellationToken cancellationToken = default)
     {
         await using var command = dbContext.Database.GetDbConnection().CreateCommand();
@@ -53,5 +60,6 @@ abstract class PostgreSqlDialect
         return sql.ToString();
     }
 
+    // Not a ceiling like SQL Server's, which PostgreSQL is nowhere near: a fixed chunk keeps the text down to a full shape and a remainder, so the planner can cache both.
     protected const int MaxRowsPerStatement = 50;
 }

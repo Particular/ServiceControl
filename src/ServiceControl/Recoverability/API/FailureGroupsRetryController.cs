@@ -16,14 +16,15 @@ namespace ServiceControl.Recoverability.API
         IMessageSession bus,
         RetryingManager retryingManager,
         ICurrentUserAccessor userAccessor,
-        IMessageActionAuditLog auditLog) : ControllerBase
+        IMessageActionAuditLog auditLog,
+        TimeProvider timeProvider) : ControllerBase
     {
         [Authorize(Policy = Permissions.ErrorRecoverabilityGroupsRetry)]
         [Route("recoverability/groups/{groupId:required:minlength(1)}/errors/retry")]
         [HttpPost]
         public async Task<IActionResult> ArchiveGroupErrors(string groupId, CancellationToken cancellationToken = default)
         {
-            var started = DateTime.UtcNow;
+            var started = timeProvider.GetUtcNow().UtcDateTime;
 
             if (!retryingManager.IsOperationInProgressFor(groupId, RetryType.FailureGroup))
             {

@@ -12,7 +12,7 @@ class FailedErrorImportConfiguration : IEntityTypeConfiguration<FailedErrorImpor
         builder.Property(e => e.UniqueMessageId).ValueGeneratedNever();
 
         builder.Property(e => e.FailedAt).IsRequired();
-        builder.Property(e => e.MessageId).IsRequired().HasMaxLength(ColumnLengths.ShortTextLength);
+        builder.Property(e => e.MessageId).IsRequired();
         builder.Property(e => e.HeadersJson).IsRequired();
         builder.Property(e => e.Body).IsRequired();
         builder.Property(e => e.BodyStoredExternally).IsRequired();

@@ -8,7 +8,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Audit.AcceptanceTests;
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -50,13 +49,14 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         public async Task Initialize(RunDescriptor run)
         {
             SettingsPerInstance.Clear();
+            storage = new SharedRavenStorageConfiguration();
 
             // The way we are setting up things here means we assume there is only one remote instance. Should we move away from this approach
             // parts of the logic in this class would have to be augmented to dynamically spin up multiple audit instances based on some configuration
             // currently we don't need that so YAGNI.
             auditInstanceComponentRunner = new AuditInstanceTestsSupport.ServiceControlComponentRunner(
                 transportToUse,
-                new AcceptanceTestStorageConfiguration(), auditSettings =>
+                storage, auditSettings =>
                 {
                     auditSettings.ServiceControlQueueAddress = PrimaryInstanceSettings.DEFAULT_INSTANCE_NAME;
                     customServiceControlAuditSettings(auditSettings);
@@ -77,7 +77,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             primaryInstanceComponentRunner = new PrimaryInstanceTestsSupport.ServiceControlComponentRunner(
                 transportToUse,
-                new ServiceControl.AcceptanceTests.RavenDB.AcceptanceTestStorageConfiguration(), primarySettings =>
+                storage, primarySettings =>
                 {
                     primarySettings.RemoteInstances = [auditInstance];
                     customServiceControlSettings(primarySettings);
@@ -120,6 +120,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         {
             await auditInstanceComponentRunner.Stop(cancellationToken);
             await primaryInstanceComponentRunner.Stop(cancellationToken);
+            await storage.Cleanup(cancellationToken);
         }
 
         ITransportIntegration transportToUse;
@@ -129,6 +130,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         Action<IHostApplicationBuilder> primaryHostBuilderCustomization;
         Action<IHostApplicationBuilder> auditHostBuilderCustomization;
         Action<Settings> customServiceControlSettings;
+        SharedRavenStorageConfiguration storage;
         Audit.AcceptanceTests.TestSupport.ServiceControlComponentRunner auditInstanceComponentRunner;
         PrimaryInstanceTestsSupport.ServiceControlComponentRunner primaryInstanceComponentRunner;
     }

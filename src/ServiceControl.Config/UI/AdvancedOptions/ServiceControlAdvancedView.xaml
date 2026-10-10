@@ -46,7 +46,7 @@
                            Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVisInverted}}"
                            Margin="0,0,0,20"
                 >
-                Enter database maintenance mode to access to RavenDB Management Studio.  While in this mode all message processing is disabled and the REST API is unavailable. This will prevent ServicePulse and ServiceInsight connecting to this instance.
+                Enter database maintenance mode to access to RavenDB Management Studio.  While in this mode all message processing is disabled and the REST API is unavailable. This will prevent ServicePulse connecting to this instance.
                 </TextBlock>
 
                 <TextBlock FontSize="12px"
@@ -54,7 +54,7 @@
                            Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVis}}"
                            Margin="0,0,0,20"
                 >
-                This instance is in database maintenance mode. All message processing is disabled and the REST API is unavailable.<LineBreak />ServicePulse and ServiceInsight cannot connect to this instance while it is in maintenance mode.<LineBreak />Launch <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding RavenDbStudioUrl}">
+                This instance is in database maintenance mode. All message processing is disabled and the REST API is unavailable.<LineBreak />ServicePulse cannot connect to this instance while it is in maintenance mode.<LineBreak />Launch <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding RavenDbStudioUrl}">
                         RavenDB Management Studio
                         <Hyperlink.ContextMenu>
                             <ContextMenu>

@@ -1,5 +1,6 @@
 ﻿namespace Particular.LicensingComponent;
 
+using System.Globalization;
 using Contracts;
 
 static class ThroughputDataExtensions
@@ -29,7 +30,7 @@ static class ThroughputDataExtensions
             .Where(x => x.Value >= 0)
             .GroupBy(x => x.Key, x => x.Value)
             .ToLookup(x => x.Key, x => x.Max())
-            .GroupBy(kvp => $"{kvp.Key:yyyy-MM}", x => x.Sum())
+            .GroupBy(kvp => kvp.Key.ToString("yyyy-MM", CultureInfo.InvariantCulture), x => x.Sum())
             .Select(group => new MonthlyThroughput(group.Key, group.Sum()))];
 
     public static long AverageMonthlyThroughput(this List<ThroughputData> throughputs)

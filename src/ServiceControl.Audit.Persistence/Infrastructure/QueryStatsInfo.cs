@@ -1,18 +1,20 @@
 namespace ServiceControl.Audit.Auditing.MessagesView
 {
-    public struct QueryStatsInfo
+    using ServiceControl.Infrastructure;
+
+    public readonly struct QueryStatsInfo
     {
-        public readonly string ETag;
+        public readonly DataVersion Version;
         public readonly long TotalCount;
         public readonly long HighestTotalCountOfAllTheInstances;
 
-        public QueryStatsInfo(string eTag, long totalCount, long? highestTotalCountOfAllTheInstances = null)
+        public QueryStatsInfo(DataVersion version, long totalCount, long? highestTotalCountOfAllTheInstances = null)
         {
-            ETag = eTag;
+            Version = version;
             TotalCount = totalCount;
             HighestTotalCountOfAllTheInstances = highestTotalCountOfAllTheInstances ?? totalCount;
         }
 
-        public static readonly QueryStatsInfo Zero = new QueryStatsInfo(string.Empty, 0);
+        public static readonly QueryStatsInfo Zero = new(DataVersion.None, 0);
     }
 }

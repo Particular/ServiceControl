@@ -1,10 +1,10 @@
 namespace ServiceControl.AcceptanceTests.SqlServer;
 
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
 using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.AcceptanceTests.TestSupport;
 using ServiceControl.Persistence.EFCore.Abstractions;
@@ -17,19 +17,22 @@ public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfigur
 
     public async Task CustomizeSettings(Settings settings, CancellationToken cancellationToken = default)
     {
-        databaseName = $"sc_at_{Guid.NewGuid():n}";
-        serverConnectionString = await SqlServerSharedContainer.GetConnectionStringAsync(cancellationToken).ConfigureAwait(false);
+        var schema = $"sc_at_{Guid.NewGuid():n}";
+        var bodyStoragePath = Directory.CreateTempSubdirectory("sc_at_bodies_").FullName;
 
-        var connectionStringBuilder = new SqlConnectionStringBuilder(serverConnectionString)
-        {
-            InitialCatalog = databaseName
-        };
+        connectionString = await SqlServerSharedContainer.GetConnectionStringAsync(cancellationToken).ConfigureAwait(false);
+        await TestSchema.Create(connectionString, schema, cancellationToken).ConfigureAwait(false);
 
-        bodyStoragePath = Directory.CreateTempSubdirectory("sc_at_bodies_").FullName;
+        // A test that runs more than one scenario comes back through here, and the runner cleans up
+        // after each one. Recording everything created, rather than keeping only the most recent,
+        // is what stops the earlier schema being stranded in the shared database.
+        schemas.Add(schema);
+        bodyStoragePaths.Add(bodyStoragePath);
 
         settings.PersisterSpecificSettings = new SqlServerPersisterSettings
         {
-            ConnectionString = connectionStringBuilder.ConnectionString,
+            ConnectionString = connectionString,
+            Schema = schema,
             ErrorRetentionPeriod = TimeSpan.FromDays(10),
             BodyStorage = new FileSystemBodyStorageSettings { StoragePath = bodyStoragePath }
         };
@@ -37,39 +40,16 @@ public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfigur
 
     public async Task Cleanup(CancellationToken cancellationToken = default)
     {
-        if (Interlocked.Exchange(ref cleanupStarted, 1) != 0)
-        {
-            return;
-        }
-
         try
         {
-            if (serverConnectionString == null || databaseName == null)
+            while (schemas.TryTake(out var schema))
             {
-                return;
-            }
-
-            var connection = new SqlConnection(serverConnectionString);
-            await using (connection.ConfigureAwait(false))
-            {
-                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-                var command = connection.CreateCommand();
-                await using (command.ConfigureAwait(false))
-                {
-                    command.CommandText = $"""
-                        IF DB_ID('{databaseName}') IS NOT NULL
-                        BEGIN
-                            ALTER DATABASE [{databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-                            DROP DATABASE [{databaseName}];
-                        END
-                        """;
-                    await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-                }
+                await TestSchema.Drop(connectionString, schema, cancellationToken).ConfigureAwait(false);
             }
         }
         finally
         {
-            if (bodyStoragePath != null)
+            while (bodyStoragePaths.TryTake(out var bodyStoragePath))
             {
                 try
                 {
@@ -97,8 +77,7 @@ public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfigur
         }
     }
 
-    string serverConnectionString;
-    string databaseName;
-    string bodyStoragePath;
-    int cleanupStarted;
+    readonly ConcurrentBag<string> schemas = [];
+    readonly ConcurrentBag<string> bodyStoragePaths = [];
+    string connectionString;
 }

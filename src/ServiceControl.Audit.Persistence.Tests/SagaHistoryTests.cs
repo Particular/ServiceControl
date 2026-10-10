@@ -21,7 +21,7 @@
                 }
                 );
 
-            var queryResult = await DataStore.QuerySagaHistoryById(sagaId, TestContext.CurrentContext.CancellationToken);
+            var queryResult = await SagaHistoryStore.QuerySagaHistoryById(sagaId, TestContext.CurrentContext.CancellationToken);
 
             using (Assert.EnterMultipleScope())
             {
@@ -36,7 +36,7 @@
         public async Task Handles_no_results_gracefully()
         {
             var nonExistentSagaId = Guid.NewGuid();
-            var queryResult = await DataStore.QuerySagaHistoryById(nonExistentSagaId, TestContext.CurrentContext.CancellationToken);
+            var queryResult = await SagaHistoryStore.QuerySagaHistoryById(nonExistentSagaId, TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResult.Results, Is.Null);
         }
@@ -53,7 +53,7 @@
                 new SagaSnapshot { SagaId = sagaId }
             );
 
-            var queryResult = await DataStore.QuerySagaHistoryById(sagaId, TestContext.CurrentContext.CancellationToken);
+            var queryResult = await SagaHistoryStore.QuerySagaHistoryById(sagaId, TestContext.CurrentContext.CancellationToken);
 
             Assert.That(queryResult.Results.Changes, Has.Count.EqualTo(2));
         }
@@ -61,12 +61,12 @@
 
         async Task IngestSagaAudits(params SagaSnapshot[] snapshots)
         {
-            var unitOfWork = await StartAuditUnitOfWork(snapshots.Length);
+            await using var unitOfWork = await StartAuditUnitOfWork(snapshots.Length);
             foreach (var snapshot in snapshots)
             {
                 await unitOfWork.RecordSagaSnapshot(snapshot);
             }
-            await unitOfWork.DisposeAsync();
+            await unitOfWork.Complete();
             await configuration.CompleteDBOperation();
         }
     }

@@ -10,14 +10,14 @@ using ServiceControl.Persistence.Infrastructure;
 public class MessagesViewDataStore(IServiceScopeFactory scopeFactory, IFullTextSearchDialect fullTextSearch) : DataStoreBase(scopeFactory), IMessagesViewDataStore
 {
     public Task<QueryResult<IList<MessagesView>>> GetAllMessages(PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext((dbContext, token) => dbContext.FailedMessages
+        ExecuteQueryWithDbContext((dbContext, token) => dbContext.FailedMessages
             .AsNoTracking()
             .IncludeSystemMessagesWhere(includeSystemMessages)
             .FilterBySentTimeRange(timeSentRange)
             .ToPagedMessagesResult(pagingInfo, sortInfo, token), cancellationToken);
 
     public Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext((dbContext, token) => dbContext.FailedMessages
+        ExecuteQueryWithDbContext((dbContext, token) => dbContext.FailedMessages
             .AsNoTracking()
             .Where(message => message.ReceivingEndpointName == endpointName)
             .IncludeSystemMessagesWhere(includeSystemMessages)
@@ -26,18 +26,18 @@ public class MessagesViewDataStore(IServiceScopeFactory scopeFactory, IFullTextS
 
     // includeSystemMessages is unused here: a conversation is incomplete without the system messages that took part in it.
     public Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext((dbContext, token) => dbContext.FailedMessages
+        ExecuteQueryWithDbContext((dbContext, token) => dbContext.FailedMessages
             .AsNoTracking()
             .Where(message => message.ConversationId == conversationId)
             .ToPagedMessagesResult(pagingInfo, sortInfo, token), cancellationToken);
 
     public Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(string searchTerms, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext((dbContext, token) => Search(dbContext.FailedMessages.AsNoTracking(), searchTerms)
+        ExecuteQueryWithDbContext((dbContext, token) => Search(dbContext.FailedMessages.AsNoTracking(), searchTerms)
             .FilterBySentTimeRange(timeSentRange)
             .ToPagedMessagesResult(pagingInfo, sortInfo, token), cancellationToken);
 
     public Task<QueryResult<IList<MessagesView>>> SearchEndpointMessages(string endpointName, string searchKeyword, PagingInfo pagingInfo, SortInfo sortInfo, DateTimeRange? timeSentRange = null, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext((dbContext, token) => Search(dbContext.FailedMessages.AsNoTracking(), searchKeyword)
+        ExecuteQueryWithDbContext((dbContext, token) => Search(dbContext.FailedMessages.AsNoTracking(), searchKeyword)
             .Where(message => message.ReceivingEndpointName == endpointName)
             .FilterBySentTimeRange(timeSentRange)
             .ToPagedMessagesResult(pagingInfo, sortInfo, token), cancellationToken);

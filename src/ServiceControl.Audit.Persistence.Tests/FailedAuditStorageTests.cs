@@ -1,8 +1,10 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using NServiceBus;
     using NUnit.Framework;
     using ServiceControl.Audit.Auditing;
 
@@ -19,6 +21,35 @@
             var numFailures = await FailedAuditStorage.GetFailedAuditsCount();
 
             Assert.That(numFailures, Is.EqualTo(1));
+        }
+
+        [Test]
+        public async Task Repeated_failure_of_the_same_message_stores_one_document()
+        {
+            var headers = new Dictionary<string, string>
+            {
+                { Headers.MessageId, "message-1" },
+                { Headers.ProcessingEndpoint, "Sales" }
+            };
+            await FailedAuditStorage.SaveFailedAuditImport(new FailedAuditImport { Id = FailedAuditImport.DeriveKey(headers, "native-1").ToString() });
+            await FailedAuditStorage.SaveFailedAuditImport(new FailedAuditImport { Id = FailedAuditImport.DeriveKey(headers, "native-1").ToString() });
+            await configuration.CompleteDBOperation();
+
+            Assert.That(await FailedAuditStorage.GetFailedAuditsCount(), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void DeriveKey_uses_retry_id_or_falls_back_for_malformed_headers()
+        {
+            var retryId = Guid.NewGuid();
+            var headers = new Dictionary<string, string> { ["ServiceControl.Retry.UniqueMessageId"] = retryId.ToString() };
+
+            var fallback = FailedAuditImport.DeriveKey(new Dictionary<string, string>(), "native-1");
+            Assert.That(FailedAuditImport.DeriveKey(headers, "native-1"), Is.EqualTo(retryId));
+            Assert.That(FailedAuditImport.DeriveKey(new Dictionary<string, string>(), "native-1"), Is.EqualTo(fallback));
+            Assert.That(FailedAuditImport.DeriveKey(new Dictionary<string, string>(), "native-2"), Is.Not.EqualTo(fallback));
+            headers["ServiceControl.Retry.UniqueMessageId"] = "not-a-guid";
+            Assert.That(FailedAuditImport.DeriveKey(headers, "native-1"), Is.EqualTo(fallback));
         }
 
         [Test]

@@ -71,7 +71,7 @@ public sealed class MessageActionAuditLog : IMessageActionAuditLog
             {
                 kind = "event",
                 category = new[] { "configuration" },
-                type = new[] { kind == MessageActionKind.Archive ? "deletion" : "change" },
+                type = new[] { kind is MessageActionKind.Archive or MessageActionKind.Delete ? "deletion" : "change" },
                 action = permission,
                 outcome = success ? "success" : "failure"
             },

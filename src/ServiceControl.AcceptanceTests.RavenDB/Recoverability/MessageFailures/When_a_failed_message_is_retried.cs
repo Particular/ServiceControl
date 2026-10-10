@@ -16,6 +16,7 @@
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Persistence;
     using ServiceControl.Recoverability;
 
     class When_a_failed_message_is_retried : AcceptanceTest
@@ -108,6 +109,7 @@
         public async Task Should_remove_UnacknowledgedOperation_when_retrying_individual_messages()
         {
             RetryHistory retryHistory = null;
+            var beforeTheRetryWasAskedFor = DateTime.UtcNow;
 
             await Define<Context>()
                 .WithEndpoint<FailingEndpoint>(b => b.When(async ctx =>
@@ -142,7 +144,13 @@
                 })
                 .Run();
 
-            Assert.That(retryHistory.UnacknowledgedOperations, Is.Empty, "Unucknowledged retry operation not removed");
+            var historic = retryHistory.HistoricOperations.Single(operation => operation.RetryType == RetryType.MultipleMessages);
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(retryHistory.UnacknowledgedOperations, Is.Empty, "Unucknowledged retry operation not removed");
+                Assert.That(historic.StartTime, Is.GreaterThanOrEqualTo(beforeTheRetryWasAskedFor), "a retry that never waited used to record 01 Jan 0001 as its start time");
+                Assert.That(historic.StartTime, Is.LessThanOrEqualTo(historic.CompletionTime), "a retry cannot have finished before it started");
+            }
         }
 
         [Test]

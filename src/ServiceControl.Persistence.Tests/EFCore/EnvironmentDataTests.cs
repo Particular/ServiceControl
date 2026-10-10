@@ -45,65 +45,30 @@ class DatabaseHostClassifierTests
 class EFEnvironmentDataProviderTests
 {
     [Test]
-    public async Task Should_report_managed_identity_for_azure_blob_service_uri()
+    public async Task Should_report_azure_blob_body_storage()
     {
         var data = await GetData(new AzureBlobBodyStorageSettings
         {
             Authentication = new AzureBlobManagedIdentityAuthentication { ServiceUri = new Uri("https://account.blob.core.windows.net") }
         });
 
-        Assert.Multiple(() =>
-        {
-            Assert.That(data["Persistence.BodyStorage.Type"], Is.EqualTo("AzureBlob"));
-            Assert.That(data["Persistence.BodyStorage.Auth"], Is.EqualTo("ManagedIdentity"));
-        });
+        Assert.That(data["Storage.BodyStorage.Type"], Is.EqualTo("AzureBlob"));
     }
 
     [Test]
-    public async Task Should_report_shared_key_for_azure_blob_connection_string()
-    {
-        var data = await GetData(new AzureBlobBodyStorageSettings
-        {
-            Authentication = new AzureBlobSharedKeyAuthentication { ConnectionString = "UseDevelopmentStorage=true" }
-        });
-
-        Assert.That(data["Persistence.BodyStorage.Auth"], Is.EqualTo("SharedKeyOrSas"));
-    }
-
-    [Test]
-    public async Task Should_report_iam_role_when_s3_has_no_static_credentials()
+    public async Task Should_report_s3_body_storage()
     {
         var data = await GetData(new S3BodyStorageSettings { BucketName = "bodies" });
 
-        Assert.Multiple(() =>
-        {
-            Assert.That(data["Persistence.BodyStorage.Type"], Is.EqualTo("S3"));
-            Assert.That(data["Persistence.BodyStorage.Auth"], Is.EqualTo("IamRole"));
-        });
+        Assert.That(data["Storage.BodyStorage.Type"], Is.EqualTo("S3"));
     }
 
     [Test]
-    public async Task Should_report_static_credentials_when_s3_has_an_access_key()
-    {
-        var data = await GetData(new S3BodyStorageSettings
-        {
-            BucketName = "bodies",
-            Credentials = new S3StaticCredentials { AccessKeyId = "key", SecretAccessKey = "secret" }
-        });
-
-        Assert.That(data["Persistence.BodyStorage.Auth"], Is.EqualTo("StaticCredentials"));
-    }
-
-    [Test]
-    public async Task Should_report_file_system_body_storage_as_not_applicable_for_auth()
+    public async Task Should_report_file_system_body_storage()
     {
         var data = await GetData(new FileSystemBodyStorageSettings { StoragePath = "/var/lib/servicecontrol" });
 
-        Assert.Multiple(() =>
-        {
-            Assert.That(data["Persistence.BodyStorage.Type"], Is.EqualTo("FileSystem"));
-            Assert.That(data["Persistence.BodyStorage.Auth"], Is.EqualTo("NotApplicable"));
-        });
+        Assert.That(data["Storage.BodyStorage.Type"], Is.EqualTo("FileSystem"));
     }
 
     [Test]
@@ -128,9 +93,9 @@ class EFEnvironmentDataProviderTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(data["Persistence.Hosting"], Is.EqualTo("Unknown"));
-            Assert.That(data["Persistence.ServerVersion"], Is.EqualTo("Unknown"));
-            Assert.That(data["Persistence.HostingSource"], Is.EqualTo("None"));
+            Assert.That(data["Storage.Hosting"], Is.EqualTo("Unknown"));
+            Assert.That(data["Storage.ServerVersion"], Is.EqualTo("Unknown"));
+            Assert.That(data["Storage.HostingSource"], Is.EqualTo("None"));
         });
     }
 

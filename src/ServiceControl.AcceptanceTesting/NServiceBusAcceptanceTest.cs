@@ -6,6 +6,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;
+    using NUnit.Framework.Interfaces;
     using NUnit.Framework.Internal;
 
     /// <summary>
@@ -49,6 +50,22 @@
 
             TestContext.Out.WriteLine($@"Context:
 {string.Join(Environment.NewLine, scenarioContext.GetType().GetProperties().Select(p => $"{p.Name} = {p.GetValue(scenarioContext, null)}"))}");
+
+            var result = TestExecutionContext.CurrentContext.CurrentResult.ResultState;
+
+            if (result == ResultState.Failure || result == ResultState.Error)
+            {
+                // The test endpoints only log here. ServiceControl's own host logs here too, on top of
+                // the live output it already writes, so its lines appear twice for a failed test.
+                TestContext.Out.WriteLine();
+                TestContext.Out.WriteLine($"Log entries (log level: {scenarioContext.LogLevel}):");
+                TestContext.Out.WriteLine("--- Start log entries ---------------------------------------------------");
+                foreach (var logEntry in scenarioContext.Logs)
+                {
+                    TestContext.Out.WriteLine($"{logEntry.Timestamp:T} {logEntry.Level} {logEntry.Endpoint ?? TestContext.CurrentContext.Test.Name}: {logEntry.Message}");
+                }
+                TestContext.Out.WriteLine("--- End log entries -----------------------------------------------------");
+            }
         }
     }
 }

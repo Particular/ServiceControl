@@ -36,6 +36,12 @@
 
     <!-- Error ingestion only mode is supported on SQL Server and PostgreSQL storage only. -->
     <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\When_hosting_error_ingestion_only.cs" />
+
+    <!-- The file system body storage custom check is an EF Core persister feature; RavenDB stores bodies in the database. -->
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Monitoring\CustomChecks\When_the_body_storage_check_is_reported.cs" />
+
+    <!-- RavenDB is the one persister that supports maintenance mode; StartupModeTests covers it. -->
+    <Compile Remove="..\ServiceControl.AcceptanceTests\MaintenanceModeTests.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -22,7 +22,7 @@ namespace ServiceControl.SagaAudit
             QueryResult<SagaHistory> result =
                 await getSagaByIdApi.Execute(new SagaByIdContext(pagingInfo, id), Request.GetEncodedPathAndQuery(), cancellationToken);
 
-            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
+            Response.WithScatterGatherResult(result, pagingInfo);
             return result.Results;
         }
     }

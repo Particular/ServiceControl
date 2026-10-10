@@ -70,6 +70,9 @@
             transportCustomization.AddTransportForPrimary(services, transportSettings);
 
             services.Configure<HostOptions>(options => options.ShutdownTimeout = settings.ShutdownTimeout);
+
+            services.TryAddSingleton(TimeProvider.System);
+
             services.AddSingleton<IDomainEvents, DomainEvents>();
 
             // Message-action audit trail. Registered here rather than in AddServiceControlAuthorization
@@ -81,6 +84,9 @@
             services.AddSingleton(settings);
             services.AddEnvironmentDataProvider<ServiceControlErrorInstanceEnvironmentDataProvider>();
             services.AddEnvironmentDataProvider<HostEnvironmentDataProvider>();
+            services.AddEnvironmentDataProvider<ErrorInstanceTuningEnvironmentDataProvider>();
+            services.AddEnvironmentDataProvider<ErrorInstanceStoredChoicesEnvironmentDataProvider>();
+            services.AddEnvironmentDataProvider<TransportEnvironmentDataProvider>();
 
             services.AddHttpLogging(options =>
             {
@@ -108,6 +114,9 @@
             {
                 // Ingestion receives through its own transport infrastructure and forwards through
                 // that same infrastructure's dispatcher, so the endpoint is not hosted at all.
+                // A hosted endpoint gets this default from CustomizePrimaryEndpoint, which this branch skips.
+                transportSettings.MaxConcurrency ??= 10;
+
                 var machineName = NServiceBus.Support.RuntimeEnvironment.MachineName;
                 services.AddSingleton(new HostInformation(
                     DeterministicGuid.MakeId(machineName, settings.InstanceName),

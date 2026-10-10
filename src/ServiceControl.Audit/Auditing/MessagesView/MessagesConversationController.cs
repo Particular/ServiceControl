@@ -12,7 +12,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 
     [ApiController]
     [Route("api")]
-    public class MessagesConversationController(IAuditDataStore dataStore) : ControllerBase
+    public class MessagesConversationController(IAuditMessagesViewDataStore dataStore) : ControllerBase
     {
         [Authorize(Policy = Permissions.AuditMessageView)]
         [Route("conversations/{conversationId}")]

@@ -32,6 +32,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     {
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
         public HttpClient HttpClient { get; private set; }
+        public IServiceProvider ServiceProvider { get; private set; }
         public JsonSerializerOptions SerializerOptions => Infrastructure.SerializerOptions.Default;
 
         public Task Initialize(RunDescriptor run, CancellationToken cancellationToken = default) => InitializeServiceControl(run.ScenarioContext, cancellationToken);
@@ -129,19 +130,28 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 host.UseServiceControlMonitoring(settings.ForwardedHeadersSettings, settings.HttpsSettings, settings.CorsSettings);
                 await host.StartAsync(cancellationToken);
 
+                ServiceProvider = host.Services;
+
                 HttpClient = host.Services.GetRequiredKeyedService<TestServer>(settings.InstanceName).CreateClient();
             }
         }
 
         public override async Task Stop(CancellationToken cancellationToken = default)
         {
+            // The scenario passes the test's own token here, which has already fired when the test timed out.
+            // Stopping with it aborts the host mid-shutdown, and the exception that produces replaces the
+            // timeout as the reported failure. Shutdown gets its own budget instead.
+            using var shutdown = new CancellationTokenSource(ShutdownTimeout);
+
             using (new DiagnosticTimer($"Test TearDown for {settings.InstanceName}"))
             {
-                await host.StopAsync(cancellationToken);
+                await host.StopAsync(shutdown.Token);
                 HttpClient.Dispose();
                 await host.DisposeAsync();
             }
         }
+
+        static readonly TimeSpan ShutdownTimeout = TimeSpan.FromSeconds(30);
 
         WebApplication host;
         Settings settings;

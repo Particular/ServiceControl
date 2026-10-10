@@ -14,9 +14,11 @@
     using ServiceControl.Audit.Persistence.RavenDB;
     using UnitOfWork;
 
-    class PersistenceTestsConfiguration
+    class PersistenceTestsConfiguration : IPersistenceTestsConfiguration
     {
-        public IAuditDataStore AuditDataStore { get; private set; }
+        public IAuditMessagesViewDataStore MessagesViewStore { get; private set; }
+
+        public ISagaHistoryDataStore SagaHistoryStore { get; private set; }
 
         public IFailedAuditStorage FailedAuditStorage { get; private set; }
 
@@ -78,7 +80,8 @@
             host = hostBuilder.Build();
             await host.StartAsync();
 
-            AuditDataStore = host.Services.GetRequiredService<IAuditDataStore>();
+            MessagesViewStore = host.Services.GetRequiredService<IAuditMessagesViewDataStore>();
+            SagaHistoryStore = host.Services.GetRequiredService<ISagaHistoryDataStore>();
             FailedAuditStorage = host.Services.GetRequiredService<IFailedAuditStorage>();
 
             var documentStoreProvider = host.Services.GetRequiredService<IRavenDocumentStoreProvider>();
@@ -92,11 +95,7 @@
             AuditIngestionUnitOfWorkFactory = host.Services.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
         }
 
-        public Task CompleteDBOperation()
-        {
-            DocumentStore.WaitForIndexing();
-            return Task.CompletedTask;
-        }
+        public Task CompleteDBOperation() => DocumentStore.WaitForIndexingAsync();
 
         public async Task Cleanup()
         {

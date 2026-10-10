@@ -19,8 +19,11 @@ class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
         builder.Property(e => e.LastTimeOfFailure).IsRequired();
         builder.Property(e => e.LastAttemptedAt).IsRequired();
 
-        builder.Property(e => e.MessageId).HasMaxLength(ColumnLengths.ShortTextLength);
-        builder.Property(e => e.ConversationId).HasMaxLength(ColumnLengths.ShortTextLength);
+        builder.Property(e => e.MessageType).HasMaxLength(ColumnLengths.ShortTextLength);
+        // The converter also runs on every value a query compares with the column, so a lookup by the full id finds the stored form.
+        builder.Property(e => e.ConversationId)
+            .HasMaxLength(ColumnLengths.ShortTextLength)
+            .HasConversion(value => ColumnLengths.FitToIndex(value), value => value);
         builder.Property(e => e.SendingEndpointName).HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.SendingEndpointHost).HasMaxLength(ColumnLengths.ShortTextLength);
         builder.Property(e => e.ReceivingEndpointName).HasMaxLength(ColumnLengths.ShortTextLength);
@@ -33,7 +36,17 @@ class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
         builder.Property(e => e.BodyStoredExternally).IsRequired();
         builder.Property(e => e.BodySize).IsRequired();
 
-        builder.HasIndex(e => new { e.Status, e.LastModified });
+        // Serves the failed-messages page sorted by time_of_failure (ServicePulse default sort).
+        // Keyed (Status, LastTimeOfFailure) so the page query streams instead of scanning the
+        // clustered table.
+        builder.HasIndex(e => new { e.Status, e.LastTimeOfFailure });
+
+        // Serves the failed-messages page sorted by message_type. UniqueMessageId is an explicit
+        // key column and not just the SQL Server row locator: a message type repeats across many
+        // failed messages, and the page query's tie-break (ORDER BY MessageType DESC,
+        // UniqueMessageId DESC) has to come from the index itself on providers without a row
+        // locator concept (PostgreSQL), or the sort degrades to sorting every tie group.
+        builder.HasIndex(e => new { e.Status, e.MessageType, e.UniqueMessageId });
         builder.HasIndex(e => e.ReceivingEndpointName);
         builder.HasIndex(e => e.FailingEndpointAddress);
         builder.HasIndex(e => e.ConversationId);

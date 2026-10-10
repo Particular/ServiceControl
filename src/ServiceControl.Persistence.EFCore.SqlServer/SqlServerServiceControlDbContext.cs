@@ -1,6 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.SqlServer;
 
-using System;
+using EntityConfigurations;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using ServiceControl.MessageFailures;
@@ -9,21 +9,11 @@ using ServiceControl.Persistence.EFCore.Entities;
 
 public class SqlServerServiceControlDbContext(DbContextOptions<SqlServerServiceControlDbContext> options) : ServiceControlDbContext(options)
 {
-    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
-    {
-        base.ConfigureConventions(configurationBuilder);
-
-        configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
-        configurationBuilder.Properties<DateTime?>().HaveConversion<NullableUtcDateTimeConverter>();
-    }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
-        modelBuilder.Entity<FailedMessageEntity>()
-            .HasIndex(e => e.StatusChangedAt)
-            .HasFilter($"[Status] IN ({(int)FailedMessageStatus.Resolved}, {(int)FailedMessageStatus.Archived})");
+        modelBuilder.ApplyConfiguration(new FailedMessageConfiguration());
+        modelBuilder.ApplyConfiguration(new FailedMessageGroupConfiguration());
     }
 
     public override bool IsDuplicateKeyException(DbUpdateException exception)

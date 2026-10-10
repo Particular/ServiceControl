@@ -17,7 +17,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -165,7 +165,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.HasIndex("RaisedAt", "Id")
                         .IsDescending();
 
-                    b.ToTable("EventLogItems", (string)null);
+                    b.ToTable("EventLogItems");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.ExternalIntegrationDispatchRequestEntity", b =>
@@ -187,7 +187,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ExternalIntegrationDispatchRequests", (string)null);
+                    b.ToTable("ExternalIntegrationDispatchRequests");
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedErrorImportEntity", b =>
@@ -215,8 +215,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.Property<string>("MessageId")
                         .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("UniqueMessageId");
 
@@ -295,11 +294,11 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("MessageId")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("MessageType")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("NumberOfProcessingAttempts")
                         .HasColumnType("int");
@@ -350,6 +349,12 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.HasIndex("Status", "LastModified");
 
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("Status", "LastModified"), new[] { "FirstTimeOfFailure", "LastTimeOfFailure" });
+
+                    b.HasIndex("Status", "LastTimeOfFailure");
+
+                    b.HasIndex("Status", "MessageType", "UniqueMessageId");
+
                     b.ToTable("FailedMessages");
                 });
 
@@ -376,6 +381,8 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                     b.HasIndex("GroupId");
 
                     b.HasIndex("Type", "GroupId");
+
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("Type", "GroupId"), new[] { "Title" });
 
                     b.ToTable("FailedMessageGroups");
                 });

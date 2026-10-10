@@ -1,6 +1,7 @@
 ﻿namespace Particular.LicensingComponent;
 
 using System;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using AuditThroughput;
@@ -167,8 +168,8 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
             IgnoredQueues = [.. ignoredQueueNames],
             Queues = [.. queueThroughputs],
             TotalQueues = queueThroughputs.Count,
-            TotalThroughput = queueThroughputs.Sum(q => q.Throughput ?? 0),
-            EnvironmentInformation = new EnvironmentInformation { AuditServicesData = new AuditServicesData(auditServiceMetadata.Versions, auditServiceMetadata.Transports), EnvironmentData = brokerMetaData.Data }
+            // A copy, because the report adds its own keys. The data store can return a shared instance.
+            EnvironmentInformation = new EnvironmentInformation { AuditServicesData = new AuditServicesData(auditServiceMetadata.Versions, auditServiceMetadata.Transports), EnvironmentData = new Dictionary<string, string>(brokerMetaData.Data) }
         };
 
         var auditThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromAudit);
@@ -186,6 +187,16 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
         report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.ServicePulseVersion.ToString()] = spVersion;
         report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.AuditEnabled.ToString()] = systemHasAuditEnabled.ToString();
         report.EnvironmentInformation.EnvironmentData[EnvironmentDataType.MonitoringEnabled.ToString()] = systemHasMonitoringEnabled.ToString();
+
+        if (auditServiceMetadata.ConfiguredInstances is { } configuredAuditInstances)
+        {
+            report.EnvironmentInformation.EnvironmentData["Audit.ConfiguredInstances"] = configuredAuditInstances.ToString(CultureInfo.InvariantCulture);
+        }
+
+        if (auditServiceMetadata.LiveInstances is { } liveAuditInstances)
+        {
+            report.EnvironmentInformation.EnvironmentData["Audit.LiveInstances"] = liveAuditInstances.ToString(CultureInfo.InvariantCulture);
+        }
 
         foreach (var environmentDataProvider in environmentDataProviders)
         {

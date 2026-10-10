@@ -18,7 +18,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -204,7 +204,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .IsDescending()
                         .HasDatabaseName("ix_event_log_items_raised_at_id");
 
-                    b.ToTable("EventLogItems", (string)null);
+                    b.ToTable("event_log_items", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.ExternalIntegrationDispatchRequestEntity", b =>
@@ -230,7 +230,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.HasKey("Id")
                         .HasName("pk_external_integration_dispatch_requests");
 
-                    b.ToTable("ExternalIntegrationDispatchRequests", (string)null);
+                    b.ToTable("external_integration_dispatch_requests", (string)null);
                 });
 
             modelBuilder.Entity("ServiceControl.Persistence.EFCore.Entities.FailedErrorImportEntity", b =>
@@ -264,8 +264,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 
                     b.Property<string>("MessageId")
                         .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasColumnType("text")
                         .HasColumnName("message_id");
 
                     b.HasKey("UniqueMessageId")
@@ -366,12 +365,12 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnName("last_time_of_failure");
 
                     b.Property<string>("MessageId")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasColumnType("text")
                         .HasColumnName("message_id");
 
                     b.Property<string>("MessageType")
-                        .HasColumnType("text")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
                         .HasColumnName("message_type");
 
                     b.Property<int>("NumberOfProcessingAttempts")
@@ -437,8 +436,16 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.HasIndex("TimeSent")
                         .HasDatabaseName("ix_failed_messages_time_sent");
 
-                    b.HasIndex("Status", "LastModified")
-                        .HasDatabaseName("ix_failed_messages_status_last_modified");
+                    b.HasIndex("Status", "LastTimeOfFailure")
+                        .HasDatabaseName("ix_failed_messages_status_last_time_of_failure");
+
+                    b.HasIndex("Status", "LastModified", "UniqueMessageId")
+                        .HasDatabaseName("ix_failed_messages_status_last_modified_unique_message_id");
+
+                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("Status", "LastModified", "UniqueMessageId"), new[] { "FirstTimeOfFailure", "LastTimeOfFailure" });
+
+                    b.HasIndex("Status", "MessageType", "UniqueMessageId")
+                        .HasDatabaseName("ix_failed_messages_status_message_type_unique_message_id");
 
                     b.ToTable("failed_messages", (string)null);
                 });
@@ -473,6 +480,8 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
 
                     b.HasIndex("Type", "GroupId")
                         .HasDatabaseName("ix_failed_message_groups_type_group_id");
+
+                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("Type", "GroupId"), new[] { "FailedMessageUniqueId", "Title" });
 
                     b.ToTable("failed_message_groups", (string)null);
                 });

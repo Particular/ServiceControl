@@ -15,8 +15,8 @@ using ServiceControl.Infrastructure.Auth;
 /// a role (e.g. <c>reader</c> / <c>writer</c>) that grants the requested permission. Every decision is
 /// captured through <see cref="IAuthorizationAuditLog"/> for compliance.
 /// <para>
-/// Only registered — and only reached — when OIDC is enabled. When it is disabled,
-/// <see cref="PermissionPolicyProvider"/> returns an allow-all policy that carries no
+/// Only reached when authentication and role-based authorization are both enabled. Otherwise
+/// <see cref="PermissionPolicyProvider"/> returns policies that carry no
 /// <see cref="PermissionRequirement"/>, so this handler is not needed.
 /// </para>
 /// </summary>

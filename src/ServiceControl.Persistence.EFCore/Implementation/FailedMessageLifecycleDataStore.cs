@@ -7,7 +7,8 @@ using ServiceControl.MessageFailures;
 /// <summary>
 /// Every operation here has to update both StatusChangedAt and LastModified.
 /// </summary>
-public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory) : DataStoreBase(scopeFactory), IFailedMessageLifecycleDataStore
+public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory, TimeProvider timeProvider)
+    : DataStoreBase(scopeFactory), IFailedMessageLifecycleDataStore
 {
     public async Task MarkAsArchived(string failedMessageId, CancellationToken cancellationToken = default)
     {
@@ -18,7 +19,7 @@ public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory) 
                 return;
             }
 
-            var now = DateTime.UtcNow;
+            var now = timeProvider.GetUtcNow().UtcDateTime;
 
             await dbContext.FailedMessages
                 .Where(fm => fm.UniqueMessageId == uniqueMessageId)
@@ -38,7 +39,7 @@ public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory) 
                 return false;
             }
 
-            var now = DateTime.UtcNow;
+            var now = timeProvider.GetUtcNow().UtcDateTime;
 
             var affected = await dbContext.FailedMessages
                 .Where(fm => fm.UniqueMessageId == uniqueMessageId && fm.Status != FailedMessageStatus.Resolved)
@@ -65,7 +66,7 @@ public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory) 
 
         return await ExecuteWithDbContext(async (dbContext, token) =>
         {
-            var now = DateTime.UtcNow;
+            var now = timeProvider.GetUtcNow().UtcDateTime;
 
             // Query which messages will actually be unarchived (must be Archived status)
             var unarchivableIds = await dbContext.FailedMessages
@@ -93,7 +94,7 @@ public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory) 
     {
         return await ExecuteWithDbContext(async (dbContext, token) =>
         {
-            var now = DateTime.UtcNow;
+            var now = timeProvider.GetUtcNow().UtcDateTime;
 
             // Query which messages will be unarchived (must be Archived and within the date range)
             var unarchivableIds = await dbContext.FailedMessages
@@ -128,7 +129,7 @@ public class FailedMessageLifecycleDataStore(IServiceScopeFactory scopeFactory) 
                 return;
             }
 
-            var now = DateTime.UtcNow;
+            var now = timeProvider.GetUtcNow().UtcDateTime;
 
             await dbContext.FailedMessages
                 .Where(fm => fm.UniqueMessageId == uniqueMessageId && fm.Status == FailedMessageStatus.RetryIssued)

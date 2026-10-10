@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using ServiceControl.MessageFailures;
+using ServiceControl.Persistence.Infrastructure;
 
 [TestFixture]
 class ArchivedGroupVersionTests : PersistenceTestBase
@@ -14,6 +15,7 @@ class ArchivedGroupVersionTests : PersistenceTestBase
     static readonly DateTime Oldest = new(2026, 8, 1, 9, 0, 0, DateTimeKind.Utc);
     static readonly DateTime Middle = new(2026, 8, 1, 13, 0, 0, DateTimeKind.Utc);
     static readonly DateTime Newest = new(2026, 8, 1, 17, 0, 0, DateTimeKind.Utc);
+    static readonly PagingInfo pagingInfo = new PagingInfo(page: 1, pageSize: 200);
 
     [Test]
     public async Task Version_changes_when_group_counts_move_but_the_total_and_the_span_hold()
@@ -28,7 +30,7 @@ class ArchivedGroupVersionTests : PersistenceTestBase
         await Insert(oldest, middle, newest);
         await Archive(oldest, middle, newest);
 
-        var before = await GroupsStore.GetArchivedGroupsByClassifier(Classifier);
+        var before = await GroupsStore.GetArchivedGroupsByClassifier(Classifier, pagingInfo);
 
         // The archived set keeps two groups, three messages, and the same earliest and latest failure.
         // All that moves is how the three are split between the groups, from two and one to one and two.
@@ -38,7 +40,7 @@ class ArchivedGroupVersionTests : PersistenceTestBase
         _ = await FailedMessageLifecycleStore.UnArchiveMessages([middle.UniqueMessageIdString]);
         await CompleteDatabaseOperation();
 
-        var after = await GroupsStore.GetArchivedGroupsByClassifier(Classifier);
+        var after = await GroupsStore.GetArchivedGroupsByClassifier(Classifier, pagingInfo);
 
         using (Assert.EnterMultipleScope())
         {
@@ -63,13 +65,13 @@ class ArchivedGroupVersionTests : PersistenceTestBase
         await Insert(first);
         await Archive(first);
 
-        var before = await GroupsStore.GetArchivedGroupsByClassifier(Classifier);
+        var before = await GroupsStore.GetArchivedGroupsByClassifier(Classifier, pagingInfo);
 
         var second = InGroup(group, Newest);
         await Insert(second);
         await Archive(second);
 
-        var after = await GroupsStore.GetArchivedGroupsByClassifier(Classifier);
+        var after = await GroupsStore.GetArchivedGroupsByClassifier(Classifier, pagingInfo);
 
         VersionAssert.Moved(before.QueryStats.Version, after.QueryStats.Version,
             "the archived group gained a message, so its validator cannot stay put");
@@ -84,8 +86,8 @@ class ArchivedGroupVersionTests : PersistenceTestBase
         await Insert(failure);
         await Archive(failure);
 
-        var first = await GroupsStore.GetArchivedGroupsByClassifier(Classifier);
-        var second = await GroupsStore.GetArchivedGroupsByClassifier(Classifier);
+        var first = await GroupsStore.GetArchivedGroupsByClassifier(Classifier, pagingInfo);
+        var second = await GroupsStore.GetArchivedGroupsByClassifier(Classifier, pagingInfo);
 
         VersionAssert.Matches(first.QueryStats.Version, second.QueryStats.Version,
             "nothing changed, so the validator has to stay put or conditional GET never pays off");
@@ -94,7 +96,7 @@ class ArchivedGroupVersionTests : PersistenceTestBase
     [Test]
     public async Task A_classifier_with_nothing_archived_still_reports_a_version()
     {
-        var result = await GroupsStore.GetArchivedGroupsByClassifier(Classifier);
+        var result = await GroupsStore.GetArchivedGroupsByClassifier(Classifier, pagingInfo);
 
         using (Assert.EnterMultipleScope())
         {

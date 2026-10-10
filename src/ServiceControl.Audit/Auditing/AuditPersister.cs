@@ -57,6 +57,8 @@
 
                     storedContexts.Add(context);
                 }
+
+                await unitOfWork.Complete(cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {

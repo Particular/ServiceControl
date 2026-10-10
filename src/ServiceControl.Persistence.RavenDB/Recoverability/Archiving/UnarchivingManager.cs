@@ -9,10 +9,11 @@
 
     class UnarchivingManager
     {
-        public UnarchivingManager(IDomainEvents domainEvents, OperationsManager operationsManager)
+        public UnarchivingManager(IDomainEvents domainEvents, OperationsManager operationsManager, TimeProvider timeProvider)
         {
             this.domainEvents = domainEvents;
             this.operationsManager = operationsManager;
+            this.timeProvider = timeProvider;
         }
 
         public bool IsUnarchiveInProgressFor(string requestId)
@@ -34,7 +35,7 @@
         {
             if (!operationsManager.UnarchiveOperations.TryGetValue(InMemoryUnarchive.MakeId(requestId, archiveType), out var summary))
             {
-                summary = new InMemoryUnarchive(requestId, archiveType, domainEvents);
+                summary = new InMemoryUnarchive(requestId, archiveType, domainEvents, timeProvider);
                 operationsManager.UnarchiveOperations[InMemoryUnarchive.MakeId(requestId, archiveType)] = summary;
             }
 
@@ -61,7 +62,7 @@
 
             summary.TotalNumberOfMessages = 0;
             summary.NumberOfMessagesUnarchived = 0;
-            summary.Started = DateTime.UtcNow;
+            summary.Started = timeProvider.GetUtcNow().UtcDateTime;
             summary.GroupName = "Undefined";
             summary.NumberOfBatches = 0;
             summary.CurrentBatch = 0;
@@ -106,6 +107,7 @@
         }
 
         IDomainEvents domainEvents;
+        readonly TimeProvider timeProvider;
         OperationsManager operationsManager;
     }
 }

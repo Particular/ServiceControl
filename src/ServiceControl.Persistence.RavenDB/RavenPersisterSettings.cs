@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Particular.LicensingComponent.Contracts;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.RavenDB.CustomChecks;

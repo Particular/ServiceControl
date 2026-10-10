@@ -10,7 +10,7 @@
 
     public class InMemoryRetry
     {
-        public InMemoryRetry(string requestId, RetryType retryType, IDomainEvents domainEvents, RetryMetrics metrics, ILogger logger)
+        public InMemoryRetry(string requestId, RetryType retryType, IDomainEvents domainEvents, RetryMetrics metrics, ILogger logger, TimeProvider timeProvider)
         {
             RequestId = requestId;
             RetryType = retryType;
@@ -18,6 +18,7 @@
             this.metrics = metrics;
             this.logger = logger;
             operationStartTimestamp = metrics.GetTimestamp();
+            this.timeProvider = timeProvider;
         }
 
         public string RequestId { get; }
@@ -69,12 +70,24 @@
             Failed = true;
         }
 
-        public Task Prepare(int totalNumberOfMessages, CancellationToken cancellationToken = default)
+        public Task Prepare(int totalNumberOfMessages, DateTime startTime, string originator, CancellationToken cancellationToken = default)
         {
             // A completed operation being prepared again is a new run that never went through Wait.
-            if (RetryState == RetryState.Completed)
+            var isNewRun = RetryState == RetryState.Completed;
+
+            if (isNewRun)
             {
                 operationStartTimestamp = metrics.GetTimestamp();
+                NumberOfMessagesSkipped = 0;
+                CompletionTime = null;
+                Failed = false;
+            }
+
+            // Only a group retry goes through Wait, which stamps these; every other type gets them here.
+            if (isNewRun || Started == default)
+            {
+                Started = startTime;
+                Originator = originator;
             }
 
             RetryState = RetryState.Preparing;
@@ -166,7 +179,7 @@
             }
 
             RetryState = RetryState.Completed;
-            CompletionTime = DateTime.UtcNow;
+            CompletionTime = timeProvider.GetUtcNow().UtcDateTime;
             metrics.RecordOperationCompleted(RetryType, operationStartTimestamp, Failed);
 
             await domainEvents.Raise(new RetryOperationCompleted
@@ -226,5 +239,6 @@
         IDomainEvents domainEvents;
         readonly RetryMetrics metrics;
         readonly ILogger logger;
+        readonly TimeProvider timeProvider;
     }
 }

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Transports.RabbitMQ
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using BrokerThroughput;
     using Microsoft.Extensions.DependencyInjection;
@@ -31,6 +32,9 @@
                 return transport.ManagementClient;
             }
         }
+
+        public override IEnumerable<TransportEnvironmentDatum> GetEnvironmentData(TransportSettings transportSettings) =>
+            RabbitMQTransportExtensions.GetEnvironmentData(transportSettings.ConnectionString);
 
         protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition, TransportSettings transportSettings) => transport = transportDefinition;
 

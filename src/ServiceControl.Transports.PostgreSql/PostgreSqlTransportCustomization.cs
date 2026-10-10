@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Transports.PostgreSql;
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using BrokerThroughput;
@@ -41,6 +42,20 @@ public class PostgreSqlTransportCustomization() : TransportCustomization<Postgre
         services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
         services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
     }
+
+    public override IEnumerable<TransportEnvironmentDatum> GetEnvironmentData(TransportSettings transportSettings) =>
+    [
+        new("Transport.PostgreSQL.QueueSchema", () =>
+        {
+            transportSettings.ConnectionString.RemoveCustomConnectionStringParts(out var schema, out _);
+            return schema is null ? "Default" : "Custom";
+        }),
+        new("Transport.PostgreSQL.SubscriptionsTable", () =>
+        {
+            transportSettings.ConnectionString.RemoveCustomConnectionStringParts(out _, out var subscriptionsTable);
+            return subscriptionsTable is null ? "Default" : "Custom";
+        })
+    ];
 
     protected override PostgreSqlTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
     {

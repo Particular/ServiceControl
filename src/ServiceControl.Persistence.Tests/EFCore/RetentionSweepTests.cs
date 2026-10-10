@@ -2,19 +2,38 @@ namespace ServiceControl.Persistence.Tests;
 
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Diagnostics.Metrics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using ServiceControl.EventLog;
 using ServiceControl.MessageFailures;
 using ServiceControl.Persistence.EFCore.Entities;
+using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.EFCore.Infrastructure.Metrics;
 using ServiceControl.Persistence.Infrastructure;
 
 class RetentionSweepTests : ErrorIngestionTestBase
 {
+    readonly CancelAfterBatchDelete cancelAfterBatchDelete = new();
+    readonly CancelDuringNextQuery cancelDuringNextQuery = new();
+
+    public RetentionSweepTests()
+    {
+        var registerBodyStorage = RegisterServices;
+        RegisterServices = services =>
+        {
+            registerBodyStorage(services);
+            PersistenceTestsContext.InterceptDatabaseCommands(services, cancelAfterBatchDelete);
+            PersistenceTestsContext.InterceptDatabaseCommands(services, cancelDuringNextQuery);
+        };
+    }
+
     [SetUp]
     public void SetRetention() => EFSettings.ErrorRetentionPeriod = TimeSpan.FromDays(30);
 
@@ -191,6 +210,44 @@ class RetentionSweepTests : ErrorIngestionTestBase
     }
 
     [Test]
+    public async Task Archived_messages_are_swept_after_the_lifecycle_store_updates_the_timestamp()
+    {
+        var messageId = await SeedFailedMessage(FailedMessageStatus.Unresolved, Now.AddDays(-40));
+
+        await FailedMessageLifecycleStore.MarkAsArchived(messageId.ToString());
+
+        var archived = await FindFailedMessage(messageId);
+        Assert.That(archived, Is.Not.Null);
+        Assert.That(archived!.Status, Is.EqualTo(FailedMessageStatus.Archived));
+        Assert.That(archived.StatusChangedAt, Is.EqualTo(Now), "the lifecycle store should stamp the current fake time");
+
+        AdvanceClock(TimeSpan.FromDays(31));
+
+        await RunRetentionSweep();
+
+        Assert.That(await FindFailedMessage(messageId), Is.Null);
+    }
+
+    [Test]
+    public async Task Resolved_messages_are_swept_after_the_lifecycle_store_updates_the_timestamp()
+    {
+        var messageId = await SeedFailedMessage(FailedMessageStatus.Unresolved, Now.AddDays(-40));
+
+        Assert.That(await FailedMessageLifecycleStore.MarkAsResolved(messageId.ToString()), Is.True);
+
+        var resolved = await FindFailedMessage(messageId);
+        Assert.That(resolved, Is.Not.Null);
+        Assert.That(resolved!.Status, Is.EqualTo(FailedMessageStatus.Resolved));
+        Assert.That(resolved.StatusChangedAt, Is.EqualTo(Now), "the lifecycle store should stamp the current fake time");
+
+        AdvanceClock(TimeSpan.FromDays(31));
+
+        await RunRetentionSweep();
+
+        Assert.That(await FindFailedMessage(messageId), Is.Null);
+    }
+
+    [Test]
     public async Task Counts_the_rows_it_deletes()
     {
         EFSettings.EventsRetentionPeriod = TimeSpan.FromDays(14);
@@ -267,6 +324,24 @@ class RetentionSweepTests : ErrorIngestionTestBase
             Assert.That(recorded.Cycles(RetentionEntity.EventLog).Select(cycle => cycle.Result), Is.EqualTo(new[] { "success" }));
             Assert.That(recorded.Cycles(RetentionEntity.GroupComments).Select(cycle => cycle.Result), Is.EqualTo(new[] { "success" }));
             Assert.That(await GetRemainingMarkers(), Does.Not.Contain("expired"));
+        }
+    }
+
+    [Test]
+    public async Task A_failing_pass_is_tracked()
+    {
+        // Subtracting this from the clock cannot be represented, so the failed messages pass throws
+        // before it reaches the database.
+        EFSettings.ErrorRetentionPeriod = TimeSpan.FromDays(1_000_000);
+
+        await RunRetentionSweep();
+
+        var failure = ServiceProvider.GetRequiredService<RetentionSweepCustomCheck.State>().GetFailures().Single();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(failure.Key, Is.EqualTo(RetentionEntity.FailedMessages));
+            Assert.That(failure.Value, Is.Not.Empty);
         }
     }
 
@@ -399,5 +474,398 @@ class RetentionSweepTests : ErrorIngestionTestBase
     {
         var items = (await EventLogDataStore.GetEventLogItems(new PagingInfo(page: 1, pageSize: 100))).Results;
         return [.. items.Select(i => i.Description)];
+    }
+
+    IRetentionSweeper GetSweeper() => ServiceProvider.GetRequiredService<IRetentionSweeper>();
+
+    async Task WaitForManualSweepToFinish()
+    {
+        var sweeper = GetSweeper();
+        await WaitUntil(() => Task.FromResult(!sweeper.GetStatus().IsRunning),
+            "the manual sweep to finish");
+    }
+
+    [Test]
+    public async Task Manual_sweep_uses_the_caller_supplied_error_cutoff_to_delete_early()
+    {
+        // 20 days old is within the 30 day configured retention, so the scheduled sweep would keep it.
+        // A caller-supplied cutoff of 15 days ago is earlier than the message, so the manual sweep deletes it.
+        var message = await SeedFailedMessage(FailedMessageStatus.Resolved, Now.AddDays(-20));
+
+        var attempt = GetSweeper().TryStartManualSweep(Now.AddDays(-15), null);
+
+        await WaitForManualSweepToFinish();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(attempt.Outcome, Is.EqualTo(RetentionSweepStatus.Started));
+            Assert.That(await FindFailedMessage(message), Is.Null,
+                "the caller-supplied cutoff overrides the configured retention derivation");
+        }
+    }
+
+    [Test]
+    public async Task Manual_sweep_uses_the_caller_supplied_events_cutoff()
+    {
+        EFSettings.EventsRetentionPeriod = TimeSpan.FromDays(14);
+
+        // 10 days old is within the 14 day configured events retention; a caller cutoff of 5 days ago deletes it.
+        await Store(EventLogRow("to-delete", Now.AddDays(-10)));
+        await Store(EventLogRow("to-keep", Now.AddDays(-3)));
+
+        GetSweeper().TryStartManualSweep(null, Now.AddDays(-5));
+
+        await WaitForManualSweepToFinish();
+
+        var remaining = await GetRemainingMarkers();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(remaining, Does.Not.Contain("to-delete"));
+            Assert.That(remaining, Does.Contain("to-keep"));
+        }
+    }
+
+    [Test]
+    public async Task Manual_sweep_with_null_cutoffs_keeps_the_default_derivation()
+    {
+        // No cutoff supplied => derive from settings as the scheduled path does. 29 days old is within 30 days.
+        var withinRetention = await SeedFailedMessage(FailedMessageStatus.Resolved, Now.AddDays(-29));
+        var pastRetention = await SeedFailedMessage(FailedMessageStatus.Resolved, Now.AddDays(-31));
+
+        GetSweeper().TryStartManualSweep(null, null);
+
+        await WaitForManualSweepToFinish();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(await FindFailedMessage(withinRetention), Is.Not.Null);
+            Assert.That(await FindFailedMessage(pastRetention), Is.Null);
+        }
+    }
+
+    [Test]
+    public async Task Manual_sweep_runs_in_the_background_and_reports_status()
+    {
+        await SeedFailedMessage(FailedMessageStatus.Resolved, Now.AddDays(-31));
+
+        var sweeper = GetSweeper();
+        var attempt = sweeper.TryStartManualSweep(Now.AddDays(-30), null);
+
+        Assert.That(attempt.Outcome, Is.EqualTo(RetentionSweepStatus.Started));
+        Assert.That(attempt.StartedAt, Is.Not.Null);
+
+        await WaitForManualSweepToFinish();
+
+        var status = sweeper.GetStatus();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(status.IsRunning, Is.False);
+            Assert.That(status.LastStartedAt, Is.Not.Null);
+            Assert.That(status.LastFinishedAt, Is.Not.Null);
+            Assert.That(status.LastErrorCutoff, Is.Not.Null);
+            Assert.That(status.LastOutcome, Is.EqualTo(RetentionSweepOutcome.Succeeded));
+            Assert.That(status.LastError, Is.Null);
+        }
+    }
+
+    [Test]
+    public async Task Manual_sweep_with_failing_passes_reports_failed_with_every_error()
+    {
+        // Subtracting these from the clock cannot be represented, so both passes throw.
+        EFSettings.ErrorRetentionPeriod = TimeSpan.FromDays(1_000_000);
+        EFSettings.EventsRetentionPeriod = TimeSpan.FromDays(1_000_000);
+
+        var sweeper = GetSweeper();
+        sweeper.TryStartManualSweep(null, null);
+
+        await WaitForManualSweepToFinish();
+
+        var status = sweeper.GetStatus();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(status.LastOutcome, Is.EqualTo(RetentionSweepOutcome.Failed));
+            Assert.That(status.LastError, Does.Contain(nameof(RetentionEntity.FailedMessages)));
+            Assert.That(status.LastError, Does.Contain(nameof(RetentionEntity.EventLog)));
+            Assert.That(status.LastFinishedAt, Is.Not.Null);
+        }
+    }
+
+    [Test]
+    public async Task Scheduled_sweep_with_a_failing_pass_reports_failed()
+    {
+        EFSettings.ErrorRetentionPeriod = TimeSpan.FromDays(1_000_000);
+
+        await RunRetentionSweep();
+
+        var status = GetSweeper().GetStatus();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(status.LastOutcome, Is.EqualTo(RetentionSweepOutcome.Failed));
+            Assert.That(status.LastFinishedAt, Is.Not.Null);
+        }
+    }
+
+    [Test]
+    public async Task A_cancelled_sweep_keeps_the_errors_of_passes_that_failed_first()
+    {
+        EFSettings.ErrorRetentionPeriod = TimeSpan.FromDays(1_000_000);
+
+        using var cancellation = new CancellationTokenSource();
+        var sweeper = GetSweeper();
+
+        // The failed messages pass throws before any database call, so by the time the start returns
+        // the event log pass is waiting on the database and the cancellation lands there.
+        sweeper.TryStartManualSweep(null, null, cancellation.Token);
+        await cancellation.CancelAsync();
+
+        await WaitForManualSweepToFinish();
+
+        var status = sweeper.GetStatus();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(status.LastOutcome, Is.EqualTo(RetentionSweepOutcome.Cancelled));
+            Assert.That(status.LastError, Does.Contain(nameof(RetentionEntity.FailedMessages)));
+        }
+    }
+
+    [Test]
+    public async Task Manual_sweep_cancelled_part_way_reports_cancelled()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var sweeper = GetSweeper();
+
+        // The background sweep runs on this thread until its first database call, so it is still
+        // running when the token is cancelled.
+        sweeper.TryStartManualSweep(null, null, cancellation.Token);
+        await cancellation.CancelAsync();
+
+        await WaitForManualSweepToFinish();
+
+        var status = sweeper.GetStatus();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(status.LastOutcome, Is.EqualTo(RetentionSweepOutcome.Cancelled));
+            Assert.That(status.LastError, Is.Null);
+            Assert.That(status.LastFinishedAt, Is.Not.Null);
+        }
+    }
+
+    [Test]
+    public async Task Starting_a_sweep_clears_the_previous_run_s_outcome()
+    {
+        EFSettings.ErrorRetentionPeriod = TimeSpan.FromDays(1_000_000);
+
+        var sweeper = GetSweeper();
+        sweeper.TryStartManualSweep(null, null);
+        await WaitForManualSweepToFinish();
+
+        var previous = sweeper.GetStatus();
+
+        EFSettings.ErrorRetentionPeriod = TimeSpan.FromDays(30);
+
+        var second = sweeper.TryStartManualSweep(null, null);
+        var running = sweeper.GetStatus();
+
+        await WaitForManualSweepToFinish();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(second.Outcome, Is.EqualTo(RetentionSweepStatus.Started));
+            Assert.That(previous.LastOutcome, Is.EqualTo(RetentionSweepOutcome.Failed));
+            Assert.That(previous.LastError, Is.Not.Null);
+            Assert.That(previous.LastFinishedAt, Is.Not.Null);
+            Assert.That(running.IsRunning, Is.True);
+            Assert.That(running.LastOutcome, Is.Null);
+            Assert.That(running.LastError, Is.Null);
+            Assert.That(running.LastFinishedAt, Is.Null);
+        }
+    }
+
+    [Test]
+    public async Task A_second_manual_sweep_is_refused_while_one_is_running()
+    {
+        // Seed enough rows to force multiple delete batches so the first sweep is still running when the
+        // second, synchronous call is made. The single-flight lock is held from the moment the first call
+        // returns Started until the background body completes.
+        await SeedMoreThanOneBatchOfExpiredMessages();
+
+        var sweeper = GetSweeper();
+        var first = sweeper.TryStartManualSweep(Now.AddDays(-30), null);
+        // Immediately request a second sweep on the same thread while the first is still deleting.
+        var second = sweeper.TryStartManualSweep(Now.AddDays(-30), null);
+
+        await WaitForManualSweepToFinish();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(first.Outcome, Is.EqualTo(RetentionSweepStatus.Started),
+                "the first call should start the sweep");
+            Assert.That(second.Outcome, Is.EqualTo(RetentionSweepStatus.AlreadyRunning),
+                "a second sweep must not run in parallel with the first");
+        }
+    }
+
+    [Test]
+    public async Task A_sweep_cancelled_between_batches_is_recorded_as_cancelled()
+    {
+        await SeedMoreThanOneBatchOfExpiredMessages();
+
+        using var cancellation = new CancellationTokenSource();
+        cancelAfterBatchDelete.Cancellation = cancellation;
+        using var recorded = ListenToRetentionMetrics();
+
+        var sweeper = GetSweeper();
+        sweeper.TryStartManualSweep(Now.AddDays(-30), null, cancellation.Token);
+
+        await WaitForManualSweepToFinish();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(recorded.Cycles(RetentionEntity.FailedMessages).Select(cycle => cycle.Result), Is.EqualTo(new[] { "cancelled" }));
+            Assert.That(recorded.Cycles(RetentionEntity.EventLog), Is.Empty, "the sweep must stop at the pass that was cut short");
+            Assert.That(recorded.Cycles(RetentionEntity.GroupComments), Is.Empty, "the sweep must stop at the pass that was cut short");
+            Assert.That(sweeper.GetStatus().LastOutcome, Is.EqualTo(RetentionSweepOutcome.Cancelled));
+            Assert.That(await Query(dbContext => dbContext.FailedMessages.CountAsync()), Is.EqualTo(500), "exactly one batch is deleted before the cancellation");
+        }
+    }
+
+    [Test]
+    public async Task An_event_log_pass_cancelled_between_batches_is_recorded_as_cancelled()
+    {
+        EFSettings.EventsRetentionPeriod = TimeSpan.FromDays(14);
+        await Store([.. Enumerable.Range(0, 1500).Select(i => EventLogRow($"expired-{i}", Now.AddDays(-15)))]);
+
+        // There are no expired failed messages, so the first delete the sweep runs is an event log batch.
+        using var cancellation = new CancellationTokenSource();
+        cancelAfterBatchDelete.Cancellation = cancellation;
+        using var recorded = ListenToRetentionMetrics();
+
+        var sweeper = GetSweeper();
+        sweeper.TryStartManualSweep(null, null, cancellation.Token);
+
+        await WaitForManualSweepToFinish();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(recorded.Cycles(RetentionEntity.EventLog).Select(cycle => cycle.Result), Is.EqualTo(new[] { "cancelled" }));
+            Assert.That(recorded.Cycles(RetentionEntity.GroupComments), Is.Empty, "the sweep must stop at the pass that was cut short");
+            Assert.That(sweeper.GetStatus().LastOutcome, Is.EqualTo(RetentionSweepOutcome.Cancelled));
+            Assert.That(await Query(dbContext => dbContext.EventLogItems.CountAsync()), Is.EqualTo(500), "exactly one batch is deleted before the cancellation");
+        }
+    }
+
+    [TearDown]
+    public void DisarmInterceptors()
+    {
+        cancelAfterBatchDelete.Cancellation = null;
+        cancelDuringNextQuery.Arm(null, null);
+    }
+
+    [Test]
+    public async Task A_sweep_cancelled_while_a_query_runs_reports_cancelled_without_an_error()
+    {
+        await SeedFailedMessage(FailedMessageStatus.Resolved, Now.AddDays(-31));
+
+        using var cancellation = new CancellationTokenSource();
+        cancelDuringNextQuery.Arm(cancellation, PersistenceTestsContext.SqlToDelayFor(TimeSpan.FromSeconds(20)));
+
+        var sweeper = GetSweeper();
+        sweeper.TryStartManualSweep(null, null, cancellation.Token);
+
+        await WaitForManualSweepToFinish();
+
+        var status = sweeper.GetStatus();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(status.LastOutcome, Is.EqualTo(RetentionSweepOutcome.Cancelled));
+            Assert.That(status.LastError, Is.Null, "a cancelled query is not a failed pass");
+        }
+    }
+
+    [Test]
+    public async Task A_failed_pass_reports_only_the_first_line_of_its_error()
+    {
+        var unluckyBody = await SeedFailedMessage(FailedMessageStatus.Resolved, Now.AddDays(-31), bodyStoredExternally: true);
+        RecordedBodies.FailDeleteFor.Add(unluckyBody.ToString());
+        RecordedBodies.DeleteFailureDetail = "<Error><Code>AuthorizationFailure</Code></Error>";
+
+        await RunRetentionSweep();
+
+        Assert.That(GetSweeper().GetStatus().LastError, Is.EqualTo($"FailedMessages: Simulated body storage failure for {unluckyBody}"));
+    }
+
+    async Task SeedMoreThanOneBatchOfExpiredMessages()
+    {
+        var rows = new List<FailedMessageEntity>();
+        for (var i = 0; i < 1500; i++)
+        {
+            rows.Add(new FailedMessageEntity
+            {
+                UniqueMessageId = Guid.NewGuid(),
+                Status = FailedMessageStatus.Archived,
+                StatusChangedAt = Now.AddDays(-31),
+                LastModified = Now.AddDays(-31),
+                NumberOfProcessingAttempts = 1,
+                FirstTimeOfFailure = Now.AddDays(-31),
+                LastTimeOfFailure = Now.AddDays(-31),
+                LastAttemptedAt = Now.AddDays(-31),
+                IsSystemMessage = false,
+                HeadersJson = "{}",
+                BodyStoredExternally = false,
+                BodySize = 0,
+                FailingEndpointAddress = "Shipping"
+            });
+        }
+
+        await Store([.. rows]);
+    }
+
+    // Slows the next query down on the server and cancels while it runs, where SqlClient reports the
+    // cancellation as a SqlException rather than an OperationCanceledException.
+    class CancelDuringNextQuery : DbCommandInterceptor
+    {
+        CancellationTokenSource cancellation;
+        string delaySql;
+
+        public void Arm(CancellationTokenSource cancellation, string delaySql)
+        {
+            this.cancellation = cancellation;
+            this.delaySql = delaySql;
+        }
+
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
+        {
+            if (Interlocked.Exchange(ref cancellation, null) is { } armed)
+            {
+                command.CommandText = delaySql + Environment.NewLine + command.CommandText;
+                armed.CancelAfter(TimeSpan.FromMilliseconds(500));
+            }
+
+            return base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
+        }
+    }
+
+    // Cancels right after a delete command finishes, which is when a batch loop checks the token itself
+    // rather than inside an awaited database call.
+    class CancelAfterBatchDelete : DbCommandInterceptor
+    {
+        public CancellationTokenSource Cancellation { get; set; }
+
+        public override async ValueTask<int> NonQueryExecutedAsync(DbCommand command, CommandExecutedEventData eventData, int result, CancellationToken cancellationToken = default)
+        {
+            if (Cancellation is { IsCancellationRequested: false } armed)
+            {
+                await armed.CancelAsync();
+            }
+
+            return result;
+        }
     }
 }

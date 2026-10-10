@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using ServiceControl.Infrastructure.DomainEvents;
 using ServiceControl.MessageFailures;
+using ServiceControl.Persistence.Infrastructure;
 using ServiceControl.Recoverability;
 
 [TestFixture]
@@ -59,7 +60,7 @@ class ArchiveCancellationTests : PersistenceTestBase
     {
         await CompleteDatabaseOperation();
 
-        var groups = await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, null);
+        var groups = await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, null, new PagingInfo(page: 1, pageSize: 200));
 
         Assert.That(
             groups.Select(view => view.Id),

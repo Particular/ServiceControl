@@ -11,6 +11,7 @@
     using Raven.Client;
     using Raven.Client.Documents.BulkInsert;
     using Raven.Client.Json;
+    using ServiceControl.Audit.Persistence.Infrastructure;
     using ServiceControl.Infrastructure;
     using ServiceControl.SagaAudit;
 
@@ -23,6 +24,11 @@
     {
         public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default)
         {
+            var processingStartedTicks = processedMessage.Headers.TryGetValue(Headers.ProcessingStarted, out var processingStartedValue)
+                ? DateTimeOffsetHelper.ToDateTimeOffset(processingStartedValue).UtcDateTime.Ticks
+                : DateTime.UtcNow.Ticks;
+            processedMessage.Id ??= $"ProcessedMessages-{processingStartedTicks}-{processedMessage.GetProcessingId()}";
+
             processedMessage.MessageMetadata["ContentLength"] = body.Length;
             if (!body.IsEmpty)
             {
@@ -49,10 +55,36 @@
         public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot, CancellationToken cancellationToken = default)
             => bulkInsert.StoreAsync(sagaSnapshot, GetExpirationMetadata());
 
+        bool completed;
+
+        public async Task Complete(CancellationToken cancellationToken = default)
+        {
+            // Closing the bulk insert flushes its remaining buffered documents.
+            await bulkInsert.DisposeAsync();
+            completed = true;
+        }
+
         public async ValueTask DisposeAsync()
         {
-            await bulkInsert.DisposeAsync();
-            timedCancellationSource.Dispose();
+            try
+            {
+                if (!completed)
+                {
+                    // Bulk inserts are not atomic; abort prevents further writes, not earlier ones.
+                    try
+                    {
+                        await bulkInsert.AbortAsync();
+                    }
+                    finally
+                    {
+                        await bulkInsert.DisposeAsync();
+                    }
+                }
+            }
+            finally
+            {
+                timedCancellationSource.Dispose();
+            }
         }
     }
 }

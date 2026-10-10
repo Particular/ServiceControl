@@ -22,9 +22,12 @@
                 endpointConfiguration.AddCustomCheck<CheckFreeDiskSpace>();
                 endpointConfiguration.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
                 endpointConfiguration.AddCustomCheck<CheckRavenDBIndexLag>();
+                endpointConfiguration.AddCustomCheck<CheckRavenDBSearchEngine>();
             }
 
-            services.AddSingleton<IAuditDataStore, RavenAuditDataStore>();
+            services.AddSingleton<RavenAuditDataStore>();
+            services.AddSingleton<IAuditMessagesViewDataStore>(sp => sp.GetRequiredService<RavenAuditDataStore>());
+            services.AddSingleton<ISagaHistoryDataStore>(sp => sp.GetRequiredService<RavenAuditDataStore>());
             services.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenAuditIngestionUnitOfWorkFactory>();
             services.AddSingleton<IFailedAuditStorage, RavenFailedAuditStorage>();
             services.AddSingleton<MinimumRequiredStorageState>();

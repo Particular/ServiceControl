@@ -2,6 +2,8 @@ namespace ServiceControl.UnitTests.Infrastructure.Settings;
 
 using System;
 using System.IO;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using NUnit.Framework;
 using ServiceControl.Configuration;
 using ServiceControl.Infrastructure;
@@ -22,9 +24,27 @@ public class HttpsSettingsTests
     string tempCertPath;
 
     [SetUp]
-    public void SetUp() =>
-        // Create a temporary file to simulate a certificate file
-        tempCertPath = Path.GetTempFileName();
+    public void SetUp()
+    {
+        // The certificate is loaded as part of validation, so tests that get that far need a real PFX
+        tempCertPath = Path.Combine(Path.GetTempPath(), $"sc-test-{Guid.NewGuid():n}.pfx");
+        WritePfx(tempCertPath);
+    }
+
+    static void WritePfx(string path, string password = null, string enhancedKeyUsageOid = null)
+    {
+        using var key = RSA.Create(2048);
+        var request = new CertificateRequest("CN=ServiceControl.Tests", key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+
+        if (enhancedKeyUsageOid != null)
+        {
+            request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension([new Oid(enhancedKeyUsageOid)], critical: false));
+        }
+
+        using var certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddYears(1));
+
+        File.WriteAllBytes(path, certificate.Export(X509ContentType.Pkcs12, password));
+    }
 
     [TearDown]
     public void TearDown()
@@ -89,6 +109,8 @@ public class HttpsSettingsTests
     [Test]
     public void Should_read_certificate_password()
     {
+        WritePfx(tempCertPath, "my-secret-password");
+
         Environment.SetEnvironmentVariable("SERVICECONTROL_HTTPS_ENABLED", "true");
         Environment.SetEnvironmentVariable("SERVICECONTROL_HTTPS_CERTIFICATEPATH", tempCertPath);
         Environment.SetEnvironmentVariable("SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD", "my-secret-password");
@@ -117,6 +139,56 @@ public class HttpsSettingsTests
         var ex = Assert.Throws<InvalidOperationException>(() => new HttpsSettings(TestNamespace));
 
         Assert.That(ex.Message, Does.Contain("does not exist"));
+    }
+
+    [Test]
+    public void Should_load_certificate_when_https_enabled()
+    {
+        Environment.SetEnvironmentVariable("SERVICECONTROL_HTTPS_ENABLED", "true");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_HTTPS_CERTIFICATEPATH", tempCertPath);
+
+        var settings = new HttpsSettings(TestNamespace);
+
+        Assert.That(settings.Certificate, Is.Not.Null);
+    }
+
+    [Test]
+    public void Should_throw_when_certificate_cannot_be_loaded()
+    {
+        WritePfx(tempCertPath, "correct-password");
+
+        Environment.SetEnvironmentVariable("SERVICECONTROL_HTTPS_ENABLED", "true");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_HTTPS_CERTIFICATEPATH", tempCertPath);
+        Environment.SetEnvironmentVariable("SERVICECONTROL_HTTPS_CERTIFICATEPASSWORD", "wrong-password");
+
+        var ex = Assert.Throws<InvalidOperationException>(() => new HttpsSettings(TestNamespace));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ex.Message, Does.Contain("could not be loaded"));
+            Assert.That(ex.Message, Does.Contain(tempCertPath));
+            Assert.That(ex.Message, Does.Contain("Https.CertificatePassword configured: True"));
+            Assert.That(ex.Message, Does.Not.Contain("correct-password"));
+            Assert.That(ex.Message, Does.Not.Contain("wrong-password"));
+        }
+    }
+
+    [Test]
+    public void Should_throw_when_certificate_is_not_valid_for_server_authentication()
+    {
+        const string clientAuthenticationOid = "1.3.6.1.5.5.7.3.2";
+        WritePfx(tempCertPath, enhancedKeyUsageOid: clientAuthenticationOid);
+
+        Environment.SetEnvironmentVariable("SERVICECONTROL_HTTPS_ENABLED", "true");
+        Environment.SetEnvironmentVariable("SERVICECONTROL_HTTPS_CERTIFICATEPATH", tempCertPath);
+
+        var ex = Assert.Throws<InvalidOperationException>(() => new HttpsSettings(TestNamespace));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ex.Message, Does.Contain("server authentication"));
+            Assert.That(ex.Message, Does.Contain(tempCertPath));
+        }
     }
 
     [Test]

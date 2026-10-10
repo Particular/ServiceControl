@@ -44,6 +44,7 @@
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
         public Settings Settings { get; private set; }
         public HttpClient HttpClient { get; private set; }
+        public IServiceProvider ServiceProvider { get; private set; }
         public JsonSerializerOptions SerializerOptions => Infrastructure.WebApi.SerializerOptions.Default;
         public IDomainEvents DomainEvents { get; private set; }
 
@@ -152,20 +153,29 @@
                 await host.StartAsync();
                 DomainEvents = host.Services.GetRequiredService<IDomainEvents>();
                 // Bring this back and look into the base address of the client
+                ServiceProvider = host.Services;
+
                 HttpClient = host.GetTestServer().CreateClient();
             }
         }
 
         public override async Task Stop(CancellationToken cancellationToken = default)
         {
+            // The scenario passes the test's own token here, which has already fired when the test timed out.
+            // Stopping with it aborts the host mid-shutdown, and the exception that produces replaces the
+            // timeout as the reported failure. Shutdown gets its own budget instead.
+            using var shutdown = new CancellationTokenSource(ShutdownTimeout);
+
             using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
             {
-                await host.StopAsync(cancellationToken);
+                await host.StopAsync(shutdown.Token);
                 HttpClient.Dispose();
                 await host.DisposeAsync();
-                await persistenceToUse.Cleanup(cancellationToken);
+                await persistenceToUse.Cleanup(shutdown.Token);
             }
         }
+
+        static readonly TimeSpan ShutdownTimeout = TimeSpan.FromSeconds(30);
 
         WebApplication host;
         readonly ITransportIntegration transportToUse;

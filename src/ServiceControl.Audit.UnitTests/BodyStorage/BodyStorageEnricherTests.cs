@@ -268,7 +268,7 @@ namespace ServiceControl.UnitTests.BodyStorage
                 return Task.CompletedTask;
             }
 
-            public Task<StreamResult> TryFetch(string bodyId, CancellationToken cancellationToken = default)
+            public Task<MessageBodyView> TryFetch(string bodyId, CancellationToken cancellationToken = default)
             {
                 throw new NotImplementedException();
             }

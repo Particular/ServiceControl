@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.MessageRedirects.Api
 {
+    using ServiceControl.Infrastructure;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -25,7 +26,8 @@
     public class MessageRedirectsController(
         IMessageSession session,
         IMessageRedirectsDataStore store,
-        IDomainEvents events)
+        IDomainEvents events,
+        TimeProvider timeProvider)
         : ControllerBase
     {
         [Authorize(Policy = Permissions.ErrorRedirectsManage)]
@@ -38,11 +40,13 @@
                 return BadRequest();
             }
 
+            var now = timeProvider.GetUtcNow().UtcDateTime;
+
             var messageRedirect = new MessageRedirect
             {
                 FromPhysicalAddress = request.FromPhysicalAddress,
                 ToPhysicalAddress = request.ToPhysicalAddress,
-                LastModified = DateTime.UtcNow
+                LastModified = now
             };
 
             var redirects = await store.GetRedirects(cancellationToken);
@@ -87,7 +91,7 @@
                 {
                     QueueAddress = messageRedirect.FromPhysicalAddress,
                     PeriodFrom = DateTime.MinValue,
-                    PeriodTo = DateTime.UtcNow
+                    PeriodTo = now
                 }, cancellationToken);
             }
 
@@ -129,7 +133,7 @@
                 ToPhysicalAddress = messageRedirect.ToPhysicalAddress = request.ToPhysicalAddress
             };
 
-            messageRedirect.LastModified = DateTime.UtcNow;
+            messageRedirect.LastModified = timeProvider.GetUtcNow().UtcDateTime;
 
             await store.UpdateRedirect(messageRedirect, cancellationToken);
 
@@ -171,7 +175,7 @@
         {
             var redirects = await store.GetRedirects(cancellationToken);
 
-            Response.WithEtag(DataVersion.OverRows([("redirects", redirects.Count)], redirects));
+            Response.WithEtag(DataVersion.OverRows([("redirects", redirects.Count)], redirects, r => ((IVersionedRow)r).GetVersionFields()));
             Response.WithTotalCount(redirects.Count);
         }
 
@@ -187,7 +191,7 @@
                 .Paging(pagingInfo)
                 .ToList();
 
-            Response.WithQueryStatsAndPagingInfo(new QueryStatsInfo(DataVersion.OverRows([("redirects", redirects.Count)], page), redirects.Count), pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(new QueryStatsInfo(DataVersion.OverRows([("redirects", redirects.Count)], page, r => ((IVersionedRow)r).GetVersionFields()), redirects.Count), pagingInfo);
 
             return page.Select(r => new RedirectsQueryResult
             (

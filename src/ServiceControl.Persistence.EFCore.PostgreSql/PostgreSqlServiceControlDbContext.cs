@@ -1,10 +1,9 @@
 namespace ServiceControl.Persistence.EFCore.PostgreSql;
 
+using EntityConfigurations;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using ServiceControl.MessageFailures;
 using ServiceControl.Persistence.EFCore.DbContexts;
-using ServiceControl.Persistence.EFCore.Entities;
 
 public class PostgreSqlServiceControlDbContext(DbContextOptions<PostgreSqlServiceControlDbContext> options) : ServiceControlDbContext(options)
 {
@@ -19,10 +18,8 @@ public class PostgreSqlServiceControlDbContext(DbContextOptions<PostgreSqlServic
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
-        modelBuilder.Entity<FailedMessageEntity>()
-            .HasIndex(e => e.StatusChangedAt)
-            .HasFilter($"status IN ({(int)FailedMessageStatus.Resolved}, {(int)FailedMessageStatus.Archived})");
+        modelBuilder.ApplyConfiguration(new FailedMessageConfiguration());
+        modelBuilder.ApplyConfiguration(new FailedMessageGroupConfiguration());
     }
 
     public override bool IsDuplicateKeyException(DbUpdateException exception)

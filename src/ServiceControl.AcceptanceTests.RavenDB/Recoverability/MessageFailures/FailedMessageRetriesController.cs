@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.AcceptanceTests.RavenDB.Recoverability.MessageFailures
 {
+    using ServiceControl.Infrastructure;
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.WebApi;

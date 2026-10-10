@@ -7,7 +7,6 @@
     using Contracts.MessageFailures;
     using Infrastructure.Auth;
     using Infrastructure.DomainEvents;
-    using MessageFailures;
     using Microsoft.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.Routing;
@@ -80,10 +79,10 @@
 
         OutgoingMessage BuildMessage(EditAndSend message)
         {
-            var messageId = CombGuid.Generate().ToString();
+            var messageId = Guid.CreateVersion7().ToString("D");
             var headers = HeaderFilter.RemoveErrorMessageHeaders(message.NewHeaders);
             corruptedReplyToHeaderStrategy.FixCorruptedReplyToHeader(headers);
-            headers[Headers.MessageId] = Guid.NewGuid().ToString("D");
+            headers[Headers.MessageId] = messageId;
 
             var body = Convert.FromBase64String(message.NewBody);
             var outgoingMessage = new OutgoingMessage(messageId, headers, body);

@@ -25,7 +25,7 @@ class GroupsDataStoreTests : PersistenceTestBase
             InGroup(group, failedAt: Noon),
             InGroup(group, failedAt: Noon.AddHours(2)));
 
-        var view = (await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, null)).Single();
+        var view = (await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, null, new PagingInfo(page: 1, pageSize: 200))).Single();
 
         using (Assert.EnterMultipleScope())
         {
@@ -46,7 +46,7 @@ class GroupsDataStoreTests : PersistenceTestBase
 
         await Insert(InGroup(requested), InGroup(other));
 
-        var groups = await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, null);
+        var groups = await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, null, new PagingInfo(page: 1, pageSize: 200));
 
         Assert.That(groups.Select(group => group.Id), Is.EqualTo(new[] { requested.Id }));
     }
@@ -59,7 +59,7 @@ class GroupsDataStoreTests : PersistenceTestBase
 
         await Insert(InGroup(matching), InGroup(other));
 
-        var groups = await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, "OrderPlaced");
+        var groups = await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, "OrderPlaced", new PagingInfo(page: 1, pageSize: 200));
 
         Assert.That(groups.Select(group => group.Id), Is.EqualTo(new[] { matching.Id }));
     }
@@ -74,7 +74,7 @@ class GroupsDataStoreTests : PersistenceTestBase
             InGroup(group).ToFailedMessage(FailedMessageStatus.Archived),
             InGroup(group).ToFailedMessage(FailedMessageStatus.Resolved));
 
-        var view = (await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, null)).Single();
+        var view = (await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, null, new PagingInfo(page: 1, pageSize: 200))).Single();
 
         Assert.That(view.Count, Is.EqualTo(1));
     }
@@ -88,7 +88,7 @@ class GroupsDataStoreTests : PersistenceTestBase
             InGroup(group).ToFailedMessage(),
             InGroup(group).ToFailedMessage(FailedMessageStatus.Archived));
 
-        var view = (await GroupsStore.GetArchivedGroupsByClassifier(Classifier)).Results.Single();
+        var view = (await GroupsStore.GetArchivedGroupsByClassifier(Classifier, new PagingInfo(page: 1, pageSize: 200))).Results.Single();
 
         using (Assert.EnterMultipleScope())
         {
@@ -109,9 +109,85 @@ class GroupsDataStoreTests : PersistenceTestBase
             InGroup(newest, failedAt: Noon.AddHours(4)),
             InGroup(middle, failedAt: Noon.AddHours(2)));
 
-        var groups = await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, null);
+        var groups = await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, null, new PagingInfo(page: 1, pageSize: 200));
 
         Assert.That(groups.Select(group => group.Title), Is.EqualTo(new[] { "Newest", "Middle", "Oldest" }));
+    }
+
+    [Test]
+    public async Task Can_page_unresolved_groups()
+    {
+        var oldest = NewGroup("Oldest");
+        var older = NewGroup("Older");
+        var middle = NewGroup("Middle");
+        var newer = NewGroup("Newer");
+        var newest = NewGroup("Newest");
+
+        await Insert(
+            InGroup(oldest, failedAt: Noon),
+            InGroup(older, failedAt: Noon.AddHours(1)),
+            InGroup(middle, failedAt: Noon.AddHours(2)),
+            InGroup(newer, failedAt: Noon.AddHours(3)),
+            InGroup(newest, failedAt: Noon.AddHours(4)));
+
+        var firstPage = await GroupsStore.GetUnresolvedGroupsByClassifier(
+            Classifier,
+            null,
+            new PagingInfo(page: 1, pageSize: 2));
+
+        var secondPage = await GroupsStore.GetUnresolvedGroupsByClassifier(
+            Classifier,
+            null,
+            new PagingInfo(page: 2, pageSize: 2));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(firstPage, Has.Count.EqualTo(2));
+            Assert.That(secondPage, Has.Count.EqualTo(2));
+            Assert.That(firstPage, Is.Ordered.By(nameof(FailureGroupView.Last)).Descending);
+            Assert.That(
+                secondPage.Select(group => group.Id).Intersect(firstPage.Select(group => group.Id)),
+                Is.Empty);
+        }
+    }
+
+    [Test]
+    public async Task Can_page_archived_groups()
+    {
+        var oldest = NewGroup("Oldest");
+        var older = NewGroup("Older");
+        var middle = NewGroup("Middle");
+        var newer = NewGroup("Newer");
+        var newest = NewGroup("Newest");
+
+        await Insert(
+            InGroup(oldest, failedAt: Noon).ToFailedMessage(FailedMessageStatus.Archived),
+            InGroup(older, failedAt: Noon.AddHours(1)).ToFailedMessage(FailedMessageStatus.Archived),
+            InGroup(middle, failedAt: Noon.AddHours(2)).ToFailedMessage(FailedMessageStatus.Archived),
+            InGroup(newer, failedAt: Noon.AddHours(3)).ToFailedMessage(FailedMessageStatus.Archived),
+            InGroup(newest, failedAt: Noon.AddHours(4)).ToFailedMessage(FailedMessageStatus.Archived));
+
+        var firstPage = await GroupsStore.GetArchivedGroupsByClassifier(
+            Classifier,
+            new PagingInfo(page: 1, pageSize: 2));
+
+        var secondPage = await GroupsStore.GetArchivedGroupsByClassifier(
+            Classifier,
+            new PagingInfo(page: 2, pageSize: 2));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(firstPage.Results, Has.Count.EqualTo(2));
+            Assert.That(secondPage.Results, Has.Count.EqualTo(2));
+            Assert.That(firstPage.Results, Is.Ordered.By(nameof(FailureGroupView.Last)).Descending);
+            Assert.That(
+                secondPage.Results.Select(group => group.Id).Intersect(firstPage.Results.Select(group => group.Id)),
+                Is.Empty);
+            Assert.That(firstPage.QueryStats.TotalCount, Is.EqualTo(5),
+                "the total count should reflect all matching groups, not just the page");
+            Assert.That(secondPage.QueryStats.TotalCount, Is.EqualTo(5),
+                "the total count should reflect all matching groups, not just the page");
+        }
     }
 
     [Test]
@@ -295,14 +371,14 @@ class GroupsDataStoreTests : PersistenceTestBase
         await Insert(InGroup(group).ToFailedMessage(FailedMessageStatus.Archived));
         await EditComment(group.Id, "Only shown on the open group");
 
-        var view = (await GroupsStore.GetArchivedGroupsByClassifier(Classifier)).Results.Single();
+        var view = (await GroupsStore.GetArchivedGroupsByClassifier(Classifier, new PagingInfo(page: 1, pageSize: 200))).Results.Single();
 
         Assert.That(view.Comment, Is.Null);
     }
 
     async Task<string> CommentFor(FailedMessage.FailureGroup group)
     {
-        var groups = await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, null);
+        var groups = await GroupsStore.GetUnresolvedGroupsByClassifier(Classifier, null, new PagingInfo(page: 1, pageSize: 200));
 
         return groups.Single(view => view.Id == group.Id).Comment;
     }

@@ -11,6 +11,7 @@ namespace ServiceControl.Hosting.Commands
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.EventLog;
     using ServiceControl.ExternalIntegrations;
+    using ServiceControl.Hosting.Https;
     using ServiceControl.Infrastructure.Health;
     using ServiceControl.Monitoring;
     using ServiceControl.Persistence;
@@ -43,6 +44,7 @@ namespace ServiceControl.Hosting.Commands
 
             var hostBuilder = WebApplication.CreateBuilder();
 
+            hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
             hostBuilder.AddServiceControl(settings, configuration: null, Components);
 
             customize?.Invoke(hostBuilder);

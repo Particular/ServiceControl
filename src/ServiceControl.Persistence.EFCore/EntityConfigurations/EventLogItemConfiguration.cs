@@ -8,7 +8,6 @@ class EventLogItemConfiguration : IEntityTypeConfiguration<EventLogItemEntity>
 {
     public void Configure(EntityTypeBuilder<EventLogItemEntity> builder)
     {
-        builder.ToTable("EventLogItems");
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id).ValueGeneratedOnAdd();
         builder.Property(e => e.Description).IsRequired();

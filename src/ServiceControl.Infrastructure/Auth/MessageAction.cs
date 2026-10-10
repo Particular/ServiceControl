@@ -7,7 +7,8 @@ public enum MessageActionKind
     Retry,
     Archive,
     Unarchive,
-    Edit
+    Edit,
+    Delete
 }
 
 /// <summary>How the action selected the messages it acts on.</summary>

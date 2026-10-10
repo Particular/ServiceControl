@@ -1,10 +1,10 @@
 namespace ServiceControl.AcceptanceTests.PostgreSql;
 
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Npgsql;
 using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.AcceptanceTests.TestSupport;
 using ServiceControl.Persistence.EFCore.Abstractions;
@@ -17,19 +17,22 @@ public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfigur
 
     public async Task CustomizeSettings(Settings settings, CancellationToken cancellationToken = default)
     {
-        databaseName = $"sc_at_{Guid.NewGuid():n}";
-        serverConnectionString = await PostgreSqlSharedContainer.GetConnectionStringAsync(cancellationToken).ConfigureAwait(false);
+        var schema = $"sc_at_{Guid.NewGuid():n}";
+        var bodyStoragePath = Directory.CreateTempSubdirectory("sc_at_bodies_").FullName;
 
-        var connectionStringBuilder = new NpgsqlConnectionStringBuilder(serverConnectionString)
-        {
-            Database = databaseName
-        };
+        connectionString = await PostgreSqlSharedContainer.GetConnectionStringAsync(cancellationToken).ConfigureAwait(false);
+        await TestSchema.Create(connectionString, schema, cancellationToken).ConfigureAwait(false);
 
-        bodyStoragePath = Directory.CreateTempSubdirectory("sc_at_bodies_").FullName;
+        // A test that runs more than one scenario comes back through here, and the runner cleans up
+        // after each one. Recording everything created, rather than keeping only the most recent,
+        // is what stops the earlier schema being stranded in the shared database.
+        schemas.Add(schema);
+        bodyStoragePaths.Add(bodyStoragePath);
 
         settings.PersisterSpecificSettings = new PostgreSqlPersisterSettings
         {
-            ConnectionString = connectionStringBuilder.ConnectionString,
+            ConnectionString = connectionString,
+            Schema = schema,
             ErrorRetentionPeriod = TimeSpan.FromDays(10),
             BodyStorage = new FileSystemBodyStorageSettings { StoragePath = bodyStoragePath }
         };
@@ -37,33 +40,16 @@ public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfigur
 
     public async Task Cleanup(CancellationToken cancellationToken = default)
     {
-        if (Interlocked.Exchange(ref cleanupStarted, 1) != 0)
-        {
-            return;
-        }
-
         try
         {
-            if (serverConnectionString == null || databaseName == null)
+            while (schemas.TryTake(out var schema))
             {
-                return;
-            }
-
-            var connection = new NpgsqlConnection(serverConnectionString);
-            await using (connection.ConfigureAwait(false))
-            {
-                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-                var command = connection.CreateCommand();
-                await using (command.ConfigureAwait(false))
-                {
-                    command.CommandText = $"DROP DATABASE IF EXISTS \"{databaseName}\" WITH (FORCE)";
-                    await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-                }
+                await TestSchema.Drop(connectionString, schema, cancellationToken).ConfigureAwait(false);
             }
         }
         finally
         {
-            if (bodyStoragePath != null)
+            while (bodyStoragePaths.TryTake(out var bodyStoragePath))
             {
                 try
                 {
@@ -91,8 +77,7 @@ public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfigur
         }
     }
 
-    string serverConnectionString;
-    string databaseName;
-    string bodyStoragePath;
-    int cleanupStarted;
+    readonly ConcurrentBag<string> schemas = [];
+    readonly ConcurrentBag<string> bodyStoragePaths = [];
+    string connectionString;
 }

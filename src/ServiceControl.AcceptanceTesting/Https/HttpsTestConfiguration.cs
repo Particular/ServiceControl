@@ -16,6 +16,18 @@ namespace ServiceControl.AcceptanceTesting.Https
         bool disposed;
 
         /// <summary>
+        /// Configures Kestrel to serve HTTPS with the PKCS#12 certificate at the given path.
+        /// The file must exist when the settings are constructed, because they load it.
+        /// </summary>
+        /// <param name="certificatePath">Path to a PFX file holding the certificate and its private key, with no password</param>
+        public HttpsTestConfiguration WithKestrelHttps(string certificatePath)
+        {
+            SetEnvironmentVariable("HTTPS_ENABLED", "true");
+            SetEnvironmentVariable("HTTPS_CERTIFICATEPATH", certificatePath);
+            return this;
+        }
+
+        /// <summary>
         /// Configures HTTPS redirect to be enabled.
         /// When enabled, HTTP requests will be redirected to HTTPS.
         /// </summary>

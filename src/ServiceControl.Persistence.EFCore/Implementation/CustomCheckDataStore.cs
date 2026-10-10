@@ -50,7 +50,7 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
         return status;
     }, cancellationToken);
 
-    public Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string? status = null, CancellationToken cancellationToken = default) => ExecuteWithDbContext(async (context, token) =>
+    public Task<QueryResult<IList<CustomCheckView>>> GetStats(PagingInfo paging, string? status = null, CancellationToken cancellationToken = default) => ExecuteWithDbContext(async (context, token) =>
     {
         var query = context.CustomChecks.AsQueryable().AsNoTracking();
 
@@ -66,7 +66,7 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
             .ThenBy(c => c.Id)
             .Skip(paging.Offset)
             .Take(paging.PageSize)
-            .Select(c => new CustomCheck
+            .Select(c => new CustomCheckView
             {
                 Id = c.Id.ToString(),
                 CustomCheckId = c.CustomCheckId,
@@ -85,7 +85,7 @@ public class CustomCheckDataStore(IServiceScopeFactory scopeFactory) : DataStore
 
         var totalCount = await query.CountAsync(token);
 
-        return new QueryResult<IList<CustomCheck>>(checks, checks.ToQueryStatsInfo("checks", totalCount));
+        return new QueryResult<IList<CustomCheckView>>(checks, checks.ToQueryStatsInfo("checks", totalCount));
     }, cancellationToken);
 
     public Task DeleteCustomCheck(Guid id, CancellationToken cancellationToken = default) => ExecuteWithDbContext(async (context, token) => await context.CustomChecks.AsNoTracking().Where(cc => cc.Id == id).ExecuteDeleteAsync(token), cancellationToken);

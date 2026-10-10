@@ -2,6 +2,8 @@ namespace ServiceControl.Infrastructure;
 
 using System;
 using System.IO;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using ServiceControl.Configuration;
@@ -24,7 +26,7 @@ public class HttpsSettings
             CertificatePath = SettingsReader.Read<string>(rootNamespace, "Https.CertificatePath");
             CertificatePassword = SettingsReader.Read<string>(rootNamespace, "Https.CertificatePassword");
 
-            ValidateCertificateConfiguration();
+            Certificate = LoadCertificate();
         }
 
         // HTTPS redirection - disabled by default for backwards compatibility
@@ -45,7 +47,7 @@ public class HttpsSettings
     public bool Enabled { get; }
 
     /// <summary>
-    /// Path to the HTTPS certificate file (.pfx or .pem).
+    /// Path to the HTTPS certificate file (PKCS#12 / .pfx).
     /// Required when Https.Enabled is true.
     /// </summary>
     public string CertificatePath { get; }
@@ -56,6 +58,12 @@ public class HttpsSettings
     /// </summary>
     [JsonIgnore]
     public string CertificatePassword { get; }
+
+    /// <summary>
+    /// The certificate loaded from <see cref="CertificatePath"/>, or null when HTTPS is disabled.
+    /// </summary>
+    [JsonIgnore]
+    public X509Certificate2 Certificate { get; }
 
     /// <summary>
     /// When true, HTTP requests will be redirected to HTTPS.
@@ -88,11 +96,11 @@ public class HttpsSettings
     /// </summary>
     public bool HstsIncludeSubDomains { get; }
 
-    void ValidateCertificateConfiguration()
+    X509Certificate2 LoadCertificate()
     {
         if (string.IsNullOrWhiteSpace(CertificatePath))
         {
-            var message = "Https.CertificatePath is required when HTTPS is enabled. Please specify the path to a valid HTTPS certificate file (.pfx or .pem)";
+            var message = "Https.CertificatePath is required when HTTPS is enabled. Please specify the path to a valid PKCS#12 (.pfx) certificate file";
             logger.LogCritical(message);
             throw new InvalidOperationException(message);
         }
@@ -103,6 +111,79 @@ public class HttpsSettings
             logger.LogCritical(message);
             throw new InvalidOperationException(message);
         }
+
+        // Loaded here rather than when Kestrel binds its endpoints: an unusable certificate is a
+        // configuration error, and binding happens only after every hosted service has started.
+        X509Certificate2 certificate;
+        try
+        {
+            certificate = string.IsNullOrEmpty(CertificatePassword)
+                ? X509CertificateLoader.LoadPkcs12FromFile(CertificatePath, null)
+                : X509CertificateLoader.LoadPkcs12FromFile(CertificatePath, CertificatePassword);
+        }
+        catch (Exception ex)
+        {
+            // .NET reports several unrelated causes as "the password may be incorrect", so describe
+            // the file itself too. Never the password, only whether one was configured.
+            var cause = ex.GetBaseException();
+            var file = new FileInfo(CertificatePath);
+            var message = $"The HTTPS certificate could not be loaded, so this instance cannot start. " +
+                          $"Https.CertificatePath: '{CertificatePath}' ({file.Length} bytes, last modified {file.LastWriteTimeUtc:u}). " +
+                          $"Https.CertificatePassword configured: {!string.IsNullOrEmpty(CertificatePassword)}. " +
+                          $"{cause.GetType().Name}: {cause.Message} " +
+                          $"Check that the file is a PKCS#12/PFX holding both the certificate and its private key, and that Https.CertificatePassword matches it. " +
+                          $"To start without HTTPS while investigating, set Https.Enabled to false.";
+            logger.LogCritical(message);
+            throw new InvalidOperationException(message, ex);
+        }
+
+        // Kestrel does not check this when binding. Without the private key every TLS handshake
+        // fails instead, which surfaces only as clients being unable to connect.
+        if (!certificate.HasPrivateKey)
+        {
+            var message = $"The HTTPS certificate does not contain a private key, so this instance cannot start. " +
+                          $"Https.CertificatePath: '{CertificatePath}' (subject '{certificate.Subject}', thumbprint {certificate.Thumbprint}). " +
+                          $"Export the certificate as PKCS#12/PFX including its private key. " +
+                          $"To start without HTTPS while investigating, set Https.Enabled to false.";
+            logger.LogCritical(message);
+            throw new InvalidOperationException(message);
+        }
+
+        // Kestrel applies this rule when the HTTPS endpoint is bound; checking it here reports it
+        // before any hosted service has started. A certificate without an EKU extension is accepted.
+        if (!IsAllowedForServerAuthentication(certificate))
+        {
+            var message = $"The HTTPS certificate cannot be used for server authentication, so this instance cannot start. " +
+                          $"Https.CertificatePath: '{CertificatePath}' (subject '{certificate.Subject}', thumbprint {certificate.Thumbprint}). " +
+                          $"Its Extended Key Usage extension does not include Server Authentication (OID {ServerAuthenticationOid}). " +
+                          $"To start without HTTPS while investigating, set Https.Enabled to false.";
+            logger.LogCritical(message);
+            throw new InvalidOperationException(message);
+        }
+
+        return certificate;
+    }
+
+    const string ServerAuthenticationOid = "1.3.6.1.5.5.7.3.1";
+
+    static bool IsAllowedForServerAuthentication(X509Certificate2 certificate)
+    {
+        var hasEkuExtension = false;
+
+        foreach (var extension in certificate.Extensions.OfType<X509EnhancedKeyUsageExtension>())
+        {
+            hasEkuExtension = true;
+
+            foreach (var oid in extension.EnhancedKeyUsages)
+            {
+                if (string.Equals(oid.Value, ServerAuthenticationOid, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return !hasEkuExtension;
     }
 
     void LogConfiguration()

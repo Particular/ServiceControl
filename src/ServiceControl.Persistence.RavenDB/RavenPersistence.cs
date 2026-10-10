@@ -1,9 +1,11 @@
 namespace ServiceControl.Persistence.RavenDB;
 
+using System;
 using CustomChecks;
 using Editing;
 using MessageRedirects;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
 using Operations.BodyStorage;
 using Operations.BodyStorage.RavenAttachments;
@@ -48,6 +50,7 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddCustomCheck<CheckFreeDiskSpace>();
         services.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
         services.AddCustomCheck<CheckDirtyMemory>();
+        services.AddCustomCheck<CheckRavenDBSearchEngine>();
 
         services.AddSingleton<MemoryInformationRetriever>();
         services.AddSingleton<OperationsManager>();
@@ -81,6 +84,8 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
 
     void ConfigureLifecycle(IServiceCollection services)
     {
+        services.TryAddSingleton(TimeProvider.System);
+
         services.AddSingleton<PersistenceSettings>(settings);
         services.AddSingleton(settings);
 

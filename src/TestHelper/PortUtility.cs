@@ -1,4 +1,4 @@
-﻿namespace TestHelper
+namespace TestHelper
 {
     using System;
     using System.Globalization;
@@ -8,25 +8,42 @@
     public static class PortUtility
     {
         /// <summary>
-        /// The port an embedded server should bind, when the test runner has assigned one.
+        /// The 0-based index that <c>Particular/run-tests-action</c> assigns to each spawned
+        /// <c>dotnet test</c> process immediately before spawning it, so concurrent runs can derive
+        /// distinct per-run resources from it. The value is unique across all runs in the invocation;
+        /// in sequential mode (<c>max-parallel == 1</c>) it is always <c>0</c>. Defaults to <c>0</c>
+        /// when unset (e.g. local development outside the action).
         /// </summary>
-        public const string AssignedPortVariableName = "ServiceControl_TESTS_RAVENDB_PORT";
+        public const string ParallelIndexVariableName = "PARTICULAR_RUN_TESTS_ACTION_PARALLEL_INDEX";
 
         /// <summary>
-        /// Returns the port assigned by the test runner, or probes for a free one when running alone.
+        /// Spacing between per-run ports. Wide enough that a run's embedded server has room for any
+        /// additional listeners it opens alongside its main port.
+        /// </summary>
+        public const int ParallelPortSpacing = 10;
+
+        /// <summary>
+        /// Returns the port derived from the run-tests-action per-run parallel index.
         /// </summary>
         /// <remarks>
-        /// Concurrent test processes cannot each probe: <see cref="FindAvailablePort"/> only inspects
-        /// the listeners active at that instant, so processes starting together all see the same port
-        /// free and all but one then fail to bind.
+        /// <para>
+        /// The action sets <see cref="ParallelIndexVariableName"/> on every spawned <c>dotnet test</c>
+        /// process. Each run's port is computed as <c>startPort + (index * <see cref="ParallelPortSpacing"/>)</c>,
+        /// so concurrent runs bind distinct ports (the historic spacing of 10 is preserved). A sequential
+        /// run (index <c>0</c>) lands on <paramref name="startPort"/> -- the same base the historic probe
+        /// started from, so non-parallel behavior is unchanged.
+        /// </para>
+        /// <para>
+        /// When the index is unset (local development outside the action) it defaults to <c>0</c> and the
+        /// base <paramref name="startPort"/> is used directly. <see cref="FindAvailablePort"/> remains
+        /// available for callers that want to probe for a free port rather than derive a fixed one.
+        /// </para>
         /// </remarks>
         public static int GetAssignedOrAvailablePort(int startPort)
         {
-            var assignedPort = Environment.GetEnvironmentVariable(AssignedPortVariableName);
-
-            return string.IsNullOrWhiteSpace(assignedPort)
-                ? FindAvailablePort(startPort)
-                : int.Parse(assignedPort, CultureInfo.InvariantCulture);
+            var indexText = Environment.GetEnvironmentVariable(ParallelIndexVariableName);
+            var index = int.TryParse(indexText?.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out var i) ? i : 0;
+            return startPort + (Math.Max(0, index) * ParallelPortSpacing);
         }
 
         public static int FindAvailablePort(int startPort)

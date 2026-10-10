@@ -12,7 +12,7 @@ using ServiceControl.Infrastructure.Auth;
 
 [ApiController]
 [Route("api")]
-public class GetMessages2Controller(IAuditDataStore dataStore) : ControllerBase
+public class GetMessages2Controller(IAuditMessagesViewDataStore dataStore) : ControllerBase
 {
     [Authorize(Policy = Permissions.AuditMessageView)]
     [Route("messages2")]
@@ -54,7 +54,7 @@ public class GetMessages2Controller(IAuditDataStore dataStore) : ControllerBase
         }
 
         Response.WithTotalCount(result.QueryStats.TotalCount);
-        Response.WithEtag(result.QueryStats.ETag);
+        Response.WithEtag(result.QueryStats.Version);
 
         return result.Results;
     }

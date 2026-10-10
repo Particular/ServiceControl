@@ -9,10 +9,11 @@
 
     class ArchivingManager
     {
-        public ArchivingManager(IDomainEvents domainEvents, OperationsManager operationsManager)
+        public ArchivingManager(IDomainEvents domainEvents, OperationsManager operationsManager, TimeProvider timeProvider)
         {
             this.domainEvents = domainEvents;
             this.operationsManager = operationsManager;
+            this.timeProvider = timeProvider;
         }
 
         public bool IsArchiveInProgressFor(string requestId)
@@ -34,7 +35,7 @@
         {
             if (!operationsManager.ArchiveOperations.TryGetValue(InMemoryArchive.MakeId(requestId, archiveType), out var summary))
             {
-                summary = new InMemoryArchive(requestId, archiveType, domainEvents);
+                summary = new InMemoryArchive(requestId, archiveType, domainEvents, timeProvider);
                 operationsManager.ArchiveOperations[InMemoryArchive.MakeId(requestId, archiveType)] = summary;
             }
 
@@ -61,7 +62,7 @@
 
             summary.TotalNumberOfMessages = 0;
             summary.NumberOfMessagesArchived = 0;
-            summary.Started = DateTime.UtcNow;
+            summary.Started = timeProvider.GetUtcNow().UtcDateTime;
             summary.GroupName = "Undefined";
             summary.NumberOfBatches = 0;
             summary.CurrentBatch = 0;
@@ -106,6 +107,7 @@
         }
 
         IDomainEvents domainEvents;
+        readonly TimeProvider timeProvider;
 
         OperationsManager operationsManager;
 

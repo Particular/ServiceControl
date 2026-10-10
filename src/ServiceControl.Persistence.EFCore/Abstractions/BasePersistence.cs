@@ -23,7 +23,8 @@ public abstract class BasePersistence
 {
     protected static void RegisterDataStores(IServiceCollection services, EFPersisterSettings settings)
     {
-        services.AddSingleton(TimeProvider.System);
+        services.TryAddSingleton(TimeProvider.System);
+
         services.AddSingleton<MinimumRequiredStorageState>();
 
         services.AddSingleton<IServiceControlSubscriptionStorage, SubscriptionStorage>();
@@ -40,7 +41,15 @@ public abstract class BasePersistence
         if (settings.RunRetentionSweep)
         {
             services.AddSingleton<RetentionMetrics>();
-            services.AddHostedService<RetentionSweeper>();
+
+            // Register the sweeper as a resolvable singleton (concrete type + IRetentionSweeper) AND
+            // as a hosted service, all backed by one instance.
+            services.AddSingleton<RetentionSweeper>();
+            services.AddHostedService(sp => sp.GetRequiredService<RetentionSweeper>());
+            services.AddSingleton<IRetentionSweeper>(sp => sp.GetRequiredService<RetentionSweeper>());
+
+            services.AddSingleton<RetentionSweepCustomCheck.State>();
+            services.AddCustomCheck<RetentionSweepCustomCheck>();
         }
 
         services.AddSingleton<OperationsManager>();

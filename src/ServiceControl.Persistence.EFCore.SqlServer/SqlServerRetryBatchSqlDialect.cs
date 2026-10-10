@@ -14,7 +14,7 @@ class SqlServerRetryBatchSqlDialect : SqlServerDialect, IRetryBatchSqlDialect
             await Execute(
                 dbContext,
                 $"""
-                 MERGE [FailedMessageRetries] WITH (HOLDLOCK) AS t
+                 MERGE {Table<FailedMessageRetryEntity>(dbContext)} WITH (HOLDLOCK) AS t
                  USING (VALUES
                  {ParameterRows(chunk.Length, 3)}
                  ) AS s ([UniqueMessageId], [RetryBatchId], [StageAttempts])

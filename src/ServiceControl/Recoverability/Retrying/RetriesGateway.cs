@@ -15,12 +15,13 @@ namespace ServiceControl.Recoverability
 
     class RetriesGateway
     {
-        public RetriesGateway(IRetryBatchStore store, RetryingManager operationManager, RetryMetrics metrics, ILogger<RetriesGateway> logger)
+        public RetriesGateway(IRetryBatchStore store, RetryingManager operationManager, RetryMetrics metrics, ILogger<RetriesGateway> logger, TimeProvider timeProvider)
         {
             this.store = store;
             this.operationManager = operationManager;
             this.metrics = metrics;
             this.logger = logger;
+            this.timeProvider = timeProvider;
 
             metrics.ObservePendingBulkRequests(() => bulkRequests.Count);
         }
@@ -35,8 +36,10 @@ namespace ServiceControl.Recoverability
 
             using var preparation = metrics.BeginPreparation(retryType, cancellationToken);
 
-            await operationManager.Preparing(requestId, retryType, numberOfMessages, cancellationToken);
-            await AssignMessagesToBatch(requestId, retryType, new[] { uniqueMessageId }, DateTime.UtcNow, cancellationToken, initiatedBy: initiatedBy, operationId: operationId);
+            var startedAt = timeProvider.GetUtcNow().UtcDateTime;
+
+            await operationManager.Preparing(requestId, retryType, numberOfMessages, startedAt, cancellationToken: cancellationToken);
+            await AssignMessagesToBatch(requestId, retryType, new[] { uniqueMessageId }, startedAt, cancellationToken, initiatedBy: initiatedBy, operationId: operationId);
             await operationManager.PreparedBatch(requestId, retryType, numberOfMessages, cancellationToken);
 
             preparation.Complete();
@@ -52,8 +55,10 @@ namespace ServiceControl.Recoverability
 
             using var preparation = metrics.BeginPreparation(retryType, cancellationToken);
 
-            await operationManager.Preparing(requestId, retryType, numberOfMessages, cancellationToken);
-            await AssignMessagesToBatch(requestId, retryType, uniqueMessageIds, DateTime.UtcNow, cancellationToken, initiatedBy: initiatedBy, operationId: operationId);
+            var startedAt = timeProvider.GetUtcNow().UtcDateTime;
+
+            await operationManager.Preparing(requestId, retryType, numberOfMessages, startedAt, cancellationToken: cancellationToken);
+            await AssignMessagesToBatch(requestId, retryType, uniqueMessageIds, startedAt, cancellationToken, initiatedBy: initiatedBy, operationId: operationId);
             await operationManager.PreparedBatch(requestId, retryType, numberOfMessages, cancellationToken);
 
             preparation.Complete();
@@ -106,7 +111,7 @@ namespace ServiceControl.Recoverability
             {
                 var numberOfMessagesAdded = 0;
 
-                await operationManager.Preparing(request.RequestId, request.RetryType, totalMessages, cancellationToken);
+                await operationManager.Preparing(request.RequestId, request.RetryType, totalMessages, request.StartTime, request.Originator, cancellationToken);
 
                 for (var i = 0; i < batches.Count; i++)
                 {
@@ -132,21 +137,21 @@ namespace ServiceControl.Recoverability
 
         public void StartRetryForAllMessages(AuditUser? initiatedBy = null, string operationId = null)
         {
-            var item = new RetryForAllMessages(initiatedBy, operationId);
+            var item = new RetryForAllMessages(timeProvider.GetUtcNow().UtcDateTime, initiatedBy, operationId);
             logger.LogInformation("Enqueuing index based bulk retry '{Item}'", item);
             bulkRequests.Enqueue(item);
         }
 
         public void StartRetryForEndpoint(string endpoint, AuditUser? initiatedBy = null, string operationId = null)
         {
-            var item = new RetryForEndpoint(endpoint, initiatedBy, operationId);
+            var item = new RetryForEndpoint(endpoint, timeProvider.GetUtcNow().UtcDateTime, initiatedBy, operationId);
             logger.LogInformation("Enqueuing index based bulk retry '{Item}'", item);
             bulkRequests.Enqueue(item);
         }
 
         public void StartRetryForFailedQueueAddress(string failedQueueAddress, FailedMessageStatus status, AuditUser? initiatedBy = null, string operationId = null)
         {
-            var item = new RetryForFailedQueueAddress(failedQueueAddress, status, initiatedBy, operationId);
+            var item = new RetryForFailedQueueAddress(failedQueueAddress, status, timeProvider.GetUtcNow().UtcDateTime, initiatedBy, operationId);
             logger.LogInformation("Enqueuing index based bulk retry '{Item}'", item);
             bulkRequests.Enqueue(item);
         }
@@ -164,6 +169,7 @@ namespace ServiceControl.Recoverability
         const int BatchSize = 1000;
 
         readonly ILogger<RetriesGateway> logger;
+        readonly TimeProvider timeProvider;
 
         public abstract class BulkRetryRequest
         {
@@ -234,7 +240,7 @@ namespace ServiceControl.Recoverability
 
         class RetryForAllMessages : BulkRetryRequest
         {
-            public RetryForAllMessages(AuditUser? initiatedBy = null, string operationId = null) : base(requestId: "All", RetryType.All, DateTime.UtcNow, "all messages", initiatedBy, operationId)
+            public RetryForAllMessages(DateTime startTime, AuditUser? initiatedBy = null, string operationId = null) : base(requestId: "All", RetryType.All, startTime, "all messages", initiatedBy, operationId)
             {
             }
 
@@ -248,7 +254,7 @@ namespace ServiceControl.Recoverability
         {
             public string Endpoint { get; }
 
-            public RetryForEndpoint(string endpoint, AuditUser? initiatedBy = null, string operationId = null) : base(requestId: endpoint, RetryType.AllForEndpoint, DateTime.UtcNow, originator: $"all messages for endpoint {endpoint}", initiatedBy, operationId)
+            public RetryForEndpoint(string endpoint, DateTime startTime, AuditUser? initiatedBy = null, string operationId = null) : base(requestId: endpoint, RetryType.AllForEndpoint, startTime, originator: $"all messages for endpoint {endpoint}", initiatedBy, operationId)
             {
                 Endpoint = endpoint;
             }
@@ -287,9 +293,10 @@ namespace ServiceControl.Recoverability
             public RetryForFailedQueueAddress(
                 string failedQueueAddress,
                 FailedMessageStatus status,
+                DateTime startTime,
                 AuditUser? initiatedBy = null,
                 string operationId = null
-                ) : base(requestId: failedQueueAddress, RetryType.ByQueueAddress, DateTime.UtcNow, originator: $"all messages for failed queue address '{failedQueueAddress}'", initiatedBy, operationId)
+                ) : base(requestId: failedQueueAddress, RetryType.ByQueueAddress, startTime, originator: $"all messages for failed queue address '{failedQueueAddress}'", initiatedBy, operationId)
             {
                 FailedQueueAddress = failedQueueAddress;
                 Status = status;

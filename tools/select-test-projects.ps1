@@ -7,7 +7,7 @@
 #
 # A category can span several test projects that share infrastructure, so that CI provisions its
 # container once and compiles the union of their closures once. Their assemblies then run concurrently,
-# via the -MaxParallel switch on run-tests.ps1.
+# via the 'max-parallel' input on Particular/run-tests-action.
 #
 # Use -List to print every category and its projects without writing any files.
 
@@ -100,7 +100,5 @@ Set-Content -Path $TraversalProjectPath -Value $traversal -Encoding utf8
 Write-Output "Wrote traversal project to $TraversalProjectPath"
 
 if ($Env:GITHUB_OUTPUT) {
-    "test-projects<<PROJECTS_EOF" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
-    $projects | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
-    "PROJECTS_EOF" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
+    "test-projects=$($projects -join ';')" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
 }

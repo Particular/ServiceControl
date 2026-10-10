@@ -56,7 +56,7 @@ class AuditIngestionFaultPolicy
     {
         var failure = new FailedAuditImport
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = FailedAuditImport.DeriveKey(errorContext.Headers, errorContext.MessageId).ToString(),
             Message = new FailedTransportMessage
             {
                 Id = errorContext.MessageId,

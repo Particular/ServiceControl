@@ -80,6 +80,18 @@ class BodyReadTests : ErrorIngestionTestBase
     }
 
     [Test]
+    public async Task Fetches_by_an_over_length_message_id()
+    {
+        var failure = new IngestedFailure { MessageId = new string('m', 600), Body = Encoding.UTF8.GetBytes("<order>1</order>") };
+        await Ingest(failure);
+
+        var result = await Fetch(failure.MessageId);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.State, Is.EqualTo(MessageBodyState.Available));
+    }
+
+    [Test]
     public async Task Reports_an_empty_body()
     {
         var failure = new IngestedFailure { Body = [] };

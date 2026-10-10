@@ -29,7 +29,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
     public class ServiceControlComponentRunner(
         ITransportIntegration transportToUse,
-        AcceptanceTestStorageConfiguration persistenceToUse,
+        IAcceptanceTestStorageConfiguration persistenceToUse,
         Action<Settings> setSettings,
         Action<EndpointConfiguration> customConfiguration,
         Action<IDictionary<string, string>> setStorageConfiguration,
@@ -49,7 +49,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             // 1. ConfigurationManager.AppSettings is process-global and not thread-safe
             // 2. The embedded RavenDB server does not support concurrent database create/delete/index operations
             // The test scenario execution (after this method returns) still runs in parallel.
-            using var _ = await AcceptanceTestStorageConfiguration.UseDatabaseLifecycleLock();
+            using var _ = await persistenceToUse.UseDatabaseLifecycleLock();
             await InitializeServiceControlCore(context);
         }
 
@@ -169,13 +169,20 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
         public override async Task Stop(CancellationToken cancellationToken = default)
         {
+            // The scenario passes the test's own token here, which has already fired when the test timed out.
+            // Stopping with it aborts the host mid-shutdown, and the exception that produces replaces the
+            // timeout as the reported failure. Shutdown gets its own budget instead.
+            using var shutdown = new CancellationTokenSource(ShutdownTimeout);
+
             using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
             {
-                await host.StopAsync(cancellationToken);
+                await host.StopAsync(shutdown.Token);
                 HttpClient.Dispose();
                 await host.DisposeAsync();
             }
         }
+
+        static readonly TimeSpan ShutdownTimeout = TimeSpan.FromSeconds(30);
 
         string instanceName = Settings.DEFAULT_INSTANCE_NAME;
         WebApplication host;

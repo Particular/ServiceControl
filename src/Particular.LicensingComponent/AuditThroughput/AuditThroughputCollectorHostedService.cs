@@ -155,7 +155,13 @@ public class AuditThroughputCollectorHostedService(
                 .GroupBy(s => s.Transport!)
                 .ToDictionary(g => g.Key, g => g.Count());
 
-            await dataStore.SaveAuditServiceMetadata(new AuditServiceMetadata(versions, transports), cancellationToken);
+            var auditServiceMetadata = new AuditServiceMetadata(versions, transports)
+            {
+                ConfiguredInstances = auditRemotes.Count,
+                LiveInstances = auditRemotes.Count(remote => remote.RespondedAsAuditInstance && remote.SemanticVersion is not null)
+            };
+
+            await dataStore.SaveAuditServiceMetadata(auditServiceMetadata, cancellationToken);
         }
     }
 }

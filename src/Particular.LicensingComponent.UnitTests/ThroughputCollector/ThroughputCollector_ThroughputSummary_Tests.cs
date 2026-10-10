@@ -177,6 +177,22 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
     }
 
     [Test]
+    [SetCulture("th-TH")]
+    public async Task Should_key_monthly_throughput_by_gregorian_month_when_the_culture_uses_another_calendar()
+    {
+        await DataStore.CreateBuilder()
+            .AddEndpoint("Endpoint1", sources: [ThroughputSource.Broker])
+            .WithThroughput(new ThroughputData([
+                new EndpointDailyThroughput(new DateOnly(2025, 1, 10), 50),
+                new EndpointDailyThroughput(new DateOnly(2025, 2, 20), 60)]))
+            .Build();
+
+        var summary = await ThroughputCollector.GetThroughputSummary(CancellationToken.None);
+
+        Assert.That(summary.Single().MonthlyThroughput, Is.EquivalentTo(new[] { new MonthlyThroughput("2025-01", 50), new MonthlyThroughput("2025-02", 60) }), "Monthly throughput must be keyed by Gregorian yyyy-MM months");
+    }
+
+    [Test]
     public async Task Should_return_correct_max_daily_throughput_in_summary_when_endpoint_has_zero_throughput()
     {
         // Arrange

@@ -20,12 +20,23 @@
             "Audit Message Ingestion Process",
             "Audit Message Ingestion",
             "ServiceControl.Audit database",
+            "Audit Database Index Lag",
+            "Audit Database Search Engine",
+            "Audit partition provisioning",
+            "Audit retention",
+            "RavenDB dirty memory",
             "Dead Letter Queue",
             "ServiceControl Primary Instance",
             "ServiceControl database",
             "ServiceControl Remotes",
             "Error Message Ingestion Process",
-            "Error Message Ingestion"
+            "Error Message Ingestion",
+            "Error Database Index Errors",
+            "Error Database Index Lag",
+            "Error Database Search Engine",
+            "Message Ingestion Process",
+            "ServiceControl body storage",
+            "ServiceControl Retention"
         };
 
         public CustomChecksMailNotification(IMessageSession messageSession, Settings settings, EmailThrottlingState throttlingState, ILogger<CustomChecksMailNotification> logger)

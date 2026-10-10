@@ -73,34 +73,14 @@
                                                   Converter={StaticResource boolToVis}}" />
                 </StackPanel>
 
-                <TextBlock Padding="0, 0, 0, 10" Visibility="{Binding OneInstanceTypeSelected, Converter={StaticResource boolToVisInverted}}"
-                            FontSize="13px"
-                            Foreground="{StaticResource ErrorBrush}"
-                            Text="Must select either an audit or an error instance." />
-
-                <StackPanel>
-                    <!-- Horizontal layout: CheckBox + Expander side by side -->
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <CheckBox Grid.Column="0" 
-                                  Padding="0, 0, 0, 0" 
-                                  IsChecked="{Binding InstallErrorInstance}"
-                                  VerticalAlignment="Top"
-                                  Margin="0,8,8,5"/>
-
-                        <Expander Grid.Column="1" 
-                                  Header="ServiceControl" 
-                                  IsExpanded="{Binding IsServiceControlExpanded}" 
-                                  IsEnabled="{Binding InstallErrorInstance}"
-                                  Margin="0,5,0,5"
-                                  MouseDown="Button_MouseDown" 
-                                  PreviewMouseDown="Button_MouseDown" 
-                                  PreviewMouseLeftButtonDown="Button_MouseDown">
-                            <StackPanel Margin="60,0,60,0" Visibility="{Binding InstallErrorInstance, Converter={StaticResource boolToVis}}">
+                <StackPanel Visibility="{Binding InstallErrorInstance, Converter={StaticResource boolToVis}}">
+                    <Expander Header="ServiceControl"
+                              IsExpanded="{Binding IsServiceControlExpanded}"
+                              Margin="0,5,0,5"
+                              MouseDown="Button_MouseDown"
+                              PreviewMouseDown="Button_MouseDown"
+                              PreviewMouseLeftButtonDown="Button_MouseDown">
+                            <StackPanel Margin="60,0,60,0">
                                 <Border Margin="0,40,0,20"
                                 BorderBrush="{StaticResource Gray70Brush}"
                                 BorderThickness="0,0,0,1">
@@ -261,34 +241,17 @@
                                                ItemsSource="{Binding ErrorEnableIntegratedServicePulseOptions}"
                                                SelectedValue="{Binding ErrorEnableIntegratedServicePulse}" />
                             </StackPanel>
-                        </Expander>
-                    </Grid>
+                    </Expander>
                 </StackPanel>
 
-                <StackPanel>
-                    <!-- Horizontal layout: CheckBox + Expander side by side -->
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <CheckBox Grid.Column="0" 
-                                  Padding="0, 0, 0, 0" 
-                                  IsChecked="{Binding InstallAuditInstance}" 
-                                  IsThreeState="False"
-                                  VerticalAlignment="Top"
-                                  Margin="0,8,8,5"/>
-
-                        <Expander Grid.Column="1" 
-                                  Header="ServiceControl Audit" 
-                                  IsExpanded="{Binding IsServiceControlAuditExpanded}" 
-                                  IsEnabled="{Binding InstallAuditInstance}"
-                                  Margin="0,5,0,5"
-                                  MouseDown="Button_MouseDown" 
-                                  PreviewMouseDown="Button_MouseDown" 
-                                  PreviewMouseLeftButtonDown="Button_MouseDown">
-                            <StackPanel Margin="60,0,60,0" Visibility="{Binding InstallAuditInstance, Converter={StaticResource boolToVis}}">
+                <StackPanel Visibility="{Binding InstallAuditInstance, Converter={StaticResource boolToVis}}">
+                    <Expander Header="ServiceControl Audit"
+                              IsExpanded="{Binding IsServiceControlAuditExpanded}"
+                              Margin="0,5,0,5"
+                              MouseDown="Button_MouseDown"
+                              PreviewMouseDown="Button_MouseDown"
+                              PreviewMouseLeftButtonDown="Button_MouseDown">
+                            <StackPanel Margin="60,0,60,0">
                                 <Border Margin="0,40,0,20"
                                 BorderBrush="{StaticResource Gray70Brush}"
                                 BorderThickness="0,0,0,1">
@@ -458,8 +421,7 @@
                                                ItemsSource="{Binding AuditEnableFullTextSearchOnBodiesOptions}"
                                                SelectedValue="{Binding AuditEnableFullTextSearchOnBodies}" />
                             </StackPanel>
-                        </Expander>
-                    </Grid>
+                    </Expander>
                 </StackPanel>
             </StackPanel>
         </sie:SharedServiceControlEditorView.SharedContent>

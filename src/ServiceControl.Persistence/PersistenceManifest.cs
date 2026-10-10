@@ -18,9 +18,10 @@
 
         public required string Description { get; set; }
 
-        public required string AssemblyName { get; set; }
+        // Absent on manifests for persisters that no longer ship an assembly, such as RavenDB 3.5
+        public string? AssemblyName { get; set; }
 
-        public required string TypeName { get; set; }
+        public string? TypeName { get; set; }
 
         public bool IsSupported { get; set; } = true;
 
@@ -59,10 +60,7 @@
 
             try
             {
-                foreach (var manifestFile in Directory.EnumerateFiles(assemblyDirectory, "persistence.manifest", SearchOption.AllDirectories))
-                {
-                    PersistenceManifests.Add(DeserializeManifest(manifestFile));
-                }
+                PersistenceManifests.AddRange(LoadManifests(Directory.EnumerateFiles(assemblyDirectory, "persistence.manifest", SearchOption.AllDirectories)));
             }
             catch (Exception ex)
             {
@@ -71,10 +69,7 @@
 
             try
             {
-                foreach (var manifestFile in DevelopmentPersistenceLocations.ManifestFiles)
-                {
-                    PersistenceManifests.Add(DeserializeManifest(manifestFile));
-                }
+                PersistenceManifests.AddRange(LoadManifests(DevelopmentPersistenceLocations.ManifestFiles));
             }
             catch (Exception ex)
             {
@@ -82,6 +77,26 @@
             }
 
             PersistenceManifests.ForEach(m => logger.LogInformation("Found persistence manifest for {ManifestDisplayName}", m.DisplayName));
+        }
+
+        // One unreadable manifest must not hide the persisters enumerated after it
+        internal static List<PersistenceManifest> LoadManifests(IEnumerable<string> manifestFiles)
+        {
+            var manifests = new List<PersistenceManifest>();
+
+            foreach (var manifestFile in manifestFiles)
+            {
+                try
+                {
+                    manifests.Add(DeserializeManifest(manifestFile));
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Failed to load persistence manifest {ManifestFile}", manifestFile);
+                }
+            }
+
+            return manifests;
         }
 
         static PersistenceManifest DeserializeManifest(string manifestFile)

@@ -1,0 +1,13 @@
+name: Cloud database provisioner
+description: Provisions a managed database for the run, and deletes it again when the job ends
+inputs:
+  target:
+    description: Which managed database to provision (azure-sqlserver, azure-postgresql, aurora-postgresql or rds-sqlserver)
+    required: true
+  name:
+    description: Name for the resources this run creates, which teardown uses to find them again
+    required: true
+runs:
+  using: node24
+  main: index.mts
+  post: index.mts
