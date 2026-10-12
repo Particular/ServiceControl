@@ -2,7 +2,7 @@
 
 ## About this repository
 
-ServiceControl is the monitoring component of the Particular Service Platform: it ingests audit and error messages, tracks endpoint heartbeats, and exposes results over an HTTP API consumed by ServicePulse. For local run and debug steps see the `README.md`, for test categories and setup see `testing.md`, and for coding conventions see `coding-and-design-guidelines.md`.
+ServiceControl is the monitoring component of the Particular Service Platform: it ingests audit and error messages, tracks endpoint heartbeats, and exposes results over an HTTP API consumed by ServicePulse. For local run and debug steps, see the `README.md`. For test categories and setup, see `testing.md`. For coding conventions, see `coding-and-design-guidelines.md`.
 
 - `src/` — ServiceControl, ServiceControl.Audit, ServiceControl.Monitoring instances, persisters, and their test projects
 - `docs/` — design rationale, testing guidance, and architecture decision records
@@ -23,15 +23,15 @@ ServiceControl is the monitoring component of the Particular Service Platform: i
 This section points to sources that explain why ServiceControl is designed the way it is. Each entry says which question it answers. How-to material such as testing setup stays in the pages linked under Start here.
 
 - [Ingestion pipeline](ingestion-pipeline.md) — why batch parallelism is a storage decision, not an instance decision
-- [Error ingestion design](error-ingestion-design.md) — relational-persister error ingestion design
+- [Error ingestion design](error-ingestion-design.md) — why the relational persisters write failed messages with hand-written SQL
 - [Bulk retries design](bulk-retries-design.md) — how ServiceControl retries failed messages in bulk
-- [Retries over Azure Storage Queues transport](retries-asq-transport.md) — transport-specific retry handling
-- [Data versioning design](data-versioning-design.md) — the cache-versioning invariant for API responses
+- [Retries over Azure Storage Queues transport](retries-asq-transport.md) — how retries behave with one or several storage accounts
+- [Data versioning design](data-versioning-design.md) — which invariant keeps a cached API response from going stale
 - [Event log design](eventlog-design.md) — what the event log is and what it records
 - [Multiple ServiceControl instances communication](multipleservicecontrolinstancescommunication.md) — how primary, audit, and monitoring instances talk to each other
 - [Handling unavailable runtime dependencies](handling-unavailable-runtime-dependencies.md) — how instances react when a dependency is unavailable
-- [Telemetry](telemetry.md) — telemetry configuration and emitted metrics
-- [Throughput collection](throughput-collection.md) — why and how usage data is collected
+- [Telemetry](telemetry.md) — how to configure telemetry export and which metrics instances emit
+- [Throughput collection](throughput-collection.md) — how usage data is collected and why the throughput queue has a fixed name
 
 ## Decisions and rationale
 

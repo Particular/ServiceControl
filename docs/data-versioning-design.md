@@ -10,9 +10,9 @@ This is the primary (error) instance only. The audit instance still carries a `s
 
 ## The one rule
 
-**If a field the response renders can change without the version changing, a client caches that page for ever and nothing reveals it.** No log line, no exception, no failing test.
+**If a field the response renders can change without the version changing, a client caches that page forever and nothing reveals it.** No log line, no exception, no failing test.
 
-The rule covers fields that can change on their own. A field that is a **pure function of a covered field** cannot: it moves only when its source does, and the source already moves the version, so the page is never stale on the field's own account. `CustomCheckView.Internal` is that case — it is a computed, get-only property classified out of `CustomCheckId` at read time (see `InternalCustomCheckClassification`), which is itself a version term, and the view rather than the stored `CustomCheck` is what `/api/customchecks` renders. Being get-only, it cannot be assigned at all, so the reflection test above never sees it as a field that could drift. The one residual window is a ServiceControl upgrade that reclassifies while a client holds a pre-upgrade tag, and it closes itself: internal checks re-report every 5s to 1h, which moves `ReportedAt` and therefore the version.
+The rule covers fields that can change on their own. A field that is a **pure function of a covered field** cannot: it moves only when its source does, and the source already moves the version, so the page is never stale on the field's own account. `CustomCheckView.Internal` is that case. It is a computed, get-only property classified out of `CustomCheckId` at read time (see `InternalCustomCheckClassification`), which is itself a version term. The view, not the stored `CustomCheck`, is what `/api/customchecks` renders. Being get-only, it cannot be assigned at all, so the reflection test above never sees it as a field that could drift. The one residual window is a ServiceControl upgrade that reclassifies while a client holds a pre-upgrade tag, and it closes itself: internal checks re-report every 5s to 1h, which moves `ReportedAt` and therefore the version.
 
 The promise is scoped to **one URL**, because a client only ever sends a validator back to the URL that issued it. So what must never happen is one URL answering `304` when its own body would have differed. Two different URLs sharing a value is harmless: an HTTP cache is keyed on the whole URL.
 
@@ -37,9 +37,9 @@ Every term's value, and every field inside a row, is **length prefixed**. Withou
 
 ## Absence
 
-`DataVersion.None` is `default`, and it means there is no version to offer. Two parties that both know nothing have not established that nothing changed, so **absence must never answer `304`**: an empty validator that matched itself would serve a cached page for every request for ever.
+`DataVersion.None` is `default`, and it means there is no version to offer. Two parties that both know nothing have not established that nothing changed, so **absence must never answer `304`**: an empty validator that matched itself would serve a cached page for every request forever.
 
-`None` means "no answer", not "no rows", and the difference matters. A query that found nothing still produces a real version, because a list always contributes a summary term and `Compose` over `[("messages", 0)]` is as good a validator as any other. So an empty page is cacheable, and a client watching something that stays empty gets its `304`. What produces `None` is a question that was never answered: a store that has no token of its own to offer, a remote instance that timed out or refused the call, a response whose `ETag` header was absent or unparseable.
+`None` means "no answer", not "no rows". A query that found nothing still produces a real version, because a list always contributes a summary term and `Compose` over `[("messages", 0)]` is as good a validator as any other. So an empty page is cacheable, and a client watching something that stays empty gets its `304`. What produces `None` is a question that was never answered: a store that has no token of its own to offer, a remote instance that timed out or refused the call, a response whose `ETag` header was absent or unparseable.
 
 `Combine` returns `None` as soon as any instance reports none, and that is why: an instance reporting none is one whose data could not be seen at all, so no promise can be made about it. It is not an instance reporting that it is empty, which would come with a version like anything else.
 
