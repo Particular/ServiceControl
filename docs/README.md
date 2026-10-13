@@ -32,6 +32,7 @@ This section points to sources that explain why ServiceControl is designed the w
 - [Handling unavailable runtime dependencies](handling-unavailable-runtime-dependencies.md) — how instances react when a dependency is unavailable
 - [Telemetry](telemetry.md) — how to configure telemetry export and which metrics instances emit
 - [Throughput collection](throughput-collection.md) — how usage data is collected and why the throughput queue has a fixed name
+- [Usage report contents](usage-report.md): every key the usage report carries, every setting it leaves out, and why
 
 ## Decisions and rationale
 
