@@ -68,7 +68,7 @@ Email notification details beyond on or off are out of scope. The question is wh
 
 ## Consequences
 
-- The report grows. A typical instance goes from about 30 `EnvironmentData` keys to about 65. Keys specific to a transport or a storage engine appear only on that transport or engine. The extra size is a few kilobytes in a file that is already zipped.
+- The report grows by a small amount. A typical instance goes from about 30 `EnvironmentData` keys to about 65. Keys specific to a transport or a storage engine appear only on that transport or engine.
 - Every new setting costs a little more. It needs a key or an exclusion, a catalog row, and a review against the privacy and security rules. Accepted. The four exclusion reasons keep that review short.
 - Reporting `Default` needs the instance to know whether a setting was configured. Several settings parse straight to an effective value with the default folded in, `HeartbeatGracePeriod` for example. Each of those needs a small change to keep that information. Installers write some settings explicitly, such as `ShutdownTimeout`. Those report the installer's value, so analysis has to know the installer defaults.
 - Transports report through a second mechanism. `ServiceControl.Transports` is strong-named and `Particular.LicensingComponent.Contracts` is not, so the transports do not reference `IEnvironmentDataProvider`. They return their keys from `ITransportCustomization.GetEnvironmentData` instead, and the primary wraps them. Accepted. The keys follow the same rules and land in the same dictionary.
