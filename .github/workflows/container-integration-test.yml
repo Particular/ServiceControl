@@ -51,7 +51,7 @@ jobs:
         run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
       - name: Upgrade Azure CLI
         if: matrix.name == 'asb' || matrix.name == 'asq'
-        run: az upgrade --yes
+        run: curl -fsSL 'https://azurecliprod.blob.core.windows.net/$root/deb_install.sh' | sudo bash
       - name: Checkout
         uses: actions/checkout@v7.0.1
         with:
