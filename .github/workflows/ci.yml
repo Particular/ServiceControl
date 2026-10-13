@@ -138,6 +138,7 @@ jobs:
           # The action defaults to 4GB. The runner has 16GB and the build runs concurrently with the
           # container starting up, so give the VM real headroom.
           memory: 8GB
+          enable-cache: false
       - name: Stop interrupted traces
         if: always() && runner.os == 'Windows' && contains(fromJSON('["RabbitMQ", "SqlServer", "PostgreSql", "IBMMQ"]'), matrix.test-category)
         shell: pwsh
