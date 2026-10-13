@@ -37,13 +37,13 @@ namespace ServiceControl.Audit.Persistence.Tests
         public async Task Setup_provisions_whole_days_through_the_lookahead()
         {
             var end = await ProvisionedUntil();
-            var now = configuration.TimeProvider.GetUtcNow().UtcDateTime;
+            var hour = AuditHours.Truncate(configuration.TimeProvider.GetUtcNow().UtcDateTime);
 
             using (Assert.EnterMultipleScope())
             {
                 Assert.That(end, Is.EqualTo(end!.Value.Date), "a partition holds a whole day");
-                Assert.That(end, Is.GreaterThanOrEqualTo(now + AuditHours.Lookahead));
-                Assert.That(end, Is.LessThan(now + AuditHours.Lookahead + TimeSpan.FromDays(1)));
+                Assert.That(end, Is.GreaterThanOrEqualTo(hour + AuditHours.Lookahead));
+                Assert.That(end, Is.LessThan(hour + AuditHours.Lookahead + TimeSpan.FromDays(1)));
             }
         }
 

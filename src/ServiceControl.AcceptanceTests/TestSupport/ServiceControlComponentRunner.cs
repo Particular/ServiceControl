@@ -44,6 +44,7 @@
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
         public Settings Settings { get; private set; }
         public HttpClient HttpClient { get; private set; }
+        public IServiceProvider ServiceProvider { get; private set; }
         public JsonSerializerOptions SerializerOptions => Infrastructure.WebApi.SerializerOptions.Default;
         public IDomainEvents DomainEvents { get; private set; }
 
@@ -152,6 +153,8 @@
                 await host.StartAsync();
                 DomainEvents = host.Services.GetRequiredService<IDomainEvents>();
                 // Bring this back and look into the base address of the client
+                ServiceProvider = host.Services;
+
                 HttpClient = host.GetTestServer().CreateClient();
             }
         }

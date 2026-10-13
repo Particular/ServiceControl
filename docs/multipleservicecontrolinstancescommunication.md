@@ -10,15 +10,15 @@ A `NewEndpointDetected` event is published when a node's Heartbeat component det
 
 ### MessageFailureResolvedByRetry
 
-A `MessageFailureResolvedByRetry` event is published when an audit message is detected that contains ServiceControl retry headers. The primary instance subscribes to this event on order to be able to mark the failed message record as successfully retried. 
+A `MessageFailureResolvedByRetry` event is published when an audit message is detected that contains ServiceControl retry headers. The primary instance subscribes to this event in order to mark the failed message record as successfully retried.
 
 ## Scatter-gather HTTP interactions
 
-The second category of communication patterns is HTTP-based scatter-gather. In this pattern the primary instance executes the request locally and in addition to that, fans it out to all registered secondary instances. Then the primary instance combines all the responses and forwards it back to the client.
+The second category of communication patterns is HTTP-based scatter-gather. In this pattern the primary instance executes the request locally and also sends it to all registered secondary instances. The primary instance then combines all the responses and returns the result to the client.
 
 ### GetKnownEndpointsApi
 
-This API is used by ServiceInsight to show endpoint-based filtering options. 
+This API is used by ServiceInsight to show endpoint-based filtering options.
 
 ### GetSagaByIdApi
 
@@ -26,7 +26,7 @@ This API is used by ServiceInsight's saga view.
 
 ### ScatterGatherApiMessageView
 
-This category of API calls group all return messages based on certain criteria such as ID, correlation ID or other. It includes the following API calls:
+These API calls return all messages that match criteria such as ID or correlation ID. They include:
 
  * `GetAllMessagesApi`
  * `GetAllMessagesForEndpointApi`
@@ -34,8 +34,8 @@ This category of API calls group all return messages based on certain criteria s
  * `SearchApi`
  * `SearchEndpointApi`
 
-Apart from simply aggregating the results from the secondary instances, these calls manipulate certain bits of the response content, namely:
- 
+In addition to aggregating the results from the secondary instances, these calls change parts of the response content:
+
  * Rewrite the returned message body URL to include the ID of node that contains a given message record
  * Add an attribute containing the ID of the node that contains a given message record
 
@@ -49,4 +49,4 @@ When a message is being retried, ServiceInsight includes the node ID in the retr
 
 ### GetBodyByIdApi
 
-When the ServiceInsight fetches the body of a message it uses the URL provided by ServiceControl which includes the ID of nodes that contains the message record.
+When ServiceInsight fetches the body of a message, it uses the URL provided by ServiceControl. The URL includes the ID of the node that contains the message record.

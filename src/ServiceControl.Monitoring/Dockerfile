@@ -19,7 +19,7 @@ EXPOSE 33633
 COPY --from=build /deploy/Particular.ServiceControl.Monitoring /app
 COPY --from=build /healthcheck /healthcheck
 
-HEALTHCHECK --start-period=10s CMD ["/healthcheck/healthcheck", "http://localhost:33633/connection"]
+HEALTHCHECK --start-period=10s CMD ["/healthcheck/healthcheck", "http://localhost:33633/"]
 
 USER $APP_UID
 ENTRYPOINT ["/app/ServiceControl.Monitoring"]

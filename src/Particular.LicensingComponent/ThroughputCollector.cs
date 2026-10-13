@@ -168,7 +168,8 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
             IgnoredQueues = [.. ignoredQueueNames],
             Queues = [.. queueThroughputs],
             TotalQueues = queueThroughputs.Count,
-            EnvironmentInformation = new EnvironmentInformation { AuditServicesData = new AuditServicesData(auditServiceMetadata.Versions, auditServiceMetadata.Transports), EnvironmentData = brokerMetaData.Data }
+            // A copy, because the report adds its own keys. The data store can return a shared instance.
+            EnvironmentInformation = new EnvironmentInformation { AuditServicesData = new AuditServicesData(auditServiceMetadata.Versions, auditServiceMetadata.Transports), EnvironmentData = new Dictionary<string, string>(brokerMetaData.Data) }
         };
 
         var auditThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromAudit);

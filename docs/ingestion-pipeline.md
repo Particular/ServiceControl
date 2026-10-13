@@ -35,14 +35,13 @@ messages already in flight finish and their receives commit. It then completes t
 waits for it to drain, and only then tears the transport infrastructure down, because batches
 still forward through its dispatcher.
 
-A hard cancellation does not silently drop what is in flight. The assembler abandons the batch it
+On a hard cancellation, ServiceControl still answers every receive in flight. The assembler abandons the batch it
 was building and whatever is left in the message channel, any batch no writer picked up is
-abandoned, and a writer fails the batch it was holding. Every one of those receives is answered,
-so they are redelivered rather than left waiting for a shutdown that has already happened.
+abandoned, and a writer fails the batch it was holding. The transport redelivers those messages instead of leaving them waiting for a shutdown that has already happened.
 
 ## Settings
 
-Named per instance, and read from that instance's settings root
+Each instance reads its settings from its own settings root
 (`ServiceControl/...` and `ServiceControl.Audit/...`).
 
 | Setting | Default | Range | What it does |
@@ -75,7 +74,7 @@ with smaller ones.
 
 ### Batch timeout
 
-Zero means a partial batch is written rather than waited on, which is what the ingestion did before
+Zero means a partial batch is written without waiting, which is what the ingestion did before
 the setting existed. A non-zero value trades latency for fewer, larger writes: at volume it costs
 nothing, because a full batch never waits, and at a trickle it delays each message by up to the
 timeout. Start at 100ms if a storage is clearly happier with larger batches. It cannot make a batch
@@ -83,13 +82,12 @@ larger than the transport's concurrency, only fuller.
 
 ### Parallel writers
 
-Only raise this for a storage whose writes are safe to interleave. Batches commit in whatever order
-they finish, so this is not a free throughput knob, and the pipeline will not let you turn it on
-where it is unsafe.
+Raise this only for a storage whose writes are safe to interleave. Batches commit in whatever order
+they finish, so this is not a free throughput knob. The pipeline does not let you turn it on where it is unsafe.
 
-More than one writer also means more than one batch is being enriched and announced at a time, so a
-custom `IEnrichImportedErrorMessages` or `IEnrichImportedAuditMessages` has to be thread safe. A
-single writer used to serialise them.
+More than one writer also means more than one batch is enriched and announced at a time, so a
+custom `IEnrichImportedErrorMessages` or `IEnrichImportedAuditMessages` has to be thread-safe. A
+single writer used to serialize them.
 
 ## Which storages take concurrent batches
 

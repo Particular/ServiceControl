@@ -27,7 +27,6 @@ class LicensingDataStore(
     const string LicencedEndpointDetailsDocumentId = "LicensedEndpointDetails";
 
     static readonly AuditServiceMetadata DefaultAuditServiceMetadata = new([], []);
-    static readonly BrokerMetadata DefaultBrokerMetadata = new(null, []);
     static readonly ReportConfigurationDocument DefaultReportConfiguration = new();
 
     public async Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken = default)
@@ -289,7 +288,7 @@ class LicensingDataStore(
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
-        return await session.LoadAsync<BrokerMetadata>(BrokerMetadataDocumentId, cancellationToken) ?? DefaultBrokerMetadata;
+        return await session.LoadAsync<BrokerMetadata>(BrokerMetadataDocumentId, cancellationToken) ?? new BrokerMetadata(null, []);
     }
 
     public async Task SaveBrokerMetadata(BrokerMetadata brokerMetadata, CancellationToken cancellationToken = default)
