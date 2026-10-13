@@ -264,6 +264,7 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
         public Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
         public Task RemoveEndpoints(EndpointIdentifier[] endpointIds, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task SaveLicensedEndpointDetailsAmendment(LicensedEndpointDetailsAmendment result, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 
     class BrokerThroughputQuery_WithSanitization : IBrokerThroughputQuery

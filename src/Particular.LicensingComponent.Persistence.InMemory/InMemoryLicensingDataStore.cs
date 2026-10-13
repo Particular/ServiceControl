@@ -16,6 +16,7 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
     AuditServiceMetadata auditServiceMetadata = new([], []);
     List<string> reportMasks = [];
     LicensedEndpointDetails? endpointDetails = null;
+    LicensedEndpointDetailsAmendment? endpointDetailsAmendment = null;
 
     public Task<IEnumerable<Endpoint>> GetAllEndpoints(bool includePlatformEndpoints, CancellationToken cancellationToken = default)
     {
@@ -175,11 +176,18 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         return Task.CompletedTask;
     }
 
-    public Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(CancellationToken cancellationToken = default) => Task.FromResult(endpointDetails);
+    public Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(CancellationToken cancellationToken = default) => Task.FromResult(endpointDetails?.Amend(endpointDetailsAmendment));
 
     public Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken = default)
     {
         endpointDetails = result;
+        endpointDetailsAmendment = new LicensedEndpointDetailsAmendment();
+        return Task.CompletedTask;
+    }
+
+    public Task SaveLicensedEndpointDetailsAmendment(LicensedEndpointDetailsAmendment result, CancellationToken cancellationToken = default)
+    {
+        endpointDetailsAmendment = result;
         return Task.CompletedTask;
     }
 

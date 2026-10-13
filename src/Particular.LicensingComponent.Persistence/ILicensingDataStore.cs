@@ -41,4 +41,5 @@ public interface ILicensingDataStore
 
     Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(CancellationToken cancellationToken = default);
     Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken = default);
+    Task SaveLicensedEndpointDetailsAmendment(LicensedEndpointDetailsAmendment result, CancellationToken cancellationToken = default);
 }
