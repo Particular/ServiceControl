@@ -111,7 +111,6 @@ namespace ServiceControlInstaller.Engine
         bool ForwardErrorMessages { get; }
         bool EnableIntegratedServicePulse { get; }
         TimeSpan ErrorRetentionPeriod { get; }
-        TimeSpan? AuditRetentionPeriod { get; set; }
         List<RemoteInstanceSetting> RemoteInstances { get; }
     }
 }

@@ -34,7 +34,6 @@ public class PersistenceTestsContext : IPersistenceTestsContext
 
         PersistenceSettings = new RavenPersisterSettings
         {
-            AuditRetentionPeriod = retentionPeriod,
             ErrorRetentionPeriod = retentionPeriod,
             EventsRetentionPeriod = retentionPeriod,
             DatabaseName = databaseName,

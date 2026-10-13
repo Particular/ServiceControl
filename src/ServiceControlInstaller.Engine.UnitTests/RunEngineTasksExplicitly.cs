@@ -34,7 +34,6 @@
             {
                 installer.Upgrade(instance, new ServiceControlUpgradeOptions
                 {
-                    AuditRetentionPeriod = TimeSpan.FromDays(30),
                     ErrorRetentionPeriod = TimeSpan.FromDays(15),
                     OverrideEnableErrorForwarding = true
                 });
@@ -63,7 +62,6 @@
             details.AuditQueue = "audittest";
             details.ForwardAuditMessages = false;
             details.ForwardErrorMessages = false;
-            details.AuditRetentionPeriod = TimeSpan.FromDays(SettingConstants.AuditRetentionPeriodDefaultInDaysForUI);
             details.ErrorRetentionPeriod = TimeSpan.FromDays(SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI);
             details.ErrorQueue = "testerror";
             details.TransportPackage = ServiceControlCoreTransports.Find("MSMQ");
