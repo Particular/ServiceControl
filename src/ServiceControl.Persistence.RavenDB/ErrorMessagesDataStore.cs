@@ -431,7 +431,7 @@ namespace ServiceControl.Persistence.RavenDB
 
             var patch = new PatchByQueryOperation(query, new QueryOperationOptions
             {
-                AllowStale = true,
+                AllowStale = false,
                 RetrieveDetails = true
             });
 

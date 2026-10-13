@@ -6,21 +6,24 @@ namespace ServiceControl.CustomChecks
     using Contracts.CustomChecks;
     using Infrastructure.DomainEvents;
     using Microsoft.Extensions.Logging;
+    using PlatformHealth;
     using ServiceControl.Persistence;
 
     class CustomCheckResultProcessor
     {
-        public CustomCheckResultProcessor(IDomainEvents domainEvents, ICustomChecksDataStore store, ILogger<CustomCheckResultProcessor> logger)
+        public CustomCheckResultProcessor(IDomainEvents domainEvents, ICustomChecksDataStore store, ILogger<CustomCheckResultProcessor> logger, PlatformHealthState platformHealthState = null)
         {
             this.domainEvents = domainEvents;
             this.store = store;
             this.logger = logger;
+            this.platformHealthState = platformHealthState;
         }
 
         public async Task ProcessResult(CustomCheckDetail checkDetail, CancellationToken cancellationToken = default)
         {
             try
             {
+                platformHealthState?.Record(checkDetail);
                 var statusChange = await store.UpdateCustomCheckStatus(checkDetail, cancellationToken);
                 await RaiseEvents(statusChange, checkDetail, cancellationToken);
 
@@ -84,5 +87,6 @@ namespace ServiceControl.CustomChecks
         int lastCount;
 
         readonly ILogger<CustomCheckResultProcessor> logger;
+        readonly PlatformHealthState platformHealthState;
     }
 }

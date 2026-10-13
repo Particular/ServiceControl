@@ -21,5 +21,6 @@
         public string ArchivedGroupsUrl { get; set; }
         public string GetArchiveGroup { get; set; }
         public string MyRoutesUrl { get; set; }
+        public string PlatformHealth { get; set; }
     }
 }

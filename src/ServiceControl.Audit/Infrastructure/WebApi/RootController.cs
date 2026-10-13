@@ -4,6 +4,7 @@
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
+    using NServiceBus.Hosting;
     using Settings;
 
     // the /api endpoint is used for service-to-service communication. This currently needs to be anonymous
@@ -12,9 +13,10 @@
     [Route("api")]
     public class RootController : ControllerBase
     {
-        public RootController(Settings settings)
+        public RootController(Settings settings, HostInformation hostInformation)
         {
             this.settings = settings;
+            this.hostInformation = hostInformation;
         }
 
         [Route("")]
@@ -50,9 +52,11 @@
         {
             object content = new
             {
+                InstanceType = "audit",
                 Host = new
                 {
                     settings.InstanceName,
+                    hostInformation.HostId,
                     Logging = new
                     {
                         settings.LoggingSettings.LogPath,
@@ -87,6 +91,7 @@
         }
 
         readonly Settings settings;
+        readonly HostInformation hostInformation;
 
         public class RootUrls
         {

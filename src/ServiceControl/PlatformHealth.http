@@ -1,0 +1,14 @@
+@baseUrl = http://localhost:33333/api
+
+### Discover platform health
+GET {{baseUrl}}
+Accept: application/json
+
+### Read platform health with authentication disabled
+GET {{baseUrl}}/platform-health
+Accept: application/json
+
+### Read platform health with an existing bearer token
+GET {{baseUrl}}/platform-health
+Accept: application/json
+Authorization: Bearer {{$processEnv SERVICECONTROL_ACCESS_TOKEN}}

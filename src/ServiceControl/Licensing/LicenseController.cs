@@ -10,46 +10,19 @@ namespace ServiceControl.Licensing
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
-    using Monitoring.HeartbeatMonitoring;
     using Particular.LicensingComponent.Contracts;
     using Particular.LicensingComponent.Persistence;
     using Particular.ServiceControl.Licensing;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     [ApiController]
     [Route("api")]
-    public class LicenseController(ActiveLicense activeLicense, Settings settings, MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus, ILicensingDataStore dataStore) : ControllerBase
+    public class LicenseController(ActiveLicense activeLicense, ILicenseInfoProvider licenseInfoProvider, ILicensingDataStore dataStore) : ControllerBase
     {
         [Authorize(Policy = Permissions.ErrorLicensingView)]
         [HttpGet]
         [Route("license")]
-        public async Task<ActionResult<LicenseInfo>> License(bool refresh, string clientName, CancellationToken cancellationToken = default)
-        {
-            if (refresh)
-            {
-                await activeLicense.Refresh(cancellationToken);
-            }
-
-            var licenseInfo = new LicenseInfo
-            {
-                TrialLicense = activeLicense.Details.IsTrialLicense,
-                Edition = activeLicense.Details.Edition ?? string.Empty,
-                RegisteredTo = activeLicense.Details.RegisteredTo ?? string.Empty,
-                UpgradeProtectionExpiration = activeLicense.Details.UpgradeProtectionExpiration?.ToString("O") ?? string.Empty,
-                ExpirationDate = activeLicense.Details.ExpirationDate?.ToString("O") ?? string.Empty,
-                Status = activeLicense.IsValid ? "valid" : "invalid",
-                LicenseType = activeLicense.Details.LicenseType ?? string.Empty,
-                InstanceName = settings.InstanceName ?? string.Empty,
-                LicenseStatus = activeLicense.Details.Status,
-                Products = activeLicense.Details.Products,
-                HasEndpointMetadata = activeLicense.Details.HasEndpointMetadata,
-                LicenseExtensionUrl = connectorHeartbeatStatus.LastHeartbeat == null
-                    ? $"https://particular.net/extend-your-trial?p={clientName}"
-                    : $"https://particular.net/license/mt?p={clientName}&t={(activeLicense.IsEvaluation ? 0 : 1)}"
-            };
-
-            return licenseInfo;
-        }
+        public async Task<ActionResult<LicenseInfo>> License(bool refresh, string clientName, CancellationToken cancellationToken = default) =>
+            await licenseInfoProvider.GetLicense(refresh, clientName, cancellationToken);
 
         [Authorize(Policy = Permissions.ErrorThroughputView)]
         [HttpGet]

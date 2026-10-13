@@ -28,6 +28,7 @@ This section points to sources that explain why ServiceControl is designed the w
 - [Retries over Azure Storage Queues transport](retries-asq-transport.md) — how retries behave with one or several storage accounts
 - [Data versioning design](data-versioning-design.md) — which invariant keeps a cached API response from going stale
 - [Event log design](eventlog-design.md) — what the event log is and what it records
+- [Platform health API](platform-health.md) — how ServicePulse can read internal health independently from customer custom checks
 - [Multiple ServiceControl instances communication](multipleservicecontrolinstancescommunication.md) — how primary, audit, and monitoring instances talk to each other
 - [Handling unavailable runtime dependencies](handling-unavailable-runtime-dependencies.md) — how instances react when a dependency is unavailable
 - [Telemetry](telemetry.md) — how to configure telemetry export and which metrics instances emit

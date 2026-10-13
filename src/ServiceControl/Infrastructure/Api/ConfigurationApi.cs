@@ -4,17 +4,19 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Configuration;
 using Monitoring.HeartbeatMonitoring;
+using NServiceBus.Hosting;
 using Particular.ServiceControl.Licensing;
 using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.Api;
 using ServiceControl.Api.Contracts;
 
-class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFactory httpClientFactory, MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus) : IConfigurationApi
+class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFactory httpClientFactory, MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus, HostInformation hostInformation) : IConfigurationApi
 {
     public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken = default)
     {
@@ -44,6 +46,7 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
             ArchivedGroupsUrl = baseUrl + "errors/groups/{classifier?}",
             GetArchiveGroup = baseUrl + "archive/groups/id/{groupId}",
             MyRoutesUrl = baseUrl + "my/routes",
+            PlatformHealth = baseUrl + "platform-health",
         };
 
         return Task.FromResult(model);
@@ -54,9 +57,12 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
     {
         object content = new
         {
+            InstanceType = "error",
+            HealthChecksEnabled = !settings.DisableHealthChecks,
             Host = new
             {
                 settings.InstanceName,
+                hostInformation.HostId,
                 Logging = new
                 {
                     settings.LoggingSettings.LogPath,
@@ -103,7 +109,8 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
 
                 try
                 {
-                    using var response = await httpClient.GetAsync("/api/configuration", cancellationToken);
+                    using var response = await httpClient.GetAsync("api/configuration", cancellationToken);
+                    response.EnsureSuccessStatusCode();
 
                     if (response.Headers.TryGetValues("X-Particular-Version", out var values))
                     {
@@ -112,6 +119,13 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
 
                     await using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken);
                     config = await JsonNode.ParseAsync(stream, cancellationToken: cancellationToken);
+                    if (config is not JsonObject configuration ||
+                        configuration["host"] is not JsonObject host ||
+                        host["instance_name"] is not JsonValue instanceName ||
+                        !instanceName.TryGetValue<string>(out var name) || string.IsNullOrWhiteSpace(name))
+                    {
+                        throw new JsonException("Remote response is not an instance configuration.");
+                    }
                 }
                 catch (HttpRequestException ex)
                 {
@@ -120,6 +134,10 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
                     throw;
+                }
+                catch (OperationCanceledException)
+                {
+                    status = "unavailable";
                 }
                 catch (Exception)
                 {
@@ -131,7 +149,7 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
                     ApiUri = remote.BaseAddress,
                     Version = version,
                     Status = status,
-                    Configuration = config
+                    Configuration = status == "online" ? config : null
                 };
             });
 
