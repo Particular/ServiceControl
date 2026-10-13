@@ -25,7 +25,7 @@ Three values have a fixed meaning on every key:
 - `Unknown` means the instance cannot tell.
 - `ReadFailed` means reading the value threw. The report is still generated.
 
-Audit keys combine every live audit instance. Numbers report the largest value. An enum reports `Mixed` when the instances differ.
+Audit keys combine every audit instance that answers. [Audit instances](#audit-instances) states how each key is combined. Where it states nothing, numbers report the largest value and an enum reports `Mixed` when the instances differ.
 
 A key name is permanent. Analysis compares reports across versions, and a rename forces it to read both spellings.
 
@@ -33,7 +33,7 @@ A key name is permanent. Analysis compares reports across versions, and a rename
 
 A pull request that adds a setting, a runtime choice, or a new mode of an existing setting does one of two things:
 
-1. It adds a key. That means an `IEnvironmentDataProvider` in the component that owns the setting, a row in the tables below, and an entry in `ExpectedKeys` in `When_reporting_the_environment` when the key is emitted on every storage. A transport adds its key to `GetEnvironmentData` on its transport customization instead of an `IEnvironmentDataProvider`.
+1. It adds a key. That means an `IEnvironmentDataProvider` in the component that owns the setting, a row in the tables below, and an entry in `ExpectedKeys` in `When_reporting_the_environment` when the key is emitted on every storage. A transport adds its key to `GetEnvironmentData` on its transport customization instead of an `IEnvironmentDataProvider`. An audit instance key needs a provider in the audit instance, which implements the audit's own `IEnvironmentDataProvider`, and an entry in the allowlist in `AuditEnvironmentDataAggregator`. The primary drops every audit key that is not on that list.
 2. It adds a row to [Not reported](#not-reported) with one of the four reasons.
 
 A pull request that does neither gets a review finding.
@@ -97,6 +97,11 @@ Releases up to 6.21.2 report `SqlVersion` as the full text of `@@VERSION` on SQL
 | `Storage.FreeSpaceThresholdPercent` | `Default` or number. `NotApplicable` on SQL Server and PostgreSQL when body storage is not the file system | `DataSpaceRemainingThreshold` on RavenDB, `MessageBody/FileSystem/DataSpaceRemainingThreshold` on file system body storage | Unreleased |
 | `Storage.MinimumFreeSpaceForIngestionPercent` | `Default` or number | `MinimumStorageLeftRequiredForIngestion`, RavenDB only | Unreleased |
 | `Storage.ExpirationIntervalSeconds` | `Default` or number | `ExpirationProcessTimerInSeconds`, RavenDB only | Unreleased |
+| `Storage.ServerEdition` | `Express`, `Standard`, `Enterprise`, `Other`, `NotApplicable`, `Unknown` | the SQL Server engine edition. Developer and Evaluation report `Enterprise`. `NotApplicable` on Azure SQL Database, Azure SQL Managed Instance, PostgreSQL and RavenDB | Unreleased |
+| `Storage.ServiceObjective` | `Basic`, `Standard`, `Premium`, `GeneralPurpose`, `BusinessCritical`, `Hyperscale`, `ElasticPool`, `Other`, `NotApplicable`, `Unknown` | the tier of the database's service objective, which only Azure SQL Database reports. `NotApplicable` when the engine reports none | Unreleased |
+| `Storage.SizeGB` | GB to one decimal, or `Unknown` | catalog statistics for the tables in the configured schema on SQL Server and PostgreSQL, including the SQL Server full-text index. The database size on disk on RavenDB | Unreleased |
+| `Storage.MessageCount` | count, or `Unknown` | the catalog row estimate for the failed messages table on SQL Server and PostgreSQL. The `FailedMessages` collection count on RavenDB | Unreleased |
+| `Storage.UnresolvedFailedMessages` | count | failed messages with the status `Unresolved` | Unreleased |
 
 ### Transport
 
@@ -155,6 +160,20 @@ These keys are `NotApplicable` when `Features.IntegratedServicePulse` is `Disabl
 | `Ingestion.Error.BatchTimeoutMs` | `Default` or number | `ServiceControl/ErrorIngestionBatchTimeout` | Unreleased |
 | `Ingestion.Error.RestartAfterFailureSeconds` | `Default` or number | `ServiceControl/TimeToRestartErrorIngestionAfterFailure` | Unreleased |
 
+### Error ingestion health
+
+These keys measure the running process since it started, and they reset when it restarts. `Health.Error.UptimeHours` shows how much time they cover. The rate and percentage keys are left out while the process has been up for less than an hour. The lag keys are also left out until the process has ingested a message with a valid `NServiceBus.TimeOfFailure` header. Lag is the time from that header to ingestion.
+
+| Key | Values | Source | Status |
+| --- | --- | --- | --- |
+| `Health.Error.UptimeHours` | whole hours | the process start time | Unreleased |
+| `Ingestion.Error.AvgDailyMessages` | count | messages ingested per day since the process started | Unreleased |
+| `Ingestion.Error.BusyPercent` | 0 to 100 | the share of uptime spent processing batches | Unreleased |
+| `Ingestion.Error.StorageMsPerMessage` | number | the storage write time per ingested message. Left out until a message is ingested | Unreleased |
+| `Health.Error.LagOver1MinPercent`, `Health.Error.LagOver10MinPercent`, `Health.Error.LagOver60MinPercent` | 0 to 100 | the share of ingested messages whose lag is over 1, 10 or 60 minutes | Unreleased |
+| `Health.Error.FailedImports` | count | stored messages that error ingestion failed to import | Unreleased |
+| `Health.Error.RetentionBehindHours` | whole hours | how far the oldest resolved or archived message is past `ErrorRetentionPeriod`, or `0`. SQL Server and PostgreSQL only, because RavenDB expires documents itself | Unreleased |
+
 ### Retention
 
 | Key | Values | Source | Status |
@@ -191,7 +210,38 @@ An instance becomes monitored on its first heartbeat. An instance first seen in 
 
 ### Audit instances
 
-These come from the `GET /api/configuration` response of each live audit instance. The primary already fetches that response once a day. No change to the audit instance is needed.
+The primary reads audit instance facts from two responses of each audit instance: `GET /api/environment` and `GET /api/configuration`.
+
+#### From the environment endpoint
+
+The audit instance serves its environment data on `GET /api/environment`. The primary calls it on each audit instance during its daily audit verification and stores the results. It combines the stored results when the report is built, so the values can be up to a day old. An audit instance from an earlier release does not serve the endpoint, and the report leaves out its values. The primary drops every key that is not on the allowlist in `AuditEnvironmentDataAggregator`.
+
+The endpoint also serves an unsalted SHA-256 hash of the machine name, and hashes of the storage server, database and schema. The primary compares them with its own and reports only the result, as `Audit.SameMachine` and `Audit.DatabaseSharing`. The hashes are not in the report.
+
+The ingestion and health keys follow the rules in [Error ingestion health](#error-ingestion-health). An audit instance that has been up for less than an hour adds no rate or lag values. Audit lag is measured from the `NServiceBus.ProcessingEnded` header. A sum leaves out instances that report `Unknown`. Sizes and counts count instances that write to the same store once.
+
+| Key | Values | Source | Status |
+| --- | --- | --- | --- |
+| `Audit.Host.Model`, `Audit.Host.Orchestrator`, `Audit.Host.OSPlatform`, `Audit.Host.OSVersion`, `Audit.Host.Architecture`, `Audit.Host.RuntimeVersion` | the values of the matching `Host.*` key, or `Mixed` | the audit instance's process and runtime | Unreleased |
+| `Audit.Host.ProcessorCount`, `Audit.Host.AvailableMemoryGB` | the largest value | the audit instance's runtime | Unreleased |
+| `Audit.Storage.Type` | `RavenDB`, `SQLServer`, `PostgreSQL`, `Mixed` | the audit persister | Unreleased |
+| `Audit.Storage.RavenServer`, `Audit.Storage.Hosting`, `Audit.Storage.HostingSource`, `Audit.Storage.ServerVersion`, `Audit.Storage.ServerEdition`, `Audit.Storage.ServiceObjective` | the values of the matching `Storage.*` key, or `Mixed` | the audit persister | Unreleased |
+| `Audit.Storage.FullTextSearch` | `Enabled`, `Disabled`, `Mixed` | `EnableFullTextSearchOnBodies` on RavenDB. Always `Enabled` on SQL Server and PostgreSQL, which always index bodies | Unreleased |
+| `Audit.Storage.SizeGB` | GB to one decimal, summed, or `Unknown` | the same measure as `Storage.SizeGB`, for the audit store | Unreleased |
+| `Audit.Storage.MessageCount` | count, summed, or `Unknown` | the `ProcessedMessages` collection count on RavenDB. The catalog row estimate for the audit messages table on SQL Server and PostgreSQL, summed over its partitions on PostgreSQL. `Unknown` on PostgreSQL 11 | Unreleased |
+| `Audit.Health.FailedImports` | count, summed | stored audit messages that ingestion failed to import | Unreleased |
+| `Audit.Health.UptimeHours` | whole hours, the smallest value | the audit instance's process start time | Unreleased |
+| `Audit.Ingestion.AvgDailyMessages` | count, summed across all instances | audit messages ingested per day since the process started | Unreleased |
+| `Audit.Ingestion.BusyPercent` | 0 to 100, the largest value | the share of uptime spent processing batches | Unreleased |
+| `Audit.Health.LagOver1MinPercent`, `Audit.Health.LagOver10MinPercent`, `Audit.Health.LagOver60MinPercent` | 0 to 100, the largest value | the share of ingested audit messages whose lag is over 1, 10 or 60 minutes | Unreleased |
+| `Audit.SameMachine` | `True`, `False`, `Mixed`, `NotApplicable`, `Unknown` | the machine name hashes. `NotApplicable` when either instance runs in a container | Unreleased |
+| `Audit.DatabaseSharing` | `SameSchema`, `SameDatabase`, `SameServer`, `SeparateServer`, `NotApplicable`, `Unknown` | the storage identity hashes. `NotApplicable` when the storage engines differ. Several instances report the most shared class | Unreleased |
+
+`Audit.Storage.SizeGB` covers the whole schema. When the primary and an audit instance share a schema, both report the same size, and `Audit.DatabaseSharing` is `SameSchema`.
+
+#### From the configuration response
+
+These come from the `GET /api/configuration` response, which the primary already fetches once a day.
 
 | Key | Values | Source | Status |
 | --- | --- | --- | --- |
@@ -199,7 +249,6 @@ These come from the `GET /api/configuration` response of each live audit instanc
 | `Audit.Features.ForwardAuditMessages` | `Enabled`, `Disabled`, `Mixed` | `transport.forward_audit_messages` | Planned |
 | `Audit.Limits.MaxBodySizeToStore` | bytes, largest across instances | `performance_tunning.max_body_size_to_store` | Planned |
 | `Audit.Logging.Level` | the `Logging.Level` values, or `Mixed` | `host.logging.logging_level` | Planned |
-| `Audit.Storage.Type` | `RavenDB`, `SQLServer`, `PostgreSQL`, `Mixed` | `persistence.persistence_type`, normalised because the raw value can be a legacy type name | Planned |
 
 ## Not reported
 
@@ -240,7 +289,9 @@ A setting that identifies and is also security configuration is listed as Identi
 | Database authentication, encryption and certificate validation options, for example SQL Server `Encrypt` and `TrustServerCertificate` or PostgreSQL `SSL Mode`, and whether a RavenDB client certificate is used | Security configuration | |
 | Body storage authentication mode | Security configuration | 6.20.0 to 6.21.2 report it as `Persistence.BodyStorage.Auth`. |
 | Email notification TLS and SMTP authentication | Security configuration | |
-| Audit instance security settings | Security configuration | `GET /api/configuration` does not return them. |
+| Audit instance security settings | Security configuration | Neither `GET /api/configuration` nor `GET /api/environment` returns them. |
+| The full Azure SQL service objective | Security configuration | Its hardware series can show the use of Always Encrypted with secure enclaves. Only the tier is reported, as `Storage.ServiceObjective`. |
+| The machine name hash and storage identity hashes that `GET /api/environment` serves | Identifies | Only the comparison with the primary is reported, as `Audit.SameMachine` and `Audit.DatabaseSharing`. |
 | `ServiceControl/PrintMetrics` | Not a choice | Nothing reads it. |
 | `ServiceControl/AuditRetentionPeriod` on the primary | Not a choice | It is displayed and returned by `api/configuration`, but nothing acts on it. |
 | `EmailDropFolder`, `MessageFilter` | Not a choice | Acceptance tests only. |
@@ -255,4 +306,5 @@ A setting that identifies and is also security configuration is listed as Identi
 | Whether licensed endpoint details are uploaded, and whether they match the license | Out of scope | They only apply to Endpoint Size licenses with endpoint metadata. |
 | Transport `QueueLengthQueryDelayInterval`, `QueueLengthQueryMaxDelayInterval` | Out of scope | Only the monitoring instance reads them. |
 | Every monitoring instance setting | Out of scope | |
-| Audit instance settings that `GET /api/configuration` does not return | Out of scope | Includes `IngestAuditMessages`, full-text search, embedded or external RavenDB, logging providers, OTLP, ingestion and RavenDB tuning, `ServiceControlQueueAddress`, `VirtualDirectory` and maintenance mode. Audit security settings are listed under Security configuration. |
+| The SQL Server edition name | Out of scope | Only the family is reported, as `Storage.ServerEdition`. Developer and Evaluation report `Enterprise`, so the report does not show which license an instance runs under. |
+| Audit instance settings that neither `GET /api/configuration` nor `GET /api/environment` returns | Out of scope | Includes `IngestAuditMessages`, logging providers, OTLP, ingestion and RavenDB tuning, `ServiceControlQueueAddress`, `VirtualDirectory` and maintenance mode. Audit security settings are listed under Security configuration. |
