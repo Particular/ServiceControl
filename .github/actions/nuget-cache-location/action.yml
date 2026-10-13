@@ -4,7 +4,7 @@ runs:
   using: composite
   steps:
     - name: Move NuGet caches to the temp drive
-      if: runner.os == 'Windows' && runner.environment == 'github-hosted'
+      if: runner.os == 'Windows'
       shell: pwsh
       run: |
         $packages = Join-Path $Env:RUNNER_TEMP 'nuget\packages'
