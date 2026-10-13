@@ -130,7 +130,7 @@ jobs:
       # five minute failure instead of a thirty minute one.
       - name: Setup WSL
         if: contains(fromJSON('["RabbitMQ", "SqlServer", "PostgreSql", "IBMMQ"]'), matrix.test-category)
-        uses: Particular/setup-wsl-action@01c708645ac96589147025e8a4f20097248bbc24
+        uses: Particular/setup-wsl-action@d70c26f3c1e84d26c15cf9579886b12affc6fd7f
         timeout-minutes: 5
         with:
           # The action defaults to 4GB. The runner has 16GB and the build runs concurrently with the
