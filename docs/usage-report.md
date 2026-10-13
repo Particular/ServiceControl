@@ -57,7 +57,7 @@ A pull request that does neither gets a review finding.
 
 `MonitoringEnabled` does not mean a monitoring instance is installed. It means a monitoring instance delivered non-zero throughput to this primary on at least one day of the report window, which covers the last 14 months and excludes today. It is `False` when monitoring is installed but no endpoint sends metrics, or when the throughput queue names do not match. It stays `True` for up to 14 months after monitoring is removed.
 
-Releases up to 6.21.0 report `SqlVersion` as the full text of `@@VERSION` on SQL Server or `version()` on PostgreSQL. That text includes the patch level, edition and operating system build. Later releases report only the major version. Azure SQL Database always reports version 12, which cannot be compared with SQL Server's version numbers. On Azure SQL Database, `SqlVersion` is `AzureSql` instead.
+Releases up to 6.21.2 report `SqlVersion` as the full text of `@@VERSION` on SQL Server or `version()` on PostgreSQL. That text includes the patch level, edition and operating system build. Later releases report only the major version. Azure SQL Database always reports version 12, which cannot be compared with SQL Server's version numbers. On Azure SQL Database, `SqlVersion` is `AzureSql` instead.
 
 ### Host
 
@@ -71,12 +71,12 @@ Releases up to 6.21.0 report `SqlVersion` as the full text of `@@VERSION` on SQL
 | `Host.RuntimeVersion` | version | the runtime | 6.20.0 |
 | `Host.ProcessorCount` | count | the runtime | 6.20.0 |
 | `Host.AvailableMemoryGB` | number | the GC memory limit, which honours a container limit | 6.20.0 |
-| `Host.VirtualDirectory` | `None`, `Configured` | `ServiceControl/VirtualDirectory` | Planned |
-| `Host.ShutdownTimeoutSeconds` | `Default` or number | `ServiceControl/ShutdownTimeout` | Planned |
+| `Host.VirtualDirectory` | `None`, `Configured` | `ServiceControl/VirtualDirectory` | Unreleased |
+| `Host.ShutdownTimeoutSeconds` | `Default` or number | `ServiceControl/ShutdownTimeout` | Unreleased |
 
 ### Storage
 
-6.20.0 and 6.21.0 emit these keys as `Persistence.*`. The rename to `Storage.*` is unreleased.
+6.20.0 to 6.21.2 emit these keys as `Persistence.*`. The rename to `Storage.*` is unreleased.
 
 | Key | Values | Source | Status |
 | --- | --- | --- | --- |
@@ -85,18 +85,18 @@ Releases up to 6.21.0 report `SqlVersion` as the full text of `@@VERSION` on SQL
 | `Storage.Hosting` | a fixed hosting class from `DatabaseHostClassifier` | the database host, and the engine's own answer where it gives one | 6.20.0 |
 | `Storage.HostingSource` | how `Storage.Hosting` was decided | the persister | 6.20.0 |
 | `Storage.ServerVersion` | major version on SQL Server and PostgreSQL, major.minor on RavenDB. Always 12 on Azure SQL Database, so read it with `Storage.Hosting` | the engine | 6.20.0 |
-| `Storage.FullTextSearch` | `Enabled`, `Disabled` | `EnableFullTextSearchOnBodies` | 6.20.0 |
+| `Storage.FullTextSearch` | `Enabled`, `Disabled` | `EnableFullTextSearchOnBodies`, RavenDB only. Always `Enabled` on SQL Server and PostgreSQL, which do not read the setting | 6.20.0 |
 | `Storage.BodyStorage.Type` | `RavenAttachments`, `FileSystem`, `AzureBlob`, `S3` | the persister | 6.20.0 |
 | `Limits.MaxBodySizeToStore` | bytes | `MaxBodySizeToStore`, SQL Server and PostgreSQL only | 6.20.0 |
-| `Storage.Schema` | `Default`, `Custom` | `Database/Schema`, SQL Server and PostgreSQL only | Planned |
-| `Storage.LogLevel` | `None`, `Information`, `Operations` | `RavenDBLogLevel`, RavenDB only | Planned |
-| `Storage.CommandTimeoutSeconds` | `Default` or number | `Database/CommandTimeout`, SQL Server and PostgreSQL only | Planned |
-| `Storage.QueryTimeoutSeconds` | `Default` or number | `QueryTimeoutInSeconds` | Planned |
-| `Storage.SubscriptionCacheSeconds` | `Default` or number | `SubscriptionCacheDuration`, SQL Server and PostgreSQL only | Planned |
-| `Storage.BodyStorage.MinCompressionBytes` | `Default` or number | `MessageBody/MinCompressionSize`, SQL Server and PostgreSQL only | Planned |
-| `Storage.FreeSpaceThresholdPercent` | `Default` or number. `NotApplicable` on SQL Server and PostgreSQL when body storage is not the file system | `DataSpaceRemainingThreshold` on RavenDB, `MessageBody/FileSystem/DataSpaceRemainingThreshold` on file system body storage | Planned |
-| `Storage.MinimumFreeSpaceForIngestionPercent` | `Default` or number | `MinimumStorageLeftRequiredForIngestion`, RavenDB only | Planned |
-| `Storage.ExpirationIntervalSeconds` | `Default` or number | `ExpirationProcessTimerInSeconds`, RavenDB only | Planned |
+| `Storage.Schema` | `Default`, `Custom` | `Database/Schema`, SQL Server and PostgreSQL only | Unreleased |
+| `Storage.LogLevel` | `None`, `Information`, `Operations` | `RavenDBLogLevel`, RavenDB only | Unreleased |
+| `Storage.CommandTimeoutSeconds` | `Default` or number | `Database/CommandTimeout`, SQL Server and PostgreSQL only | Unreleased |
+| `Storage.QueryTimeoutSeconds` | `Default` or number | `QueryTimeoutInSeconds` | Unreleased |
+| `Storage.SubscriptionCacheSeconds` | `Default` or number | `SubscriptionCacheDuration`, SQL Server and PostgreSQL only | Unreleased |
+| `Storage.BodyStorage.MinCompressionBytes` | `Default` or number | `MessageBody/MinCompressionSize`, SQL Server and PostgreSQL only | Unreleased |
+| `Storage.FreeSpaceThresholdPercent` | `Default` or number. `NotApplicable` on SQL Server and PostgreSQL when body storage is not the file system | `DataSpaceRemainingThreshold` on RavenDB, `MessageBody/FileSystem/DataSpaceRemainingThreshold` on file system body storage | Unreleased |
+| `Storage.MinimumFreeSpaceForIngestionPercent` | `Default` or number | `MinimumStorageLeftRequiredForIngestion`, RavenDB only | Unreleased |
+| `Storage.ExpirationIntervalSeconds` | `Default` or number | `ExpirationProcessTimerInSeconds`, RavenDB only | Unreleased |
 
 ### Transport
 
@@ -106,21 +106,21 @@ The primary's `TransportEnvironmentDataProvider` emits `Transport.Type` and adds
 
 | Key | Values | Source | Status |
 | --- | --- | --- | --- |
-| `Transport.Type` | the manifest name, for example `RabbitMQ.QuorumConventionalRouting` | `ServiceControl/TransportType`, resolved through the manifest | Planned |
-| `Transport.AzureServiceBus.Topology` | `TopicPerEvent`, `Migration`, `Custom` | `TopicName` in the connection string, then `ServiceControl.Transport.ASBS/Topology` | Planned |
-| `Transport.AzureServiceBus.Partitioning` | `Enabled`, `Disabled` | `EnablePartitioning` | Planned |
-| `Transport.AzureServiceBus.WebSockets` | `Enabled`, `Disabled` | `TransportType=AmqpWebSockets` | Planned |
-| `Transport.AzureServiceBus.HierarchyNamespace` | `None`, `Configured` | `HierarchyNamespace` | Planned |
-| `Transport.AmazonSQS.NamePrefixes` | `None`, `Queue`, `Topic`, `QueueAndTopic` | `QueueNamePrefix`, `TopicNamePrefix` | Planned |
-| `Transport.AmazonSQS.LargeMessageBucket` | `None`, `Configured` | `S3BucketForLargeMessages` | Planned |
-| `Transport.AmazonSQS.MessageWrapping` | `Enabled`, `Disabled` | `DoNotWrapOutgoingMessages` | Planned |
-| `Transport.AmazonSQS.ReservedBytesInMessageSize` | `Default` or number | `ReservedBytesInMessageSize` | Planned |
-| `Transport.RabbitMQ.DeliveryLimitValidation` | `Enabled`, `Disabled` | `ValidateDeliveryLimits` | Planned |
-| `Transport.RabbitMQ.ManagementApi` | `Default`, `Configured` | `ManagementApiUrl` | Planned |
-| `Transport.SQLServer.QueueSchema` | `Default`, `Custom` | `Queue Schema` in the connection string | Planned |
-| `Transport.SQLServer.SubscriptionsTable` | `Default`, `Custom` | `Subscriptions Table` in the connection string | Planned |
-| `Transport.PostgreSQL.QueueSchema` | `Default`, `Custom` | `Queue Schema` in the connection string | Planned |
-| `Transport.PostgreSQL.SubscriptionsTable` | `Default`, `Custom` | `Subscriptions Table` in the connection string | Planned |
+| `Transport.Type` | the manifest name, for example `RabbitMQ.QuorumConventionalRouting` | `ServiceControl/TransportType`, resolved through the manifest | Unreleased |
+| `Transport.AzureServiceBus.Topology` | `TopicPerEvent`, `Migration`, `Custom` | `TopicName` in the connection string, then `ServiceControl.Transport.ASBS/Topology` | Unreleased |
+| `Transport.AzureServiceBus.Partitioning` | `Enabled`, `Disabled` | `EnablePartitioning` | Unreleased |
+| `Transport.AzureServiceBus.WebSockets` | `Enabled`, `Disabled` | `TransportType=AmqpWebSockets` | Unreleased |
+| `Transport.AzureServiceBus.HierarchyNamespace` | `None`, `Configured` | `HierarchyNamespace` | Unreleased |
+| `Transport.AmazonSQS.NamePrefixes` | `None`, `Queue`, `Topic`, `QueueAndTopic` | `QueueNamePrefix`, `TopicNamePrefix` | Unreleased |
+| `Transport.AmazonSQS.LargeMessageBucket` | `None`, `Configured` | `S3BucketForLargeMessages` | Unreleased |
+| `Transport.AmazonSQS.MessageWrapping` | `Enabled`, `Disabled` | `DoNotWrapOutgoingMessages` | Unreleased |
+| `Transport.AmazonSQS.ReservedBytesInMessageSize` | `Default` or number | `ReservedBytesInMessageSize` | Unreleased |
+| `Transport.RabbitMQ.DeliveryLimitValidation` | `Enabled`, `Disabled` | `ValidateDeliveryLimits` | Unreleased |
+| `Transport.RabbitMQ.ManagementApi` | `Default`, `Configured` | `ManagementApiUrl` | Unreleased |
+| `Transport.SQLServer.QueueSchema` | `Default`, `Custom` | `Queue Schema` in the connection string | Unreleased |
+| `Transport.SQLServer.SubscriptionsTable` | `Default`, `Custom` | `Subscriptions Table` in the connection string | Unreleased |
+| `Transport.PostgreSQL.QueueSchema` | `Default`, `Custom` | `Queue Schema` in the connection string | Unreleased |
+| `Transport.PostgreSQL.SubscriptionsTable` | `Default`, `Custom` | `Subscriptions Table` in the connection string | Unreleased |
 
 ### Features
 
@@ -131,9 +131,9 @@ The primary's `TransportEnvironmentDataProvider` emits `Transport.Type` and adds
 | `Features.ExternalIntegrationsPublishing` | `Enabled`, `Disabled` | `ServiceControl/DisableExternalIntegrationsPublishing`, inverted | 6.20.0 |
 | `Features.ForwardErrorMessages` | `Enabled`, `Disabled` | `ServiceControl/ForwardErrorMessages` | 6.20.0 |
 | `Features.EmailNotifications` | `Enabled`, `Disabled`, `NotConfigured` | the stored email settings | 6.20.0 |
-| `Features.ErrorIngestion` | `Enabled`, `Disabled` | `ServiceControl/IngestErrorMessages` | Planned |
-| `Features.ConfigurationValidation` | `Enabled`, `Disabled` | `ServiceControl/ValidateConfig` | Planned |
-| `Limits.ExternalIntegrationsBatchSize` | `Default` or number | `ExternalIntegrationsDispatchingBatchSize` | Planned |
+| `Features.ErrorIngestion` | `Enabled`, `Disabled` | `ServiceControl/IngestErrorMessages` | Unreleased |
+| `Features.ConfigurationValidation` | `Enabled`, `Disabled` | `ServiceControl/ValidateConfig` | Unreleased |
+| `Limits.ExternalIntegrationsBatchSize` | `Default` or number | `ExternalIntegrationsDispatchingBatchSize` | Unreleased |
 
 ### Integrated ServicePulse
 
@@ -141,19 +141,19 @@ These keys are `NotApplicable` when `Features.IntegratedServicePulse` is `Disabl
 
 | Key | Values | Source | Status |
 | --- | --- | --- | --- |
-| `ServicePulse.MonitoringUrl` | `Default`, `Custom`, `Disabled`, `NotApplicable` | `MONITORING_URL`, or the legacy `MONITORING_URLS`. `!` means disabled | Planned |
-| `ServicePulse.DefaultRoute` | `Default`, `Custom`, `NotApplicable` | `DEFAULT_ROUTE` | Planned |
-| `ServicePulse.ShowPendingRetry` | `Enabled`, `Disabled`, `NotApplicable` | `SHOW_PENDING_RETRY` | Planned |
+| `ServicePulse.MonitoringUrl` | `Default`, `Custom`, `Disabled`, `NotApplicable` | `MONITORING_URL`, or the legacy `MONITORING_URLS`. `!` means disabled | Unreleased |
+| `ServicePulse.DefaultRoute` | `Default`, `Custom`, `NotApplicable` | `DEFAULT_ROUTE` | Unreleased |
+| `ServicePulse.ShowPendingRetry` | `Enabled`, `Disabled`, `NotApplicable` | `SHOW_PENDING_RETRY` | Unreleased |
 
 ### Error ingestion
 
 | Key | Values | Source | Status |
 | --- | --- | --- | --- |
-| `Ingestion.Error.MaxConcurrency` | `Default` or number | `ServiceControl/MaximumConcurrencyLevel` | Planned |
-| `Ingestion.Error.BatchSize` | `Default` or number | `ServiceControl/ErrorIngestionBatchSize` | Planned |
-| `Ingestion.Error.MaxParallelWriters` | `Default` or number | `ServiceControl/ErrorIngestionMaxParallelWriters` | Planned |
-| `Ingestion.Error.BatchTimeoutMs` | `Default` or number | `ServiceControl/ErrorIngestionBatchTimeout` | Planned |
-| `Ingestion.Error.RestartAfterFailureSeconds` | `Default` or number | `ServiceControl/TimeToRestartErrorIngestionAfterFailure` | Planned |
+| `Ingestion.Error.MaxConcurrency` | `Default` or number | `ServiceControl/MaximumConcurrencyLevel` | Unreleased |
+| `Ingestion.Error.BatchSize` | `Default` or number | `ServiceControl/ErrorIngestionBatchSize` | Unreleased |
+| `Ingestion.Error.MaxParallelWriters` | `Default` or number | `ServiceControl/ErrorIngestionMaxParallelWriters` | Unreleased |
+| `Ingestion.Error.BatchTimeoutMs` | `Default` or number | `ServiceControl/ErrorIngestionBatchTimeout` | Unreleased |
+| `Ingestion.Error.RestartAfterFailureSeconds` | `Default` or number | `ServiceControl/TimeToRestartErrorIngestionAfterFailure` | Unreleased |
 
 ### Retention
 
@@ -170,14 +170,14 @@ Most of these are choices users make in ServicePulse, or the heartbeat state tho
 
 | Key | Values | Source | Status |
 | --- | --- | --- | --- |
-| `Heartbeats.TrackInstancesDefault` | `Enabled`, `Disabled` | the stored default endpoint settings row. Falls back to `ServiceControl/TrackInstancesInitialValue` when no row is stored | Planned |
-| `Heartbeats.TrackInstancesOverrides` | count | stored endpoint settings rows whose value differs from the default | Planned |
-| `Heartbeats.KnownInstances` | count | `IEndpointInstanceMonitoring.GetEndpoints` | Planned |
-| `Heartbeats.MonitoredInstances` | count | the same, where `Monitored` is true | Planned |
-| `Heartbeats.GracePeriodSeconds` | `Default` or number | `ServiceControl/HeartbeatGracePeriod` | Planned |
-| `Recoverability.Redirects` | count | `IMessageRedirectsDataStore.GetRedirects` | Planned |
-| `Recoverability.RetryHistoryDepth` | `Default` or number | `ServiceControl/RetryHistoryDepth` | Planned |
-| `Licensing.ReportMasks` | count | `ILicensingDataStore.GetReportMasks` | Planned |
+| `Heartbeats.TrackInstancesDefault` | `Enabled`, `Disabled` | the stored default endpoint settings row. Falls back to `ServiceControl/TrackInstancesInitialValue` when no row is stored | Unreleased |
+| `Heartbeats.TrackInstancesOverrides` | count | stored endpoint settings rows whose value differs from the default | Unreleased |
+| `Heartbeats.KnownInstances` | count | `IEndpointInstanceMonitoring.GetEndpoints` | Unreleased |
+| `Heartbeats.MonitoredInstances` | count | the same, where `Monitored` is true | Unreleased |
+| `Heartbeats.GracePeriodSeconds` | `Default` or number | `ServiceControl/HeartbeatGracePeriod` | Unreleased |
+| `Recoverability.Redirects` | count | `IMessageRedirectsDataStore.GetRedirects` | Unreleased |
+| `Recoverability.RetryHistoryDepth` | `Default` or number | `ServiceControl/RetryHistoryDepth` | Unreleased |
+| `Licensing.ReportMasks` | count | `ILicensingDataStore.GetReportMasks` | Unreleased |
 
 An instance becomes monitored on its first heartbeat. An instance first seen in an ingested message starts unmonitored. So `KnownInstances` minus `MonitoredInstances` counts instances that a user stopped monitoring together with instances that have never sent a heartbeat. Storage cannot separate the two.
 
@@ -185,9 +185,9 @@ An instance becomes monitored on its first heartbeat. An instance first seen in 
 
 | Key | Values | Source | Status |
 | --- | --- | --- | --- |
-| `Logging.Providers` | the active providers from `NLog`, `Seq`, `Otlp`, comma separated in that order | `ServiceControl/LoggingProviders`. `NLog` when unset | Planned |
-| `Logging.Level` | `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, `None` | `ServiceControl/LogLevel` | Planned |
-| `Telemetry.OtlpMetrics` | `Enabled`, `Disabled` | whether `OTEL_EXPORTER_OTLP_ENDPOINT` is set | Planned |
+| `Logging.Providers` | the active providers from `NLog`, `Seq`, `Otlp`, comma separated in that order | `ServiceControl/LoggingProviders`. `NLog` when unset | Unreleased |
+| `Logging.Level` | `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, `None` | `ServiceControl/LogLevel` | Unreleased |
+| `Telemetry.OtlpMetrics` | `Enabled`, `Disabled` | whether `OTEL_EXPORTER_OTLP_ENDPOINT` is set | Unreleased |
 
 ### Audit instances
 
@@ -232,13 +232,13 @@ A setting that identifies and is also security configuration is listed as Identi
 | `ServiceControl/NotificationsFilter` check ids | Identifies | |
 | Report mask strings, redirect addresses, endpoint names, licensed endpoint details | Identifies | Masks and redirects are reported as counts. |
 | `MONITORING_URL`, `DEFAULT_ROUTE` values, `SERVICECONTROL_URL` | Identifies | The integrated ServicePulse keys report `Default` or `Custom`. |
-| `Authentication.Enabled`, `RoleBasedAuthorizationEnabled`, `ValidateIssuer`, `ValidateAudience`, `ValidateLifetime`, `ValidateIssuerSigningKey`, `RequireHttpsMetadata`, `ServicePulse.OfflineAccessScopeEnabled`, and whether claim names differ from the defaults | Security configuration | 6.20.0 and 6.21.0 report the first two as `Security.Authentication` and `Security.RoleBasedAuthorization`. |
-| `Https.Enabled`, `RedirectHttpToHttps`, `EnableHsts`, `HstsMaxAgeSeconds`, `HstsIncludeSubDomains`, `Https.Port` | Security configuration | 6.20.0 and 6.21.0 report `Https.Enabled` as `Security.Https`. |
+| `Authentication.Enabled`, `RoleBasedAuthorizationEnabled`, `ValidateIssuer`, `ValidateAudience`, `ValidateLifetime`, `ValidateIssuerSigningKey`, `RequireHttpsMetadata`, `ServicePulse.OfflineAccessScopeEnabled`, and whether claim names differ from the defaults | Security configuration | 6.20.0 to 6.21.2 report the first two as `Security.Authentication` and `Security.RoleBasedAuthorization`. |
+| `Https.Enabled`, `RedirectHttpToHttps`, `EnableHsts`, `HstsMaxAgeSeconds`, `HstsIncludeSubDomains`, `Https.Port` | Security configuration | 6.20.0 to 6.21.2 report `Https.Enabled` as `Security.Https`. |
 | `Cors.AllowAnyOrigin` and whether origins are restricted | Security configuration | |
 | `ForwardedHeaders.Enabled`, `TrustAllProxies` and whether proxies are restricted | Security configuration | |
 | Transport authentication, encryption and certificate validation options in the connection string, for example RabbitMQ `UseExternalAuthMechanism` and `DisableRemoteCertificateValidation` | Security configuration | |
 | Database authentication, encryption and certificate validation options, for example SQL Server `Encrypt` and `TrustServerCertificate` or PostgreSQL `SSL Mode`, and whether a RavenDB client certificate is used | Security configuration | |
-| Body storage authentication mode | Security configuration | 6.20.0 and 6.21.0 report it as `Persistence.BodyStorage.Auth`. |
+| Body storage authentication mode | Security configuration | 6.20.0 to 6.21.2 report it as `Persistence.BodyStorage.Auth`. |
 | Email notification TLS and SMTP authentication | Security configuration | |
 | Audit instance security settings | Security configuration | `GET /api/configuration` does not return them. |
 | `ServiceControl/PrintMetrics` | Not a choice | Nothing reads it. |
