@@ -9,6 +9,5 @@ runs:
       run: |
         $packages = Join-Path $Env:RUNNER_TEMP 'nuget\packages'
         $httpCache = Join-Path $Env:RUNNER_TEMP 'nuget\http-cache'
-        New-Item -ItemType Directory -Force -Path $packages, $httpCache | Out-Null
         "NUGET_PACKAGES=$packages" >> $Env:GITHUB_ENV
         "NUGET_HTTP_CACHE_PATH=$httpCache" >> $Env:GITHUB_ENV
