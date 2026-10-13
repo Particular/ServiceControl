@@ -12,8 +12,24 @@ class PostgreSqlFullTextSearchDialect : IFullTextSearchDialect
                     message.HeadersJson + " " +
                     (message.BodyText ?? "").Substring(0, FullTextSearchSql.IndexedBodyLength) + " " +
                     (message.MessageType ?? "").Replace(".", " ").Replace("+", " "))
-                .Matches(EF.Functions.WebSearchToTsQuery(FullTextSearchSql.Configuration, ToOrQuery(searchTerms))));
+                .Matches(EF.Functions.ToTsQuery(FullTextSearchSql.Configuration, ToOrQuery(searchTerms))));
 
     static string ToOrQuery(string searchTerms) =>
-        string.Join(" OR ", searchTerms.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+        string.Join(" | ", searchTerms
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(ToPhrase)
+            .OfType<string>());
+
+    static string? ToPhrase(string term)
+    {
+        var word = term.TrimEnd('*');
+        if (word.Length == 0)
+        {
+            return null;
+        }
+
+        var phrase = $"'{word.Replace(@"\", @"\\").Replace("'", "''")}'";
+
+        return word.Length < term.Length ? phrase + ":*" : phrase;
+    }
 }
