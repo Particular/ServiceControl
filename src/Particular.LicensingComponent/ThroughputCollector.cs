@@ -301,7 +301,12 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
     {
         return throughputQuery == null ? endpointName : throughputQuery.SanitizedEndpointNameCleanser(endpointName);
     }
-    static string? UserIndicator(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.UserIndicator))?.UserIndicator;
+    static string? UserIndicator(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.UserIndicator))?.UserIndicator switch
+    {
+        // HINT: PlannedToDecommission is a legacy value. Only endpoints would have been marked with this user indicator.
+        var userIndicator when userIndicator == Contracts.UserIndicator.PlannedToDecommission.ToString() => Contracts.UserIndicator.NServiceBusEndpoint.ToString(),
+        var userIndicator => userIndicator
+    };
 
     static string? EndpointScope(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.Scope))?.Scope;
 
