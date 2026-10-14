@@ -31,13 +31,13 @@ Make sure that your setup is supported:
 
 Get the data ready:
 
-- Resolve or archive as many unresolved failed messages as you can. They never age out, and ServiceControl stays closed until they are all copied. **A large backlog makes the outage long**.
+- Resolve or archive as many unresolved failed messages as you can. They never age out, and ServiceControl stays closed until they are all copied. **A large backlog makes the outage long**. The copy reads archived and resolved messages only after ServiceControl opens. The exception is a RavenDB index that is broken or leaves out some failed messages: then the copy reads every failed message during the outage, logs a warning, and a large archive makes the outage longer too.
 - Run `--import-failed-errors` while the instance is still on RavenDB. A failed error import is a message that ServiceControl took off the error queue but failed to store. The migration copies these either way, but imported ones arrive as ordinary failed messages.
 
 Keep these settings as they are:
 
 - Keep `ServiceControl/RetryHistoryDepth` above 0. If it is 0 or less, the migration refuses to start. At that value, the first completed retry after the move deletes all the copied retry history.
-- Do not change `ServiceControl/ErrorRetentionPeriod` or `ServiceControl/EventRetentionPeriod` until the migration is finished. The migration uses them to decide which rows are too old to copy. If one changes after the copy starts, ServiceControl refuses to start.
+- Do not change `ServiceControl/ErrorRetentionPeriod` or `ServiceControl/EventRetentionPeriod` until the migration is finished. The migration uses them to decide which rows are too old to copy. If one changes after an optional category has started copying with its default window, ServiceControl refuses to start and names the category.
 
 ## Keep the RavenDB settings
 

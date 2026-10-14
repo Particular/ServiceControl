@@ -10,7 +10,10 @@ using NUnit.Framework;
 using ServiceControl.Operations;
 using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.EFCore.DataMigration;
+using ServiceControl.Persistence.EFCore.DataMigration.Writers;
 using ServiceControl.Persistence.EFCore.DbContexts;
+using ServiceControl.Persistence.EFCore.Entities;
+using ServiceControl.Persistence.EFCore.Infrastructure;
 
 class KnownEndpointsMigrationTargetTests : PersistenceTestBase
 {
@@ -78,6 +81,31 @@ class KnownEndpointsMigrationTargetTests : PersistenceTestBase
             Assert.That(result.SkippedIds, Is.EquivalentTo(new[] { "KnownEndpoints/2", "KnownEndpoints/3" }));
             Assert.That(result.SkipReasons[MigrationSkipReason.RequiredValueMissing], Is.EqualTo(2), "KnownEndpoints.Name and Host are NOT NULL, and a throw here would halt a required category");
             Assert.That((await MonitoringDataStore.GetAllKnownEndpoints()).Select(endpoint => endpoint.EndpointDetails.Name), Is.EqualTo(new[] { "Sales.Orders" }));
+        }
+    }
+
+    [Test]
+    public async Task A_known_endpoint_with_a_value_longer_than_its_column_is_skipped_as_value_too_long_and_the_rest_copy()
+    {
+        var fitsExactly = new KnownEndpoint { EndpointDetails = new EndpointDetails { Name = new string('n', 450), HostId = Guid.NewGuid(), Host = new string('h', 450) } };
+        var longName = new KnownEndpoint { EndpointDetails = new EndpointDetails { Name = new string('n', 451), HostId = Guid.NewGuid(), Host = "SALES02" } };
+        var longHost = new KnownEndpoint { EndpointDetails = new EndpointDetails { Name = "Billing", HostId = Guid.NewGuid(), Host = new string('h', 452) } };
+        var batch = BatchOf(("KnownEndpoints/1", fitsExactly), ("KnownEndpoints/2", longName), ("KnownEndpoints/3", longHost));
+
+        var details = await PreparedSkips.DetailsFrom(ServiceProvider, new KnownEndpointsWriter(ServiceProvider.GetRequiredService<IMigrationSqlDialect>()), batch);
+        var result = await Target.Write(KnownEndpointsCategory, batch, CheckpointAfter("KnownEndpoints/3"));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Copied, Is.EqualTo(1), "a value exactly as long as its column fits");
+            Assert.That(result.SkippedIds, Is.EqualTo(new[] { "KnownEndpoints/2", "KnownEndpoints/3" }));
+            Assert.That(result.SkipReasons, Is.EqualTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.ValueTooLong] = 2 }), "an over-long value would fail the whole insert and halt the category");
+            Assert.That((await MonitoringDataStore.GetAllKnownEndpoints()).Select(endpoint => endpoint.EndpointDetails.Name), Is.EqualTo(new[] { new string('n', 450) }));
+            Assert.That(details, Is.EqualTo(new[]
+            {
+                $"{PreparedSkips.TableAndColumnOf<KnownEndpointEntity>(ServiceProvider, nameof(KnownEndpointEntity.Name))} takes at most 450 characters and the value holds 451, on document 'KnownEndpoints/2'",
+                $"{PreparedSkips.TableAndColumnOf<KnownEndpointEntity>(ServiceProvider, nameof(KnownEndpointEntity.Host))} takes at most 450 characters and the value holds 452, on document 'KnownEndpoints/3'"
+            }));
         }
     }
 

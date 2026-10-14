@@ -24,8 +24,10 @@ public interface IMigrationTarget
     /// <summary>
     /// Saves the batch's rows and the checkpoint in one transaction, so progress never gets ahead of the data.
     /// Add this batch's own outcome with <see cref="MigrationCheckpoint.Extend"/> and save that, so the stored counts are never a guess.
+    /// For a category that carries bodies, every row must have its body.
+    /// Bodies that go to external storage are written first, outside the transaction. So a failed write can leave a
+    /// stored body that no row points to, but never a row that points to a body that was not stored.
     /// </summary>
-    /// <param name="checkpointToExtend">Prior totals, the cursor this batch reached, and any rows the engine itself skipped. Nothing the target does is counted yet.</param>
     Task<MigrationWriteResult> Write(
         MigrationCategory category,
         MigrationBatch batch,
@@ -55,10 +57,4 @@ public interface IMigrationTarget
 /// <summary>
 /// What the target did with one batch, and the checkpoint it committed alongside the rows. Every skipped row must have a reason in SkipReasons.
 /// </summary>
-/// <param name="Saved">The checkpoint as the target stored it, carrying the version that save landed on. The engine carries on from this one, never from the one it passed in.</param>
-/// <param name="Copied">Rows this batch wrote. The same number must show up as the rise in the saved copied count, because the halt threshold reads one and status and verify read the other.</param>
-/// <param name="Skipped">Rows this batch could not write, benign ones included.</param>
-/// <param name="SkippedIds">The source ids of those rows, so the engine can name each one in the log.</param>
-/// <param name="AlreadyPresent">Rows the target already held. They were neither copied nor skipped, and they still count as accounted for.</param>
-/// <param name="SkipReasons">How many rows each reason skipped. The counts have to add up to Skipped, or the checkpoint refuses the batch.</param>
 public sealed record MigrationWriteResult(MigrationCheckpoint Saved, int Copied, int Skipped, IReadOnlyList<string> SkippedIds, int AlreadyPresent = 0, IReadOnlyDictionary<MigrationSkipReason, long>? SkipReasons = null);

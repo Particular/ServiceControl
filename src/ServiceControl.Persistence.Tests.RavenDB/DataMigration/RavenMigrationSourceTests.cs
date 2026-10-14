@@ -70,6 +70,8 @@ class RavenMigrationSourceTests : RavenMigrationSourceTestBase
             Assert.That(refusal.Message, Does.Contain(EndpointSettingsCategory.Id));
             Assert.That(refusal.Message, Does.Contain("EndpointSettings/zzz-from-another-database"));
             Assert.That(refusal.Message, Does.Contain(DatabaseName), "the operator has to be told which database the cursor was looked for in");
+            Assert.That(refusal.Message, Does.Contain("expired"), "an archived or resolved document can expire during an interrupted copy, on any source");
+            Assert.That(refusal.Message, Does.Contain($"--migration-retry {EndpointSettingsCategory.Id}"), "a retry re-reads the category from the start, so it is the way out");
         });
     }
 
@@ -123,7 +125,8 @@ class RavenMigrationSourceTests : RavenMigrationSourceTestBase
     static readonly Dictionary<string, Func<RavenMigrationSourceTests, Task>> Seeds = new()
     {
         [MigrationCategoryIds.EndpointSettings] = tests => tests.SeedEndpointSettings(2),
-        [MigrationCategoryIds.KnownEndpoints] = tests => tests.MonitoringDataStore.CreateIfNotExists(new EndpointDetails { Name = "Sales.Orders", HostId = Guid.NewGuid(), Host = "HOST01" })
+        [MigrationCategoryIds.KnownEndpoints] = tests => tests.MonitoringDataStore.CreateIfNotExists(new EndpointDetails { Name = "Sales.Orders", HostId = Guid.NewGuid(), Host = "HOST01" }),
+        [MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages] = tests => tests.SeedFailedMessage(new IngestedFailure().ToFailedMessage())
     };
 
     string DatabaseName => ((RavenPersisterSettings)PersistenceSettings).DatabaseName;

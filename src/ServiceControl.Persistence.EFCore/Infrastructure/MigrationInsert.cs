@@ -15,29 +15,43 @@ public sealed class MigrationInsert<TEntity> where TEntity : class
 
     readonly IReadOnlyList<IProperty> properties;
     readonly IReadOnlyList<IProperty> keyProperties;
+    readonly IReadOnlyList<(IProperty Property, string TableAndColumn, int MaxLength)> boundedText;
+    readonly IReadOnlyList<(IProperty Property, string TableAndColumn)> text;
 
-    MigrationInsert(string table, IReadOnlyList<IProperty> properties, IReadOnlyList<IProperty> keyProperties, Func<IProperty, string> columnName)
+    MigrationInsert(string tableName, string quotedTable, IReadOnlyList<IProperty> properties, IReadOnlyList<IProperty> keyProperties, Func<IProperty, string> columnName, Func<string, string> quote)
     {
-        Table = table;
+        Table = quotedTable;
         this.properties = properties;
         this.keyProperties = keyProperties;
-        Columns = [.. properties.Select(columnName)];
-        KeyColumns = [.. keyProperties.Select(columnName)];
+        Columns = [.. properties.Select(property => quote(columnName(property)))];
+        KeyColumns = [.. keyProperties.Select(property => quote(columnName(property)))];
+        text = [.. properties.Where(property => property.ClrType == typeof(string)).Select(property => (property, $"{tableName}.{columnName(property)}"))];
+        boundedText =
+        [
+            .. text
+                .Where(column => column.Property.GetMaxLength() is not null)
+                .Select(column => (column.Property, column.TableAndColumn, column.Property.GetMaxLength()!.Value))
+        ];
     }
 
-    /// <summary>The table name, quoted for this provider and carrying its schema.</summary>
+    /// <summary>
+    /// The table name, quoted for this provider and carrying its schema.
+    /// </summary>
     public string Table { get; }
 
-    /// <summary>Every column the insert writes, quoted, in the order the parameters of one row follow.</summary>
+    /// <summary>
+    /// Every column the insert writes, quoted, in the order the parameters of one row follow.
+    /// </summary>
     public IReadOnlyList<string> Columns { get; }
 
-    /// <summary>The primary key columns, quoted, in the order the statement has to return them.</summary>
+    /// <summary>
+    /// The primary key columns, quoted, in the order the statement has to return them.
+    /// </summary>
     public IReadOnlyList<string> KeyColumns { get; }
 
     /// <summary>
     /// Reads the table, columns and key out of the EF Core model for this entity.
     /// </summary>
-    /// <exception cref="InvalidOperationException">The entity is not mapped, has no primary key, or has a column this insert cannot write, such as one the database generates. Rows like that go through EF in the caller's context instead.</exception>
     public static MigrationInsert<TEntity> For(ServiceControlDbContext dbContext)
     {
         var entityType = dbContext.Model.FindEntityType(typeof(TEntity))
@@ -59,11 +73,48 @@ public sealed class MigrationInsert<TEntity> where TEntity : class
         var sql = dbContext.GetService<ISqlGenerationHelper>();
 
         return new MigrationInsert<TEntity>(
+            tableName,
             sql.DelimitIdentifier(tableName, entityType.GetSchema()),
             properties,
             key.Properties,
-            property => sql.DelimitIdentifier(property.GetColumnName(storeObject)
-                ?? throw new InvalidOperationException($"{typeof(TEntity).Name}.{property.Name} has no column in {tableName}.")));
+            property => property.GetColumnName(storeObject)
+                ?? throw new InvalidOperationException($"{typeof(TEntity).Name}.{property.Name} has no column in {tableName}."),
+            sql.DelimitIdentifier);
+    }
+
+    /// <summary>
+    /// Finds the first text value in a row that is longer than its column allows, which would fail the whole statement the row goes into.
+    /// Returns a message naming the column and both lengths, or null when every value fits.
+    /// </summary>
+    public string? ValueTooLongIn(TEntity row, IMigrationSqlDialect dialect)
+    {
+        foreach (var (property, tableAndColumn, maxLength) in boundedText)
+        {
+            // No provider counts a string as longer than its UTF-16 length, so a value within that length fits and skips the dialect's own count.
+            if (property.GetGetter().GetClrValue(row) is string { Length: var units } value && units > maxLength && dialect.TextLength(value) is var length && length > maxLength)
+            {
+                return $"{tableAndColumn} takes at most {maxLength} characters and the value holds {length}";
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Finds the first text value in a row holding a character the provider refuses to store, which would fail the whole statement the row goes into.
+    /// Returns a message naming the column and the character, or null when there is none.
+    /// </summary>
+    public string? RejectedCharacterIn(TEntity row, IMigrationSqlDialect dialect)
+    {
+        foreach (var (property, tableAndColumn) in text)
+        {
+            if (property.GetGetter().GetClrValue(row) is string value && dialect.RejectedCharacterIn(value) is { } rejected)
+            {
+                return $"{tableAndColumn} cannot hold the character U+{(int)rejected:X4}, which the value contains";
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
