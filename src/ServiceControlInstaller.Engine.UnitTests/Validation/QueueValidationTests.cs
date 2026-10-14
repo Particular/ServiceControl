@@ -61,6 +61,8 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
 
             public PersistenceManifest PersistenceManifest { get; set; }
 
+            public string PersistenceConnectionString { get; set; }
+
             public string ConnectionString { get; set; }
 
             public string Url { get; set; }
@@ -83,6 +85,8 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             public string ServiceControlQueueAddress { get; set; }
 
             public PersistenceManifest PersistenceManifest { get; set; }
+
+            public string PersistenceConnectionString { get; set; }
 
             public bool EnableFullTextSearchOnBodies { get; set; }
 

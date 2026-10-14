@@ -54,6 +54,8 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public PersistenceManifest PersistenceManifest { get; set; }
 
+        public string PersistenceConnectionString { get; set; }
+
         public void AddRemoteInstance(string apiUri)
         {
             if (RemoteInstances.All(x => string.Compare(x.ApiUri, apiUri, StringComparison.InvariantCultureIgnoreCase) != 0))

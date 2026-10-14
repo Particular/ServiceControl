@@ -4,6 +4,7 @@
     using System.Configuration;
     using System.Data.Common;
     using System.IO;
+    using System.Linq;
     using Instances;
     using NuGet.Versioning;
 
@@ -25,10 +26,8 @@
             settings.Set(ServiceControlSettings.InstanceName, details.InstanceName, version);
             settings.Set(ServiceControlSettings.VirtualDirectory, details.VirtualDirectory);
             settings.Set(ServiceControlSettings.Port, details.Port.ToString());
-            settings.Set(ServiceControlSettings.DatabaseMaintenancePort, details.DatabaseMaintenancePort.ToString(), version);
             settings.Set(ServiceControlSettings.HostName, details.HostName);
             settings.Set(ServiceControlSettings.LogPath, details.LogPath);
-            settings.Set(ServiceControlSettings.DBPath, details.DBPath);
             settings.Set(ServiceControlSettings.ForwardErrorMessages, details.ForwardErrorMessages.ToString(), version);
             settings.Set(ServiceControlSettings.TransportType, details.TransportPackage.Name, version);
             settings.Set(ServiceControlSettings.PersistenceType, details.PersistenceManifest.Name); // TODO: Why is it set here AND at ServiceControlInstance.ApplySettingsChanges 🤬
@@ -39,6 +38,55 @@
             settings.Set(ServiceControlSettings.EnableFullTextSearchOnBodies, details.EnableFullTextSearchOnBodies.ToString(), version);
             settings.Set(ServiceControlSettings.RemoteInstances, RemoteInstanceConverter.ToJson(details.RemoteInstances), version);
             settings.Set(ServiceControlSettings.EnableIntegratedServicePulse, details.EnableIntegratedServicePulse.ToString(), version);
+
+            foreach (var manifestSetting in details.PersistenceManifest.Settings)
+            {
+                if (!settings.AllKeys.Contains(manifestSetting.Name))
+                {
+                    var value = manifestSetting.DefaultValue;
+
+                    if (manifestSetting.Name == ServiceControlSettings.DBPath.Name)
+                    {
+                        value = details.DBPath;
+                    }
+
+                    if (manifestSetting.Name == ServiceControlSettings.DatabaseMaintenancePort.Name)
+                    {
+                        value = details.DatabaseMaintenancePort.ToString();
+                    }
+
+                    if (manifestSetting.Name == ServiceControlSettings.DatabaseConnectionString.Name)
+                    {
+                        value = details.PersistenceConnectionString;
+                    }
+
+                    // The manifest can't declare a per-instance default, and this setting is
+                    // effectively mandatory at runtime once FileSystem storage is selected,
+                    // even though it's marked optional here (other backends don't need it).
+                    if (manifestSetting.Name == ServiceControlSettings.MessageBodyFileSystemStoragePath.Name && string.IsNullOrEmpty(value))
+                    {
+                        value = Path.Combine(details.DBPath, "MessageBodies");
+                    }
+
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        settings.Add(manifestSetting.Name, value);
+                    }
+                }
+
+                if (manifestSetting.Mandatory)
+                {
+                    if (!settings.AllKeys.Contains(manifestSetting.Name))
+                    {
+                        throw new Exception($"Mandatory setting {manifestSetting.Name} was not configured");
+                    }
+
+                    if (string.IsNullOrEmpty(settings[manifestSetting.Name].Value))
+                    {
+                        throw new Exception($"Mandatory setting {manifestSetting.Name} can not be null or empty");
+                    }
+                }
+            }
 
             // Windows services allow a maximum of 125 seconds when stopping a service.
             // When shutting down or restarting the OS we have no control over the

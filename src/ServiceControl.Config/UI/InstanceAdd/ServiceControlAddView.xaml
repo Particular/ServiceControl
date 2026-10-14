@@ -139,6 +139,28 @@
 
                                 <Border Margin="0,40,0,20"
                             BorderBrush="{StaticResource Gray90Brush}"
+                            BorderThickness="0,0,0,1"
+                            Visibility="{Binding ShowErrorStorageTypePicker, Converter={StaticResource boolToVis}}">
+                                    <TextBlock FontSize="13px"
+                                   FontWeight="Bold"
+                                   Text="STORAGE CONFIGURATION" />
+                                </Border>
+
+                                <controls:FormComboBox HorizontalAlignment="Stretch"
+                                           DisplayMemberPath="DisplayName"
+                                           Header="STORAGE TYPE"
+                                           ItemsSource="{Binding ErrorStorageTypes}"
+                                           SelectedItem="{Binding ErrorSelectedStorageType}"
+                                           Visibility="{Binding ShowErrorStorageTypePicker, Converter={StaticResource boolToVis}}" />
+
+                                <controls:FormTextBox AcceptsReturn="True"
+                                          Header="DATABASE CONNECTION STRING"
+                                          Text="{Binding ErrorStorageConnectionString}"
+                                          TextWrapping="Wrap"
+                                          Visibility="{Binding ShowErrorStorageConnectionString, Converter={StaticResource boolToVis}}" />
+
+                                <Border Margin="0,40,0,20"
+                            BorderBrush="{StaticResource Gray90Brush}"
                             BorderThickness="0,0,0,1">
                                     <TextBlock FontSize="13px"
                                    FontWeight="Bold"
@@ -155,7 +177,8 @@
 
                                 <controls:FormPathTextBox Header="DATABASE PATH"
                                               SelectCommand="{Binding ErrorSelectDatabasePath}"
-                                              Text="{Binding ErrorDatabasePath}" />
+                                              Text="{Binding ErrorDatabasePath}"
+                                              Visibility="{Binding ShowErrorDatabasePathFields, Converter={StaticResource boolToVis}}" />
 
                                 <Border Margin="0,40,0,20"
                             BorderBrush="{StaticResource Gray90Brush}"
@@ -324,6 +347,28 @@
 
                                 <Border Margin="0,40,0,20"
                                 BorderBrush="{StaticResource Gray90Brush}"
+                                BorderThickness="0,0,0,1"
+                                Visibility="{Binding ShowAuditStorageTypePicker, Converter={StaticResource boolToVis}}">
+                                    <TextBlock FontSize="13px"
+                                       FontWeight="Bold"
+                                       Text="STORAGE CONFIGURATION" />
+                                </Border>
+
+                                <controls:FormComboBox HorizontalAlignment="Stretch"
+                                           DisplayMemberPath="DisplayName"
+                                           Header="STORAGE TYPE"
+                                           ItemsSource="{Binding AuditStorageTypes}"
+                                           SelectedItem="{Binding AuditSelectedStorageType}"
+                                           Visibility="{Binding ShowAuditStorageTypePicker, Converter={StaticResource boolToVis}}" />
+
+                                <controls:FormTextBox AcceptsReturn="True"
+                                          Header="DATABASE CONNECTION STRING"
+                                          Text="{Binding AuditStorageConnectionString}"
+                                          TextWrapping="Wrap"
+                                          Visibility="{Binding ShowAuditStorageConnectionString, Converter={StaticResource boolToVis}}" />
+
+                                <Border Margin="0,40,0,20"
+                                BorderBrush="{StaticResource Gray90Brush}"
                                 BorderThickness="0,0,0,1">
                                     <TextBlock FontSize="13px"
                                        FontWeight="Bold"
@@ -340,7 +385,8 @@
 
                                 <controls:FormPathTextBox Header="DATABASE PATH"
                                                   SelectCommand="{Binding AuditSelectDatabasePath}"
-                                                  Text="{Binding AuditDatabasePath}" />
+                                                  Text="{Binding AuditDatabasePath}"
+                                                  Visibility="{Binding ShowAuditDatabasePathFields, Converter={StaticResource boolToVis}}" />
 
                                 <Border Margin="0,40,0,20"
                                 BorderBrush="{StaticResource Gray90Brush}"

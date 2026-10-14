@@ -52,6 +52,11 @@
                         value = instance.DatabaseMaintenancePort.ToString();
                     }
 
+                    if (manifestSetting.Name == AuditInstanceSettingsList.DatabaseConnectionString.Name)
+                    {
+                        value = instance.PersistenceConnectionString;
+                    }
+
                     if (!string.IsNullOrEmpty(value))
                     {
                         settings.Add(manifestSetting.Name, value);

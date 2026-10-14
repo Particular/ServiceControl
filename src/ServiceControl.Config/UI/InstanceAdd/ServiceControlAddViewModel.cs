@@ -200,6 +200,26 @@ namespace ServiceControl.Config.UI.InstanceAdd
             set => ServiceControl.DatabaseMaintenancePortNumber = value;
         }
 
+        public IEnumerable<PersistenceManifest> ErrorStorageTypes => ServiceControl.StorageTypes;
+
+        public PersistenceManifest ErrorSelectedStorageType
+        {
+            get => ServiceControl.SelectedStorageType;
+            set => ServiceControl.SelectedStorageType = value;
+        }
+
+        public string ErrorStorageConnectionString
+        {
+            get => ServiceControl.StorageConnectionString;
+            set => ServiceControl.StorageConnectionString = value;
+        }
+
+        public bool ShowErrorStorageTypePicker => ServiceControl.ShowStorageTypePicker;
+
+        public bool ShowErrorStorageConnectionString => ServiceControl.ShowStorageConnectionString;
+
+        public bool ShowErrorDatabasePathFields => ServiceControl.ShowDatabasePathFields;
+
         public ICommand ErrorSelectDestinationPath => ServiceControl.SelectDestinationPath;
 
         public string ErrorDestinationPath
@@ -366,6 +386,26 @@ namespace ServiceControl.Config.UI.InstanceAdd
             get => ServiceControlAudit.DatabaseMaintenancePortNumber;
             set => ServiceControlAudit.DatabaseMaintenancePortNumber = value;
         }
+
+        public IEnumerable<PersistenceManifest> AuditStorageTypes => ServiceControlAudit.StorageTypes;
+
+        public PersistenceManifest AuditSelectedStorageType
+        {
+            get => ServiceControlAudit.SelectedStorageType;
+            set => ServiceControlAudit.SelectedStorageType = value;
+        }
+
+        public string AuditStorageConnectionString
+        {
+            get => ServiceControlAudit.StorageConnectionString;
+            set => ServiceControlAudit.StorageConnectionString = value;
+        }
+
+        public bool ShowAuditStorageTypePicker => ServiceControlAudit.ShowStorageTypePicker;
+
+        public bool ShowAuditStorageConnectionString => ServiceControlAudit.ShowStorageConnectionString;
+
+        public bool ShowAuditDatabasePathFields => ServiceControlAudit.ShowDatabasePathFields;
 
         public ICommand AuditSelectDestinationPath => ServiceControlAudit.SelectDestinationPath;
 

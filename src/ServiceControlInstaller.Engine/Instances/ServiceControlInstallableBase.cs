@@ -98,6 +98,8 @@
 
         public string ConnectionString { get; set; }
 
+        public string PersistenceConnectionString { get; set; }
+
         public string Name { get; set; }
 
         public string InstanceName { get; set; }

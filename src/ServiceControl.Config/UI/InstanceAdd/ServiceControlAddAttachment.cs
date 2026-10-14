@@ -53,7 +53,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
             viewModel.InProgress = true;
 
-            var serviceControlNewInstance = viewModel.InstallErrorInstance ? ServiceControlNewInstance.CreateWithDefaultPersistence() : null;
+            var serviceControlNewInstance = viewModel.InstallErrorInstance ? ServiceControlNewInstance.CreateWithPersistence(viewModel.ServiceControl.SelectedStorageType.Name) : null;
 
             if (viewModel.InstallErrorInstance)
             {
@@ -73,6 +73,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 serviceControlNewInstance.ForwardErrorMessages = viewModel.ServiceControl.ErrorForwarding.Value;
                 serviceControlNewInstance.TransportPackage = viewModel.SelectedTransport;
                 serviceControlNewInstance.ConnectionString = viewModel.ConnectionString;
+                serviceControlNewInstance.PersistenceConnectionString = viewModel.ServiceControl.StorageConnectionString;
                 serviceControlNewInstance.ErrorRetentionPeriod = viewModel.ServiceControl.ErrorRetentionPeriod;
                 serviceControlNewInstance.ServiceAccount = viewModel.ServiceControl.ServiceAccount;
                 serviceControlNewInstance.ServiceAccountPwd = viewModel.ServiceControl.Password;
@@ -80,7 +81,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 serviceControlNewInstance.EnableIntegratedServicePulse = viewModel.ServiceControl.EnableIntegratedServicePulse.Value;
             }
 
-            var auditNewInstance = viewModel.InstallAuditInstance ? ServiceControlAuditNewInstance.CreateWithDefaultPersistence() : null;
+            var auditNewInstance = viewModel.InstallAuditInstance ? ServiceControlAuditNewInstance.CreateWithPersistence(viewModel.ServiceControlAudit.SelectedStorageType.Name) : null;
             if (viewModel.InstallAuditInstance)
             {
                 auditNewInstance.DisplayName = viewModel.ServiceControlAudit.InstanceName;
@@ -98,6 +99,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 auditNewInstance.ForwardAuditMessages = viewModel.ServiceControlAudit.AuditForwarding.Value;
                 auditNewInstance.TransportPackage = viewModel.SelectedTransport;
                 auditNewInstance.ConnectionString = viewModel.ConnectionString;
+                auditNewInstance.PersistenceConnectionString = viewModel.ServiceControlAudit.StorageConnectionString;
                 auditNewInstance.AuditRetentionPeriod = viewModel.ServiceControlAudit.AuditRetentionPeriod;
                 auditNewInstance.ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount;
                 auditNewInstance.ServiceAccountPwd = viewModel.ServiceControlAudit.Password;

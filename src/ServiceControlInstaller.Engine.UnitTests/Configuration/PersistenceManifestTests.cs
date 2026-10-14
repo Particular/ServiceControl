@@ -57,6 +57,19 @@
         }
 
         [Test]
+        public void SupportedManifestsDefaultToRavenDBOnly()
+        {
+            // ServiceControl_IncludePersistencePicker is read once in the static constructor, so this only
+            // exercises the flag-off (default) path. See ServiceControlCoreTransports' equivalent
+            // ServiceControl_IncludeLearningTransport flag, which has the same untested-when-on limitation.
+            Assert.Multiple(() =>
+            {
+                Assert.That(ServiceControlPersisters.GetSupportedPrimaryManifests().Select(m => m.Name), Is.EqualTo(new[] { "RavenDB" }));
+                Assert.That(ServiceControlPersisters.GetSupportedAuditManifests().Select(m => m.Name), Is.EqualTo(new[] { "RavenDB" }));
+            });
+        }
+
+        [Test]
         public void UnknownPersister()
         {
             var garbage = "garbage-value";

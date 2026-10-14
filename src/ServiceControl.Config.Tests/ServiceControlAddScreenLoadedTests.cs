@@ -38,6 +38,25 @@
         }
 
         [Test]
+        public void Storage_types_default_to_RavenDB_only_when_picker_is_not_enabled()
+        {
+            var viewModel = new ServiceControlAddViewModel();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(viewModel.ErrorStorageTypes.Select(m => m.Name), Is.EqualTo(new[] { "RavenDB" }));
+                Assert.That(viewModel.ErrorSelectedStorageType?.Name, Is.EqualTo("RavenDB"));
+                Assert.That(viewModel.ShowErrorStorageTypePicker, Is.False);
+                Assert.That(viewModel.ShowErrorStorageConnectionString, Is.False);
+
+                Assert.That(viewModel.AuditStorageTypes.Select(m => m.Name), Is.EqualTo(new[] { "RavenDB" }));
+                Assert.That(viewModel.AuditSelectedStorageType?.Name, Is.EqualTo("RavenDB"));
+                Assert.That(viewModel.ShowAuditStorageTypePicker, Is.False);
+                Assert.That(viewModel.ShowAuditStorageConnectionString, Is.False);
+            }
+        }
+
+        [Test]
         public void Transport_connection_string_is_null()
         {
             var viewModel = new ServiceControlAddViewModel();

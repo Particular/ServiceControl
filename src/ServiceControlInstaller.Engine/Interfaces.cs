@@ -22,6 +22,10 @@ namespace ServiceControlInstaller.Engine
     public interface IPersistenceConfig
     {
         PersistenceManifest PersistenceManifest { get; }
+
+        // Only populated when creating a new instance; existing instances read their
+        // connection string back from the already-written config file instead.
+        string PersistenceConnectionString { get; set; }
     }
 
     public interface IHttpInstance

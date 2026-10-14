@@ -150,6 +150,63 @@
         }
         #endregion
 
+        #region storagetype
+
+        [Test]
+        public void Storage_type_cannot_be_empty_when_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ErrorSelectedStorageType = null
+            };
+
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.ErrorSelectedStorageType));
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ErrorSelectedStorageType));
+
+            Assert.That(errors, Is.Not.Empty);
+        }
+
+        [TestCase("SQLServer")]
+        [TestCase("PostgreSQL")]
+        public void Storage_connection_string_cannot_be_empty_for_storage_types_that_require_one_when_adding_error_instance(string storageTypeName)
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                ErrorSelectedStorageType = ServiceControlPersisters.GetPrimaryPersistence(storageTypeName),
+                SubmitAttempted = true,
+                ErrorStorageConnectionString = string.Empty
+            };
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ErrorStorageConnectionString));
+
+            Assert.That(errors, Is.Not.Empty);
+        }
+
+        [Test]
+        public void Storage_connection_string_can_be_empty_for_RavenDB_when_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                ErrorSelectedStorageType = ServiceControlPersisters.GetPrimaryPersistence("RavenDB"),
+                SubmitAttempted = true,
+                ErrorStorageConnectionString = string.Empty
+            };
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ErrorStorageConnectionString));
+
+            Assert.That(errors, Is.Empty);
+        }
+
+        #endregion
+
         #region errorinstancename
 
         [Test]

@@ -48,6 +48,8 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public PersistenceManifest PersistenceManifest { get; set; }
 
+        public string PersistenceConnectionString { get; set; }
+
         protected override void ApplySettingsChanges(KeyValueConfigurationCollection settings)
         {
             if (!ForwardErrorMessages)

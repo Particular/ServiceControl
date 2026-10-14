@@ -49,9 +49,32 @@ public class ServiceControlAuditInformation : SharedServiceControlEditorViewMode
         DatabaseMaintenancePortNumber = "44445";
         EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.First(p => p.Value); //Default to On.
         ViewModelParent = viewModelParent;
+        SelectedStorageType = StorageTypes.First();
     }
 
     public ServiceControlEditorViewModel ViewModelParent { get; }
+
+    public IEnumerable<PersistenceManifest> StorageTypes { get; } = ServiceControlPersisters.GetSupportedAuditManifests();
+
+    // Intentionally not editable after creation - changing storage backend on an existing
+    // instance has no supported data migration path yet, so this is only ever set at Add time.
+    public PersistenceManifest SelectedStorageType
+    {
+        get => selectedStorageType;
+        set
+        {
+            StorageConnectionString = null;
+            selectedStorageType = value;
+        }
+    }
+
+    public string StorageConnectionString { get; set; }
+
+    public bool ShowStorageTypePicker => StorageTypes.Count() > 1;
+
+    public bool ShowStorageConnectionString => SelectedStorageType != null && SelectedStorageType.Settings.Any(s => s.Mandatory && s.Name.EndsWith("/ConnectionString"));
+
+    public bool ShowDatabasePathFields => SelectedStorageType == null || SelectedStorageType.Settings.Any(s => s.Name.EndsWith("/DBPath"));
 
     public int MinimumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMinInDays;
 
@@ -137,4 +160,5 @@ public class ServiceControlAuditInformation : SharedServiceControlEditorViewMode
         EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.FirstOrDefault(p => p.Value == instance.EnableFullTextSearchOnBodies);
     }
     ForwardingOption auditForwarding;
+    PersistenceManifest selectedStorageType;
 }

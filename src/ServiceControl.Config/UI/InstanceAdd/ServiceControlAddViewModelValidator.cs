@@ -46,6 +46,15 @@ namespace ServiceControl.Config.UI.InstanceAdd
                     .WithMessage("Error instance name is already in use")
                 .When(viewModel => viewModel.InstallErrorInstance);
 
+            RuleFor(x => x.ErrorSelectedStorageType)
+                .NotEmpty()
+                .When(x => x.InstallErrorInstance && x.SubmitAttempted);
+
+            RuleFor(x => x.ErrorStorageConnectionString)
+                .NotEmpty()
+                    .WithMessage(Validation.Validations.MSG_THIS_STORAGE_TYPE_REQUIRES_A_CONNECTION_STRING)
+                .When(x => x.InstallErrorInstance && x.ShowErrorStorageConnectionString && x.SubmitAttempted);
+
             RuleFor(x => x.ErrorServiceAccount)
                 .NotEmpty()
                 .When(x => x.InstallErrorInstance && x.SubmitAttempted);
@@ -156,6 +165,15 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .MustNotContainWhitespace()
                     .WithMessage(string.Format(Validation.Validations.MSG_CANTCONTAINWHITESPACE, "Error instance queue address"))
                 .When(viewModel => viewModel.InstallAuditInstance && !viewModel.InstallErrorInstance);
+
+            RuleFor(x => x.AuditSelectedStorageType)
+                .NotEmpty()
+                .When(x => x.InstallAuditInstance && x.SubmitAttempted);
+
+            RuleFor(x => x.AuditStorageConnectionString)
+                .NotEmpty()
+                    .WithMessage(Validation.Validations.MSG_THIS_STORAGE_TYPE_REQUIRES_A_CONNECTION_STRING)
+                .When(x => x.InstallAuditInstance && x.ShowAuditStorageConnectionString && x.SubmitAttempted);
 
             RuleFor(x => x.AuditServiceAccount)
                 .NotEmpty()

@@ -27,6 +27,8 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         public static readonly SettingInfo HostName = new() { Name = "ServiceControl/HostName" };
         public static readonly SettingInfo LogPath = new() { Name = "ServiceControl/LogPath" };
         public static readonly SettingInfo DBPath = new() { Name = "ServiceControl/DBPath" };
+        public static readonly SettingInfo DatabaseConnectionString = new() { Name = "ServiceControl/Database/ConnectionString" };
+        public static readonly SettingInfo MessageBodyFileSystemStoragePath = new() { Name = "ServiceControl/MessageBody/FileSystem/StoragePath" };
         public static readonly SettingInfo ForwardAuditMessages = new()
         {
             Name = "ServiceControl/ForwardAuditMessages",
