@@ -17,6 +17,12 @@ class PostgreSqlMigrationSqlDialect : PostgreSqlDialect, IMigrationSqlDialect
     // A fixed chunk, because PostgreSQL's parameter limit is far away and the row width does not bring it closer.
     public int RowsPerStatement(int parametersPerRow) => MaxRowsPerStatement;
 
+    // A varchar(n) column counts characters, which are code points, so a pair of UTF-16 surrogates is one.
+    public int TextLength(string value) => value.EnumerateRunes().Count();
+
+    // PostgreSQL text types cannot hold U+0000 in any encoding, and refuse the statement rather than drop it.
+    public char? RejectedCharacterIn(string value) => value.Contains('\0') ? '\0' : null;
+
     public async Task<IReadOnlyList<TEntity>> InsertMissing<TEntity>(ServiceControlDbContext dbContext, IReadOnlyList<TEntity> rows, CancellationToken cancellationToken = default) where TEntity : class
     {
         var insert = MigrationInsert<TEntity>.For(dbContext);

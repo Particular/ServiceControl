@@ -67,6 +67,12 @@ class SqlServerMigrationSqlDialect : SqlServerDialect, IMigrationSqlDialect
 
     public int RowsPerStatement(int parametersPerRow) => MaxRowsPerStatement(parametersPerRow);
 
+    // An nvarchar(n) column counts byte-pairs, which are UTF-16 units, so a surrogate pair takes two.
+    public int TextLength(string value) => value.Length;
+
+    // An nvarchar column stores any UTF-16 unit, U+0000 included.
+    public char? RejectedCharacterIn(string value) => null;
+
     public async Task<IReadOnlyList<TEntity>> InsertMissing<TEntity>(ServiceControlDbContext dbContext, IReadOnlyList<TEntity> rows, CancellationToken cancellationToken = default) where TEntity : class
     {
         var insert = MigrationInsert<TEntity>.For(dbContext);

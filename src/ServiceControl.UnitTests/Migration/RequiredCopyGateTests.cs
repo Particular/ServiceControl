@@ -125,11 +125,12 @@ class RequiredCopyGateTests
         var withErrors = Checkpoint(MigrationCategoryState.CompleteWithErrors, MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages) with
         {
             CopiedCount = 40,
-            SkippedCount = 5,
+            SkippedCount = 6,
             SkipReasons = new Dictionary<MigrationSkipReason, long>
             {
                 [MigrationSkipReason.RequiredValueMissing] = 2,
-                [MigrationSkipReason.BodyUnreadable] = 3
+                [MigrationSkipReason.BodyUnreadable] = 3,
+                [MigrationSkipReason.BodyMissing] = 1
             }
         };
         var halted = Checkpoint(MigrationCategoryState.Halted, MigrationCategoryIds.MessageRedirects) with { LastError = "TimeoutException at cursor r-7: the target did not answer" };
@@ -146,9 +147,10 @@ class RequiredCopyGateTests
             }
 
             Assert.That(exception.Message, Does.Contain($"{MigrationCategoryIds.MessageRedirects} is Failed (Halted)").And.Contain("the target did not answer"));
-            Assert.That(exception.Message, Does.Contain($"{MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages} is Failed (CompleteWithErrors) after copying 40 and skipping 5"));
+            Assert.That(exception.Message, Does.Contain($"{MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages} is Failed (CompleteWithErrors) after copying 40 and skipping 6"));
             Assert.That(exception.Message, Does.Contain("RequiredValueMissing 2, no retry can fix"), "a row no retry can store is a reason to abandon, and the operator has to be told which");
             Assert.That(exception.Message, Does.Contain("BodyUnreadable 3").And.Not.Contain("BodyUnreadable 3, no retry can fix"), "an unreadable body may read on the next try");
+            Assert.That(exception.Message, Does.Contain("BodyMissing 1, no retry can fix"), "a body the source does not hold is missing again on every retry");
         }
     }
 
@@ -231,6 +233,49 @@ class RequiredCopyGateTests
             Assert.That(entry.Message, Does.Contain("no retry can fix them").And.Contain($"--migration-abandon {MigrationCategoryIds.EndpointSettings}"),
                 "a retry re-reads the whole category and ends Failed on the same rows");
             Assert.That(entry.Message, Does.Not.Contain("--migration-retry"), "harmless skips are not a reason to retry either");
+        });
+    }
+
+    [Test]
+    public void A_halted_category_whose_faults_no_retry_can_fix_is_told_abandon_gives_up_every_row_not_yet_read()
+    {
+        var logger = new CapturingLogger();
+
+        MigrationStartup.ReportWhatTheCopyLeftBehind(
+            [Settled(MigrationCategoryState.Halted, copied: 7, skipped: 120, new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.MalformedValue] = 120 })
+                with { LastError = "Halted: 120 of 127 rows skipped in this run exceeds the configured threshold of 5% and 100 rows." }],
+            logger,
+            RunStartedAt);
+
+        var entry = logger.Entries.Single();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(entry.Message, Does.Contain("stopped before the end").And.Contain("every row not yet read"),
+                "a halted category never read the rows after its cursor, so abandon gives up far more than the skipped ones");
+            Assert.That(entry.Message, Does.Contain(MigrationSettings.HaltThresholdPercentKey).And.Contain(MigrationSettings.HaltThresholdMinimumKey)
+                .And.Contain($"--migration-retry {MigrationCategoryIds.EndpointSettings}"), "raising the threshold and retrying copies every row the faults do not stop");
+            Assert.That(entry.Message, Does.Contain("No retry can fix the MalformedValue ones"));
+            Assert.That(entry.Message, Does.Not.Contain("gives up the rest"));
+        });
+    }
+
+    [Test]
+    public void A_halted_category_with_faults_a_retry_can_fix_is_also_told_what_abandon_gives_up()
+    {
+        var logger = new CapturingLogger();
+
+        MigrationStartup.ReportWhatTheCopyLeftBehind(
+            [Settled(MigrationCategoryState.Halted, copied: 7, skipped: 120, new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BodyUnreadable] = 120 })],
+            logger,
+            RunStartedAt);
+
+        var entry = logger.Entries.Single();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(entry.Message, Does.Contain("every row not yet read").And.Contain($"--migration-retry {MigrationCategoryIds.EndpointSettings}"));
+            Assert.That(entry.Message, Does.Not.Contain("No retry can fix"), "an unreadable body may read on the next try");
         });
     }
 
@@ -359,7 +404,7 @@ class RequiredCopyGateTests
     {
         var logger = new CapturingLogger();
 
-        var failedEarlier = Settled(MigrationCategoryState.Halted, copied: 7, skipped: 2, new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.RequiredValueMissing] = 2 })
+        var failedEarlier = Settled(MigrationCategoryState.CompleteWithErrors, copied: 7, skipped: 2, new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.RequiredValueMissing] = 2 })
             with
         { SettledAt = RunStartedAt.AddMinutes(-5) };
 

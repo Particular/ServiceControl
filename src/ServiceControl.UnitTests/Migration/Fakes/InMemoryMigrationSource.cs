@@ -16,6 +16,10 @@ public sealed class InMemoryMigrationSource : IMigrationSource
     readonly Dictionary<string, Exception[]> bodyFailuresInTurn = [];
     readonly Dictionary<string, int> bodyReadAttempts = [];
     readonly Dictionary<string, MigrationBody?> bodies = [];
+    // The loader reads several bodies at once, so the attempt counts and the in-flight count are shared between threads.
+    readonly Lock bodyReadGate = new();
+    TaskCompletionSource? heldBodyReads;
+    int bodyReadsInFlight;
 
     public MigrationSourceDescription Description { get; set; } = new("in-memory", [new MigrationSourceFact("Store", "in memory")]);
 
@@ -35,7 +39,39 @@ public sealed class InMemoryMigrationSource : IMigrationSource
     /// </summary>
     public (string SourceId, CancellationTokenSource Source)? StopOnBodyRead { get; set; }
 
-    public int BodyReadAttempts(string sourceId) => bodyReadAttempts.GetValueOrDefault(sourceId);
+    public int BodyReadAttempts(string sourceId)
+    {
+        lock (bodyReadGate)
+        {
+            return bodyReadAttempts.GetValueOrDefault(sourceId);
+        }
+    }
+
+    /// <summary>
+    /// The most body reads that were open at the same moment since the source was created.
+    /// </summary>
+    public int PeakBodyReadsInFlight { get; private set; }
+
+    /// <summary>
+    /// Makes every body read wait until <see cref="ReleaseBodyReads" /> is called. A waiting read already counts as an attempt and as open.
+    /// </summary>
+    public void HoldBodyReads() => heldBodyReads = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    /// <summary>
+    /// Lets every held body read carry on, and every later one run without waiting. Call <see cref="HoldBodyReads" /> first.
+    /// </summary>
+    public void ReleaseBodyReads() => heldBodyReads!.SetResult();
+
+    /// <summary>
+    /// Completes once at least this many body reads are open at the same moment.
+    /// </summary>
+    public async Task BodyReadsInFlight(int count, CancellationToken cancellationToken = default)
+    {
+        while (Volatile.Read(ref bodyReadsInFlight) < count)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(5), cancellationToken);
+        }
+    }
 
     public Task Open(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
@@ -82,25 +118,43 @@ public sealed class InMemoryMigrationSource : IMigrationSource
     {
         await Task.Yield();
 
-        var attempt = bodyReadAttempts[sourceId] = BodyReadAttempts(sourceId) + 1;
+        int attempt;
 
-        if (StopOnBodyRead is { } stop && stop.SourceId == sourceId)
+        lock (bodyReadGate)
         {
-            await stop.Source.CancelAsync();
-            throw new OperationCanceledException(stop.Source.Token);
+            attempt = bodyReadAttempts[sourceId] = bodyReadAttempts.GetValueOrDefault(sourceId) + 1;
+            PeakBodyReadsInFlight = Math.Max(PeakBodyReadsInFlight, Interlocked.Increment(ref bodyReadsInFlight));
         }
 
-        if (bodyFailures.TryGetValue(sourceId, out var failures) && attempt <= failures.Times)
+        try
         {
-            throw failures.Failure;
-        }
+            if (heldBodyReads is { } held)
+            {
+                await held.Task;
+            }
 
-        if (bodyFailuresInTurn.TryGetValue(sourceId, out var failuresInTurn) && attempt <= failuresInTurn.Length)
+            if (StopOnBodyRead is { } stop && stop.SourceId == sourceId)
+            {
+                await stop.Source.CancelAsync();
+                throw new OperationCanceledException(stop.Source.Token);
+            }
+
+            if (bodyFailures.TryGetValue(sourceId, out var failures) && attempt <= failures.Times)
+            {
+                throw failures.Failure;
+            }
+
+            if (bodyFailuresInTurn.TryGetValue(sourceId, out var failuresInTurn) && attempt <= failuresInTurn.Length)
+            {
+                throw failuresInTurn[attempt - 1];
+            }
+
+            return bodies.GetValueOrDefault(sourceId);
+        }
+        finally
         {
-            throw failuresInTurn[attempt - 1];
+            Interlocked.Decrement(ref bodyReadsInFlight);
         }
-
-        return bodies.GetValueOrDefault(sourceId);
     }
 
     // Every registered category, not just the seeded ones: Seed writes rowsByCategory after construction,

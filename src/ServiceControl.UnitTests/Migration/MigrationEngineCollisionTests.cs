@@ -14,7 +14,8 @@ using ServiceControl.UnitTests.Migration.Fakes;
 [TestFixture]
 class MigrationEngineCollisionTests
 {
-    static MigrationRow Row(string id, string name) => new(id, new { Name = name }, new Dictionary<string, object?>());
+    // A body already attached, so the engine reads none and every row reaches the target.
+    static MigrationRow Row(string id, string name) => new(id, new { Name = name }, new Dictionary<string, object?>(), new MigrationBody(new byte[] { 1 }, "application/octet-stream"));
 
     [Test]
     public async Task Rows_already_present_in_the_target_are_counted_as_already_present_across_batches_not_skipped_or_overwritten()

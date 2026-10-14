@@ -3,6 +3,7 @@ namespace ServiceControl.Migration.AcceptanceTests;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -22,8 +23,10 @@ using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.AcceptanceTesting.InfrastructureConfig;
 using ServiceControl.Hosting.Commands;
 using ServiceControl.Infrastructure.WebApi;
+using ServiceControl.MessageFailures;
 using ServiceControl.Migration.Checks;
 using ServiceControl.Operations;
+using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.EFCore.Abstractions;
@@ -70,6 +73,10 @@ abstract class MigrationAcceptanceTest
         SetSourceVariable("LICENSINGCOMPONENT_RAVENDB_THROUGHPUTDATABASENAME", Source.ThroughputDatabase);
         SetSourceVariable("SERVICECONTROL_ERRORRETENTIONPERIOD", "10.00:00:00");
         SetSourceVariable("SERVICECONTROL_MIGRATION_ENABLED", "true");
+#if DEBUG
+        // Cleared because a developer who set it to smoke test the migration would let every test past the release check, which only the test host's own AllowUnreleasedMigration registration may do.
+        SetSourceVariable(RunCommand.AllowUnreleasedMigrationVariable, null);
+#endif
 
         // Settings.Port has no public setter, so the port has to come in as the environment variable a customer would set.
         SetSourceVariable("SERVICECONTROL_PORT", PortUtility.GetAssignedOrAvailablePort(33500).ToString(CultureInfo.InvariantCulture));
@@ -148,6 +155,33 @@ abstract class MigrationAcceptanceTest
 
     protected Task SeedSource(params (string Id, object Document)[] documents) =>
         SeedSource(Source.PrimaryDatabase, documents);
+
+    protected Task SeedSourceWithBody(FailedMessage document, byte[] body, string contentType) =>
+        SeedSourceWithBodies((document, body, contentType));
+
+    protected async Task SeedSourceWithBodies(params (FailedMessage Document, byte[] Body, string ContentType)[] messages)
+    {
+        using (var session = SourceStore.OpenAsyncSession(Source.PrimaryDatabase))
+        {
+            foreach (var (document, _, _) in messages)
+            {
+                await session.StoreAsync(document, $"FailedMessages/{document.UniqueMessageId}");
+            }
+
+            await session.SaveChangesAsync();
+        }
+
+        using (var session = SourceStore.OpenAsyncSession(Source.PrimaryDatabase))
+        {
+            foreach (var (document, body, contentType) in messages)
+            {
+                // "body" is the attachment name the RavenDB persister reads, retyped because this project cannot reference that persister.
+                session.Advanced.Attachments.Store($"FailedMessages/{document.UniqueMessageId}", "body", new MemoryStream(body), contentType);
+            }
+
+            await session.SaveChangesAsync();
+        }
+    }
 
     protected Task SeedSourceEndpointSettings(params (string Name, bool TrackInstances)[] settings) =>
         SeedSource([.. settings.Select(setting => ($"EndpointSettings/{DeterministicGuid.MakeId(setting.Name)}", (object)new EndpointSettings { Name = setting.Name, TrackInstances = setting.TrackInstances }))]);
@@ -401,6 +435,8 @@ abstract class MigrationAcceptanceTest
         QueryTarget(dbContext => dbContext.FailedMessages.AsNoTracking().SingleOrDefaultAsync(m => m.UniqueMessageId == uniqueMessageId));
 
     protected EFPersisterSettings EFSettings => targetServices.GetRequiredService<EFPersisterSettings>();
+
+    protected IBodyStorage BodyStorage => targetServices.GetRequiredService<IBodyStorage>();
 
     protected Task Ingest(params IngestedFailure[] failures) =>
         InBatch(async unitOfWork =>
