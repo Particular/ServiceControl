@@ -100,6 +100,11 @@ class AuditQuery_Tests : ThroughputCollectorTestFixture
         Assert.That(remotes.Select(remote => remote.Queues), Is.EqualTo(new[] { new[] { "audit.a", "audit.a.log" }, new[] { "audit.b", "audit.b.log" } }));
     }
 
+    /// <summary>
+    /// Tests that the backwards compatibility handling of the instance name property works for both formats of this response, in version 5.4 and earlier the field
+    /// was called service_name, and was renamed instance_name after that.
+    /// The version number is not used to determine the property name, but is included in the test to ensure that the correct property name is used for each version.
+    /// </summary>
     [TestCase("6.21.0", "instance_name")]
     [TestCase("5.4.0", "service_name")]
     public async Task Should_include_the_input_queue_named_after_the_audit_instance(string version, string instanceNameProperty)
