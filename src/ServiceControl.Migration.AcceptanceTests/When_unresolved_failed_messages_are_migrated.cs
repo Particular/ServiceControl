@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
+using Raven.Client.Documents.Operations;
 using ServiceControl.Hosting.Commands;
 using ServiceControl.Infrastructure.WebApi;
 using ServiceControl.MessageFailures;
@@ -300,6 +301,37 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
             Assert.That(copied.ReceivingEndpointHost, Is.EqualTo("MACHINE"));
         }
     }
+
+    [Test]
+    public async Task A_failure_stored_without_its_time_is_skipped_when_newest_and_left_out_of_the_failure_times_when_older()
+    {
+        var newestHasNoTime = new IngestedFailure();
+        var olderHasNoTime = new IngestedFailure();
+        await SeedFailure(newestHasNoTime);
+        await SeedFailure(olderHasNoTime, numberOfAttempts: 2);
+        await DeleteStoredTimeOfFailure(newestHasNoTime, attempt: 0);
+        await DeleteStoredTimeOfFailure(olderHasNoTime, attempt: 0);
+
+        var result = await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+
+        var copied = await GetFailedMessage(olderHasNoTime.UniqueMessageId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Copied, Is.EqualTo(1));
+            Assert.That(result.SkippedIds, Is.EqualTo(new[] { $"FailedMessages/{newestHasNoTime.UniqueMessageIdString}" }), "a missing time read back as the copy's own clock, so the message copied with a made-up failure time");
+            Assert.That(result.Saved.SkipReasons, Is.EqualTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.RequiredValueMissing] = 1 }));
+            Assert.That(copied.FirstTimeOfFailure, Is.EqualTo(olderHasNoTime.TimeOfFailure), "the older attempt has no time, so only the newest one counts");
+            Assert.That(copied.LastTimeOfFailure, Is.EqualTo(olderHasNoTime.TimeOfFailure), "the copy's own clock would become the last failure time");
+        }
+    }
+
+    // Removes the key itself, because a stored default date is a different case that the source already reads correctly.
+    Task DeleteStoredTimeOfFailure(IngestedFailure failure, int attempt) =>
+        SourceStore.Operations.ForDatabase(Source.PrimaryDatabase).SendAsync(new PatchOperation(
+            $"FailedMessages/{failure.UniqueMessageIdString}",
+            null,
+            new PatchRequest { Script = $"delete this.ProcessingAttempts[{attempt}].FailureDetails.TimeOfFailure;" }));
 
     // Seeded with its body, because the copy leaves out a message whose body the source does not hold.
     Task SeedFailure(IngestedFailure failure, FailedMessageStatus status = FailedMessageStatus.Unresolved, int numberOfAttempts = 1) =>

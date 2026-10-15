@@ -408,6 +408,37 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
         }
     }
 
+    [Test]
+    public async Task A_FailureDetails_stored_without_its_TimeOfFailure_comes_back_with_no_time_rather_than_the_time_it_was_read()
+    {
+        var failure = new IngestedFailure { FailingEndpointAddress = "Sales@MACHINE" };
+        var stored = await SeedFailedMessage(failure.ToFailedMessage(numberOfAttempts: 2));
+        await DocumentStore.Operations.SendAsync(new PatchOperation(stored.Id, null, new PatchRequest { Script = "delete this.ProcessingAttempts[0].FailureDetails.TimeOfFailure; delete this.ProcessingAttempts[1].FailureDetails.TimeOfFailure;" }));
+        await CompleteDatabaseOperation();
+
+        var attempts = ((FailedMessage)(await ReadAll()).Single().Document).ProcessingAttempts;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(attempts[^1].FailureDetails.TimeOfFailure, Is.EqualTo(default(DateTime)), "the mapper skips a newest attempt with no time of failure, and the read time would copy it with a made-up one");
+            Assert.That(attempts[0].FailureDetails.TimeOfFailure, Is.EqualTo(default(DateTime)), "the mapper leaves an older attempt with no time out of the first and last failure times");
+            Assert.That(attempts.Select(attempt => attempt.FailureDetails.AddressOfFailingEndpoint), Is.All.EqualTo("Sales@MACHINE"), "the rest of FailureDetails is still read as stored");
+            Assert.That(attempts.Select(attempt => attempt.FailureDetails.Exception?.Message), Is.All.EqualTo(failure.ExceptionMessage));
+        }
+    }
+
+    [Test]
+    public async Task A_FailureDetails_stored_as_null_comes_back_as_null()
+    {
+        var stored = await SeedFailedMessage(new IngestedFailure().ToFailedMessage());
+        await DocumentStore.Operations.SendAsync(new PatchOperation(stored.Id, null, new PatchRequest { Script = "this.ProcessingAttempts[0].FailureDetails = null;" }));
+        await CompleteDatabaseOperation();
+
+        var attempt = ((FailedMessage)(await ReadAll()).Single().Document).ProcessingAttempts.Single();
+
+        Assert.That(attempt.FailureDetails, Is.Null, "the mapper skips an attempt with no FailureDetails, so one bad document must not halt the category");
+    }
+
     [TestCase("SendingEndpoint", NServiceBus.Headers.OriginatingHostId)]
     [TestCase("ReceivingEndpoint", NServiceBus.Headers.HostId)]
     public void RestoreMetadataTypes_gives_an_endpoint_the_empty_host_id_when_its_host_id_header_is_null(string key, string hostIdHeader)

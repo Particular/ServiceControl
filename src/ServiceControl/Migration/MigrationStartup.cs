@@ -229,29 +229,54 @@ static class MigrationStartup
         {
             using var categoryCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             progress.Watch(category.Id, timeProvider.GetUtcNow().UtcDateTime, categoryCancellation);
+            var run = engine.RunCategoryAsync(category, categoryCancellation.Token);
 
             try
             {
-                results.Add(await engine.RunCategoryAsync(category, categoryCancellation.Token));
+                // Ends the wait on a stall or a host stop even when a call underneath ignores its token. That call keeps running, and the version check refuses its late commit or the settle below re-reads past it.
+                results.Add(await run.WaitAsync(categoryCancellation.Token));
             }
             // Only the watchdog cancels this source without the host's token, so the filter tells a stall from a shutdown.
 #pragma warning disable PS0020
             catch (OperationCanceledException) when (categoryCancellation.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
 #pragma warning restore PS0020
             {
-                // The host's token, because the stall has already cancelled the category's and a store call on that would fail.
-                var stalled = await checkpointStore.Read(category.Id, cancellationToken);
+                MigrationCheckpoint settled;
 
-                results.Add(await checkpointStore.Upsert(stalled with
+                try
                 {
-                    State = MigrationCategoryState.Halted,
-                    SettledAt = timeProvider.GetUtcNow().UtcDateTime,
-                    LastError = StallExplanation(category.Id)
-                }, cancellationToken));
+                    settled = await SettleStalled(checkpointStore, category.Id, timeProvider, cancellationToken);
+                }
+                // The stalled call can commit between the settle's read and its save, so one re-read settles from that commit. A second conflict is another instance, and it propagates.
+                catch (MigrationCheckpointConflictException)
+                {
+                    settled = await SettleStalled(checkpointStore, category.Id, timeProvider, cancellationToken);
+                }
+
+                results.Add(settled);
+
+                _ = run.ContinueWith(
+                    ended => logger.LogWarning(ended.Exception.GetBaseException(),
+                        "{CategoryId}: the call the stall stopped waiting for ended after the category was settled Halted, with {ExceptionType}. It changed nothing after the settle, because the checkpoint store refuses a save made from before it.",
+                        category.Id, ended.Exception.GetBaseException().GetType().Name),
+                    cancellationToken, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);
             }
         }
 
         return results;
+    }
+
+    // Takes the host's token, because the stall has already cancelled the category's and a store call on that would fail.
+    static async Task<MigrationCheckpoint> SettleStalled(IMigrationCheckpointStore checkpointStore, string categoryId, TimeProvider timeProvider, CancellationToken cancellationToken)
+    {
+        var stalled = await checkpointStore.Read(categoryId, cancellationToken);
+
+        return await checkpointStore.Upsert(stalled with
+        {
+            State = MigrationCategoryState.Halted,
+            SettledAt = timeProvider.GetUtcNow().UtcDateTime,
+            LastError = StallExplanation(categoryId)
+        }, cancellationToken);
     }
 
     /// <summary>
