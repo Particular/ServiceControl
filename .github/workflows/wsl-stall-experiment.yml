@@ -98,11 +98,13 @@ jobs:
           $reported = ($version | Select-String -Pattern 'WSL version:\s*(\S+)').Matches.Groups[1].Value
           if ($reported -ne $target) { throw "Expected WSL $target after pinning, but wsl --version reports '$reported'" }
           $global:LASTEXITCODE = 0
+      # The build only exists to load the runner while WSL provisions. NU1902 for
+      # System.Security.Cryptography.Pkcs would otherwise fail it before the contention starts.
       - name: Build
         id: build
         background: true
         timeout-minutes: 5
-        run: dotnet build tests.proj --configuration Release -graph
+        run: dotnet build tests.proj --configuration Release -graph -p:NuGetAudit=false
       - name: Setup WSL
         uses: Particular/setup-wsl-action@7e67069143b27e935a5c156d4c5319a7f152f6e8
         timeout-minutes: 5
