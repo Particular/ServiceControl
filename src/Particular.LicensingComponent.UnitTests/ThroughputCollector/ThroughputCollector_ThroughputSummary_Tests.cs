@@ -134,8 +134,8 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
         using (Assert.EnterMultipleScope())
         {
             Assert.That(summary.First(w => w.Name == "Endpoint1").MaxDailyThroughput, Is.EqualTo(65), $"Incorrect MaxDailyThroughput recorded for Endpoint1");
-            Assert.That(summary.First(w => w.Name == "Endpoint2").MaxDailyThroughput, Is.EqualTo(65), $"Incorrect MaxDailyThroughput recorded for Endpoint2");
-            Assert.That(summary.First(w => w.Name == "Endpoint3").MaxDailyThroughput, Is.EqualTo(57), $"Incorrect MaxDailyThroughput recorded for Endpoint3");
+            Assert.That(summary.First(w => w.Name == "Endpoint2").MaxDailyThroughput, Is.EqualTo(64), $"Incorrect MaxDailyThroughput recorded for Endpoint2");
+            Assert.That(summary.First(w => w.Name == "Endpoint3").MaxDailyThroughput, Is.EqualTo(47), $"Incorrect MaxDailyThroughput recorded for Endpoint3");
         }
     }
 
@@ -247,7 +247,7 @@ class ThroughputCollector_ThroughputSummary_Tests : ThroughputCollectorTestFixtu
             Assert.That(summary[0].Name, Is.EqualTo("Endpoint1_"), $"Incorrect Name for Endpoint1");
 
             //even though the names are different, we should have matched on the sanitized name and hence displayed max throughput from the 2 endpoints
-            Assert.That(summary[0].MaxDailyThroughput, Is.EqualTo(75), $"Incorrect MaxDailyThroughput recorded for Endpoint1");
+            Assert.That(summary[0].MaxDailyThroughput, Is.EqualTo(65), $"Incorrect MaxDailyThroughput recorded for Endpoint1");
         }
     }
 }

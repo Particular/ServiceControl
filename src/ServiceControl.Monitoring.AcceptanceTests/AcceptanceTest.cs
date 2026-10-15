@@ -18,6 +18,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests
     abstract class AcceptanceTest : NServiceBusAcceptanceTest, IAcceptanceTestInfrastructureProvider
     {
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
+        protected IServiceProvider ServiceProvider => serviceControlRunnerBehavior.ServiceProvider;
         public JsonSerializerOptions SerializerOptions => serviceControlRunnerBehavior.SerializerOptions;
 
         [SetUp]

@@ -381,6 +381,48 @@ class MessagesViewDataStoreTests : ErrorIngestionTestBase
     }
 
     [Test]
+    public async Task Does_not_match_messages_that_share_part_of_the_message_id()
+    {
+        var matching = new IngestedFailure { MessageId = "billing-1234-5678", ExceptionMessage = "the zarquon overheated" };
+        var sharingPieces = new IngestedFailure { MessageId = "billing-9999-5678", ExceptionMessage = "the zarquon overheated" };
+
+        await Ingest(matching, sharingPieces);
+        await AssertSearchFinds("zarquon", matching, sharingPieces);
+
+        await AssertSearchFinds(matching.MessageId, matching);
+    }
+
+    [Test]
+    public async Task Matches_a_term_ending_in_a_star_as_a_prefix()
+    {
+        var matching = new IngestedFailure { ExceptionMessage = "the zarquon overheated" };
+
+        await Ingest(matching, new IngestedFailure());
+
+        await AssertSearchFinds("zarq*", matching);
+    }
+
+    [TestCase("*")]
+    [TestCase(@"zarquon\")]
+    [TestCase(@"zarq\*")]
+    [TestCase("it's*")]
+    [TestCase("'")]
+    [TestCase("\"")]
+    [TestCase("foo \"bar")]
+    [TestCase("-")]
+    [TestCase("a & b")]
+    [TestCase("!(zarquon")]
+    [TestCase("zarquon:*")]
+    [TestCase("NEAR")]
+    [TestCase("AND")]
+    public async Task Searches_for_query_syntax_without_failing(string searchTerms)
+    {
+        await Ingest(new IngestedFailure { ExceptionMessage = "the zarquon overheated" });
+
+        Assert.DoesNotThrowAsync(() => MessagesViewStore.GetAllMessagesForSearch(searchTerms, new PagingInfo(), new SortInfo()));
+    }
+
+    [Test]
     public async Task Searches_within_an_endpoint()
     {
         var billing = new IngestedFailure

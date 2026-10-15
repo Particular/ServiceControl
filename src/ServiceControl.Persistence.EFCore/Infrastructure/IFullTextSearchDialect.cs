@@ -11,8 +11,10 @@ using ServiceControl.Persistence.EFCore.Entities;
 public interface IFullTextSearchDialect
 {
     /// <summary>
-    /// Terms are ORed, matching the RavenDB persister, whose Search defaults to SearchOperator.Or.
-    /// Callers guarantee the terms are not blank.
+    /// Terms are ORed, matching the RavenDB persister, whose Search defaults to SearchOperator.Or, and
+    /// a trailing * makes a term a prefix, as it does there. Each term matches as a phrase, so a
+    /// message id only matches the messages that contain all of it. Callers guarantee the terms are
+    /// not blank.
     /// </summary>
     IQueryable<FailedMessageEntity> Search(IQueryable<FailedMessageEntity> source, string searchTerms);
 }

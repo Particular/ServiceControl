@@ -1,15 +1,15 @@
-# Local Testing with NGINX Reverse Proxy
+# Local testing with NGINX reverse proxy
 
-This guide provides scenario-based tests for ServiceControl instances behind an NGINX reverse proxy. Use this to verify:
+This guide provides scenario-based tests for ServiceControl instances behind an NGINX reverse proxy. Use it to verify:
 
 - SSL/TLS termination at the reverse proxy
 - Forwarded headers handling (`X-Forwarded-For`, `X-Forwarded-Proto`, `X-Forwarded-Host`)
 - HTTP to HTTPS redirection
 - HSTS (HTTP Strict Transport Security)
 
-## Instance Reference
+## Instance reference
 
-| Instance                  | Project Directory               | Default Port | Hostname                           | Environment Variable Prefix |
+| Instance                  | Project directory               | Default port | Hostname                           | Environment variable prefix |
 |---------------------------|---------------------------------|--------------|------------------------------------|-----------------------------|
 | ServiceControl (Primary)  | `src\ServiceControl`            | 33333        | `servicecontrol.localhost`         | `SERVICECONTROL_`           |
 | ServiceControl.Audit      | `src\ServiceControl.Audit`      | 44444        | `servicecontrol-audit.localhost`   | `SERVICECONTROL_AUDIT_`     |
@@ -22,7 +22,7 @@ This guide provides scenario-based tests for ServiceControl instances behind an 
 - ServiceControl built locally (see [main README for instructions](../README.md#how-to-rundebug-locally))
 - curl (included with Windows 10/11, Git Bash, or WSL)
 
-## Enabling Debug Logs
+## Enabling debug logs
 
 To enable detailed logging for troubleshooting, set the `LogLevel` environment variable before starting each instance:
 
@@ -39,7 +39,7 @@ set MONITORING_LOGLEVEL=Debug
 
 **Valid log levels:** `Trace`, `Debug`, `Information` (or `Info`), `Warning` (or `Warn`), `Error`, `Critical` (or `Fatal`), `None` (or `Off`)
 
-Debug logs will show detailed request processing information including forwarded headers handling and HTTPS redirection.
+Debug logs show detailed request processing information including forwarded headers handling and HTTPS redirection.
 
 ### Installing mkcert
 
@@ -59,16 +59,16 @@ After installing, run `mkcert -install` to install the local CA in your system t
 
 ## Setup
 
-### Step 1: Create the Local Development Folder
+### Step 1: Create the local development folder
 
-Create a `.local` folder in the repository root (this folder is gitignored):
+Create a `.local` folder in the repository root (Git ignores this folder):
 
 ```cmd
 mkdir .local
 mkdir .local\certs
 ```
 
-### Step 2: Generate SSL Certificates
+### Step 2: Generate SSL certificates
 
 Use mkcert to generate trusted local development certificates:
 
@@ -78,7 +78,7 @@ cd .local\certs
 mkcert -cert-file local-platform.pem -key-file local-platform-key.pem servicecontrol.localhost servicecontrol-audit.localhost servicecontrol-monitor.localhost localhost
 ```
 
-### Step 3: Create Docker Compose Configuration
+### Step 3: Create Docker Compose configuration
 
 Create `.local/compose.yml`:
 
@@ -95,7 +95,7 @@ services:
       - ./certs/local-platform-key.pem:/etc/nginx/certs/local-key.pem:ro
 ```
 
-### Step 4: Create NGINX Configuration
+### Step 4: Create NGINX configuration
 
 Create `.local/nginx.conf`:
 
@@ -249,7 +249,7 @@ http {
 }
 ```
 
-### Step 5: Configure Hosts File
+### Step 5: Configure hosts file
 
 Add the following entries to your hosts file (`C:\Windows\System32\drivers\etc\hosts`):
 
@@ -259,7 +259,7 @@ Add the following entries to your hosts file (`C:\Windows\System32\drivers\etc\h
 127.0.0.1 servicecontrol-monitor.localhost
 ```
 
-### Step 6: Start the NGINX Reverse Proxy
+### Step 6: Start the NGINX reverse proxy
 
 From the repository root:
 
@@ -267,7 +267,7 @@ From the repository root:
 docker compose -f .local/compose.yml up -d
 ```
 
-### Step 7: Final Directory Structure
+### Step 7: Final directory structure
 
 After completing the setup, your `.local` folder should look like:
 
@@ -280,12 +280,12 @@ After completing the setup, your `.local` folder should look like:
     └── local-platform-key.pem
 ```
 
-## Test Scenarios
+## Test scenarios
 
 > **Important:** ServiceControl must be running before testing. A 502 Bad Gateway error means NGINX cannot reach ServiceControl.
-> **Note:** Use `TRUSTALLPROXIES=true` for local Docker testing. The NGINX container's IP address varies based on Docker's network configuration (e.g., `172.x.x.x`), making it impractical to specify a fixed `KNOWNPROXIES` value.
+> **Note:** Use `TRUSTALLPROXIES=true` for local Docker testing. The NGINX container's IP address varies based on Docker's network configuration (for example `172.x.x.x`), making it impractical to specify a fixed `KNOWNPROXIES` value.
 
-### Scenario 1: HTTPS Access
+### Scenario 1: HTTPS access
 
 Verify that HTTPS is working through the reverse proxy.
 
@@ -316,7 +316,7 @@ curl -k -v https://servicecontrol.localhost/api 2>&1 | findstr /C:"HTTP/"
 
 The request succeeds over HTTPS through the NGINX reverse proxy.
 
-### Scenario 2: Forwarded Headers Processing
+### Scenario 2: Forwarded headers processing
 
 Verify that forwarded headers are being processed correctly.
 
@@ -368,7 +368,7 @@ The key indicators that forwarded headers are working:
 - `processed.host` is `servicecontrol.localhost` (from `X-Forwarded-Host`)
 - `rawHeaders` are empty because the middleware consumed them (trusted proxy)
 
-### Scenario 3: HTTP to HTTPS Redirect
+### Scenario 3: HTTP to HTTPS redirect
 
 Verify that HTTP requests are redirected to HTTPS.
 
@@ -432,22 +432,22 @@ curl -k -v https://servicecontrol.localhost/api 2>&1 | findstr /i strict-transpo
 
 The HSTS header is present with the default max-age of 1 year.
 
-## Testing Other Instances
+## Testing other instances
 
 The scenarios above use ServiceControl (Primary). To test ServiceControl.Audit or ServiceControl.Monitoring:
 
-1. Use the appropriate environment variable prefix (see Configuration Reference below)
+1. Use the appropriate environment variable prefix (see Configuration reference below)
 2. Use the corresponding project directory and hostname
 
-| Instance                  | Project Directory               | Hostname                           | Env Var Prefix          |
+| Instance                  | Project directory               | Hostname                           | Env var prefix          |
 |---------------------------|---------------------------------|------------------------------------|-------------------------|
 | ServiceControl (Primary)  | `src\ServiceControl`            | `servicecontrol.localhost`         | `SERVICECONTROL_`       |
 | ServiceControl.Audit      | `src\ServiceControl.Audit`      | `servicecontrol-audit.localhost`   | `SERVICECONTROL_AUDIT_` |
 | ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | `servicecontrol-monitor.localhost` | `MONITORING_`           |
 
-## Configuration Reference
+## Configuration reference
 
-| Environment Variable                        | Default    | Description                                 |
+| Environment variable                        | Default    | Description                                 |
 |---------------------------------------------|------------|---------------------------------------------|
 | `{PREFIX}_FORWARDEDHEADERS_ENABLED`         | `true`     | Enable forwarded headers processing         |
 | `{PREFIX}_FORWARDEDHEADERS_TRUSTALLPROXIES` | `true`     | Trust all proxies                           |
@@ -473,7 +473,7 @@ Where `{PREFIX}` is:
 docker compose -f .local/compose.yml down
 ```
 
-### Clear Environment Variables
+### Clear environment variables
 
 After testing, clear the environment variables:
 
@@ -497,7 +497,7 @@ $env:SERVICECONTROL_HTTPS_PORT = $null
 $env:SERVICECONTROL_HTTPS_ENABLEHSTS = $null
 ```
 
-### Remove Hosts Entries (Optional)
+### Remove hosts entries (optional)
 
 If you no longer need the hostnames, remove these entries from your hosts file (`C:\Windows\System32\drivers\etc\hosts`):
 
@@ -547,7 +547,7 @@ If using Docker Desktop on Windows with WSL2:
 
 The `/debug/request-info` endpoint is only available when running in Development environment (the default when using `dotnet run`).
 
-## See Also
+## See also
 
-- [Hosting Guide](https://docs.particular.net/servicecontrol/security/hosting-guide) - Configuration reference for all deployment scenarios
-- [Forwarded Headers Testing](forward-headers-testing.md) - Testing forwarded headers without a reverse proxy
+- [Hosting Guide](https://docs.particular.net/servicecontrol/security/hosting-guide): Configuration reference for all deployment scenarios
+- [Local testing of forwarded headers without NGINX](forward-headers-testing.md): Testing forwarded headers without a reverse proxy

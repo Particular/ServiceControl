@@ -29,12 +29,12 @@ repeatedly keeps a single row that records:
 
 This is a deliberate difference from the document-database persister, which retained an array of
 attempts. The read side only ever consumed the last attempt plus the count, so storing the full
-history earned nothing and cost write amplification. It is also an improvement: because the count
+history had no benefit and cost write amplification. It is also an improvement: because the count
 is a column rather than the length of a capped array, `NumberOfProcessingAttempts` always reports
 the true number of attempts, where Raven's implementation silently stopped counting once the
 retained array hit its cap of ten.
 
-### Stored source data vs derived columns
+### Stored source data and derived columns
 
 Only two pieces of data are **stored as source of truth**: the full headers dictionary
 (`HeadersJson`) and the message body. Every other column (message type, endpoints, exception
@@ -43,7 +43,7 @@ and queried. On read, the `FailureDetails` object and the metadata dictionary th
 system expects are **reconstructed** from the headers and these columns. Nothing downstream of
 ingestion reads a column expecting it to carry information the headers do not already contain.
 
-`BodyUrl`, `ContentType`, and `ContentLength` are examples worth calling out: the document store
+`BodyUrl`, `ContentType`, and `ContentLength` are examples: the document store
 persisted them into a metadata dictionary, but they are all derivable (`BodyUrl` from the
 `UniqueMessageId`, the other two from the `BodyContentType` and `BodySize` columns), so they are
 not stored again.
@@ -60,7 +60,7 @@ Bodies are **always** stored. The `MaxBodySizeToStore` setting (default 100 KB) 
   `BodyText` is null, regardless of size.
 
 When `BodyStoredExternally` is true the external copy is authoritative and `BodyText` is a
-search aid only; it must never be served as the body. `BodySize` is always the true original
+search aid only; it must never be served as the body. `BodySize` is always the original
 size. External writes happen before the row that points at them is committed.
 
 ### Groups, endpoints, retention
@@ -115,10 +115,10 @@ use them: the group delete and the retry resolution are ordinary set-based EF op
 `IFailedMessageIngestionSqlDialect` seam. Three requirements together force that, and no ORM-level
 API satisfies all three at once.
 
-### 1. The upsert is a conditional merge, not a save
+### 1. The upsert is a conditional merge
 
 Writing a failed message is not "insert this row" or "update this row". For a message that already
-exists the statement must, in one shot:
+exists the statement must, in one statement:
 
 - flip the status back to `Unresolved`, and reset the retention clock **only** if the row was
   previously resolved or archived,
@@ -146,14 +146,14 @@ follow:
   key.
 - **Read-modify-write cost.** EF's optimistic concurrency (a rowversion/xmin token) would catch a
   conflicting write instead of silently losing it, but only via a read before every write and a
-  retry loop per message, the per-row round trip reason 3 rules out, and it still can't express the
+  retry loop per message, the per-row round trip reason 3 rules out, and it still cannot express the
   conditional merge from reason 1.
 
 Closing the insert race requires the database's own concurrency-safe upsert primitive, and those
 are **provider-specific**:
 
-- PostgreSQL: `INSERT ... ON CONFLICT (unique_message_id) DO UPDATE`. The conflict clause makes a
-  concurrent insert fall through to the update instead of failing, and the whole statement is
+- PostgreSQL: `INSERT ... ON CONFLICT (unique_message_id) DO UPDATE`. The conflict clause turns a
+  concurrent insert into an update instead of a failure, and the whole statement is
   atomic so the count arithmetic cannot lose an increment.
 - SQL Server: `MERGE ... WITH (HOLDLOCK)`. The lock hint serializes concurrent merges on the same
   key so the second one sees the row and updates instead of colliding.
@@ -172,7 +172,7 @@ that the database can cache a plan for, with no per-row round trips and no tempo
 
 ### What stays portable
 
-Only the genuinely divergent statements are raw. The retry resolution and the group delete are set
+Only the divergent statements are raw SQL. The retry resolution and the group delete are set
 based and identical across providers, so they remain EF operations in the shared writer. Failed
 message upserts and insert-if-absent group and endpoint writes are owned by each provider's
 `IFailedMessageIngestionSqlDialect` implementation. Insert-if-absent retry claims belong to the
@@ -186,13 +186,11 @@ from drifting.
 
 Everything in a batch runs in one transaction opened by the writer. The raw dialect commands are
 explicitly enlisted onto that transaction, and the EF `ExecuteUpdate`/`ExecuteDelete` operations
-participate in it as well, so a failure anywhere rolls the whole batch back. Nothing is committed
-piecemeal.
+participate in it as well, so a failure anywhere rolls the whole batch back.
 
 The transaction is wrapped in the provider's execution strategy so that a transient failure (a
 dropped connection, or a deadlock between concurrent writers) retries the **entire** batch. This is
 safe because the batch is **idempotent**: re-running it folds to the same rows, the upsert is a
 merge, the group rows are deleted and re-inserted, endpoints are insert-if-absent, and retry
 resolution is a set update plus delete. Replaying a batch after an ambiguous commit changes
-nothing. Stable lock ordering (the fold sorts by `UniqueMessageId`) keeps deadlocks rare in the
-first place.
+nothing. Stable lock ordering (the fold sorts by `UniqueMessageId`) keeps deadlocks rare.

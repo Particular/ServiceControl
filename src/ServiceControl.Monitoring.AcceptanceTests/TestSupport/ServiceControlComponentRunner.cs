@@ -32,6 +32,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     {
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
         public HttpClient HttpClient { get; private set; }
+        public IServiceProvider ServiceProvider { get; private set; }
         public JsonSerializerOptions SerializerOptions => Infrastructure.SerializerOptions.Default;
 
         public Task Initialize(RunDescriptor run, CancellationToken cancellationToken = default) => InitializeServiceControl(run.ScenarioContext, cancellationToken);
@@ -128,6 +129,8 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 host.UseServiceControlAuthentication(settings.OpenIdConnectSettings.Enabled);
                 host.UseServiceControlMonitoring(settings.ForwardedHeadersSettings, settings.HttpsSettings, settings.CorsSettings);
                 await host.StartAsync(cancellationToken);
+
+                ServiceProvider = host.Services;
 
                 HttpClient = host.Services.GetRequiredKeyedService<TestServer>(settings.InstanceName).CreateClient();
             }

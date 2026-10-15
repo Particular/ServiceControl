@@ -9,7 +9,7 @@ using System.Security.Claims;
 /// The set of permissions a principal effectively holds, computed per request. Mirrors the inputs the
 /// enforcement handler uses: when role-based authorization is enabled, the union of the permissions
 /// granted by the principal's <see cref="ClaimTypes.Role"/> claims (via <see cref="RolePermissions.Roles"/>);
-/// when it is disabled the platform runs allow-all, so every known permission is held.
+/// when it is disabled every caller that passes authentication holds every known permission.
 /// </summary>
 public static class EffectivePermissions
 {

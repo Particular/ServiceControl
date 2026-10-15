@@ -4,9 +4,9 @@
 
 An acceptance test starts a full ServiceControl instance and drives it over the HTTP API, exactly as ServicePulse does. See [Testing](testing.md) for the suites and how to run them.
 
-This is what makes them different from the other suites. Component logic belongs in unit tests, and storage belongs in persistence tests. Both of those are faster and easier to debug. An acceptance test is worth its cost when it proves something a user can see: that a journey through ServicePulse still works, against a real instance and a real persister.
+Component logic belongs in unit tests, and storage belongs in persistence tests. Both are faster and easier to debug than acceptance tests. An acceptance test is worth its cost when it proves something a user can see: that a journey through ServicePulse still works, against a real instance and a real persister.
 
-So the question to start from is not "which endpoint am I testing" but "what is someone trying to do".
+So the question to start from is not "which endpoint am I testing" but "what is someone trying to do?"
 
 ### The transport is always LearningTransport
 
@@ -33,7 +33,7 @@ await Define<Context>()
     .Run();
 ```
 
-Each step logs `Advancing from X to Y`. If the scenario stops making progress, the log names the step it stopped on, instead of the test failing with a timeout that tells you nothing. `When_creating_a_usage_report_on_a_non_broker_transport` is the worked example, and its name is doing the job described above: it says which branch it covers, so the broker one can sit beside it without either being mistaken for the other.
+Each step logs `Advancing from X to Y`. If the scenario stops making progress, the log names the step it stopped on, instead of the test failing with a timeout that tells you nothing. `When_creating_a_usage_report_on_a_non_broker_transport` is the worked example, and its name says which branch it covers, so the broker one can sit beside it without either being mistaken for the other.
 
 Not everything is a journey. Edge cases, such as posting a retry for an id that does not exist, are separate focused tests next to the scenario, not extra steps inside it.
 
@@ -49,13 +49,13 @@ The report scenario asserts that a name the user redacted does not appear in the
 
 ## Expect the domain to have rules
 
-When a scenario hangs, it is often the system telling you a rule you did not know about. The report scenario first recorded throughput for today, and then waited until the 90 second timeout. The reason is that a usage report counts only complete days, and ignores a partial one on purpose.
+When a scenario hangs, it is often the system telling you a rule you did not know about. The report scenario first recorded throughput for today, and then waited until the 90-second timeout. The reason is that a usage report counts only complete days and ignores a partial one on purpose.
 
 So when a step will not go green, read the code it is waiting on before you add longer timeouts or retries. Once you find the rule, write it in the test as a comment, because the next person will assume what you assumed.
 
 ## Caveats
 
-One idea connects all of these: **a test must fail if the thing it sets up does not take effect.** Below are the ways that has gone wrong in this suite. Two of them went unnoticed for years.
+One idea connects all of these: **a test must fail if the thing it sets up does not take effect.** These are the ways it has gone wrong in this suite. Two of them went unnoticed for years.
 
 ### The double that is registered but never used
 
@@ -71,8 +71,8 @@ builder.Services.AddSingleton<IEnrichImportedErrorMessages, CounterEnricher>();
 
 First check how the collaborator asks for its dependency, because the two shapes behave differently when a test adds to them:
 
-- **One instance**, such as `ReturnToSenderDequeuer` asking for a `ReturnToSender`. `CustomizeHostBuilder` runs after all production registration, so registering the same service type again replaces it with the double.
-- **A collection**, such as `IEnumerable<IEnrichImportedErrorMessages>` or `GetServices<ICustomCheck>()`. A later registration is *added to* the collection. The production implementation is still there, and still runs.
+- One instance, such as `ReturnToSenderDequeuer` asking for a `ReturnToSender`. `CustomizeHostBuilder` runs after all production registration, so registering the same service type again replaces it with the double.
+- A collection, such as `IEnumerable<IEnrichImportedErrorMessages>` or `GetServices<ICustomCheck>()`. A later registration is *added to* the collection. The production implementation is still there, and still runs.
 
 ### The registration that only says it replaces another
 
@@ -107,7 +107,7 @@ Registering the double correctly is only half the job. If the assertion would al
 
 ### The assertion that only one persister can satisfy
 
-The suite runs against every persister. An assertion about how RavenDB happens to store or trim something says nothing about ServiceControl's behaviour. It also ends up on another persister's exclusion list, where it looks like a missing feature instead of a test that asks for too much. Assert what every persister has to do to be correct.
+The suite runs against every persister. An assertion about how RavenDB happens to store or trim something says nothing about ServiceControl behavior. It also ends up on another persister's exclusion list, where it looks like a missing feature instead of a test that asks for too much. Assert what every persister has to do to be correct.
 
 ### The wait that does not cover what the assertion reads
 
@@ -131,7 +131,7 @@ Persisters do not make a write visible everywhere at the same moment, and search
 
 This cuts across [the assertion that could not have failed](#the-assertion-that-could-not-have-failed), so be deliberate about where the wait stops and the assertion starts.
 
-Wait for the loosest condition that makes the query answerable, not for the answer you expect. `Count == 2` never advances when a search matches three, so the interesting regression, matching too much, is reported as a 90 second timeout rather than as the assertion that would have named the extra row. `Count >= 2` advances as soon as there is enough to judge and lets the assertion do the judging, which turns that same regression into a failure in a few seconds reading `Extra (1): DeliveryFailed`.
+Wait for the loosest condition that makes the query answerable, not for the answer you expect. `Count == 2` never advances when a search matches three, so the interesting regression, matching too much, is reported as a 90-second timeout rather than as the assertion that would have named the extra row. `Count >= 2` advances as soon as there is enough to judge and lets the assertion do the judging, which turns that same regression into a failure in a few seconds reading `Extra (1): DeliveryFailed`.
 
 Whatever the wait cannot avoid holding, record on the scenario context, because the runner prints the context when a scenario does not finish while a `TimeoutException` on its own says only that 90 seconds passed:
 
@@ -147,8 +147,6 @@ Headers put into a dictionary nothing reads, constants nothing compares against,
 
 ## Before you open the PR
 
-**Make it fail on purpose.** Break the thing the test protects, run it, and read the message. If it still passes, or if it fails with something another person cannot act on, the test is not finished yet. This one run checks every caveat listed above.
-
-**Run it on a second persister.** A test that passes on Raven and is never run on SqlServer or PostgreSQL will be excluded later by someone who knows less about it than you do now.
-
-**Cover a new route in the PR that adds it.** Nothing in the suite notices an uncovered route.
+- Make it fail on purpose. Break the thing the test protects, run it, and read the message. If it still passes, or if it fails with something another person cannot act on, the test is not finished yet. This one run checks every caveat listed above.
+- Run it on a second persister. A test that passes on RavenDB and is never run on SqlServer or PostgreSQL will be excluded later by someone who knows less about it than you do now.
+- Cover a new route in the PR that adds it. Nothing in the suite notices an uncovered route.

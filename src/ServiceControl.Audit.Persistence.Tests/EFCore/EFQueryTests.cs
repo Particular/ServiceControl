@@ -83,6 +83,46 @@ namespace ServiceControl.Audit.Persistence.Tests
         }
 
         [Test]
+        public async Task Does_not_match_messages_that_share_part_of_the_message_id()
+        {
+            await Ingest(MakeMessage(messageId: "billing-1234-5678"), MakeMessage(messageId: "billing-9999-5678"));
+
+            var found = await MessagesViewStore.QueryMessages("billing-1234-5678", new PagingInfo(), new SortInfo("time_sent", "desc"));
+
+            Assert.That(found.Results.Select(view => view.MessageId), Is.EqualTo(new[] { "billing-1234-5678" }));
+        }
+
+        [Test]
+        public async Task Matches_a_term_ending_in_a_star_as_a_prefix()
+        {
+            await Ingest(MakeMessage(extraHeaders: new Dictionary<string, string> { [SearchableHeader] = SearchableWord }), MakeMessage());
+
+            var found = await MessagesViewStore.QueryMessages("merid*", new PagingInfo(), new SortInfo("time_sent", "desc"));
+
+            Assert.That(found.Results, Has.Count.EqualTo(1));
+        }
+
+        [TestCase("*")]
+        [TestCase(@"meridian\")]
+        [TestCase(@"merid\*")]
+        [TestCase("it's*")]
+        [TestCase("'")]
+        [TestCase("\"")]
+        [TestCase("foo \"bar")]
+        [TestCase("-")]
+        [TestCase("a & b")]
+        [TestCase("!(meridian")]
+        [TestCase("meridian:*")]
+        [TestCase("NEAR")]
+        [TestCase("AND")]
+        public async Task Searches_for_query_syntax_without_failing(string searchTerms)
+        {
+            await Ingest(MakeMessage(extraHeaders: new Dictionary<string, string> { [SearchableHeader] = SearchableWord }));
+
+            Assert.DoesNotThrowAsync(() => MessagesViewStore.QueryMessages(searchTerms, new PagingInfo(), new SortInfo("time_sent", "desc")));
+        }
+
+        [Test]
         public async Task Sorts_by_status_in_the_order_the_primary_merges_instance_pages()
         {
             await Ingest(MakeMessage(isRetried: true), MakeMessage());
