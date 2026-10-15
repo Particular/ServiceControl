@@ -6,6 +6,7 @@ using Particular.LicensingComponent.Contracts;
 using Particular.LicensingComponent.Persistence;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
+using static System.Collections.Specialized.BitVector32;
 
 class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timeProvider, IEndpointThroughputDialect throughputDialect) : DataStoreBase(scopeFactory), ILicensingDataStore
 {
@@ -329,7 +330,16 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
         }, cancellationToken);
 
     public Task SaveLicensedEndpointDetailsAmendment(LicensedEndpointDetailsAmendment result, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext((context, token) => context.StoreSetting(SettingKeys.LicensedEndpointDetailsAmendment, result, token), cancellationToken);
+        ExecuteWithDbContext(async (context, token) =>
+            {
+                var existing = await context.GetSetting<LicensedEndpointDetailsAmendment>(SettingKeys.LicensedEndpointDetailsAmendment, token);
+                if (existing is not null)
+                {
+                    // these do not round-trip
+                    result.UnmappedQueues = [.. existing.UnmappedQueues, .. result.UnmappedQueues];
+                }
+                await context.StoreSetting(SettingKeys.LicensedEndpointDetailsAmendment, result, token);
+            }, cancellationToken);
 
     static Endpoint ToEndpoint(LicensingEndpointEntity row) => ToEndpoint(row, lastCollectedDate: null);
 

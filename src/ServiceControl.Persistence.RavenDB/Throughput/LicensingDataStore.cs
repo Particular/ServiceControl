@@ -368,6 +368,14 @@ class LicensingDataStore(
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
+        var existing = await session.LoadAsync<LicensedEndpointDetailsAmendment>(LicencedEndpointDetailsAmendmentDocumentId, cancellationToken);
+        if (existing is not null)
+        {
+            // these do not round-trip
+            result.UnmappedQueues = [.. existing.UnmappedQueues, .. result.UnmappedQueues];
+            session.Advanced.Evict(existing);
+        }
+
         await session.StoreAsync(result, LicencedEndpointDetailsAmendmentDocumentId, cancellationToken);
         await session.SaveChangesAsync(cancellationToken);
     }
