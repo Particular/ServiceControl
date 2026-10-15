@@ -322,7 +322,7 @@
       },
       "targets": [
         {
-          "expr": "sum(errors_sent_total) + sum(bypass_errors_written_total)",
+          "expr": "(sum(errors_sent_total) or vector(0)) + (sum(bypass_errors_written_total) or vector(0))",
           "legendFormat": "raised"
         }
       ]
@@ -368,7 +368,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "avg_over_time((sum(rate(errors_sent_total[1m])) + sum(rate(bypass_errors_written_total[1m])))[2m:15s])",
+          "expr": "avg_over_time(((sum(rate(errors_sent_total[1m])) or vector(0)) + (sum(rate(bypass_errors_written_total[1m])) or vector(0)))[2m:15s])",
           "legendFormat": "error raised (testing-tool)"
         },
         {
@@ -378,7 +378,7 @@
         },
         {
           "refId": "C",
-          "expr": "avg_over_time((sum(rate(bypass_audit_messages_written_total[1m])) + sum(rate(endpoint_audited_messages_total[1m])))[2m:15s])",
+          "expr": "avg_over_time(((sum(rate(bypass_audit_messages_written_total[1m])) or vector(0)) + (sum(rate(endpoint_audited_messages_total[1m])) or vector(0)))[2m:15s])",
           "legendFormat": "audit raised (testing-tool)"
         },
         {
@@ -428,7 +428,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(errors_sent_total) + sum(bypass_errors_written_total)",
+          "expr": "(sum(errors_sent_total) or vector(0)) + (sum(bypass_errors_written_total) or vector(0))",
           "legendFormat": "error raised"
         },
         {
@@ -438,7 +438,7 @@
         },
         {
           "refId": "C",
-          "expr": "sum(bypass_audit_messages_written_total) + sum(endpoint_audited_messages_total)",
+          "expr": "(sum(bypass_audit_messages_written_total) or vector(0)) + (sum(endpoint_audited_messages_total) or vector(0))",
           "legendFormat": "audit raised"
         },
         {
