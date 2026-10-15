@@ -6,7 +6,6 @@ using Particular.LicensingComponent.Contracts;
 using Particular.LicensingComponent.Persistence;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
-using static System.Collections.Specialized.BitVector32;
 
 class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timeProvider, IEndpointThroughputDialect throughputDialect) : DataStoreBase(scopeFactory), ILicensingDataStore
 {
