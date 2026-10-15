@@ -63,7 +63,7 @@ namespace ServiceControl.AcceptanceTests.Licensing
                 {
                     var summary = await this.TryGet<List<EndpointThroughputSummary>>(
                         "/api/licensing/endpoints",
-                        items => items.Any(item => item.MaxDailyThroughput == BrokerThroughput));
+                        items => items.Any(item => item.Name == SalesQueue));
 
                     endpoints = summary.Item;
 
@@ -112,8 +112,8 @@ namespace ServiceControl.AcceptanceTests.Licensing
                 Assert.That(sales.GetProperty("DailyThroughputFromMonitoring").GetArrayLength(), Is.EqualTo(1),
                     "Throughput seen by monitoring has to be reported separately from the broker's");
 
-                Assert.That(sales.GetProperty("Throughput").GetInt64(), Is.EqualTo(BrokerThroughput),
-                    "The reported figure is the highest daily total across the sources");
+                Assert.That(sales.GetProperty("Throughput").GetInt64(), Is.EqualTo(MonitoringThroughput),
+                    "The reported figure comes from the preferred source, not the highest across all sources");
             }
         }
 

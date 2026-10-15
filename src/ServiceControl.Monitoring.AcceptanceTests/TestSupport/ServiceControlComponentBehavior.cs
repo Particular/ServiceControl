@@ -19,6 +19,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         }
 
         public HttpClient HttpClient => runner.HttpClient;
+        public IServiceProvider ServiceProvider => runner.ServiceProvider;
         public JsonSerializerOptions SerializerOptions => runner.SerializerOptions;
 
 #pragma warning disable PS0018 // IComponentBehavior declares this without a CancellationToken

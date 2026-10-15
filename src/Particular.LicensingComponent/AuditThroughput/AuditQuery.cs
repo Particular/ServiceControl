@@ -61,9 +61,10 @@
                                         : null;
 
                             if (remote.Configuration.AsObject().TryGetPropertyValue("host", out var host) &&
-                                        host?.AsObject().TryGetPropertyValue("service_name", out var serviceName) == true)
+                                        (host?.AsObject().TryGetPropertyValue("instance_name", out var instanceName) == true ||
+                                         host?.AsObject().TryGetPropertyValue("service_name", out instanceName) == true))
                             {
-                                queues.Add(serviceName!.GetValue<string>());
+                                queues.Add(instanceName!.GetValue<string>());
                             }
 
                             if (remote.Configuration.AsObject().TryGetPropertyValue("transport", out var transport))

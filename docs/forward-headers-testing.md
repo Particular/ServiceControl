@@ -1,4 +1,4 @@
-# Local Testing Forwarded Headers (Without NGINX)
+# Local testing of forwarded headers without NGINX
 
 This guide explains how to test forwarded headers configuration for ServiceControl instances without using NGINX or Docker. This approach uses curl to manually send `X-Forwarded-*` headers directly to the instances.
 
@@ -9,7 +9,7 @@ This guide explains how to test forwarded headers configuration for ServiceContr
 - (Optional) For formatted JSON output: `npm install -g json` then pipe curl output through `| json`
 - All commands assume you are in the respective project directory
 
-## Enabling Debug Logs
+## Enabling debug logs
 
 To enable detailed logging for troubleshooting, set the `LogLevel` environment variable before starting each instance:
 
@@ -26,74 +26,74 @@ set MONITORING_LOGLEVEL=Debug
 
 **Valid log levels:** `Trace`, `Debug`, `Information` (or `Info`), `Warning` (or `Warn`), `Error`, `Critical` (or `Fatal`), `None` (or `Off`)
 
-Debug logs will show detailed forwarded headers processing and trust evaluation information.
+Debug logs show detailed forwarded headers processing and trust evaluation information.
 
-## Instance Reference
+## Instance reference
 
-| Instance                  | Project Directory               | Default Port | Environment Variable Prefix |
+| Instance                  | Project directory               | Default port | Environment variable prefix |
 |---------------------------|---------------------------------|--------------|-----------------------------|
 | ServiceControl (Primary)  | `src\ServiceControl`            | 33333        | `SERVICECONTROL_`           |
 | ServiceControl.Audit      | `src\ServiceControl.Audit`      | 44444        | `SERVICECONTROL_AUDIT_`     |
 | ServiceControl.Monitoring | `src\ServiceControl.Monitoring` | 33633        | `MONITORING_`               |
 
 > [!NOTE]
-> Environment variables must include the instance prefix (e.g., `SERVICECONTROL_FORWARDEDHEADERS_ENABLED` for the primary instance).
+> Environment variables must include the instance prefix (for example `SERVICECONTROL_FORWARDEDHEADERS_ENABLED` for the primary instance).
 
-## How Forwarded Headers Work
+## How forwarded headers work
 
 When a ServiceControl instance is behind a reverse proxy, the proxy sends headers to indicate the original request details:
 
-- `X-Forwarded-For` - Original client IP address
-- `X-Forwarded-Proto` - Original protocol (http/https)
-- `X-Forwarded-Host` - Original host header
+- `X-Forwarded-For`: Original client IP address
+- `X-Forwarded-Proto`: Original protocol (http/https)
+- `X-Forwarded-Host`: Original host header
 
-Each instance can be configured to trust these headers from specific proxies or trust all proxies.
+You can configure each instance to trust these headers from specific proxies or from all proxies.
 
-### Trust Evaluation Rules
+### Trust evaluation rules
 
 The middleware determines whether to process forwarded headers based on these rules:
 
-1. **If `TrustAllProxies` = true**: All requests are trusted, headers are always processed
-2. **If `TrustAllProxies` = false**: The caller's IP must match **either**:
-   - **KnownProxies**: Exact IP address match (e.g., `127.0.0.1`, `::1`)
-   - **KnownNetworks**: CIDR range match (e.g., `127.0.0.0/8`, `10.0.0.0/8`)
+1. If `TrustAllProxies` = true: All requests are trusted, and headers are always processed.
+2. If `TrustAllProxies` = false: The IP of the caller must match **either**:
+   - KnownProxies: Exact IP address match (for example `127.0.0.1`, `::1`)
+   - KnownNetworks: CIDR range match (for example `127.0.0.0/8`, `10.0.0.0/8`)
 
 > [!IMPORTANT]
-> KnownProxies and KnownNetworks use **OR logic** - a match in either grants trust. The check is against the **immediate caller's IP** (the proxy connecting to ServiceControl), not the original client IP from `X-Forwarded-For`.
+> KnownProxies and KnownNetworks use **OR logic**: a match in either grants trust. The check is against the **immediate caller's IP** (the proxy connecting to ServiceControl), not the original client IP from `X-Forwarded-For`.
 
-## Configuration Methods
+## Configuration methods
 
 Settings can be configured via:
 
-1. **Environment variables** (recommended for testing) - Easy to change between scenarios, no file edits needed
-2. **App.config** - Persisted settings, requires app restart after changes
+1. Environment variables (recommended for testing): Easy to change between scenarios, no file edits needed
+2. App.config: Persisted settings, requires an app restart after changes
 
 Both methods work identically. This guide uses environment variables for convenience during iterative testing.
 
-## Test Scenarios
+## Test scenarios
 
 > [!IMPORTANT]
 > Set environment variables in the same terminal where you run `dotnet run`. Environment variables are scoped to the terminal session and won't be seen if you run from Visual Studio or a different terminal.
 > Check the application startup logs to verify which settings were applied. The forwarded headers configuration is logged at startup.
 
-### Test Grouping by Configuration
+### Test grouping by configuration
 
 To minimize service restarts during testing, scenarios are grouped by configuration. Run all tests within a group before changing configuration:
 
-| Configuration Group                    | Scenarios          | Description                                                  |
+| Configuration group                    | Scenarios          | Description                                                  |
 |----------------------------------------|--------------------|--------------------------------------------------------------|
-| **Group A**: Default/TrustAllProxies   | 0, 1, 2, 8, 11, 13 | Tests with default settings or explicit TrustAllProxies=true |
-| **Group B**: KnownProxies (localhost)  | 3, 9, 14           | Tests with KnownProxies=127.0.0.1,::1                        |
-| **Group C**: KnownNetworks (localhost) | 4                  | Tests with KnownNetworks=127.0.0.0/8,::1/128                 |
-| **Group D**: Untrusted Proxy           | 5                  | Tests with KnownProxies=192.168.1.100                        |
-| **Group E**: Untrusted Network         | 6                  | Tests with KnownNetworks=10.0.0.0/8,192.168.0.0/16           |
-| **Group F**: Disabled                  | 7                  | Tests with Enabled=false                                     |
-| **Group G**: Combined                  | 10                 | Tests with both KnownProxies and KnownNetworks               |
-| **Group H**: IPv4 Only                 | 12                 | Tests with KnownProxies=127.0.0.1 (no IPv6)                  |
+| Group A: Default/TrustAllProxies       | 0, 1, 2, 8, 11, 13 | Tests with default settings or explicit TrustAllProxies=true |
+| Group B: KnownProxies (localhost)      | 3, 9, 14           | Tests with KnownProxies=127.0.0.1,::1                        |
+| Group C: KnownNetworks (localhost)     | 4                  | Tests with KnownNetworks=127.0.0.0/8,::1/128                 |
+| Group D: Untrusted proxy               | 5                  | Tests with KnownProxies=192.168.1.100                        |
+| Group E: Untrusted network             | 6                  | Tests with KnownNetworks=10.0.0.0/8,192.168.0.0/16           |
+| Group F: Disabled                      | 7                  | Tests with Enabled=false                                     |
+| Group G: Combined                      | 10                 | Tests with both KnownProxies and KnownNetworks               |
+| Group H: IPv4 only                     | 12                 | Tests with KnownProxies=127.0.0.1 (no IPv6)                  |
 
 ---
 
-## Group A: Default/TrustAllProxies Configuration
+## Group A: Default/TrustAllProxies configuration
 
 **Start the instance once, then run all tests in this group (Scenarios 0, 1, 2, 8, 11, 13).**
 
@@ -119,7 +119,7 @@ set MONITORING_FORWARDEDHEADERS_KNOWNNETWORKS=
 dotnet run
 ```
 
-### Scenario 0: Direct Access (No Proxy)
+### Scenario 0: Direct access (no proxy)
 
 Test a direct request without any forwarded headers, simulating access without a reverse proxy.
 
@@ -161,7 +161,7 @@ curl http://localhost:33633/debug/request-info | json
 
 When no forwarded headers are sent, the request values remain unchanged.
 
-### Scenario 1: Default Behavior (With Headers)
+### Scenario 1: Default behavior (with headers)
 
 Test the default behavior when no forwarded headers environment variables are set, but headers are sent.
 
@@ -203,9 +203,9 @@ curl -H "X-Forwarded-Proto: https" -H "X-Forwarded-Host: example.com" -H "X-Forw
 
 By default, forwarded headers are **enabled** and **all proxies are trusted**. This means any client can spoof `X-Forwarded-*` headers. This is suitable for development but should be restricted in production by configuring `KnownProxies` or `KnownNetworks`.
 
-### Scenario 2: Trust All Proxies (Explicit)
+### Scenario 2: Trust all proxies (explicit)
 
-Explicitly enable trust all proxies (same as default, but explicit configuration). This scenario can be tested with the same Group A configuration - the behavior is identical.
+Explicitly enable trust all proxies. This is the same as the default but set explicitly. Test this scenario with the same Group A configuration. The behavior is identical.
 
 **Test with curl (using Group A configuration above):**
 
@@ -245,7 +245,7 @@ curl -H "X-Forwarded-Proto: https" -H "X-Forwarded-Host: example.com" -H "X-Forw
 
 The `scheme` is `https` (from `X-Forwarded-Proto`), `host` is `example.com` (from `X-Forwarded-Host`), and `remoteIpAddress` is `203.0.113.50` (from `X-Forwarded-For`) because all proxies are trusted. The `rawHeaders` are empty because the middleware consumed them.
 
-### Scenario 8: Proxy Chain (Multiple X-Forwarded-For Values)
+### Scenario 8: Proxy chain (multiple X-Forwarded-For values)
 
 Test how ServiceControl handles multiple proxies in the chain.
 
@@ -287,7 +287,7 @@ curl -H "X-Forwarded-Proto: https" -H "X-Forwarded-Host: example.com" -H "X-Forw
 
 The `X-Forwarded-For` header contains multiple IPs representing the proxy chain. When `TrustAllProxies` is `true`, `ForwardLimit` is set to `null` (no limit), so the middleware processes all IPs and returns the original client IP (`203.0.113.50`).
 
-### Scenario 11: Partial Headers (Proto Only)
+### Scenario 11: Partial headers (proto only)
 
 Test that each forwarded header is processed independently. Only sending `X-Forwarded-Proto` should update the scheme while leaving host and remoteIpAddress unchanged.
 
@@ -329,7 +329,7 @@ curl -H "X-Forwarded-Proto: https" http://localhost:33633/debug/request-info | j
 
 Only the `scheme` changed to `https`. The `host` remains `localhost:33333` and `remoteIpAddress` remains `::1` because those headers weren't sent. Each header is processed independently.
 
-### Scenario 13: Multiple X-Forwarded-Proto and X-Forwarded-Host Values
+### Scenario 13: Multiple X-Forwarded-Proto and X-Forwarded-Host values
 
 Test how ServiceControl handles multiple values in `X-Forwarded-Proto` and `X-Forwarded-Host` headers, which can occur in multi-proxy environments where each proxy adds its own values.
 
@@ -373,7 +373,7 @@ When `TrustAllProxies` is `true`, `ForwardLimit` is set to `null` (no limit), so
 
 ---
 
-## Group B: KnownProxies (Localhost) Configuration
+## Group B: KnownProxies (localhost) configuration
 
 **Restart the instance with this configuration, then run all tests in this group (Scenarios 3, 9, 14).**
 
@@ -402,11 +402,11 @@ dotnet run
 > [!NOTE]
 > Setting `KNOWNPROXIES` automatically disables `TRUSTALLPROXIES`. Both IPv4 (`127.0.0.1`) and IPv6 (`::1`) loopback addresses are included since curl may use either.
 
-### Scenario 3: Known Proxies Only
+### Scenario 3: Known proxies only
 
 Only accept forwarded headers from specific IP addresses.
 
-**Test with curl (from localhost - should work):**
+**Test with curl (from localhost, should work):**
 
 ```cmd
 rem ServiceControl (Primary)
@@ -444,7 +444,7 @@ curl -H "X-Forwarded-Proto: https" -H "X-Forwarded-Host: example.com" -H "X-Forw
 
 Headers are applied because the request comes from localhost, which is in the known proxies list. The `rawHeaders` are empty because the middleware consumed them.
 
-### Scenario 9: Proxy Chain with Known Proxies (ForwardLimit = 1)
+### Scenario 9: Proxy chain with known proxies (ForwardLimit = 1)
 
 Test how ServiceControl handles multiple proxies when `TrustAllProxies` is `false`. In this case, `ForwardLimit` remains at its default of `1`, so only the last proxy IP is processed.
 
@@ -486,7 +486,7 @@ curl -H "X-Forwarded-Proto: https" -H "X-Forwarded-Host: example.com" -H "X-Forw
 
 When `TrustAllProxies` is `false`, `ForwardLimit` remains at its default of `1`. The middleware only processes the rightmost IP from the chain (`192.168.1.1`). The remaining IPs (`203.0.113.50, 10.0.0.1`) stay in the `X-Forwarded-For` header. Compare this to Scenario 8 where `TrustAllProxies = true` returns the original client IP.
 
-### Scenario 14: Multiple Header Values with Known Proxies (ForwardLimit = 1)
+### Scenario 14: Multiple header values with known proxies (ForwardLimit = 1)
 
 Test how ServiceControl handles multiple `X-Forwarded-Proto` and `X-Forwarded-Host` values when `TrustAllProxies` is `false`. In this case, `ForwardLimit` remains at its default of `1`, so only the rightmost value is processed.
 
@@ -530,7 +530,7 @@ When `TrustAllProxies` is `false`, `ForwardLimit` remains at its default of `1`.
 
 ---
 
-## Group C: KnownNetworks (Localhost) Configuration
+## Group C: KnownNetworks (localhost) configuration
 
 **Restart the instance with this configuration (Scenario 4).**
 
@@ -559,7 +559,7 @@ dotnet run
 > [!NOTE]
 > Both IPv4 (`127.0.0.0/8`) and IPv6 (`::1/128`) loopback networks are included since curl may use either.
 
-### Scenario 4: Known Networks (CIDR)
+### Scenario 4: Known networks (CIDR)
 
 Trust all proxies within a network range.
 
@@ -603,7 +603,7 @@ Headers are applied because the request comes from localhost, which falls within
 
 ---
 
-## Group D: Untrusted Proxy Configuration
+## Group D: Untrusted proxy configuration
 
 **Restart the instance with this configuration (Scenario 5).**
 
@@ -629,7 +629,7 @@ set MONITORING_FORWARDEDHEADERS_KNOWNNETWORKS=
 dotnet run
 ```
 
-### Scenario 5: Unknown Proxy Rejected
+### Scenario 5: Unknown proxy rejected
 
 Configure a known proxy that doesn't match the request source to verify headers are ignored.
 
@@ -673,7 +673,7 @@ Headers are **ignored** because the request comes from localhost (`::1`), which 
 
 ---
 
-## Group E: Untrusted Network Configuration
+## Group E: Untrusted network configuration
 
 **Restart the instance with this configuration (Scenario 6).**
 
@@ -699,7 +699,7 @@ set MONITORING_FORWARDEDHEADERS_KNOWNNETWORKS=10.0.0.0/8,192.168.0.0/16
 dotnet run
 ```
 
-### Scenario 6: Unknown Network Rejected
+### Scenario 6: Unknown network rejected
 
 Configure a known network that doesn't match the request source to verify headers are ignored.
 
@@ -743,7 +743,7 @@ Headers are **ignored** because the request comes from localhost (`::1`), which 
 
 ---
 
-## Group F: Disabled Configuration
+## Group F: Disabled configuration
 
 **Restart the instance with this configuration (Scenario 7).**
 
@@ -769,7 +769,7 @@ set MONITORING_FORWARDEDHEADERS_KNOWNNETWORKS=
 dotnet run
 ```
 
-### Scenario 7: Forwarded Headers Disabled
+### Scenario 7: Forwarded headers disabled
 
 Completely disable forwarded headers processing.
 
@@ -813,7 +813,7 @@ Headers are ignored because forwarded headers processing is disabled entirely. N
 
 ---
 
-## Group G: Combined Proxies and Networks Configuration
+## Group G: Combined proxies and networks configuration
 
 **Restart the instance with this configuration (Scenario 10).**
 
@@ -839,7 +839,7 @@ set MONITORING_FORWARDEDHEADERS_KNOWNNETWORKS=127.0.0.0/8,::1/128
 dotnet run
 ```
 
-### Scenario 10: Combined Known Proxies and Networks
+### Scenario 10: Combined known proxies and networks
 
 Test using both `KnownProxies` and `KnownNetworks` together.
 
@@ -883,7 +883,7 @@ Headers are applied because the request comes from localhost (`::1`), which fall
 
 ---
 
-## Group H: IPv4 Only Configuration
+## Group H: IPv4 only configuration
 
 **Restart the instance with this configuration (Scenario 12).**
 
@@ -912,7 +912,7 @@ dotnet run
 > [!NOTE]
 > Only IPv4 `127.0.0.1` is configured, not IPv6 `::1`.
 
-### Scenario 12: IPv4/IPv6 Mismatch
+### Scenario 12: IPv4/IPv6 mismatch
 
 Demonstrates a common misconfiguration where only IPv4 localhost is configured but curl uses IPv6. This scenario shows why you should include both `127.0.0.1` and `::1` in your configuration.
 
@@ -952,12 +952,12 @@ curl -H "X-Forwarded-Proto: https" -H "X-Forwarded-Host: example.com" -H "X-Forw
 }
 ```
 
-Headers are **ignored** because the request comes from `::1` (IPv6), but only `127.0.0.1` (IPv4) is in the known proxies list. This is a common gotcha - always include both IPv4 and IPv6 loopback addresses when testing locally, or use CIDR notation like `127.0.0.0/8` and `::1/128`.
+Headers are **ignored** because the request comes from `::1` (IPv6), but only `127.0.0.1` (IPv4) is in the known proxies list. This is a common mistake. Always include both IPv4 and IPv6 loopback addresses when testing locally, or use CIDR notation like `127.0.0.0/8` and `::1/128`.
 
 > [!NOTE]
 > If your output shows headers were applied, curl is using IPv4. The behavior depends on your system's DNS resolution for `localhost`.
 
-## Debug Endpoint
+## Debug endpoint
 
 The `/debug/request-info` endpoint is only available in Development environment. It returns:
 
@@ -995,11 +995,11 @@ The `/debug/request-info` endpoint is only available in Development environment.
 | `configuration` | `knownProxies`    | List of trusted proxy IP addresses                               |
 | `configuration` | `knownNetworks`   | List of trusted CIDR network ranges                              |
 
-### Key Diagnostic Questions
+### Key diagnostic questions
 
-1. **Were headers applied?** - If `rawHeaders` are empty but `processed` values changed, the middleware consumed and applied them
-2. **Why weren't headers applied?** - If `rawHeaders` still contain values, the middleware didn't trust the caller. Check `knownProxies` and `knownNetworks` in `configuration`
-3. **Is forwarded headers enabled?** - Check `configuration.enabled`
+1. Were headers applied? If `rawHeaders` are empty but `processed` values changed, the middleware consumed and applied them
+2. Why weren't headers applied? If `rawHeaders` still contain values, the middleware didn't trust the caller. Check `knownProxies` and `knownNetworks` in `configuration`
+3. Is forwarded headers processing enabled? Check `configuration.enabled`
 
 ## Cleanup
 
@@ -1027,7 +1027,7 @@ set MONITORING_FORWARDEDHEADERS_KNOWNPROXIES=
 set MONITORING_FORWARDEDHEADERS_KNOWNNETWORKS=
 ```
 
-## Unit Tests
+## Unit tests
 
 Unit tests for the `ForwardedHeadersSettings` configuration class are located at:
 
@@ -1035,7 +1035,7 @@ Unit tests for the `ForwardedHeadersSettings` configuration class are located at
 src/ServiceControl.UnitTests/Infrastructure/Settings/ForwardedHeadersSettingsTests.cs
 ```
 
-## Acceptance Tests
+## Acceptance tests
 
 Acceptance tests for end-to-end forwarded headers behavior are located at:
 
@@ -1046,10 +1046,10 @@ src/ServiceControl.Monitoring.AcceptanceTests/Security/ForwardedHeaders/
 ```
 
 > [!NOTE]
-> Scenario 12 (IPv4/IPv6 Mismatch) is not covered by acceptance tests because the test server's IP address (IPv4 vs IPv6) cannot be controlled reliably. The "untrusted proxy" behavior is already validated by Scenarios 5 and 6.
+> Scenario 12 (IPv4/IPv6 mismatch) is not covered by acceptance tests because the test server's IP address (IPv4 vs IPv6) cannot be controlled reliably. The "untrusted proxy" behavior is already validated by Scenarios 5 and 6.
 
-## See Also
+## See also
 
-- [Hosting Guide](https://docs.particular.net/servicecontrol/security/hosting-guide) - Configuration reference for forwarded headers
-- [Reverse Proxy Testing](reverseproxy-testing.md) - Testing with a real reverse proxy (NGINX)
-- [Testing Architecture](testing-architecture.md) - Overview of testing patterns in this repository
+- [Hosting Guide](https://docs.particular.net/servicecontrol/security/hosting-guide): Configuration reference for forwarded headers
+- [Local testing with NGINX reverse proxy](reverseproxy-testing.md): Testing with a real reverse proxy (NGINX)
+- [Testing Architecture](testing-architecture.md): Overview of testing patterns in this repository

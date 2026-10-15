@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="NServiceBus" />
     <PackageReference Include="Particular.LicensingComponent.Report" />
   </ItemGroup>
 

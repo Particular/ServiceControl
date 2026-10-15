@@ -33,6 +33,13 @@
       groupSlug: "open-telemetry"
     },
     {
+      description:"Aspire packages and the Aspire.AppHost.Sdk MSBuild SDK",
+      matchDatasources: ["nuget"],
+      matchPackageNames: ["/^Aspire\\./"],
+      groupName: "Aspire",
+      groupSlug: "aspire"
+    },
+    {
       description: "Keep ServiceControl.Management.PowerShell on 8.x",
       matchFileNames: ["**/ServiceControl.Management.PowerShell.csproj"],
       matchPackageNames: ["Microsoft.Extensions.DependencyModel"],

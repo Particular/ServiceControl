@@ -26,7 +26,6 @@ public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration,
     internal const string MinBodySizeForCompressionKey = "MessageBody/MinCompressionSize";
     const string MaxBodySizeToStoreKey = "MaxBodySizeToStore";
     const string ErrorRetentionPeriodKey = "ErrorRetentionPeriod";
-    const string EventsRetentionPeriodKey = "EventsRetentionPeriod";
     internal const string SubscriptionCacheDurationKey = "SubscriptionCacheDuration";
     const string ExternalIntegrationsDispatchingBatchSizeKey = "ExternalIntegrationsDispatchingBatchSize";
 
@@ -41,7 +40,7 @@ public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration,
         settings.Schema = ReadSchema(settingsRootNamespace);
         settings.CommandTimeout = SettingsReader.Read(settingsRootNamespace, CommandTimeoutKey, EFPersisterSettings.DefaultCommandTimeout);
         settings.ErrorRetentionPeriod = GetRequiredSetting<TimeSpan>(settingsRootNamespace, ErrorRetentionPeriodKey);
-        settings.EventsRetentionPeriod = SettingsReader.Read(settingsRootNamespace, EventsRetentionPeriodKey, EFPersisterSettings.DefaultEventsRetentionPeriod);
+        settings.EventsRetentionPeriod = ReadEventsRetentionPeriod(settingsRootNamespace, EFPersisterSettings.DefaultEventsRetentionPeriod);
         settings.SubscriptionCacheDuration = SettingsReader.Read(settingsRootNamespace, SubscriptionCacheDurationKey, EFPersisterSettings.DefaultSubscriptionCacheDuration);
         settings.ExternalIntegrationsDispatchingBatchSize = ReadExternalIntegrationsDispatchingBatchSize(settingsRootNamespace);
         settings.QueryTimeout = QueryTimeLimit.Read(settingsRootNamespace, LoggerUtil.CreateStaticLogger<EFPersistenceConfigurationBase>());

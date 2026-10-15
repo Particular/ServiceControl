@@ -23,6 +23,7 @@ namespace ServiceControl.AcceptanceTests
     {
         public IDomainEvents DomainEvents => serviceControlRunnerBehavior.DomainEvents;
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
+        protected IServiceProvider ServiceProvider => serviceControlRunnerBehavior.ServiceProvider;
         public JsonSerializerOptions SerializerOptions => serviceControlRunnerBehavior.SerializerOptions;
         public Settings Settings => serviceControlRunnerBehavior.Settings;
 

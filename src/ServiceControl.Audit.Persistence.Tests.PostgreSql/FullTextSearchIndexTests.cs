@@ -19,7 +19,13 @@ namespace ServiceControl.Audit.Persistence.Tests
         [Test]
         public void Terms_are_ored()
         {
-            Assert.That(SearchQuery("forty two"), Does.Contain("='forty OR two'"));
+            Assert.That(SearchQuery("forty two"), Does.Contain("'forty' | 'two'"));
+        }
+
+        [Test]
+        public void A_trailing_star_makes_a_term_a_prefix()
+        {
+            Assert.That(SearchQuery("forty*"), Does.Contain("'forty':*"));
         }
 
         static string SearchQuery(string searchTerms)
