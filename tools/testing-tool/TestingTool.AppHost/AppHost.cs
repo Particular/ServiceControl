@@ -57,40 +57,20 @@ platform.AddServicePulse("pulse", primaryErrorInstance, platform.AddServiceContr
 // platform persistences; the SQL wiring is layered on with WithPersistenceType.
 var auditInstanceCount = options.GetValue("audit-instances", 1);
 
-if (auditInstanceCount > 0 && persistenceType != PersistenceType.RavenDb && string.IsNullOrWhiteSpace(imageTag))
-{
-    Console.WriteLine(
-        $"WARNING: --audit-instances with --persistence:{persistenceType} needs a servicecontrol-audit image that "
-        + "contains the EF audit persisters. They are newer than the latest release, so the default 'latest' tag "
-        + "will fail to start with \"Could not load persistence customization type\". Pass --tag with a prerelease "
-        + "that has them, or build the audit image locally.");
-}
-
-IResourceBuilder<ServiceControlAuditInstanceResource>? auditOwner = null;
-
 for (int i = 0; i < auditInstanceCount; i++)
 {
-    var audit = platform.AddServiceControlAuditInstance("audit" + i, primaryErrorInstance, raven)
+    //note: these audit instances are currently independant and are not scale out nodes like the error ingestion ones.
+    platform.AddServiceControlAuditInstance("audit" + i, primaryErrorInstance, raven)
         .WithEnvironment("SERVICECONTROL_AUDIT_INSTANCENAME", "Audit-" + i)
         .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", observability.Collector.GetEndpoint("otlp-grpc"))
         // Reports the audit ingestion and failed-import custom checks to the primary, which is the
         // only instance ServicePulse asks. Without it a failed audit import is invisible outside
         // the audit container's own log.
         .WithEnvironment("SERVICECONTROL_AUDIT_SERVICECONTROLQUEUEADDRESS", "Particular.ServiceControl")
+        .WithAuditQueueName(i == 0 ? "audit" : "audit" + i)
+        .WithRunMode(PlatformRunMode.SetupAndRun)
         .WithIngestionTuning()
         .WithPersistenceType(persistenceType);
-
-    if (auditOwner is null)
-    {
-        // One owner migrates the database and provisions partitions. Letting every instance run
-        // setup against the same database races the EF migrations. Later instances only run, and
-        // their retention sweep keeps partitions provisioned from then on.
-        auditOwner = audit.WithRunMode(PlatformRunMode.SetupAndRun);
-    }
-    else
-    {
-        audit.WithRunMode(PlatformRunMode.Run).WaitFor(auditOwner);
-    }
 }
 
 // --- Testing tool ---
