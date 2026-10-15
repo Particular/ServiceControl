@@ -14,7 +14,7 @@
         public override void Setup(Settings settings, IComponentInstallationContext context, IHostApplicationBuilder hostBuilder)
         {
             // Integration Events
-            if (!settings.DisableExternalIntegrationsPublishing)
+            if (settings.EnableExternalIntegrationsPublishing)
             {
                 context.AddEventPublished<CustomCheckFailed>();
                 context.AddEventPublished<CustomCheckSucceeded>();

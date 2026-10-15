@@ -84,7 +84,7 @@
             ErrorIngestionBatchSize = IngestionSettingsReader.ReadBatchSize(SettingsRootNamespace, nameof(ErrorIngestionBatchSize), ValidateConfiguration);
             ErrorIngestionMaxParallelWriters = IngestionSettingsReader.ReadMaxParallelWriters(SettingsRootNamespace, nameof(ErrorIngestionMaxParallelWriters), ValidateConfiguration);
             ErrorIngestionBatchTimeout = IngestionSettingsReader.ReadBatchTimeout(SettingsRootNamespace, nameof(ErrorIngestionBatchTimeout), ValidateConfiguration);
-            DisableExternalIntegrationsPublishing = SettingsReader.Read(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", false);
+            EnableExternalIntegrationsPublishing = ReadEnableExternalIntegrationsPublishing();
             TrackInstancesInitialValue = SettingsReader.Read(SettingsRootNamespace, "TrackInstancesInitialValue", true);
             ShutdownTimeout = SettingsReader.Read(SettingsRootNamespace, ShutdownTimeoutKey, ShutdownTimeout);
             AssemblyLoadContextResolver = static assemblyPath => new PluginAssemblyLoadContext(assemblyPath);
@@ -132,7 +132,7 @@
 
         public int ExternalIntegrationsDispatchingBatchSize => SettingsReader.Read(SettingsRootNamespace, ExternalIntegrationsDispatchingBatchSizeKey, 100);
 
-        public bool DisableExternalIntegrationsPublishing { get; set; }
+        public bool EnableExternalIntegrationsPublishing { get; set; }
 
         public bool RunCleanupBundle { get; set; }
 
@@ -303,6 +303,21 @@
             }
 
             return SettingsReader.Read(SettingsRootNamespace, "EventsRetentionPeriod", TimeSpan.FromDays(14));
+        }
+
+        bool ReadEnableExternalIntegrationsPublishing()
+        {
+            var legacyConfigured = SettingsReader.TryRead<bool>(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", out var disable);
+            var configured = SettingsReader.TryRead<bool>(SettingsRootNamespace, "EnableExternalIntegrationsPublishing", out var enable);
+
+            if (legacyConfigured && configured)
+            {
+                const string message = "EnableExternalIntegrationsPublishing and the legacy DisableExternalIntegrationsPublishing settings cannot both be configured, please remove DisableExternalIntegrationsPublishing";
+                logger.LogCritical(message);
+                throw new Exception(message);
+            }
+
+            return legacyConfigured ? !disable : enable;
         }
 
         TimeSpan GetErrorRetentionPeriod()
