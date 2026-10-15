@@ -1,0 +1,113 @@
+# Experiment: does pinning WSL to 2.7.12 (the last version before the runner image bump in
+# September 2026) stop the Setup WSL stalls? Two arms, four container categories, twenty
+# iterations each. A stalled job shows up as cancelled at the job timeout with Setup WSL still
+# running. Temporary; delete the branch when the experiment is done.
+name: WSL stall experiment
+on:
+  push:
+    branches:
+      - wsl-stall-experiment
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  DOTNET_NOLOGO: true
+defaults:
+  run:
+    shell: pwsh
+jobs:
+  probe:
+    name: ${{ matrix.arm }}-${{ matrix.test-category }}-${{ matrix.iteration }}
+    runs-on: windows-latest
+    # A healthy job finishes in about six minutes. A stall never finishes, so cap it early.
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        arm: [ image-wsl, wsl-2.7.12 ]
+        test-category: [ SqlServer, PostgreSql, RabbitMQ, IBMMQ ]
+        iteration: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Move NuGet caches to the temp drive
+        uses: ./.github/actions/nuget-cache-location
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Determine runtime version
+        run: |
+          [xml]$xml = Get-Content ./src/Custom.Build.props
+          $runtimeVersion = $xml.selectNodes('/Project/PropertyGroup/RuntimeFrameworkVersion').InnerText
+          if (-not ($runtimeVersion)) {
+            throw "Missing RuntimeFrameworkVersion setting in Custom.Build.props"
+          }
+          echo "RuntimeVersion=$runtimeVersion" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+      - name: Install .NET Runtime on Windows
+        run: |
+          ./tools/dotnet-install.ps1 -SkipNonVersionedFiles -InstallDir "C:\Program Files\dotnet" -Runtime dotnet -Version ${{ env.RuntimeVersion }}
+          ./tools/dotnet-install.ps1 -SkipNonVersionedFiles -InstallDir "C:\Program Files\dotnet" -Runtime aspnetcore -Version ${{ env.RuntimeVersion }}
+          ./tools/dotnet-install.ps1 -SkipNonVersionedFiles -InstallDir "C:\Program Files\dotnet" -Runtime windowsdesktop -Version ${{ env.RuntimeVersion }}
+      - name: Select test projects
+        run: ./tools/select-test-projects.ps1 -Category ${{ matrix.test-category }}
+      - name: Runner details
+        run: |
+          Write-Host "ImageOS=$env:ImageOS ImageVersion=$env:ImageVersion"
+          (wsl.exe --version) -replace "`0", '' | Where-Object { $_ } | Out-Host
+          Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall', 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall' -ErrorAction SilentlyContinue |
+            Get-ItemProperty |
+            Where-Object { $_.DisplayName -like 'Windows Subsystem for Linux*' } |
+            ForEach-Object { Write-Host "Installed MSI: $($_.DisplayName) $($_.DisplayVersion) $($_.PSChildName)" }
+          Get-AppxPackage -AllUsers -Name 'MicrosoftCorporationII.WindowsSubsystemForLinux' -ErrorAction SilentlyContinue |
+            ForEach-Object { Write-Host "Installed Appx: $($_.PackageFullName)" }
+          $global:LASTEXITCODE = 0
+      - name: Pin WSL to 2.7.12
+        if: matrix.arm == 'wsl-2.7.12'
+        run: |
+          $target = '2.7.12.0'
+          $msi = Join-Path $env:RUNNER_TEMP 'wsl.2.7.12.0.x64.msi'
+          curl.exe -fsSL --retry 3 -o $msi 'https://github.com/microsoft/WSL/releases/download/2.7.12/wsl.2.7.12.0.x64.msi'
+          if ($LASTEXITCODE -ne 0) { throw "Download failed with curl exit code $LASTEXITCODE" }
+          $hash = (Get-FileHash -LiteralPath $msi -Algorithm SHA256).Hash
+          Write-Host "Downloaded $msi ($((Get-Item $msi).Length) bytes, SHA-256 $hash)"
+
+          # The image ships WSL as an MSI. msiexec refuses to downgrade in place, so remove it first.
+          $installed = Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall', 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall' -ErrorAction SilentlyContinue |
+            Get-ItemProperty |
+            Where-Object { $_.DisplayName -like 'Windows Subsystem for Linux*' -and $_.PSChildName -match '^\{' }
+          foreach ($product in $installed) {
+            Write-Host "Uninstalling $($product.DisplayName) $($product.DisplayVersion) ($($product.PSChildName))"
+            $p = Start-Process msiexec.exe -ArgumentList "/x $($product.PSChildName) /qn /norestart" -Wait -PassThru
+            if ($p.ExitCode -notin 0, 3010, 1605) { throw "Uninstall failed with msiexec exit code $($p.ExitCode)" }
+          }
+          Get-AppxPackage -AllUsers -Name 'MicrosoftCorporationII.WindowsSubsystemForLinux' -ErrorAction SilentlyContinue |
+            ForEach-Object {
+              Write-Host "Removing Appx $($_.PackageFullName)"
+              Remove-AppxPackage -Package $_.PackageFullName -AllUsers -ErrorAction Continue
+            }
+
+          Write-Host "Installing WSL $target"
+          $p = Start-Process msiexec.exe -ArgumentList "/i `"$msi`" /qn /norestart" -Wait -PassThru
+          if ($p.ExitCode -notin 0, 3010) { throw "Install failed with msiexec exit code $($p.ExitCode)" }
+
+          $version = (wsl.exe --version) -replace "`0", '' | Where-Object { $_ }
+          $version | Out-Host
+          $reported = ($version | Select-String -Pattern 'WSL version:\s*(\S+)').Matches.Groups[1].Value
+          if ($reported -ne $target) { throw "Expected WSL $target after pinning, but wsl --version reports '$reported'" }
+          $global:LASTEXITCODE = 0
+      - name: Build
+        id: build
+        background: true
+        timeout-minutes: 5
+        run: dotnet build tests.proj --configuration Release -graph
+      - name: Setup WSL
+        uses: Particular/setup-wsl-action@7e67069143b27e935a5c156d4c5319a7f152f6e8
+        timeout-minutes: 5
+        with:
+          memory: 8GB
+          enable-cache: false
+      - name: Wait for build
+        wait: build
