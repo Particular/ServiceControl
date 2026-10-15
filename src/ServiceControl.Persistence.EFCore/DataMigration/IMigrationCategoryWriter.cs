@@ -9,7 +9,9 @@ using ServiceControl.Persistence.DataMigration;
 /// </summary>
 interface IMigrationCategoryWriter
 {
-    /// <summary>The category this writer handles, named as in <see cref="MigrationCategoryIds" />.</summary>
+    /// <summary>
+    /// The category this writer handles, named as in <see cref="MigrationCategoryIds" />.
+    /// </summary>
     string CategoryId { get; }
 
     /// <summary>
@@ -25,7 +27,8 @@ interface IMigrationCategoryWriter
     int BatchSize(ServiceControlDbContext dbContext);
 
     /// <summary>
-    /// Turns one batch of source documents into the rows to insert and the rows to skip, writing nothing: the insert it returns runs later, inside the target's transaction.
+    /// Turns one batch of source documents into the rows to insert and the rows to skip, writing nothing to the database: the insert it returns runs later, inside the target's transaction.
+    /// A writer may store data its rows point at outside the database, such as message bodies, because that data has to exist before the insert commits.
     /// Every batch row produces exactly one row or exactly one skip, never both and never neither, because the target works out how many were already there by subtracting both from the batch size.
     /// </summary>
     Task<PreparedBatch> Prepare(ServiceControlDbContext dbContext, MigrationBatch batch, CancellationToken cancellationToken = default);

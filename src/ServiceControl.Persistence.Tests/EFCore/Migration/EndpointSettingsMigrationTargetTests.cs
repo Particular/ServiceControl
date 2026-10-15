@@ -7,7 +7,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using ServiceControl.Persistence.DataMigration;
+using ServiceControl.Persistence.EFCore.DataMigration.Writers;
 using ServiceControl.Persistence.EFCore.DbContexts;
+using ServiceControl.Persistence.EFCore.Entities;
+using ServiceControl.Persistence.EFCore.Infrastructure;
 
 class EndpointSettingsMigrationTargetTests : PersistenceTestBase
 {
@@ -75,6 +78,31 @@ class EndpointSettingsMigrationTargetTests : PersistenceTestBase
             Assert.That(result.Skipped, Is.Zero, "whether a setting outlives its endpoint is the heartbeat sync's rule, not the migration's");
             Assert.That(await TrackInstancesFor(string.Empty), Is.True);
             Assert.That(await TrackInstancesFor("Retired"), Is.False);
+        }
+    }
+
+    [Test]
+    public async Task A_setting_whose_name_is_longer_than_its_column_is_skipped_as_value_too_long_and_the_rest_copy()
+    {
+        var batch = BatchOf(
+            ("EndpointSettings/1", new EndpointSettings { Name = new string('s', 450), TrackInstances = true }),
+            ("EndpointSettings/2", new EndpointSettings { Name = new string('n', 451), TrackInstances = true }),
+            ("EndpointSettings/3", new EndpointSettings { Name = "Billing", TrackInstances = false }));
+
+        var details = await PreparedSkips.DetailsFrom(ServiceProvider, new EndpointSettingsWriter(ServiceProvider.GetRequiredService<IMigrationSqlDialect>()), batch);
+        var result = await Target.Write(EndpointSettingsCategory, batch, CheckpointAfter("EndpointSettings/3"));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Copied, Is.EqualTo(2), "a name exactly as long as its column fits");
+            Assert.That(result.SkippedIds, Is.EqualTo(new[] { "EndpointSettings/2" }));
+            Assert.That(result.SkipReasons, Is.EqualTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.ValueTooLong] = 1 }), "an over-long value would fail the whole insert and halt the category");
+            Assert.That(await TrackInstancesFor(new string('s', 450)), Is.True);
+            Assert.That(await TrackInstancesFor("Billing"), Is.False);
+            Assert.That(details, Is.EqualTo(new[]
+            {
+                $"{PreparedSkips.TableAndColumnOf<EndpointSettingsEntity>(ServiceProvider, nameof(EndpointSettingsEntity.Name))} takes at most 450 characters and the value holds 451, on document 'EndpointSettings/2'"
+            }));
         }
     }
 

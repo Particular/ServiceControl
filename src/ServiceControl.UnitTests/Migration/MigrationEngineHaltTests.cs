@@ -14,7 +14,8 @@ using ServiceControl.UnitTests.Migration.Fakes;
 [TestFixture]
 class MigrationEngineHaltTests
 {
-    static MigrationRow Row(string id) => new(id, new object(), new Dictionary<string, object?>());
+    // A body already attached, so the engine reads none and a row is lost only where a test rejects it.
+    static MigrationRow Row(string id) => new(id, new object(), new Dictionary<string, object?>(), new MigrationBody(new byte[] { 1 }, "application/octet-stream"));
 
     [Test]
     public async Task A_systemic_failure_halts_the_category_partway_through()

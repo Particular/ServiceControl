@@ -40,7 +40,6 @@ public interface IMigrationSource : IAsyncDisposable
     /// <summary>
     /// Reads a category in batches, after the checkpoint cursor, or from the start when it is null. Throws on a cursor it never issued.
     /// </summary>
-    /// <param name="batchSize">A ceiling, not a target: returning fewer costs nothing, returning more fails the target's write.</param>
     IAsyncEnumerable<MigrationBatch> Read(
         MigrationCategory category,
         string? resumeAfter,
@@ -48,7 +47,8 @@ public interface IMigrationSource : IAsyncDisposable
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Reads one row's message body when Read did not attach it. Returns null when the row has no body.
+    /// Reads one row's message body when Read did not attach it. The engine calls it only for a category that
+    /// carries bodies, and only for a row whose body Read left null. Returns null when the source has no body for the row.
     /// </summary>
     Task<MigrationBody?> ReadBody(MigrationCategory category, string sourceId, CancellationToken cancellationToken = default);
 

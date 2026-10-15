@@ -33,7 +33,13 @@ public static class MigrationSkipReasonExtensions
                or MigrationSkipReason.BlankGroupComment;
 
     /// <summary>
-    /// Whether no retry can fix a row skipped for this reason, because the row itself can never be stored.
+    /// Whether no retry can fix a row skipped for this reason.
     /// </summary>
-    public static bool IsPermanent(this MigrationSkipReason reason) => reason is MigrationSkipReason.RequiredValueMissing;
+    public static bool IsPermanent(this MigrationSkipReason reason) =>
+        reason is MigrationSkipReason.RequiredValueMissing
+               or MigrationSkipReason.UnparseableUniqueMessageId
+               or MigrationSkipReason.NoProcessingAttempts
+               or MigrationSkipReason.ValueTooLong
+               or MigrationSkipReason.MalformedValue
+               or MigrationSkipReason.BodyMissing;
 }

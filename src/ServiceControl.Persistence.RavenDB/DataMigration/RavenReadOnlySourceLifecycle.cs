@@ -9,6 +9,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
 using Particular.LicensingComponent.Contracts;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Conventions;
@@ -16,7 +17,9 @@ using Raven.Client.Documents.Operations;
 using Raven.Client.Documents.Session;
 using Raven.Client.Exceptions.Database;
 using Raven.Client.Exceptions.Security;
+using Raven.Client.Json.Serialization.NewtonsoftJson;
 using ServiceControl.Configuration;
+using ServiceControl.Contracts.Operations;
 using ServiceControl.RavenDB;
 
 /// <summary>
@@ -142,7 +145,11 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, Setti
         {
             Database = settings.DatabaseName,
             Urls = [serverUrl],
-            Conventions = new DocumentConventions { SaveEnumsAsIntegers = true }
+            Conventions = new DocumentConventions
+            {
+                SaveEnumsAsIntegers = true,
+                Serialization = new NewtonsoftJsonSerializationConventions { CustomizeJsonDeserializer = serializer => serializer.Converters.Add(new FailureDetailsConverter()) }
+            }
         };
 
         if (!settings.UseEmbeddedServer)
@@ -236,5 +243,25 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, Setti
         public void StopApplication()
         {
         }
+    }
+
+    // The FailureDetails constructor sets TimeOfFailure to now. Starting from the default instead lets the mapper see a stored attempt that has no time.
+    sealed class FailureDetailsConverter : JsonConverter<FailureDetails>
+    {
+        public override FailureDetails? ReadJson(JsonReader reader, Type objectType, FailureDetails? existingValue, bool hasExistingValue, JsonSerializer serializer)
+        {
+            if (reader.TokenType == JsonToken.Null)
+            {
+                return null;
+            }
+
+            var details = new FailureDetails { AddressOfFailingEndpoint = string.Empty, TimeOfFailure = default };
+            serializer.Populate(reader, details);
+
+            return details;
+        }
+
+        public override void WriteJson(JsonWriter writer, FailureDetails? value, JsonSerializer serializer) =>
+            throw new NotSupportedException("The migration source only reads, so it never writes a FailureDetails.");
     }
 }
