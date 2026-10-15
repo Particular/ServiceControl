@@ -25,6 +25,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
         {
             var externalProcessorSubscribed = false;
 
+            SetSettings = settings => settings.EnableExternalIntegrationsPublishing = true;
             CustomConfiguration = config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
                 if (s.SubscriberReturnAddress.IndexOf("ExternalProcessor", StringComparison.OrdinalIgnoreCase) >= 0)

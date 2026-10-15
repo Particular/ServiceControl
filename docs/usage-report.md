@@ -133,7 +133,7 @@ The primary's `TransportEnvironmentDataProvider` emits `Transport.Type` and adds
 | --- | --- | --- | --- |
 | `Features.IntegratedServicePulse` | `Enabled`, `Disabled` | `ServiceControl/EnableIntegratedServicePulse` | 6.13.0 |
 | `Features.MessageEditing` | `Enabled`, `Disabled` | `ServiceControl/AllowMessageEditing` | 6.20.0 |
-| `Features.ExternalIntegrationsPublishing` | `Enabled`, `Disabled` | `ServiceControl/DisableExternalIntegrationsPublishing`, inverted | 6.20.0 |
+| `Features.ExternalIntegrationsPublishing` | `Enabled`, `Disabled` | `ServiceControl/EnableExternalIntegrationsPublishing`, or the legacy `ServiceControl/DisableExternalIntegrationsPublishing` inverted | 6.20.0 |
 | `Features.ForwardErrorMessages` | `Enabled`, `Disabled` | `ServiceControl/ForwardErrorMessages` | 6.20.0 |
 | `Features.EmailNotifications` | `Enabled`, `Disabled`, `NotConfigured` | the stored email settings | 6.20.0 |
 | `Features.ErrorIngestion` | `Enabled`, `Disabled` | `ServiceControl/IngestErrorMessages` | Unreleased |
