@@ -110,9 +110,9 @@ By default, the migration copies all the optional data that RavenDB still holds 
 
 ## Step 4: Run the dry run
 
-The dry run reads RavenDB and tells you what the migration will do, including a range for how long ServiceControl will be closed. It does not write anything. Run it with the `--migration-dry-run` argument, in the same way as the source report. [The overview](ravendb-to-sql-migration-overview.md#the-dry-run) lists what it reports.
+The dry run reads RavenDB and tells you what the migration will do, including an estimate of how long ServiceControl will be closed. It does not write anything. Run it with the `--migration-dry-run` argument, in the same way as the source report. [The overview](ravendb-to-sql-migration-overview.md#the-dry-run) lists what it reports.
 
-Book the outage from the range in the report. The range is the shortest time the outage can take, not a promise. If the report says that a required category will end Failed and that a retry cannot fix it, plan to abandon that category after it fails.
+Book the outage from the estimate in the report, and add a margin. It is an estimate, not a promise. If the report says that a required category will end Failed and that a retry cannot fix it, plan to abandon that category after it fails.
 
 ## Step 5: Back up RavenDB
 

@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.Infrastructure;
 
+using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -121,8 +122,9 @@ public sealed class MigrationInsert<TEntity> where TEntity : class
     /// Runs one insert statement over a chunk of rows and returns the rows of that chunk it inserted.
     /// The statement reads parameters named @p0 upward, row after row in <see cref="Columns"/> order, and must return the <see cref="KeyColumns"/> of each row it inserted, in that order.
     /// It runs on the caller's open transaction, and throws when there is none or when a returned key matches no row of the chunk.
+    /// Each parameter is built from EF Core's type mapping and then passed, with its property, to <paramref name="configureParameter"/> when one is given, so a provider can change how it is declared.
     /// </summary>
-    public async Task<IReadOnlyList<TEntity>> Execute(ServiceControlDbContext dbContext, string sql, TEntity[] chunk, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<TEntity>> Execute(ServiceControlDbContext dbContext, string sql, TEntity[] chunk, Action<IProperty, DbParameter>? configureParameter, CancellationToken cancellationToken = default)
     {
         await using var command = dbContext.Database.GetDbConnection().CreateCommand();
         command.Transaction = (dbContext.Database.CurrentTransaction
@@ -137,7 +139,9 @@ public sealed class MigrationInsert<TEntity> where TEntity : class
             foreach (var property in properties)
             {
                 // The mapping applies the value converter and the provider type, as EF's own inserts do.
-                command.Parameters.Add(property.GetRelationalTypeMapping().CreateParameter(command, $"@p{index++}", property.GetGetter().GetClrValue(row), property.IsNullable));
+                var parameter = property.GetRelationalTypeMapping().CreateParameter(command, $"@p{index++}", property.GetGetter().GetClrValue(row), property.IsNullable);
+                configureParameter?.Invoke(property, parameter);
+                command.Parameters.Add(parameter);
             }
         }
 

@@ -430,7 +430,7 @@ The dry run never writes to RavenDB, and can run again later against whatever is
 - Whether the source is embedded or external, and which server.
 - Both RavenDB database names, and the setting each came from.
 - Rows and body volume per category, counting only what is inside each window.
-- **A range for how long ServiceControl will be closed. The range is a floor, not a promise:** it times counting the rows and sizing the bodies, not reading every row and body or writing to SQL, so the required copy can take longer.
+- An estimate of how long ServiceControl will be closed.
 - **A duration for each optional category**, timed from a sample of its rows and bodies plus the pause between batches. ServiceControl is open while these copy.
 - The result of the same startup checks a real start runs, so a missing setting surfaces before anyone books an outage.
 - How many failed error imports there are, with advice to run `--import-failed-errors` on RavenDB first. They are copied either way, but ones imported first arrive as ordinary failed messages.

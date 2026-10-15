@@ -41,6 +41,7 @@ class PostgreSqlMigrationSqlDialect : PostgreSqlDialect, IMigrationSqlDialect
                  RETURNING {keyColumns}
                  """,
                 chunk,
+                configureParameter: null,
                 cancellationToken));
         }
 
