@@ -17,7 +17,7 @@ static class MessageHeaders
         // The relaxed encoder is only unsafe for JSON embedded in HTML, and this JSON never reaches HTML. Full text search needs apostrophes, plus signs and non-ASCII letters written as they are, or it cannot find the words next to them.
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
 
-        // Without whitespace between the entries, the SQL Server word breaker keeps JSON quotes on the words near an email address or a URL. A search for those words then finds nothing.
+        // In compact JSON, SQL Server's word breaker keeps JSON quotes and colons on the words before an email address or a URL, and a search cannot find those words. An indent of 0 adds only the whitespace that stops this: a line break after each entry and a space after each colon.
         WriteIndented = true,
         IndentSize = 0
     });

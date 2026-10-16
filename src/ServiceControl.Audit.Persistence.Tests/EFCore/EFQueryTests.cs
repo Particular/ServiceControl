@@ -92,12 +92,26 @@ namespace ServiceControl.Audit.Persistence.Tests
             Assert.That(found.Results.Select(view => view.MessageId), Is.EqualTo(new[] { "billing-1234-5678" }));
         }
 
-        // The SQL Server word breaker keeps JSON quotes on the words near an email address unless the header entries are spaced apart.
-        // It only reaches a few hundred characters, so the content type header is left out to keep the address close to the id.
+        // In compact JSON, SQL Server's word breaker keeps JSON quotes and colons on words up to a few hundred characters before an email address.
+        // The reply-to address goes straight after the id, so the test does not depend on how many headers MakeMessage writes.
         [Test]
         public async Task Finds_the_message_id_when_a_header_after_it_looks_like_an_email_address()
         {
-            await Ingest(MakeMessage(messageId: "billing-3333-5678", contentType: null, extraHeaders: new Dictionary<string, string> { ["NServiceBus.ReplyToAddress"] = "Sales@web01.corp.example.com" }));
+            var message = MakeMessage(messageId: "billing-3333-5678");
+            var headers = new Dictionary<string, string>
+            {
+                [Headers.MessageId] = "billing-3333-5678",
+                [Headers.ReplyToAddress] = "Sales@web01.corp.example.com"
+            };
+
+            foreach (var header in message.Headers)
+            {
+                headers.TryAdd(header.Key, header.Value);
+            }
+
+            message.Headers = headers;
+
+            await Ingest(message);
 
             var found = await MessagesViewStore.QueryMessages("billing-3333-5678", new PagingInfo(), new SortInfo("time_sent", "desc"));
 
