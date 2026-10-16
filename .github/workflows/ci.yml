@@ -57,9 +57,9 @@ jobs:
         uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
-      - name: Upgrade Azure CLI
+      - name: Pin Azure CLI
         if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues'
-        uses: ./.github/actions/upgrade-azure-cli
+        uses: ./.github/actions/pin-azure-cli
       - name: Move NuGet caches to the temp drive
         uses: ./.github/actions/nuget-cache-location
       - name: Setup .NET SDK
