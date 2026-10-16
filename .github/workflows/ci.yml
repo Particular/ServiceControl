@@ -117,12 +117,29 @@ jobs:
       # five minute failure instead of a thirty minute one.
       - name: Setup WSL
         if: contains(fromJSON('["RabbitMQ", "SqlServer", "PostgreSql", "IBMMQ"]'), matrix.test-category)
-        uses: Particular/setup-wsl-action@v1.2.0
+        uses: Particular/setup-wsl-action@7e67069143b27e935a5c156d4c5319a7f152f6e8
+        env:
+          SETUP_WSL_DIAGNOSTICS: 'true'
         timeout-minutes: 5
         with:
           # The action defaults to 4GB. The runner has 16GB and the build runs concurrently with the
           # container starting up, so give the VM real headroom.
           memory: 8GB
+          enable-cache: false
+      - name: Stop interrupted traces
+        if: always() && runner.os == 'Windows' && contains(fromJSON('["RabbitMQ", "SqlServer", "PostgreSql", "IBMMQ"]'), matrix.test-category)
+        shell: pwsh
+        run: |
+          if ($env:SETUP_WSL_DIAGNOSTICS_CLEANUP_PATH) {
+            & $env:SETUP_WSL_DIAGNOSTICS_CLEANUP_PATH
+          }
+      - name: Upload WSL diagnostics
+        if: always() && runner.os == 'Windows' && contains(fromJSON('["RabbitMQ", "SqlServer", "PostgreSql", "IBMMQ"]'), matrix.test-category)
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: wsl-diagnostics
+          path: ${{ env.SETUP_WSL_DIAGNOSTICS_PATH }}
+          retention-days: 7          
       - name: Setup SQL Server
         uses: Particular/install-sql-server-action@v3.0.0
         if: matrix.test-category == 'SqlServer'
