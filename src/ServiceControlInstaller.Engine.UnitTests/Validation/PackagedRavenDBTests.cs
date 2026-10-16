@@ -77,10 +77,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             finally
             {
                 await StopServer();
-                if (Directory.Exists(root))
-                {
-                    FileUtils.DeleteDirectory(root, recursive: true, contentsOnly: false);
-                }
+                await TryDeleteDirectory(root);
             }
 
             async Task StartServer()
@@ -151,6 +148,30 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
                 {
                     server.Dispose();
                     server = null;
+                }
+            }
+        }
+
+        // Cleanup of the temp folder must not fail the test; Directory.Delete keeps the path stable across retries.
+        static async Task TryDeleteDirectory(string root, int attempts = 5, TimeSpan? delay = null)
+        {
+            var retryDelay = delay ?? TimeSpan.FromMilliseconds(500);
+            for (var attempt = 1; Directory.Exists(root); attempt++)
+            {
+                try
+                {
+                    Directory.Delete(root, recursive: true);
+                    return;
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    if (attempt == attempts)
+                    {
+                        TestContext.Out.WriteLine($"WARNING: Could not delete '{root}' after {attempts} attempts: {ex}");
+                        return;
+                    }
+
+                    await Task.Delay(retryDelay * attempt);
                 }
             }
         }
