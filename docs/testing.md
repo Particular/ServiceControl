@@ -20,6 +20,8 @@ Installation engine tests run partial installations and check:
 - That the generated configuration is correct.
 - That transport and persistence are correctly extracted.
 
+On Windows, [PackagedRavenDBTests](../src/ServiceControlInstaller.Engine.UnitTests/Validation/PackagedRavenDBTests.cs) starts the server extracted from the installer's embedded `RavenDBServer.zip`. It verifies the native Kafka dependencies are absent and checks document persistence and indexing before and after a restart. These tests run in the `Windows-DefaultCore` CI job; the `Windows-Raven` tests use the separate server files supplied by `RavenDB.Embedded`.
+
 ## Persistence tests
 
 Persistence tests check assumptions at the persistence seam level by exercising each persister.
