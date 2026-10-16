@@ -29,10 +29,9 @@ namespace ServiceControl.AcceptanceTests.Recoverability
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
+    using ServiceControl.Persistence.DataMigration;
     using ServiceControl.Persistence.EFCore.DbContexts;
     using ServiceControl.Persistence.EFCore.Entities;
-    using ServiceControl.Persistence.EFCore.Infrastructure;
-    using ServiceControl.Recoverability;
     using ServiceControl.Transports;
 
     class When_hosting_error_ingestion_only : AcceptanceTest
@@ -97,8 +96,35 @@ namespace ServiceControl.AcceptanceTests.Recoverability
             "InternalCustomChecksHostedService",    // reports this node's ingestion health to the database
             "MetricsReporterHostedService",
             "HealthCheckPublisherHostedService",  // inert, no IHealthCheckPublisher is registered
-            "ExternalIntegrationRequestsDataStore"  // its drain is inert here, nothing calls Subscribe
+            "ExternalIntegrationRequestsDataStore",  // its drain is inert here, nothing calls Subscribe
+            "FinishedCopyBeforeAnIngestionNodeOpens"  // keeps this node out of a database a copy has not finished filling
         ];
+
+        [Test]
+        public async Task Should_refuse_to_start_while_a_copy_into_the_database_is_unfinished()
+        {
+            var settings = await CreateSettings();
+
+            await new SetupCommand().Execute(new HostArguments([]), settings);
+
+            var host = ErrorIngestionOnlyCommand.BuildHost(settings);
+
+            try
+            {
+                await host.Services.GetRequiredService<IMigrationCheckpointStore>().Upsert(
+                    new MigrationCheckpoint(MigrationCategoryIds.KnownEndpoints, MigrationCategoryState.Halted, null, 0, 0, null, null, null, null, null, "The source stopped responding."));
+
+                var exception = Assert.ThrowsAsync<Exception>(() => host.StartAsync());
+
+                Assert.That(exception.Message, Does.Contain("has not finished")
+                    .And.Contain(MigrationCategoryIds.KnownEndpoints)
+                    .And.Contain("--migration-abandon KnownEndpoints"));
+            }
+            finally
+            {
+                await host.DisposeAsync();
+            }
+        }
 
         [Test]
         public void Should_refuse_to_start_against_unsupported_storage()
@@ -204,6 +230,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability
                 await new SetupCommand().Execute(new HostArguments([]), settings);
 
                 host = ErrorIngestionOnlyCommand.BuildHost(settings);
+                host.Urls.Clear();
                 host.Urls.Add("https://127.0.0.1:0");
 
                 await host.StartAsync();
