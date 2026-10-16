@@ -11,6 +11,7 @@ using ServiceControl.Contracts.CustomChecks;
 using ServiceControl.CustomChecks;
 using ServiceControl.Infrastructure.DomainEvents;
 using ServiceControl.Operations;
+using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.EFCore.Infrastructure.Metrics;
 
@@ -67,6 +68,12 @@ class RetentionSweepCustomCheckTests : PersistenceTestBase
     [Test]
     public async Task Check_does_not_expire_with_time()
     {
+        // The hourly sweeper shares the fake clock, so advancing it by two hours lets sweeps run in
+        // the background. Subtracting this retention period from the clock cannot be represented, so
+        // those sweeps fail as well and keep the failure alive: the alert has to survive the passage
+        // of time and clear only on a fully successful sweep.
+        ((EFPersisterSettings)PersistenceSettings).ErrorRetentionPeriod = TimeSpan.FromDays(1_000_000);
+
         State.ReportError(RetentionEntity.FailedMessages, "db timeout");
         CompleteThreeSweeps();
         AdvanceClock(TimeSpan.FromHours(2));

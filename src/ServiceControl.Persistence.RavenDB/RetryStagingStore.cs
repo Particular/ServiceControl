@@ -158,7 +158,7 @@
                 using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
                 var documentStore = await documentStoreProvider.GetDocumentStore(cancellationToken);
 
-                var batch = new SingleNodeBatchCommand(documentStore.Conventions, session.Advanced.Context, commands);
+                var batch = new SingleNodeBatchCommand(documentStore.Conventions, commands);
                 await session.Advanced.RequestExecutor.ExecuteAsync(batch, session.Advanced.Context, token: cancellationToken);
             }
             catch (ConcurrencyException)
