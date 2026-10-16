@@ -77,9 +77,18 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             finally
             {
                 await StopServer();
-                if (Directory.Exists(root))
+                try
                 {
-                    FileUtils.DeleteDirectory(root, recursive: true, contentsOnly: false);
+                    if (Directory.Exists(root))
+                    {
+                        FileUtils.DeleteDirectory(root, recursive: true, contentsOnly: false);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // The server files can stay locked for a moment after the process exits. The temp folder is not
+                    // what the test verifies, so a failed cleanup must not fail the test.
+                    Assert.Warn($"Failed to delete {root}: {ex}");
                 }
             }
 
