@@ -63,7 +63,13 @@ public class ServiceControlInformation : SharedServiceControlEditorViewModel
         EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.First(p => p.Value); //Default to On.
         EnableIntegratedServicePulse = EnableIntegratedServicePulseOptions.First(p => p.Value); //Default to On.
         ViewModelParent = viewModelParent;
-        SelectedStorageType = StorageTypes.First();
+
+        // Only auto-select when there's no real choice to make (picker hidden, RavenDB-only);
+        // otherwise leave it unselected so the combo box shows "Please Select...", like transport.
+        if (StorageTypes.Count() == 1)
+        {
+            SelectedStorageType = StorageTypes.First();
+        }
     }
 
     public int MaximumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMaxInDays;

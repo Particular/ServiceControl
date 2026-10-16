@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ServiceControl.Config": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ServiceControl_IncludePersistencePicker": "true"
+      }
+    }
+  }
+}
