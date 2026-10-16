@@ -31,6 +31,8 @@
 
             var confirmation = deleteInstanceConfirmation();
             confirmation.InstanceName = model.Name;
+            confirmation.StorageDisplayName = model.ServiceControlInstance.PersistenceManifest.DisplayName;
+            confirmation.HasCleanableStoragePaths = model.ServiceControlInstance.HasCleanableStoragePaths;
             var isConfirmed = await windowManager.ShowDialogAsync(confirmation);
             if (isConfirmed == true)
             {

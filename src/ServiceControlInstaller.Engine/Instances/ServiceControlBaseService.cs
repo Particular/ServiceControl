@@ -40,6 +40,11 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public bool InMaintenanceMode { get; set; }
         public ReportCard ReportCard { get; set; }
+        public PersistenceManifest PersistenceManifest { get; set; }
+
+        // False when this instance's storage lives outside anything ServiceControl manages locally
+        // (e.g. an external SQL Server/PostgreSQL database) - there's nothing on disk to clean up.
+        public bool HasCleanableStoragePaths => PersistenceManifest.SettingsWithPathsToCleanup.Length > 0;
 
         /// <summary>
         /// Raven management URL

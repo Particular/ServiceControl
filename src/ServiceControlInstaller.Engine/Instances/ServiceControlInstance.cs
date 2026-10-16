@@ -52,8 +52,6 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public List<RemoteInstanceSetting> RemoteInstances { get; set; } = [];
 
-        public PersistenceManifest PersistenceManifest { get; set; }
-
         public string PersistenceConnectionString { get; set; }
 
         public void AddRemoteInstance(string apiUri)
@@ -242,26 +240,18 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override IEnumerable<string> GetPersistencePathsToCleanUp()
         {
-            string[] keys =
-            [
-                "Raven/IndexStoragePath",
-                "Raven/CompiledIndexCacheDirectory",
-                "Raven/Esent/LogsPath",
-                ServiceControlSettings.DBPath.Name
-            ];
-
             var settings = AppConfig.Config.AppSettings.Settings;
-            foreach (var key in keys)
+            foreach (var key in PersistenceManifest.SettingsWithPathsToCleanup)
             {
                 if (!settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
                 {
                     continue;
                 }
 
-                var folderpath = settings[key].Value;
-                yield return folderpath.StartsWith("~") //Raven uses ~ to indicate path is relative to bin folder e.g. ~/Data/Logs
-                    ? Path.Combine(InstallPath, folderpath.Remove(0, 1))
-                    : folderpath;
+                var folderPath = settings[key].Value;
+                yield return folderPath.StartsWith("~") //Raven uses ~ to indicate path is relative to bin folder e.g. ~/Data/Logs
+                    ? Path.Combine(InstallPath, folderPath.Remove(0, 1))
+                    : folderPath;
             }
         }
     }
