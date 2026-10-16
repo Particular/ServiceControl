@@ -27,6 +27,8 @@ On Windows, [PackagedRavenDBTests](../src/ServiceControlInstaller.Engine.UnitTes
 Persistence tests check assumptions at the persistence seam level by exercising each persister.
 For local setup details, see [Local testing of persistence providers](testing-persistence.md).
 
+The RavenDB persistence test projects contain an `IndexDefinitionApprovals` test that approves the definition of every index the persister deploys. RavenDB rebuilds an index side by side when its definition changes, and the rebuild of a large database can take days. When the test fails, record the changed indexes in the upgrade guide of the next release before you approve the new definition. An operator who locked an index must unlock it to receive the change.
+
 ## Transport tests
 
 Transport tests run the transport test suite for each transport.
