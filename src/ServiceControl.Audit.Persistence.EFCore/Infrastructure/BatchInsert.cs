@@ -35,7 +35,16 @@ static class BatchInsert
             {
                 foreach (var column in table.Columns)
                 {
-                    command.Parameters.Add(column.TypeMapping.CreateParameter(command, $"@p{index++}", column.Read(row), column.IsNullable));
+                    var parameter = column.TypeMapping.CreateParameter(command, $"@p{index++}", column.Read(row), column.IsNullable);
+
+                    // SQL Server reuses a plan only when the declarations match, and EF declares unbounded text as
+                    // nvarchar(4000) or nvarchar(max) by the value's length. Npgsql ignores a size of -1.
+                    if (column.IsUnboundedText)
+                    {
+                        parameter.Size = -1;
+                    }
+
+                    command.Parameters.Add(parameter);
                 }
             }
 
@@ -124,5 +133,8 @@ static class BatchInsert
         static readonly ConcurrentDictionary<(IModel Model, Type EntityType), InsertTable> cache = new();
     }
 
-    sealed record InsertColumn(string Name, RelationalTypeMapping TypeMapping, bool IsNullable, Func<object, object?> Read);
+    sealed record InsertColumn(string Name, RelationalTypeMapping TypeMapping, bool IsNullable, Func<object, object?> Read)
+    {
+        public bool IsUnboundedText { get; } = (TypeMapping.Converter?.ProviderClrType ?? TypeMapping.ClrType) == typeof(string) && TypeMapping.Size is null;
+    }
 }

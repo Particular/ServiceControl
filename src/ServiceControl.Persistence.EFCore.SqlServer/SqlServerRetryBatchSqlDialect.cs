@@ -22,6 +22,11 @@ class SqlServerRetryBatchSqlDialect : SqlServerDialect, IRetryBatchSqlDialect
                  WHEN NOT MATCHED THEN INSERT ([UniqueMessageId], [RetryBatchId], [StageAttempts])
                  VALUES (s.[UniqueMessageId], s.[RetryBatchId], s.[StageAttempts]);
                  """,
+                ColumnTypes<FailedMessageRetryEntity>(
+                    dbContext,
+                    nameof(FailedMessageRetryEntity.UniqueMessageId),
+                    nameof(FailedMessageRetryEntity.RetryBatchId),
+                    nameof(FailedMessageRetryEntity.StageAttempts)),
                 chunk.Select(retry => new object?[] { retry.UniqueMessageId, retry.RetryBatchId, retry.StageAttempts }),
                 cancellationToken);
         }
