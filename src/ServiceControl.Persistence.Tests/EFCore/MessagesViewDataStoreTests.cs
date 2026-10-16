@@ -37,7 +37,7 @@ class MessagesViewDataStoreTests : ErrorIngestionTestBase
             Assert.That(view.BodyUrl, Is.EqualTo($"/messages/{failure.UniqueMessageIdString}/body"));
             Assert.That(view.IsSystemMessage, Is.False);
             Assert.That(view.Headers.ToDictionary(header => header.Key, header => header.Value),
-                Does.ContainKey(NServiceBus.Headers.EnclosedMessageTypes));
+                Does.ContainKey(Headers.EnclosedMessageTypes));
         }
     }
 
@@ -363,6 +363,20 @@ class MessagesViewDataStoreTests : ErrorIngestionTestBase
     public async Task Searches_the_message_id()
     {
         var matching = new IngestedFailure();
+
+        await Ingest(matching);
+
+        await AssertSearchFinds(matching.MessageId, matching);
+    }
+
+    /// <summary>
+    /// The SQL Server word breaker keeps JSON quotes and colons on the words near an email address or a URL.
+    /// It only does this when nothing separates the header entries, and then the id cannot be found.
+    /// </summary>
+    [Test]
+    public async Task Searches_the_message_id_when_a_header_after_it_looks_like_an_email_address()
+    {
+        var matching = new IngestedFailure { QueueAddress = "error@web01.corp.example.com" };
 
         await Ingest(matching);
 
