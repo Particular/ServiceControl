@@ -1,0 +1,19 @@
+name: Pin Azure CLI
+description: Installs Azure CLI 2.83.0 on Linux runners and upgrades Azure CLI on Windows runners
+runs:
+  using: composite
+  steps:
+    - name: Pin Azure CLI on Linux
+      if: runner.os == 'Linux'
+      shell: bash
+      # Avoid the Python module-loader deadlock: https://github.com/Azure/azure-cli/issues/32869
+      run: |
+        set -eo pipefail
+        curl -fsSL 'https://azurecliprod.blob.core.windows.net/$root/deb_install.sh' | sudo bash
+        echo "Available versions:"
+        apt-cache policy azure-cli
+        sudo apt-get install --allow-downgrades -y azure-cli=2.83.0-1~noble
+        which az
+        az --version
+        python3 --version
+        echo "ImageVersion: $ImageVersion"
