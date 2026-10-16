@@ -8,5 +8,6 @@ static class SettingKeys
     public const string AuditServiceMetadata = "AuditServiceMetadata";
     public const string ReportMasks = "ReportMasks";
     public const string LicensedEndpointDetails = "LicensedEndpointDetails";
+    public const string LicensedEndpointDetailsAmendment = "LicensedEndpointDetailsAmendment";
     public const string NotificationEmails = "NotificationEmails";
 }
