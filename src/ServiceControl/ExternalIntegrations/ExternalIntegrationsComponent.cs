@@ -14,7 +14,7 @@ namespace ServiceControl.ExternalIntegrations
             var services = hostBuilder.Services;
             services.AddEventLogMapping<ExternalIntegrationEventFailedToBePublishedDefinition>();
 
-            if (!settings.DisableExternalIntegrationsPublishing)
+            if (settings.EnableExternalIntegrationsPublishing)
             {
                 services.AddDomainEventHandler<IntegrationEventWriter>();
 

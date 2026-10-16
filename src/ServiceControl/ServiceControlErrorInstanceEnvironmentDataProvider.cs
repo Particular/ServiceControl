@@ -19,7 +19,7 @@ class ServiceControlErrorInstanceEnvironmentDataProvider(Settings settings, INot
     [
         Value("Features.IntegratedServicePulse", () => Toggle(settings.EnableIntegratedServicePulse)),
         Value("Features.MessageEditing", () => Toggle(settings.AllowMessageEditing)),
-        Value("Features.ExternalIntegrationsPublishing", () => Toggle(!settings.DisableExternalIntegrationsPublishing)),
+        Value("Features.ExternalIntegrationsPublishing", () => Toggle(settings.EnableExternalIntegrationsPublishing)),
         Value("Features.ForwardErrorMessages", () => Toggle(settings.ForwardErrorMessages)),
         Value("Features.ErrorIngestion", () => Toggle(settings.IngestErrorMessages)),
         Value("Features.ConfigurationValidation", () => Toggle(settings.ValidateConfiguration)),
