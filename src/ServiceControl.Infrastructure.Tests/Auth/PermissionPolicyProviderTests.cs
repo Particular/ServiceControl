@@ -77,6 +77,21 @@ class PermissionPolicyProviderTests
         Assert.That(await DeniedPermissions(host, Authenticated(RolePermissions.Admin), TestContext.CurrentContext.CancellationToken), Is.Empty);
     }
 
+    // The audit log needs the subject ID and name to identify the caller. A token without them must
+    // get 403, not an unhandled exception that ASP.NET Core turns into 500.
+    [TestCase("sub")]
+    [TestCase("preferred_username")]
+    public async Task Admins_without_a_subject_claim_are_denied_every_permission(string missingClaim)
+    {
+        using var host = BuildHost(authenticationEnabled: true, roleBasedAuthorizationEnabled: true);
+
+        var user = new ClaimsPrincipal(new ClaimsIdentity(
+            Authenticated(RolePermissions.Admin).Claims.Where(claim => claim.Type != missingClaim),
+            authenticationType: "test"));
+
+        Assert.That(await AllowedPermissions(host, user, TestContext.CurrentContext.CancellationToken), Is.Empty);
+    }
+
     static readonly ClaimsPrincipal Anonymous = new(new ClaimsIdentity());
 
     static ClaimsPrincipal Authenticated(params string[] roles) =>
