@@ -41,6 +41,7 @@ GET /eventlogitems => ServiceControl.EventLog.EventLogApiController:Items(Paging
 GET /heartbeats/stats => ServiceControl.Monitoring.EndpointsMonitoringController:HeartbeatStats()
 GET /instance-info => ServiceControl.Infrastructure.WebApi.RootController:Config(CancellationToken cancellationToken)
 GET /license => ServiceControl.Licensing.LicenseController:License(Boolean refresh, String clientName, CancellationToken cancellationToken)
+POST /license/amendDetails => ServiceControl.Licensing.LicenseController:AmendLicenseDetails(LicensedEndpointDetailsAmendment amendment, CancellationToken cancellationToken)
 GET /license/details => ServiceControl.Licensing.LicenseController:LicenseDetails(CancellationToken cancellationToken)
 POST /license/detailsUpload => ServiceControl.Licensing.LicenseController:UploadLicenseDetails(IFormFile file, CancellationToken cancellationToken)
 GET /messages => ServiceControl.CompositeViews.Messages.GetMessagesController:Messages(PagingInfo pagingInfo, SortInfo sortInfo, Boolean includeSystemMessages, CancellationToken cancellationToken)

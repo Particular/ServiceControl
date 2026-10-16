@@ -1,6 +1,7 @@
 ﻿#nullable enable
 namespace ServiceControl.Licensing
 {
+    using System;
     using System.IO;
     using System.IO.Compression;
     using System.Text.Json;
@@ -81,8 +82,31 @@ namespace ServiceControl.Licensing
 
             var result = JsonSerializer.Deserialize<LicensedEndpointDetails>(brotliStream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
                 ?? throw new InvalidDataException("File contents cannot be deserialized");
+            //assign unique identifiers to entities for amendment tracking
+            foreach (var endpoint in result.Endpoints)
+            {
+                endpoint.ClientId = Guid.NewGuid().ToString();
+                foreach (var queue in endpoint.Queues)
+                {
+                    queue.OriginalLocation = endpoint.ClientId;
+                }
+            }
+            foreach (var queue in result.InfrastructureQueues)
+            {
+                queue.OriginalLocation = "infrastructure";
+            }
+            foreach (var queue in result.ExcludedQueues)
+            {
+                queue.OriginalLocation = "excluded";
+            }
             //persist
             await dataStore.SaveLicensedEndpointDetails(result, cancellationToken);
         }
+
+        [Authorize(Policy = Permissions.ErrorThroughputManage)]
+        [HttpPost]
+        [Route("license/amendDetails")]
+        public async Task AmendLicenseDetails([FromBody] LicensedEndpointDetailsAmendment amendment, CancellationToken cancellationToken = default) =>
+            await dataStore.SaveLicensedEndpointDetailsAmendment(amendment, cancellationToken);
     }
 }

@@ -25,6 +25,7 @@ class LicensingDataStore(
     const string BrokerMetadataDocumentId = "BrokerMetadata";
     const string ReportMasksDocumentId = "ReportMasks";
     const string LicencedEndpointDetailsDocumentId = "LicensedEndpointDetails";
+    const string LicencedEndpointDetailsAmendmentDocumentId = "LicensedEndpointDetailsAmendment";
 
     static readonly AuditServiceMetadata DefaultAuditServiceMetadata = new([], []);
     static readonly ReportConfigurationDocument DefaultReportConfiguration = new();
@@ -161,7 +162,8 @@ class LicensingDataStore(
             {
                 var endpointDailyThroughputs = timeSeries
                     .Where(entry => !throughputMaxDate.HasValue || entry.Timestamp < maxDateTime)
-                    .Select(entry => new EndpointDailyThroughput(DateOnly.FromDateTime(entry.Timestamp), (long)entry.Value));
+                    .Select(entry => new EndpointDailyThroughput(DateOnly.FromDateTime(entry.Timestamp), (long)entry.Value))
+                    .ToList();
                 var throughputData = new ThroughputData(endpointDailyThroughputs)
                 {
                     ThroughputSource = document.EndpointId.ThroughputSource
@@ -341,7 +343,13 @@ class LicensingDataStore(
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
-        return await session.LoadAsync<LicensedEndpointDetails>(LicencedEndpointDetailsDocumentId, cancellationToken);
+        var baseDetails = await session.LoadAsync<LicensedEndpointDetails>(LicencedEndpointDetailsDocumentId, cancellationToken);
+        if (baseDetails is null)
+        {
+            return null;
+        }
+        var amendments = await session.LoadAsync<LicensedEndpointDetailsAmendment>(LicencedEndpointDetailsAmendmentDocumentId, cancellationToken);
+        return baseDetails.Amend(amendments);
     }
 
     public async Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken = default)
@@ -350,6 +358,24 @@ class LicensingDataStore(
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
         await session.StoreAsync(result, LicencedEndpointDetailsDocumentId, cancellationToken);
+        await session.StoreAsync(new LicensedEndpointDetailsAmendment(), LicencedEndpointDetailsAmendmentDocumentId, cancellationToken);
+        await session.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task SaveLicensedEndpointDetailsAmendment(LicensedEndpointDetailsAmendment result, CancellationToken cancellationToken = default)
+    {
+        var store = await storeProvider.GetDocumentStore(cancellationToken);
+        using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
+
+        var existing = await session.LoadAsync<LicensedEndpointDetailsAmendment>(LicencedEndpointDetailsAmendmentDocumentId, cancellationToken);
+        if (existing is not null)
+        {
+            // these do not round-trip
+            result.UnmappedQueues = [.. existing.UnmappedQueues, .. result.UnmappedQueues];
+            session.Advanced.Evict(existing);
+        }
+
+        await session.StoreAsync(result, LicencedEndpointDetailsAmendmentDocumentId, cancellationToken);
         await session.SaveChangesAsync(cancellationToken);
     }
 }

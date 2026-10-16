@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Particular.LicensingComponent.Contracts;
 using Particular.LicensingComponent.Persistence;
-using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
@@ -310,10 +309,35 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
         ExecuteWithDbContext((context, token) => context.StoreSetting(SettingKeys.ReportMasks, reportMasks, token), cancellationToken);
 
     public Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext((context, token) => context.GetSetting<LicensedEndpointDetails>(SettingKeys.LicensedEndpointDetails, token), cancellationToken);
+        ExecuteWithDbContext(async (context, token) =>
+        {
+            var baseDetails = await context.GetSetting<LicensedEndpointDetails>(SettingKeys.LicensedEndpointDetails, token);
+            if (baseDetails is null)
+            {
+                return null;
+            }
+            var amendments = await context.GetSetting<LicensedEndpointDetailsAmendment>(SettingKeys.LicensedEndpointDetailsAmendment, token);
+            return baseDetails.Amend(amendments);
+        }, cancellationToken);
 
     public Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken = default) =>
-        ExecuteWithDbContext((context, token) => context.StoreSetting(SettingKeys.LicensedEndpointDetails, result, token), cancellationToken);
+        ExecuteWithDbContext(async (context, token) =>
+        {
+            await context.StoreSetting(SettingKeys.LicensedEndpointDetails, result, token);
+            await context.StoreSetting(SettingKeys.LicensedEndpointDetailsAmendment, new LicensedEndpointDetailsAmendment(), token);
+        }, cancellationToken);
+
+    public Task SaveLicensedEndpointDetailsAmendment(LicensedEndpointDetailsAmendment result, CancellationToken cancellationToken = default) =>
+        ExecuteWithDbContext(async (context, token) =>
+            {
+                var existing = await context.GetSetting<LicensedEndpointDetailsAmendment>(SettingKeys.LicensedEndpointDetailsAmendment, token);
+                if (existing is not null)
+                {
+                    // these do not round-trip
+                    result.UnmappedQueues = [.. existing.UnmappedQueues, .. result.UnmappedQueues];
+                }
+                await context.StoreSetting(SettingKeys.LicensedEndpointDetailsAmendment, result, token);
+            }, cancellationToken);
 
     static Endpoint ToEndpoint(LicensingEndpointEntity row) => ToEndpoint(row, lastCollectedDate: null);
 

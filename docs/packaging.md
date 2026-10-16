@@ -8,7 +8,9 @@ The zip files minimize duplication to control the overall file size of each inst
 - `ServiceControl.Audit.zip`
 - `ServiceControl.Monitoring.zip`
 - `InstanceShared.zip` - Contains the transport assemblies that are shared by each instance, as well as any other assemblies that are shared across all 3 instance zip files, such as `NServiceBus.Core.dll`.
-- `RavenDBServer.zip` - Contains the RavenDB server assemblies used by ServiceControl and Monitoring instances
+- `RavenDBServer.zip` - Contains the RavenDB server assemblies used by ServiceControl and Audit instances
+
+`RavenDBServer.zip` excludes the native Kafka dependencies `librdkafka.dll`, `librdkafkacpp.dll`, and `libcurl.dll`. ServiceControl does not configure RavenDB's Kafka ETL or sink tasks. The Windows installation engine tests extract this archive and verify document persistence and indexing across a server restart without these libraries.
 
 ## The mechanics
 
