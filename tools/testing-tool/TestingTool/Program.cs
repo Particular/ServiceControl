@@ -1,5 +1,6 @@
 using System.Diagnostics.Metrics;
 using TestingTool;
+using TestingTool.Auditing;
 using TestingTool.Contracts;
 using TestingTool.Jobs;
 using TestingTool.Scenarios;
@@ -34,6 +35,8 @@ builder.Services.AddSingleton<IScenario>(_ => new RandomBackgroundNoiseScenario(
 builder.Services.AddSingleton<IScenarioRegistry, ScenarioRegistry>();
 builder.Services.AddSingleton<ScenarioRunner>();
 builder.Services.AddSingleton<DirectErrorQueueWriter>();
+builder.Services.AddSingleton(_ => new AuditMessageFactory(shardId));
+builder.Services.AddSingleton<DirectAuditQueueWriter>();
 builder.Services.AddSingleton<TestingToolMetrics>();
 
 // --- Recoverability/search jobs (Phase 4) ---
@@ -84,6 +87,7 @@ app.Lifetime.ApplicationStopping.Register(() =>
     runner.StopAll();
     jobRunner.StopAll();
     app.Services.GetRequiredService<DirectErrorQueueWriter>().Stop();
+    app.Services.GetRequiredService<DirectAuditQueueWriter>().Stop();
 });
 
 // --- Health endpoints (Phase 6) ---
@@ -110,6 +114,9 @@ app.MapGet("/api/status", () => Results.Ok(new TestingToolStatus
     RetentionSweepsNotSupported = metrics.TotalRetentionSweepsNotSupported,
     BypassErrorsWritten = metrics.TotalBypassErrorsWritten,
     BypassErrorsFailed = metrics.TotalBypassErrorsFailed,
+    AuditMessagesWritten = metrics.TotalAuditMessagesWritten,
+    AuditSagaSnapshotsWritten = metrics.TotalAuditSagaSnapshotsWritten,
+    AuditMessagesFailed = metrics.TotalAuditMessagesFailed,
     CustomCheckFailures = metrics.TotalCustomCheckFailures,
     ShardId = shardId,
     ActiveScenarios = metrics.ActiveScenarios,
@@ -207,6 +214,31 @@ app.MapPost("/api/bypass/start", (StartBypassRequest? request, DirectErrorQueueW
 });
 
 app.MapPost("/api/bypass/stop", (DirectErrorQueueWriter writer) =>
+{
+    writer.Stop();
+    return Results.Ok(writer.GetStatus());
+});
+
+// --- Audit bypass endpoints (direct audit-queue writer) ---
+// Writes audit envelopes straight to the ServiceControl.Audit instance's audit queue, including
+// whole saga episodes: the messages that drove a saga plus the snapshots they produced.
+
+app.MapGet("/api/audit-bypass/status", (DirectAuditQueueWriter writer) => Results.Ok(writer.GetStatus()));
+
+app.MapPost("/api/audit-bypass/start", (StartAuditBypassRequest? request, DirectAuditQueueWriter writer) =>
+{
+    var rate = request?.Rate ?? 100;
+    var duration = request?.DurationSeconds is { } secs and > 0
+        ? TimeSpan.FromSeconds(secs)
+        : (TimeSpan?)null;
+
+    if (!writer.TryStart(rate, duration, request?.Parallelism, request?.SagaSnapshotRatio, out var error))
+        return Results.BadRequest(new { error });
+
+    return Results.Ok(writer.GetStatus());
+});
+
+app.MapPost("/api/audit-bypass/stop", (DirectAuditQueueWriter writer) =>
 {
     writer.Stop();
     return Results.Ok(writer.GetStatus());

@@ -67,7 +67,17 @@ public sealed class TestingToolOptions
     /// </summary>
     public double CustomCheckFailureProbability { get; set; } = 0.4;
 
+    /// <summary>
+    /// Audit queue the ServiceControl.Audit instance drains. EF persistence lives in that instance,
+    /// not in the primary, so this is the audit container's queue.
+    /// </summary>
     public string AuditQueueName { get; set; } = "audit";
+
+    /// <summary>
+    /// Default saga snapshots per processed message for the direct audit-queue writer. The default
+    /// of 0.2 emits two saga snapshots for every ten processed messages.
+    /// </summary>
+    public double AuditSagaSnapshotRatio { get; set; } = 0.2;
 
     /// <summary>ServiceControl monitoring instance input queue that endpoint metrics are sent to.</summary>
     public string MonitoringQueueName { get; set; } = "Particular.Monitoring";

@@ -77,10 +77,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             finally
             {
                 await StopServer();
-                if (Directory.Exists(root))
-                {
-                    FileUtils.DeleteDirectory(root, recursive: true, contentsOnly: false);
-                }
+                await TryDeleteDirectory(root, CancellationToken.None);
             }
 
             async Task StartServer()
@@ -143,14 +140,38 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
                         server.Kill(entireProcessTree: true);
                     }
 
-                    await server.WaitForExitAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(15));
-                    TestContext.Out.WriteLine(await standardOutput.WaitAsync(TimeSpan.FromSeconds(15)));
-                    TestContext.Out.WriteLine(await standardError.WaitAsync(TimeSpan.FromSeconds(15)));
+                    await server.WaitForExitAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(15), cancellationToken);
+                    await TestContext.Out.WriteLineAsync(await standardOutput.WaitAsync(TimeSpan.FromSeconds(15), cancellationToken));
+                    await TestContext.Out.WriteLineAsync(await standardError.WaitAsync(TimeSpan.FromSeconds(15), cancellationToken));
                 }
                 finally
                 {
                     server.Dispose();
                     server = null;
+                }
+            }
+        }
+
+        // Cleanup of the temp folder must not fail the test; Directory.Delete keeps the path stable across retries.
+        static async Task TryDeleteDirectory(string root, CancellationToken cancellationToken, int attempts = 5, TimeSpan? delay = null)
+        {
+            var retryDelay = delay ?? TimeSpan.FromMilliseconds(500);
+            for (var attempt = 1; Directory.Exists(root); attempt++)
+            {
+                try
+                {
+                    Directory.Delete(root, recursive: true);
+                    return;
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    if (attempt == attempts)
+                    {
+                        await TestContext.Out.WriteLineAsync($"WARNING: Could not delete '{root}' after {attempts} attempts: {ex}");
+                        return;
+                    }
+
+                    await Task.Delay(retryDelay * attempt, cancellationToken);
                 }
             }
         }
