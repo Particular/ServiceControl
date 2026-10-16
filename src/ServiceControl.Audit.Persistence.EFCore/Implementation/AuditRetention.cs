@@ -69,6 +69,7 @@ sealed class AuditRetention(
     {
         try
         {
+            DateTime? deferred;
             await using (var handle = await retentionLock.TryAcquire(cancellationToken))
             {
                 if (handle is null)
@@ -77,10 +78,18 @@ sealed class AuditRetention(
                     return;
                 }
 
-                await RemoveExpired(pace, cancellationToken);
+                deferred = await RemoveExpired(pace, cancellationToken);
             }
 
-            retentionState.SweepSucceeded();
+            // A table that stays too busy to drop keeps every expired row, so it counts against the check like an error.
+            if (deferred is { } start)
+            {
+                retentionState.SweepFailed($"The audit tables were too busy to drop the rows from {start:u}.");
+            }
+            else
+            {
+                retentionState.SweepSucceeded();
+            }
         }
 #pragma warning disable PS0019 // Filtered on the token alone because SqlClient reports a cancelled command as a SqlException.
         catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
@@ -91,7 +100,8 @@ sealed class AuditRetention(
 #pragma warning restore PS0019
     }
 
-    async Task RemoveExpired(bool pace, CancellationToken cancellationToken)
+    // Returns the start of the expired rows it had to leave because the tables were too busy, or null when it removed them all.
+    async Task<DateTime?> RemoveExpired(bool pace, CancellationToken cancellationToken)
     {
         await using var scope = scopeFactory.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AuditDbContext>();
@@ -112,7 +122,7 @@ sealed class AuditRetention(
                 if (drop.Deferred)
                 {
                     logger.LogInformation("Left the audit rows from {Start:u} for the next sweep because the audit tables were too busy to drop them", expired);
-                    return;
+                    return expired;
                 }
 
                 if (pace && !drop.Completed)
@@ -123,5 +133,7 @@ sealed class AuditRetention(
 
             logger.LogDebug("Removed the expired audit rows from {Start:u}", expired);
         }
+
+        return null;
     }
 }
