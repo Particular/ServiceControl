@@ -77,7 +77,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             finally
             {
                 await StopServer();
-                await TryDeleteDirectory(root);
+                await TryDeleteDirectory(root, CancellationToken.None);
             }
 
             async Task StartServer()
@@ -153,7 +153,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         }
 
         // Cleanup of the temp folder must not fail the test; Directory.Delete keeps the path stable across retries.
-        static async Task TryDeleteDirectory(string root, int attempts = 5, TimeSpan? delay = null, CancellationToken cancellationToken = default)
+        static async Task TryDeleteDirectory(string root, CancellationToken cancellationToken, int attempts = 5, TimeSpan? delay = null)
         {
             var retryDelay = delay ?? TimeSpan.FromMilliseconds(500);
             for (var attempt = 1; Directory.Exists(root); attempt++)
