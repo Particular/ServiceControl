@@ -13,8 +13,15 @@ static class MessageHeaders
     public static Dictionary<string, string> Read(string headersJson) =>
         JsonSerializer.Deserialize(headersJson, context.DictionaryStringString) ?? [];
 
-    // The relaxed encoder is only unsafe for JSON embedded in HTML, and this JSON never reaches HTML. Full text search needs apostrophes, plus signs and non-ASCII letters written as they are, or it cannot find the words next to them.
-    static readonly HeadersJsonContext context = new(new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+    static readonly HeadersJsonContext context = new(new JsonSerializerOptions
+    {
+        // The relaxed encoder is only unsafe for JSON embedded in HTML, and this JSON never reaches HTML. Full text search needs apostrophes, plus signs and non-ASCII letters written as they are, or it cannot find the words next to them.
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+
+        // Without whitespace between the entries, the SQL Server word breaker keeps JSON quotes on the words near an email address or a URL. A search for those words then finds nothing.
+        WriteIndented = true,
+        IndentSize = 0
+    });
 }
 
 // Source generated serialization, which keeps the reflection-based serializer off the ingestion hot path.
