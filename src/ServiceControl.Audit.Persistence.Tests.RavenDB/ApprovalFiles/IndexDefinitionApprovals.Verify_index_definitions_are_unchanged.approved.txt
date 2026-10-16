@@ -1,0 +1,90 @@
+FailedAuditImportIndex
+  Maps:
+    docs.FailedAuditImports.Select(cc => new {
+        Id = Id(cc)
+    })
+
+MessagesViewIndex
+  Maps:
+    docs.ProcessedMessages.Select(message => new {
+        MessageId = ((string) message.MessageMetadata["MessageId"]),
+        MessageType = ((string) message.MessageMetadata["MessageType"]),
+        IsSystemMessage = ((bool) message.MessageMetadata["IsSystemMessage"]),
+        Status = ((bool) message.MessageMetadata["IsRetried"]) ? "ResolvedSuccessfully" : "Successful",
+        TimeSent = ((DateTime) message.MessageMetadata["TimeSent"]),
+        ProcessedAt = message.ProcessedAt,
+        ReceivingEndpointName = ((message.MessageMetadata["ReceivingEndpoint"])).Name,
+        SendingEndpointName = ((message.MessageMetadata["SendingEndpoint"])).Name,
+        CriticalTime = ((TimeSpan ? ) message.MessageMetadata["CriticalTime"]),
+        ProcessingTime = ((TimeSpan ? ) message.MessageMetadata["ProcessingTime"]),
+        DeliveryTime = ((TimeSpan ? ) message.MessageMetadata["DeliveryTime"]),
+        Query = Enumerable.ToArray(DynamicEnumerable.Union(message.MessageMetadata.ToDictionary(e1 => e1.Key, e1 => e1.Value).Select(_ => _.Value.ToString()), new string[] {
+            String.Join(" ", message.Headers.ToDictionary(e1 => e1.Key, e1 => e1.Value).Select(x => x.Value))
+        })),
+        ConversationId = ((string) message.MessageMetadata["ConversationId"])
+    })
+  Fields:
+    Query: Indexing=Search, Analyzer=Lucene.Net.Analysis.Standard.StandardAnalyzer, Lucene.Net, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181
+
+MessagesViewIndexWithFullTextSearch
+  Maps:
+    docs.ProcessedMessages.Select(message => new {
+        MessageId = ((string) message.MessageMetadata["MessageId"]),
+        MessageType = ((string) message.MessageMetadata["MessageType"]),
+        IsSystemMessage = ((bool) message.MessageMetadata["IsSystemMessage"]),
+        Status = ((bool) message.MessageMetadata["IsRetried"]) ? "ResolvedSuccessfully" : "Successful",
+        TimeSent = ((DateTime) message.MessageMetadata["TimeSent"]),
+        ProcessedAt = message.ProcessedAt,
+        ReceivingEndpointName = ((message.MessageMetadata["ReceivingEndpoint"])).Name,
+        SendingEndpointName = ((message.MessageMetadata["SendingEndpoint"])).Name,
+        CriticalTime = ((TimeSpan ? ) message.MessageMetadata["CriticalTime"]),
+        ProcessingTime = ((TimeSpan ? ) message.MessageMetadata["ProcessingTime"]),
+        DeliveryTime = ((TimeSpan ? ) message.MessageMetadata["DeliveryTime"]),
+        Query = Enumerable.ToArray(DynamicEnumerable.Union(message.MessageMetadata.ToDictionary(e1 => e1.Key, e1 => e1.Value).Select(_ => _.Value.ToString()), new string[] {
+            String.Join(" ", message.Headers.ToDictionary(e1 => e1.Key, e1 => e1.Value).Select(x => x.Value)),
+            this.LoadAttachment(message, "body").GetContentAsString()
+        })),
+        ConversationId = ((string) message.MessageMetadata["ConversationId"])
+    })
+  Fields:
+    Query: Indexing=Search, Analyzer=Lucene.Net.Analysis.Standard.StandardAnalyzer, Lucene.Net, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181
+
+SagaDetailsIndex
+  Maps:
+    docs.SagaHistories.Select(doc => new {
+        SagaId = doc.SagaId,
+        Id = doc.SagaId,
+        SagaType = doc.SagaType,
+        Changes = doc.Changes
+    })
+    docs.SagaSnapshots.Select(doc => new {
+        SagaId = doc.SagaId,
+        Id = doc.SagaId,
+        SagaType = doc.SagaType,
+        Changes = new[] {
+            new {
+                Endpoint = doc.Endpoint,
+                FinishTime = doc.FinishTime,
+                InitiatingMessage = doc.InitiatingMessage,
+                OutgoingMessages = doc.OutgoingMessages,
+                StartTime = doc.StartTime,
+                StateAfterChange = doc.StateAfterChange,
+                Status = doc.Status
+            }
+        }
+    })
+  Reduce:
+    results.GroupBy(result => result.SagaId).Select(g => new {
+        g = g,
+        first = DynamicEnumerable.FirstOrDefault(g)
+    }).Select(this0 => new {
+        Id = this0.first.SagaId,
+        SagaId = this0.first.SagaId,
+        SagaType = this0.first.SagaType,
+        Changes = Enumerable.ToList(DynamicEnumerable.OrderByDescending(this0.g.SelectMany(x => x.Changes), x0 => x0.FinishTime).Take(50000))
+    })
+  Fields:
+    Changes: Indexing=No
+    SagaId: Indexing=Exact
+    SagaType: Indexing=No
+
