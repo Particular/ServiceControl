@@ -214,11 +214,11 @@ namespace ServiceControl.Config.UI.InstanceAdd
             set => ServiceControl.StorageConnectionString = value;
         }
 
-        public bool ShowErrorStorageTypePicker => ServiceControl.ShowStorageTypePicker;
+        public bool ShowErrorStorageTypePicker => ErrorStorageTypes.Count() > 1;
 
-        public bool ShowErrorStorageConnectionString => ServiceControl.ShowStorageConnectionString;
+        public bool ShowErrorStorageConnectionString => ErrorSelectedStorageType != null && ErrorSelectedStorageType.Settings.Any(s => s.Mandatory && s.Name.EndsWith("/ConnectionString"));
 
-        public bool ShowErrorDatabasePathFields => ServiceControl.ShowDatabasePathFields;
+        public bool ShowErrorDatabasePathFields => ErrorSelectedStorageType == null || ErrorSelectedStorageType.Settings.Any(s => s.Name.EndsWith("/DBPath"));
 
         public ICommand ErrorSelectDestinationPath => ServiceControl.SelectDestinationPath;
 
@@ -401,11 +401,11 @@ namespace ServiceControl.Config.UI.InstanceAdd
             set => ServiceControlAudit.StorageConnectionString = value;
         }
 
-        public bool ShowAuditStorageTypePicker => ServiceControlAudit.ShowStorageTypePicker;
+        public bool ShowAuditStorageTypePicker => AuditStorageTypes.Count() > 1;
 
-        public bool ShowAuditStorageConnectionString => ServiceControlAudit.ShowStorageConnectionString;
+        public bool ShowAuditStorageConnectionString => AuditSelectedStorageType != null && AuditSelectedStorageType.Settings.Any(s => s.Mandatory && s.Name.EndsWith("/ConnectionString"));
 
-        public bool ShowAuditDatabasePathFields => ServiceControlAudit.ShowDatabasePathFields;
+        public bool ShowAuditDatabasePathFields => AuditSelectedStorageType == null || AuditSelectedStorageType.Settings.Any(s => s.Name.EndsWith("/DBPath"));
 
         public ICommand AuditSelectDestinationPath => ServiceControlAudit.SelectDestinationPath;
 

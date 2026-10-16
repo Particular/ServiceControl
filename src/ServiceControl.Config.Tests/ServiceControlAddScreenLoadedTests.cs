@@ -57,6 +57,26 @@
         }
 
         [Test]
+        public void Changing_storage_type_notifies_bound_visibility_properties()
+        {
+            var viewModel = new ServiceControlAddViewModel();
+            var raisedPropertyNames = new System.Collections.Generic.HashSet<string>();
+            viewModel.PropertyChanged += (_, e) => raisedPropertyNames.Add(e.PropertyName);
+
+            viewModel.ErrorSelectedStorageType = ServiceControlInstaller.Engine.Instances.ServiceControlPersisters.GetPrimaryPersistence("SQLServer");
+
+            using (Assert.EnterMultipleScope())
+            {
+                // These are what the XAML's Visibility bindings actually listen to - if WPF never
+                // hears these changed, the connection string box silently never appears/disappears,
+                // even though the underlying ErrorSelectedStorageType value is correct.
+                Assert.That(raisedPropertyNames, Does.Contain(nameof(viewModel.ShowErrorStorageConnectionString)));
+                Assert.That(raisedPropertyNames, Does.Contain(nameof(viewModel.ShowErrorDatabasePathFields)));
+                Assert.That(viewModel.ShowErrorStorageConnectionString, Is.True);
+            }
+        }
+
+        [Test]
         public void Transport_connection_string_is_null()
         {
             var viewModel = new ServiceControlAddViewModel();
