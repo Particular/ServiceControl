@@ -114,6 +114,7 @@
 
                 var processingAttempt = failedMessageFactory.CreateProcessingAttempt(
                     context.Headers,
+                    context.ReceiveProperties,
                     new Dictionary<string, object>(metadata),
                     failureDetails);
 
