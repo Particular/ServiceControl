@@ -29,6 +29,7 @@ class SqlServerFailedMessageIngestionSqlDialect : SqlServerDialect, IFailedMessa
                  WHEN NOT MATCHED THEN INSERT ({FailedMessageColumnList})
                  VALUES ({FailedMessageSourceColumnList});
                  """,
+                ColumnTypes<FailedMessageEntity>(dbContext, FailedMessageColumns),
                 chunk.Select(FailedMessageValues),
                 cancellationToken);
         }
@@ -50,6 +51,12 @@ class SqlServerFailedMessageIngestionSqlDialect : SqlServerDialect, IFailedMessa
                  WHEN NOT MATCHED THEN INSERT ([FailedMessageUniqueId], [GroupId], [Title], [Type])
                  VALUES (s.[FailedMessageUniqueId], s.[GroupId], s.[Title], s.[Type]);
                  """,
+                ColumnTypes<FailedMessageGroupEntity>(
+                    dbContext,
+                    nameof(FailedMessageGroupEntity.FailedMessageUniqueId),
+                    nameof(FailedMessageGroupEntity.GroupId),
+                    nameof(FailedMessageGroupEntity.Title),
+                    nameof(FailedMessageGroupEntity.Type)),
                 chunk.Select(group => new object?[] { group.FailedMessageUniqueId, group.GroupId, group.Title, group.Type }),
                 cancellationToken);
         }
@@ -71,6 +78,13 @@ class SqlServerFailedMessageIngestionSqlDialect : SqlServerDialect, IFailedMessa
                  WHEN NOT MATCHED THEN INSERT ([Id], [Name], [HostId], [Host], [Monitored])
                  VALUES (s.[Id], s.[Name], s.[HostId], s.[Host], s.[Monitored]);
                  """,
+                ColumnTypes<KnownEndpointEntity>(
+                    dbContext,
+                    nameof(KnownEndpointEntity.Id),
+                    nameof(KnownEndpointEntity.Name),
+                    nameof(KnownEndpointEntity.HostId),
+                    nameof(KnownEndpointEntity.Host),
+                    nameof(KnownEndpointEntity.Monitored)),
                 chunk.Select(endpoint => new object?[] { endpoint.Id, endpoint.Name, endpoint.HostId, endpoint.Host, endpoint.Monitored }),
                 cancellationToken);
         }
@@ -98,7 +112,11 @@ class SqlServerFailedMessageIngestionSqlDialect : SqlServerDialect, IFailedMessa
                      ON t.[UniqueMessageId] = s.[UniqueMessageId]
                  WHERE t.[LastAttemptedAt] <= s.[SucceededAt];
                  """,
-                [[now], .. chunk.Select(retry => new object?[] { retry.UniqueMessageId, retry.SucceededAt })],
+                ColumnTypes<FailedMessageEntity>(
+                    dbContext,
+                    nameof(FailedMessageEntity.UniqueMessageId),
+                    nameof(FailedMessageEntity.LastAttemptedAt)),
+                    [[now], .. chunk.Select(retry => new object?[] { retry.UniqueMessageId, retry.SucceededAt })],
                 cancellationToken);
         }
     }
