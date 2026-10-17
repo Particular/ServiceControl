@@ -45,7 +45,8 @@
       <AuditFilesToZip Include="$(ArtifactsPath)$(Audit)\**\*" />
       <MonitoringFilesToZip Include="$(ArtifactsPath)$(Monitoring)\**\*" />
       <InstanceSharedFilesToZip Include="@(DuplicateInstanceFiles->'$(ArtifactsPath)$(Primary)\%(Identity)')" />
-      <RavenDBServerFilesToZip Include="$(ArtifactsPath)$(RavenDBServer)\**\*" />
+      <RavenDBServerFilesToZip Include="$(ArtifactsPath)$(RavenDBServer)\**\*"
+                             Exclude="$(ArtifactsPath)$(RavenDBServer)\libcurl.dll;$(ArtifactsPath)$(RavenDBServer)\librdkafka.dll;$(ArtifactsPath)$(RavenDBServer)\librdkafkacpp.dll" />
     </ItemGroup>
   </Target>
 
