@@ -1,0 +1,4 @@
+[*.cs]
+
+# Justification: route handlers receive HttpContext, whose RequestAborted is the request's cancellation token
+dotnet_diagnostic.PS0018.severity = none

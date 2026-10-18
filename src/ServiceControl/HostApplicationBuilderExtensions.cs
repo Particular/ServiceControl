@@ -211,6 +211,7 @@ Forwarding Error Messages:          {settings.ForwardErrorMessages}
 ServiceControl Logging Level:       {settings.LoggingSettings.LogLevel}
 Selected Transport Customization:   {settings.TransportType}
 Integrated ServicePulse:            {(settings.EnableIntegratedServicePulse ? "Enabled" : "Disabled")}
+Federation:                         {(settings.EnableFederation ? $"Enabled ({settings.FederatedInstances.Length} instances)" : "Disabled")}
 -------------------------------------------------------------";
 
             var logger = LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.LoggingSettings.LogLevel);

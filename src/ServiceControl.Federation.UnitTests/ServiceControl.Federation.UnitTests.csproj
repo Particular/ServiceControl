@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <TestCategory>DefaultCore</TestCategory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Federation\ServiceControl.Federation.csproj" />
+    <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GitHubActionsTestLogger" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit.Analyzers" />
+    <PackageReference Include="NUnit3TestAdapter" />
+  </ItemGroup>
+
+  <!-- The route coverage test compares the proxy's route tables with the instances' approved route lists -->
+  <ItemGroup>
+    <None Include="..\ServiceControl.UnitTests\ApprovalFiles\APIApprovals.HttpApiRoutes.approved.txt" Link="ApprovedRoutes\Primary.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\Particular.LicensingComponent.UnitTests\ApprovalFiles\APIApprovals.HttpApiRoutes.approved.txt" Link="ApprovedRoutes\Licensing.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\ServiceControl.Monitoring.UnitTests\ApprovalFiles\APIApprovals.HttpApiRoutes.approved.txt" Link="ApprovedRoutes\Monitoring.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

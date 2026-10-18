@@ -9,6 +9,7 @@
     using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl;
+    using ServiceControl.Federation;
     using ServiceControl.Hosting.Auth;
     using ServiceControl.Hosting.Https;
     using ServicePulse;
@@ -30,9 +31,17 @@
             hostBuilder.AddServiceControlHttps(settings.HttpsSettings);
             hostBuilder.AddServiceControl(settings, endpointConfiguration);
             hostBuilder.AddServiceControlApi(settings.CorsSettings);
+            if (settings.EnableFederation)
+            {
+                hostBuilder.Services.AddServiceControlFederation(settings.CreateFederationSettings());
+            }
 
             var app = hostBuilder.Build();
             app.UseServiceControl(settings.ForwardedHeadersSettings, settings.HttpsSettings);
+            if (settings.EnableFederation)
+            {
+                app.MapServiceControlFederation();
+            }
             if (settings.EnableIntegratedServicePulse)
             {
                 app.UseServicePulse(settings.ServicePulseSettings);

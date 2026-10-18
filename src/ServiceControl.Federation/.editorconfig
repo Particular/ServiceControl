@@ -1,0 +1,4 @@
+[*.cs]
+
+# Justification: Application synchronization contexts don't require ConfigureAwait(false)
+dotnet_diagnostic.CA2007.severity = none

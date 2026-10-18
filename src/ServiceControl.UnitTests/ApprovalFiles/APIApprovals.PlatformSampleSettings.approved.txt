@@ -45,6 +45,8 @@
   "AllowMessageEditing": false,
   "EnableIntegratedServicePulse": false,
   "ServicePulseSettings": null,
+  "EnableFederation": false,
+  "FederatedInstances": [],
   "MessageFilter": null,
   "EmailDropFolder": null,
   "ValidateConfiguration": true,
