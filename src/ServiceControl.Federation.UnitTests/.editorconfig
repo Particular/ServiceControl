@@ -1,0 +1,7 @@
+[*.cs]
+
+# Justification: Application synchronization contexts don't require ConfigureAwait(false)
+dotnet_diagnostic.CA2007.severity = none
+
+# Justification: test helpers that start in-process hosts do not need cancellation
+dotnet_diagnostic.PS0018.severity = none

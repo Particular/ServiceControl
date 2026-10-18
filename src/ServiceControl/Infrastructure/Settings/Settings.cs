@@ -11,6 +11,7 @@
     using NServiceBus.Transport;
     using Particular.ServiceControl;
     using ServiceControl.Configuration;
+    using ServiceControl.Federation.Configuration;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Ingestion;
     using ServiceControl.Infrastructure.Settings;
@@ -68,6 +69,13 @@
             MaximumConcurrencyLevel = SettingsReader.Read<int?>(SettingsRootNamespace, MaximumConcurrencyLevelKey);
             RetryHistoryDepth = SettingsReader.Read(SettingsRootNamespace, RetryHistoryDepthKey, 10);
             AllowMessageEditing = SettingsReader.Read<bool>(SettingsRootNamespace, "AllowMessageEditing");
+            EnableFederation = SettingsReader.Read(SettingsRootNamespace, "EnableFederation", false);
+            FederatedInstances = FederationSettings.ParseMembers(SettingsReader.Read<string>(SettingsRootNamespace, "FederatedInstances"));
+            if (EnableFederation && ValidateConfiguration)
+            {
+                CreateFederationSettings().Validate();
+            }
+
             EnableIntegratedServicePulse = SettingsReader.Read(SettingsRootNamespace, "EnableIntegratedServicePulse", false);
             if (EnableIntegratedServicePulse)
             {
@@ -76,6 +84,17 @@
                     ServiceControlUrl = "/api/",
                     IsIntegrated = true
                 };
+
+                // The embedded ServicePulse shows the federated view; /api/ remains this instance's own API,
+                // which the federation itself calls when this instance is one of the members.
+                if (EnableFederation)
+                {
+                    ServicePulseSettings = ServicePulseSettings with
+                    {
+                        ServiceControlUrl = $"{FederationSettings.DefaultPrimaryPathBase}/",
+                        MonitoringUrl = CreateFederationSettings().HasMonitoring ? $"{FederationSettings.DefaultMonitoringPathBase}/" : ServicePulseSettings.MonitoringUrl
+                    };
+                }
             }
             NotificationsFilter = SettingsReader.Read<string>(SettingsRootNamespace, "NotificationsFilter");
             RemoteInstances = GetRemoteInstances().ToArray();
@@ -121,6 +140,19 @@
 
         public bool EnableIntegratedServicePulse { get; set; }
         public ServicePulseSettings ServicePulseSettings { get; set; }
+
+        /// <summary>
+        /// Hosts the federated API, which presents several ServiceControl installations as one, under
+        /// <see cref="FederationSettings.DefaultPrimaryPathBase"/>. See aggregating-proxy-design.md.
+        /// </summary>
+        public bool EnableFederation { get; set; }
+
+        /// <summary>
+        /// The installations to federate, as JSON in the style of RemoteInstances. The first is the lead member.
+        /// </summary>
+        public MemberSettings[] FederatedInstances { get; set; }
+
+        public FederationSettings CreateFederationSettings() => new() { Members = [.. FederatedInstances] };
 
         //HINT: acceptance tests only
         public Func<MessageContext, bool> MessageFilter { get; set; }
