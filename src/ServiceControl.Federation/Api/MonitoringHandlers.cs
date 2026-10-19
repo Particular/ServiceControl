@@ -28,15 +28,14 @@ static class MonitoringHandlers
             return;
         }
 
-        var body = responses.First(r => r.IsSuccess).Json()?.DeepClone() as JsonObject ?? [];
-        var version = f.LowestVersion(Monitoring);
-        if (version != null && body.ContainsKey("version"))
-        {
-            body["version"] = version;
-        }
+        var source = responses.First(r => r.IsSuccess);
+        var body = source.Json()?.DeepClone() as JsonObject ?? [];
+        PrimaryHandlers.DescribeSource(body, source);
 
-        PrimaryHandlers.MergePlatformHealth(body, responses);
-        await ProxyResponse.WriteJson(context, body, new ResponseMeta { Version = version }, context.RequestAborted);
+        // ServicePulse has a single Monitoring row, so it carries the health of every member's Monitoring instance.
+        body["platform_health_status"] = PrimaryHandlers.WorstHealth(responses);
+
+        await ProxyResponse.WriteJson(context, body, new ResponseMeta { Version = f.LowestVersion(Monitoring) }, context.RequestAborted);
     }
 
     /// <summary>

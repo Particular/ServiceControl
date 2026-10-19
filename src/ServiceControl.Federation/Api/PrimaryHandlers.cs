@@ -53,35 +53,32 @@ static class PrimaryHandlers
             body["license_status"] = invalidLicense;
         }
 
-        MergePlatformHealth(body, responses);
+        // The other member primaries have their own rows (configuration/remotes), so this row describes only the member that answered.
+        DescribeSource(body, source);
 
         await ProxyResponse.WriteJson(context, body, new ResponseMeta { Version = f.LowestVersion(Primary) }, context.RequestAborted);
     }
 
     /// <summary>
-    /// Newer members report <c>platform_health_status</c>; the federation is as healthy as its least
-    /// healthy member, and degraded when a member does not answer.
+    /// ServicePulse shows a root document's <c>platform_health_version</c> in preference to
+    /// <c>X-Particular-Version</c>, while its feature gates read only the header. The body therefore
+    /// carries the answering member's own version, and the header keeps the lowest member version.
     /// </summary>
-    public static void MergePlatformHealth(JsonObject body, IReadOnlyList<MemberResponse> responses)
+    public static void DescribeSource(JsonObject body, MemberResponse source) =>
+        body["platform_health_version"] = JsonValues.Text(source.Json(), "platform_health_version") ?? source.Version ?? JsonValues.Text(source.Json(), "version");
+
+    /// <summary>
+    /// The worst health any member reports, and at least degraded when a member does not answer.
+    /// </summary>
+    public static string WorstHealth(IReadOnlyList<MemberResponse> responses)
     {
-        var statuses = responses.Where(r => r.IsSuccess).Select(r => JsonValues.Text(r.Json(), "platform_health_status")).OfType<string>().ToList();
-        if (statuses.Count == 0)
-        {
-            return;
-        }
+        var worst = responses
+            .Where(r => r.IsSuccess)
+            .Select(r => JsonValues.Text(r.Json(), "platform_health_status") ?? "healthy")
+            .DefaultIfEmpty("healthy")
+            .MaxBy(HealthRank)!;
 
-        var worst = statuses.MaxBy(HealthRank)!;
-        if (responses.Any(r => !r.IsSuccess) && HealthRank(worst) < HealthRank("degraded"))
-        {
-            worst = "degraded";
-        }
-
-        body["platform_health_status"] = worst;
-        var version = Versions.Lowest(responses.Where(r => r.IsSuccess).Select(r => JsonValues.Text(r.Json(), "platform_health_version")));
-        if (version != null)
-        {
-            body["platform_health_version"] = version;
-        }
+        return (responses.Any(r => !r.IsSuccess) && HealthRank(worst) < HealthRank("degraded")) ? "degraded" : worst;
     }
 
     static int HealthRank(string status) => status switch

@@ -99,7 +99,7 @@ class FederationEndToEndTests
     }
 
     [Test]
-    public async Task Root_document_points_at_the_proxy_and_reports_the_lowest_version()
+    public async Task Root_document_points_at_the_proxy_and_separates_display_and_gating_versions()
     {
         memberA.Version = "6.12.0";
         memberB.Version = "6.10.1";
@@ -111,9 +111,33 @@ class FederationEndToEndTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(response.Headers.GetValues("X-Particular-Version").Single(), Is.EqualTo("6.10.1"));
+            Assert.That(response.Headers.GetValues("X-Particular-Version").Single(), Is.EqualTo("6.10.1"), "feature gates read the lowest member version");
+            Assert.That(body["platform_health_version"]!.GetValue<string>(), Is.EqualTo("6.12.0"), "platform health shows the lead member's own version");
             Assert.That(body["my_routes_url"]!.GetValue<string>(), Is.EqualTo($"{client.BaseAddress}api/my/routes"));
             Assert.That(body["name"]!.GetValue<string>(), Is.EqualTo("Federation under test"));
+        }
+    }
+
+    [Test]
+    public async Task Monitoring_root_shows_the_lead_version_and_the_health_of_every_member()
+    {
+        memberA.Version = "6.12.0";
+        memberB.Version = "6.10.1";
+        memberA.Respond("GET", "/", _ => Results.Json(new { instanceType = "monitoring", version = "6.12.0" }));
+        memberB.Respond("GET", "/", _ => Results.Json(new { instanceType = "monitoring", version = "6.10.1" }));
+
+        var healthy = await client.GetAsync("monitoring");
+        var healthyBody = JsonNode.Parse(await healthy.Content.ReadAsStringAsync())!;
+
+        await memberB.DisposeAsync();
+        var degradedBody = JsonNode.Parse(await client.GetStringAsync("monitoring"))!;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(healthy.Headers.GetValues("X-Particular-Version").Single(), Is.EqualTo("6.10.1"));
+            Assert.That(healthyBody["platform_health_version"]!.GetValue<string>(), Is.EqualTo("6.12.0"));
+            Assert.That(healthyBody["platform_health_status"]!.GetValue<string>(), Is.EqualTo("healthy"));
+            Assert.That(degradedBody["platform_health_status"]!.GetValue<string>(), Is.EqualTo("degraded"), "one Monitoring row stands for every member");
         }
     }
 
