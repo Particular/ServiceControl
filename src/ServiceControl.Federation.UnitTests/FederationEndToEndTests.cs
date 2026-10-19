@@ -119,6 +119,41 @@ class FederationEndToEndTests
     }
 
     [Test]
+    public async Task Instance_names_are_qualified_so_internal_checks_match_their_own_installation()
+    {
+        static IResult Audit() => Results.Json(new[] { new { api_uri = "http://servicecontrol-audit:44444", status = "online", configuration = new { host = new { instance_name = "Particular.ServiceControl.Audit" } } } });
+        memberA.Respond("GET", "/api/configuration/remotes", _ => Audit());
+        memberB.Respond("GET", "/api/configuration/remotes", _ => Audit());
+        memberB.Respond("GET", "/api/configuration", _ => Results.Json(new { host = new { instance_name = "Particular.ServiceControl" } }));
+        memberA.Respond("GET", "/api/customchecks", ctx => List(ctx, [Check("c1", internalCheck: true), Check("c2", internalCheck: false)]));
+        memberB.Respond("GET", "/api/customchecks", ctx => List(ctx, []));
+
+        var remotes = JsonNode.Parse(await client.GetStringAsync("api/configuration/remotes"))!.AsArray();
+        var checks = JsonNode.Parse(await client.GetStringAsync("api/customchecks?status=fail"))!.AsArray();
+
+        string Name(JsonNode? node, string path) => Aggregation.JsonValues.Text(node, path)!;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(remotes.Select(r => Name(r, "configuration.host.instance_name")), Is.EqualTo(new[]
+            {
+                "Particular.ServiceControl.Audit (a)",
+                "Particular.ServiceControl.Audit (b)",
+                "Particular.ServiceControl (b)"
+            }), "audit instances with the same address in two installations stay separate");
+            Assert.That(checks.Select(c => Name(c, "originating_endpoint.name")), Is.EqualTo(new[] { "Particular.ServiceControl.Audit (a)", "Sales" }), "only internal checks are renamed");
+        }
+    }
+
+    static JsonNode Check(string id, bool internalCheck) => new JsonObject
+    {
+        ["id"] = id,
+        ["internal"] = internalCheck,
+        ["reported_at"] = DateTime.UnixEpoch.ToString("O"),
+        ["originating_endpoint"] = new JsonObject { ["name"] = internalCheck ? "Particular.ServiceControl.Audit" : "Sales" }
+    };
+
+    [Test]
     public async Task Monitoring_root_shows_the_lead_version_and_the_health_of_every_member()
     {
         memberA.Version = "6.12.0";

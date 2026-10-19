@@ -101,8 +101,9 @@ static class PrimaryHandlers
             return;
         }
 
+        var source = responses.First(r => r.IsSuccess);
         var successes = responses.Where(r => r.IsSuccess).Select(r => r.Json()).ToList();
-        var body = successes[0]!.DeepClone().AsObject();
+        var body = source.Json()!.DeepClone().AsObject();
 
         if (body["data_retention"] is JsonObject retention)
         {
@@ -119,10 +120,7 @@ static class PrimaryHandlers
             }
         }
 
-        if (body["host"] is JsonObject host)
-        {
-            host["instance_name"] = f.Settings.DisplayName;
-        }
+        InstanceNames.QualifyConfiguration(body, source.Member);
 
         await ProxyResponse.WriteJson(context, body, new ResponseMeta { Version = f.LowestVersion(Primary) }, context.RequestAborted);
     }
@@ -139,13 +137,16 @@ static class PrimaryHandlers
         var remotes = await remotesTask;
         var configurations = await configurationsTask;
 
+        // Not de-duplicated by api_uri: it is the address the member's own primary uses, so two
+        // installations can list different audit instances under the same one.
         var result = new JsonArray();
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var remote in remotes.Where(r => r.IsSuccess).SelectMany(r => r.Array().OfType<JsonNode>()))
+        foreach (var response in remotes.Where(r => r.IsSuccess))
         {
-            if (seen.Add(JsonValues.Text(remote, "api_uri") ?? remote.ToJsonString()))
+            foreach (var remote in response.Array().OfType<JsonNode>())
             {
-                result.Add(remote.DeepClone());
+                var entry = remote.DeepClone();
+                InstanceNames.QualifyConfiguration(JsonValues.At(entry, "configuration"), response.Member);
+                result.Add(entry);
             }
         }
 
@@ -160,7 +161,9 @@ static class PrimaryHandlers
             };
             if (configuration.IsSuccess)
             {
-                entry["configuration"] = configuration.Json()?.DeepClone();
+                var memberConfiguration = configuration.Json()?.DeepClone();
+                InstanceNames.QualifyConfiguration(memberConfiguration, member);
+                entry["configuration"] = memberConfiguration;
             }
 
             result.Add(entry);
@@ -275,7 +278,7 @@ static class PrimaryHandlers
     static string? MessageKey(JsonNode row) => $"{JsonValues.Text(row, "receiving_endpoint.name")}-{JsonValues.Text(row, "message_id")}";
 
     public static Task CustomChecks(Federator f, HttpContext context) =>
-        f.SortedPage(context, Primary, RowOrder.CustomChecks(), OwnedRecord.CustomCheck);
+        f.SortedPage(context, Primary, RowOrder.CustomChecks(), OwnedRecord.CustomCheck, transform: InstanceNames.QualifyInternalCheck);
 
     /// <summary>
     /// EF Core persisters number event log items 1, 2, 3… on every member, so ids are prefixed with
