@@ -13,7 +13,6 @@ using Raven.Client.Documents.Operations.Indexes;
 using Raven.Client.Exceptions;
 using Raven.Client.ServerWide;
 using Raven.Client.ServerWide.Operations;
-using Raven.Client.ServerWide.Operations.Configuration;
 using Indexes;
 using ServiceControl.RavenDB;
 using SagaAudit;
@@ -23,8 +22,6 @@ class DatabaseSetup(DatabaseConfiguration configuration)
     public async Task Execute(IDocumentStore documentStore, CancellationToken cancellationToken = default)
     {
         await CreateDatabase(documentStore, configuration.Name, cancellationToken);
-
-        await UpdateDatabaseSettings(documentStore, configuration.Name, cancellationToken);
 
         await CreateIndexes(documentStore, configuration.EnableFullTextSearch, cancellationToken);
 
@@ -45,8 +42,10 @@ class DatabaseSetup(DatabaseConfiguration configuration)
                 var databaseRecord = new DatabaseRecord(databaseName);
 
                 // New databases use Lucene: smaller indexes, lower memory usage and faster for our index definitions.
-                // Existing databases keep the engine they were created with, see UpdateDatabaseSettings.
-                SetSearchEngineType(databaseRecord, SearchEngineType.Lucene);
+                // The settings of an existing database are left to the operator. An index keeps the engine it was
+                // built with until it is rebuilt, so the database default does not change existing indexes.
+                databaseRecord.Settings["Indexing.Auto.SearchEngineType"] = nameof(SearchEngineType.Lucene);
+                databaseRecord.Settings["Indexing.Static.SearchEngineType"] = nameof(SearchEngineType.Lucene);
 
                 await documentStore.Maintenance.Server.SendAsync(new CreateDatabaseOperation(databaseRecord), cancellationToken);
             }
@@ -55,23 +54,6 @@ class DatabaseSetup(DatabaseConfiguration configuration)
                 // The database was already created before calling CreateDatabaseOperation
             }
         }
-    }
-
-    async Task UpdateDatabaseSettings(IDocumentStore documentStore, string databaseName, CancellationToken cancellationToken)
-    {
-        var databaseRecord = await documentStore.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName), cancellationToken) ?? throw new InvalidOperationException($"Database '{databaseName}' does not exist.");
-
-        // Existing databases keep their configured search engine. Changing it would trigger a full rebuild of all
-        // indexes, which can take a long time and a lot of resources on large databases. Databases created before the
-        // search engine was pinned explicitly get Corax, which was the default at the time.
-        if (!SetSearchEngineType(databaseRecord, SearchEngineType.Corax))
-        {
-            return;
-        }
-
-        await documentStore.Maintenance.ForDatabase(databaseName).SendAsync(new PutDatabaseSettingsOperation(databaseName, databaseRecord.Settings), cancellationToken);
-        await documentStore.Maintenance.Server.SendAsync(new ToggleDatabasesStateOperation(databaseName, true), cancellationToken);
-        await documentStore.Maintenance.Server.SendAsync(new ToggleDatabasesStateOperation(databaseName, false), cancellationToken);
     }
 
     public static async Task DeleteLegacySagaDetailsIndex(IDocumentStore documentStore, CancellationToken cancellationToken = default)
@@ -119,16 +101,6 @@ class DatabaseSetup(DatabaseConfiguration configuration)
         };
 
         await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig), cancellationToken);
-    }
-
-    bool SetSearchEngineType(DatabaseRecord database, SearchEngineType searchEngineType)
-    {
-        var updated = false;
-
-        updated |= database.Settings.TryAdd("Indexing.Auto.SearchEngineType", searchEngineType.ToString());
-        updated |= database.Settings.TryAdd("Indexing.Static.SearchEngineType", searchEngineType.ToString());
-
-        return updated;
     }
 
     internal const string MessagesViewIndexWithFulltextSearchName = "MessagesViewIndexWithFullTextSearch";

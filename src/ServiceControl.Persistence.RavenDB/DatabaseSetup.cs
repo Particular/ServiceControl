@@ -8,7 +8,6 @@ namespace ServiceControl.Persistence.RavenDB
     using Raven.Client.Exceptions;
     using Raven.Client.ServerWide;
     using Raven.Client.ServerWide.Operations;
-    using Raven.Client.ServerWide.Operations.Configuration;
     using ServiceControl.RavenDB;
 
     class DatabaseSetup(RavenPersisterSettings settings, IDocumentStore documentStore)
@@ -17,9 +16,6 @@ namespace ServiceControl.Persistence.RavenDB
         {
             await CreateDatabase(settings.DatabaseName, cancellationToken);
             await CreateDatabase(settings.ThroughputDatabaseName, cancellationToken);
-
-            await UpdateDatabaseSettings(settings.DatabaseName, cancellationToken);
-            await UpdateDatabaseSettings(settings.ThroughputDatabaseName, cancellationToken);
 
             await IndexDeployment.CreateIndexesAsync(typeof(DatabaseSetup).Assembly, documentStore, cancellationToken);
 
@@ -41,7 +37,8 @@ namespace ServiceControl.Persistence.RavenDB
                     var databaseRecord = new DatabaseRecord(databaseName);
 
                     // New databases use Lucene: smaller indexes, lower memory usage and faster for our index definitions.
-                    // Existing databases keep the engine they were created with, see UpdateDatabaseSettings.
+                    // The settings of an existing database are left to the operator. An index keeps the engine it was
+                    // built with until it is rebuilt, so the database default does not change existing indexes.
                     databaseRecord.Settings.Add("Indexing.Auto.SearchEngineType", "Lucene");
                     databaseRecord.Settings.Add("Indexing.Static.SearchEngineType", "Lucene");
 
@@ -51,31 +48,6 @@ namespace ServiceControl.Persistence.RavenDB
                 {
                     // The database was already created before calling CreateDatabaseOperation
                 }
-            }
-        }
-
-        async Task UpdateDatabaseSettings(string databaseName, CancellationToken cancellationToken)
-        {
-            var dbRecord = await documentStore.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName), cancellationToken);
-
-            if (dbRecord is null)
-            {
-                throw new InvalidOperationException($"Database '{databaseName}' does not exist.");
-            }
-
-            // Existing databases keep their configured search engine. Changing it would trigger a full rebuild of all
-            // indexes, which can take a long time and a lot of resources on large databases. Databases created before the
-            // search engine was pinned explicitly get Corax, which was the default at the time.
-            var updated = false;
-
-            updated |= dbRecord.Settings.TryAdd("Indexing.Auto.SearchEngineType", "Corax");
-            updated |= dbRecord.Settings.TryAdd("Indexing.Static.SearchEngineType", "Corax");
-
-            if (updated)
-            {
-                await documentStore.Maintenance.ForDatabase(databaseName).SendAsync(new PutDatabaseSettingsOperation(databaseName, dbRecord.Settings), cancellationToken);
-                await documentStore.Maintenance.Server.SendAsync(new ToggleDatabasesStateOperation(databaseName, true), cancellationToken);
-                await documentStore.Maintenance.Server.SendAsync(new ToggleDatabasesStateOperation(databaseName, false), cancellationToken);
             }
         }
 
