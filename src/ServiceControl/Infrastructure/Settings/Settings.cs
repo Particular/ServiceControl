@@ -143,7 +143,7 @@
 
         /// <summary>
         /// Hosts the federated API, which presents several ServiceControl installations as one, under
-        /// <see cref="FederationSettings.DefaultPrimaryPathBase"/>. See aggregating-proxy-design.md.
+        /// <see cref="FederationSettings.DefaultPrimaryPathBase"/>.
         /// </summary>
         public bool EnableFederation { get; set; }
 
