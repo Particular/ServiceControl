@@ -71,7 +71,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability
         }
 
         [Test]
-        public async Task Should_default_the_concurrency_to_10_when_none_is_configured()
+        public async Task Should_default_the_concurrency_to_100_when_none_is_configured()
         {
             var settings = await CreateSettings();
             settings.MaximumConcurrencyLevel = null;
@@ -81,7 +81,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability
             try
             {
                 Assert.DoesNotThrow(() => host.Services.GetServices<IHostedService>().ToArray());
-                Assert.That(host.Services.GetRequiredService<TransportSettings>().MaxConcurrency, Is.EqualTo(10));
+                Assert.That(host.Services.GetRequiredService<TransportSettings>().MaxConcurrency, Is.EqualTo(100));
             }
             finally
             {

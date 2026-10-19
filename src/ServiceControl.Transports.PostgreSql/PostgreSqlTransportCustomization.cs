@@ -15,15 +15,11 @@ public class PostgreSqlTransportCustomization() : TransportCustomization<Postgre
     protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, PostgreSqlTransport transportDefinition, TransportSettings transportSettings)
     {
         transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
-
-        transportSettings.MaxConcurrency ??= 10;
     }
 
     protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, PostgreSqlTransport transportDefinition, TransportSettings transportSettings)
     {
         transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
-
-        transportSettings.MaxConcurrency ??= 10;
     }
 
     protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, PostgreSqlTransport transportDefinition, TransportSettings transportSettings)

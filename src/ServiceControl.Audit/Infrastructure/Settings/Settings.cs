@@ -189,7 +189,7 @@
         public TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
 
         /// <summary>
-        /// The most messages one write handles. Null leaves it to the transport's concurrency.
+        /// The most messages one write handles. Null is 25, or the transport's concurrency if that is lower.
         /// </summary>
         public int? AuditIngestionBatchSize { get; set; }
 
@@ -200,7 +200,7 @@
         public int? AuditIngestionMaxParallelWriters { get; set; }
 
         /// <summary>
-        /// How long a batch that is not yet full waits for more messages.
+        /// How long a batch that is not yet full waits for more messages. Unset is 100 ms; zero does not wait.
         /// </summary>
         public TimeSpan AuditIngestionBatchTimeout { get; set; }
 

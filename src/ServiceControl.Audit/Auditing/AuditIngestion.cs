@@ -45,7 +45,7 @@
                 throw new ArgumentException("MaxConcurrency is not set in TransportSettings");
             }
 
-            MaxBatchSize = settings.AuditIngestionBatchSize ?? transportSettings.MaxConcurrency.Value;
+            MaxBatchSize = IngestionSettingsReader.ResolveBatchSize(settings.AuditIngestionBatchSize, transportSettings.MaxConcurrency.Value);
 
             pipeline = new IngestionPipeline(
                 new IngestionPipelineSettings

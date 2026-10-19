@@ -19,13 +19,13 @@ class IngestionSettingsReaderTests
     public void ClearSetting() => Environment.SetEnvironmentVariable(EnvironmentVariable, null);
 
     [Test]
-    public void An_unconfigured_setting_leaves_the_choice_to_the_caller()
+    public void An_unconfigured_setting_is_left_to_the_caller_or_the_default()
     {
         using (Assert.EnterMultipleScope())
         {
             Assert.That(IngestionSettingsReader.ReadBatchSize(Root, SettingName, validateConfiguration: true), Is.Null);
             Assert.That(IngestionSettingsReader.ReadMaxParallelWriters(Root, SettingName, validateConfiguration: true), Is.Null);
-            Assert.That(IngestionSettingsReader.ReadBatchTimeout(Root, SettingName, validateConfiguration: true), Is.EqualTo(TimeSpan.Zero));
+            Assert.That(IngestionSettingsReader.ReadBatchTimeout(Root, SettingName, validateConfiguration: true), Is.EqualTo(TimeSpan.FromMilliseconds(100)));
         }
     }
 
@@ -36,6 +36,27 @@ class IngestionSettingsReaderTests
 
         Assert.That(IngestionSettingsReader.ReadBatchSize(Root, SettingName, validateConfiguration: true), Is.EqualTo(250));
     }
+
+    [Test]
+    public void A_configured_zero_timeout_is_kept()
+    {
+        Configure("00:00:00");
+
+        Assert.That(IngestionSettingsReader.ReadBatchTimeout(Root, SettingName, validateConfiguration: true), Is.EqualTo(TimeSpan.Zero));
+    }
+
+    [TestCase(1, 1)]
+    [TestCase(10, 10)]
+    [TestCase(25, 25)]
+    [TestCase(26, 25)]
+    [TestCase(100, 25)]
+    public void An_unconfigured_batch_size_is_25_capped_at_the_transport_concurrency(int concurrency, int expected) =>
+        Assert.That(IngestionSettingsReader.ResolveBatchSize(null, concurrency), Is.EqualTo(expected));
+
+    [TestCase(10)]
+    [TestCase(100)]
+    public void A_configured_batch_size_is_kept(int concurrency) =>
+        Assert.That(IngestionSettingsReader.ResolveBatchSize(50, concurrency), Is.EqualTo(50));
 
     [Test]
     public void A_configured_timeout_is_read()

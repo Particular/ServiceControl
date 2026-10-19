@@ -46,9 +46,9 @@ Each instance reads its settings from its own settings root
 
 | Setting | Default | Range | What it does |
 | --- | --- | --- | --- |
-| `ErrorIngestionBatchSize` / `AuditIngestionBatchSize` | the transport's `MaximumConcurrencyLevel` | 1 to 1000 | The most messages one write handles |
-| `ErrorIngestionMaxParallelWriters` / `AuditIngestionMaxParallelWriters` | the storage decides, see below | 1 to 16 | How many batches are written at once |
-| `ErrorIngestionBatchTimeout` / `AuditIngestionBatchTimeout` | `00:00:00` | 0 to 5 seconds | How long a batch that is not yet full waits for more messages |
+| `ErrorIngestionBatchSize` / `AuditIngestionBatchSize` | `25`, or the transport's `MaximumConcurrencyLevel` if that is lower | 1 to 1000 | The most messages one write handles |
+| `ErrorIngestionMaxParallelWriters` / `AuditIngestionMaxParallelWriters` | `4` where the storage takes concurrent batches, otherwise `1`, see below | 1 to 16 | How many batches are written at once |
+| `ErrorIngestionBatchTimeout` / `AuditIngestionBatchTimeout` | `00:00:00.100` | 0 to 5 seconds | How long a batch that is not yet full waits for more messages |
 
 As environment variables:
 
@@ -64,21 +64,13 @@ SERVICECONTROL_AUDIT_AuditIngestionBatchTimeout=00:00:00.100
 
 ### Batch size
 
-The default, the transport's concurrency, is also the ceiling. A receive does not return until the
-batch carrying its message has been written, so the transport holds every one of its concurrency
-slots open and no more than that many messages can ever be waiting. Setting a batch size above the
-transport's concurrency is therefore unreachable, with or without a batch timeout: the batch never
-fills, and a timeout only delays what has already arrived. Larger batches come from raising
-`MaximumConcurrencyLevel`, and this setting is what holds writes below it when a storage is happier
-with smaller ones.
+The default batch size is 25, capped at the transport's concurrency so that a lower concurrency still allows full batches. A receive does not return until its batch has been written, so no more than that many messages can wait. A configured batch size above the transport's concurrency never fills, and a timeout only delays messages already received.
+
+Error and audit instances default to a concurrency of 100 for every transport unless `MaximumConcurrencyLevel` is configured. In the error instance, this shared setting also controls the hosted endpoint, retry forwarding, and throughput collection receivers. The monitoring instance has its own concurrency defaults. To allow batches larger than the receive concurrency, raise `MaximumConcurrencyLevel` and configure the batch size.
 
 ### Batch timeout
 
-Zero means a partial batch is written without waiting, which is what the ingestion did before
-the setting existed. A non-zero value trades latency for fewer, larger writes: at volume it costs
-nothing, because a full batch never waits, and at a trickle it delays each message by up to the
-timeout. Start at 100ms if a storage is clearly happier with larger batches. It cannot make a batch
-larger than the transport's concurrency, only fuller.
+The default is 100 ms. An explicit zero writes partial batches without waiting. A nonzero timeout trades latency for fewer, larger writes: full batches never wait, but partial batches wait up to the timeout. The default can therefore add up to 100 ms of latency at low message volumes. A timeout cannot make a batch larger than the transport's concurrency, only fuller.
 
 ### Parallel writers
 
@@ -100,9 +92,10 @@ someone actually asked for rather than a default.
 | Error, SQL Server and PostgreSQL | yes | The batch writer was built for it: upserts guarded by the attempt times so the newer attempt wins whichever transaction commits last, inserts that tolerate a competing writer's identical row, and a consistent lock order. Running several `--error-ingestion-only` hosts against one database already depends on all of it. |
 | Error, RavenDB | no | Failed messages are merged by patch scripts that read and rewrite one document, and nothing orders two patches of the same document against each other. `--error-ingestion-only` refuses to start on RavenDB for the same reason. |
 | Audit, RavenDB | yes | Audit documents are independent. Nothing merges two of them, and every batch gets its own bulk insert operation. |
+| Audit, SQL Server and PostgreSQL | yes | The audit unit of work factory supports concurrent batches. |
 | Audit, in memory | no | Test storage only. |
 
-A storage that says yes gets four writers by default.
+Error ingestion defaults to four writers on SQL Server and PostgreSQL and one on RavenDB. Audit ingestion defaults to four writers on all three providers. In-memory test storage uses one writer.
 
 ### The ordering that concurrency does not excuse
 
