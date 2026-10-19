@@ -13,8 +13,10 @@ using Particular.LicensingComponent.Contracts;
 using Persistence.MessageRedirects;
 using Persistence.Recoverability;
 using Recoverability;
+using SagaTimeouts;
 using ServiceControl.CustomChecks;
 using ServiceControl.Infrastructure.RavenDB.Subscriptions;
+using ServiceControl.Persistence.SagaTimeouts;
 using ServiceControl.Recoverability;
 using Throughput;
 using UnitOfWork;
@@ -75,6 +77,7 @@ class RavenPersistence(RavenPersisterSettings settings) : IPersistence
         services.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
         services.AddSingleton<IEndpointSettingsStore, EndpointSettingsStore>();
         services.AddSingleton<ITrialLicenseDataProvider, TrialLicenseDataProvider>();
+        services.AddSingleton<ISagaTimeoutDataStore, SagaTimeoutDataStore>();
     }
 
     public void AddInstaller(IServiceCollection services)

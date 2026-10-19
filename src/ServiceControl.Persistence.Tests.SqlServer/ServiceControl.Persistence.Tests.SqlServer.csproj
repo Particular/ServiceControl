@@ -30,7 +30,9 @@
 
   <ItemGroup>
     <Compile Include="..\ServiceControl.Persistence.Tests\**\*.cs" LinkBase="Shared" />
-    
+
+    <!-- Saga timeout management is implemented for RavenDB only so far -->
+    <Compile Remove="..\ServiceControl.Persistence.Tests\SagaTimeouts\**\*.cs" />
   </ItemGroup>
 
 </Project>

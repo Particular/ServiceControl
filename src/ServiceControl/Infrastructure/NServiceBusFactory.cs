@@ -68,6 +68,7 @@ namespace ServiceBus.Management.Infrastructure
                     SagaAuditMessagesSerializationContext.Default,
                     HeartbeatSerializationContext.Default,
                     UsageReportingSerializationContext.Default,
+                    SagaTimeoutMessagesSerializationContext.Default,
                     // This is required until we move all known message types over to source generated contexts
                     new DefaultJsonTypeInfoResolver()
                 }
