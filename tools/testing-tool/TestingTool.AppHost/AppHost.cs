@@ -3,6 +3,7 @@ using TestingTool.AppHost;
 
 var options = CliOptions.Parse(args);
 var persistenceType = options.GetValue("persistence", PersistenceType.RavenDb);
+var imageTag = options.GetValueOrDefault("tag");
 Console.WriteLine($"Using persistence type: {persistenceType}");
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -51,10 +52,25 @@ for (int i = 0; i < options.GetValue("error-ingestion-scale-unit", 0); i++) {
 
 platform.AddServicePulse("pulse", primaryErrorInstance, platform.AddServiceControlMonitoringInstance("monitoring"));
 
-for (int i = 0; i < options.GetValue("audit-instances", 0); i++)
+// EF persistence lives in the audit instance itself, so audit load needs a real audit container.
+// The platform persistence argument stays RavenDB because the Aspire package only knows about
+// platform persistences; the SQL wiring is layered on with WithPersistenceType.
+var auditInstanceCount = options.GetValue("audit-instances", 0);
+
+for (int i = 0; i < auditInstanceCount; i++)
 {
+    //note: these audit instances are currently independant and are not scale out nodes like the error ingestion ones.
     platform.AddServiceControlAuditInstance("audit" + i, primaryErrorInstance, raven)
-        .WithEnvironment("INSTANCENAME", "Audit-" + i);
+        .WithEnvironment("SERVICECONTROL_AUDIT_INSTANCENAME", "Audit-" + i)
+        .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", observability.Collector.GetEndpoint("otlp-grpc"))
+        // Reports the audit ingestion and failed-import custom checks to the primary, which is the
+        // only instance ServicePulse asks. Without it a failed audit import is invisible outside
+        // the audit container's own log.
+        .WithEnvironment("SERVICECONTROL_AUDIT_SERVICECONTROLQUEUEADDRESS", "Particular.ServiceControl")
+        .WithAuditQueueName(i == 0 ? "audit" : "audit" + i)
+        .WithRunMode(PlatformRunMode.SetupAndRun)
+        .WithIngestionTuning()
+        .WithPersistenceType(persistenceType);
 }
 
 // --- Testing tool ---
@@ -69,6 +85,6 @@ builder.AddProject<Projects.TestingTool>("testing-tool")
     .WaitFor(observability.Collector);
 
 // --- Optional: override ServiceControl image tag for prerelease testing ---
-builder.UseServiceControlImageTag(options.GetValueOrDefault("tag"));
+builder.UseServiceControlImageTag(imageTag);
 
 builder.Build().Run();

@@ -194,7 +194,7 @@
     <div class="tabs">
       <button class="tab active" data-tab="scenarios" onclick="showTab('scenarios')">Scenarios</button>
       <button class="tab" data-tab="jobs" onclick="showTab('jobs')">Recoverability Jobs</button>
-      <button class="tab" data-tab="bypass" onclick="showTab('bypass')">Bypass</button>
+      <button class="tab" data-tab="bypass" onclick="showTab('bypass')">Bypass Writers</button>
     </div>
 
     <!-- Tab: Scenarios -->
@@ -252,6 +252,37 @@
       <div class="stats" id="bypass-stats" style="margin-top:.8rem">
         <span>Status: <strong>idle</strong></span>
         <span>Errors written: <strong>0</strong></span>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top:1.4rem">
+      <h2>Direct Audit-Queue Writer</h2>
+    </div>
+    <div class="scenario-card" id="audit-bypass-card">
+      <div class="desc" style="margin-bottom:.8rem">
+        Writes audit envelopes directly to the ServiceControl.Audit instance's audit queue. Most carry the headers a real
+        endpoint would have stamped, so the audit instance records endpoints, message types, conversations and processing
+        times. A share of them are whole saga episodes: the three messages that drove a saga through New, Updated and
+        Completed, each followed by the snapshot it produced, linked by the InvokedSagas headers. Needs an audit instance
+        on SQL Server or PostgreSQL (<code>--audit-instances</code> with <code>--persistence</code>).
+      </div>
+      <div class="controls">
+        <span class="field-label">Rate (claims/s):</span>
+        <input type="number" id="audit-bypass-rate" value="100" min="1" step="1" title="A saga episode claim emits six envelopes" />
+        <span class="field-label">Workers:</span>
+        <input type="number" id="audit-bypass-parallelism" value="" min="1" step="1" placeholder="auto" title="Number of parallel worker tasks (default: CPU count)" />
+        <span class="field-label">Saga snapshots per message:</span>
+        <input type="number" id="audit-bypass-saga-ratio" value="0.2" min="0" max="1" step="0.05" title="0.2 emits two saga snapshots for every ten processed messages" />
+        <span class="field-label">Duration (sec, optional):</span>
+        <input type="number" id="audit-bypass-duration" value="" min="1" step="1" placeholder="&#8734;" />
+      </div>
+      <div class="controls">
+        <button class="btn start" onclick="startAuditBypass()" id="btn-audit-bypass-start">&#9654; Start Audit Load</button>
+        <button class="btn stop" onclick="stopAuditBypass()" id="btn-audit-bypass-stop" disabled>&#9209; Stop Audit Load</button>
+      </div>
+      <div class="stats" id="audit-bypass-stats" style="margin-top:.8rem">
+        <span>Status: <strong>idle</strong></span>
+        <span>Messages written: <strong>0</strong></span>
       </div>
     </div>
 
@@ -628,6 +659,57 @@
       } catch (e) { /* ignore */ }
     }
 
+    // --- Audit bypass ---
+    async function startAuditBypass() {
+      const rate = parseFloat(document.getElementById('audit-bypass-rate').value);
+      const dur = parseInt(document.getElementById('audit-bypass-duration').value);
+      const par = parseInt(document.getElementById('audit-bypass-parallelism').value);
+      const ratio = parseFloat(document.getElementById('audit-bypass-saga-ratio').value);
+      const body = {};
+      if (rate && rate > 0) body.rate = rate;
+      if (par && par > 0) body.parallelism = par;
+      if (dur && dur > 0) body.durationSeconds = dur;
+      if (!isNaN(ratio) && ratio >= 0) body.sagaSnapshotRatio = ratio;
+      try {
+        await api('POST', '/api/audit-bypass/start', body);
+        toast('Started audit load', 'ok');
+        await refreshAuditBypass();
+      } catch (e) {
+        toast(`Failed to start audit load: ${e.message}`, 'error');
+      }
+    }
+
+    async function stopAuditBypass() {
+      try {
+        await api('POST', '/api/audit-bypass/stop');
+        toast('Stopped audit-queue writer', 'ok');
+        await refreshAuditBypass();
+      } catch (e) {
+        toast(`Failed: ${e.message}`, 'error');
+      }
+    }
+
+    async function refreshAuditBypass() {
+      try {
+        const audit = await api('GET', '/api/audit-bypass/status');
+        const stats = document.getElementById('audit-bypass-stats');
+        const startBtn = document.getElementById('btn-audit-bypass-start');
+        const stopBtn = document.getElementById('btn-audit-bypass-stop');
+        const card = document.getElementById('audit-bypass-card');
+        card.classList.toggle('running', audit.running);
+        startBtn.disabled = audit.running;
+        stopBtn.disabled = !audit.running;
+        document.querySelectorAll('#audit-bypass-card input').forEach(el => el.disabled = audit.running);
+        stats.innerHTML = `
+          <span>Status: <strong>${audit.running ? 'running' : 'idle'}</strong></span>
+          ${audit.running ? `<span>Rate: <strong>${audit.achievedRate ?? 0} env/s @ ${audit.rate ?? 0} claims/s</strong></span>` : ''}
+          <span>Messages written: <strong>${fmtNum(audit.processedMessagesWritten)}</strong></span>
+          <span>Saga snapshots: <strong>${fmtNum(audit.sagaSnapshotsWritten)}</strong></span>
+          ${audit.messagesFailed ? `<span style="color:var(--err)">Failed: <strong>${fmtNum(audit.messagesFailed)}</strong></span>` : ''}
+        `;
+      } catch (e) { /* ignore */ }
+    }
+
     // --- Polling ---
     async function loadAll() {
       await Promise.all([loadStatus(), loadScenarios(), loadJobs()]);
@@ -694,8 +776,10 @@
     try { showTab(localStorage.getItem('tt-tab') || 'scenarios'); } catch (e) { showTab('scenarios'); }
     loadAll().then(() => populateBypassScenarios());
     refreshBypass();
+    refreshAuditBypass();
     refreshTimer = setInterval(refresh, 2000);
     setInterval(refreshBypass, 2000);
+    setInterval(refreshAuditBypass, 2000);
   </script>
 </body>
 

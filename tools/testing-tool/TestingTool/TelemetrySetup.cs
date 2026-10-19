@@ -24,6 +24,7 @@ public static class TelemetrySetup
         public const string Replay = "testing-tool.replay";
         public const string Search = "testing-tool.search";
         public const string Bypass = "testing-tool.bypass";
+        public const string AuditBypass = "testing-tool.audit-bypass";
     }
 
     public static Meter CreateMeter() => new(MeterName, "1.0.0");
@@ -40,6 +41,7 @@ public static class TelemetrySetup
                 .AddSource(Sources.Replay)
                 .AddSource(Sources.Search)
                 .AddSource(Sources.Bypass)
+                .AddSource(Sources.AuditBypass)
                 // Also pick up per-scenario activity sources dynamically.
                 .AddSource("testing-tool.*")
                 .AddOtlpExporter())
