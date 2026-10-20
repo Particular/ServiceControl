@@ -223,6 +223,8 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
         public bool ShowErrorDatabasePathFields => ErrorSelectedStorageType == null || ErrorSelectedStorageType.Settings.Any(s => s.Name.EndsWith("/DBPath"));
 
+        public bool ShowErrorDatabaseMaintenancePort => ErrorSelectedStorageType == null || ErrorSelectedStorageType.Settings.Any(s => s.Name == ServiceControlSettings.DatabaseMaintenancePort.Name);
+
         public bool ShowErrorMessageBodyStorage => ErrorSelectedStorageType?.Settings.Any(s => s.Name == ServiceControlSettings.MessageBodyStorageType.Name) == true;
 
         public IEnumerable<MessageBodyStorageOption> ErrorMessageBodyStorageTypes => ServiceControl.MessageBodyStorageTypes;
@@ -511,6 +513,8 @@ namespace ServiceControl.Config.UI.InstanceAdd
         public bool ShowAuditStorageConnectionString => AuditSelectedStorageType != null && AuditSelectedStorageType.Settings.Any(s => s.Mandatory && s.Name.EndsWith("/ConnectionString"));
 
         public bool ShowAuditDatabasePathFields => AuditSelectedStorageType == null || AuditSelectedStorageType.Settings.Any(s => s.Name.EndsWith("/DBPath"));
+
+        public bool ShowAuditDatabaseMaintenancePort => AuditSelectedStorageType == null || AuditSelectedStorageType.Settings.Any(s => s.Name == AuditInstanceSettingsList.DatabaseMaintenancePort.Name);
 
         public ICommand AuditSelectDestinationPath => ServiceControlAudit.SelectDestinationPath;
 

@@ -108,7 +108,10 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override void ValidateMaintenancePort()
         {
-            DatabaseMaintenancePortValidator.Validate(this);
+            if (PersistenceManifest.Settings.Any(s => s.Name == ServiceControlSettings.DatabaseMaintenancePort.Name))
+            {
+                DatabaseMaintenancePortValidator.Validate(this);
+            }
         }
 
         protected override void ValidateQueueNames()

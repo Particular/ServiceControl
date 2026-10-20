@@ -138,7 +138,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                     .WithMessage(string.Format(Validation.Validations.MSG_PORTS_NOT_EQUAL, "Database Maintenance", "Audit"))
                 .NotEqual(x => x.AuditDatabaseMaintenancePortNumber)
                     .WithMessage(string.Format(Validation.Validations.MSG_PORTS_NOT_EQUAL, "Database Maintenance", "Audit Database Maintenance"))
-                .When(x => x.InstallErrorInstance);
+                .When(x => x.InstallErrorInstance && x.ShowErrorDatabaseMaintenancePort);
 
             RuleFor(x => x.ErrorDestinationPath)
                 .NotEmpty()
@@ -258,7 +258,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                     .WithMessage(string.Format(Validation.Validations.MSG_PORTS_NOT_EQUAL, "Audit Database Maintenance", "ServiceControl"))
                 .NotEqual(x => x.ErrorDatabaseMaintenancePortNumber)
                     .WithMessage(string.Format(Validation.Validations.MSG_PORTS_NOT_EQUAL, "Audit Database Maintenance", "ServiceControl Database Maintenance"))
-                .When(x => x.InstallAuditInstance);
+                .When(x => x.InstallAuditInstance && x.ShowAuditDatabaseMaintenancePort);
 
             RuleFor(x => x.AuditDestinationPath)
                 .NotEmpty()

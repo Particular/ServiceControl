@@ -135,7 +135,9 @@
                                 <controls:FormTextBox Header="PORT NUMBER (1 - 49151)" Text="{Binding ErrorPortNumber}" />
 
 
-                                <controls:FormTextBox Header="DATABASE MAINTENANCE PORT NUMBER (1 - 49151)" Text="{Binding ErrorDatabaseMaintenancePortNumber}" />
+                                <controls:FormTextBox Header="DATABASE MAINTENANCE PORT NUMBER (1 - 49151)"
+                                          Text="{Binding ErrorDatabaseMaintenancePortNumber}"
+                                          Visibility="{Binding ShowErrorDatabaseMaintenancePort, Converter={StaticResource boolToVis}}" />
 
                                 <Border Margin="0,40,0,20"
                             BorderBrush="{StaticResource Gray90Brush}"
@@ -408,7 +410,9 @@
                                               Text="{Binding AuditHostName}"
                                               Warning="{Binding AuditHostNameWarning}" />
                                 <controls:FormTextBox Header="PORT NUMBER (1 - 49151)" Text="{Binding AuditPortNumber}" />
-                                <controls:FormTextBox Header="DATABASE MAINTENANCE PORT NUMBER (1 - 49151)" Text="{Binding AuditDatabaseMaintenancePortNumber}" />
+                                <controls:FormTextBox Header="DATABASE MAINTENANCE PORT NUMBER (1 - 49151)"
+                                          Text="{Binding AuditDatabaseMaintenancePortNumber}"
+                                          Visibility="{Binding ShowAuditDatabaseMaintenancePort, Converter={StaticResource boolToVis}}" />
 
                                 <Border Margin="0,40,0,20"
                                 BorderBrush="{StaticResource Gray90Brush}"

@@ -76,6 +76,24 @@
             }
         }
 
+        [TestCase("RavenDB", true)]
+        [TestCase("SQLServer", false)]
+        [TestCase("PostgreSQL", false)]
+        public void Database_maintenance_port_is_shown_only_for_RavenDB(string storageTypeName, bool expected)
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                ErrorSelectedStorageType = ServiceControlInstaller.Engine.Instances.ServiceControlPersisters.GetPrimaryPersistence(storageTypeName),
+                AuditSelectedStorageType = ServiceControlInstaller.Engine.Instances.ServiceControlPersisters.GetAuditPersistence(storageTypeName)
+            };
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(viewModel.ShowErrorDatabaseMaintenancePort, Is.EqualTo(expected));
+                Assert.That(viewModel.ShowAuditDatabaseMaintenancePort, Is.EqualTo(expected));
+            }
+        }
+
         [Test]
         public void Message_body_storage_is_shown_only_for_storage_types_that_support_it()
         {

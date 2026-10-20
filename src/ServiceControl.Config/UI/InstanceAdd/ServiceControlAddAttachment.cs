@@ -67,7 +67,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 serviceControlNewInstance.InstallPath = viewModel.ServiceControl.DestinationPath;
                 serviceControlNewInstance.HostName = viewModel.ServiceControl.HostName;
                 serviceControlNewInstance.Port = Convert.ToInt32(viewModel.ServiceControl.PortNumber);
-                serviceControlNewInstance.DatabaseMaintenancePort = Convert.ToInt32(viewModel.ServiceControl.DatabaseMaintenancePortNumber);
+                serviceControlNewInstance.DatabaseMaintenancePort = viewModel.ShowErrorDatabaseMaintenancePort ? Convert.ToInt32(viewModel.ServiceControl.DatabaseMaintenancePortNumber) : null;
                 serviceControlNewInstance.VirtualDirectory = null;
                 serviceControlNewInstance.ErrorQueue = viewModel.ServiceControl.ErrorQueueName;
                 serviceControlNewInstance.ErrorLogQueue = viewModel.ServiceControl.ErrorForwarding.Value ? viewModel.ServiceControl.ErrorForwardingQueueName : null;
@@ -94,7 +94,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 auditNewInstance.InstallPath = viewModel.ServiceControlAudit.DestinationPath;
                 auditNewInstance.HostName = viewModel.ServiceControlAudit.HostName;
                 auditNewInstance.Port = Convert.ToInt32(viewModel.ServiceControlAudit.PortNumber);
-                auditNewInstance.DatabaseMaintenancePort = Convert.ToInt32(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber);
+                auditNewInstance.DatabaseMaintenancePort = viewModel.ShowAuditDatabaseMaintenancePort ? Convert.ToInt32(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber) : null;
                 auditNewInstance.AuditLogQueue = viewModel.ServiceControlAudit.AuditForwarding.Value ? viewModel.ServiceControlAudit.AuditForwardingQueueName : null;
                 auditNewInstance.AuditQueue = viewModel.ServiceControlAudit.AuditQueueName;
                 auditNewInstance.ForwardAuditMessages = viewModel.ServiceControlAudit.AuditForwarding.Value;
