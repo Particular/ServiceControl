@@ -1,9 +1,8 @@
-namespace ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
+namespace ServiceControl.Persistence.BodyStorage;
 
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
-using ServiceControl.Persistence.EFCore.Abstractions;
 
 static class S3ClientFactory
 {

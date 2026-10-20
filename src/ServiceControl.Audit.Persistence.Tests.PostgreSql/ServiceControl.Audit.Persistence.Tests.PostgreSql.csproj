@@ -36,8 +36,8 @@
     <!-- The EF Core persisters do not deduplicate, a redelivered message is stored again. -->
     <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\AuditTests.Deduplication.cs" />
 
-    <!-- The EF Core persisters store text bodies only. -->
-    <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\AuditTests.BinaryBody.cs" />
+    <!-- The EF Core persisters keep every body, so a body over MaxBodySizeToStore is served rather than answering no content. -->
+    <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\AuditTests.MaxBodySize.cs" />
   </ItemGroup>
 
 </Project>

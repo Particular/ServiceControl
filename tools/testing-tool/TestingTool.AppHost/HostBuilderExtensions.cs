@@ -71,9 +71,7 @@ public static class HostBuilderExtensions
     
 
     /// <summary>
-    /// Points a ServiceControl.Audit instance at the same SQL Server or PostgreSQL container the
-    /// primary uses. The keys are namespaced to the audit instance, and there is no body storage:
-    /// the audit EF persisters store bodies inline in the audit row, capped by MaxBodySizeToStore.
+    /// Points an Audit instance at the primary's database container with separate file-system body storage.
     /// </summary>
     /// <remarks>
     /// The setting root namespace is "ServiceControl.Audit", and the settings reader rewrites both
@@ -99,6 +97,8 @@ public static class HostBuilderExtensions
 
         return audit
             .WaitFor(db)
+            .WithEnvironment("SERVICECONTROL_AUDIT_MESSAGEBODY_STORAGETYPE", "FileSystem")
+            .WithEnvironment("SERVICECONTROL_AUDIT_MESSAGEBODY_FILESYSTEM_STORAGEPATH", "/tmp/ServiceControlAuditBodyStorage")
             .WithEnvironment("SERVICECONTROL_AUDIT_PERSISTENCETYPE", PersistenceTypeName(type))
             .WithEnvironment("SERVICECONTROL_AUDIT_DATABASE_CONNECTIONSTRING", db);
     }

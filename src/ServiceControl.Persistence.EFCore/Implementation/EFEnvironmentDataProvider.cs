@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.Implementation;
 
+using ServiceControl.Persistence.BodyStorage;
 using System.Globalization;
 using Abstractions;
 using Infrastructure;
@@ -49,9 +50,9 @@ class EFEnvironmentDataProvider(EFPersisterSettings settings, IDatabaseHostingPr
 
     static string BodyStorageType(BodyStorageSettings bodyStorage) => bodyStorage switch
     {
-        FileSystemBodyStorageSettings => nameof(Abstractions.BodyStorageType.FileSystem),
-        AzureBlobBodyStorageSettings => nameof(Abstractions.BodyStorageType.AzureBlob),
-        S3BodyStorageSettings => nameof(Abstractions.BodyStorageType.S3),
+        FileSystemBodyStorageSettings => nameof(ServiceControl.Persistence.BodyStorage.BodyStorageType.FileSystem),
+        AzureBlobBodyStorageSettings => nameof(ServiceControl.Persistence.BodyStorage.BodyStorageType.AzureBlob),
+        S3BodyStorageSettings => nameof(ServiceControl.Persistence.BodyStorage.BodyStorageType.S3),
         _ => "Unknown"
     };
 

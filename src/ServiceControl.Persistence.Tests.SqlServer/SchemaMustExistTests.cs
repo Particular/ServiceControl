@@ -1,6 +1,7 @@
 // ReSharper disable once CheckNamespace
 namespace ServiceControl.Persistence.Tests;
 
+using ServiceControl.Persistence.BodyStorage;
 using System;
 using System.IO;
 using System.Threading.Tasks;

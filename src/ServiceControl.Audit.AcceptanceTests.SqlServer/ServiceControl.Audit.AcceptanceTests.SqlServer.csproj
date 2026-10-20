@@ -36,6 +36,9 @@
 
     <!-- The EF Core persisters always index bodies for full text search, whatever EnableFullTextSearchOnBodies says. -->
     <Compile Remove="..\ServiceControl.Audit.AcceptanceTests\Auditing\When_processed_message_searched_by_body_content.FullTextSearchDisabled.cs" />
+
+    <!-- The EF Core persisters keep every body, so a body over MaxBodySizeToStore is served rather than answering no content. -->
+    <Compile Remove="..\ServiceControl.Audit.AcceptanceTests\Auditing\When_messages_with_big_bodies_are_ingested.MaxBodySize.cs" />
   </ItemGroup>
 
 </Project>

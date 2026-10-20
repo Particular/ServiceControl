@@ -1,12 +1,10 @@
-namespace ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
+namespace ServiceControl.Persistence.BodyStorage;
 
 using System.IO.Compression;
 using System.Net;
 using Amazon.S3;
 using Amazon.S3.Model;
 using ServiceControl.Infrastructure;
-using ServiceControl.Persistence.EFCore.Abstractions;
-using ServiceControl.Persistence.EFCore.Infrastructure;
 
 public class S3BodyStoragePersistence : IBodyStoragePersistence
 {
@@ -95,6 +93,35 @@ public class S3BodyStoragePersistence : IBodyStoragePersistence
 
     public Task DeleteBodyIfExists(string bodyId, CancellationToken cancellationToken = default) =>
         client.DeleteObjectAsync(bucketName, Key(bodyId), cancellationToken);
+
+    public async Task DeleteBodiesWithPrefix(string prefix, CancellationToken cancellationToken = default)
+    {
+        BodyIdPrefix.Validate(prefix);
+
+        var request = new ListObjectsV2Request { BucketName = bucketName, Prefix = Key(prefix) };
+        ListObjectsV2Response page;
+        do
+        {
+            page = await client.ListObjectsV2Async(request, cancellationToken);
+
+            if (page.S3Objects is { Count: > 0 })
+            {
+                var deleted = await client.DeleteObjectsAsync(new DeleteObjectsRequest
+                {
+                    BucketName = bucketName,
+                    Objects = page.S3Objects.Select(o => new KeyVersion { Key = o.Key }).ToList()
+                }, cancellationToken);
+
+                if (deleted.DeleteErrors is { Count: > 0 })
+                {
+                    var failed = deleted.DeleteErrors[0];
+                    throw new InvalidOperationException($"Failed to delete {deleted.DeleteErrors.Count} object(s) with prefix '{request.Prefix}', first '{failed.Key}': {failed.Code} {failed.Message}");
+                }
+            }
+
+            request.ContinuationToken = page.NextContinuationToken;
+        } while (page.IsTruncated == true);
+    }
 
     async Task<bool> Exists(string key, CancellationToken cancellationToken)
     {

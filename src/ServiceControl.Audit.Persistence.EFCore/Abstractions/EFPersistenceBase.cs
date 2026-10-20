@@ -3,6 +3,7 @@ namespace ServiceControl.Audit.Persistence.EFCore.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using NServiceBus;
+using ServiceControl.Persistence.BodyStorage;
 using ServiceControl.Audit.Persistence.EFCore.Implementation;
 using ServiceControl.Audit.Persistence.EFCore.Implementation.UnitOfWork;
 using ServiceControl.Audit.Persistence.UnitOfWork;
@@ -13,6 +14,7 @@ abstract class EFPersistenceBase(EFPersisterSettings settings) : IPersistence
     {
         AddCommon(services);
         AddQueryServices(services);
+        AddBodyStorage(services);
 
         services.AddSingleton<AuditDataStore>();
         services.AddSingleton<IAuditMessagesViewDataStore>(provider => provider.GetRequiredService<AuditDataStore>());
@@ -30,6 +32,11 @@ abstract class EFPersistenceBase(EFPersisterSettings settings) : IPersistence
         {
             endpointConfiguration.AddCustomCheck<AuditRetentionCustomCheck>();
             AddCustomChecks(endpointConfiguration);
+
+            if (settings.BodyStorage is FileSystemBodyStorageSettings)
+            {
+                endpointConfiguration.AddCustomCheck<FileSystemBodyStorageCustomCheck>();
+            }
         }
     }
 
@@ -45,6 +52,29 @@ abstract class EFPersistenceBase(EFPersisterSettings settings) : IPersistence
         services.TryAddSingleton(TimeProvider.System);
         AddDbContext(services, settings);
         AddPartitionManager(services);
+    }
+
+    // The settings type picks the store, so each store resolves only the settings it can act on.
+    void AddBodyStorage(IServiceCollection services)
+    {
+        switch (settings.BodyStorage)
+        {
+            case FileSystemBodyStorageSettings fileSystem:
+                services.AddSingleton(fileSystem);
+                services.AddSingleton<IBodyStoragePersistence, FileSystemBodyStoragePersistence>();
+                services.AddSingleton<IDriveSpaceProvider, DriveInfoSpaceProvider>();
+                break;
+            case AzureBlobBodyStorageSettings azureBlob:
+                services.AddSingleton(azureBlob);
+                services.AddSingleton<IBodyStoragePersistence, AzureBlobBodyStoragePersistence>();
+                break;
+            case S3BodyStorageSettings s3:
+                services.AddSingleton(s3);
+                services.AddSingleton<IBodyStoragePersistence, S3BodyStoragePersistence>();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(settings), settings.BodyStorage, "Unknown body storage type.");
+        }
     }
 
     protected abstract void AddDbContext(IServiceCollection services, EFPersisterSettings settings);

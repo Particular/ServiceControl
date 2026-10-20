@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
 
+using ServiceControl.Persistence.BodyStorage;
 using EntityConfigurations;
 using NServiceBus;
 using NServiceBus.Transport;

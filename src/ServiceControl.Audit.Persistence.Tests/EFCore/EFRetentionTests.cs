@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.Persistence.Tests
 {
     using System;
+    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +35,58 @@ namespace ServiceControl.Audit.Persistence.Tests
             var remaining = await MessagesViewStore.GetMessages(true, new PagingInfo(), new SortInfo("time_sent", "desc"));
 
             Assert.That(remaining.Results.Select(message => message.MessageId), Is.EqualTo(new[] { live.Headers[Headers.MessageId] }));
+        }
+
+        [Test]
+        public async Task Removes_the_external_bodies_with_the_rows()
+        {
+            await Ingest(MakeMessage(contentType: "application/octet-stream"), [1, 2, 3]);
+            Assert.That(Directory.GetFiles(configuration.BodyStoragePath), Has.Length.EqualTo(1));
+
+            configuration.TimeProvider.Advance(TimeSpan.FromDays(3));
+            await configuration.CreateRetention().SweepNow();
+
+            var remaining = await MessagesViewStore.GetMessages(true, new PagingInfo(), new SortInfo("time_sent", "desc"));
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(remaining.Results, Is.Empty);
+                Assert.That(Directory.GetFiles(configuration.BodyStoragePath), Is.Empty);
+            }
+        }
+
+        [Test]
+        public async Task Deletes_the_bodies_by_the_prefix_of_the_expired_rows()
+        {
+            var message = MakeMessage(contentType: "application/octet-stream");
+            await Ingest(message, [1, 2, 3]);
+            var bodyId = (await MessagesViewStore.GetMessages(true, new PagingInfo(), new SortInfo("time_sent", "desc"))).Results.Single().BodyUrl.Split('/')[2];
+
+            configuration.TimeProvider.Advance(TimeSpan.FromDays(3));
+            var storage = new RecordingBodyStorage();
+            await configuration.CreateRetention(storage).SweepNow();
+
+            Assert.That(storage.DeletedPrefixes, Has.Some.Matches<string>(bodyId.StartsWith));
+        }
+
+        [Test]
+        public async Task Keeps_the_rows_when_deleting_their_bodies_fails()
+        {
+            await Ingest(MakeMessage(contentType: "application/octet-stream"), [1, 2, 3]);
+
+            configuration.TimeProvider.Advance(TimeSpan.FromDays(3));
+            var storage = new RecordingBodyStorage { DeleteFailure = new IOException("storage is down") };
+
+            Assert.ThrowsAsync<IOException>(() => configuration.CreateRetention(storage).SweepNow());
+
+            var remaining = await MessagesViewStore.GetMessages(true, new PagingInfo(), new SortInfo("time_sent", "desc"));
+            var body = await MessagesViewStore.GetMessageBody(remaining.Results.Single().BodyUrl.Split('/')[2], TestContext.CurrentContext.CancellationToken);
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(remaining.Results, Has.Count.EqualTo(1));
+                Assert.That(body.HasContent, Is.True, "the body is still in storage");
+            }
         }
 
         [Test]

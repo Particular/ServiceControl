@@ -6,10 +6,12 @@ using Microsoft.Extensions.Logging;
 using ServiceControl.Audit.Persistence.EFCore.Abstractions;
 using ServiceControl.Audit.Persistence.EFCore.DbContexts;
 using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
+using ServiceControl.Persistence.BodyStorage;
 
 sealed class AuditRetention(
     IServiceScopeFactory scopeFactory,
     IAuditPartitionManager partitions,
+    IBodyStoragePersistence bodyStorage,
     IRetentionLock retentionLock,
     AuditRetentionCustomCheck.State retentionState,
     EFPersisterSettings settings,
@@ -104,6 +106,9 @@ sealed class AuditRetention(
 
         foreach (var expired in await partitions.ListExpired(dbContext, keepFrom, cancellationToken))
         {
+            // Bodies go first: a failure here leaves the rows in place, so the next sweep retries the same hour.
+            await bodyStorage.DeleteBodiesWithPrefix(partitions.BodyIdPrefix(expired), cancellationToken);
+
             DropResult drop;
             do
             {

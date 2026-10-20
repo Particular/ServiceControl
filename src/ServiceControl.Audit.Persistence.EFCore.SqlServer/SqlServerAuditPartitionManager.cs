@@ -18,6 +18,8 @@ class SqlServerAuditPartitionManager : IAuditPartitionManager
         return await messageHours.Union(snapshotHours).OrderBy(hour => hour).ToListAsync(cancellationToken);
     }
 
+    public string BodyIdPrefix(DateTime hour) => AuditBodyId.HourPrefix(hour);
+
     public async Task<DropResult> DropExpired(AuditDbContext dbContext, DateTime hour, int batchSize, CancellationToken cancellationToken = default)
     {
         var messagesDeleted = await dbContext.AuditMessages

@@ -1,5 +1,6 @@
 namespace ServiceControl.AcceptanceTests.PostgreSql;
 
+using ServiceControl.Persistence.BodyStorage;
 using System;
 using System.Collections.Concurrent;
 using System.IO;

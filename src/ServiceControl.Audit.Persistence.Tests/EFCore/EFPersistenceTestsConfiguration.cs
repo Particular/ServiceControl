@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.Persistence.Tests
 {
     using System;
+    using System.IO;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -11,6 +12,7 @@ namespace ServiceControl.Audit.Persistence.Tests
     using NServiceBus.CustomChecks;
     using ServiceControl.Audit.Persistence.EFCore.Abstractions;
     using ServiceControl.Audit.Persistence.EFCore.Implementation;
+    using ServiceControl.Persistence.BodyStorage;
     using UnitOfWork;
 
     abstract class EFPersistenceTestsConfiguration : IPersistenceTestsConfiguration
@@ -31,6 +33,8 @@ namespace ServiceControl.Audit.Persistence.Tests
 
         public string ConnectionString { get; private set; }
 
+        public string BodyStoragePath { get; } = Directory.CreateTempSubdirectory("sc_audit_bodies_").FullName;
+
         public string Schema { get; } = $"sc_test_{Guid.NewGuid():N}";
 
         // PostgreSQL keeps only microseconds, so a finer seed would not round trip.
@@ -44,6 +48,8 @@ namespace ServiceControl.Audit.Persistence.Tests
             var settings = new PersistenceSettings(TimeSpan.FromDays(1), true, 100000);
             settings.PersisterSpecificSettings[EFPersistenceConfigurationBase.ConnectionStringKey] = ConnectionString;
             settings.PersisterSpecificSettings[EFPersistenceConfigurationBase.SchemaKey] = Schema;
+            settings.PersisterSpecificSettings[BodyStorageSettingsParser.StorageTypeKey] = nameof(BodyStorageType.FileSystem);
+            settings.PersisterSpecificSettings[BodyStorageSettingsParser.FileSystemStoragePathKey] = BodyStoragePath;
 
             setSettings(settings);
 
@@ -68,6 +74,12 @@ namespace ServiceControl.Audit.Persistence.Tests
                 {
                     hostBuilder.Services.AddTransient(typeof(ICustomCheck), type);
                 }
+            }
+
+            // Registered on the endpoint in production, which these tests do not build.
+            if (hostBuilder.Services.Any(descriptor => descriptor.ServiceType == typeof(FileSystemBodyStorageSettings)))
+            {
+                hostBuilder.Services.AddTransient<ICustomCheck, FileSystemBodyStorageCustomCheck>();
             }
 
             host = hostBuilder.Build();
@@ -96,9 +108,17 @@ namespace ServiceControl.Audit.Persistence.Tests
             {
                 await DropSchema(ConnectionString, Schema);
             }
+
+            try
+            {
+                Directory.Delete(BodyStoragePath, recursive: true);
+            }
+            catch (DirectoryNotFoundException)
+            {
+            }
         }
 
-        internal AuditRetention CreateRetention() => ActivatorUtilities.CreateInstance<AuditRetention>(ServiceProvider);
+        internal AuditRetention CreateRetention(params object[] overrides) => ActivatorUtilities.CreateInstance<AuditRetention>(ServiceProvider, overrides);
 
         public abstract Task<string> GetConnectionString();
 

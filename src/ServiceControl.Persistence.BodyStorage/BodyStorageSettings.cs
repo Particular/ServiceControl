@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.EFCore.Abstractions;
+namespace ServiceControl.Persistence.BodyStorage;
 
 /// <summary>
 /// Settings for the selected body storage type.

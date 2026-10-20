@@ -24,6 +24,7 @@ This section points to sources that explain why ServiceControl is designed the w
 
 - [Ingestion pipeline](ingestion-pipeline.md) — why batch parallelism is a storage decision, not an instance decision
 - [Error ingestion design](error-ingestion-design.md) — why the relational persisters write failed messages with hand-written SQL
+- [Message body storage](message-body-storage.md) — where the Audit SQL Server and PostgreSQL persisters keep message bodies, how retention removes them, and which settings are required
 - [Bulk retries design](bulk-retries-design.md) — how ServiceControl retries failed messages in bulk
 - [Retries over Azure Storage Queues transport](retries-asq-transport.md) — how retries behave with one or several storage accounts
 - [Data versioning design](data-versioning-design.md) — which invariant keeps a cached API response from going stale

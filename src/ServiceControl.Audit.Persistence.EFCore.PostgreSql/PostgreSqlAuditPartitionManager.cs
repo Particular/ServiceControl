@@ -52,6 +52,9 @@ class PostgreSqlAuditPartitionManager(ILogger<PostgreSqlAuditPartitionManager> l
         return [.. days];
     }
 
+    // A partition holds a whole day, so the prefix is the day rather than the hour.
+    public string BodyIdPrefix(DateTime day) => AuditBodyId.DayPrefix(day);
+
     public async Task<DropResult> DropExpired(AuditDbContext dbContext, DateTime day, int batchSize, CancellationToken cancellationToken = default)
     {
         var sql = string.Concat(Tables(dbContext).Select(table => $"DROP TABLE IF EXISTS {table.Partition(day)};\n"));

@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
 
+using ServiceControl.Persistence.BodyStorage;
 using System.Collections.Concurrent;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;

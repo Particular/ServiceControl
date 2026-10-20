@@ -3,6 +3,7 @@ namespace ServiceControl.Audit.AcceptanceTests.SqlServer;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using ServiceControl.Audit.AcceptanceTests.TestSupport;
@@ -22,18 +23,39 @@ public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfigur
 
         schemas.Add(schema);
 
+        var bodyStoragePath = Directory.CreateTempSubdirectory("sc_audit_at_bodies_").FullName;
+        bodyStoragePaths.Add(bodyStoragePath);
+
         return new Dictionary<string, string>
         {
             [EFPersistenceConfigurationBase.ConnectionStringKey] = connectionString,
-            [EFPersistenceConfigurationBase.SchemaKey] = schema
+            [EFPersistenceConfigurationBase.SchemaKey] = schema,
+            ["MessageBody/StorageType"] = "FileSystem",
+            ["MessageBody/FileSystem/StoragePath"] = bodyStoragePath
         };
     }
 
     public async Task Cleanup(CancellationToken cancellationToken = default)
     {
-        while (schemas.TryTake(out var schema))
+        try
         {
-            await TestSchema.Drop(connectionString, schema, cancellationToken);
+            while (schemas.TryTake(out var schema))
+            {
+                await TestSchema.Drop(connectionString, schema, cancellationToken);
+            }
+        }
+        finally
+        {
+            while (bodyStoragePaths.TryTake(out var bodyStoragePath))
+            {
+                try
+                {
+                    Directory.Delete(bodyStoragePath, recursive: true);
+                }
+                catch (DirectoryNotFoundException)
+                {
+                }
+            }
         }
     }
 
@@ -51,5 +73,6 @@ public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfigur
 
     static readonly SemaphoreSlim initializationLock = new(1, 1);
     readonly ConcurrentBag<string> schemas = [];
+    readonly ConcurrentBag<string> bodyStoragePaths = [];
     string connectionString;
 }
