@@ -179,7 +179,9 @@ namespace ServiceControlInstaller.Engine.FileSystem
                     action();
                     break;
                 }
-                catch (IOException ex) when (--attempts > 0)
+                // Windows reports a file that a process still holds, or that an antivirus scanner holds, as
+                // UnauthorizedAccessException, for example right after the process that loaded it exits
+                catch (Exception ex) when ((ex is IOException or UnauthorizedAccessException) && --attempts > 0)
                 {
                     Debug.WriteLine($"ServiceControlInstaller.Engine.FileSystem.FileUtils::RunWithRetries Action failed, {attempts} attempts remaining. Reason: {ex.Message} ({ex.GetType().FullName})");
                     // Yes, Task.Delay would be better but would require all calls to be async
