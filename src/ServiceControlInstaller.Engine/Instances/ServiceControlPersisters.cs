@@ -36,14 +36,12 @@
                 .OrderBy(m => m.Name)
                 .ToArray();
 
-            // Filtered by environment variable in SCMU, needs to be available all the time for PowerShell.
             // RavenDB35 is never a user choice - it's a detection-only entry for unconfigured legacy instances.
-            var includePersistencePicker = IncludePersistencePicker();
             supportedPrimaryPersistenceManifests = primaryPersistenceManifests
-                .Where(m => m.Name != RavenDB35 && (includePersistencePicker || m.Name == StorageEngineNames.RavenDB))
+                .Where(m => m.Name != RavenDB35)
                 .ToArray();
             supportedAuditPersistenceManifests = auditPersistenceManifests
-                .Where(m => m.Name != RavenDB35 && (includePersistencePicker || m.Name == StorageEngineNames.RavenDB))
+                .Where(m => m.Name != RavenDB35)
                 .ToArray();
         }
 
@@ -78,28 +76,6 @@
             using var stream = assembly.GetManifestResourceStream(resourceName)!;
             var manifest = JsonSerializer.Deserialize<PersistenceManifest>(stream);
             return manifest;
-        }
-
-        static bool IncludePersistencePicker()
-        {
-            try
-            {
-                var environmentValue = Environment.GetEnvironmentVariable("ServiceControl_IncludePersistencePicker");
-
-                if (environmentValue != null)
-                {
-                    environmentValue = Environment.ExpandEnvironmentVariables(environmentValue);
-                    if (bool.TryParse(environmentValue, out var enabled))
-                    {
-                        return enabled;
-                    }
-                }
-                return false;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
         }
     }
 }

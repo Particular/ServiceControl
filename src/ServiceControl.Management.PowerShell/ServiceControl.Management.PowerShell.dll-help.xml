@@ -2558,7 +2558,7 @@
         <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
           <maml:name>PersistenceType</maml:name>
           <maml:description>
-            <maml:para>The persistence type to use: RavenDB, SQLServer, or PostgreSQL. SQLServer and PostgreSQL are only available when the ServiceControl_IncludePersistencePicker environment variable is set to true.</maml:para>
+            <maml:para>The persistence type to use: RavenDB, SQLServer, or PostgreSQL.</maml:para>
           </maml:description>
           <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         </command:parameter>
@@ -2870,7 +2870,7 @@
       <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
         <maml:name>PersistenceType</maml:name>
         <maml:description>
-          <maml:para>The persistence type to use: RavenDB, SQLServer, or PostgreSQL. SQLServer and PostgreSQL are only available when the ServiceControl_IncludePersistencePicker environment variable is set to true.</maml:para>
+          <maml:para>The persistence type to use: RavenDB, SQLServer, or PostgreSQL.</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         <dev:type>
