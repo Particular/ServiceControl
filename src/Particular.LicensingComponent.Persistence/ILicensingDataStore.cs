@@ -39,7 +39,8 @@ public interface ILicensingDataStore
     Task<List<string>> GetReportMasks(CancellationToken cancellationToken = default);
     Task SaveReportMasks(List<string> reportMasks, CancellationToken cancellationToken = default);
 
-    Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(CancellationToken cancellationToken = default);
+    Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(bool amendWithUserChanges = true, CancellationToken cancellationToken = default);
     Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken = default);
+    Task<LicensedEndpointDetailsAmendment?> GetLicensedEndpointDetailsAmendments(CancellationToken cancellationToken = default);
     Task SaveLicensedEndpointDetailsAmendment(LicensedEndpointDetailsAmendment result, CancellationToken cancellationToken = default);
 }

@@ -31,16 +31,16 @@
 
     public record QueueIdentity
     {
-        public string? NameHash { get; set; }
+        public required string NameHash { get; set; }
         public string? ScopeHash { get; set; }
         public string? OriginalLocation { get; set; }
     }
 
     public record LicensedEndpoint
     {
-        public string? ClientId { get; set; }
-        public string? Name { get; set; }
-        public int? Classification { get; set; }
+        public required string ClientId { get; set; }
+        public required string Name { get; set; }
+        public required int Classification { get; set; }
         public string? EndpointSize { get; set; }
 
         public QueueIdentity[] Queues { get; set; } = [];
@@ -48,9 +48,9 @@
 
     public class LicensedEndpointAmendment
     {
-        public string? ClientId { get; set; }
-        public string? Name { get; set; }
-        public int? Classification { get; set; }
+        public required string ClientId { get; set; }
+        public required string Name { get; set; }
+        public required int Classification { get; set; }
         public QueueIdentity[] AmendedQueues { get; set; } = [];
     }
 }

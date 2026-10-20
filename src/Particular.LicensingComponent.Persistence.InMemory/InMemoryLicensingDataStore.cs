@@ -176,7 +176,8 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         return Task.CompletedTask;
     }
 
-    public Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(CancellationToken cancellationToken = default) => Task.FromResult(endpointDetails?.Amend(endpointDetailsAmendment));
+    public Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(bool amendWithUserChanges = true, CancellationToken cancellationToken = default) =>
+        Task.FromResult(amendWithUserChanges ? endpointDetails?.Amend(endpointDetailsAmendment) : endpointDetails);
 
     public Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken = default)
     {
@@ -184,6 +185,9 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         endpointDetailsAmendment = new LicensedEndpointDetailsAmendment();
         return Task.CompletedTask;
     }
+
+    public Task<LicensedEndpointDetailsAmendment?> GetLicensedEndpointDetailsAmendments(CancellationToken cancellationToken = default) =>
+        Task.FromResult(endpointDetailsAmendment);
 
     public Task SaveLicensedEndpointDetailsAmendment(LicensedEndpointDetailsAmendment result, CancellationToken cancellationToken = default)
     {

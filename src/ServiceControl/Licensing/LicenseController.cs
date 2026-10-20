@@ -62,7 +62,7 @@ namespace ServiceControl.Licensing
                 return (LicensedEndpointDetails?)null;
             }
 
-            var licenseDetails = await dataStore.GetLicensedEndpointDetails(cancellationToken);
+            var licenseDetails = await dataStore.GetLicensedEndpointDetails(cancellationToken: cancellationToken);
             if (licenseDetails is null)
             {
                 return (LicensedEndpointDetails?)null;

@@ -258,12 +258,13 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
         public Task SaveReportMasks(List<string> reportMasks, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
-        public Task<LicensedEndpointDetails> GetLicensedEndpointDetails(CancellationToken cancellationToken = default) =>
+        public Task<LicensedEndpointDetails> GetLicensedEndpointDetails(bool amendWithUserChanges = true, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
         public Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
         public Task RemoveEndpoints(EndpointIdentifier[] endpointIds, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<LicensedEndpointDetailsAmendment> GetLicensedEndpointDetailsAmendments(CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task SaveLicensedEndpointDetailsAmendment(LicensedEndpointDetailsAmendment result, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 

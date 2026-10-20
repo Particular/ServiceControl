@@ -338,18 +338,18 @@ class LicensingDataStore(
         await session.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(CancellationToken cancellationToken = default)
+    public async Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(bool amendWithUserChanges = true, CancellationToken cancellationToken = default)
     {
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
         var baseDetails = await session.LoadAsync<LicensedEndpointDetails>(LicencedEndpointDetailsDocumentId, cancellationToken);
-        if (baseDetails is null)
+        if (baseDetails is not null && amendWithUserChanges)
         {
-            return null;
+            var amendments = await session.LoadAsync<LicensedEndpointDetailsAmendment>(LicencedEndpointDetailsAmendmentDocumentId, cancellationToken);
+            return baseDetails.Amend(amendments);
         }
-        var amendments = await session.LoadAsync<LicensedEndpointDetailsAmendment>(LicencedEndpointDetailsAmendmentDocumentId, cancellationToken);
-        return baseDetails.Amend(amendments);
+        return baseDetails;
     }
 
     public async Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken = default)
@@ -360,6 +360,14 @@ class LicensingDataStore(
         await session.StoreAsync(result, LicencedEndpointDetailsDocumentId, cancellationToken);
         await session.StoreAsync(new LicensedEndpointDetailsAmendment(), LicencedEndpointDetailsAmendmentDocumentId, cancellationToken);
         await session.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<LicensedEndpointDetailsAmendment?> GetLicensedEndpointDetailsAmendments(CancellationToken cancellationToken = default)
+    {
+        var store = await storeProvider.GetDocumentStore(cancellationToken);
+        using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
+
+        return await session.LoadAsync<LicensedEndpointDetailsAmendment>(LicencedEndpointDetailsAmendmentDocumentId, cancellationToken);
     }
 
     public async Task SaveLicensedEndpointDetailsAmendment(LicensedEndpointDetailsAmendment result, CancellationToken cancellationToken = default)
