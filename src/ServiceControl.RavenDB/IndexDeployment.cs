@@ -7,6 +7,7 @@ namespace ServiceControl.RavenDB
     using Raven.Client.Documents;
     using Raven.Client.Documents.Indexes;
     using Raven.Client.Documents.Operations.Indexes;
+    using Raven.Client.ServerWide.Operations;
     using ServiceControl.Infrastructure;
 
     public static class IndexDeployment
@@ -24,64 +25,105 @@ namespace ServiceControl.RavenDB
         {
             var indexList = indexes.ToList();
 
-            // Our index definitions do not set a search engine. RavenDB then uses the database default for them,
-            // which, starting in 6.20, ServiceControl sets to Lucene when creating new databases; existing
-            // databases are left untouched. 
-            // An operator can set a different search engine on one index in RavenDB Studio, for example Lucene instead of
-            // Corax, as the migration guide recommends. RavenDB stores that choice in the configuration of that index only.
-            // RavenDB compares the configuration as part of the index definition. At the next start-up, our definition has
-            // no search engine and does not match the definition on the server. RavenDB then builds a side-by-side
-            // replacement with the database default. For databases created before Lucene became the default, that default
-            // is Corax. This undoes the migration and starts a full rebuild of the index. On a large database, the rebuild
-            // can take days. To prevent this, the search engine of each index is resolved before deployment:
+            // RavenDB compares the configuration as part of the index definition. Our definitions set no search engine,
+            // so the engine has to be resolved before deployment. Otherwise RavenDB builds a side-by-side replacement
+            // with the database default, which can undo a migration done by an operator in RavenDB Studio.
             var existingDefinitions = await store.Maintenance.SendAsync(new GetIndexesOperation(0, int.MaxValue), cancellationToken);
             var existingByName = existingDefinitions.ToDictionary(d => d.Name, StringComparer.OrdinalIgnoreCase);
 
+            var databaseDefault = await GetDatabaseSearchEngineType(store, cancellationToken);
+            var databaseDefaultIsLucene = string.Equals(databaseDefault, nameof(SearchEngineType.Lucene), StringComparison.OrdinalIgnoreCase);
+
             foreach (var index in indexList)
             {
+                var replacementName = Constants.Documents.Indexing.SideBySideIndexNamePrefix + index.IndexName;
+                existingByName.TryGetValue(index.IndexName, out var existing);
+                existingByName.TryGetValue(replacementName, out var pendingReplacement);
+
+                var changes = existing == null ? IndexDefinitionCompareDifferences.None : RebuildChanges(existing, index, store);
+                var changed = changes != IndexDefinitionCompareDifferences.None;
+
                 // 1. A search engine set in our index definition always wins. It can be set through SearchEngineType or Configuration.
-                if (index.SearchEngineType.HasValue
-                    || (index.Configuration.TryGetValue(StaticSearchEngineTypeKey, out var configuredSearchEngineType) && !string.IsNullOrEmpty(configuredSearchEngineType)))
+                if (index.SearchEngineType.HasValue)
                 {
+                    Logger.LogInformation("Index {IndexName} uses the {SearchEngineType} search engine set in its definition", index.IndexName, index.SearchEngineType);
                     continue;
                 }
 
-                var replacementName = Constants.Documents.Indexing.SideBySideIndexNamePrefix + index.IndexName;
+                if (index.Configuration.TryGetValue(StaticSearchEngineTypeKey, out var definedSearchEngineType) && !string.IsNullOrEmpty(definedSearchEngineType))
+                {
+                    Logger.LogInformation("Index {IndexName} uses the {SearchEngineType} search engine set in its definition", index.IndexName, definedSearchEngineType);
+                    continue;
+                }
 
-                // 2. Keep the search engine set on the index on the server. The definitions then match and RavenDB does not
-                // rebuild the index. A pending replacement is checked first. When the operator changes the search engine,
-                // the replacement holds the latest choice. ServiceControl 6.20.0 and 6.21.0 also created replacements when
-                // they reset a migrated index at start-up. Those replacements have no search engine. The search engine of
-                // the original index is then used. The definition matches the original index again and RavenDB discards
-                // the replacement.
-                if (TryGetSearchEngineType(existingByName, replacementName, out var searchEngineType)
-                    || TryGetSearchEngineType(existingByName, index.IndexName, out searchEngineType))
+                // 2. Keep a search engine set on the index on the server, for example by an operator in RavenDB Studio. The
+                // definitions then match and RavenDB does not rebuild the index. A pending replacement is checked first:
+                // when the operator changes the search engine, the replacement holds the latest choice. A replacement
+                // without a search engine, created by 6.20.0 and 6.21.0 at start-up, is discarded by RavenDB once the
+                // definition matches the original index again.
+                if (TryGetSearchEngineType(pendingReplacement, out var searchEngineType) || TryGetSearchEngineType(existing, out searchEngineType))
                 {
                     index.Configuration[StaticSearchEngineTypeKey] = searchEngineType;
-                    Logger.LogInformation("Index {IndexName} keeps the configured {SearchEngineType} search engine", index.IndexName, searchEngineType);
-                }
-                // 3. An index that does not exist yet is created with Lucene. Lucene performs better for our workload, also
-                // in databases that still default to Corax. The search engine is set on the index itself. The index then
-                // stays on Lucene when the database default changes.
-                else if (!existingByName.ContainsKey(index.IndexName) && !existingByName.ContainsKey(replacementName))
-                {
-                    index.Configuration[StaticSearchEngineTypeKey] = nameof(SearchEngineType.Lucene);
-                    Logger.LogInformation("Index {IndexName} is created with the Lucene search engine", index.IndexName);
+                    Logger.LogInformation("Index {IndexName} keeps the {SearchEngineType} search engine set on the index", index.IndexName, searchEngineType);
+                    continue;
                 }
 
-                // 4. An existing index without a search engine of its own continues to use the database default. A search
-                // engine set now changes the definition and starts the full rebuild that this code prevents.
+                // 3. A new index, or an index that RavenDB rebuilds because the definition changed, uses Lucene, the
+                // application default. It inherits Lucene when the database is set to Lucene. Otherwise Lucene is set on
+                // the index, so the index does not follow a database default of Corax.
+                if (existing == null || changed)
+                {
+                    var reason = existing == null ? "is created" : $"is rebuilt because its definition changed ({changes})";
+
+                    if (databaseDefaultIsLucene)
+                    {
+                        Logger.LogInformation("Index {IndexName} {Reason} and inherits the Lucene search engine from the database", index.IndexName, reason);
+                    }
+                    else
+                    {
+                        index.Configuration[StaticSearchEngineTypeKey] = nameof(SearchEngineType.Lucene);
+                        Logger.LogInformation("Index {IndexName} {Reason} with the Lucene search engine set on the index, the database setting is {DatabaseDefault}", index.IndexName, reason, databaseDefault ?? "not set");
+                    }
+
+                    continue;
+                }
+
+                // 4. An unchanged index without a search engine of its own is left alone. RavenDB treats a search engine added
+                // to the index configuration as a change and rebuilds the index, also when the engine is the same.
+                Logger.LogInformation("Index {IndexName} is unchanged and inherits the search engine from the database", index.IndexName);
             }
 
             await IndexCreation.CreateIndexesAsync(indexList, store, null, null, cancellationToken);
         }
 
-        static bool TryGetSearchEngineType(Dictionary<string, IndexDefinition> definitions, string indexName, out string searchEngineType)
+        static async Task<string> GetDatabaseSearchEngineType(IDocumentStore store, CancellationToken cancellationToken)
+        {
+            var record = await store.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(store.Database), cancellationToken);
+
+            return record?.Settings != null && record.Settings.TryGetValue(StaticSearchEngineTypeKey, out var value) && !string.IsNullOrEmpty(value)
+                ? value
+                : null;
+        }
+
+        // The differences that make RavenDB build a side-by-side replacement.
+        const IndexDefinitionCompareDifferences RebuildDifferences = IndexDefinitionCompareDifferences.Maps
+            | IndexDefinitionCompareDifferences.Reduce
+            | IndexDefinitionCompareDifferences.Fields
+            | IndexDefinitionCompareDifferences.AdditionalSources
+            | IndexDefinitionCompareDifferences.AdditionalAssemblies;
+
+        static IndexDefinitionCompareDifferences RebuildChanges(IndexDefinition existingDefinition, AbstractIndexCreationTask index, IDocumentStore store)
+        {
+            index.Conventions ??= store.Conventions;
+
+            return existingDefinition.Compare(index.CreateIndexDefinition()) & RebuildDifferences;
+        }
+
+        static bool TryGetSearchEngineType(IndexDefinition definition, out string searchEngineType)
         {
             searchEngineType = null;
 
-            return definitions.TryGetValue(indexName, out var definition)
-                && definition.Configuration != null
+            return definition?.Configuration != null
                 && definition.Configuration.TryGetValue(StaticSearchEngineTypeKey, out searchEngineType)
                 && !string.IsNullOrEmpty(searchEngineType);
         }
