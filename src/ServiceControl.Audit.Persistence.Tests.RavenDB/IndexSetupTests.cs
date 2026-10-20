@@ -10,6 +10,8 @@ using Raven.Client.Documents.Indexes;
 using Raven.Client.Documents.Operations.Indexes;
 using Raven.Client.Exceptions;
 using Raven.Client.Exceptions.Documents.Indexes;
+using Raven.Client.ServerWide.Operations;
+using Raven.Client.ServerWide.Operations.Configuration;
 using ServiceControl.RavenDB;
 
 [TestFixture]
@@ -70,7 +72,7 @@ class IndexSetupTests : PersistenceTestFixture
     }
 
     [Test]
-    public async Task New_indexes_should_be_created_with_lucene()
+    public async Task New_index_should_inherit_lucene_from_a_lucene_database()
     {
         var index = new FailedAuditImportIndex();
 
@@ -79,9 +81,27 @@ class IndexSetupTests : PersistenceTestFixture
         await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
 
         var definition = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(index.IndexName), TestTimeoutCancellationToken);
+        var stats = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName), TestTimeoutCancellationToken);
 
-        // The search engine is set on the index, not inherited. It then also applies to databases that default to Corax.
-        Assert.That(definition.Configuration, Does.ContainKey(IndexDeployment.StaticSearchEngineTypeKey).WithValue(SearchEngineType.Lucene.ToString()));
+        Assert.That(stats.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
+        Assert.That(definition.Configuration, Does.Not.ContainKey(IndexDeployment.StaticSearchEngineTypeKey), "The database is set to Lucene, so the index inherits it");
+    }
+
+    [Test]
+    public async Task New_index_in_a_corax_database_should_be_pinned_to_lucene()
+    {
+        var index = new FailedAuditImportIndex();
+
+        await configuration.DocumentStore.Maintenance.SendAsync(new DeleteIndexOperation(index.IndexName), TestTimeoutCancellationToken);
+        await SetDatabaseSearchEngine(SearchEngineType.Corax);
+
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+
+        var definition = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(index.IndexName), TestTimeoutCancellationToken);
+        var stats = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName), TestTimeoutCancellationToken);
+
+        Assert.That(stats.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
+        Assert.That(definition.Configuration, Does.ContainKey(IndexDeployment.StaticSearchEngineTypeKey).WithValue(nameof(SearchEngineType.Lucene)), "The database is set to Corax, so Lucene is set on the index");
     }
 
     [TestCase(true, TestName = "Search engine set in the index definition through SearchEngineType should take precedence over the one on the server")]
@@ -170,6 +190,65 @@ class IndexSetupTests : PersistenceTestFixture
     }
 
     [Test]
+    public async Task Changed_index_without_a_search_engine_setting_in_a_corax_database_should_be_pinned_to_lucene()
+    {
+        // The index runs on Lucene, the database default, without a setting of its own: the state after an operator migrated
+        // the whole database and reset the indexes.
+        var statsBefore = await PutIndexWithoutSearchEngineSetting(customize: true);
+
+        Assert.That(statsBefore.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
+
+        // Versions 6.20.0 to 6.21.2 then set the database default back to Corax.
+        await SetDatabaseSearchEngine(SearchEngineType.Corax);
+
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+
+        var statsAfter = await WaitForIndexDefinitionUpdate(statsBefore);
+        var definitionAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(statsBefore.Name), TestTimeoutCancellationToken);
+
+        Assert.That(definitionAfter.Fields, Does.Not.ContainKey(CustomizedField), "The definition change should be applied");
+        Assert.That(statsAfter.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene), "The rebuilt index should use Lucene, not the database default");
+        Assert.That(definitionAfter.Configuration, Does.ContainKey(IndexDeployment.StaticSearchEngineTypeKey).WithValue(nameof(SearchEngineType.Lucene)));
+    }
+
+    [Test]
+    public async Task Changed_corax_index_without_a_search_engine_setting_in_a_lucene_database_should_inherit_lucene()
+    {
+        // A Corax index without a setting of its own, the state of an existing database before any migration.
+        await SetDatabaseSearchEngine(SearchEngineType.Corax);
+        var statsBefore = await PutIndexWithoutSearchEngineSetting(customize: true);
+
+        Assert.That(statsBefore.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
+
+        // The operator sets the database to Lucene. The next definition change moves the index to Lucene.
+        await SetDatabaseSearchEngine(SearchEngineType.Lucene);
+
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+
+        var statsAfter = await WaitForIndexDefinitionUpdate(statsBefore);
+        var definitionAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(statsBefore.Name), TestTimeoutCancellationToken);
+
+        Assert.That(statsAfter.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
+        Assert.That(definitionAfter.Configuration, Does.Not.ContainKey(IndexDeployment.StaticSearchEngineTypeKey), "The database is set to Lucene, so the rebuilt index inherits it");
+    }
+
+    [Test]
+    public async Task Unchanged_index_without_a_search_engine_setting_should_not_be_rebuilt_on_setup()
+    {
+        var statsBefore = await PutIndexWithoutSearchEngineSetting(customize: false);
+
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+
+        var replacement = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(Constants.Documents.Indexing.SideBySideIndexNamePrefix + statsBefore.Name), TestTimeoutCancellationToken);
+        var statsAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(statsBefore.Name), TestTimeoutCancellationToken);
+        var definitionAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(statsBefore.Name), TestTimeoutCancellationToken);
+
+        Assert.That(replacement, Is.Null, "Adding a search engine setting to an unchanged index would make RavenDB rebuild it");
+        Assert.That(statsAfter.CreatedTimestamp, Is.EqualTo(statsBefore.CreatedTimestamp));
+        Assert.That(definitionAfter.Configuration, Does.Not.ContainKey(IndexDeployment.StaticSearchEngineTypeKey));
+    }
+
+    [Test]
     public async Task Indexes_should_not_be_reset_on_setup_when_locked_as_ignore()
     {
         var customizedStats = await PutCustomizedIndex(SearchEngineType.Corax, IndexLockMode.LockedIgnore);
@@ -209,6 +288,45 @@ class IndexSetupTests : PersistenceTestFixture
         await configuration.DocumentStore.Maintenance.SendAsync(new PutIndexesOperation(definition), TestTimeoutCancellationToken);
 
         return await WaitForIndexDefinitionUpdate(statsBefore);
+    }
+
+    // Simulates an index that inherits the search engine from the database, for example after a reset in RavenDB Studio.
+    async Task<IndexStats> PutIndexWithoutSearchEngineSetting(bool customize)
+    {
+        var index = new MessagesViewIndexWithFullTextSearch { Conventions = configuration.DocumentStore.Conventions };
+        var definition = index.CreateIndexDefinition();
+        definition.Name = index.IndexName;
+
+        if (customize)
+        {
+            definition.Fields[CustomizedField] = new IndexFieldOptions { Storage = FieldStorage.Yes };
+        }
+
+        var statsBefore = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName), TestTimeoutCancellationToken);
+        var definitionBefore = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(index.IndexName), TestTimeoutCancellationToken);
+
+        await configuration.DocumentStore.Maintenance.SendAsync(new PutIndexesOperation(definition), TestTimeoutCancellationToken);
+
+        // In a Lucene database setup creates the index without a setting of its own. The put is then a no-op and there is no update to wait for.
+        var stats = definitionBefore.Compare(definition) == IndexDefinitionCompareDifferences.None ? statsBefore : await WaitForIndexDefinitionUpdate(statsBefore);
+        var storedDefinition = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(index.IndexName), TestTimeoutCancellationToken);
+
+        Assert.That(storedDefinition.Configuration, Does.Not.ContainKey(IndexDeployment.StaticSearchEngineTypeKey));
+
+        return stats;
+    }
+
+    async Task SetDatabaseSearchEngine(SearchEngineType searchEngineType)
+    {
+        var store = configuration.DocumentStore;
+        var record = await store.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(store.Database), TestTimeoutCancellationToken);
+
+        record.Settings["Indexing.Auto.SearchEngineType"] = searchEngineType.ToString();
+        record.Settings["Indexing.Static.SearchEngineType"] = searchEngineType.ToString();
+
+        await store.Maintenance.ForDatabase(store.Database).SendAsync(new PutDatabaseSettingsOperation(store.Database, record.Settings), TestTimeoutCancellationToken);
+        await store.Maintenance.Server.SendAsync(new ToggleDatabasesStateOperation(store.Database, true), TestTimeoutCancellationToken);
+        await store.Maintenance.Server.SendAsync(new ToggleDatabasesStateOperation(store.Database, false), TestTimeoutCancellationToken);
     }
 
     async Task<IndexStats> UpdateIndex(IAbstractIndexCreationTask index)
