@@ -55,6 +55,50 @@ namespace ServiceControl.Config.UI.InstanceAdd
                     .WithMessage(Validation.Validations.MSG_THIS_STORAGE_TYPE_REQUIRES_A_CONNECTION_STRING)
                 .When(x => x.InstallErrorInstance && x.ShowErrorStorageConnectionString && x.SubmitAttempted);
 
+            RuleFor(x => x.ErrorMessageBodyPath)
+                .NotEmpty()
+                .ValidPath()
+                .MustNotBeIn(x => Validations.UsedPaths(x.ErrorInstanceName))
+                    .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Message Body Paths"))
+                .When(x => x.InstallErrorInstance && x.ShowErrorMessageBodyPath);
+
+            RuleFor(x => x.ErrorAzureConnectionString)
+                .NotEmpty()
+                .When(x => x.InstallErrorInstance && x.ShowErrorAzureConnectionString && x.SubmitAttempted);
+
+            RuleFor(x => x.ErrorAzureServiceUri)
+                .NotEmpty()
+                .When(x => x.InstallErrorInstance && x.ShowErrorAzureManagedIdentity && x.SubmitAttempted);
+
+            RuleFor(x => x.ErrorAzureServiceUri)
+                .Must(BeEmptyOrAbsoluteUri)
+                    .WithMessage(Validation.Validations.MSG_MUST_BE_ABSOLUTE_URI)
+                .When(x => x.InstallErrorInstance && x.ShowErrorAzureManagedIdentity);
+
+            RuleFor(x => x.ErrorAzureAuthorityHost)
+                .Must(BeEmptyOrAbsoluteUri)
+                    .WithMessage(Validation.Validations.MSG_MUST_BE_ABSOLUTE_URI)
+                .When(x => x.InstallErrorInstance && x.ShowErrorAzureManagedIdentity);
+
+            RuleFor(x => x.ErrorS3BucketName)
+                .NotEmpty()
+                .When(x => x.InstallErrorInstance && x.ShowErrorS3Fields && x.SubmitAttempted);
+
+            RuleFor(x => x.ErrorS3ServiceUrl)
+                .Must(BeEmptyOrAbsoluteUri)
+                    .WithMessage(Validation.Validations.MSG_MUST_BE_ABSOLUTE_URI)
+                .When(x => x.InstallErrorInstance && x.ShowErrorS3Fields);
+
+            RuleFor(x => x.ErrorS3AccessKeyId)
+                .NotEmpty()
+                    .WithMessage(Validation.Validations.MSG_S3_KEYS_GO_TOGETHER)
+                .When(x => x.InstallErrorInstance && x.ShowErrorS3Fields && x.SubmitAttempted && !string.IsNullOrWhiteSpace(x.ErrorS3SecretAccessKey));
+
+            RuleFor(x => x.ErrorS3SecretAccessKey)
+                .NotEmpty()
+                    .WithMessage(Validation.Validations.MSG_S3_KEYS_GO_TOGETHER)
+                .When(x => x.InstallErrorInstance && x.ShowErrorS3Fields && x.SubmitAttempted && !string.IsNullOrWhiteSpace(x.ErrorS3AccessKeyId));
+
             RuleFor(x => x.ErrorServiceAccount)
                 .NotEmpty()
                 .When(x => x.InstallErrorInstance && x.SubmitAttempted);
@@ -266,5 +310,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .When(x => x.InstallAuditInstance)
                 .When(x => x.AuditForwarding?.Value ?? false);
         }
+
+        static bool BeEmptyOrAbsoluteUri(string value) => string.IsNullOrWhiteSpace(value) || System.Uri.TryCreate(value, System.UriKind.Absolute, out _);
     }
 }

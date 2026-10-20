@@ -1,7 +1,6 @@
 namespace ServiceControl.Config.UI.InstanceAdd
 {
     using System;
-    using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
     using Caliburn.Micro;
@@ -62,19 +61,8 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 serviceControlNewInstance.Name = viewModel.ServiceControl.InstanceName.Replace(' ', '.');
                 serviceControlNewInstance.InstanceName = viewModel.ServiceControl.InstanceName.Replace(' ', '.');
                 serviceControlNewInstance.ServiceDescription = viewModel.ServiceControl.Description;
-                if (viewModel.ServiceControl.ShowDatabasePathFields)
-                {
-                    serviceControlNewInstance.DBPath = viewModel.ServiceControl.DatabasePath;
-                }
-                else
-                {
-                    serviceControlNewInstance.MessageBodyStorage = new MessageBodyStorage
-                    {
-                        StorageType = MessageBodyStorageType.FileSystem,
-                        FileSystemStoragePath = Path.Combine(viewModel.ServiceControl.DatabasePath, "MessageBodies")
-                    };
-                }
-
+                serviceControlNewInstance.DBPath = viewModel.ServiceControl.ShowDatabasePathFields ? viewModel.ServiceControl.DatabasePath : null;
+                serviceControlNewInstance.MessageBodyStorage = viewModel.ServiceControl.CreateMessageBodyStorage();
                 serviceControlNewInstance.LogPath = viewModel.ServiceControl.LogPath;
                 serviceControlNewInstance.InstallPath = viewModel.ServiceControl.DestinationPath;
                 serviceControlNewInstance.HostName = viewModel.ServiceControl.HostName;

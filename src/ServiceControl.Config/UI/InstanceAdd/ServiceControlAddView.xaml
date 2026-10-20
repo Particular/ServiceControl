@@ -159,6 +159,71 @@
                                           TextWrapping="Wrap"
                                           Visibility="{Binding ShowErrorStorageConnectionString, Converter={StaticResource boolToVis}}" />
 
+                                <controls:FormComboBox HorizontalAlignment="Stretch"
+                                           DisplayMemberPath="Name"
+                                           Header="MESSAGE BODY STORAGE"
+                                           ItemsSource="{Binding ErrorMessageBodyStorageTypes}"
+                                           SelectedItem="{Binding ErrorSelectedMessageBodyStorageType}"
+                                           Visibility="{Binding ShowErrorMessageBodyStorage, Converter={StaticResource boolToVis}}" />
+
+                                <controls:FormPathTextBox Header="MESSAGE BODY PATH"
+                                              SelectCommand="{Binding ErrorSelectMessageBodyPath}"
+                                              Text="{Binding ErrorMessageBodyPath}"
+                                              Visibility="{Binding ShowErrorMessageBodyPath, Converter={StaticResource boolToVis}}" />
+
+                                <controls:FormComboBox HorizontalAlignment="Stretch"
+                                           DisplayMemberPath="Name"
+                                           Header="AZURE AUTHENTICATION"
+                                           ItemsSource="{Binding ErrorAzureAuthenticationOptions}"
+                                           SelectedItem="{Binding ErrorSelectedAzureAuthentication}"
+                                           Visibility="{Binding ShowErrorAzureBlobFields, Converter={StaticResource boolToVis}}" />
+
+                                <controls:FormTextBox AcceptsReturn="True"
+                                          Header="AZURE STORAGE CONNECTION STRING"
+                                          Text="{Binding ErrorAzureConnectionString}"
+                                          TextWrapping="Wrap"
+                                          Visibility="{Binding ShowErrorAzureConnectionString, Converter={StaticResource boolToVis}}" />
+
+                                <controls:FormTextBox Header="BLOB SERVICE URI"
+                                          Text="{Binding ErrorAzureServiceUri}"
+                                          Visibility="{Binding ShowErrorAzureManagedIdentity, Converter={StaticResource boolToVis}}" />
+
+                                <controls:FormTextBox Header="MANAGED IDENTITY CLIENT ID (OPTIONAL)"
+                                          Text="{Binding ErrorAzureManagedIdentityClientId}"
+                                          Visibility="{Binding ShowErrorAzureManagedIdentity, Converter={StaticResource boolToVis}}" />
+
+                                <controls:FormTextBox Header="AUTHORITY HOST (OPTIONAL)"
+                                          Text="{Binding ErrorAzureAuthorityHost}"
+                                          Visibility="{Binding ShowErrorAzureManagedIdentity, Converter={StaticResource boolToVis}}" />
+
+                                <controls:FormTextBox Header="CONTAINER NAME (OPTIONAL, DEFAULTS TO error-bodies)"
+                                          Text="{Binding ErrorAzureContainerName}"
+                                          Visibility="{Binding ShowErrorAzureBlobFields, Converter={StaticResource boolToVis}}" />
+
+                                <controls:FormTextBox Header="BUCKET NAME"
+                                          Text="{Binding ErrorS3BucketName}"
+                                          Visibility="{Binding ShowErrorS3Fields, Converter={StaticResource boolToVis}}" />
+
+                                <controls:FormTextBox Header="KEY PREFIX (OPTIONAL, DEFAULTS TO error-bodies/)"
+                                          Text="{Binding ErrorS3KeyPrefix}"
+                                          Visibility="{Binding ShowErrorS3Fields, Converter={StaticResource boolToVis}}" />
+
+                                <controls:FormTextBox Header="REGION (OPTIONAL)"
+                                          Text="{Binding ErrorS3Region}"
+                                          Visibility="{Binding ShowErrorS3Fields, Converter={StaticResource boolToVis}}" />
+
+                                <controls:FormTextBox Header="SERVICE URL (OPTIONAL, FOR S3-COMPATIBLE STORAGE)"
+                                          Text="{Binding ErrorS3ServiceUrl}"
+                                          Visibility="{Binding ShowErrorS3Fields, Converter={StaticResource boolToVis}}" />
+
+                                <controls:FormTextBox Header="ACCESS KEY ID (OPTIONAL)"
+                                          Text="{Binding ErrorS3AccessKeyId}"
+                                          Visibility="{Binding ShowErrorS3Fields, Converter={StaticResource boolToVis}}" />
+
+                                <controls:FormPasswordBox Header="SECRET ACCESS KEY (OPTIONAL)"
+                                          Text="{Binding ErrorS3SecretAccessKey}"
+                                          Visibility="{Binding ShowErrorS3Fields, Converter={StaticResource boolToVis}}" />
+
                                 <Border Margin="0,40,0,20"
                             BorderBrush="{StaticResource Gray90Brush}"
                             BorderThickness="0,0,0,1">

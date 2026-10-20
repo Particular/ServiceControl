@@ -223,6 +223,10 @@
 
         public const string MSG_THIS_STORAGE_TYPE_REQUIRES_A_CONNECTION_STRING = "This storage type requires a database connection string.";
 
+        public const string MSG_MUST_BE_ABSOLUTE_URI = "Must be an absolute URI, for example https://example.com.";
+
+        public const string MSG_S3_KEYS_GO_TOGETHER = "Specify both the access key ID and secret access key, or neither to use the default AWS credentials.";
+
         public const string MSG_CANTCONTAINWHITESPACE = "{0} cannot contain white space.";
 
         public const string MSG_SELECTAUDITFORWARDING = "Must select audit forwarding.";
