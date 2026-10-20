@@ -14,9 +14,13 @@
 
         public string InstanceName { get; set; }
 
-        public string StorageDisplayName { get; set; }
-
         public bool HasCleanableStoragePaths { get; set; } = true;
+
+        public string RemoveDataLabel { get; set; }
+
+        public string UnmanagedStorageMessage { get; set; }
+
+        public bool HasUnmanagedStorage => !string.IsNullOrEmpty(UnmanagedStorageMessage);
 
         public bool RemoveDatabase { get; set; }
         public bool RemoveLogs { get; set; }

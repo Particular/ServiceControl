@@ -39,6 +39,14 @@
             settings.Set(ServiceControlSettings.RemoteInstances, RemoteInstanceConverter.ToJson(details.RemoteInstances), version);
             settings.Set(ServiceControlSettings.EnableIntegratedServicePulse, details.EnableIntegratedServicePulse.ToString(), version);
 
+            if (details.MessageBodyStorage != null)
+            {
+                foreach (var (setting, value) in details.MessageBodyStorage.GetSettings())
+                {
+                    settings.Set(setting, value);
+                }
+            }
+
             foreach (var manifestSetting in details.PersistenceManifest.Settings)
             {
                 if (!settings.AllKeys.Contains(manifestSetting.Name))
@@ -58,14 +66,6 @@
                     if (manifestSetting.Name == ServiceControlSettings.DatabaseConnectionString.Name)
                     {
                         value = details.PersistenceConnectionString;
-                    }
-
-                    // The manifest can't declare a per-instance default, and this setting is
-                    // effectively mandatory at runtime once FileSystem storage is selected,
-                    // even though it's marked optional here (other backends don't need it).
-                    if (manifestSetting.Name == ServiceControlSettings.MessageBodyFileSystemStoragePath.Name && string.IsNullOrEmpty(value))
-                    {
-                        value = Path.Combine(details.DBPath, "MessageBodies");
                     }
 
                     if (!string.IsNullOrEmpty(value))

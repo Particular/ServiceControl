@@ -97,6 +97,7 @@
             var installPath = Path.Combine(Path.GetTempPath(), TestContext.CurrentContext.Test.ID, "install");
             var dbPath = Path.Combine(Path.GetTempPath(), TestContext.CurrentContext.Test.ID, "db");
             var logPath = Path.Combine(Path.GetTempPath(), TestContext.CurrentContext.Test.ID, "log");
+            var messageBodyPath = Path.Combine(Path.GetTempPath(), TestContext.CurrentContext.Test.ID, "bodies");
 
             try
             {
@@ -134,12 +135,21 @@
                 newInstance.DatabaseMaintenancePort = 33333;
                 newInstance.PersistenceConnectionString = ConnectionStringPlaceholder;
 
+                if (persistenceManifest.Settings.Any(setting => setting.Name == ServiceControlSettings.MessageBodyStorageType.Name))
+                {
+                    newInstance.MessageBodyStorage = new MessageBodyStorage
+                    {
+                        StorageType = MessageBodyStorageType.FileSystem,
+                        FileSystemStoragePath = messageBodyPath
+                    };
+                }
+
                 newInstance.WriteConfigurationFile();
 
                 var configFile = File.ReadAllText(Path.Combine(installPath, "ServiceControl.exe.config"));
                 var scenario = Path.GetFileName(Path.GetDirectoryName(manifestPath));
 
-                Approver.Verify(configFile, input => input.Replace(dbPath, "value-not-asserted").Replace(logPath, "value-not-asserted"), scenario);
+                Approver.Verify(configFile, input => input.Replace(dbPath, "value-not-asserted").Replace(logPath, "value-not-asserted").Replace(messageBodyPath, "value-not-asserted"), scenario);
             }
             finally
             {

@@ -40,7 +40,23 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public PersistenceManifest PersistenceManifest { get; }
 
+        public MessageBodyStorage MessageBodyStorage { get; set; }
+
         public override string DirectoryName => "ServiceControl";
+
+        string MessageBodyStoragePath => MessageBodyStorage?.StorageType == MessageBodyStorageType.FileSystem ? MessageBodyStorage.FileSystemStoragePath : null;
+
+        protected override IEnumerable<string> DataPaths => [DBPath, MessageBodyStoragePath];
+
+        protected override IEnumerable<PathInfo> AdditionalPaths =>
+        [
+            new PathInfo
+            {
+                Name = "message body path",
+                Path = MessageBodyStoragePath,
+                CheckIfEmpty = true
+            }
+        ];
 
         public List<RemoteInstanceSetting> RemoteInstances { get; set; } = [];
 
@@ -108,6 +124,11 @@ namespace ServiceControlInstaller.Engine.Instances
         protected override void ValidateConnectionString()
         {
             ConnectionStringValidator.Validate(this);
+        }
+
+        protected override void ValidatePersistence()
+        {
+            MessageBodyStorageValidator.Validate(PersistenceManifest, MessageBodyStorage);
         }
 
         public static ServiceControlNewInstance Load(string path)

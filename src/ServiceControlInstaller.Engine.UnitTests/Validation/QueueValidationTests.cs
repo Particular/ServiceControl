@@ -29,6 +29,8 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
 
             public List<RemoteInstanceSetting> RemoteInstances { get; set; }
 
+            public MessageBodyStorage MessageBodyStorage { get; set; }
+
             public bool EnableFullTextSearchOnBodies { get; set; }
 
             public int Port { get; set; }

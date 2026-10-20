@@ -11,10 +11,10 @@
         <add key="ServiceControl/EnableFullTextSearchOnBodies" value="False" />
         <add key="ServiceControl/RemoteInstances" value="[]" />
         <add key="ServiceControl/EnableIntegratedServicePulse" value="False" />
-        <add key="ServiceControl/Database/ConnectionString" value="placeholder-connection-string" />
         <add key="ServiceControl/MessageBody/StorageType" value="FileSystem" />
         <add key="ServiceControl/MessageBody/FileSystem/StoragePath"
-            value="value-not-asserted\MessageBodies" />
+            value="value-not-asserted" />
+        <add key="ServiceControl/Database/ConnectionString" value="placeholder-connection-string" />
         <add key="ServiceControl/ShutdownTimeout" value="00:02:00" />
     </appSettings>
 </configuration>

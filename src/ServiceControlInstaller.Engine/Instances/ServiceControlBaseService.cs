@@ -42,8 +42,8 @@ namespace ServiceControlInstaller.Engine.Instances
         public ReportCard ReportCard { get; set; }
         public PersistenceManifest PersistenceManifest { get; set; }
 
-        // False when the data lives in a database server ServiceControl doesn't manage (SQL Server, PostgreSQL, external RavenDB).
-        public bool HasCleanableStoragePaths => PersistenceManifest?.SettingsWithPathsToCleanup.Length > 0 && !UsesExternalRavenDB;
+        // False when all data lives somewhere ServiceControl doesn't manage, such as a SQL Server database or an S3 bucket.
+        public bool HasCleanableStoragePaths => AppConfig?.Config != null && !UsesExternalRavenDB && GetPersistencePathsToCleanUp().Any();
 
         // Only persisters that run an embedded database server declare a maintenance port.
         public bool UsesEmbeddedDatabase =>

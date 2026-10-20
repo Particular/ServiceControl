@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Threading;
@@ -52,19 +53,20 @@
             }
         }
 
-        string[] FlagFiles
+        IEnumerable<string> FlagFiles
         {
             get
             {
                 const string flagFileName = ".notconfigured";
-                return
-                [
-                    Path.Combine(InstallPath, flagFileName),
-                    Path.Combine(DBPath, flagFileName),
-                    Path.Combine(LogPath, flagFileName)
-                ];
+                return new[] { InstallPath, LogPath }
+                    .Concat(DataPaths)
+                    .Where(path => !string.IsNullOrWhiteSpace(path))
+                    .Select(path => Path.Combine(path, flagFileName));
             }
         }
+
+        // Directories the service writes data to. Each is created with modify access for the service account.
+        protected virtual IEnumerable<string> DataPaths => [DBPath];
 
         public string LogPath { get; set; }
 
@@ -150,9 +152,9 @@
                 FileUtils.CreateDirectoryAndSetAcl(LogPath, modifyAccessRule);
             }
 
-            if (!string.IsNullOrWhiteSpace(DBPath))
+            foreach (var dataPath in DataPaths.Where(path => !string.IsNullOrWhiteSpace(path)))
             {
-                FileUtils.CreateDirectoryAndSetAcl(DBPath, modifyAccessRule);
+                FileUtils.CreateDirectoryAndSetAcl(dataPath, modifyAccessRule);
             }
 
             // Mark these directories with a flag
@@ -240,6 +242,7 @@
             RunValidation(ValidateQueueNames);
             RunValidation(ValidateServiceAccount);
             RunValidation(ValidateConnectionString);
+            RunValidation(ValidatePersistence);
         }
 
         public void RunValidation(Action action)
@@ -262,6 +265,10 @@
         {
         }
 
+        protected virtual void ValidatePersistence()
+        {
+        }
+
         protected virtual void ValidateServiceAccount()
         {
         }
@@ -272,8 +279,10 @@
 
         protected virtual Task<bool> ValidatePaths(Func<PathInfo, CancellationToken, Task<bool>> promptToProceed, CancellationToken cancellationToken = default)
         {
-            return new PathsValidator(this).RunValidation(true, promptToProceed, cancellationToken);
+            return new PathsValidator(this, AdditionalPaths).RunValidation(true, promptToProceed, cancellationToken);
         }
+
+        protected virtual IEnumerable<PathInfo> AdditionalPaths => [];
 
         protected virtual void ValidateMaintenancePort()
         {

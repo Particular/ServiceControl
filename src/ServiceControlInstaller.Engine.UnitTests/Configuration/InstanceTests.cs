@@ -43,17 +43,43 @@ namespace ServiceControlInstaller.Engine.UnitTests.Configuration
         }
 
         [Test]
+        public void Should_remove_only_message_body_folder_on_uninstall_for_SQL_Server()
+        {
+            var messageBodyPath = Path.Combine(Path.GetDirectoryName(DbPath), "bodies");
+            var newInstance = CreateSqlServerInstance(new MessageBodyStorage
+            {
+                StorageType = MessageBodyStorageType.FileSystem,
+                FileSystemStoragePath = messageBodyPath
+            });
+
+            newInstance.CopyFiles(zipResourceName);
+            newInstance.WriteConfigurationFile();
+
+            var instance = new ServiceControlInstance(new FakeWindowsServiceController(Path.Combine(InstallPath, "ServiceControl.exe")));
+
+            instance.Reload();
+
+            Assert.That(Directory.Exists(DbPath), Is.False, "SQL Server instances have no local database folder");
+            Assert.That(Directory.Exists(messageBodyPath), Is.True);
+            Assert.That(instance.HasCleanableStoragePaths, Is.True);
+            Assert.That(instance.UsesEmbeddedDatabase, Is.False);
+            Assert.That(instance.ConfiguredMessageBodyStorageType, Is.EqualTo(MessageBodyStorageType.FileSystem));
+
+            instance.RemoveLogsFolder();
+            instance.RemoveDataBaseFolder();
+
+            Assert.That(Directory.Exists(LogPath), Is.False);
+            Assert.That(Directory.Exists(messageBodyPath), Is.False);
+        }
+
+        [Test]
         public void Should_not_attempt_local_cleanup_on_uninstall_for_external_storage()
         {
-            var newInstance = ServiceControlNewInstance.CreateWithPersistence("SQLServer");
-
-            newInstance.InstallPath = InstallPath;
-            newInstance.TransportPackage = ServiceControlCoreTransports.Find("LearningTransport");
-            newInstance.DBPath = DbPath;
-            newInstance.LogPath = LogPath;
-            newInstance.HostName = "localhost";
-            newInstance.DatabaseMaintenancePort = 33333;
-            newInstance.PersistenceConnectionString = "placeholder-connection-string";
+            var newInstance = CreateSqlServerInstance(new MessageBodyStorage
+            {
+                StorageType = MessageBodyStorageType.S3,
+                S3BucketName = "bodies"
+            });
 
             newInstance.CopyFiles(zipResourceName);
             newInstance.WriteConfigurationFile();
@@ -63,13 +89,22 @@ namespace ServiceControlInstaller.Engine.UnitTests.Configuration
             instance.Reload();
 
             Assert.That(instance.HasCleanableStoragePaths, Is.False);
-            Assert.That(instance.UsesEmbeddedDatabase, Is.False);
+            Assert.That(instance.ConfiguredMessageBodyStorageType, Is.EqualTo(MessageBodyStorageType.S3));
+            Assert.That(instance.AppConfig.Read<string>(ServiceControlSettings.MessageBodyFileSystemStoragePath, null), Is.Null, "Only the selected body storage type's settings are written");
+        }
 
-            instance.RemoveLogsFolder();
-            instance.RemoveDataBaseFolder();
+        ServiceControlNewInstance CreateSqlServerInstance(MessageBodyStorage messageBodyStorage)
+        {
+            var newInstance = ServiceControlNewInstance.CreateWithPersistence("SQLServer");
 
-            Assert.That(Directory.Exists(LogPath), Is.False, "Logs should still be removed regardless of storage type");
-            Assert.That(Directory.Exists(DbPath), Is.True, "Nothing local backs a SQL Server instance, so its unrelated DBPath folder must be left alone");
+            newInstance.InstallPath = InstallPath;
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("LearningTransport");
+            newInstance.LogPath = LogPath;
+            newInstance.HostName = "localhost";
+            newInstance.PersistenceConnectionString = "placeholder-connection-string";
+            newInstance.MessageBodyStorage = messageBodyStorage;
+
+            return newInstance;
         }
 
         [Test]

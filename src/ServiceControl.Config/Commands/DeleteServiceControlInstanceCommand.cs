@@ -7,6 +7,7 @@
     using Framework;
     using Framework.Commands;
     using Framework.Modules;
+    using ServiceControlInstaller.Engine.Instances;
     using UI.AdvancedOptions;
     using UI.DeleteInstanceConfirmation;
 
@@ -31,8 +32,9 @@
 
             var confirmation = deleteInstanceConfirmation();
             confirmation.InstanceName = model.Name;
-            confirmation.StorageDisplayName = model.ServiceControlInstance.PersistenceManifest.DisplayName;
             confirmation.HasCleanableStoragePaths = model.ServiceControlInstance.HasCleanableStoragePaths;
+            confirmation.RemoveDataLabel = model.ServiceControlInstance.UsesEmbeddedDatabase ? "Remove database files and data" : "Remove message body files";
+            confirmation.UnmanagedStorageMessage = DescribeUnmanagedStorage(model.ServiceControlInstance);
             var isConfirmed = await windowManager.ShowDialogAsync(confirmation);
             if (isConfirmed == true)
             {
@@ -52,6 +54,35 @@
 
                 await eventAggregator.PublishOnUIThreadAsync(new ResetInstances());
             }
+        }
+
+        static string DescribeUnmanagedStorage(ServiceControlBaseService instance)
+        {
+            var database = instance.UsesEmbeddedDatabase ? null : $"The {instance.PersistenceManifest.DisplayName} database";
+            var bodyLocation = (instance as ServiceControlInstance)?.ConfiguredMessageBodyStorageType switch
+            {
+                MessageBodyStorageType.AzureBlob => "Azure Blob Storage",
+                MessageBodyStorageType.S3 => "Amazon S3",
+                MessageBodyStorageType.FileSystem => null,
+                null => null,
+                _ => null
+            };
+
+            var subject = (database, bodyLocation) switch
+            {
+                (null, null) => null,
+                (_, null) => $"{database} is",
+                (null, _) => $"The message bodies in {bodyLocation} are",
+                _ => $"{database} and the message bodies in {bodyLocation} are"
+            };
+
+            if (subject == null)
+            {
+                return null;
+            }
+
+            var pronoun = bodyLocation == null ? "it" : "them";
+            return $"{subject} not managed by ServiceControl and will not be removed. Delete {pronoun} manually if you no longer need {pronoun}.";
         }
 
         readonly Func<DeleteServiceControlConfirmationViewModel> deleteInstanceConfirmation;

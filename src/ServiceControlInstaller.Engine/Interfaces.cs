@@ -117,5 +117,8 @@ namespace ServiceControlInstaller.Engine
         TimeSpan ErrorRetentionPeriod { get; }
         TimeSpan? AuditRetentionPeriod { get; set; }
         List<RemoteInstanceSetting> RemoteInstances { get; }
+
+        // Only populated when creating a new instance, like PersistenceConnectionString.
+        MessageBodyStorage MessageBodyStorage { get; }
     }
 }

@@ -58,6 +58,14 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public string PersistenceConnectionString { get; set; }
 
+        public MessageBodyStorage MessageBodyStorage => null;
+
+        // Null for storage types that keep message bodies in the database itself.
+        public MessageBodyStorageType? ConfiguredMessageBodyStorageType =>
+            Enum.TryParse<MessageBodyStorageType>(AppConfig?.Read<string>(ServiceControlSettings.MessageBodyStorageType, null), ignoreCase: true, out var storageType)
+                ? storageType
+                : null;
+
         public void AddRemoteInstance(string apiUri)
         {
             if (RemoteInstances.All(x => string.Compare(x.ApiUri, apiUri, StringComparison.InvariantCultureIgnoreCase) != 0))
@@ -248,6 +256,12 @@ namespace ServiceControlInstaller.Engine.Instances
             foreach (var key in PersistenceManifest.SettingsWithPathsToCleanup)
             {
                 if (!settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (string.Equals(key, ServiceControlSettings.MessageBodyFileSystemStoragePath.Name, StringComparison.OrdinalIgnoreCase)
+                    && ConfiguredMessageBodyStorageType != MessageBodyStorageType.FileSystem)
                 {
                     continue;
                 }
