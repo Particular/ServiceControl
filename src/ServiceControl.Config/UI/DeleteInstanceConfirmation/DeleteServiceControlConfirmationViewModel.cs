@@ -16,7 +16,6 @@
 
         public string StorageDisplayName { get; set; }
 
-        // False for storage backends with nothing local to clean up (e.g. an external SQL Server/PostgreSQL database).
         public bool HasCleanableStoragePaths { get; set; } = true;
 
         public bool RemoveDatabase { get; set; }

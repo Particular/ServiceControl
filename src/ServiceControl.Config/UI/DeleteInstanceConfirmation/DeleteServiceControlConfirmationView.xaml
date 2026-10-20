@@ -87,7 +87,7 @@
                    VerticalAlignment="Center"
                    TextWrapping="Wrap"
                    Visibility="{Binding HasCleanableStoragePaths, Converter={StaticResource boolToVisInverted}}">
-            <Run Text="{Binding StorageDisplayName}" FontWeight="Bold" /><Run Text=" is not managed by ServiceControl and will not be removed. Delete it manually if you no longer need it." />
+            <Run Text="The " /><Run Text="{Binding StorageDisplayName}" FontWeight="Bold" /><Run Text=" database is not managed by ServiceControl and will not be removed. Delete it manually if you no longer need it." />
         </TextBlock>
         <CheckBox Grid.Row="3"
                   Grid.RowSpan="2"

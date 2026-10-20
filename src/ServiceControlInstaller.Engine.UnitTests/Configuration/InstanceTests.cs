@@ -73,7 +73,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Configuration
         }
 
         [Test]
-        public void Should_not_report_embedded_database_for_external_RavenDB()
+        public void Should_treat_external_RavenDB_as_unmanaged_storage()
         {
             var newInstance = ServiceControlNewInstance.CreateWithPersistence("RavenDB");
 
@@ -94,6 +94,11 @@ namespace ServiceControlInstaller.Engine.UnitTests.Configuration
             instance.Reload();
 
             Assert.That(instance.UsesEmbeddedDatabase, Is.False);
+            Assert.That(instance.HasCleanableStoragePaths, Is.False);
+
+            instance.RemoveDataBaseFolder();
+
+            Assert.That(Directory.Exists(DbPath), Is.True);
         }
 
         class FakeWindowsServiceController : IWindowsServiceController

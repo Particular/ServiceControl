@@ -42,9 +42,8 @@ namespace ServiceControlInstaller.Engine.Instances
         public ReportCard ReportCard { get; set; }
         public PersistenceManifest PersistenceManifest { get; set; }
 
-        // False when this instance's storage lives outside anything ServiceControl manages locally
-        // (e.g. an external SQL Server/PostgreSQL database) - there's nothing on disk to clean up.
-        public bool HasCleanableStoragePaths => PersistenceManifest.SettingsWithPathsToCleanup.Length > 0;
+        // False when the data lives in a database server ServiceControl doesn't manage (SQL Server, PostgreSQL, external RavenDB).
+        public bool HasCleanableStoragePaths => PersistenceManifest?.SettingsWithPathsToCleanup.Length > 0 && !UsesExternalRavenDB;
 
         // Only persisters that run an embedded database server declare a maintenance port.
         public bool UsesEmbeddedDatabase =>
@@ -227,6 +226,11 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void RemoveDataBaseFolder()
         {
+            if (!HasCleanableStoragePaths)
+            {
+                return;
+            }
+
             //Order by length descending in case they are nested paths
             var folders = GetPersistencePathsToCleanUp().ToList();
 
