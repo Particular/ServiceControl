@@ -39,7 +39,8 @@
                 new Settings(),
                 null,
                 new MassTransitConnectorHeartbeatStatus(),
-                []);
+                [],
+                NullLogger<ConfigurationApi>.Instance);
 
             var controller = new RootController(configurationApi)
             {

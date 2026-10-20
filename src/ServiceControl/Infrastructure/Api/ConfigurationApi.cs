@@ -9,6 +9,7 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Configuration;
+using Microsoft.Extensions.Logging;
 using Monitoring.HeartbeatMonitoring;
 using Particular.LicensingComponent.Contracts;
 using Particular.ServiceControl.Licensing;
@@ -17,7 +18,7 @@ using ServiceControl.Api;
 using ServiceControl.Api.Contracts;
 using ServiceControl.Persistence;
 
-class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFactory httpClientFactory, MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus, IEnumerable<IStorageIdentityProvider> storageIdentityProviders) : IConfigurationApi
+class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFactory httpClientFactory, MassTransitConnectorHeartbeatStatus connectorHeartbeatStatus, IEnumerable<IStorageIdentityProvider> storageIdentityProviders, ILogger<ConfigurationApi> logger) : IConfigurationApi
 {
     public Task<RootUrls> GetUrls(string baseUrl, CancellationToken cancellationToken = default)
     {
@@ -167,34 +168,41 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
 
                         if (body?.AsObject().TryGetPropertyValue("environment_data", out var data) == true && data is JsonObject dataObject)
                         {
-                            environmentData = [];
+                            Dictionary<string, string> collected = [];
 
                             foreach (var pair in dataObject)
                             {
                                 if (pair.Value is not null)
                                 {
-                                    environmentData[pair.Key] = pair.Value.GetValue<string>();
+                                    collected[pair.Key] = pair.Value.GetValue<string>();
                                 }
                             }
 
                             var remoteStorageIdentity = ReadStorageIdentity(body);
 
-                            environmentData["SameMachine"] = AuditSharingClassifier.SameMachine(localMachineNameHash, ReadString(body, "machine_name_hash"));
-                            environmentData["DatabaseSharing"] = AuditSharingClassifier.DatabaseSharing(localStorageIdentity, remoteStorageIdentity);
+                            collected["SameMachine"] = AuditSharingClassifier.SameMachine(localMachineNameHash, ReadString(body, "machine_name_hash"));
+                            collected["DatabaseSharing"] = AuditSharingClassifier.DatabaseSharing(localStorageIdentity, remoteStorageIdentity);
 
                             if (remoteStorageIdentity is not null)
                             {
-                                environmentData[AuditEnvironmentMetadata.DatabaseKey] = AuditSharingClassifier.StoreKey(remoteStorageIdentity);
+                                collected[AuditEnvironmentMetadata.DatabaseKey] = AuditSharingClassifier.StoreKey(remoteStorageIdentity);
                             }
+
+                            environmentData = collected;
                         }
+                    }
+                    else if (response.StatusCode != System.Net.HttpStatusCode.NotFound)
+                    {
+                        logger.LogWarning("Audit instance {RemoteApiUri} answered {StatusCode} for its environment data, so the usage report leaves it out", remote.BaseAddress, (int)response.StatusCode);
                     }
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
                     throw;
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    logger.LogWarning(e, "Could not read the environment data of audit instance {RemoteApiUri}, so the usage report leaves it out", remote.BaseAddress);
                 }
 
                 return new RemoteEnvironment
