@@ -66,6 +66,12 @@ namespace ServiceControlInstaller.Engine.Instances
                 ? storageType
                 : null;
 
+        // Null unless message bodies are stored on the file system.
+        public string MessageBodyStoragePath =>
+            ConfiguredMessageBodyStorageType == MessageBodyStorageType.FileSystem
+                ? AppConfig.Read<string>(ServiceControlSettings.MessageBodyFileSystemStoragePath, null)
+                : null;
+
         public void AddRemoteInstance(string apiUri)
         {
             if (RemoteInstances.All(x => string.Compare(x.ApiUri, apiUri, StringComparison.InvariantCultureIgnoreCase) != 0))

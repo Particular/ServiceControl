@@ -64,6 +64,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Configuration
             Assert.That(instance.HasCleanableStoragePaths, Is.True);
             Assert.That(instance.UsesEmbeddedDatabase, Is.False);
             Assert.That(instance.ConfiguredMessageBodyStorageType, Is.EqualTo(MessageBodyStorageType.FileSystem));
+            Assert.That(instance.MessageBodyStoragePath, Is.EqualTo(messageBodyPath));
 
             instance.RemoveLogsFolder();
             instance.RemoveDataBaseFolder();
@@ -90,6 +91,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Configuration
 
             Assert.That(instance.HasCleanableStoragePaths, Is.False);
             Assert.That(instance.ConfiguredMessageBodyStorageType, Is.EqualTo(MessageBodyStorageType.S3));
+            Assert.That(instance.MessageBodyStoragePath, Is.Null);
             Assert.That(instance.AppConfig.Read<string>(ServiceControlSettings.MessageBodyFileSystemStoragePath, null), Is.Null, "Only the selected body storage type's settings are written");
         }
 

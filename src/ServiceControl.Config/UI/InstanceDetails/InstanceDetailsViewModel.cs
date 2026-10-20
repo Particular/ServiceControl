@@ -164,20 +164,17 @@
 
         string GetDBPathIfAvailable()
         {
-            if (IsServiceControlInstance)
-            {
-                return ServiceControlInstance?.DBPath;
-            }
+            ServiceControlBaseService instance = IsServiceControlInstance ? ServiceControlInstance : IsServiceControlAudit ? ServiceControlAuditInstance : null;
 
-            if (IsServiceControlAudit)
-            {
-                return ServiceControlAuditInstance?.DBPath;
-            }
-
-            return null;
+            // Only the embedded RavenDB server keeps its database in DBPath.
+            return instance?.UsesEmbeddedDatabase == true ? instance.DBPath : null;
         }
 
         public bool HasBrowsableDBPath => !string.IsNullOrEmpty(DBPath);
+
+        public string MessageBodyPath => IsServiceControlInstance ? ServiceControlInstance?.MessageBodyStoragePath : null;
+
+        public bool HasBrowsableMessageBodyPath => !string.IsNullOrEmpty(MessageBodyPath);
 
         public string LogPath => ((IServicePaths)ServiceInstance).LogPath;
 
@@ -370,6 +367,9 @@
             NotifyOfPropertyChange("Host");
             NotifyOfPropertyChange("InstallPath");
             NotifyOfPropertyChange("DBPath");
+            NotifyOfPropertyChange(nameof(HasBrowsableDBPath));
+            NotifyOfPropertyChange(nameof(MessageBodyPath));
+            NotifyOfPropertyChange(nameof(HasBrowsableMessageBodyPath));
             NotifyOfPropertyChange("LogPath");
             NotifyOfPropertyChange("Version");
             NotifyOfPropertyChange("NewVersion");
