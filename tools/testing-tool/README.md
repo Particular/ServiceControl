@@ -12,7 +12,7 @@ The tool runs an NServiceBus endpoint (`TestingTool.Load`) that sends messages
 through a handler which fails based on the active scenario. Failed messages are routed to the
 `error` queue for ServiceControl to ingest. Each scenario throws a real exception type
 from its own method, so ServiceControl's default grouping (exception type + first stack frame)
-puts each failure shape in its own group, and immediate retries are disabled so groups stay clean. Five scenarios are built in:
+puts each failure shape in its own group, and immediate retries are disabled so groups stay clean. Six scenarios are built in:
 
 | Scenario | Category | Failure shape |
 |---|---|---|
@@ -21,6 +21,7 @@ puts each failure shape in its own group, and immediate retries are disabled so 
 | `poison-message` | Poison | 15% deterministic always-fail messages — retry storm |
 | `deserialization-failure` | Deserialization | 100% fail with `SerializationException` (bad deployment) |
 | `background-noise` | Noise | ~3% always-on baseline — rotates through four exception types (four small groups) |
+| `large-messages` | Body | Starts at 3 msg/s (rate is configurable), each body about 256 KiB of JSON text (the wire envelope is slightly larger), above the 100 KB external body storage threshold. 20% deterministic failures with `InvalidDataException`; the other 80% succeed and are audited |
 
 Scenarios are controlled from the web UI, or via:
 - `GET /api/scenarios` — list scenarios with live status (category, rate, error counts)
@@ -111,7 +112,7 @@ tools/testing-tool/
   TestingTool/                   # ASP.NET Core host — API endpoints, web UI, NServiceBus endpoint,
                                  #   scenario runner, bypass writer, recoverability/search jobs,
                                  #   OTel setup, ServiceControl REST client
-  TestingTool.Scenarios/         # IScenario contract + the five scenario implementations
+  TestingTool.Scenarios/         # IScenario contract + the six scenario implementations
   TestingTool.Contracts/         # shared DTOs (scenarios, status, jobs, bypass)
   TestingTool.AppHost/           # Aspire AppHost — orchestrates platform, tool, and observability stack
     obs/                         # observability config: OTel Collector, Prometheus, Grafana provisioning

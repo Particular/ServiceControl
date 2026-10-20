@@ -35,7 +35,7 @@ Open http://localhost:5290. The tool defaults to a ServiceControl instance at `h
 
 Everything is controllable from the web UI, or via the HTTP API:
 
-- Scenarios: the five built-in failure scenarios (`third-party-outage`, `timeout-spike`, `poison-message`, `deserialization-failure`, `background-noise`), each producing errors that group naturally. Start with `POST /api/scenarios/{name}/start` (optional `rate` and `durationSeconds`).
+- Scenarios: the six built-in scenarios (`third-party-outage`, `timeout-spike`, `poison-message`, `deserialization-failure`, `background-noise`, `large-messages`), each producing errors that group naturally. `large-messages` starts at 3 messages per second unless `rate` is set, sends bodies of about 256 KiB (the wire envelope is slightly larger), fails 20% of them to the error queue, and audits the rest. The bypass writer fails every message by design, so it sends the large bodies only as failures. Start with `POST /api/scenarios/{name}/start` (optional `rate` and `durationSeconds`).
 - Bypass writer: high-throughput load that writes failed-message envelopes directly to the ServiceControl error queue, skipping the message handler (`POST /api/bypass/start`).
 - Jobs: retry, archive, search, retention sweep, and custom-check-failure jobs exercise ServiceControl's recoverability, FTS search, and retention pipelines against the load. Jobs do not start automatically. Start them from the UI or `/api/jobs`.
 - Release-test presets: named presets mapped from the [testing scenarios](testing-scenarios.md), for example `POST /api/release-tests/ingestion-load/start`.

@@ -197,9 +197,9 @@ public sealed class DirectErrorQueueWriter
             {
                 while (!ct.IsCancellationRequested && run.TryClaim(out var seq))
                 {
-                    // Plausible JSON body (~3–6 KB) seeded with searchable terms so the bypass path
+                    // Plausible JSON body (scenario-sized, default ~3–6 KB) seeded with searchable terms so the bypass path
                     // also feeds ServiceControl's full-text search index with real content.
-                    var textBody = MessageTextGenerator.GenerateBody(seq);
+                    var textBody = MessageTextGenerator.GenerateBody(seq, scenario.BodySizeBytes);
 
                     var message = new LoadMessage { Sequence = seq, TextBody = textBody };
 
