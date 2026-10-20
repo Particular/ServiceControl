@@ -320,6 +320,47 @@ class ThroughputCollector_Report_EnvironmentInformation_Tests : ThroughputCollec
     }
 
     [Test]
+    public async Task Should_report_mixed_rather_than_a_partial_sum_when_a_database_has_no_readable_value()
+    {
+        await DataStore.SaveAuditEnvironmentMetadata(new AuditEnvironmentMetadata(
+        [
+            new Dictionary<string, string> { ["Storage.SizeGB"] = "40.0", ["Storage.MessageCount"] = "100", ["Health.FailedImports"] = "3", [AuditEnvironmentMetadata.DatabaseKey] = "server-a/db-1" },
+            new Dictionary<string, string> { ["Storage.SizeGB"] = "Unknown", ["Storage.MessageCount"] = "Unknown", ["Health.FailedImports"] = "ReadFailed" }
+        ]));
+
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
+
+        var environmentData = report.ReportData.EnvironmentInformation.EnvironmentData;
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(environmentData, Does.ContainKey("Audit.Storage.SizeGB").WithValue("Mixed"));
+            Assert.That(environmentData, Does.ContainKey("Audit.Storage.MessageCount").WithValue("Mixed"));
+            Assert.That(environmentData, Does.ContainKey("Audit.Health.FailedImports").WithValue("Mixed"));
+        }
+    }
+
+    [Test]
+    public async Task Should_sum_a_database_that_any_of_its_instances_could_read()
+    {
+        await DataStore.SaveAuditEnvironmentMetadata(new AuditEnvironmentMetadata(
+        [
+            new Dictionary<string, string> { ["Storage.SizeGB"] = "Unknown", ["Storage.MessageCount"] = "Unknown", ["Health.FailedImports"] = "3", [AuditEnvironmentMetadata.DatabaseKey] = "server-a/db-1" },
+            new Dictionary<string, string> { ["Storage.SizeGB"] = "40.0", ["Storage.MessageCount"] = "100", ["Health.FailedImports"] = "ReadFailed", [AuditEnvironmentMetadata.DatabaseKey] = "server-a/db-1" },
+            new Dictionary<string, string> { ["Storage.SizeGB"] = "5.0", ["Storage.MessageCount"] = "10", ["Health.FailedImports"] = "4" }
+        ]));
+
+        var report = await ThroughputCollector.GenerateThroughputReport("", null);
+
+        var environmentData = report.ReportData.EnvironmentInformation.EnvironmentData;
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(environmentData, Does.ContainKey("Audit.Storage.SizeGB").WithValue("45.0"));
+            Assert.That(environmentData, Does.ContainKey("Audit.Storage.MessageCount").WithValue("110"));
+            Assert.That(environmentData, Does.ContainKey("Audit.Health.FailedImports").WithValue("7"));
+        }
+    }
+
+    [Test]
     public async Task Should_leave_audit_environment_data_out_when_it_was_never_collected()
     {
         var report = await ThroughputCollector.GenerateThroughputReport("", null);

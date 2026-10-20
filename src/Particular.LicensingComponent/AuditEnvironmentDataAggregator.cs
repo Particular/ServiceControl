@@ -142,18 +142,11 @@ static class AuditEnvironmentDataAggregator
 
     static double? SumOncePerDatabase((string Value, string DatabaseKey)[] contributions, Func<string, double?> parse)
     {
-        var parsed = contributions
-            .Select(contribution => (contribution.DatabaseKey, Number: parse(contribution.Value)))
-            .Where(contribution => contribution.Number is not null)
+        var perDatabase = contributions
+            .GroupBy(contribution => contribution.DatabaseKey, StringComparer.Ordinal)
+            .Select(group => group.Max(contribution => parse(contribution.Value)))
             .ToArray();
 
-        if (parsed.Length == 0)
-        {
-            return null;
-        }
-
-        return parsed
-            .GroupBy(contribution => contribution.DatabaseKey, StringComparer.Ordinal)
-            .Sum(group => group.Max(contribution => contribution.Number!.Value));
+        return perDatabase.Contains(null) ? null : perDatabase.Sum();
     }
 }
