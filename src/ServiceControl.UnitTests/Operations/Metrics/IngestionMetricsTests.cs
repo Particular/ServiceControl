@@ -1,11 +1,13 @@
 namespace ServiceControl.UnitTests.Operations.Metrics;
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using ServiceControl.Infrastructure.Ingestion;
 using ServiceControl.Operations.Metrics;
 
 /// <summary>
@@ -39,7 +41,7 @@ class IngestionMetricsTests
 
         listener.Start();
 
-        _ = new IngestionMetrics(MeterFactory);
+        _ = new IngestionMetrics(MeterFactory, new IngestionCounters(TimeProvider.System));
 
         Assert.That(published.Order(), Is.EqualTo(new[]
         {
@@ -54,7 +56,7 @@ class IngestionMetricsTests
     [Test]
     public void Concurrent_batch_failures_are_all_counted()
     {
-        var metrics = new IngestionMetrics(MeterFactory);
+        var metrics = new IngestionMetrics(MeterFactory, new IngestionCounters(TimeProvider.System));
 
         const int failedBatches = 1000;
 

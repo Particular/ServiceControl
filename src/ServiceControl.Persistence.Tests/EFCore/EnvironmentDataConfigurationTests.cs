@@ -86,9 +86,16 @@ class EFEnvironmentDataProviderConfigurationTests
     {
         var data = new Dictionary<string, string>();
 
-        foreach (var datum in new EFEnvironmentDataProvider(settings, new StubHostingProbe()).GetData())
+        foreach (var datum in new EFEnvironmentDataProvider(settings, new StubHostingProbe(), new StubFootprintProbe(), scopeFactory: null).GetData())
         {
-            data[datum.Key] = await datum.ReadValue(CancellationToken.None);
+            try
+            {
+                data[datum.Key] = await datum.ReadValue(CancellationToken.None);
+            }
+            catch (Exception)
+            {
+                data[datum.Key] = Particular.LicensingComponent.Contracts.EnvironmentDatum.ReadFailed;
+            }
         }
 
         return data;
@@ -109,5 +116,10 @@ class EFEnvironmentDataProviderConfigurationTests
 
         public Task<DatabaseHosting> Probe(CancellationToken cancellationToken = default) =>
             Task.FromResult(DatabaseHosting.Unclassified);
+    }
+
+    sealed class StubFootprintProbe : IStorageFootprintProbe
+    {
+        public Task<StorageFootprint> Probe(CancellationToken cancellationToken = default) => Task.FromResult<StorageFootprint>(null);
     }
 }
