@@ -1,6 +1,6 @@
 ArchivedGroupsViewIndex
   Maps:
-    docs.FailedMessages.Where(doc => doc.Status == "Archived").Select(doc => new {
+    docs.FailedMessages.Where(doc => doc.Status == 4).Select(doc => new {
         doc = doc,
         failureTimes = doc.ProcessingAttempts.Select(x => x.FailureDetails.TimeOfFailure)
     }).SelectMany(this0 => this0.doc.FailureGroups, (this0, failureGroup) => new {
@@ -49,7 +49,7 @@ FailedErrorImportIndex
 
 FailedMessageFacetsIndex
   Maps:
-    docs.FailedMessages.Where(failure => failure.Status == "Unresolved").Select(failure => new {
+    docs.FailedMessages.Where(failure => failure.Status == 1).Select(failure => new {
         failure = failure,
         t = ((DynamicEnumerable.LastOrDefault(failure.ProcessingAttempts)).MessageMetadata["ReceivingEndpoint"])
     }).Select(this0 => new {
@@ -105,7 +105,7 @@ FailedMessages/ByGroup
 
 FailureGroupsViewIndex
   Maps:
-    docs.FailedMessages.Where(doc => doc.Status == "Unresolved").Select(doc => new {
+    docs.FailedMessages.Where(doc => doc.Status == 1).Select(doc => new {
         doc = doc,
         failureTimes = doc.ProcessingAttempts.Select(x => x.FailureDetails.TimeOfFailure)
     }).SelectMany(this0 => this0.doc.FailureGroups, (this0, failureGroup) => new {
@@ -155,7 +155,7 @@ MessagesViewIndex
         MessageId = this0.last.MessageId,
         MessageType = ((string) this0.last.MessageMetadata["MessageType"]),
         IsSystemMessage = ((bool) this0.last.MessageMetadata["IsSystemMessage"]),
-        Status = this0.message.Status == "Archived" ? "ArchivedFailure" : (this0.message.Status == "Resolved" ? "ResolvedSuccessfully" : (this0.message.ProcessingAttempts.Count == 1 ? "Failed" : "RepeatedFailure")),
+        Status = this0.message.Status == 4 ? 5 : (this0.message.Status == 2 ? 4 : (this0.message.ProcessingAttempts.Count == 1 ? 1 : 2)),
         TimeSent = ((DateTime) this0.last.MessageMetadata["TimeSent"]),
         ProcessedAt = this0.last.AttemptedAt,
         ReceivingEndpointName = ((this0.last.MessageMetadata["ReceivingEndpoint"])).Name,
@@ -190,8 +190,8 @@ RetryBatches/ByStatus/ReduceInitialBatchSize
     docs.RetryBatches.Select(doc => new {
         RequestId = doc.RequestId,
         RetryType = doc.RetryType,
-        HasStagingBatches = doc.Status == "Staging",
-        HasForwardingBatches = doc.Status == "Forwarding",
+        HasStagingBatches = doc.Status == 2,
+        HasForwardingBatches = doc.Status == 3,
         InitialBatchSize = doc.InitialBatchSize,
         Originator = doc.Originator,
         Classifier = doc.Classifier,

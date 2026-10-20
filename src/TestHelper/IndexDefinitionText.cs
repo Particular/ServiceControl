@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Raven.Client.Documents.Indexes;
+using ServiceControl.RavenDB;
 
 /// <summary>
 /// Renders the parts of an index definition that RavenDB compares when ServiceControl deploys its indexes at
@@ -29,6 +30,8 @@ public static class IndexDefinitionText
 
         foreach (var index in indexes.OrderBy(i => i.IndexName, StringComparer.Ordinal))
         {
+            // The conventions change the rendered definition, for example how enum literals appear in a map.
+            index.Conventions = DocumentStoreConventions.Create();
             Render(builder, index.CreateIndexDefinition());
             builder.AppendLine();
         }

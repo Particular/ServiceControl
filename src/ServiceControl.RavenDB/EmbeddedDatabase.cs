@@ -12,7 +12,6 @@ namespace ServiceControl.RavenDB
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Raven.Client.Documents;
-    using Raven.Client.Documents.Conventions;
     using Raven.Embedded;
     using ServiceControl.Infrastructure;
     using Sparrow.Logging;
@@ -171,10 +170,7 @@ namespace ServiceControl.RavenDB
         {
             var dbOptions = new DatabaseOptions(configuration.Name)
             {
-                Conventions = new DocumentConventions
-                {
-                    SaveEnumsAsIntegers = true
-                },
+                Conventions = DocumentStoreConventions.Create(),
                 SkipCreatingDatabase = true
             };
 
