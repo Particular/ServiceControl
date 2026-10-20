@@ -1,6 +1,7 @@
 namespace ServiceControl.Management.PowerShell
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Management.Automation;
@@ -25,10 +26,71 @@ namespace ServiceControl.Management.PowerShell
         [ValidatePath]
         public string InstallPath { get; set; }
 
-        [Parameter(Mandatory = true, HelpMessage = "Specify the directory that will contain the RavenDB database for this ServiceControl Instance")]
+        [Parameter(Mandatory = false, HelpMessage = "Specify the persistence type to use. Defaults to RavenDB")]
+        [ValidateSet(typeof(PrimaryPersistenceTypeValuesGenerator))]
+        public string PersistenceType { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the directory that will contain the RavenDB database for this ServiceControl Instance. Required for RavenDB")]
         [ValidateNotNullOrEmpty]
         [ValidatePath]
         public string DBPath { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the database connection string. Required for SQLServer and PostgreSQL")]
+        [ValidateNotNullOrEmpty]
+        public string DatabaseConnectionString { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify where message bodies are stored for SQLServer and PostgreSQL. Defaults to FileSystem")]
+        [ValidateSet("FileSystem", "AzureBlob", "S3")]
+        public string MessageBodyStorageType { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the directory that will contain message bodies. Required for FileSystem message body storage")]
+        [ValidateNotNullOrEmpty]
+        [ValidatePath]
+        public string MessageBodyPath { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the Azure Blob Storage connection string. Use this or AzureBlobServiceUri")]
+        [ValidateNotNullOrEmpty]
+        public string AzureBlobConnectionString { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the Azure Blob Storage service URI to connect with a managed identity. Use this or AzureBlobConnectionString")]
+        [ValidateNotNullOrEmpty]
+        public string AzureBlobServiceUri { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the client ID of a user-assigned managed identity")]
+        [ValidateNotNullOrEmpty]
+        public string AzureBlobManagedIdentityClientId { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the Microsoft Entra authority host for sovereign clouds")]
+        [ValidateNotNullOrEmpty]
+        public string AzureBlobAuthorityHost { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the Azure Blob Storage container name. Defaults to error-bodies")]
+        [ValidateNotNullOrEmpty]
+        public string AzureBlobContainerName { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the S3 bucket name. Required for S3 message body storage")]
+        [ValidateNotNullOrEmpty]
+        public string S3BucketName { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the S3 key prefix. Defaults to error-bodies/")]
+        [ValidateNotNullOrEmpty]
+        public string S3KeyPrefix { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the S3 region")]
+        [ValidateNotNullOrEmpty]
+        public string S3Region { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the service URL of S3-compatible storage")]
+        [ValidateNotNullOrEmpty]
+        public string S3ServiceUrl { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the S3 access key ID. Use with S3SecretAccessKey, or omit both to use the default AWS credentials")]
+        [ValidateNotNullOrEmpty]
+        public string S3AccessKeyId { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the S3 secret access key. Use with S3AccessKeyId")]
+        [ValidateNotNullOrEmpty]
+        public string S3SecretAccessKey { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the directory to use for this ServiceControl Logs")]
         [ValidateNotNullOrEmpty]
@@ -43,9 +105,9 @@ namespace ServiceControl.Management.PowerShell
         [ValidateRange(1, 49151)]
         public int Port { get; set; }
 
-        [Parameter(Mandatory = true, HelpMessage = "Specify the database maintenance port number to listen on. If this is the only ServiceControl instance then 33334 is recommended")]
+        [Parameter(Mandatory = false, HelpMessage = "Specify the database maintenance port number to listen on. If this is the only ServiceControl instance then 33334 is recommended. Required for RavenDB")]
         [ValidateRange(1, 49151)]
-        public int DatabaseMaintenancePort { get; set; }
+        public int? DatabaseMaintenancePort { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Specify ErrorQueue name to consume messages from. Default is error")]
         [ValidateNotNullOrEmpty]
@@ -106,6 +168,24 @@ namespace ServiceControl.Management.PowerShell
 
         protected override void BeginProcessing()
         {
+            persistenceManifest = ServiceControlPersisters.GetPrimaryPersistence(string.IsNullOrWhiteSpace(PersistenceType) ? StorageEngineNames.RavenDB : PersistenceType);
+            PersistenceParameters.Validate(persistenceManifest, DBPath, DatabaseMaintenancePort, DatabaseConnectionString);
+            messageBodyStorage = PersistenceParameters.CreateMessageBodyStorage(persistenceManifest, MessageBodyStorageType, new Dictionary<string, string>
+            {
+                [nameof(MessageBodyPath)] = MessageBodyPath,
+                [nameof(AzureBlobConnectionString)] = AzureBlobConnectionString,
+                [nameof(AzureBlobServiceUri)] = AzureBlobServiceUri,
+                [nameof(AzureBlobManagedIdentityClientId)] = AzureBlobManagedIdentityClientId,
+                [nameof(AzureBlobAuthorityHost)] = AzureBlobAuthorityHost,
+                [nameof(AzureBlobContainerName)] = AzureBlobContainerName,
+                [nameof(S3BucketName)] = S3BucketName,
+                [nameof(S3KeyPrefix)] = S3KeyPrefix,
+                [nameof(S3Region)] = S3Region,
+                [nameof(S3ServiceUrl)] = S3ServiceUrl,
+                [nameof(S3AccessKeyId)] = S3AccessKeyId,
+                [nameof(S3SecretAccessKey)] = S3SecretAccessKey
+            });
+
             var transport = ServiceControlCoreTransports.Find(Transport);
 
             var requiresConnectionString = !string.IsNullOrEmpty(transport.SampleConnectionString);
@@ -153,7 +233,7 @@ namespace ServiceControl.Management.PowerShell
 
         protected override void ProcessRecord()
         {
-            var details = ServiceControlNewInstance.CreateWithDefaultPersistence();
+            var details = ServiceControlNewInstance.CreateWithPersistence(persistenceManifest.Name);
 
             details.InstallPath = InstallPath;
             details.LogPath = LogPath;
@@ -167,6 +247,8 @@ namespace ServiceControl.Management.PowerShell
             details.HostName = HostName;
             details.Port = Port;
             details.DatabaseMaintenancePort = DatabaseMaintenancePort;
+            details.PersistenceConnectionString = DatabaseConnectionString;
+            details.MessageBodyStorage = messageBodyStorage;
             details.VirtualDirectory = VirtualDirectory;
             details.ErrorQueue = ErrorQueue;
             details.ErrorLogQueue = string.IsNullOrWhiteSpace(ErrorLogQueue) ? null : ErrorLogQueue;
@@ -228,6 +310,9 @@ namespace ServiceControl.Management.PowerShell
                 ThrowTerminatingError(new ErrorRecord(ex, null, ErrorCategory.NotSpecified, null));
             }
         }
+
+        PersistenceManifest persistenceManifest;
+        MessageBodyStorage messageBodyStorage;
 
         Task<bool> PromptToProceed(PathInfo pathInfo, CancellationToken cancellationToken)
         {

@@ -2514,10 +2514,10 @@
           </maml:description>
           <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         </command:parameter>
-        <command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
           <maml:name>DBPath</maml:name>
           <maml:description>
-            <maml:para>The directory that will contain the embedded database files for this ServiceControl Instance. This should be unique for each instance of ServiceControl and should not be a subfolder of the InstallPath or LogPath.</maml:para>
+            <maml:para>The directory that will contain the embedded database files for this ServiceControl Instance. This should be unique for each instance of ServiceControl and should not be a subfolder of the InstallPath or LogPath. Required when PersistenceType is RavenDB, and not used otherwise.</maml:para>
           </maml:description>
           <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         </command:parameter>
@@ -2548,12 +2548,117 @@
           </maml:description>
           <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
         </command:parameter>
-        <command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
           <maml:name>DatabaseMaintenancePort</maml:name>
           <maml:description>
-            <maml:para />
+            <maml:para>The port the embedded RavenDB database listens on. If this is the only ServiceControl instance then 33334 is recommended. Required when PersistenceType is RavenDB, and not used otherwise.</maml:para>
           </maml:description>
           <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+          <maml:name>PersistenceType</maml:name>
+          <maml:description>
+            <maml:para>The persistence type to use: RavenDB, SQLServer, or PostgreSQL. SQLServer and PostgreSQL are only available when the ServiceControl_IncludePersistencePicker environment variable is set to true.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+          <maml:name>DatabaseConnectionString</maml:name>
+          <maml:description>
+            <maml:para>The connection string of the database that stores the instance data. Required when PersistenceType is SQLServer or PostgreSQL, and not used otherwise.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+          <maml:name>MessageBodyStorageType</maml:name>
+          <maml:description>
+            <maml:para>Where message bodies are stored when PersistenceType is SQLServer or PostgreSQL: FileSystem, AzureBlob, or S3. Not used for RavenDB, which stores message bodies in its database.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+          <maml:name>MessageBodyPath</maml:name>
+          <maml:description>
+            <maml:para>The directory that will contain message bodies. Required when MessageBodyStorageType is FileSystem. This should be unique for each instance of ServiceControl and should not be a subfolder of the InstallPath or LogPath.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+          <maml:name>AzureBlobConnectionString</maml:name>
+          <maml:description>
+            <maml:para>The Azure Blob Storage connection string, using a shared key or SAS token. Specify this or AzureBlobServiceUri when MessageBodyStorageType is AzureBlob.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+          <maml:name>AzureBlobServiceUri</maml:name>
+          <maml:description>
+            <maml:para>The Azure Blob Storage service URI, for example https://account.blob.core.windows.net, to connect with a managed identity. Specify this or AzureBlobConnectionString when MessageBodyStorageType is AzureBlob.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+          <maml:name>AzureBlobManagedIdentityClientId</maml:name>
+          <maml:description>
+            <maml:para>The client ID of a user-assigned managed identity. Used with AzureBlobServiceUri. Leave empty to use the system-assigned identity.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+          <maml:name>AzureBlobAuthorityHost</maml:name>
+          <maml:description>
+            <maml:para>The Microsoft Entra authority host for sovereign clouds. Used with AzureBlobServiceUri.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+          <maml:name>AzureBlobContainerName</maml:name>
+          <maml:description>
+            <maml:para>The Azure Blob Storage container that stores message bodies.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+          <maml:name>S3BucketName</maml:name>
+          <maml:description>
+            <maml:para>The S3 bucket that stores message bodies. Required when MessageBodyStorageType is S3.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+          <maml:name>S3KeyPrefix</maml:name>
+          <maml:description>
+            <maml:para>The prefix for message body object keys in the S3 bucket.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+          <maml:name>S3Region</maml:name>
+          <maml:description>
+            <maml:para>The AWS region of the S3 bucket.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+          <maml:name>S3ServiceUrl</maml:name>
+          <maml:description>
+            <maml:para>The service URL of S3-compatible storage. Leave empty to use Amazon S3.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+          <maml:name>S3AccessKeyId</maml:name>
+          <maml:description>
+            <maml:para>The S3 access key ID. Specify with S3SecretAccessKey, or omit both to use the default AWS credentials, such as an IAM role.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+          <maml:name>S3SecretAccessKey</maml:name>
+          <maml:description>
+            <maml:para>The S3 secret access key. Specify with S3AccessKeyId.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         </command:parameter>
         <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
           <maml:name>ErrorQueue</maml:name>
@@ -2696,10 +2801,10 @@
         </dev:type>
         <dev:defaultValue></dev:defaultValue>
       </command:parameter>
-      <command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
         <maml:name>DBPath</maml:name>
         <maml:description>
-          <maml:para>The directory that will contain the embedded database files for this ServiceControl Instance. This should be unique for each instance of ServiceControl and should not be a subfolder of the InstallPath or LogPath.</maml:para>
+          <maml:para>The directory that will contain the embedded database files for this ServiceControl Instance. This should be unique for each instance of ServiceControl and should not be a subfolder of the InstallPath or LogPath. Required when PersistenceType is RavenDB, and not used otherwise.</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         <dev:type>
@@ -2750,14 +2855,194 @@
         </dev:type>
         <dev:defaultValue></dev:defaultValue>
       </command:parameter>
-      <command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
         <maml:name>DatabaseMaintenancePort</maml:name>
         <maml:description>
-          <maml:para />
+          <maml:para>The port the embedded RavenDB database listens on. If this is the only ServiceControl instance then 33334 is recommended. Required when PersistenceType is RavenDB, and not used otherwise.</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
         <dev:type>
           <maml:name>Int32</maml:name>
+          <maml:uri/>
+        </dev:type>
+        <dev:defaultValue></dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>PersistenceType</maml:name>
+        <maml:description>
+          <maml:para>The persistence type to use: RavenDB, SQLServer, or PostgreSQL. SQLServer and PostgreSQL are only available when the ServiceControl_IncludePersistencePicker environment variable is set to true.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri/>
+        </dev:type>
+        <dev:defaultValue>RavenDB</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>DatabaseConnectionString</maml:name>
+        <maml:description>
+          <maml:para>The connection string of the database that stores the instance data. Required when PersistenceType is SQLServer or PostgreSQL, and not used otherwise.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri/>
+        </dev:type>
+        <dev:defaultValue></dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>MessageBodyStorageType</maml:name>
+        <maml:description>
+          <maml:para>Where message bodies are stored when PersistenceType is SQLServer or PostgreSQL: FileSystem, AzureBlob, or S3. Not used for RavenDB, which stores message bodies in its database.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri/>
+        </dev:type>
+        <dev:defaultValue>FileSystem</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>MessageBodyPath</maml:name>
+        <maml:description>
+          <maml:para>The directory that will contain message bodies. Required when MessageBodyStorageType is FileSystem. This should be unique for each instance of ServiceControl and should not be a subfolder of the InstallPath or LogPath.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri/>
+        </dev:type>
+        <dev:defaultValue></dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>AzureBlobConnectionString</maml:name>
+        <maml:description>
+          <maml:para>The Azure Blob Storage connection string, using a shared key or SAS token. Specify this or AzureBlobServiceUri when MessageBodyStorageType is AzureBlob.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri/>
+        </dev:type>
+        <dev:defaultValue></dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>AzureBlobServiceUri</maml:name>
+        <maml:description>
+          <maml:para>The Azure Blob Storage service URI, for example https://account.blob.core.windows.net, to connect with a managed identity. Specify this or AzureBlobConnectionString when MessageBodyStorageType is AzureBlob.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri/>
+        </dev:type>
+        <dev:defaultValue></dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>AzureBlobManagedIdentityClientId</maml:name>
+        <maml:description>
+          <maml:para>The client ID of a user-assigned managed identity. Used with AzureBlobServiceUri. Leave empty to use the system-assigned identity.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri/>
+        </dev:type>
+        <dev:defaultValue></dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>AzureBlobAuthorityHost</maml:name>
+        <maml:description>
+          <maml:para>The Microsoft Entra authority host for sovereign clouds. Used with AzureBlobServiceUri.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri/>
+        </dev:type>
+        <dev:defaultValue></dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>AzureBlobContainerName</maml:name>
+        <maml:description>
+          <maml:para>The Azure Blob Storage container that stores message bodies.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri/>
+        </dev:type>
+        <dev:defaultValue>error-bodies</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>S3BucketName</maml:name>
+        <maml:description>
+          <maml:para>The S3 bucket that stores message bodies. Required when MessageBodyStorageType is S3.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri/>
+        </dev:type>
+        <dev:defaultValue></dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>S3KeyPrefix</maml:name>
+        <maml:description>
+          <maml:para>The prefix for message body object keys in the S3 bucket.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri/>
+        </dev:type>
+        <dev:defaultValue>error-bodies/</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>S3Region</maml:name>
+        <maml:description>
+          <maml:para>The AWS region of the S3 bucket.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri/>
+        </dev:type>
+        <dev:defaultValue></dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>S3ServiceUrl</maml:name>
+        <maml:description>
+          <maml:para>The service URL of S3-compatible storage. Leave empty to use Amazon S3.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri/>
+        </dev:type>
+        <dev:defaultValue></dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>S3AccessKeyId</maml:name>
+        <maml:description>
+          <maml:para>The S3 access key ID. Specify with S3SecretAccessKey, or omit both to use the default AWS credentials, such as an IAM role.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri/>
+        </dev:type>
+        <dev:defaultValue></dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>S3SecretAccessKey</maml:name>
+        <maml:description>
+          <maml:para>The S3 secret access key. Specify with S3AccessKeyId.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
           <maml:uri/>
         </dev:type>
         <dev:defaultValue></dev:defaultValue>
