@@ -34,6 +34,8 @@ namespace ServiceControl.RavenDB
             var databaseDefault = await GetDatabaseSearchEngineType(store, cancellationToken);
             var databaseDefaultIsLucene = string.Equals(databaseDefault, nameof(SearchEngineType.Lucene), StringComparison.OrdinalIgnoreCase);
 
+            Logger.LogInformation("Database {DatabaseName} static index search engine setting: {DatabaseDefault}", store.Database, databaseDefault ?? "not set, the server default applies");
+
             foreach (var index in indexList)
             {
                 var replacementName = Constants.Documents.Indexing.SideBySideIndexNamePrefix + index.IndexName;
@@ -42,6 +44,18 @@ namespace ServiceControl.RavenDB
 
                 var changes = existing == null ? IndexDefinitionCompareDifferences.None : RebuildChanges(existing, index, store);
                 var changed = changes != IndexDefinitionCompareDifferences.None;
+
+                if (existing?.LockMode is IndexLockMode.LockedIgnore or IndexLockMode.LockedError)
+                {
+                    if (changed)
+                    {
+                        Logger.LogError("Index {IndexName} is locked ({LockMode}) and its definition changed ({Changes}). The change is not applied until the index is unlocked", index.IndexName, existing.LockMode, changes);
+                    }
+                    else
+                    {
+                        Logger.LogWarning("Index {IndexName} is locked ({LockMode}). Definition changes from new versions are not applied until the index is unlocked", index.IndexName, existing.LockMode);
+                    }
+                }
 
                 // 1. A search engine set in our index definition always wins. It can be set through SearchEngineType or Configuration.
                 if (index.SearchEngineType.HasValue)
@@ -75,14 +89,17 @@ namespace ServiceControl.RavenDB
                 {
                     var reason = existing == null ? "is created" : $"is rebuilt because its definition changed ({changes})";
 
+                    // A rebuild of a large index takes long and degrades ingestion, see docs.particular.net/servicecontrol/upgrades/#upgrades-that-rebuild-indexes
+                    var level = changed ? LogLevel.Warning : LogLevel.Information;
+
                     if (databaseDefaultIsLucene)
                     {
-                        Logger.LogInformation("Index {IndexName} {Reason} and inherits the Lucene search engine from the database", index.IndexName, reason);
+                        Logger.Log(level, "Index {IndexName} {Reason} and inherits the Lucene search engine from the database", index.IndexName, reason);
                     }
                     else
                     {
                         index.Configuration[StaticSearchEngineTypeKey] = nameof(SearchEngineType.Lucene);
-                        Logger.LogInformation("Index {IndexName} {Reason} with the Lucene search engine set on the index, the database setting is {DatabaseDefault}", index.IndexName, reason, databaseDefault ?? "not set");
+                        Logger.Log(level, "Index {IndexName} {Reason} with the Lucene search engine set on the index, the database setting is {DatabaseDefault}", index.IndexName, reason, databaseDefault ?? "not set");
                     }
 
                     continue;
