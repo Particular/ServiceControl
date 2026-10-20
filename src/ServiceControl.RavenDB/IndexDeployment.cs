@@ -34,11 +34,28 @@ namespace ServiceControl.RavenDB
             var databaseDefault = await GetDatabaseSearchEngineType(store, cancellationToken);
             var databaseDefaultIsLucene = IsLucene(databaseDefault);
 
+            Logger.LogInformation("Database {DatabaseName} static index search engine setting: {DatabaseDefault}", store.Database, databaseDefault ?? "not set, the server default applies");
+
             foreach (var index in indexList)
             {
                 var replacementName = Constants.Documents.Indexing.SideBySideIndexNamePrefix + index.IndexName;
                 existingByName.TryGetValue(index.IndexName, out var existingDefinition);
                 existingByName.TryGetValue(replacementName, out var pendingReplacementDefinition);
+
+                var rebuildTriggers = existingDefinition == null ? IndexDefinitionCompareDifferences.None : GetRebuildTriggeringDifferences(existingDefinition, index, store);
+                var requiresRebuild = rebuildTriggers != IndexDefinitionCompareDifferences.None;
+
+                if (existingDefinition?.LockMode is IndexLockMode.LockedIgnore or IndexLockMode.LockedError)
+                {
+                    if (requiresRebuild)
+                    {
+                        Logger.LogError("Index {IndexName} is locked ({LockMode}) and its definition changed ({Changes}). The change is not applied until the index is unlocked", index.IndexName, existingDefinition.LockMode, rebuildTriggers);
+                    }
+                    else
+                    {
+                        Logger.LogWarning("Index {IndexName} is locked ({LockMode}). Definition changes from new versions are not applied until the index is unlocked", index.IndexName, existingDefinition.LockMode);
+                    }
+                }
 
                 // 1. A search engine set in our index definition always wins. It can be set through SearchEngineType or Configuration.
                 var definedSearchEngineType = GetDefinedSearchEngineType(index);
@@ -55,9 +72,6 @@ namespace ServiceControl.RavenDB
 
                     continue;
                 }
-
-                var rebuildTriggers = existingDefinition == null ? IndexDefinitionCompareDifferences.None : GetRebuildTriggeringDifferences(existingDefinition, index, store);
-                var requiresRebuild = rebuildTriggers != IndexDefinitionCompareDifferences.None;
 
                 // 2. Keep Lucene set on the index on the server, for example by an operator in RavenDB Studio. The
                 // definitions then match and RavenDB does not rebuild the index. A pending replacement is checked first:
@@ -87,14 +101,17 @@ namespace ServiceControl.RavenDB
                 {
                     var reason = existingDefinition == null ? "is created" : $"is rebuilt because its definition changed ({rebuildTriggers})";
 
+                    // A rebuild of a large index takes long and degrades ingestion, see docs.particular.net/servicecontrol/upgrades/#upgrades-that-rebuild-indexes
+                    var level = requiresRebuild ? LogLevel.Warning : LogLevel.Information;
+
                     if (databaseDefaultIsLucene)
                     {
-                        Logger.LogInformation("Index {IndexName} {Reason} and inherits the Lucene search engine from the database", index.IndexName, reason);
+                        Logger.Log(level, "Index {IndexName} {Reason} and inherits the Lucene search engine from the database", index.IndexName, reason);
                     }
                     else
                     {
                         index.Configuration[StaticSearchEngineTypeKey] = nameof(SearchEngineType.Lucene);
-                        Logger.LogInformation("Index {IndexName} {Reason} with the Lucene search engine set on the index, the database setting is {DatabaseDefault}", index.IndexName, reason, databaseDefault ?? "not set");
+                        Logger.Log(level, "Index {IndexName} {Reason} with the Lucene search engine set on the index, the database setting is {DatabaseDefault}", index.IndexName, reason, databaseDefault ?? "not set");
                     }
 
                     continue;
