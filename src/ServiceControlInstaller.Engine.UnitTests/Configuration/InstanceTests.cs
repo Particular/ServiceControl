@@ -4,6 +4,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Configuration
     using System.IO;
     using System.ServiceProcess;
     using NUnit.Framework;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Services;
 
@@ -32,6 +33,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Configuration
             instance.Reload();
 
             Assert.That(instance.HasCleanableStoragePaths, Is.True);
+            Assert.That(instance.UsesEmbeddedDatabase, Is.True);
 
             instance.RemoveLogsFolder();
             instance.RemoveDataBaseFolder();
@@ -61,12 +63,37 @@ namespace ServiceControlInstaller.Engine.UnitTests.Configuration
             instance.Reload();
 
             Assert.That(instance.HasCleanableStoragePaths, Is.False);
+            Assert.That(instance.UsesEmbeddedDatabase, Is.False);
 
             instance.RemoveLogsFolder();
             instance.RemoveDataBaseFolder();
 
             Assert.That(Directory.Exists(LogPath), Is.False, "Logs should still be removed regardless of storage type");
             Assert.That(Directory.Exists(DbPath), Is.True, "Nothing local backs a SQL Server instance, so its unrelated DBPath folder must be left alone");
+        }
+
+        [Test]
+        public void Should_not_report_embedded_database_for_external_RavenDB()
+        {
+            var newInstance = ServiceControlNewInstance.CreateWithPersistence("RavenDB");
+
+            newInstance.InstallPath = InstallPath;
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("LearningTransport");
+            newInstance.DBPath = DbPath;
+            newInstance.LogPath = LogPath;
+            newInstance.HostName = "localhost";
+            newInstance.DatabaseMaintenancePort = 33333;
+
+            newInstance.CopyFiles(zipResourceName);
+            newInstance.WriteConfigurationFile();
+
+            var instance = new ServiceControlInstance(new FakeWindowsServiceController(Path.Combine(InstallPath, "ServiceControl.exe")));
+            instance.AppConfig.Config.AppSettings.Settings.Add(ServiceControlSettings.RavenDBConnectionString.Name, "http://ravendb.example:8080");
+            instance.AppConfig.Config.Save();
+
+            instance.Reload();
+
+            Assert.That(instance.UsesEmbeddedDatabase, Is.False);
         }
 
         class FakeWindowsServiceController : IWindowsServiceController

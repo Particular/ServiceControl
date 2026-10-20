@@ -46,6 +46,17 @@ namespace ServiceControlInstaller.Engine.Instances
         // (e.g. an external SQL Server/PostgreSQL database) - there's nothing on disk to clean up.
         public bool HasCleanableStoragePaths => PersistenceManifest.SettingsWithPathsToCleanup.Length > 0;
 
+        // Only persisters that run an embedded database server declare a maintenance port.
+        public bool UsesEmbeddedDatabase =>
+            PersistenceManifest?.Settings.Any(setting => setting.Name == DatabaseMaintenancePortSetting.Name) == true
+            && !UsesExternalRavenDB;
+
+        bool UsesExternalRavenDB => !string.IsNullOrWhiteSpace(AppConfig?.Read<string>(RavenDBConnectionStringSetting, null));
+
+        protected abstract SettingInfo DatabaseMaintenancePortSetting { get; }
+
+        protected abstract SettingInfo RavenDBConnectionStringSetting { get; }
+
         /// <summary>
         /// Raven management URL
         /// </summary>

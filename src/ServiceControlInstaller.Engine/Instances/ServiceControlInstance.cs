@@ -48,6 +48,10 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override string BaseServiceName => "ServiceControl";
 
+        protected override SettingInfo DatabaseMaintenancePortSetting => ServiceControlSettings.DatabaseMaintenancePort;
+
+        protected override SettingInfo RavenDBConnectionStringSetting => ServiceControlSettings.RavenDBConnectionString;
+
         public TimeSpan? AuditRetentionPeriod { get; set; }
 
         public List<RemoteInstanceSetting> RemoteInstances { get; set; } = [];

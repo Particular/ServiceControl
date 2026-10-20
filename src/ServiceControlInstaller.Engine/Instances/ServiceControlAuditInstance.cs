@@ -89,6 +89,10 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override string BaseServiceName => "ServiceControl.Audit";
 
+        protected override SettingInfo DatabaseMaintenancePortSetting => AuditInstanceSettingsList.DatabaseMaintenancePort;
+
+        protected override SettingInfo RavenDBConnectionStringSetting => AuditInstanceSettingsList.RavenDBConnectionString;
+
         public override void Reload()
         {
             Service.Refresh();

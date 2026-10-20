@@ -22,6 +22,7 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         public static readonly SettingInfo LogPath = new() { Name = "ServiceControl.Audit/LogPath" };
         public static readonly SettingInfo DBPath = new() { Name = "ServiceControl.Audit/DBPath" };
         public static readonly SettingInfo DatabaseConnectionString = new() { Name = "ServiceControl.Audit/Database/ConnectionString" };
+        public static readonly SettingInfo RavenDBConnectionString = new() { Name = "ServiceControl.Audit/RavenDB/ConnectionString" };
         public static readonly SettingInfo ForwardAuditMessages = new() { Name = "ServiceControl.Audit/ForwardAuditMessages" };
         public static readonly SettingInfo TransportType = new() { Name = "ServiceControl.Audit/TransportType" };
         public static readonly SettingInfo PersistenceType = new() { Name = "ServiceControl.Audit/PersistenceType" };
