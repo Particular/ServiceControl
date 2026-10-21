@@ -51,11 +51,12 @@ public static class IngestionSettingsReader
     }
 
     /// <summary>
-    /// Settles how many messages one write handles. A batch larger than the transport's concurrency
-    /// never fills, so the default is capped at it and a lower concurrency stays attainable.
+    /// Settles how many messages one write handles. The default splits the transport's concurrency
+    /// across the writers, so that each can fill a batch while the others are writing.
+    /// <paramref name="writers" /> is the resolved writer count, see <see cref="ResolveMaxParallelWriters" />.
     /// </summary>
-    public static int ResolveBatchSize(int? configured, int transportMaxConcurrency) =>
-        configured ?? Math.Min(DefaultBatchSize, transportMaxConcurrency);
+    public static int ResolveBatchSize(int? configured, int transportMaxConcurrency, int writers) =>
+        configured ?? Math.Max(1, Math.Min(transportMaxConcurrency, transportMaxConcurrency / writers));
 
     /// <summary>
     /// Settles how many writers a pipeline actually gets. A storage whose batches are not safe to
@@ -106,11 +107,6 @@ public static class IngestionSettingsReader
     /// What a storage whose batches are safe to interleave gets when nothing is configured.
     /// </summary>
     public const int DefaultMaxParallelWriters = 4;
-
-    /// <summary>
-    /// The most messages one write handles when nothing is configured and the transport allows it.
-    /// </summary>
-    public const int DefaultBatchSize = 25;
 
     public static readonly TimeSpan DefaultBatchTimeout = TimeSpan.FromMilliseconds(100);
 

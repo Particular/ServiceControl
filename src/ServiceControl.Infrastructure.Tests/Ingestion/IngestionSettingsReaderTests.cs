@@ -45,18 +45,19 @@ class IngestionSettingsReaderTests
         Assert.That(IngestionSettingsReader.ReadBatchTimeout(Root, SettingName, validateConfiguration: true), Is.EqualTo(TimeSpan.Zero));
     }
 
-    [TestCase(1, 1)]
-    [TestCase(10, 10)]
-    [TestCase(25, 25)]
-    [TestCase(26, 25)]
-    [TestCase(100, 25)]
-    public void An_unconfigured_batch_size_is_25_capped_at_the_transport_concurrency(int concurrency, int expected) =>
-        Assert.That(IngestionSettingsReader.ResolveBatchSize(null, concurrency), Is.EqualTo(expected));
+    [TestCase(10, 1, 10)]
+    [TestCase(10, 4, 2)]
+    [TestCase(32, 4, 8)]
+    [TestCase(10, 3, 3)]
+    [TestCase(3, 4, 1)]
+    [TestCase(1, 4, 1)]
+    public void An_unconfigured_batch_size_divides_the_transport_concurrency_across_the_writers(int concurrency, int writers, int expected) =>
+        Assert.That(IngestionSettingsReader.ResolveBatchSize(null, concurrency, writers), Is.EqualTo(expected));
 
-    [TestCase(10)]
-    [TestCase(100)]
-    public void A_configured_batch_size_is_kept(int concurrency) =>
-        Assert.That(IngestionSettingsReader.ResolveBatchSize(50, concurrency), Is.EqualTo(50));
+    [TestCase(10, 1)]
+    [TestCase(100, 4)]
+    public void A_configured_batch_size_is_kept(int concurrency, int writers) =>
+        Assert.That(IngestionSettingsReader.ResolveBatchSize(50, concurrency, writers), Is.EqualTo(50));
 
     [Test]
     public void A_configured_timeout_is_read()

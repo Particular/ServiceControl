@@ -4,5 +4,5 @@ using System;
 
 partial class ServiceControlAuditEndpointTests
 {
-    private static partial int GetTransportDefaultConcurrency() => 100;
+    private static partial int GetTransportDefaultConcurrency() => 32;
 }

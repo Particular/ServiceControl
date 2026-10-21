@@ -15,11 +15,6 @@
 
         public string EndpointName { get; set; }
 
-        /// <summary>
-        /// What the error and audit instances receive with when nothing is configured.
-        /// </summary>
-        public const int DefaultIngestionMaxConcurrency = 100;
-
         public int? MaxConcurrency { get; set; }
 
         public bool RunCustomChecks { get; set; }

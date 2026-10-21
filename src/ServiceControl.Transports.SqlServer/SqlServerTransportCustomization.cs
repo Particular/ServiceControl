@@ -20,12 +20,16 @@
 #pragma warning disable CS0618 // Type or member is obsolete
             routing.EnableMessageDrivenPubSubCompatibilityMode();
 #pragma warning restore CS0618 // Type or member is obsolete
+
+            transportSettings.MaxConcurrency ??= 10;
         }
 
         //Do not EnableMessageDrivenPubSubCompatibilityMode for send-only endpoint
         protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition, TransportSettings transportSettings)
         {
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
+
+            transportSettings.MaxConcurrency ??= 10;
         }
 
         protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition, TransportSettings transportSettings)

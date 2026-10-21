@@ -46,7 +46,7 @@ Each instance reads its settings from its own settings root
 
 | Setting | Default | Range | What it does |
 | --- | --- | --- | --- |
-| `ErrorIngestionBatchSize` / `AuditIngestionBatchSize` | `25`, or the transport's `MaximumConcurrencyLevel` if that is lower | 1 to 1000 | The most messages one write handles |
+| `ErrorIngestionBatchSize` / `AuditIngestionBatchSize` | the transport's `MaximumConcurrencyLevel` divided by the writers, at least 1 | 1 to 1000 | The most messages one write handles |
 | `ErrorIngestionMaxParallelWriters` / `AuditIngestionMaxParallelWriters` | `4` where the storage takes concurrent batches, otherwise `1`, see below | 1 to 16 | How many batches are written at once |
 | `ErrorIngestionBatchTimeout` / `AuditIngestionBatchTimeout` | `00:00:00.100` | 0 to 5 seconds | How long a batch that is not yet full waits for more messages |
 
@@ -64,9 +64,9 @@ SERVICECONTROL_AUDIT_AuditIngestionBatchTimeout=00:00:00.100
 
 ### Batch size
 
-The default batch size is 25, capped at the transport's concurrency so that a lower concurrency still allows full batches. A receive does not return until its batch has been written, so no more than that many messages can wait. A configured batch size above the transport's concurrency never fills, and a timeout only delays messages already received.
+The default batch size is the transport's concurrency divided by the number of writers, using integer division and never less than 1. The writer count is the one the pipeline actually gets, so a storage that holds ingestion to one writer gets a batch as large as the concurrency. When the concurrency is below the writer count, the batch size is 1. A receive does not return until its batch has been written, so no more than the concurrency can wait. A configured batch size is used as given. One above the transport's concurrency never fills, and a timeout only delays messages already received.
 
-Error and audit instances default to a concurrency of 100 for every transport unless `MaximumConcurrencyLevel` is configured. In the error instance, this shared setting also controls the hosted endpoint, retry forwarding, and throughput collection receivers. The monitoring instance has its own concurrency defaults. To allow batches larger than the receive concurrency, raise `MaximumConcurrencyLevel` and configure the batch size.
+Without `MaximumConcurrencyLevel`, the error instance receives with a concurrency of 10. The audit instance defaults to 32, except SQL Server and PostgreSQL transports, which default to 10. In the error instance, this shared setting also controls the hosted endpoint, retry forwarding, and throughput collection receivers. To allow larger batches, raise `MaximumConcurrencyLevel`.
 
 ### Batch timeout
 

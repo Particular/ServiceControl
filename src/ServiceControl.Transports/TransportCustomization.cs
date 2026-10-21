@@ -82,7 +82,7 @@ namespace ServiceControl.Transports
             var transport = CreateTransport(transportSettings);
             CustomizeTransportForPrimaryEndpoint(endpointConfiguration, transport, transportSettings);
 
-            transportSettings.MaxConcurrency ??= TransportSettings.DefaultIngestionMaxConcurrency;
+            transportSettings.MaxConcurrency ??= 10;
 
             endpointConfiguration.UseTransport(transport);
         }
@@ -93,7 +93,7 @@ namespace ServiceControl.Transports
             var transport = CreateTransport(transportSettings);
             CustomizeTransportForAuditEndpoint(endpointConfiguration, transport, transportSettings);
 
-            transportSettings.MaxConcurrency ??= TransportSettings.DefaultIngestionMaxConcurrency;
+            transportSettings.MaxConcurrency ??= 32;
 
             endpointConfiguration.SendOnly();
 

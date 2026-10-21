@@ -189,7 +189,7 @@
         public TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
 
         /// <summary>
-        /// The most messages one write handles. Null is 25, or the transport's concurrency if that is lower.
+        /// The most messages one write handles. Null splits the transport's concurrency across the writers.
         /// </summary>
         public int? AuditIngestionBatchSize { get; set; }
 
