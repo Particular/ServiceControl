@@ -89,7 +89,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 auditNewInstance.Name = viewModel.ServiceControlAudit.InstanceName.Replace(' ', '.');
                 auditNewInstance.InstanceName = viewModel.ServiceControlAudit.InstanceName.Replace(' ', '.');
                 auditNewInstance.ServiceDescription = viewModel.ServiceControlAudit.Description;
-                auditNewInstance.DBPath = viewModel.ServiceControlAudit.DatabasePath;
+                auditNewInstance.DBPath = viewModel.ServiceControlAudit.ShowDatabasePathFields ? viewModel.ServiceControlAudit.DatabasePath : null;
                 auditNewInstance.LogPath = viewModel.ServiceControlAudit.LogPath;
                 auditNewInstance.InstallPath = viewModel.ServiceControlAudit.DestinationPath;
                 auditNewInstance.HostName = viewModel.ServiceControlAudit.HostName;
