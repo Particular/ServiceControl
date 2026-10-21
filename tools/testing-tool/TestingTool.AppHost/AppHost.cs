@@ -9,6 +9,7 @@ if (azureBlobBodyStorage is not null && string.IsNullOrWhiteSpace(azureBlobBodyS
 {
     throw new ArgumentException("--azureblob-body-storage requires a non-blank Azure Storage connection string.");
 }
+var s3BodyStorage = S3BodyStorageOptions.Parse(options, azureBlobBodyStorage is not null);
 Console.WriteLine($"Using persistence type: {persistenceType}");
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -33,7 +34,7 @@ var primaryErrorInstance = platform
     .WithEnvironment("SERVICECONTROL_ALLOWMESSAGEEDITING", "true")
     .WithEnvironment("SERVICECONTROL_DISABLEEXTERNALINTEGRATIONSPUBLISHING", "true")
     .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", observability.Collector.GetEndpoint("otlp-grpc"))
-    .WithPersistenceType(persistenceType, azureBlobBodyStorage)
+    .WithPersistenceType(persistenceType, azureBlobBodyStorage, s3BodyStorage)
     .WithRunMode(PlatformRunMode.SetupAndRun);
 
 for (int i = 0; i < options.GetValue("error-ingestion-scale-unit", 0); i++) {
@@ -51,7 +52,7 @@ for (int i = 0; i < options.GetValue("error-ingestion-scale-unit", 0); i++) {
         .WithEnvironment("SERVICECONTROL_ERRORINGESTIONBATCHTIMEOUT", "00:00:00.100")
         
         //.WaitFor(primaryErrorInstance)
-        .WithPersistenceType(persistenceType, azureBlobBodyStorage)
+        .WithPersistenceType(persistenceType, azureBlobBodyStorage, s3BodyStorage)
         .WithRunMode(PlatformRunMode.Run);
 }
 
@@ -75,7 +76,7 @@ for (int i = 0; i < auditInstanceCount; i++)
         .WithAuditQueueName(i == 0 ? "audit" : "audit" + i)
         .WithRunMode(PlatformRunMode.SetupAndRun)
         .WithIngestionTuning()
-        .WithPersistenceType(persistenceType, azureBlobBodyStorage);
+        .WithPersistenceType(persistenceType, azureBlobBodyStorage, s3BodyStorage);
 }
 
 // --- Testing tool ---
