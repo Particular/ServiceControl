@@ -211,6 +211,7 @@ Forwarding Error Messages:          {settings.ForwardErrorMessages}
 ServiceControl Logging Level:       {settings.LoggingSettings.LogLevel}
 Selected Transport Customization:   {settings.TransportType}
 Integrated ServicePulse:            {(settings.EnableIntegratedServicePulse ? "Enabled" : "Disabled")}
+External Integrations Publishing:   {(settings.EnableExternalIntegrationsPublishing ? "Enabled" : "Disabled")}
 -------------------------------------------------------------";
 
             var logger = LoggerUtil.CreateStaticLogger(typeof(HostApplicationBuilderExtensions), settings.LoggingSettings.LogLevel);
