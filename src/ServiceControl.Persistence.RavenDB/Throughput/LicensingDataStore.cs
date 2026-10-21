@@ -370,20 +370,28 @@ class LicensingDataStore(
         return await session.LoadAsync<LicensedEndpointDetailsAmendment>(LicencedEndpointDetailsAmendmentDocumentId, cancellationToken);
     }
 
-    public async Task SaveLicensedEndpointDetailsAmendment(LicensedEndpointDetailsAmendment result, CancellationToken cancellationToken = default)
+    public async Task SaveLicensedEndpointDetailsAmendment(LicensedEndpointDetailsAmendment? result, CancellationToken cancellationToken = default)
     {
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
-        var existing = await session.LoadAsync<LicensedEndpointDetailsAmendment>(LicencedEndpointDetailsAmendmentDocumentId, cancellationToken);
-        if (existing is not null)
+        if (result is null)
         {
-            // these do not round-trip
-            result.UnmappedQueues = [.. existing.UnmappedQueues, .. result.UnmappedQueues];
-            session.Advanced.Evict(existing);
+            session.Delete(LicencedEndpointDetailsAmendmentDocumentId);
+        }
+        else
+        {
+            var existing = await session.LoadAsync<LicensedEndpointDetailsAmendment>(LicencedEndpointDetailsAmendmentDocumentId, cancellationToken);
+            if (existing is not null)
+            {
+                // these do not round-trip
+                result.UnmappedQueues = [.. existing.UnmappedQueues, .. result.UnmappedQueues];
+                session.Advanced.Evict(existing);
+            }
+
+            await session.StoreAsync(result, LicencedEndpointDetailsAmendmentDocumentId, cancellationToken);
         }
 
-        await session.StoreAsync(result, LicencedEndpointDetailsAmendmentDocumentId, cancellationToken);
         await session.SaveChangesAsync(cancellationToken);
     }
 }

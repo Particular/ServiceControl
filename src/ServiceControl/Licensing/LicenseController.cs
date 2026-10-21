@@ -108,5 +108,11 @@ namespace ServiceControl.Licensing
         [Route("license/amendDetails")]
         public async Task AmendLicenseDetails([FromBody] LicensedEndpointDetailsAmendment amendment, CancellationToken cancellationToken = default) =>
             await dataStore.SaveLicensedEndpointDetailsAmendment(amendment, cancellationToken);
+
+        [Authorize(Policy = Permissions.ErrorThroughputManage)]
+        [HttpPost]
+        [Route("license/removeAmendments")]
+        public async Task RemoveLicenseDetailsAmendments(CancellationToken cancellationToken = default) =>
+            await dataStore.SaveLicensedEndpointDetailsAmendment(null, cancellationToken);
     }
 }

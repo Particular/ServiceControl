@@ -330,12 +330,18 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
     public Task<LicensedEndpointDetailsAmendment?> GetLicensedEndpointDetailsAmendments(CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((context, token) => context.GetSetting<LicensedEndpointDetailsAmendment>(SettingKeys.LicensedEndpointDetailsAmendment, token), cancellationToken);
 
-    public Task SaveLicensedEndpointDetailsAmendment(LicensedEndpointDetailsAmendment result, CancellationToken cancellationToken = default) =>
+    public Task SaveLicensedEndpointDetailsAmendment(LicensedEndpointDetailsAmendment? result, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (context, token) =>
             {
                 var existing = await context.GetSetting<LicensedEndpointDetailsAmendment>(SettingKeys.LicensedEndpointDetailsAmendment, token);
                 if (existing is not null)
                 {
+                    if (result is null)
+                    {
+                        context.Remove(existing);
+                        await context.SaveChangesAsync(cancellationToken);
+                        return;
+                    }
                     // these do not round-trip
                     result.UnmappedQueues = [.. existing.UnmappedQueues, .. result.UnmappedQueues];
                 }
