@@ -4,6 +4,11 @@ using TestingTool.AppHost;
 var options = CliOptions.Parse(args);
 var persistenceType = options.GetValue("persistence", PersistenceType.RavenDb);
 var imageTag = options.GetValueOrDefault("tag");
+var azureBlobBodyStorage = options.GetValueOrDefault("azureblob-body-storage");
+if (azureBlobBodyStorage is not null && string.IsNullOrWhiteSpace(azureBlobBodyStorage))
+{
+    throw new ArgumentException("--azureblob-body-storage requires a non-blank Azure Storage connection string.");
+}
 Console.WriteLine($"Using persistence type: {persistenceType}");
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -28,7 +33,7 @@ var primaryErrorInstance = platform
     .WithEnvironment("SERVICECONTROL_ALLOWMESSAGEEDITING", "true")
     .WithEnvironment("SERVICECONTROL_DISABLEEXTERNALINTEGRATIONSPUBLISHING", "true")
     .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", observability.Collector.GetEndpoint("otlp-grpc"))
-    .WithPersistenceType(persistenceType)
+    .WithPersistenceType(persistenceType, azureBlobBodyStorage)
     .WithRunMode(PlatformRunMode.SetupAndRun);
 
 for (int i = 0; i < options.GetValue("error-ingestion-scale-unit", 0); i++) {
@@ -46,7 +51,7 @@ for (int i = 0; i < options.GetValue("error-ingestion-scale-unit", 0); i++) {
         .WithEnvironment("SERVICECONTROL_ERRORINGESTIONBATCHTIMEOUT", "00:00:00.100")
         
         //.WaitFor(primaryErrorInstance)
-        .WithPersistenceType(persistenceType)
+        .WithPersistenceType(persistenceType, azureBlobBodyStorage)
         .WithRunMode(PlatformRunMode.Run);
 }
 
@@ -70,7 +75,7 @@ for (int i = 0; i < auditInstanceCount; i++)
         .WithAuditQueueName(i == 0 ? "audit" : "audit" + i)
         .WithRunMode(PlatformRunMode.SetupAndRun)
         .WithIngestionTuning()
-        .WithPersistenceType(persistenceType);
+        .WithPersistenceType(persistenceType, azureBlobBodyStorage);
 }
 
 // --- Testing tool ---

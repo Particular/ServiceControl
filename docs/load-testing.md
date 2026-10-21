@@ -21,6 +21,7 @@ Useful flags, passed after `--`:
 | `--tag <tag>` | Test a specific ServiceControl image tag, for example a PR prerelease like `pr-1234` |
 | `--persistence <type>` | Persistence for the error instance: `RavenDb` (default), `SqlServer`, or `PostgreSql` |
 | `--error-ingestion-scale-unit <n>` | Start `n` additional error-ingestion-only ServiceControl instances |
+| `--azureblob-body-storage "<connection string>"` | Store message bodies in Azure Blob Storage instead of the container file system. Applies only to `SqlServer` and `PostgreSql`. The error instance and its scale-out units share one container, and each audit instance gets its own |
 
 ## Run against an existing ServiceControl
 

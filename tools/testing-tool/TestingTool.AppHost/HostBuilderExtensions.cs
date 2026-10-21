@@ -44,7 +44,7 @@ public static class HostBuilderExtensions
     }
 
     public static IResourceBuilder<ServiceControlErrorInstanceResource> WithPersistenceType(
-        this IResourceBuilder<ServiceControlErrorInstanceResource> error, PersistenceType type)
+        this IResourceBuilder<ServiceControlErrorInstanceResource> error, PersistenceType type, string? azureBlobConnectionString = null)
     {
         if (type == PersistenceType.RavenDb)
         {
@@ -59,11 +59,17 @@ public static class HostBuilderExtensions
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
 
+        // The primary and its scale-out units share one database, so they share the default error-bodies container.
+        error = azureBlobConnectionString is null
+            ? error
+                .WithEnvironment("SERVICECONTROL_MESSAGEBODY_STORAGETYPE", "FileSystem")
+                .WithEnvironment("SERVICECONTROL_MESSAGEBODY_FILESYSTEM_STORAGEPATH", "/tmp/ServiceControlBodyStorage")
+            : error
+                .WithEnvironment("SERVICECONTROL_MESSAGEBODY_STORAGETYPE", "AzureBlob")
+                .WithEnvironment("SERVICECONTROL_MESSAGEBODY_AZURE_CONNECTIONSTRING", azureBlobConnectionString);
+
         return error
             .WaitFor(db)
-            //file storage for now
-            .WithEnvironment("SERVICECONTROL_MESSAGEBODY_STORAGETYPE", "FileSystem")
-            .WithEnvironment("SERVICECONTROL_MESSAGEBODY_FILESYSTEM_STORAGEPATH", "/tmp/ServiceControlBodyStorage")
             .WithEnvironment("SERVICECONTROL_PERSISTENCETYPE", PersistenceTypeName(type))
             .WithEnvironment("SERVICECONTROL_DATABASE_CONNECTIONSTRING", db);
     }   
@@ -71,7 +77,7 @@ public static class HostBuilderExtensions
     
 
     /// <summary>
-    /// Points an Audit instance at the primary's database container with separate file-system body storage.
+    /// Points an Audit instance at the primary's database container with the configured body storage.
     /// </summary>
     /// <remarks>
     /// The setting root namespace is "ServiceControl.Audit", and the settings reader rewrites both
@@ -81,7 +87,7 @@ public static class HostBuilderExtensions
     /// so the namespaced form wins.
     /// </remarks>
     public static IResourceBuilder<ServiceControlAuditInstanceResource> WithPersistenceType(
-        this IResourceBuilder<ServiceControlAuditInstanceResource> audit, PersistenceType type)
+        this IResourceBuilder<ServiceControlAuditInstanceResource> audit, PersistenceType type, string? azureBlobConnectionString = null)
     {
         if (type == PersistenceType.RavenDb)
         {
@@ -95,10 +101,18 @@ public static class HostBuilderExtensions
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
 
+        // Audit instances are independent, so each needs its own container (see docs/message-body-storage.md).
+        audit = azureBlobConnectionString is null
+            ? audit
+                .WithEnvironment("SERVICECONTROL_AUDIT_MESSAGEBODY_STORAGETYPE", "FileSystem")
+                .WithEnvironment("SERVICECONTROL_AUDIT_MESSAGEBODY_FILESYSTEM_STORAGEPATH", "/tmp/ServiceControlAuditBodyStorage")
+            : audit
+                .WithEnvironment("SERVICECONTROL_AUDIT_MESSAGEBODY_STORAGETYPE", "AzureBlob")
+                .WithEnvironment("SERVICECONTROL_AUDIT_MESSAGEBODY_AZURE_CONNECTIONSTRING", azureBlobConnectionString)
+                .WithEnvironment("SERVICECONTROL_AUDIT_MESSAGEBODY_AZURE_CONTAINERNAME", "audit-bodies-" + audit.Resource.Name);
+
         return audit
             .WaitFor(db)
-            .WithEnvironment("SERVICECONTROL_AUDIT_MESSAGEBODY_STORAGETYPE", "FileSystem")
-            .WithEnvironment("SERVICECONTROL_AUDIT_MESSAGEBODY_FILESYSTEM_STORAGEPATH", "/tmp/ServiceControlAuditBodyStorage")
             .WithEnvironment("SERVICECONTROL_AUDIT_PERSISTENCETYPE", PersistenceTypeName(type))
             .WithEnvironment("SERVICECONTROL_AUDIT_DATABASE_CONNECTIONSTRING", db);
     }

@@ -190,6 +190,7 @@ separator) or `--name:value` (colon separator):
 | `--tag` | *(none — uses the current build's image)* | any image tag, e.g. `pr-1234` or `6.3.1` | Override the ServiceControl container image tag (useful for testing PR-based prereleases) |
 | `--error-ingestion-scale-unit` | `0` | non-negative integer | Number of additional error-ingestion-only scale-out instances to spin up alongside the primary error instance (each runs with `--error-ingestion-only`) |
 | `--audit-instances` | `1` | non-negative integer | Number of ServiceControl.Audit instances to add. They take the same `--persistence` backend, report custom checks to the primary and export OTel to the collector |
+| `--azureblob-body-storage` | *(none — uses file-system body storage)* | `"<connection string>"` | Store message bodies in Azure Blob Storage instead of the container file system. Applies only with `--persistence:SqlServer` or `--persistence:PostgreSql`. Quote the value because connection strings contain semicolons. The error instance and its scale-out units share the `error-bodies` container, and each audit instance gets its own `audit-bodies-<instance name>` container |
 
 The Aspire dashboard provides allocated ports for each service. The testing tool automatically
 connects to ServiceControl via the platform's transport and REST API URL, and sends its OTLP
