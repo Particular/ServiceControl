@@ -47,7 +47,7 @@ Each instance reads its settings from its own settings root
 | Setting | Default | Range | What it does |
 | --- | --- | --- | --- |
 | `ErrorIngestionBatchSize` / `AuditIngestionBatchSize` | the transport's `MaximumConcurrencyLevel` divided by the writers, at least 1 | 1 to 1000 | The most messages one write handles |
-| `ErrorIngestionMaxParallelWriters` / `AuditIngestionMaxParallelWriters` | `4` where the storage takes concurrent batches, otherwise `1`, see below | 1 to 16 | How many batches are written at once |
+| `ErrorIngestionMaxParallelWriters` / `AuditIngestionMaxParallelWriters` | `2` where the storage takes concurrent batches, otherwise `1`, see below | 1 to 16 | How many batches are written at once |
 | `ErrorIngestionBatchTimeout` / `AuditIngestionBatchTimeout` | `00:00:00.100` | 0 to 5 seconds | How long a batch that is not yet full waits for more messages |
 
 As environment variables:
@@ -95,7 +95,7 @@ someone actually asked for rather than a default.
 | Audit, SQL Server and PostgreSQL | yes | The audit unit of work factory supports concurrent batches. |
 | Audit, in memory | no | Test storage only. |
 
-Error ingestion defaults to four writers on SQL Server and PostgreSQL and one on RavenDB. Audit ingestion defaults to four writers on all three providers. In-memory test storage uses one writer.
+Error ingestion defaults to two writers on SQL Server and PostgreSQL and one on RavenDB. Audit ingestion defaults to two writers on all three providers. In-memory test storage uses one writer.
 
 ### The ordering that concurrency does not excuse
 

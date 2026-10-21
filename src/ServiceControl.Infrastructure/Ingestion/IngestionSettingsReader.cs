@@ -106,7 +106,7 @@ public static class IngestionSettingsReader
     /// <summary>
     /// What a storage whose batches are safe to interleave gets when nothing is configured.
     /// </summary>
-    public const int DefaultMaxParallelWriters = 4;
+    public const int DefaultMaxParallelWriters = 2;
 
     public static readonly TimeSpan DefaultBatchTimeout = TimeSpan.FromMilliseconds(100);
 

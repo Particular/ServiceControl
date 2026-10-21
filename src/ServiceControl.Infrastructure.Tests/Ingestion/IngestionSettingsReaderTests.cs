@@ -114,7 +114,7 @@ class IngestionSettingsReaderTests
     public void A_storage_that_takes_concurrent_batches_gets_the_default_when_nothing_is_configured() =>
         Assert.That(
             IngestionSettingsReader.ResolveMaxParallelWriters(null, storageSupportsConcurrentBatches: true, SettingName, NullLogger.Instance),
-            Is.EqualTo(IngestionSettingsReader.DefaultMaxParallelWriters));
+            Is.EqualTo(2));
 
     [Test]
     public void A_storage_that_takes_concurrent_batches_gets_what_is_configured() =>
