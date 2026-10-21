@@ -369,6 +369,20 @@ class MessagesViewDataStoreTests : ErrorIngestionTestBase
         await AssertSearchFinds(matching.MessageId, matching);
     }
 
+    /// <summary>
+    /// In compact JSON, SQL Server's word breaker keeps JSON quotes and colons on words up to a few hundred characters before an email address.
+    /// The reply-to address goes straight after the id, so the test does not depend on how many other headers there are.
+    /// </summary>
+    [Test]
+    public async Task Finds_the_message_id_when_a_header_after_it_looks_like_an_email_address()
+    {
+        var matching = new IngestedFailure { ReplyToAddress = "Sales@web01.corp.example.com" };
+
+        await Ingest(matching);
+
+        await AssertSearchFinds(matching.MessageId, matching);
+    }
+
     [Test]
     public async Task Ors_the_search_terms()
     {

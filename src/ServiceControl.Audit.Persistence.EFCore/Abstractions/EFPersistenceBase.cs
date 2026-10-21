@@ -21,6 +21,8 @@ abstract class EFPersistenceBase(EFPersisterSettings settings) : IPersistence
         services.AddSingleton<ISagaHistoryDataStore>(provider => provider.GetRequiredService<AuditDataStore>());
         services.AddSingleton<IAuditIngestionUnitOfWorkFactory, AuditIngestionUnitOfWorkFactory>();
         services.AddSingleton<IFailedAuditStorage, FailedAuditStorage>();
+        services.AddSingleton<IEnvironmentDataProvider, EFEnvironmentDataProvider>();
+        AddEnvironmentProbes(services);
 
         services.AddSingleton<AuditRetentionCustomCheck.State>();
         services.AddHostedService<AuditRetention>();
@@ -82,6 +84,8 @@ abstract class EFPersistenceBase(EFPersisterSettings settings) : IPersistence
     protected abstract void AddPartitionManager(IServiceCollection services);
 
     protected abstract void AddQueryServices(IServiceCollection services);
+
+    protected abstract void AddEnvironmentProbes(IServiceCollection services);
 
     protected virtual void AddCustomChecks(EndpointConfiguration endpointConfiguration)
     {

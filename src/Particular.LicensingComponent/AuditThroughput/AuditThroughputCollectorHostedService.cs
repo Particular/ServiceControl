@@ -119,6 +119,7 @@ public class AuditThroughputCollectorHostedService(
     {
         var remotesInfo = await auditQuery.GetAuditRemotes(cancellationToken);
         await SaveAuditInstanceData(remotesInfo, cancellationToken);
+        await SaveAuditEnvironmentData(cancellationToken);
 
         foreach (var remote in remotesInfo)
         {
@@ -163,5 +164,11 @@ public class AuditThroughputCollectorHostedService(
 
             await dataStore.SaveAuditServiceMetadata(auditServiceMetadata, cancellationToken);
         }
+    }
+
+    async Task SaveAuditEnvironmentData(CancellationToken cancellationToken)
+    {
+        var environments = await auditQuery.GetAuditEnvironments(cancellationToken);
+        await dataStore.SaveAuditEnvironmentMetadata(new AuditEnvironmentMetadata(environments), cancellationToken);
     }
 }

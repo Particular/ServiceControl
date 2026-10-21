@@ -80,7 +80,11 @@
             await semaphoreSlim.WaitAsync(cancellationToken);
             try
             {
-                embeddedDatabase?.Dispose();
+                if (embeddedDatabase != null)
+                {
+                    await embeddedDatabase.DisposeAndDeleteServerTempFiles(cancellationToken);
+                }
+
                 embeddedDatabase = null;
             }
             finally

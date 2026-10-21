@@ -3,6 +3,7 @@ namespace ServiceControl.Recoverability
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
@@ -15,6 +16,16 @@ namespace ServiceControl.Recoverability
         public virtual async Task HandleMessage(MessageContext message, IMessageDispatcher sender, string errorQueueTransportAddress, CancellationToken cancellationToken = default)
         {
             var outgoingHeaders = new Dictionary<string, string>(message.Headers);
+
+            var receiveProperties = message.Headers.Keys.Where(x => x.StartsWith("ServiceControl.ReceiveProperties."));
+            DispatchProperties dispatchProperties = null;
+            foreach (string prop in receiveProperties)
+            {
+                dispatchProperties ??= [];
+                var propValue = outgoingHeaders[prop];
+                outgoingHeaders.Remove(prop);
+                dispatchProperties[prop.Replace("ServiceControl.ReceiveProperties.", "")] = propValue;
+            }
 
             outgoingHeaders.Remove("ServiceControl.Retry.StagingId");
             outgoingHeaders["ServiceControl.Retry.AcknowledgementQueue"] = errorQueueTransportAddress;
@@ -50,7 +61,7 @@ namespace ServiceControl.Recoverability
                 logger.LogDebug("{MessageId}: Found ServiceControl.RetryTo header. Rerouting to {RetryTo}", messageId, retryTo);
             }
 
-            var transportOp = new TransportOperation(outgoingMessage, new UnicastAddressTag(retryTo));
+            var transportOp = new TransportOperation(outgoingMessage, new UnicastAddressTag(retryTo), dispatchProperties);
 
             await sender.Dispatch(new TransportOperations(transportOp), message.TransportTransaction, cancellationToken);
 

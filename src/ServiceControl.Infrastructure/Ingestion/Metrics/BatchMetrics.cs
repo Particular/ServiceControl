@@ -8,7 +8,7 @@ using System.Diagnostics.Metrics;
 /// One batch write. Leaving the scope without calling <see cref="Complete" /> is what records the
 /// batch as failed, so nothing has to be told about the exception that ended it.
 /// </summary>
-public sealed class BatchMetrics(int maxBatchSize, Histogram<double> batchDuration, Action<bool> recordOutcome) : IDisposable
+public sealed class BatchMetrics(int maxBatchSize, Histogram<double> batchDuration, Action<bool> recordOutcome, Action<int, TimeSpan> recordCompletion = null) : IDisposable
 {
     public void Complete(int batchSize) => completedSize = batchSize;
 
@@ -17,6 +17,7 @@ public sealed class BatchMetrics(int maxBatchSize, Histogram<double> batchDurati
         var succeeded = completedSize > 0;
 
         recordOutcome(succeeded);
+        recordCompletion?.Invoke(succeeded ? completedSize : 0, stopwatch.Elapsed);
 
         var result = succeeded
             ? completedSize == maxBatchSize ? "full" : "partial"

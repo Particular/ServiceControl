@@ -36,6 +36,10 @@ public interface ILicensingDataStore
     Task<AuditServiceMetadata> GetAuditServiceMetadata(CancellationToken cancellationToken = default);
 
     Task SaveAuditServiceMetadata(AuditServiceMetadata auditServiceMetadata, CancellationToken cancellationToken = default);
+
+    Task<AuditEnvironmentMetadata?> GetAuditEnvironmentMetadata(CancellationToken cancellationToken = default);
+
+    Task SaveAuditEnvironmentMetadata(AuditEnvironmentMetadata auditEnvironmentMetadata, CancellationToken cancellationToken = default);
     Task<List<string>> GetReportMasks(CancellationToken cancellationToken = default);
     Task SaveReportMasks(List<string> reportMasks, CancellationToken cancellationToken = default);
 

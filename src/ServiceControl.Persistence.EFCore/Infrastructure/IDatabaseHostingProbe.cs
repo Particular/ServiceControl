@@ -23,8 +23,12 @@ public interface IDatabaseHostingProbe
 /// <param name="Hosting">One of AzureSql, AzureSqlManagedInstance, AzureSqlEdge, AzurePostgres, AzureMySql, AwsRds, GoogleCloudSql, RavenCloud, SelfHosted or Unknown.</param>
 /// <param name="ServerVersion">The engine major version, or Unknown.</param>
 /// <param name="Source">A <see cref="DatabaseHostingSource"/> value.</param>
-public record DatabaseHosting(string Hosting, string ServerVersion, string Source)
+/// <param name="ServerEdition">The SQL Server edition family: Express, Standard, Enterprise or Other. NotApplicable on the managed Azure services and on engines without editions.</param>
+/// <param name="ServiceObjective">The Azure SQL service tier: Basic, Standard, Premium, GeneralPurpose, BusinessCritical, Hyperscale, ElasticPool or Other. NotApplicable everywhere else.</param>
+public record DatabaseHosting(string Hosting, string ServerVersion, string Source, string ServerEdition = DatabaseHosting.NotApplicable, string ServiceObjective = DatabaseHosting.NotApplicable)
 {
+    public const string NotApplicable = "NotApplicable";
+
     /// <summary>Nothing was available to classify the host with. A determination, not a failure.</summary>
     public static readonly DatabaseHosting Unclassified = new(DatabaseHostClassifier.Unknown, DatabaseHostClassifier.Unknown, DatabaseHostingSource.None);
 }

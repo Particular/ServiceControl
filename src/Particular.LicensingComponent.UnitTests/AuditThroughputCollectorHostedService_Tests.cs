@@ -272,9 +272,39 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         }
     }
 
+    [Test]
+    public async Task Should_store_the_environment_data_of_every_responding_audit_instance()
+    {
+        var auditQuery = new AuditQuery_WithRemotes([new RemoteInstanceInformation { Status = "online" }])
+        {
+            Environments =
+            [
+                new Dictionary<string, string> { ["Storage.Type"] = "RavenDB", ["Host.ProcessorCount"] = "4" },
+                new Dictionary<string, string> { ["Storage.Type"] = "RavenDB", ["Host.ProcessorCount"] = "8" }
+            ]
+        };
+
+        using var auditThroughputCollectorHostedService = new AuditThroughputCollectorHostedService(
+            NullLogger<AuditThroughputCollectorHostedService>.Instance, configuration.ThroughputSettings, DataStore,
+            auditQuery, new FakeTimeProvider())
+        { DelayStart = TimeSpan.Zero };
+
+        await auditThroughputCollectorHostedService.StartAsync(CancellationToken.None);
+        await auditQuery.KnownEndpointsRequested.WaitAsync(TimeSpan.FromSeconds(30));
+        await auditThroughputCollectorHostedService.StopAsync(CancellationToken.None);
+
+        var auditEnvironmentMetadata = await DataStore.GetAuditEnvironmentMetadata();
+
+        Assert.That(auditEnvironmentMetadata, Is.Not.Null);
+        Assert.That(auditEnvironmentMetadata.Instances, Is.EqualTo(auditQuery.Environments));
+    }
+
     class AuditQuery_NoAuditRemotes : IAuditQuery
     {
         public SemanticVersion MinAuditCountsVersion => new(4, 29, 0);
+
+        public Task<List<Dictionary<string, string>>> GetAuditEnvironments(CancellationToken cancellationToken = default) =>
+            Task.FromResult<List<Dictionary<string, string>>>([]);
 
         public Func<RemoteInstanceInformation, bool> ValidRemoteInstances => r => true;
 
@@ -309,6 +339,9 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
 
         public SemanticVersion MinAuditCountsVersion => new(4, 29, 0);
 
+        public Task<List<Dictionary<string, string>>> GetAuditEnvironments(CancellationToken cancellationToken = default) =>
+            Task.FromResult<List<Dictionary<string, string>>>([]);
+
         public Func<RemoteInstanceInformation, bool> ValidRemoteInstances => r => true;
 
         public Task<IEnumerable<AuditCount>> GetAuditCountForEndpoint(string endpointUrlName,
@@ -340,6 +373,9 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
     class AuditQuery_ThrowingAnExceptionOnKnownEndpointsCall : IAuditQuery
     {
         public SemanticVersion MinAuditCountsVersion => new(4, 29, 0);
+
+        public Task<List<Dictionary<string, string>>> GetAuditEnvironments(CancellationToken cancellationToken = default) =>
+            Task.FromResult<List<Dictionary<string, string>>>([]);
 
         public Func<RemoteInstanceInformation, bool> ValidRemoteInstances => r => true;
 
@@ -420,6 +456,10 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         }
 
         public SemanticVersion MinAuditCountsVersion => new(4, 29, 0);
+
+        public Task<List<Dictionary<string, string>>> GetAuditEnvironments(CancellationToken cancellationToken = default) =>
+            Task.FromResult<List<Dictionary<string, string>>>([]);
+
         public Func<RemoteInstanceInformation, bool> ValidRemoteInstances => _ => true;
 
         public Task<IEnumerable<ServiceControlEndpoint>> GetKnownEndpoints(CancellationToken cancellationToken = default) =>
@@ -456,6 +496,12 @@ class AuditThroughputCollectorHostedService_Tests : ThroughputCollectorTestFixtu
         public Task KnownEndpointsRequested => knownEndpointsRequested.Task;
 
         public SemanticVersion MinAuditCountsVersion => new(4, 29, 0);
+
+        public List<Dictionary<string, string>> Environments { get; init; } = [];
+
+        public Task<List<Dictionary<string, string>>> GetAuditEnvironments(CancellationToken cancellationToken = default) =>
+            Task.FromResult(Environments);
+
         public Func<RemoteInstanceInformation, bool> ValidRemoteInstances => _ => true;
 
         public Task<List<RemoteInstanceInformation>> GetAuditRemotes(CancellationToken cancellationToken = default) =>

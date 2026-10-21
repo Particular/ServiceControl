@@ -59,6 +59,13 @@ class PostgreSqlPersistence(EFPersisterSettings settings) : EFPersistenceBase(se
         services.AddSingleton<IRetentionLock, PostgreSqlRetentionLock>();
     }
 
+    protected override void AddEnvironmentProbes(IServiceCollection services)
+    {
+        services.AddSingleton<IDatabaseHostingProbe, PostgreSqlDatabaseHostingProbe>();
+        services.AddSingleton<IStorageFootprintProbe, PostgreSqlStorageFootprintProbe>();
+        services.AddSingleton<IStorageIdentityProvider, PostgreSqlStorageIdentityProvider>();
+    }
+
     protected override void AddCustomChecks(EndpointConfiguration endpointConfiguration) =>
         endpointConfiguration.AddCustomCheck<AuditPartitionCustomCheck>();
 }

@@ -24,6 +24,7 @@ class IngestedFailure
     public string MessageType { get; init; } = "MyCompany.Sales.OrderPlaced";
     public string ConversationId { get; init; } = Guid.NewGuid().ToString();
     public string QueueAddress { get; init; } = "error";
+    public string ReplyToAddress { get; init; }
     public string FailingEndpointAddress { get; init; }
     public string ExceptionType { get; init; } = "System.InvalidOperationException";
     public string ExceptionMessage { get; init; } = "Something went wrong";
@@ -42,17 +43,21 @@ class IngestedFailure
 
     Dictionary<string, string> BuildHeaders()
     {
-        var headers = new Dictionary<string, string>
+        var headers = new Dictionary<string, string> { [NServiceBus.Headers.MessageId] = MessageId };
+
+        // Straight after the id, so a search test controls what is stored next to it.
+        if (ReplyToAddress != null)
         {
-            [NServiceBus.Headers.MessageId] = MessageId,
-            [NServiceBus.Headers.ProcessingEndpoint] = EndpointName,
-            [NServiceBus.Headers.ContentType] = ContentType,
-            [NServiceBus.Headers.EnclosedMessageTypes] = MessageType,
-            [NServiceBus.Headers.MessageIntent] = MessageIntent.ToString(),
-            ["NServiceBus.FailedQ"] = QueueAddress,
-            ["NServiceBus.ExceptionInfo.ExceptionType"] = ExceptionType,
-            ["NServiceBus.ExceptionInfo.Message"] = ExceptionMessage
-        };
+            headers[NServiceBus.Headers.ReplyToAddress] = ReplyToAddress;
+        }
+
+        headers[NServiceBus.Headers.ProcessingEndpoint] = EndpointName;
+        headers[NServiceBus.Headers.ContentType] = ContentType;
+        headers[NServiceBus.Headers.EnclosedMessageTypes] = MessageType;
+        headers[NServiceBus.Headers.MessageIntent] = MessageIntent.ToString();
+        headers["NServiceBus.FailedQ"] = QueueAddress;
+        headers["NServiceBus.ExceptionInfo.ExceptionType"] = ExceptionType;
+        headers["NServiceBus.ExceptionInfo.Message"] = ExceptionMessage;
 
         if (ExceptionSource != null)
         {
@@ -120,6 +125,7 @@ class IngestedFailure
         MessageType = MessageType,
         ConversationId = ConversationId,
         QueueAddress = QueueAddress,
+        ReplyToAddress = ReplyToAddress,
         FailingEndpointAddress = FailingEndpointAddress,
         ExceptionType = ExceptionType,
         ExceptionMessage = ExceptionMessage,

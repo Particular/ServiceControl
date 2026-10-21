@@ -14,6 +14,7 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
     readonly Dictionary<EndpointIdentifier, ThroughputData> allThroughput = [];
     BrokerMetadata brokerMetadata = new(null, []);
     AuditServiceMetadata auditServiceMetadata = new([], []);
+    AuditEnvironmentMetadata? auditEnvironmentMetadata;
     List<string> reportMasks = [];
     LicensedEndpointDetails? endpointDetails = null;
     LicensedEndpointDetailsAmendment? endpointDetailsAmendment = null;
@@ -165,6 +166,14 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
     public Task SaveAuditServiceMetadata(AuditServiceMetadata auditServiceMetadata, CancellationToken cancellationToken = default)
     {
         this.auditServiceMetadata = auditServiceMetadata;
+        return Task.CompletedTask;
+    }
+
+    public Task<AuditEnvironmentMetadata?> GetAuditEnvironmentMetadata(CancellationToken cancellationToken = default) => Task.FromResult(auditEnvironmentMetadata);
+
+    public Task SaveAuditEnvironmentMetadata(AuditEnvironmentMetadata auditEnvironmentMetadata, CancellationToken cancellationToken = default)
+    {
+        this.auditEnvironmentMetadata = auditEnvironmentMetadata;
         return Task.CompletedTask;
     }
 

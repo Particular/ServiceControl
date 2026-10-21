@@ -1,6 +1,7 @@
 namespace TestHelper;
 
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Raven.Client.ServerWide.Operations;
@@ -24,5 +25,34 @@ public static class EmbeddedDatabaseExtensions
         await store.Maintenance.Server.SendAsync(
             new DeleteDatabasesOperation(dbName, hardDelete: true, timeToWaitForConfirmation: TimeSpan.FromSeconds(30)),
             cancellationToken);
+    }
+
+    // Delete only the stopped server's PID batch so concurrent runs sharing this folder are untouched.
+    public static async Task DisposeAndDeleteServerTempFiles(this EmbeddedDatabase database, CancellationToken cancellationToken = default)
+    {
+        int processId;
+        try
+        {
+            processId = await EmbeddedServer.Instance.GetServerProcessIdAsync(cancellationToken);
+        }
+        finally
+        {
+            database.Dispose();
+        }
+
+        DeleteServerTempFiles(Path.Combine(Path.GetDirectoryName(typeof(EmbeddedDatabase).Assembly.Location)!, "RavenDBServer", "Temp"), processId);
+    }
+
+    public static void DeleteServerTempFiles(string tempDirectory, int processId)
+    {
+        if (!Directory.Exists(tempDirectory))
+        {
+            return;
+        }
+
+        foreach (var file in Directory.EnumerateFiles(tempDirectory, $"ravendb-{processId}-*"))
+        {
+            File.Delete(file);
+        }
     }
 }

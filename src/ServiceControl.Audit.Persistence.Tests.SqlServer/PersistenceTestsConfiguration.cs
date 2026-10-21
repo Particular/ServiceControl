@@ -27,7 +27,7 @@ namespace ServiceControl.Audit.Persistence.Tests
         protected override IAuditMessagesViewDataStore DecorateMessagesViewStore(IAuditMessagesViewDataStore store) =>
             new SearchesWaitForFullTextIndex(store, WaitForFullTextIndex);
 
-        async Task WaitForFullTextIndex(CancellationToken cancellationToken)
+        public async Task WaitForFullTextIndex(CancellationToken cancellationToken = default)
         {
             await using var connection = new SqlConnection(ConnectionString);
             await connection.OpenAsync(cancellationToken);

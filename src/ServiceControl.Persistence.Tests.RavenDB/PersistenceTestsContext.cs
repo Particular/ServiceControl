@@ -66,6 +66,7 @@ public class PersistenceTestsContext : IPersistenceTestsContext
         }
 
         await embeddedServer.DeleteDatabase(databaseName);
+        await embeddedServer.DeleteDatabase(((RavenPersisterSettings)PersistenceSettings).ThroughputDatabaseName);
     }
 
     public PersistenceSettings PersistenceSettings { get; private set; }

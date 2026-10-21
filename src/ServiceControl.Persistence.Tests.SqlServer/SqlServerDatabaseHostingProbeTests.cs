@@ -1,6 +1,11 @@
 namespace ServiceControl.Persistence.Tests.SqlServer;
 
+using System;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
+using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.SqlServer;
 
 // EngineEdition values per
@@ -50,4 +55,51 @@ class SqlServerDatabaseHostingProbeTests
     public void Should_report_unknown_for_an_unmapped_edition_on_an_unrecognised_host(int engineEdition) =>
         Assert.That(SqlServerDatabaseHostingProbe.HostingFor(engineEdition, false, "db01.corp.example"), Is.EqualTo("Unknown"),
             "An edition we do not map is not evidence of an ordinary SQL Server");
+
+    [TestCase(2, "Standard")]
+    [TestCase(3, "Enterprise")]
+    [TestCase(4, "Express")]
+    [TestCase(5, "NotApplicable")]
+    [TestCase(8, "NotApplicable")]
+    [TestCase(1, "Other")]
+    [TestCase(9, "Other")]
+    [TestCase(12, "Other")]
+    public void Should_report_the_edition_family(int engineEdition, string expected) =>
+        Assert.That(SqlServerDatabaseHostingProbe.EditionFamily(engineEdition), Is.EqualTo(expected));
+
+    [TestCase(null, "NotApplicable")]
+    [TestCase("Basic", "Basic")]
+    [TestCase("S0", "Standard")]
+    [TestCase("S12", "Standard")]
+    [TestCase("P15", "Premium")]
+    [TestCase("GP_Gen5_2", "GeneralPurpose")]
+    [TestCase("GP_S_Gen5_1", "GeneralPurpose")]
+    [TestCase("GP_DC_8", "GeneralPurpose")]
+    [TestCase("BC_Gen5_8", "BusinessCritical")]
+    [TestCase("HS_Gen5_4", "Hyperscale")]
+    [TestCase("ElasticPool", "ElasticPool")]
+    [TestCase("DW100c", "Other")]
+    [TestCase("System2", "Other")]
+    public void Should_report_only_the_service_objective_tier(string serviceObjective, string expected) =>
+        Assert.That(SqlServerDatabaseHostingProbe.ServiceObjectiveTier(serviceObjective), Is.EqualTo(expected));
+
+    [TestCase("Server=sc.database.windows.net;Database=sc")]
+    [TestCase("not a connection string")]
+    public async Task Should_report_edition_and_service_objective_as_unknown_when_the_server_cannot_be_asked(string connectionString)
+    {
+        var probe = new SqlServerDatabaseHostingProbe(new SqlServerPersisterSettings { ConnectionString = connectionString, BodyStorage = new FileSystemBodyStorageSettings { StoragePath = "/var/bodies" } }, new UnreachableScopeFactory(), NullLogger<SqlServerDatabaseHostingProbe>.Instance);
+
+        var hosting = await probe.Probe();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(hosting.ServerEdition, Is.EqualTo("Unknown"));
+            Assert.That(hosting.ServiceObjective, Is.EqualTo("Unknown"));
+        }
+    }
+
+    sealed class UnreachableScopeFactory : IServiceScopeFactory
+    {
+        public IServiceScope CreateScope() => throw new InvalidOperationException("The database cannot be reached");
+    }
 }

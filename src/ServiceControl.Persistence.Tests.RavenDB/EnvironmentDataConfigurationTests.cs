@@ -55,7 +55,7 @@ class RavenEnvironmentDataProviderConfigurationTests
     {
         var data = new Dictionary<string, string>();
 
-        foreach (var datum in new RavenEnvironmentDataProvider(settings, documentStoreProvider: null).GetData())
+        foreach (var datum in new RavenEnvironmentDataProvider(settings, documentStoreProvider: null, sessionProvider: null).GetData())
         {
             if (ConfigurationKeys.Contains(datum.Key))
             {
