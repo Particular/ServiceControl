@@ -27,7 +27,7 @@ On Windows, [PackagedRavenDBTests](../src/ServiceControlInstaller.Engine.UnitTes
 Persistence tests check assumptions at the persistence seam level by exercising each persister.
 For local setup details, see [Local testing of persistence providers](testing-persistence.md).
 
-The SQL Server and PostgreSQL persistence test projects contain a `MigrationScriptApprovals` test. It approves the script EF Core generates from all of the persister's migrations, with and without a configured schema. A migration that creates, drops, or rebuilds an index on a large table can take a long time and block writes. When the test fails, record any index change in the upgrade guide of the next release before you approve the new script. If the script changed inside an existing migration, for example through a shared SQL constant, add a new migration instead. Databases that already ran the old migration never run it again. A package update that changes only the formatting of the script needs no upgrade guide entry.
+The SQL Server and PostgreSQL persistence test projects contain a `SlowMigrationOperationApprovals` test. It approves the migration steps that can block writes on a large table: index, primary key, and unique constraint changes, altered columns, and raw SQL. The test lists these steps for each migration and leaves out steps on a table that the same migration creates, because that table is empty. When the test fails, record the change in the upgrade guide of the next release before you approve the new list. If a step changed inside an existing migration, for example through a shared SQL constant, add a new migration instead. Databases that already ran the old migration never run it again.
 
 ## Transport tests
 

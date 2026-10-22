@@ -1,0 +1,3 @@
+20260928032745_AddFullTextSearch
+    Sql
+        CREATE INDEX ix_audit_messages_full_text ON audit_messages USING GIN (to_tsvector('simple', headers_json || ' ' || substring(COALESCE(body_text, ''), 1, 262144) || ' ' || replace(replace(COALESCE(message_type, ''), '.', ' '), '+', ' ')))
