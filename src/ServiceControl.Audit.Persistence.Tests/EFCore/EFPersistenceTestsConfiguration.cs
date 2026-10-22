@@ -10,6 +10,7 @@ namespace ServiceControl.Audit.Persistence.Tests
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Time.Testing;
     using NServiceBus.CustomChecks;
+    using NUnit.Framework;
     using ServiceControl.Audit.Persistence.EFCore.Abstractions;
     using ServiceControl.Audit.Persistence.EFCore.Implementation;
     using ServiceControl.Persistence.BodyStorage;
@@ -115,6 +116,10 @@ namespace ServiceControl.Audit.Persistence.Tests
             }
             catch (DirectoryNotFoundException)
             {
+            }
+            catch (IOException ex)
+            {
+                await TestContext.Out.WriteLineAsync($"WARNING: Could not delete body storage '{BodyStoragePath}': {ex.Message}");
             }
         }
 
