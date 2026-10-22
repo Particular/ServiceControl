@@ -210,7 +210,7 @@
         public TimeSpan TimeToRestartErrorIngestionAfterFailure { get; set; }
 
         /// <summary>
-        /// The most messages one write handles. Null leaves it to the transport's concurrency.
+        /// The most messages one write handles. Null splits the transport's concurrency across the writers.
         /// </summary>
         public int? ErrorIngestionBatchSize { get; set; }
 
@@ -221,7 +221,7 @@
         public int? ErrorIngestionMaxParallelWriters { get; set; }
 
         /// <summary>
-        /// How long a batch that is not yet full waits for more messages.
+        /// How long a batch that is not yet full waits for more messages. Unset is 100 ms; zero does not wait.
         /// </summary>
         public TimeSpan ErrorIngestionBatchTimeout { get; set; }
         public int? MaximumConcurrencyLevel { get; set; }
