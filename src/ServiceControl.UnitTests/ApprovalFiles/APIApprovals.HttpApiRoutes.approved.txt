@@ -44,6 +44,7 @@ GET /license => ServiceControl.Licensing.LicenseController:License(Boolean refre
 POST /license/amendDetails => ServiceControl.Licensing.LicenseController:AmendLicenseDetails(LicensedEndpointDetailsAmendment amendment, CancellationToken cancellationToken)
 GET /license/details => ServiceControl.Licensing.LicenseController:LicenseDetails(CancellationToken cancellationToken)
 POST /license/detailsUpload => ServiceControl.Licensing.LicenseController:UploadLicenseDetails(IFormFile file, CancellationToken cancellationToken)
+POST /license/removeAmendments => ServiceControl.Licensing.LicenseController:RemoveLicenseDetailsAmendments(CancellationToken cancellationToken)
 GET /messages => ServiceControl.CompositeViews.Messages.GetMessagesController:Messages(PagingInfo pagingInfo, SortInfo sortInfo, Boolean includeSystemMessages, CancellationToken cancellationToken)
 GET /messages/{id}/body => ServiceControl.CompositeViews.Messages.GetMessagesController:Get(String id, String instanceId, CancellationToken cancellationToken)
 GET /messages/search => ServiceControl.CompositeViews.Messages.GetMessagesController:Search(PagingInfo pagingInfo, SortInfo sortInfo, String q, CancellationToken cancellationToken)

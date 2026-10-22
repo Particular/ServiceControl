@@ -92,12 +92,14 @@ class LicensedEndpointDetailsTests : PersistenceTestBase
                 new LicensedEndpoint
                 {
                     ClientId = "endpoint-to-keep",
-                    Name = "Endpoint to keep"
+                    Name = "Endpoint to keep",
+                    Classification = 0
                 },
                 new LicensedEndpoint
                 {
                     ClientId = "endpoint-to-remove",
-                    Name = "Endpoint to remove"
+                    Name = "Endpoint to remove",
+                    Classification = 0
                 }
             ]
         });
@@ -130,12 +132,14 @@ class LicensedEndpointDetailsTests : PersistenceTestBase
                 new LicensedEndpoint
                 {
                     ClientId = "first-endpoint",
-                    Name = "First endpoint"
+                    Name = "First endpoint",
+                    Classification = 0
                 },
                 new LicensedEndpoint
                 {
                     ClientId = "second-endpoint",
-                    Name = "Second endpoint"
+                    Name = "Second endpoint",
+                    Classification = 0
                 }
             ]
         });
@@ -170,7 +174,8 @@ class LicensedEndpointDetailsTests : PersistenceTestBase
                 new LicensedEndpoint
                 {
                     ClientId = "endpoint-id",
-                    Name = "Original name"
+                    Name = "Original name",
+                    Classification = 0
                 }
             ]
         });
@@ -188,7 +193,8 @@ class LicensedEndpointDetailsTests : PersistenceTestBase
                 new LicensedEndpoint
                 {
                     ClientId = "endpoint-id",
-                    Name = "Replacement name"
+                    Name = "Replacement name",
+                    Classification = 0
                 }
             ]
         });
