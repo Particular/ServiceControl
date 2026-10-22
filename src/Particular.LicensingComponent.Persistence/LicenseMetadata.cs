@@ -41,6 +41,7 @@
                             {
                                 Name = amendment?.Name ?? endpoint.Name,
                                 Classification = amendment?.Classification ?? endpoint.Classification,
+                                Amended = amendment is not null,
                                 Queues = [.. endpoint.Queues.Except(
                                     [
                                         .. amendments.UnassignedQueues,
