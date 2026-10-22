@@ -111,6 +111,8 @@ namespace ServiceControl.Audit.Persistence.Tests
             public Task<DropResult> DropExpired(AuditDbContext dbContext, DateTime start, int batchSize, CancellationToken cancellationToken = default) =>
                 Task.FromResult(new DropResult(RowsDeleted: 0, Completed: true, Deferred: true));
 
+            public string BodyIdPrefix(DateTime expired) => AuditBodyId.HourPrefix(expired);
+
             public Task<DateTime?> ProvisionedUntil(AuditDbContext dbContext, CancellationToken cancellationToken = default) =>
                 Task.FromResult<DateTime?>(null);
         }
