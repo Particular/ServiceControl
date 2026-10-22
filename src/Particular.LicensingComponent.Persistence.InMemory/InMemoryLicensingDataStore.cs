@@ -201,6 +201,8 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
     public Task SaveLicensedEndpointDetailsAmendment(LicensedEndpointDetailsAmendment? result, CancellationToken cancellationToken = default)
     {
         result?.UnmappedQueues = [.. endpointDetailsAmendment?.UnmappedQueues ?? [], .. result.UnmappedQueues];
+        var amendedEndpointIds = result?.Endpoints.Select(re => re.ClientId).ToArray() ?? [];
+        result?.Endpoints = [.. endpointDetailsAmendment?.Endpoints.Where(endpoint => !amendedEndpointIds.Contains(endpoint.ClientId)) ?? [], .. result.Endpoints];
         endpointDetailsAmendment = result;
         return Task.CompletedTask;
     }

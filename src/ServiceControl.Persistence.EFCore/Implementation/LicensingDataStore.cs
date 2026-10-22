@@ -350,6 +350,8 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
                     }
                     // these do not round-trip
                     result.UnmappedQueues = [.. existing.UnmappedQueues, .. result.UnmappedQueues];
+                    var amendedEndpointIds = result.Endpoints.Select(re => re.ClientId).ToArray();
+                    result.Endpoints = [.. existing.Endpoints.Where(endpoint => !amendedEndpointIds.Contains(endpoint.ClientId)), .. result.Endpoints];
                 }
                 await context.StoreSetting(SettingKeys.LicensedEndpointDetailsAmendment, result, token);
             }, cancellationToken);
