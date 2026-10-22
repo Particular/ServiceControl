@@ -73,9 +73,7 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
                 options.ReplaceService<IMigrationsSqlGenerator, SchemaStampingSqlServerMigrationsSqlGenerator>();
                 options.ReplaceService<IModelCacheKeyFactory, SchemaModelCacheKeyFactory>();
 
-                // HasDefaultSchema moves every table, so the model is meant to differ from the
-                // snapshot the migrations were scaffolded against. A default installation keeps the
-                // check, where a difference really would mean a migration is missing.
+                // Schema stamping intentionally differs from the schema-less snapshot; PendingModelChangesTests checks migration drift.
                 options.ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
             }
 

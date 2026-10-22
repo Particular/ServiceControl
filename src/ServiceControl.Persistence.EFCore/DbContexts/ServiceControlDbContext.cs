@@ -7,6 +7,9 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 
 public abstract class ServiceControlDbContext(DbContextOptions options) : DbContext(options)
 {
+    // Not EF Core's default, so it identifies an audit instance that wrongly shares this schema.
+    const string AuditMigrationsHistoryTableName = "__AuditMigrationsHistory";
+
     /// <summary>
     /// The configured schema, or null when the provider default is in use. Null keeps the model
     /// identical to the one the migrations were scaffolded against.
@@ -79,4 +82,18 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
     }
 
     public abstract bool IsDuplicateKeyException(DbUpdateException exception);
+
+    /// <summary>
+    /// Whether the table exists in the configured schema, or in the provider default schema when none is configured.
+    /// </summary>
+    protected abstract Task<bool> TableExists(string table, CancellationToken cancellationToken = default);
+
+    public async Task RequireNoAuditMigrationsHistory(CancellationToken cancellationToken = default)
+    {
+        if (await TableExists(AuditMigrationsHistoryTableName, cancellationToken))
+        {
+            throw new InvalidOperationException(
+                $"The schema '{Schema ?? "(provider default)"}' already contains the audit migrations history table '{AuditMigrationsHistoryTableName}'. A primary instance and an audit instance cannot share a schema. Configure a different Database/Schema for this instance, create the schema, grant the configured user rights on it, and run setup again.");
+        }
+    }
 }

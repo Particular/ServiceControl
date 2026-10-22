@@ -63,6 +63,14 @@ class EFEnvironmentDataProviderConfigurationTests
     }
 
     [Test]
+    public async Task Should_report_the_default_schema_as_default()
+    {
+        var data = await GetData(new TestPersisterSettings { ConnectionString = "Host=localhost", BodyStorage = new FileSystemBodyStorageSettings { StoragePath = "/var/bodies" }, Schema = EFPersisterSettings.DefaultSchema });
+
+        Assert.That(data["Storage.Schema"], Is.EqualTo("Default"));
+    }
+
+    [Test]
     public async Task Should_report_a_custom_schema_without_naming_it()
     {
         var data = await GetData(new TestPersisterSettings { ConnectionString = "Host=localhost", BodyStorage = new FileSystemBodyStorageSettings { StoragePath = "/var/bodies" }, Schema = "contoso" });

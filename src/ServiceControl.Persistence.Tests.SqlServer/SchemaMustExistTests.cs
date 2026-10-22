@@ -16,13 +16,61 @@ class SchemaMustExistTests
     [Test]
     public async Task Migration_fails_when_the_configured_schema_does_not_exist()
     {
-        var settings = new SqlServerPersisterSettings
-        {
-            ConnectionString = await SqlServerSharedContainer.GetConnectionStringAsync(),
-            Schema = $"sc_absent_{Guid.NewGuid():n}",
-            BodyStorage = new FileSystemBodyStorageSettings { StoragePath = Path.GetTempPath() }
-        };
+        var settings = await CreateSettings($"sc_absent_{Guid.NewGuid():n}");
 
+        var exception = Assert.ThrowsAsync<InvalidOperationException>(() => ApplyMigrations(settings));
+        Assert.That(exception.Message, Does.Contain(settings.Schema).And.Contain("does not exist"));
+    }
+
+    [Test]
+    public async Task Migration_fails_when_the_schema_holds_the_audit_migrations_history_table()
+    {
+        var settings = await CreateSettings($"sc_shared_{Guid.NewGuid():n}");
+        await TestSchema.Create(settings.ConnectionString, settings.Schema);
+
+        try
+        {
+            await TestSchema.CreateTable(settings.ConnectionString, settings.Schema, "__AuditMigrationsHistory");
+
+            var exception = Assert.ThrowsAsync<InvalidOperationException>(() => ApplyMigrations(settings));
+            Assert.That(exception.Message, Does.Contain(settings.Schema).And.Contain("__AuditMigrationsHistory"));
+        }
+        finally
+        {
+            await TestSchema.Drop(settings.ConnectionString, settings.Schema);
+        }
+    }
+
+    [Test]
+    public async Task Migration_ignores_the_audit_migrations_history_table_in_another_schema()
+    {
+        var settings = await CreateSettings($"sc_primary_{Guid.NewGuid():n}");
+        var auditSchema = $"sc_audit_{Guid.NewGuid():n}";
+        await TestSchema.Create(settings.ConnectionString, settings.Schema);
+        await TestSchema.Create(settings.ConnectionString, auditSchema);
+
+        try
+        {
+            await TestSchema.CreateTable(settings.ConnectionString, auditSchema, "__AuditMigrationsHistory");
+
+            Assert.DoesNotThrowAsync(() => ApplyMigrations(settings));
+        }
+        finally
+        {
+            await TestSchema.Drop(settings.ConnectionString, settings.Schema);
+            await TestSchema.Drop(settings.ConnectionString, auditSchema);
+        }
+    }
+
+    static async Task<SqlServerPersisterSettings> CreateSettings(string schema) => new()
+    {
+        ConnectionString = await SqlServerSharedContainer.GetConnectionStringAsync(),
+        Schema = schema,
+        BodyStorage = new FileSystemBodyStorageSettings { StoragePath = Path.GetTempPath() }
+    };
+
+    static async Task ApplyMigrations(SqlServerPersisterSettings settings)
+    {
         var services = new ServiceCollection();
         services.AddLogging();
         new SqlServerPersistenceConfiguration().Create(settings).AddInstaller(services);
@@ -31,7 +79,6 @@ class SchemaMustExistTests
         using var scope = provider.CreateScope();
         var migrator = scope.ServiceProvider.GetRequiredService<IDatabaseMigrator>();
 
-        var exception = Assert.ThrowsAsync<InvalidOperationException>(() => migrator.ApplyMigrations());
-        Assert.That(exception.Message, Does.Contain(settings.Schema).And.Contain("does not exist"));
+        await migrator.ApplyMigrations();
     }
 }

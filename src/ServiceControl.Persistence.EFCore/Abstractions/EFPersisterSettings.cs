@@ -5,6 +5,7 @@ public abstract class EFPersisterSettings : PersistenceSettings
     public static readonly TimeSpan MigrationCommandTimeout = TimeSpan.FromMinutes(40);
 
     public const int DefaultCommandTimeout = 30;
+    public const string DefaultSchema = "psw_sc";
     public const int DefaultExternalIntegrationsDispatchingBatchSize = 100;
     public static readonly TimeSpan DefaultEventsRetentionPeriod = TimeSpan.FromDays(14);
 
@@ -13,7 +14,7 @@ public abstract class EFPersisterSettings : PersistenceSettings
     public required string ConnectionString { get; set; }
 
     /// <summary>
-    /// The schema the persister owns, or null to use the provider default. Validated on assignment
+    /// The schema the persister owns, or null to use the provider default. Configuration falls back to <see cref="DefaultSchema"/>. Validated on assignment
     /// because it reaches raw DDL and dialect SQL by interpolation.
     /// </summary>
     public string? Schema

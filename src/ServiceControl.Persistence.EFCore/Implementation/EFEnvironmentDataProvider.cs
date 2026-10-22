@@ -43,7 +43,7 @@ class EFEnvironmentDataProvider(EFPersisterSettings settings, IDatabaseHostingPr
             Value("Storage.FullTextSearch", () => settings.EnableFullTextSearchOnBodies ? "Enabled" : "Disabled"),
             Value("Storage.BodyStorage.Type", () => BodyStorageType(settings.BodyStorage)),
             Value("Limits.MaxBodySizeToStore", () => settings.BodyStorage.MaxBodySizeToStore.ToString(CultureInfo.InvariantCulture)),
-            Value("Storage.Schema", () => settings.Schema is null ? "Default" : "Custom"),
+            Value("Storage.Schema", () => settings.Schema is null or EFPersisterSettings.DefaultSchema ? "Default" : "Custom"),
             Value("Storage.CommandTimeoutSeconds", () => WhenConfigured(EFPersistenceConfigurationBase.CommandTimeoutKey, () => Number(settings.CommandTimeout))),
             Value("Storage.QueryTimeoutSeconds", () => WhenConfigured(QueryTimeLimit.SettingName, () => Seconds(settings.QueryTimeout))),
             Value("Storage.SubscriptionCacheSeconds", () => WhenConfigured(EFPersistenceConfigurationBase.SubscriptionCacheDurationKey, () => Seconds(settings.SubscriptionCacheDuration))),
