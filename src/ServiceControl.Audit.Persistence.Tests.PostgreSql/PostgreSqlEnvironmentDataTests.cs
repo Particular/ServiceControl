@@ -14,6 +14,7 @@ namespace ServiceControl.Audit.Persistence.Tests
     using ServiceControl.Audit.Persistence.EFCore.DbContexts;
     using ServiceControl.Audit.Persistence.EFCore.Entities;
     using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
+    using ServiceControl.Persistence.BodyStorage;
 
     class PostgreSqlEnvironmentDataTests : EFPersistenceTestFixture
     {
@@ -66,6 +67,8 @@ namespace ServiceControl.Audit.Persistence.Tests
             var settings = new PersistenceSettings(TimeSpan.FromDays(1), true, 100000);
             settings.PersisterSpecificSettings[EFPersistenceConfigurationBase.ConnectionStringKey] =
                 new NpgsqlConnectionStringBuilder(configuration.ConnectionString) { SearchPath = configuration.Schema }.ConnectionString;
+            settings.PersisterSpecificSettings[BodyStorageSettingsParser.StorageTypeKey] = nameof(BodyStorageType.FileSystem);
+            settings.PersisterSpecificSettings[BodyStorageSettingsParser.FileSystemStoragePathKey] = configuration.BodyStoragePath;
 
             var services = new ServiceCollection();
             services.AddLogging();

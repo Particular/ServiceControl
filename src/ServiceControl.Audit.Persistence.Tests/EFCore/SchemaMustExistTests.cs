@@ -6,6 +6,7 @@ namespace ServiceControl.Audit.Persistence.Tests
     using Microsoft.Extensions.Hosting;
     using NUnit.Framework;
     using ServiceControl.Audit.Persistence.EFCore.Abstractions;
+    using ServiceControl.Persistence.BodyStorage;
 
     [TestFixture]
     class SchemaMustExistTests
@@ -19,14 +20,23 @@ namespace ServiceControl.Audit.Persistence.Tests
             var settings = new PersistenceSettings(TimeSpan.FromDays(1), true, 100000);
             settings.PersisterSpecificSettings[EFPersistenceConfigurationBase.ConnectionStringKey] = await testsConfiguration.GetConnectionString();
             settings.PersisterSpecificSettings[EFPersistenceConfigurationBase.SchemaKey] = schema;
+            settings.PersisterSpecificSettings[BodyStorageSettingsParser.StorageTypeKey] = nameof(BodyStorageType.FileSystem);
+            settings.PersisterSpecificSettings[BodyStorageSettingsParser.FileSystemStoragePathKey] = testsConfiguration.BodyStoragePath;
 
-            var hostBuilder = Host.CreateApplicationBuilder();
-            testsConfiguration.CreateConfiguration().Create(settings).AddInstaller(hostBuilder.Services);
-            using var host = hostBuilder.Build();
+            try
+            {
+                var hostBuilder = Host.CreateApplicationBuilder();
+                testsConfiguration.CreateConfiguration().Create(settings).AddInstaller(hostBuilder.Services);
+                using var host = hostBuilder.Build();
 
-            var exception = Assert.ThrowsAsync<InvalidOperationException>(() => host.StartAsync());
+                var exception = Assert.ThrowsAsync<InvalidOperationException>(() => host.StartAsync());
 
-            Assert.That(exception.Message, Does.Contain(schema).And.Contain("does not exist"));
+                Assert.That(exception.Message, Does.Contain(schema).And.Contain("does not exist"));
+            }
+            finally
+            {
+                await testsConfiguration.Cleanup();
+            }
         }
     }
 }
