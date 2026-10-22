@@ -65,5 +65,19 @@
                 return baseDetails;
             }
         }
+
+        extension(LicensedEndpointDetailsAmendment? amendment)
+        {
+            public void MergeWithExisting(LicensedEndpointDetailsAmendment? existing)
+            {
+                if (amendment is null || existing is null)
+                {
+                    return;
+                }
+
+                // these do not round-trip the full collections, so reapply what we already have
+                amendment.UnmappedQueues = [.. existing.UnmappedQueues, .. amendment.UnmappedQueues];
+            }
+        }
     }
 }
