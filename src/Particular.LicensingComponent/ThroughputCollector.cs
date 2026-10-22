@@ -339,7 +339,16 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
     {
         return throughputQuery == null ? endpointName : throughputQuery.SanitizedEndpointNameCleanser(endpointName);
     }
-    static string? UserIndicator(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.UserIndicator))?.UserIndicator;
+    static string? UserIndicator(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.UserIndicator))?.UserIndicator switch
+    {
+        /*
+         * HINT: PlannedToDecommission is a legacy value.
+         * The best default for queues that were marked as PlannedToDecommission is to treat them as NServiceBusEndpoint, since the user has indicated that they are still using it.
+         * If the user wants to indicate that they are no longer using it, then they should mark it as NServiceBusEndpointNoLongerInUse.
+         */
+        var userIndicator when userIndicator == Contracts.UserIndicator.PlannedToDecommission.ToString() => Contracts.UserIndicator.NServiceBusEndpoint.ToString(),
+        var userIndicator => userIndicator
+    };
 
     static string? EndpointScope(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.Scope))?.Scope;
 
