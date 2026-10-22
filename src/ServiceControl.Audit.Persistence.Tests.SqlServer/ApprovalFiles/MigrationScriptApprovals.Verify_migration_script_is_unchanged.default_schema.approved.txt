@@ -1,0 +1,117 @@
+IF OBJECT_ID(N'[__AuditMigrationsHistory]') IS NULL
+BEGIN
+    CREATE TABLE [__AuditMigrationsHistory] (
+        [MigrationId] nvarchar(150) NOT NULL,
+        [ProductVersion] nvarchar(32) NOT NULL,
+        CONSTRAINT [PK___AuditMigrationsHistory] PRIMARY KEY ([MigrationId])
+    );
+END;
+GO
+
+BEGIN TRANSACTION;
+CREATE TABLE [AuditMessages] (
+    [CreatedOn] datetime2 NOT NULL,
+    [Id] bigint NOT NULL IDENTITY,
+    [UniqueMessageId] uniqueidentifier NOT NULL,
+    [MessageId] nvarchar(max) NULL,
+    [MessageType] nvarchar(max) NULL,
+    [TimeSent] datetime2 NULL,
+    [ProcessedAt] datetime2 NOT NULL,
+    [ConversationId] nvarchar(450) NULL,
+    [IsSystemMessage] bit NOT NULL,
+    [Status] int NOT NULL,
+    [SendingEndpointName] nvarchar(max) NULL,
+    [SendingEndpointHostId] uniqueidentifier NULL,
+    [SendingEndpointHost] nvarchar(max) NULL,
+    [ReceivingEndpointName] nvarchar(450) NULL,
+    [ReceivingEndpointHostId] uniqueidentifier NULL,
+    [ReceivingEndpointHost] nvarchar(max) NULL,
+    [CriticalTimeTicks] bigint NULL,
+    [ProcessingTimeTicks] bigint NULL,
+    [DeliveryTimeTicks] bigint NULL,
+    [HeadersJson] nvarchar(max) NOT NULL,
+    [BodyText] nvarchar(max) NULL,
+    [BodyState] int NOT NULL,
+    [BodySize] int NOT NULL,
+    [BodyContentType] nvarchar(max) NULL,
+    CONSTRAINT [PK_AuditMessages] PRIMARY KEY ([CreatedOn], [Id])
+);
+
+CREATE TABLE [FailedAuditImports] (
+    [UniqueMessageId] uniqueidentifier NOT NULL,
+    [FailedAt] datetime2 NOT NULL,
+    [MessageId] nvarchar(max) NULL,
+    [HeadersJson] nvarchar(max) NOT NULL,
+    [Body] varbinary(max) NOT NULL,
+    [ExceptionInfo] nvarchar(max) NULL,
+    CONSTRAINT [PK_FailedAuditImports] PRIMARY KEY ([UniqueMessageId])
+);
+
+CREATE TABLE [SagaSnapshots] (
+    [CreatedOn] datetime2 NOT NULL,
+    [Id] bigint NOT NULL IDENTITY,
+    [SagaId] uniqueidentifier NOT NULL,
+    [SagaType] nvarchar(max) NULL,
+    [Status] int NOT NULL,
+    [StartTime] datetime2 NOT NULL,
+    [FinishTime] datetime2 NOT NULL,
+    [ProcessedAt] datetime2 NOT NULL,
+    [Endpoint] nvarchar(max) NULL,
+    [StateAfterChange] nvarchar(max) NULL,
+    [InitiatingMessageJson] nvarchar(max) NULL,
+    [OutgoingMessagesJson] nvarchar(max) NULL,
+    CONSTRAINT [PK_SagaSnapshots] PRIMARY KEY ([CreatedOn], [Id])
+);
+
+CREATE INDEX [IX_AuditMessages_ConversationId] ON [AuditMessages] ([ConversationId]);
+
+CREATE UNIQUE INDEX [IX_AuditMessages_Id] ON [AuditMessages] ([Id]);
+
+CREATE INDEX [IX_AuditMessages_ProcessedAt] ON [AuditMessages] ([ProcessedAt]);
+
+CREATE INDEX [IX_AuditMessages_ReceivingEndpointName_CreatedOn] ON [AuditMessages] ([ReceivingEndpointName], [CreatedOn]);
+
+CREATE INDEX [IX_AuditMessages_TimeSent] ON [AuditMessages] ([TimeSent]);
+
+CREATE INDEX [IX_AuditMessages_UniqueMessageId] ON [AuditMessages] ([UniqueMessageId]);
+
+CREATE INDEX [IX_FailedAuditImports_FailedAt_UniqueMessageId] ON [FailedAuditImports] ([FailedAt], [UniqueMessageId]);
+
+CREATE INDEX [IX_SagaSnapshots_SagaId_FinishTime] ON [SagaSnapshots] ([SagaId], [FinishTime]);
+
+INSERT INTO [__AuditMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20260928032748_Initial', N'<ProductVersion>');
+
+COMMIT;
+GO
+
+IF SERVERPROPERTY('IsFullTextInstalled') <> 1
+BEGIN
+    THROW 50000, 'ServiceControl requires the SQL Server Full-Text Search feature, which is not installed on this instance. Install it and run setup again.', 1;
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.fulltext_catalogs WHERE name = 'ServiceControlFullTextCatalog')
+BEGIN
+    BEGIN TRY
+        EXEC('CREATE FULLTEXT CATALOG ServiceControlFullTextCatalog');
+    END TRY
+    BEGIN CATCH
+        IF NOT EXISTS (SELECT 1 FROM sys.fulltext_catalogs WHERE name = 'ServiceControlFullTextCatalog') THROW;
+    END CATCH
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.fulltext_indexes WHERE object_id = OBJECT_ID('AuditMessages'))
+BEGIN
+    EXEC('CREATE FULLTEXT INDEX ON AuditMessages(HeadersJson LANGUAGE 0, BodyText LANGUAGE 0)
+              KEY INDEX IX_AuditMessages_Id
+              ON ServiceControlFullTextCatalog
+              WITH (CHANGE_TRACKING AUTO, STOPLIST = OFF)');
+END
+GO
+
+INSERT INTO [__AuditMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20260928032751_AddFullTextSearch', N'<ProductVersion>');
+GO
+
