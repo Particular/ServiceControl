@@ -43,7 +43,8 @@ namespace ServiceControl.Persistence.RavenDB
                     Certificate = RavenClientCertificate.FindClientCertificate(settings),
                     Conventions = new DocumentConventions
                     {
-                        SaveEnumsAsIntegers = true
+                        SaveEnumsAsIntegers = true,
+                        SaveEnumsAsIntegersForPatching = true
                     }
                 };
 
