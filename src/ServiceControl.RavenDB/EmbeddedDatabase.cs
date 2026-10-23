@@ -75,6 +75,11 @@ namespace ServiceControl.RavenDB
                 optionalArgs.Add("--RunInMemory=true");
             }
 
+            if (databaseConfiguration.DisableAutoIndexCreation)
+            {
+                optionalArgs.Add("--Indexing.DisableQueryOptimizerGeneratedIndexes=true");
+            }
+
             var serverOptions = new ServerOptions
             {
                 CommandLineArgs =
@@ -108,6 +113,10 @@ namespace ServiceControl.RavenDB
 
             return embeddedDatabase;
         }
+
+        // Start only queues the server up, so connecting by the configured URL instead reaches whatever already holds the port.
+        public async Task<string> WaitUntilReady(CancellationToken cancellationToken = default) =>
+            (await EmbeddedServer.Instance.GetServerUriAsync(cancellationToken)).ToString();
 
         void Start(ServerOptions serverOptions)
         {
