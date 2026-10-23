@@ -41,6 +41,7 @@
         public string ClientId { get; set; } = Guid.NewGuid().ToString();
         public required string Name { get; set; }
         public required int Classification { get; set; }
+        public bool Amended { get; set; } = false;
         public string? EndpointSize { get; set; }
 
         public QueueIdentity[] Queues { get; set; } = [];

@@ -348,8 +348,7 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
                         await context.SaveChangesAsync(cancellationToken);
                         return;
                     }
-                    // these do not round-trip
-                    result.UnmappedQueues = [.. existing.UnmappedQueues, .. result.UnmappedQueues];
+                    result.MergeWithExisting(existing);
                 }
                 await context.StoreSetting(SettingKeys.LicensedEndpointDetailsAmendment, result, token);
             }, cancellationToken);

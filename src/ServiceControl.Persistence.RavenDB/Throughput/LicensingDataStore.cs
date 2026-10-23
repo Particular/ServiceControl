@@ -402,8 +402,7 @@ class LicensingDataStore(
             var existing = await session.LoadAsync<LicensedEndpointDetailsAmendment>(LicencedEndpointDetailsAmendmentDocumentId, cancellationToken);
             if (existing is not null)
             {
-                // these do not round-trip
-                result.UnmappedQueues = [.. existing.UnmappedQueues, .. result.UnmappedQueues];
+                result.MergeWithExisting(existing);
                 session.Advanced.Evict(existing);
             }
 
