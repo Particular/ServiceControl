@@ -19,6 +19,7 @@
         [Test]
         public async Task A_new_message_failure_is_created()
         {
+            SetSettings = settings => settings.EnableExternalIntegrationsPublishing = true;
             CustomConfiguration = config => config.OnEndpointSubscribed<EditMessageFailureContext>((s, ctx) =>
             {
                 ctx.ExternalProcessorSubscribed = s.SubscriberReturnAddress.Contains(nameof(FailingEditedMessageReceiver));
