@@ -33,7 +33,7 @@ class RavenEnvironmentDataProvider(RavenPersisterSettings settings, IRavenDocume
         Deferred("Health.Error.FailedImports", FailedImports),
         Value("Storage.FullTextSearch", () => settings.EnableFullTextSearchOnBodies ? "Enabled" : "Disabled"),
         Value("Storage.BodyStorage.Type", () => "RavenAttachments"),
-        Value("Storage.LogLevel", () => settings.LogsMode),
+        Value("Storage.LogLevel", () => settings.LogsMinLevel),
         Value("Storage.QueryTimeoutSeconds", () => WhenConfigured(QueryTimeLimit.SettingName, () => Number((int)Math.Round(settings.QueryTimeout.TotalSeconds, MidpointRounding.AwayFromZero)))),
         Value("Storage.FreeSpaceThresholdPercent", () => WhenConfigured(RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey, () => Number(settings.DataSpaceRemainingThreshold))),
         Value("Storage.MinimumFreeSpaceForIngestionPercent", () => WhenConfigured(RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, () => Number(settings.MinimumStorageLeftRequiredForIngestion))),

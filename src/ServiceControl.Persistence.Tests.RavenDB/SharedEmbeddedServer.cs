@@ -16,7 +16,7 @@
 
     static class SharedEmbeddedServer
     {
-        public const string LogsMode = "Operations";
+        public const string LogsMinLevel = "Warn";
 
         public static string LogPath => Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs", "Primary");
 
@@ -38,18 +38,18 @@
 
                 var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "PrimaryData");
                 var logPath = LogPath;
-                var logsMode = LogsMode;
+                var logsMinLevel = LogsMinLevel;
 
                 var settings = new RavenPersisterSettings
                 {
                     DatabasePath = dbPath,
                     LogPath = logPath,
-                    LogsMode = logsMode,
+                    LogsMinLevel = logsMinLevel,
                     DatabaseMaintenancePort = PortUtility.GetAssignedOrAvailablePort(RavenPersisterSettings.DatabaseMaintenancePortDefault)
                 };
 
                 // TODO: See if more refactoring can be done between this and the RavenPersisterSettings above
-                var embeddedConfig = new EmbeddedDatabaseConfiguration(settings.ServerUrl, RavenPersisterSettings.DatabaseNameDefault, dbPath, logPath, logsMode) { RunInMemory = true };
+                var embeddedConfig = new EmbeddedDatabaseConfiguration(settings.ServerUrl, RavenPersisterSettings.DatabaseNameDefault, dbPath, logPath, logsMinLevel) { RunInMemory = true };
 
                 var server = EmbeddedDatabase.Start(embeddedConfig, new ApplicationLifetime(new NullLogger<ApplicationLifetime>()));
 

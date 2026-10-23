@@ -89,7 +89,7 @@ Releases up to 6.21.2 report `SqlVersion` as the full text of `@@VERSION` on SQL
 | `Storage.BodyStorage.Type` | `RavenAttachments`, `FileSystem`, `AzureBlob`, `S3` | the persister | 6.20.0 |
 | `Limits.MaxBodySizeToStore` | bytes | `MaxBodySizeToStore`, SQL Server and PostgreSQL only | 6.20.0 |
 | `Storage.Schema` | `Default` when no schema is configured, `Custom` for any configured schema | `Database/Schema`, SQL Server and PostgreSQL only | Unreleased |
-| `Storage.LogLevel` | `None`, `Information`, `Operations` | `RavenDBLogLevel`, RavenDB only | Unreleased |
+| `Storage.LogLevel` | `Trace`, `Debug`, `Info`, `Warn`, `Error`, `Fatal`, `Off` | `RavenDBLogLevel`, RavenDB only | Unreleased |
 | `Storage.CommandTimeoutSeconds` | `Default` or number | `Database/CommandTimeout`, SQL Server and PostgreSQL only | Unreleased |
 | `Storage.QueryTimeoutSeconds` | `Default` or number | `QueryTimeoutInSeconds` | Unreleased |
 | `Storage.SubscriptionCacheSeconds` | `Default` or number | `SubscriptionCacheDuration`, SQL Server and PostgreSQL only | Unreleased |

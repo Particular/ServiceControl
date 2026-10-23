@@ -27,7 +27,7 @@ class RavenEnvironmentDataProviderConfigurationTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(data["Storage.LogLevel"], Is.EqualTo("Operations"));
+            Assert.That(data["Storage.LogLevel"], Is.EqualTo("Warn"));
             Assert.That(data["Storage.QueryTimeoutSeconds"], Is.EqualTo("Default"));
             Assert.That(data["Storage.FreeSpaceThresholdPercent"], Is.EqualTo("Default"));
             Assert.That(data["Storage.MinimumFreeSpaceForIngestionPercent"], Is.EqualTo("Default"));
