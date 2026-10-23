@@ -34,6 +34,19 @@
             session.Advanced.GetMetadataFor(failedMessage)[Constants.Documents.Metadata.Expires] = expiresAt;
         }
 
+        // For error-instance data other than failed messages, such as finished saga timeouts
+        public void EnableErrorRetentionExpiration(IAsyncDocumentSession session, object document)
+        {
+            var expiresAt = timeProvider.GetUtcNow().UtcDateTime + errorRetentionPeriod;
+
+            session.Advanced.GetMetadataFor(document)[Constants.Documents.Metadata.Expires] = expiresAt;
+        }
+
+        public void CancelExpiration(IAsyncDocumentSession session, object document)
+        {
+            session.Advanced.GetMetadataFor(document).Remove(Constants.Documents.Metadata.Expires);
+        }
+
         public void EnableExpiration(IAsyncDocumentSession session, EventLogItem eventLogItem)
         {
             var expiresAt = timeProvider.GetUtcNow().UtcDateTime + eventsRetentionPeriod;
