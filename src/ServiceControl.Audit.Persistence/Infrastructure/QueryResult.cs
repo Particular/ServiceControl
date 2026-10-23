@@ -25,6 +25,6 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 
         public TOut Results { get; }
 
-        public static QueryResult<TOut> Empty() => new QueryResult<TOut>(null, QueryStatsInfo.Zero);
+        public static QueryResult<TOut> Empty(QueryStatsInfo queryStatsInfo) => new QueryResult<TOut>(null, queryStatsInfo);
     }
 }
