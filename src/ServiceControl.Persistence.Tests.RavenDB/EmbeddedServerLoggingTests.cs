@@ -1,38 +1,30 @@
 namespace ServiceControl.Persistence.Tests.RavenDB;
 
-using System;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
 [TestFixture]
-class EmbeddedServerLoggingTests
+class EmbeddedServerLoggingTests : RavenPersistenceTestBase
 {
+    // Asks the server instead of waiting for a log file, because at Warn a quiet server never creates one
     [Test]
-    public async Task Server_writes_log_files_to_the_configured_log_path()
+    public async Task Server_uses_the_configured_log_path_and_minimum_level()
     {
-        // The shared server starts with SharedEmbeddedServer.LogsMode and SharedEmbeddedServer.LogPath
-        await SharedEmbeddedServer.GetInstance();
+        var client = DocumentStore.GetRequestExecutor().HttpClient;
 
-        // Log files from earlier test runs stay in the folder, so only files written by this run count
-        var startedAfter = Process.GetCurrentProcess().StartTime.ToUniversalTime();
-        var timeout = TimeSpan.FromSeconds(30);
-        var stopwatch = Stopwatch.StartNew();
+        using var response = await client.GetAsync(DocumentStore.Urls[0].TrimEnd('/') + "/admin/logs/configuration");
+        response.EnsureSuccessStatusCode();
 
-        while (!HasRecentLogFile(startedAfter) && stopwatch.Elapsed < timeout)
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var logs = document.RootElement.GetProperty("Logs");
+
+        using (Assert.EnterMultipleScope())
         {
-            await Task.Delay(TimeSpan.FromMilliseconds(250));
+            Assert.That(Path.GetFullPath(logs.GetProperty("Path").GetString()!).TrimEnd(Path.DirectorySeparatorChar), Is.EqualTo(Path.GetFullPath(SharedEmbeddedServer.LogPath).TrimEnd(Path.DirectorySeparatorChar)));
+            Assert.That(logs.GetProperty("MinLevel").GetString(), Is.EqualTo(SharedEmbeddedServer.LogsMinLevel));
+            Assert.That(Directory.Exists(SharedEmbeddedServer.LogPath), Is.True);
         }
-
-        Assert.That(HasRecentLogFile(startedAfter), Is.True,
-            $"The server should write a log file to {SharedEmbeddedServer.LogPath} at the {SharedEmbeddedServer.LogsMode} level within {timeout.TotalSeconds} seconds");
     }
-
-    static bool HasRecentLogFile(DateTime startedAfter) =>
-        Directory.Exists(SharedEmbeddedServer.LogPath)
-        && new DirectoryInfo(SharedEmbeddedServer.LogPath)
-            .EnumerateFiles("*", SearchOption.AllDirectories)
-            .Any(file => file.Length > 0 && file.LastWriteTimeUtc >= startedAfter);
 }
