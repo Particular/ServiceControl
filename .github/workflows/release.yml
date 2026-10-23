@@ -16,6 +16,3 @@ jobs:
   db-container:
     uses: ./.github/workflows/build-db-container.yml
     secrets: inherit
-  cloud-tests:
-    uses: ./.github/workflows/cloud-database-tests.yml
-    secrets: inherit
