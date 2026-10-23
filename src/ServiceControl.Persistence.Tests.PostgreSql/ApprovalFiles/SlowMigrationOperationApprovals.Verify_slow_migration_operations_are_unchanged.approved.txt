@@ -1,0 +1,23 @@
+20260902040422_AddFullTextSearch
+    Sql
+        CREATE INDEX ix_failed_messages_full_text ON failed_messages USING GIN (to_tsvector('simple', headers_json || ' ' || COALESCE(body_text, '') || ' ' || replace(replace(COALESCE(message_type, ''), '.', ' '), '+', ' ')))
+20260911041328_AddMissingIndexes
+    DropIndex ix_failed_messages_status_last_modified on failed_messages
+    DropIndex ix_failed_message_groups_type_group_id on failed_message_groups
+    AlterColumn failed_messages.message_type text null -> character varying(450) null
+    CreateIndex ix_failed_messages_status_last_modified on failed_messages (status, last_modified) Npgsql:IndexInclude=[first_time_of_failure, last_time_of_failure]
+    CreateIndex ix_failed_messages_status_last_time_of_failure on failed_messages (status, last_time_of_failure)
+    CreateIndex ix_failed_messages_status_message_type_unique_message_id on failed_messages (status, message_type, unique_message_id)
+    CreateIndex ix_failed_message_groups_type_group_id on failed_message_groups (type, group_id) Npgsql:IndexInclude=[title]
+20260915050538_AddAdditionalIndexCoverage
+    DropIndex ix_failed_messages_status_last_modified on failed_messages
+    DropIndex ix_failed_message_groups_type_group_id on failed_message_groups
+    CreateIndex ix_failed_messages_status_last_modified_unique_message_id on failed_messages (status, last_modified, unique_message_id) Npgsql:IndexInclude=[first_time_of_failure, last_time_of_failure]
+    CreateIndex ix_failed_message_groups_type_group_id on failed_message_groups (type, group_id) Npgsql:IndexInclude=[failed_message_unique_id, title]
+20260928064706_WidenMessageIdAndCapFullTextBody
+    AlterColumn failed_messages.message_id character varying(450) null -> text null
+    AlterColumn failed_error_imports.message_id character varying(450) not null -> text not null
+    Sql
+        DROP INDEX IF EXISTS ix_failed_messages_full_text
+    Sql
+        CREATE INDEX ix_failed_messages_full_text ON failed_messages USING GIN (to_tsvector('simple', headers_json || ' ' || substring(COALESCE(body_text, ''), 1, 262144) || ' ' || replace(replace(COALESCE(message_type, ''), '.', ' '), '+', ' ')))

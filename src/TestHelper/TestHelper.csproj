@@ -5,8 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit.Analyzers" />
+    <PackageReference Include="Particular.Approvals" />
     <PackageReference Include="RavenDB.Embedded" />
   </ItemGroup>
 
