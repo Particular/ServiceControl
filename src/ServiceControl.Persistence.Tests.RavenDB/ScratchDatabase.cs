@@ -31,7 +31,7 @@ sealed class ScratchDatabase : IAsyncDisposable
         {
             Urls = [server.ServerUrl],
             Database = name,
-            Conventions = new DocumentConventions { SaveEnumsAsIntegers = true }
+            Conventions = new DocumentConventions { SaveEnumsAsIntegers = true, SaveEnumsAsIntegersForPatching = true }
         };
         store.Initialize();
 
