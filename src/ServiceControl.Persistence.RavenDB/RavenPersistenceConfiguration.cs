@@ -22,7 +22,7 @@ namespace ServiceControl.Persistence.RavenDB
         public PersistenceSettings CreateSettings(SettingsRootNamespace settingsRootNamespace)
         {
             var ravenDbLogLevel = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.RavenDbLogLevelKey, "Warn");
-            var logsMode = RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel, LoggerUtil.CreateStaticLogger<RavenPersistenceConfiguration>());
+            var logsMinLevel = RavenDbLogLevelToLogsMinLevelMapper.Map(ravenDbLogLevel, LoggerUtil.CreateStaticLogger<RavenPersistenceConfiguration>());
 
             var settings = new RavenPersisterSettings
             {
@@ -43,7 +43,7 @@ namespace ServiceControl.Persistence.RavenDB
                 QueryTimeout = QueryTimeLimit.Read(settingsRootNamespace, LoggerUtil.CreateStaticLogger<RavenPersistenceConfiguration>()),
                 MaintenanceMode = SettingsReader.Read(settingsRootNamespace, MaintenanceModeKey, false),
                 LogPath = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.LogsPathKey, DefaultLogLocation()),
-                LogsMode = logsMode,
+                LogsMinLevel = logsMinLevel,
                 EnableFullTextSearchOnBodies = SettingsReader.Read(settingsRootNamespace, "EnableFullTextSearchOnBodies", true),
                 ThroughputDatabaseName = SettingsReader.Read(ThroughputSettings.SettingsNamespace, ThroughputSettings.DatabaseNameKey, ThroughputSettings.DefaultDatabaseName)
             };

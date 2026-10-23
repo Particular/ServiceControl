@@ -39,7 +39,7 @@ namespace ServiceControl.Persistence.RavenDB
                 await initializeSemaphore.WaitAsync(cancellationToken);
 
                 // TODO: See if more can be refactored out of RavenPersisterSettings
-                var embeddedConfig = new EmbeddedDatabaseConfiguration(databaseConfiguration.ServerUrl, databaseConfiguration.DatabaseName, databaseConfiguration.DatabasePath, databaseConfiguration.LogPath, databaseConfiguration.LogsMode);
+                var embeddedConfig = new EmbeddedDatabaseConfiguration(databaseConfiguration.ServerUrl, databaseConfiguration.DatabaseName, databaseConfiguration.DatabasePath, databaseConfiguration.LogPath, databaseConfiguration.LogsMinLevel);
 
                 database = EmbeddedDatabase.Start(embeddedConfig, lifetime);
 

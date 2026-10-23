@@ -55,7 +55,7 @@ jobs:
           $containers = cat src/ServiceControl.RavenDB/containers.json | ConvertFrom-Json
           $containers | ForEach-Object -Process {
             $FULLTAG="${{ env.TAG_NAME }}-$($_.tag)"
-            $BASETAG="$($RavenVersion)-ubuntu.22.04-$($_.tag)"
+            $BASETAG="$($RavenVersion)-ubuntu.24.04-$($_.tag)"
             Write-Output "::group::Building $FULLTAG for architecture $($_.arch) from $BASETAG"
             docker build -t ghcr.io/particular/servicecontrol-ravendb:$FULLTAG --file src/ServiceControl.RavenDB/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --build-arg BASETAG=$BASETAG --platform linux/$($_.arch) .
             Write-Output "::endgroup::"
