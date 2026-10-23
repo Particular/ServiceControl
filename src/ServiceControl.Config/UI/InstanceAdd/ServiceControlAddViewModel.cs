@@ -8,6 +8,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
     using System.Windows.Input;
     using PropertyChanged;
     using ServiceControl.Config.Extensions;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using Validar;
     using Xaml.Controls;
@@ -127,6 +128,8 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 "Particular Software", ErrorInstanceName);
             ErrorDatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "Particular", "ServiceControl", ErrorInstanceName, "DB");
+            ErrorMessageBodyPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                "Particular", "ServiceControl", ErrorInstanceName, "MessageBodies");
             ErrorLogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "Particular", "ServiceControl", ErrorInstanceName, "Logs");
         }
@@ -198,6 +201,130 @@ namespace ServiceControl.Config.UI.InstanceAdd
         {
             get => ServiceControl.DatabaseMaintenancePortNumber;
             set => ServiceControl.DatabaseMaintenancePortNumber = value;
+        }
+
+        public IEnumerable<PersistenceManifest> ErrorStorageTypes => ServiceControl.StorageTypes;
+
+        public PersistenceManifest ErrorSelectedStorageType
+        {
+            get => ServiceControl.SelectedStorageType;
+            set => ServiceControl.SelectedStorageType = value;
+        }
+
+        public string ErrorStorageConnectionString
+        {
+            get => ServiceControl.StorageConnectionString;
+            set => ServiceControl.StorageConnectionString = value;
+        }
+
+        public bool ShowErrorStorageTypePicker => ErrorStorageTypes.Count() > 1;
+
+        public bool ShowErrorStorageConnectionString => ErrorSelectedStorageType != null && ErrorSelectedStorageType.Settings.Any(s => s.Mandatory && s.Name.EndsWith("/ConnectionString"));
+
+        public bool ShowErrorDatabasePathFields => ErrorSelectedStorageType == null || ErrorSelectedStorageType.Settings.Any(s => s.Name.EndsWith("/DBPath"));
+
+        public bool ShowErrorDatabaseMaintenancePort => ErrorSelectedStorageType == null || ErrorSelectedStorageType.Settings.Any(s => s.Name == ServiceControlSettings.DatabaseMaintenancePort.Name);
+
+        public bool ShowErrorMessageBodyStorage => ErrorSelectedStorageType?.Settings.Any(s => s.Name == ServiceControlSettings.MessageBodyStorageType.Name) == true;
+
+        public IEnumerable<MessageBodyStorageOption> ErrorMessageBodyStorageTypes => ServiceControl.MessageBodyStorageTypes;
+
+        public MessageBodyStorageOption ErrorSelectedMessageBodyStorageType
+        {
+            get => ServiceControl.SelectedMessageBodyStorageType;
+            set => ServiceControl.SelectedMessageBodyStorageType = value;
+        }
+
+        public bool ShowErrorMessageBodyPath => ShowErrorMessageBodyStorage && ErrorSelectedMessageBodyStorageType?.Value == MessageBodyStorageType.FileSystem;
+
+        public bool ShowErrorAzureBlobFields => ShowErrorMessageBodyStorage && ErrorSelectedMessageBodyStorageType?.Value == MessageBodyStorageType.AzureBlob;
+
+        public bool ShowErrorS3Fields => ShowErrorMessageBodyStorage && ErrorSelectedMessageBodyStorageType?.Value == MessageBodyStorageType.S3;
+
+        public ICommand ErrorSelectMessageBodyPath => ServiceControl.SelectMessageBodyPath;
+
+        public string ErrorMessageBodyPath
+        {
+            get => ServiceControl.MessageBodyPath;
+            set => ServiceControl.MessageBodyPath = value.SanitizeFilePath();
+        }
+
+        public IEnumerable<AzureAuthenticationOption> ErrorAzureAuthenticationOptions => ServiceControl.AzureAuthenticationOptions;
+
+        public AzureAuthenticationOption ErrorSelectedAzureAuthentication
+        {
+            get => ServiceControl.SelectedAzureAuthentication;
+            set => ServiceControl.SelectedAzureAuthentication = value;
+        }
+
+        public bool ShowErrorAzureConnectionString => ShowErrorAzureBlobFields && ErrorSelectedAzureAuthentication?.UsesManagedIdentity == false;
+
+        public bool ShowErrorAzureManagedIdentity => ShowErrorAzureBlobFields && ErrorSelectedAzureAuthentication?.UsesManagedIdentity == true;
+
+        public string ErrorAzureConnectionString
+        {
+            get => ServiceControl.AzureConnectionString;
+            set => ServiceControl.AzureConnectionString = value;
+        }
+
+        public string ErrorAzureServiceUri
+        {
+            get => ServiceControl.AzureServiceUri;
+            set => ServiceControl.AzureServiceUri = value;
+        }
+
+        public string ErrorAzureManagedIdentityClientId
+        {
+            get => ServiceControl.AzureManagedIdentityClientId;
+            set => ServiceControl.AzureManagedIdentityClientId = value;
+        }
+
+        public string ErrorAzureAuthorityHost
+        {
+            get => ServiceControl.AzureAuthorityHost;
+            set => ServiceControl.AzureAuthorityHost = value;
+        }
+
+        public string ErrorAzureContainerName
+        {
+            get => ServiceControl.AzureContainerName;
+            set => ServiceControl.AzureContainerName = value;
+        }
+
+        public string ErrorS3BucketName
+        {
+            get => ServiceControl.S3BucketName;
+            set => ServiceControl.S3BucketName = value;
+        }
+
+        public string ErrorS3KeyPrefix
+        {
+            get => ServiceControl.S3KeyPrefix;
+            set => ServiceControl.S3KeyPrefix = value;
+        }
+
+        public string ErrorS3Region
+        {
+            get => ServiceControl.S3Region;
+            set => ServiceControl.S3Region = value;
+        }
+
+        public string ErrorS3ServiceUrl
+        {
+            get => ServiceControl.S3ServiceUrl;
+            set => ServiceControl.S3ServiceUrl = value;
+        }
+
+        public string ErrorS3AccessKeyId
+        {
+            get => ServiceControl.S3AccessKeyId;
+            set => ServiceControl.S3AccessKeyId = value;
+        }
+
+        public string ErrorS3SecretAccessKey
+        {
+            get => ServiceControl.S3SecretAccessKey;
+            set => ServiceControl.S3SecretAccessKey = value;
         }
 
         public ICommand ErrorSelectDestinationPath => ServiceControl.SelectDestinationPath;
@@ -366,6 +493,28 @@ namespace ServiceControl.Config.UI.InstanceAdd
             get => ServiceControlAudit.DatabaseMaintenancePortNumber;
             set => ServiceControlAudit.DatabaseMaintenancePortNumber = value;
         }
+
+        public IEnumerable<PersistenceManifest> AuditStorageTypes => ServiceControlAudit.StorageTypes;
+
+        public PersistenceManifest AuditSelectedStorageType
+        {
+            get => ServiceControlAudit.SelectedStorageType;
+            set => ServiceControlAudit.SelectedStorageType = value;
+        }
+
+        public string AuditStorageConnectionString
+        {
+            get => ServiceControlAudit.StorageConnectionString;
+            set => ServiceControlAudit.StorageConnectionString = value;
+        }
+
+        public bool ShowAuditStorageTypePicker => AuditStorageTypes.Count() > 1;
+
+        public bool ShowAuditStorageConnectionString => AuditSelectedStorageType != null && AuditSelectedStorageType.Settings.Any(s => s.Mandatory && s.Name.EndsWith("/ConnectionString"));
+
+        public bool ShowAuditDatabasePathFields => AuditSelectedStorageType == null || AuditSelectedStorageType.Settings.Any(s => s.Name.EndsWith("/DBPath"));
+
+        public bool ShowAuditDatabaseMaintenancePort => AuditSelectedStorageType == null || AuditSelectedStorageType.Settings.Any(s => s.Name == AuditInstanceSettingsList.DatabaseMaintenancePort.Name);
 
         public ICommand AuditSelectDestinationPath => ServiceControlAudit.SelectDestinationPath;
 

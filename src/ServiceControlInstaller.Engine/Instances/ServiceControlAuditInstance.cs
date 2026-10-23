@@ -46,7 +46,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public string ServiceControlQueueAddress { get; set; }
 
-        public PersistenceManifest PersistenceManifest { get; set; }
+        public string PersistenceConnectionString { get; set; }
 
         protected override void ApplySettingsChanges(KeyValueConfigurationCollection settings)
         {
@@ -88,6 +88,10 @@ namespace ServiceControlInstaller.Engine.Instances
         }
 
         protected override string BaseServiceName => "ServiceControl.Audit";
+
+        protected override SettingInfo DatabaseMaintenancePortSetting => AuditInstanceSettingsList.DatabaseMaintenancePort;
+
+        protected override SettingInfo RavenDBConnectionStringSetting => AuditInstanceSettingsList.RavenDBConnectionString;
 
         public override void Reload()
         {

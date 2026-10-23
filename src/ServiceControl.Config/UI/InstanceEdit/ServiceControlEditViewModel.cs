@@ -2,10 +2,12 @@ namespace ServiceControl.Config.UI.InstanceEdit
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Windows.Input;
     using InstanceAdd;
     using PropertyChanged;
     using Extensions;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using Validar;
     using Xaml.Controls;
@@ -17,6 +19,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
         {
             DisplayName = "EDIT SERVICECONTROL INSTANCE";
             ServiceControlInstance = instance;
+            PersistenceManifest = instance.PersistenceManifest;
             ServiceControl.UpdateFromInstance(instance);
             SelectedTransport = instance.TransportPackage;
             ConnectionString = instance.ConnectionString;
@@ -30,6 +33,10 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
         public ServiceControlInstance ServiceControlInstance { get; set; }
 
+        public PersistenceManifest PersistenceManifest { get; set; }
+
+        public bool DatabaseMaintenancePortNumberRequired => PersistenceManifest?.Settings.Any(s => s.Name == ServiceControlSettings.DatabaseMaintenancePort.Name) ?? true;
+
         public void UpdateInstanceFromViewModel(ServiceControlInstance instance)
         {
             instance.HostName = ServiceControl.HostName;
@@ -40,7 +47,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.ErrorRetentionPeriod = ServiceControl.ErrorRetentionPeriod;
             instance.ForwardErrorMessages = ServiceControl.ErrorForwarding.Value;
             instance.ConnectionString = ConnectionString;
-            instance.DatabaseMaintenancePort = Convert.ToInt32(ServiceControl.DatabaseMaintenancePortNumber);
+            instance.DatabaseMaintenancePort = string.IsNullOrWhiteSpace(ServiceControl.DatabaseMaintenancePortNumber) ? null : Convert.ToInt32(ServiceControl.DatabaseMaintenancePortNumber);
             instance.EnableFullTextSearchOnBodies = ServiceControl.EnableFullTextSearchOnBodies.Value;
             instance.EnableIntegratedServicePulse = ServiceControl.EnableIntegratedServicePulse.Value;
         }

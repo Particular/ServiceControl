@@ -27,6 +27,21 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         public static readonly SettingInfo HostName = new() { Name = "ServiceControl/HostName" };
         public static readonly SettingInfo LogPath = new() { Name = "ServiceControl/LogPath" };
         public static readonly SettingInfo DBPath = new() { Name = "ServiceControl/DBPath" };
+        public static readonly SettingInfo DatabaseConnectionString = new() { Name = "ServiceControl/Database/ConnectionString" };
+        public static readonly SettingInfo RavenDBConnectionString = new() { Name = "ServiceControl/RavenDB/ConnectionString" };
+        public static readonly SettingInfo MessageBodyStorageType = new() { Name = "ServiceControl/MessageBody/StorageType" };
+        public static readonly SettingInfo MessageBodyFileSystemStoragePath = new() { Name = "ServiceControl/MessageBody/FileSystem/StoragePath" };
+        public static readonly SettingInfo MessageBodyAzureConnectionString = new() { Name = "ServiceControl/MessageBody/Azure/ConnectionString" };
+        public static readonly SettingInfo MessageBodyAzureServiceUri = new() { Name = "ServiceControl/MessageBody/Azure/ServiceUri" };
+        public static readonly SettingInfo MessageBodyAzureManagedIdentityClientId = new() { Name = "ServiceControl/MessageBody/Azure/ManagedIdentityClientId" };
+        public static readonly SettingInfo MessageBodyAzureAuthorityHost = new() { Name = "ServiceControl/MessageBody/Azure/AuthorityHost" };
+        public static readonly SettingInfo MessageBodyAzureContainerName = new() { Name = "ServiceControl/MessageBody/Azure/ContainerName" };
+        public static readonly SettingInfo MessageBodyS3BucketName = new() { Name = "ServiceControl/MessageBody/S3/BucketName" };
+        public static readonly SettingInfo MessageBodyS3KeyPrefix = new() { Name = "ServiceControl/MessageBody/S3/KeyPrefix" };
+        public static readonly SettingInfo MessageBodyS3Region = new() { Name = "ServiceControl/MessageBody/S3/Region" };
+        public static readonly SettingInfo MessageBodyS3ServiceUrl = new() { Name = "ServiceControl/MessageBody/S3/ServiceUrl" };
+        public static readonly SettingInfo MessageBodyS3AccessKeyId = new() { Name = "ServiceControl/MessageBody/S3/AccessKeyId" };
+        public static readonly SettingInfo MessageBodyS3SecretAccessKey = new() { Name = "ServiceControl/MessageBody/S3/SecretAccessKey" };
         public static readonly SettingInfo ForwardAuditMessages = new()
         {
             Name = "ServiceControl/ForwardAuditMessages",

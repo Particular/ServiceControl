@@ -2,10 +2,12 @@ namespace ServiceControl.Config.UI.InstanceEdit
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Windows.Input;
     using Extensions;
     using InstanceAdd;
     using PropertyChanged;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using Validar;
     using Xaml.Controls;
@@ -17,6 +19,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
         {
             DisplayName = "EDIT SERVICECONTROL AUDIT INSTANCE";
             ServiceControlInstance = instance;
+            PersistenceManifest = instance.PersistenceManifest;
             ServiceControlAudit.UpdateFromInstance(instance);
             SelectedTransport = instance.TransportPackage;
             ConnectionString = instance.ConnectionString;
@@ -29,6 +32,10 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
         public ServiceControlAuditInstance ServiceControlInstance { get; set; }
 
+        public PersistenceManifest PersistenceManifest { get; set; }
+
+        public bool DatabaseMaintenancePortNumberRequired => PersistenceManifest?.Settings.Any(s => s.Name == AuditInstanceSettingsList.DatabaseMaintenancePort.Name) ?? true;
+
         public void UpdateInstanceFromViewModel(ServiceControlAuditInstance instance)
         {
             instance.HostName = ServiceControlAudit.HostName;
@@ -39,7 +46,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.AuditRetentionPeriod = ServiceControlAudit.AuditRetentionPeriod;
             instance.ForwardAuditMessages = ServiceControlAudit.AuditForwarding.Value;
             instance.ConnectionString = ConnectionString;
-            instance.DatabaseMaintenancePort = Convert.ToInt32(ServiceControlAudit.DatabaseMaintenancePortNumber);
+            instance.DatabaseMaintenancePort = string.IsNullOrWhiteSpace(ServiceControlAudit.DatabaseMaintenancePortNumber) ? null : Convert.ToInt32(ServiceControlAudit.DatabaseMaintenancePortNumber);
             instance.EnableFullTextSearchOnBodies = ServiceControlAudit.EnableFullTextSearchOnBodies.Value;
         }
 

@@ -40,6 +40,21 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public bool InMaintenanceMode { get; set; }
         public ReportCard ReportCard { get; set; }
+        public PersistenceManifest PersistenceManifest { get; set; }
+
+        // False when all data lives somewhere ServiceControl doesn't manage, such as a SQL Server database or an S3 bucket.
+        public bool HasCleanableStoragePaths => AppConfig?.Config != null && !UsesExternalRavenDB && GetPersistencePathsToCleanUp().Any();
+
+        // Only persisters that run an embedded database server declare a maintenance port.
+        public bool UsesEmbeddedDatabase =>
+            PersistenceManifest?.Settings.Any(setting => setting.Name == DatabaseMaintenancePortSetting.Name) == true
+            && !UsesExternalRavenDB;
+
+        bool UsesExternalRavenDB => !string.IsNullOrWhiteSpace(AppConfig?.Read<string>(RavenDBConnectionStringSetting, null));
+
+        protected abstract SettingInfo DatabaseMaintenancePortSetting { get; }
+
+        protected abstract SettingInfo RavenDBConnectionStringSetting { get; }
 
         /// <summary>
         /// Raven management URL
@@ -211,6 +226,11 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void RemoveDataBaseFolder()
         {
+            if (!HasCleanableStoragePaths)
+            {
+                return;
+            }
+
             //Order by length descending in case they are nested paths
             var folders = GetPersistencePathsToCleanUp().ToList();
 

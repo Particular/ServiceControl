@@ -6,7 +6,7 @@
                       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                       Title="DeleteInstanceConfirmationView"
                       Width="500"
-                      Height="370"
+                      SizeToContent="Height"
                       Background="{StaticResource Gray10Brush}"
                       Foreground="{StaticResource WhiteBrush}"
                       Padding="0"
@@ -29,7 +29,7 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="8.6" />
             <RowDefinition Height="56.2" />
-            <RowDefinition Height="5*" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
         <Border Margin="-40,0,-40.4,0"
@@ -68,25 +68,24 @@
                        TextWrapping="Wrap" />
         </Grid>
 
-        <TextBlock Grid.Row="1"
-                   Grid.RowSpan="3"
-                   Margin="0,110,-0.4,27.6"
-                   FontWeight="Bold"
-                   Text="Optional - remove associated data:" />
-        <CheckBox Grid.Row="2"
-                  Grid.RowSpan="2"
-                  Margin="0,34.6,-0.4,0.6"
-                  VerticalContentAlignment="Center"
-                  IsChecked="{Binding RemoveDatabase}">
-            <Label FontSize="14" Foreground="{StaticResource WhiteBrush}">Remove DB subdirectory and data</Label>
-        </CheckBox>
-        <CheckBox Grid.Row="3"
-                  Grid.RowSpan="2"
-                  Margin="0,27.4,-0.4,0.6"
-                  VerticalContentAlignment="Center"
-                  IsChecked="{Binding RemoveLogs}">
-            <Label FontSize="14" Foreground="{StaticResource WhiteBrush}">Remove Logs subdirectory and data</Label>
-        </CheckBox>
+        <StackPanel Grid.Row="2" Grid.RowSpan="3">
+            <TextBlock FontWeight="Bold" Text="Optional - remove associated data:" />
+            <CheckBox Margin="0,10,0,0"
+                      VerticalContentAlignment="Center"
+                      IsChecked="{Binding RemoveDatabase}"
+                      Visibility="{Binding HasCleanableStoragePaths, Converter={StaticResource boolToVis}}">
+                <Label Content="{Binding RemoveDataLabel}" FontSize="14" Foreground="{StaticResource WhiteBrush}" />
+            </CheckBox>
+            <CheckBox Margin="0,10,0,0"
+                      VerticalContentAlignment="Center"
+                      IsChecked="{Binding RemoveLogs}">
+                <Label FontSize="14" Foreground="{StaticResource WhiteBrush}">Remove Logs subdirectory and data</Label>
+            </CheckBox>
+            <TextBlock Margin="0,15,0,0"
+                       Text="{Binding UnmanagedStorageMessage}"
+                       TextWrapping="Wrap"
+                       Visibility="{Binding HasUnmanagedStorage, Converter={StaticResource boolToVis}}" />
+        </StackPanel>
 
         <Grid Grid.Row="6"
               Margin="0,15.6,-0.4,0"

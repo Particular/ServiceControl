@@ -44,7 +44,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
                 .NotEqual(x => x.PortNumber)
                     .WithMessage(string.Format(Validation.Validations.MSG_PORTS_NOT_EQUAL, "Database Maintenance",
                         "ServiceControl"))
-                .When(x => x.SubmitAttempted);
+                .When(x => x.SubmitAttempted && x.DatabaseMaintenancePortNumberRequired);
 
             RuleFor(x => x.LogPath)
                 .NotEmpty()

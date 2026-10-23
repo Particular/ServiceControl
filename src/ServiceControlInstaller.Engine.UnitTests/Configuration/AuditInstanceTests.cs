@@ -67,6 +67,29 @@
             Assert.That(Directory.Exists(DbPath), Is.False);
         }
 
+        [Test]
+        public void Should_not_create_or_clean_up_a_database_folder_for_SQL_Server()
+        {
+            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence("SQLServer");
+
+            newInstance.InstallPath = InstallPath;
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("LearningTransport");
+            newInstance.LogPath = LogPath;
+            newInstance.HostName = "localhost";
+            newInstance.PersistenceConnectionString = "placeholder-connection-string";
+
+            newInstance.CopyFiles(zipResourceName);
+            newInstance.WriteConfigurationFile();
+
+            var instance = new ServiceControlAuditInstance(new FakeWindowsServiceController(Path.Combine(InstallPath, "ServiceControl.Audit.exe")));
+
+            instance.Reload();
+
+            Assert.That(Directory.Exists(DbPath), Is.False);
+            Assert.That(instance.HasCleanableStoragePaths, Is.False);
+            Assert.That(instance.UsesEmbeddedDatabase, Is.False);
+        }
+
         class FakeWindowsServiceController : IWindowsServiceController
         {
             public FakeWindowsServiceController(string exePath)

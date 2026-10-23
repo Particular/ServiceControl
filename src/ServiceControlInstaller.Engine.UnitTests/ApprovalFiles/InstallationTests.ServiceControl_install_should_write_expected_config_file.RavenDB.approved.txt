@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+    <appSettings>
+        <add key="ServiceControl/Port" value="0" />
+        <add key="ServiceControl/HostName" value="localhost" />
+        <add key="ServiceControl/LogPath" value="value-not-asserted" />
+        <add key="ServiceControl/ForwardErrorMessages" value="False" />
+        <add key="ServiceControl/TransportType" value="LearningTransport" />
+        <add key="ServiceControl/PersistenceType" value="RavenDB" />
+        <add key="ServiceControl/ErrorRetentionPeriod" value="00:00:00" />
+        <add key="ServiceControl/EnableFullTextSearchOnBodies" value="False" />
+        <add key="ServiceControl/RemoteInstances" value="[]" />
+        <add key="ServiceControl/EnableIntegratedServicePulse" value="False" />
+        <add key="ServiceControl/DBPath" value="value-not-asserted" />
+        <add key="ServiceControl/DatabaseMaintenancePort" value="33333" />
+        <add key="ServiceControl/ShutdownTimeout" value="00:02:00" />
+    </appSettings>
+</configuration>

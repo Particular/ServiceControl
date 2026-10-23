@@ -22,6 +22,10 @@ namespace ServiceControlInstaller.Engine
     public interface IPersistenceConfig
     {
         PersistenceManifest PersistenceManifest { get; }
+
+        // Only populated when creating a new instance; existing instances read their
+        // connection string back from the already-written config file instead.
+        string PersistenceConnectionString { get; set; }
     }
 
     public interface IHttpInstance
@@ -113,5 +117,8 @@ namespace ServiceControlInstaller.Engine
         TimeSpan ErrorRetentionPeriod { get; }
         TimeSpan? AuditRetentionPeriod { get; set; }
         List<RemoteInstanceSetting> RemoteInstances { get; }
+
+        // Only populated when creating a new instance, like PersistenceConnectionString.
+        MessageBodyStorage MessageBodyStorage { get; }
     }
 }
