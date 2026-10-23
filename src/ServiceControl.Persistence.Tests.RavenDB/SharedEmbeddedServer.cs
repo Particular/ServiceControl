@@ -16,6 +16,10 @@
 
     static class SharedEmbeddedServer
     {
+        public const string LogsMode = "Operations";
+
+        public static string LogPath => Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs", "Primary");
+
         public static async Task<EmbeddedDatabase> GetInstance(CancellationToken cancellationToken = default)
         {
             if (embeddedDatabase != null)
@@ -33,8 +37,8 @@
                 }
 
                 var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "PrimaryData");
-                var logPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs", "Primary");
-                var logsMode = "Operations";
+                var logPath = LogPath;
+                var logsMode = LogsMode;
 
                 var settings = new RavenPersisterSettings
                 {

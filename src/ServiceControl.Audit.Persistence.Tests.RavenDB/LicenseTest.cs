@@ -4,8 +4,10 @@
     using System.Linq;
     using System.Net.Http;
     using System.Text;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using NUnit.Framework;
+    using Persistence.RavenDB;
 
     [NonParallelizable]
     class LicenseTest : PersistenceTestFixture
@@ -42,6 +44,38 @@
                     }
                 }
             }
+        }
+
+        // LicenseStatusCheck deserializes the response into its own type. A renamed property leaves the default value in place,
+        // so the check waits for the timeout or reports no problem, which is why the names are asserted on the raw response.
+        [Test]
+        public async Task License_status_should_contain_the_properties_read_by_the_license_check()
+        {
+            var ravenUrl = configuration.DocumentStore.Urls.First();
+
+            using var http = new HttpClient();
+            var jsonText = await http.GetStringAsync(ravenUrl + "/license/status", TestTimeoutCancellationToken);
+
+            using var document = JsonDocument.Parse(jsonText);
+            var license = document.RootElement;
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(license.TryGetProperty("Id", out var id), Is.True, "Id is missing from the response");
+                Assert.That(id.ValueKind, Is.EqualTo(JsonValueKind.String));
+                Assert.That(license.TryGetProperty("LicensedTo", out var licensedTo), Is.True, "LicensedTo is missing from the response");
+                Assert.That(licensedTo.ValueKind, Is.EqualTo(JsonValueKind.String));
+                Assert.That(license.TryGetProperty("Status", out var status), Is.True, "Status is missing from the response");
+                Assert.That(status.ValueKind, Is.EqualTo(JsonValueKind.String));
+                Assert.That(license.TryGetProperty("Expired", out var expired), Is.True, "Expired is missing from the response");
+                Assert.That(expired.ValueKind, Is.AnyOf(JsonValueKind.True, JsonValueKind.False));
+            }
+        }
+
+        [Test]
+        public async Task License_status_check_should_accept_the_license_of_the_server()
+        {
+            await LicenseStatusCheck.WaitForLicenseOrThrow(configuration.DocumentStore, TestTimeoutCancellationToken);
         }
 
         class LicenseDetails
