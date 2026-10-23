@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
+namespace ServiceControl.Persistence.BodyStorage;
 
 public class DriveInfoSpaceProvider : IDriveSpaceProvider
 {

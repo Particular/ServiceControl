@@ -4,6 +4,14 @@ using System.Text;
 using NServiceBus;
 using ServiceControl.Audit.Persistence.EFCore.Entities;
 
+/// <summary>
+/// Decides whether a body lives inline in the database or in external storage.
+/// </summary>
+/// <remarks>
+/// Bodies are always kept. MaxBodySizeToStore only decides where: inline in BodyText, or in
+/// external storage with at most a search prefix left inline. TooLarge and NotText remain for
+/// rows written before external storage existed.
+/// </remarks>
 static class MessageBodyClassifier
 {
     public static (BodyState State, string? Text) Classify(IReadOnlyDictionary<string, string> headers, ReadOnlyMemory<byte> body, int maxBodySizeToStore)
@@ -14,11 +22,10 @@ static class MessageBodyClassifier
         }
 
         var tooLarge = body.Length > maxBodySizeToStore;
-        var notStored = tooLarge ? BodyState.TooLarge : BodyState.NotText;
 
         if (!MightBeText(headers))
         {
-            return (notStored, null);
+            return (BodyState.External, null);
         }
 
         var span = body.Span;
@@ -31,16 +38,16 @@ static class MessageBodyClassifier
         }
         catch (DecoderFallbackException)
         {
-            return (notStored, null);
+            return (BodyState.External, null);
         }
 
         // PostgreSQL rejects NUL in a text column.
         if (text.Contains('\0'))
         {
-            return (notStored, null);
+            return (BodyState.External, null);
         }
 
-        return (tooLarge ? BodyState.TooLarge : BodyState.Stored, text);
+        return (tooLarge ? BodyState.External : BodyState.Stored, text);
     }
 
     static bool MightBeText(IReadOnlyDictionary<string, string> headers)

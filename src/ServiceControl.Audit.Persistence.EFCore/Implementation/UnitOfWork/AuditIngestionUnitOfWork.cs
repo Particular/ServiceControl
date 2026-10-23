@@ -11,20 +11,28 @@ using ServiceControl.Audit.Persistence.EFCore.Entities;
 using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
 using ServiceControl.Audit.Persistence.Infrastructure;
 using ServiceControl.Audit.Persistence.UnitOfWork;
+using ServiceControl.Persistence.BodyStorage;
 using ServiceControl.SagaAudit;
 
-sealed class AuditIngestionUnitOfWork(IServiceScopeFactory scopeFactory, EFPersisterSettings settings, DateTime createdOn) : IAuditIngestionUnitOfWork
+sealed class AuditIngestionUnitOfWork(IServiceScopeFactory scopeFactory, IBodyStoragePersistence bodyStorage, EFPersisterSettings settings, DateTime createdOn) : IAuditIngestionUnitOfWork
 {
     readonly List<AuditMessageEntity> messages = [];
     readonly List<SagaSnapshotEntity> snapshots = [];
+    readonly List<Task> bodyWrites = [];
 
     public Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body = default, CancellationToken cancellationToken = default)
     {
         var headers = processedMessage.Headers;
         var metadata = processedMessage.MessageMetadata;
         var uniqueMessageId = ToGuid(processedMessage.UniqueMessageId);
-        var (bodyState, bodyText) = MessageBodyClassifier.Classify(headers, body, settings.MaxBodySizeToStore);
+        var (bodyState, bodyText) = MessageBodyClassifier.Classify(headers, body, settings.BodyStorage.MaxBodySizeToStore);
         var bodyId = AuditBodyId.Format(createdOn, uniqueMessageId);
+        var contentType = headers.GetValueOrDefault(Headers.ContentType, "text/plain");
+
+        if (bodyState == BodyState.External)
+        {
+            bodyWrites.Add(bodyStorage.WriteBody(bodyId, body, contentType, cancellationToken));
+        }
 
         processedMessage.Id ??= bodyId;
         metadata["ContentLength"] = body.Length;
@@ -60,7 +68,7 @@ sealed class AuditIngestionUnitOfWork(IServiceScopeFactory scopeFactory, EFPersi
             BodyText = bodyText,
             BodyState = bodyState,
             BodySize = body.Length,
-            BodyContentType = headers.GetValueOrDefault(Headers.ContentType, "text/plain")
+            BodyContentType = contentType
         });
 
         return Task.CompletedTask;
@@ -93,6 +101,9 @@ sealed class AuditIngestionUnitOfWork(IServiceScopeFactory scopeFactory, EFPersi
             return;
         }
 
+        // External bodies are written before the rows that point at them
+        await Task.WhenAll(bodyWrites);
+
         await using var scope = scopeFactory.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AuditDbContext>();
 
@@ -105,7 +116,7 @@ sealed class AuditIngestionUnitOfWork(IServiceScopeFactory scopeFactory, EFPersi
         }, cancellationToken);
     }
 
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    public async ValueTask DisposeAsync() => await Task.WhenAll(bodyWrites).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 
     static Guid ToGuid(string? uniqueMessageId) =>
         uniqueMessageId is null ? Guid.NewGuid()

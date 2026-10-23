@@ -1,9 +1,7 @@
-namespace ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
+namespace ServiceControl.Persistence.BodyStorage;
 
 using System.IO.Compression;
 using System.Text;
-using ServiceControl.Persistence.EFCore.Abstractions;
-using ServiceControl.Persistence.EFCore.Infrastructure;
 
 /// <summary>
 /// Stores message bodies as files, each one a small header followed by the body.
@@ -138,6 +136,28 @@ public class FileSystemBodyStoragePersistence(FileSystemBodyStorageSettings sett
     public Task DeleteBodyIfExists(string bodyId, CancellationToken cancellationToken = default)
     {
         TryDelete(GetBodyFilePath(bodyId));
+        return Task.CompletedTask;
+    }
+
+    public Task DeleteBodiesWithPrefix(string prefix, CancellationToken cancellationToken = default)
+    {
+        BodyIdPrefix.Validate(prefix);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!Directory.Exists(StoragePath))
+        {
+            return Task.CompletedTask;
+        }
+
+        foreach (var filePath in Directory.EnumerateFiles(StoragePath, $"{prefix}*.body"))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (Path.GetFileName(filePath).StartsWith(prefix, StringComparison.Ordinal))
+            {
+                TryDelete(filePath);
+            }
+        }
+
         return Task.CompletedTask;
     }
 

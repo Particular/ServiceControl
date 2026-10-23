@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.EFCore.Infrastructure;
+namespace ServiceControl.Persistence.BodyStorage;
 
 /// <summary>
 /// Validates the byte count of a forward-only stream without buffering its contents.

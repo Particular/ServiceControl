@@ -26,6 +26,7 @@
   <ItemGroup>
     <!-- Not Private=false or ExcludeAssets because the shared EF Core assembly ships inside this persister's folder -->
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.EFCore\ServiceControl.Audit.Persistence.EFCore.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence.BodyStorage\ServiceControl.Persistence.BodyStorage.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,12 +1,10 @@
-namespace ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
+namespace ServiceControl.Persistence.BodyStorage;
 
 using System.IO.Compression;
 using System.Net;
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using ServiceControl.Persistence.EFCore.Abstractions;
-using ServiceControl.Persistence.EFCore.Infrastructure;
 
 public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
 {
@@ -95,4 +93,14 @@ public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
 
     public Task DeleteBodyIfExists(string bodyId, CancellationToken cancellationToken = default) =>
         container.GetBlobClient(bodyId).DeleteIfExistsAsync(cancellationToken: cancellationToken);
+
+    public async Task DeleteBodiesWithPrefix(string prefix, CancellationToken cancellationToken = default)
+    {
+        BodyIdPrefix.Validate(prefix);
+
+        await foreach (var blob in container.GetBlobsAsync(BlobTraits.None, BlobStates.None, prefix, cancellationToken: cancellationToken))
+        {
+            await container.GetBlobClient(blob.Name).DeleteIfExistsAsync(cancellationToken: cancellationToken);
+        }
+    }
 }

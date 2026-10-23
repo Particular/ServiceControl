@@ -3,10 +3,11 @@ namespace ServiceControl.AcceptanceTests
     using System;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NUnit.Framework;
+    using global::ServiceControl.Infrastructure.WebApi;
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -41,9 +42,10 @@ namespace ServiceControl.AcceptanceTests
             var endpointConfiguration = new EndpointConfiguration(settings.InstanceName);
             endpointConfiguration.AssemblyScanner().Disable = true;
 
-            var hostBuilder = Host.CreateApplicationBuilder();
+            var hostBuilder = WebApplication.CreateBuilder();
             hostBuilder.Services.AddSingleton(hostClock);
             hostBuilder.AddServiceControl(settings, endpointConfiguration);
+            hostBuilder.AddServiceControlApi(settings.CorsSettings);
 
             using var host = hostBuilder.Build();
 

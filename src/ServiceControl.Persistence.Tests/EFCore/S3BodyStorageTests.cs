@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.Tests;
 
+using ServiceControl.Persistence.BodyStorage;
 using System;
 using System.IO;
 using System.Text;
@@ -108,6 +109,33 @@ class S3BodyStorageTests
         await store.DeleteBodyIfExists(bodyId);
 
         Assert.That(await store.ReadBody(bodyId), Is.Null);
+    }
+
+    [Test]
+    public async Task Delete_with_prefix_removes_only_matching_bodies()
+    {
+        var store = await CreateBucket();
+        var body = Encoding.UTF8.GetBytes("payload");
+        await store.WriteBody("2026102010-a", body, "text/plain");
+        await store.WriteBody("2026102010-b", body, "text/plain");
+        await store.WriteBody("2026102011-a", body, "text/plain");
+
+        await store.DeleteBodiesWithPrefix("2026102010");
+
+        Assert.Multiple(async () =>
+        {
+            Assert.That(await store.ReadBody("2026102010-a"), Is.Null);
+            Assert.That(await store.ReadBody("2026102010-b"), Is.Null);
+            Assert.That(await store.ReadBody("2026102011-a"), Is.Not.Null);
+        });
+    }
+
+    [Test]
+    public async Task Delete_with_prefix_rejects_a_blank_prefix()
+    {
+        var store = await CreateBucket();
+
+        Assert.ThrowsAsync<ArgumentException>(() => store.DeleteBodiesWithPrefix(""));
     }
 
     [Test]

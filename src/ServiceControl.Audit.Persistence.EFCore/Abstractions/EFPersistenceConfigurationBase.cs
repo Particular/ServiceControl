@@ -15,7 +15,7 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
 
     public abstract string Name { get; }
 
-    public IEnumerable<string> ConfigurationKeys => [ConnectionStringKey, SchemaKey, CommandTimeoutKey, QueryTimeoutInSecondsKey];
+    public IEnumerable<string> ConfigurationKeys => [ConnectionStringKey, SchemaKey, CommandTimeoutKey, QueryTimeoutInSecondsKey, .. BodyStorageSettingsParser.Keys];
 
     public IPersistence Create(PersistenceSettings settings) => Create(CreateSettings(settings));
 
@@ -37,7 +37,7 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
             CommandTimeout = ReadInt(specific, CommandTimeoutKey, EFPersisterSettings.DefaultCommandTimeout),
             QueryTimeout = QueryTimeLimit.Validate(ReadInt(specific, QueryTimeoutInSecondsKey, QueryTimeLimit.DefaultSeconds), QueryTimeoutSettingName, logger),
             AuditRetentionPeriod = settings.AuditRetentionPeriod,
-            MaxBodySizeToStore = settings.MaxBodySizeToStore
+            BodyStorage = BodyStorageSettingsParser.Parse(specific, settings.MaxBodySizeToStore)
         };
     }
 

@@ -1,5 +1,7 @@
 namespace ServiceControl.Persistence.EFCore.Abstractions;
 
+using ServiceControl.Persistence.BodyStorage;
+
 public abstract class EFPersisterSettings : PersistenceSettings
 {
     public static readonly TimeSpan MigrationCommandTimeout = TimeSpan.FromMinutes(40);

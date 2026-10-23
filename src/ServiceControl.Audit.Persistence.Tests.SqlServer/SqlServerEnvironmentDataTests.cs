@@ -9,6 +9,7 @@ namespace ServiceControl.Audit.Persistence.Tests
     using ServiceControl.Audit.Persistence.EFCore.Abstractions;
     using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
     using ServiceControl.Audit.Persistence.EFCore.SqlServer;
+    using ServiceControl.Persistence.BodyStorage;
 
     class SqlServerEnvironmentDataTests : EFPersistenceTestFixture
     {
@@ -71,7 +72,7 @@ namespace ServiceControl.Audit.Persistence.Tests
         [TestCase("not a connection string")]
         public async Task Should_report_edition_and_service_objective_as_unknown_when_the_server_cannot_be_asked(string connectionString)
         {
-            var settings = new EFPersisterSettings { ConnectionString = connectionString, AuditRetentionPeriod = TimeSpan.FromDays(7), MaxBodySizeToStore = 1024 };
+            var settings = new EFPersisterSettings { ConnectionString = connectionString, AuditRetentionPeriod = TimeSpan.FromDays(7), BodyStorage = new FileSystemBodyStorageSettings { StoragePath = "unused" } };
             var probe = new SqlServerDatabaseHostingProbe(settings, new UnreachableScopeFactory(), NullLogger<SqlServerDatabaseHostingProbe>.Instance);
 
             var hosting = await probe.Probe(TestTimeoutCancellationToken);

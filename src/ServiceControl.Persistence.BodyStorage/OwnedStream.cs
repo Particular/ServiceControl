@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.EFCore.Infrastructure;
+namespace ServiceControl.Persistence.BodyStorage;
 
 /// <summary>
 /// Couples a returned stream to another resource that must remain alive while the stream is read.

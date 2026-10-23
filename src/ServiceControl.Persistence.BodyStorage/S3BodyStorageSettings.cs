@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.EFCore.Abstractions;
+namespace ServiceControl.Persistence.BodyStorage;
 
 public sealed class S3BodyStorageSettings : BodyStorageSettings
 {

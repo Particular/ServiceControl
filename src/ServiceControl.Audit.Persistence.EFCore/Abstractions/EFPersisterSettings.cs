@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.Persistence.EFCore.Abstractions;
 
 using ServiceControl.Infrastructure;
+using ServiceControl.Persistence.BodyStorage;
 
 public class EFPersisterSettings
 {
@@ -19,7 +20,7 @@ public class EFPersisterSettings
     public int CommandTimeout { get; init; } = DefaultCommandTimeout;
     public TimeSpan QueryTimeout { get; init; } = QueryTimeLimit.Default;
     public required TimeSpan AuditRetentionPeriod { get; init; }
-    public required int MaxBodySizeToStore { get; init; }
+    public required BodyStorageSettings BodyStorage { get; init; }
     public int MaxRetryCount { get; init; } = 5;
     public int MaxRetryDelayInSeconds { get; init; } = 30;
     public bool EnableRetryOnFailure { get; init; } = true;

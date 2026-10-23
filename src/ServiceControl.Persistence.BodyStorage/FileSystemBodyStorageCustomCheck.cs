@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
+namespace ServiceControl.Persistence.BodyStorage;
 
 using System;
 using System.IO;
@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NServiceBus.CustomChecks;
-using ServiceControl.Persistence.EFCore.Abstractions;
 
 public class FileSystemBodyStorageCustomCheck(FileSystemBodyStorageSettings settings, IDriveSpaceProvider driveSpaceProvider, ILogger<FileSystemBodyStorageCustomCheck> logger)
     : CustomCheck("ServiceControl body storage", "Storage space", TimeSpan.FromMinutes(15))

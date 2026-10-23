@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.Abstractions;
 
+using ServiceControl.Persistence.BodyStorage;
 using Microsoft.Extensions.Logging;
 using ServiceControl.Configuration;
 using ServiceControl.Infrastructure;

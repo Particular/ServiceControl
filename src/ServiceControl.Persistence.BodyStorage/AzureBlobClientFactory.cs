@@ -1,9 +1,8 @@
-namespace ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
+namespace ServiceControl.Persistence.BodyStorage;
 
 using Azure.Core;
 using Azure.Identity;
 using Azure.Storage.Blobs;
-using ServiceControl.Persistence.EFCore.Abstractions;
 
 static class AzureBlobClientFactory
 {

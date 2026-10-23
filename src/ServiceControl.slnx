@@ -45,6 +45,7 @@
     <Project Path="ServiceControl/ServiceControl.csproj" />
   </Folder>
   <Folder Name="/Instances/Primary/Persistence/">
+    <Project Path="ServiceControl.Persistence.BodyStorage/ServiceControl.Persistence.BodyStorage.csproj" />
     <Project Path="ServiceControl.Persistence.EFCore/ServiceControl.Persistence.EFCore.csproj" />
     <Project Path="ServiceControl.Persistence.EFCore.PostgreSql/ServiceControl.Persistence.EFCore.PostgreSql.csproj" />
     <Project Path="ServiceControl.Persistence.EFCore.SqlServer/ServiceControl.Persistence.EFCore.SqlServer.csproj" />

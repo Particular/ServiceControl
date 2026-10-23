@@ -12,7 +12,7 @@ The tool runs an NServiceBus endpoint (`TestingTool.Load`) that sends messages
 through a handler which fails based on the active scenario. Failed messages are routed to the
 `error` queue for ServiceControl to ingest. Each scenario throws a real exception type
 from its own method, so ServiceControl's default grouping (exception type + first stack frame)
-puts each failure shape in its own group, and immediate retries are disabled so groups stay clean. Five scenarios are built in:
+puts each failure shape in its own group, and immediate retries are disabled so groups stay clean. Six scenarios are built in:
 
 | Scenario | Category | Failure shape |
 |---|---|---|
@@ -21,6 +21,7 @@ puts each failure shape in its own group, and immediate retries are disabled so 
 | `poison-message` | Poison | 15% deterministic always-fail messages — retry storm |
 | `deserialization-failure` | Deserialization | 100% fail with `SerializationException` (bad deployment) |
 | `background-noise` | Noise | ~3% always-on baseline — rotates through four exception types (four small groups) |
+| `large-messages` | Body | Starts at 3 msg/s (rate is configurable), each body about 256 KiB of JSON text (the wire envelope is slightly larger), above the 100 KB external body storage threshold. 20% deterministic failures with `InvalidDataException`; the other 80% succeed and are audited |
 
 Scenarios are controlled from the web UI, or via:
 - `GET /api/scenarios` — list scenarios with live status (category, rate, error counts)
@@ -111,7 +112,7 @@ tools/testing-tool/
   TestingTool/                   # ASP.NET Core host — API endpoints, web UI, NServiceBus endpoint,
                                  #   scenario runner, bypass writer, recoverability/search jobs,
                                  #   OTel setup, ServiceControl REST client
-  TestingTool.Scenarios/         # IScenario contract + the five scenario implementations
+  TestingTool.Scenarios/         # IScenario contract + the six scenario implementations
   TestingTool.Contracts/         # shared DTOs (scenarios, status, jobs, bypass)
   TestingTool.AppHost/           # Aspire AppHost — orchestrates platform, tool, and observability stack
     obs/                         # observability config: OTel Collector, Prometheus, Grafana provisioning
@@ -189,6 +190,30 @@ separator) or `--name:value` (colon separator):
 | `--tag` | *(none — uses the current build's image)* | any image tag, e.g. `pr-1234` or `6.3.1` | Override the ServiceControl container image tag (useful for testing PR-based prereleases) |
 | `--error-ingestion-scale-unit` | `0` | non-negative integer | Number of additional error-ingestion-only scale-out instances to spin up alongside the primary error instance (each runs with `--error-ingestion-only`) |
 | `--audit-instances` | `1` | non-negative integer | Number of ServiceControl.Audit instances to add. They take the same `--persistence` backend, report custom checks to the primary and export OTel to the collector |
+| `--azureblob-body-storage` | *(none — uses file-system body storage)* | `"<connection string>"` | Store message bodies in Azure Blob Storage instead of the container file system. Applies only with `--persistence:SqlServer` or `--persistence:PostgreSql`. Quote the value because connection strings contain semicolons. The error instance and its scale-out units share the `error-bodies` container, and each audit instance gets its own `audit-bodies-<instance name>` container |
+| `--s3-body-storage` | *(none — uses file-system body storage)* | `<bucket name>` | Store message bodies in an S3 bucket instead of the container file system. Applies only with `--persistence:SqlServer` or `--persistence:PostgreSql`, and cannot be combined with `--azureblob-body-storage`. Setup creates the bucket if it is missing and the credentials permit it. The error instance and its scale-out units share the `error-bodies/` key prefix, and each audit instance gets its own `audit-bodies-<instance name>/` prefix |
+| `--s3-region` | SDK default | region name, e.g. `eu-west-1` | Region for `--s3-body-storage`. Requires `--s3-body-storage` |
+| `--s3-service-url` | AWS | absolute `http` or `https` URL | S3-compatible endpoint, e.g. MinIO or LocalStack. The ServiceControl containers connect to it, so it must be reachable from inside a container. Requires `--s3-body-storage` |
+| `--s3-access-key-id`, `--s3-secret-access-key` | *(none — default AWS credential chain)* | key pair | Static credentials for `--s3-body-storage`. Set both or neither. Without them, the AWS default credential chain runs inside each container; the host's credentials are not forwarded. Static keys appear in the container environment |
+
+Pass static credentials explicitly, or omit both key options when the containers can use the AWS default credential chain:
+
+```bash
+aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- \
+  --persistence PostgreSql --s3-body-storage my-bodies --s3-region eu-west-1 \
+  --s3-access-key-id "$AWS_ACCESS_KEY_ID" --s3-secret-access-key "$AWS_SECRET_ACCESS_KEY"
+```
+
+For MinIO or LocalStack, use an endpoint reachable from the containers. This example assumes `host.docker.internal` resolves to the host:
+
+```bash
+aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- \
+  --persistence SqlServer --s3-body-storage bodies --s3-region us-east-1 \
+  --s3-service-url http://host.docker.internal:9000 \
+  --s3-access-key-id minioadmin --s3-secret-access-key minioadmin
+```
+
+The static credential options do not support session tokens. For temporary AWS credentials, configure the default credential chain inside the containers instead.
 
 The Aspire dashboard provides allocated ports for each service. The testing tool automatically
 connects to ServiceControl via the platform's transport and REST API URL, and sends its OTLP

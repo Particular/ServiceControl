@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.EFCore.Infrastructure;
+namespace ServiceControl.Persistence.BodyStorage;
 
 using System.IO;
 

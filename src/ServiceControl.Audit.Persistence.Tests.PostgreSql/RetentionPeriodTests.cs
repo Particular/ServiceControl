@@ -1,9 +1,11 @@
 namespace ServiceControl.Audit.Persistence.Tests
 {
     using System;
+    using System.IO;
     using NUnit.Framework;
     using ServiceControl.Audit.Persistence.EFCore.Abstractions;
     using ServiceControl.Audit.Persistence.EFCore.PostgreSql;
+    using ServiceControl.Persistence.BodyStorage;
 
     [TestFixture]
     class RetentionPeriodTests
@@ -26,6 +28,8 @@ namespace ServiceControl.Audit.Persistence.Tests
         {
             var settings = new PersistenceSettings(retentionPeriod, true, 100000);
             settings.PersisterSpecificSettings[EFPersistenceConfigurationBase.ConnectionStringKey] = "Host=localhost";
+            settings.PersisterSpecificSettings[BodyStorageSettingsParser.StorageTypeKey] = nameof(BodyStorageType.FileSystem);
+            settings.PersisterSpecificSettings[BodyStorageSettingsParser.FileSystemStoragePathKey] = Path.GetTempPath();
             return settings;
         }
     }

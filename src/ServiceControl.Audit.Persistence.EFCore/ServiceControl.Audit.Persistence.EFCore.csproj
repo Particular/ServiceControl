@@ -16,6 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Not Private=false or ExcludeAssets because the body storage assembly and its SDKs ship inside the persister's folder -->
+    <ProjectReference Include="..\ServiceControl.Persistence.BodyStorage\ServiceControl.Persistence.BodyStorage.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />

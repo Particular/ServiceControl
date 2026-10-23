@@ -1,6 +1,8 @@
 namespace ServiceControl.Persistence.Tests;
 
+using ServiceControl.Persistence.BodyStorage;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -96,6 +98,22 @@ class InMemoryBodyStoragePersistence : IBodyStoragePersistence
         {
             deleted.Add(bodyId);
             store.Remove(bodyId);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task DeleteBodiesWithPrefix(string prefix, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(prefix);
+
+        lock (gate)
+        {
+            foreach (var bodyId in store.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal)).ToList())
+            {
+                deleted.Add(bodyId);
+                store.Remove(bodyId);
+            }
         }
 
         return Task.CompletedTask;
