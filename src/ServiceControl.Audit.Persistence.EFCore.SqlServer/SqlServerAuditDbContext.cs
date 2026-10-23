@@ -32,9 +32,4 @@ public class SqlServerAuditDbContext(DbContextOptions<SqlServerAuditDbContext> o
         await Database
             .SqlQueryRaw<int>("SELECT CASE WHEN SCHEMA_ID({0}) IS NULL THEN 0 ELSE 1 END AS [Value]", schema)
             .SingleAsync(cancellationToken) == 1;
-
-    protected override async Task<bool> TableExists(string table, CancellationToken cancellationToken = default) =>
-        await Database
-            .SqlQueryRaw<int>("SELECT CASE WHEN EXISTS (SELECT 1 FROM sys.tables WHERE name = {0} AND schema_id = SCHEMA_ID(COALESCE(CAST({1} AS sysname), SCHEMA_NAME()))) THEN 1 ELSE 0 END AS [Value]", table, Schema ?? (object)DBNull.Value)
-            .SingleAsync(cancellationToken) == 1;
 }

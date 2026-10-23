@@ -237,7 +237,7 @@ The ingestion and health keys follow the rules in [Error ingestion health](#erro
 | `Audit.SameMachine` | `True`, `False`, `Mixed`, `NotApplicable`, `Unknown` | the machine name hashes. `NotApplicable` when either instance runs in a container | Unreleased |
 | `Audit.DatabaseSharing` | `SameSchema`, `SameDatabase`, `SameServer`, `SeparateServer`, `NotApplicable`, `Unknown` | the storage identity hashes. `NotApplicable` when the storage engines differ. Several instances report the most shared class | Unreleased |
 
-`Audit.Storage.SizeGB` covers the whole schema. A primary and an audit instance on SQL Server or PostgreSQL cannot share a schema, so `SameSchema` is not reported for that pairing; see [SQL persister schemas](sql-persister-schemas.md).
+`Audit.Storage.SizeGB` covers the whole schema. A primary and an audit instance on SQL Server or PostgreSQL can share a schema, which is not recommended and is not the default; see [SQL persister schemas](sql-persister-schemas.md).
 
 #### From the configuration response
 
