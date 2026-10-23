@@ -158,7 +158,8 @@ namespace ServiceControl.RavenDB
             {
                 Conventions = new DocumentConventions
                 {
-                    SaveEnumsAsIntegers = true
+                    SaveEnumsAsIntegers = true,
+                    SaveEnumsAsIntegersForPatching = true
                 },
                 SkipCreatingDatabase = true
             };

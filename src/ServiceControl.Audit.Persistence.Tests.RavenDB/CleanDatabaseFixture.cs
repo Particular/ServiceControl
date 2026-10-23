@@ -28,7 +28,7 @@ abstract class CleanDatabaseFixture
         {
             Urls = [embeddedDatabase.ServerUrl],
             Database = databaseName,
-            Conventions = new DocumentConventions { SaveEnumsAsIntegers = true }
+            Conventions = new DocumentConventions { SaveEnumsAsIntegers = true, SaveEnumsAsIntegersForPatching = true }
         };
         Store.Initialize();
 
