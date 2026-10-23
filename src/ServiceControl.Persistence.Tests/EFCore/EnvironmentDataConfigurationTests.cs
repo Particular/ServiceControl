@@ -62,15 +62,19 @@ class EFEnvironmentDataProviderConfigurationTests
         }
     }
 
-    [Test]
-    public async Task Should_report_a_custom_schema_without_naming_it()
+    [TestCase(null, "Default")]
+    [TestCase("sc_primary", "Default")]
+    [TestCase("sc", "Custom")]
+    [TestCase("psw_sc", "Custom")]
+    [TestCase("contoso", "Custom")]
+    public async Task Should_report_the_schema_without_naming_it(string schema, string expected)
     {
-        var data = await GetData(new TestPersisterSettings { ConnectionString = "Host=localhost", BodyStorage = new FileSystemBodyStorageSettings { StoragePath = "/var/bodies" }, Schema = "contoso" });
+        var data = await GetData(new TestPersisterSettings { ConnectionString = "Host=localhost", BodyStorage = new FileSystemBodyStorageSettings { StoragePath = "/var/bodies" }, Schema = schema });
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(data["Storage.Schema"], Is.EqualTo("Custom"));
-            Assert.That(string.Join("|", data.Values), Does.Not.Contain("contoso"));
+            Assert.That(data["Storage.Schema"], Is.EqualTo(expected));
+            Assert.That(string.Join("|", data.Values), Does.Not.Contain("psw_sc").And.Not.Contain("contoso"));
         }
     }
 

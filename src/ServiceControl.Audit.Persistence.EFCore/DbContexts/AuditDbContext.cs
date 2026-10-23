@@ -7,7 +7,6 @@ using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
 
 public abstract class AuditDbContext(DbContextOptions options) : DbContext(options)
 {
-    // Not EF Core's default, so an audit instance can share a schema with a primary instance.
     public const string MigrationsHistoryTableName = "__AuditMigrationsHistory";
 
     public string? Schema { get; } = options.FindExtension<SchemaOptionsExtension>()?.Schema;

@@ -7,6 +7,8 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 
 public abstract class ServiceControlDbContext(DbContextOptions options) : DbContext(options)
 {
+    public const string MigrationsHistoryTableName = "__ErrorMigrationsHistory";
+
     /// <summary>
     /// The configured schema, or null when the provider default is in use. Null keeps the model
     /// identical to the one the migrations were scaffolded against.

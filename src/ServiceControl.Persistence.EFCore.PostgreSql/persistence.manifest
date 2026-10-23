@@ -10,6 +10,11 @@
       "Mandatory": true
     },
     {
+      "Name": "ServiceControl/Database/Schema",
+      "Mandatory": false,
+      "DefaultValue": "sc_primary"
+    },
+    {
       "Name": "ServiceControl/Database/CommandTimeout",
       "Mandatory": false
     },

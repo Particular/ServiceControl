@@ -52,13 +52,13 @@ public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration,
 
     protected abstract EFPersisterSettings CreateSettings(string connectionString, BodyStorageSettings bodyStorage);
 
-    static string? ReadSchema(SettingsRootNamespace settingsRootNamespace)
+    static string ReadSchema(SettingsRootNamespace settingsRootNamespace)
     {
         var schema = SettingsReader.Read<string>(settingsRootNamespace, SchemaKey);
 
         if (string.IsNullOrWhiteSpace(schema))
         {
-            return null;
+            return EFPersisterSettings.DefaultSchema;
         }
 
         try
