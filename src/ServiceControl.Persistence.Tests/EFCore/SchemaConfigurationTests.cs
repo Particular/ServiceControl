@@ -42,11 +42,11 @@ class SchemaConfigurationTests
     [TestCase(null)]
     [TestCase("")]
     [TestCase("   ")]
-    public void Absent_or_blank_schema_falls_back_to_sc(string configured)
+    public void Absent_or_blank_schema_falls_back_to_sc_primary(string configured)
     {
         Environment.SetEnvironmentVariable(SchemaVariable, configured);
 
-        Assert.That(CreateSettings().Schema, Is.EqualTo("sc"));
+        Assert.That(CreateSettings().Schema, Is.EqualTo("sc_primary"));
     }
 
     [TestCase("legacy")]

@@ -10,7 +10,7 @@ namespace ServiceControl.Audit.Persistence.Tests
         [TestCase(null)]
         [TestCase("")]
         [TestCase("   ")]
-        public void Absent_or_blank_schema_falls_back_to_audit(string configured)
+        public void Absent_or_blank_schema_falls_back_to_sc_audit(string configured)
         {
             var settings = CreateSettings();
             if (configured != null)
@@ -18,7 +18,7 @@ namespace ServiceControl.Audit.Persistence.Tests
                 settings.PersisterSpecificSettings[EFPersistenceConfigurationBase.SchemaKey] = configured;
             }
 
-            Assert.That(EFPersistenceConfigurationBase.CreateSettings(settings).Schema, Is.EqualTo("audit"));
+            Assert.That(EFPersistenceConfigurationBase.CreateSettings(settings).Schema, Is.EqualTo("sc_audit"));
         }
 
         [TestCase("legacy")]

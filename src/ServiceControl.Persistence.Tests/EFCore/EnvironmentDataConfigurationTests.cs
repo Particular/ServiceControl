@@ -63,7 +63,8 @@ class EFEnvironmentDataProviderConfigurationTests
     }
 
     [TestCase(null, "Default")]
-    [TestCase("sc", "Default")]
+    [TestCase("sc_primary", "Default")]
+    [TestCase("sc", "Custom")]
     [TestCase("psw_sc", "Custom")]
     [TestCase("contoso", "Custom")]
     public async Task Should_report_the_schema_without_naming_it(string schema, string expected)
