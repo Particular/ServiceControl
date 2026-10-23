@@ -16,6 +16,10 @@
 
     static class SharedEmbeddedServer
     {
+        public const string LogsMinLevel = "Warn";
+
+        public static string LogPath => Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs", "Primary");
+
         public static async Task<EmbeddedDatabase> GetInstance(CancellationToken cancellationToken = default)
         {
             if (embeddedDatabase != null)
@@ -33,24 +37,24 @@
                 }
 
                 var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "PrimaryData");
-                var logPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs", "Primary");
-                var logsMode = "Operations";
+                var logPath = LogPath;
+                var logsMinLevel = LogsMinLevel;
 
                 var settings = new RavenPersisterSettings
                 {
                     DatabasePath = dbPath,
                     LogPath = logPath,
-                    LogsMode = logsMode,
+                    LogsMinLevel = logsMinLevel,
                     DatabaseMaintenancePort = PortUtility.GetAssignedOrAvailablePort(RavenPersisterSettings.DatabaseMaintenancePortDefault)
                 };
 
                 // TODO: See if more refactoring can be done between this and the RavenPersisterSettings above
-                var embeddedConfig = new EmbeddedDatabaseConfiguration(settings.ServerUrl, RavenPersisterSettings.DatabaseNameDefault, dbPath, logPath, logsMode) { RunInMemory = true };
+                var embeddedConfig = new EmbeddedDatabaseConfiguration(settings.ServerUrl, RavenPersisterSettings.DatabaseNameDefault, dbPath, logPath, logsMinLevel) { RunInMemory = true };
 
-                embeddedDatabase = EmbeddedDatabase.Start(embeddedConfig, new ApplicationLifetime(new NullLogger<ApplicationLifetime>()));
+                var server = EmbeddedDatabase.Start(embeddedConfig, new ApplicationLifetime(new NullLogger<ApplicationLifetime>()));
 
                 //make sure that the database is up
-                using var documentStore = await embeddedDatabase.Connect(cancellationToken);
+                using var documentStore = await server.Connect(cancellationToken);
 
                 var databaseSetup = new DatabaseSetup(settings, documentStore);
                 await databaseSetup.Execute(cancellationToken);
@@ -67,6 +71,7 @@
                     await documentStore.Maintenance.Server.SendAsync(cleanupOperation, CancellationToken.None);
                 }
 
+                embeddedDatabase = server;
                 return embeddedDatabase;
             }
             finally

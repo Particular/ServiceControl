@@ -43,27 +43,55 @@
 
         public static async Task EnsureServerVersion(IDocumentStore store, CancellationToken cancellationToken = default)
         {
-            // RavenDB compatibility policy is that the major/minor version of the server must be
-            // equal or higher than the client and ignores the patch version.
-            //
-            // https://docs.ravendb.net/6.2/client-api/faq/backward-compatibility/#compatibility---ravendb-42-and-higher
-            //
-            // > Starting with version 4.2, RavenDB clients are compatible with any server of their own version and higher.
-            // > E.g. -
-            // >
-            // > Client 4.2 is compatible with Server 4.2, Server 4.5, Server 5.2, and any other server of a higher version.
-
             var build = await store.Maintenance.Server.SendAsync(new GetBuildNumberOperation(), cancellationToken);
-            var serverProductVersion = new Version(build.ProductVersion);
 
-            var clientVersion = typeof(Raven.Client.Constants).Assembly.GetCustomAttributes<AssemblyInformationalVersionAttribute>().First().InformationalVersion;
-            var parts = clientVersion.Split('.');
-            var clientProductVersion = new Version($"{parts[0]}.{parts[1]}");
-
-            if (clientProductVersion > serverProductVersion)
+            if (!TryValidateServerVersion(build.FullVersion, ClientVersion, out var error))
             {
-                throw new Exception($"ServiceControl expects RavenDB Server version {clientProductVersion} or higher, but the server is using {serverProductVersion}.");
+                throw new Exception(error);
             }
+        }
+
+        public static bool TryValidateServerVersion(string serverFullVersion, Version clientVersion, out string error)
+        {
+            var clientMajorMinor = new Version(clientVersion.Major, clientVersion.Minor);
+
+            // FullVersion can carry a suffix such as "7.2.8-nightly-20260101-0100" or "7.2.7+commit"
+            var numericPart = serverFullVersion.Split('-', '+')[0];
+
+            if (!Version.TryParse(numericPart, out var serverVersion))
+            {
+                error = $"ServiceControl expects RavenDB Server version {clientMajorMinor} or higher, but could not read the server version '{serverFullVersion}'.";
+                return false;
+            }
+
+            // RavenDB ignores the patch for compatibility: https://docs.ravendb.net/7.2/client-api/faq/backward-compatibility
+            if (new Version(serverVersion.Major, serverVersion.Minor) < clientMajorMinor)
+            {
+                error = $"ServiceControl expects RavenDB Server version {clientMajorMinor} or higher, but the server is using {serverVersion}. " +
+                        "Upgrade the external RavenDB server or the servicecontrol-ravendb container before starting ServiceControl.";
+                return false;
+            }
+
+            // Compacting a migrated database corrupts its attachments index before 7.2.5: https://github.com/ravendb/ravendb/releases/tag/7.2.5
+            if (serverVersion.Major == 7 && serverVersion.Minor == 2 && serverVersion < FirstServerWithAttachmentsIndexFix)
+            {
+                error = $"RavenDB Server {serverVersion} can corrupt the attachments index of migrated databases during compaction. " +
+                        $"Upgrade the external RavenDB server or the servicecontrol-ravendb container to {FirstServerWithAttachmentsIndexFix} or later before starting ServiceControl.";
+                return false;
+            }
+
+            error = null;
+            return true;
+        }
+
+        static readonly Version FirstServerWithAttachmentsIndexFix = new(7, 2, 5);
+
+        static readonly Version ClientVersion = ParseClientVersion();
+
+        static Version ParseClientVersion()
+        {
+            var clientVersion = typeof(Raven.Client.Constants).Assembly.GetCustomAttributes<AssemblyInformationalVersionAttribute>().First().InformationalVersion;
+            return Version.Parse(clientVersion.Split('-', '+')[0]);
         }
 
         static readonly ILogger Logger = LoggerUtil.CreateStaticLogger(typeof(StartupChecks));

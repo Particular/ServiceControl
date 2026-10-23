@@ -46,7 +46,11 @@
       <MonitoringFilesToZip Include="$(ArtifactsPath)$(Monitoring)\**\*" />
       <InstanceSharedFilesToZip Include="@(DuplicateInstanceFiles->'$(ArtifactsPath)$(Primary)\%(Identity)')" />
       <RavenDBServerFilesToZip Include="$(ArtifactsPath)$(RavenDBServer)\**\*"
-                             Exclude="$(ArtifactsPath)$(RavenDBServer)\libcurl.dll;$(ArtifactsPath)$(RavenDBServer)\librdkafka.dll;$(ArtifactsPath)$(RavenDBServer)\librdkafkacpp.dll" />
+                             Exclude="$(ArtifactsPath)$(RavenDBServer)\libcurl.dll;$(ArtifactsPath)$(RavenDBServer)\librdkafka.dll;$(ArtifactsPath)$(RavenDBServer)\librdkafkacpp.dll;
+                                      $(ArtifactsPath)$(RavenDBServer)\onnxruntime.dll;$(ArtifactsPath)$(RavenDBServer)\onnxruntime.lib;
+                                      $(ArtifactsPath)$(RavenDBServer)\onnxruntime_providers_shared.dll;$(ArtifactsPath)$(RavenDBServer)\onnxruntime_providers_shared.lib;
+                                      $(ArtifactsPath)$(RavenDBServer)\onnxruntime-genai.dll;$(ArtifactsPath)$(RavenDBServer)\onnxruntime-genai.lib;
+                                      $(ArtifactsPath)$(RavenDBServer)\LocalEmbeddings\**" />
     </ItemGroup>
   </Target>
 

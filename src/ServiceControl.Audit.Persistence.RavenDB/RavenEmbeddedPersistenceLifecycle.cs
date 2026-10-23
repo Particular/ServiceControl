@@ -39,7 +39,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB
 
                 var serverConfig = databaseConfiguration.ServerConfiguration;
 
-                var embeddedConfig = new EmbeddedDatabaseConfiguration(serverConfig.ServerUrl, databaseConfiguration.Name, serverConfig.DbPath, serverConfig.LogPath, serverConfig.LogsMode);
+                var embeddedConfig = new EmbeddedDatabaseConfiguration(serverConfig.ServerUrl, databaseConfiguration.Name, serverConfig.DbPath, serverConfig.LogPath, serverConfig.LogsMinLevel);
 
                 database = EmbeddedDatabase.Start(embeddedConfig, lifetime);
 

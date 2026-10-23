@@ -109,14 +109,14 @@ namespace ServiceControl.Audit.Persistence.RavenDB
 
                 var logPath = GetLogPath(settings);
 
-                var logsMode = "Operations";
+                var logsMinLevel = "Warn";
 
                 if (settings.PersisterSpecificSettings.TryGetValue(RavenDbLogLevelKey, out var ravenDbLogLevel))
                 {
-                    logsMode = RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel, Logger);
+                    logsMinLevel = RavenDbLogLevelToLogsMinLevelMapper.Map(ravenDbLogLevel, Logger);
                 }
 
-                serverConfiguration = new ServerConfiguration(dbPath, serverUrl, logPath, logsMode);
+                serverConfiguration = new ServerConfiguration(dbPath, serverUrl, logPath, logsMinLevel);
             }
 
             var dataSpaceRemainingThreshold = CheckFreeDiskSpace.Parse(settings.PersisterSpecificSettings, Logger);
