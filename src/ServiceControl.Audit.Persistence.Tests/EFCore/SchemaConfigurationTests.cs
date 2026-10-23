@@ -10,7 +10,7 @@ namespace ServiceControl.Audit.Persistence.Tests
         [TestCase(null)]
         [TestCase("")]
         [TestCase("   ")]
-        public void Absent_or_blank_schema_falls_back_to_psw_audit(string configured)
+        public void Absent_or_blank_schema_falls_back_to_audit(string configured)
         {
             var settings = CreateSettings();
             if (configured != null)
@@ -18,16 +18,19 @@ namespace ServiceControl.Audit.Persistence.Tests
                 settings.PersisterSpecificSettings[EFPersistenceConfigurationBase.SchemaKey] = configured;
             }
 
-            Assert.That(EFPersistenceConfigurationBase.CreateSettings(settings).Schema, Is.EqualTo("psw_audit"));
+            Assert.That(EFPersistenceConfigurationBase.CreateSettings(settings).Schema, Is.EqualTo("audit"));
         }
 
-        [Test]
-        public void Configured_schema_is_used()
+        [TestCase("legacy")]
+        [TestCase("dbo")]
+        [TestCase("public")]
+        [TestCase("psw_audit")]
+        public void Configured_schema_is_used(string schema)
         {
             var settings = CreateSettings();
-            settings.PersisterSpecificSettings[EFPersistenceConfigurationBase.SchemaKey] = "legacy";
+            settings.PersisterSpecificSettings[EFPersistenceConfigurationBase.SchemaKey] = schema;
 
-            Assert.That(EFPersistenceConfigurationBase.CreateSettings(settings).Schema, Is.EqualTo("legacy"));
+            Assert.That(EFPersistenceConfigurationBase.CreateSettings(settings).Schema, Is.EqualTo(schema));
         }
 
         static PersistenceSettings CreateSettings()

@@ -5,7 +5,7 @@ public abstract class EFPersisterSettings : PersistenceSettings
     public static readonly TimeSpan MigrationCommandTimeout = TimeSpan.FromMinutes(40);
 
     public const int DefaultCommandTimeout = 30;
-    public const string DefaultSchema = "psw_sc";
+    public const string DefaultSchema = "sc";
     public const int DefaultExternalIntegrationsDispatchingBatchSize = 100;
     public static readonly TimeSpan DefaultEventsRetentionPeriod = TimeSpan.FromDays(14);
 

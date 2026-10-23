@@ -42,19 +42,22 @@ class SchemaConfigurationTests
     [TestCase(null)]
     [TestCase("")]
     [TestCase("   ")]
-    public void Absent_or_blank_schema_falls_back_to_psw_sc(string configured)
+    public void Absent_or_blank_schema_falls_back_to_sc(string configured)
     {
         Environment.SetEnvironmentVariable(SchemaVariable, configured);
 
-        Assert.That(CreateSettings().Schema, Is.EqualTo("psw_sc"));
+        Assert.That(CreateSettings().Schema, Is.EqualTo("sc"));
     }
 
-    [Test]
-    public void Configured_schema_is_used()
+    [TestCase("legacy")]
+    [TestCase("dbo")]
+    [TestCase("public")]
+    [TestCase("psw_sc")]
+    public void Configured_schema_is_used(string schema)
     {
-        Environment.SetEnvironmentVariable(SchemaVariable, "legacy");
+        Environment.SetEnvironmentVariable(SchemaVariable, schema);
 
-        Assert.That(CreateSettings().Schema, Is.EqualTo("legacy"));
+        Assert.That(CreateSettings().Schema, Is.EqualTo(schema));
     }
 
     static EFPersisterSettings CreateSettings() =>

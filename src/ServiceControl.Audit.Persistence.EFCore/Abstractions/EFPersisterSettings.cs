@@ -7,7 +7,7 @@ public class EFPersisterSettings
     public static readonly TimeSpan MigrationCommandTimeout = TimeSpan.FromMinutes(40);
 
     public const int DefaultCommandTimeout = 30;
-    public const string DefaultSchema = "psw_audit";
+    public const string DefaultSchema = "audit";
 
     public required string ConnectionString { get; init; }
 

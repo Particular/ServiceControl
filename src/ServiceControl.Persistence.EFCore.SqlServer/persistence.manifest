@@ -12,7 +12,7 @@
     {
       "Name": "ServiceControl/Database/Schema",
       "Mandatory": false,
-      "DefaultValue": "psw_sc"
+      "DefaultValue": "sc"
     },
     {
       "Name": "ServiceControl/Database/CommandTimeout",
