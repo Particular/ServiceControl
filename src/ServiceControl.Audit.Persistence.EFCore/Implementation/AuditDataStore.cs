@@ -126,9 +126,11 @@ sealed class AuditDataStore(
                 .Take(SagaHistoryCap)
                 .ToListAsync(token);
 
+            var version = DataVersion.OverRows([("changes", snapshots.Count)], snapshots, snapshot => [snapshot.CreatedOn, snapshot.Id]);
+
             if (snapshots.Count == 0)
             {
-                return QueryResult<SagaHistory>.Empty();
+                return QueryResult<SagaHistory>.Empty(new QueryStatsInfo(version, 0));
             }
 
             var history = new SagaHistory
@@ -138,8 +140,6 @@ sealed class AuditDataStore(
                 SagaType = snapshots[0].SagaType,
                 Changes = [.. snapshots.Select(ToStateChange)]
             };
-
-            var version = DataVersion.OverRows([("changes", snapshots.Count)], snapshots, snapshot => [snapshot.CreatedOn, snapshot.Id]);
 
             return new QueryResult<SagaHistory>(history, new QueryStatsInfo(version, snapshots.Count));
         }, cancellationToken);
@@ -164,6 +164,7 @@ sealed class AuditDataStore(
 
             IList<MessagesView> results = [.. rows.Select(row => row.ToMessagesView())];
 
+            // Audit rows are only ever inserted or deleted, so a row's identity stands for every field the page shows.
             var version = DataVersion.OverRows([("messages", total)], rows, row => [row.CreatedOn, row.Id]);
 
             return new QueryResult<IList<MessagesView>>(results, new QueryStatsInfo(version, total));
