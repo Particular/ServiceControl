@@ -43,10 +43,10 @@
                 // TODO: See if more refactoring can be done in configuration classes
                 var embeddedConfig = new EmbeddedDatabaseConfiguration(serverConfig.ServerUrl, databaseConfiguration.Name, serverConfig.DbPath, serverConfig.LogPath, serverConfig.LogsMode);
 
-                embeddedDatabase = EmbeddedDatabase.Start(embeddedConfig, new ApplicationLifetime(new NullLogger<ApplicationLifetime>()));
+                var server = EmbeddedDatabase.Start(embeddedConfig, new ApplicationLifetime(new NullLogger<ApplicationLifetime>()));
 
                 //make sure that the database is up
-                using var documentStore = await embeddedDatabase.Connect(cancellationToken);
+                using var documentStore = await server.Connect(cancellationToken);
 
                 var databaseSetup = new DatabaseSetup(databaseConfiguration);
                 await databaseSetup.Execute(documentStore, cancellationToken);
@@ -63,6 +63,7 @@
                     await documentStore.Maintenance.Server.SendAsync(cleanupOperation, CancellationToken.None);
                 }
 
+                embeddedDatabase = server;
                 return embeddedDatabase;
             }
             finally
