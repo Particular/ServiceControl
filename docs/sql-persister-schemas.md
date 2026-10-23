@@ -12,3 +12,5 @@ The SQL Server and PostgreSQL persisters keep all of an instance's tables in one
 * The primary instance's usage report lists `Storage.Schema` as `Default` for `sc` and `Custom` for other configured schemas. See [Usage report contents](usage-report.md).
 
 ServiceControl does not rename or move existing schemas or tables. An instance that already holds data must set `Database/Schema` to the schema that contains it, such as `dbo` on SQL Server, `public` on PostgreSQL, or a custom schema. Otherwise, the instance uses the default schema instead of the schema containing its existing data.
+
+The primary instance records applied migrations in the `__ErrorMigrationsHistory` table of its schema, as the audit instance does with `__AuditMigrationsHistory`. An existing primary database created with the default `__EFMigrationsHistory` table must have that table renamed to `__ErrorMigrationsHistory` before the instance starts. Otherwise, setup runs the migrations again and fails on the existing tables.

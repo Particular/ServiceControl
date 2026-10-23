@@ -50,13 +50,7 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
             {
                 sqlOptions.CommandTimeout(settings.CommandTimeout);
 
-                if (settings.Schema is not null)
-                {
-                    // Its own history table per schema, so schemas sharing a database migrate
-                    // independently. Without this EF leaves the history table unqualified and every
-                    // schema reads the same one.
-                    sqlOptions.MigrationsHistoryTable(HistoryRepository.DefaultTableName, settings.Schema);
-                }
+                sqlOptions.MigrationsHistoryTable(ServiceControlDbContext.MigrationsHistoryTableName, settings.Schema);
 
                 if (settings.EnableRetryOnFailure)
                 {

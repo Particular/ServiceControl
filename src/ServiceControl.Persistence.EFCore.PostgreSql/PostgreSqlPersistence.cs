@@ -50,13 +50,7 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersiste
             {
                 npgsqlOptions.CommandTimeout(settings.CommandTimeout);
 
-                if (settings.Schema is not null)
-                {
-                    // Its own history table per schema, so schemas sharing a database migrate
-                    // independently. Without this EF leaves the history table unqualified and every
-                    // schema reads the same one.
-                    npgsqlOptions.MigrationsHistoryTable(HistoryRepository.DefaultTableName, settings.Schema);
-                }
+                npgsqlOptions.MigrationsHistoryTable(ServiceControlDbContext.MigrationsHistoryTableName, settings.Schema);
 
                 if (settings.EnableRetryOnFailure)
                 {
