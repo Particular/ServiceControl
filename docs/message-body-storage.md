@@ -1,10 +1,10 @@
 # Message body storage
 
-The SQL Server and PostgreSQL persisters for ServiceControl.Audit keep every message body. A small valid text body stays in the database row. Any other body goes to external storage: a directory, an Azure Blob container, or an S3 bucket. The providers live in `src/ServiceControl.Persistence.BodyStorage` and are shared with the Error (primary) persisters.
+The SQL Server and PostgreSQL persisters for ServiceControl.Audit can keep every message body. A small valid text body stays in the database row. With external storage configured, any other body goes there: a directory, an Azure Blob container, or an S3 bucket. Without it, the instance discards bodies over the size limit, as RavenDB does, and bodies that cannot be stored as text. The providers live in `src/ServiceControl.Persistence.BodyStorage` and are shared with the Error (primary) persisters.
 
 ## Placement rules
 
-`MaxBodySizeToStore` (default 100 KB) is the inline threshold. It does not limit the size of a stored body.
+`MaxBodySizeToStore` (default 100 KB) is the inline threshold. With external storage configured, it does not limit the size of a stored body. The table describes that case; the next section describes the case without it.
 
 | Body | Where it goes | `BodyState` | Inline `BodyText` |
 | --- | --- | --- | --- |
@@ -16,6 +16,12 @@ The SQL Server and PostgreSQL persisters for ServiceControl.Audit keep every mes
 External storage always holds the complete body. Only the inline prefix is searchable, as before.
 
 Rows written before external storage existed keep their meaning: `TooLarge` answers 204 and `NotText` answers 404. The bodies behind those rows were discarded at ingestion and cannot be recovered. `External` is a new value of the existing integer column, so there is no schema change.
+
+## Without external storage
+
+When `MessageBody/StorageType` is not set, nothing is written outside the database and startup needs no provider. Valid UTF-8 text within `MaxBodySizeToStore` stays inline as above. Text over the limit is dropped with the same inline search prefix (`TooLarge`, answers 204). Other bodies are dropped (`NotText`, answers 404; a binary body over the limit is `TooLarge`).
+
+Removing the storage settings from an instance that used them leaves its `External` rows in place. Their bodies answer 204, and retention no longer deletes them from the old location. Clean that location manually.
 
 ## Ordering and failures
 
@@ -38,13 +44,15 @@ Prefixes must not be empty and must not contain wildcard or path characters. SQL
 
 ## Configuration
 
-External storage is required. The instance fails to start when `MessageBody/StorageType` is missing, which includes existing SQL Server and PostgreSQL Audit instances that upgrade without adding it. Setup creates the directory, container, or bucket.
+External storage is optional for Audit instances using SQL Server or PostgreSQL. An Audit instance without `MessageBody/StorageType` starts without it. External storage remains required for Error (primary) instances using these persisters; they fail to start without `ServiceControl/MessageBody/StorageType`. See [Error body placement](error-ingestion-design.md#body-placement).
 
-Settings use the `ServiceControl.Audit/` prefix in the application settings file. The validation matches the Error instance, whose settings use the `ServiceControl/` prefix.
+An invalid value, or missing settings for the chosen type, still fails at startup. Setup creates the directory, container, or bucket.
+
+Audit settings use the `ServiceControl.Audit/` prefix in the application settings file. Provider-specific validation matches the Error instance, whose settings use the `ServiceControl/` prefix.
 
 | Key | Applies to | Default |
 | --- | --- | --- |
-| `MessageBody/StorageType` | all, required: `FileSystem`, `AzureBlob`, or `S3` | none |
+| `MessageBody/StorageType` | all, optional: `FileSystem`, `AzureBlob`, or `S3` | none |
 | `MessageBody/MinCompressionSize` | all, minimum body size in bytes to compress | 4096 |
 | `MessageBody/FileSystem/StoragePath` | `FileSystem`, required | none |
 | `MessageBody/FileSystem/DataSpaceRemainingThreshold` | `FileSystem`, free space percentage below which the custom check fails | 15 |

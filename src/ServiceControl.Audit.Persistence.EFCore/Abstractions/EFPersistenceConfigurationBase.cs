@@ -37,7 +37,8 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
             CommandTimeout = ReadInt(specific, CommandTimeoutKey, EFPersisterSettings.DefaultCommandTimeout),
             QueryTimeout = QueryTimeLimit.Validate(ReadInt(specific, QueryTimeoutInSecondsKey, QueryTimeLimit.DefaultSeconds), QueryTimeoutSettingName, logger),
             AuditRetentionPeriod = settings.AuditRetentionPeriod,
-            BodyStorage = BodyStorageSettingsParser.Parse(specific, settings.MaxBodySizeToStore)
+            BodyStorage = BodyStorageSettingsParser.Parse(specific, settings.MaxBodySizeToStore),
+            MaxBodySizeToStore = BodyStorageSettingsParser.ReadMaxBodySizeToStore(settings.MaxBodySizeToStore)
         };
     }
 

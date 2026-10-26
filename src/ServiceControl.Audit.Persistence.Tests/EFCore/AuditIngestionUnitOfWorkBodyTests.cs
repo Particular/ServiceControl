@@ -32,7 +32,8 @@ namespace ServiceControl.Audit.Persistence.Tests
             {
                 ConnectionString = "unused",
                 AuditRetentionPeriod = TimeSpan.FromDays(1),
-                BodyStorage = new FileSystemBodyStorageSettings { StoragePath = "unused", MaxBodySizeToStore = Max }
+                BodyStorage = new FileSystemBodyStorageSettings { StoragePath = "unused" },
+                MaxBodySizeToStore = Max
             };
             unitOfWork = new AuditIngestionUnitOfWork(scopes, storage, settings, CreatedOn);
         }
@@ -86,6 +87,17 @@ namespace ServiceControl.Audit.Persistence.Tests
             await unitOfWork.RecordProcessedMessage(Message("text/plain"), body);
 
             Assert.That(storage.Written[0].Body, Is.EqualTo(body));
+        }
+
+        [Test]
+        public async Task Without_a_body_store_messages_can_be_recorded_and_disposed()
+        {
+            var noStore = new AuditIngestionUnitOfWork(scopes, null, new EFPersisterSettings { ConnectionString = "unused", AuditRetentionPeriod = TimeSpan.FromDays(1), MaxBodySizeToStore = Max }, CreatedOn);
+
+            await noStore.RecordProcessedMessage(Message("application/octet-stream"), new byte[] { 1 });
+            await noStore.RecordProcessedMessage(Message("text/plain"), Encoding.UTF8.GetBytes(new string('a', Max * 3)));
+
+            Assert.That(async () => await noStore.DisposeAsync(), Throws.Nothing);
         }
 
         [Test]

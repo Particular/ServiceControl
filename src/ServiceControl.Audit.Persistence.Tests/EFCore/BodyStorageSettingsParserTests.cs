@@ -26,12 +26,8 @@ namespace ServiceControl.Audit.Persistence.Tests
             BodyStorageSettingsParser.Parse(Settings(values), MaxBodySizeToStore);
 
         [Test]
-        public void The_storage_type_is_required()
-        {
-            var exception = Assert.Throws<InvalidOperationException>(() => Parse());
-
-            Assert.That(exception.Message, Does.Contain("MessageBody/StorageType"));
-        }
+        public void No_storage_type_means_no_external_storage() =>
+            Assert.That(Parse(), Is.Null);
 
         [Test]
         public void An_unknown_storage_type_is_rejected() =>

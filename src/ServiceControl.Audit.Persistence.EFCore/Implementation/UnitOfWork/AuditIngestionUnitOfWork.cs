@@ -14,7 +14,7 @@ using ServiceControl.Audit.Persistence.UnitOfWork;
 using ServiceControl.Persistence.BodyStorage;
 using ServiceControl.SagaAudit;
 
-sealed class AuditIngestionUnitOfWork(IServiceScopeFactory scopeFactory, IBodyStoragePersistence bodyStorage, EFPersisterSettings settings, DateTime createdOn) : IAuditIngestionUnitOfWork
+sealed class AuditIngestionUnitOfWork(IServiceScopeFactory scopeFactory, IBodyStoragePersistence? bodyStorage, EFPersisterSettings settings, DateTime createdOn) : IAuditIngestionUnitOfWork
 {
     readonly List<AuditMessageEntity> messages = [];
     readonly List<SagaSnapshotEntity> snapshots = [];
@@ -25,11 +25,11 @@ sealed class AuditIngestionUnitOfWork(IServiceScopeFactory scopeFactory, IBodySt
         var headers = processedMessage.Headers;
         var metadata = processedMessage.MessageMetadata;
         var uniqueMessageId = ToGuid(processedMessage.UniqueMessageId);
-        var (bodyState, bodyText) = MessageBodyClassifier.Classify(headers, body, settings.BodyStorage.MaxBodySizeToStore);
+        var (bodyState, bodyText) = MessageBodyClassifier.Classify(headers, body, settings.MaxBodySizeToStore, bodyStorage is not null);
         var bodyId = AuditBodyId.Format(createdOn, uniqueMessageId);
         var contentType = headers.GetValueOrDefault(Headers.ContentType, "text/plain");
 
-        if (bodyState == BodyState.External)
+        if (bodyStorage is not null && bodyState == BodyState.External)
         {
             bodyWrites.Add(bodyStorage.WriteBody(bodyId, body, contentType, cancellationToken));
         }

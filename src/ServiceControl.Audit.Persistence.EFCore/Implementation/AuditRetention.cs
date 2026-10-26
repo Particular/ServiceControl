@@ -11,12 +11,12 @@ using ServiceControl.Persistence.BodyStorage;
 sealed class AuditRetention(
     IServiceScopeFactory scopeFactory,
     IAuditPartitionManager partitions,
-    IBodyStoragePersistence bodyStorage,
     IRetentionLock retentionLock,
     AuditRetentionCustomCheck.State retentionState,
     EFPersisterSettings settings,
     TimeProvider timeProvider,
-    ILogger<AuditRetention> logger) : BackgroundService
+    ILogger<AuditRetention> logger,
+    IBodyStoragePersistence? bodyStorage = null) : BackgroundService
 {
     // Stays under the 5,000 locks at which SQL Server escalates a delete to a table lock.
     const int BatchSize = 4_000;
@@ -117,7 +117,10 @@ sealed class AuditRetention(
         foreach (var expired in await partitions.ListExpired(dbContext, keepFrom, cancellationToken))
         {
             // Bodies go first: a failure here leaves the rows in place, so the next sweep retries the same hour.
-            await bodyStorage.DeleteBodiesWithPrefix(partitions.BodyIdPrefix(expired), cancellationToken);
+            if (bodyStorage is not null)
+            {
+                await bodyStorage.DeleteBodiesWithPrefix(partitions.BodyIdPrefix(expired), cancellationToken);
+            }
 
             DropResult drop;
             do

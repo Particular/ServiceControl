@@ -18,7 +18,10 @@ sealed class DatabaseSetup(
 {
     public async Task StartAsync(CancellationToken cancellationToken = default)
     {
-        await BodyStorageProvisioner.Provision(settings.BodyStorage, cancellationToken);
+        if (settings.BodyStorage is not null)
+        {
+            await BodyStorageProvisioner.Provision(settings.BodyStorage, cancellationToken);
+        }
 
         await using var scope = scopeFactory.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AuditDbContext>();

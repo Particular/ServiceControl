@@ -74,6 +74,8 @@ abstract class EFPersistenceBase(EFPersisterSettings settings) : IPersistence
                 services.AddSingleton(s3);
                 services.AddSingleton<IBodyStoragePersistence, S3BodyStoragePersistence>();
                 break;
+            case null:
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(settings), settings.BodyStorage, "Unknown body storage type.");
         }

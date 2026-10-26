@@ -20,7 +20,8 @@ public class EFPersisterSettings
     public int CommandTimeout { get; init; } = DefaultCommandTimeout;
     public TimeSpan QueryTimeout { get; init; } = QueryTimeLimit.Default;
     public required TimeSpan AuditRetentionPeriod { get; init; }
-    public required BodyStorageSettings BodyStorage { get; init; }
+    public BodyStorageSettings? BodyStorage { get; init; }
+    public int MaxBodySizeToStore { get; init; } = BodyStorageSettings.DefaultMaxBodySizeToStore;
     public int MaxRetryCount { get; init; } = 5;
     public int MaxRetryDelayInSeconds { get; init; } = 30;
     public bool EnableRetryOnFailure { get; init; } = true;

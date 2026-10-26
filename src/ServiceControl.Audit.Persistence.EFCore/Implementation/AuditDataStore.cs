@@ -16,8 +16,8 @@ sealed class AuditDataStore(
     IServiceScopeFactory scopeFactory,
     EFPersisterSettings settings,
     IFullTextSearchDialect fullTextSearch,
-    IBodyStoragePersistence bodyStorage,
-    TimeProvider timeProvider) : DataStoreBase(scopeFactory, settings), IAuditMessagesViewDataStore, ISagaHistoryDataStore
+    TimeProvider timeProvider,
+    IBodyStoragePersistence? bodyStorage = null) : DataStoreBase(scopeFactory, settings), IAuditMessagesViewDataStore, ISagaHistoryDataStore
 {
     public const int TotalCountCap = 100_000;
 
@@ -88,6 +88,12 @@ sealed class AuditDataStore(
                 return MessageBodyView.NotFound();
             case BodyState.External:
                 // Read outside the query so the stream is not tied to the query timeout.
+                // The store can be removed after rows were written to it.
+                if (bodyStorage is null)
+                {
+                    return MessageBodyView.NoContent();
+                }
+
                 var external = await bodyStorage.ReadBody(AuditBodyId.Format(body.CreatedOn, body.UniqueMessageId), cancellationToken);
 
                 return external is null

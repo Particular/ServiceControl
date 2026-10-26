@@ -46,9 +46,15 @@ static class BodyStorageSettingsParser
         MinCompressionSizeKey
     ];
 
-    public static BodyStorageSettings Parse(IDictionary<string, string> specific, int maxBodySizeToStore)
+    // No storage type means no external storage. A configured but invalid value still fails.
+    public static BodyStorageSettings? Parse(IDictionary<string, string> specific, int maxBodySizeToStore)
     {
-        BodyStorageSettings bodyStorage = ReadStorageType(specific) switch
+        if (ReadStorageType(specific) is not { } storageType)
+        {
+            return null;
+        }
+
+        BodyStorageSettings bodyStorage = storageType switch
         {
             BodyStorageType.FileSystem => new FileSystemBodyStorageSettings
             {
@@ -77,13 +83,13 @@ static class BodyStorageSettingsParser
         return bodyStorage;
     }
 
-    static BodyStorageType ReadStorageType(IDictionary<string, string> specific)
+    static BodyStorageType? ReadStorageType(IDictionary<string, string> specific)
     {
         var raw = Get(specific, StorageTypeKey);
 
         if (raw is null)
         {
-            throw new InvalidOperationException($"{StorageTypeKey} is required. Valid values: {string.Join(", ", Enum.GetNames<BodyStorageType>())}.");
+            return null;
         }
 
         if (!Enum.TryParse<BodyStorageType>(raw, ignoreCase: true, out var value) || !Enum.IsDefined(value))
@@ -147,7 +153,7 @@ static class BodyStorageSettingsParser
             : threshold;
     }
 
-    static int ReadMaxBodySizeToStore(int maxBodySizeToStore)
+    internal static int ReadMaxBodySizeToStore(int maxBodySizeToStore)
     {
         if (maxBodySizeToStore > 0)
         {

@@ -19,7 +19,7 @@
     },
     {
       "Name": "ServiceControl.Audit/MessageBody/StorageType",
-      "Mandatory": true
+      "Mandatory": false
     },
     {
       "Name": "ServiceControl.Audit/MessageBody/FileSystem/StoragePath",
