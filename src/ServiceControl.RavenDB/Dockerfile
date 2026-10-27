@@ -11,6 +11,7 @@ USER ravendb
 
 ENV RAVEN_License_Eula_Accepted=true \
     RAVEN_License_Path=/usr/lib/ravendb/servicecontrol-license.json \
+    RAVEN_License_ThrowOnInvalidOrMissingLicense=true \
     RAVEN_Setup_Mode=None \
     RAVEN_Storage_EnablePrefetching=false
 
