@@ -63,7 +63,7 @@ class EFEnvironmentDataProviderConfigurationTests
     }
 
     [TestCase(null, "Default")]
-    [TestCase("sc_primary", "Default")]
+    [TestCase("sc_primary", "Custom")]
     [TestCase("sc", "Custom")]
     [TestCase("psw_sc", "Custom")]
     [TestCase("contoso", "Custom")]
