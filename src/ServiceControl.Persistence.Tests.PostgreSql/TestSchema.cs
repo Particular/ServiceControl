@@ -9,6 +9,9 @@ static class TestSchema
     public static Task Create(string connectionString, string schema, CancellationToken cancellationToken = default) =>
         Execute(connectionString, $"CREATE SCHEMA IF NOT EXISTS \"{schema}\"", cancellationToken);
 
+    public static Task CreateTable(string connectionString, string schema, string table, CancellationToken cancellationToken = default) =>
+        Execute(connectionString, $"CREATE TABLE \"{schema}\".\"{table}\" (id int)", cancellationToken);
+
     public static Task Drop(string connectionString, string schema, CancellationToken cancellationToken = default) =>
         Execute(connectionString, $"DROP SCHEMA IF EXISTS \"{schema}\" CASCADE", cancellationToken);
 

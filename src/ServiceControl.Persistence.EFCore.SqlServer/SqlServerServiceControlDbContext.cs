@@ -27,4 +27,9 @@ public class SqlServerServiceControlDbContext(DbContextOptions<SqlServerServiceC
         }
         return false;
     }
+
+    protected override async Task<bool> TableExists(string table, CancellationToken cancellationToken = default) =>
+        await Database
+            .SqlQueryRaw<int>("SELECT CASE WHEN EXISTS (SELECT 1 FROM sys.tables WHERE name = {0} AND schema_id = SCHEMA_ID(COALESCE(CAST({1} AS sysname), SCHEMA_NAME()))) THEN 1 ELSE 0 END AS [Value]", table, Schema ?? (object)DBNull.Value)
+            .SingleAsync(cancellationToken) == 1;
 }

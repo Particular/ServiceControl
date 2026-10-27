@@ -7,8 +7,8 @@ The SQL Server and PostgreSQL persisters keep all of an instance's tables in one
 | Primary (error) | `sc_primary` |
 | Audit | `sc_audit` |
 
-* ServiceControl will attempt to create the configured schema if it does not already exist. If using a connection without this permission it should be created in advance with the appropriate rights granted to the connection user.
-* A primary and an audit instance can share one schema, but sharing is not recommended.
+* ServiceControl does not create the schema. Create it, and grant the configured user rights on it, before running setup.
+* A primary and an audit instance cannot share a schema. Setup fails before it applies any migration when the other instance's migrations history table is in the target schema: the primary rejects `__AuditMigrationsHistory`, and the audit instance rejects `__EFMigrationsHistory`.
 * The primary instance's usage report lists `Storage.Schema` as `Default` for `sc_primary` and `Custom` for other configured schemas. See [Usage report contents](usage-report.md).
 
 ServiceControl does not rename or move existing schemas or tables. An instance that already holds data must set `Database/Schema` to the schema that contains it, such as `dbo` on SQL Server, `public` on PostgreSQL, or a custom schema. Otherwise, the instance uses the default schema instead of the schema containing its existing data.

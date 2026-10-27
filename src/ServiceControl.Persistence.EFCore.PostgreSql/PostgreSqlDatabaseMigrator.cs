@@ -15,6 +15,7 @@ class PostgreSqlDatabaseMigrator(ServiceControlDbContext dbContext, ILogger<Post
         dbContext.Database.SetCommandTimeout(EFPersisterSettings.MigrationCommandTimeout);
 
         await RequireSchema(cancellationToken);
+        await dbContext.RequireNoAuditMigrationsHistory(cancellationToken);
         await dbContext.Database.MigrateAsync(cancellationToken);
 
         dbContext.Database.SetCommandTimeout(previousTimeout);

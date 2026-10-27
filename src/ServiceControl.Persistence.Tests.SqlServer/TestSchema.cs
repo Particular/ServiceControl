@@ -10,6 +10,9 @@ static class TestSchema
     public static Task Create(string connectionString, string schema, CancellationToken cancellationToken = default) =>
         Execute(connectionString, CreateSchemaSql, schema, cancellationToken);
 
+    public static Task CreateTable(string connectionString, string schema, string table, CancellationToken cancellationToken = default) =>
+        Execute(connectionString, $"DECLARE @create nvarchar(max) = N'CREATE TABLE ' + QUOTENAME(@schema) + N'.' + QUOTENAME(N'{table}') + N' (Id int)'; EXEC sp_executesql @create;", schema, cancellationToken);
+
     // SQL Server has no DROP SCHEMA CASCADE, so the objects have to go first, and the full-text
     // index has to go before the table it is on.
     public static Task Drop(string connectionString, string schema, CancellationToken cancellationToken = default) =>
