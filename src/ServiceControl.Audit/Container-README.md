@@ -7,7 +7,7 @@ The `particular/servicecontrol-audit` image is part of the Particular Service Pl
 | [`particular/servicecontrol`](https://hub.docker.com/r/particular/servicecontrol) | [Instance Documentation](https://docs.particular.net/servicecontrol/servicecontrol-instances/)<br/>[Container Documentation](https://docs.particular.net/servicecontrol/servicecontrol-instances/deployment/containers) | The primary/error instance, which includes error handling and recoverability |
 | [`particular/servicecontrol-audit`](https://hub.docker.com/r/particular/servicecontrol-audit) | [Instance Documentation](https://docs.particular.net/servicecontrol/audit-instances/)<br/>[Container Documentation](https://docs.particular.net/servicecontrol/audit-instances/deployment/containers) | The audit instance, which stores audit data, and can be scaled out to multiple audit instances |
 | [`particular/servicecontrol-monitoring`](https://hub.docker.com/r/particular/servicecontrol-monitoring) | [Instance Documentation](https://docs.particular.net/servicecontrol/monitoring-instances/)<br/>[Container Documentation](https://docs.particular.net/servicecontrol/monitoring-instances/deployment/containers) | The monitoring instance, which tracks runtime information like throughput, queue length, and other metrics |
-| [`particular/servicecontrol-ravendb`](https://hub.docker.com/r/particular/servicecontrol-ravendb) | [Container Documentation](https://docs.particular.net/servicecontrol/ravendb/containers) | The database used by the error/audit instances |
+| [`particular/servicecontrol-ravendb`](https://hub.docker.com/r/particular/servicecontrol-ravendb) | [Container Documentation](https://docs.particular.net/servicecontrol/ravendb/containers) | The database for error/audit instances using RavenDB persistence |
 | [`particular/servicepulse`](https://hub.docker.com/r/particular/servicepulse) | [App Documentation](https://docs.particular.net/servicepulse/)<br/>[Container Documentation](https://docs.particular.net/servicepulse/containerization/) | The web application that provides a front end for recoverability and monitoring features |
 
 ## Usage
@@ -18,9 +18,28 @@ The following is the most basic way to create an audit container using [Docker](
 docker run -d --name audit -p 44444:44444 \
     -e TRANSPORTTYPE=RabbitMQ.QuorumConventionalRouting \
     -e CONNECTIONSTRING="host=rabbitmq" \
+    -e PERSISTENCETYPE=RavenDB \
     -e RAVENDB_CONNECTIONSTRING="http://audit-db:8080" \
     particular/servicecontrol-audit:latest --setup-and-run
 ```
+
+### Persistence
+
+Set `PERSISTENCETYPE` to select the database. RavenDB is the default.
+
+| `PERSISTENCETYPE` | Connection string environment variable |
+|-------------------|---------------------------------------|
+| `RavenDB` | `RAVENDB_CONNECTIONSTRING` |
+| `SQLServer` | `DATABASE_CONNECTIONSTRING` |
+| `PostgreSQL` | `DATABASE_CONNECTIONSTRING` |
+
+For SQL Server and PostgreSQL, create the database before running setup. The `particular/servicecontrol-ravendb` image is not needed for either relational database. Audit instances store message bodies in the database and do not require separate message body storage settings or volumes.
+
+The audit instance uses the `sc_audit` schema by default. Set `DATABASE_SCHEMA` to override it. Error and audit instances can share a database but must use different schemas.
+
+Setup creates a missing schema if the database user has permission. Otherwise, create the schema and grant the required permissions before running setup. For an existing instance, set `DATABASE_SCHEMA` to the schema containing its data; ServiceControl does not move existing tables. See [SQL persister schemas](https://github.com/Particular/ServiceControl/blob/master/docs/sql-persister-schemas.md).
+
+These settings also accept the `SERVICECONTROL_AUDIT_` prefix, for example `SERVICECONTROL_AUDIT_PERSISTENCETYPE` and `SERVICECONTROL_AUDIT_DATABASE_CONNECTIONSTRING`. Use prefixed settings when error and audit containers share environment configuration but need different persistence settings.
 
 For all other usage information see the [official container documentation](https://docs.particular.net/servicecontrol/audit-instances/deployment/containers).
 
