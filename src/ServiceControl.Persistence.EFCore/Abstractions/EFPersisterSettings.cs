@@ -13,7 +13,7 @@ public abstract class EFPersisterSettings : PersistenceSettings
     public required string ConnectionString { get; set; }
 
     /// <summary>
-    /// The schema the persister owns, or null to use the provider default. Validated on assignment
+    /// The schema the persister owns, or null to use the connection or provider default. Validated on assignment
     /// because it reaches raw DDL and dialect SQL by interpolation.
     /// </summary>
     public string? Schema

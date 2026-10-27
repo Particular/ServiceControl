@@ -2,6 +2,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using ServiceControl.Persistence.EFCore.DbContexts;
 
 /// <summary>
 /// Design-time factory used by the dotnet-ef tooling (e.g. dotnet ef migrations add).
@@ -14,7 +15,7 @@ public class PostgreSqlServiceControlDbContextFactory : IDesignTimeDbContextFact
             ?? "Host=localhost;Port=5432;Database=servicecontrol;Username=postgres;Password=postgres";
 
         var optionsBuilder = new DbContextOptionsBuilder<PostgreSqlServiceControlDbContext>();
-        optionsBuilder.UseNpgsql(connectionString);
+        optionsBuilder.UseNpgsql(connectionString, npgsqlOptions => npgsqlOptions.MigrationsHistoryTable(ServiceControlDbContext.MigrationsHistoryTableName));
 
         return new PostgreSqlServiceControlDbContext(optionsBuilder.Options);
     }
