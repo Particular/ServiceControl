@@ -9,18 +9,23 @@ namespace ServiceControl.Audit.Persistence.Tests
     using ServiceControl.Persistence.Tests;
 
     [TestFixture]
-    class SchemaMustExistTests
+    class SchemaSetupTests
     {
         [Test]
-        public async Task Setup_fails_when_the_configured_schema_does_not_exist()
+        public async Task Setup_creates_the_configured_schema_when_it_does_not_exist()
         {
             var testsConfiguration = new PersistenceTestsConfiguration();
             var connectionString = await testsConfiguration.GetConnectionString();
             var schema = $"sc_absent_{Guid.NewGuid():n}";
 
-            var exception = Assert.ThrowsAsync<InvalidOperationException>(() => Setup(testsConfiguration, connectionString, schema));
-
-            Assert.That(exception.Message, Does.Contain(schema).And.Contain("does not exist"));
+            try
+            {
+                Assert.DoesNotThrowAsync(() => Setup(testsConfiguration, connectionString, schema));
+            }
+            finally
+            {
+                await TestSchema.Drop(connectionString, schema);
+            }
         }
 
         [Test]

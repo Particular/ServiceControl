@@ -11,15 +11,21 @@ using NUnit.Framework;
 using ServiceControl.Persistence.EFCore.Abstractions;
 
 [TestFixture]
-class SchemaMustExistTests
+class SchemaSetupTests
 {
     [Test]
-    public async Task Migration_fails_when_the_configured_schema_does_not_exist()
+    public async Task Migration_creates_the_configured_schema_when_it_does_not_exist()
     {
         var settings = await CreateSettings($"sc_absent_{Guid.NewGuid():n}");
 
-        var exception = Assert.ThrowsAsync<InvalidOperationException>(() => ApplyMigrations(settings));
-        Assert.That(exception.Message, Does.Contain(settings.Schema).And.Contain("does not exist"));
+        try
+        {
+            Assert.DoesNotThrowAsync(() => ApplyMigrations(settings));
+        }
+        finally
+        {
+            await TestSchema.Drop(settings.ConnectionString, settings.Schema);
+        }
     }
 
     [Test]

@@ -45,8 +45,6 @@ public abstract class AuditDbContext(DbContextOptions options) : DbContext(optio
 
     public abstract bool IsDuplicateKeyException(DbUpdateException exception);
 
-    public abstract Task<bool> SchemaExists(string schema, CancellationToken cancellationToken = default);
-
     /// <summary>
     /// Whether the table exists in the configured schema, or in the provider default schema when none is configured.
     /// </summary>
@@ -57,7 +55,7 @@ public abstract class AuditDbContext(DbContextOptions options) : DbContext(optio
         if (await TableExists(PrimaryMigrationsHistoryTableName, cancellationToken))
         {
             throw new InvalidOperationException(
-                $"The schema '{Schema ?? "(provider default)"}' already contains the primary migrations history table '{PrimaryMigrationsHistoryTableName}'. A primary instance and an audit instance cannot share a schema. Configure a different Database/Schema for this instance, create the schema, grant the configured user rights on it, and run setup again.");
+                $"The schema '{Schema ?? "(provider default)"}' already contains the primary migrations history table '{PrimaryMigrationsHistoryTableName}'. A primary instance and an audit instance cannot share a schema. Configure a different Database/Schema for this instance and run setup again.");
         }
     }
 }

@@ -94,7 +94,7 @@ public abstract class ServiceControlDbContext(DbContextOptions options) : DbCont
         if (await TableExists(AuditMigrationsHistoryTableName, cancellationToken))
         {
             throw new InvalidOperationException(
-                $"The schema '{Schema ?? "(provider default)"}' already contains the audit migrations history table '{AuditMigrationsHistoryTableName}'. A primary instance and an audit instance cannot share a schema. Configure a different Database/Schema for this instance, create the schema, grant the configured user rights on it, and run setup again.");
+                $"The schema '{Schema ?? "(provider default)"}' already contains the audit migrations history table '{AuditMigrationsHistoryTableName}'. A primary instance and an audit instance cannot share a schema. Configure a different Database/Schema for this instance and run setup again.");
         }
     }
 }
