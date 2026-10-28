@@ -4,10 +4,10 @@ using TestingTool.AppHost;
 var options = CliOptions.Parse(args);
 var persistenceType = options.GetValue("persistence", PersistenceType.RavenDb);
 var imageTag = options.GetValueOrDefault("tag");
-var azureBlobBodyStorage = options.GetValueOrDefault("azureblob-body-storage");
+var azureBlobBodyStorage = options.GetValueOrDefault("azure-blob-body-storage");
 if (azureBlobBodyStorage is not null && string.IsNullOrWhiteSpace(azureBlobBodyStorage))
 {
-    throw new ArgumentException("--azureblob-body-storage requires a non-blank Azure Storage connection string.");
+    throw new ArgumentException("--azure-blob-body-storage requires a non-blank Azure Storage connection string.");
 }
 var s3BodyStorage = S3BodyStorageOptions.Parse(options, azureBlobBodyStorage is not null);
 Console.WriteLine($"Using persistence type: {persistenceType}");

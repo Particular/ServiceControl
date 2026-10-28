@@ -26,7 +26,7 @@ public record S3BodyStorageOptions(string Bucket, string? Region, string? Servic
 
         if (azureBlobSelected)
         {
-            throw new ArgumentException("--azureblob-body-storage and --s3-body-storage are mutually exclusive.");
+            throw new ArgumentException("--azure-blob-body-storage and --s3-body-storage are mutually exclusive.");
         }
 
         if ((accessKeyId is null) != (secretAccessKey is null))

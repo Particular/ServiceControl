@@ -21,8 +21,8 @@ Useful flags, passed after `--`:
 | `--tag <tag>` | Test a specific ServiceControl image tag, for example a PR prerelease like `pr-1234` |
 | `--persistence <type>` | Persistence for the error instance: `RavenDb` (default), `SqlServer`, or `PostgreSql` |
 | `--error-ingestion-scale-unit <n>` | Start `n` additional error-ingestion-only ServiceControl instances |
-| `--azureblob-body-storage "<connection string>"` | Store message bodies in Azure Blob Storage instead of the container file system. Applies only to `SqlServer` and `PostgreSql`. The error instance and its scale-out units share one container, and each audit instance gets its own |
-| `--s3-body-storage <bucket>` | Store message bodies in S3 instead of the container file system. Applies only to `SqlServer` and `PostgreSql`, and is mutually exclusive with `--azureblob-body-storage`. The error instance and its scale-out units share the `error-bodies/` prefix, and each audit instance gets its own |
+| `--azure-blob-body-storage "<connection string>"` | Store message bodies in Azure Blob Storage instead of the container file system. Applies only to `SqlServer` and `PostgreSql`. The error instance and its scale-out units share one container, and each audit instance gets its own |
+| `--s3-body-storage <bucket>` | Store message bodies in S3 instead of the container file system. Applies only to `SqlServer` and `PostgreSql`, and is mutually exclusive with `--azure-blob-body-storage`. The error instance and its scale-out units share the `error-bodies/` prefix, and each audit instance gets its own |
 | `--s3-region <region>` | Region for `--s3-body-storage` |
 | `--s3-service-url <url>` | S3-compatible endpoint, such as MinIO or LocalStack. It must be reachable from inside the containers, so `localhost` does not work |
 | `--s3-access-key-id <key>`, `--s3-secret-access-key <secret>` | Static credentials, set both or neither. Without them, the containers use the default AWS credential chain; host credentials are not forwarded |
