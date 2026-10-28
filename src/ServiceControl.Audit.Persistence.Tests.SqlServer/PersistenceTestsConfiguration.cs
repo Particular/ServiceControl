@@ -37,24 +37,44 @@ namespace ServiceControl.Audit.Persistence.Tests
             {
                 await using var command = connection.CreateCommand();
                 command.CommandText = """
-                    SELECT CAST(OBJECTPROPERTYEX(OBJECT_ID(@table), 'TableFullTextPendingChanges') AS int)
-                         + CAST(OBJECTPROPERTYEX(OBJECT_ID(@table), 'TableFullTextPopulateStatus') AS int)
+                    SELECT CAST(OBJECTPROPERTYEX(OBJECT_ID(@table), 'TableFullTextPendingChanges') AS int),
+                           CAST(OBJECTPROPERTYEX(OBJECT_ID(@table), 'TableFullTextPopulateStatus') AS int)
                     """;
                 command.Parameters.AddWithValue("@table", $"[{Schema}].[AuditMessages]");
 
-                if (Convert.ToInt32(await command.ExecuteScalarAsync(cancellationToken)) == 0)
+                int pendingChanges;
+                int populateStatus;
+                await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
+                {
+                    await reader.ReadAsync(cancellationToken);
+                    pendingChanges = reader.GetInt32(0);
+                    populateStatus = reader.GetInt32(1);
+                }
+
+                if (pendingChanges == 0 && populateStatus == 0)
                 {
                     return;
                 }
 
                 if (DateTime.UtcNow > deadline)
                 {
-                    throw new TimeoutException("The full text index did not catch up with the audit messages table.");
+                    throw new TimeoutException($"The full text index did not catch up with the audit messages table. Pending changes: {pendingChanges}. Populate status: {populateStatus} ({DescribePopulateStatus(populateStatus)}).");
                 }
 
                 await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
             }
         }
+
+        static string DescribePopulateStatus(int populateStatus) => populateStatus switch
+        {
+            0 => "idle",
+            1 => "full population in progress",
+            2 => "incremental population in progress",
+            3 => "propagation of tracked changes in progress",
+            4 => "background update index in progress",
+            5 => "throttled or paused",
+            _ => "unknown"
+        };
 
         sealed class SearchesWaitForFullTextIndex(IAuditMessagesViewDataStore store, Func<CancellationToken, Task> waitForFullTextIndex) : IAuditMessagesViewDataStore
         {
