@@ -1,5 +1,7 @@
 name: Cloud database tests
 on:
+  schedule:
+    - cron: '17 3 * * *'
   workflow_call:
   workflow_dispatch:
     inputs:
@@ -24,17 +26,30 @@ defaults:
   run:
     shell: pwsh
 concurrency:
-  # Deliberately not cancel-in-progress: cancelling a run mid-flight risks skipping the teardown
-  # step and leaving billable cloud resources behind.
+  # Cancelling is safe because the provisioner deletes its database in a post step, which still runs
+  # on cancellation.
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   plan:
     name: Plan
     runs-on: ubuntu-latest
     outputs:
       targets: ${{ steps.select.outputs.targets }}
+      skip: ${{ steps.tested.outputs.skip }}
     steps:
+      - name: Skip if this commit already passed
+        id: tested
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $passed = gh run list --repo $Env:GITHUB_REPOSITORY --workflow cloud-database-tests.yml --event schedule --status success --commit $Env:GITHUB_SHA --limit 1 --json url | ConvertFrom-Json
+
+          if ($passed) {
+            Write-Output "$Env:GITHUB_SHA already passed in $($passed[0].url), skipping"
+            "skip=true" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
+          }
       - name: Select targets
         id: select
         run: |
@@ -45,7 +60,7 @@ jobs:
             @{ target = 'rds-sqlserver';      provider = 'SqlServer'  }
           )
 
-          # A tag push has no input, and runs everything.
+          # A tag push or the nightly schedule has no input, and runs everything.
           $requested = '${{ inputs.target }}'
           $targets = if (-not $requested -or $requested -eq 'all') { $all } else { $all | Where-Object { $_.target -eq $requested } }
 
@@ -61,7 +76,12 @@ jobs:
   test:
     name: ${{ matrix.target }}
     needs: plan
+    if: needs.plan.outputs.skip != 'true'
     runs-on: ubuntu-latest
+    # The slowest complete job so far took 70 minutes (rds-sqlserver from a runner far from
+    # us-east-2), and provisioning alone can take 25. Without a cap, a hung test run keeps its
+    # database and its runner for six hours.
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.plan.outputs.targets) }}
@@ -143,3 +163,28 @@ jobs:
         env:
           ServiceControl_TESTS_FILTER: ${{ matrix.provider }}
           PARTICULARSOFTWARE_LICENSE: ${{ secrets.LICENSETEXT }}
+
+  notify:
+    name: Notify Slack
+    needs: [plan, test]
+    # Only the nightly run reports, because whoever starts a run by hand or through a release is
+    # already watching it.
+    if: ${{ !cancelled() && github.event_name == 'schedule' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Slack on failure
+        run: |
+          $headers = @{
+              'Authorization' = "Bearer ${{ secrets.SLACK_TOKEN }}"
+          }
+          $body = @{
+            channel = 'pulse-and-control'
+            text = "Nightly cloud database tests failed on ${{ github.ref_name }}: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            username = 'Cloud database tests'
+            icon_emoji = 'github_actions'
+            unfurl_links = false
+            unfurl_media = false
+          } | ConvertTo-Json
+          $result = Invoke-RestMethod -Method POST -Uri https://slack.com/api/chat.postMessage -ContentType "application/json; charset=utf-8" -Headers $headers -Body $body
+          Write-Output $result
+          exit $(If ($result.ok) { 0 } Else { 1 })
