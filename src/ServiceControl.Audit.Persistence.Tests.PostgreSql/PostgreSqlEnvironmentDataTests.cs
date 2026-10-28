@@ -14,6 +14,7 @@ namespace ServiceControl.Audit.Persistence.Tests
     using ServiceControl.Audit.Persistence.EFCore.DbContexts;
     using ServiceControl.Audit.Persistence.EFCore.Entities;
     using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
+    using ServiceControl.Audit.Persistence.EFCore.PostgreSql;
 
     class PostgreSqlEnvironmentDataTests : EFPersistenceTestFixture
     {
@@ -63,16 +64,17 @@ namespace ServiceControl.Audit.Persistence.Tests
         [Test]
         public async Task Measures_and_identifies_the_search_path_schema_when_none_is_configured()
         {
-            var settings = new PersistenceSettings(TimeSpan.FromDays(1), true, 100000);
-            settings.PersisterSpecificSettings[EFPersistenceConfigurationBase.ConnectionStringKey] =
-                new NpgsqlConnectionStringBuilder(configuration.ConnectionString) { SearchPath = configuration.Schema }.ConnectionString;
             settings.PersisterSpecificSettings[BodyStorageSettingsParser.StorageTypeKey] = nameof(BodyStorageType.FileSystem);
             settings.PersisterSpecificSettings[BodyStorageSettingsParser.FileSystemStoragePathKey] = configuration.BodyStoragePath;
-
             var services = new ServiceCollection();
             services.AddLogging();
             services.AddSingleton<TimeProvider>(configuration.TimeProvider);
-            configuration.CreateConfiguration().Create(settings).AddPersistence(services);
+            new PostgreSqlPersistence(new EFPersisterSettings
+            {
+                ConnectionString = new NpgsqlConnectionStringBuilder(configuration.ConnectionString) { SearchPath = configuration.Schema }.ConnectionString,
+                AuditRetentionPeriod = TimeSpan.FromDays(1),
+                MaxBodySizeToStore = 100000
+            }).AddPersistence(services);
             await using var unconfigured = services.BuildServiceProvider();
 
             var identity = await unconfigured.GetRequiredService<IStorageIdentityProvider>().GetIdentity(TestTimeoutCancellationToken);

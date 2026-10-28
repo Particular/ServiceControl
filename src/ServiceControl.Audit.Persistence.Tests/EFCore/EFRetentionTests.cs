@@ -9,6 +9,7 @@ namespace ServiceControl.Audit.Persistence.Tests
     using NUnit.Framework;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
+    using ServiceControl.SagaAudit;
 
     class EFRetentionTests : EFPersistenceTestFixture
     {
@@ -92,6 +93,43 @@ namespace ServiceControl.Audit.Persistence.Tests
         }
 
         [Test]
+        public async Task A_list_version_moves_when_a_sweep_and_an_arrival_leave_the_total_unchanged()
+        {
+            await Ingest(MakeMessage());
+            var before = await MessagesViewStore.GetMessages(true, new PagingInfo(), new SortInfo("time_sent", "desc"));
+
+            configuration.TimeProvider.Advance(TimeSpan.FromDays(3));
+            await configuration.CreateRetention().SweepNow();
+            var live = MakeMessage();
+            await Ingest(live);
+            var after = await MessagesViewStore.GetMessages(true, new PagingInfo(), new SortInfo("time_sent", "desc"));
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(after.Results.Select(message => message.MessageId), Is.EqualTo(new[] { live.Headers[Headers.MessageId] }), "the sweep did not swap the expired message for the live one");
+                Assert.That(after.QueryStats.TotalCount, Is.EqualTo(before.QueryStats.TotalCount), "the total was meant to hold, as it does at the count cap");
+            }
+
+            VersionAssert.Moved(before.QueryStats.Version, after.QueryStats.Version, "the total held, so only the rows can move the version");
+        }
+
+        [Test]
+        public async Task A_saga_version_moves_when_a_sweep_and_an_arrival_leave_the_change_count_unchanged()
+        {
+            var sagaId = Guid.NewGuid();
+            await IngestSagaSnapshot(new SagaSnapshot { SagaId = sagaId, Status = SagaStateChangeStatus.New });
+            var before = await SagaHistoryStore.QuerySagaHistoryById(sagaId);
+
+            configuration.TimeProvider.Advance(TimeSpan.FromDays(3));
+            await configuration.CreateRetention().SweepNow();
+            await IngestSagaSnapshot(new SagaSnapshot { SagaId = sagaId, Status = SagaStateChangeStatus.Updated });
+            var after = await SagaHistoryStore.QuerySagaHistoryById(sagaId);
+
+            Assert.That(after.Results.Changes.Select(change => change.Status), Is.EqualTo(new[] { SagaStateChangeStatus.Updated }), "the sweep did not swap the expired change for the new one");
+            VersionAssert.Moved(before.QueryStats.Version, after.QueryStats.Version, "the change count held, so only the rows can move the version");
+        }
+
+        [Test]
         public async Task Keeps_rows_until_the_retention_period_has_passed()
         {
             await Ingest(MakeMessage());
@@ -138,6 +176,14 @@ namespace ServiceControl.Audit.Persistence.Tests
                 Assert.That(whileHeld, Is.Null);
                 Assert.That(afterRelease, Is.Not.Null);
             }
+        }
+
+        async Task IngestSagaSnapshot(SagaSnapshot snapshot)
+        {
+            await using var unitOfWork = await StartAuditUnitOfWork(1);
+            await unitOfWork.RecordSagaSnapshot(snapshot);
+            await unitOfWork.Complete();
+            await configuration.CompleteDBOperation();
         }
     }
 }

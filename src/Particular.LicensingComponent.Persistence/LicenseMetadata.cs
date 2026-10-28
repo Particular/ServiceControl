@@ -41,6 +41,7 @@
                             {
                                 Name = amendment?.Name ?? endpoint.Name,
                                 Classification = amendment?.Classification ?? endpoint.Classification,
+                                Amended = amendment is not null,
                                 Queues = [.. endpoint.Queues.Except(
                                     [
                                         .. amendments.UnassignedQueues,
@@ -62,6 +63,20 @@
                         })];
 
                 return baseDetails;
+            }
+        }
+
+        extension(LicensedEndpointDetailsAmendment? amendment)
+        {
+            public void MergeWithExisting(LicensedEndpointDetailsAmendment? existing)
+            {
+                if (amendment is null || existing is null)
+                {
+                    return;
+                }
+
+                // these do not round-trip the full collections, so reapply what we already have
+                amendment.UnmappedQueues = [.. existing.UnmappedQueues, .. amendment.UnmappedQueues];
             }
         }
     }

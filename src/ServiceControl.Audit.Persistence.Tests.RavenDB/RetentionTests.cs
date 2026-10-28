@@ -47,6 +47,25 @@
         }
 
         [Test]
+        public async Task A_list_version_moves_when_expiration_removes_a_message()
+        {
+            await WaitForIndexesToBeBuilt();
+
+            await IngestProcessedMessagesAudits(MakeMessage("MyMessageId"));
+
+            var beforeExpiration = await QueryMessages(TestContext.CurrentContext.CancellationToken);
+            Assert.That(beforeExpiration.Results, Has.Count.EqualTo(1), "the message expired before the first read");
+
+            var afterExpiration = await WaitUntil(QueryMessages, result => result.Results.Count == 0);
+
+            Assert.That(afterExpiration.Results, Is.Empty, "expiration did not remove the message");
+            VersionAssert.Moved(beforeExpiration.QueryStats.Version, afterExpiration.QueryStats.Version, "a client holding the old version would keep showing the removed message");
+
+            Task<QueryResult<IList<MessagesView>>> QueryMessages(CancellationToken cancellationToken) =>
+                MessagesViewStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"), cancellationToken: cancellationToken);
+        }
+
+        [Test]
         public async Task SagaSnapshotRetention()
         {
             await WaitForIndexesToBeBuilt();

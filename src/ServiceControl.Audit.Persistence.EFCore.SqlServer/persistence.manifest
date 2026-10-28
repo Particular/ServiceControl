@@ -11,7 +11,8 @@
     },
     {
       "Name": "ServiceControl.Audit/Database/Schema",
-      "Mandatory": false
+      "Mandatory": false,
+      "DefaultValue": "sc_audit"
     },
     {
       "Name": "ServiceControl.Audit/Database/CommandTimeout",

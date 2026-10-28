@@ -1,0 +1,35 @@
+20260902040432_AddFullTextSearch
+    Sql
+        IF SERVERPROPERTY('IsFullTextInstalled') <> 1
+        BEGIN
+            THROW 50000, 'ServiceControl requires the SQL Server Full-Text Search feature, which is not installed on this instance. Install it and run setup again.', 1;
+        END
+    Sql
+        IF NOT EXISTS (SELECT 1 FROM sys.fulltext_catalogs WHERE name = 'ServiceControlFullTextCatalog')
+        BEGIN
+            BEGIN TRY
+                EXEC('CREATE FULLTEXT CATALOG ServiceControlFullTextCatalog');
+            END TRY
+            BEGIN CATCH
+                IF NOT EXISTS (SELECT 1 FROM sys.fulltext_catalogs WHERE name = 'ServiceControlFullTextCatalog') THROW;
+            END CATCH
+        END
+    Sql
+        IF NOT EXISTS (SELECT 1 FROM sys.fulltext_indexes WHERE object_id = OBJECT_ID('FailedMessages'))
+        BEGIN
+            EXEC('CREATE FULLTEXT INDEX ON FailedMessages(HeadersJson LANGUAGE 0, BodyText LANGUAGE 0)
+                      KEY INDEX PK_FailedMessages
+                      ON ServiceControlFullTextCatalog
+                      WITH (CHANGE_TRACKING AUTO, STOPLIST = OFF)');
+        END
+20260911041253_AddMissingIndexes
+    DropIndex IX_FailedMessages_Status_LastModified on FailedMessages
+    DropIndex IX_FailedMessageGroups_Type_GroupId on FailedMessageGroups
+    AlterColumn FailedMessages.MessageType nvarchar(max) null -> nvarchar(450) null
+    CreateIndex IX_FailedMessages_Status_LastModified on FailedMessages (Status, LastModified) SqlServer:Include=[FirstTimeOfFailure, LastTimeOfFailure]
+    CreateIndex IX_FailedMessages_Status_LastTimeOfFailure on FailedMessages (Status, LastTimeOfFailure)
+    CreateIndex IX_FailedMessages_Status_MessageType_UniqueMessageId on FailedMessages (Status, MessageType, UniqueMessageId)
+    CreateIndex IX_FailedMessageGroups_Type_GroupId on FailedMessageGroups (Type, GroupId) SqlServer:Include=[Title]
+20260928064709_WidenMessageId
+    AlterColumn FailedMessages.MessageId nvarchar(450) null -> nvarchar(max) null
+    AlterColumn FailedErrorImports.MessageId nvarchar(450) not null -> nvarchar(max) not null

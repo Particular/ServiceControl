@@ -45,13 +45,14 @@
                 throw new ArgumentException("MaxConcurrency is not set in TransportSettings");
             }
 
-            MaxBatchSize = settings.AuditIngestionBatchSize ?? transportSettings.MaxConcurrency.Value;
+            var writers = IngestionSettingsReader.ResolveMaxParallelWriters(settings.AuditIngestionMaxParallelWriters, unitOfWorkFactory.SupportsConcurrentBatches, nameof(settings.AuditIngestionMaxParallelWriters), logger);
+            MaxBatchSize = IngestionSettingsReader.ResolveBatchSize(settings.AuditIngestionBatchSize, transportSettings.MaxConcurrency.Value, writers);
 
             pipeline = new IngestionPipeline(
                 new IngestionPipelineSettings
                 {
                     BatchSize = MaxBatchSize,
-                    MaxWriters = IngestionSettingsReader.ResolveMaxParallelWriters(settings.AuditIngestionMaxParallelWriters, unitOfWorkFactory.SupportsConcurrentBatches, nameof(settings.AuditIngestionMaxParallelWriters), logger),
+                    MaxWriters = writers,
                     BatchTimeout = settings.AuditIngestionBatchTimeout
                 },
                 IngestBatch,

@@ -29,11 +29,7 @@ sealed class DatabaseSetup(
         var dbContext = scope.ServiceProvider.GetRequiredService<AuditDbContext>();
         dbContext.Database.SetCommandTimeout(EFPersisterSettings.MigrationCommandTimeout);
 
-        if (dbContext.Schema is not null && !await dbContext.SchemaExists(dbContext.Schema, cancellationToken))
-        {
-            throw new InvalidOperationException(
-                $"The configured schema '{dbContext.Schema}' does not exist in the database. ServiceControl does not create schemas, the same way it does not create the database. Create the schema, grant the configured user rights on it, and run setup again.");
-        }
+        await dbContext.RequireNoPrimaryMigrationsHistory(cancellationToken);
 
         logger.LogInformation("Starting audit database migration");
         await dbContext.Database.MigrateAsync(cancellationToken);

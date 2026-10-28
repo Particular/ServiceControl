@@ -7,8 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 /// Carries the configured schema into EF Core, where the model builder and the migrations SQL
 /// generator both need it. An options extension rather than a constructor argument because the
 /// migrations generator is resolved from the provider's own service provider and cannot see
-/// application services. Present only when a schema is configured, so a default installation
-/// builds exactly the model and the SQL it did before.
+/// application services. Omitted for schema-less design-time contexts so migration snapshots remain schema-agnostic.
 /// </summary>
 public sealed class SchemaOptionsExtension(string schema) : IDbContextOptionsExtension
 {

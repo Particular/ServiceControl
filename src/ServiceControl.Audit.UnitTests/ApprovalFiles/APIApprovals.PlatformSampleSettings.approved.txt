@@ -64,7 +64,7 @@
   "TimeToRestartAuditIngestionAfterFailure": "00:01:00",
   "AuditIngestionBatchSize": null,
   "AuditIngestionMaxParallelWriters": null,
-  "AuditIngestionBatchTimeout": "00:00:00",
+  "AuditIngestionBatchTimeout": "00:00:00.1000000",
   "EnableFullTextSearchOnBodies": true,
   "ShutdownTimeout": "00:00:05"
 }

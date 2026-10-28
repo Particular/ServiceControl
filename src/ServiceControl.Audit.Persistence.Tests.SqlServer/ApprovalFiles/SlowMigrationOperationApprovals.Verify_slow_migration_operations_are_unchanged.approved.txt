@@ -1,0 +1,24 @@
+20260928032751_AddFullTextSearch
+    Sql
+        IF SERVERPROPERTY('IsFullTextInstalled') <> 1
+        BEGIN
+            THROW 50000, 'ServiceControl requires the SQL Server Full-Text Search feature, which is not installed on this instance. Install it and run setup again.', 1;
+        END
+    Sql
+        IF NOT EXISTS (SELECT 1 FROM sys.fulltext_catalogs WHERE name = 'ServiceControlFullTextCatalog')
+        BEGIN
+            BEGIN TRY
+                EXEC('CREATE FULLTEXT CATALOG ServiceControlFullTextCatalog');
+            END TRY
+            BEGIN CATCH
+                IF NOT EXISTS (SELECT 1 FROM sys.fulltext_catalogs WHERE name = 'ServiceControlFullTextCatalog') THROW;
+            END CATCH
+        END
+    Sql
+        IF NOT EXISTS (SELECT 1 FROM sys.fulltext_indexes WHERE object_id = OBJECT_ID('AuditMessages'))
+        BEGIN
+            EXEC('CREATE FULLTEXT INDEX ON AuditMessages(HeadersJson LANGUAGE 0, BodyText LANGUAGE 0)
+                      KEY INDEX IX_AuditMessages_Id
+                      ON ServiceControlFullTextCatalog
+                      WITH (CHANGE_TRACKING AUTO, STOPLIST = OFF)');
+        END

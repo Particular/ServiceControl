@@ -10,6 +10,10 @@
       "Mandatory": true
     },
     {
+      "Name": "ServiceControl/Database/Schema",
+      "Mandatory": false
+    },
+    {
       "Name": "ServiceControl/Database/CommandTimeout",
       "Mandatory": false
     },

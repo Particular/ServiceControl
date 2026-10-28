@@ -35,6 +35,8 @@ Every term's value, and every field inside a row, is **length prefixed**. Withou
 
 `OverRows` names rows by position, so a caller whose query has no `ORDER BY` has to sort them first or the validator churns.
 
+The audit instance's EF Core persisters give each row only its `CreatedOn` and `Id` as fields. That covers everything the row shows only because audit rows are inserted and deleted, never updated. A change that updates an audit row in place has to version over the fields the response renders instead.
+
 ## Absence
 
 `DataVersion.None` is `default`, and it means there is no version to offer. Two parties that both know nothing have not established that nothing changed, so **absence must never answer `304`**: an empty validator that matched itself would serve a cached page for every request forever.

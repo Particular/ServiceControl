@@ -158,6 +158,8 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
 
         var auditServiceMetadata = await dataStore.GetAuditServiceMetadata(cancellationToken);
         var brokerMetaData = await dataStore.GetBrokerMetadata(cancellationToken);
+        var endpointMetadata = await dataStore.GetLicensedEndpointDetails(false, cancellationToken);
+        var endpointMetadataAmendments = await dataStore.GetLicensedEndpointDetailsAmendments(cancellationToken);
         var report = new Report.Report
         {
             EndTime = new DateTimeOffset((DateTime)reportEndDate, TimeSpan.Zero),
@@ -172,7 +174,33 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
             Queues = [.. queueThroughputs],
             TotalQueues = queueThroughputs.Count,
             // A copy, because the report adds its own keys. The data store can return a shared instance.
-            EnvironmentInformation = new EnvironmentInformation { AuditServicesData = new AuditServicesData(auditServiceMetadata.Versions, auditServiceMetadata.Transports), EnvironmentData = new Dictionary<string, string>(brokerMetaData.Data) }
+            EnvironmentInformation = new EnvironmentInformation { AuditServicesData = new AuditServicesData(auditServiceMetadata.Versions, auditServiceMetadata.Transports), EnvironmentData = new Dictionary<string, string>(brokerMetaData.Data) },
+            CustomerLicenseAmendments = (endpointMetadata, endpointMetadataAmendments) switch
+            {
+                (null, null) => null,
+                (_, null) => null,
+                (null, _) => null,
+                (LicensedEndpointDetails baseDetails, LicensedEndpointDetailsAmendment amendments) => new LicenseAmendments
+                {
+                    ExcludedQueues = [.. amendments.ExcludedQueues.Select(qId => new Report.QueueIdentity { NameHash = qId.NameHash, ScopeHash = qId.ScopeHash })],
+                    InfrastructureQueues = [.. amendments.InfrastructureQueues.Select(qId => new Report.QueueIdentity { NameHash = qId.NameHash, ScopeHash = qId.ScopeHash })],
+                    RemovedEndpointNames = [.. baseDetails.Endpoints.Where(endpoint => endpointMetadataAmendments.RemovedEndpointIds.Contains(endpoint.ClientId)).Select(endpoint => endpoint.Name)],
+                    Endpoints = [.. amendments.Endpoints.Select(amended => {
+                        var previousEndpoint = baseDetails.Endpoints.FirstOrDefault(endpoint => endpoint.ClientId == amended.ClientId);
+                        Contracts.QueueIdentity[] notThisEndpointQueues = [.. amendments.UnassignedQueues, .. amendments.ExcludedQueues, .. amendments.InfrastructureQueues, .. amendments.Endpoints.Where(endpoint => endpoint.ClientId != amended.ClientId).SelectMany(endpoint => endpoint.AmendedQueues)];
+                        return new Report.LicensedEndpointAmendment
+                        {
+                            PreviousName = previousEndpoint?.Name,
+                            PreviousNameHash = previousEndpoint is not null ? OneWayHasher.CalculateOneWayHash(previousEndpoint.Name) : null,
+                            CurrentName = masker.Mask(amended.Name),
+                            CurrentNameHash = OneWayHasher.CalculateOneWayHash(amended.Name),
+                            IsSendOnly = amended.Classification == 1,
+                            AmendedQueues = [.. amended.AmendedQueues.Select(qId => new Report.QueueIdentity { NameHash = qId.NameHash, ScopeHash = qId.ScopeHash })],
+                            RemovedQueues = previousEndpoint is not null ? [.. previousEndpoint.Queues.Where(qId => notThisEndpointQueues.Contains(qId)).Select(qId => new Report.QueueIdentity { NameHash = qId.NameHash, ScopeHash = qId.ScopeHash })] : []
+                        };
+                    })]
+                },
+            }
         };
 
         var auditThroughput = queueThroughputs.SelectMany(w => w.DailyThroughputFromAudit);
@@ -311,7 +339,16 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
     {
         return throughputQuery == null ? endpointName : throughputQuery.SanitizedEndpointNameCleanser(endpointName);
     }
-    static string? UserIndicator(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.UserIndicator))?.UserIndicator;
+    static string? UserIndicator(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.UserIndicator))?.UserIndicator switch
+    {
+        /*
+         * HINT: PlannedToDecommission is a legacy value.
+         * The best default for queues that were marked as PlannedToDecommission is to treat them as NServiceBusEndpoint, since the user has indicated that they are still using it.
+         * If the user wants to indicate that they are no longer using it, then they should mark it as NServiceBusEndpointNoLongerInUse.
+         */
+        var userIndicator when userIndicator == Contracts.UserIndicator.PlannedToDecommission.ToString() => Contracts.UserIndicator.NServiceBusEndpoint.ToString(),
+        var userIndicator => userIndicator
+    };
 
     static string? EndpointScope(IGrouping<string, Endpoint> endpoint) => endpoint.FirstOrDefault(s => !string.IsNullOrEmpty(s.Scope))?.Scope;
 

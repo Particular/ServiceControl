@@ -42,11 +42,11 @@ public abstract class EFPersistenceConfigurationBase : IPersistenceConfiguration
         };
     }
 
-    static string? ReadSchema(IDictionary<string, string> specific)
+    static string ReadSchema(IDictionary<string, string> specific)
     {
         if (!specific.TryGetValue(SchemaKey, out var schema) || string.IsNullOrWhiteSpace(schema))
         {
-            return null;
+            return EFPersisterSettings.DefaultSchema;
         }
 
         try
