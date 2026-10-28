@@ -35,6 +35,7 @@ namespace ServiceControl.Audit.Persistence.Tests
             await connection.OpenAsync(cancellationToken);
 
             var deadline = DateTime.UtcNow + FullTextIndexTimeout;
+            var restarted = false;
             while (true)
             {
                 await using var command = connection.CreateCommand();
@@ -58,10 +59,20 @@ namespace ServiceControl.Audit.Persistence.Tests
                     return;
                 }
 
+                // Azure SQL sometimes ends a population in error, after which the index never catches up by itself.
+                if (populateStatus == PopulationFailed && !restarted)
+                {
+                    await using var restart = connection.CreateCommand();
+                    restart.CommandText = $"ALTER FULLTEXT INDEX ON [{Schema}].[AuditMessages] START FULL POPULATION";
+                    await restart.ExecuteNonQueryAsync(cancellationToken);
+                    restarted = true;
+                }
+
                 if (DateTime.UtcNow > deadline)
                 {
                     var runningPopulations = await CountRunningPopulations(connection, cancellationToken);
-                    throw new TimeoutException($"The full text index did not catch up with the audit messages table. Pending changes: {pendingChanges}. Populate status: {populateStatus} ({DescribePopulateStatus(populateStatus)}). Populations running in the database: {runningPopulations}.");
+                    var restartNote = restarted ? " The population ended in error and was restarted once." : "";
+                    throw new TimeoutException($"The full text index did not catch up with the audit messages table. Pending changes: {pendingChanges}. Populate status: {populateStatus} ({DescribePopulateStatus(populateStatus)}). Populations running in the database: {runningPopulations}.{restartNote}");
                 }
 
                 await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
@@ -91,8 +102,11 @@ namespace ServiceControl.Audit.Persistence.Tests
             3 => "propagation of tracked changes in progress",
             4 => "background update index in progress",
             5 => "throttled or paused",
+            PopulationFailed => "an error occurred",
             _ => "unknown"
         };
+
+        const int PopulationFailed = 6;
 
         // Azure SQL can take over 30 seconds to finish the first population of a new index.
         static readonly TimeSpan FullTextIndexTimeout = TimeSpan.FromMinutes(2);
