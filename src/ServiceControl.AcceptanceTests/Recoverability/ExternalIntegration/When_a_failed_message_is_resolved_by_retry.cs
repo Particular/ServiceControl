@@ -33,7 +33,7 @@
                     }
                 }))
                 .Do("WaitUntilErrorsContainsFailedMessage",
-                    async ctx => await this.TryGet<FailedMessage>($"/api/errors/{ctx.FailedMessageId}") != null)
+                    async ctx => await this.TryGet<FailedMessage>($"/api/errors/{ctx.FailedMessageId}"))
                 .Do("WaitForExternalProcessorToSubscribe",
                     ctx => Task.FromResult(ctx.ExternalProcessorSubscribed))
                 .Do("Retry", async ctx =>
