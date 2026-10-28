@@ -79,6 +79,14 @@ The ingestion gate sees categories the copy never reached because `MigrationStar
 
 ## The required copy
 
+Unresolved and retry-issued failed messages copy while the host is closed because the copy cannot merge with live writes. `FailedMessagesWriterBase` inserts only messages the target lacks and never updates one it holds. From the moment the host opens, ingestion writes to the same rows:
+
+- **A retry confirmation finds no row.** `ResolveRetriedMessages` updates only rows already in SQL, and `FailedMessageBatchWriter.ResolveRetried` deletes the retry claim either way. The copy then inserts the message as still failing, though its retry succeeded.
+- **A message that fails again loses its history.** Ingestion upserts a row holding only the new attempt. The copy then finds the id present and drops the RavenDB row, with its earlier attempts, first failure time and retry-issued status.
+- **Group actions see part of the list.** Retrying or archiving a group in ServicePulse acts only on the messages copied so far.
+
+Archived and resolved messages are safe to copy after the host opens. If one of them fails again, the live unresolved row should win, and an insert-only copy gives exactly that. Copying unresolved messages in the background would need a writer that merges by attempt time, and retry confirmations held until their row arrives. Both change live ingestion.
+
 ```mermaid
 sequenceDiagram
     participant Run as RunCommand
