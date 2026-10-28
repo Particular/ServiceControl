@@ -27,6 +27,8 @@ namespace ServiceControl.Audit.Persistence.Tests
 
         public IServiceProvider ServiceProvider => host.Services;
 
+        public virtual TimeSpan TestTimeout => TimeSpan.FromSeconds(30);
+
         public abstract string Name { get; }
 
         public string ConnectionString { get; private set; }

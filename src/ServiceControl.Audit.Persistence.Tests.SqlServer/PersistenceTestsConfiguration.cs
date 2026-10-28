@@ -16,6 +16,8 @@ namespace ServiceControl.Audit.Persistence.Tests
     {
         public override string Name => "SQLServer";
 
+        public override TimeSpan TestTimeout => FullTextIndexTimeout + TimeSpan.FromMinutes(1);
+
         public override Task<string> GetConnectionString() => SqlServerSharedContainer.GetConnectionStringAsync();
 
         protected override Task CreateSchema(string connectionString, string schema) => TestSchema.Create(connectionString, schema);
@@ -32,7 +34,7 @@ namespace ServiceControl.Audit.Persistence.Tests
             await using var connection = new SqlConnection(ConnectionString);
             await connection.OpenAsync(cancellationToken);
 
-            var deadline = DateTime.UtcNow.AddSeconds(30);
+            var deadline = DateTime.UtcNow + FullTextIndexTimeout;
             while (true)
             {
                 await using var command = connection.CreateCommand();
@@ -58,10 +60,26 @@ namespace ServiceControl.Audit.Persistence.Tests
 
                 if (DateTime.UtcNow > deadline)
                 {
-                    throw new TimeoutException($"The full text index did not catch up with the audit messages table. Pending changes: {pendingChanges}. Populate status: {populateStatus} ({DescribePopulateStatus(populateStatus)}).");
+                    var runningPopulations = await CountRunningPopulations(connection, cancellationToken);
+                    throw new TimeoutException($"The full text index did not catch up with the audit messages table. Pending changes: {pendingChanges}. Populate status: {populateStatus} ({DescribePopulateStatus(populateStatus)}). Populations running in the database: {runningPopulations}.");
                 }
 
                 await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
+            }
+        }
+
+        static async Task<string> CountRunningPopulations(SqlConnection connection, CancellationToken cancellationToken)
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT COUNT(*) FROM sys.dm_fts_index_population WHERE database_id = DB_ID()";
+
+            try
+            {
+                return $"{await command.ExecuteScalarAsync(cancellationToken)}";
+            }
+            catch (SqlException e)
+            {
+                return $"unknown ({e.Message})";
             }
         }
 
@@ -75,6 +93,9 @@ namespace ServiceControl.Audit.Persistence.Tests
             5 => "throttled or paused",
             _ => "unknown"
         };
+
+        // Azure SQL can take over 30 seconds to finish the first population of a new index.
+        static readonly TimeSpan FullTextIndexTimeout = TimeSpan.FromMinutes(2);
 
         sealed class SearchesWaitForFullTextIndex(IAuditMessagesViewDataStore store, Func<CancellationToken, Task> waitForFullTextIndex) : IAuditMessagesViewDataStore
         {
