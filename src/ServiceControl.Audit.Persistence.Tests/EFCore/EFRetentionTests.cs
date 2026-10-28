@@ -41,7 +41,7 @@ namespace ServiceControl.Audit.Persistence.Tests
         public async Task Removes_the_external_bodies_with_the_rows()
         {
             await Ingest(MakeMessage(contentType: "application/octet-stream"), [1, 2, 3]);
-            Assert.That(Directory.GetFiles(configuration.BodyStoragePath), Has.Length.EqualTo(1));
+            Assert.That(Directory.GetFiles(configuration.BodyStoragePath, "*", SearchOption.AllDirectories), Has.Length.EqualTo(1));
 
             configuration.TimeProvider.Advance(TimeSpan.FromDays(3));
             await configuration.CreateRetention().SweepNow();
@@ -51,22 +51,24 @@ namespace ServiceControl.Audit.Persistence.Tests
             using (Assert.EnterMultipleScope())
             {
                 Assert.That(remaining.Results, Is.Empty);
-                Assert.That(Directory.GetFiles(configuration.BodyStoragePath), Is.Empty);
+                Assert.That(Directory.GetFiles(configuration.BodyStoragePath, "*", SearchOption.AllDirectories), Is.Empty);
             }
         }
 
         [Test]
-        public async Task Deletes_the_bodies_by_the_prefix_of_the_expired_rows()
+        public async Task Deletes_the_bodies_of_the_expired_rows()
         {
             var message = MakeMessage(contentType: "application/octet-stream");
             await Ingest(message, [1, 2, 3]);
             var bodyId = (await MessagesViewStore.GetMessages(true, new PagingInfo(), new SortInfo("time_sent", "desc"))).Results.Single().BodyUrl.Split('/')[2];
+            AuditBodyId.TryParse(bodyId, out var createdOn, out _);
 
             configuration.TimeProvider.Advance(TimeSpan.FromDays(3));
             var storage = new RecordingBodyStorage();
             await configuration.CreateRetention(storage).SweepNow();
 
-            Assert.That(storage.DeletedPrefixes, Has.Some.Matches<string>(bodyId.StartsWith));
+            Assert.That(storage.DeletedHours.Concat(storage.DeletedDays), Has.Some.Matches<DateTime>(deleted => deleted == createdOn || deleted == createdOn.Date),
+                "the hour (SQL Server) or day (PostgreSQL) of the expired rows");
         }
 
         [Test]

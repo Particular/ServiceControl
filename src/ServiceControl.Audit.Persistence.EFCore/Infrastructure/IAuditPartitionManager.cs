@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.Persistence.EFCore.Infrastructure;
 
 using ServiceControl.Audit.Persistence.EFCore.DbContexts;
+using ServiceControl.Persistence.BodyStorage;
 
 interface IAuditPartitionManager
 {
@@ -9,9 +10,9 @@ interface IAuditPartitionManager
     Task<IReadOnlyList<DateTime>> ListExpired(AuditDbContext dbContext, DateTime keepFrom, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// The prefix of every body id stored for the rows that <see cref="DropExpired"/> removes for <paramref name="expired"/>.
+    /// Deletes every body stored for the rows that <see cref="DropExpired"/> removes for <paramref name="expired"/>.
     /// </summary>
-    string BodyIdPrefix(DateTime expired);
+    Task DeleteBodies(IAuditBodyStoragePersistence bodyStorage, DateTime expired, CancellationToken cancellationToken = default);
 
     Task<DropResult> DropExpired(AuditDbContext dbContext, DateTime start, int batchSize, CancellationToken cancellationToken = default);
 

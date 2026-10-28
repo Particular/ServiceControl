@@ -17,7 +17,12 @@
     <PackageReference Include="AWSSDK.S3" />
     <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="Azure.Storage.Blobs.Batch" />
     <PackageReference Include="NServiceBus.CustomChecks" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.Infrastructure.Tests" />
   </ItemGroup>
 
 </Project>

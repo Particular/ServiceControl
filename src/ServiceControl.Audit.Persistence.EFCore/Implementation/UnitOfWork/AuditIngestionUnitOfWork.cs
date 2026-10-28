@@ -14,7 +14,7 @@ using ServiceControl.Audit.Persistence.UnitOfWork;
 using ServiceControl.Persistence.BodyStorage;
 using ServiceControl.SagaAudit;
 
-sealed class AuditIngestionUnitOfWork(IServiceScopeFactory scopeFactory, IBodyStoragePersistence? bodyStorage, EFPersisterSettings settings, DateTime createdOn) : IAuditIngestionUnitOfWork
+sealed class AuditIngestionUnitOfWork(IServiceScopeFactory scopeFactory, IAuditBodyStoragePersistence? bodyStorage, EFPersisterSettings settings, DateTime createdOn) : IAuditIngestionUnitOfWork
 {
     readonly List<AuditMessageEntity> messages = [];
     readonly List<SagaSnapshotEntity> snapshots = [];
@@ -31,7 +31,7 @@ sealed class AuditIngestionUnitOfWork(IServiceScopeFactory scopeFactory, IBodySt
 
         if (bodyStorage is not null && bodyState == BodyState.External)
         {
-            bodyWrites.Add(bodyStorage.WriteBody(bodyId, body, contentType, cancellationToken));
+            bodyWrites.Add(bodyStorage.WriteBody(uniqueMessageId.ToString(), createdOn, body, contentType, cancellationToken));
         }
 
         processedMessage.Id ??= bodyId;

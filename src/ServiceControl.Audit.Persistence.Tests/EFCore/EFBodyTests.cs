@@ -9,6 +9,7 @@ namespace ServiceControl.Audit.Persistence.Tests
     using NUnit.Framework;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Persistence.EFCore.Entities;
+    using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
 
     class EFBodyTests : EFPersistenceTestFixture
     {
@@ -51,7 +52,7 @@ namespace ServiceControl.Audit.Persistence.Tests
         {
             await Ingest(MakeMessage(), Encoding.UTF8.GetBytes("text"));
 
-            Assert.That(Directory.GetFiles(configuration.BodyStoragePath), Is.Empty);
+            Assert.That(Directory.GetFiles(configuration.BodyStoragePath, "*", SearchOption.AllDirectories), Is.Empty);
         }
 
         [Test]
@@ -60,12 +61,16 @@ namespace ServiceControl.Audit.Persistence.Tests
             var text = "findme " + new string('x', MaxBodySizeToStore);
             await Ingest(MakeMessage(), Encoding.UTF8.GetBytes(text));
 
-            var body = await MessagesViewStore.GetMessageBody(await BodyId(), TestContext.CurrentContext.CancellationToken);
+            var bodyId = await BodyId();
+            AuditBodyId.TryParse(bodyId, out var rowCreatedOn, out _);
+            var body = await MessagesViewStore.GetMessageBody(bodyId, TestContext.CurrentContext.CancellationToken);
             var found = await MessagesViewStore.QueryMessages("findme", new PagingInfo(), new SortInfo("time_sent", "desc"));
 
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(Directory.GetFiles(configuration.BodyStoragePath), Has.Length.EqualTo(1));
+                var files = Directory.GetFiles(configuration.BodyStoragePath, "*", SearchOption.AllDirectories);
+                Assert.That(files, Has.Length.EqualTo(1));
+                Assert.That(Path.GetFileName(Path.GetDirectoryName(files[0])), Is.EqualTo(rowCreatedOn.ToString("yyyyMMddHH")), "bodies are grouped in the hour directory of the row");
                 Assert.That(await Read(body), Is.EqualTo(Encoding.UTF8.GetBytes(text)));
                 Assert.That(body.ContentType, Is.EqualTo("application/json"));
                 Assert.That(body.ContentLength, Is.EqualTo(text.Length));
@@ -118,7 +123,7 @@ namespace ServiceControl.Audit.Persistence.Tests
         public async Task A_missing_external_body_answers_no_content()
         {
             await Ingest(MakeMessage(contentType: "application/octet-stream"), [1, 2, 3]);
-            foreach (var file in Directory.GetFiles(configuration.BodyStoragePath))
+            foreach (var file in Directory.GetFiles(configuration.BodyStoragePath, "*", SearchOption.AllDirectories))
             {
                 File.Delete(file);
             }

@@ -63,16 +63,16 @@ abstract class EFPersistenceBase(EFPersisterSettings settings) : IPersistence
         {
             case FileSystemBodyStorageSettings fileSystem:
                 services.AddSingleton(fileSystem);
-                services.AddSingleton<IBodyStoragePersistence, FileSystemBodyStoragePersistence>();
+                services.AddSingleton<IAuditBodyStoragePersistence, FileSystemBodyStoragePersistence>();
                 services.AddSingleton<IDriveSpaceProvider, DriveInfoSpaceProvider>();
                 break;
             case AzureBlobBodyStorageSettings azureBlob:
                 services.AddSingleton(azureBlob);
-                services.AddSingleton<IBodyStoragePersistence, AzureBlobBodyStoragePersistence>();
+                services.AddSingleton<IAuditBodyStoragePersistence, AzureBlobBodyStoragePersistence>();
                 break;
             case S3BodyStorageSettings s3:
                 services.AddSingleton(s3);
-                services.AddSingleton<IBodyStoragePersistence, S3BodyStoragePersistence>();
+                services.AddSingleton<IAuditBodyStoragePersistence, S3BodyStoragePersistence>();
                 break;
             case null:
                 break;

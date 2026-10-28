@@ -7,11 +7,13 @@ namespace ServiceControl.Audit.Persistence.Tests
     using System.Threading.Tasks;
     using ServiceControl.Persistence.BodyStorage;
 
-    class RecordingBodyStorage : IBodyStoragePersistence
+    class RecordingBodyStorage : IAuditBodyStoragePersistence
     {
-        public List<(string BodyId, byte[] Body, string ContentType)> Written { get; } = [];
+        public List<(string BodyId, DateTime CreatedOn, byte[] Body, string ContentType)> Written { get; } = [];
 
-        public List<string> DeletedPrefixes { get; } = [];
+        public List<DateTime> DeletedHours { get; } = [];
+
+        public List<DateTime> DeletedDays { get; } = [];
 
         public Exception WriteFailure { get; set; }
 
@@ -19,7 +21,7 @@ namespace ServiceControl.Audit.Persistence.Tests
 
         public TaskCompletionSource PendingWrite { get; set; }
 
-        public Task WriteBody(string bodyId, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default)
+        public Task WriteBody(string bodyId, DateTime createdOn, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default)
         {
             if (PendingWrite != null)
             {
@@ -31,23 +33,32 @@ namespace ServiceControl.Audit.Persistence.Tests
                 return Task.FromException(WriteFailure);
             }
 
-            Written.Add((bodyId, body.ToArray(), contentType));
+            Written.Add((bodyId, createdOn, body.ToArray(), contentType));
             return Task.CompletedTask;
         }
 
-        public Task<MessageBodyFileResult> ReadBody(string bodyId, CancellationToken cancellationToken = default) =>
+        public Task<MessageBodyFileResult> ReadBody(string bodyId, DateTime createdOn, CancellationToken cancellationToken = default) =>
             Task.FromResult<MessageBodyFileResult>(null);
 
-        public Task DeleteBodyIfExists(string bodyId, CancellationToken cancellationToken = default) => Task.CompletedTask;
-
-        public Task DeleteBodiesWithPrefix(string prefix, CancellationToken cancellationToken = default)
+        public Task DeleteBodiesForHour(DateTime hour, CancellationToken cancellationToken = default)
         {
             if (DeleteFailure != null)
             {
                 return Task.FromException(DeleteFailure);
             }
 
-            DeletedPrefixes.Add(prefix);
+            DeletedHours.Add(hour);
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteBodiesForDay(DateTime day, CancellationToken cancellationToken = default)
+        {
+            if (DeleteFailure != null)
+            {
+                return Task.FromException(DeleteFailure);
+            }
+
+            DeletedDays.Add(day);
             return Task.CompletedTask;
         }
 

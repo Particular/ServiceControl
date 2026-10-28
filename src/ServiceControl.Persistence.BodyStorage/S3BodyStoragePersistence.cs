@@ -6,7 +6,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using ServiceControl.Infrastructure;
 
-public class S3BodyStoragePersistence : IBodyStoragePersistence
+public class S3BodyStoragePersistence : IBodyStoragePersistence, IAuditBodyStoragePersistence
 {
     const string FormatVersion = "1";
 
@@ -94,10 +94,20 @@ public class S3BodyStoragePersistence : IBodyStoragePersistence
     public Task DeleteBodyIfExists(string bodyId, CancellationToken cancellationToken = default) =>
         client.DeleteObjectAsync(bucketName, Key(bodyId), cancellationToken);
 
-    public async Task DeleteBodiesWithPrefix(string prefix, CancellationToken cancellationToken = default)
-    {
-        BodyIdPrefix.Validate(prefix);
+    public Task WriteBody(string bodyId, DateTime createdOn, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default) =>
+        WriteBody(AuditBodyStorageKey.For(createdOn, bodyId), body, contentType, cancellationToken);
 
+    public Task<MessageBodyFileResult?> ReadBody(string bodyId, DateTime createdOn, CancellationToken cancellationToken = default) =>
+        ReadBody(AuditBodyStorageKey.For(createdOn, bodyId), cancellationToken);
+
+    public Task DeleteBodiesForHour(DateTime hour, CancellationToken cancellationToken = default) =>
+        DeleteBodiesWithPrefix(AuditBodyStorageKey.HourPrefix(hour), cancellationToken);
+
+    public Task DeleteBodiesForDay(DateTime day, CancellationToken cancellationToken = default) =>
+        DeleteBodiesWithPrefix(AuditBodyStorageKey.DayPrefix(day), cancellationToken);
+
+    async Task DeleteBodiesWithPrefix(string prefix, CancellationToken cancellationToken)
+    {
         var request = new ListObjectsV2Request { BucketName = bucketName, Prefix = Key(prefix) };
         ListObjectsV2Response page;
         do

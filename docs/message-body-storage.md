@@ -27,20 +27,24 @@ Removing the storage settings from an instance that used them leaves its `Extern
 
 Ingestion writes external bodies before the batch transaction that inserts the rows. A failed write fails the batch, and no row is inserted. A failed insert can leave an unreferenced body.
 
-A body is stored under its audit body id, `yyyyMMddHH-{unique message id}`, the same id used in the body URL. Storage keeps the first write of an id and ignores later writes.
+Audit stores a body through `IAuditBodyStoragePersistence` under the UTC ingestion hour of its batch and the unique message id: `yyyyMMddHH/{unique message id}`. The file system store writes `{StoragePath}/yyyyMMddHH/{unique message id}.body`, the Azure Blob store uses the blob name `yyyyMMddHH/{unique message id}`, and the S3 store prepends its key prefix. Callers pass the hour explicitly and the stores do not parse it from the id, so reads use the `CreatedOn` of the row. Storage keeps the first write for an hour and id and ignores later writes.
+
+The body URL keeps the audit body id, `yyyyMMddHH-{unique message id}`, which routes the request to the row. The Error (primary) persisters use `IBodyStoragePersistence` with the body id alone; their file system layout remains `{StoragePath}/{body id}.body`.
 
 Reading a body streams it from storage with the stored content type, size, and a version derived from the row. A body missing from storage answers 204.
 
 ## Retention
 
-Retention removes bodies before it removes rows. For each expired unit it calls `IBodyStoragePersistence.DeleteBodiesWithPrefix`, and it drops the rows only after that call succeeds. If storage fails, the rows and partitions stay and the next sweep retries.
+Retention removes bodies before it removes rows. For each expired unit it calls `IAuditPartitionManager.DeleteBodies`, and it drops the rows only after that call succeeds. If storage fails, the rows and partitions stay and the next sweep retries.
 
-The unit differs by provider, so the prefix is part of `IAuditPartitionManager`:
+The unit differs by provider, so the delete call is part of `IAuditPartitionManager`:
 
-- SQL Server deletes rows one hour at a time. The prefix is the hour, `yyyyMMddHH-`.
-- PostgreSQL drops whole day partitions without scanning rows. The prefix is the day, `yyyyMMdd`, and it matches every hour of that day. A day is only dropped once all of it is older than the retention period, so no body is removed earlier than its row would be.
+- SQL Server deletes rows one hour at a time and calls `DeleteBodiesForHour`.
+- PostgreSQL drops whole day partitions without scanning rows and calls `DeleteBodiesForDay`, which covers every hour of that day. A day is only dropped once all of it is older than the retention period, so no body is removed earlier than its row would be.
 
-Prefixes must not be empty and must not contain wildcard or path characters. SQL Server only visits hours that have rows, so an unreferenced body in an hour with no rows stays until that location is cleaned manually. PostgreSQL visits every expired day partition, including pre-created partitions without rows, so it also cleans unreferenced bodies of those days.
+The file system store deletes the hour directory recursively, so it also removes leftover temporary files in that directory. The day call deletes the 24 hour directories of that day without listing the storage root. The Azure Blob store lists the blobs of the hour or day and deletes them in batches of at most 256. A batch is not atomic, so the store checks the status of every delete, treats a missing blob as deleted, and fails the call on any other error. The S3 store deletes objects in batches of up to 1,000 and checks for per-object failures.
+
+SQL Server only visits hours that have rows, so an unreferenced body in an hour with no rows stays until that location is cleaned manually. PostgreSQL visits every expired day partition, including pre-created partitions without rows, so it also cleans unreferenced bodies of those days.
 
 ## Configuration
 
@@ -82,6 +86,6 @@ Azure requires exactly one of the connection string and the service URI. `MaxBod
 
 ## One location per instance
 
-Give each Audit instance its own directory, container, or key prefix, and never share one with an Error instance. Retention deletes by id prefix, and the prefixes of two instances can match the same hours. An instance that shares a location can delete bodies that another instance still references. The Audit defaults differ from the Error defaults (`error-bodies`, `error-bodies/`) for this reason, but they are the same for every Audit instance, so a second Audit instance in the same account must set its own container name or key prefix.
+Give each Audit instance its own directory, container, or key prefix, and never share one with an Error instance. Retention deletes whole hour or day groups, so a shared location lets one instance delete bodies that another still references. The Audit defaults differ from the Error defaults (`error-bodies`, `error-bodies/`) for this reason, but they are the same for every Audit instance, so a second Audit instance in the same account must set its own container name or key prefix.
 
 With `FileSystem` storage, an instance registers the `ServiceControl body storage` custom check that reports low free space on the drive.

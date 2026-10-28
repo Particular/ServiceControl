@@ -62,7 +62,7 @@ namespace ServiceControl.Audit.Persistence.Tests
         }
 
         [Test]
-        public async Task An_external_body_is_written_under_the_audit_body_id()
+        public async Task An_external_body_is_written_with_the_batch_hour_and_unique_message_id()
         {
             var message = Message("application/octet-stream");
             byte[] body = [1, 2, 3];
@@ -72,8 +72,9 @@ namespace ServiceControl.Audit.Persistence.Tests
             using (Assert.EnterMultipleScope())
             {
                 Assert.That(storage.Written, Has.Count.EqualTo(1));
-                Assert.That(storage.Written[0].BodyId, Is.EqualTo(message.Id));
-                Assert.That(storage.Written[0].BodyId, Does.StartWith("2026102013-"));
+                Assert.That(message.Id, Is.EqualTo($"2026102013-{storage.Written[0].BodyId}"));
+                Assert.That(Guid.TryParse(storage.Written[0].BodyId, out _), Is.True, "the storage id is the raw unique message id");
+                Assert.That(storage.Written[0].CreatedOn, Is.EqualTo(CreatedOn));
                 Assert.That(storage.Written[0].Body, Is.EqualTo(body));
                 Assert.That(storage.Written[0].ContentType, Is.EqualTo("application/octet-stream"));
             }

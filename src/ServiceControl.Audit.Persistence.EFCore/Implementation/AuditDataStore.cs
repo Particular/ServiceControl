@@ -17,7 +17,7 @@ sealed class AuditDataStore(
     EFPersisterSettings settings,
     IFullTextSearchDialect fullTextSearch,
     TimeProvider timeProvider,
-    IBodyStoragePersistence? bodyStorage = null) : DataStoreBase(scopeFactory, settings), IAuditMessagesViewDataStore, ISagaHistoryDataStore
+    IAuditBodyStoragePersistence? bodyStorage = null) : DataStoreBase(scopeFactory, settings), IAuditMessagesViewDataStore, ISagaHistoryDataStore
 {
     public const int TotalCountCap = 100_000;
 
@@ -94,7 +94,7 @@ sealed class AuditDataStore(
                     return MessageBodyView.NoContent();
                 }
 
-                var external = await bodyStorage.ReadBody(AuditBodyId.Format(body.CreatedOn, body.UniqueMessageId), cancellationToken);
+                var external = await bodyStorage.ReadBody(body.UniqueMessageId.ToString(), body.CreatedOn, cancellationToken);
 
                 return external is null
                     ? MessageBodyView.NoContent()

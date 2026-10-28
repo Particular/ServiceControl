@@ -7,10 +7,9 @@ using System.Text;
 /// Stores message bodies as files, each one a small header followed by the body.
 /// </summary>
 /// <remarks>
-/// Bodies are immutable and keyed by bodyId alone, so a re-failure resolves to the same file and an
-/// existing one is left untouched.
+/// Bodies are immutable, so an existing storage key is left untouched.
 /// </remarks>
-public class FileSystemBodyStoragePersistence(FileSystemBodyStorageSettings settings) : IBodyStoragePersistence
+public class FileSystemBodyStoragePersistence(FileSystemBodyStorageSettings settings) : IBodyStoragePersistence, IAuditBodyStoragePersistence
 {
     const int FormatVersion = 1;
 
@@ -121,7 +120,7 @@ public class FileSystemBodyStoragePersistence(FileSystemBodyStorageSettings sett
                 BodySize = bodySize
             });
         }
-        catch (FileNotFoundException)
+        catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
         {
             fileStream?.Dispose();
             return Task.FromResult<MessageBodyFileResult?>(null);
@@ -139,27 +138,41 @@ public class FileSystemBodyStoragePersistence(FileSystemBodyStorageSettings sett
         return Task.CompletedTask;
     }
 
-    public Task DeleteBodiesWithPrefix(string prefix, CancellationToken cancellationToken = default)
+    public Task WriteBody(string bodyId, DateTime createdOn, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default)
     {
-        BodyIdPrefix.Validate(prefix);
+        Directory.CreateDirectory(HourDirectory(createdOn));
+        return WriteBody(AuditBodyStorageKey.For(createdOn, bodyId), body, contentType, cancellationToken);
+    }
+
+    public Task<MessageBodyFileResult?> ReadBody(string bodyId, DateTime createdOn, CancellationToken cancellationToken = default) =>
+        ReadBody(AuditBodyStorageKey.For(createdOn, bodyId), cancellationToken);
+
+    // The hour directory is owned by Audit storage, so deleting it recursively also removes leftover temp files.
+    public Task DeleteBodiesForHour(DateTime hour, CancellationToken cancellationToken = default)
+    {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!Directory.Exists(StoragePath))
+        try
         {
-            return Task.CompletedTask;
+            Directory.Delete(HourDirectory(hour), recursive: true);
         }
-
-        foreach (var filePath in Directory.EnumerateFiles(StoragePath, $"{prefix}*.body"))
+        catch (DirectoryNotFoundException)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (Path.GetFileName(filePath).StartsWith(prefix, StringComparison.Ordinal))
-            {
-                TryDelete(filePath);
-            }
+            // Nothing stored for this hour.
         }
 
         return Task.CompletedTask;
     }
+
+    public async Task DeleteBodiesForDay(DateTime day, CancellationToken cancellationToken = default)
+    {
+        for (var hourIndex = 0; hourIndex < 24; hourIndex++)
+        {
+            await DeleteBodiesForHour(day.Date.AddHours(hourIndex), cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    string HourDirectory(DateTime hour) => Path.Combine(StoragePath, AuditBodyStorageKey.HourPrefix(hour));
 
     string GetBodyFilePath(string bodyId) => Path.Combine(StoragePath, $"{bodyId}.body");
 

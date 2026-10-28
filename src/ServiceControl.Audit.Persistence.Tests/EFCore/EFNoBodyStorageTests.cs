@@ -37,7 +37,7 @@ namespace ServiceControl.Audit.Persistence.Tests
                 Assert.That(body.Found, Is.True);
                 Assert.That(body.HasContent, Is.False);
                 Assert.That(found.Results, Has.Count.EqualTo(1));
-                Assert.That(Directory.GetFiles(configuration.BodyStoragePath), Is.Empty);
+                Assert.That(Directory.GetFiles(configuration.BodyStoragePath, "*", SearchOption.AllDirectories), Is.Empty);
             }
         }
 

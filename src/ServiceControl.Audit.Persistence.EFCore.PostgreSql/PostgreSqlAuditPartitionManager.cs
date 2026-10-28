@@ -10,6 +10,7 @@ using Npgsql;
 using ServiceControl.Audit.Persistence.EFCore.DbContexts;
 using ServiceControl.Audit.Persistence.EFCore.Entities;
 using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
+using ServiceControl.Persistence.BodyStorage;
 
 class PostgreSqlAuditPartitionManager(ILogger<PostgreSqlAuditPartitionManager> logger) : IAuditPartitionManager
 {
@@ -52,8 +53,9 @@ class PostgreSqlAuditPartitionManager(ILogger<PostgreSqlAuditPartitionManager> l
         return [.. days];
     }
 
-    // A partition holds a whole day, so the prefix is the day rather than the hour.
-    public string BodyIdPrefix(DateTime day) => AuditBodyId.DayPrefix(day);
+    // A partition holds a whole day, so the bodies are deleted by day rather than by hour.
+    public Task DeleteBodies(IAuditBodyStoragePersistence bodyStorage, DateTime day, CancellationToken cancellationToken = default) =>
+        bodyStorage.DeleteBodiesForDay(day, cancellationToken);
 
     public async Task<DropResult> DropExpired(AuditDbContext dbContext, DateTime day, int batchSize, CancellationToken cancellationToken = default)
     {

@@ -103,21 +103,5 @@ class InMemoryBodyStoragePersistence : IBodyStoragePersistence
         return Task.CompletedTask;
     }
 
-    public Task DeleteBodiesWithPrefix(string prefix, CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(prefix);
-
-        lock (gate)
-        {
-            foreach (var bodyId in store.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal)).ToList())
-            {
-                deleted.Add(bodyId);
-                store.Remove(bodyId);
-            }
-        }
-
-        return Task.CompletedTask;
-    }
-
     public record StoredBody(string BodyId, byte[] Body, string ContentType);
 }

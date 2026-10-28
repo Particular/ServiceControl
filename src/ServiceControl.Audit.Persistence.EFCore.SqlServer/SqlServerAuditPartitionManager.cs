@@ -3,6 +3,7 @@ namespace ServiceControl.Audit.Persistence.EFCore.SqlServer;
 using Microsoft.EntityFrameworkCore;
 using ServiceControl.Audit.Persistence.EFCore.DbContexts;
 using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
+using ServiceControl.Persistence.BodyStorage;
 
 // No partitions, because a full text index cannot be aligned to a partition scheme.
 class SqlServerAuditPartitionManager : IAuditPartitionManager
@@ -18,7 +19,8 @@ class SqlServerAuditPartitionManager : IAuditPartitionManager
         return await messageHours.Union(snapshotHours).OrderBy(hour => hour).ToListAsync(cancellationToken);
     }
 
-    public string BodyIdPrefix(DateTime hour) => AuditBodyId.HourPrefix(hour);
+    public Task DeleteBodies(IAuditBodyStoragePersistence bodyStorage, DateTime hour, CancellationToken cancellationToken = default) =>
+        bodyStorage.DeleteBodiesForHour(hour, cancellationToken);
 
     public async Task<DropResult> DropExpired(AuditDbContext dbContext, DateTime hour, int batchSize, CancellationToken cancellationToken = default)
     {

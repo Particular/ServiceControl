@@ -29,7 +29,7 @@ namespace ServiceControl.Audit.Persistence.Tests
             configuration.TimeProvider.Advance(TimeSpan.FromHours(25));
             await retention.SweepNow();
             var partlyExpired = await MessagesViewStore.GetMessages(true, new PagingInfo(), new SortInfo("time_sent", "desc"));
-            var filesWhilePartlyExpired = Directory.GetFiles(configuration.BodyStoragePath);
+            var filesWhilePartlyExpired = Directory.GetFiles(configuration.BodyStoragePath, "*", SearchOption.AllDirectories);
 
             configuration.TimeProvider.Advance(TimeSpan.FromHours(12));
             await retention.SweepNow();
@@ -40,7 +40,7 @@ namespace ServiceControl.Audit.Persistence.Tests
                 Assert.That(partlyExpired.Results, Has.Count.EqualTo(1));
                 Assert.That(filesWhilePartlyExpired, Has.Length.EqualTo(1));
                 Assert.That(expired.Results, Is.Empty);
-                Assert.That(Directory.GetFiles(configuration.BodyStoragePath), Is.Empty);
+                Assert.That(Directory.GetFiles(configuration.BodyStoragePath, "*", SearchOption.AllDirectories), Is.Empty);
             }
         }
     }

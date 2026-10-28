@@ -5,10 +5,12 @@ using System.Net;
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
 
-public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
+public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence, IAuditBodyStoragePersistence
 {
     const string FormatVersion = "1";
+    const int MaxBatchSize = 256; // Azure Blob Batch limit
 
     readonly BlobContainerClient container;
     readonly int minBodySizeForCompression;
@@ -17,6 +19,12 @@ public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
     {
         container = AzureBlobClientFactory.CreateContainerClient(settings);
         minBodySizeForCompression = settings.MinCompressionSize;
+    }
+
+    internal AzureBlobBodyStoragePersistence(BlobContainerClient container, int minBodySizeForCompression)
+    {
+        this.container = container;
+        this.minBodySizeForCompression = minBodySizeForCompression;
     }
 
     public async Task WriteBody(string bodyId, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default)
@@ -94,13 +102,54 @@ public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
     public Task DeleteBodyIfExists(string bodyId, CancellationToken cancellationToken = default) =>
         container.GetBlobClient(bodyId).DeleteIfExistsAsync(cancellationToken: cancellationToken);
 
-    public async Task DeleteBodiesWithPrefix(string prefix, CancellationToken cancellationToken = default)
+    public Task WriteBody(string bodyId, DateTime createdOn, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default) =>
+        WriteBody(AuditBodyStorageKey.For(createdOn, bodyId), body, contentType, cancellationToken);
+
+    public Task<MessageBodyFileResult?> ReadBody(string bodyId, DateTime createdOn, CancellationToken cancellationToken = default) =>
+        ReadBody(AuditBodyStorageKey.For(createdOn, bodyId), cancellationToken);
+
+    public Task DeleteBodiesForHour(DateTime hour, CancellationToken cancellationToken = default) =>
+        DeleteBodiesWithPrefix(AuditBodyStorageKey.HourPrefix(hour), cancellationToken);
+
+    public Task DeleteBodiesForDay(DateTime day, CancellationToken cancellationToken = default) =>
+        DeleteBodiesWithPrefix(AuditBodyStorageKey.DayPrefix(day), cancellationToken);
+
+    async Task DeleteBodiesWithPrefix(string prefix, CancellationToken cancellationToken)
     {
-        BodyIdPrefix.Validate(prefix);
+        var batchClient = container.GetBlobBatchClient();
+        var batch = batchClient.CreateBatch();
+        var responses = new List<Response>(MaxBatchSize);
 
         await foreach (var blob in container.GetBlobsAsync(BlobTraits.None, BlobStates.None, prefix, cancellationToken: cancellationToken))
         {
-            await container.GetBlobClient(blob.Name).DeleteIfExistsAsync(cancellationToken: cancellationToken);
+            responses.Add(batch.DeleteBlob(container.Name, blob.Name));
+
+            if (responses.Count == MaxBatchSize)
+            {
+                await Submit();
+            }
+        }
+
+        if (responses.Count > 0)
+        {
+            await Submit();
+        }
+
+        async Task Submit()
+        {
+            // A batch is not atomic: a successful outer response does not mean every delete succeeded.
+            await batchClient.SubmitBatchAsync(batch, throwOnAnyFailure: false, cancellationToken);
+
+            foreach (var response in responses)
+            {
+                if (response.Status is >= 400 and not (int)HttpStatusCode.NotFound)
+                {
+                    throw new RequestFailedException(response);
+                }
+            }
+
+            responses.Clear();
+            batch = batchClient.CreateBatch();
         }
     }
 }
