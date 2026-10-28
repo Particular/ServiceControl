@@ -14,7 +14,6 @@ namespace ServiceControl.Audit.Persistence.Tests
     using ServiceControl.Audit.Persistence.EFCore.DbContexts;
     using ServiceControl.Audit.Persistence.EFCore.Entities;
     using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
-    using ServiceControl.Persistence.BodyStorage;
 
     class PostgreSqlEnvironmentDataTests : EFPersistenceTestFixture
     {

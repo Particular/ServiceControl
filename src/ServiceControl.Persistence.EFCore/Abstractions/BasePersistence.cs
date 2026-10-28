@@ -1,6 +1,5 @@
 namespace ServiceControl.Persistence.EFCore.Abstractions;
 
-using ServiceControl.Persistence.BodyStorage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;

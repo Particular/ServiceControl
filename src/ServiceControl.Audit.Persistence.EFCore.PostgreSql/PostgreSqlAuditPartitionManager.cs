@@ -10,7 +10,6 @@ using Npgsql;
 using ServiceControl.Audit.Persistence.EFCore.DbContexts;
 using ServiceControl.Audit.Persistence.EFCore.Entities;
 using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
-using ServiceControl.Persistence.BodyStorage;
 
 class PostgreSqlAuditPartitionManager(ILogger<PostgreSqlAuditPartitionManager> logger) : IAuditPartitionManager
 {

@@ -1,6 +1,6 @@
 # Message body storage
 
-The SQL Server and PostgreSQL persisters for ServiceControl.Audit can keep every message body. A small valid text body stays in the database row. With external storage configured, any other body goes there: a directory, an Azure Blob container, or an S3 bucket. Without it, the instance discards bodies over the size limit, as RavenDB does, and bodies that cannot be stored as text. The providers live in `src/ServiceControl.Persistence.BodyStorage` and are shared with the Error (primary) persisters.
+The SQL Server and PostgreSQL persisters for ServiceControl.Audit can keep every message body. A small valid text body stays in the database row. With external storage configured, any other body goes there: a directory, an Azure Blob container, or an S3 bucket. Without it, the instance discards bodies over the size limit, as RavenDB does, and bodies that cannot be stored as text. The Audit providers live in `src/ServiceControl.Audit.Persistence.EFCore/Implementation/BodyStorage`. The Error (primary) persisters have their own, in `src/ServiceControl.Persistence.EFCore/Implementation/BodyStorage`, and the two do not share code.
 
 ## Placement rules
 

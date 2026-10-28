@@ -4,7 +4,6 @@ namespace ServiceControl.Audit.Persistence.Tests
     using System.Collections.Generic;
     using NUnit.Framework;
     using ServiceControl.Audit.Persistence.EFCore.Abstractions;
-    using ServiceControl.Persistence.BodyStorage;
 
     [TestFixture]
     class BodyStorageSettingsParserTests

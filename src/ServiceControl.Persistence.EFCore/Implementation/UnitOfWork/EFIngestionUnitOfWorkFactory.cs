@@ -1,6 +1,5 @@
 namespace ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
 
-using ServiceControl.Persistence.BodyStorage;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;

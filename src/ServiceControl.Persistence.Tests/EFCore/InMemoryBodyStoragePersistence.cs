@@ -1,6 +1,5 @@
 namespace ServiceControl.Persistence.Tests;
 
-using ServiceControl.Persistence.BodyStorage;
 using System;
 using System.Linq;
 using System.Collections.Generic;

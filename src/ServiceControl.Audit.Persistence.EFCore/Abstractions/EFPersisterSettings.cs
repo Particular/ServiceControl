@@ -1,7 +1,6 @@
 namespace ServiceControl.Audit.Persistence.EFCore.Abstractions;
 
 using ServiceControl.Infrastructure;
-using ServiceControl.Persistence.BodyStorage;
 
 public class EFPersisterSettings
 {

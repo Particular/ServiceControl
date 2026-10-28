@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Audit.Persistence.EFCore.Abstractions;
 using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
 using ServiceControl.Audit.Persistence.UnitOfWork;
-using ServiceControl.Persistence.BodyStorage;
 
 sealed class AuditIngestionUnitOfWorkFactory(IServiceScopeFactory scopeFactory, EFPersisterSettings settings, TimeProvider timeProvider, IAuditBodyStoragePersistence? bodyStorage = null) : IAuditIngestionUnitOfWorkFactory
 {

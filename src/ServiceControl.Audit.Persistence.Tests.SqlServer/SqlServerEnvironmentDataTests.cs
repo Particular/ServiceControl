@@ -9,7 +9,6 @@ namespace ServiceControl.Audit.Persistence.Tests
     using ServiceControl.Audit.Persistence.EFCore.Abstractions;
     using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
     using ServiceControl.Audit.Persistence.EFCore.SqlServer;
-    using ServiceControl.Persistence.BodyStorage;
 
     class SqlServerEnvironmentDataTests : EFPersistenceTestFixture
     {

@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using ServiceControl.Audit.Persistence.EFCore.Abstractions;
 using ServiceControl.Audit.Persistence.EFCore.DbContexts;
 using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
-using ServiceControl.Persistence.BodyStorage;
 
 sealed class AuditRetention(
     IServiceScopeFactory scopeFactory,

@@ -3,8 +3,9 @@ namespace ServiceControl.Audit.Persistence.EFCore.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using NServiceBus;
-using ServiceControl.Persistence.BodyStorage;
 using ServiceControl.Audit.Persistence.EFCore.Implementation;
+using ServiceControl.Audit.Persistence.EFCore.Implementation.BodyStorage;
+using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
 using ServiceControl.Audit.Persistence.EFCore.Implementation.UnitOfWork;
 using ServiceControl.Audit.Persistence.UnitOfWork;
 
@@ -37,7 +38,7 @@ abstract class EFPersistenceBase(EFPersisterSettings settings) : IPersistence
 
             if (settings.BodyStorage is FileSystemBodyStorageSettings)
             {
-                endpointConfiguration.AddCustomCheck<FileSystemBodyStorageCustomCheck>();
+                endpointConfiguration.AddCustomCheck<AuditFileSystemBodyStorageCustomCheck>();
             }
         }
     }
@@ -63,16 +64,16 @@ abstract class EFPersistenceBase(EFPersisterSettings settings) : IPersistence
         {
             case FileSystemBodyStorageSettings fileSystem:
                 services.AddSingleton(fileSystem);
-                services.AddSingleton<IAuditBodyStoragePersistence, FileSystemBodyStoragePersistence>();
+                services.AddSingleton<IAuditBodyStoragePersistence, AuditFileSystemBodyStorage>();
                 services.AddSingleton<IDriveSpaceProvider, DriveInfoSpaceProvider>();
                 break;
             case AzureBlobBodyStorageSettings azureBlob:
                 services.AddSingleton(azureBlob);
-                services.AddSingleton<IAuditBodyStoragePersistence, AzureBlobBodyStoragePersistence>();
+                services.AddSingleton<IAuditBodyStoragePersistence, AuditAzureBlobBodyStorage>();
                 break;
             case S3BodyStorageSettings s3:
                 services.AddSingleton(s3);
-                services.AddSingleton<IAuditBodyStoragePersistence, S3BodyStoragePersistence>();
+                services.AddSingleton<IAuditBodyStoragePersistence, AuditS3BodyStorage>();
                 break;
             case null:
                 break;

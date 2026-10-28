@@ -5,7 +5,7 @@ namespace ServiceControl.Audit.Persistence.Tests
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using ServiceControl.Persistence.BodyStorage;
+    using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
 
     class RecordingBodyStorage : IAuditBodyStoragePersistence
     {

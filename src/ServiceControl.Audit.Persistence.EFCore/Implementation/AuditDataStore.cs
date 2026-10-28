@@ -9,7 +9,6 @@ using ServiceControl.Audit.Persistence.EFCore.Abstractions;
 using ServiceControl.Audit.Persistence.EFCore.Entities;
 using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
 using ServiceControl.Infrastructure;
-using ServiceControl.Persistence.BodyStorage;
 using ServiceControl.SagaAudit;
 
 sealed class AuditDataStore(

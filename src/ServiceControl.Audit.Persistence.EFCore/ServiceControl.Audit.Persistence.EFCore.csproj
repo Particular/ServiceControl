@@ -16,11 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Not Private=false or ExcludeAssets because the body storage assembly and its SDKs ship inside the persister's folder -->
-    <ProjectReference Include="..\ServiceControl.Persistence.BodyStorage\ServiceControl.Persistence.BodyStorage.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" />
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="Azure.Storage.Blobs.Batch" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />

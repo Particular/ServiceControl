@@ -1,7 +1,6 @@
 namespace ServiceControl.Audit.Persistence.EFCore.Infrastructure;
 
 using ServiceControl.Audit.Persistence.EFCore.DbContexts;
-using ServiceControl.Persistence.BodyStorage;
 
 interface IAuditPartitionManager
 {

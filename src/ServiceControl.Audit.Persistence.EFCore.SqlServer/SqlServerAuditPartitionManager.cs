@@ -3,7 +3,6 @@ namespace ServiceControl.Audit.Persistence.EFCore.SqlServer;
 using Microsoft.EntityFrameworkCore;
 using ServiceControl.Audit.Persistence.EFCore.DbContexts;
 using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
-using ServiceControl.Persistence.BodyStorage;
 
 // No partitions, because a full text index cannot be aligned to a partition scheme.
 class SqlServerAuditPartitionManager : IAuditPartitionManager

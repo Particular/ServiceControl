@@ -1,6 +1,5 @@
 namespace ServiceControl.Persistence.EFCore.Infrastructure;
 
-using ServiceControl.Persistence.BodyStorage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

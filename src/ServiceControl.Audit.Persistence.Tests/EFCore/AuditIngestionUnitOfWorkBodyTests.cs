@@ -11,7 +11,6 @@ namespace ServiceControl.Audit.Persistence.Tests
     using ServiceControl.Audit.Persistence.EFCore.Abstractions;
     using ServiceControl.Audit.Persistence.EFCore.Implementation.UnitOfWork;
     using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
-    using ServiceControl.Persistence.BodyStorage;
 
     [TestFixture]
     class AuditIngestionUnitOfWorkBodyTests

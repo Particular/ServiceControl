@@ -12,8 +12,8 @@ namespace ServiceControl.Audit.Persistence.Tests
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using ServiceControl.Audit.Persistence.EFCore.Abstractions;
+    using ServiceControl.Audit.Persistence.EFCore.Implementation.BodyStorage;
     using ServiceControl.Audit.Persistence.EFCore.Implementation;
-    using ServiceControl.Persistence.BodyStorage;
     using UnitOfWork;
 
     abstract class EFPersistenceTestsConfiguration : IPersistenceTestsConfiguration
@@ -69,19 +69,7 @@ namespace ServiceControl.Audit.Persistence.Tests
                 hostBuilder.Services.Remove(retention);
             }
 
-            foreach (var type in configuration.GetType().Assembly.DefinedTypes.Concat(typeof(EFPersistenceConfigurationBase).Assembly.DefinedTypes))
-            {
-                if (!type.IsAbstract && type.IsAssignableTo(typeof(ICustomCheck)))
-                {
-                    hostBuilder.Services.AddTransient(typeof(ICustomCheck), type);
-                }
-            }
-
-            // Registered on the endpoint in production, which these tests do not build.
-            if (hostBuilder.Services.Any(descriptor => descriptor.ServiceType == typeof(FileSystemBodyStorageSettings)))
-            {
-                hostBuilder.Services.AddTransient<ICustomCheck, FileSystemBodyStorageCustomCheck>();
-            }
+            AddCustomChecks(hostBuilder.Services, configuration.GetType());
 
             host = hostBuilder.Build();
             await host.StartAsync();
@@ -91,6 +79,23 @@ namespace ServiceControl.Audit.Persistence.Tests
             FailedAuditStorage = host.Services.GetRequiredService<IFailedAuditStorage>();
             AuditIngestionUnitOfWorkFactory = host.Services.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
             BodyStorage = new MessagesViewBodyStorage(MessagesViewStore);
+        }
+
+        internal static void AddCustomChecks(IServiceCollection services, Type configurationType)
+        {
+            foreach (var type in configurationType.Assembly.DefinedTypes.Concat(typeof(EFPersistenceConfigurationBase).Assembly.DefinedTypes))
+            {
+                if (!type.IsAbstract && type.IsAssignableTo(typeof(ICustomCheck)) && type != typeof(AuditFileSystemBodyStorageCustomCheck))
+                {
+                    services.AddTransient(typeof(ICustomCheck), type);
+                }
+            }
+
+            // Registered on the endpoint in production, which these tests do not build.
+            if (services.Any(descriptor => descriptor.ServiceType == typeof(FileSystemBodyStorageSettings)))
+            {
+                services.AddTransient<ICustomCheck, AuditFileSystemBodyStorageCustomCheck>();
+            }
         }
 
         public virtual Task CompleteDBOperation() => Task.CompletedTask;

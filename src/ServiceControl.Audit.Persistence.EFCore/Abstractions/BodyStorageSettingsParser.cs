@@ -2,7 +2,6 @@ namespace ServiceControl.Audit.Persistence.EFCore.Abstractions;
 
 using Microsoft.Extensions.Logging;
 using ServiceControl.Infrastructure;
-using ServiceControl.Persistence.BodyStorage;
 
 // Mirrors the Error persister's MessageBody/* parsing, which reads a settings root rather than a dictionary.
 static class BodyStorageSettingsParser
@@ -22,10 +21,6 @@ static class BodyStorageSettingsParser
     internal const string S3AccessKeyIdKey = "MessageBody/S3/AccessKeyId";
     internal const string S3SecretAccessKeyKey = "MessageBody/S3/SecretAccessKey";
     internal const string MinCompressionSizeKey = "MessageBody/MinCompressionSize";
-
-    // Audit instances must not share a location with Error or with each other, so the Audit defaults differ from the shared ones.
-    internal const string DefaultAzureContainerName = "audit-bodies";
-    internal const string DefaultS3KeyPrefix = "audit-bodies/";
 
     public static readonly string[] Keys =
     [
@@ -64,12 +59,12 @@ static class BodyStorageSettingsParser
             BodyStorageType.AzureBlob => new AzureBlobBodyStorageSettings
             {
                 Authentication = ReadAzureBlobAuthentication(specific),
-                ContainerName = Get(specific, AzureContainerNameKey) ?? DefaultAzureContainerName
+                ContainerName = Get(specific, AzureContainerNameKey) ?? AzureBlobBodyStorageSettings.DefaultContainerName
             },
             BodyStorageType.S3 => new S3BodyStorageSettings
             {
                 BucketName = GetRequired(specific, S3BucketNameKey),
-                KeyPrefix = Get(specific, S3KeyPrefixKey) ?? DefaultS3KeyPrefix,
+                KeyPrefix = Get(specific, S3KeyPrefixKey) ?? S3BodyStorageSettings.DefaultKeyPrefix,
                 Region = Get(specific, S3RegionKey),
                 ServiceUrl = Get(specific, S3ServiceUrlKey),
                 Credentials = ReadS3Credentials(specific)

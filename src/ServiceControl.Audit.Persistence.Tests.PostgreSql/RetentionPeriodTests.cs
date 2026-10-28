@@ -5,7 +5,6 @@ namespace ServiceControl.Audit.Persistence.Tests
     using NUnit.Framework;
     using ServiceControl.Audit.Persistence.EFCore.Abstractions;
     using ServiceControl.Audit.Persistence.EFCore.PostgreSql;
-    using ServiceControl.Persistence.BodyStorage;
 
     [TestFixture]
     class RetentionPeriodTests

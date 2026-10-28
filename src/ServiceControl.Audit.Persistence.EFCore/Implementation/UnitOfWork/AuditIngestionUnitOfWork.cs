@@ -11,7 +11,6 @@ using ServiceControl.Audit.Persistence.EFCore.Entities;
 using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
 using ServiceControl.Audit.Persistence.Infrastructure;
 using ServiceControl.Audit.Persistence.UnitOfWork;
-using ServiceControl.Persistence.BodyStorage;
 using ServiceControl.SagaAudit;
 
 sealed class AuditIngestionUnitOfWork(IServiceScopeFactory scopeFactory, IAuditBodyStoragePersistence? bodyStorage, EFPersisterSettings settings, DateTime createdOn) : IAuditIngestionUnitOfWork

@@ -1,9 +1,7 @@
 namespace ServiceControl.Persistence.Tests;
 
-using ServiceControl.Persistence.BodyStorage;
 using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -113,72 +111,6 @@ class AzureBlobBodyStorageTests
         await store.DeleteBodyIfExists(bodyId);
 
         Assert.That(await store.ReadBody(bodyId), Is.Null);
-    }
-
-    static readonly DateTime Hour10 = new(2026, 10, 20, 10, 0, 0, DateTimeKind.Utc);
-    static readonly DateTime Hour11 = Hour10.AddHours(1);
-    static readonly DateTime NextDay = Hour10.Date.AddDays(1);
-
-    [Test]
-    public async Task Delete_for_hour_removes_only_that_hour()
-    {
-        var store = await CreateContainer();
-        var body = Encoding.UTF8.GetBytes("payload");
-        await store.WriteBody("a", Hour10, body, "text/plain");
-        await store.WriteBody("b", Hour10, body, "text/plain");
-        await store.WriteBody("a", Hour11, body, "text/plain");
-
-        await store.DeleteBodiesForHour(Hour10);
-
-        Assert.Multiple(async () =>
-        {
-            Assert.That(await store.ReadBody("a", Hour10), Is.Null);
-            Assert.That(await store.ReadBody("b", Hour10), Is.Null);
-            Assert.That(await store.ReadBody("a", Hour11), Is.Not.Null);
-        });
-    }
-
-    [Test]
-    public async Task Delete_for_hour_removes_more_bodies_than_fit_in_one_batch()
-    {
-        var store = await CreateContainer();
-        var body = Encoding.UTF8.GetBytes("payload");
-        var ids = Enumerable.Range(0, 300).Select(_ => Guid.NewGuid().ToString()).ToArray();
-        await Task.WhenAll(ids.Select(id => store.WriteBody(id, Hour10, body, "text/plain")));
-        await store.WriteBody("other", Hour11, body, "text/plain");
-
-        await store.DeleteBodiesForHour(Hour10);
-
-        Assert.Multiple(async () =>
-        {
-            foreach (var id in ids)
-            {
-                Assert.That(await store.ReadBody(id, Hour10), Is.Null, id);
-            }
-
-            Assert.That(await store.ReadBody("other", Hour11), Is.Not.Null);
-        });
-    }
-
-    [Test]
-    public async Task Delete_for_day_removes_every_hour_of_that_day_only()
-    {
-        var store = await CreateContainer();
-        var body = Encoding.UTF8.GetBytes("payload");
-        await store.WriteBody("a", Hour10.Date, body, "text/plain");
-        await store.WriteBody("b", Hour10.Date.AddHours(23), body, "text/plain");
-        await store.WriteBody("c", NextDay, body, "text/plain");
-        await store.WriteBody("d", Hour10.Date.AddHours(-1), body, "text/plain");
-
-        await store.DeleteBodiesForDay(Hour10);
-
-        Assert.Multiple(async () =>
-        {
-            Assert.That(await store.ReadBody("a", Hour10.Date), Is.Null);
-            Assert.That(await store.ReadBody("b", Hour10.Date.AddHours(23)), Is.Null);
-            Assert.That(await store.ReadBody("c", NextDay), Is.Not.Null);
-            Assert.That(await store.ReadBody("d", Hour10.Date.AddHours(-1)), Is.Not.Null);
-        });
     }
 
     [Test]

@@ -1,6 +1,5 @@
 namespace ServiceControl.Persistence.EFCore.Abstractions;
 
-using ServiceControl.Persistence.BodyStorage;
 
 public abstract class EFPersisterSettings : PersistenceSettings
 {
