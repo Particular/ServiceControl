@@ -10,6 +10,7 @@ using Npgsql;
 using ServiceControl.Audit.Persistence.EFCore.DbContexts;
 using ServiceControl.Audit.Persistence.EFCore.Entities;
 using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
+using ServiceControl.Audit.Persistence.EFCore.Infrastructure.Metrics;
 
 class PostgreSqlAuditPartitionManager(ILogger<PostgreSqlAuditPartitionManager> logger) : IAuditPartitionManager
 {
@@ -35,26 +36,16 @@ class PostgreSqlAuditPartitionManager(ILogger<PostgreSqlAuditPartitionManager> l
         }
     }
 
-    public async Task<IReadOnlyList<DateTime>> ListExpired(AuditDbContext dbContext, DateTime keepFrom, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<DateTime>> ListExpired(AuditDbContext dbContext, AuditRetentionEntity entity, DateTime keepFrom, CancellationToken cancellationToken = default)
     {
-        var days = new SortedSet<DateTime>();
-        foreach (var table in Tables(dbContext))
-        {
-            foreach (var day in await PartitionDays(dbContext, table, cancellationToken))
-            {
-                if (day.AddDays(1) <= keepFrom)
-                {
-                    days.Add(day);
-                }
-            }
-        }
+        var days = await PartitionDays(dbContext, Table(dbContext, entity), cancellationToken);
 
-        return [.. days];
+        return [.. days.Where(day => day.AddDays(1) <= keepFrom).Order()];
     }
 
-    public async Task<DropResult> DropExpired(AuditDbContext dbContext, DateTime day, int batchSize, CancellationToken cancellationToken = default)
+    public async Task<DropResult> DropExpired(AuditDbContext dbContext, AuditRetentionEntity entity, DateTime day, int batchSize, CancellationToken cancellationToken = default)
     {
-        var sql = string.Concat(Tables(dbContext).Select(table => $"DROP TABLE IF EXISTS {table.Partition(day)};\n"));
+        var sql = $"DROP TABLE IF EXISTS {Table(dbContext, entity).Partition(day)};";
 
         return await WithShortLockWait(dbContext, sql, cancellationToken)
             ? new DropResult(RowsDeleted: 0, Completed: true)
@@ -117,6 +108,13 @@ class PostgreSqlAuditPartitionManager(ILogger<PostgreSqlAuditPartitionManager> l
         }, cancellationToken);
 
     static AuditTable[] Tables(AuditDbContext dbContext) => [Table<AuditMessageEntity>(dbContext), Table<SagaSnapshotEntity>(dbContext)];
+
+    static AuditTable Table(AuditDbContext dbContext, AuditRetentionEntity entity) => entity switch
+    {
+        AuditRetentionEntity.AuditMessages => Table<AuditMessageEntity>(dbContext),
+        AuditRetentionEntity.SagaSnapshots => Table<SagaSnapshotEntity>(dbContext),
+        _ => throw new ArgumentOutOfRangeException(nameof(entity))
+    };
 
     static AuditTable Table<TEntity>(AuditDbContext dbContext) =>
         new(dbContext.Model.FindEntityType(typeof(TEntity))!.GetTableName()!, SchemaQualifiedTableName.For<TEntity>(dbContext), dbContext.Schema, dbContext.GetService<ISqlGenerationHelper>());

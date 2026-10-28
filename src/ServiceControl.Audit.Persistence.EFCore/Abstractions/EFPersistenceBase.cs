@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using NServiceBus;
 using ServiceControl.Audit.Persistence.EFCore.Implementation;
 using ServiceControl.Audit.Persistence.EFCore.Implementation.UnitOfWork;
+using ServiceControl.Audit.Persistence.EFCore.Infrastructure.Metrics;
 using ServiceControl.Audit.Persistence.UnitOfWork;
 
 abstract class EFPersistenceBase(EFPersisterSettings settings) : IPersistence
@@ -23,6 +24,7 @@ abstract class EFPersistenceBase(EFPersisterSettings settings) : IPersistence
         AddEnvironmentProbes(services);
 
         services.AddSingleton<AuditRetentionCustomCheck.State>();
+        services.AddSingleton<AuditRetentionMetrics>();
         services.AddHostedService<AuditRetention>();
 
         if (services.SingleOrDefault(s => s.ServiceType == typeof(EndpointConfiguration)) is
