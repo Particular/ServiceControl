@@ -28,11 +28,13 @@ namespace ServiceControl.Audit.Persistence.Tests
         {
             var published = new List<Instrument>();
 
+            var meterFactory = MeterFactory;
+
             using var listener = new MeterListener
             {
                 InstrumentPublished = (instrument, _) =>
                 {
-                    if (BelongsToThisTest(instrument))
+                    if (BelongsToThisTest(instrument, meterFactory))
                     {
                         published.Add(instrument);
                     }
@@ -223,10 +225,8 @@ namespace ServiceControl.Audit.Persistence.Tests
 
         RecordedAuditRetentionMetrics Listen() => new(MeterFactory);
 
-        // Every fixture in the run shares the meter name, so the factory is what tells the instruments
-        // created here apart from the ones another test left behind.
-        bool BelongsToThisTest(Instrument instrument) =>
-            instrument.Meter.Name == AuditRetentionMetrics.MeterName && ReferenceEquals(instrument.Meter.Scope, MeterFactory);
+        static bool BelongsToThisTest(Instrument instrument, IMeterFactory meterFactory) =>
+            instrument.Meter.Name == AuditRetentionMetrics.MeterName && ReferenceEquals(instrument.Meter.Scope, meterFactory);
 
         IMeterFactory MeterFactory => provider.GetRequiredService<IMeterFactory>();
 
