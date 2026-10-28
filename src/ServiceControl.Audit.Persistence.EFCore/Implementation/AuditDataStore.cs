@@ -2,6 +2,7 @@ namespace ServiceControl.Audit.Persistence.EFCore.Implementation;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using ServiceControl.Audit.Auditing;
 using ServiceControl.Audit.Auditing.MessagesView;
 using ServiceControl.Audit.Infrastructure;
@@ -16,6 +17,7 @@ sealed class AuditDataStore(
     EFPersisterSettings settings,
     IFullTextSearchDialect fullTextSearch,
     TimeProvider timeProvider,
+    ILogger<AuditDataStore> logger,
     IAuditBodyStoragePersistence? bodyStorage = null) : DataStoreBase(scopeFactory, settings), IAuditMessagesViewDataStore, ISagaHistoryDataStore
 {
     public const int TotalCountCap = 100_000;
@@ -95,9 +97,13 @@ sealed class AuditDataStore(
 
                 var external = await bodyStorage.ReadBody(body.UniqueMessageId.ToString(), body.CreatedOn, cancellationToken);
 
-                return external is null
-                    ? MessageBodyView.NoContent()
-                    : MessageBodyView.FromStream(external.Stream, external.ContentType, external.BodySize, version);
+                if (external is null)
+                {
+                    logger.LogWarning("Message body {MessageId} is marked External in audit row {RowId} created on {CreatedOn:u}, but external storage returned nothing", messageId, body.Id, body.CreatedOn);
+                    return MessageBodyView.NoContent();
+                }
+
+                return MessageBodyView.FromStream(external.Stream, external.ContentType, external.BodySize, version);
             default:
                 throw new InvalidOperationException($"Unknown body state {body.BodyState}");
         }

@@ -33,6 +33,20 @@ The body URL keeps the audit body id, `yyyyMMddHH-{unique message id}`, which ro
 
 Reading a body streams it from storage with the stored content type, size, and a version derived from the row. A body missing from storage answers 204.
 
+## Compression
+
+The Audit and Error external storage providers use Brotli compression when the original body size is at least `MessageBody/MinCompressionSize` bytes (default 4096). Smaller bodies are stored uncompressed. This setting applies only to external bodies, not inline `BodyText` or its searchable prefix. Compression does not depend on whether the result is smaller than the original body.
+
+The file system provider uses `CompressionLevel.Fastest`; Azure Blob and S3 use Brotli quality 1 with a 22-bit window. If the cloud encoder reports that compression failed, those providers store the original bytes instead. A file system compression error fails the write.
+
+Each provider records the compression flag and original body size in the file header or object metadata. Reads decompress the body as a stream and return its original bytes, content type, and size. API clients do not need to decompress the storage format.
+
+## Encryption
+
+The external storage providers do not encrypt bodies before writing them. They set no server-side encryption options on Azure Blob or S3 uploads and expose no encryption-key settings. Compression does not protect body contents, and storage authentication does not configure encryption.
+
+Configure encryption at rest and key management in the underlying storage account, S3 bucket, or file system volume. Configure database encryption separately for inline bodies and searchable prefixes, and transport encryption for remote storage and database connections. Whether data is encrypted depends on those systems' settings, not the body storage provider.
+
 ## Retention
 
 Retention removes bodies before it removes rows. For each expired unit it calls `IAuditPartitionManager.DeleteBodies`, and it drops the rows only after that call succeeds. If storage fails, the rows and partitions stay and the next sweep retries.
@@ -57,7 +71,7 @@ Audit settings use the `ServiceControl.Audit/` prefix in the application setting
 | Key | Applies to | Default |
 | --- | --- | --- |
 | `MessageBody/StorageType` | all, optional: `FileSystem`, `AzureBlob`, or `S3` | none |
-| `MessageBody/MinCompressionSize` | all, minimum body size in bytes to compress | 4096 |
+| `MessageBody/MinCompressionSize` | all external stores, minimum original body size in bytes to compress | 4096 |
 | `MessageBody/FileSystem/StoragePath` | `FileSystem`, required | none |
 | `MessageBody/FileSystem/DataSpaceRemainingThreshold` | `FileSystem`, free space percentage below which the custom check fails | 15 |
 | `MessageBody/Azure/ConnectionString` | `AzureBlob`, shared key or SAS | none |
