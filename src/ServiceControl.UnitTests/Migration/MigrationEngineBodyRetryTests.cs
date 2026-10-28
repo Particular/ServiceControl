@@ -167,7 +167,13 @@ class MigrationEngineBodyRetryTests
 
         await engine.RunCategoryAsync(category);
 
-        Assert.That(logger.Entries.Single(e => e.Message.StartsWith("Skipped msg-1")).Exception, Is.SameAs(failures[^1]));
+        var skipped = logger.Entries.Single(e => e.Message.StartsWith("Skipped msg-1"));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(skipped.Exception, Is.SameAs(failures[^1]));
+            Assert.That(skipped.Message, Does.Contain(nameof(MigrationSkipReason.BodyUnreadable)), "the refusal counts skips by reason name, so the log line has to carry the same name for the operator to find them");
+        }
     }
 
     [Test]
@@ -235,6 +241,13 @@ class MigrationEngineBodyRetryTests
 
         var checkpoint = await engine.RunCategoryAsync(category);
 
-        Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Halted));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.Halted));
+            Assert.That(checkpoint.LastError, Does.Contain("exceeds the configured threshold"),
+                "the end-of-run accounting check halts a category whose body skips were never counted, so the state alone cannot tell the threshold fired");
+            Assert.That(checkpoint.SkipReasons, Is.EquivalentTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BodyUnreadable] = 200 }),
+                "the first batch's 100 skips only reach the 100-row floor, so the second batch's are what pass it");
+        }
     }
 }

@@ -5,9 +5,9 @@ using Infrastructure;
 using ServiceControl.Persistence.DataMigration;
 
 /// <summary>
-/// Writes, reads and deletes one probe body, so a body store that is misconfigured stops the copy before it
-/// starts. Bodies can live on a file share, in Azure Blob Storage or in S3, and without this the first category
-/// that carries bodies would find out part way through and skip every message it could not write.
+/// Writes, reads and deletes one probe body, so a misconfigured body store stops the copy before it starts.
+/// Bodies can live on a file share, in Azure Blob Storage or in S3, and without this check the first category
+/// that carries bodies would only find out part way through, when a body it cannot write fails the batch and stops the category.
 /// </summary>
 sealed class BodyStorageIsWritableCheck(IBodyStoragePersistence bodyStorage) : IMigrationStartupCheck
 {

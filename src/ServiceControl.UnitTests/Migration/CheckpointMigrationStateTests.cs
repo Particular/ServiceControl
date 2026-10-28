@@ -104,7 +104,7 @@ class CheckpointMigrationStateTests
     public void Exactly_the_reasons_no_retry_can_fix_are_permanent() =>
         Assert.That(
             Enum.GetValues<MigrationSkipReason>().Where(reason => reason.IsPermanent()),
-            Is.EquivalentTo(new[] { MigrationSkipReason.RequiredValueMissing }));
+            Is.EquivalentTo(new[] { MigrationSkipReason.RequiredValueMissing, MigrationSkipReason.UnparseableUniqueMessageId, MigrationSkipReason.NoProcessingAttempts, MigrationSkipReason.ValueTooLong, MigrationSkipReason.MalformedValue, MigrationSkipReason.BodyMissing }));
 
     static MigrationCheckpoint Checkpoint(string categoryId, MigrationCategoryState state) =>
         new(categoryId, state, null, 0, 0, null, null, null, null, null, null);

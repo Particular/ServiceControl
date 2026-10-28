@@ -1,6 +1,7 @@
 namespace ServiceControl.Persistence.EFCore.DataMigration;
 
 using System.Collections.Frozen;
+using Abstractions;
 using Implementation;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -14,12 +15,18 @@ using Writers;
 /// any of them beyond that, so a category this build cannot write is simply absent from
 /// <see cref="SupportedCategoryIds" /> and never reaches the engine.
 /// </summary>
-sealed class EFCoreMigrationTarget(IServiceScopeFactory scopeFactory, IMigrationSqlDialect migrationDialect, ILogger<EFCoreMigrationTarget> logger) : DataStoreBase(scopeFactory), IMigrationTarget
+sealed class EFCoreMigrationTarget(
+    IServiceScopeFactory scopeFactory,
+    IMigrationSqlDialect migrationDialect,
+    IBodyStoragePersistence storagePersistence,
+    EFPersisterSettings settings,
+    ILogger<EFCoreMigrationTarget> logger) : DataStoreBase(scopeFactory), IMigrationTarget
 {
     readonly FrozenDictionary<string, IMigrationCategoryWriter> writers = new IMigrationCategoryWriter[]
     {
         new KnownEndpointsWriter(migrationDialect),
-        new EndpointSettingsWriter(migrationDialect)
+        new EndpointSettingsWriter(migrationDialect),
+        new FailedMessagesWriter(migrationDialect, storagePersistence, settings)
     }.ToFrozenDictionary(writer => writer.CategoryId, StringComparer.Ordinal);
 
     public Task Open(CancellationToken cancellationToken = default) =>

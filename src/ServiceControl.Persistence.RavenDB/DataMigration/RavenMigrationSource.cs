@@ -5,12 +5,14 @@ namespace ServiceControl.Persistence.RavenDB.DataMigration;
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Particular.LicensingComponent.Contracts;
 using Raven.Client.Documents.Operations;
 using Raven.Client.ServerWide.Operations;
+using ServiceControl.Operations.BodyStorage.RavenAttachments;
 using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.RavenDB.DataMigration.Readers;
 
@@ -24,7 +26,8 @@ sealed class RavenMigrationSource(RavenReadOnlySourceLifecycle lifecycle) : IMig
     readonly FrozenDictionary<string, IMigrationCategoryReader> readers = new IMigrationCategoryReader[]
     {
         new KnownEndpointsReader(lifecycle),
-        new EndpointSettingsReader(lifecycle)
+        new EndpointSettingsReader(lifecycle),
+        new FailedMessagesReader(lifecycle)
     }.ToFrozenDictionary(reader => reader.CategoryId, StringComparer.Ordinal);
 
     public Task Open(CancellationToken cancellationToken = default) => lifecycle.Open(cancellationToken);
@@ -84,8 +87,30 @@ sealed class RavenMigrationSource(RavenReadOnlySourceLifecycle lifecycle) : IMig
             ? reader.Read(resumeAfter, batchSize, cancellationToken)
             : throw new NotSupportedException($"The migration source cannot yet read the '{category.Id}' category.");
 
-    public Task<MigrationBody?> ReadBody(MigrationCategory category, string sourceId, CancellationToken cancellationToken = default) =>
-        throw new NotSupportedException($"The RavenDB migration source cannot read bodies for category {category.Id} yet");
+    public async Task<MigrationBody?> ReadBody(MigrationCategory category, string sourceId, CancellationToken cancellationToken = default)
+    {
+        // Another category may keep its body inside the document, where a body attachment read would find nothing and skip every row as BodyMissing.
+        if (category.Id != MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)
+        {
+            throw new NotSupportedException($"The migration source does not read bodies as attachments for the '{category.Id}' category.");
+        }
+
+        using var session = lifecycle.OpenSession(lifecycle.Settings.DatabaseName);
+
+        var attachment = await session.Advanced.Attachments.GetAsync(sourceId, RavenAttachmentsBodyStorage.AttachmentName, cancellationToken);
+
+        if (attachment == null)
+        {
+            return null;
+        }
+
+        await using var stream = attachment.Stream;
+
+        var content = new MemoryStream((int)attachment.Details.Size);
+        await stream.CopyToAsync(content, cancellationToken);
+
+        return new MigrationBody(content.ToArray(), attachment.Details.ContentType);
+    }
 
     public IReadOnlyCollection<string> SupportedCategoryIds => readers.Keys;
 

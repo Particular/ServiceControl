@@ -24,8 +24,12 @@ public sealed class MigrationEngine(
     MigrationEngineOptions options,
     ILogger<MigrationEngine> logger)
 {
-    /// <summary>How many times a message body is read before the row is skipped as unreadable.</summary>
+    /// <summary>
+    /// How many times a message body is read before the row is skipped as unreadable.
+    /// </summary>
     public const int MaxBodyReadAttempts = 3;
+
+    readonly MigrationBodyLoader bodyLoader = new(source, timeProvider, options.BodyRetryBackoff, logger);
 
     /// <summary>
     /// The categories of one kind to copy, in the order to copy them. Optional categories the operator did not
@@ -43,9 +47,6 @@ public sealed class MigrationEngine(
     /// that halts does not stop the ones after it. Before copying anything it saves a not-started checkpoint for
     /// every category that has none, so a copy stopped between two categories still lists the ones it never reached.
     /// </summary>
-    /// <exception cref="MigrationCheckpointConflictException">Another writer saved one of these checkpoints, which means a second instance is copying into the same database.</exception>
-    /// <exception cref="OperationCanceledException">The host is shutting down.</exception>
-    /// <exception cref="Exception">Saving the checkpoint a category stopped or settled on failed. Its stored row is the last one saved, and the categories after it were not run.</exception>
     // Runs in the order given without re-sorting: required and optional orders both start at 1, so
     // sorting a mixed list would put an optional category in front of a required one.
     public async Task<IReadOnlyList<MigrationCheckpoint>> RunCategories(
@@ -75,10 +76,6 @@ public sealed class MigrationEngine(
     /// Copies one category, carrying on from its saved cursor, and returns the checkpoint it ended on. A category
     /// already finished or Failed is returned untouched without reading the source.
     /// </summary>
-    /// <returns>The stored checkpoint, whose state says how it ended and whose LastError says why it stopped.</returns>
-    /// <exception cref="MigrationCheckpointConflictException">Another writer saved this category's checkpoint, which means a second instance is copying into the same database. The state is left as that writer set it.</exception>
-    /// <exception cref="OperationCanceledException">The host is shutting down. The last committed batch saved its own counts, so the stored checkpoint is already correct and a restart carries on from it.</exception>
-    /// <exception cref="Exception">Saving the checkpoint the category stopped or settled on failed, such as a halt the store could not write. The stored row is the last one saved, so it still reads as copying from its last committed batch.</exception>
     public async Task<MigrationCheckpoint> RunCategoryAsync(MigrationCategory category, CancellationToken cancellationToken = default)
     {
         var checkpoint = await checkpointStore.Read(category.Id, cancellationToken) ?? NotStarted(category);
@@ -146,16 +143,13 @@ public sealed class MigrationEngine(
                 // Kept out of checkpoint until the write commits: the catch below saves checkpoint, and a
                 // restart re-reads the uncommitted batch and would count these skips twice.
                 var bodySkips = 0;
+                Dictionary<MigrationSkipReason, long>? bodySkipReasons = null;
                 if (category.CarriesBodies)
                 {
-                    var (withBodies, failed) = await FetchBodiesWithRetry(category, batch, cancellationToken);
-                    batchToWrite = withBodies;
-                    bodySkips = failed.Count;
-
-                    foreach (var (id, lastAttemptError) in failed)
-                    {
-                        logger.LogWarning(lastAttemptError, "Skipped {SourceId} in category {CategoryId}: body unreadable after {MaxAttempts} attempts", id, category.Id, MaxBodyReadAttempts);
-                    }
+                    var loaded = await bodyLoader.Load(category, batch, cancellationToken);
+                    batchToWrite = batch with { Rows = loaded.Rows };
+                    bodySkips = loaded.Skipped.Count;
+                    bodySkipReasons = loaded.Skipped.CountBy(skip => skip.Reason).ToDictionary(count => count.Key, count => (long)count.Value);
                 }
 
                 // The target adds its own outcome inside the transaction that writes the rows,
@@ -165,7 +159,7 @@ public sealed class MigrationEngine(
                     Cursor = batch.Cursor,
                     LastProgressAt = timeProvider.GetUtcNow().UtcDateTime,
                     SkippedCount = checkpoint.SkippedCount + bodySkips,
-                    SkipReasons = MigrationCheckpoint.AddSkipReasons(checkpoint.SkipReasons, bodySkips == 0 ? null : new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BodyUnreadable] = bodySkips })
+                    SkipReasons = MigrationCheckpoint.AddSkipReasons(checkpoint.SkipReasons, bodySkipReasons)
                 };
 
                 var result = await target.Write(category, batchToWrite, checkpointToExtend, cancellationToken);
@@ -252,64 +246,6 @@ public sealed class MigrationEngine(
     // Halts log before settling: the store shares the target's database, so a failed save would hide the cause.
     Task<MigrationCheckpoint> Settle(MigrationCheckpoint settled, CancellationToken cancellationToken) =>
         checkpointStore.Upsert(settled with { SettledAt = timeProvider.GetUtcNow().UtcDateTime }, cancellationToken);
-
-    async Task<(MigrationBatch Batch, IReadOnlyList<(string SourceId, Exception LastAttemptError)> Failed)> FetchBodiesWithRetry(MigrationCategory category, MigrationBatch batch, CancellationToken cancellationToken)
-    {
-        var survivors = new List<MigrationRow>(batch.Rows.Count);
-        var failed = new List<(string SourceId, Exception LastAttemptError)>();
-
-        foreach (var row in batch.Rows)
-        {
-            if (row.Body is not null)
-            {
-                survivors.Add(row);
-                continue;
-            }
-
-            MigrationBody? body = null;
-            Exception? lastAttemptError = null;
-            var succeeded = false;
-
-            for (var attempt = 1; attempt <= MaxBodyReadAttempts && !succeeded; attempt++)
-            {
-                try
-                {
-                    body = await source.ReadBody(category, row.SourceId, cancellationToken);
-                    succeeded = true;
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    // A shutdown is not a transient body failure. Retrying it to the attempt limit and then
-                    // recording the message as permanently unreadable would lose a row to a restart.
-                    throw;
-                }
-                catch (Exception ex) when (!IsDefect(ex))
-                {
-                    lastAttemptError = ex;
-                    logger.LogWarning(ex, "Attempt {Attempt} to read the body for {SourceId} failed", attempt, row.SourceId);
-                    if (attempt < MaxBodyReadAttempts)
-                    {
-                        await Pause(options.BodyRetryBackoff, cancellationToken);
-                    }
-                }
-            }
-
-            if (succeeded)
-            {
-                survivors.Add(row with { Body = body });
-            }
-            else
-            {
-                failed.Add((row.SourceId, lastAttemptError!));
-            }
-        }
-
-        return (batch with { Rows = survivors }, failed);
-    }
-
-    // These fail the same way on every attempt, so retrying would only turn a code defect into skipped messages.
-    static bool IsDefect(Exception exception) =>
-        exception is NotSupportedException or NotImplementedException or InvalidOperationException or ArgumentException or NullReferenceException or InvalidCastException;
 
     // Zero means no throttling, and it must return without waiting: against a fake clock
     // nobody advances, even a zero-length wait never finishes.
