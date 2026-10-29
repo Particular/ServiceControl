@@ -7,7 +7,7 @@ The `particular/servicecontrol` image is part of the Particular Service Platform
 | [`particular/servicecontrol`](https://hub.docker.com/r/particular/servicecontrol) | [Instance Documentation](https://docs.particular.net/servicecontrol/servicecontrol-instances/)<br/>[Container Documentation](https://docs.particular.net/servicecontrol/servicecontrol-instances/deployment/containers) | The primary/error instance, which includes error handling and recoverability |
 | [`particular/servicecontrol-audit`](https://hub.docker.com/r/particular/servicecontrol-audit) | [Instance Documentation](https://docs.particular.net/servicecontrol/audit-instances/)<br/>[Container Documentation](https://docs.particular.net/servicecontrol/audit-instances/deployment/containers) | The audit instance, which stores audit data, and can be scaled out to multiple audit instances |
 | [`particular/servicecontrol-monitoring`](https://hub.docker.com/r/particular/servicecontrol-monitoring) | [Instance Documentation](https://docs.particular.net/servicecontrol/monitoring-instances/)<br/>[Container Documentation](https://docs.particular.net/servicecontrol/monitoring-instances/deployment/containers) | The monitoring instance, which tracks runtime information like throughput, queue length, and other metrics |
-| [`particular/servicecontrol-ravendb`](https://hub.docker.com/r/particular/servicecontrol-ravendb) | [Container Documentation](https://docs.particular.net/servicecontrol/ravendb/containers) | The database used by the error/audit instances |
+| [`particular/servicecontrol-ravendb`](https://hub.docker.com/r/particular/servicecontrol-ravendb) | [Container Documentation](https://docs.particular.net/servicecontrol/ravendb/containers) | The database for error/audit instances using RavenDB persistence |
 | [`particular/servicepulse`](https://hub.docker.com/r/particular/servicepulse) | [App Documentation](https://docs.particular.net/servicepulse/)<br/>[Container Documentation](https://docs.particular.net/servicepulse/containerization/) | The web application that provides a front end for recoverability and monitoring features |
 
 ## Usage
@@ -18,11 +18,38 @@ The following is the most basic way to create ServiceControl containers using [D
 docker run -d --name servicecontrol -p 33333:33333 \
     -e TRANSPORTTYPE=RabbitMQ.QuorumConventionalRouting \
     -e CONNECTIONSTRING="host=rabbitmq" \
+    -e PERSISTENCETYPE=RavenDB \
     -e RAVENDB_CONNECTIONSTRING="http://servicecontrol-db:8080" \
     -e REMOTEINSTANCES='[{"api_uri":"http://audit:44444/api"}]' \
     -e ENABLEINTEGRATEDSERVICEPULSE="true" \
     particular/servicecontrol:latest --setup-and-run
 ```
+
+### Persistence
+
+Set `PERSISTENCETYPE` to select the database. RavenDB is the default.
+
+| `PERSISTENCETYPE` | Connection string environment variable |
+|-------------------|---------------------------------------|
+| `RavenDB` | `RAVENDB_CONNECTIONSTRING` |
+| `SQLServer` | `DATABASE_CONNECTIONSTRING` |
+| `PostgreSQL` | `DATABASE_CONNECTIONSTRING` |
+
+For SQL Server and PostgreSQL, create the database before running setup. SQL Server requires the Full-Text Search feature. The `particular/servicecontrol-ravendb` image is not needed for either relational database.
+
+The error instance uses the connection or provider default schema, typically `dbo` on SQL Server or `public` on PostgreSQL. Set `DATABASE_SCHEMA` to override it. Error and audit instances can share a database but must use different schemas.
+
+Setup creates a missing schema if the database user has permission. Otherwise, create the schema and grant the required permissions before running setup. For an existing instance, set `DATABASE_SCHEMA` to the schema containing its data; ServiceControl does not move existing tables. See [SQL persister schemas](https://github.com/Particular/ServiceControl/blob/master/docs/sql-persister-schemas.md).
+
+SQL Server and PostgreSQL also require `MESSAGEBODY_STORAGETYPE` to select where message bodies are stored:
+
+| `MESSAGEBODY_STORAGETYPE` | Required configuration |
+|--------------------------|------------------------|
+| `FileSystem` | Set `MESSAGEBODY_FILESYSTEM_STORAGEPATH` to a directory backed by a persistent volume and writable by the container user. Without a persistent volume, recreating the container loses message bodies. |
+| `AzureBlob` | Set exactly one of `MESSAGEBODY_AZURE_CONNECTIONSTRING` or `MESSAGEBODY_AZURE_SERVICEURI`. A service URI uses managed identity. |
+| `S3` | Set `MESSAGEBODY_S3_BUCKETNAME`. Uses the default AWS credential chain unless both `MESSAGEBODY_S3_ACCESSKEYID` and `MESSAGEBODY_S3_SECRETACCESSKEY` are set. |
+
+These settings also accept the `SERVICECONTROL_` prefix, for example `SERVICECONTROL_PERSISTENCETYPE` and `SERVICECONTROL_DATABASE_CONNECTIONSTRING`.
 
 For all other usage information see the [official container documentation](https://docs.particular.net/servicecontrol/servicecontrol-instances/deployment/containers).
 
