@@ -18,6 +18,7 @@
         [Test]
         public async Task Should_publish_notification()
         {
+            SetSettings = settings => settings.EnableExternalIntegrationsPublishing = true;
             CustomConfiguration = config => config.OnEndpointSubscribed<Context>((s, ctx) =>
             {
                 if (s.SubscriberReturnAddress.IndexOf("ExternalProcessor", StringComparison.OrdinalIgnoreCase) >= 0)

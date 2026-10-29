@@ -18,6 +18,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
         [Test]
         public async Task Should_publish_notification()
         {
+            SetSettings = settings => settings.EnableExternalIntegrationsPublishing = true;
             CustomConfiguration = config => config.OnEndpointSubscribed<EditMessageResolutionContext>((s, ctx) =>
             {
                 ctx.ExternalProcessorSubscribed = s.SubscriberReturnAddress.Contains(nameof(MessageReceiver));
