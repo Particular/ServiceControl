@@ -42,20 +42,14 @@
         public async Task Cleanup() => await configuration.Cleanup();
 
         [Test]
-        public async Task CanRunMaintenanceMode()
+        public void MaintenanceModeIsRejectedForExternalServer()
         {
-            // ideally we'd be using the MaintenanceModeCommand here but that indefinitely blocks due to the RunAsync
-            // not terminating.
+            // The acceptance tests run the persister against an external server; only the embedded database supports maintenance mode.
             var hostBuilder = Host.CreateApplicationBuilder();
-            hostBuilder.Services.AddPersistence(settings, maintenanceMode: true);
 
-            using var host = hostBuilder.Build();
-            await host.StartAsync();
+            var exception = Assert.Throws<InvalidOperationException>(() => hostBuilder.Services.AddPersistence(settings, maintenanceMode: true));
 
-            // Maintenance mode never calls AddServiceControl, so the persister has to supply the clock itself.
-            Assert.That(host.Services.GetRequiredService<TimeProvider>(), Is.Not.Null);
-
-            await host.StopAsync();
+            Assert.That(exception.Message, Does.Contain("Maintenance mode is not supported"));
         }
 
         [Test]
