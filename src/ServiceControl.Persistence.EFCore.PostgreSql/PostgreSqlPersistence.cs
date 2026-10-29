@@ -5,9 +5,14 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Infrastructure;
+using ServiceControl.PostgreSql.TokenAuthentication;
 
 class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersistence, IPersistence
 {
@@ -44,22 +49,22 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersiste
 
     void ConfigureDbContext(IServiceCollection services)
     {
+        if (settings.TokenAuthentication is { } tokenAuthentication)
+        {
+            services.TryAddSingleton(_ => tokenAuthentication.CreateTokenProvider());
+            services.TryAddSingleton(serviceProvider => PostgreSqlTokenDataSource.Build(settings.ConnectionString, serviceProvider.GetRequiredService<IPostgreSqlTokenProvider>(), TokenLogger(serviceProvider)));
+        }
+
         services.AddDbContext<PostgreSqlServiceControlDbContext>((serviceProvider, options) =>
         {
-            options.UseNpgsql(settings.ConnectionString, npgsqlOptions =>
+            if (settings.TokenAuthentication is null)
             {
-                npgsqlOptions.CommandTimeout(settings.CommandTimeout);
-
-                npgsqlOptions.MigrationsHistoryTable(ServiceControlDbContext.MigrationsHistoryTableName, settings.Schema);
-
-                if (settings.EnableRetryOnFailure)
-                {
-                    npgsqlOptions.EnableRetryOnFailure(
-                        maxRetryCount: settings.MaxRetryCount,
-                        maxRetryDelay: TimeSpan.FromSeconds(settings.MaxRetryDelayInSeconds),
-                        errorCodesToAdd: null);
-                }
-            });
+                options.UseNpgsql(settings.ConnectionString, ConfigureNpgsql);
+            }
+            else
+            {
+                options.UseNpgsql(serviceProvider.GetRequiredService<NpgsqlDataSource>(), ConfigureNpgsql);
+            }
 
             if (settings.Schema is not null)
             {
@@ -78,5 +83,22 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersiste
         }, ServiceLifetime.Scoped);
 
         services.AddScoped<ServiceControlDbContext>(provider => provider.GetRequiredService<PostgreSqlServiceControlDbContext>());
+    }
+
+    static ILogger TokenLogger(IServiceProvider serviceProvider) => serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(PostgreSqlTokenDataSource));
+
+    void ConfigureNpgsql(NpgsqlDbContextOptionsBuilder npgsqlOptions)
+    {
+        npgsqlOptions.CommandTimeout(settings.CommandTimeout);
+
+        npgsqlOptions.MigrationsHistoryTable(ServiceControlDbContext.MigrationsHistoryTableName, settings.Schema);
+
+        if (settings.EnableRetryOnFailure)
+        {
+            npgsqlOptions.EnableRetryOnFailure(
+                maxRetryCount: settings.MaxRetryCount,
+                maxRetryDelay: TimeSpan.FromSeconds(settings.MaxRetryDelayInSeconds),
+                errorCodesToAdd: null);
+        }
     }
 }

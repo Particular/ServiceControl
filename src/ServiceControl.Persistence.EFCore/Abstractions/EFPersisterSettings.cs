@@ -11,7 +11,7 @@ public abstract class EFPersisterSettings : PersistenceSettings
 
     public static readonly TimeSpan DefaultSubscriptionCacheDuration = TimeSpan.FromSeconds(60);
 
-    public required string ConnectionString { get; set; }
+    public virtual required string ConnectionString { get; set; }
 
     /// <summary>
     /// The schema the persister owns, or null to use the connection or provider default. Validated on assignment

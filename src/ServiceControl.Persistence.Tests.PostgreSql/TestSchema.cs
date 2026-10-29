@@ -13,7 +13,15 @@ static class TestSchema
         Execute(connectionString, $"CREATE TABLE \"{schema}\".\"{table}\" (id int)", cancellationToken);
 
     public static Task Drop(string connectionString, string schema, CancellationToken cancellationToken = default) =>
-        Execute(connectionString, $"DROP SCHEMA IF EXISTS \"{schema}\" CASCADE", cancellationToken);
+        Execute(connectionString, DropSql(schema), cancellationToken);
+
+    public static async Task Drop(NpgsqlDataSource dataSource, string schema, CancellationToken cancellationToken = default)
+    {
+        await using var command = dataSource.CreateCommand(DropSql(schema));
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    static string DropSql(string schema) => $"DROP SCHEMA IF EXISTS \"{schema}\" CASCADE";
 
     static async Task Execute(string connectionString, string sql, CancellationToken cancellationToken)
     {

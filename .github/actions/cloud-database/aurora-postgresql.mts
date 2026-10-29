@@ -1,10 +1,11 @@
 // Provisions and tears down an Aurora PostgreSQL cluster for one run of the cloud database tests.
 
-import { step, run, capture, newAdminPassword, runnerIpAddress, setPersistenceConnectionString, verifyDatabase, teardownStep } from './common.mts';
+import { step, run, capture, newAdminPassword, runnerIpAddress, setPersistenceConnectionString, setTokenConnectionString, runScript, verifyDatabase, teardownStep } from './common.mts';
 import * as aws from './aws.mts';
 
 const databaseName = 'servicecontrol';
 const adminUser = 'sctestadmin';
+const iamUser = 'sc_iam';
 const port = 5432;
 
 function resources(name: string) {
@@ -36,6 +37,7 @@ async function provision(name: string): Promise<void> {
         '--db-subnet-group-name', aws.dbSubnetGroupName(),
         '--no-deletion-protection',
         '--backup-retention-period', '1',
+        '--enable-iam-database-authentication',
         ...tags,
         '--no-cli-pager']);
 
@@ -61,7 +63,11 @@ async function provision(name: string): Promise<void> {
     step('Waiting until the database accepts connections');
     verifyDatabase('PostgreSql', connectionString);
 
+    step(`Creating ${iamUser}, which signs in with an IAM token`);
+    runScript('./create-iam-user-postgresql.cs', [connectionString, iamUser]);
+
     setPersistenceConnectionString('PostgreSql', connectionString);
+    setTokenConnectionString('PostgreSql', `Host=${endpoint};Port=${port};Database=${databaseName};Username=${iamUser};Ssl Mode=Require;Trust Server Certificate=true;Timeout=60;Token Authentication=AwsRdsIam`);
 }
 
 function teardown(name: string): void {

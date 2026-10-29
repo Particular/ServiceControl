@@ -14,7 +14,7 @@ ServiceControl is the monitoring component of the Particular Service Platform: i
 
 - [ServiceControl documentation](https://docs.particular.net/servicecontrol/) — public documentation entry point
 - [README.md](../README.md) — how to run and debug ServiceControl, ServiceControl.Audit, and ServiceControl.Monitoring locally
-- [Testing overview](testing.md) — index of test kinds, local setup for each, and the scenario checklists to rerun after a change
+- [Testing overview](testing.md) — index of test kinds, local setup for each, the cloud database tests, and the scenario checklists to rerun after a change
 - [Coding and design guidelines](coding-and-design-guidelines.md) — conventions for new code
 - [Deployment](deployment.md) and [Packaging](packaging.md) — how instances are packaged and deployed
 

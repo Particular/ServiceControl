@@ -7,7 +7,7 @@
       "TypeName": "ServiceControl.Transports.PostgreSql.PostgreSqlTransportCustomization, ServiceControl.Transports.PostgreSql",
       "SampleConnectionString": "Server=<ServerName>;Database=nservicebus;Port=5432;User Id=<Username>;Password=<Password>;Queue Schema=myschema;Subscriptions Table=schema.tablename",
       "AvailableInSCMU": true,
-      "Help": "Specify optional 'Queue Schema' to override the default schema. Specify optional 'Subscriptions Table' to override the default subscriptions table location."
+      "Help": "Specify optional 'Queue Schema' to override the default schema. Specify optional 'Subscriptions Table' to override the default subscriptions table location. To sign in with a Microsoft Entra ID or AWS IAM token instead of a password, add 'Token Authentication=AzureEntraId' or 'Token Authentication=AwsRdsIam' and remove 'Password'."
     }
   ]
 }
