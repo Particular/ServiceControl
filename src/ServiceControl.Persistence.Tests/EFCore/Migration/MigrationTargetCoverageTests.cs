@@ -1,11 +1,15 @@
 namespace ServiceControl.Persistence.Tests;
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using ServiceControl.Persistence.DataMigration;
+using ServiceControl.Persistence.EFCore.DbContexts;
+using ServiceControl.Persistence.EFCore.Entities;
 
 class MigrationTargetCoverageTests : PersistenceTestBase
 {
@@ -30,15 +34,29 @@ class MigrationTargetCoverageTests : PersistenceTestBase
     {
         var target = ServiceProvider.GetRequiredService<IMigrationTarget>();
 
-        Assert.That(target.SupportedCategoryIds, Is.EquivalentTo(ValueTooLongTests.Keys),
+        Assert.That(target.SupportedCategoryIds, Is.EquivalentTo(ValueTooLongTests.Keys.Concat(NoValueCanBeTooLong)),
             "a writer that does not run the length check sends an over-long value to the insert, which fails the whole statement and halts the category; give the new category a ValueTooLong test like those listed here, then add it to this list");
     }
+
+    [Test]
+    public async Task The_settings_value_column_has_no_maximum_length_so_no_setting_can_be_too_long()
+    {
+        await using var scope = ServiceProvider.CreateAsyncScope();
+        var model = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>().Model;
+
+        Assert.That(model.FindEntityType(typeof(SettingEntity))!.FindProperty(nameof(SettingEntity.Value))!.GetMaxLength(), Is.Null, "NoValueCanBeTooLong exempts the settings categories because of this; give them a value-too-long test if the column gains a limit");
+    }
+
+    // Each is one Settings row under a constant key whose value column has no maximum length, so no source value can be too long for it.
+    static readonly string[] NoValueCanBeTooLong = [MigrationCategoryIds.LicensingReportMasks, MigrationCategoryIds.LicensedEndpointDetails];
 
     // Uses nameof, so renaming or deleting one of these tests fails the build instead of leaving this list out of date.
     static readonly Dictionary<string, string> ValueTooLongTests = new()
     {
         [MigrationCategoryIds.KnownEndpoints] = nameof(KnownEndpointsMigrationTargetTests.A_known_endpoint_with_a_value_longer_than_its_column_is_skipped_as_value_too_long_and_the_rest_copy),
         [MigrationCategoryIds.EndpointSettings] = nameof(EndpointSettingsMigrationTargetTests.A_setting_whose_name_is_longer_than_its_column_is_skipped_as_value_too_long_and_the_rest_copy),
-        [MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages] = nameof(FailedMessagesMigrationTargetTests.A_message_or_group_value_longer_than_its_column_skips_the_message_whole_and_the_rest_copy)
+        [MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages] = nameof(FailedMessagesMigrationTargetTests.A_message_or_group_value_longer_than_its_column_skips_the_message_whole_and_the_rest_copy),
+        [MigrationCategoryIds.LicensingEndpoints] = nameof(LicensingEndpointsMigrationTargetTests.A_licensing_endpoint_with_a_value_longer_than_its_column_is_skipped_as_value_too_long_and_the_rest_copy),
+        [MigrationCategoryIds.LicensingThroughput] = nameof(LicensingThroughputMigrationTargetTests.A_day_whose_endpoint_name_is_longer_than_its_column_is_skipped_as_value_too_long_and_the_rest_copy)
     };
 }

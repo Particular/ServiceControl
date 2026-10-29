@@ -21,11 +21,11 @@ class LicensingDataStore(
     TimeProvider timeProvider) : ILicensingDataStore
 {
     internal const string ThroughputTimeSeriesName = "INC: throughput data";
-    const string AuditServiceMetadataDocumentId = "AuditServiceMetadata";
+    internal const string AuditServiceMetadataDocumentId = "AuditServiceMetadata";
     const string AuditEnvironmentMetadataDocumentId = "AuditEnvironmentMetadata";
-    const string BrokerMetadataDocumentId = "BrokerMetadata";
-    const string ReportMasksDocumentId = "ReportMasks";
-    const string LicencedEndpointDetailsDocumentId = "LicensedEndpointDetails";
+    internal const string BrokerMetadataDocumentId = "BrokerMetadata";
+    internal const string ReportMasksDocumentId = "ReportMasks";
+    internal const string LicencedEndpointDetailsDocumentId = "LicensedEndpointDetails";
     const string LicencedEndpointDetailsAmendmentDocumentId = "LicensedEndpointDetailsAmendment";
 
     static readonly AuditServiceMetadata DefaultAuditServiceMetadata = new([], []);

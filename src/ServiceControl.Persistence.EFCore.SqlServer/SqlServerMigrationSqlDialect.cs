@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 using ServiceControl.Persistence.EFCore.DbContexts;
+using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
 /// <summary>
@@ -111,6 +112,45 @@ class SqlServerMigrationSqlDialect : SqlServerDialect, IMigrationSqlDialect
         }
 
         return inserted;
+    }
+
+    public async Task<int> SetLicensingEndpointThroughput(ServiceControlDbContext dbContext, IReadOnlyList<LicensingEndpointThroughputEntity> rows, CancellationToken cancellationToken = default)
+    {
+        var insert = MigrationInsert<LicensingEndpointThroughputEntity>.For(dbContext);
+        var columns = string.Join(", ", insert.Columns);
+        var partitionBy = string.Join(", ", insert.KeyColumns.Select(column =>
+            Keys.Collations.TryGetValue((insert.Table, column), out var collation) ? $"{column} COLLATE {collation}" : column));
+        var written = 0;
+
+        foreach (var chunk in rows.Chunk(RowsPerStatement(insert.Columns.Count)))
+        {
+            // HOLDLOCK, or two writers can both find a day missing and both insert it.
+            // The output names the source's key values, because a stored name can differ from the chunk's by a trailing space and would match no row of it.
+            written += (await insert.Execute(
+                dbContext,
+                $"""
+                 MERGE {insert.Table} WITH (HOLDLOCK) AS t
+                 USING (
+                     SELECT {columns}
+                     FROM (
+                         SELECT {columns}, ROW_NUMBER() OVER (PARTITION BY {partitionBy} ORDER BY [MigrationOrdinal] DESC) AS [MigrationDuplicate]
+                         FROM (VALUES
+                 {ParameterRowsWithOrdinal(chunk.Length, insert.Columns.Count)}
+                         ) AS v ({columns}, [MigrationOrdinal])
+                     ) AS deduplicated
+                     WHERE [MigrationDuplicate] = 1
+                 ) AS s ({columns})
+                 ON {string.Join(" AND ", insert.KeyColumns.Select(column => $"t.{column} = s.{column}"))}
+                 WHEN MATCHED THEN UPDATE SET {string.Join(", ", insert.Columns.Except(insert.KeyColumns).Select(column => $"{column} = s.{column}"))}
+                 WHEN NOT MATCHED THEN INSERT ({columns}) VALUES ({string.Join(", ", insert.Columns.Select(column => $"s.{column}"))})
+                 OUTPUT {string.Join(", ", insert.KeyColumns.Select(column => $"s.{column}"))};
+                 """,
+                chunk,
+                configureParameter: null,
+                cancellationToken)).Count;
+        }
+
+        return written;
     }
 
     // EF declares unbounded text as nvarchar(4000) or nvarchar(max) by each value's length, and each new mix compiles its own plan.
