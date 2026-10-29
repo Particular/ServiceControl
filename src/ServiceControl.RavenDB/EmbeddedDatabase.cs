@@ -15,7 +15,6 @@ namespace ServiceControl.RavenDB
     using Raven.Client.Documents.Conventions;
     using Raven.Embedded;
     using ServiceControl.Infrastructure;
-    using Sparrow.Logging;
 
     public sealed class EmbeddedDatabase : IDisposable
     {
@@ -53,20 +52,6 @@ namespace ServiceControl.RavenDB
 
             var nugetPackagesPath = Path.Combine(databaseConfiguration.DbPath, "Packages", "NuGet");
 
-            var logMode = Enum.Parse<LogMode>(databaseConfiguration.LogsMode);
-
-            if (logMode == LogMode.Information) // Most verbose
-            {
-                LoggingSource.Instance.EnableConsoleLogging();
-                LoggingSource.Instance.SetupLogMode(
-                    logMode,
-                    Path.Combine(databaseConfiguration.LogPath, "Raven.Embedded"),
-                    retentionTime: TimeSpan.FromDays(14),
-                    retentionSize: 1024 * 1024 * 10,
-                    compress: false
-                );
-            }
-
             logger.LogInformation("Loading RavenDB license from {LicenseFileName}", licenseFileNameAndServerDirectory.LicenseFileName);
 
             List<string> optionalArgs = [];
@@ -79,7 +64,7 @@ namespace ServiceControl.RavenDB
             {
                 CommandLineArgs =
                 [
-                    $"--Logs.Mode={databaseConfiguration.LogsMode}",
+                    $"--Logs.MinLevel={databaseConfiguration.LogsMinLevel}",
                     // HINT: If this is not set, then Raven will pick a default location relative to the server binaries
                     // See https://github.com/ravendb/ravendb/issues/15694
                     $"--Indexing.NuGetPackagesPath=\"{nugetPackagesPath}\"",
@@ -173,7 +158,8 @@ namespace ServiceControl.RavenDB
             {
                 Conventions = new DocumentConventions
                 {
-                    SaveEnumsAsIntegers = true
+                    SaveEnumsAsIntegers = true,
+                    SaveEnumsAsIntegersForPatching = true
                 },
                 SkipCreatingDatabase = true
             };
@@ -281,7 +267,7 @@ Database Url:                       {configuration.ServerUrl}
 Database Path:                      {configuration.DbPath}
 Database Size:                      {ByteSize.FromBytes(dataSize).ToString("#.##", CultureInfo.InvariantCulture)}
 Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)}
-RavenDB Logging Level:              {configuration.LogsMode}
+RavenDB Logging Level:              {configuration.LogsMinLevel}
 -------------------------------------------------------------";
 
             logger.LogInformation(startupMessage);
