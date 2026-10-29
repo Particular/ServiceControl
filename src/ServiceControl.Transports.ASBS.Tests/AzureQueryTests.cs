@@ -3,11 +3,13 @@ namespace ServiceControl.Transport.Tests;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
@@ -22,6 +24,44 @@ class AzureQueryTests : TransportTestFixture
     FakeTimeProvider provider;
     TransportSettings transportSettings;
     AzureQuery query;
+
+    static readonly TimeSpan MonitorMappingTimeout = TimeSpan.FromMinutes(15);
+    static readonly TimeSpan MonitorMappingPollInterval = TimeSpan.FromSeconds(15);
+
+    // Azure Monitor answers 404 for a namespace it has not picked up yet, and CI creates a new namespace for every run.
+    [OneTimeSetUp]
+    public async Task WaitUntilAzureMonitorKnowsTheNamespace()
+    {
+        var testsConfiguration = new TransportTestsConfiguration();
+        await testsConfiguration.Configure();
+
+        var metricsQuery = new AzureQuery(NullLogger<AzureQuery>.Instance, TimeProvider.System,
+            new TransportSettings { ConnectionString = testsConfiguration.ConnectionString });
+        metricsQuery.Initialize(new ReadOnlyDictionary<string, string>(GetSettings()));
+        await metricsQuery.GetQueueNames().ToListAsync();
+
+        var yesterday = DateOnly.FromDateTime(TimeProvider.System.GetUtcNow().UtcDateTime).AddDays(-1);
+        var waited = Stopwatch.StartNew();
+        while (true)
+        {
+            try
+            {
+                await metricsQuery.GetThroughputPerDay(new DefaultBrokerQueue("any"), yesterday).ToListAsync();
+                break;
+            }
+            catch (RequestFailedException ex) when (ex.Status == 404 && ex.Message.Contains("Failed to find resource mapping"))
+            {
+                if (waited.Elapsed > MonitorMappingTimeout)
+                {
+                    throw new Exception($"Azure Monitor still could not find the Service Bus namespace after {waited.Elapsed:mm\\:ss}.", ex);
+                }
+
+                await Task.Delay(MonitorMappingPollInterval);
+            }
+        }
+
+        await TestContext.Progress.WriteLineAsync($"Azure Monitor found the Service Bus namespace after {waited.Elapsed:mm\\:ss}.");
+    }
 
     [SetUp]
     public void Initialise()
