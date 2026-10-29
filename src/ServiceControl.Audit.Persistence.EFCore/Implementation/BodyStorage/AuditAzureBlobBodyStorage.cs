@@ -53,7 +53,7 @@ public class AuditAzureBlobBodyStorage : IAuditBodyStoragePersistence
         {
             await blob.UploadAsync(data, options, cancellationToken);
         }
-        catch (RequestFailedException ex) when (ex.Status is (int)HttpStatusCode.Conflict or (int)HttpStatusCode.PreconditionFailed)
+        catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobAlreadyExists || ex.ErrorCode == BlobErrorCode.ConditionNotMet)
         {
             // A blob for this immutable body already exists.
         }

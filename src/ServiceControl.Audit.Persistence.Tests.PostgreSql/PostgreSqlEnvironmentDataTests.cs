@@ -64,17 +64,19 @@ namespace ServiceControl.Audit.Persistence.Tests
         [Test]
         public async Task Measures_and_identifies_the_search_path_schema_when_none_is_configured()
         {
-            settings.PersisterSpecificSettings[BodyStorageSettingsParser.StorageTypeKey] = nameof(BodyStorageType.FileSystem);
-            settings.PersisterSpecificSettings[BodyStorageSettingsParser.FileSystemStoragePathKey] = configuration.BodyStoragePath;
             var services = new ServiceCollection();
             services.AddLogging();
             services.AddSingleton<TimeProvider>(configuration.TimeProvider);
-            new PostgreSqlPersistence(new EFPersisterSettings
+
+            var settings = new EFPersisterSettings
             {
                 ConnectionString = new NpgsqlConnectionStringBuilder(configuration.ConnectionString) { SearchPath = configuration.Schema }.ConnectionString,
                 AuditRetentionPeriod = TimeSpan.FromDays(1),
-                MaxBodySizeToStore = 100000
-            }).AddPersistence(services);
+                MaxBodySizeToStore = 100000,
+                BodyStorage = new FileSystemBodyStorageSettings { StoragePath = configuration.BodyStoragePath }
+            };
+
+            new PostgreSqlPersistence(settings).AddPersistence(services);
             await using var unconfigured = services.BuildServiceProvider();
 
             var identity = await unconfigured.GetRequiredService<IStorageIdentityProvider>().GetIdentity(TestTimeoutCancellationToken);
