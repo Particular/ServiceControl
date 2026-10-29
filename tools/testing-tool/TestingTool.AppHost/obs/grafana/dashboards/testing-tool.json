@@ -1386,7 +1386,7 @@
     {
       "id": 35,
       "title": "Recoverability Throughput / sec (messages moved)",
-      "description": "Combined view of items moving through the three recoverability pipelines: sc.retry.messages_total (messages staged/forwarded/skipped by retry type), sc.archive.messages_total (messages archived/unarchived), and sc.retention.rows_deleted_total (rows deleted by entity). Stacked, the total is the rate of recoverability work ServiceControl is doing. Compare against the testing tool's own errors_replayed_total and errors_archived_total to see whether ServiceControl is keeping up with the requested work.",
+      "description": "Combined view of items moving through the three recoverability pipelines: sc.retry.messages_total (messages staged/forwarded/skipped by retry type), sc.archive.messages_total (messages archived/unarchived), and sc.retention.rows_deleted_total (rows deleted by entity, error instance only). Stacked, the total is the rate of recoverability work ServiceControl is doing. Compare against the testing tool's own errors_replayed_total and errors_archived_total to see whether ServiceControl is keeping up with the requested work.",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
@@ -1539,7 +1539,7 @@
     {
       "id": 38,
       "title": "Archive & Retention Durations (s) \u2014 mean",
-      "description": "Mean duration for the remaining recoverability pipelines: sc.archive.operation_duration_seconds (full archive/unarchive operation), sc.archive.batch_duration_seconds (individual archive batch), and sc.retention.cycle_duration_seconds (retention sweep pass). True means (histogram sum / count). Archive operation duration spans the whole group; batch duration is the per-batch write. Retention cycle is the full sweep pass, split by entity in the legend.",
+      "description": "Mean duration for the remaining recoverability pipelines: sc.archive.operation_duration_seconds (full archive/unarchive operation), sc.archive.batch_duration_seconds (individual archive batch), and sc.retention.cycle_duration_seconds (retention sweep pass). True means (histogram sum / count). Archive operation duration spans the whole group; batch duration is the per-batch write. Retention cycle is the full sweep pass, averaged since the instance started because the sweep runs only hourly, and split by entity in the legend: failed_messages, event_log and group_comments from the error instance, audit_messages and saga_snapshots from the audit instance.",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
@@ -1581,7 +1581,7 @@
           "legendFormat": "archive batch"
         },
         {
-          "expr": "sum by (retention_entity) (rate(sc_retention_cycle_duration_seconds_sum{exported_job=~\"$sc_instance\"}[$__rate_interval])) / sum by (retention_entity) (rate(sc_retention_cycle_duration_seconds_count{exported_job=~\"$sc_instance\"}[$__rate_interval]))",
+          "expr": "sum by (retention_entity) (sc_retention_cycle_duration_seconds_sum{exported_job=~\"$sc_instance\"}) / sum by (retention_entity) (sc_retention_cycle_duration_seconds_count{exported_job=~\"$sc_instance\"})",
           "legendFormat": "retention: {{retention_entity}}"
         }
       ]
@@ -1589,7 +1589,7 @@
     {
       "id": 39,
       "title": "Consecutive Retention Failures",
-      "description": "sc.retention.consecutive_failures_total \u2014 the retention sweep's own circuit-breaker signal, split by entity (failed_messages, event_log, group_comments). Resets to 0 on the first successful sweep. Anything above 0 means the sweep is currently failing. Mirrors the ingestion 'Consecutive Batch Failures' panel (id 23).",
+      "description": "sc.retention.consecutive_failures_total: the retention sweep's own circuit-breaker signal, split by entity (failed_messages, event_log and group_comments on the error instance, audit_messages and saga_snapshots on the audit instance). Resets to 0 on the first successful sweep. Anything above 0 means the sweep is currently failing. Mirrors the ingestion 'Consecutive Batch Failures' panel (id 23).",
       "type": "stat",
       "gridPos": {
         "h": 6,
@@ -1695,6 +1695,78 @@
         {
           "expr": "max(sc_retry_pending_bulk_requests{exported_job=~\"$sc_instance\"})",
           "legendFormat": "pending"
+        }
+      ]
+    },
+    {
+      "id": 43,
+      "title": "Retention Passes Since Start (by entity and result)",
+      "description": "Retention sweep passes counted from sc.retention.cycle_duration_seconds since the instance started, split by entity and result (success, failed, cancelled). The sweep runs one minute after start and then hourly, so a healthy instance gains one success per entity each hour. On the audit instance, a pass that leaves expired rows because its table is too busy records failed. An audit instance that did not hold the retention lock records nothing.",
+      "type": "stat",
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 114
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".* failed$"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".* cancelled$"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "graphMode": "none",
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "sum by (retention_entity, result) (sc_retention_cycle_duration_seconds_count{exported_job=~\"$sc_instance\"})",
+          "legendFormat": "{{retention_entity}} {{result}}"
         }
       ]
     }
