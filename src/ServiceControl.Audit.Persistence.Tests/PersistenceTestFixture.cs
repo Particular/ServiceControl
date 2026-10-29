@@ -22,7 +22,7 @@
                 throw new Exception($"{nameof(PersistenceTestsConfiguration)} must implement {nameof(IPersistenceTestsConfiguration)}");
             }
 
-            testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
+            testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(configuration.TestTimeout);
 
             return configuration.Configure(SetSettings);
         }
@@ -57,7 +57,5 @@
         protected CancellationToken TestTimeoutCancellationToken => testCancellationTokenSource.Token;
 
         CancellationTokenSource testCancellationTokenSource;
-
-        static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(30);
     }
 }
