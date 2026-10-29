@@ -3,19 +3,12 @@ namespace ServiceControl.Transport.Tests;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure;
-using Azure.Identity;
-using Azure.ResourceManager;
-using Azure.ResourceManager.Monitor;
-using Azure.ResourceManager.Monitor.Models;
-using Azure.ResourceManager.Resources;
-using Azure.ResourceManager.ServiceBus;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
@@ -43,78 +36,6 @@ class AzureQueryTests : TransportTestFixture
             EndpointName = Guid.NewGuid().ToString("N")
         };
         query = new AzureQuery(NullLogger<AzureQuery>.Instance, provider, transportSettings);
-    }
-
-    // Temporary probe for the Azure Monitor 404 seen in CI. It always fails, because only a failure message reaches the CI log.
-    [Test, Order(0)]
-    public async Task ProbeAzureMonitorResourceMapping()
-    {
-        Dictionary<string, string> settings = GetSettings();
-        var credential = new ClientSecretCredential(
-            settings[AzureQuery.AzureServiceBusSettings.TenantId],
-            settings[AzureQuery.AzureServiceBusSettings.ClientId],
-            settings[AzureQuery.AzureServiceBusSettings.ClientSecret]);
-        var armClient = new ArmClient(credential, settings[AzureQuery.AzureServiceBusSettings.SubscriptionId]);
-        string namespaceName = query.ExtractServiceBusName();
-        SubscriptionResource subscription = await armClient.GetDefaultSubscriptionAsync();
-        ServiceBusNamespaceResource serviceBusNamespace = await subscription.GetServiceBusNamespacesAsync()
-            .SingleAsync(ns => string.Equals(ns.Data.Name, namespaceName, StringComparison.OrdinalIgnoreCase));
-        string queueName = transportSettings.EndpointName;
-
-        var log = new StringBuilder();
-        log.AppendLine($"Namespace {serviceBusNamespace.Data.Name} in {serviceBusNamespace.Data.Location}, created {serviceBusNamespace.Data.CreatedOn:HH:mm:ss}");
-
-        (string Metric, string Filter)[] variants =
-        [
-            ("CompleteMessage", "EntityName eq 'any'"),
-            ("CompleteMessage", $"EntityName eq '{queueName}'"),
-            ("CompleteMessage", null),
-            ("IncomingMessages", null)
-        ];
-
-        async Task Probe(string phase)
-        {
-            DateTime today = DateTime.UtcNow.Date;
-            foreach ((string metric, string filter) in variants)
-            {
-                var options = new ArmResourceGetMonitorMetricsOptions
-                {
-                    Metricnames = metric,
-                    Timespan = $"{today.AddDays(-1):o}/{today.AddDays(1):o}",
-                    Filter = filter,
-                    Interval = TimeSpan.FromDays(1),
-                    Metricnamespace = "Microsoft.ServiceBus/Namespaces"
-                };
-
-                string outcome;
-                try
-                {
-                    List<MonitorMetric> metrics = await armClient.GetMonitorMetricsAsync(serviceBusNamespace.Id, options).ToListAsync();
-                    outcome = $"OK total={metrics.SelectMany(m => m.Timeseries).SelectMany(t => t.Data).Sum(d => d.Total ?? 0)}";
-                }
-                catch (RequestFailedException ex)
-                {
-                    outcome = $"{ex.Status} {ex.ErrorCode}: {ex.Message.Split('\n')[0]}";
-                }
-
-                log.AppendLine($"{DateTime.UtcNow:HH:mm:ss} {phase,-13} {metric,-16} {filter ?? "(no filter)",-52} {outcome}");
-            }
-        }
-
-        await Probe("empty");
-        await CreateTestQueue(queueName);
-        await Probe("queue created");
-        await SendAndReceiveMessages(queueName, 15);
-        await Probe("messages sent");
-
-        DateTime stopAt = DateTime.UtcNow.AddMinutes(7);
-        while (DateTime.UtcNow < stopAt)
-        {
-            await Task.Delay(TimeSpan.FromSeconds(30));
-            await Probe("polling");
-        }
-
-        Assert.Fail($"Azure Monitor probe results:{Environment.NewLine}{log}");
     }
 
     [Test]
@@ -292,18 +213,23 @@ class AzureQueryTests : TransportTestFixture
         IBrokerQueue queue = queueNames.Find(name => name.QueueName == transportSettings.EndpointName);
         Assert.That(queue, Is.Not.Null);
 
-        long total = 0L;
-
-        await Task.Delay(TimeSpan.FromMinutes(4), token);
-
         DateTime startDate = provider.GetUtcNow().DateTime;
         provider.Advance(TimeSpan.FromDays(1));
-        await foreach (QueueThroughput queueThroughput in query.GetThroughputPerDay(queue, DateOnly.FromDateTime(startDate), token))
+
+        long total = 0L;
+        var waited = Stopwatch.StartNew();
+        while (total < numMessagesToIngest && waited.Elapsed < TimeSpan.FromMinutes(9))
         {
-            total += queueThroughput.TotalThroughput;
+            await Task.Delay(TimeSpan.FromSeconds(15), token);
+
+            total = 0L;
+            await foreach (QueueThroughput queueThroughput in query.GetThroughputPerDay(queue, DateOnly.FromDateTime(startDate), token))
+            {
+                total += queueThroughput.TotalThroughput;
+            }
         }
 
-        Assert.That(total, Is.EqualTo(numMessagesToIngest));
+        Assert.That(total, Is.EqualTo(numMessagesToIngest), $"Azure Monitor throughput after waiting {waited.Elapsed:mm\\:ss}");
     }
 
     static Dictionary<string, string> GetSettings()
