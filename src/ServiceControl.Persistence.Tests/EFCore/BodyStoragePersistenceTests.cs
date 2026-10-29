@@ -2,6 +2,7 @@ namespace ServiceControl.Persistence.Tests;
 
 using System;
 using System.IO;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -179,6 +180,80 @@ class BodyStoragePersistenceTests
         await new FileSystemBodyStorageInstaller(new FileSystemBodyStorageSettings { StoragePath = path }).Provision();
 
         Assert.That(Directory.Exists(path), Is.True);
+        Assert.That(Directory.GetFileSystemEntries(path), Is.Empty);
+    }
+
+    [Test]
+    public async Task Provisioning_keeps_existing_bodies()
+    {
+        var existing = Path.Combine(tempDir, "existing");
+        await File.WriteAllTextAsync(existing, "body");
+
+        await new FileSystemBodyStorageInstaller(new FileSystemBodyStorageSettings { StoragePath = tempDir }).Provision();
+
+        Assert.That(Directory.GetFileSystemEntries(tempDir), Is.EqualTo(new[] { existing }));
+    }
+
+    [Test]
+    public async Task Provisioning_fails_with_the_path_when_it_is_a_file()
+    {
+        var path = Path.Combine(tempDir, "file");
+        await File.WriteAllTextAsync(path, "x");
+
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => new FileSystemBodyStorageInstaller(new FileSystemBodyStorageSettings { StoragePath = path }).Provision());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ex.Message, Does.Contain(path));
+            Assert.That(ex.InnerException, Is.InstanceOf<IOException>());
+        }
+    }
+
+    [Test]
+    [UnsupportedOSPlatform("windows")]
+    public void Provisioning_fails_with_the_path_when_the_directory_is_not_writable()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            Assert.Ignore("UnixFileMode is not supported on Windows.");
+        }
+
+        var path = Path.Combine(tempDir, "readonly");
+        Directory.CreateDirectory(path);
+        File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserExecute);
+
+        try
+        {
+            if (CanWriteTo(path))
+            {
+                Assert.Ignore("The current account bypasses directory permissions.");
+            }
+
+            var ex = Assert.ThrowsAsync<InvalidOperationException>(() => new FileSystemBodyStorageInstaller(new FileSystemBodyStorageSettings { StoragePath = path }).Provision());
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(ex.Message, Does.Contain(path));
+                Assert.That(ex.InnerException, Is.InstanceOf<UnauthorizedAccessException>());
+            }
+        }
+        finally
+        {
+            File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+        }
+    }
+
+    static bool CanWriteTo(string path)
+    {
+        try
+        {
+            using var _ = new FileStream(Path.Combine(path, Path.GetRandomFileName()), FileMode.CreateNew, FileAccess.Write, FileShare.None, 1, FileOptions.DeleteOnClose);
+            return true;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return false;
+        }
     }
 
     static byte[] ReadAll(Stream stream)
