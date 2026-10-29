@@ -15,6 +15,7 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.EFCore.Infrastructure.Metrics;
 using ServiceControl.Persistence.MessageRedirects;
 using ServiceControl.Persistence.Recoverability;
+using ServiceControl.Persistence.SagaTimeouts;
 using ServiceControl.Persistence.UnitOfWork;
 using ServiceControl.Recoverability;
 using ServiceControl.Recoverability.Archiving.Metrics;
@@ -73,6 +74,7 @@ public abstract class BasePersistence
         services.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
         services.AddSingleton<IEndpointSettingsStore, EndpointSettingsStore>();
         services.AddSingleton<ITrialLicenseDataProvider, TrialLicenseDataProvider>();
+        services.AddSingleton<ISagaTimeoutDataStore, SagaTimeoutDataStore>();
 
         services.AddSingleton<ILicensingDataStore, LicensingDataStore>();
 
