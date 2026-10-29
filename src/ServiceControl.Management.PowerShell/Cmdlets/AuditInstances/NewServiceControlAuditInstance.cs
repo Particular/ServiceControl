@@ -23,10 +23,18 @@
         [ValidatePath]
         public string InstallPath { get; set; }
 
-        [Parameter(Mandatory = true, HelpMessage = "Specify the directory that will contain the RavenDB database for this Audit Instance")]
+        [Parameter(Mandatory = false, HelpMessage = "Specify the persistence type to use. Defaults to RavenDB")]
+        [ValidateSet(typeof(AuditPersistenceTypeValuesGenerator))]
+        public string PersistenceType { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the directory that will contain the RavenDB database for this Audit Instance. Required for RavenDB")]
         [ValidateNotNullOrEmpty]
         [ValidatePath]
         public string DBPath { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the database connection string. Required for SQLServer and PostgreSQL")]
+        [ValidateNotNullOrEmpty]
+        public string DatabaseConnectionString { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the directory to use for this Audit Instance Logs")]
         [ValidateNotNullOrEmpty]
@@ -41,9 +49,9 @@
         [ValidateRange(1, 49151)]
         public int Port { get; set; }
 
-        [Parameter(Mandatory = true, HelpMessage = "Specify the database maintenance port number to listen on")]
+        [Parameter(Mandatory = false, HelpMessage = "Specify the database maintenance port number to listen on. Required for RavenDB")]
         [ValidateRange(1, 49151)]
-        public int DatabaseMaintenancePort { get; set; }
+        public int? DatabaseMaintenancePort { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Specify AuditQueue name to consume messages from. Default is audit")]
         [ValidateNotNullOrEmpty]
@@ -99,6 +107,9 @@
 
         protected override void BeginProcessing()
         {
+            persistenceManifest = ServiceControlPersisters.GetAuditPersistence(string.IsNullOrWhiteSpace(PersistenceType) ? StorageEngineNames.RavenDB : PersistenceType);
+            PersistenceParameters.Validate(persistenceManifest, DBPath, DatabaseMaintenancePort, DatabaseConnectionString);
+
             var transport = ServiceControlCoreTransports.Find(Transport);
 
             var requiresConnectionString = !string.IsNullOrEmpty(transport.SampleConnectionString);
@@ -140,7 +151,7 @@
 
         protected override void ProcessRecord()
         {
-            var newAuditInstance = ServiceControlAuditNewInstance.CreateWithDefaultPersistence();
+            var newAuditInstance = ServiceControlAuditNewInstance.CreateWithPersistence(persistenceManifest.Name);
 
             newAuditInstance.InstallPath = InstallPath;
             newAuditInstance.LogPath = LogPath;
@@ -154,6 +165,7 @@
             newAuditInstance.HostName = HostName;
             newAuditInstance.Port = Port;
             newAuditInstance.DatabaseMaintenancePort = DatabaseMaintenancePort;
+            newAuditInstance.PersistenceConnectionString = DatabaseConnectionString;
             newAuditInstance.AuditQueue = AuditQueue;
             newAuditInstance.AuditLogQueue = string.IsNullOrWhiteSpace(AuditLogQueue) ? null : AuditLogQueue;
             newAuditInstance.ForwardAuditMessages = ForwardAuditMessages.ToBool();
@@ -201,6 +213,8 @@
                 ThrowTerminatingError(new ErrorRecord(ex, null, ErrorCategory.NotSpecified, null));
             }
         }
+
+        PersistenceManifest persistenceManifest;
 
         Task<bool> PromptToProceed(PathInfo pathInfo, CancellationToken cancellationToken)
         {

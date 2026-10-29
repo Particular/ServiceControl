@@ -85,4 +85,93 @@
             return Directory.GetFiles(persistersPath, "persistence.manifest", SearchOption.AllDirectories);
         }
     }
+
+    class ServiceControlInstallationTests
+    {
+        const string ConnectionStringPlaceholder = "placeholder-connection-string";
+
+        [Test]
+        [TestCaseSource(nameof(GetPrimaryPersistenceManifestPaths))]
+        public void ServiceControl_install_should_write_expected_config_file(string manifestPath)
+        {
+            var installPath = Path.Combine(Path.GetTempPath(), TestContext.CurrentContext.Test.ID, "install");
+            var dbPath = Path.Combine(Path.GetTempPath(), TestContext.CurrentContext.Test.ID, "db");
+            var logPath = Path.Combine(Path.GetTempPath(), TestContext.CurrentContext.Test.ID, "log");
+            var messageBodyPath = Path.Combine(Path.GetTempPath(), TestContext.CurrentContext.Test.ID, "bodies");
+
+            try
+            {
+                PersistenceManifest persistenceManifest;
+
+                using (var reader = new StreamReader(manifestPath))
+                {
+                    var manifestContent = reader.ReadToEnd();
+                    persistenceManifest = JsonSerializer.Deserialize<PersistenceManifest>(manifestContent);
+                }
+
+                if (!persistenceManifest.IsSupported)
+                {
+                    Assert.Ignore("Don't care about config for unsupported persistence types.");
+                }
+
+                if (persistenceManifest.Settings.Any(setting => setting.Mandatory && setting.DefaultValue == null && !InstallerSuppliedSettings.Contains(setting.Name)))
+                {
+                    Assert.Ignore("The installer cannot create an instance on this persister yet: it has no value for one of its mandatory settings.");
+                }
+
+                var newInstance = new ServiceControlNewInstance(persistenceManifest);
+
+                if (Directory.Exists(installPath))
+                {
+                    Directory.Delete(installPath, true);
+                }
+
+                newInstance.InstallPath = installPath;
+                newInstance.TransportPackage = ServiceControlCoreTransports.Find("LearningTransport");
+
+                newInstance.DBPath = dbPath;
+                newInstance.LogPath = logPath;
+                newInstance.HostName = "localhost";
+                newInstance.DatabaseMaintenancePort = 33333;
+                newInstance.PersistenceConnectionString = ConnectionStringPlaceholder;
+
+                if (persistenceManifest.Settings.Any(setting => setting.Name == ServiceControlSettings.MessageBodyStorageType.Name))
+                {
+                    newInstance.MessageBodyStorage = new MessageBodyStorage
+                    {
+                        StorageType = MessageBodyStorageType.FileSystem,
+                        FileSystemStoragePath = messageBodyPath
+                    };
+                }
+
+                newInstance.WriteConfigurationFile();
+
+                var configFile = File.ReadAllText(Path.Combine(installPath, "ServiceControl.exe.config"));
+                var scenario = Path.GetFileName(Path.GetDirectoryName(manifestPath));
+
+                Approver.Verify(configFile, input => input.Replace(dbPath, "value-not-asserted").Replace(logPath, "value-not-asserted").Replace(messageBodyPath, "value-not-asserted"), scenario);
+            }
+            finally
+            {
+                FileUtils.DeleteDirectory(installPath, true, false);
+                FileUtils.DeleteDirectory(dbPath, true, false);
+                FileUtils.DeleteDirectory(logPath, true, false);
+            }
+        }
+
+        static readonly string[] InstallerSuppliedSettings =
+        [
+            ServiceControlSettings.DBPath.Name,
+            ServiceControlSettings.DatabaseMaintenancePort.Name,
+            ServiceControlSettings.HostName.Name,
+            ServiceControlSettings.DatabaseConnectionString.Name
+        ];
+
+        public static IEnumerable<string> GetPrimaryPersistenceManifestPaths()
+        {
+            var deployPath = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "..", "..", "..", "..", "..", "deploy"));
+            var persistersPath = Path.Combine(deployPath, "Particular.ServiceControl", "Persisters");
+            return Directory.GetFiles(persistersPath, "persistence.manifest", SearchOption.AllDirectories);
+        }
+    }
 }

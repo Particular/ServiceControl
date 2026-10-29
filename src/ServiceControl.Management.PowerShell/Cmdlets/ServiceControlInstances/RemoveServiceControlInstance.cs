@@ -13,7 +13,7 @@ namespace ServiceControl.Management.PowerShell
         [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the ServiceControl instance name to remove")]
         public string[] Name { get; set; }
 
-        [Parameter(HelpMessage = "Remove the RavenDB database")]
+        [Parameter(HelpMessage = "Remove the local database files and data, if the instance's storage type keeps any locally (e.g. RavenDB). Has no effect for storage types backed by an external database (e.g. SQL Server, PostgreSQL) - those are not touched and must be removed manually")]
         public SwitchParameter RemoveDB { get; set; }
 
         [Parameter(HelpMessage = "Remove the Logs directory")]

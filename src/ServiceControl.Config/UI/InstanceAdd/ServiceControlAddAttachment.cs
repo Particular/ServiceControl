@@ -53,7 +53,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
             viewModel.InProgress = true;
 
-            var serviceControlNewInstance = viewModel.InstallErrorInstance ? ServiceControlNewInstance.CreateWithDefaultPersistence() : null;
+            var serviceControlNewInstance = viewModel.InstallErrorInstance ? ServiceControlNewInstance.CreateWithPersistence(viewModel.ServiceControl.SelectedStorageType.Name) : null;
 
             if (viewModel.InstallErrorInstance)
             {
@@ -61,18 +61,20 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 serviceControlNewInstance.Name = viewModel.ServiceControl.InstanceName.Replace(' ', '.');
                 serviceControlNewInstance.InstanceName = viewModel.ServiceControl.InstanceName.Replace(' ', '.');
                 serviceControlNewInstance.ServiceDescription = viewModel.ServiceControl.Description;
-                serviceControlNewInstance.DBPath = viewModel.ServiceControl.DatabasePath;
+                serviceControlNewInstance.DBPath = viewModel.ServiceControl.ShowDatabasePathFields ? viewModel.ServiceControl.DatabasePath : null;
+                serviceControlNewInstance.MessageBodyStorage = viewModel.ServiceControl.CreateMessageBodyStorage();
                 serviceControlNewInstance.LogPath = viewModel.ServiceControl.LogPath;
                 serviceControlNewInstance.InstallPath = viewModel.ServiceControl.DestinationPath;
                 serviceControlNewInstance.HostName = viewModel.ServiceControl.HostName;
                 serviceControlNewInstance.Port = Convert.ToInt32(viewModel.ServiceControl.PortNumber);
-                serviceControlNewInstance.DatabaseMaintenancePort = Convert.ToInt32(viewModel.ServiceControl.DatabaseMaintenancePortNumber);
+                serviceControlNewInstance.DatabaseMaintenancePort = viewModel.ShowErrorDatabaseMaintenancePort ? Convert.ToInt32(viewModel.ServiceControl.DatabaseMaintenancePortNumber) : null;
                 serviceControlNewInstance.VirtualDirectory = null;
                 serviceControlNewInstance.ErrorQueue = viewModel.ServiceControl.ErrorQueueName;
                 serviceControlNewInstance.ErrorLogQueue = viewModel.ServiceControl.ErrorForwarding.Value ? viewModel.ServiceControl.ErrorForwardingQueueName : null;
                 serviceControlNewInstance.ForwardErrorMessages = viewModel.ServiceControl.ErrorForwarding.Value;
                 serviceControlNewInstance.TransportPackage = viewModel.SelectedTransport;
                 serviceControlNewInstance.ConnectionString = viewModel.ConnectionString;
+                serviceControlNewInstance.PersistenceConnectionString = viewModel.ServiceControl.StorageConnectionString;
                 serviceControlNewInstance.ErrorRetentionPeriod = viewModel.ServiceControl.ErrorRetentionPeriod;
                 serviceControlNewInstance.ServiceAccount = viewModel.ServiceControl.ServiceAccount;
                 serviceControlNewInstance.ServiceAccountPwd = viewModel.ServiceControl.Password;
@@ -80,24 +82,25 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 serviceControlNewInstance.EnableIntegratedServicePulse = viewModel.ServiceControl.EnableIntegratedServicePulse.Value;
             }
 
-            var auditNewInstance = viewModel.InstallAuditInstance ? ServiceControlAuditNewInstance.CreateWithDefaultPersistence() : null;
+            var auditNewInstance = viewModel.InstallAuditInstance ? ServiceControlAuditNewInstance.CreateWithPersistence(viewModel.ServiceControlAudit.SelectedStorageType.Name) : null;
             if (viewModel.InstallAuditInstance)
             {
                 auditNewInstance.DisplayName = viewModel.ServiceControlAudit.InstanceName;
                 auditNewInstance.Name = viewModel.ServiceControlAudit.InstanceName.Replace(' ', '.');
                 auditNewInstance.InstanceName = viewModel.ServiceControlAudit.InstanceName.Replace(' ', '.');
                 auditNewInstance.ServiceDescription = viewModel.ServiceControlAudit.Description;
-                auditNewInstance.DBPath = viewModel.ServiceControlAudit.DatabasePath;
+                auditNewInstance.DBPath = viewModel.ServiceControlAudit.ShowDatabasePathFields ? viewModel.ServiceControlAudit.DatabasePath : null;
                 auditNewInstance.LogPath = viewModel.ServiceControlAudit.LogPath;
                 auditNewInstance.InstallPath = viewModel.ServiceControlAudit.DestinationPath;
                 auditNewInstance.HostName = viewModel.ServiceControlAudit.HostName;
                 auditNewInstance.Port = Convert.ToInt32(viewModel.ServiceControlAudit.PortNumber);
-                auditNewInstance.DatabaseMaintenancePort = Convert.ToInt32(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber);
+                auditNewInstance.DatabaseMaintenancePort = viewModel.ShowAuditDatabaseMaintenancePort ? Convert.ToInt32(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber) : null;
                 auditNewInstance.AuditLogQueue = viewModel.ServiceControlAudit.AuditForwarding.Value ? viewModel.ServiceControlAudit.AuditForwardingQueueName : null;
                 auditNewInstance.AuditQueue = viewModel.ServiceControlAudit.AuditQueueName;
                 auditNewInstance.ForwardAuditMessages = viewModel.ServiceControlAudit.AuditForwarding.Value;
                 auditNewInstance.TransportPackage = viewModel.SelectedTransport;
                 auditNewInstance.ConnectionString = viewModel.ConnectionString;
+                auditNewInstance.PersistenceConnectionString = viewModel.ServiceControlAudit.StorageConnectionString;
                 auditNewInstance.AuditRetentionPeriod = viewModel.ServiceControlAudit.AuditRetentionPeriod;
                 auditNewInstance.ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount;
                 auditNewInstance.ServiceAccountPwd = viewModel.ServiceControlAudit.Password;

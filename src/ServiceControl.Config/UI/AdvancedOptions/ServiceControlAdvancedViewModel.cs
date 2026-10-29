@@ -65,7 +65,10 @@ namespace ServiceControl.Config.UI.AdvancedOptions
         public ICommand StartServiceInMaintenanceModeCommand { get; set; }
         public ICommand StopMaintenanceModeCommand { get; set; }
 
-        public bool MaintenanceModeSupported => ServiceControlInstance.Version >= ServiceControlSettings.MaintenanceMode.SupportedFrom;
+        // Stays visible while an instance is already in maintenance mode so the user can still stop it.
+        public bool MaintenanceModeSupported =>
+            ServiceControlInstance.Version >= ServiceControlSettings.MaintenanceMode.SupportedFrom
+            && (ServiceControlInstance.UsesEmbeddedDatabase || ServiceControlInstance.InMaintenanceMode);
 
         public ICommand DeleteCommand { get; set; }
 

@@ -46,6 +46,59 @@ namespace ServiceControl.Config.UI.InstanceAdd
                     .WithMessage("Error instance name is already in use")
                 .When(viewModel => viewModel.InstallErrorInstance);
 
+            RuleFor(x => x.ErrorSelectedStorageType)
+                .NotEmpty()
+                .When(x => x.InstallErrorInstance && x.SubmitAttempted);
+
+            RuleFor(x => x.ErrorStorageConnectionString)
+                .NotEmpty()
+                    .WithMessage(Validation.Validations.MSG_THIS_STORAGE_TYPE_REQUIRES_A_CONNECTION_STRING)
+                .When(x => x.InstallErrorInstance && x.ShowErrorStorageConnectionString && x.SubmitAttempted);
+
+            RuleFor(x => x.ErrorMessageBodyPath)
+                .NotEmpty()
+                .ValidPath()
+                .MustNotBeIn(x => Validations.UsedPaths(x.ErrorInstanceName))
+                    .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Message Body Paths"))
+                .When(x => x.InstallErrorInstance && x.ShowErrorMessageBodyPath);
+
+            RuleFor(x => x.ErrorAzureConnectionString)
+                .NotEmpty()
+                .When(x => x.InstallErrorInstance && x.ShowErrorAzureConnectionString && x.SubmitAttempted);
+
+            RuleFor(x => x.ErrorAzureServiceUri)
+                .NotEmpty()
+                .When(x => x.InstallErrorInstance && x.ShowErrorAzureManagedIdentity && x.SubmitAttempted);
+
+            RuleFor(x => x.ErrorAzureServiceUri)
+                .Must(BeEmptyOrAbsoluteUri)
+                    .WithMessage(Validation.Validations.MSG_MUST_BE_ABSOLUTE_URI)
+                .When(x => x.InstallErrorInstance && x.ShowErrorAzureManagedIdentity);
+
+            RuleFor(x => x.ErrorAzureAuthorityHost)
+                .Must(BeEmptyOrAbsoluteUri)
+                    .WithMessage(Validation.Validations.MSG_MUST_BE_ABSOLUTE_URI)
+                .When(x => x.InstallErrorInstance && x.ShowErrorAzureManagedIdentity);
+
+            RuleFor(x => x.ErrorS3BucketName)
+                .NotEmpty()
+                .When(x => x.InstallErrorInstance && x.ShowErrorS3Fields && x.SubmitAttempted);
+
+            RuleFor(x => x.ErrorS3ServiceUrl)
+                .Must(BeEmptyOrAbsoluteUri)
+                    .WithMessage(Validation.Validations.MSG_MUST_BE_ABSOLUTE_URI)
+                .When(x => x.InstallErrorInstance && x.ShowErrorS3Fields);
+
+            RuleFor(x => x.ErrorS3AccessKeyId)
+                .NotEmpty()
+                    .WithMessage(Validation.Validations.MSG_S3_KEYS_GO_TOGETHER)
+                .When(x => x.InstallErrorInstance && x.ShowErrorS3Fields && x.SubmitAttempted && !string.IsNullOrWhiteSpace(x.ErrorS3SecretAccessKey));
+
+            RuleFor(x => x.ErrorS3SecretAccessKey)
+                .NotEmpty()
+                    .WithMessage(Validation.Validations.MSG_S3_KEYS_GO_TOGETHER)
+                .When(x => x.InstallErrorInstance && x.ShowErrorS3Fields && x.SubmitAttempted && !string.IsNullOrWhiteSpace(x.ErrorS3AccessKeyId));
+
             RuleFor(x => x.ErrorServiceAccount)
                 .NotEmpty()
                 .When(x => x.InstallErrorInstance && x.SubmitAttempted);
@@ -85,7 +138,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                     .WithMessage(string.Format(Validation.Validations.MSG_PORTS_NOT_EQUAL, "Database Maintenance", "Audit"))
                 .NotEqual(x => x.AuditDatabaseMaintenancePortNumber)
                     .WithMessage(string.Format(Validation.Validations.MSG_PORTS_NOT_EQUAL, "Database Maintenance", "Audit Database Maintenance"))
-                .When(x => x.InstallErrorInstance);
+                .When(x => x.InstallErrorInstance && x.ShowErrorDatabaseMaintenancePort);
 
             RuleFor(x => x.ErrorDestinationPath)
                 .NotEmpty()
@@ -157,6 +210,15 @@ namespace ServiceControl.Config.UI.InstanceAdd
                     .WithMessage(string.Format(Validation.Validations.MSG_CANTCONTAINWHITESPACE, "Error instance queue address"))
                 .When(viewModel => viewModel.InstallAuditInstance && !viewModel.InstallErrorInstance);
 
+            RuleFor(x => x.AuditSelectedStorageType)
+                .NotEmpty()
+                .When(x => x.InstallAuditInstance && x.SubmitAttempted);
+
+            RuleFor(x => x.AuditStorageConnectionString)
+                .NotEmpty()
+                    .WithMessage(Validation.Validations.MSG_THIS_STORAGE_TYPE_REQUIRES_A_CONNECTION_STRING)
+                .When(x => x.InstallAuditInstance && x.ShowAuditStorageConnectionString && x.SubmitAttempted);
+
             RuleFor(x => x.AuditServiceAccount)
                 .NotEmpty()
                 .When(x => x.InstallAuditInstance && x.SubmitAttempted);
@@ -196,7 +258,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                     .WithMessage(string.Format(Validation.Validations.MSG_PORTS_NOT_EQUAL, "Audit Database Maintenance", "ServiceControl"))
                 .NotEqual(x => x.ErrorDatabaseMaintenancePortNumber)
                     .WithMessage(string.Format(Validation.Validations.MSG_PORTS_NOT_EQUAL, "Audit Database Maintenance", "ServiceControl Database Maintenance"))
-                .When(x => x.InstallAuditInstance);
+                .When(x => x.InstallAuditInstance && x.ShowAuditDatabaseMaintenancePort);
 
             RuleFor(x => x.AuditDestinationPath)
                 .NotEmpty()
@@ -248,5 +310,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .When(x => x.InstallAuditInstance)
                 .When(x => x.AuditForwarding?.Value ?? false);
         }
+
+        static bool BeEmptyOrAbsoluteUri(string value) => string.IsNullOrWhiteSpace(value) || System.Uri.TryCreate(value, System.UriKind.Absolute, out _);
     }
 }

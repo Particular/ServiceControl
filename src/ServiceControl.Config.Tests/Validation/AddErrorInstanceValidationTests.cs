@@ -150,6 +150,148 @@
         }
         #endregion
 
+        #region storagetype
+
+        [Test]
+        public void Storage_type_cannot_be_empty_when_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ErrorSelectedStorageType = null
+            };
+
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.ErrorSelectedStorageType));
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ErrorSelectedStorageType));
+
+            Assert.That(errors, Is.Not.Empty);
+        }
+
+        [TestCase("SQLServer")]
+        [TestCase("PostgreSQL")]
+        public void Storage_connection_string_cannot_be_empty_for_storage_types_that_require_one_when_adding_error_instance(string storageTypeName)
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                ErrorSelectedStorageType = ServiceControlPersisters.GetPrimaryPersistence(storageTypeName),
+                SubmitAttempted = true,
+                ErrorStorageConnectionString = string.Empty
+            };
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ErrorStorageConnectionString));
+
+            Assert.That(errors, Is.Not.Empty);
+        }
+
+        [Test]
+        public void Message_body_path_cannot_be_empty_for_file_system_storage()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                ErrorSelectedStorageType = ServiceControlPersisters.GetPrimaryPersistence("SQLServer"),
+                SubmitAttempted = true
+            };
+            viewModel.ErrorMessageBodyPath = string.Empty;
+
+            var errors = GetNotifyErrorInfo(viewModel).GetErrors(nameof(viewModel.ErrorMessageBodyPath));
+
+            Assert.That(errors, Is.Not.Empty);
+        }
+
+        [Test]
+        public void Azure_service_uri_must_be_absolute()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                ErrorSelectedStorageType = ServiceControlPersisters.GetPrimaryPersistence("SQLServer")
+            };
+            viewModel.ErrorSelectedMessageBodyStorageType = viewModel.ErrorMessageBodyStorageTypes.Single(o => o.Value == MessageBodyStorageType.AzureBlob);
+            viewModel.ErrorSelectedAzureAuthentication = viewModel.ErrorAzureAuthenticationOptions.Single(o => o.UsesManagedIdentity);
+            viewModel.ErrorAzureServiceUri = "account.blob.core.windows.net";
+
+            var errors = GetNotifyErrorInfo(viewModel).GetErrors(nameof(viewModel.ErrorAzureServiceUri));
+
+            Assert.That(errors, Is.Not.Empty);
+        }
+
+        [Test]
+        public void Azure_connection_string_is_required_when_selected()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                ErrorSelectedStorageType = ServiceControlPersisters.GetPrimaryPersistence("SQLServer"),
+                SubmitAttempted = true
+            };
+            viewModel.ErrorSelectedMessageBodyStorageType = viewModel.ErrorMessageBodyStorageTypes.Single(o => o.Value == MessageBodyStorageType.AzureBlob);
+            viewModel.ErrorAzureConnectionString = string.Empty;
+
+            var errors = GetNotifyErrorInfo(viewModel).GetErrors(nameof(viewModel.ErrorAzureConnectionString));
+
+            Assert.That(errors, Is.Not.Empty);
+        }
+
+        [Test]
+        public void S3_bucket_is_required()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                ErrorSelectedStorageType = ServiceControlPersisters.GetPrimaryPersistence("SQLServer"),
+                SubmitAttempted = true
+            };
+            viewModel.ErrorSelectedMessageBodyStorageType = viewModel.ErrorMessageBodyStorageTypes.Single(o => o.Value == MessageBodyStorageType.S3);
+            viewModel.ErrorS3BucketName = string.Empty;
+
+            var errors = GetNotifyErrorInfo(viewModel).GetErrors(nameof(viewModel.ErrorS3BucketName));
+
+            Assert.That(errors, Is.Not.Empty);
+        }
+
+        [Test]
+        public void S3_secret_access_key_is_required_with_an_access_key_id()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                ErrorSelectedStorageType = ServiceControlPersisters.GetPrimaryPersistence("SQLServer"),
+                SubmitAttempted = true
+            };
+            viewModel.ErrorSelectedMessageBodyStorageType = viewModel.ErrorMessageBodyStorageTypes.Single(o => o.Value == MessageBodyStorageType.S3);
+            viewModel.ErrorS3AccessKeyId = "key";
+            viewModel.ErrorS3SecretAccessKey = string.Empty;
+
+            var errors = GetNotifyErrorInfo(viewModel).GetErrors(nameof(viewModel.ErrorS3SecretAccessKey));
+
+            Assert.That(errors, Is.Not.Empty);
+        }
+
+        [Test]
+        public void Storage_connection_string_can_be_empty_for_RavenDB_when_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                ErrorSelectedStorageType = ServiceControlPersisters.GetPrimaryPersistence("RavenDB"),
+                SubmitAttempted = true,
+                ErrorStorageConnectionString = string.Empty
+            };
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ErrorStorageConnectionString));
+
+            Assert.That(errors, Is.Empty);
+        }
+
+        #endregion
+
         #region errorinstancename
 
         [Test]

@@ -48,11 +48,29 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override string BaseServiceName => "ServiceControl";
 
+        protected override SettingInfo DatabaseMaintenancePortSetting => ServiceControlSettings.DatabaseMaintenancePort;
+
+        protected override SettingInfo RavenDBConnectionStringSetting => ServiceControlSettings.RavenDBConnectionString;
+
         public TimeSpan? AuditRetentionPeriod { get; set; }
 
         public List<RemoteInstanceSetting> RemoteInstances { get; set; } = [];
 
-        public PersistenceManifest PersistenceManifest { get; set; }
+        public string PersistenceConnectionString { get; set; }
+
+        public MessageBodyStorage MessageBodyStorage => null;
+
+        // Null for storage types that keep message bodies in the database itself.
+        public MessageBodyStorageType? ConfiguredMessageBodyStorageType =>
+            Enum.TryParse<MessageBodyStorageType>(AppConfig?.Read<string>(ServiceControlSettings.MessageBodyStorageType, null), ignoreCase: true, out var storageType)
+                ? storageType
+                : null;
+
+        // Null unless message bodies are stored on the file system.
+        public string MessageBodyStoragePath =>
+            ConfiguredMessageBodyStorageType == MessageBodyStorageType.FileSystem
+                ? AppConfig.Read<string>(ServiceControlSettings.MessageBodyFileSystemStoragePath, null)
+                : null;
 
         public void AddRemoteInstance(string apiUri)
         {
@@ -240,26 +258,24 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override IEnumerable<string> GetPersistencePathsToCleanUp()
         {
-            string[] keys =
-            [
-                "Raven/IndexStoragePath",
-                "Raven/CompiledIndexCacheDirectory",
-                "Raven/Esent/LogsPath",
-                ServiceControlSettings.DBPath.Name
-            ];
-
             var settings = AppConfig.Config.AppSettings.Settings;
-            foreach (var key in keys)
+            foreach (var key in PersistenceManifest.SettingsWithPathsToCleanup)
             {
                 if (!settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
                 {
                     continue;
                 }
 
-                var folderpath = settings[key].Value;
-                yield return folderpath.StartsWith("~") //Raven uses ~ to indicate path is relative to bin folder e.g. ~/Data/Logs
-                    ? Path.Combine(InstallPath, folderpath.Remove(0, 1))
-                    : folderpath;
+                if (string.Equals(key, ServiceControlSettings.MessageBodyFileSystemStoragePath.Name, StringComparison.OrdinalIgnoreCase)
+                    && ConfiguredMessageBodyStorageType != MessageBodyStorageType.FileSystem)
+                {
+                    continue;
+                }
+
+                var folderPath = settings[key].Value;
+                yield return folderPath.StartsWith("~") //Raven uses ~ to indicate path is relative to bin folder e.g. ~/Data/Logs
+                    ? Path.Combine(InstallPath, folderPath.Remove(0, 1))
+                    : folderPath;
             }
         }
     }
