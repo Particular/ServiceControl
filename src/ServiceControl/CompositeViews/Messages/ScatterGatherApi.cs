@@ -209,6 +209,12 @@ namespace ServiceControl.CompositeViews.Messages
                     return QueryResult<TOut>.Empty();
                 }
 
+                // A remote that found nothing returns null, which ASP.NET Core sends as a 204 with no body to parse.
+                if (rawResponse.StatusCode == HttpStatusCode.NoContent)
+                {
+                    return new QueryResult<TOut>(null, new QueryStatsInfo(ReadEtag(rawResponse.Headers), 0));
+                }
+
                 if (rawResponse.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
                 {
                     logger.LogWarning("Authentication failed when querying remote instance at {RemoteInstanceBaseAddress}. Ensure authentication is correctly configured.",

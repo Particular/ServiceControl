@@ -1,7 +1,8 @@
 #:package Microsoft.Data.SqlClient@6.1.1
 
 // Waits until the server accepts connections, creates the test database if the provisioning CLI
-// could not, and fails the run if the server has no Full-Text Search.
+// could not, fails the run if the server has no Full-Text Search, and waits until a full-text
+// query answers.
 
 using Microsoft.Data.SqlClient;
 
@@ -75,4 +76,57 @@ await using (master)
 }
 
 Console.WriteLine($"Database '{database}' is present on {builder.DataSource} and Full-Text Search is installed, after {attempt} connection attempt(s).");
+
+// A new Azure SQL database cannot reach its full-text daemon at first (error 30046), so the first
+// searches of a run would fail. Waiting until a full-text query finds a row keeps that out of the tests.
+var started = DateTime.UtcNow;
+var fullTextDeadline = started.AddMinutes(5);
+var queries = 0;
+
+await using (var connection = new SqlConnection(args[0]))
+{
+    await connection.OpenAsync();
+
+    await Execute(connection, "IF NOT EXISTS (SELECT 1 FROM sys.fulltext_catalogs WHERE name = 'sc_fulltext_warmup') CREATE FULLTEXT CATALOG sc_fulltext_warmup");
+    await Execute(connection, "DROP TABLE IF EXISTS dbo.ScFullTextWarmup; CREATE TABLE dbo.ScFullTextWarmup (Id int NOT NULL CONSTRAINT PK_ScFullTextWarmup PRIMARY KEY, Body nvarchar(100) NOT NULL); INSERT INTO dbo.ScFullTextWarmup VALUES (1, N'warmup')");
+    await Execute(connection, "CREATE FULLTEXT INDEX ON dbo.ScFullTextWarmup(Body LANGUAGE 0) KEY INDEX PK_ScFullTextWarmup ON sc_fulltext_warmup WITH (CHANGE_TRACKING AUTO)");
+
+    while (true)
+    {
+        queries++;
+
+        try
+        {
+            await using var search = connection.CreateCommand();
+            search.CommandText = "SELECT COUNT(*) FROM dbo.ScFullTextWarmup WHERE CONTAINS(Body, 'warmup')";
+            if ((int)(await search.ExecuteScalarAsync())! > 0)
+            {
+                break;
+            }
+        }
+        catch (SqlException e) when (e.Number is 30046 or 30053)
+        {
+            Console.WriteLine($"Full-text search is not answering yet (query {queries}): {e.Message.Split('\n')[0]}");
+        }
+
+        if (DateTime.UtcNow > fullTextDeadline)
+        {
+            Console.Error.WriteLine($"A full-text query on {builder.DataSource} did not find its row within 5 minutes.");
+            return 1;
+        }
+
+        await Task.Delay(TimeSpan.FromSeconds(1));
+    }
+
+    await Execute(connection, "DROP TABLE dbo.ScFullTextWarmup");
+}
+
+Console.WriteLine($"Full-text search answered after {(DateTime.UtcNow - started).TotalSeconds:0} s and {queries} queries.");
 return 0;
+
+static async Task Execute(SqlConnection connection, string sql)
+{
+    await using var command = connection.CreateCommand();
+    command.CommandText = sql;
+    await command.ExecuteNonQueryAsync();
+}

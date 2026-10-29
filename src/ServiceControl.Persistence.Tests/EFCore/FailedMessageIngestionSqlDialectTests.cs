@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -203,22 +202,4 @@ class FailedMessageIngestionSqlDialectTests : ErrorIngestionTestBase
 
     Task Upsert(FailedMessageEntity row) =>
         InDialectTransaction((dialect, dbContext, ct) => dialect.UpsertFailedMessages(dbContext, [row], ct));
-
-    async Task InDialectTransaction(Func<IFailedMessageIngestionSqlDialect, ServiceControlDbContext, CancellationToken, Task> work)
-    {
-        using var scope = ServiceProvider.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
-        var dialect = scope.ServiceProvider.GetRequiredService<IFailedMessageIngestionSqlDialect>();
-
-        var strategy = dbContext.Database.CreateExecutionStrategy();
-
-        await strategy.ExecuteAsync(async () =>
-        {
-            await using var transaction = await dbContext.Database.BeginTransactionAsync();
-
-            await work(dialect, dbContext, TestContext.CurrentContext.CancellationToken);
-
-            await transaction.CommitAsync();
-        });
-    }
 }

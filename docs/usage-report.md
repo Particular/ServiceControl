@@ -88,7 +88,7 @@ Releases up to 6.21.2 report `SqlVersion` as the full text of `@@VERSION` on SQL
 | `Storage.FullTextSearch` | `Enabled`, `Disabled` | `EnableFullTextSearchOnBodies`, RavenDB only. Always `Enabled` on SQL Server and PostgreSQL, which do not read the setting | 6.20.0 |
 | `Storage.BodyStorage.Type` | `RavenAttachments`, `FileSystem`, `AzureBlob`, `S3` | the persister | 6.20.0 |
 | `Limits.MaxBodySizeToStore` | bytes | `MaxBodySizeToStore`, SQL Server and PostgreSQL only | 6.20.0 |
-| `Storage.Schema` | `Default`, `Custom` | `Database/Schema`, SQL Server and PostgreSQL only | Unreleased |
+| `Storage.Schema` | `Default` when no schema is configured, `Custom` for any configured schema | `Database/Schema`, SQL Server and PostgreSQL only | Unreleased |
 | `Storage.LogLevel` | `None`, `Information`, `Operations` | `RavenDBLogLevel`, RavenDB only | Unreleased |
 | `Storage.CommandTimeoutSeconds` | `Default` or number | `Database/CommandTimeout`, SQL Server and PostgreSQL only | Unreleased |
 | `Storage.QueryTimeoutSeconds` | `Default` or number | `QueryTimeoutInSeconds` | Unreleased |
@@ -237,7 +237,7 @@ The ingestion and health keys follow the rules in [Error ingestion health](#erro
 | `Audit.SameMachine` | `True`, `False`, `Mixed`, `NotApplicable`, `Unknown` | the machine name hashes. `NotApplicable` when either instance runs in a container | Unreleased |
 | `Audit.DatabaseSharing` | `SameSchema`, `SameDatabase`, `SameServer`, `SeparateServer`, `NotApplicable`, `Unknown` | the storage identity hashes. `NotApplicable` when the storage engines differ. Several instances report the most shared class | Unreleased |
 
-`Audit.Storage.SizeGB` covers the whole schema. When the primary and an audit instance share a schema, both report the same size, and `Audit.DatabaseSharing` is `SameSchema`.
+`Audit.Storage.SizeGB` covers the whole schema. A primary and an audit instance on SQL Server or PostgreSQL cannot share a schema within the same database, so `SameSchema` is not reported for that pairing. Using the same schema name in separate databases does not mean the instances share a schema; see [SQL persister schemas](sql-persister-schemas.md).
 
 #### From the configuration response
 

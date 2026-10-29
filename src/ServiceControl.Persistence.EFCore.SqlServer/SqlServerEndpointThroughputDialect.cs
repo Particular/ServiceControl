@@ -1,9 +1,5 @@
 namespace ServiceControl.Persistence.EFCore.SqlServer;
 
-using System.Data;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Particular.LicensingComponent.Contracts;
 using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
@@ -29,6 +25,12 @@ class SqlServerEndpointThroughputDialect : SqlServerDialect, IEndpointThroughput
                  WHEN NOT MATCHED THEN INSERT (NormalizedName, ThroughputSource, DateUtc, MessageCount)
                  VALUES (s.NormalizedEndpointName, s.Source, s.Day, s.Count);
                  """,
+                ColumnTypes<LicensingEndpointThroughputEntity>(
+                    dbContext,
+                    nameof(LicensingEndpointThroughputEntity.NormalizedName),
+                    nameof(LicensingEndpointThroughputEntity.ThroughputSource),
+                    nameof(LicensingEndpointThroughputEntity.DateUtc),
+                    nameof(LicensingEndpointThroughputEntity.MessageCount)),
                 [[normalizedName, (int)throughputSource, date, messageCount]],
                 cancellationToken);
         }

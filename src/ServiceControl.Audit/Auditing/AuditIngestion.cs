@@ -45,13 +45,14 @@
                 throw new ArgumentException("MaxConcurrency is not set in TransportSettings");
             }
 
-            MaxBatchSize = settings.AuditIngestionBatchSize ?? transportSettings.MaxConcurrency.Value;
+            var writers = IngestionSettingsReader.ResolveMaxParallelWriters(settings.AuditIngestionMaxParallelWriters, unitOfWorkFactory.SupportsConcurrentBatches, nameof(settings.AuditIngestionMaxParallelWriters), logger);
+            MaxBatchSize = IngestionSettingsReader.ResolveBatchSize(settings.AuditIngestionBatchSize, transportSettings.MaxConcurrency.Value, writers);
 
             pipeline = new IngestionPipeline(
                 new IngestionPipelineSettings
                 {
                     BatchSize = MaxBatchSize,
-                    MaxWriters = IngestionSettingsReader.ResolveMaxParallelWriters(settings.AuditIngestionMaxParallelWriters, unitOfWorkFactory.SupportsConcurrentBatches, nameof(settings.AuditIngestionMaxParallelWriters), logger),
+                    MaxWriters = writers,
                     BatchTimeout = settings.AuditIngestionBatchTimeout
                 },
                 IngestBatch,
@@ -78,10 +79,10 @@
 
         async Task EnsureStarted(CancellationToken cancellationToken)
         {
+            await startStopSemaphore.WaitAsync(cancellationToken);
+
             try
             {
-                await startStopSemaphore.WaitAsync(cancellationToken);
-
                 var canIngest = unitOfWorkFactory.CanIngestMore();
 
                 logger.LogDebug("Ensure started {CanIngest}", canIngest);
@@ -199,12 +200,17 @@
             }
         }
 
+        // WaitAsync throws on a cancelled token even when the semaphore is free, and a stop that runs
+        // after the shutdown timeout has expired still has to happen.
+        Task WaitToStop(CancellationToken cancellationToken) =>
+            startStopSemaphore.Wait(0, CancellationToken.None) ? Task.CompletedTask : startStopSemaphore.WaitAsync(cancellationToken);
+
         async Task EnsureStopped(CancellationToken cancellationToken)
         {
+            await WaitToStop(cancellationToken);
+
             try
             {
-                await startStopSemaphore.WaitAsync(cancellationToken);
-
                 // By passing a CancellationToken in the cancelled state we stop receivers ASAP and
                 // still correctly stop/shutdown
                 await StopAndTeardownInfrastructure(new CancellationToken(canceled: true));
@@ -217,7 +223,7 @@
 
         async Task EnsureReceivingStopped(CancellationToken cancellationToken)
         {
-            await startStopSemaphore.WaitAsync(cancellationToken);
+            await WaitToStop(cancellationToken);
 
             try
             {

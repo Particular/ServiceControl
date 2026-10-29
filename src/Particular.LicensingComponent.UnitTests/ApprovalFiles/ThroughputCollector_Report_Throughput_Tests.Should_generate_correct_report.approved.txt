@@ -120,7 +120,7 @@
         "NameHash": "BBF022C092922A8B3A63455FC7583EAF35840E66F01B73AF997EACDCA8ABCEA4",
         "Throughput": 47,
         "EndpointIndicators": [],
-        "UserIndicator": "PlannedToDecommission",
+        "UserIndicator": "NServiceBusEndpoint",
         "Scope": "",
         "ScopeHash": "",
         "DailyThroughputFromBroker": [

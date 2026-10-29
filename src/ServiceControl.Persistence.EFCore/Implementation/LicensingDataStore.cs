@@ -314,16 +314,16 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
     public Task SaveReportMasks(List<string> reportMasks, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext((context, token) => context.StoreSetting(SettingKeys.ReportMasks, reportMasks, token), cancellationToken);
 
-    public Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(CancellationToken cancellationToken = default) =>
+    public Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(bool amendWithUserChanges = true, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (context, token) =>
         {
             var baseDetails = await context.GetSetting<LicensedEndpointDetails>(SettingKeys.LicensedEndpointDetails, token);
-            if (baseDetails is null)
+            if (baseDetails is not null && amendWithUserChanges)
             {
-                return null;
+                var amendments = await context.GetSetting<LicensedEndpointDetailsAmendment>(SettingKeys.LicensedEndpointDetailsAmendment, token);
+                return baseDetails.Amend(amendments);
             }
-            var amendments = await context.GetSetting<LicensedEndpointDetailsAmendment>(SettingKeys.LicensedEndpointDetailsAmendment, token);
-            return baseDetails.Amend(amendments);
+            return baseDetails;
         }, cancellationToken);
 
     public Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken = default) =>
@@ -333,14 +333,22 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
             await context.StoreSetting(SettingKeys.LicensedEndpointDetailsAmendment, new LicensedEndpointDetailsAmendment(), token);
         }, cancellationToken);
 
-    public Task SaveLicensedEndpointDetailsAmendment(LicensedEndpointDetailsAmendment result, CancellationToken cancellationToken = default) =>
+    public Task<LicensedEndpointDetailsAmendment?> GetLicensedEndpointDetailsAmendments(CancellationToken cancellationToken = default) =>
+        ExecuteWithDbContext((context, token) => context.GetSetting<LicensedEndpointDetailsAmendment>(SettingKeys.LicensedEndpointDetailsAmendment, token), cancellationToken);
+
+    public Task SaveLicensedEndpointDetailsAmendment(LicensedEndpointDetailsAmendment? result, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (context, token) =>
             {
                 var existing = await context.GetSetting<LicensedEndpointDetailsAmendment>(SettingKeys.LicensedEndpointDetailsAmendment, token);
                 if (existing is not null)
                 {
-                    // these do not round-trip
-                    result.UnmappedQueues = [.. existing.UnmappedQueues, .. result.UnmappedQueues];
+                    if (result is null)
+                    {
+                        context.Remove(existing);
+                        await context.SaveChangesAsync(cancellationToken);
+                        return;
+                    }
+                    result.MergeWithExisting(existing);
                 }
                 await context.StoreSetting(SettingKeys.LicensedEndpointDetailsAmendment, result, token);
             }, cancellationToken);

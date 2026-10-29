@@ -49,4 +49,9 @@ public class PostgreSqlServiceControlDbContext(DbContextOptions<PostgreSqlServic
         }
         return false;
     }
+
+    protected override async Task<bool> TableExists(string table, CancellationToken cancellationToken = default) =>
+        await Database
+            .SqlQueryRaw<int>("""SELECT CASE WHEN EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE c.relkind = 'r' AND c.relname = {0} AND n.nspname = COALESCE(CAST({1} AS text), current_schema())) THEN 1 ELSE 0 END AS "Value" """, table, Schema ?? (object)DBNull.Value)
+            .SingleAsync(cancellationToken) == 1;
 }

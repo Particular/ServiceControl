@@ -50,20 +50,14 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
             {
                 sqlOptions.CommandTimeout(settings.CommandTimeout);
 
-                if (settings.Schema is not null)
-                {
-                    // Its own history table per schema, so schemas sharing a database migrate
-                    // independently. Without this EF leaves the history table unqualified and every
-                    // schema reads the same one.
-                    sqlOptions.MigrationsHistoryTable(HistoryRepository.DefaultTableName, settings.Schema);
-                }
+                sqlOptions.MigrationsHistoryTable(ServiceControlDbContext.MigrationsHistoryTableName, settings.Schema);
 
                 if (settings.EnableRetryOnFailure)
                 {
                     sqlOptions.EnableRetryOnFailure(
                         maxRetryCount: settings.MaxRetryCount,
                         maxRetryDelay: TimeSpan.FromSeconds(settings.MaxRetryDelayInSeconds),
-                        errorNumbersToAdd: null);
+                        errorNumbersToAdd: FullTextDaemonErrorNumbers);
                 }
             });
 
@@ -73,9 +67,7 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
                 options.ReplaceService<IMigrationsSqlGenerator, SchemaStampingSqlServerMigrationsSqlGenerator>();
                 options.ReplaceService<IModelCacheKeyFactory, SchemaModelCacheKeyFactory>();
 
-                // HasDefaultSchema moves every table, so the model is meant to differ from the
-                // snapshot the migrations were scaffolded against. A default installation keeps the
-                // check, where a difference really would mean a migration is missing.
+                // Schema stamping intentionally differs from the schema-less snapshot; PendingModelChangesTests checks migration drift.
                 options.ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
             }
 
@@ -87,4 +79,7 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
 
         services.AddScoped<ServiceControlDbContext>(provider => provider.GetRequiredService<SqlServerServiceControlDbContext>());
     }
+
+    // Azure SQL raises these while its full-text daemon is unavailable, which happens on a new database and now and then after.
+    static readonly int[] FullTextDaemonErrorNumbers = [30046, 30053];
 }
