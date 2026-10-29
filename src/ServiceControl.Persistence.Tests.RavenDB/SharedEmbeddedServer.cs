@@ -34,7 +34,7 @@
 
                 var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "PrimaryData");
                 var logPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs", "Primary");
-                var logsMode = "Operations";
+                var logsMode = RavenDbLogLevelToLogsModeMapper.WarnMinLevel;
 
                 var settings = new RavenPersisterSettings
                 {

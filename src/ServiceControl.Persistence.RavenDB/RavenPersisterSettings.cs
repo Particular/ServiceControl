@@ -36,6 +36,8 @@ class RavenPersisterSettings : PersistenceSettings, IRavenClientCertificateInfo
     public const string DatabaseNameDefault = "primary";
     public const int DatabaseMaintenancePortDefault = 33334;
     public const int ExpirationProcessTimerInSecondsDefault = 600;
-    public const string LogsModeDefault = "Operations";
+    // Value of the RavenDB 'Logs.MinLevel' setting. Must be a Sparrow.Logging.LogLevel name (see
+    // RavenDbLogLevelToLogsModeMapper) because RavenDB 7 removed the 'Logs.Mode' setting.
+    public const string LogsModeDefault = ServiceControl.RavenDbLogLevelToLogsModeMapper.WarnMinLevel;
     public const int ExternalIntegrationsDispatchingBatchSizeDefault = 100;
 }
