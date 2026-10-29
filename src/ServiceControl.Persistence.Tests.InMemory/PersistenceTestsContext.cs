@@ -24,6 +24,8 @@ public class PersistenceTestsContext : IPersistenceTestsContext
         return Task.CompletedTask;
     }
 
+    public Task InstallSchema(IHost host) => Task.CompletedTask;
+
     public Task PostSetup(IHost host) => Task.CompletedTask;
 
     public Task TearDown() => Task.CompletedTask;

@@ -7,12 +7,14 @@ using Particular.LicensingComponent.Contracts;
 using Particular.LicensingComponent.Persistence;
 using ServiceControl.CustomChecks;
 using ServiceControl.Operations.BodyStorage;
+using ServiceControl.Persistence.EFCore.DataMigration;
 using ServiceControl.Persistence.EFCore.Implementation;
 using ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
 using ServiceControl.Persistence.EFCore.Implementation.Recoverability;
 using ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.EFCore.Infrastructure.Metrics;
+using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.MessageRedirects;
 using ServiceControl.Persistence.Recoverability;
 using ServiceControl.Persistence.UnitOfWork;
@@ -37,6 +39,10 @@ public abstract class BasePersistence
         services.AddSingleton<ExternalIntegrationRequestsDataStore>();
         services.AddSingleton<IExternalIntegrationRequestsDataStore>(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
         services.AddHostedService(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
+
+        services.AddSingleton<IMigrationCheckpointStore, EFMigrationCheckpointStore>();
+        services.AddSingleton<IMigrationTargetReadiness, EFCoreMigrationTargetReadiness>();
+        services.AddSingleton<IMigrationTarget, EFCoreMigrationTarget>();
 
         if (settings.RunRetentionSweep)
         {

@@ -11,4 +11,7 @@ static class SettingKeys
     public const string LicensedEndpointDetails = "LicensedEndpointDetails";
     public const string LicensedEndpointDetailsAmendment = "LicensedEndpointDetailsAmendment";
     public const string NotificationEmails = "NotificationEmails";
+    // Written the first time a host starts on a database a migration has already written to. Once it is set,
+    // going back to RavenDB loses everything ServiceControl has written here since.
+    public const string MigrationHostOpenedOnTarget = "Migration/HostOpenedOnTarget";
 }
