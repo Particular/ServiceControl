@@ -1,5 +1,6 @@
 namespace ServiceControl.Audit.Persistence.EFCore.PostgreSql;
 
+using EntityConfigurations;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using ServiceControl.Audit.Persistence.EFCore.DbContexts;
@@ -11,6 +12,14 @@ public class PostgreSqlAuditDbContext(DbContextOptions<PostgreSqlAuditDbContext>
         base.OnConfiguring(optionsBuilder);
 
         optionsBuilder.UseSnakeCaseNamingConvention();
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        SearchDocumentFunction.Apply(modelBuilder, Schema);
+
+        modelBuilder.ApplyConfiguration(new AuditMessageConfiguration());
     }
 
     public override bool IsDuplicateKeyException(DbUpdateException exception)

@@ -149,6 +149,62 @@ namespace ServiceControl.Audit.Persistence.Tests
         }
 
         [Test]
+        public async Task Finds_a_message_id_that_is_only_in_the_id_column()
+        {
+            var messageId = Guid.NewGuid().ToString();
+            var message = MakeMessage(messageId: messageId);
+
+            // Removing headers after construction preserves the derived unique message ID.
+            message.Headers.Remove(Headers.MessageId);
+            message.Headers.Remove(Headers.ConversationId);
+
+            await Ingest(message);
+
+            var found = await MessagesViewStore.QueryMessages(messageId, new PagingInfo(), new SortInfo("time_sent", "desc"));
+
+            Assert.That(found.Results.Select(view => view.MessageId), Is.EqualTo(new[] { messageId }));
+        }
+
+        [Test]
+        public async Task Finds_a_conversation_id_that_is_only_in_the_conversation_id_column()
+        {
+            var conversationId = Guid.NewGuid().ToString();
+            var message = MakeMessage(conversationId: conversationId);
+
+            message.Headers.Remove(Headers.MessageId);
+            message.Headers.Remove(Headers.ConversationId);
+
+            await Ingest(message);
+
+            var found = await MessagesViewStore.QueryMessages(conversationId, new PagingInfo(), new SortInfo("time_sent", "desc"));
+
+            Assert.That(found.Results.Select(view => view.ConversationId), Is.EqualTo(new[] { conversationId }));
+        }
+
+        [Test]
+        public async Task Finds_a_message_id_only_within_its_endpoint()
+        {
+            var billingMessageId = Guid.NewGuid().ToString();
+            var billing = MakeMessage(messageId: billingMessageId, receivingEndpoint: "Billing");
+            var sales = MakeMessage(receivingEndpoint: "Sales");
+
+            billing.Headers.Remove(Headers.MessageId);
+            billing.Headers.Remove(Headers.ConversationId);
+            sales.Headers.Remove(Headers.MessageId);
+            sales.Headers.Remove(Headers.ConversationId);
+
+            await Ingest(billing, sales);
+
+            var found = await MessagesViewStore.QueryMessagesByReceivingEndpointAndKeyword("Billing", billingMessageId, new PagingInfo(), new SortInfo("time_sent", "desc"));
+
+            Assert.That(found.Results.Select(view => view.MessageId), Is.EqualTo(new[] { billingMessageId }));
+
+            var wrongEndpoint = await MessagesViewStore.QueryMessagesByReceivingEndpointAndKeyword("Sales", billingMessageId, new PagingInfo(), new SortInfo("time_sent", "desc"));
+
+            Assert.That(wrongEndpoint.Results, Is.Empty);
+        }
+
+        [Test]
         public async Task Sorts_by_status_in_the_order_the_primary_merges_instance_pages()
         {
             await Ingest(MakeMessage(isRetried: true), MakeMessage());

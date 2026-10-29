@@ -18,6 +18,7 @@ public class PostgreSqlServiceControlDbContext(DbContextOptions<PostgreSqlServic
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        SearchDocumentFunction.Apply(modelBuilder, Schema);
         modelBuilder.ApplyConfiguration(new FailedMessageConfiguration());
         modelBuilder.ApplyConfiguration(new FailedMessageGroupConfiguration());
     }
