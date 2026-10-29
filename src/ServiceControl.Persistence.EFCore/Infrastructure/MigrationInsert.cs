@@ -1,6 +1,7 @@
 namespace ServiceControl.Persistence.EFCore.Infrastructure;
 
 using System.Data.Common;
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -16,6 +17,7 @@ public sealed class MigrationInsert<TEntity> where TEntity : class
 
     readonly IReadOnlyList<IProperty> properties;
     readonly IReadOnlyList<IProperty> keyProperties;
+    readonly IReadOnlyList<MethodInfo> keyReaders;
     readonly IReadOnlyList<(IProperty Property, string TableAndColumn, int MaxLength)> boundedText;
     readonly IReadOnlyList<(IProperty Property, string TableAndColumn)> text;
 
@@ -24,6 +26,7 @@ public sealed class MigrationInsert<TEntity> where TEntity : class
         Table = quotedTable;
         this.properties = properties;
         this.keyProperties = keyProperties;
+        keyReaders = [.. keyProperties.Select(KeyReader)];
         Columns = [.. properties.Select(property => quote(columnName(property)))];
         KeyColumns = [.. keyProperties.Select(property => quote(columnName(property)))];
         text = [.. properties.Where(property => property.ClrType == typeof(string)).Select(property => (property, $"{tableName}.{columnName(property)}"))];
@@ -157,10 +160,9 @@ public sealed class MigrationInsert<TEntity> where TEntity : class
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
         {
-            object?[] key = [.. keyProperties.Select((property, column) => FromProvider(property, reader.GetValue(column)))];
+            object?[] key = [.. keyProperties.Select((property, column) => FromProvider(property, keyReaders[column].Invoke(reader, BindingFlags.DoNotWrapExceptions, null, [column], null)!))];
 
-            // A key can come back as a different CLR type than it went in as, a date column read back as
-            // DateTime say, and a plain lookup would report that as a bare KeyNotFoundException.
+            // A returned key that no row of the chunk holds exactly would be a bare KeyNotFoundException with a plain lookup, so it is refused by name.
             inserted.Add(rowsByKey.TryGetValue(key, out var row)
                 ? row
                 : throw new InvalidOperationException($"The {Table} insert returned the key [{string.Join(", ", key.Select(Describe))}], which matches no row in the batch that produced it. Compare it against the key types the batch carried: [{string.Join(", ", keyProperties.Select(property => property.ClrType.Name))}]."));
@@ -172,6 +174,14 @@ public sealed class MigrationInsert<TEntity> where TEntity : class
     object?[] KeyOf(TEntity row) => [.. keyProperties.Select(property => property.GetGetter().GetClrValue(row))];
 
     static string Describe(object? value) => value is null ? "null" : $"{value} ({value.GetType().Name})";
+
+    // SQL Server's GetValue returns a date column as DateTime, which no DateOnly key equals, so each key is read as the type its mapping stores.
+    static MethodInfo KeyReader(IProperty property)
+    {
+        var mapping = property.GetRelationalTypeMapping();
+
+        return typeof(DbDataReader).GetMethod(nameof(DbDataReader.GetFieldValue))!.MakeGenericMethod(mapping.Converter?.ProviderClrType ?? mapping.ClrType);
+    }
 
     static object? FromProvider(IProperty property, object value) =>
         property.GetRelationalTypeMapping().Converter is { } converter ? converter.ConvertFromProvider(value) : value;

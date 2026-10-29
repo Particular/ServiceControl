@@ -5,9 +5,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using Particular.LicensingComponent.Contracts;
 using Raven.Client.Documents.Operations.Indexes;
 using ServiceControl.Operations;
 using ServiceControl.Persistence.DataMigration;
+using ServiceControl.Persistence.RavenDB.Throughput.Models;
+using RavenLicensingDataStore = ServiceControl.Persistence.RavenDB.Throughput.LicensingDataStore;
 
 class RavenMigrationSourceTests : RavenMigrationSourceTestBase
 {
@@ -126,7 +129,11 @@ class RavenMigrationSourceTests : RavenMigrationSourceTestBase
     {
         [MigrationCategoryIds.EndpointSettings] = tests => tests.SeedEndpointSettings(2),
         [MigrationCategoryIds.KnownEndpoints] = tests => tests.MonitoringDataStore.CreateIfNotExists(new EndpointDetails { Name = "Sales.Orders", HostId = Guid.NewGuid(), Host = "HOST01" }),
-        [MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages] = tests => tests.SeedFailedMessage(new IngestedFailure().ToFailedMessage())
+        [MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages] = tests => tests.SeedFailedMessage(new IngestedFailure().ToFailedMessage()),
+        [MigrationCategoryIds.LicensingEndpoints] = tests => tests.SeedThroughputDocument("Sales.Orders/Broker", new EndpointDocument(new EndpointIdentifier("Sales.Orders", ThroughputSource.Broker))),
+        [MigrationCategoryIds.LicensingThroughput] = tests => tests.SeedThroughputDocument("Sales.Orders/Broker", new EndpointDocument(new EndpointIdentifier("Sales.Orders", ThroughputSource.Broker))),
+        [MigrationCategoryIds.LicensingReportMasks] = tests => tests.SeedThroughputDocument(RavenLicensingDataStore.ReportMasksDocumentId, new ReportConfigurationDocument { MaskedStrings = ["contoso"] }),
+        [MigrationCategoryIds.LicensedEndpointDetails] = tests => tests.SeedThroughputDocument(RavenLicensingDataStore.LicencedEndpointDetailsDocumentId, new LicensedEndpointDetails { LicenseId = "abc-123" })
     };
 
     string DatabaseName => ((RavenPersisterSettings)PersistenceSettings).DatabaseName;
@@ -137,6 +144,13 @@ class RavenMigrationSourceTests : RavenMigrationSourceTestBase
     const int IndexNamePageSize = 1024;
 
     static readonly MigrationCategory EndpointSettingsCategory = MigrationCategoryRegistry.Find("EndpointSettings");
+
+    async Task SeedThroughputDocument(string id, object document)
+    {
+        using var session = DocumentStore.OpenAsyncSession(ThroughputDatabaseName);
+        await session.StoreAsync(document, id);
+        await session.SaveChangesAsync();
+    }
 
     async Task SeedEndpointSettings(int count)
     {
