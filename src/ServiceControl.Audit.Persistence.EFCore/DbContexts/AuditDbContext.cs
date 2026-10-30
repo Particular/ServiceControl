@@ -9,8 +9,8 @@ public abstract class AuditDbContext(DbContextOptions options) : DbContext(optio
 {
     public const string MigrationsHistoryTableName = "__AuditMigrationsHistory";
 
-    // EF Core's default history table name, which identifies a primary instance that wrongly shares this schema.
-    const string PrimaryMigrationsHistoryTableName = "__EFMigrationsHistory";
+    // The primary instance's migrations history table name, identified by ServiceControlDbContext.MigrationsHistoryTableName.
+    const string PrimaryMigrationsHistoryTableName = "__ErrorMigrationsHistory";
 
     public string? Schema { get; } = options.FindExtension<SchemaOptionsExtension>()?.Schema;
 

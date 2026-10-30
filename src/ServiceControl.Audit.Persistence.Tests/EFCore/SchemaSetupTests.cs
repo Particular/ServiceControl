@@ -38,11 +38,11 @@ namespace ServiceControl.Audit.Persistence.Tests
 
             try
             {
-                await TestSchema.CreateTable(connectionString, schema, "__EFMigrationsHistory");
+                await TestSchema.CreateTable(connectionString, schema, "__ErrorMigrationsHistory");
 
                 var exception = Assert.ThrowsAsync<InvalidOperationException>(() => Setup(testsConfiguration, connectionString, schema));
 
-                Assert.That(exception.Message, Does.Contain(schema).And.Contain("__EFMigrationsHistory"));
+                Assert.That(exception.Message, Does.Contain(schema).And.Contain("__ErrorMigrationsHistory"));
             }
             finally
             {
@@ -62,7 +62,7 @@ namespace ServiceControl.Audit.Persistence.Tests
 
             try
             {
-                await TestSchema.CreateTable(connectionString, primarySchema, "__EFMigrationsHistory");
+                await TestSchema.CreateTable(connectionString, primarySchema, "__ErrorMigrationsHistory");
 
                 Assert.DoesNotThrowAsync(() => Setup(testsConfiguration, connectionString, schema));
             }
