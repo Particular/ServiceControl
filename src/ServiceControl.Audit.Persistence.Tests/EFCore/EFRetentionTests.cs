@@ -8,6 +8,7 @@ namespace ServiceControl.Audit.Persistence.Tests
     using NServiceBus;
     using NUnit.Framework;
     using ServiceControl.Audit.Infrastructure;
+    using ServiceControl.Audit.Persistence.EFCore.Implementation;
     using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
     using ServiceControl.SagaAudit;
 
@@ -80,7 +81,8 @@ namespace ServiceControl.Audit.Persistence.Tests
             configuration.TimeProvider.Advance(TimeSpan.FromDays(3));
             var storage = new RecordingBodyStorage { DeleteFailure = new IOException("storage is down") };
 
-            Assert.ThrowsAsync<IOException>(() => configuration.CreateRetention(storage).SweepNow());
+            // A failed body deletion fails the pass, not the sweep: the rows stay for the next sweep to retry.
+            await configuration.CreateRetention(storage).SweepNow();
 
             var remaining = await MessagesViewStore.GetMessages(true, new PagingInfo(), new SortInfo("time_sent", "desc"));
             var body = await MessagesViewStore.GetMessageBody(remaining.Results.Single().BodyUrl.Split('/')[2], TestContext.CurrentContext.CancellationToken);
@@ -89,6 +91,7 @@ namespace ServiceControl.Audit.Persistence.Tests
             {
                 Assert.That(remaining.Results, Has.Count.EqualTo(1));
                 Assert.That(body.HasContent, Is.True, "the body is still in storage");
+                Assert.That(ServiceProvider.GetRequiredService<AuditRetentionCustomCheck.State>().Current.ConsecutiveFailedSweeps, Is.EqualTo(1), "the failed pass is recorded against the check");
             }
         }
 

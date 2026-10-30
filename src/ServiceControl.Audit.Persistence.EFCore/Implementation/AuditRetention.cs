@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using ServiceControl.Audit.Persistence.EFCore.Abstractions;
 using ServiceControl.Audit.Persistence.EFCore.DbContexts;
 using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
+using ServiceControl.Audit.Persistence.EFCore.Infrastructure.Metrics;
 
 sealed class AuditRetention(
     IServiceScopeFactory scopeFactory,
@@ -13,6 +14,7 @@ sealed class AuditRetention(
     IRetentionLock retentionLock,
     AuditRetentionCustomCheck.State retentionState,
     EFPersisterSettings settings,
+    AuditRetentionMetrics metrics,
     TimeProvider timeProvider,
     ILogger<AuditRetention> logger,
     IAuditBodyStoragePersistence? bodyStorage = null) : BackgroundService
@@ -68,9 +70,10 @@ sealed class AuditRetention(
 
     async Task Sweep(bool pace, CancellationToken cancellationToken)
     {
+        var passesStarted = false;
         try
         {
-            DateTime? deferred;
+            List<string> passFailures = [];
             await using (var handle = await retentionLock.TryAcquire(cancellationToken))
             {
                 if (handle is null)
@@ -79,13 +82,23 @@ sealed class AuditRetention(
                     return;
                 }
 
-                deferred = await RemoveExpired(pace, cancellationToken);
+                var now = timeProvider.GetUtcNow().UtcDateTime;
+                await EnsurePartitions(AuditHours.Truncate(now), cancellationToken);
+
+                var keepFrom = AuditHours.Truncate(now - settings.AuditRetentionPeriod);
+                passesStarted = true;
+                foreach (var entity in Entities)
+                {
+                    if (await RunPass(entity, keepFrom, pace, cancellationToken) is { } failure)
+                    {
+                        passFailures.Add(failure);
+                    }
+                }
             }
 
-            // A table that stays too busy to drop keeps every expired row, so it counts against the check like an error.
-            if (deferred is { } start)
+            if (passFailures.Count > 0)
             {
-                retentionState.SweepFailed($"The audit tables were too busy to drop the rows from {start:u}.");
+                retentionState.SweepFailed(string.Join("; ", passFailures));
             }
             else
             {
@@ -95,25 +108,62 @@ sealed class AuditRetention(
 #pragma warning disable PS0019 // Filtered on the token alone because SqlClient reports a cancelled command as a SqlException.
         catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
+            // No pass ran, so each one is recorded as failed and the gauge still climbs.
+            if (!passesStarted)
+            {
+                foreach (var entity in Entities)
+                {
+                    metrics.BeginCycle(entity, cancellationToken).Dispose();
+                }
+            }
+
             retentionState.SweepFailed(ex.Message);
             throw;
         }
 #pragma warning restore PS0019
     }
 
-    // Returns the start of the expired rows it had to leave because the tables were too busy, or null when it removed them all.
-    async Task<DateTime?> RemoveExpired(bool pace, CancellationToken cancellationToken)
+    async Task EnsurePartitions(DateTime hour, CancellationToken cancellationToken)
     {
         await using var scope = scopeFactory.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AuditDbContext>();
 
-        var now = timeProvider.GetUtcNow().UtcDateTime;
-        var hour = AuditHours.Truncate(now);
         await partitions.EnsurePartitions(dbContext, hour, hour + AuditHours.Lookahead, cancellationToken);
+    }
 
-        var keepFrom = AuditHours.Truncate(now - settings.AuditRetentionPeriod);
+    // Each pass is isolated so one failing kind of row does not stop the other from being reclaimed.
+    // Returns what went wrong for the custom check to report, or null when the pass succeeded.
+    async Task<string?> RunPass(AuditRetentionEntity entity, DateTime keepFrom, bool pace, CancellationToken cancellationToken)
+    {
+        using var cycle = metrics.BeginCycle(entity, cancellationToken);
 
-        foreach (var expired in await partitions.ListExpired(dbContext, keepFrom, cancellationToken))
+        try
+        {
+            // A busy table keeps every expired row from the hour where it stopped, so the pass fails rather than letting retention stall with no warning.
+            if (await RemoveExpired(entity, keepFrom, pace, cancellationToken) is { } deferred)
+            {
+                return $"{entity}: the table was too busy to drop the rows from {deferred:u}";
+            }
+
+            cycle.Complete();
+            return null;
+        }
+#pragma warning disable PS0019 // Filtered on the token alone because SqlClient reports a cancelled command as a SqlException.
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+        {
+            logger.LogError(ex, "Error during the {RetentionEntity} audit retention pass", entity);
+            return $"{entity}: {ex.Message}";
+        }
+#pragma warning restore PS0019
+    }
+
+    // Returns the start of the expired rows where it stopped because the table was too busy, or null when it removed every expired row.
+    async Task<DateTime?> RemoveExpired(AuditRetentionEntity entity, DateTime keepFrom, bool pace, CancellationToken cancellationToken)
+    {
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AuditDbContext>();
+
+        foreach (var expired in await partitions.ListExpired(dbContext, entity, keepFrom, cancellationToken))
         {
             // Bodies go first: a failure here leaves the rows in place, so the next sweep retries the same hour.
             if (bodyStorage is not null)
@@ -124,11 +174,11 @@ sealed class AuditRetention(
             DropResult drop;
             do
             {
-                drop = await partitions.DropExpired(dbContext, expired, BatchSize, cancellationToken);
+                drop = await partitions.DropExpired(dbContext, entity, expired, BatchSize, cancellationToken);
 
                 if (drop.Deferred)
                 {
-                    logger.LogInformation("Left the audit rows from {Start:u} for the next sweep because the audit tables were too busy to drop them", expired);
+                    logger.LogInformation("Left the {RetentionEntity} rows from {Start:u} for the next sweep because the table was too busy to drop them", entity, expired);
                     return expired;
                 }
 
@@ -138,9 +188,11 @@ sealed class AuditRetention(
                 }
             } while (!drop.Completed);
 
-            logger.LogDebug("Removed the expired audit rows from {Start:u}", expired);
+            logger.LogDebug("Removed the expired {RetentionEntity} rows from {Start:u}", entity, expired);
         }
 
         return null;
     }
+
+    static readonly AuditRetentionEntity[] Entities = Enum.GetValues<AuditRetentionEntity>();
 }

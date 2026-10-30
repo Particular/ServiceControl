@@ -34,11 +34,13 @@ namespace ServiceControl.UnitTests.Recoverability.Metrics
         {
             var published = new List<string>();
 
+            var meterFactory = MeterFactory;
+
             using var listener = new MeterListener
             {
                 InstrumentPublished = (instrument, _) =>
                 {
-                    if (BelongsToThisTest(instrument))
+                    if (BelongsToThisTest(instrument, meterFactory))
                     {
                         published.Add(instrument.Name);
                     }
@@ -215,10 +217,8 @@ namespace ServiceControl.UnitTests.Recoverability.Metrics
             Assert.That(recorded.Observe(RetryMetrics.PendingBulkRequestsInstrumentName).Single().Value, Is.Zero);
         }
 
-        // Every fixture in the run shares the meter name, so the factory is what tells the instruments
-        // created here apart from the ones another test left behind.
-        bool BelongsToThisTest(Instrument instrument) =>
-            instrument.Meter.Name == RetryMetrics.MeterName && ReferenceEquals(instrument.Meter.Scope, MeterFactory);
+        static bool BelongsToThisTest(Instrument instrument, IMeterFactory meterFactory) =>
+            instrument.Meter.Name == RetryMetrics.MeterName && ReferenceEquals(instrument.Meter.Scope, meterFactory);
 
         IMeterFactory MeterFactory => provider.GetRequiredService<IMeterFactory>();
 
