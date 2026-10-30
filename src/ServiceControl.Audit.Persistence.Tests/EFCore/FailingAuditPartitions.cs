@@ -23,6 +23,8 @@ namespace ServiceControl.Audit.Persistence.Tests
                 ? Task.FromException<IReadOnlyList<DateTime>>(new InvalidOperationException(Reason))
                 : inner.ListExpired(dbContext, entity, keepFrom, cancellationToken);
 
+        public Task DeleteBodies(IAuditBodyStoragePersistence bodyStorage, DateTime expired, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
         public Task<DropResult> DropExpired(AuditDbContext dbContext, AuditRetentionEntity entity, DateTime start, int batchSize, CancellationToken cancellationToken = default) =>
             inner.DropExpired(dbContext, entity, start, batchSize, cancellationToken);
 

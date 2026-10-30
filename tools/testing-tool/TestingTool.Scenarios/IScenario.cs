@@ -21,6 +21,9 @@ public interface IScenario
     /// <summary>Default recommended emission rate in messages/second.</summary>
     double DefaultRate { get; }
 
+    /// <summary>Fixed message body size in bytes, or null for the default 3–6 KB range.</summary>
+    int? BodySizeBytes { get; }
+
     /// <summary>Activity source used to emit OpenTelemetry traces for this scenario's work.</summary>
     ActivitySource ActivitySource { get; }
 

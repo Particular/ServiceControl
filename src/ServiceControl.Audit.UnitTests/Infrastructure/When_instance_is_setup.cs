@@ -48,6 +48,7 @@
             var settings = new Settings("FakeTransport", "FakePersistence")
             {
                 InstanceName = instanceInputQueueName,
+                IngestAuditMessages = true,
                 ForwardAuditMessages = true,
                 AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default
             };

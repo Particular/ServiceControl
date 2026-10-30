@@ -43,6 +43,10 @@ class PostgreSqlAuditPartitionManager(ILogger<PostgreSqlAuditPartitionManager> l
         return [.. days.Where(day => day.AddDays(1) <= keepFrom).Order()];
     }
 
+    // A partition holds a whole day, so the bodies are deleted by day rather than by hour.
+    public Task DeleteBodies(IAuditBodyStoragePersistence bodyStorage, DateTime day, CancellationToken cancellationToken = default) =>
+        bodyStorage.DeleteBodiesForDay(day, cancellationToken);
+
     public async Task<DropResult> DropExpired(AuditDbContext dbContext, AuditRetentionEntity entity, DateTime day, int batchSize, CancellationToken cancellationToken = default)
     {
         var sql = $"DROP TABLE IF EXISTS {Table(dbContext, entity).Partition(day)};";

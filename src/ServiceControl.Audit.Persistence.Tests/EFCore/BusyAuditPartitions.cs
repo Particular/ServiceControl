@@ -20,6 +20,8 @@ namespace ServiceControl.Audit.Persistence.Tests
         public Task<IReadOnlyList<DateTime>> ListExpired(AuditDbContext dbContext, AuditRetentionEntity entity, DateTime keepFrom, CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<DateTime>>([ExpiredDay]);
 
+        public Task DeleteBodies(IAuditBodyStoragePersistence bodyStorage, DateTime expired, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
         public Task<DropResult> DropExpired(AuditDbContext dbContext, AuditRetentionEntity entity, DateTime start, int batchSize, CancellationToken cancellationToken = default) =>
             Task.FromResult(new DropResult(RowsDeleted: 0, Completed: true, Deferred: true));
 

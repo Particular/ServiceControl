@@ -2,6 +2,7 @@ namespace ServiceControl.Audit.Persistence.EFCore.Implementation;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using ServiceControl.Audit.Auditing;
 using ServiceControl.Audit.Auditing.MessagesView;
 using ServiceControl.Audit.Infrastructure;
@@ -15,7 +16,9 @@ sealed class AuditDataStore(
     IServiceScopeFactory scopeFactory,
     EFPersisterSettings settings,
     IFullTextSearchDialect fullTextSearch,
-    TimeProvider timeProvider) : DataStoreBase(scopeFactory, settings), IAuditMessagesViewDataStore, ISagaHistoryDataStore
+    TimeProvider timeProvider,
+    ILogger<AuditDataStore> logger,
+    IAuditBodyStoragePersistence? bodyStorage = null) : DataStoreBase(scopeFactory, settings), IAuditMessagesViewDataStore, ISagaHistoryDataStore
 {
     public const int TotalCountCap = 100_000;
 
@@ -43,8 +46,9 @@ sealed class AuditDataStore(
     public Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo, CancellationToken cancellationToken = default) =>
         Page(messages => messages.Where(message => message.ConversationId == conversationId), pagingInfo, sortInfo, cancellationToken);
 
-    public Task<MessageBodyView> GetMessageBody(string messageId, CancellationToken cancellationToken = default) =>
-        ExecuteQueryWithDbContext(async (dbContext, token) =>
+    public async Task<MessageBodyView> GetMessageBody(string messageId, CancellationToken cancellationToken = default)
+    {
+        var body = await ExecuteQueryWithDbContext<BodyRow?>(async (dbContext, token) =>
         {
             IQueryable<AuditMessageEntity> candidates;
             if (AuditBodyId.TryParse(messageId, out var createdOn, out var uniqueMessageId))
@@ -57,29 +61,53 @@ sealed class AuditDataStore(
             }
             else
             {
-                return MessageBodyView.NotFound();
+                return null;
             }
 
-            var body = await candidates
+            return await candidates
                 .AsNoTracking()
                 .OrderByDescending(message => message.CreatedOn)
                 .ThenByDescending(message => message.Id)
-                .Select(message => new { message.CreatedOn, message.Id, message.BodyState, message.BodyText, message.BodyContentType, message.BodySize })
+                .Select(message => new BodyRow(message.CreatedOn, message.Id, message.UniqueMessageId, message.BodyState, message.BodyText, message.BodyContentType, message.BodySize))
                 .FirstOrDefaultAsync(token);
-
-            if (body is null)
-            {
-                return MessageBodyView.NotFound();
-            }
-
-            return body.BodyState switch
-            {
-                BodyState.Stored => MessageBodyView.FromString(body.BodyText!, body.BodyContentType ?? "text/plain", body.BodySize, DataVersion.Compose(("row", $"{body.CreatedOn.Ticks}-{body.Id}"))),
-                BodyState.None or BodyState.TooLarge => MessageBodyView.NoContent(),
-                BodyState.NotText => MessageBodyView.NotFound(),
-                _ => throw new InvalidOperationException($"Unknown body state {body.BodyState}")
-            };
         }, cancellationToken);
+
+        if (body is null)
+        {
+            return MessageBodyView.NotFound();
+        }
+
+        var version = DataVersion.Compose(("row", $"{body.CreatedOn.Ticks}-{body.Id}"));
+
+        switch (body.BodyState)
+        {
+            case BodyState.Stored:
+                return MessageBodyView.FromString(body.BodyText!, body.BodyContentType ?? "text/plain", body.BodySize, version);
+            case BodyState.None or BodyState.TooLarge:
+                return MessageBodyView.NoContent();
+            case BodyState.NotText:
+                return MessageBodyView.NotFound();
+            case BodyState.External:
+                // Read outside the query so the stream is not tied to the query timeout.
+                // The store can be removed after rows were written to it.
+                if (bodyStorage is null)
+                {
+                    return MessageBodyView.NoContent();
+                }
+
+                var external = await bodyStorage.ReadBody(body.UniqueMessageId.ToString(), body.CreatedOn, cancellationToken);
+
+                if (external is null)
+                {
+                    logger.LogWarning("Message body {MessageId} is marked External in audit row {RowId} created on {CreatedOn:u}, but external storage returned nothing", messageId, body.Id, body.CreatedOn);
+                    return MessageBodyView.NoContent();
+                }
+
+                return MessageBodyView.FromStream(external.Stream, external.ContentType, external.BodySize, version);
+            default:
+                throw new InvalidOperationException($"Unknown body state {body.BodyState}");
+        }
+    }
 
     public Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName, CancellationToken cancellationToken = default) =>
         ExecuteQueryWithDbContext(async (dbContext, token) =>
@@ -183,4 +211,6 @@ sealed class AuditDataStore(
         OutgoingMessages = SagaSnapshotJson.ReadOutgoingMessages(snapshot.OutgoingMessagesJson),
         Endpoint = snapshot.Endpoint
     };
+
+    sealed record BodyRow(DateTime CreatedOn, long Id, Guid UniqueMessageId, BodyState BodyState, string? BodyText, string? BodyContentType, int BodySize);
 }

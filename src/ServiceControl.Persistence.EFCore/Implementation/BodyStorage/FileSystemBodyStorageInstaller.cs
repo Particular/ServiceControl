@@ -7,6 +7,7 @@ public class FileSystemBodyStorageInstaller(FileSystemBodyStorageSettings settin
 {
     public Task Provision(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         Directory.CreateDirectory(settings.StoragePath);
 
         return Task.CompletedTask;

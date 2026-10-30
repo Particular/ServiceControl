@@ -23,6 +23,9 @@ class SqlServerAuditPartitionManager : IAuditPartitionManager
         return await hours.Distinct().OrderBy(hour => hour).ToListAsync(cancellationToken);
     }
 
+    public Task DeleteBodies(IAuditBodyStoragePersistence bodyStorage, DateTime hour, CancellationToken cancellationToken = default) =>
+        bodyStorage.DeleteBodiesForHour(hour, cancellationToken);
+
     public async Task<DropResult> DropExpired(AuditDbContext dbContext, AuditRetentionEntity entity, DateTime hour, int batchSize, CancellationToken cancellationToken = default)
     {
         var deleted = entity switch
