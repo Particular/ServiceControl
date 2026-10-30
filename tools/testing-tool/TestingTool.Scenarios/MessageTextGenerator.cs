@@ -62,10 +62,16 @@ public static class MessageTextGenerator
     /// <see cref="SearchableTerms"/> mixed with filler prose. The result is a JSON object with
     /// several string fields so it resembles a realistic integration message body, and the
     /// embedded terms are guaranteed to be present in <see cref="SearchableTerms"/>.
+    /// When <paramref name="targetBytes"/> is set the body grows to at least that many UTF-8 bytes instead.
     /// </summary>
-    public static string GenerateBody(long sequence)
+    public static string GenerateBody(long sequence, int? targetBytes = null)
     {
-        var targetSize = Random.Shared.Next(MinSize, MaxSize + 1);
+        if (targetBytes is { } requested)
+        {
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(requested, nameof(targetBytes));
+        }
+
+        var targetSize = targetBytes ?? Random.Shared.Next(MinSize, MaxSize + 1);
 
         // Choose a random subset of searchable terms to embed in this body. Embedding several
         // per message means every term is covered frequently across a run, so searches drawn

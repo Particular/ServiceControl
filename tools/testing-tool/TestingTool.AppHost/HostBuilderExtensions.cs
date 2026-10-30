@@ -44,7 +44,7 @@ public static class HostBuilderExtensions
     }
 
     public static IResourceBuilder<ServiceControlErrorInstanceResource> WithPersistenceType(
-        this IResourceBuilder<ServiceControlErrorInstanceResource> error, PersistenceType type)
+        this IResourceBuilder<ServiceControlErrorInstanceResource> error, PersistenceType type, string? azureBlobConnectionString = null, S3BodyStorageOptions? s3 = null)
     {
         if (type == PersistenceType.RavenDb)
         {
@@ -59,11 +59,21 @@ public static class HostBuilderExtensions
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
 
+        // The primary and its scale-out units share one database and body storage location.
+        error = azureBlobConnectionString is not null
+            ? error
+                .WithEnvironment("SERVICECONTROL_MESSAGEBODY_STORAGETYPE", "AzureBlob")
+                .WithEnvironment("SERVICECONTROL_MESSAGEBODY_AZURE_CONNECTIONSTRING", azureBlobConnectionString)
+            : s3 is not null
+                ? error
+                    .WithEnvironment("SERVICECONTROL_MESSAGEBODY_STORAGETYPE", "S3")
+                    .WithS3Environment("SERVICECONTROL_MESSAGEBODY_S3_", s3)
+                : error
+                    .WithEnvironment("SERVICECONTROL_MESSAGEBODY_STORAGETYPE", "FileSystem")
+                    .WithEnvironment("SERVICECONTROL_MESSAGEBODY_FILESYSTEM_STORAGEPATH", "/tmp/ServiceControlBodyStorage");
+
         return error
             .WaitFor(db)
-            //file storage for now
-            .WithEnvironment("SERVICECONTROL_MESSAGEBODY_STORAGETYPE", "FileSystem")
-            .WithEnvironment("SERVICECONTROL_MESSAGEBODY_FILESYSTEM_STORAGEPATH", "/tmp/ServiceControlBodyStorage")
             .WithEnvironment("SERVICECONTROL_PERSISTENCETYPE", PersistenceTypeName(type))
             .WithEnvironment("SERVICECONTROL_DATABASE_CONNECTIONSTRING", db);
     }   
@@ -71,9 +81,7 @@ public static class HostBuilderExtensions
     
 
     /// <summary>
-    /// Points a ServiceControl.Audit instance at the same SQL Server or PostgreSQL container the
-    /// primary uses. The keys are namespaced to the audit instance, and there is no body storage:
-    /// the audit EF persisters store bodies inline in the audit row, capped by MaxBodySizeToStore.
+    /// Points an Audit instance at the primary's database container with the configured body storage.
     /// </summary>
     /// <remarks>
     /// The setting root namespace is "ServiceControl.Audit", and the settings reader rewrites both
@@ -83,7 +91,7 @@ public static class HostBuilderExtensions
     /// so the namespaced form wins.
     /// </remarks>
     public static IResourceBuilder<ServiceControlAuditInstanceResource> WithPersistenceType(
-        this IResourceBuilder<ServiceControlAuditInstanceResource> audit, PersistenceType type)
+        this IResourceBuilder<ServiceControlAuditInstanceResource> audit, PersistenceType type, string? azureBlobConnectionString = null, S3BodyStorageOptions? s3 = null)
     {
         if (type == PersistenceType.RavenDb)
         {
@@ -96,6 +104,21 @@ public static class HostBuilderExtensions
             PersistenceType.PostgreSql => audit.ApplicationBuilder.AddPostgresPersistence("servicecontrol"),
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
+
+        // Audit instances need separate body storage locations; see docs/message-body-storage.md.
+        audit = azureBlobConnectionString is not null
+            ? audit
+                .WithEnvironment("SERVICECONTROL_AUDIT_MESSAGEBODY_STORAGETYPE", "AzureBlob")
+                .WithEnvironment("SERVICECONTROL_AUDIT_MESSAGEBODY_AZURE_CONNECTIONSTRING", azureBlobConnectionString)
+                .WithEnvironment("SERVICECONTROL_AUDIT_MESSAGEBODY_AZURE_CONTAINERNAME", "audit-bodies-" + audit.Resource.Name)
+            : s3 is not null
+                ? audit
+                    .WithEnvironment("SERVICECONTROL_AUDIT_MESSAGEBODY_STORAGETYPE", "S3")
+                    .WithS3Environment("SERVICECONTROL_AUDIT_MESSAGEBODY_S3_", s3)
+                    .WithEnvironment("SERVICECONTROL_AUDIT_MESSAGEBODY_S3_KEYPREFIX", "audit-bodies-" + audit.Resource.Name + "/")
+                : audit
+                    .WithEnvironment("SERVICECONTROL_AUDIT_MESSAGEBODY_STORAGETYPE", "FileSystem")
+                    .WithEnvironment("SERVICECONTROL_AUDIT_MESSAGEBODY_FILESYSTEM_STORAGEPATH", "/tmp/ServiceControlAuditBodyStorage");
 
         return audit
             .WaitFor(db)
@@ -143,6 +166,30 @@ public static class HostBuilderExtensions
     }   
 
     
+    static IResourceBuilder<T> WithS3Environment<T>(this IResourceBuilder<T> builder, string prefix, S3BodyStorageOptions s3)
+        where T : IResourceWithEnvironment
+    {
+        builder = builder.WithEnvironment(prefix + "BUCKETNAME", s3.Bucket);
+        if (s3.Region is not null)
+        {
+            builder = builder.WithEnvironment(prefix + "REGION", s3.Region);
+        }
+
+        if (s3.ServiceUrl is not null)
+        {
+            builder = builder.WithEnvironment(prefix + "SERVICEURL", s3.ServiceUrl);
+        }
+
+        if (s3.AccessKeyId is not null && s3.SecretAccessKey is not null)
+        {
+            builder = builder
+                .WithEnvironment(prefix + "ACCESSKEYID", s3.AccessKeyId)
+                .WithEnvironment(prefix + "SECRETACCESSKEY", s3.SecretAccessKey);
+        }
+
+        return builder;
+    }
+
     static string PersistenceTypeName(PersistenceType persistence) => persistence switch
     {
         PersistenceType.SqlServer => "SQLServer",
