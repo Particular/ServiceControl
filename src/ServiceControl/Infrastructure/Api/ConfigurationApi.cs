@@ -77,6 +77,10 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
                 settings.ExternalIntegrationsDispatchingBatchSize
             },
             PersistenceSettings = settings.PersisterSpecificSettings,
+            Storage = new
+            {
+                StorageType = PersistenceManifestLibrary.Find(settings.PersistenceType)?.Name
+            },
             Transport = new
             {
                 settings.TransportType,
