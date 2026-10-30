@@ -17,3 +17,12 @@ ServiceControl instances handle unavailable runtime dependencies in one of two w
 
 * A failure detected during startup stops the instance immediately.
 * A failure detected after a successful startup does not stop the instance. The instance is expected to try to recover once the dependency becomes available again.
+
+### Startup checks
+
+The Main and Audit instances run startup checks (`IStartupCheck`) in a hosted service that is registered before persistence, ingestion, and component hosted services. A failing check stops the instance before it ingests any message. The SQL Server and PostgreSQL persisters register these checks:
+
+| ClassName | Prerequisites | Description |
+| --- | --- | --- |
+| `PendingMigrationsStartupCheck` | Main or Audit instance using SQL Server or PostgreSQL persistence | Checks that the database has no pending migrations. Runtime startup does not apply migrations; run `--setup` to apply them. |
+| `FileSystemBodyStorageStartupCheck` | Main instance using SQL Server or PostgreSQL persistence with file system body storage | Checks that the configured body storage directory exists and is writable. Setup creates the directory but does not verify write access. |

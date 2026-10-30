@@ -195,12 +195,38 @@ class BodyStoragePersistenceTests
     }
 
     [Test]
-    public async Task Provisioning_fails_with_the_path_when_it_is_a_file()
+    public async Task Startup_check_keeps_existing_bodies_and_removes_its_probe()
+    {
+        var existing = Path.Combine(tempDir, "existing");
+        await File.WriteAllTextAsync(existing, "body");
+
+        await new FileSystemBodyStorageStartupCheck(new FileSystemBodyStorageSettings { StoragePath = tempDir }).Check();
+
+        Assert.That(Directory.GetFileSystemEntries(tempDir), Is.EqualTo(new[] { existing }));
+    }
+
+    [Test]
+    public void Startup_check_fails_without_creating_a_missing_directory()
+    {
+        var path = Path.Combine(tempDir, "missing");
+
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => new FileSystemBodyStorageStartupCheck(new FileSystemBodyStorageSettings { StoragePath = path }).Check());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ex.Message, Does.Contain(path).And.Contain("--setup"));
+            Assert.That(ex.InnerException, Is.InstanceOf<IOException>());
+            Assert.That(Directory.Exists(path), Is.False);
+        }
+    }
+
+    [Test]
+    public async Task Startup_check_fails_with_the_path_when_it_is_a_file()
     {
         var path = Path.Combine(tempDir, "file");
         await File.WriteAllTextAsync(path, "x");
 
-        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => new FileSystemBodyStorageInstaller(new FileSystemBodyStorageSettings { StoragePath = path }).Provision());
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => new FileSystemBodyStorageStartupCheck(new FileSystemBodyStorageSettings { StoragePath = path }).Check());
 
         using (Assert.EnterMultipleScope())
         {
@@ -211,7 +237,7 @@ class BodyStoragePersistenceTests
 
     [Test]
     [UnsupportedOSPlatform("windows")]
-    public void Provisioning_fails_with_the_path_when_the_directory_is_not_writable()
+    public async Task Read_only_directory_is_provisioned_but_fails_the_startup_check()
     {
         if (OperatingSystem.IsWindows())
         {
@@ -229,7 +255,10 @@ class BodyStoragePersistenceTests
                 Assert.Ignore("The current account bypasses directory permissions.");
             }
 
-            var ex = Assert.ThrowsAsync<InvalidOperationException>(() => new FileSystemBodyStorageInstaller(new FileSystemBodyStorageSettings { StoragePath = path }).Provision());
+            var settings = new FileSystemBodyStorageSettings { StoragePath = path };
+
+            await new FileSystemBodyStorageInstaller(settings).Provision();
+            var ex = Assert.ThrowsAsync<InvalidOperationException>(() => new FileSystemBodyStorageStartupCheck(settings).Check());
 
             using (Assert.EnterMultipleScope())
             {

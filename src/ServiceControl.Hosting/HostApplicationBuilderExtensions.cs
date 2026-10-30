@@ -14,4 +14,6 @@ public static class HostApplicationBuilderExtensions
             builder.Services.AddSingleton<IHostLifetime, WindowsServiceWithRequestTimeout>();
         }
     }
+
+    public static void AddStartupChecks(this IServiceCollection services) => services.AddHostedService<StartupCheckHostedService>();
 }

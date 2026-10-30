@@ -105,6 +105,7 @@
             // directly and to make things more complex of course the order of registration still matters ;)
             services.AddSingleton(provider => new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
 
+            services.AddStartupChecks();
             services.AddPersistence(settings);
             services.AddMetrics(settings.PrintMetrics);
             hostBuilder.AddTelemetry(settings);
