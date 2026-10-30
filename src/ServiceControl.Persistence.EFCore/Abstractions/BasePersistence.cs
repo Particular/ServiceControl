@@ -6,6 +6,7 @@ using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
 using Particular.LicensingComponent.Contracts;
 using Particular.LicensingComponent.Persistence;
 using ServiceControl.CustomChecks;
+using ServiceControl.Infrastructure.StartupChecks;
 using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence.EFCore.Implementation;
 using ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
@@ -24,6 +25,8 @@ public abstract class BasePersistence
     protected static void RegisterDataStores(IServiceCollection services, EFPersisterSettings settings)
     {
         services.TryAddSingleton(TimeProvider.System);
+
+        services.AddScoped<IStartupCheck, PendingMigrationsStartupCheck>();
 
         services.AddSingleton<MinimumRequiredStorageState>();
 
@@ -90,6 +93,7 @@ public abstract class BasePersistence
                 services.TryAddSingleton(fileSystem);
                 services.AddSingleton<IBodyStoragePersistence, FileSystemBodyStoragePersistence>();
                 services.AddSingleton<IDriveSpaceProvider, DriveInfoSpaceProvider>();
+                services.AddScoped<IStartupCheck, FileSystemBodyStorageStartupCheck>();
                 services.AddCustomCheck<FileSystemBodyStorageCustomCheck>();
                 break;
             case AzureBlobBodyStorageSettings azureBlob:
