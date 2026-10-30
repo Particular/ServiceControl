@@ -5,30 +5,40 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using NServiceBus;
 using ServiceControl.Audit.Persistence.EFCore.Abstractions;
 using ServiceControl.Audit.Persistence.EFCore.DbContexts;
 using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
+using ServiceControl.PostgreSql.TokenAuthentication;
 
-class PostgreSqlPersistence(EFPersisterSettings settings) : EFPersistenceBase(settings)
+class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : EFPersistenceBase(settings)
 {
+    readonly PostgreSqlTokenAuthentication? tokenAuthentication = settings.TokenAuthentication;
+
     protected override void AddDbContext(IServiceCollection services, EFPersisterSettings settings)
     {
-        services.AddDbContext<PostgreSqlAuditDbContext>(options =>
+        if (tokenAuthentication is { } authentication)
         {
-            options.UseNpgsql(settings.ConnectionString, npgsqlOptions =>
-            {
-                npgsqlOptions.CommandTimeout(settings.CommandTimeout);
-                npgsqlOptions.MigrationsHistoryTable(AuditDbContext.MigrationsHistoryTableName, settings.Schema);
+            services.TryAddSingleton(_ => authentication.CreateTokenProvider());
+            services.TryAddSingleton(serviceProvider => PostgreSqlTokenDataSource.Build(settings.ConnectionString, serviceProvider.GetRequiredService<IPostgreSqlTokenProvider>(), TokenLogger(serviceProvider)));
+            services.TryAddKeyedSingleton(PostgreSqlRetentionLock.TokenDataSourceKey, (serviceProvider, _) =>
+                PostgreSqlTokenDataSource.Build(PostgreSqlRetentionLock.Unpooled(settings.ConnectionString), serviceProvider.GetRequiredService<IPostgreSqlTokenProvider>(), TokenLogger(serviceProvider)));
+        }
 
-                if (settings.EnableRetryOnFailure)
-                {
-                    npgsqlOptions.EnableRetryOnFailure(
-                        maxRetryCount: settings.MaxRetryCount,
-                        maxRetryDelay: TimeSpan.FromSeconds(settings.MaxRetryDelayInSeconds),
-                        errorCodesToAdd: null);
-                }
-            });
+        services.AddDbContext<PostgreSqlAuditDbContext>((serviceProvider, options) =>
+        {
+            if (tokenAuthentication is null)
+            {
+                options.UseNpgsql(settings.ConnectionString, ConfigureNpgsql);
+            }
+            else
+            {
+                options.UseNpgsql(serviceProvider.GetRequiredService<NpgsqlDataSource>(), ConfigureNpgsql);
+            }
 
             options.ReplaceService<IMigrationsSqlGenerator, AuditNpgsqlMigrationsSqlGenerator>();
 
@@ -48,7 +58,23 @@ class PostgreSqlPersistence(EFPersisterSettings settings) : EFPersistenceBase(se
         }, ServiceLifetime.Scoped);
 
         services.AddScoped<AuditDbContext>(provider => provider.GetRequiredService<PostgreSqlAuditDbContext>());
+
+        void ConfigureNpgsql(NpgsqlDbContextOptionsBuilder npgsqlOptions)
+        {
+            npgsqlOptions.CommandTimeout(settings.CommandTimeout);
+            npgsqlOptions.MigrationsHistoryTable(AuditDbContext.MigrationsHistoryTableName, settings.Schema);
+
+            if (settings.EnableRetryOnFailure)
+            {
+                npgsqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: settings.MaxRetryCount,
+                    maxRetryDelay: TimeSpan.FromSeconds(settings.MaxRetryDelayInSeconds),
+                    errorCodesToAdd: null);
+            }
+        }
     }
+
+    static ILogger TokenLogger(IServiceProvider serviceProvider) => serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(PostgreSqlTokenDataSource));
 
     protected override void AddPartitionManager(IServiceCollection services) =>
         services.AddSingleton<IAuditPartitionManager, PostgreSqlAuditPartitionManager>();

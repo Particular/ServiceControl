@@ -17,6 +17,6 @@ class PostgreSqlPersistenceConfiguration : EFPersistenceConfigurationBase
                 $"AuditRetentionPeriod is {settings.AuditRetentionPeriod}, but PostgreSQL storage keeps audit data for 1 to 90 days. Set AuditRetentionPeriod within that range.");
         }
 
-        return new PostgreSqlPersistence(settings);
+        return new PostgreSqlPersistence(new PostgreSqlPersisterSettings(settings));
     }
 }

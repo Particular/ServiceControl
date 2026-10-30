@@ -33,6 +33,7 @@
     <Compile Include="..\ServiceControl.Audit.Persistence.Tests\**\*.cs" Exclude="..\ServiceControl.Audit.Persistence.Tests\obj\**\*.*;..\ServiceControl.Audit.Persistence.Tests\bin\**\*.*" LinkBase="Shared" />
     <Compile Include="..\ServiceControl.Persistence.Tests.PostgreSql\PostgreSqlSharedContainer.cs" />
     <Compile Include="..\ServiceControl.Persistence.Tests.PostgreSql\TestSchema.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.PostgreSql\TokenConnectionStrings.cs" />
     <Compile Include="..\ServiceControl.Persistence.Tests.PostgreSql\StopSharedPostgreSql.cs" />
 
     <!-- The EF Core persisters do not deduplicate, a redelivered message is stored again. -->

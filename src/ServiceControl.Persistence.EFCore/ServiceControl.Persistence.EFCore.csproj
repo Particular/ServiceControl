@@ -20,6 +20,8 @@
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" />
+    <!-- AWSSDK.Core loads it by name for web identity (EKS IRSA) and assume-role credentials -->
+    <PackageReference Include="AWSSDK.SecurityToken" />
     <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />

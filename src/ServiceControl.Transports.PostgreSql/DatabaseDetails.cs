@@ -10,11 +10,14 @@ using Npgsql;
 public class DatabaseDetails
 {
     readonly string connectionString;
+    readonly NpgsqlDataSource tokenDataSource;
 
     public string DatabaseName { get; }
 
-    public DatabaseDetails(string connectionString)
+    public DatabaseDetails(string connectionString, NpgsqlDataSource tokenDataSource = null)
     {
+        this.tokenDataSource = tokenDataSource;
+
         try
         {
             var builder = new NpgsqlConnectionStringBuilder
@@ -122,7 +125,7 @@ public class DatabaseDetails
 
     async Task<NpgsqlConnection> OpenConnectionAsync(CancellationToken cancellationToken)
     {
-        var conn = new NpgsqlConnection(connectionString);
+        var conn = tokenDataSource?.CreateConnection() ?? new NpgsqlConnection(connectionString);
         await conn.OpenAsync(cancellationToken);
         return conn;
     }
