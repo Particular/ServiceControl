@@ -3,6 +3,7 @@ namespace ServiceControl.Audit.Persistence.Tests
     using System;
     using System.Linq;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Diagnostics.Metrics;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using ServiceControl.Audit.Persistence.EFCore.Abstractions;
@@ -10,6 +11,7 @@ namespace ServiceControl.Audit.Persistence.Tests
     using ServiceControl.Audit.Persistence.EFCore.Implementation.BodyStorage;
     using ServiceControl.Audit.Persistence.EFCore.Implementation.UnitOfWork;
     using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
+    using ServiceControl.Audit.Persistence.EFCore.Infrastructure.Metrics;
     using ServiceControl.Audit.Persistence.UnitOfWork;
 
     [TestFixture]
@@ -43,6 +45,8 @@ namespace ServiceControl.Audit.Persistence.Tests
             services.AddSingleton<IRetentionLock>(_ => null!);
             services.AddSingleton<IFullTextSearchDialect>(_ => null!);
             services.AddSingleton<AuditRetentionCustomCheck.State>();
+            services.AddMetrics();
+            services.AddSingleton<AuditRetentionMetrics>();
             services.AddLogging();
             services.AddSingleton<IAuditIngestionUnitOfWorkFactory, AuditIngestionUnitOfWorkFactory>();
             services.AddSingleton<AuditDataStore>();
