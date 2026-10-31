@@ -53,6 +53,15 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
                 }
             };
 
+            var applyRetentionOptions = new OptionSet
+            {
+                {
+                    "apply-retention",
+                    "Apply the configured audit retention period to the stored messages",
+                    s => Command = typeof(ApplyRetentionCommand)
+                }
+            };
+
             try
             {
                 externalInstallerOptions.Parse(args);
@@ -72,6 +81,13 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
                 reimportFailedAuditsOptions.Parse(args);
 
                 if (Command == typeof(ImportFailedAuditsCommand))
+                {
+                    return;
+                }
+
+                applyRetentionOptions.Parse(args);
+
+                if (Command == typeof(ApplyRetentionCommand))
                 {
                     return;
                 }
