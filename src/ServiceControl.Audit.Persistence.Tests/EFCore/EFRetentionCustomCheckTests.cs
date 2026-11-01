@@ -1,16 +1,15 @@
 namespace ServiceControl.Audit.Persistence.Tests
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
-    using ServiceControl.Audit.Persistence.EFCore.DbContexts;
     using ServiceControl.Audit.Persistence.EFCore.Implementation;
     using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
+    using ServiceControl.Audit.Persistence.EFCore.Infrastructure.Metrics;
 
     class EFRetentionCustomCheckTests : EFPersistenceTestFixture
     {
@@ -38,7 +37,7 @@ namespace ServiceControl.Audit.Persistence.Tests
         [Test]
         public async Task Check_fails_once_three_consecutive_sweeps_have_left_expired_rows_behind()
         {
-            var retention = ActivatorUtilities.CreateInstance<AuditRetention>(ServiceProvider, new BusyPartitions());
+            var retention = ActivatorUtilities.CreateInstance<AuditRetention>(ServiceProvider, new BusyAuditPartitions());
 
             await retention.SweepNow();
             await retention.SweepNow();
@@ -51,6 +50,27 @@ namespace ServiceControl.Audit.Persistence.Tests
                 Assert.That(afterTwo.HasFailed, Is.False);
                 Assert.That(afterThree.HasFailed, Is.True);
                 Assert.That(afterThree.FailureReason, Does.Contain("too busy"));
+            }
+        }
+
+        [TestCase(AuditRetentionEntity.AuditMessages)]
+        [TestCase(AuditRetentionEntity.SagaSnapshots)]
+        public async Task Check_fails_once_three_consecutive_sweeps_have_had_a_failing_pass(AuditRetentionEntity failing)
+        {
+            var partitions = new FailingAuditPartitions(failing, ServiceProvider.GetRequiredService<IAuditPartitionManager>());
+            var retention = ActivatorUtilities.CreateInstance<AuditRetention>(ServiceProvider, partitions);
+
+            await retention.SweepNow();
+            await retention.SweepNow();
+            var afterTwo = await Check.PerformCheck();
+            await retention.SweepNow();
+            var afterThree = await Check.PerformCheck();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(afterTwo.HasFailed, Is.False);
+                Assert.That(afterThree.HasFailed, Is.True);
+                Assert.That(afterThree.FailureReason, Does.Contain(FailingAuditPartitions.Reason));
             }
         }
 
@@ -96,25 +116,6 @@ namespace ServiceControl.Audit.Persistence.Tests
 
             public Task<IAsyncDisposable> TryAcquire(CancellationToken cancellationToken = default) =>
                 Task.FromException<IAsyncDisposable>(new InvalidOperationException(Reason));
-        }
-
-        // Has one expired day that can never be dropped, like a partition another session keeps locked.
-        sealed class BusyPartitions : IAuditPartitionManager
-        {
-            static readonly DateTime ExpiredDay = new(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
-            public Task EnsurePartitions(AuditDbContext dbContext, DateTime from, DateTime toExclusive, CancellationToken cancellationToken = default) => Task.CompletedTask;
-
-            public Task<IReadOnlyList<DateTime>> ListExpired(AuditDbContext dbContext, DateTime keepFrom, CancellationToken cancellationToken = default) =>
-                Task.FromResult<IReadOnlyList<DateTime>>([ExpiredDay]);
-
-            public Task<DropResult> DropExpired(AuditDbContext dbContext, DateTime start, int batchSize, CancellationToken cancellationToken = default) =>
-                Task.FromResult(new DropResult(RowsDeleted: 0, Completed: true, Deferred: true));
-
-            public Task DeleteBodies(IAuditBodyStoragePersistence bodyStorage, DateTime expired, CancellationToken cancellationToken = default) => Task.CompletedTask;
-
-            public Task<DateTime?> ProvisionedUntil(AuditDbContext dbContext, CancellationToken cancellationToken = default) =>
-                Task.FromResult<DateTime?>(null);
         }
     }
 }

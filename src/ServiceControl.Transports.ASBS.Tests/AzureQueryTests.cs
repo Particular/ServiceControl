@@ -3,6 +3,7 @@ namespace ServiceControl.Transport.Tests;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -212,18 +213,23 @@ class AzureQueryTests : TransportTestFixture
         IBrokerQueue queue = queueNames.Find(name => name.QueueName == transportSettings.EndpointName);
         Assert.That(queue, Is.Not.Null);
 
-        long total = 0L;
-
-        await Task.Delay(TimeSpan.FromMinutes(4), token);
-
         DateTime startDate = provider.GetUtcNow().DateTime;
         provider.Advance(TimeSpan.FromDays(1));
-        await foreach (QueueThroughput queueThroughput in query.GetThroughputPerDay(queue, DateOnly.FromDateTime(startDate), token))
+
+        long total = 0L;
+        var waited = Stopwatch.StartNew();
+        while (total < numMessagesToIngest && waited.Elapsed < TimeSpan.FromMinutes(9))
         {
-            total += queueThroughput.TotalThroughput;
+            await Task.Delay(TimeSpan.FromSeconds(15), token);
+
+            total = 0L;
+            await foreach (QueueThroughput queueThroughput in query.GetThroughputPerDay(queue, DateOnly.FromDateTime(startDate), token))
+            {
+                total += queueThroughput.TotalThroughput;
+            }
         }
 
-        Assert.That(total, Is.EqualTo(numMessagesToIngest));
+        Assert.That(total, Is.EqualTo(numMessagesToIngest), $"Azure Monitor throughput after waiting {waited.Elapsed:mm\\:ss}");
     }
 
     static Dictionary<string, string> GetSettings()
