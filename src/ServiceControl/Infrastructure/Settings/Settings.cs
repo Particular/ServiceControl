@@ -307,17 +307,14 @@
 
         bool ReadEnableExternalIntegrationsPublishing()
         {
-            var legacyConfigured = SettingsReader.TryRead<bool>(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", out var disable);
-            var configured = SettingsReader.TryRead<bool>(SettingsRootNamespace, "EnableExternalIntegrationsPublishing", out var enable);
-
-            if (legacyConfigured && configured)
+            if (SettingsReader.TryRead<bool>(SettingsRootNamespace, "DisableExternalIntegrationsPublishing", out _))
             {
-                const string message = "EnableExternalIntegrationsPublishing and the legacy DisableExternalIntegrationsPublishing settings cannot both be configured, please remove DisableExternalIntegrationsPublishing";
+                const string message = "The DisableExternalIntegrationsPublishing setting is no longer supported, please remove it and use EnableExternalIntegrationsPublishing instead";
                 logger.LogCritical(message);
                 throw new Exception(message);
             }
 
-            return legacyConfigured ? !disable : enable;
+            return SettingsReader.Read(SettingsRootNamespace, "EnableExternalIntegrationsPublishing", false);
         }
 
         TimeSpan GetErrorRetentionPeriod()
