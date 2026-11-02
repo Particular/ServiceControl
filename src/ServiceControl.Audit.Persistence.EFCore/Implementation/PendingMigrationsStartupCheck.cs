@@ -12,7 +12,7 @@ sealed class PendingMigrationsStartupCheck(AuditDbContext dbContext) : IStartupC
 
         if (pending.Count > 0)
         {
-            throw new InvalidOperationException($"The audit database has pending migrations: {string.Join(", ", pending)}. Run the instance with --setup to apply them.");
+            throw new InvalidOperationException($"The audit database has pending migrations. Run the instance with --setup to apply them.");
         }
     }
 }

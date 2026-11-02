@@ -12,7 +12,7 @@ sealed class PendingMigrationsStartupCheck(ServiceControlDbContext dbContext) : 
 
         if (pending.Count > 0)
         {
-            throw new InvalidOperationException($"The database has pending migrations: {string.Join(", ", pending)}. Run --setup on the normal instance to apply them.");
+            throw new InvalidOperationException($"The database has pending migrations. Run the instance with --setup to apply them.");
         }
     }
 }
