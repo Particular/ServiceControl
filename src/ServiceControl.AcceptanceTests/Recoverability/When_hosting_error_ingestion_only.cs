@@ -92,6 +92,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability
         static readonly string[] ExpectedHostedServices =
         [
             "GenericWebHostService",                // health endpoint only, no ServiceControl API
+            "StartupCheckHostedService",
             nameof(ErrorIngestion),                 // the reason this host exists
             "HeartbeatMonitoringHostedService",     // warms the endpoint monitor, does not check heartbeats
             "InternalCustomChecksHostedService",    // reports this node's ingestion health to the database

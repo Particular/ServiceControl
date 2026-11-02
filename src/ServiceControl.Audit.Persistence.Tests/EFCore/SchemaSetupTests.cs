@@ -6,6 +6,8 @@ namespace ServiceControl.Audit.Persistence.Tests
     using Microsoft.Extensions.Hosting;
     using NUnit.Framework;
     using ServiceControl.Audit.Persistence.EFCore.Abstractions;
+    using ServiceControl.Audit.Persistence.EFCore.DbContexts;
+    using ServiceControl.Audit.Persistence.EFCore.Implementation;
     using ServiceControl.Persistence.Tests;
 
     [TestFixture]
@@ -71,6 +73,43 @@ namespace ServiceControl.Audit.Persistence.Tests
                 await TestSchema.Drop(connectionString, schema);
                 await TestSchema.Drop(connectionString, primarySchema);
             }
+        }
+
+        [Test]
+        public async Task Pending_migrations_fail_the_startup_check_until_setup_has_applied_them()
+        {
+            var testsConfiguration = new PersistenceTestsConfiguration();
+            var connectionString = await testsConfiguration.GetConnectionString();
+            var schema = $"sc_pending_{Guid.NewGuid():n}";
+
+            try
+            {
+                var exception = Assert.ThrowsAsync<InvalidOperationException>(() => CheckPendingMigrations(testsConfiguration, connectionString, schema));
+                Assert.That(exception.Message, Does.Contain("pending migrations").And.Contain("--setup"));
+
+                await Setup(testsConfiguration, connectionString, schema);
+
+                Assert.DoesNotThrowAsync(() => CheckPendingMigrations(testsConfiguration, connectionString, schema));
+            }
+            finally
+            {
+                await TestSchema.Drop(connectionString, schema);
+            }
+        }
+
+        static async Task CheckPendingMigrations(PersistenceTestsConfiguration testsConfiguration, string connectionString, string schema)
+        {
+            var settings = new PersistenceSettings(TimeSpan.FromDays(1), true, 100000);
+            settings.PersisterSpecificSettings[EFPersistenceConfigurationBase.ConnectionStringKey] = connectionString;
+            settings.PersisterSpecificSettings[EFPersistenceConfigurationBase.SchemaKey] = schema;
+
+            var services = new ServiceCollection();
+            testsConfiguration.CreateConfiguration().Create(settings).AddInstaller(services);
+
+            await using var provider = services.BuildServiceProvider();
+            using var scope = provider.CreateScope();
+
+            await new PendingMigrationsStartupCheck(scope.ServiceProvider.GetRequiredService<AuditDbContext>()).Check();
         }
 
         static async Task Setup(PersistenceTestsConfiguration testsConfiguration, string connectionString, string schema)

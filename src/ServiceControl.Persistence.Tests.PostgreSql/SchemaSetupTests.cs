@@ -9,6 +9,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using ServiceControl.Persistence.EFCore.Abstractions;
+using ServiceControl.Persistence.EFCore.DbContexts;
+using ServiceControl.Persistence.EFCore.Implementation;
 
 [TestFixture]
 class SchemaSetupTests
@@ -66,6 +68,38 @@ class SchemaSetupTests
             await TestSchema.Drop(settings.ConnectionString, settings.Schema);
             await TestSchema.Drop(settings.ConnectionString, auditSchema);
         }
+    }
+
+    [Test]
+    public async Task Pending_migrations_fail_the_startup_check_until_setup_has_applied_them()
+    {
+        var settings = await CreateSettings($"sc_pending_{Guid.NewGuid():n}");
+
+        try
+        {
+            var exception = Assert.ThrowsAsync<InvalidOperationException>(() => CheckPendingMigrations(settings));
+            Assert.That(exception.Message, Does.Contain("pending migrations").And.Contain("--setup"));
+
+            await ApplyMigrations(settings);
+
+            Assert.DoesNotThrowAsync(() => CheckPendingMigrations(settings));
+        }
+        finally
+        {
+            await TestSchema.Drop(settings.ConnectionString, settings.Schema);
+        }
+    }
+
+    static async Task CheckPendingMigrations(PostgreSqlPersisterSettings settings)
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        new PostgreSqlPersistenceConfiguration().Create(settings).AddInstaller(services);
+
+        await using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+
+        await new PendingMigrationsStartupCheck(scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>()).Check();
     }
 
     static async Task<PostgreSqlPersisterSettings> CreateSettings(string schema) => new()

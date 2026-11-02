@@ -9,6 +9,7 @@ using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
 using ServiceControl.Audit.Persistence.EFCore.Implementation.UnitOfWork;
 using ServiceControl.Audit.Persistence.EFCore.Infrastructure.Metrics;
 using ServiceControl.Audit.Persistence.UnitOfWork;
+using ServiceControl.Infrastructure.StartupChecks;
 
 abstract class EFPersistenceBase(EFPersisterSettings settings) : IPersistence
 {
@@ -17,6 +18,8 @@ abstract class EFPersistenceBase(EFPersisterSettings settings) : IPersistence
         AddCommon(services);
         AddQueryServices(services);
         AddBodyStorage(services);
+
+        services.AddScoped<IStartupCheck, PendingMigrationsStartupCheck>();
 
         services.AddSingleton<AuditDataStore>();
         services.AddSingleton<IAuditMessagesViewDataStore>(provider => provider.GetRequiredService<AuditDataStore>());

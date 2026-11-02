@@ -9,7 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using NServiceBus.CustomChecks;
 using NUnit.Framework;
+using ServiceControl.Infrastructure.StartupChecks;
 using ServiceControl.Persistence.EFCore.Abstractions;
+using ServiceControl.Persistence.EFCore.Implementation;
 using ServiceControl.Persistence.EFCore.Implementation.BodyStorage;
 
 [TestFixture]
@@ -140,7 +142,25 @@ class FileSystemBodyStorageCustomCheckTests : BasePersistence
 
         var check = services.BuildServiceProvider().GetServices<ICustomCheck>().OfType<FileSystemBodyStorageCustomCheck>().SingleOrDefault();
 
-        Assert.That(check, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(check, Is.Not.Null);
+            Assert.That(services.Any(descriptor => descriptor.ServiceType == typeof(IStartupCheck) && descriptor.ImplementationType == typeof(PendingMigrationsStartupCheck) && descriptor.Lifetime == ServiceLifetime.Scoped), Is.True);
+            Assert.That(services.Any(descriptor => descriptor.ServiceType == typeof(IStartupCheck) && descriptor.ImplementationType == typeof(FileSystemBodyStorageStartupCheck) && descriptor.Lifetime == ServiceLifetime.Scoped), Is.True);
+        }
+    }
+
+    [Test]
+    public void Setup_does_not_register_startup_checks()
+    {
+        var services = new ServiceCollection();
+        RegisterBodyStorageInstaller(services, new TestPersisterSettings
+        {
+            ConnectionString = "Server=nowhere",
+            BodyStorage = CreateSettings(StoragePath, 15)
+        });
+
+        Assert.That(services.Any(descriptor => descriptor.ServiceType == typeof(IStartupCheck)), Is.False);
     }
 
     [Test]
@@ -153,7 +173,11 @@ class FileSystemBodyStorageCustomCheckTests : BasePersistence
             BodyStorage = new S3BodyStorageSettings { BucketName = "bodies" }
         });
 
-        Assert.That(services.Any(descriptor => descriptor.ImplementationType == typeof(FileSystemBodyStorageCustomCheck)), Is.False);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(services.Any(descriptor => descriptor.ImplementationType == typeof(FileSystemBodyStorageCustomCheck)), Is.False);
+            Assert.That(services.Any(descriptor => descriptor.ImplementationType == typeof(FileSystemBodyStorageStartupCheck)), Is.False);
+        }
     }
 
     [Test]
