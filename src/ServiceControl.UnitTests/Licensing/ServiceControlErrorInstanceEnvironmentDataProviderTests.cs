@@ -95,15 +95,23 @@ class ServiceControlErrorInstanceEnvironmentDataProviderTests
 
     [TestCase("SERVICECONTROL_ENABLEEXTERNALINTEGRATIONSPUBLISHING", "true", "Enabled")]
     [TestCase("SERVICECONTROL_ENABLEEXTERNALINTEGRATIONSPUBLISHING", "false", "Disabled")]
-    [TestCase("SERVICECONTROL_DISABLEEXTERNALINTEGRATIONSPUBLISHING", "false", "Enabled")]
-    [TestCase("SERVICECONTROL_DISABLEEXTERNALINTEGRATIONSPUBLISHING", "true", "Disabled")]
-    public async Task Should_report_external_integrations_publishing_from_either_key(string variable, string value, string expected)
+    public async Task Should_report_external_integrations_publishing(string variable, string value, string expected)
     {
         Environment.SetEnvironmentVariable(variable, value);
 
         var data = await GetData();
 
         Assert.That(data["Features.ExternalIntegrationsPublishing"], Is.EqualTo(expected));
+    }
+
+    [Test]
+    public async Task Should_reject_the_legacy_external_integrations_publishing_setting()
+    {
+        Environment.SetEnvironmentVariable("SERVICECONTROL_DISABLEEXTERNALINTEGRATIONSPUBLISHING", "false");
+
+        var ex = Assert.ThrowsAsync<Exception>(() => GetData());
+
+        Assert.That(ex.Message, Does.Contain("no longer supported"));
     }
 
     [Test]

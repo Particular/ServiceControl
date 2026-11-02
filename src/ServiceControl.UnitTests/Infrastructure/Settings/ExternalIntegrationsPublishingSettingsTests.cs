@@ -43,26 +43,16 @@ class ExternalIntegrationsPublishingSettingsTests
         Assert.That(new Settings().EnableExternalIntegrationsPublishing, Is.EqualTo(expected));
     }
 
-    [TestCase("true", false)]
-    [TestCase("false", true)]
-    public void Treats_the_legacy_setting_as_the_inverse(string value, bool expected)
+    [TestCase(null)]
+    [TestCase("true")]
+    [TestCase("false")]
+    public void Rejects_the_legacy_setting(string enableValue)
     {
-        Environment.SetEnvironmentVariable(LegacyVariable, value);
-
-        Assert.That(new Settings().EnableExternalIntegrationsPublishing, Is.EqualTo(expected));
-    }
-
-    [TestCase("true", "true")]
-    [TestCase("true", "false")]
-    [TestCase("false", "true")]
-    [TestCase("false", "false")]
-    public void Rejects_both_settings_being_configured(string enable, string disable)
-    {
-        Environment.SetEnvironmentVariable(Variable, enable);
-        Environment.SetEnvironmentVariable(LegacyVariable, disable);
+        Environment.SetEnvironmentVariable(Variable, enableValue);
+        Environment.SetEnvironmentVariable(LegacyVariable, "true");
 
         var ex = Assert.Throws<Exception>(() => _ = new Settings());
 
-        Assert.That(ex.Message, Does.Contain("cannot both be configured"));
+        Assert.That(ex.Message, Does.Contain("no longer supported"));
     }
 }
