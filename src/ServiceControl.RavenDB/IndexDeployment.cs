@@ -37,11 +37,8 @@ namespace ServiceControl.RavenDB
             foreach (var index in indexList)
             {
                 var replacementName = Constants.Documents.Indexing.SideBySideIndexNamePrefix + index.IndexName;
-                existingByName.TryGetValue(index.IndexName, out var existing);
-                existingByName.TryGetValue(replacementName, out var pendingReplacement);
-
-                var changes = existing == null ? IndexDefinitionCompareDifferences.None : RebuildChanges(existing, index, store);
-                var changed = changes != IndexDefinitionCompareDifferences.None;
+                existingByName.TryGetValue(index.IndexName, out var existingDefinition);
+                existingByName.TryGetValue(replacementName, out var pendingReplacementDefinition);
 
                 // 1. A search engine set in our index definition always wins. It can be set through SearchEngineType or Configuration.
                 if (index.SearchEngineType.HasValue)
@@ -61,7 +58,7 @@ namespace ServiceControl.RavenDB
                 // when the operator changes the search engine, the replacement holds the latest choice. A replacement
                 // without a search engine, created by 6.20.0 and 6.21.0 at start-up, is discarded by RavenDB once the
                 // definition matches the original index again.
-                if (TryGetSearchEngineType(pendingReplacement, out var searchEngineType) || TryGetSearchEngineType(existing, out searchEngineType))
+                if (TryGetSearchEngineType(pendingReplacementDefinition, out var searchEngineType) || TryGetSearchEngineType(existingDefinition, out searchEngineType))
                 {
                     index.Configuration[StaticSearchEngineTypeKey] = searchEngineType;
                     Logger.LogInformation("Index {IndexName} keeps the {SearchEngineType} search engine set on the index", index.IndexName, searchEngineType);
@@ -71,9 +68,12 @@ namespace ServiceControl.RavenDB
                 // 3. A new index, or an index that RavenDB rebuilds because the definition changed, uses Lucene, the
                 // application default. It inherits Lucene when the database is set to Lucene. Otherwise Lucene is set on
                 // the index, so the index does not follow a database default of Corax.
-                if (existing == null || changed)
+                var rebuildTriggers = existingDefinition == null ? IndexDefinitionCompareDifferences.None : GetRebuildTriggeringDifferences(existingDefinition, index, store);
+                var requiresRebuild = rebuildTriggers != IndexDefinitionCompareDifferences.None;
+
+                if (existingDefinition == null || requiresRebuild)
                 {
-                    var reason = existing == null ? "is created" : $"is rebuilt because its definition changed ({changes})";
+                    var reason = existingDefinition == null ? "is created" : $"is rebuilt because its definition changed ({rebuildTriggers})";
 
                     if (databaseDefaultIsLucene)
                     {
@@ -106,17 +106,17 @@ namespace ServiceControl.RavenDB
         }
 
         // The differences that make RavenDB build a side-by-side replacement.
-        const IndexDefinitionCompareDifferences RebuildDifferences = IndexDefinitionCompareDifferences.Maps
+        const IndexDefinitionCompareDifferences RebuildTriggeringDifferences = IndexDefinitionCompareDifferences.Maps
             | IndexDefinitionCompareDifferences.Reduce
             | IndexDefinitionCompareDifferences.Fields
             | IndexDefinitionCompareDifferences.AdditionalSources
             | IndexDefinitionCompareDifferences.AdditionalAssemblies;
 
-        static IndexDefinitionCompareDifferences RebuildChanges(IndexDefinition existingDefinition, AbstractIndexCreationTask index, IDocumentStore store)
+        static IndexDefinitionCompareDifferences GetRebuildTriggeringDifferences(IndexDefinition existingDefinition, AbstractIndexCreationTask index, IDocumentStore store)
         {
             index.Conventions ??= store.Conventions;
 
-            return existingDefinition.Compare(index.CreateIndexDefinition()) & RebuildDifferences;
+            return existingDefinition.Compare(index.CreateIndexDefinition()) & RebuildTriggeringDifferences;
         }
 
         static bool TryGetSearchEngineType(IndexDefinition definition, out string searchEngineType)
