@@ -19,8 +19,7 @@ snapshots that are already stored. Ingestion sets the expiry of each message fro
 configured at that moment, so a change of the retention period only affects new messages until this command runs.
 The new expiry of each message is its processed time plus the retention period. Messages that are already past the new expiry are removed by the next expiration run.
 
-Stop the instance before running this command. A persister that applies the retention period when it removes expired
-messages needs no update, and the command reports that.
+Stop the instance before running this command. A persister that applies the retention period when it removes expired messages needs no update, and the command reports that.
 
 SERVICE INSTALL AND UNINSTALL AND CONFIGURATION OPTIONS
 
