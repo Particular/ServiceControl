@@ -16,6 +16,8 @@ namespace ServiceControl.Audit.Persistence.Tests
     {
         public override string Name => "SQLServer";
 
+        public override TimeSpan TestTimeout => FullTextIndexTimeout + TimeSpan.FromMinutes(1);
+
         public override Task<string> GetConnectionString() => SqlServerSharedContainer.GetConnectionStringAsync();
 
         protected override Task CreateSchema(string connectionString, string schema) => TestSchema.Create(connectionString, schema);
@@ -32,29 +34,82 @@ namespace ServiceControl.Audit.Persistence.Tests
             await using var connection = new SqlConnection(ConnectionString);
             await connection.OpenAsync(cancellationToken);
 
-            var deadline = DateTime.UtcNow.AddSeconds(30);
+            var deadline = DateTime.UtcNow + FullTextIndexTimeout;
+            var restarted = false;
             while (true)
             {
                 await using var command = connection.CreateCommand();
                 command.CommandText = """
-                    SELECT CAST(OBJECTPROPERTYEX(OBJECT_ID(@table), 'TableFullTextPendingChanges') AS int)
-                         + CAST(OBJECTPROPERTYEX(OBJECT_ID(@table), 'TableFullTextPopulateStatus') AS int)
+                    SELECT CAST(OBJECTPROPERTYEX(OBJECT_ID(@table), 'TableFullTextPendingChanges') AS int),
+                           CAST(OBJECTPROPERTYEX(OBJECT_ID(@table), 'TableFullTextPopulateStatus') AS int)
                     """;
                 command.Parameters.AddWithValue("@table", $"[{Schema}].[AuditMessages]");
 
-                if (Convert.ToInt32(await command.ExecuteScalarAsync(cancellationToken)) == 0)
+                int pendingChanges;
+                int populateStatus;
+                await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
+                {
+                    await reader.ReadAsync(cancellationToken);
+                    pendingChanges = reader.GetInt32(0);
+                    populateStatus = reader.GetInt32(1);
+                }
+
+                if (pendingChanges == 0 && populateStatus == 0)
                 {
                     return;
                 }
 
+                // Azure SQL sometimes ends a population in error, after which the index never catches up by itself.
+                if (populateStatus == PopulationFailed && !restarted)
+                {
+                    await using var restart = connection.CreateCommand();
+                    restart.CommandText = $"ALTER FULLTEXT INDEX ON [{Schema}].[AuditMessages] START FULL POPULATION";
+                    await restart.ExecuteNonQueryAsync(cancellationToken);
+                    restarted = true;
+                }
+
                 if (DateTime.UtcNow > deadline)
                 {
-                    throw new TimeoutException("The full text index did not catch up with the audit messages table.");
+                    var runningPopulations = await CountRunningPopulations(connection, cancellationToken);
+                    var restartNote = restarted ? " The population ended in error and was restarted once." : "";
+                    throw new TimeoutException($"The full text index did not catch up with the audit messages table. Pending changes: {pendingChanges}. Populate status: {populateStatus} ({DescribePopulateStatus(populateStatus)}). Populations running in the database: {runningPopulations}.{restartNote}");
                 }
 
                 await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
             }
         }
+
+        static async Task<string> CountRunningPopulations(SqlConnection connection, CancellationToken cancellationToken)
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT COUNT(*) FROM sys.dm_fts_index_population WHERE database_id = DB_ID()";
+
+            try
+            {
+                return $"{await command.ExecuteScalarAsync(cancellationToken)}";
+            }
+            catch (SqlException e)
+            {
+                return $"unknown ({e.Message})";
+            }
+        }
+
+        static string DescribePopulateStatus(int populateStatus) => populateStatus switch
+        {
+            0 => "idle",
+            1 => "full population in progress",
+            2 => "incremental population in progress",
+            3 => "propagation of tracked changes in progress",
+            4 => "background update index in progress",
+            5 => "throttled or paused",
+            PopulationFailed => "an error occurred",
+            _ => "unknown"
+        };
+
+        const int PopulationFailed = 6;
+
+        // Azure SQL can take over 30 seconds to finish the first population of a new index.
+        static readonly TimeSpan FullTextIndexTimeout = TimeSpan.FromMinutes(2);
 
         sealed class SearchesWaitForFullTextIndex(IAuditMessagesViewDataStore store, Func<CancellationToken, Task> waitForFullTextIndex) : IAuditMessagesViewDataStore
         {

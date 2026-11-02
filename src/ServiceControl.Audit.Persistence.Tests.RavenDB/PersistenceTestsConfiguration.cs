@@ -30,6 +30,8 @@
 
         public IServiceProvider ServiceProvider => host.Services;
 
+        public TimeSpan TestTimeout => TimeSpan.FromSeconds(30);
+
         public string Name => "RavenDB";
 
         public async Task Configure(Action<PersistenceSettings> setSettings)

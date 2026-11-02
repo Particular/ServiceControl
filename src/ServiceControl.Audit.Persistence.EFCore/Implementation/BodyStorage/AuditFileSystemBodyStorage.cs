@@ -1,0 +1,179 @@
+namespace ServiceControl.Audit.Persistence.EFCore.Implementation.BodyStorage;
+
+using System.IO.Compression;
+using System.Text;
+using ServiceControl.Audit.Persistence.EFCore.Abstractions;
+using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
+
+/// <summary>
+/// Stores Audit message bodies as files, each one a small header followed by the body, in one directory per ingestion hour.
+/// </summary>
+/// <remarks>
+/// Bodies are immutable, so an existing file is left untouched.
+/// </remarks>
+public class AuditFileSystemBodyStorage(FileSystemBodyStorageSettings settings) : IAuditBodyStoragePersistence
+{
+    const int FormatVersion = 1;
+
+    string StoragePath => settings.StoragePath;
+
+    public async Task WriteBody(string bodyId, DateTime createdOn, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default)
+    {
+        Directory.CreateDirectory(HourDirectory(createdOn));
+
+        var filePath = GetBodyFilePath(createdOn, bodyId);
+
+        if (File.Exists(filePath))
+        {
+            return;
+        }
+
+        // A unique temp name lets concurrent writers of the same body race without clobbering.
+        var tempFilePath = $"{filePath}.{Guid.NewGuid():N}.tmp";
+
+        try
+        {
+            var fileStream = new FileStream(tempFilePath, FileMode.CreateNew, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
+            await using (fileStream.ConfigureAwait(false))
+            {
+                var shouldCompress = body.Length >= settings.MinCompressionSize;
+
+                using (var writer = new BinaryWriter(fileStream, Encoding.UTF8, leaveOpen: true))
+                {
+                    writer.Write(FormatVersion);
+                    writer.Write(contentType);
+                    writer.Write(body.Length);
+                    writer.Write(shouldCompress);
+                    writer.Flush();
+                }
+
+                if (shouldCompress)
+                {
+                    var brotliStream = new BrotliStream(fileStream, CompressionLevel.Fastest, leaveOpen: true);
+                    await using (brotliStream.ConfigureAwait(false))
+                    {
+                        await brotliStream.WriteAsync(body, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+                else
+                {
+                    await fileStream.WriteAsync(body, cancellationToken).ConfigureAwait(false);
+                }
+
+                await fileStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            try
+            {
+                File.Move(tempFilePath, filePath, overwrite: false);
+            }
+            catch (IOException) when (File.Exists(filePath))
+            {
+                // A concurrent writer already produced the (immutable) body; discard our copy.
+                TryDelete(tempFilePath);
+            }
+        }
+#pragma warning disable PS0019 // The catch rethrows everything, cancellation included, so splitting
+        // out OperationCanceledException would duplicate the cleanup for no change in behaviour.
+        catch
+        {
+            TryDelete(tempFilePath);
+            throw;
+        }
+#pragma warning restore PS0019
+    }
+
+    public Task<MessageBodyFileResult?> ReadBody(string bodyId, DateTime createdOn, CancellationToken cancellationToken = default)
+    {
+        var filePath = GetBodyFilePath(createdOn, bodyId);
+
+        if (!File.Exists(filePath))
+        {
+            return Task.FromResult<MessageBodyFileResult?>(null);
+        }
+
+        FileStream? fileStream = null;
+        try
+        {
+            fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
+
+            var reader = new BinaryReader(fileStream, Encoding.UTF8, leaveOpen: true);
+
+            var formatVersion = reader.ReadInt32();
+            if (formatVersion != FormatVersion)
+            {
+                throw new InvalidOperationException($"Unsupported body file format version {formatVersion} for {bodyId}.");
+            }
+
+            var contentType = reader.ReadString();
+            var bodySize = reader.ReadInt32();
+            var isCompressed = reader.ReadBoolean();
+
+            // The returned stream owns fileStream and is disposed by the caller. Both branches are
+            // wrapped so the body is never exposed as a seekable stream: fileStream is positioned
+            // past the header, but its Length still counts the header, and ASP.NET Core would set
+            // Content-Length from that and then write only the bytes after the current position.
+            Stream bodyStream = isCompressed
+                ? new ExpectedLengthStream(new BrotliStream(fileStream, CompressionMode.Decompress, leaveOpen: false), bodySize)
+                : new ExpectedLengthStream(fileStream, bodySize);
+
+            return Task.FromResult<MessageBodyFileResult?>(new MessageBodyFileResult
+            {
+                Stream = bodyStream,
+                ContentType = contentType,
+                BodySize = bodySize
+            });
+        }
+        catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+        {
+            fileStream?.Dispose();
+            return Task.FromResult<MessageBodyFileResult?>(null);
+        }
+        catch
+        {
+            fileStream?.Dispose();
+            throw;
+        }
+    }
+
+    // The hour directory is owned by Audit storage, so deleting it recursively also removes leftover temp files.
+    public Task DeleteBodiesForHour(DateTime hour, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        try
+        {
+            Directory.Delete(HourDirectory(hour), recursive: true);
+        }
+        catch (DirectoryNotFoundException)
+        {
+            // Nothing stored for this hour.
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public async Task DeleteBodiesForDay(DateTime day, CancellationToken cancellationToken = default)
+    {
+        for (var hourIndex = 0; hourIndex < 24; hourIndex++)
+        {
+            await DeleteBodiesForHour(day.Date.AddHours(hourIndex), cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    string HourDirectory(DateTime hour) => Path.Combine(StoragePath, AuditBodyStorageKey.HourPrefix(hour));
+
+    string GetBodyFilePath(DateTime createdOn, string bodyId) => Path.Combine(StoragePath, $"{AuditBodyStorageKey.For(createdOn, bodyId)}.body");
+
+    static void TryDelete(string filePath)
+    {
+        try
+        {
+            File.Delete(filePath);
+        }
+        catch (DirectoryNotFoundException)
+        {
+            // Nothing to delete.
+        }
+    }
+}

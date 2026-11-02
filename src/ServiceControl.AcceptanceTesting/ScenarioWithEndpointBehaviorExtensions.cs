@@ -129,6 +129,9 @@
                     catch (Exception e)
                     {
                         setException(ExceptionDispatchInfo.Capture(e));
+                        // NServiceBus.AcceptanceTesting 10 does not observe an exception thrown by the Done
+                        // predicate, so without this the run waits out its 90 second timeout instead
+                        scenarioContext.MarkAsFailed(e);
                     }
                 }, checkToken);
                 return Task.CompletedTask;

@@ -25,7 +25,7 @@ class SqlServerPersistence(EFPersisterSettings settings) : EFPersistenceBase(set
                     sqlOptions.EnableRetryOnFailure(
                         maxRetryCount: settings.MaxRetryCount,
                         maxRetryDelay: TimeSpan.FromSeconds(settings.MaxRetryDelayInSeconds),
-                        errorNumbersToAdd: null);
+                        errorNumbersToAdd: FullTextDaemonErrorNumbers);
                 }
             });
 
@@ -63,4 +63,7 @@ class SqlServerPersistence(EFPersisterSettings settings) : EFPersistenceBase(set
         services.AddSingleton<IStorageFootprintProbe, SqlServerStorageFootprintProbe>();
         services.AddSingleton<IStorageIdentityProvider, SqlServerStorageIdentityProvider>();
     }
+
+    // Azure SQL raises these while its full-text daemon is unavailable, which happens on a new database and now and then after.
+    static readonly int[] FullTextDaemonErrorNumbers = [30046, 30053];
 }

@@ -31,6 +31,7 @@ builder.Services.AddSingleton<IScenario>(_ => new TimeoutSpikeScenario(shardId))
 builder.Services.AddSingleton<IScenario>(_ => new PoisonMessageScenario(shardId));
 builder.Services.AddSingleton<IScenario>(_ => new DeserializationScenario(shardId));
 builder.Services.AddSingleton<IScenario>(_ => new RandomBackgroundNoiseScenario(shardId));
+builder.Services.AddSingleton<IScenario>(_ => new LargeMessagesScenario(shardId));
 
 builder.Services.AddSingleton<IScenarioRegistry, ScenarioRegistry>();
 builder.Services.AddSingleton<ScenarioRunner>();

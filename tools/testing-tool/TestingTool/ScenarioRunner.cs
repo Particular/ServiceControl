@@ -174,9 +174,8 @@ public sealed class ScenarioRunner
     {
         var scenario = runtime.Scenario;
 
-        // Plausible JSON body (~3–6 KB) seeded with searchable terms so ServiceControl's
-        // full-text search index has real content to exercise.
-        var textBody = MessageTextGenerator.GenerateBody(seq);
+        // Searchable terms ensure full-text queries have indexed content to match.
+        var textBody = MessageTextGenerator.GenerateBody(seq, scenario.BodySizeBytes);
 
         // Deterministic message id shared with the handler: FailingMessageHandler calls
         // scenario.ShouldFail(context.MessageId), so setting the id here ensures the

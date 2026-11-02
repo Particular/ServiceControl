@@ -21,6 +21,8 @@ interface IPersistenceTestsConfiguration
 
     IServiceProvider ServiceProvider { get; }
 
+    TimeSpan TestTimeout { get; }
+
     Task Configure(Action<PersistenceSettings> setSettings);
 
     Task CompleteDBOperation();

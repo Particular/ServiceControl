@@ -21,6 +21,12 @@ public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
         minBodySizeForCompression = settings.MinCompressionSize;
     }
 
+    internal AzureBlobBodyStoragePersistence(BlobContainerClient container, int minBodySizeForCompression)
+    {
+        this.container = container;
+        this.minBodySizeForCompression = minBodySizeForCompression;
+    }
+
     public async Task WriteBody(string bodyId, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default)
     {
         var blob = container.GetBlobClient(bodyId);
@@ -45,7 +51,7 @@ public class AzureBlobBodyStoragePersistence : IBodyStoragePersistence
         {
             await blob.UploadAsync(data, options, cancellationToken);
         }
-        catch (RequestFailedException ex) when (ex.Status is (int)HttpStatusCode.Conflict or (int)HttpStatusCode.PreconditionFailed)
+        catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobAlreadyExists || ex.ErrorCode == BlobErrorCode.ConditionNotMet)
         {
             // A blob for this immutable body already exists.
         }

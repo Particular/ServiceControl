@@ -57,7 +57,7 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
                     sqlOptions.EnableRetryOnFailure(
                         maxRetryCount: settings.MaxRetryCount,
                         maxRetryDelay: TimeSpan.FromSeconds(settings.MaxRetryDelayInSeconds),
-                        errorNumbersToAdd: null);
+                        errorNumbersToAdd: FullTextDaemonErrorNumbers);
                 }
             });
 
@@ -79,4 +79,7 @@ class SqlServerPersistence(SqlServerPersisterSettings settings) : BasePersistenc
 
         services.AddScoped<ServiceControlDbContext>(provider => provider.GetRequiredService<SqlServerServiceControlDbContext>());
     }
+
+    // Azure SQL raises these while its full-text daemon is unavailable, which happens on a new database and now and then after.
+    static readonly int[] FullTextDaemonErrorNumbers = [30046, 30053];
 }

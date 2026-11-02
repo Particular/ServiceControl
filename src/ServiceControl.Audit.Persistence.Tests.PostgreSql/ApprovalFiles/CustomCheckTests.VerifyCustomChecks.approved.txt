@@ -1,2 +1,3 @@
 ServiceControl.Audit Health: Audit partition provisioning
 ServiceControl.Audit Health: Audit retention
+Storage space: ServiceControl body storage

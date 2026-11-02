@@ -123,7 +123,7 @@ public class FileSystemBodyStoragePersistence(FileSystemBodyStorageSettings sett
                 BodySize = bodySize
             });
         }
-        catch (FileNotFoundException)
+        catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
         {
             fileStream?.Dispose();
             return Task.FromResult<MessageBodyFileResult?>(null);

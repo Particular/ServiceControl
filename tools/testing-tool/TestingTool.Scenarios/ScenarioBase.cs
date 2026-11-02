@@ -20,6 +20,7 @@ public abstract class ScenarioBase : IScenario
     public abstract string Description { get; }
     public abstract string Category { get; }
     public virtual double DefaultRate => 10;
+    public virtual int? BodySizeBytes => null;
     public ActivitySource ActivitySource { get; }
     public virtual TimeSpan? Cooldown => null;
 

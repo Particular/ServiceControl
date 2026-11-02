@@ -5,5 +5,6 @@ public enum BodyState
     None = 0,
     Stored = 1,
     TooLarge = 2,
-    NotText = 3
+    NotText = 3,
+    External = 4
 }

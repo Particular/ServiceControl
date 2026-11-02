@@ -21,6 +21,8 @@
     <PackageReference Include="NUnit.Analyzers" />
     <PackageReference Include="NUnit3TestAdapter" />
     <PackageReference Include="Particular.Approvals" />
+    <PackageReference Include="Testcontainers.Azurite" />
+    <PackageReference Include="Testcontainers.LocalStack" />
     <PackageReference Include="Testcontainers.MsSql" />
   </ItemGroup>
 
@@ -36,8 +38,8 @@
     <!-- The EF Core persisters do not deduplicate, a redelivered message is stored again. -->
     <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\AuditTests.Deduplication.cs" />
 
-    <!-- The EF Core persisters store text bodies only. -->
-    <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\AuditTests.BinaryBody.cs" />
+    <!-- These tests configure external body storage, which keeps every body, so a body over MaxBodySizeToStore is served rather than answering no content. -->
+    <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\AuditTests.MaxBodySize.cs" />
   </ItemGroup>
 
 </Project>

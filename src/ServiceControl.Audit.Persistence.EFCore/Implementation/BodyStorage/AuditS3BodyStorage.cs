@@ -1,0 +1,143 @@
+namespace ServiceControl.Audit.Persistence.EFCore.Implementation.BodyStorage;
+
+using System.IO.Compression;
+using System.Net;
+using Amazon.S3;
+using Amazon.S3.Model;
+using ServiceControl.Audit.Persistence.EFCore.Abstractions;
+using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
+using ServiceControl.Infrastructure;
+
+public class AuditS3BodyStorage : IAuditBodyStoragePersistence
+{
+    const string FormatVersion = "1";
+
+    readonly IAmazonS3 client;
+    readonly string bucketName;
+    readonly string keyPrefix;
+    readonly int minBodySizeForCompression;
+
+    public AuditS3BodyStorage(S3BodyStorageSettings settings)
+    {
+        client = AuditS3ClientFactory.Create(settings);
+        bucketName = settings.BucketName;
+        keyPrefix = settings.KeyPrefix;
+        minBodySizeForCompression = settings.MinCompressionSize;
+    }
+
+    public async Task WriteBody(string bodyId, DateTime createdOn, ReadOnlyMemory<byte> body, string contentType, CancellationToken cancellationToken = default)
+    {
+        var key = Key(AuditBodyStorageKey.For(createdOn, bodyId));
+
+        // Bodies are immutable, so an existing object is already correct.
+        if (await Exists(key, cancellationToken))
+        {
+            return;
+        }
+
+        var compressed = body.Length >= minBodySizeForCompression ? BodyCompression.TryCompress(body) : null;
+
+        var payload = compressed is null ? body : compressed.AsMemory();
+        var request = new PutObjectRequest
+        {
+            BucketName = bucketName,
+            Key = key,
+            InputStream = new ReadOnlyStream(payload),
+            ContentType = contentType
+        };
+        request.Metadata.Add("format-version", FormatVersion);
+        request.Metadata.Add("body-size", body.Length.ToString());
+        request.Metadata.Add("is-compressed", (compressed is not null).ToString());
+
+        await client.PutObjectAsync(request, cancellationToken);
+    }
+
+    public async Task<MessageBodyFileResult?> ReadBody(string bodyId, DateTime createdOn, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var response = await client.GetObjectAsync(bucketName, Key(AuditBodyStorageKey.For(createdOn, bodyId)), cancellationToken);
+            try
+            {
+                var metadata = response.Metadata;
+
+                var version = metadata["format-version"];
+                if (!string.IsNullOrEmpty(version) && version != FormatVersion)
+                {
+                    throw new InvalidOperationException($"Unsupported object format version {version} for {bodyId}.");
+                }
+
+                var bodySize = int.TryParse(metadata["body-size"], out var size) ? size : 0;
+                var isCompressed = bool.TryParse(metadata["is-compressed"], out var compressed) && compressed;
+                var contentType = response.Headers.ContentType ?? "application/octet-stream";
+                Stream stream = isCompressed
+                    ? new ExpectedLengthStream(new BrotliStream(response.ResponseStream, CompressionMode.Decompress), bodySize)
+                    : response.ResponseStream;
+
+                return new MessageBodyFileResult
+                {
+                    Stream = new OwnedStream(stream, response),
+                    ContentType = contentType,
+                    BodySize = bodySize
+                };
+            }
+            catch
+            {
+                response.Dispose();
+                throw;
+            }
+        }
+        catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public Task DeleteBodiesForHour(DateTime hour, CancellationToken cancellationToken = default) =>
+        DeleteBodiesWithPrefix(AuditBodyStorageKey.HourPrefix(hour), cancellationToken);
+
+    public Task DeleteBodiesForDay(DateTime day, CancellationToken cancellationToken = default) =>
+        DeleteBodiesWithPrefix(AuditBodyStorageKey.DayPrefix(day), cancellationToken);
+
+    async Task DeleteBodiesWithPrefix(string prefix, CancellationToken cancellationToken)
+    {
+        var request = new ListObjectsV2Request { BucketName = bucketName, Prefix = Key(prefix) };
+        ListObjectsV2Response page;
+        do
+        {
+            page = await client.ListObjectsV2Async(request, cancellationToken);
+
+            if (page.S3Objects is { Count: > 0 })
+            {
+                var deleted = await client.DeleteObjectsAsync(new DeleteObjectsRequest
+                {
+                    BucketName = bucketName,
+                    Objects = page.S3Objects.Select(o => new KeyVersion { Key = o.Key }).ToList()
+                }, cancellationToken);
+
+                if (deleted.DeleteErrors is { Count: > 0 })
+                {
+                    var failed = deleted.DeleteErrors[0];
+                    throw new InvalidOperationException($"Failed to delete {deleted.DeleteErrors.Count} object(s) with prefix '{request.Prefix}', first '{failed.Key}': {failed.Code} {failed.Message}");
+                }
+            }
+
+            request.ContinuationToken = page.NextContinuationToken;
+        } while (page.IsTruncated == true);
+    }
+
+    async Task<bool> Exists(string key, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await client.GetObjectMetadataAsync(bucketName, key, cancellationToken);
+            return true;
+        }
+        catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+    }
+
+    string Key(string bodyId) => $"{keyPrefix}{bodyId}";
+}

@@ -1,1 +1,2 @@
 ServiceControl.Audit Health: Audit retention
+Storage space: ServiceControl body storage

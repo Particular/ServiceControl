@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.Abstractions;
 
+
 public abstract class EFPersisterSettings : PersistenceSettings
 {
     public static readonly TimeSpan MigrationCommandTimeout = TimeSpan.FromMinutes(40);
