@@ -24,6 +24,7 @@ namespace ServiceControl.RavenDB
         public static async Task CreateIndexesAsync(IEnumerable<AbstractIndexCreationTask> indexes, IDocumentStore store, CancellationToken cancellationToken = default)
         {
             var indexList = indexes.ToList();
+            var lockedIndexesWithChanges = new List<string>();
 
             // RavenDB compares the configuration as part of the index definition. Our definitions set no search engine,
             // so the engine has to be resolved before deployment. Otherwise RavenDB builds a side-by-side replacement
@@ -49,12 +50,12 @@ namespace ServiceControl.RavenDB
                 {
                     if (requiresRebuild)
                     {
-                        Logger.LogError("Index {IndexName} is locked ({LockMode}) and its definition changed ({Changes}). The change is not applied until the index is unlocked", index.IndexName, existingDefinition.LockMode, rebuildTriggers);
+                        Logger.LogError("Index {IndexName} is locked ({LockMode}) and its definition changed ({Changes})", index.IndexName, existingDefinition.LockMode, rebuildTriggers);
+                        lockedIndexesWithChanges.Add(index.IndexName);
+                        continue;
                     }
-                    else
-                    {
-                        Logger.LogWarning("Index {IndexName} is locked ({LockMode}). Definition changes from new versions are not applied until the index is unlocked", index.IndexName, existingDefinition.LockMode);
-                    }
+
+                    Logger.LogWarning("Index {IndexName} is locked ({LockMode}) but its definition is unchanged", index.IndexName, existingDefinition.LockMode);
                 }
 
                 // 1. A search engine set in our index definition always wins. It can be set through SearchEngineType or Configuration.
@@ -120,6 +121,11 @@ namespace ServiceControl.RavenDB
                 // 4. An unchanged index without a search engine of its own is left alone. RavenDB treats a search engine added
                 // to the index configuration as a change and rebuilds the index, also when the engine is the same.
                 Logger.LogInformation("Index {IndexName} is unchanged and inherits the search engine from the database", index.IndexName);
+            }
+
+            if (lockedIndexesWithChanges.Count > 0)
+            {
+                throw new Exception($"The definition of locked indexes changed and is not applied: {string.Join(", ", lockedIndexesWithChanges)}. Unlock the indexes and start ServiceControl again.");
             }
 
             await IndexCreation.CreateIndexesAsync(indexList, store, null, null, cancellationToken);
