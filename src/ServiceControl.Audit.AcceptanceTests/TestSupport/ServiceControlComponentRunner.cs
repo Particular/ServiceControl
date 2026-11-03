@@ -61,7 +61,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             var loggingSettings = new LoggingSettings(Settings.SettingsRootNamespace, defaultLevel: LogLevel.Debug, logPath: logPath);
             LoggerUtil.ActiveLoggers = Loggers.Test;
 
-            settings = new Settings(transportToUse.TypeName, persistenceToUse.PersistenceType, loggingSettings)
+            settings = new Settings(transportToUse.TypeName, persistenceToUse.StorageType, loggingSettings)
             {
                 InstanceName = instanceName,
                 TransportConnectionString = transportToUse.ConnectionString,

@@ -11,7 +11,7 @@ namespace ServiceControl.Audit.Persistence
         {
             try
             {
-                var persistenceManifest = PersistenceManifestLibrary.Find(settings.PersistenceType);
+                var persistenceManifest = PersistenceManifestLibrary.Find(settings.StorageType);
                 var assemblyPath = Path.Combine(persistenceManifest.Location, $"{persistenceManifest.AssemblyName}.dll");
                 var loadContext = settings.AssemblyLoadContextResolver(assemblyPath);
                 var customizationType = Type.GetType(persistenceManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
@@ -20,7 +20,7 @@ namespace ServiceControl.Audit.Persistence
             }
             catch (Exception e)
             {
-                throw new Exception($"Could not load persistence customization type {settings.PersistenceType}.", e);
+                throw new Exception($"Could not load persistence customization type {settings.StorageType}.", e);
             }
         }
 

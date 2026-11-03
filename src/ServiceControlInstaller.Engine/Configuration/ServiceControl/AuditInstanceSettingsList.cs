@@ -23,7 +23,15 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         public static readonly SettingInfo DBPath = new() { Name = "ServiceControl.Audit/DBPath" };
         public static readonly SettingInfo ForwardAuditMessages = new() { Name = "ServiceControl.Audit/ForwardAuditMessages" };
         public static readonly SettingInfo TransportType = new() { Name = "ServiceControl.Audit/TransportType" };
-        public static readonly SettingInfo PersistenceType = new() { Name = "ServiceControl.Audit/PersistenceType" };
+
+        public static readonly SettingInfo StorageType = new() { Name = "ServiceControl.Audit/StorageType" };
+
+        // Legacy name of StorageType. Not version gated for writes: a 6.x runtime ignores the unknown StorageType key, and RemoveIfRetired drops this key once the instance runs 7.0.0
+        public static readonly SettingInfo PersistenceType = new()
+        {
+            Name = "ServiceControl.Audit/PersistenceType",
+            RemovedFrom = new(7, 0, 0)
+        };
         public static readonly SettingInfo AuditQueue = new() { Name = "ServiceBus/AuditQueue" };
         public static readonly SettingInfo AuditLogQueue = new() { Name = "ServiceBus/AuditLogQueue" };
         public static readonly SettingInfo AuditRetentionPeriod = new() { Name = "ServiceControl.Audit/AuditRetentionPeriod" };

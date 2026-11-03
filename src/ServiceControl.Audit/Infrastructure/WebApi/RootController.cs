@@ -76,7 +76,7 @@
                 },
                 Persistence = new
                 {
-                    settings.PersistenceType
+                    PersistenceType = settings.StorageType
                 },
                 Plugins = new
                 {

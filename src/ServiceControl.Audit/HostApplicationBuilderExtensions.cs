@@ -136,7 +136,7 @@ Audit Retention Period:             {settings.AuditRetentionPeriod}
 Forwarding Audit Messages:          {settings.ForwardAuditMessages}
 ServiceControl Logging Level:       {settings.LoggingSettings.LogLevel}
 Transport Customization:            {settings.TransportType},
-Persistence Customization:          {settings.PersistenceType},
+Persistence Customization:          {settings.StorageType},
 Persistence:                        {persistenceConfiguration.Name}
 -------------------------------------------------------------";
 
