@@ -18,7 +18,7 @@ jobs:
       - name: Move NuGet caches to the temp drive
         uses: ./.github/actions/nuget-cache-location
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v6.0.0
+        uses: actions/setup-dotnet@v6.1.0
         with:
           global-json-file: global.json
       - name: Download RavenDB Server
