@@ -60,9 +60,15 @@ class TokenAuthenticationTests
         var failure = new InvalidOperationException("No credentials");
         await using var dataSource = PostgreSqlTokenDataSource.Build(npgsqlConnectionString, new FailingTokenProvider(failure));
 
+        var settings = new NpgsqlConnectionStringBuilder(npgsqlConnectionString);
+
         var exception = Assert.CatchAsync(async () => await dataSource.OpenConnectionAsync());
 
-        Assert.That(exception, Has.InnerException.SameAs(failure));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(exception.InnerException?.Message, Is.EqualTo($"Could not get a database access token for user {settings.Username} on host {settings.Host}, database {settings.Database}."));
+            Assert.That(exception.InnerException?.InnerException, Is.SameAs(failure));
+        }
     }
 
     [Test]

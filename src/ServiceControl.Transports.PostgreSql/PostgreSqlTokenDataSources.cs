@@ -34,5 +34,5 @@ sealed class PostgreSqlTokenDataSources(Func<PostgreSqlTokenAuthentication, IPos
     // Npgsql's canonical form, so one connection written two ways, such as in the transport connection string and in PostgreSQL/ConnectionString, shares a data source.
     readonly ConcurrentDictionary<(string NpgsqlConnectionString, PostgreSqlTokenAuthentication Authentication), Lazy<NpgsqlDataSource>> dataSources = new();
 
-    static readonly ILogger logger = LoggerUtil.CreateStaticLogger(typeof(PostgreSqlTokenAuthentication));
+    static readonly ILogger logger = LoggerUtil.CreateStaticLogger(typeof(PostgreSqlTokenDataSources));
 }

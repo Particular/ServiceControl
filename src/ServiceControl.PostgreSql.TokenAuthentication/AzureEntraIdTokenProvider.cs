@@ -52,7 +52,7 @@ class AzureEntraIdTokenProvider(TokenCredential credential, string scope, TimePr
             }
             catch (Exception e) when (token is not null && now < token.ExpiresOn)
             {
-                logger.LogWarning(e, "Could not get a new database access token. New connections keep using the current token, which expires at {ExpiresOn}. The next attempt is in {RetryInterval}", token.ExpiresOn, RetryInterval);
+                logger.LogWarning(e, "Could not get a new database access token for {Connection}. New connections keep using the current token, which expires at {ExpiresOn}. The next attempt is in {RetryInterval}", PostgreSqlTokenDataSource.Describe(settings), token.ExpiresOn, RetryInterval);
 
                 return token.Value;
             }

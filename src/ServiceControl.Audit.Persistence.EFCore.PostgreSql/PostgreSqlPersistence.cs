@@ -74,7 +74,7 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : EFPersistenc
         }
     }
 
-    static ILogger TokenLogger(IServiceProvider serviceProvider) => serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(PostgreSqlTokenAuthentication));
+    static ILogger TokenLogger(IServiceProvider serviceProvider) => serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(PostgreSqlPersistence));
 
     protected override void AddPartitionManager(IServiceCollection services) =>
         services.AddSingleton<IAuditPartitionManager, PostgreSqlAuditPartitionManager>();

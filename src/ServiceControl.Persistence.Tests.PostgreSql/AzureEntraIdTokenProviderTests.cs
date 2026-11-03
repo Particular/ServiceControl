@@ -75,7 +75,8 @@ class AzureEntraIdTokenProviderTests
         {
             Assert.That(new[] { duringFailure, beforeRetry, afterRetry }, Is.EqualTo(new[] { "token-1", "token-1", "token-2" }));
             Assert.That(callsBeforeRetry, Is.EqualTo(2), "The credential is not asked again within 10 seconds of a failure.");
-            Assert.That(logger.Warnings, Is.EqualTo(new[] { failure }));
+            Assert.That(logger.Warnings.Select(warning => warning.Exception), Is.EqualTo(new[] { failure }));
+            Assert.That(logger.Warnings.Single().Message, Does.Contain("for user sc on host sc.postgres.database.azure.com, database servicecontrol.").And.Not.Contain("token-1"));
         }
     }
 
@@ -105,7 +106,7 @@ class AzureEntraIdTokenProviderTests
         Assert.That(credential.Calls, Is.EqualTo(1));
     }
 
-    ValueTask<string> GetToken() => provider.GetToken(new NpgsqlConnectionStringBuilder("Host=sc.postgres.database.azure.com;Username=sc"));
+    ValueTask<string> GetToken() => provider.GetToken(new NpgsqlConnectionStringBuilder("Host=sc.postgres.database.azure.com;Username=sc;Database=servicecontrol"));
 
     const string Scope = "https://ossrdbms-aad.database.windows.net/.default";
 
@@ -153,9 +154,9 @@ class AzureEntraIdTokenProviderTests
 
     sealed class RecordingLogger : ILogger
     {
-        readonly ConcurrentQueue<Exception> warnings = new();
+        readonly ConcurrentQueue<(Exception Exception, string Message)> warnings = new();
 
-        public Exception[] Warnings => [.. warnings];
+        public (Exception Exception, string Message)[] Warnings => [.. warnings];
 
         public IDisposable BeginScope<TState>(TState state) where TState : notnull => null;
 
@@ -165,7 +166,7 @@ class AzureEntraIdTokenProviderTests
         {
             if (logLevel == LogLevel.Warning)
             {
-                warnings.Enqueue(exception);
+                warnings.Enqueue((exception, formatter(state, exception)));
             }
         }
     }
