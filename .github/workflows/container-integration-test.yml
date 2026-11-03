@@ -57,7 +57,7 @@ jobs:
         if: matrix.name == 'asb' || matrix.name == 'asq'
         uses: ./.github/actions/upgrade-azure-cli
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v6.0.0
+        uses: actions/setup-dotnet@v6.1.0
         with:
           global-json-file: global.json
       - name: Run MinVer
