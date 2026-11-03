@@ -6,7 +6,7 @@ using ServiceControl.Infrastructure;
 
 public abstract class EFPersistenceConfigurationBase : PersistenceConfiguration, IPersistenceConfiguration
 {
-    const string ConnectionStringKey = "Database/ConnectionString";
+    public const string ConnectionStringKey = "Database/ConnectionString";
     internal const string SchemaKey = "Database/Schema";
     internal const string CommandTimeoutKey = "Database/CommandTimeout";
     const string BodyStorageTypeKey = "MessageBody/StorageType";

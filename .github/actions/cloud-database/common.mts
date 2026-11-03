@@ -76,17 +76,26 @@ async function runnerIpAddress(): Promise<string> {
     return (await response.text()).trim();
 }
 
-function setPersistenceConnectionString(provider: Provider, connectionString: string): void {
-    const name = `ServiceControl_Persistence_${provider}_ConnectionString`;
-    appendFileSync(process.env.GITHUB_ENV, `${name}=${connectionString}\n`);
+function exportVariable(name: string, value: string): void {
+    appendFileSync(process.env.GITHUB_ENV, `${name}=${value}\n`);
     step(`Exported ${name}`);
+}
+
+function setPersistenceConnectionString(provider: Provider, connectionString: string): void {
+    exportVariable(`ServiceControl_Persistence_${provider}_ConnectionString`, connectionString);
+}
+
+function setTokenConnectionString(provider: Provider, connectionString: string): void {
+    exportVariable(`ServiceControl_Persistence_${provider}_TokenConnectionString`, connectionString);
+}
+
+function runScript(script: string, args: string[]): void {
+    execFileSync('dotnet', ['run', script, '--', ...args], { cwd: import.meta.dirname, stdio: 'inherit' });
 }
 
 // Waits until the database is really reachable.
 function verifyDatabase(provider: Provider, connectionString: string): void {
-    const script = provider === 'SqlServer' ? './verify-sqlserver.cs' : './verify-postgresql.cs';
-
-    execFileSync('dotnet', ['run', script, '--', connectionString], { cwd: import.meta.dirname, stdio: 'inherit' });
+    runScript(provider === 'SqlServer' ? './verify-sqlserver.cs' : './verify-postgresql.cs', [connectionString]);
 }
 
 // Teardown runs even when provisioning failed part way, so it has to tolerate resources that were
@@ -110,6 +119,8 @@ export {
     newAdminPassword,
     runnerIpAddress,
     setPersistenceConnectionString,
+    setTokenConnectionString,
+    runScript,
     verifyDatabase,
     teardownStep
 };

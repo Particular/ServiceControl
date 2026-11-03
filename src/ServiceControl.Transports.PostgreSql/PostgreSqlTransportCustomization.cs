@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Transports.PostgreSql;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -12,6 +13,10 @@ using ServiceControl.Infrastructure;
 
 public class PostgreSqlTransportCustomization() : TransportCustomization<PostgreSqlTransport>
 {
+    internal const string TransportConnectionStringSetting = "The transport connection string";
+
+    internal PostgreSqlTokenDataSources TokenDataSources { get; init; } = new();
+
     protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, PostgreSqlTransport transportDefinition, TransportSettings transportSettings)
     {
         transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
@@ -35,10 +40,15 @@ public class PostgreSqlTransportCustomization() : TransportCustomization<Postgre
 
     protected override void AddTransportForPrimaryCore(IServiceCollection services,
         TransportSettings transportSettings) =>
-        services.AddSingleton<IBrokerThroughputQuery, PostgreSqlQuery>();
+        services.AddSingleton<IBrokerThroughputQuery>(provider => new PostgreSqlQuery(
+            provider.GetRequiredService<ILogger<PostgreSqlQuery>>(),
+            provider.GetRequiredService<TimeProvider>(),
+            transportSettings,
+            TokenDataSources));
 
     protected override void AddTransportForMonitoringCore(IServiceCollection services, TransportSettings transportSettings)
     {
+        services.AddSingleton(TokenDataSources);
         services.AddSingleton<IProvideQueueLength, QueueLengthProvider>();
         services.AddHostedService(provider => provider.GetRequiredService<IProvideQueueLength>());
     }
@@ -60,8 +70,11 @@ public class PostgreSqlTransportCustomization() : TransportCustomization<Postgre
     protected override PostgreSqlTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
     {
         var connectionString = transportSettings.ConnectionString.RemoveCustomConnectionStringParts(out var customSchema, out var subscriptionsTableSetting);
+        var tokenDataSource = TokenDataSources.GetOrCreate(connectionString, TransportConnectionStringSetting, out _);
 
-        var transport = new PostgreSqlTransport(connectionString);
+        var transport = tokenDataSource is null
+            ? new PostgreSqlTransport(connectionString)
+            : new PostgreSqlTransport(cancellationToken => tokenDataSource.OpenConnectionAsync(cancellationToken).AsTask());
 
         var subscriptions = transport.Subscriptions;
 

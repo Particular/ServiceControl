@@ -1,4 +1,4 @@
-#:package Microsoft.Data.SqlClient@6.1.1
+#:package Microsoft.Data.SqlClient@7.1.1
 
 // Waits until the server accepts connections, creates the test database if the provisioning CLI
 // could not, fails the run if the server has no Full-Text Search, and waits until a full-text

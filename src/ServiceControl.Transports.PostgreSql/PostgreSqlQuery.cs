@@ -15,15 +15,25 @@ public class PostgreSqlQuery(
     TimeProvider timeProvider,
     TransportSettings transportSettings) : BrokerThroughputQuery(logger, "PostgreSql")
 {
+    internal PostgreSqlQuery(
+        ILogger<PostgreSqlQuery> logger,
+        TimeProvider timeProvider,
+        TransportSettings transportSettings,
+        PostgreSqlTokenDataSources tokenDataSources) : this(logger, timeProvider, transportSettings) => this.tokenDataSources = tokenDataSources;
+
     readonly List<DatabaseDetails> databases = [];
+    readonly PostgreSqlTokenDataSources tokenDataSources = new();
 
     protected override void InitializeCore(ReadOnlyDictionary<string, string> settings)
     {
+        var setting = $"LicensingComponent/{PostgreSqlSettings.ConnectionString}";
+
         if (!settings.TryGetValue(PostgreSqlSettings.ConnectionString, out string? connectionString))
         {
             logger.LogInformation("Using ConnectionString used by instance");
 
             connectionString = transportSettings.ConnectionString.RemoveCustomConnectionStringParts(out string _, out string _);
+            setting = PostgreSqlTransportCustomization.TransportConnectionStringSetting;
 
             Diagnostics.AppendLine("ConnectionString not set, defaulted to using ConnectionString used by instance");
         }
@@ -32,7 +42,9 @@ public class PostgreSqlQuery(
             Diagnostics.AppendLine("ConnectionString set");
         }
 
-        databases.Add(new DatabaseDetails(connectionString));
+        var tokenDataSource = tokenDataSources.GetOrCreate(connectionString, setting, out var npgsqlConnectionString);
+
+        databases.Add(new DatabaseDetails(npgsqlConnectionString, tokenDataSource));
     }
 
     public override async IAsyncEnumerable<QueueThroughput> GetThroughputPerDay(IBrokerQueue brokerQueue,

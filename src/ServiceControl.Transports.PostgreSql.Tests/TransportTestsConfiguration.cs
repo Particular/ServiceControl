@@ -3,6 +3,7 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using ServiceControl.PostgreSql.TokenAuthentication;
     using ServiceControl.Transports.PostgreSql;
     using Transports;
 
@@ -26,6 +27,12 @@
         }
 
         public Task Cleanup(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public void UseTokenAuthentication(string connectionString, IPostgreSqlTokenProvider tokenProvider)
+        {
+            ConnectionString = connectionString;
+            TransportCustomization = new PostgreSqlTransportCustomization { TokenDataSources = new(_ => tokenProvider) };
+        }
 
         const string ConnectionStringKey = "ServiceControl_TransportTests_PostgreSQL_ConnectionString";
     }

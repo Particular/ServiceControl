@@ -20,4 +20,24 @@ function location(): string {
     return value;
 }
 
-export { resourceGroup, tags, location };
+// Read from the CLI's own access token, because looking the principal up in Microsoft Graph needs a directory permission that the login is not guaranteed to have.
+function signedInPrincipal(): { objectId: string; clientId: string } {
+    const type = capture('az', ['account', 'show', '--query', 'user.type', '--output', 'tsv']);
+
+    if (type !== 'servicePrincipal') {
+        throw new Error(`The Azure CLI is signed in as a ${type}, and the Microsoft Entra admin has to be a service principal.`);
+    }
+
+    const token = capture('az', ['account', 'get-access-token', '--query', 'accessToken', '--output', 'tsv']);
+    const claims = JSON.parse(Buffer.from(token.split('.')[1] ?? '', 'base64url').toString('utf8'));
+    const objectId: string | undefined = claims.oid;
+    const clientId: string | undefined = claims.appid ?? claims.azp;
+
+    if (!objectId || !clientId) {
+        throw new Error('The Azure CLI access token has no oid or appid claim, so the signed-in service principal cannot be identified.');
+    }
+
+    return { objectId, clientId };
+}
+
+export { resourceGroup, tags, location, signedInPrincipal };

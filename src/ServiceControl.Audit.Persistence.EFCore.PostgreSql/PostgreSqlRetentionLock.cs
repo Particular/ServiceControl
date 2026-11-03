@@ -1,19 +1,27 @@
 namespace ServiceControl.Audit.Persistence.EFCore.PostgreSql;
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using ServiceControl.Audit.Persistence.EFCore.Abstractions;
 using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
 
-class PostgreSqlRetentionLock(EFPersisterSettings settings, ILogger<PostgreSqlRetentionLock> logger) : IRetentionLock
+class PostgreSqlRetentionLock(
+    EFPersisterSettings settings,
+    ILogger<PostgreSqlRetentionLock> logger,
+    [FromKeyedServices(PostgreSqlRetentionLock.TokenDataSourceKey)] NpgsqlDataSource? tokenDataSource = null) : IRetentionLock
 {
-    // Unpooled, because a session lock would stay with a pooled connection after it returns to the pool.
-    readonly string connectionString = new NpgsqlConnectionStringBuilder(settings.ConnectionString) { Pooling = false }.ConnectionString;
+    public const string TokenDataSourceKey = nameof(PostgreSqlRetentionLock);
+
+    readonly string connectionString = Unpooled(settings.ConnectionString);
     readonly string resource = RetentionLock.ResourceName(settings.Schema);
+
+    // Unpooled, because a session lock would stay with a pooled connection after it returns to the pool.
+    public static string Unpooled(string connectionString) => new NpgsqlConnectionStringBuilder(connectionString) { Pooling = false }.ConnectionString;
 
     public async Task<IAsyncDisposable?> TryAcquire(CancellationToken cancellationToken = default)
     {
-        var connection = new NpgsqlConnection(connectionString);
+        var connection = tokenDataSource?.CreateConnection() ?? new NpgsqlConnection(connectionString);
         var acquired = false;
         try
         {

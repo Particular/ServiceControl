@@ -11,10 +11,11 @@ using Npgsql;
 
 class QueueLengthProvider : AbstractQueueLengthProvider
 {
-    public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store, ILogger<QueueLengthProvider> logger) : base(settings, store)
+    public QueueLengthProvider(TransportSettings settings, Action<QueueLengthEntry[], EndpointToQueueMapping> store, ILogger<QueueLengthProvider> logger, PostgreSqlTokenDataSources tokenDataSources) : base(settings, store)
     {
         connectionString = ConnectionString
             .RemoveCustomConnectionStringParts(out var customSchema, out _);
+        tokenDataSource = tokenDataSources.GetOrCreate(connectionString, PostgreSqlTransportCustomization.TransportConnectionStringSetting, out _);
 
         defaultSchema = customSchema ?? "public";
         this.logger = logger;
@@ -91,7 +92,7 @@ class QueueLengthProvider : AbstractQueueLengthProvider
             .Select(grp => grp.Select(g => g.i).ToArray())
             .ToList();
 
-        await using var connection = new NpgsqlConnection(connectionString);
+        await using var connection = tokenDataSource?.CreateConnection() ?? new NpgsqlConnection(connectionString);
         await connection.OpenAsync(cancellationToken);
 
         foreach (var chunk in chunks)
@@ -129,6 +130,7 @@ class QueueLengthProvider : AbstractQueueLengthProvider
     readonly ConcurrentDictionary<PostgreSqlTable, int> tableSizes = new ConcurrentDictionary<PostgreSqlTable, int>();
 
     readonly string connectionString;
+    readonly NpgsqlDataSource tokenDataSource;
     readonly string defaultSchema;
 
     readonly ILogger<QueueLengthProvider> logger;

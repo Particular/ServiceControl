@@ -54,6 +54,14 @@
         "rds:AddTagsToResource"
       ],
       "Resource": "*"
+    },
+    {
+      "Sid": "ConnectAsTestIamUser",
+      "Effect": "Allow",
+      "Action": [
+        "rds-db:connect"
+      ],
+      "Resource": "arn:aws:rds-db:*:*:dbuser:*/sc_iam"
     }
   ]
 }
