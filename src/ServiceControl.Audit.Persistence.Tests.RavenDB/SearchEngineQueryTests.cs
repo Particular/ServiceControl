@@ -16,8 +16,8 @@ using ServiceControl.Audit.Infrastructure;
 using ServiceControl.RavenDB;
 using ServiceControl.SagaAudit;
 
-// Databases created before ServiceControl pinned the engine have no search engine setting, and DatabaseSetup pins them to Corax.
-// The Corax fixture reproduces that: the database and its indexes exist, pinned to Corax, before the persistence starts.
+// Databases created before ServiceControl pinned the engine have no search engine setting, and DatabaseSetup leaves them alone.
+// The Corax fixture reproduces that: the database exists without the setting and its indexes are pinned to Corax before the persistence starts.
 [TestFixture(SearchEngineType.Lucene)]
 [TestFixture(SearchEngineType.Corax)]
 class SearchEngineQueryTests(SearchEngineType searchEngine) : PersistenceTestFixture
@@ -49,7 +49,15 @@ class SearchEngineQueryTests(SearchEngineType searchEngine) : PersistenceTestFix
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(databaseRecord.Settings["Indexing.Static.SearchEngineType"], Is.EqualTo(searchEngine.ToString()));
+            if (searchEngine == SearchEngineType.Lucene)
+            {
+                Assert.That(databaseRecord.Settings, Does.ContainKey("Indexing.Static.SearchEngineType").WithValue(nameof(SearchEngineType.Lucene)));
+            }
+            else
+            {
+                Assert.That(databaseRecord.Settings, Does.Not.ContainKey("Indexing.Static.SearchEngineType"));
+            }
+
             Assert.That(indexStats, Is.Not.Empty);
             Assert.That(indexStats.Select(i => i.SearchEngineType), Has.All.EqualTo(searchEngine));
         }

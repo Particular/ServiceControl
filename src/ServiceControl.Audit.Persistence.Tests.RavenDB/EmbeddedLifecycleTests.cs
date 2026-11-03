@@ -25,6 +25,8 @@
 
                 s.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabasePathKey] = dbPath;
                 s.PersisterSpecificSettings[RavenPersistenceConfiguration.LogPathKey] = logPath;
+                // The default level (Warn) can leave the log directory uncreated, so ask for startup messages
+                s.PersisterSpecificSettings[RavenPersistenceConfiguration.RavenDbLogLevelKey] = "info";
                 s.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabaseMaintenancePortKey] = databaseMaintenancePort.ToString();
             };
 
