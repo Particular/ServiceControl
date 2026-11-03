@@ -1,6 +1,6 @@
 namespace TestingTool.AppHost;
 
-public enum PersistenceType
+public enum StorageType
 {
     RavenDb,
     SqlServer,

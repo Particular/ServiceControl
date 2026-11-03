@@ -69,7 +69,10 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(AuditInstanceSettingsList.AuditQueue, AuditQueue, Version);
             settings.Set(AuditInstanceSettingsList.AuditLogQueue, AuditLogQueue, Version);
             settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, EnableFullTextSearchOnBodies.ToString().ToLowerInvariant(), Version);
-            settings.Set(AuditInstanceSettingsList.PersistenceType, PersistenceManifest.Name);
+            settings.Set(AuditInstanceSettingsList.StorageType, PersistenceManifest.Name);
+			
+			// Retired settings
+            settings.RemoveIfRetired(AuditInstanceSettingsList.PersistenceType, Version);
         }
 
         protected override AppConfig CreateAppConfig()
@@ -114,8 +117,14 @@ namespace ServiceControlInstaller.Engine.Instances
             InMaintenanceMode = AppConfig.Read(AuditInstanceSettingsList.MaintenanceMode, false);
             ServiceControlQueueAddress = AppConfig.Read<string>(AuditInstanceSettingsList.ServiceControlQueueAddress, null);
 
-            var persistenceType = AppConfig.Read<string>(AuditInstanceSettingsList.PersistenceType, null);
-            PersistenceManifest = ServiceControlPersisters.GetAuditPersistence(persistenceType);
+            var storageType = AppConfig.Read<string>(AuditInstanceSettingsList.StorageType, null);
+            if (string.IsNullOrWhiteSpace(storageType))
+            {
+                // A pre-7.0.0 config carries the setting under its legacy name; a config rewrite migrates it to StorageType
+                storageType = AppConfig.Read<string>(AuditInstanceSettingsList.PersistenceType, null);
+            }
+
+            PersistenceManifest = ServiceControlPersisters.GetAuditPersistence(storageType);
 
             TransportPackage = DetermineTransportPackage();
             ConnectionString = ReadConnectionString();

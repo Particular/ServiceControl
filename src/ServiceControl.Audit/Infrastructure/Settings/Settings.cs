@@ -14,7 +14,7 @@
 
     public class Settings
     {
-        public Settings(string transportType = null, string persisterType = null, LoggingSettings loggingSettings = null)
+        public Settings(string transportType = null, string storageType = null, LoggingSettings loggingSettings = null)
         {
             LoggingSettings = loggingSettings ?? new(SettingsRootNamespace);
 
@@ -31,7 +31,7 @@
 
             TransportType = transportType ?? SettingsReader.Read<string>(SettingsRootNamespace, "TransportType");
 
-            PersistenceType = persisterType ?? SettingsReader.Read<string>(SettingsRootNamespace, "PersistenceType");
+            StorageType = storageType ?? SettingsReader.Read<string>(SettingsRootNamespace, "StorageType");
 
             TransportConnectionString = GetConnectionString();
 
@@ -153,7 +153,7 @@
 
         public string TransportType { get; private set; }
 
-        public string PersistenceType { get; private set; }
+        public string StorageType { get; private set; }
 
         public string AuditQueue { get; set; }
 

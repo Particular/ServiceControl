@@ -12,7 +12,7 @@ namespace ServiceControl.Persistence
 
             if (maintenanceMode && !persistenceConfiguration.SupportsMaintenanceMode)
             {
-                throw new Exception($"Maintenance mode is not supported by the {settings.PersistenceType} persister. It is only available on RavenDB, where it starts the embedded database so RavenDB Studio can be used.");
+                throw new Exception($"Maintenance mode is not supported by the {settings.StorageType} persister. It is only available on RavenDB, where it starts the embedded database so RavenDB Studio can be used.");
             }
 
             //HINT: This is false when executed from acceptance tests
@@ -28,7 +28,7 @@ namespace ServiceControl.Persistence
         {
             try
             {
-                var persistenceManifest = PersistenceManifestLibrary.Find(settings.PersistenceType);
+                var persistenceManifest = PersistenceManifestLibrary.Find(settings.StorageType);
                 var assemblyPath = Path.Combine(persistenceManifest.Location, $"{persistenceManifest.AssemblyName}.dll");
                 var loadContext = settings.AssemblyLoadContextResolver(assemblyPath);
                 var customizationType = Type.GetType(persistenceManifest.TypeName, loadContext.LoadFromAssemblyName, null, true);
@@ -37,7 +37,7 @@ namespace ServiceControl.Persistence
             }
             catch (Exception e)
             {
-                throw new Exception($"Could not load persistence customization type {settings.PersistenceType}.", e);
+                throw new Exception($"Could not load persistence customization type {settings.StorageType}.", e);
             }
         }
     }

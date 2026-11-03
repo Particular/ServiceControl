@@ -150,8 +150,14 @@ namespace ServiceControlInstaller.Engine.Instances
             Description = GetDescription();
             ServiceAccount = Service.Account;
 
-            var persistenceType = AppConfig.Read<string>(ServiceControlSettings.PersistenceType, null);
-            PersistenceManifest = ServiceControlPersisters.GetPrimaryPersistence(persistenceType);
+            var storageType = AppConfig.Read<string>(ServiceControlSettings.StorageType, null);
+            if (string.IsNullOrWhiteSpace(storageType))
+            {
+                // A pre-7.0.0 config carries the setting under its legacy name; a config rewrite migrates it to StorageType
+                storageType = AppConfig.Read<string>(ServiceControlSettings.PersistenceType, null);
+            }
+
+            PersistenceManifest = ServiceControlPersisters.GetPrimaryPersistence(storageType);
 
             ForwardErrorMessages = AppConfig.Read(ServiceControlSettings.ForwardErrorMessages, false);
             if (ForwardErrorMessages)
@@ -213,7 +219,7 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(ServiceControlSettings.AuditLogQueue, AuditLogQueue, Version);
             settings.Set(ServiceControlSettings.ErrorLogQueue, ErrorLogQueue, Version);
             settings.Set(ServiceControlSettings.EnableFullTextSearchOnBodies, EnableFullTextSearchOnBodies.ToString(), Version);
-            settings.Set(ServiceControlSettings.PersistenceType, PersistenceManifest.Name);
+            settings.Set(ServiceControlSettings.StorageType, PersistenceManifest.Name);
             settings.Set(ServiceControlSettings.EnableIntegratedServicePulse, EnableIntegratedServicePulse.ToString(), Version);
 
             if (RemoteInstances != null)
@@ -228,6 +234,9 @@ namespace ServiceControlInstaller.Engine.Instances
 
                 settings.Set(ServiceControlSettings.RemoteInstances, RemoteInstanceConverter.ToJson(RemoteInstances), Version);
             }
+			
+			// Retired settings
+            settings.RemoveIfRetired(ServiceControlSettings.PersistenceType, Version);
         }
 
         protected override void Prepare(string zipFilePath, string destDir)

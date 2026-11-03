@@ -32,7 +32,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         public void Every_shipped_audit_storage_engine_gets_its_decided_upgrade_answer() =>
             AssertDecidedAnswers(ServiceControlPersisters.GetAllAuditManifests(), AuditUpgradableInPlace);
 
-        // A null persistence type is how a version 4 config with no PersistenceType setting resolves, which is RavenDB 3.5.
+        // A null storage type is how a version 4 config with no legacy PersistenceType setting resolves, which is RavenDB 3.5.
         [TestCase(null, ExpectedResult = false)]
         [TestCase("NotAKnownPersister", ExpectedResult = false)]
         public bool Whether_an_unlisted_primary_persistence_type_can_be_upgraded_in_place(string persistenceType) =>
