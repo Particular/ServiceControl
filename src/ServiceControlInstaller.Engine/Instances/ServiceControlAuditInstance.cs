@@ -70,8 +70,8 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(AuditInstanceSettingsList.AuditLogQueue, AuditLogQueue, Version);
             settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, EnableFullTextSearchOnBodies.ToString().ToLowerInvariant(), Version);
             settings.Set(AuditInstanceSettingsList.StorageType, PersistenceManifest.Name);
-			
-			// Retired settings
+
+            // Retired settings
             settings.RemoveIfRetired(AuditInstanceSettingsList.PersistenceType, Version);
         }
 

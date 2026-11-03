@@ -234,8 +234,8 @@ namespace ServiceControlInstaller.Engine.Instances
 
                 settings.Set(ServiceControlSettings.RemoteInstances, RemoteInstanceConverter.ToJson(RemoteInstances), Version);
             }
-			
-			// Retired settings
+
+            // Retired settings
             settings.RemoveIfRetired(ServiceControlSettings.PersistenceType, Version);
         }
 
