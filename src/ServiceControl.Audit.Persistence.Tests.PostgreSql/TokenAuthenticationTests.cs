@@ -22,7 +22,7 @@ namespace ServiceControl.Audit.Persistence.Tests
     {
         [TestCase("Token Authentication=AzureEntraId;Token Scope=https://ossrdbms-aad.database.windows.net/.default")]
         [TestCase("Token Authentication=AwsRdsIam")]
-        public async Task Migrates_and_queries_with_one_token_for_many_connections(string keywords)
+        public async Task Migrates_and_queries_asking_for_a_token_on_every_new_connection(string keywords)
         {
             var (connectionString, password) = await TokenConnectionStrings.ForSharedContainer(keywords);
             var schema = $"sc_token_{Guid.NewGuid():n}";
@@ -34,7 +34,7 @@ namespace ServiceControl.Audit.Persistence.Tests
 
                 await ApplyMigrations(provider);
                 await RoundTrip(provider);
-                await QueryOnConcurrentConnections(provider, connections: 3);
+                await QueryOnConcurrentConnections(provider, ConcurrentConnections);
                 var hosting = await provider.GetRequiredService<IDatabaseHostingProbe>().Probe();
                 var identity = await provider.GetRequiredService<IStorageIdentityProvider>().GetIdentity();
 
@@ -42,7 +42,7 @@ namespace ServiceControl.Audit.Persistence.Tests
                 {
                     Assert.That(hosting.Source, Is.EqualTo(DatabaseHostingSource.Probe));
                     Assert.That(identity?.Schema, Is.EqualTo(schema));
-                    Assert.That(tokenProvider.Calls, Is.EqualTo(1));
+                    Assert.That(tokenProvider.Calls, Is.GreaterThanOrEqualTo(ConcurrentConnections), "Every physical connection asks the provider for a token.");
                     Assert.That(tokenProvider.Username, Is.EqualTo(new NpgsqlConnectionStringBuilder(provider.GetRequiredService<EFPersisterSettings>().ConnectionString).Username));
                 }
             }
@@ -72,7 +72,7 @@ namespace ServiceControl.Audit.Persistence.Tests
                 Assert.That(whileHeld, Is.Null);
                 Assert.That(afterRelease, Is.Not.Null);
                 Assert.That(new NpgsqlConnectionStringBuilder(provider.GetRequiredKeyedService<NpgsqlDataSource>(PostgreSqlRetentionLock.TokenDataSourceKey).ConnectionString).Pooling, Is.False);
-                Assert.That(tokenProvider.Calls, Is.EqualTo(1));
+                Assert.That(tokenProvider.Calls, Is.GreaterThanOrEqualTo(3), "Every unpooled connection asks the provider for a token.");
             }
         }
 
@@ -101,6 +101,8 @@ namespace ServiceControl.Audit.Persistence.Tests
                 Assert.ThrowsAsync<ObjectDisposedException>(async () => await retentionLockDataSource.OpenConnectionAsync());
             }
         }
+
+        const int ConcurrentConnections = 3;
 
         internal static ServiceProvider BuildServiceProvider(string connectionString, string schema = null, IPostgreSqlTokenProvider tokenProvider = null)
         {

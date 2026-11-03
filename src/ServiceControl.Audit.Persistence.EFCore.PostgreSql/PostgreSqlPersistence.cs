@@ -23,10 +23,10 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : EFPersistenc
     {
         if (tokenAuthentication is { } authentication)
         {
-            services.TryAddSingleton(_ => authentication.CreateTokenProvider());
-            services.TryAddSingleton(serviceProvider => PostgreSqlTokenDataSource.Build(settings.ConnectionString, serviceProvider.GetRequiredService<IPostgreSqlTokenProvider>(), TokenLogger(serviceProvider)));
+            services.TryAddSingleton(serviceProvider => authentication.CreateTokenProvider(TokenLogger(serviceProvider)));
+            services.TryAddSingleton(serviceProvider => PostgreSqlTokenDataSource.Build(settings.ConnectionString, serviceProvider.GetRequiredService<IPostgreSqlTokenProvider>()));
             services.TryAddKeyedSingleton(PostgreSqlRetentionLock.TokenDataSourceKey, (serviceProvider, _) =>
-                PostgreSqlTokenDataSource.Build(PostgreSqlRetentionLock.Unpooled(settings.ConnectionString), serviceProvider.GetRequiredService<IPostgreSqlTokenProvider>(), TokenLogger(serviceProvider)));
+                PostgreSqlTokenDataSource.Build(PostgreSqlRetentionLock.Unpooled(settings.ConnectionString), serviceProvider.GetRequiredService<IPostgreSqlTokenProvider>()));
         }
 
         services.AddDbContext<PostgreSqlAuditDbContext>((serviceProvider, options) =>
@@ -74,7 +74,7 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : EFPersistenc
         }
     }
 
-    static ILogger TokenLogger(IServiceProvider serviceProvider) => serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(PostgreSqlTokenDataSource));
+    static ILogger TokenLogger(IServiceProvider serviceProvider) => serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(PostgreSqlTokenAuthentication));
 
     protected override void AddPartitionManager(IServiceCollection services) =>
         services.AddSingleton<IAuditPartitionManager, PostgreSqlAuditPartitionManager>();

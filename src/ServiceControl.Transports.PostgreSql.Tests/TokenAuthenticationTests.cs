@@ -33,7 +33,7 @@ class TokenAuthenticationTests : TransportTestFixture
     }
 
     [Test]
-    public async Task Provisions_sends_and_receives_with_one_token()
+    public async Task Provisions_sends_and_receives_with_a_token()
     {
         var queueName = GetTestQueueName("token");
         await CreateTestQueue(queueName);
@@ -67,7 +67,7 @@ class TokenAuthenticationTests : TransportTestFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(tokenProvider.Calls, Is.EqualTo(1));
+            Assert.That(tokenProvider.Calls, Is.Positive);
             Assert.That(tokenProvider.Username, Is.EqualTo(username));
         }
     }
@@ -92,7 +92,7 @@ class TokenAuthenticationTests : TransportTestFixture
         using (Assert.EnterMultipleScope())
         {
             Assert.That((await reported.Task).Value, Is.EqualTo(1));
-            Assert.That(tokenProvider.Calls, Is.EqualTo(1));
+            Assert.That(tokenProvider.Calls, Is.Positive);
         }
     }
 
@@ -123,7 +123,7 @@ class TokenAuthenticationTests : TransportTestFixture
         {
             Assert.That(success, Is.True, string.Join(Environment.NewLine, errors));
             Assert.That(queueNames, Does.Contain(queueName));
-            Assert.That(tokenProvider.Calls, Is.EqualTo(1));
+            Assert.That(tokenProvider.Calls, Is.Positive);
         }
     }
 

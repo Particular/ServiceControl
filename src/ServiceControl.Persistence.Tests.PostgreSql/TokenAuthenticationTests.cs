@@ -2,7 +2,6 @@
 namespace ServiceControl.Persistence.Tests;
 
 using System;
-using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -11,7 +10,6 @@ using EFCore.Entities;
 using EFCore.PostgreSql;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Npgsql;
 using NUnit.Framework;
 using ServiceControl.Persistence.EFCore.Abstractions;
@@ -24,7 +22,7 @@ class TokenAuthenticationTests
 {
     [TestCase("Token Authentication=AzureEntraId;Token Scope=https://ossrdbms-aad.database.windows.net/.default")]
     [TestCase("Token Authentication=AwsRdsIam")]
-    public async Task Migrates_and_queries_with_one_token_for_many_connections(string keywords)
+    public async Task Migrates_and_queries_asking_for_a_token_on_every_new_connection(string keywords)
     {
         var (connectionString, password) = await TokenConnectionStrings.ForSharedContainer(keywords);
         var settings = CreateSettings(connectionString, $"sc_token_{Guid.NewGuid():n}");
@@ -36,7 +34,7 @@ class TokenAuthenticationTests
 
             await ApplyMigrations(provider);
             await RoundTrip(provider);
-            await QueryOnConcurrentConnections(provider, connections: 3);
+            await QueryOnConcurrentConnections(provider, ConcurrentConnections);
             var hosting = await provider.GetRequiredService<IDatabaseHostingProbe>().Probe();
             var identity = await provider.GetRequiredService<IStorageIdentityProvider>().GetIdentity();
 
@@ -44,7 +42,7 @@ class TokenAuthenticationTests
             {
                 Assert.That(hosting.Source, Is.EqualTo(DatabaseHostingSource.Probe));
                 Assert.That(identity?.Schema, Is.EqualTo(settings.Schema));
-                Assert.That(tokenProvider.Calls, Is.EqualTo(1));
+                Assert.That(tokenProvider.Calls, Is.GreaterThanOrEqualTo(ConcurrentConnections), "Every physical connection asks the provider for a token.");
                 Assert.That(tokenProvider.Username, Is.EqualTo(new NpgsqlConnectionStringBuilder(settings.ConnectionString).Username));
             }
         }
@@ -55,17 +53,16 @@ class TokenAuthenticationTests
     }
 
     [Test]
-    public async Task Logs_a_failure_to_get_a_token()
+    public async Task Fails_to_open_a_connection_without_a_token()
     {
         var (connectionString, _) = await TokenConnectionStrings.ForSharedContainer("Token Authentication=AwsRdsIam");
         _ = PostgreSqlTokenAuthentication.Parse(connectionString, "Database/ConnectionString", out var npgsqlConnectionString);
         var failure = new InvalidOperationException("No credentials");
-        var logger = new RecordingLogger();
-        await using var dataSource = PostgreSqlTokenDataSource.Build(npgsqlConnectionString, new FailingTokenProvider(failure), logger);
+        await using var dataSource = PostgreSqlTokenDataSource.Build(npgsqlConnectionString, new FailingTokenProvider(failure));
 
-        Assert.CatchAsync(async () => await dataSource.OpenConnectionAsync());
+        var exception = Assert.CatchAsync(async () => await dataSource.OpenConnectionAsync());
 
-        Assert.That(logger.Errors, Does.Contain(failure));
+        Assert.That(exception, Has.InnerException.SameAs(failure));
     }
 
     [Test]
@@ -95,6 +92,8 @@ class TokenAuthenticationTests
         Schema = schema,
         BodyStorage = new FileSystemBodyStorageSettings { StoragePath = Path.GetTempPath() }
     };
+
+    const int ConcurrentConnections = 3;
 
     internal static ServiceProvider BuildServiceProvider(PostgreSqlPersisterSettings settings, IPostgreSqlTokenProvider tokenProvider = null)
     {
@@ -190,24 +189,5 @@ class TokenAuthenticationTests
     sealed class FailingTokenProvider(Exception failure) : IPostgreSqlTokenProvider
     {
         public ValueTask<string> GetToken(NpgsqlConnectionStringBuilder settings, CancellationToken cancellationToken = default) => ValueTask.FromException<string>(failure);
-    }
-
-    sealed class RecordingLogger : ILogger
-    {
-        readonly ConcurrentQueue<Exception> errors = new();
-
-        public Exception[] Errors => [.. errors];
-
-        public IDisposable BeginScope<TState>(TState state) where TState : notnull => null;
-
-        public bool IsEnabled(LogLevel logLevel) => true;
-
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-        {
-            if (logLevel == LogLevel.Error)
-            {
-                errors.Enqueue(exception);
-            }
-        }
     }
 }

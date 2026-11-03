@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 using Npgsql;
 
 abstract record PostgreSqlTokenAuthentication
@@ -14,7 +15,7 @@ abstract record PostgreSqlTokenAuthentication
     public const string AzureEntraId = "AzureEntraId";
     public const string AwsRdsIam = "AwsRdsIam";
 
-    public abstract IPostgreSqlTokenProvider CreateTokenProvider();
+    public abstract IPostgreSqlTokenProvider CreateTokenProvider(ILogger logger);
 
     /// <summary>
     /// Returns null, and the connection string as it is, when neither keyword appears in it. Otherwise removes the keywords and validates them.
@@ -175,10 +176,10 @@ abstract record PostgreSqlTokenAuthentication
 
 sealed record AzureEntraIdTokenAuthentication(string Scope, Uri? AuthorityHost) : PostgreSqlTokenAuthentication
 {
-    public override IPostgreSqlTokenProvider CreateTokenProvider() => new AzureEntraIdTokenProvider(this);
+    public override IPostgreSqlTokenProvider CreateTokenProvider(ILogger logger) => new AzureEntraIdTokenProvider(this, logger);
 }
 
 sealed record AwsRdsIamTokenAuthentication : PostgreSqlTokenAuthentication
 {
-    public override IPostgreSqlTokenProvider CreateTokenProvider() => new AwsRdsIamTokenProvider();
+    public override IPostgreSqlTokenProvider CreateTokenProvider(ILogger logger) => new AwsRdsIamTokenProvider();
 }

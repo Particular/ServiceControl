@@ -51,8 +51,8 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersiste
     {
         if (settings.TokenAuthentication is { } tokenAuthentication)
         {
-            services.TryAddSingleton(_ => tokenAuthentication.CreateTokenProvider());
-            services.TryAddSingleton(serviceProvider => PostgreSqlTokenDataSource.Build(settings.ConnectionString, serviceProvider.GetRequiredService<IPostgreSqlTokenProvider>(), TokenLogger(serviceProvider)));
+            services.TryAddSingleton(serviceProvider => tokenAuthentication.CreateTokenProvider(TokenLogger(serviceProvider)));
+            services.TryAddSingleton(serviceProvider => PostgreSqlTokenDataSource.Build(settings.ConnectionString, serviceProvider.GetRequiredService<IPostgreSqlTokenProvider>()));
         }
 
         services.AddDbContext<PostgreSqlServiceControlDbContext>((serviceProvider, options) =>
@@ -85,7 +85,7 @@ class PostgreSqlPersistence(PostgreSqlPersisterSettings settings) : BasePersiste
         services.AddScoped<ServiceControlDbContext>(provider => provider.GetRequiredService<PostgreSqlServiceControlDbContext>());
     }
 
-    static ILogger TokenLogger(IServiceProvider serviceProvider) => serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(PostgreSqlTokenDataSource));
+    static ILogger TokenLogger(IServiceProvider serviceProvider) => serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(PostgreSqlTokenAuthentication));
 
     void ConfigureNpgsql(NpgsqlDbContextOptionsBuilder npgsqlOptions)
     {
