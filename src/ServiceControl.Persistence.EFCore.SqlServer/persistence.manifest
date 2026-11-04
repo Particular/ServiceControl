@@ -19,6 +19,7 @@
     },
     {
       "Name": "ServiceControl/MessageBody/StorageType",
+      "DefaultValue": "FileSystem",
       "Mandatory": true
     },
     {

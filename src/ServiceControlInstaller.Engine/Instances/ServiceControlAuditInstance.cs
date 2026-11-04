@@ -46,7 +46,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public string ServiceControlQueueAddress { get; set; }
 
-        public PersistenceManifest PersistenceManifest { get; set; }
+        public string PersistenceConnectionString { get; set; }
 
         protected override void ApplySettingsChanges(KeyValueConfigurationCollection settings)
         {
@@ -68,7 +68,12 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(AuditInstanceSettingsList.AuditRetentionPeriod, AuditRetentionPeriod.ToString(), Version);
             settings.Set(AuditInstanceSettingsList.AuditQueue, AuditQueue, Version);
             settings.Set(AuditInstanceSettingsList.AuditLogQueue, AuditLogQueue, Version);
-            settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, EnableFullTextSearchOnBodies.ToString().ToLowerInvariant(), Version);
+
+            var enableFullTextSearchOnBodiesValue = PersistenceManifest.Settings.Any(s => s.Name == AuditInstanceSettingsList.EnableFullTextSearchOnBodies.Name)
+                ? EnableFullTextSearchOnBodies.ToString().ToLowerInvariant()
+                : null;
+
+            settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, enableFullTextSearchOnBodiesValue, Version);
             settings.Set(AuditInstanceSettingsList.StorageType, PersistenceManifest.Name);
 
             // Retired settings

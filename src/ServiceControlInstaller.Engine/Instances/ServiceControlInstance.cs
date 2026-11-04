@@ -52,7 +52,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public List<RemoteInstanceSetting> RemoteInstances { get; set; } = [];
 
-        public PersistenceManifest PersistenceManifest { get; set; }
+        public string PersistenceConnectionString { get; set; }
 
         public void AddRemoteInstance(string apiUri)
         {
@@ -218,7 +218,12 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(ServiceControlSettings.ErrorQueue, ErrorQueue);
             settings.Set(ServiceControlSettings.AuditLogQueue, AuditLogQueue, Version);
             settings.Set(ServiceControlSettings.ErrorLogQueue, ErrorLogQueue, Version);
-            settings.Set(ServiceControlSettings.EnableFullTextSearchOnBodies, EnableFullTextSearchOnBodies.ToString(), Version);
+
+            var enableFullTextSearchOnBodiesValue = PersistenceManifest.Settings.Any(s => s.Name == ServiceControlSettings.EnableFullTextSearchOnBodies.Name)
+                ? EnableFullTextSearchOnBodies.ToString().ToLowerInvariant()
+                : null;
+
+            settings.Set(ServiceControlSettings.EnableFullTextSearchOnBodies, enableFullTextSearchOnBodiesValue, Version);
             settings.Set(ServiceControlSettings.StorageType, PersistenceManifest.Name);
             settings.Set(ServiceControlSettings.EnableIntegratedServicePulse, EnableIntegratedServicePulse.ToString(), Version);
 
