@@ -34,6 +34,21 @@ The SQL Server and PostgreSQL persistence test projects contain a `SlowMigration
 
 Transport tests run the transport test suite for each transport.
 
+### Google Cloud Pub/Sub
+
+The `GooglePubSub` tests read their connection string from `ServiceControl_TransportTests_GooglePubSub_ConnectionString`. CI runs them against a Google Cloud project rather than the Pub/Sub emulator, because the emulator delivers headers with empty values that Pub/Sub drops. The job signs in through workload identity federation with the `GCP_WORKLOAD_IDENTITY_PROVIDER` and `GCP_SERVICE_ACCOUNT` repository variables, and creates its resources in the project named by `GOOGLE_CLOUD_PROJECT`. The service account needs the Pub/Sub Editor role (`roles/pubsub.editor`) to create and delete topics and subscriptions.
+
+Each job sets `ResourceNamePrefix` to a prefix built from the run ID, the attempt, and the operating system, so that parallel jobs do not share resources. The last step deletes every subscription and topic with that prefix, even when the tests fail.
+
+To run the tests locally against the emulator:
+
+1. Start the emulator: `docker run --rm -p 8085:8085 gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators gcloud beta emulators pubsub start --host-port=0.0.0.0:8085`
+2. Set `PUBSUB_EMULATOR_HOST=localhost:8085`.
+3. Set `ServiceControl_TransportTests_GooglePubSub_ConnectionString=ProjectId=local-test`.
+4. Set `ServiceControl_TESTS_FILTER=GooglePubSub` and run the `ServiceControl.Transports.GooglePubSub.Tests` project.
+
+To run them against a Google Cloud project instead, leave `PUBSUB_EMULATOR_HOST` unset, sign in with `gcloud auth application-default login`, and set `ProjectId` and a personal `ResourceNamePrefix` in the connection string.
+
 ## Acceptance tests
 
 Acceptance tests run the full ServiceControl and use the HTTP API to validate results. LearningTransport is used for all tests.

@@ -27,6 +27,7 @@ This section points to sources that explain why ServiceControl is designed the w
 - [Message body storage](message-body-storage.md) — where the Audit SQL Server and PostgreSQL persisters keep message bodies, how retention removes them, and which settings are optional
 - [Bulk retries design](bulk-retries-design.md) — how ServiceControl retries failed messages in bulk
 - [Retries over Azure Storage Queues transport](retries-asq-transport.md) — how retries behave with one or several storage accounts
+- [Google Cloud Pub/Sub transport](google-pubsub-transport.md) — why credentials come only from Application Default Credentials, and which platform features the transport limits
 - [Data versioning design](data-versioning-design.md) — which invariant keeps a cached API response from going stale
 - [Event log design](eventlog-design.md) — what the event log is and what it records
 - [Multiple ServiceControl instances communication](multipleservicecontrolinstancescommunication.md) — how primary, audit, and monitoring instances talk to each other

@@ -123,7 +123,8 @@ namespace Tests
                 "AmazonSQS",
                 "LearningTransport",
                 "PostgreSql",
-                "IBMMQ"};
+                "IBMMQ",
+                "GooglePubSub"};
 
             var bundledTransports = deploymentPackage.DeploymentUnits
                 .Where(u => u.Category == "Transports")
