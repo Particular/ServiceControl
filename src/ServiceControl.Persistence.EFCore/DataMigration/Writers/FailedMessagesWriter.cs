@@ -9,12 +9,15 @@ using ServiceControl.MessageFailures;
 using ServiceControl.Persistence.DataMigration;
 
 /// <summary>
-/// Writes failed messages and their failure group rows, inserting only messages the target does not already hold
-/// and never updating one it does. Each category that copies failed messages derives from this and names its
-/// category id and the statuses it copies.
+/// Writes failed messages, their failure group rows and a retry claim for each retry-issued message, inserting only
+/// messages the target does not already hold and never updating one it does. Each category that copies failed
+/// messages derives from this and names its category id and the statuses it copies.
 /// </summary>
 abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, IBodyStoragePersistence storagePersistence, EFPersisterSettings persisterSettings) : MigrationCategoryWriter<FailedMessage>
 {
+    // Like the claim a finished retry batch leaves, this points at no batch, so nothing stages it until it is released by message id.
+    public static readonly Guid MigratedRetryClaimBatchId = new("5c1b7a0e-2f4d-4e8a-9b36-7d0c4f1e8a52");
+
     /// <summary>
     /// The statuses this category copies. <see cref="Count" /> counts only rows with one of these statuses, because
     /// both failed message categories share one table.
@@ -141,6 +144,11 @@ abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, I
         // Matched by reference, because InsertMissing returns the row objects it kept, and a document it turned away can share a kept row's id.
         // A group goes in only when the message its foreign key points at went in, so a message already in the target keeps the groups it had.
         await migrationDialect.InsertMissing(dbContext, [.. mapped.Where(mapping => inserted.Contains(mapping.Row)).SelectMany(mapping => mapping.Groups)], cancellationToken);
+
+        // A retry-issued message needs a claim, or a retry by id sends it again while its first retry is still outstanding.
+        await migrationDialect.InsertMissing(dbContext, [.. inserted
+            .Where(row => row.Status == FailedMessageStatus.RetryIssued)
+            .Select(row => new FailedMessageRetryEntity { UniqueMessageId = row.UniqueMessageId, RetryBatchId = MigratedRetryClaimBatchId })], cancellationToken);
 
         return inserted.Count;
     }

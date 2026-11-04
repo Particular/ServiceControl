@@ -13,6 +13,7 @@ using ServiceControl.Hosting.Commands;
 using ServiceControl.Infrastructure.WebApi;
 using ServiceControl.MessageFailures;
 using ServiceControl.MessageFailures.Api;
+using ServiceControl.Persistence;
 using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.Tests;
@@ -157,6 +158,50 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
             Assert.That(groups.Single().Title, Is.EqualTo(expected.Title));
             Assert.That(groups.Single().Type, Is.EqualTo(expected.Type));
         }
+    }
+
+    [Test]
+    public async Task A_retry_by_id_after_the_copy_stages_the_unresolved_message_and_not_the_retry_issued_one()
+    {
+        var unresolved = new IngestedFailure();
+        var retryIssued = new IngestedFailure();
+        await SeedFailure(unresolved);
+        await SeedFailure(retryIssued, FailedMessageStatus.RetryIssued);
+
+        var copy = await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+
+        Assert.That(copy.Copied, Is.EqualTo(2), "the test proves nothing unless both messages reached the target");
+
+        string[] ids = [unresolved.UniqueMessageIdString, retryIssued.UniqueMessageIdString];
+        var batchId = await RetryBatchStore.CreateBatch("migration-test-session", "retry-by-id", RetryType.MultipleMessages, ids, null, DateTime.UtcNow);
+        await RetryBatchStore.AssignMessagesToBatch(batchId, ids);
+
+        var staged = await RetryStagingStore.GetMessagesToStage(batchId);
+
+        Assert.That(staged.Select(message => message.UniqueMessageId), Is.EquivalentTo(new[] { unresolved.UniqueMessageIdString }),
+            "RavenDB ignores a retry of a message whose first retry is still outstanding, so after the move it must not be sent again");
+    }
+
+    [Test]
+    public async Task A_retry_issued_message_resent_from_pending_retries_after_the_copy_is_staged()
+    {
+        var retryIssued = new IngestedFailure();
+        await SeedFailure(retryIssued, FailedMessageStatus.RetryIssued);
+
+        var copy = await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+
+        Assert.That(copy.Copied, Is.EqualTo(1), "the test proves nothing unless the message reached the target");
+
+        // Pending Retries releases the claim, then sends a retry by id.
+        await FailedMessageRetryDataStore.RemoveFailedMessageRetry(retryIssued.UniqueMessageIdString);
+        string[] ids = [retryIssued.UniqueMessageIdString];
+        var batchId = await RetryBatchStore.CreateBatch("migration-test-session", "retry-pending", RetryType.MultipleMessages, ids, null, DateTime.UtcNow);
+        await RetryBatchStore.AssignMessagesToBatch(batchId, ids);
+
+        var staged = await RetryStagingStore.GetMessagesToStage(batchId);
+
+        Assert.That(staged.Select(message => message.UniqueMessageId), Is.EqualTo(ids),
+            "a migrated claim that the release by message id cannot remove leaves the message unretryable for good");
     }
 
     [Test]
