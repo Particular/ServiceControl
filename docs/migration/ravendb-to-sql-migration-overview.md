@@ -197,6 +197,10 @@ There are eighteen *categories*: sixteen required and two optional.
   - The copy logs a warning naming both endpoints and the one it kept.
   - The dry run lists each pair by asking SQL Server how the column compares. For unusual characters its list can differ from what the copy does.
 - **A message type over 450 characters is cut to its last 450 characters**, as ingestion does. The row is copied, not skipped.
+- **On SQL Server, licensing endpoints whose names differ only in trailing spaces become one row.** SQL Server ignores trailing spaces when it compares the key. PostgreSQL keeps both.
+  - The copy keeps the endpoint whose RavenDB document id sorts first.
+  - A day that both endpoints counted keeps the count of the endpoint whose id sorts later. The two counts are not added.
+  - This is not counted as a merge. The second endpoint and its shared days count as already present, the copy logs no warning, and the dry run does not list them. So on a category copied once, `--migration-verify` shows them as already-present rows that merges do not explain.
 - **Event log items, historic retry operations and pending integration events get new numbers.** Nothing refers to the old ones, so this is safe.
 
 The dry run counts both kinds of merge before anything moves.

@@ -9,7 +9,7 @@ using NUnit.Framework;
 using Particular.LicensingComponent.Contracts;
 using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.RavenDB.Throughput.Models;
-using RavenLicensingDataStore = ServiceControl.Persistence.RavenDB.Throughput.LicensingDataStore;
+using RavenLicensingDataStore = Persistence.RavenDB.Throughput.LicensingDataStore;
 
 class LicensingSettingsSourceTests : RavenMigrationSourceTestBase
 {
