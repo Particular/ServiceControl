@@ -41,7 +41,7 @@ namespace ServiceControl.RavenDB
                 existingByName.TryGetValue(replacementName, out var pendingReplacementDefinition);
 
                 var rebuildTriggers = GetRebuildTriggeringDifferences(existingDefinition, index, store);
-                var requiresRebuild = rebuildTriggers != IndexDefinitionCompareDifferences.None;
+                var requiresRebuild = rebuildTriggers is not IndexDefinitionCompareDifferences.None;
 
                 if (IsLocked(existingDefinition))
                 {
