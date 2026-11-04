@@ -321,6 +321,27 @@ class IndexSetupTests : PersistenceTestFixture
         Assert.That(indexStatsAfter.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
     }
 
+    [TestCase(IndexLockMode.LockedIgnore)]
+    [TestCase(IndexLockMode.LockedError)]
+    public async Task Setup_should_succeed_when_a_locked_index_without_a_search_engine_setting_has_an_unchanged_definition(IndexLockMode lockMode)
+    {
+        var lockedStats = await PutIndexWithoutSearchEngineSetting(customize: false);
+
+        await configuration.DocumentStore.Maintenance.SendAsync(new SetIndexesLockOperation(lockedStats.Name, lockMode), TestTimeoutCancellationToken);
+
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+
+        var replacement = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(Constants.Documents.Indexing.SideBySideIndexNamePrefix + lockedStats.Name), TestTimeoutCancellationToken);
+        var definitionAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(lockedStats.Name), TestTimeoutCancellationToken);
+        var indexStatsAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(lockedStats.Name), TestTimeoutCancellationToken);
+
+        Assert.That(replacement, Is.Null);
+        Assert.That(definitionAfter.LockMode, Is.EqualTo(lockMode));
+        Assert.That(definitionAfter.Configuration, Does.Not.ContainKey(IndexDeployment.StaticSearchEngineTypeKey));
+        Assert.That(indexStatsAfter.CreatedTimestamp, Is.EqualTo(lockedStats.CreatedTimestamp));
+        Assert.That(indexStatsAfter.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
+    }
+
     // Simulates an index changed outside ServiceControl, for example in RavenDB Studio. With customize, its definition is different from ours.
     async Task<IndexStats> PutCustomizedIndex(SearchEngineType searchEngineType, IndexLockMode lockMode = IndexLockMode.Unlock, bool customize = true)
     {
