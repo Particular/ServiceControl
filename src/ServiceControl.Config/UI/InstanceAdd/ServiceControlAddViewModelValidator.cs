@@ -46,6 +46,22 @@ namespace ServiceControl.Config.UI.InstanceAdd
                     .WithMessage("Error instance name is already in use")
                 .When(viewModel => viewModel.InstallErrorInstance);
 
+            RuleFor(x => x.SelectedStorageType)
+                .NotEmpty()
+                .When(x => (x.InstallErrorInstance || x.InstallAuditInstance) && x.SubmitAttempted);
+
+            RuleFor(x => x.StorageConnectionString)
+                .NotEmpty()
+                    .WithMessage(Validation.Validations.MSG_THIS_STORAGE_TYPE_REQUIRES_A_CONNECTION_STRING)
+                .When(x => (x.InstallErrorInstance || x.InstallAuditInstance) && x.ShowStorageConnectionString && x.SubmitAttempted);
+
+            RuleFor(x => x.ErrorMessageBodyPath)
+                .NotEmpty()
+                .ValidPath()
+                .MustNotBeIn(x => Validations.UsedPaths(x.ErrorInstanceName))
+                    .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Message Body Paths"))
+                .When(x => x.InstallErrorInstance && x.ShowErrorMessageBodyPath);
+
             RuleFor(x => x.ErrorServiceAccount)
                 .NotEmpty()
                 .When(x => x.InstallErrorInstance && x.SubmitAttempted);
@@ -85,7 +101,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                     .WithMessage(string.Format(Validation.Validations.MSG_PORTS_NOT_EQUAL, "Database Maintenance", "Audit"))
                 .NotEqual(x => x.AuditDatabaseMaintenancePortNumber)
                     .WithMessage(string.Format(Validation.Validations.MSG_PORTS_NOT_EQUAL, "Database Maintenance", "Audit Database Maintenance"))
-                .When(x => x.InstallErrorInstance);
+                .When(x => x.InstallErrorInstance && x.ShowErrorDatabaseMaintenancePort);
 
             RuleFor(x => x.ErrorDestinationPath)
                 .NotEmpty()
@@ -157,6 +173,23 @@ namespace ServiceControl.Config.UI.InstanceAdd
                     .WithMessage(string.Format(Validation.Validations.MSG_CANTCONTAINWHITESPACE, "Error instance queue address"))
                 .When(viewModel => viewModel.InstallAuditInstance && !viewModel.InstallErrorInstance);
 
+            RuleFor(x => x.AuditStorageConnectionString)
+                .NotEmpty()
+                    .WithMessage(Validation.Validations.MSG_THIS_STORAGE_TYPE_REQUIRES_A_CONNECTION_STRING)
+                .When(x => x.InstallAuditInstance && x.ShowAuditStorageConnectionStringEntry && x.SubmitAttempted);
+
+            RuleFor(x => x.AuditMessageBodyPath)
+                .NotEmpty()
+                .ValidPath()
+                .MustNotBeIn(x => Validations.UsedPaths(x.AuditInstanceName))
+                    .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Audit Message Body Paths"))
+                .When(x => x.InstallAuditInstance && x.ShowAuditMessageBodyPath);
+
+            RuleFor(x => x.AuditMessageBodyPath)
+                .NotEqual(x => x.ErrorMessageBodyPath, System.StringComparer.OrdinalIgnoreCase)
+                    .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Message Body Paths"))
+                .When(x => x.InstallAuditInstance && x.ShowAuditMessageBodyPath && x.InstallErrorInstance && x.ShowErrorMessageBodyPath);
+
             RuleFor(x => x.AuditServiceAccount)
                 .NotEmpty()
                 .When(x => x.InstallAuditInstance && x.SubmitAttempted);
@@ -196,7 +229,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                     .WithMessage(string.Format(Validation.Validations.MSG_PORTS_NOT_EQUAL, "Audit Database Maintenance", "ServiceControl"))
                 .NotEqual(x => x.ErrorDatabaseMaintenancePortNumber)
                     .WithMessage(string.Format(Validation.Validations.MSG_PORTS_NOT_EQUAL, "Audit Database Maintenance", "ServiceControl Database Maintenance"))
-                .When(x => x.InstallAuditInstance);
+                .When(x => x.InstallAuditInstance && x.ShowAuditDatabaseMaintenancePort);
 
             RuleFor(x => x.AuditDestinationPath)
                 .NotEmpty()

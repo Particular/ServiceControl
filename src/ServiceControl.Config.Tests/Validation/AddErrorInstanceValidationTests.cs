@@ -150,6 +150,97 @@
         }
         #endregion
 
+        #region storagetype
+
+        [Test]
+        public void Storage_type_cannot_be_empty_when_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                SelectedStorageType = null
+            };
+
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.SelectedStorageType));
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.SelectedStorageType));
+
+            Assert.That(errors, Is.Not.Empty);
+        }
+
+        [TestCase("SQLServer")]
+        [TestCase("PostgreSQL")]
+        public void Storage_connection_string_cannot_be_empty_for_storage_types_that_require_one_when_adding_error_instance(string storageTypeName)
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                ErrorSelectedStorageType = ServiceControlPersisters.GetPrimaryPersistence(storageTypeName),
+                SubmitAttempted = true,
+                StorageConnectionString = string.Empty
+            };
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.StorageConnectionString));
+
+            Assert.That(errors, Is.Not.Empty);
+        }
+
+        [Test]
+        public void Message_body_path_cannot_be_empty_for_file_system_storage()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                ErrorSelectedStorageType = ServiceControlPersisters.GetPrimaryPersistence("SQLServer"),
+                SubmitAttempted = true
+            };
+            viewModel.ErrorMessageBodyPath = string.Empty;
+
+            var errors = GetNotifyErrorInfo(viewModel).GetErrors(nameof(viewModel.ErrorMessageBodyPath));
+
+            Assert.That(errors, Is.Not.Empty);
+        }
+
+        [Test]
+        public void Error_and_audit_message_body_paths_must_differ()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                InstallAuditInstance = true,
+                ErrorSelectedStorageType = ServiceControlPersisters.GetPrimaryPersistence("SQLServer"),
+                AuditSelectedStorageType = ServiceControlPersisters.GetAuditPersistence("SQLServer")
+            };
+            viewModel.ErrorMessageBodyPath = @"C:\ProgramData\Particular\ServiceControl\Shared\MessageBodies";
+            viewModel.AuditMessageBodyPath = @"C:\ProgramData\Particular\ServiceControl\Shared\MessageBodies";
+
+            var errors = GetNotifyErrorInfo(viewModel).GetErrors(nameof(viewModel.AuditMessageBodyPath));
+
+            Assert.That(errors, Is.Not.Empty);
+        }
+
+        [Test]
+        public void Storage_connection_string_can_be_empty_for_RavenDB_when_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                ErrorSelectedStorageType = ServiceControlPersisters.GetPrimaryPersistence("RavenDB"),
+                SubmitAttempted = true,
+                StorageConnectionString = string.Empty
+            };
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.StorageConnectionString));
+
+            Assert.That(errors, Is.Empty);
+        }
+
+        #endregion
+
         #region errorinstancename
 
         [Test]
