@@ -104,13 +104,19 @@ class IndexSetupTests : PersistenceTestFixture
         Assert.That(definition.Configuration, Does.ContainKey(IndexDeployment.StaticSearchEngineTypeKey).WithValue(nameof(SearchEngineType.Lucene)), "The database is set to Corax, so Lucene is set on the index");
     }
 
-    [TestCase(true, TestName = "Corax set in the index definition through SearchEngineType should be refused")]
-    [TestCase(false, TestName = "Corax set in the index definition through Configuration should be refused")]
-    public void Corax_set_in_the_index_definition_should_be_refused(bool useSearchEngineTypeProperty)
+    [TestCase(true, TestName = "Search engine set in the index definition through SearchEngineType should take precedence over the one on the server")]
+    [TestCase(false, TestName = "Search engine set in the index definition through Configuration should take precedence over the one on the server")]
+    public async Task Search_engine_set_in_the_index_definition_should_take_precedence_over_the_one_on_the_server(bool useSearchEngineTypeProperty)
     {
-        var exception = Assert.ThrowsAsync<InvalidOperationException>(() => IndexDeployment.CreateIndexesAsync([new FailedAuditImportIndexSetToCorax(useSearchEngineTypeProperty)], configuration.DocumentStore, TestTimeoutCancellationToken));
+        var statsBefore = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(nameof(FailedAuditImportIndex)), TestTimeoutCancellationToken);
 
-        Assert.That(exception.Message, Does.Contain("supports only Lucene"));
+        Assert.That(statsBefore.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
+
+        await IndexDeployment.CreateIndexesAsync([new FailedAuditImportIndexPinnedToCorax(useSearchEngineTypeProperty)], configuration.DocumentStore, TestTimeoutCancellationToken);
+
+        var statsAfter = await WaitForIndexDefinitionUpdate(statsBefore);
+
+        Assert.That(statsAfter.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
     }
 
     [Test]
@@ -345,9 +351,9 @@ class IndexSetupTests : PersistenceTestFixture
         return await WaitForIndexDefinitionUpdate(statsBefore);
     }
 
-    class FailedAuditImportIndexSetToCorax : FailedAuditImportIndex
+    class FailedAuditImportIndexPinnedToCorax : FailedAuditImportIndex
     {
-        public FailedAuditImportIndexSetToCorax(bool useSearchEngineTypeProperty)
+        public FailedAuditImportIndexPinnedToCorax(bool useSearchEngineTypeProperty)
         {
             if (useSearchEngineTypeProperty)
             {

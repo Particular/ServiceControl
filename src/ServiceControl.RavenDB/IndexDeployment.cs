@@ -40,23 +40,26 @@ namespace ServiceControl.RavenDB
                 existingByName.TryGetValue(index.IndexName, out var existingDefinition);
                 existingByName.TryGetValue(replacementName, out var pendingReplacementDefinition);
 
-                // Lucene is the only search engine ServiceControl supports, so a definition in code cannot ask for another one.
+                // 1. A search engine set in our index definition always wins. It can be set through SearchEngineType or Configuration.
                 var definedSearchEngineType = GetDefinedSearchEngineType(index);
                 if (definedSearchEngineType != null)
                 {
-                    if (!IsLucene(definedSearchEngineType))
+                    if (IsLucene(definedSearchEngineType))
                     {
-                        throw new InvalidOperationException($"Index {index.IndexName} sets the {definedSearchEngineType} search engine in its definition. ServiceControl supports only Lucene.");
+                        Logger.LogInformation("Index {IndexName} uses the Lucene search engine set in its definition", index.IndexName);
+                    }
+                    else
+                    {
+                        Logger.LogWarning("Index {IndexName} uses the {SearchEngineType} search engine set in its definition. ServiceControl supports only Lucene", index.IndexName, definedSearchEngineType);
                     }
 
-                    Logger.LogInformation("Index {IndexName} uses the Lucene search engine set in its definition", index.IndexName);
                     continue;
                 }
 
                 var rebuildTriggers = existingDefinition == null ? IndexDefinitionCompareDifferences.None : GetRebuildTriggeringDifferences(existingDefinition, index, store);
                 var requiresRebuild = rebuildTriggers != IndexDefinitionCompareDifferences.None;
 
-                // 1. Keep Lucene set on the index on the server, for example by an operator in RavenDB Studio. The
+                // 2. Keep Lucene set on the index on the server, for example by an operator in RavenDB Studio. The
                 // definitions then match and RavenDB does not rebuild the index. A pending replacement is checked first:
                 // when the operator changes the search engine, the replacement holds the latest choice. A replacement
                 // without a search engine, created by 6.20.0 and 6.21.0 at start-up, is discarded by RavenDB once the
