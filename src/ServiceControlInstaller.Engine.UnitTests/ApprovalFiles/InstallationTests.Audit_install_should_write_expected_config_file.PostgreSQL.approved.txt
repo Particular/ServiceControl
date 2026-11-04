@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+    <appSettings>
+        <add key="ServiceControl.Audit/Port" value="0" />
+        <add key="ServiceControl.Audit/HostName" value="localhost" />
+        <add key="ServiceControl.Audit/LogPath" value="value-not-asserted" />
+        <add key="ServiceControl.Audit/ForwardAuditMessages" value="false" />
+        <add key="ServiceControl.Audit/TransportType" value="LearningTransport" />
+        <add key="ServiceControl.Audit/StorageType" value="PostgreSQL" />
+        <add key="ServiceControl.Audit/AuditRetentionPeriod" value="00:00:00" />
+        <add key="ServiceControl.Audit/ShutdownTimeout" value="00:02:00" />
+        <add key="ServiceControl.Audit/MessageBody/StorageType" value="FileSystem" />
+        <add key="ServiceControl.Audit/MessageBody/FileSystem/StoragePath"
+            value="value-not-asserted" />
+        <add key="ServiceControl.Audit/Database/ConnectionString" value="placeholder-connection-string" />
+        <add key="ServiceControl.Audit/Database/Schema" value="sc_audit" />
+    </appSettings>
+</configuration>

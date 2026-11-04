@@ -40,6 +40,9 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public bool InMaintenanceMode { get; set; }
         public ReportCard ReportCard { get; set; }
+        public PersistenceManifest PersistenceManifest { get; set; }
+
+        public MessageBodyStorage MessageBodyStorage => null;
 
         /// <summary>
         /// Raven management URL
