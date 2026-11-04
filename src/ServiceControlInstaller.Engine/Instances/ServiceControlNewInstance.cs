@@ -92,7 +92,10 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override void ValidateMaintenancePort()
         {
-            DatabaseMaintenancePortValidator.Validate(this);
+            if (PersistenceManifest.Settings.Any(s => s.Name == ServiceControlSettings.DatabaseMaintenancePort.Name))
+            {
+                DatabaseMaintenancePortValidator.Validate(this);
+            }
         }
 
         protected override void ValidateQueueNames()
@@ -108,6 +111,11 @@ namespace ServiceControlInstaller.Engine.Instances
         protected override void ValidateConnectionString()
         {
             ConnectionStringValidator.Validate(this);
+        }
+
+        protected override void ValidatePersistence()
+        {
+            MessageBodyStorageValidator.Validate(PersistenceManifest, MessageBodyStorage);
         }
 
         public static ServiceControlNewInstance Load(string path)

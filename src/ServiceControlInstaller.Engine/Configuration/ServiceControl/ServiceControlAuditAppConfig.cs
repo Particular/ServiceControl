@@ -28,13 +28,21 @@
             settings.Set(AuditInstanceSettingsList.AuditLogQueue, instance.ForwardAuditMessages ? instance.AuditLogQueue : null);
             settings.Set(AuditInstanceSettingsList.AuditRetentionPeriod, instance.AuditRetentionPeriod.ToString(), version);
             settings.Set(AuditInstanceSettingsList.ServiceControlQueueAddress, instance.ServiceControlQueueAddress);
-            settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, instance.EnableFullTextSearchOnBodies.ToString().ToLowerInvariant(), version);
+            settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, instance.PersistenceManifest.Settings.Any(s => s.Name == AuditInstanceSettingsList.EnableFullTextSearchOnBodies.Name) ? instance.EnableFullTextSearchOnBodies.ToString().ToLowerInvariant() : null, version);
 
             // Windows services allow a maximum of 125 seconds when stopping a service.
             // When shutting down or restarting the OS we have no control over the
             // shutdown timeout. This is by the installer engine that is run _only_ on
             // Windows via SCMU or PowerShell
             settings.Set(AuditInstanceSettingsList.ShutdownTimeout, "00:02:00", version);
+
+            if (instance.MessageBodyStorage != null)
+            {
+                foreach (var (setting, value) in instance.MessageBodyStorage.GetSettings("ServiceControl.Audit"))
+                {
+                    settings.Set(setting, value);
+                }
+            }
 
             foreach (var manifestSetting in instance.PersistenceManifest.Settings)
             {
@@ -50,6 +58,11 @@
                     if (manifestSetting.Name == AuditInstanceSettingsList.DatabaseMaintenancePort.Name)
                     {
                         value = instance.DatabaseMaintenancePort.ToString();
+                    }
+
+                    if (manifestSetting.Name == AuditInstanceSettingsList.DatabaseConnectionString.Name)
+                    {
+                        value = instance.PersistenceConnectionString;
                     }
 
                     if (!string.IsNullOrEmpty(value))

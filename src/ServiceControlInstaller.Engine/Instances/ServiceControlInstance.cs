@@ -48,11 +48,19 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override string BaseServiceName => "ServiceControl";
 
+        protected override SettingInfo DatabaseMaintenancePortSetting => ServiceControlSettings.DatabaseMaintenancePort;
+
+        protected override SettingInfo RavenDBConnectionStringSetting => ServiceControlSettings.RavenDBConnectionString;
+
+        protected override SettingInfo MessageBodyStorageTypeSetting => ServiceControlSettings.MessageBodyStorageType;
+
+        protected override SettingInfo MessageBodyStoragePathSetting => ServiceControlSettings.MessageBodyFileSystemStoragePath;
+
         public TimeSpan? AuditRetentionPeriod { get; set; }
 
         public List<RemoteInstanceSetting> RemoteInstances { get; set; } = [];
 
-        public PersistenceManifest PersistenceManifest { get; set; }
+        public string PersistenceConnectionString { get; set; }
 
         public void AddRemoteInstance(string apiUri)
         {
@@ -218,7 +226,12 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(ServiceControlSettings.ErrorQueue, ErrorQueue);
             settings.Set(ServiceControlSettings.AuditLogQueue, AuditLogQueue, Version);
             settings.Set(ServiceControlSettings.ErrorLogQueue, ErrorLogQueue, Version);
-            settings.Set(ServiceControlSettings.EnableFullTextSearchOnBodies, EnableFullTextSearchOnBodies.ToString(), Version);
+
+            var enableFullTextSearchOnBodiesValue = PersistenceManifest.Settings.Any(s => s.Name == ServiceControlSettings.EnableFullTextSearchOnBodies.Name)
+                ? EnableFullTextSearchOnBodies.ToString().ToLowerInvariant()
+                : null;
+
+            settings.Set(ServiceControlSettings.EnableFullTextSearchOnBodies, enableFullTextSearchOnBodiesValue, Version);
             settings.Set(ServiceControlSettings.StorageType, PersistenceManifest.Name);
             settings.Set(ServiceControlSettings.EnableIntegratedServicePulse, EnableIntegratedServicePulse.ToString(), Version);
 
@@ -247,29 +260,5 @@ namespace ServiceControlInstaller.Engine.Instances
             FileUtils.UnzipToSubdirectory("RavenDBServer.zip", Path.Combine(destDir, "Persisters", "RavenDB", "RavenDBServer"));
         }
 
-        protected override IEnumerable<string> GetPersistencePathsToCleanUp()
-        {
-            string[] keys =
-            [
-                "Raven/IndexStoragePath",
-                "Raven/CompiledIndexCacheDirectory",
-                "Raven/Esent/LogsPath",
-                ServiceControlSettings.DBPath.Name
-            ];
-
-            var settings = AppConfig.Config.AppSettings.Settings;
-            foreach (var key in keys)
-            {
-                if (!settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                var folderpath = settings[key].Value;
-                yield return folderpath.StartsWith("~") //Raven uses ~ to indicate path is relative to bin folder e.g. ~/Data/Logs
-                    ? Path.Combine(InstallPath, folderpath.Remove(0, 1))
-                    : folderpath;
-            }
-        }
     }
 }

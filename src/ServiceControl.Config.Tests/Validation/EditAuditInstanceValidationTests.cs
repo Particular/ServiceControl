@@ -92,6 +92,42 @@
 
         #region hostname
 
+        [TestCase("SQLServer", false)]
+        [TestCase("PostgreSQL", false)]
+        [TestCase("RavenDB", true)]
+        public void Database_maintenance_port_is_required_only_for_RavenDB_when_editing_audit_instance(string storageTypeName, bool required)
+        {
+            var viewModel = new ServiceControlAuditEditViewModel
+            {
+                PersistenceManifest = ServiceControlPersisters.GetAuditPersistence(storageTypeName),
+                SubmitAttempted = true,
+                DatabaseMaintenancePortNumber = null
+            };
+
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.DatabaseMaintenancePortNumber));
+
+            var errors = GetNotifyErrorInfo(viewModel).GetErrors(nameof(viewModel.DatabaseMaintenancePortNumber));
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(viewModel.DatabaseMaintenancePortNumberRequired, Is.EqualTo(required));
+                Assert.That(errors, required ? Is.Not.Empty : Is.Empty);
+            }
+        }
+
+        [TestCase("SQLServer", false)]
+        [TestCase("PostgreSQL", false)]
+        [TestCase("RavenDB", true)]
+        public void Full_text_search_option_is_shown_only_for_RavenDB_when_editing_audit_instance(string storageTypeName, bool expected)
+        {
+            var viewModel = new ServiceControlAuditEditViewModel
+            {
+                PersistenceManifest = ServiceControlPersisters.GetAuditPersistence(storageTypeName)
+            };
+
+            Assert.That(viewModel.ShowFullTextSearchOnBodies, Is.EqualTo(expected));
+        }
+
         [Test]
         public void Audit_hostname_can_not_be_empty_when_editing_audit_instance()
         {

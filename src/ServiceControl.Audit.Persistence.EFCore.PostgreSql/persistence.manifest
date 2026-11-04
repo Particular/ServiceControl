@@ -78,5 +78,8 @@
       "Name": "ServiceControl.Audit/MessageBody/MinCompressionSize",
       "Mandatory": false
     }
+  ],
+  "SettingsWithPathsToCleanup": [
+    "ServiceControl.Audit/MessageBody/FileSystem/StoragePath"
   ]
 }

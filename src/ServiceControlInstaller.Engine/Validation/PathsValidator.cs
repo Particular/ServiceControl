@@ -28,7 +28,11 @@ namespace ServiceControlInstaller.Engine.Validation
             paths = pathList.Where(p => !string.IsNullOrWhiteSpace(p.Path)).ToList();
         }
 
-        public PathsValidator(IServiceControlPaths instance)
+        public PathsValidator(IServiceControlPaths instance) : this(instance, [])
+        {
+        }
+
+        public PathsValidator(IServiceControlPaths instance, IEnumerable<PathInfo> additionalPaths)
         {
             var pathList = new List<PathInfo>
             {
@@ -50,6 +54,12 @@ namespace ServiceControlInstaller.Engine.Validation
                     CheckIfEmpty = true
                 }
             };
+            pathList.AddRange(additionalPaths.Select(p => new PathInfo
+            {
+                Name = p.Name,
+                Path = Environment.ExpandEnvironmentVariables(p.Path ?? string.Empty),
+                CheckIfEmpty = p.CheckIfEmpty
+            }));
             paths = pathList.Where(p => !string.IsNullOrWhiteSpace(p.Path)).ToList();
         }
 

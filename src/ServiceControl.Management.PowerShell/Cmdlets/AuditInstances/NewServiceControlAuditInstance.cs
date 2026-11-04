@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Management.PowerShell
 {
     using System;
+    using System.Collections.Generic;
     using System.Management.Automation;
     using System.Threading;
     using System.Threading.Tasks;
@@ -23,10 +24,71 @@
         [ValidatePath]
         public string InstallPath { get; set; }
 
-        [Parameter(Mandatory = true, HelpMessage = "Specify the directory that will contain the RavenDB database for this Audit Instance")]
+        [Parameter(Mandatory = false, HelpMessage = "Specify the storage type to use. Defaults to RavenDB")]
+        [ValidateSet(typeof(AuditStorageTypeValuesGenerator))]
+        public string StorageType { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the directory that will contain the RavenDB database for this Audit Instance. Required for RavenDB")]
         [ValidateNotNullOrEmpty]
         [ValidatePath]
         public string DBPath { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the database connection string. Required for SQLServer and PostgreSQL")]
+        [ValidateNotNullOrEmpty]
+        public string DatabaseConnectionString { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify where message bodies are stored for SQLServer and PostgreSQL. Defaults to FileSystem")]
+        [ValidateSet("FileSystem", "AzureBlob", "S3")]
+        public string MessageBodyStorageType { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the directory that will contain message bodies. Required for FileSystem message body storage")]
+        [ValidateNotNullOrEmpty]
+        [ValidatePath]
+        public string MessageBodyPath { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the Azure Blob Storage connection string. Use this or AzureBlobServiceUri")]
+        [ValidateNotNullOrEmpty]
+        public string AzureBlobConnectionString { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the Azure Blob Storage service URI to connect with a managed identity. Use this or AzureBlobConnectionString")]
+        [ValidateNotNullOrEmpty]
+        public string AzureBlobServiceUri { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the client ID of a user-assigned managed identity")]
+        [ValidateNotNullOrEmpty]
+        public string AzureBlobManagedIdentityClientId { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the Microsoft Entra authority host for sovereign clouds")]
+        [ValidateNotNullOrEmpty]
+        public string AzureBlobAuthorityHost { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the Azure Blob Storage container name. Defaults to audit-bodies")]
+        [ValidateNotNullOrEmpty]
+        public string AzureBlobContainerName { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the S3 bucket name. Required for S3 message body storage")]
+        [ValidateNotNullOrEmpty]
+        public string S3BucketName { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the S3 key prefix. Defaults to audit-bodies/")]
+        [ValidateNotNullOrEmpty]
+        public string S3KeyPrefix { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the S3 region")]
+        [ValidateNotNullOrEmpty]
+        public string S3Region { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the service URL of S3-compatible storage")]
+        [ValidateNotNullOrEmpty]
+        public string S3ServiceUrl { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the S3 access key ID. Use with S3SecretAccessKey, or omit both to use the default AWS credentials")]
+        [ValidateNotNullOrEmpty]
+        public string S3AccessKeyId { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the S3 secret access key. Use with S3AccessKeyId")]
+        [ValidateNotNullOrEmpty]
+        public string S3SecretAccessKey { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the directory to use for this Audit Instance Logs")]
         [ValidateNotNullOrEmpty]
@@ -41,9 +103,9 @@
         [ValidateRange(1, 49151)]
         public int Port { get; set; }
 
-        [Parameter(Mandatory = true, HelpMessage = "Specify the database maintenance port number to listen on")]
+        [Parameter(Mandatory = false, HelpMessage = "Specify the database maintenance port number to listen on. Required for RavenDB")]
         [ValidateRange(1, 49151)]
-        public int DatabaseMaintenancePort { get; set; }
+        public int? DatabaseMaintenancePort { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Specify AuditQueue name to consume messages from. Default is audit")]
         [ValidateNotNullOrEmpty]
@@ -88,7 +150,7 @@
         [Parameter(Mandatory = false, HelpMessage = "Do not automatically create queues")]
         public SwitchParameter SkipQueueCreation { get; set; }
 
-        [Parameter(Mandatory = false, HelpMessage = "Specify whether to enable full text search on audit messages.")]
+        [Parameter(Mandatory = false, HelpMessage = "Specify whether to enable full text search on audit message bodies. Only used when StorageType is RavenDB.")]
         public SwitchParameter EnableFullTextSearchOnBodies { get; set; } = true;
 
         [Parameter(Mandatory = false, HelpMessage = "Reuse the specified log, db, and install paths even if they are not empty")]
@@ -99,6 +161,24 @@
 
         protected override void BeginProcessing()
         {
+            persistenceManifest = ServiceControlPersisters.GetAuditPersistence(string.IsNullOrWhiteSpace(StorageType) ? StorageEngineNames.RavenDB : StorageType);
+            PersistenceParameters.Validate(persistenceManifest, DBPath, DatabaseMaintenancePort, DatabaseConnectionString, MyInvocation.BoundParameters.ContainsKey(nameof(EnableFullTextSearchOnBodies)));
+            messageBodyStorage = PersistenceParameters.CreateMessageBodyStorage(persistenceManifest, MessageBodyStorageType, new Dictionary<string, string>
+            {
+                [nameof(MessageBodyPath)] = MessageBodyPath,
+                [nameof(AzureBlobConnectionString)] = AzureBlobConnectionString,
+                [nameof(AzureBlobServiceUri)] = AzureBlobServiceUri,
+                [nameof(AzureBlobManagedIdentityClientId)] = AzureBlobManagedIdentityClientId,
+                [nameof(AzureBlobAuthorityHost)] = AzureBlobAuthorityHost,
+                [nameof(AzureBlobContainerName)] = AzureBlobContainerName,
+                [nameof(S3BucketName)] = S3BucketName,
+                [nameof(S3KeyPrefix)] = S3KeyPrefix,
+                [nameof(S3Region)] = S3Region,
+                [nameof(S3ServiceUrl)] = S3ServiceUrl,
+                [nameof(S3AccessKeyId)] = S3AccessKeyId,
+                [nameof(S3SecretAccessKey)] = S3SecretAccessKey
+            });
+
             var transport = ServiceControlCoreTransports.Find(Transport);
 
             var requiresConnectionString = !string.IsNullOrEmpty(transport.SampleConnectionString);
@@ -140,7 +220,7 @@
 
         protected override void ProcessRecord()
         {
-            var newAuditInstance = ServiceControlAuditNewInstance.CreateWithDefaultPersistence();
+            var newAuditInstance = ServiceControlAuditNewInstance.CreateWithPersistence(persistenceManifest.Name);
 
             newAuditInstance.InstallPath = InstallPath;
             newAuditInstance.LogPath = LogPath;
@@ -154,6 +234,8 @@
             newAuditInstance.HostName = HostName;
             newAuditInstance.Port = Port;
             newAuditInstance.DatabaseMaintenancePort = DatabaseMaintenancePort;
+            newAuditInstance.PersistenceConnectionString = DatabaseConnectionString;
+            newAuditInstance.MessageBodyStorage = messageBodyStorage;
             newAuditInstance.AuditQueue = AuditQueue;
             newAuditInstance.AuditLogQueue = string.IsNullOrWhiteSpace(AuditLogQueue) ? null : AuditLogQueue;
             newAuditInstance.ForwardAuditMessages = ForwardAuditMessages.ToBool();
@@ -201,6 +283,9 @@
                 ThrowTerminatingError(new ErrorRecord(ex, null, ErrorCategory.NotSpecified, null));
             }
         }
+
+        PersistenceManifest persistenceManifest;
+        MessageBodyStorage messageBodyStorage;
 
         Task<bool> PromptToProceed(PathInfo pathInfo, CancellationToken cancellationToken)
         {

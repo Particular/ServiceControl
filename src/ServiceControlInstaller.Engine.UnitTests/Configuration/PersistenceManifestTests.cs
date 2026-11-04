@@ -57,6 +57,16 @@
         }
 
         [Test]
+        public void SupportedManifestsExcludeLegacyRavenDB35()
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(ServiceControlPersisters.GetSupportedPrimaryManifests().Select(m => m.Name), Is.EquivalentTo(new[] { "PostgreSQL", "RavenDB", "SQLServer" }));
+                Assert.That(ServiceControlPersisters.GetSupportedAuditManifests().Select(m => m.Name), Is.EquivalentTo(new[] { "PostgreSQL", "RavenDB", "SQLServer" }));
+            });
+        }
+
+        [Test]
         public void UnknownPersister()
         {
             var garbage = "garbage-value";
