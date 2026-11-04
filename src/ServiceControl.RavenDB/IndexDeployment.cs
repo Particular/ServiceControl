@@ -32,7 +32,7 @@ namespace ServiceControl.RavenDB
             var existingByName = existingDefinitions.ToDictionary(d => d.Name, StringComparer.OrdinalIgnoreCase);
 
             var databaseDefault = await GetDatabaseSearchEngineType(store, cancellationToken);
-            var databaseDefaultIsLucene = string.Equals(databaseDefault, nameof(SearchEngineType.Lucene), StringComparison.OrdinalIgnoreCase);
+            var databaseDefaultIsLucene = IsLucene(databaseDefault);
 
             foreach (var index in indexList)
             {
@@ -40,37 +40,46 @@ namespace ServiceControl.RavenDB
                 existingByName.TryGetValue(index.IndexName, out var existingDefinition);
                 existingByName.TryGetValue(replacementName, out var pendingReplacementDefinition);
 
-                // 1. A search engine set in our index definition always wins. It can be set through SearchEngineType or Configuration.
-                if (index.SearchEngineType.HasValue)
+                // Lucene is the only search engine ServiceControl supports, so a definition in code cannot ask for another one.
+                var definedSearchEngineType = GetDefinedSearchEngineType(index);
+                if (definedSearchEngineType != null)
                 {
-                    Logger.LogInformation("Index {IndexName} uses the {SearchEngineType} search engine set in its definition", index.IndexName, index.SearchEngineType);
+                    if (!IsLucene(definedSearchEngineType))
+                    {
+                        throw new InvalidOperationException($"Index {index.IndexName} sets the {definedSearchEngineType} search engine in its definition. ServiceControl supports only Lucene.");
+                    }
+
+                    Logger.LogInformation("Index {IndexName} uses the Lucene search engine set in its definition", index.IndexName);
                     continue;
                 }
 
-                if (index.Configuration.TryGetValue(StaticSearchEngineTypeKey, out var definedSearchEngineType) && !string.IsNullOrEmpty(definedSearchEngineType))
-                {
-                    Logger.LogInformation("Index {IndexName} uses the {SearchEngineType} search engine set in its definition", index.IndexName, definedSearchEngineType);
-                    continue;
-                }
+                var rebuildTriggers = existingDefinition == null ? IndexDefinitionCompareDifferences.None : GetRebuildTriggeringDifferences(existingDefinition, index, store);
+                var requiresRebuild = rebuildTriggers != IndexDefinitionCompareDifferences.None;
 
-                // 2. Keep a search engine set on the index on the server, for example by an operator in RavenDB Studio. The
+                // 1. Keep Lucene set on the index on the server, for example by an operator in RavenDB Studio. The
                 // definitions then match and RavenDB does not rebuild the index. A pending replacement is checked first:
                 // when the operator changes the search engine, the replacement holds the latest choice. A replacement
                 // without a search engine, created by 6.20.0 and 6.21.0 at start-up, is discarded by RavenDB once the
                 // definition matches the original index again.
-                if (TryGetSearchEngineType(pendingReplacementDefinition, out var searchEngineType) || TryGetSearchEngineType(existingDefinition, out searchEngineType))
+                if (HasSearchEngineTypeSetOnIndex(pendingReplacementDefinition, IsLucene) || HasSearchEngineTypeSetOnIndex(existingDefinition, IsLucene))
                 {
-                    index.Configuration[StaticSearchEngineTypeKey] = searchEngineType;
-                    Logger.LogInformation("Index {IndexName} keeps the {SearchEngineType} search engine set on the index", index.IndexName, searchEngineType);
+                    index.Configuration[StaticSearchEngineTypeKey] = nameof(SearchEngineType.Lucene);
+                    Logger.LogInformation("Index {IndexName} keeps the Lucene search engine set on the index", index.IndexName);
                     continue;
                 }
 
-                // 3. A new index, or an index that RavenDB rebuilds because the definition changed, uses Lucene, the
-                // application default. It inherits Lucene when the database is set to Lucene. Otherwise Lucene is set on
-                // the index, so the index does not follow a database default of Corax.
-                var rebuildTriggers = existingDefinition == null ? IndexDefinitionCompareDifferences.None : GetRebuildTriggeringDifferences(existingDefinition, index, store);
-                var requiresRebuild = rebuildTriggers != IndexDefinitionCompareDifferences.None;
+                // 2. Another search engine set on an unchanged index is kept, because dropping the setting makes RavenDB
+                // rebuild the index. It is replaced by Lucene when the index is rebuilt anyway (rule 3).
+                if (!requiresRebuild && TryGetSearchEngineType(existingDefinition, out var unsupportedSearchEngineType))
+                {
+                    index.Configuration[StaticSearchEngineTypeKey] = unsupportedSearchEngineType;
+                    Logger.LogWarning("Index {IndexName} has the {SearchEngineType} search engine set on the index. ServiceControl supports only Lucene and sets Lucene when the index is rebuilt", index.IndexName, unsupportedSearchEngineType);
+                    continue;
+                }
 
+                // 3. A new index, or an index that RavenDB rebuilds because the definition changed, uses Lucene. It inherits
+                // Lucene when the database is set to Lucene. Otherwise Lucene is set on the index, so the index does not
+                // follow a database default of Corax.
                 if (existingDefinition == null || requiresRebuild)
                 {
                     var reason = existingDefinition == null ? "is created" : $"is rebuilt because its definition changed ({rebuildTriggers})";
@@ -118,6 +127,21 @@ namespace ServiceControl.RavenDB
 
             return existingDefinition.Compare(index.CreateIndexDefinition()) & RebuildTriggeringDifferences;
         }
+
+        static string GetDefinedSearchEngineType(AbstractIndexCreationTask index)
+        {
+            if (index.SearchEngineType.HasValue)
+            {
+                return index.SearchEngineType.Value.ToString();
+            }
+
+            return index.Configuration.TryGetValue(StaticSearchEngineTypeKey, out var configured) && !string.IsNullOrEmpty(configured) ? configured : null;
+        }
+
+        static bool HasSearchEngineTypeSetOnIndex(IndexDefinition definition, Func<string, bool> predicate) =>
+            TryGetSearchEngineType(definition, out var searchEngineType) && predicate(searchEngineType);
+
+        static bool IsLucene(string searchEngineType) => string.Equals(searchEngineType, nameof(SearchEngineType.Lucene), StringComparison.OrdinalIgnoreCase);
 
         static bool TryGetSearchEngineType(IndexDefinition definition, out string searchEngineType)
         {
