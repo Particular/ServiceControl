@@ -35,6 +35,9 @@
         public static PersistenceManifest GetPrimaryPersistence(string name) => GetPersistenceManifest(primaryPersistenceManifests, name);
         public static PersistenceManifest GetAuditPersistence(string name) => GetPersistenceManifest(auditPersistenceManifests, name);
 
+        public static PersistenceManifest[] GetSupportedPrimaryManifests() => primaryPersistenceManifests.Where(m => m.IsSupported).ToArray();
+        public static PersistenceManifest[] GetSupportedAuditManifests() => auditPersistenceManifests.Where(m => m.IsSupported).ToArray();
+
         static PersistenceManifest GetPersistenceManifest(PersistenceManifest[] manifestCollection, string name)
         {
             if (string.IsNullOrEmpty(name))
