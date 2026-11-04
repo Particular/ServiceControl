@@ -48,6 +48,31 @@ class IndexSetupTests : PersistenceTestFixture
     }
 
     [Test]
+    public async Task Startup_check_should_not_report_corax_indexes_with_a_pending_lucene_replacement()
+    {
+        var corax = new MessagesViewIndexWithFullTextSearch { Configuration = { [IndexDeployment.StaticSearchEngineTypeKey] = SearchEngineType.Corax.ToString() } };
+
+        await UpdateIndex(corax);
+
+        // Stop indexing so that the replacement cannot catch up and swap.
+        await configuration.DocumentStore.Maintenance.SendAsync(new StopIndexingOperation(), TestTimeoutCancellationToken);
+
+        try
+        {
+            // The definition without a search engine differs from the Corax index, so RavenDB builds a replacement on the database default, Lucene.
+            await IndexCreation.CreateIndexesAsync([new MessagesViewIndexWithFullTextSearch()], configuration.DocumentStore, null, null, TestTimeoutCancellationToken);
+
+            var coraxIndexes = await StartupChecks.FindIndexesUsingCorax(configuration.DocumentStore, configuration.DocumentStore.Database, TestTimeoutCancellationToken);
+
+            Assert.That(coraxIndexes, Is.Empty);
+        }
+        finally
+        {
+            await configuration.DocumentStore.Maintenance.SendAsync(new StartIndexingOperation(), TestTimeoutCancellationToken);
+        }
+    }
+
+    [Test]
     public async Task Free_text_search_index_should_be_used_by_default()
     {
         var freeTextIndex = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(DatabaseSetup.MessagesViewIndexWithFulltextSearchName));

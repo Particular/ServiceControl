@@ -4,6 +4,7 @@
     using System.Reflection;
     using System.Threading;
     using Microsoft.Extensions.Logging;
+    using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Indexes;
     using Raven.Client.Documents.Operations.Indexes;
@@ -35,8 +36,14 @@
         {
             var indexStats = await store.Maintenance.ForDatabase(databaseName).SendAsync(new GetIndexesStatisticsOperation(), cancellationToken);
 
+            var rebuilding = indexStats
+                .Where(i => i.Name.StartsWith(Constants.Documents.Indexing.SideBySideIndexNamePrefix, StringComparison.OrdinalIgnoreCase) && i.SearchEngineType != SearchEngineType.Corax)
+                .Select(i => i.Name[Constants.Documents.Indexing.SideBySideIndexNamePrefix.Length..])
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            // The original index stays on Corax until the replacement swaps in, which can take days.
             return indexStats
-                .Where(i => i.SearchEngineType == SearchEngineType.Corax)
+                .Where(i => i.SearchEngineType == SearchEngineType.Corax && !rebuilding.Contains(i.Name))
                 .Select(i => i.Name)
                 .ToArray();
         }
