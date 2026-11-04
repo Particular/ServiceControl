@@ -230,7 +230,8 @@
                                            DisplayMemberPath="Name"
                                            Header="FULL TEXT SEARCH ON MESSAGE BODIES"
                                            ItemsSource="{Binding EnableFullTextSearchOnBodiesOptions}"
-                                           SelectedValue="{Binding EnableFullTextSearchOnBodies}" />
+                                           SelectedValue="{Binding EnableFullTextSearchOnBodies}"
+                                           Visibility="{Binding ShowFullTextSearchOnBodies, Converter={StaticResource boolToVis}}" />
                 <controls:FormComboBox HorizontalAlignment="Stretch"
                                            VerticalAlignment="Top"
                                            DisplayMemberPath="Name"

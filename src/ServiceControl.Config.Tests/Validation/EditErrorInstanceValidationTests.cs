@@ -244,6 +244,62 @@
         #endregion
 
         #region DatabaseManintenancePortnumber
+        [TestCase("SQLServer")]
+        [TestCase("PostgreSQL")]
+        public void Database_maintenance_port_is_not_required_when_editing_error_instance_without_one(string storageTypeName)
+        {
+            var viewModel = new ServiceControlEditViewModel
+            {
+                PersistenceManifest = ServiceControlPersisters.GetPrimaryPersistence(storageTypeName),
+                SubmitAttempted = true,
+                DatabaseMaintenancePortNumber = null
+            };
+
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.DatabaseMaintenancePortNumber));
+
+            var errors = GetNotifyErrorInfo(viewModel).GetErrors(nameof(viewModel.DatabaseMaintenancePortNumber));
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(viewModel.DatabaseMaintenancePortNumberRequired, Is.False);
+                Assert.That(errors, Is.Empty);
+            }
+        }
+
+        [Test]
+        public void Database_maintenance_port_is_required_when_editing_RavenDB_error_instance()
+        {
+            var viewModel = new ServiceControlEditViewModel
+            {
+                PersistenceManifest = ServiceControlPersisters.GetPrimaryPersistence("RavenDB"),
+                SubmitAttempted = true,
+                DatabaseMaintenancePortNumber = null
+            };
+
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.DatabaseMaintenancePortNumber));
+
+            var errors = GetNotifyErrorInfo(viewModel).GetErrors(nameof(viewModel.DatabaseMaintenancePortNumber));
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(viewModel.DatabaseMaintenancePortNumberRequired, Is.True);
+                Assert.That(errors, Is.Not.Empty);
+            }
+        }
+
+        [TestCase("SQLServer", false)]
+        [TestCase("PostgreSQL", false)]
+        [TestCase("RavenDB", true)]
+        public void Full_text_search_option_is_shown_only_for_RavenDB_when_editing_error_instance(string storageTypeName, bool expected)
+        {
+            var viewModel = new ServiceControlEditViewModel
+            {
+                PersistenceManifest = ServiceControlPersisters.GetPrimaryPersistence(storageTypeName)
+            };
+
+            Assert.That(viewModel.ShowFullTextSearchOnBodies, Is.EqualTo(expected));
+        }
+
         [Test]
         public void Database_maintenance_port_cannot_be_empty_when_editing_error_instance()
         {
