@@ -59,6 +59,7 @@
     <PackageVersion Include="NServiceBus.Testing" Version="11.0.0" />
     <PackageVersion Include="NServiceBus.Transport.AzureServiceBus" Version="6.5.0" />
     <PackageVersion Include="NServiceBus.Transport.AzureStorageQueues" Version="14.1.0" />
+    <PackageVersion Include="NServiceBus.Transport.GooglePubSub" Version="0.0.0-alpha.0.40" />
     <PackageVersion Include="NServiceBus.Transport.Msmq.Sources" Version="4.0.1" />
     <PackageVersion Include="NServiceBus.Transport.PostgreSql" Version="9.1.0" />
     <PackageVersion Include="NServiceBus.Transport.SqlServer" Version="9.1.0" />
@@ -104,6 +105,7 @@
   </ItemGroup>
   <ItemGroup Label="Versions to pin transitive references">
     <PackageVersion Include="Azure.Core" Version="1.62.0" />
+    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.1.1" />
     <!-- Enforced by DeploymentPackageTests.DuplicateAssembliesInDeploymentUnitsShouldHaveMatchingVersions -->
     <PackageVersion Include="Microsoft.Data.SqlClient.Extensions.Abstractions" Version="7.1.1" />
@@ -111,6 +113,8 @@
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.Extensions.FileProviders.Embedded" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.IdentityModel.Abstractions" Version="8.22.0" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageVersion Include="System.CodeDom" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.Formats.Cbor" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="System.Threading.RateLimiting" Version="$(RuntimeFrameworkVersion)" />

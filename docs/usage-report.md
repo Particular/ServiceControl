@@ -120,6 +120,7 @@ The primary's `TransportEnvironmentDataProvider` emits `Transport.Type` and adds
 | `Transport.AmazonSQS.LargeMessageBucket` | `None`, `Configured` | `S3BucketForLargeMessages` | Unreleased |
 | `Transport.AmazonSQS.MessageWrapping` | `Enabled`, `Disabled` | `DoNotWrapOutgoingMessages` | Unreleased |
 | `Transport.AmazonSQS.ReservedBytesInMessageSize` | `Default` or number | `ReservedBytesInMessageSize` | Unreleased |
+| `Transport.GooglePubSub.NamePrefix` | `None`, `Configured` | `ResourceNamePrefix` in the connection string | Unreleased |
 | `Transport.RabbitMQ.DeliveryLimitValidation` | `Enabled`, `Disabled` | `ValidateDeliveryLimits` | Unreleased |
 | `Transport.RabbitMQ.ManagementApi` | `Default`, `Configured` | `ManagementApiUrl` | Unreleased |
 | `Transport.SQLServer.QueueSchema` | `Default`, `Custom` | `Queue Schema` in the connection string | Unreleased |
@@ -286,6 +287,7 @@ A setting that identifies and is also security configuration is listed as Identi
 | `Cors.AllowAnyOrigin` and whether origins are restricted | Security configuration | |
 | `ForwardedHeaders.Enabled`, `TrustAllProxies` and whether proxies are restricted | Security configuration | |
 | Transport authentication, encryption and certificate validation options in the connection string, for example RabbitMQ `UseExternalAuthMechanism` and `DisableRemoteCertificateValidation` | Security configuration | |
+| Google Pub/Sub `ServiceEndpoint` | Security configuration | A custom endpoint usually means a regional endpoint or the restricted endpoint of VPC Service Controls, which restricts access. |
 | Database authentication, encryption and certificate validation options, for example SQL Server `Encrypt` and `TrustServerCertificate` or PostgreSQL `SSL Mode`, and whether a RavenDB client certificate is used | Security configuration | |
 | Body storage authentication mode | Security configuration | 6.20.0 to 6.21.2 report it as `Persistence.BodyStorage.Auth`. |
 | Email notification TLS and SMTP authentication | Security configuration | |
@@ -299,6 +301,7 @@ A setting that identifies and is also security configuration is listed as Identi
 | `--error-ingestion-only` | Not a choice | A worker mode. Workers do not build reports. |
 | RavenDB `MaintenanceMode` | Not a choice | An instance in maintenance mode serves no API, so it cannot build a report. |
 | `ASPNETCORE_ENVIRONMENT=Development` | Not a choice | A development mode. |
+| `PUBSUB_EMULATOR_HOST` | Not a choice | Selects the Pub/Sub emulator, a development mode. |
 | `DOTNET_RUNNING_IN_CONTAINER` | Not a choice | Already covered by `Host.Model`. |
 | Retry, archive, unarchive, resolve, edit and group comment operations | Not a choice | These are actions. Their on/off switch, where one exists, is reported. |
 | Custom checks | Not a choice | Endpoints report them and ServiceControl stores them. Deleting one does not keep a muted state. |

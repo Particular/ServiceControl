@@ -36,6 +36,11 @@
     ]
   },
   {
+    "Name": "GooglePubSub",
+    "DisplayName": "Google Cloud Pub/Sub",
+    "Aliases": []
+  },
+  {
     "Name": "IBMMQ",
     "DisplayName": "IBM MQ",
     "Aliases": []

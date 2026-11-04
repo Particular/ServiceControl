@@ -55,6 +55,7 @@ Transports:
 
 - `AzureServiceBus`
 - `AzureStorageQueues`
+- `GooglePubSub`
 - `IBMMQ`
 - `MSMQ`
 - `RabbitMQ` (all four classic/quorum and conventional/direct routing combinations)

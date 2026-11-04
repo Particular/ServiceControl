@@ -21,13 +21,17 @@ jobs:
     # The slowest healthy job finishes in under 18 minutes. Anything still running at 30 has lost its
     # runner or hung on infrastructure, and without a cap it would occupy the runner for 6 hours.
     timeout-minutes: 30
+    permissions:
+      contents: read
+      # Google Cloud workload identity federation for the GooglePubSub category
+      id-token: write
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest]
         # Categories are declared by the <TestCategory> property in each test project. A category can
         # span several projects that share infrastructure, so that the container is provisioned once
         # and the union of their build closures is compiled once.
-        test-category: [ DefaultCore, DefaultMonitoring, Raven, SqlServer, PostgreSql, RabbitMQ, AzureServiceBus, AzureStorageQueues, MSMQ, SQS, IBMMQ ]
+        test-category: [ DefaultCore, DefaultMonitoring, Raven, SqlServer, PostgreSql, RabbitMQ, AzureServiceBus, AzureStorageQueues, MSMQ, SQS, IBMMQ, GooglePubSub ]
         include:
           - os: windows-latest
             os-name: Windows
@@ -177,6 +181,23 @@ jobs:
           connection-string-name: ServiceControl_TransportTests_ASQ_ConnectionString
           azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
           tag: ServiceControl
+      - name: Authenticate to Google Cloud
+        id: gcp-auth
+        if: matrix.test-category == 'GooglePubSub'
+        uses: google-github-actions/auth@v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+      - name: Setup Google Cloud SDK
+        if: matrix.test-category == 'GooglePubSub'
+        uses: google-github-actions/setup-gcloud@v3.0.1
+      - name: Setup Google Pub/Sub environment variables
+        if: matrix.test-category == 'GooglePubSub'
+        run: |
+          # The prefix keeps parallel runs apart and scopes the cleanup step to this run's topics and subscriptions
+          $prefix = "gha-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.os-name }}-"
+          echo "PUBSUB_TEST_PREFIX=$prefix" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+          echo "ServiceControl_TransportTests_GooglePubSub_ConnectionString=ProjectId=${{ vars.GOOGLE_CLOUD_PROJECT }};ResourceNamePrefix=$prefix" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
       - name: Run tests
         uses: Particular/run-tests-action@v1.9.0
         with:
@@ -186,6 +207,16 @@ jobs:
           ServiceControl_TESTS_FILTER: ${{ matrix.test-category }}
           PARTICULARSOFTWARE_LICENSE: ${{ secrets.LICENSETEXT }}
           AZURE_ACI_CREDENTIALS: ${{ secrets.AZURE_ACI_CREDENTIALS }}
+      - name: Clean up Google Pub/Sub resources
+        if: always() && steps.gcp-auth.outcome == 'success'
+        run: |
+          $project = '${{ vars.GOOGLE_CLOUD_PROJECT }}'
+          $filter = "name:$Env:PUBSUB_TEST_PREFIX"
+          $subscriptions = @(gcloud pubsub subscriptions list --project=$project --filter=$filter --format="value(name.basename())" --verbosity=error)
+          if ($subscriptions.Count -gt 0) { gcloud pubsub subscriptions delete @subscriptions --project=$project --quiet --verbosity=error }
+          $topics = @(gcloud pubsub topics list --project=$project --filter=$filter --format="value(name.basename())" --verbosity=error)
+          if ($topics.Count -gt 0) { gcloud pubsub topics delete @topics --project=$project --quiet --verbosity=error }
+          Write-Host "Deleted $($subscriptions.Count) subscriptions and $($topics.Count) topics with prefix $Env:PUBSUB_TEST_PREFIX"
 
   compile:
     name: ${{ matrix.os-name }}-Compile
