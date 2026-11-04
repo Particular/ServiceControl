@@ -48,6 +48,14 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override string BaseServiceName => "ServiceControl";
 
+        protected override SettingInfo DatabaseMaintenancePortSetting => ServiceControlSettings.DatabaseMaintenancePort;
+
+        protected override SettingInfo RavenDBConnectionStringSetting => ServiceControlSettings.RavenDBConnectionString;
+
+        protected override SettingInfo MessageBodyStorageTypeSetting => ServiceControlSettings.MessageBodyStorageType;
+
+        protected override SettingInfo MessageBodyStoragePathSetting => ServiceControlSettings.MessageBodyFileSystemStoragePath;
+
         public TimeSpan? AuditRetentionPeriod { get; set; }
 
         public List<RemoteInstanceSetting> RemoteInstances { get; set; } = [];
@@ -252,29 +260,5 @@ namespace ServiceControlInstaller.Engine.Instances
             FileUtils.UnzipToSubdirectory("RavenDBServer.zip", Path.Combine(destDir, "Persisters", "RavenDB", "RavenDBServer"));
         }
 
-        protected override IEnumerable<string> GetPersistencePathsToCleanUp()
-        {
-            string[] keys =
-            [
-                "Raven/IndexStoragePath",
-                "Raven/CompiledIndexCacheDirectory",
-                "Raven/Esent/LogsPath",
-                ServiceControlSettings.DBPath.Name
-            ];
-
-            var settings = AppConfig.Config.AppSettings.Settings;
-            foreach (var key in keys)
-            {
-                if (!settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                var folderpath = settings[key].Value;
-                yield return folderpath.StartsWith("~") //Raven uses ~ to indicate path is relative to bin folder e.g. ~/Data/Logs
-                    ? Path.Combine(InstallPath, folderpath.Remove(0, 1))
-                    : folderpath;
-            }
-        }
     }
 }

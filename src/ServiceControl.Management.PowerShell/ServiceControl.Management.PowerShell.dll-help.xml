@@ -3087,7 +3087,7 @@
         <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
           <maml:name>RemoveDB</maml:name>
           <maml:description>
-            <maml:para>Remove the contents of the Database folder.</maml:para>
+            <maml:para>Remove the database and message body files that the instance stores locally. A SQL Server or PostgreSQL database, Azure Blob Storage and Amazon S3 are not removed.</maml:para>
           </maml:description>
           <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
         </command:parameter>
@@ -3116,7 +3116,7 @@
       <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
         <maml:name>RemoveDB</maml:name>
         <maml:description>
-          <maml:para>Remove the contents of the Database folder.</maml:para>
+          <maml:para>Remove the database and message body files that the instance stores locally. A SQL Server or PostgreSQL database, Azure Blob Storage and Amazon S3 are not removed.</maml:para>
         </maml:description>
         <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
         <dev:type>
@@ -3308,7 +3308,7 @@
         <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
           <maml:name>RemoveDB</maml:name>
           <maml:description>
-            <maml:para>Remove the contents of the Database folder.</maml:para>
+            <maml:para>Remove the database and message body files that the instance stores locally. A SQL Server or PostgreSQL database, Azure Blob Storage and Amazon S3 are not removed.</maml:para>
           </maml:description>
           <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
         </command:parameter>
@@ -3337,7 +3337,7 @@
       <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
         <maml:name>RemoveDB</maml:name>
         <maml:description>
-          <maml:para>Remove the contents of the Database folder.</maml:para>
+          <maml:para>Remove the database and message body files that the instance stores locally. A SQL Server or PostgreSQL database, Azure Blob Storage and Amazon S3 are not removed.</maml:para>
         </maml:description>
         <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
         <dev:type>
