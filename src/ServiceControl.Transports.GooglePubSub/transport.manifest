@@ -1,0 +1,15 @@
+{
+  "Definitions": [
+    {
+      "Name": "GooglePubSub",
+      "DisplayName": "Google Cloud Pub/Sub",
+      "AssemblyName": "ServiceControl.Transports.GooglePubSub",
+      "TypeName": "ServiceControl.Transports.GooglePubSub.GooglePubSubTransportCustomization, ServiceControl.Transports.GooglePubSub",
+      "SampleConnectionString": "ProjectId=<PROJECTID>;ResourceNamePrefix=<PREFIX>;ServiceEndpoint=<HOST:PORT>",
+      "AvailableInSCMU": true,
+      "Help": "All keys are optional. 'ProjectId' defaults to the GOOGLE_CLOUD_PROJECT environment variable or the Google Cloud metadata server. Credentials come from Application Default Credentials, for example the GOOGLE_APPLICATION_CREDENTIALS environment variable, and are never part of the connection string. Set PUBSUB_EMULATOR_HOST to use the Pub/Sub emulator.",
+      "Aliases": [
+      ]
+    }
+  ]
+}

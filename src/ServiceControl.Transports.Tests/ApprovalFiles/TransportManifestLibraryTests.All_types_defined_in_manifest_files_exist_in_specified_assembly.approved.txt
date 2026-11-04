@@ -1,6 +1,7 @@
 [
   "AmazonSQS",
   "AzureStorageQueue",
+  "GooglePubSub",
   "IBMMQ",
   "LearningTransport",
   "LearningTransport",
