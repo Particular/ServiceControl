@@ -47,7 +47,7 @@ class MigrationEngineSkipReasonTests
     {
         var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)!;
         var source = new InMemoryMigrationSource();
-        source.Seed(category.Id, Row("msg-1"), Row("msg-2"));
+        source.Seed(category.Id, Row("msg-1"), Row("msg-2") with { Body = new MigrationBody(new byte[] { 1 }, "application/octet-stream") });
         source.FailBodyReads("msg-1", MigrationEngine.MaxBodyReadAttempts, new TimeoutException("down"));
         var checkpointStore = new InMemoryMigrationCheckpointStore();
         var target = new InMemoryMigrationTarget(checkpointStore);
@@ -60,13 +60,39 @@ class MigrationEngineSkipReasonTests
     }
 
     [Test]
+    public async Task A_message_the_source_holds_no_body_for_is_counted_under_BodyMissing()
+    {
+        var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("msg-1"), Row("msg-2"));
+        source.SetBody("msg-2", new MigrationBody(new byte[] { 2 }, "text/plain"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var target = new InMemoryMigrationTarget(checkpointStore);
+        var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []) { BodyRetryBackoff = TimeSpan.Zero };
+        var logger = new CapturingLogger();
+        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, logger);
+
+        var checkpoint = await engine.RunCategoryAsync(category);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checkpoint.State, Is.EqualTo(MigrationCategoryState.CompleteWithErrors), "msg-1 is the only skip, so a missing body has to count as a fault on its own");
+            Assert.That(checkpoint.SkippedCount, Is.EqualTo(1));
+            Assert.That(checkpoint.SkipReasons, Is.EquivalentTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BodyMissing] = 1 }),
+                "the refusal tells the operator which skips no retry can fix only from these reasons");
+            Assert.That(logger.Entries.Where(entry => entry.Message.StartsWith("Skipped msg-1")).Select(entry => entry.Message), Has.Exactly(1).Contains("BodyMissing"),
+                "the checkpoint holds counts, not ids, so the log is the operator's only record of which message was left out");
+        }
+    }
+
+    [Test]
     public async Task A_batch_that_loses_rows_two_different_ways_records_both_reasons()
     {
         // The breakdown is what tells a customer what they lost and why. A merge that overwrote instead of
         // summing would leave the total right and the reasons wrong, and verification would still balance.
         var category = MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)!;
         var source = new InMemoryMigrationSource();
-        source.Seed(category.Id, Row("msg-1"), Row("msg-2"), Row("msg-3"));
+        source.Seed(category.Id, Row("msg-1"), Row("msg-2") with { Body = new MigrationBody(new byte[] { 1 }, "application/octet-stream") }, Row("msg-3") with { Body = new MigrationBody(new byte[] { 1 }, "application/octet-stream") });
         // One the engine skips itself because the body will not read, one the target refuses.
         source.FailBodyReads("msg-1", MigrationEngine.MaxBodyReadAttempts, new TimeoutException("body store unreachable"));
         var checkpointStore = new InMemoryMigrationCheckpointStore();
