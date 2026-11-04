@@ -40,7 +40,7 @@ namespace ServiceControl.RavenDB
                 existingByName.TryGetValue(index.IndexName, out var existingDefinition);
                 existingByName.TryGetValue(replacementName, out var pendingReplacementDefinition);
 
-                var rebuildTriggers = existingDefinition == null ? IndexDefinitionCompareDifferences.None : GetRebuildTriggeringDifferences(existingDefinition, index, store);
+                var rebuildTriggers = GetRebuildTriggeringDifferences(existingDefinition, index, store);
                 var requiresRebuild = rebuildTriggers != IndexDefinitionCompareDifferences.None;
 
                 if (IsLocked(existingDefinition))
@@ -156,6 +156,11 @@ namespace ServiceControl.RavenDB
 
         static IndexDefinitionCompareDifferences GetRebuildTriggeringDifferences(IndexDefinition existingDefinition, AbstractIndexCreationTask index, IDocumentStore store)
         {
+            if (existingDefinition == null)
+            {
+                return IndexDefinitionCompareDifferences.None;
+            }
+
             index.Conventions ??= store.Conventions;
 
             return existingDefinition.Compare(index.CreateIndexDefinition()) & RebuildTriggeringDifferences;
