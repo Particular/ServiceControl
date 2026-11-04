@@ -369,6 +369,9 @@ abstract class MigrationAcceptanceTest
 
     protected IEndpointSettingsStore EndpointSettingsStore => targetServices.GetRequiredService<IEndpointSettingsStore>();
     protected IMonitoringDataStore MonitoringDataStore => targetServices.GetRequiredService<IMonitoringDataStore>();
+    protected IRetryBatchStore RetryBatchStore => targetServices.GetRequiredService<IRetryBatchStore>();
+    protected IRetryStagingStore RetryStagingStore => targetServices.GetRequiredService<IRetryStagingStore>();
+    protected IFailedMessageRetryDataStore FailedMessageRetryDataStore => targetServices.GetRequiredService<IFailedMessageRetryDataStore>();
 
     protected async Task<MigrationWriteResult> CopyCategory(string categoryId, CancellationToken cancellationToken = default)
     {

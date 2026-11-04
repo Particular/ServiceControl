@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -13,6 +15,7 @@ using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DataMigration;
 using ServiceControl.Persistence.EFCore.DbContexts;
+using ServiceControl.Persistence.EFCore.Entities;
 
 class FailedMessageMigrationCoverageTests : PersistenceTestBase
 {
@@ -35,6 +38,24 @@ class FailedMessageMigrationCoverageTests : PersistenceTestBase
         var mapping = (FailedMessageRowMapping.Mapped)FailedMessageRowMapper.Map(FullyPopulatedRow());
 
         MigrationEntityCoverage.AssertEveryMappedPropertyIsSet(Model(), mapping.Groups.Single());
+    }
+
+    [Test]
+    public async Task Every_retry_claim_column_is_set_for_a_copied_retry_issued_message()
+    {
+        var target = ServiceProvider.GetRequiredService<IMigrationTarget>();
+        var category = MigrationCategoryRegistry.All.Single(entry => entry.Id == MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        var source = FullyPopulatedRow() with { Body = new MigrationBody(Encoding.UTF8.GetBytes("<order>1</order>"), "text/xml") };
+        ((FailedMessage)source.Document).Status = FailedMessageStatus.RetryIssued;
+        await target.Open();
+
+        await target.Write(category, new MigrationBatch([source], source.SourceId), new MigrationCheckpoint(category.Id, MigrationCategoryState.InProgress, null, 0, 0, null, null, null, null, null, null));
+
+        using var scope = ServiceProvider.CreateScope();
+        var claim = await scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>().FailedMessageRetries.AsNoTracking().SingleAsync();
+
+        // The migrated claim's batch is never staged, so its attempt count stays 0 and is never read.
+        MigrationEntityCoverage.AssertEveryMappedPropertyIsSet(Model(), claim, nameof(FailedMessageRetryEntity.StageAttempts));
     }
 
     static MigrationRow FullyPopulatedRow()

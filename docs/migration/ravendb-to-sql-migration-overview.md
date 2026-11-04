@@ -168,12 +168,16 @@ There are eighteen *categories*: sixteen required and two optional.
 **Never copied, because nothing needs them:**
 
 - RavenDB index definitions.
-- In-flight work collections, which are empty when nothing is running: `RetryBatches`, `RetryBatchNowForwardings`, `FailedMessageRetries`, `ArchiveOperations` and `UnarchiveOperations`.
+- In-flight work collections, which are empty when nothing is running: `RetryBatches`, `RetryBatchNowForwardings`, `ArchiveOperations` and `UnarchiveOperations`.
 - `ArchiveBatches` and `UnarchiveBatches`, which exist only because of how RavenDB works.
 - The `ConnectedApplications` document, written only by versions 6.0 and 6.1. Since 6.2 the MassTransit connector status, which ServicePulse uses to turn features on and off, comes from the connector's own heartbeat. ServiceControl holds that in memory and refills it when the connector next reports, so nothing reads the document.
 - Broker and audit service version details, which refill on the next throughput collection.
 - Failed message edit locks, which stop one failed message being edited twice. An edited message is resolved, so the lock only matters if it fails again: on RavenDB it can then never be edited again, and after the move it can be edited once more.
 - Heartbeat state, which neither persister stores and which is rebuilt in memory after any restart. The known endpoints and monitored flags are copied, so heartbeat monitoring after the move behaves exactly as after any restart. An endpoint that is down shows as failing with no last heartbeat time, and raises no alert.
+
+**Written new by the copy rather than copied:**
+
+- Retry claims in `FailedMessageRetries` are not copied. A claim ties a message to the retry that sent it, and while it exists, retrying the message from the failed messages list sends nothing. The copy writes a new claim for each retry-issued message it inserts, even one whose claim RavenDB had already released. As on RavenDB, the claim goes when the retried message succeeds, when it fails again, or when it is resent from Pending Retries.
 
 ### Optional data windows
 

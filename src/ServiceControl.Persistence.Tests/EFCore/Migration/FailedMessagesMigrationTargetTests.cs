@@ -77,6 +77,70 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
     }
 
     [Test]
+    public async Task A_copied_retry_issued_message_gets_a_retry_claim_and_an_unresolved_one_does_not()
+    {
+        var unresolved = new IngestedFailure();
+        var retryIssued = new IngestedFailure();
+
+        var result = await Target.Write(FailedMessagesCategory, BatchOf(unresolved.ToFailedMessage(), retryIssued.ToFailedMessage(FailedMessageStatus.RetryIssued)), Checkpoint());
+
+        var claims = await Query(db => db.FailedMessageRetries.AsNoTracking().Select(claim => new { claim.UniqueMessageId, claim.RetryBatchId, claim.StageAttempts }).ToListAsync());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Copied, Is.EqualTo(2), "the test proves nothing unless both messages reached the target");
+            Assert.That(claims, Is.EqualTo(new[] { new { retryIssued.UniqueMessageId, RetryBatchId = FailedMessagesWriterBase.MigratedRetryClaimBatchId, StageAttempts = 0 } }),
+                "without a claim a retry by id sends a retry-issued message again, and with one an unresolved message could not be retried by id");
+        }
+    }
+
+    [Test]
+    public async Task A_retry_issued_message_already_in_the_target_gets_no_retry_claim()
+    {
+        var present = new IngestedFailure();
+        var absent = new IngestedFailure();
+        await Query(db =>
+        {
+            db.FailedMessages.Add(new FailedMessageEntity { UniqueMessageId = present.UniqueMessageId, Status = FailedMessageStatus.RetryIssued, HeadersJson = "{}", FailingEndpointAddress = "error" });
+            return db.SaveChangesAsync();
+        });
+
+        var result = await Target.Write(FailedMessagesCategory, BatchOf(present.ToFailedMessage(FailedMessageStatus.RetryIssued), absent.ToFailedMessage(FailedMessageStatus.RetryIssued)), Checkpoint());
+
+        var claimed = await Query(db => db.FailedMessageRetries.AsNoTracking().Select(claim => claim.UniqueMessageId).ToListAsync());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.AlreadyPresent, Is.EqualTo(1));
+            Assert.That(claimed, Is.EqualTo(new[] { absent.UniqueMessageId }), "a message the insert turned away keeps what the target had, so it gets no claim from the copy");
+        }
+    }
+
+    [Test]
+    public async Task Two_documents_sharing_a_unique_message_id_get_a_retry_claim_only_when_the_kept_one_is_retry_issued()
+    {
+        var unresolvedKept = new IngestedFailure();
+        var retryIssuedKept = new IngestedFailure();
+        var retryIssuedTurnedAway = new IngestedFailure().ToFailedMessage(FailedMessageStatus.RetryIssued);
+        retryIssuedTurnedAway.UniqueMessageId = unresolvedKept.UniqueMessageIdString;
+        var unresolvedTurnedAway = new IngestedFailure().ToFailedMessage();
+        unresolvedTurnedAway.UniqueMessageId = retryIssuedKept.UniqueMessageIdString;
+
+        var result = await Target.Write(FailedMessagesCategory, BatchOf(
+            unresolvedKept.ToFailedMessage(), retryIssuedTurnedAway,
+            retryIssuedKept.ToFailedMessage(FailedMessageStatus.RetryIssued), unresolvedTurnedAway), Checkpoint());
+
+        var claimed = await Query(db => db.FailedMessageRetries.AsNoTracking().Select(claim => claim.UniqueMessageId).ToListAsync());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Copied, Is.EqualTo(2));
+            Assert.That(result.AlreadyPresent, Is.EqualTo(2));
+            Assert.That(claimed, Is.EqualTo(new[] { retryIssuedKept.UniqueMessageId }), "the claim follows the status of the row the insert kept, not of the document it turned away");
+        }
+    }
+
+    [Test]
     public async Task Copied_counts_the_messages_inserted_not_the_messages_handed_in()
     {
         var present = new IngestedFailure();
