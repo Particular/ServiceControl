@@ -59,15 +59,8 @@ namespace ServiceControl.RavenDB
                 var definedSearchEngineType = GetDefinedSearchEngineType(index);
                 if (definedSearchEngineType != null)
                 {
-                    if (IsLucene(definedSearchEngineType))
-                    {
-                        Logger.LogInformation("Index {IndexName} uses the Lucene search engine set in its definition", index.IndexName);
-                    }
-                    else
-                    {
-                        Logger.LogWarning("Index {IndexName} uses the {SearchEngineType} search engine set in its definition. ServiceControl supports only Lucene", index.IndexName, definedSearchEngineType);
-                    }
-
+                    var definedIsLucene = IsLucene(definedSearchEngineType);
+                    Logger.Log(definedIsLucene ? LogLevel.Information : LogLevel.Warning, "Index {IndexName} uses the {SearchEngineType} search engine set in its definition{Note}", index.IndexName, definedSearchEngineType, definedIsLucene ? "" : ". ServiceControl supports only Lucene");
                     continue;
                 }
 
@@ -102,7 +95,11 @@ namespace ServiceControl.RavenDB
                     // A rebuild of a large index takes long and degrades ingestion, see docs.particular.net/servicecontrol/upgrades/#upgrades-that-rebuild-indexes
                     var level = requiresRebuild ? LogLevel.Warning : LogLevel.Information;
 
-                    UseLucene(index, level, reason, databaseDefault);
+                    var luceneSource = SetLuceneUnlessInherited(index, databaseDefault)
+                        ? $"set on the index, the database setting is {databaseDefault ?? "not set"}"
+                        : "inherited from the database";
+
+                    Logger.Log(level, "Index {IndexName} {Reason} with the Lucene search engine {LuceneSource}", index.IndexName, reason, luceneSource);
                     continue;
                 }
 
@@ -119,16 +116,16 @@ namespace ServiceControl.RavenDB
             await IndexCreation.CreateIndexesAsync(indexList, store, null, null, cancellationToken);
         }
 
-        static void UseLucene(AbstractIndexCreationTask index, LogLevel level, string reason, string databaseDefault)
+        // Returns whether Lucene had to be set on the index, which is when the database does not default to it.
+        static bool SetLuceneUnlessInherited(AbstractIndexCreationTask index, string databaseDefault)
         {
             if (IsLucene(databaseDefault))
             {
-                Logger.Log(level, "Index {IndexName} {Reason} and inherits the Lucene search engine from the database", index.IndexName, reason);
-                return;
+                return false;
             }
 
             index.Configuration[StaticSearchEngineTypeKey] = nameof(SearchEngineType.Lucene);
-            Logger.Log(level, "Index {IndexName} {Reason} with the Lucene search engine set on the index, the database setting is {DatabaseDefault}", index.IndexName, reason, databaseDefault ?? "not set");
+            return true;
         }
 
         static async Task<Dictionary<string, IndexDefinition>> GetExistingDefinitions(IDocumentStore store, CancellationToken cancellationToken)
