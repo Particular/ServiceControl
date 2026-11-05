@@ -85,6 +85,8 @@ jobs:
           connection-string-name: CONNECTIONSTRING
           azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
           tag: ServiceControlContainerTest
+        env:
+          REGION_OVERRIDE: eastus
       - name: Setup Azure Storage
         if: ${{ matrix.name == 'asq' }}
         uses: Particular/setup-azurestorage-action@v2.0.0
@@ -92,6 +94,8 @@ jobs:
           connection-string-name: CONNECTIONSTRING
           azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
           tag: ServiceControlContainerTest
+        env:
+          REGION_OVERRIDE: eastus
       - name: Run Docker Compose
         shell: pwsh
         env:
