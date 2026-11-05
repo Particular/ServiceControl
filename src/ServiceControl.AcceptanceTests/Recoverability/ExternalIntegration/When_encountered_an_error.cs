@@ -29,6 +29,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
         {
             var externalProcessorSubscribed = false;
 
+            SetSettings = settings => settings.EnableExternalIntegrationsPublishing = true;
             CustomizeHostBuilder = builder => builder.Services.AddSingleton<IEventPublisher, FaultyPublisher>();
 
             CustomConfiguration = config =>

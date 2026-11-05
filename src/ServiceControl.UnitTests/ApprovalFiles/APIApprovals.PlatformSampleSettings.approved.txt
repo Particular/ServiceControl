@@ -49,7 +49,7 @@
   "EmailDropFolder": null,
   "ValidateConfiguration": true,
   "ExternalIntegrationsDispatchingBatchSize": 100,
-  "DisableExternalIntegrationsPublishing": false,
+  "EnableExternalIntegrationsPublishing": false,
   "RunCleanupBundle": false,
   "RootUrl": "http://localhost:8888/",
   "ApiUrl": "http://localhost:8888/api",
