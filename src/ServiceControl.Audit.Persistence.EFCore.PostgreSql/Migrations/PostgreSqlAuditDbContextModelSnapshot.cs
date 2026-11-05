@@ -132,6 +132,9 @@ namespace ServiceControl.Audit.Persistence.EFCore.PostgreSql.Migrations
                     b.HasIndex("ConversationId")
                         .HasDatabaseName("ix_audit_messages_conversation_id");
 
+                    b.HasIndex("MessageId")
+                        .HasDatabaseName("ix_audit_messages_message_id");
+
                     b.HasIndex("ProcessedAt")
                         .HasDatabaseName("ix_audit_messages_processed_at");
 
