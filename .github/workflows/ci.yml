@@ -170,6 +170,8 @@ jobs:
           connection-string-name: ServiceControl_TransportTests_ASBS_ConnectionString
           azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
           tag: ServiceControl
+        env:
+          REGION_OVERRIDE: eastus
       - name: Setup Azure Storage Queues
         uses: Particular/setup-azurestorage-action@v2.0.0
         if: matrix.test-category == 'AzureStorageQueues'
@@ -177,6 +179,8 @@ jobs:
           connection-string-name: ServiceControl_TransportTests_ASQ_ConnectionString
           azure-credentials: ${{ secrets.AZURE_ACI_CREDENTIALS }}
           tag: ServiceControl
+        env:
+          REGION_OVERRIDE: eastus
       - name: Run tests
         uses: Particular/run-tests-action@v1.9.0
         with:
