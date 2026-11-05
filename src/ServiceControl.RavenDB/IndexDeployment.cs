@@ -24,15 +24,15 @@ namespace ServiceControl.RavenDB
         public static async Task CreateIndexesAsync(IEnumerable<AbstractIndexCreationTask> indexes, IDocumentStore store, CancellationToken cancellationToken = default)
         {
             var indexList = indexes.ToList();
+            var lockedIndexesWithChanges = new List<string>();
 
             // RavenDB compares the configuration as part of the index definition. Our definitions set no search engine,
             // so the engine has to be resolved before deployment. Otherwise RavenDB builds a side-by-side replacement
             // with the database default, which can undo a migration done by an operator in RavenDB Studio.
-            var existingDefinitions = await store.Maintenance.SendAsync(new GetIndexesOperation(0, int.MaxValue), cancellationToken);
-            var existingByName = existingDefinitions.ToDictionary(d => d.Name, StringComparer.OrdinalIgnoreCase);
-
+            var existingByName = await GetExistingDefinitions(store, cancellationToken);
             var databaseDefault = await GetDatabaseSearchEngineType(store, cancellationToken);
-            var databaseDefaultIsLucene = IsLucene(databaseDefault);
+
+            Logger.LogInformation("Database {DatabaseName} static index search engine setting: {DatabaseDefault}", store.Database, databaseDefault ?? "not set, the server default applies");
 
             foreach (var index in indexList)
             {
@@ -40,24 +40,29 @@ namespace ServiceControl.RavenDB
                 existingByName.TryGetValue(index.IndexName, out var existingDefinition);
                 existingByName.TryGetValue(replacementName, out var pendingReplacementDefinition);
 
+                var rebuildTriggers = GetRebuildTriggeringDifferences(existingDefinition, index, store);
+                var requiresRebuild = rebuildTriggers is not IndexDefinitionCompareDifferences.None;
+
+                if (IsLocked(existingDefinition))
+                {
+                    if (requiresRebuild)
+                    {
+                        Logger.LogError("Index {IndexName} is locked ({LockMode}) and its definition changed ({Changes})", index.IndexName, existingDefinition.LockMode, rebuildTriggers);
+                        lockedIndexesWithChanges.Add(index.IndexName);
+                        continue;
+                    }
+
+                    Logger.LogWarning("Index {IndexName} is locked ({LockMode}) but its definition is unchanged", index.IndexName, existingDefinition.LockMode);
+                }
+
                 // 1. A search engine set in our index definition always wins. It can be set through SearchEngineType or Configuration.
                 var definedSearchEngineType = GetDefinedSearchEngineType(index);
                 if (definedSearchEngineType != null)
                 {
-                    if (IsLucene(definedSearchEngineType))
-                    {
-                        Logger.LogInformation("Index {IndexName} uses the Lucene search engine set in its definition", index.IndexName);
-                    }
-                    else
-                    {
-                        Logger.LogWarning("Index {IndexName} uses the {SearchEngineType} search engine set in its definition. ServiceControl supports only Lucene", index.IndexName, definedSearchEngineType);
-                    }
-
+                    var definedIsLucene = IsLucene(definedSearchEngineType);
+                    Logger.Log(definedIsLucene ? LogLevel.Information : LogLevel.Warning, "Index {IndexName} uses the {SearchEngineType} search engine set in its definition{Note}", index.IndexName, definedSearchEngineType, definedIsLucene ? "" : ". ServiceControl supports only Lucene");
                     continue;
                 }
-
-                var rebuildTriggers = existingDefinition == null ? IndexDefinitionCompareDifferences.None : GetRebuildTriggeringDifferences(existingDefinition, index, store);
-                var requiresRebuild = rebuildTriggers != IndexDefinitionCompareDifferences.None;
 
                 // 2. Keep Lucene set on the index on the server, for example by an operator in RavenDB Studio. The
                 // definitions then match and RavenDB does not rebuild the index. A pending replacement is checked first:
@@ -87,16 +92,14 @@ namespace ServiceControl.RavenDB
                 {
                     var reason = existingDefinition == null ? "is created" : $"is rebuilt because its definition changed ({rebuildTriggers})";
 
-                    if (databaseDefaultIsLucene)
-                    {
-                        Logger.LogInformation("Index {IndexName} {Reason} and inherits the Lucene search engine from the database", index.IndexName, reason);
-                    }
-                    else
-                    {
-                        index.Configuration[StaticSearchEngineTypeKey] = nameof(SearchEngineType.Lucene);
-                        Logger.LogInformation("Index {IndexName} {Reason} with the Lucene search engine set on the index, the database setting is {DatabaseDefault}", index.IndexName, reason, databaseDefault ?? "not set");
-                    }
+                    // A rebuild of a large index takes long and degrades ingestion, see docs.particular.net/servicecontrol/upgrades/#upgrades-that-rebuild-indexes
+                    var level = requiresRebuild ? LogLevel.Warning : LogLevel.Information;
 
+                    var luceneSource = SetLuceneUnlessInherited(index, databaseDefault)
+                        ? $"set on the index, the database setting is {databaseDefault ?? "not set"}"
+                        : "inherited from the database";
+
+                    Logger.Log(level, "Index {IndexName} {Reason} with the Lucene search engine {LuceneSource}", index.IndexName, reason, luceneSource);
                     continue;
                 }
 
@@ -105,7 +108,31 @@ namespace ServiceControl.RavenDB
                 Logger.LogInformation("Index {IndexName} is unchanged and inherits the search engine from the database", index.IndexName);
             }
 
+            if (lockedIndexesWithChanges.Count > 0)
+            {
+                throw new Exception($"The definition of locked indexes changed and is not applied: {string.Join(", ", lockedIndexesWithChanges)}. Unlock the indexes and start ServiceControl again.");
+            }
+
             await IndexCreation.CreateIndexesAsync(indexList, store, null, null, cancellationToken);
+        }
+
+        // Returns whether Lucene had to be set on the index, which is when the database does not default to it.
+        static bool SetLuceneUnlessInherited(AbstractIndexCreationTask index, string databaseDefault)
+        {
+            if (IsLucene(databaseDefault))
+            {
+                return false;
+            }
+
+            index.Configuration[StaticSearchEngineTypeKey] = nameof(SearchEngineType.Lucene);
+            return true;
+        }
+
+        static async Task<Dictionary<string, IndexDefinition>> GetExistingDefinitions(IDocumentStore store, CancellationToken cancellationToken)
+        {
+            var definitions = await store.Maintenance.SendAsync(new GetIndexesOperation(0, int.MaxValue), cancellationToken);
+
+            return definitions.ToDictionary(d => d.Name, StringComparer.OrdinalIgnoreCase);
         }
 
         static async Task<string> GetDatabaseSearchEngineType(IDocumentStore store, CancellationToken cancellationToken)
@@ -126,10 +153,17 @@ namespace ServiceControl.RavenDB
 
         static IndexDefinitionCompareDifferences GetRebuildTriggeringDifferences(IndexDefinition existingDefinition, AbstractIndexCreationTask index, IDocumentStore store)
         {
+            if (existingDefinition == null)
+            {
+                return IndexDefinitionCompareDifferences.None;
+            }
+
             index.Conventions ??= store.Conventions;
 
             return existingDefinition.Compare(index.CreateIndexDefinition()) & RebuildTriggeringDifferences;
         }
+
+        static bool IsLocked(IndexDefinition definition) => definition?.LockMode is IndexLockMode.LockedIgnore or IndexLockMode.LockedError;
 
         static string GetDefinedSearchEngineType(AbstractIndexCreationTask index)
         {
