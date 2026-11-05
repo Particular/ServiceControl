@@ -43,13 +43,13 @@ class LicenseMetadataTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(amendment.UnmappedQueues, Is.EqualTo(new[] { Queue("existing"), Queue("incoming") }));
-            Assert.That(amendment.RemovedEndpointIds, Is.EqualTo(new[] { "existing", "incoming" }));
+            Assert.That(amendment.UnmappedQueues, Is.EqualTo([Queue("existing-unmapped"), Queue("incoming-unmapped")]));
+            Assert.That(amendment.RemovedEndpointIds, Is.EqualTo(["existing", "incoming"]));
             Assert.That(amendment.Endpoints, Has.Length.EqualTo(1));
             Assert.That(amendment.Endpoints[0].ClientId, Is.EqualTo("incoming"));
-            Assert.That(amendment.InfrastructureQueues, Is.EqualTo(new[] { Queue("incoming") }));
-            Assert.That(amendment.ExcludedQueues, Is.EqualTo(new[] { Queue("incoming") }));
-            Assert.That(amendment.UnassignedQueues, Is.EqualTo(new[] { Queue("incoming") }));
+            Assert.That(amendment.InfrastructureQueues, Is.EqualTo([Queue("incoming-infrastructure")]));
+            Assert.That(amendment.ExcludedQueues, Is.EqualTo([Queue("incoming-excluded")]));
+            Assert.That(amendment.UnassignedQueues, Is.EqualTo([Queue("incoming-unassigned")]));
         }
         AssertAmendment(existing, "existing");
     }
@@ -95,7 +95,7 @@ class LicenseMetadataTests
 
         var expectedQueues = destination == "unmapped" || (source == "discovered" && destination == "unassigned")
             ? untouchedQueues
-            : untouchedQueues.Append(queue).ToArray();
+            : [.. untouchedQueues, queue];
         using (Assert.EnterMultipleScope())
         {
             Assert.That(AllQueues(amended), Is.EquivalentTo(expectedQueues));
@@ -304,10 +304,10 @@ class LicenseMetadataTests
     {
         Endpoints = [new LicensedEndpointAmendment { ClientId = id, Name = id, Classification = 1 }],
         RemovedEndpointIds = [id],
-        InfrastructureQueues = [Queue(id)],
-        ExcludedQueues = [Queue(id)],
-        UnassignedQueues = [Queue(id)],
-        UnmappedQueues = [Queue(id)]
+        InfrastructureQueues = [Queue($"{id}-infrastructure")],
+        ExcludedQueues = [Queue($"{id}-excluded")],
+        UnassignedQueues = [Queue($"{id}-unassigned")],
+        UnmappedQueues = [Queue($"{id}-unmapped")]
     };
 
     static QueueIdentity Queue(string name, string location = "original-endpoint", string scope = "scope") => new()
@@ -325,11 +325,11 @@ class LicenseMetadataTests
             Assert.That(amendment.Endpoints[0].ClientId, Is.EqualTo(id));
             Assert.That(amendment.Endpoints[0].Name, Is.EqualTo(id));
             Assert.That(amendment.Endpoints[0].Classification, Is.EqualTo(1));
-            Assert.That(amendment.RemovedEndpointIds, Is.EqualTo(new[] { id }));
-            Assert.That(amendment.InfrastructureQueues, Is.EqualTo(new[] { Queue(id) }));
-            Assert.That(amendment.ExcludedQueues, Is.EqualTo(new[] { Queue(id) }));
-            Assert.That(amendment.UnassignedQueues, Is.EqualTo(new[] { Queue(id) }));
-            Assert.That(amendment.UnmappedQueues, Is.EqualTo(new[] { Queue(id) }));
+            Assert.That(amendment.RemovedEndpointIds, Is.EqualTo([id]));
+            Assert.That(amendment.InfrastructureQueues, Is.EqualTo([Queue($"{id}-infrastructure")]));
+            Assert.That(amendment.ExcludedQueues, Is.EqualTo([Queue($"{id}-excluded")]));
+            Assert.That(amendment.UnassignedQueues, Is.EqualTo([Queue($"{id}-unassigned")]));
+            Assert.That(amendment.UnmappedQueues, Is.EqualTo([Queue($"{id}-unmapped")]));
         }
     }
 }

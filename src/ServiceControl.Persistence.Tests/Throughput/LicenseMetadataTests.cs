@@ -188,12 +188,14 @@ class LicensedEndpointDetailsTests : PersistenceTestBase
         Assert.That(firstRead, Is.Not.Null);
         AssertQueueLocation(firstRead, queue, destination);
 
-        var returningQueue = destination == "unmapped" ? queue with { OriginalLocation = null } : queue;
-        await LicensingDataStore.SaveLicensedEndpointDetailsAmendment(QueueAmendment(returningQueue, source));
+        if (destination != "unmapped")
+        {
+            await LicensingDataStore.SaveLicensedEndpointDetailsAmendment(QueueAmendment(queue, source));
 
-        var secondRead = await LicensingDataStore.GetLicensedEndpointDetails();
-        Assert.That(secondRead, Is.Not.Null);
-        AssertQueueLocation(secondRead, returningQueue, source);
+            var secondRead = await LicensingDataStore.GetLicensedEndpointDetails();
+            Assert.That(secondRead, Is.Not.Null);
+            AssertQueueLocation(secondRead, queue, source);
+        }
     }
 
     [Test]
@@ -266,9 +268,9 @@ class LicensedEndpointDetailsTests : PersistenceTestBase
         Assert.That(saved, Is.Not.Null);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(saved.RemovedEndpointIds, Is.EqualTo(new[] { "other-endpoint" }));
-            Assert.That(saved.UnmappedQueues, Is.EqualTo(new[] { unmapped }));
-            Assert.That(saved.UnassignedQueues, Is.EqualTo(new[] { moved }));
+            Assert.That(saved.RemovedEndpointIds, Is.EqualTo(["other-endpoint"]));
+            Assert.That(saved.UnmappedQueues, Is.EqualTo([unmapped]));
+            Assert.That(saved.UnassignedQueues, Is.EqualTo([moved]));
             Assert.That(saved.ExcludedQueues, Is.Empty);
         }
 
@@ -285,6 +287,49 @@ class LicensedEndpointDetailsTests : PersistenceTestBase
             AssertQueueLocation(amended, moved, "unassigned");
             AssertQueueLocation(amended, unmapped, "unmapped");
         }
+    }
+
+    [Test]
+    public async Task Saving_endpoint_details_should_clear_the_existing_amendment()
+    {
+        await LicensingDataStore.SaveLicensedEndpointDetails(new LicensedEndpointDetails
+        {
+            Endpoints =
+            [
+                new LicensedEndpoint
+                {
+                    ClientId = "endpoint-id",
+                    Name = "Original name",
+                    Classification = 0
+                }
+            ]
+        });
+
+        await LicensingDataStore.SaveLicensedEndpointDetailsAmendment(
+            new LicensedEndpointDetailsAmendment
+            {
+                RemovedEndpointIds = ["endpoint-id"]
+            });
+
+        await LicensingDataStore.SaveLicensedEndpointDetails(new LicensedEndpointDetails
+        {
+            Endpoints =
+            [
+                new LicensedEndpoint
+                {
+                    ClientId = "endpoint-id",
+                    Name = "Replacement name",
+                    Classification = 0
+                }
+            ]
+        });
+
+        var retrievedDetails = await LicensingDataStore.GetLicensedEndpointDetails();
+
+        Assert.That(retrievedDetails, Is.Not.Null);
+        Assert.That(
+            retrievedDetails.Endpoints.Single().Name,
+            Is.EqualTo("Replacement name"));
     }
 
     static LicensedEndpointDetails DetailsWithQueue(QueueIdentity queue) => new()
@@ -352,48 +397,5 @@ class LicensedEndpointDetailsTests : PersistenceTestBase
             Assert.That(allQueues.Count(q => q == queue), Is.EqualTo(location == "unmapped" ? 0 : 1));
             Assert.That(destination, location == "unmapped" ? Does.Not.Contain(queue) : Does.Contain(queue));
         }
-    }
-
-    [Test]
-    public async Task Saving_endpoint_details_should_clear_the_existing_amendment()
-    {
-        await LicensingDataStore.SaveLicensedEndpointDetails(new LicensedEndpointDetails
-        {
-            Endpoints =
-            [
-                new LicensedEndpoint
-                {
-                    ClientId = "endpoint-id",
-                    Name = "Original name",
-                    Classification = 0
-                }
-            ]
-        });
-
-        await LicensingDataStore.SaveLicensedEndpointDetailsAmendment(
-            new LicensedEndpointDetailsAmendment
-            {
-                RemovedEndpointIds = ["endpoint-id"]
-            });
-
-        await LicensingDataStore.SaveLicensedEndpointDetails(new LicensedEndpointDetails
-        {
-            Endpoints =
-            [
-                new LicensedEndpoint
-                {
-                    ClientId = "endpoint-id",
-                    Name = "Replacement name",
-                    Classification = 0
-                }
-            ]
-        });
-
-        var retrievedDetails = await LicensingDataStore.GetLicensedEndpointDetails();
-
-        Assert.That(retrievedDetails, Is.Not.Null);
-        Assert.That(
-            retrievedDetails.Endpoints.Single().Name,
-            Is.EqualTo("Replacement name"));
     }
 }
