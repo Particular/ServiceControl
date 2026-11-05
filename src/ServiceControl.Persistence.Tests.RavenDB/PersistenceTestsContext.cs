@@ -50,6 +50,8 @@ public class PersistenceTestsContext : IPersistenceTestsContext
         persistence.AddInstaller(hostBuilder.Services);
     }
 
+    public Task InstallSchema(IHost host) => Task.CompletedTask;
+
     public async Task PostSetup(IHost host)
     {
         DocumentStore = await host.Services.GetRequiredService<IRavenDocumentStoreProvider>().GetDocumentStore();
