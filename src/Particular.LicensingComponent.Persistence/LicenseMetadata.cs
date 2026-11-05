@@ -77,6 +77,7 @@
 
                 // these do not round-trip the full collections, so reapply what we already have
                 amendment.UnmappedQueues = [.. existing.UnmappedQueues, .. amendment.UnmappedQueues];
+                amendment.RemovedEndpointIds = [.. existing.RemovedEndpointIds, .. amendment.RemovedEndpointIds];
             }
         }
     }
