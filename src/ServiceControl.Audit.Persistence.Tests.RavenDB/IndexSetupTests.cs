@@ -261,40 +261,75 @@ class IndexSetupTests : PersistenceTestFixture
         Assert.That(definitionAfter.Configuration, Does.Not.ContainKey(IndexDeployment.StaticSearchEngineTypeKey));
     }
 
-    [Test]
-    public async Task Indexes_should_not_be_reset_on_setup_when_locked_as_ignore()
+    [TestCase(IndexLockMode.LockedIgnore)]
+    [TestCase(IndexLockMode.LockedError)]
+    public async Task Setup_should_fail_when_a_locked_index_has_a_changed_definition(IndexLockMode lockMode)
     {
-        var customizedStats = await PutCustomizedIndex(SearchEngineType.Corax, IndexLockMode.LockedIgnore);
+        var customizedStats = await PutCustomizedIndex(SearchEngineType.Corax, lockMode);
 
-        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
-
-        // RavenDB ignores the update because the index is locked. Wait a moment and then make sure that the definition did not change.
-        await Task.Delay(1000);
+        var exception = Assert.ThrowsAsync<Exception>(async () => await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken));
 
         var definitionAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(customizedStats.Name), TestTimeoutCancellationToken);
         var indexStatsAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(customizedStats.Name), TestTimeoutCancellationToken);
 
+        Assert.That(exception.Message, Does.Contain(customizedStats.Name));
+        Assert.That(definitionAfter.LockMode, Is.EqualTo(lockMode));
         Assert.That(definitionAfter.Fields, Does.ContainKey(CustomizedField));
         Assert.That(indexStatsAfter.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
     }
 
-    [Test]
-    public async Task Indexes_should_not_be_reset_on_setup_when_locked_as_error()
+    [TestCase(IndexLockMode.LockedIgnore)]
+    [TestCase(IndexLockMode.LockedError)]
+    public async Task Setup_should_succeed_when_a_locked_index_has_an_unchanged_definition(IndexLockMode lockMode)
     {
-        await PutCustomizedIndex(SearchEngineType.Corax, IndexLockMode.LockedError);
+        var lockedStats = await PutCustomizedIndex(SearchEngineType.Corax, lockMode, customize: false);
 
-        Assert.ThrowsAsync<IndexCreationException>(async () => await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken));
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+
+        var replacement = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(Constants.Documents.Indexing.SideBySideIndexNamePrefix + lockedStats.Name), TestTimeoutCancellationToken);
+        var definitionAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(lockedStats.Name), TestTimeoutCancellationToken);
+        var indexStatsAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(lockedStats.Name), TestTimeoutCancellationToken);
+
+        Assert.That(replacement, Is.Null);
+        Assert.That(definitionAfter.LockMode, Is.EqualTo(lockMode));
+        Assert.That(indexStatsAfter.CreatedTimestamp, Is.EqualTo(lockedStats.CreatedTimestamp));
+        Assert.That(indexStatsAfter.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
     }
 
-    // Simulates an index changed outside ServiceControl, for example in RavenDB Studio. Its definition is different from ours.
-    async Task<IndexStats> PutCustomizedIndex(SearchEngineType searchEngineType, IndexLockMode lockMode = IndexLockMode.Unlock)
+    [TestCase(IndexLockMode.LockedIgnore)]
+    [TestCase(IndexLockMode.LockedError)]
+    public async Task Setup_should_succeed_when_a_locked_index_without_a_search_engine_setting_has_an_unchanged_definition(IndexLockMode lockMode)
+    {
+        var lockedStats = await PutIndexWithoutSearchEngineSetting(customize: false);
+
+        await configuration.DocumentStore.Maintenance.SendAsync(new SetIndexesLockOperation(lockedStats.Name, lockMode), TestTimeoutCancellationToken);
+
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+
+        var replacement = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(Constants.Documents.Indexing.SideBySideIndexNamePrefix + lockedStats.Name), TestTimeoutCancellationToken);
+        var definitionAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(lockedStats.Name), TestTimeoutCancellationToken);
+        var indexStatsAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(lockedStats.Name), TestTimeoutCancellationToken);
+
+        Assert.That(replacement, Is.Null);
+        Assert.That(definitionAfter.LockMode, Is.EqualTo(lockMode));
+        Assert.That(definitionAfter.Configuration, Does.Not.ContainKey(IndexDeployment.StaticSearchEngineTypeKey));
+        Assert.That(indexStatsAfter.CreatedTimestamp, Is.EqualTo(lockedStats.CreatedTimestamp));
+        Assert.That(indexStatsAfter.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
+    }
+
+    // Simulates an index changed outside ServiceControl, for example in RavenDB Studio. With customize, its definition is different from ours.
+    async Task<IndexStats> PutCustomizedIndex(SearchEngineType searchEngineType, IndexLockMode lockMode = IndexLockMode.Unlock, bool customize = true)
     {
         var index = new MessagesViewIndexWithFullTextSearch { Conventions = configuration.DocumentStore.Conventions };
         var definition = index.CreateIndexDefinition();
         definition.Name = index.IndexName;
         definition.LockMode = lockMode;
         definition.Configuration[IndexDeployment.StaticSearchEngineTypeKey] = searchEngineType.ToString();
-        definition.Fields[CustomizedField] = new IndexFieldOptions { Storage = FieldStorage.Yes };
+
+        if (customize)
+        {
+            definition.Fields[CustomizedField] = new IndexFieldOptions { Storage = FieldStorage.Yes };
+        }
 
         var statsBefore = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName), TestTimeoutCancellationToken);
 

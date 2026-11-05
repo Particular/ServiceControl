@@ -7,6 +7,7 @@ namespace ServiceControl.Persistence.Tests.RavenDB
     using Raven.Client;
     using Raven.Client.Documents.Indexes;
     using Raven.Client.Documents.Operations.Indexes;
+    using ServiceControl.Contracts.CustomChecks;
     using ServiceControl.Persistence.RavenDB;
     using ServiceControl.RavenDB;
 
@@ -43,6 +44,39 @@ namespace ServiceControl.Persistence.Tests.RavenDB
                 // Tests share the database. Restore the index to the state that setup creates.
                 await IndexCreation.CreateIndexesAsync([new CustomChecksIndex { Configuration = { [IndexDeployment.StaticSearchEngineTypeKey] = SearchEngineType.Lucene.ToString() } }], DocumentStore);
                 await WaitForIndexDefinitionUpdate(customizedStats);
+            }
+        }
+
+        [TestCase(IndexLockMode.LockedIgnore)]
+        [TestCase(IndexLockMode.LockedError)]
+        public async Task Setup_should_fail_when_a_locked_index_has_a_changed_definition(IndexLockMode lockMode)
+        {
+            var index = new CustomChecksIndex { Conventions = DocumentStore.Conventions };
+            var definition = index.CreateIndexDefinition();
+            definition.Name = index.IndexName;
+            definition.LockMode = lockMode;
+            definition.Fields[nameof(CustomCheck.Category)] = new IndexFieldOptions { Storage = FieldStorage.Yes };
+
+            var statsBefore = await DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName));
+            await DocumentStore.Maintenance.SendAsync(new PutIndexesOperation(definition));
+            var lockedStats = await WaitForIndexDefinitionUpdate(statsBefore);
+
+            try
+            {
+                var exception = Assert.ThrowsAsync<Exception>(async () => await IndexDeployment.CreateIndexesAsync(typeof(DatabaseSetup).Assembly, DocumentStore));
+
+                var definitionAfter = await DocumentStore.Maintenance.SendAsync(new GetIndexOperation(index.IndexName));
+
+                Assert.That(exception.Message, Does.Contain(index.IndexName));
+                Assert.That(definitionAfter.LockMode, Is.EqualTo(lockMode));
+                Assert.That(definitionAfter.Fields, Does.ContainKey(nameof(CustomCheck.Category)));
+            }
+            finally
+            {
+                // Tests share the database. Restore the index to the state that setup creates.
+                await DocumentStore.Maintenance.SendAsync(new SetIndexesLockOperation(index.IndexName, IndexLockMode.Unlock));
+                await IndexCreation.CreateIndexesAsync([new CustomChecksIndex { Configuration = { [IndexDeployment.StaticSearchEngineTypeKey] = SearchEngineType.Lucene.ToString() } }], DocumentStore);
+                await WaitForIndexDefinitionUpdate(lockedStats);
             }
         }
 
