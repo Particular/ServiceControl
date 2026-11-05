@@ -7,6 +7,8 @@ ServiceControl.Persistence.KnownEndpoint, ServiceControl.Persistence, Version=6.
 ServiceControl.Persistence.MessagesViewIndex+SortAndFilterOptions, ServiceControl.Persistence.RavenDB, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null
 ServiceControl.Persistence.RavenDB.FailedMessageRetry, ServiceControl.Persistence.RavenDB, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null
 ServiceControl.Persistence.RavenDB.RetryBatch, ServiceControl.Persistence.RavenDB, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.Persistence.RavenDB.SagaTimeouts.SagaTimeout, ServiceControl.Persistence.RavenDB, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.Persistence.RavenDB.SagaTimeouts.SagaTimeoutsIndex+Result, ServiceControl.Persistence.RavenDB, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null
 ServiceControl.Persistence.RavenDB.Throughput.Models.EndpointDocument, ServiceControl.Persistence.RavenDB, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null
 ServiceControl.Persistence.RetryBatchGroup, ServiceControl.Persistence, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null
 ServiceControl.Recoverability.FailureGroupMessageView, ServiceControl.Persistence, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null

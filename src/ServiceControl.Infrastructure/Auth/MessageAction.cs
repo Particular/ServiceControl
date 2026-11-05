@@ -8,7 +8,10 @@ public enum MessageActionKind
     Archive,
     Unarchive,
     Edit,
-    Delete
+    Delete,
+    Reschedule,
+    Trigger,
+    Cancel
 }
 
 /// <summary>How the action selected the messages it acts on.</summary>
