@@ -28,7 +28,7 @@
             }
 
             var text = new StringBuilder();
-            text.AppendLine("Detected RavenDB index errors, please start maintenance mode and resolve the following issues:");
+            text.AppendLine("Detected RavenDB index errors. Resolve the following issues in RavenDB Studio, starting the instance in maintenance mode first for an embedded database:");
 
             foreach (var indexError in indexErrors)
             {

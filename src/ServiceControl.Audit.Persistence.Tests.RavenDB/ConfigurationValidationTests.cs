@@ -155,6 +155,38 @@
             Assert.That(configuration.QueryTimeout, Is.EqualTo(TimeSpan.FromMinutes(1)));
         }
 
+        [Test]
+        public void Should_reject_maintenance_mode_with_external_server()
+        {
+            var settings = BuildSettings();
+            settings.MaintenanceMode = true;
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = "http://someserver:44444";
+
+            var exception = Assert.Throws<InvalidOperationException>(() => new RavenPersistenceConfiguration().Create(settings));
+
+            Assert.That(exception.Message, Does.Contain("Maintenance mode is not supported"));
+        }
+
+        [Test]
+        public void Should_allow_maintenance_mode_with_embedded_server()
+        {
+            var settings = BuildSettings();
+            settings.MaintenanceMode = true;
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabasePathKey] = "c://db-path";
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabaseMaintenancePortKey] = "11111";
+
+            Assert.That(new RavenPersistenceConfiguration().Create(settings), Is.Not.Null);
+        }
+
+        [Test]
+        public void Should_allow_normal_mode_with_external_server()
+        {
+            var settings = BuildSettings();
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = "http://someserver:44444";
+
+            Assert.That(new RavenPersistenceConfiguration().Create(settings), Is.Not.Null);
+        }
+
         PersistenceSettings BuildSettings()
         {
             return new PersistenceSettings(TimeSpan.FromMinutes(2), true, 100000);
