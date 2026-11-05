@@ -109,7 +109,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB
 
                 var logPath = GetLogPath(settings);
 
-                var logsMode = "Operations";
+                var logsMode = RavenDbLogLevelToLogsModeMapper.WarnMinLevel;
 
                 if (settings.PersisterSpecificSettings.TryGetValue(RavenDbLogLevelKey, out var ravenDbLogLevel))
                 {
