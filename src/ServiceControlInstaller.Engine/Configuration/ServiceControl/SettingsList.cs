@@ -40,7 +40,15 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         };
 
         public static readonly SettingInfo TransportType = new() { Name = "ServiceControl/TransportType" };
-        public static readonly SettingInfo PersistenceType = new() { Name = "ServiceControl/PersistenceType" };
+
+        public static readonly SettingInfo StorageType = new() { Name = "ServiceControl/StorageType" };
+
+        // Legacy name of StorageType. Not version gated for writes: a 6.x runtime ignores the unknown StorageType key, and RemoveIfRetired drops this key once the instance runs 7.0.0
+        public static readonly SettingInfo PersistenceType = new()
+        {
+            Name = "ServiceControl/PersistenceType",
+            RemovedFrom = new(7, 0, 0)
+        };
         public static readonly SettingInfo AuditQueue = new()
         {
             Name = "ServiceBus/AuditQueue",

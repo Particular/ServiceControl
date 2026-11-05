@@ -20,7 +20,7 @@ namespace ServiceControl.AcceptanceTests
         {
             settings = new Settings(
                 transportType: TransportIntegration.TypeName,
-                persisterType: StorageConfiguration.PersistenceType,
+                storageType: StorageConfiguration.StorageType,
                 forwardErrorMessages: false,
                 errorRetentionPeriod: TimeSpan.FromDays(1))
             {

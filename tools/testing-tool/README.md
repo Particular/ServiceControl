@@ -92,7 +92,7 @@ A share of claims instead emit a whole **saga episode**: the three messages that
 
 `sagaSnapshotRatio` is saga snapshots per processed message; the default `0.2` emits two saga snapshots for every ten processed messages. `0` disables saga episodes.
 
-Audit ingestion needs a ServiceControl.Audit instance on SQL Server or PostgreSQL, so pair `--audit-instances` with `--persistence:PostgreSql` or `--persistence:SqlServer`. Under `--persistence:RavenDb` the audit instance runs on RavenDB and the EF path is not exercised.
+Audit ingestion needs a ServiceControl.Audit instance on SQL Server or PostgreSQL, so pair `--audit-instances` with `--storage:PostgreSql` or `--storage:SqlServer`. Under `--storage:RavenDb` the audit instance runs on RavenDB and the EF path is not exercised.
 
 The testing tool's own endpoint also audits its successfully handled load messages to the same queue, which is what makes its installers create the queue before the writer first sends into it.
 
@@ -151,7 +151,7 @@ builds the solution and the container image on every change under `tools/testing
 ## Run with Aspire
 
 The Aspire AppHost orchestrates the testing tool together with the full Particular platform
-(ServiceControl + RabbitMQ or SQL Server transport + RavenDB/SQL Server/PostgreSQL persistence + ServicePulse) and a complete observability
+(ServiceControl + RabbitMQ or SQL Server transport + RavenDB/SQL Server/PostgreSQL storage + ServicePulse) and a complete observability
 stack (OTel Collector, Jaeger, Prometheus, Grafana), so a single command brings up the whole
 system locally:
 
@@ -165,17 +165,17 @@ To test a specific ServiceControl image tag (e.g. a PR-based prerelease tag):
 aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- --tag pr-1234
 ```
 
-To select a persistence backend for the ServiceControl error instance (`RavenDb`,
+To select a storage backend for the ServiceControl error instance (`RavenDb`,
 `SqlServer`, or `PostgreSql`; defaults to `RavenDb`):
 
 ```bash
-aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- --persistence:RavenDb
+aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- --storage:RavenDb
 ```
 
-`--persistence RavenDb` (space separator) is accepted too. Both flags may be combined:
+`--storage RavenDb` (space separator) is accepted too. Both flags may be combined:
 
 ```bash
-aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- --tag pr-1234 --persistence:SqlServer
+aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- --tag pr-1234 --storage:SqlServer
 ```
 
 ### AppHost CLI options
@@ -185,13 +185,13 @@ separator) or `--name:value` (colon separator):
 
 | Flag | Default | Values | Description |
 |---|---|---|---|
-| `--persistence` | `RavenDb` | `RavenDb`, `SqlServer`, `PostgreSql` | Persistence backend for the ServiceControl error instance and for the audit instances |
-| `--transport` | `RabbitMq` | `RabbitMq`, `SqlServer` | Transport shared by ServiceControl and the testing tool. `SqlServer` reuses the persistence SQL Server container with a separate `Transport` database |
+| `--storage` | `RavenDb` | `RavenDb`, `SqlServer`, `PostgreSql` | Storage backend for the ServiceControl error instance and for the audit instances |
+| `--transport` | `RabbitMq` | `RabbitMq`, `SqlServer` | Transport shared by ServiceControl and the testing tool. `SqlServer` reuses the storage SQL Server container with a separate `Transport` database |
 | `--tag` | *(none — uses the current build's image)* | any image tag, e.g. `pr-1234` or `6.3.1` | Override the ServiceControl container image tag (useful for testing PR-based prereleases) |
 | `--error-ingestion-scale-unit` | `0` | non-negative integer | Number of additional error-ingestion-only scale-out instances to spin up alongside the primary error instance (each runs with `--error-ingestion-only`) |
-| `--audit-instances` | `1` | non-negative integer | Number of ServiceControl.Audit instances to add. They take the same `--persistence` backend, report custom checks to the primary and export OTel to the collector |
-| `--azure-blob-body-storage` | *(none — uses file-system body storage)* | `"<connection string>"` | Store message bodies in Azure Blob Storage instead of the container file system. Applies only with `--persistence:SqlServer` or `--persistence:PostgreSql`. Quote the value because connection strings contain semicolons. The error instance and its scale-out units share the `error-bodies` container, and each audit instance gets its own `audit-bodies-<instance name>` container |
-| `--s3-body-storage` | *(none — uses file-system body storage)* | `<bucket name>` | Store message bodies in an S3 bucket instead of the container file system. Applies only with `--persistence:SqlServer` or `--persistence:PostgreSql`, and cannot be combined with `--azure-blob-body-storage`. Setup creates the bucket if it is missing and the credentials permit it. The error instance and its scale-out units share the `error-bodies/` key prefix, and each audit instance gets its own `audit-bodies-<instance name>/` prefix |
+| `--audit-instances` | `1` | non-negative integer | Number of ServiceControl.Audit instances to add. They take the same `--storage` backend, report custom checks to the primary and export OTel to the collector |
+| `--azure-blob-body-storage` | *(none — uses file-system body storage)* | `"<connection string>"` | Store message bodies in Azure Blob Storage instead of the container file system. Applies only with `--storage:SqlServer` or `--storage:PostgreSql`. Quote the value because connection strings contain semicolons. The error instance and its scale-out units share the `error-bodies` container, and each audit instance gets its own `audit-bodies-<instance name>` container |
+| `--s3-body-storage` | *(none — uses file-system body storage)* | `<bucket name>` | Store message bodies in an S3 bucket instead of the container file system. Applies only with `--storage:SqlServer` or `--storage:PostgreSql`, and cannot be combined with `--azure-blob-body-storage`. Setup creates the bucket if it is missing and the credentials permit it. The error instance and its scale-out units share the `error-bodies/` key prefix, and each audit instance gets its own `audit-bodies-<instance name>/` prefix |
 | `--s3-region` | SDK default | region name, e.g. `eu-west-1` | Region for `--s3-body-storage`. Requires `--s3-body-storage` |
 | `--s3-service-url` | AWS | absolute `http` or `https` URL | S3-compatible endpoint, e.g. MinIO or LocalStack. The ServiceControl containers connect to it, so it must be reachable from inside a container. Requires `--s3-body-storage` |
 | `--s3-access-key-id`, `--s3-secret-access-key` | *(none — default AWS credential chain)* | key pair | Static credentials for `--s3-body-storage`. Set both or neither. Without them, the AWS default credential chain runs inside each container; the host's credentials are not forwarded. Static keys appear in the container environment |
@@ -200,7 +200,7 @@ Pass static credentials explicitly, or omit both key options when the containers
 
 ```bash
 aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- \
-  --persistence PostgreSql --s3-body-storage my-bodies --s3-region eu-west-1 \
+  --storage PostgreSql --s3-body-storage my-bodies --s3-region eu-west-1 \
   --s3-access-key-id "$AWS_ACCESS_KEY_ID" --s3-secret-access-key "$AWS_SECRET_ACCESS_KEY"
 ```
 
@@ -208,7 +208,7 @@ For MinIO or LocalStack, use an endpoint reachable from the containers. This exa
 
 ```bash
 aspire run tools/testing-tool/TestingTool.AppHost/TestingTool.AppHost.csproj -- \
-  --persistence SqlServer --s3-body-storage bodies --s3-region us-east-1 \
+  --storage SqlServer --s3-body-storage bodies --s3-region us-east-1 \
   --s3-service-url http://host.docker.internal:9000 \
   --s3-access-key-id minioadmin --s3-secret-access-key minioadmin
 ```

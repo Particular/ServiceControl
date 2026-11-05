@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 public interface IAcceptanceTestStorageConfiguration
 {
-    string PersistenceType { get; }
+    string StorageType { get; }
 
     Task<IDictionary<string, string>> CustomizeSettings(CancellationToken cancellationToken = default);
 

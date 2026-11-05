@@ -28,7 +28,7 @@
                 transportType: transportIntegration.TypeName,
                 forwardErrorMessages: false,
                 errorRetentionPeriod: TimeSpan.FromDays(1),
-                persisterType: "RavenDB")
+                storageType: "RavenDB")
             {
                 TransportConnectionString = transportIntegration.ConnectionString,
                 AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default

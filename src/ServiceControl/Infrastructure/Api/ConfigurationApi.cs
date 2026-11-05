@@ -79,7 +79,7 @@ class ConfigurationApi(ActiveLicense license, Settings settings, IHttpClientFact
             PersistenceSettings = settings.PersisterSpecificSettings,
             Storage = new
             {
-                StorageType = PersistenceManifestLibrary.Find(settings.PersistenceType)?.Name
+                StorageType = PersistenceManifestLibrary.Find(settings.StorageType)?.Name
             },
             Transport = new
             {

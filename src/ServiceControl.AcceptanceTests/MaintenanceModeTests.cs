@@ -15,7 +15,7 @@ namespace ServiceControl.AcceptanceTests
         {
             var settings = new Settings(
                 transportType: TransportIntegration.TypeName,
-                persisterType: StorageConfiguration.PersistenceType,
+                storageType: StorageConfiguration.StorageType,
                 forwardErrorMessages: false,
                 errorRetentionPeriod: TimeSpan.FromDays(1))
             {
@@ -25,7 +25,7 @@ namespace ServiceControl.AcceptanceTests
 
             var exception = Assert.Throws<Exception>(() => new ServiceCollection().AddPersistence(settings, maintenanceMode: true));
 
-            Assert.That(exception.Message, Does.Contain("Maintenance mode is not supported").And.Contain(StorageConfiguration.PersistenceType));
+            Assert.That(exception.Message, Does.Contain("Maintenance mode is not supported").And.Contain(StorageConfiguration.StorageType));
         }
     }
 }

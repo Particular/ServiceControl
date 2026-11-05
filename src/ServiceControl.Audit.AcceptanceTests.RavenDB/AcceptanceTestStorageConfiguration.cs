@@ -13,7 +13,7 @@
 
     public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfiguration
     {
-        public string PersistenceType { get; } = "RavenDB";
+        public string StorageType { get; } = "RavenDB";
 
         EmbeddedDatabase databaseInstance;
         string databaseName;
