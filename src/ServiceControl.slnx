@@ -61,6 +61,12 @@
     <Project Path="ServiceControl.Persistence.Tests.SqlServer/ServiceControl.Persistence.Tests.SqlServer.csproj" />
     <Project Path="ServiceControl.UnitTests/ServiceControl.UnitTests.csproj" />
   </Folder>
+  <Folder Name="/Instances/Federation/">
+    <Project Path="ServiceControl.Federation/ServiceControl.Federation.csproj" />
+  </Folder>
+  <Folder Name="/Instances/Federation/Testing/">
+    <Project Path="ServiceControl.Federation.UnitTests/ServiceControl.Federation.UnitTests.csproj" />
+  </Folder>
   <Folder Name="/Instances/Shared/">
     <Project Path="ServiceControl.Api/ServiceControl.Api.csproj" />
     <Project Path="ServiceControl.Configuration/ServiceControl.Configuration.csproj" />
