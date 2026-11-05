@@ -27,7 +27,7 @@ class IndexDefinitionTests
             index.Conventions = database.Store.Conventions;
         }
 
-        // Deploying sets the search engine on each index. That setting is part of what the server compares.
+        // On a Lucene database the indexes inherit the search engine, so deploying leaves no setting on the definition.
         await IndexDeployment.CreateIndexesAsync(indexes, database.Store);
 
         var approved = new StringBuilder();

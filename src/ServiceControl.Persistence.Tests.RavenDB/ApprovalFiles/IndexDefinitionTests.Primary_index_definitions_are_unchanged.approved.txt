@@ -26,7 +26,6 @@ Index: ArchivedGroupsViewIndex
         Last = DynamicEnumerable.Max(g, x1 => ((DateTime) x1.Last)),
         Type = g.Key.Type
     })
-  Configuration Indexing.Static.SearchEngineType: Lucene
 
 Index: CustomChecksIndex
   Type: Map
@@ -38,7 +37,6 @@ Index: CustomChecksIndex
         Category = cc.Category,
         CustomCheckId = cc.CustomCheckId
     })
-  Configuration Indexing.Static.SearchEngineType: Lucene
 
 Index: EndpointIndex
   Type: Map
@@ -48,7 +46,6 @@ Index: EndpointIndex
         ThroughputSource = message.EndpointId.ThroughputSource,
         Name = message.EndpointId.Name
     })
-  Configuration Indexing.Static.SearchEngineType: Lucene
 
 Index: FailedErrorImportIndex
   Type: Map
@@ -57,7 +54,6 @@ Index: FailedErrorImportIndex
     docs.FailedErrorImports.Select(cc => new {
         Id = Id(cc)
     })
-  Configuration Indexing.Static.SearchEngineType: Lucene
 
 Index: FailedMessageFacetsIndex
   Type: Map
@@ -74,7 +70,6 @@ Index: FailedMessageFacetsIndex
   Field Host: {"Indexing":"Exact"}
   Field MessageType: {"Indexing":"Exact"}
   Field Name: {"Indexing":"Exact"}
-  Configuration Indexing.Static.SearchEngineType: Lucene
 
 Index: FailedMessageRetries/ByBatch
   Type: Map
@@ -83,7 +78,6 @@ Index: FailedMessageRetries/ByBatch
     docs.FailedMessageRetries.Select(doc => new {
         RetryBatchId = doc.RetryBatchId
     })
-  Configuration Indexing.Static.SearchEngineType: Lucene
 
 Index: FailedMessageViewIndex
   Type: Map
@@ -102,7 +96,6 @@ Index: FailedMessageViewIndex
         TimeOfFailure = this0.processingAttemptsLast.FailureDetails.TimeOfFailure,
         LastModified = (this.MetadataFor(this0.message).Value < DateTime > ("@last-modified")).Ticks
     })
-  Configuration Indexing.Static.SearchEngineType: Lucene
 
 Index: FailedMessages/ByGroup
   Type: Map
@@ -123,7 +116,6 @@ Index: FailedMessages/ByGroup
         LastModified = (this.MetadataFor(this0.doc).Value < DateTime > ("@last-modified")).Ticks
     })
   Field __all_fields: {"Storage":"Yes"}
-  Configuration Indexing.Static.SearchEngineType: Lucene
 
 Index: FailureGroupsViewIndex
   Type: MapReduce
@@ -153,7 +145,6 @@ Index: FailureGroupsViewIndex
         Last = DynamicEnumerable.Max(g, x1 => ((DateTime) x1.Last)),
         Type = g.Key.Type
     })
-  Configuration Indexing.Static.SearchEngineType: Lucene
 
 Index: GroupCommentIndex
   Type: Map
@@ -163,7 +154,6 @@ Index: GroupCommentIndex
         Id = Id(gc),
         Comment = gc.Comment
     })
-  Configuration Indexing.Static.SearchEngineType: Lucene
 
 Index: KnownEndpointIndex
   Type: Map
@@ -175,7 +165,6 @@ Index: KnownEndpointIndex
         HostDisplayName = message.HostDisplayName,
         Monitored = message.Monitored
     })
-  Configuration Indexing.Static.SearchEngineType: Lucene
 
 Index: MessagesViewIndex
   Type: Map
@@ -201,7 +190,6 @@ Index: MessagesViewIndex
         ConversationId = ((string) this0.last.MessageMetadata["ConversationId"])
     })
   Field Query: {"Indexing":"Search"}
-  Configuration Indexing.Static.SearchEngineType: Lucene
 
 Index: QueueAddressIndex
   Type: MapReduce
@@ -219,7 +207,6 @@ Index: QueueAddressIndex
         PhysicalAddress = g.Key,
         FailedMessageCount = Enumerable.Sum(g, m => ((int) m.FailedMessageCount))
     })
-  Configuration Indexing.Static.SearchEngineType: Lucene
 
 Index: RetryBatches/ByStatus/ReduceInitialBatchSize
   Type: MapReduce
@@ -251,7 +238,6 @@ Index: RetryBatches/ByStatus/ReduceInitialBatchSize
         Last = DynamicEnumerable.Max(g, x2 => ((DateTime) x2.Last)),
         Classifier = (DynamicEnumerable.FirstOrDefault(g)).Classifier
     })
-  Configuration Indexing.Static.SearchEngineType: Lucene
 
 Index: RetryBatches/ByStatusAndSession
   Type: Map
@@ -261,5 +247,4 @@ Index: RetryBatches/ByStatusAndSession
         RetrySessionId = doc.RetrySessionId,
         Status = doc.Status
     })
-  Configuration Indexing.Static.SearchEngineType: Lucene
 
