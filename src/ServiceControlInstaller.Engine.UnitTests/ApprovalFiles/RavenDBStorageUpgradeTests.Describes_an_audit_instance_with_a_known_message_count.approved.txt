@@ -3,7 +3,7 @@ Upgrading Particular.ServiceControl.Audit converts its RavenDB database to a new
 Database size: 525.0 GB
 Stored messages: 120,000,000
 
-The duration depends on the number of stored messages and on disk latency. On hardware that meets the recommended baseline, expect about 2 days 7 hours or longer.
+The duration depends on the number of stored messages and on disk latency. On hardware that meets the recommended baseline, expect about 9 days 6 hours or longer.
 
 Do not stop the instance setup while the conversion runs. Stopping it starts the conversion over.
 
