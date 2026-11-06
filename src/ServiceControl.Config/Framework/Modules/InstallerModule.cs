@@ -1,6 +1,7 @@
 namespace ServiceControl.Config.Framework.Modules
 {
     using System;
+    using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
     using Autofac;
@@ -99,6 +100,9 @@ namespace ServiceControl.Config.Framework.Modules
             instance.ReportCard = new ReportCard();
             ZipInfo.ValidateZip();
 
+            // Read before the upgrade replaces the RavenDB server the instance runs today.
+            var convertsDatabase = RavenDBStorageUpgrade.ConvertsDatabase(instance);
+
             var totalSteps = 5;
             var currentStep = 0;
 
@@ -137,11 +141,31 @@ namespace ServiceControl.Config.Framework.Modules
 
             UpgradeOptions(upgradeOptions, instance);
 
-            progress.Report(++currentStep, totalSteps, "Instance setup in progress, this could take several minutes...");
-            instance.SetupInstance();
+            ++currentStep;
+            if (convertsDatabase)
+            {
+                SetupInstanceWithElapsedTime(instance, progress, currentStep, totalSteps);
+            }
+            else
+            {
+                progress.Report(currentStep, totalSteps, "Instance setup in progress, this could take several minutes...");
+                instance.SetupInstance();
+            }
 
             instance.ReportCard.SetStatus();
             return instance.ReportCard;
+        }
+
+        static void SetupInstanceWithElapsedTime(ServiceControlBaseService instance, IProgress<ProgressDetails> progress, int currentStep, int totalSteps)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            void ReportElapsedTime() => progress.Report(currentStep, totalSteps,
+                $"Converting the database to the new storage format, running for {RavenDBStorageUpgrade.FormatDuration(stopwatch.Elapsed)}. Do not stop the setup: stopping it starts the conversion over.");
+
+            ReportElapsedTime();
+            using var timer = new Timer(_ => ReportElapsedTime(), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+            instance.SetupInstance();
         }
 
         protected virtual void UpgradeOptions(ServiceControlUpgradeOptions upgradeOptions, ServiceControlBaseService instance)
