@@ -1,0 +1,10 @@
+Upgrading Particular.ServiceControl.Audit converts its RavenDB database to a new storage format. The conversion runs once, while the instance is set up, and the instance is unavailable until it finishes.
+
+Database size: 525.0 GB
+Stored messages: 120,000,000
+
+The duration depends on the number of stored messages and on disk latency. On hardware that meets the recommended baseline, expect about 1 day 23 hours or longer.
+
+Do not stop the instance setup while the conversion runs. Stopping it starts the conversion over.
+
+For a large audit database, consider adding a new audit instance instead and removing this one when its audit retention period has passed: https://docs.particular.net/servicecontrol/migrations/replacing-audit-instances/

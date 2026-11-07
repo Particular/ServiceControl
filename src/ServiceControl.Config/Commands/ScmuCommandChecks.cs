@@ -9,6 +9,7 @@
     using ServiceControlInstaller.Engine;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
+    using ServiceControlInstaller.Engine.Validation;
 
     public class ScmuCommandChecks : AbstractCommandChecks
     {
@@ -92,6 +93,14 @@
                 $"{instance.Name} needs to be stopped in order to upgrade to version {Constants.CurrentVersion}.",
                 "Do you want to proceed?",
                 "Yes, I want to proceed", "No", cancellationToken);
+        }
+
+        protected override Task<bool> PromptForRavenDBStorageUpgrade(RavenDBStorageUpgrade storageUpgrade, CancellationToken cancellationToken = default)
+        {
+            return windowManager.ShowYesNoDialog("DATABASE CONVERSION REQUIRED",
+                storageUpgrade.Describe(),
+                "Do you want to proceed?",
+                "Yes, upgrade and convert the database", "No", cancellationToken);
         }
 
         protected override Task<bool> PromptToContinueWithForcedUpgrade(CancellationToken cancellationToken = default)

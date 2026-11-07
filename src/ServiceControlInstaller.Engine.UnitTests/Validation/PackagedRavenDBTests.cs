@@ -21,7 +21,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
     class PackagedRavenDBTests
     {
         [Test]
-        public async Task CanPersistAndIndexDocumentsWithoutNativeKafkaDependencies()
+        public async Task CanPersistAndIndexDocumentsWithoutExcludedFiles()
         {
             var root = Path.Combine(Path.GetTempPath(), "PackagedRavenDB", Guid.NewGuid().ToString("N"));
             var serverDirectory = Path.Combine(root, "Server");
@@ -43,6 +43,13 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
                     Assert.That(Path.Combine(serverDirectory, "libcurl.dll"), Does.Not.Exist);
                     Assert.That(Path.Combine(serverDirectory, "librdkafka.dll"), Does.Not.Exist);
                     Assert.That(Path.Combine(serverDirectory, "librdkafkacpp.dll"), Does.Not.Exist);
+                    Assert.That(Path.Combine(serverDirectory, "onnxruntime.dll"), Does.Not.Exist);
+                    Assert.That(Path.Combine(serverDirectory, "onnxruntime.lib"), Does.Not.Exist);
+                    Assert.That(Path.Combine(serverDirectory, "onnxruntime_providers_shared.dll"), Does.Not.Exist);
+                    Assert.That(Path.Combine(serverDirectory, "onnxruntime_providers_shared.lib"), Does.Not.Exist);
+                    Assert.That(Path.Combine(serverDirectory, "onnxruntime-genai.dll"), Does.Not.Exist);
+                    Assert.That(Path.Combine(serverDirectory, "onnxruntime-genai.lib"), Does.Not.Exist);
+                    Assert.That(Path.Combine(serverDirectory, "LocalEmbeddings"), Does.Not.Exist);
                     Assert.That(Path.Combine(serverDirectory, "Raven.Server.exe"), Does.Exist);
                 }
 
