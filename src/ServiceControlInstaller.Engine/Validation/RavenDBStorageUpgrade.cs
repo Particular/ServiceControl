@@ -187,8 +187,8 @@ namespace ServiceControlInstaller.Engine.Validation
 
         static string Pluralize(int value, string unit) => value == 1 ? $"1 {unit}" : $"{value} {unit}s";
 
-        // Estimated, not yet measured end to end: about 1,200 uncached reads per second on the baseline disk, divided by 8 to 10 reads per stored message body.
-        internal const double BaselineMessagesPerSecond = 150;
+        // Measured on the recommended baseline hardware: 101,410,554 stored messages converted in 39.6 hours, about 711 per second.
+        internal const double BaselineMessagesPerSecond = 700;
 
         const string ConnectionStringSetting = "RavenDB/ConnectionString";
         const string ReplaceAuditInstanceGuideUrl = "https://docs.particular.net/servicecontrol/migrations/replacing-audit-instances/";
