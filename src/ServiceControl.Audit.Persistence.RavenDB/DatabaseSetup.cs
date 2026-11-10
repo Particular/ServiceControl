@@ -89,7 +89,7 @@ class DatabaseSetup(DatabaseConfiguration configuration)
             await documentStore.Maintenance.SendAsync(new DeleteIndexOperation(MessagesViewIndexWithFulltextSearchName), cancellationToken);
         }
 
-        await IndexDeployment.CreateIndexesAsync(indexList, documentStore, cancellationToken);
+        await IndexDeployment.CreateIndexesAsync(indexList, documentStore, cancellationToken: cancellationToken);
     }
 
     async Task ConfigureExpiration(IDocumentStore documentStore, CancellationToken cancellationToken)
