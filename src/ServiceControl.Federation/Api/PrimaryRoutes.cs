@@ -29,6 +29,7 @@ public static class PrimaryRoutes
         Post("license/detailsUpload", S.Lead, (f, c) => f.LeadStreaming(c, Surface.Primary)),
         // Amends the details uploaded above, so it goes to the same member.
         Post("license/amendDetails", S.Lead, (f, c) => f.Lead(c, Surface.Primary)),
+        Post("license/removeAmendments", S.Lead, (f, c) => f.Lead(c, Surface.Primary)),
 
         // Failed messages
         Get("errors", S.SortedPage, PrimaryHandlers.FailedMessages),
