@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Indexes;
 using Models;
 using Particular.LicensingComponent.Persistence;
 using Particular.LicensingComponent.Contracts;
@@ -36,11 +37,12 @@ class LicensingDataStore(
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
-        var baseQuery = session.Query<EndpointDocument>();
-
+        // A filtered query goes through the static index. A dynamic query makes RavenDB create an auto index, which has
+        // no per-index search engine setting. A query without a filter reads the collection and creates no index.
         var query = includePlatformEndpoints
-            ? baseQuery
-            : baseQuery.Where(document => !document.EndpointIndicators.Contains(EndpointIndicator.PlatformEndpoint.ToString()));
+            ? session.Query<EndpointDocument>()
+            : session.Query<EndpointDocument, EndpointIndex>()
+                .Where(document => !document.EndpointIndicators.Contains(EndpointIndicator.PlatformEndpoint.ToString()));
 
         var documents = await query.ToListAsync(cancellationToken);
 
@@ -145,7 +147,7 @@ class LicensingDataStore(
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
         var from = timeProvider.GetUtcNow().UtcDateTime.AddMonths(-ThroughputReporting.ReportedMonths);
-        var query = session.Query<EndpointDocument>()
+        var query = session.Query<EndpointDocument, EndpointIndex>()
             .Where(document => document.SanitizedName.In(queueNames))
             .Include(builder => builder.IncludeTimeSeries(ThroughputTimeSeriesName, from));
 
@@ -207,7 +209,9 @@ class LicensingDataStore(
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
-        var query = session.Query<EndpointDocument>()
+        // The updates are based on the query results, so a stale index would skip endpoints that were just saved.
+        var query = session.Query<EndpointDocument, EndpointIndex>()
+            .Customize(customization => customization.WaitForNonStaleResults())
             .Where(document => document.SanitizedName.In(updates.Keys) || document.EndpointId.Name.In(updates.Keys));
 
         var documents = await query.ToListAsync(cancellationToken);
@@ -234,7 +238,8 @@ class LicensingDataStore(
             var sanitizedNames = sanitizedNameToUserIndicator.Keys.ToList();
             var alreadyLoadedIds = documents.Select(d => d.Id).ToHashSet();
 
-            var siblingDocuments = await session.Query<EndpointDocument>()
+            var siblingDocuments = await session.Query<EndpointDocument, EndpointIndex>()
+                .Customize(customization => customization.WaitForNonStaleResults())
                 .Where(d => d.SanitizedName.In(sanitizedNames))
                 .ToListAsync(cancellationToken);
 
@@ -265,7 +270,7 @@ class LicensingDataStore(
         var store = await storeProvider.GetDocumentStore(cancellationToken);
         using IAsyncDocumentSession session = store.OpenAsyncSession(databaseConfiguration.Name);
 
-        var baseQuery = session.Query<EndpointDocument>()
+        var baseQuery = session.Query<EndpointDocument, EndpointIndex>()
             .Where(endpoint => endpoint.EndpointId.ThroughputSource == throughputSource);
 
         var result = await IsThereThroughputForLastXDaysInternal(baseQuery, days, includeToday, cancellationToken);

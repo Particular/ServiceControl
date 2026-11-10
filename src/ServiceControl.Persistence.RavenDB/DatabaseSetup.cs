@@ -1,6 +1,7 @@
 namespace ServiceControl.Persistence.RavenDB
 {
     using System;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
@@ -9,6 +10,7 @@ namespace ServiceControl.Persistence.RavenDB
     using Raven.Client.ServerWide;
     using Raven.Client.ServerWide.Operations;
     using ServiceControl.RavenDB;
+    using Throughput.Indexes;
 
     class DatabaseSetup(RavenPersisterSettings settings, IDocumentStore documentStore)
     {
@@ -17,7 +19,11 @@ namespace ServiceControl.Persistence.RavenDB
             await CreateDatabase(settings.DatabaseName, cancellationToken);
             await CreateDatabase(settings.ThroughputDatabaseName, cancellationToken);
 
-            await IndexDeployment.CreateIndexesAsync(typeof(DatabaseSetup).Assembly, documentStore, cancellationToken);
+            // The throughput indexes belong to the throughput database, all other indexes to the error database.
+            var indexes = IndexDeployment.FindIndexes(typeof(DatabaseSetup).Assembly).ToLookup(index => index.GetType().Namespace == typeof(EndpointIndex).Namespace);
+
+            await IndexDeployment.CreateIndexesAsync(indexes[false], documentStore, cancellationToken: cancellationToken);
+            await IndexDeployment.CreateIndexesAsync(indexes[true], documentStore, settings.ThroughputDatabaseName, cancellationToken);
 
             await StartupChecks.WarnIfIndexesUseCorax(documentStore, settings.DatabaseName, cancellationToken);
             await StartupChecks.WarnIfIndexesUseCorax(documentStore, settings.ThroughputDatabaseName, cancellationToken);

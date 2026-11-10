@@ -36,9 +36,11 @@ CustomChecksIndex
 
 EndpointIndex
   Maps:
-    docs.EndpointDocuments.Select(message => new {
-        ThroughputSource = message.EndpointId.ThroughputSource,
-        Name = message.EndpointId.Name
+    docs.EndpointDocuments.Select(endpoint => new {
+        EndpointId_ThroughputSource = endpoint.EndpointId.ThroughputSource,
+        EndpointId_Name = endpoint.EndpointId.Name,
+        SanitizedName = endpoint.SanitizedName,
+        EndpointIndicators = endpoint.EndpointIndicators
     })
 
 FailedErrorImportIndex
