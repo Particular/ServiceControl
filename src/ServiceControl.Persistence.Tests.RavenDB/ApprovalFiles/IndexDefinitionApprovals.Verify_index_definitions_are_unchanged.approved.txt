@@ -41,6 +41,12 @@ EndpointIndex
         Name = message.EndpointId.Name
     })
 
+EventLogItems/ByRaisedAt
+  Maps:
+    docs.EventLogItems.Select(doc => new {
+        RaisedAt = doc.RaisedAt
+    })
+
 FailedErrorImportIndex
   Maps:
     docs.FailedErrorImports.Select(cc => new {
