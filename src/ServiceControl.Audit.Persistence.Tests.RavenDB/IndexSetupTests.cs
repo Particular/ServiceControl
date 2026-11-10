@@ -87,7 +87,7 @@ class IndexSetupTests : PersistenceTestFixture
     [Test]
     public async Task Free_text_search_index_can_be_opted_out_from()
     {
-        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, false, TestTimeoutCancellationToken);
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, false, cancellationToken: TestTimeoutCancellationToken);
 
         var freeTextIndex = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(DatabaseSetup.MessagesViewIndexWithFulltextSearchName));
         var nonFreeTextIndex = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(DatabaseSetup.MessagesViewIndexName));
@@ -103,7 +103,7 @@ class IndexSetupTests : PersistenceTestFixture
 
         await configuration.DocumentStore.Maintenance.SendAsync(new DeleteIndexOperation(index.IndexName), TestTimeoutCancellationToken);
 
-        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, cancellationToken: TestTimeoutCancellationToken);
 
         var definition = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(index.IndexName), TestTimeoutCancellationToken);
         var stats = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName), TestTimeoutCancellationToken);
@@ -120,7 +120,7 @@ class IndexSetupTests : PersistenceTestFixture
         await configuration.DocumentStore.Maintenance.SendAsync(new DeleteIndexOperation(index.IndexName), TestTimeoutCancellationToken);
         await SetDatabaseSearchEngine(SearchEngineType.Corax);
 
-        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, cancellationToken: TestTimeoutCancellationToken);
 
         var definition = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(index.IndexName), TestTimeoutCancellationToken);
         var stats = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName), TestTimeoutCancellationToken);
@@ -137,7 +137,7 @@ class IndexSetupTests : PersistenceTestFixture
 
         Assert.That(statsBefore.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
 
-        await IndexDeployment.CreateIndexesAsync([new FailedAuditImportIndexPinnedToCorax(useSearchEngineTypeProperty)], configuration.DocumentStore, TestTimeoutCancellationToken);
+        await IndexDeployment.CreateIndexesAsync([new FailedAuditImportIndexPinnedToCorax(useSearchEngineTypeProperty)], configuration.DocumentStore, cancellationToken: TestTimeoutCancellationToken);
 
         var statsAfter = await WaitForIndexDefinitionUpdate(statsBefore);
 
@@ -153,7 +153,7 @@ class IndexSetupTests : PersistenceTestFixture
 
         Assert.That(indexStatsBefore.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
 
-        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, cancellationToken: TestTimeoutCancellationToken);
 
         var replacement = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(Constants.Documents.Indexing.SideBySideIndexNamePrefix + index.IndexName), TestTimeoutCancellationToken);
         var indexStatsAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName), TestTimeoutCancellationToken);
@@ -170,7 +170,7 @@ class IndexSetupTests : PersistenceTestFixture
 
         Assert.That(customizedStats.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
 
-        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, cancellationToken: TestTimeoutCancellationToken);
 
         var resetStats = await WaitForIndexDefinitionUpdate(customizedStats);
         var resetDefinition = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(customizedStats.Name), TestTimeoutCancellationToken);
@@ -185,7 +185,7 @@ class IndexSetupTests : PersistenceTestFixture
         await SetDatabaseSearchEngine(SearchEngineType.Corax);
         var customizedStats = await PutCustomizedIndex(SearchEngineType.Lucene);
 
-        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, cancellationToken: TestTimeoutCancellationToken);
 
         var resetStats = await WaitForIndexDefinitionUpdate(customizedStats);
 
@@ -212,7 +212,7 @@ class IndexSetupTests : PersistenceTestFixture
             var defaultReplacement = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(replacementName), TestTimeoutCancellationToken);
             Assert.That(defaultReplacement.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
 
-            await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+            await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, cancellationToken: TestTimeoutCancellationToken);
 
             var replacementAfterSetup = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(replacementName), TestTimeoutCancellationToken);
             var originalAfterSetup = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName), TestTimeoutCancellationToken);
@@ -239,7 +239,7 @@ class IndexSetupTests : PersistenceTestFixture
         // Versions 6.20.0 to 6.21.2 then set the database default back to Corax.
         await SetDatabaseSearchEngine(SearchEngineType.Corax);
 
-        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, cancellationToken: TestTimeoutCancellationToken);
 
         var statsAfter = await WaitForIndexDefinitionUpdate(statsBefore);
         var definitionAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(statsBefore.Name), TestTimeoutCancellationToken);
@@ -261,7 +261,7 @@ class IndexSetupTests : PersistenceTestFixture
         // The operator sets the database to Lucene. The next definition change moves the index to Lucene.
         await SetDatabaseSearchEngine(SearchEngineType.Lucene);
 
-        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, cancellationToken: TestTimeoutCancellationToken);
 
         var statsAfter = await WaitForIndexDefinitionUpdate(statsBefore);
         var definitionAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(statsBefore.Name), TestTimeoutCancellationToken);
@@ -275,7 +275,7 @@ class IndexSetupTests : PersistenceTestFixture
     {
         var statsBefore = await PutIndexWithoutSearchEngineSetting(customize: false);
 
-        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, cancellationToken: TestTimeoutCancellationToken);
 
         var replacement = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(Constants.Documents.Indexing.SideBySideIndexNamePrefix + statsBefore.Name), TestTimeoutCancellationToken);
         var statsAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(statsBefore.Name), TestTimeoutCancellationToken);
@@ -292,7 +292,7 @@ class IndexSetupTests : PersistenceTestFixture
     {
         var customizedStats = await PutCustomizedIndex(SearchEngineType.Corax, lockMode);
 
-        var exception = Assert.ThrowsAsync<Exception>(async () => await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken));
+        var exception = Assert.ThrowsAsync<Exception>(async () => await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, cancellationToken: TestTimeoutCancellationToken));
 
         var definitionAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(customizedStats.Name), TestTimeoutCancellationToken);
         var indexStatsAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(customizedStats.Name), TestTimeoutCancellationToken);
@@ -305,11 +305,29 @@ class IndexSetupTests : PersistenceTestFixture
 
     [TestCase(IndexLockMode.LockedIgnore)]
     [TestCase(IndexLockMode.LockedError)]
+    public async Task Setup_in_maintenance_mode_should_succeed_and_skip_a_locked_index_with_a_changed_definition(IndexLockMode lockMode)
+    {
+        var customizedStats = await PutCustomizedIndex(SearchEngineType.Corax, lockMode);
+
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, maintenanceMode: true, TestTimeoutCancellationToken);
+
+        var replacement = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(Constants.Documents.Indexing.SideBySideIndexNamePrefix + customizedStats.Name), TestTimeoutCancellationToken);
+        var definitionAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(customizedStats.Name), TestTimeoutCancellationToken);
+        var indexStatsAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(customizedStats.Name), TestTimeoutCancellationToken);
+
+        Assert.That(replacement, Is.Null);
+        Assert.That(definitionAfter.LockMode, Is.EqualTo(lockMode));
+        Assert.That(definitionAfter.Fields, Does.ContainKey(CustomizedField));
+        Assert.That(indexStatsAfter.SearchEngineType, Is.EqualTo(SearchEngineType.Corax));
+    }
+
+    [TestCase(IndexLockMode.LockedIgnore)]
+    [TestCase(IndexLockMode.LockedError)]
     public async Task Setup_should_succeed_when_a_locked_index_has_an_unchanged_definition(IndexLockMode lockMode)
     {
         var lockedStats = await PutCustomizedIndex(SearchEngineType.Corax, lockMode, customize: false);
 
-        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, cancellationToken: TestTimeoutCancellationToken);
 
         var replacement = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(Constants.Documents.Indexing.SideBySideIndexNamePrefix + lockedStats.Name), TestTimeoutCancellationToken);
         var definitionAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(lockedStats.Name), TestTimeoutCancellationToken);
@@ -329,7 +347,7 @@ class IndexSetupTests : PersistenceTestFixture
 
         await configuration.DocumentStore.Maintenance.SendAsync(new SetIndexesLockOperation(lockedStats.Name, lockMode), TestTimeoutCancellationToken);
 
-        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, TestTimeoutCancellationToken);
+        await DatabaseSetup.CreateIndexes(configuration.DocumentStore, true, cancellationToken: TestTimeoutCancellationToken);
 
         var replacement = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(Constants.Documents.Indexing.SideBySideIndexNamePrefix + lockedStats.Name), TestTimeoutCancellationToken);
         var definitionAfter = await configuration.DocumentStore.Maintenance.SendAsync(new GetIndexOperation(lockedStats.Name), TestTimeoutCancellationToken);

@@ -80,6 +80,40 @@ namespace ServiceControl.Persistence.Tests.RavenDB
             }
         }
 
+        [TestCase(IndexLockMode.LockedIgnore)]
+        [TestCase(IndexLockMode.LockedError)]
+        public async Task Setup_in_maintenance_mode_should_succeed_and_skip_a_locked_index_with_a_changed_definition(IndexLockMode lockMode)
+        {
+            var index = new CustomChecksIndex { Conventions = DocumentStore.Conventions };
+            var definition = index.CreateIndexDefinition();
+            definition.Name = index.IndexName;
+            definition.LockMode = lockMode;
+            definition.Fields[nameof(CustomCheck.Category)] = new IndexFieldOptions { Storage = FieldStorage.Yes };
+
+            var statsBefore = await DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(index.IndexName));
+            await DocumentStore.Maintenance.SendAsync(new PutIndexesOperation(definition));
+            var lockedStats = await WaitForIndexDefinitionUpdate(statsBefore);
+
+            try
+            {
+                await IndexDeployment.CreateIndexesAsync(typeof(DatabaseSetup).Assembly, DocumentStore, maintenanceMode: true);
+
+                var replacement = await DocumentStore.Maintenance.SendAsync(new GetIndexOperation(Constants.Documents.Indexing.SideBySideIndexNamePrefix + index.IndexName));
+                var definitionAfter = await DocumentStore.Maintenance.SendAsync(new GetIndexOperation(index.IndexName));
+
+                Assert.That(replacement, Is.Null);
+                Assert.That(definitionAfter.LockMode, Is.EqualTo(lockMode));
+                Assert.That(definitionAfter.Fields, Does.ContainKey(nameof(CustomCheck.Category)));
+            }
+            finally
+            {
+                // Tests share the database. Restore the index to the state that setup creates.
+                await DocumentStore.Maintenance.SendAsync(new SetIndexesLockOperation(index.IndexName, IndexLockMode.Unlock));
+                await IndexCreation.CreateIndexesAsync([new CustomChecksIndex { Configuration = { [IndexDeployment.StaticSearchEngineTypeKey] = SearchEngineType.Lucene.ToString() } }], DocumentStore);
+                await WaitForIndexDefinitionUpdate(lockedStats);
+            }
+        }
+
         async Task<IndexStats> WaitForIndexDefinitionUpdate(IndexStats oldStats)
         {
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));

@@ -23,7 +23,7 @@ class DatabaseSetup(DatabaseConfiguration configuration)
     {
         await CreateDatabase(documentStore, configuration.Name, cancellationToken);
 
-        await CreateIndexes(documentStore, configuration.EnableFullTextSearch, cancellationToken);
+        await CreateIndexes(documentStore, configuration.EnableFullTextSearch, configuration.MaintenanceMode, cancellationToken);
 
         await StartupChecks.WarnIfIndexesUseCorax(documentStore, configuration.Name, cancellationToken);
 
@@ -72,7 +72,7 @@ class DatabaseSetup(DatabaseConfiguration configuration)
         }
     }
 
-    internal static async Task CreateIndexes(IDocumentStore documentStore, bool enableFreeTextSearch, CancellationToken cancellationToken = default)
+    internal static async Task CreateIndexes(IDocumentStore documentStore, bool enableFreeTextSearch, bool maintenanceMode = false, CancellationToken cancellationToken = default)
     {
         await DeleteLegacySagaDetailsIndex(documentStore, cancellationToken);
 
@@ -89,7 +89,7 @@ class DatabaseSetup(DatabaseConfiguration configuration)
             await documentStore.Maintenance.SendAsync(new DeleteIndexOperation(MessagesViewIndexWithFulltextSearchName), cancellationToken);
         }
 
-        await IndexDeployment.CreateIndexesAsync(indexList, documentStore, cancellationToken);
+        await IndexDeployment.CreateIndexesAsync(indexList, documentStore, maintenanceMode, cancellationToken);
     }
 
     async Task ConfigureExpiration(IDocumentStore documentStore, CancellationToken cancellationToken)

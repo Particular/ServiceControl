@@ -17,7 +17,7 @@ namespace ServiceControl.Persistence.RavenDB
             await CreateDatabase(settings.DatabaseName, cancellationToken);
             await CreateDatabase(settings.ThroughputDatabaseName, cancellationToken);
 
-            await IndexDeployment.CreateIndexesAsync(typeof(DatabaseSetup).Assembly, documentStore, cancellationToken);
+            await IndexDeployment.CreateIndexesAsync(typeof(DatabaseSetup).Assembly, documentStore, settings.MaintenanceMode, cancellationToken);
 
             await StartupChecks.WarnIfIndexesUseCorax(documentStore, settings.DatabaseName, cancellationToken);
             await StartupChecks.WarnIfIndexesUseCorax(documentStore, settings.ThroughputDatabaseName, cancellationToken);

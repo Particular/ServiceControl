@@ -12,16 +12,18 @@ namespace ServiceControl.RavenDB
 
     public static class IndexDeployment
     {
-        public static Task CreateIndexesAsync(Assembly assembly, IDocumentStore store, CancellationToken cancellationToken = default)
+        public static Task CreateIndexesAsync(Assembly assembly, IDocumentStore store, bool maintenanceMode = false, CancellationToken cancellationToken = default)
         {
             var indexes = assembly.GetTypes()
                 .Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(AbstractIndexCreationTask)))
                 .Select(t => (AbstractIndexCreationTask)Activator.CreateInstance(t));
 
-            return CreateIndexesAsync(indexes, store, cancellationToken);
+            return CreateIndexesAsync(indexes, store, maintenanceMode, cancellationToken);
         }
 
-        public static async Task CreateIndexesAsync(IEnumerable<AbstractIndexCreationTask> indexes, IDocumentStore store, CancellationToken cancellationToken = default)
+        // In maintenance mode a locked index with a changed definition does not stop start-up. The operator can then unlock
+        // the index in RavenDB Studio, which is reachable only while the database runs, and start ServiceControl again.
+        public static async Task CreateIndexesAsync(IEnumerable<AbstractIndexCreationTask> indexes, IDocumentStore store, bool maintenanceMode = false, CancellationToken cancellationToken = default)
         {
             var indexList = indexes.ToList();
             var lockedIndexesWithChanges = new List<string>();
@@ -110,7 +112,18 @@ namespace ServiceControl.RavenDB
 
             if (lockedIndexesWithChanges.Count > 0)
             {
-                throw new Exception($"The definition of locked indexes changed and is not applied: {string.Join(", ", lockedIndexesWithChanges)}. Unlock the indexes and start ServiceControl again.");
+                var message = $"The definition of locked indexes changed and is not applied: {string.Join(", ", lockedIndexesWithChanges)}. Unlock the indexes and start ServiceControl again.";
+
+                if (!maintenanceMode)
+                {
+                    throw new Exception(message + " To unlock the indexes in RavenDB Studio, start ServiceControl in maintenance mode.");
+                }
+
+                Logger.LogError("{Message}", message);
+
+                // A locked index is not deployed. RavenDB ignores the new definition of a LockedIgnore index, but fails the
+                // whole deployment for a LockedError index.
+                indexList.RemoveAll(index => lockedIndexesWithChanges.Contains(index.IndexName));
             }
 
             await IndexCreation.CreateIndexesAsync(indexList, store, null, null, cancellationToken);
