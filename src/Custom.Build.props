@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <RuntimeFrameworkVersion>10.0.14</RuntimeFrameworkVersion>
+    <RuntimeFrameworkVersion>10.0.15</RuntimeFrameworkVersion>
     <RollForward>Disable</RollForward>
   </PropertyGroup>
 
