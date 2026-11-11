@@ -523,4 +523,4 @@ It says nothing about load on the source.
 ## Further reading
 
 - [The instructions](ravendb-to-sql-migration-instructions.md): how an operator runs the migration.
-- [How the migration is put together](ravendb-to-sql-migration-system-design.md): which class does what, as it will be when it ships.
+- [How the migration is put together](ravendb-to-sql-migration-system-design.md): which class does what.
