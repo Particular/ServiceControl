@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\RavenDB6.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <TestCategory>Raven6</TestCategory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDB6\ServiceControl.Audit.Persistence.RavenDB6.csproj" />
+    <!-- Needed to bring the dependencies that the persistence plugin excludes -->
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" />
+    <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GitHubActionsTestLogger" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit.Analyzers" />
+    <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="Particular.Approvals" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.Audit.Persistence.Tests.RavenDB\**\*.cs" Exclude="..\ServiceControl.Audit.Persistence.Tests.RavenDB\bin\**;..\ServiceControl.Audit.Persistence.Tests.RavenDB\obj\**" LinkBase="." />
+    <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\IndexDefinitionText.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\EmbeddedDatabaseExtensions.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\RavenFlavour.cs" />
+    <!-- The InternalCustomCheckClassification code does not exist in Audit, including it here allows an 
+         approval test instead of a very expensive acceptance test. -->
+    <Compile Include="..\ServiceControl.Persistence\InternalCustomCheckClassification.cs" />
+    <Compile Include="..\ServiceControl.Audit.Persistence.Tests\**\*.cs" Exclude="..\ServiceControl.Audit.Persistence.Tests\obj\**\*.*;..\ServiceControl.Audit.Persistence.Tests\bin\**\*.*" LinkBase="Shared" />
+
+    <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\EFCore\**\*.cs" />
+  </ItemGroup>
+
+</Project>

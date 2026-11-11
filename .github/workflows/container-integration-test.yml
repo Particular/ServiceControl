@@ -17,6 +17,11 @@ jobs:
             connection-string: 'host=rabbit'
             compose-cmd: docker compose -f servicecontrol.yml -f rabbit.yml up -d
             expected-healthy-containers: 5
+          - name: rabbit-ravendb6
+            transport: RabbitMQ.QuorumConventionalRouting
+            connection-string: 'host=rabbit'
+            compose-cmd: docker compose -f servicecontrol.yml -f rabbit.yml -f ravendb6.yml up -d
+            expected-healthy-containers: 5
           - name: mssql
             transport: SQLServer
             connection-string: 'Server=mssql;Database=master;User=sa;Password=ServiceControl1!;Encrypt=False;'

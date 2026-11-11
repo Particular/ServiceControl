@@ -8,12 +8,13 @@
     using ServiceControl.Audit.AcceptanceTests.TestSupport;
     using ServiceControl.Audit.Persistence.RavenDB;
     using ServiceControl.Audit.Persistence.Tests;
+    using ServiceControl.Persistence.Tests;
     using ServiceControl.RavenDB;
     using TestHelper;
 
     public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfiguration
     {
-        public string PersistenceType { get; } = "RavenDB";
+        public string PersistenceType { get; } = RavenFlavour.PersistenceType;
 
         EmbeddedDatabase databaseInstance;
         string databaseName;

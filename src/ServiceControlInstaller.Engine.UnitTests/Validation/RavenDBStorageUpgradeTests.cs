@@ -6,6 +6,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
+    using Engine.Instances;
     using Engine.Validation;
     using NUnit.Framework;
     using Particular.Approvals;
@@ -49,6 +50,65 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         [TestCase(86400, ExpectedResult = "1 day")]
         [TestCase(273659, ExpectedResult = "3 days 4 hours")]
         public string Formats_durations(int seconds) => RavenDBStorageUpgrade.FormatDuration(TimeSpan.FromSeconds(seconds));
+
+        [Test]
+        public void Upgrading_an_instance_on_RavenDB_does_not_convert_its_database()
+        {
+            using var install = new InstanceInstall("RavenDB", RavenDBServerPackage.RavenDBArchive);
+
+            Assert.That(RavenDBStorageUpgrade.ConvertsDatabase(RavenDB6Persister, RavenDB6Persister, install.InstallPath, usesExternalRavenDB: false), Is.False);
+        }
+
+        [Test]
+        public void Upgrading_an_instance_on_RavenDB7_does_not_convert_its_database()
+        {
+            using var install = new InstanceInstall("RavenDB7", RavenDBServerPackage.RavenDB7Archive);
+
+            Assert.That(RavenDBStorageUpgrade.ConvertsDatabase(RavenDB7Persister, RavenDB7Persister, install.InstallPath, usesExternalRavenDB: false), Is.False);
+        }
+
+        [Test]
+        public void Upgrading_an_instance_on_RavenDB7_converts_its_database_when_its_server_has_older_storage_versions()
+        {
+            // The 6.2 server stands in for a 7.x server with older storage versions than the bundled one.
+            using var install = new InstanceInstall("RavenDB7", RavenDBServerPackage.RavenDBArchive);
+
+            Assert.That(RavenDBStorageUpgrade.ConvertsDatabase(RavenDB7Persister, RavenDB7Persister, install.InstallPath, usesExternalRavenDB: false), Is.True);
+        }
+
+        [Test]
+        public void Moving_an_instance_from_RavenDB_to_RavenDB7_converts_its_database()
+        {
+            using var install = new InstanceInstall("RavenDB", RavenDBServerPackage.RavenDBArchive);
+            WriteFile(Path.Combine(install.DbPath, "Databases", "primary", "Raven.voron"), 1000);
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(RavenDBStorageUpgrade.ConvertsDatabase(RavenDB6Persister, RavenDB7Persister, install.InstallPath, usesExternalRavenDB: false), Is.True);
+                Assert.That(RavenDBStorageUpgrade.DatabaseSize(install.DbPath), Is.EqualTo(1000));
+            }
+        }
+
+        [Test]
+        public void An_instance_on_a_SQL_persister_does_not_convert_a_RavenDB_database_although_it_ships_the_6_2_server()
+        {
+            using var install = new InstanceInstall("RavenDB", RavenDBServerPackage.RavenDBArchive);
+            var sqlServerPersister = new PersistenceManifest { Name = "SQLServer" };
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(RavenDBStorageUpgrade.ConvertsDatabase(sqlServerPersister, sqlServerPersister, install.InstallPath, usesExternalRavenDB: false), Is.False);
+                Assert.That(RavenDBStorageUpgrade.ConvertsDatabase(sqlServerPersister, RavenDB7Persister, install.InstallPath, usesExternalRavenDB: false), Is.False);
+            }
+        }
+
+        [Test]
+        public void An_instance_that_uses_an_external_RavenDB_does_not_convert_local_data()
+        {
+            using var install = new InstanceInstall("RavenDB", RavenDBServerPackage.RavenDBArchive);
+
+            Assert.That(RavenDBStorageUpgrade.ConvertsDatabase(RavenDB6Persister, RavenDB7Persister, install.InstallPath, usesExternalRavenDB: true), Is.False);
+        }
 
         [Test]
         public void Database_size_is_the_sum_of_the_data_files_of_all_databases()
@@ -145,6 +205,29 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         }
 
         static readonly Uri MessagesUri = new("http://localhost:44444/api/messages");
+
+        static readonly PersistenceManifest RavenDB6Persister = new() { Name = StorageEngineNames.RavenDB };
+        static readonly PersistenceManifest RavenDB7Persister = new() { Name = StorageEngineNames.RavenDB7 };
+
+        sealed class InstanceInstall : IDisposable
+        {
+            public InstanceInstall(string persisterFolder, string archiveResourceName)
+            {
+                root = Path.Combine(Path.GetTempPath(), "RavenDBStorageUpgradeTests", Guid.NewGuid().ToString("N"));
+                InstallPath = System.IO.Path.Combine(root, "install");
+                DbPath = System.IO.Path.Combine(root, "db");
+                Directory.CreateDirectory(InstallPath);
+                RavenDBStorageSchemaTests.InstallBundledServer(InstallPath, persisterFolder, archiveResourceName);
+            }
+
+            public string InstallPath { get; }
+
+            public string DbPath { get; }
+
+            public void Dispose() => Directory.Delete(root, recursive: true);
+
+            readonly string root;
+        }
 
         class StubHandler(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler
         {

@@ -6,6 +6,7 @@
     using NUnit.Framework;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Services;
+    using ServiceControlInstaller.Engine.Validation;
 
     [TestFixture]
     class AuditInstanceTests : InstallationFixture
@@ -39,6 +40,70 @@
             var upgradedConfigContents = File.ReadAllText(configFile);
 
             Assert.That(upgradedConfigContents, Is.EqualTo(originalConfigContents));
+        }
+
+        [TestCase("RavenDB7", "RavenDB7", "RavenDB", 72_002)]
+        [TestCase("RavenDB", "RavenDB", "RavenDB7", 62_000)]
+        [TestCase("SQLServer", "RavenDB", "RavenDB7", 62_000)]
+        [TestCase("PostgreSQL", "RavenDB", "RavenDB7", 62_000)]
+        public void Should_install_only_the_server_that_matches_the_persister(string persistence, string serverPersisterFolder, string otherPersisterFolder, int expectedDocumentsVersion)
+        {
+            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(persistence);
+
+            newInstance.InstallPath = InstallPath;
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("LearningTransport");
+            newInstance.DBPath = DbPath;
+            newInstance.LogPath = LogPath;
+            newInstance.HostName = "localhost";
+            newInstance.DatabaseMaintenancePort = 33333;
+
+            newInstance.CopyFiles(zipResourceName);
+
+            AssertOnlyServerInstalled(serverPersisterFolder, otherPersisterFolder, expectedDocumentsVersion);
+        }
+
+        [TestCase("RavenDB7", "RavenDB7", "RavenDB", 72_002)]
+        [TestCase("RavenDB", "RavenDB", "RavenDB7", 62_000)]
+        public void Upgrade_should_keep_the_persister_and_the_server_that_matches_it(string persistence, string serverPersisterFolder, string otherPersisterFolder, int expectedDocumentsVersion)
+        {
+            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(persistence);
+
+            newInstance.InstallPath = InstallPath;
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("LearningTransport");
+            newInstance.DBPath = DbPath;
+            newInstance.LogPath = LogPath;
+            newInstance.HostName = "localhost";
+            newInstance.DatabaseMaintenancePort = 33333;
+
+            newInstance.CopyFiles(zipResourceName);
+            newInstance.WriteConfigurationFile();
+
+            var instance = new ServiceControlAuditInstance(new FakeWindowsServiceController(Path.Combine(InstallPath, "ServiceControl.Audit.exe")));
+            instance.Reload();
+
+            instance.UpgradeFiles(zipResourceName);
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(instance.PersistenceManifest.Name, Is.EqualTo(persistence));
+                Assert.That(File.ReadAllText(Path.Combine(InstallPath, "ServiceControl.Audit.exe.config")), Does.Contain($"value=\"{persistence}\""));
+            }
+
+            AssertOnlyServerInstalled(serverPersisterFolder, otherPersisterFolder, expectedDocumentsVersion);
+        }
+
+        void AssertOnlyServerInstalled(string serverPersisterFolder, string otherPersisterFolder, int expectedDocumentsVersion)
+        {
+            var serverAssembly = Path.Combine(InstallPath, "Persisters", serverPersisterFolder, "RavenDBServer", "Raven.Server.dll");
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(serverAssembly, Does.Exist);
+                Assert.That(Path.Combine(InstallPath, "Persisters", otherPersisterFolder, "RavenDBServer"), Does.Not.Exist);
+
+                using var stream = File.OpenRead(serverAssembly);
+                Assert.That(RavenDBStorageSchema.Read(stream)?.Documents, Is.EqualTo(expectedDocumentsVersion));
+            }
         }
 
         [Test]

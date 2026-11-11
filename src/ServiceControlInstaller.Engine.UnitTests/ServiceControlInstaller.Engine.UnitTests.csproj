@@ -19,6 +19,8 @@
     <PackageReference Include="NUnit3TestAdapter" />
     <PackageReference Include="Particular.Approvals" />
     <PackageReference Include="PublicApiGenerator" />
+    <!-- A RavenDB client only works against a server of the same or a higher version, so the client matches the oldest packaged server. -->
+    <PackageReference Include="RavenDB.Embedded" VersionOverride="$(RavenDB6Version)" />
   </ItemGroup>
 
   <Target Name="WorkaroundForSqlClientWindowsFormsReference" BeforeTargets="AddTransitiveFrameworkReferences">

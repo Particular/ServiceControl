@@ -11,6 +11,7 @@
     using NUnit.Framework;
     using Particular.ServiceControl.Hosting;
     using Persistence;
+    using Persistence.Tests;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.AcceptanceTesting.InfrastructureConfig;
 
@@ -28,7 +29,7 @@
                 transportType: transportIntegration.TypeName,
                 forwardErrorMessages: false,
                 errorRetentionPeriod: TimeSpan.FromDays(1),
-                persisterType: "RavenDB")
+                persisterType: RavenFlavour.PersistenceType)
             {
                 TransportConnectionString = transportIntegration.ConnectionString,
                 AssemblyLoadContextResolver = static _ => AssemblyLoadContext.Default

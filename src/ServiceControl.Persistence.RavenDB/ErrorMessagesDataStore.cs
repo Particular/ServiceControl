@@ -25,6 +25,7 @@ namespace ServiceControl.Persistence.RavenDB
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Infrastructure;
     using ServiceControl.Persistence.Infrastructure;
+    using ServiceControl.RavenDB;
     using ServiceControl.Recoverability;
 
     class ErrorMessagesDataStore(
@@ -358,7 +359,7 @@ namespace ServiceControl.Persistence.RavenDB
             var documentId = FailedMessageIdGenerator.MakeDocumentId(failedMessageId);
 
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            session.Advanced.OptimisticConcurrencyMode = OptimisticConcurrencyMode.Writes;
+            session.Advanced.UseOptimisticConcurrencyForWrites();
 
             var failedMessage = await session.LoadAsync<FailedMessage>(documentId, cancellationToken);
 
@@ -452,7 +453,7 @@ namespace ServiceControl.Persistence.RavenDB
             Dictionary<string, FailedMessage> failedMessages;
 
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            session.Advanced.OptimisticConcurrencyMode = OptimisticConcurrencyMode.Writes;
+            session.Advanced.UseOptimisticConcurrencyForWrites();
 
             var documentIds = failedMessageIds.Select(FailedMessageIdGenerator.MakeDocumentId);
 

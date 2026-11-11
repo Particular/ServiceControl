@@ -10,6 +10,7 @@ The files in this directory are part of a test meant to test that all containers
   * rabbit.yml
   * mssql.yml
   * sqs.yml - Uses [LocalStack](https://www.localstack.cloud/) instead of connecting to actual AWS services
+* `ravendb6.yml` in this directory - Not a transport. Amends `servicecontrol.yml` so that the primary and audit instances use `PersistenceType=RavenDB` (the RavenDB 6 persister) and the database container uses the `${SERVICECONTROL_TAG}-ravendb6` image (RavenDB 6 server). The default configuration runs `PersistenceType=RavenDB7` against the RavenDB 7 database image. The `rabbit-ravendb6` test case merges this file after `rabbit.yml`.
 * `.env` file used by Docker Compose to provide environment variables that are used both by Docker Compose and by the containers it creates:
   * `SERVICECONTROL_TAG` - Used in the `servicecontrol.yml` file to determine what container tag to load from the GitHub Container Registry. For PRs this is going to be in the form of `pr-####` but for master/release branches this will be the MinVer version.
   * `TRANSPORTTYPE` - Proivdes the transport type name to all ServiceControl instances. Imports the value from the `matrix` from `env`.

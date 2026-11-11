@@ -6,6 +6,7 @@ namespace ServiceControlInstaller.Engine.Validation
     using System.IO.Compression;
     using System.Reflection.Metadata;
     using System.Reflection.PortableExecutable;
+    using Instances;
 
     // The storage versions a RavenDB server upgrades existing data to when it opens it, as declared in Raven.Server.dll.
     public record RavenDBStorageSchema(int Server, int Configuration, int Documents, int LuceneIndex, int CoraxIndex)
@@ -14,14 +15,17 @@ namespace ServiceControlInstaller.Engine.Validation
         public bool RequiresDataUpgradeFrom(RavenDBStorageSchema installed) =>
             installed.Documents != Documents || installed.LuceneIndex != LuceneIndex || installed.CoraxIndex != CoraxIndex;
 
-        public static RavenDBStorageSchema Bundled => bundled.Value;
+        // The schema of the server bundled for the persister: RavenDB7 gets the 7.2 server, every other persister the 6.2 server.
+        public static RavenDBStorageSchema Bundled(PersistenceManifest persistence) =>
+            (RavenDBServerPackage.UsesRavenDB7Server(persistence) ? bundledRavenDB7 : bundledRavenDB).Value;
 
-        public static bool RequiresDataUpgrade(string installPath) =>
-            ReadFromInstance(installPath) is { } installed && Bundled is { } target && target.RequiresDataUpgradeFrom(installed);
+        // Compares the server the instance runs today under its current persister with the server bundled for the target persister.
+        public static bool RequiresDataUpgrade(string installPath, PersistenceManifest current, PersistenceManifest target) =>
+            ReadFromInstance(installPath, current) is { } installed && Bundled(target) is { } bundled && bundled.RequiresDataUpgradeFrom(installed);
 
-        public static RavenDBStorageSchema ReadFromInstance(string installPath)
+        public static RavenDBStorageSchema ReadFromInstance(string installPath, PersistenceManifest persistence)
         {
-            var path = Path.Combine(installPath, "Persisters", "RavenDB", "RavenDBServer", ServerAssemblyName);
+            var path = Path.Combine(RavenDBServerPackage.ServerDirectory(installPath, persistence), ServerAssemblyName);
             if (!File.Exists(path))
             {
                 return null;
@@ -31,9 +35,9 @@ namespace ServiceControlInstaller.Engine.Validation
             return Read(stream);
         }
 
-        internal static RavenDBStorageSchema ReadFromBundledServer()
+        internal static RavenDBStorageSchema ReadFromBundledServer(string archiveResourceName)
         {
-            using var zipStream = typeof(RavenDBStorageSchema).Assembly.GetManifestResourceStream("RavenDBServer.zip");
+            using var zipStream = typeof(RavenDBStorageSchema).Assembly.GetManifestResourceStream(archiveResourceName);
             if (zipStream == null)
             {
                 return null;
@@ -117,6 +121,7 @@ namespace ServiceControlInstaller.Engine.Validation
 
         const string ServerAssemblyName = "Raven.Server.dll";
 
-        static readonly Lazy<RavenDBStorageSchema> bundled = new(ReadFromBundledServer);
+        static readonly Lazy<RavenDBStorageSchema> bundledRavenDB = new(() => ReadFromBundledServer(RavenDBServerPackage.RavenDBArchive));
+        static readonly Lazy<RavenDBStorageSchema> bundledRavenDB7 = new(() => ReadFromBundledServer(RavenDBServerPackage.RavenDB7Archive));
     }
 }

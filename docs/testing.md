@@ -12,6 +12,7 @@ Packaging tests check:
 
 - Folder structure and content of the [packaging process](packaging.md) output.
 - That packaged [assembly versions match](packaging.md#assembly-mismatches).
+- That `RavenDBServer.zip` holds the RavenDB 6.2 server pinned by `RavenDB6Version` and `RavenDB7Server.zip` holds the RavenDB 7.2 server pinned by `RavenDB.Embedded`.
 
 ## Installation engine tests
 
@@ -19,14 +20,21 @@ Installation engine tests run partial installations and check:
 
 - That the generated configuration is correct.
 - That transport and persistence are correctly extracted.
+- That an instance receives the RavenDB server that matches its persister, on install and on upgrade.
 
-On Windows, [PackagedRavenDBTests](../src/ServiceControlInstaller.Engine.UnitTests/Validation/PackagedRavenDBTests.cs) starts the server extracted from the installer's embedded `RavenDBServer.zip`. It verifies the native Kafka dependencies are absent and checks document persistence and indexing before and after a restart. These tests run in the `Windows-DefaultCore` CI job; the `Windows-Raven` tests use the separate server files supplied by `RavenDB.Embedded`.
+On Windows, [PackagedRavenDBTests](../src/ServiceControlInstaller.Engine.UnitTests/Validation/PackagedRavenDBTests.cs) starts the server extracted from each of the installer's embedded `RavenDBServer.zip` (RavenDB 6.2) and `RavenDB7Server.zip` (RavenDB 7.2) archives, using a RavenDB 6.2 client. It verifies the native Kafka dependencies are absent and checks document persistence and indexing before and after a restart. These tests run in the `Windows-DefaultCore` CI job; the `Windows-Raven` tests use the separate server files supplied by `RavenDB.Embedded`. The tests of `RavenDBStorageSchema` and `RavenDBStorageUpgrade` read the storage versions of both bundled archives, and the instance tests check which server each persister receives.
 
 ## Persistence tests
 
 Persistence tests check assumptions at the persistence seam level by exercising each persister. For local setup details, see [Local testing of persistence providers](testing-persistence.md). For the workflow that runs these suites against managed cloud databases, see [Cloud database tests](cloud-database-tests.md).
 
 The RavenDB persistence test projects contain an `IndexDefinitionApprovals` test that approves the definition of every index the persister deploys. RavenDB rebuilds an index side by side when its definition changes, and the rebuild of a large database can take days. When the test fails, record the changed indexes in the upgrade guide of the next release before you approve the new definition. An operator who locked an index must unlock it to receive the change.
+
+ServiceControl ships two RavenDB persisters: the main one on RavenDB 7.2 with the manifest name `RavenDB7`, and a legacy one on RavenDB 6.2 with the manifest name `RavenDB` and the alias `RavenDB6`. ServiceControl 8 removes the legacy persister. The main test projects are in the `Raven` test category and test the main persister. Four projects in the `Raven6` category test the legacy persister: `ServiceControl.Persistence.Tests.RavenDB6`, `ServiceControl.Audit.Persistence.Tests.RavenDB6`, `ServiceControl.AcceptanceTests.RavenDB6`, and `ServiceControl.Audit.AcceptanceTests.RavenDB6`.
+
+The `RavenDB6` test projects own no tests. They link the source files of the matching main test project, define `RAVENDB6`, reference the legacy persister projects, and run the same tests against the RavenDB 6.2 client and server. When a test only applies to RavenDB 7.2, the `RavenDB6` project file excludes it with `Compile Remove` and a comment that gives the reason. When an expectation differs by flavor, the test reads it from production code, for example `RavenServerLogLevel.Default`. `RavenFlavour` holds the manifest name that each flavor of the tests selects. The multi-instance tests run on the main persister only.
+
+Particular.Approvals reads approved files from the `ApprovalFiles` folder of the running test project, so each `RavenDB6` persistence test project keeps its own copy of the approved files. When a change updates an approved file in a main project, update the copy in the matching `RavenDB6` project. A copy that differs from the main file records behavior that is specific to RavenDB 6.2.
 
 The SQL Server and PostgreSQL persistence test projects contain a `SlowMigrationOperationApprovals` test. It approves the migration steps that can block writes on a large table: index, primary key, and unique constraint changes, new foreign keys and check constraints, altered columns, raw SQL, and new columns that are NOT NULL with a default or are stored computed columns. Other steps, such as renames and drops of columns, tables, and constraints, are not listed. The test lists these steps for each migration and leaves out steps on a table that the same migration creates, because that table is empty. Raw SQL is always listed. When the test fails because a step changed, record the change in the upgrade guide of the next release before you approve the new list. If a step changed inside an existing migration, for example through a shared SQL constant, add a new migration instead. Databases that already ran the old migration never run it again.
 
@@ -66,7 +74,7 @@ Multi-instance tests validate the interaction between different ServiceControl i
 
 ## Container tests
 
-Container images generated for all builds are pushed to the [GitHub container registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry). Once pushed, all images are tested by [starting them all for each supported transport](/src/container-integration-test/).
+Container images generated for all builds are pushed to the [GitHub container registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry). Once pushed, all images are tested by [starting them all for each supported transport](/src/container-integration-test/). One more RabbitMQ run uses the RavenDB 6 persister (`PersistenceType=RavenDB`) and the `-ravendb6` database image.
 
 Containers built by a PR and stored on GitHub Container Registry can be tested locally:
 

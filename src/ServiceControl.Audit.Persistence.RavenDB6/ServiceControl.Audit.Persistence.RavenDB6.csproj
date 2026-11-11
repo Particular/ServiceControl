@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\RavenDB6.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+    <AssemblyName>ServiceControl.Audit.Persistence.RavenDB</AssemblyName>
+    <RootNamespace>ServiceControl.Audit.Persistence.RavenDB</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Private=false & ExcludeAssets=runtime prevent repeatedly including binary dependencies of ServiceControl.Audit.Persistence and its depenencies in each persister directory -->
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.SagaAudit\ServiceControl.Audit.Persistence.SagaAudit.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" Private="false" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Not private or ExcludeAssets because only the two RavenDB persistence packages include this-->
+    <ProjectReference Include="..\ServiceControl.RavenDB6\ServiceControl.RavenDB6.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NServiceBus.CustomChecks" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.Audit.Persistence.RavenDB\**\*.cs" Exclude="..\ServiceControl.Audit.Persistence.RavenDB\bin\**;..\ServiceControl.Audit.Persistence.RavenDB\obj\**" LinkBase="." />
+    <None Update="persistence.manifest" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Artifact does not include RavenDBServer directory. Primary instance is responsible for copying that to deploy directory. -->
+    <Artifact Include="$(OutputPath)" DirExclude=".db;.logs;RavenDBServer" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Audit\Persisters\RavenDB" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.Audit.AcceptanceTests.RavenDB6" />
+    <InternalsVisibleTo Include="ServiceControl.Audit.Persistence.Tests.RavenDB6" />
+  </ItemGroup>
+
+</Project>

@@ -15,8 +15,10 @@
     using Services;
     using Validation;
 
-    public abstract class ServiceControlInstallableBase : IHttpInstance, IServiceControlPaths, ITransportConfig
+    public abstract class ServiceControlInstallableBase : IHttpInstance, IServiceControlPaths, ITransportConfig, IPersistenceConfig
     {
+        public abstract PersistenceManifest PersistenceManifest { get; }
+
         public string ServiceDescription { get; set; }
 
         public abstract string DirectoryName { get; }
@@ -162,7 +164,7 @@
             // Copy the binaries from a zip
             FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath);
             FileUtils.UnzipToSubdirectory("InstanceShared.zip", InstallPath);
-            FileUtils.UnzipToSubdirectory("RavenDBServer.zip", Path.Combine(InstallPath, "Persisters", "RavenDB", "RavenDBServer"));
+            RavenDBServerPackage.Install(InstallPath, PersistenceManifest);
         }
 
         public virtual void WriteConfigurationFile()

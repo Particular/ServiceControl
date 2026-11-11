@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\SharedEmbeddedServer.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\EmbeddedDatabaseExtensions.cs" />
     <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\StopSharedDatabase.cs" />
   </ItemGroup>
 

@@ -1,0 +1,28 @@
+﻿{
+  "Name": "RavenDB",
+  "DisplayName": "RavenDB 6",
+  "Description": "RavenDB ServiceControl persister",
+  "AssemblyName": "ServiceControl.Persistence.RavenDB",
+  "TypeName": "ServiceControl.Persistence.RavenDB.RavenPersistenceConfiguration, ServiceControl.Persistence.RavenDB",
+  "Settings": [
+    {
+      "Name": "ServiceControl/DBPath",
+      "Mandatory": true
+    },
+    {
+      "Name": "ServiceControl/HostName",
+      "Mandatory": true
+    },
+    {
+      "Name": "ServiceControl/DatabaseMaintenancePort",
+      "Mandatory": true
+    }
+  ],
+  "SettingsWithPathsToCleanup": [
+    "ServiceControl/DBPath"
+  ],
+  "Aliases": [
+    "RavenDB6",
+    "ServiceControl.Persistence.RavenDB.RavenPersistenceConfiguration, ServiceControl.Persistence.RavenDB"
+  ]
+}

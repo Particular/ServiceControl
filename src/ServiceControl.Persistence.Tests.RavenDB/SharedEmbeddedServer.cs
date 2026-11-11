@@ -16,7 +16,7 @@
 
     static class SharedEmbeddedServer
     {
-        public const string LogsMinLevel = "Warn";
+        public const string LogsMinLevel = RavenServerLogLevel.Default;
 
         public static string LogPath => Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs", "Primary");
 

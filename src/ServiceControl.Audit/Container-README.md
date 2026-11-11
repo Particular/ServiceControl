@@ -24,6 +24,14 @@ docker run -d --name audit -p 44444:44444 \
 
 For all other usage information see the [official container documentation](https://docs.particular.net/servicecontrol/audit-instances/deployment/containers).
 
+## Persistence
+
+The image uses the RavenDB 7 persister by default (`PersistenceType=RavenDB7`). It requires a RavenDB 7.2 server, which the [`particular/servicecontrol-ravendb`](https://hub.docker.com/r/particular/servicecontrol-ravendb) image with the same tag provides.
+
+To stay on RavenDB 6, set `PersistenceType=RavenDB` and use the `-ravendb6` tag of the `particular/servicecontrol-ravendb` image, for example `particular/servicecontrol-ravendb:latest-ravendb6`. RavenDB 6 support is removed in ServiceControl 8.
+
+A RavenDB 7 server converts RavenDB 6 data one-way, which can take hours or days on a large database. To prevent an accidental conversion, the default `particular/servicecontrol-ravendb` image refuses to start on a RavenDB 6 data directory unless the conversion is acknowledged. See the [`particular/servicecontrol-ravendb` documentation](https://hub.docker.com/r/particular/servicecontrol-ravendb) for details.
+
 ## Image tagging
 
 ### `latest` tag

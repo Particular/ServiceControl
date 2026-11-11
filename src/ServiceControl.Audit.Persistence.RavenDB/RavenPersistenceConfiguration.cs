@@ -7,6 +7,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB
     using CustomChecks;
     using Microsoft.Extensions.Logging;
     using ServiceControl.Infrastructure;
+    using ServiceControl.RavenDB;
 
     public class RavenPersistenceConfiguration : IPersistenceConfiguration
     {
@@ -109,11 +110,11 @@ namespace ServiceControl.Audit.Persistence.RavenDB
 
                 var logPath = GetLogPath(settings);
 
-                var logsMinLevel = "Warn";
+                var logsMinLevel = RavenServerLogLevel.Default;
 
                 if (settings.PersisterSpecificSettings.TryGetValue(RavenDbLogLevelKey, out var ravenDbLogLevel))
                 {
-                    logsMinLevel = RavenDbLogLevelToLogsMinLevelMapper.Map(ravenDbLogLevel, Logger);
+                    logsMinLevel = RavenServerLogLevel.Map(ravenDbLogLevel, Logger);
                 }
 
                 serverConfiguration = new ServerConfiguration(dbPath, serverUrl, logPath, logsMinLevel);

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using ServiceControl.Persistence.RavenDB;
+using ServiceControl.RavenDB;
 
 [TestFixture]
 [NonParallelizable]
@@ -27,7 +28,7 @@ class RavenEnvironmentDataProviderConfigurationTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(data["Storage.LogLevel"], Is.EqualTo("Warn"));
+            Assert.That(data["Storage.LogLevel"], Is.EqualTo(RavenServerLogLevel.Default));
             Assert.That(data["Storage.QueryTimeoutSeconds"], Is.EqualTo("Default"));
             Assert.That(data["Storage.FreeSpaceThresholdPercent"], Is.EqualTo("Default"));
             Assert.That(data["Storage.MinimumFreeSpaceForIngestionPercent"], Is.EqualTo("Default"));

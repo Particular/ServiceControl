@@ -18,6 +18,7 @@ namespace Tests
             var expectedPersisters = new[] {
                 "RavenDB35", // Still must exist, as Raven35 persistence.manifest file must be available for SCMU to understand old versions
                 "RavenDB",
+                "RavenDB7",
                 "SQLServer",
                 "PostgreSQL"
             };
@@ -34,15 +35,16 @@ namespace Tests
         }
 
         [Test]
-        public void Raven_server_should_be_included()
+        public void Raven_servers_should_be_included_outside_the_persisters()
         {
-            var inPersisterPath = Path.Combine(deploymentPackage.Directory.FullName, "Persisters", "RavenDB", "RavenDBServer");
-            var separateAssetPath = Path.GetFullPath(Path.Combine(deploymentPackage.Directory.FullName, "..", "RavenDBServer"));
+            var packageDirectory = deploymentPackage.Directory.FullName;
 
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(inPersisterPath, Does.Not.Exist, "RavenDBServer should not be bundled inside the persister");
-                Assert.That(separateAssetPath, Does.Exist, "RavenDBServer should be bundled as its own resource");
+                Assert.That(Path.Combine(packageDirectory, "Persisters", "RavenDB", "RavenDBServer"), Does.Not.Exist, "RavenDBServer should not be bundled inside the RavenDB persister");
+                Assert.That(Path.Combine(packageDirectory, "Persisters", "RavenDB7", "RavenDBServer"), Does.Not.Exist, "RavenDBServer should not be bundled inside the RavenDB7 persister");
+                Assert.That(Path.GetFullPath(Path.Combine(packageDirectory, "..", "RavenDBServer")), Does.Exist, "The RavenDB 6.2 server should be bundled as its own resource");
+                Assert.That(Path.GetFullPath(Path.Combine(packageDirectory, "..", "RavenDB7Server")), Does.Exist, "The RavenDB 7.2 server should be bundled as its own resource");
             }
         }
 

@@ -11,6 +11,7 @@
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
     using Raven.Client.Exceptions;
+    using ServiceControl.RavenDB;
 
     class RetryStagingStore(
         IRavenSessionProvider sessionProvider,
@@ -158,7 +159,7 @@
                 using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
                 var documentStore = await documentStoreProvider.GetDocumentStore(cancellationToken);
 
-                var batch = new SingleNodeBatchCommand(documentStore.Conventions, commands);
+                var batch = session.Advanced.CreateBatchCommand(documentStore.Conventions, commands);
                 await session.Advanced.RequestExecutor.ExecuteAsync(batch, session.Advanced.Context, token: cancellationToken);
             }
             catch (ConcurrencyException)

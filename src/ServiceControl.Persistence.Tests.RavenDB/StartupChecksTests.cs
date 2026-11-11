@@ -8,11 +8,10 @@ using ServiceControl.RavenDB;
 class StartupChecksTests
 {
     static readonly Version Client727 = new(7, 2, 7);
+    static readonly Version Client62 = new(6, 2, 18);
 
-    [TestCase("6.2.0")]
-    [TestCase("6.2.20")]
     [TestCase("7.1.9")]
-    public void Should_reject_servers_with_a_lower_major_minor_version_than_the_client(string serverVersion)
+    public void Should_advise_upgrading_when_the_server_is_a_lower_RavenDB_7_version_than_the_client(string serverVersion)
     {
         var isValid = StartupChecks.TryValidateServerVersion(serverVersion, Client727, out var error);
 
@@ -21,7 +20,43 @@ class StartupChecksTests
             Assert.That(isValid, Is.False);
             Assert.That(error, Does.Contain("expects RavenDB Server version 7.2 or higher")
                 .And.Contain($"the server is using {serverVersion}")
-                .And.Contain("servicecontrol-ravendb container"));
+                .And.Contain("Upgrade the external RavenDB server or the servicecontrol-ravendb container")
+                .And.Not.Contain("PersistenceType"));
+        }
+    }
+
+    [TestCase("6.2.0")]
+    [TestCase("6.2.20")]
+    public void Should_advise_how_to_proceed_when_a_RavenDB_7_client_meets_a_RavenDB_6_server(string serverVersion)
+    {
+        var isValid = StartupChecks.TryValidateServerVersion(serverVersion, Client727, out var error);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(isValid, Is.False);
+            Assert.That(error, Does.Contain("expects RavenDB Server version 7.2 or higher")
+                .And.Contain($"the server is using {serverVersion}")
+                .And.Contain("PersistenceType=RavenDB")
+                .And.Contain("-ravendb6 tag of the servicecontrol-ravendb container")
+                .And.Contain("move to RavenDB 7")
+                .And.Contain("converts existing data one-way")
+                .And.Not.Contain("Upgrade the external RavenDB server or the servicecontrol-ravendb container"));
+        }
+    }
+
+    [TestCase("6.1.9")]
+    [TestCase("5.4.0")]
+    public void Should_advise_upgrading_when_a_RavenDB_6_client_meets_an_older_server(string serverVersion)
+    {
+        var isValid = StartupChecks.TryValidateServerVersion(serverVersion, Client62, out var error);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(isValid, Is.False);
+            Assert.That(error, Does.Contain("expects RavenDB Server version 6.2 or higher")
+                .And.Contain($"the server is using {serverVersion}")
+                .And.Contain("Upgrade the external RavenDB server or the servicecontrol-ravendb container")
+                .And.Not.Contain("PersistenceType"));
         }
     }
 

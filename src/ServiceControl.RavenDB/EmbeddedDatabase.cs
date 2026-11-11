@@ -51,6 +51,8 @@ namespace ServiceControl.RavenDB
 
             var nugetPackagesPath = Path.Combine(databaseConfiguration.DbPath, "Packages", "NuGet");
 
+            RavenServerLogLevel.ConfigureEmbeddedServerLogging(databaseConfiguration.LogsMinLevel, databaseConfiguration.LogPath);
+
             logger.LogInformation("Loading RavenDB license from {LicenseFileName}", licenseFileNameAndServerDirectory.LicenseFileName);
 
             List<string> optionalArgs = [];
@@ -63,7 +65,7 @@ namespace ServiceControl.RavenDB
             {
                 CommandLineArgs =
                 [
-                    $"--Logs.MinLevel={databaseConfiguration.LogsMinLevel}",
+                    RavenServerLogLevel.CommandLineArgument(databaseConfiguration.LogsMinLevel),
                     // HINT: If this is not set, then Raven will pick a default location relative to the server binaries
                     // See https://github.com/ravendb/ravendb/issues/15694
                     $"--Indexing.NuGetPackagesPath=\"{nugetPackagesPath}\"",

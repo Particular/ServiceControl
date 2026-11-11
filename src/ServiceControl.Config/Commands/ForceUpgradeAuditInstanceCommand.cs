@@ -72,7 +72,7 @@ class ForceUpgradeAuditInstanceCommand : AwaitableAbstractCommand<ServiceControl
             reportCard = await Task.Run(() =>
             {
                 instance.CreateDatabaseBackup();
-                instance.PersistenceManifest = ServiceControlPersisters.GetAuditPersistence(StorageEngineNames.RavenDB);
+                instance.PersistenceManifest = ServiceControlPersisters.GetAuditPersistence(StorageEngineNames.RavenDB7);
 
                 return serviceControlAuditInstaller.Upgrade(instance, upgradeOptions, progress);
             });

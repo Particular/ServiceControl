@@ -14,10 +14,12 @@ using ServiceControl.Api.Contracts;
 
 class When_triggering_a_manual_retention_purge : AcceptanceTest
 {
+    bool IsRavenDB => StorageConfiguration.PersistenceType.StartsWith("RavenDB", StringComparison.OrdinalIgnoreCase);
+
     [Test]
     public async Task Should_be_available_on_efcore_persisters()
     {
-        if (StorageConfiguration.PersistenceType == "RavenDB")
+        if (IsRavenDB)
         {
             Assert.Ignore("RavenDB has no sweeper — covered by Should_return_501_on_a_ravendb_backed_instance.");
             return;
@@ -67,7 +69,7 @@ class When_triggering_a_manual_retention_purge : AcceptanceTest
     [Test]
     public async Task Should_report_background_completion_via_status()
     {
-        if (StorageConfiguration.PersistenceType == "RavenDB")
+        if (IsRavenDB)
         {
             Assert.Ignore("RavenDB has no sweeper — covered by Should_return_501_on_a_ravendb_backed_instance.");
             return;
@@ -101,7 +103,7 @@ class When_triggering_a_manual_retention_purge : AcceptanceTest
     [Test]
     public async Task Should_return_501_on_a_ravendb_backed_instance()
     {
-        if (StorageConfiguration.PersistenceType != "RavenDB")
+        if (!IsRavenDB)
         {
             Assert.Ignore("EFCore persisters support the purge — covered by the efcore tests.");
             return;

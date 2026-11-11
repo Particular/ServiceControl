@@ -20,8 +20,9 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
     [NonParallelizable]
     class PackagedRavenDBTests
     {
-        [Test]
-        public async Task CanPersistAndIndexDocumentsWithoutExcludedFiles()
+        [TestCase("RavenDBServer.zip")]
+        [TestCase("RavenDB7Server.zip")]
+        public async Task CanPersistAndIndexDocumentsWithoutExcludedFiles(string archiveResourceName)
         {
             var root = Path.Combine(Path.GetTempPath(), "PackagedRavenDB", Guid.NewGuid().ToString("N"));
             var serverDirectory = Path.Combine(root, "Server");
@@ -36,7 +37,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
 
             try
             {
-                FileUtils.UnzipToSubdirectory("RavenDBServer.zip", serverDirectory);
+                FileUtils.UnzipToSubdirectory(archiveResourceName, serverDirectory);
 
                 using (Assert.EnterMultipleScope())
                 {

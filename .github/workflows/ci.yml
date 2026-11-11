@@ -27,7 +27,7 @@ jobs:
         # Categories are declared by the <TestCategory> property in each test project. A category can
         # span several projects that share infrastructure, so that the container is provisioned once
         # and the union of their build closures is compiled once.
-        test-category: [ DefaultCore, DefaultMonitoring, Raven, SqlServer, PostgreSql, RabbitMQ, AzureServiceBus, AzureStorageQueues, MSMQ, SQS, IBMMQ ]
+        test-category: [ DefaultCore, DefaultMonitoring, Raven, Raven6, SqlServer, PostgreSql, RabbitMQ, AzureServiceBus, AzureStorageQueues, MSMQ, SQS, IBMMQ ]
         include:
           - os: windows-latest
             os-name: Windows
@@ -37,6 +37,8 @@ jobs:
           # slowest of them rather than the sum. Defaults to 1 where unset. Dial down if the shared
           # infrastructure turns out not to tolerate the concurrency.
           - test-category: Raven
+            max-parallel: 3
+          - test-category: Raven6
             max-parallel: 3
           - test-category: RabbitMQ
             max-parallel: 4

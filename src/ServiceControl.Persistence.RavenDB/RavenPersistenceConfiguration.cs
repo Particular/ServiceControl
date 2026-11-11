@@ -8,6 +8,7 @@ namespace ServiceControl.Persistence.RavenDB
     using Microsoft.Extensions.Logging;
     using Particular.LicensingComponent.Contracts;
     using ServiceControl.Infrastructure;
+    using ServiceControl.RavenDB;
 
     class RavenPersistenceConfiguration : PersistenceConfiguration, IPersistenceConfiguration
     {
@@ -22,7 +23,7 @@ namespace ServiceControl.Persistence.RavenDB
         public PersistenceSettings CreateSettings(SettingsRootNamespace settingsRootNamespace)
         {
             var ravenDbLogLevel = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.RavenDbLogLevelKey, "Warn");
-            var logsMinLevel = RavenDbLogLevelToLogsMinLevelMapper.Map(ravenDbLogLevel, LoggerUtil.CreateStaticLogger<RavenPersistenceConfiguration>());
+            var logsMinLevel = RavenServerLogLevel.Map(ravenDbLogLevel, LoggerUtil.CreateStaticLogger<RavenPersistenceConfiguration>());
 
             var settings = new RavenPersisterSettings
             {

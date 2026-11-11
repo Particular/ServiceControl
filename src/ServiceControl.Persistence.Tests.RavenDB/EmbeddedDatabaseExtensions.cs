@@ -8,8 +8,9 @@ using Raven.Client.ServerWide.Operations;
 using Raven.Embedded;
 using ServiceControl.RavenDB;
 
-public static class EmbeddedDatabaseExtensions
+static class EmbeddedDatabaseExtensions
 {
+#pragma warning disable IDE0060 // Remove unused parameter
     public static async Task DeleteDatabase(this EmbeddedDatabase database, string dbName, CancellationToken cancellationToken = default)
     {
         using var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(
@@ -26,6 +27,7 @@ public static class EmbeddedDatabaseExtensions
             new DeleteDatabasesOperation(dbName, hardDelete: true, timeToWaitForConfirmation: TimeSpan.FromSeconds(30)),
             cancellationToken);
     }
+#pragma warning restore IDE0060 // Remove unused parameter
 
     // Delete only the stopped server's PID batch so concurrent runs sharing this folder are untouched.
     public static async Task DisposeAndDeleteServerTempFiles(this EmbeddedDatabase database, CancellationToken cancellationToken = default)
