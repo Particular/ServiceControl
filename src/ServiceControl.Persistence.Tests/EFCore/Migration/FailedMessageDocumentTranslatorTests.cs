@@ -7,6 +7,7 @@ using System.Linq;
 using NUnit.Framework;
 using ServiceControl.MessageFailures;
 using ServiceControl.Persistence.DataMigration;
+using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DataMigration;
 using ServiceControl.Persistence.EFCore.Entities;
 
@@ -506,6 +507,24 @@ class FailedMessageDocumentTranslatorTests
         {
             Assert.That(written.Select(value => value.Kind), Is.All.EqualTo(DateTimeKind.Utc), "Npgsql refuses to write a DateTime of any other kind to a timestamp with time zone column");
             Assert.That(written, Is.EqualTo(expected.Select(value => kind == DateTimeKind.Local ? value.ToUniversalTime() : DateTime.SpecifyKind(value, DateTimeKind.Utc))), "a value with no kind is already UTC and must not be shifted by the local offset");
+        }
+    }
+
+    [Test]
+    public void Stores_a_body_externally_when_the_content_type_header_is_null()
+    {
+        var document = new IngestedFailure().ToFailedMessage();
+        var headers = document.ProcessingAttempts[^1].Headers;
+        headers[NServiceBus.Headers.ContentType] = null!;
+        var row = RowOf(FailedMessageDocumentTranslator.Translate(Row(document)));
+
+        var storeExternally = FailedMessageDocumentTranslator.SetBody(row, headers, new MigrationBody("hello"u8.ToArray(), "text/plain"), BodyStorageSettings.DefaultMaxBodySizeToStore);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(storeExternally, Is.True, "a null content type says nothing about the body, so it is treated like a missing one, which is binary");
+            Assert.That(row.BodyStoredExternally, Is.True);
+            Assert.That(row.BodyText, Is.Null);
         }
     }
 
