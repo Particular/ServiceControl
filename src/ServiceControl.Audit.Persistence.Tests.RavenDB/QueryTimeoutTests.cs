@@ -33,7 +33,7 @@ class QueryTimeoutTests
     }
 
     static DatabaseConfiguration BuildConfiguration(TimeSpan queryTimeout) =>
-        new("audit", 60, true, TimeSpan.FromMinutes(5), 120000, 5, 5, new ServerConfiguration("http://localhost:33334"), TimeSpan.FromSeconds(60), queryTimeout);
+        new("audit", 60, true, TimeSpan.FromMinutes(5), 120000, 5, 5, new ServerConfiguration("http://localhost:33334"), TimeSpan.FromSeconds(60), queryTimeout, false);
 
     class NeverCompletingSessionProvider : IRavenSessionProvider
     {

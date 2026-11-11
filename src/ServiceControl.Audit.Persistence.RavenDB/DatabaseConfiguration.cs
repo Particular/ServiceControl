@@ -12,7 +12,8 @@
         int minimumStorageLeftRequiredForIngestion,
         ServerConfiguration serverConfiguration,
         TimeSpan bulkInsertCommitTimeout,
-        TimeSpan queryTimeout)
+        TimeSpan queryTimeout,
+        bool maintenanceMode)
     {
         public string Name { get; } = name;
 
@@ -34,6 +35,6 @@
 
         public TimeSpan QueryTimeout { get; } = queryTimeout;
 
-        public bool MaintenanceMode { get; init; }
+        public bool MaintenanceMode { get; } = maintenanceMode;
     }
 }

@@ -32,7 +32,7 @@ class DatabaseSettingsTests : PersistenceTestFixture
         await store.Maintenance.Server.SendAsync(new ToggleDatabasesStateOperation(databaseName, true), TestTimeoutCancellationToken);
         await store.Maintenance.Server.SendAsync(new ToggleDatabasesStateOperation(databaseName, false), TestTimeoutCancellationToken);
 
-        var databaseConfiguration = new DatabaseConfiguration(databaseName, 60, true, TimeSpan.FromDays(1), 100_000, 20, 20, new ServerConfiguration(store.Urls[0]), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+        var databaseConfiguration = new DatabaseConfiguration(databaseName, 60, true, TimeSpan.FromDays(1), 100_000, 20, 20, new ServerConfiguration(store.Urls[0]), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30), false);
         await new DatabaseSetup(databaseConfiguration).Execute(store, TestTimeoutCancellationToken);
 
         var record = await store.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName), TestTimeoutCancellationToken);
@@ -47,10 +47,7 @@ class DatabaseSettingsTests : PersistenceTestFixture
         var store = configuration.DocumentStore;
         var databaseName = $"maintenance-mode-{Guid.NewGuid():N}";
 
-        var databaseConfiguration = new DatabaseConfiguration(databaseName, 60, true, TimeSpan.FromDays(1), 100_000, 20, 20, new ServerConfiguration(store.Urls[0]), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30))
-        {
-            MaintenanceMode = true
-        };
+        var databaseConfiguration = new DatabaseConfiguration(databaseName, 60, true, TimeSpan.FromDays(1), 100_000, 20, 20, new ServerConfiguration(store.Urls[0]), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30), true);
         await new DatabaseSetup(databaseConfiguration).Execute(store, TestTimeoutCancellationToken);
 
         var record = await store.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName), TestTimeoutCancellationToken);

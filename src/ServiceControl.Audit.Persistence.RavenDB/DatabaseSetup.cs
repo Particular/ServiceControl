@@ -25,7 +25,7 @@ class DatabaseSetup(DatabaseConfiguration configuration)
     {
         if (configuration.MaintenanceMode)
         {
-            Logger.LogWarning("Skipping the database setup in maintenance mode. Databases are not created, indexes are not deployed, and expiration is not configured");
+            Logger.LogInformation("Skipping the database setup in maintenance mode");
             return;
         }
 
