@@ -199,8 +199,9 @@ There are eighteen *categories*: sixteen required and two optional.
 - **A message type over 450 characters is cut to its last 450 characters**, as ingestion does. The row is copied, not skipped.
 - **On SQL Server, licensing endpoints whose names differ only in trailing spaces become one row.** SQL Server ignores trailing spaces when it compares the key. PostgreSQL keeps both.
   - The copy keeps the endpoint whose RavenDB document id sorts first in ordinal order.
-  - A day that both endpoints counted keeps the count of the endpoint whose id sorts later. The two counts are not added.
-  - This is not counted as a merge. The copy logs no warning, and the dry run does not list them. The second endpoint counts as already present. Each endpoint's days are copied in their own batch, so a shared day counts as copied twice, and copied exceeds the rows SQL holds for `LicensingThroughput`.
+  - A day that both endpoints counted holds the sum of their counts, as it would if SQL Server had recorded both endpoints from the start.
+  - This is not counted as a merge. The copy logs no warning, and the dry run does not list them. The second endpoint and its share of each shared day count as already present.
+  - The copy adds counts only for names that differ in case and trailing spaces. A key column given a collation that also ignores, for example, accents still makes one row of other names, and that row keeps one endpoint's count.
 - **Event log items, historic retry operations and pending integration events get new numbers.** Nothing refers to the old ones, so this is safe.
 
 The dry run counts both kinds of merge before anything moves.

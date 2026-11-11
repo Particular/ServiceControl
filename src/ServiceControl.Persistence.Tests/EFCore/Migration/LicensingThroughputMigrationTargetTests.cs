@@ -81,6 +81,34 @@ class LicensingThroughputMigrationTargetTests : PersistenceTestBase
     }
 
     [Test]
+    public async Task Days_of_two_endpoints_the_key_treats_as_one_are_added_when_they_arrive_in_one_batch()
+    {
+        var endpoints = MigrationCategoryRegistry.All.Single(category => category.Id == MigrationCategoryIds.LicensingEndpoints);
+        var endpointBatch = BatchOf(
+            ("Sales.Orders /Broker", new Endpoint("Sales.Orders ", ThroughputSource.Broker) { SanitizedName = "sales.orders" }),
+            ("Sales.Orders/Broker", new Endpoint("Sales.Orders", ThroughputSource.Broker) { SanitizedName = "sales.orders" }));
+        await Target.Write(endpoints, endpointBatch, new MigrationCheckpoint(endpoints.Id, MigrationCategoryState.InProgress, endpointBatch.Cursor, 0, 0, null, null, null, null, null, null));
+        var day = new DateOnly(2026, 1, 1);
+        var batch = BatchOf(
+            ("Sales.Orders /Broker|2026-01-01", new ThroughputDayRow(new EndpointIdentifier("Sales.Orders ", ThroughputSource.Broker), day, 100)),
+            ("Sales.Orders/Broker|2026-01-01", new ThroughputDayRow(new EndpointIdentifier("Sales.Orders", ThroughputSource.Broker), day, 250)));
+
+        var first = await Target.Write(LicensingThroughputCategory, batch, CheckpointAfter("Sales.Orders/Broker"));
+        var again = await Target.Write(LicensingThroughputCategory, batch, first.Saved);
+
+        await using var scope = ServiceProvider.CreateAsyncScope();
+        var keyIgnoresTrailingSpace = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>().Database.ProviderName!.Contains("SqlServer");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(first.Copied, Is.EqualTo(keyIgnoresTrailingSpace ? 1 : 2));
+            Assert.That(first.AlreadyPresent, Is.EqualTo(keyIgnoresTrailingSpace ? 1 : 0), "the endpoint folded into the other's row is counted, not lost");
+            Assert.That(await StoredCounts(), Is.EqualTo(keyIgnoresTrailingSpace ? new[] { 350L } : new[] { 100L, 250L }), "SQL Server's key makes the two one day, which holds both counts, as the product's own throughput write would");
+            Assert.That(again.Copied, Is.EqualTo(first.Copied), "copying the batch again sets the same sum rather than adding to it");
+        }
+    }
+
+    [Test]
     public async Task A_later_batch_replaces_the_count_an_earlier_batch_stored_for_the_same_day()
     {
         await LicensingDataStore.SaveEndpoint(new Endpoint("Sales.Orders", ThroughputSource.Broker) { SanitizedName = "sales.orders" });

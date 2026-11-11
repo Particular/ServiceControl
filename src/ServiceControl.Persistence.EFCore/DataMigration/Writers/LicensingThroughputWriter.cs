@@ -11,8 +11,9 @@ using ServiceControl.Persistence.DataMigration;
 /// <summary>
 /// Writes the licensing endpoints' daily message counts, setting each day's count rather than adding to it, so a copy
 /// run twice leaves the same numbers. A batch naming an endpoint the target does not hold is refused with an
-/// <see cref="InvalidOperationException" /> naming that endpoint and its source. A day whose key repeats in the batch
-/// keeps its last row, and the others are counted as already present.
+/// <see cref="InvalidOperationException" /> naming that endpoint and its source. A day repeated for one endpoint keeps
+/// its last row. Days of different endpoints whose names the key column treats as the same are added into one row,
+/// as the product's own throughput write would add them. Either way the rows folded away are counted as already present.
 /// </summary>
 sealed class LicensingThroughputWriter(IMigrationSqlDialect migrationDialect) : MigrationCategoryWriter<ThroughputDayRow>
 {
@@ -67,9 +68,18 @@ sealed class LicensingThroughputWriter(IMigrationSqlDialect migrationDialect) : 
         [
             .. mapped
                 .GroupBy(day => (day.ThroughputSource, day.DateUtc))
-                .SelectMany(sameDay => sameDay.GroupBy(day => day.NormalizedName, nameComparer).Select(sameKey => sameKey.Last()))
+                .SelectMany(sameDay => sameDay.GroupBy(day => day.NormalizedName, nameComparer).Select(AddEndpoints))
         ];
 
         return new PreparedBatch((context, token) => migrationDialect.SetLicensingEndpointThroughput(context, rows, token), mapped.Count, skips, Merges: []);
+    }
+
+    // The sum is set, not added to the stored count, so the reader must put every endpoint that can share a key in one batch.
+    static LicensingEndpointThroughputEntity AddEndpoints(IEnumerable<LicensingEndpointThroughputEntity> sameKey)
+    {
+        var perEndpoint = sameKey.GroupBy(day => day.NormalizedName, StringComparer.Ordinal).Select(sameEndpoint => sameEndpoint.Last()).ToList();
+        var kept = perEndpoint[0];
+        kept.MessageCount = perEndpoint.Sum(day => day.MessageCount);
+        return kept;
     }
 }

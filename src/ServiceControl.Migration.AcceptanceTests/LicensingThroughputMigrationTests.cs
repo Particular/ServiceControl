@@ -122,7 +122,7 @@ class LicensingThroughputMigrationTests : MigrationAcceptanceTest
     }
 
     [Test]
-    public async Task Two_names_differing_only_in_a_trailing_space_set_one_day_without_failing_the_batch()
+    public async Task Two_names_differing_only_in_a_trailing_space_add_their_counts_into_one_day_without_failing_the_batch()
     {
         var endpoints = MigrationCategoryRegistry.All.Single(entry => entry.Id == "LicensingEndpoints");
         var endpointBatch = new MigrationBatch(
@@ -157,7 +157,7 @@ class LicensingThroughputMigrationTests : MigrationAcceptanceTest
             Assert.That(result.AlreadyPresent, Is.EqualTo(keyIgnoresTrailingSpace ? 1 : 0), "the day SQL Server's key folds into the other is already present, not lost or failed");
             Assert.That(result.Skipped, Is.Zero);
             Assert.That(await Target.Count(category), Is.EqualTo(result.Copied), "in a single batch, every row reported as copied is a row in the table");
-            Assert.That(count, Is.EqualTo(250), "the later row sets the day's count where the key makes the two one, and never adds to the earlier row's");
+            Assert.That(count, Is.EqualTo(keyIgnoresTrailingSpace ? 350 : 250), "where the key makes the two endpoints one, their counts for the day are added, as the product's own throughput write adds them");
         }
     }
 

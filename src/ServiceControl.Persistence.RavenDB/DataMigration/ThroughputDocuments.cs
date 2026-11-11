@@ -8,6 +8,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
+using Particular.LicensingComponent.Contracts;
 using Raven.Client;
 using Raven.Client.Documents.Commands;
 using Raven.Client.Documents.Conventions;
@@ -34,31 +36,67 @@ static class ThroughputDocuments
         int batchSize,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var databaseName = lifecycle.Settings.ThroughputDatabaseName;
-        var endpoints = new List<MigrationRow>();
-
-        using (var session = lifecycle.OpenSession(databaseName))
-        {
-            await RavenDocumentStream.RefuseMissingCursor(session, categoryId, databaseName, resumeAfter, cancellationToken);
-
-            // With no id prefix RavenDB streams in reverse etag order and ignores startAfter, so the order and the cursor are applied here.
-            await using var stream = await session.Advanced.StreamAsync<EndpointDocument>(string.Empty, token: cancellationToken);
-
-            while (await stream.MoveNextAsync())
-            {
-                if (Endpoint(stream.Current) is { } row && (resumeAfter is null || string.CompareOrdinal(row.SourceId, resumeAfter) > 0))
-                {
-                    endpoints.Add(row);
-                }
-            }
-        }
-
-        endpoints.Sort((left, right) => string.CompareOrdinal(left.SourceId, right.SourceId));
+        var endpoints = (await AllEndpoints(lifecycle, categoryId, resumeAfter, cancellationToken))
+            .Where(row => resumeAfter is null || string.CompareOrdinal(row.SourceId, resumeAfter) > 0)
+            .OrderBy(row => row.SourceId, StringComparer.Ordinal);
 
         foreach (var chunk in endpoints.Chunk(batchSize))
         {
             yield return new MigrationBatch(chunk, chunk[^1].SourceId);
         }
+    }
+
+    /// <summary>
+    /// Reads the endpoints in groups whose names can share a key in SQL: the same source, and the same name ignoring
+    /// case and trailing spaces. Groups come in the ordinal order of their last document id, which is each group's cursor,
+    /// and only groups after <paramref name="resumeAfter" /> are read. Throws <see cref="InvalidOperationException" /> when
+    /// the source holds no document with the id in <paramref name="resumeAfter" />.
+    /// </summary>
+    public static async IAsyncEnumerable<IReadOnlyList<MigrationRow>> EndpointGroups(
+        RavenReadOnlySourceLifecycle lifecycle,
+        string categoryId,
+        string? resumeAfter,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var groups = (await AllEndpoints(lifecycle, categoryId, resumeAfter, cancellationToken))
+            .GroupBy(SharedKey)
+            .Select(group => group.OrderBy(row => row.SourceId, StringComparer.Ordinal).ToList())
+            .Where(group => resumeAfter is null || string.CompareOrdinal(group[^1].SourceId, resumeAfter) > 0)
+            .OrderBy(group => group[^1].SourceId, StringComparer.Ordinal);
+
+        foreach (var group in groups)
+        {
+            yield return group;
+        }
+    }
+
+    // SQL Server's default collation ignores case and trailing spaces, and the product lower-cases the name it stores.
+    static (string? Name, ThroughputSource Source) SharedKey(MigrationRow row)
+    {
+        var id = ((Endpoint)row.Document).Id;
+        return (id.Name?.TrimEnd(' ').ToLowerInvariant(), id.ThroughputSource);
+    }
+
+    // With no id prefix RavenDB streams in reverse etag order and ignores startAfter, so callers order the rows and apply the cursor.
+    static async Task<List<MigrationRow>> AllEndpoints(RavenReadOnlySourceLifecycle lifecycle, string categoryId, string? resumeAfter, CancellationToken cancellationToken)
+    {
+        var databaseName = lifecycle.Settings.ThroughputDatabaseName;
+        var endpoints = new List<MigrationRow>();
+
+        using var session = lifecycle.OpenSession(databaseName);
+        await RavenDocumentStream.RefuseMissingCursor(session, categoryId, databaseName, resumeAfter, cancellationToken);
+
+        await using var stream = await session.Advanced.StreamAsync<EndpointDocument>(string.Empty, token: cancellationToken);
+
+        while (await stream.MoveNextAsync())
+        {
+            if (Endpoint(stream.Current) is { } row)
+            {
+                endpoints.Add(row);
+            }
+        }
+
+        return endpoints;
     }
 
     /// <summary>

@@ -72,6 +72,34 @@ class LicensingThroughputSourceTests : RavenMigrationSourceTestBase
     }
 
     [Test]
+    public async Task Endpoints_whose_names_differ_only_in_case_and_trailing_spaces_come_in_one_batch()
+    {
+        foreach (var name in new[] { "Sales.Orders", "Sales.Orders.Archive", "SALES.ORDERS  " })
+        {
+            var documentId = $"{name}/Broker";
+            using var session = DocumentStore.OpenAsyncSession(ThroughputDatabaseName);
+            await session.StoreAsync(new EndpointDocument(new EndpointIdentifier(name, ThroughputSource.Broker)), documentId);
+            await session.SaveChangesAsync();
+
+            session.IncrementalTimeSeriesFor(documentId, RavenLicensingDataStore.ThroughputTimeSeriesName).Increment(new DateTime(2026, 1, 1), 100);
+            await session.SaveChangesAsync();
+        }
+
+        await using var source = await OpenMigrationSource();
+        var category = MigrationCategoryRegistry.All.Single(entry => entry.Id == "LicensingThroughput");
+
+        var batches = await CollectBatches(source, category);
+        var resumed = await CollectBatches(source, category, resumeAfter: batches[0].Cursor);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(batches.Select(batch => batch.Cursor), Is.EqualTo(new[] { "Sales.Orders.Archive/Broker", "Sales.Orders/Broker" }), "each group cursors on its last id in ordinal order, so a resume never splits a group");
+            Assert.That(batches[1].Rows.Select(row => ((ThroughputDayRow)row.Document).Endpoint.Name), Is.EquivalentTo(new[] { "Sales.Orders", "SALES.ORDERS  " }), "the writer can add the two endpoints' days only when they arrive in one batch");
+            Assert.That(resumed.SelectMany(batch => batch.Rows).Select(row => ((ThroughputDayRow)row.Document).Endpoint.Name), Is.EquivalentTo(new[] { "Sales.Orders", "SALES.ORDERS  " }), "a resume after the first group reads the whole second group");
+        }
+    }
+
+    [Test]
     public async Task Reads_more_endpoints_than_one_session_accepts_requests()
     {
         var endpointCount = new DocumentConventions().MaxNumberOfRequestsPerSession + 1;
