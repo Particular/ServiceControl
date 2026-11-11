@@ -40,4 +40,21 @@ class DatabaseSettingsTests : PersistenceTestFixture
         Assert.That(record.Settings, Does.Not.ContainKey("Indexing.Auto.SearchEngineType"));
         Assert.That(record.Settings, Does.Not.ContainKey("Indexing.Static.SearchEngineType"));
     }
+
+    [Test]
+    public async Task Setup_in_maintenance_mode_should_be_skipped()
+    {
+        var store = configuration.DocumentStore;
+        var databaseName = $"maintenance-mode-{Guid.NewGuid():N}";
+
+        var databaseConfiguration = new DatabaseConfiguration(databaseName, 60, true, TimeSpan.FromDays(1), 100_000, 20, 20, new ServerConfiguration(store.Urls[0]), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30))
+        {
+            MaintenanceMode = true
+        };
+        await new DatabaseSetup(databaseConfiguration).Execute(store, TestTimeoutCancellationToken);
+
+        var record = await store.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(databaseName), TestTimeoutCancellationToken);
+
+        Assert.That(record, Is.Null);
+    }
 }

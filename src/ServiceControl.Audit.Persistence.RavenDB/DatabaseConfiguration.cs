@@ -33,5 +33,7 @@
         public TimeSpan BulkInsertCommitTimeout { get; } = bulkInsertCommitTimeout;
 
         public TimeSpan QueryTimeout { get; } = queryTimeout;
+
+        public bool MaintenanceMode { get; init; }
     }
 }
