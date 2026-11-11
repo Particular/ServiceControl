@@ -74,8 +74,13 @@
             // RavenDB ignores the patch for compatibility: https://docs.ravendb.net/7.2/client-api/faq/backward-compatibility
             if (new Version(serverVersion.Major, serverVersion.Minor) < clientMajorMinor)
             {
-                error = $"ServiceControl expects RavenDB Server version {clientMajorMinor} or higher, but the server is using {serverVersion}. " +
-                        "Upgrade the external RavenDB server or the servicecontrol-ravendb container before starting ServiceControl.";
+                var advice = "Upgrade the external RavenDB server or the servicecontrol-ravendb container before starting ServiceControl.";
+                if (clientVersion.Major >= 7 && serverVersion.Major < 7)
+                {
+                    advice = "To stay on RavenDB 6, set PersistenceType=RavenDB and use the -ravendb6 tag of the servicecontrol-ravendb container. " +
+                             "To move to RavenDB 7, upgrade the server. RavenDB 7 converts existing data one-way, which can take hours or days.";
+                }
+                error = $"ServiceControl expects RavenDB Server version {clientMajorMinor} or higher, but the server is using {serverVersion}. {advice}";
                 return false;
             }
 
