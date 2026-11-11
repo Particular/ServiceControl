@@ -1,14 +1,19 @@
 namespace ServiceControl.Persistence.RavenDB
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Indexes;
     using Raven.Client.Documents.Operations.Expiration;
+    using Raven.Client.Documents.Operations.Indexes;
     using Raven.Client.Exceptions;
     using Raven.Client.ServerWide;
     using Raven.Client.ServerWide.Operations;
+    using ServiceControl.Infrastructure;
     using ServiceControl.RavenDB;
     using Throughput.Indexes;
 
@@ -21,6 +26,8 @@ namespace ServiceControl.Persistence.RavenDB
 
             // The throughput indexes belong to the throughput database, all other indexes to the error database.
             var indexes = IndexDeployment.FindIndexes(typeof(DatabaseSetup).Assembly).ToLookup(index => index.GetType().Namespace == typeof(EndpointIndex).Namespace);
+
+            await DeleteThroughputIndexesFromErrorDatabase(indexes[true], cancellationToken);
 
             await IndexDeployment.CreateIndexesAsync(indexes[false], documentStore, cancellationToken: cancellationToken);
             await IndexDeployment.CreateIndexesAsync(indexes[true], documentStore, settings.ThroughputDatabaseName, cancellationToken);
@@ -57,6 +64,21 @@ namespace ServiceControl.Persistence.RavenDB
             }
         }
 
+        // Earlier versions deployed the throughput indexes to the error database, where no query uses them.
+        async Task DeleteThroughputIndexesFromErrorDatabase(IEnumerable<AbstractIndexCreationTask> throughputIndexes, CancellationToken cancellationToken)
+        {
+            foreach (var index in throughputIndexes)
+            {
+                var definition = await documentStore.Maintenance.SendAsync(new GetIndexOperation(index.IndexName), cancellationToken);
+
+                if (definition != null)
+                {
+                    Logger.LogInformation("Deleting the throughput index {IndexName} from the {DatabaseName} database", index.IndexName, settings.DatabaseName);
+                    await documentStore.Maintenance.SendAsync(new DeleteIndexOperation(index.IndexName), cancellationToken);
+                }
+            }
+        }
+
         async Task ConfigureExpiration(RavenPersisterSettings settings, CancellationToken cancellationToken)
         {
             var expirationConfig = new ExpirationConfiguration
@@ -67,5 +89,7 @@ namespace ServiceControl.Persistence.RavenDB
 
             await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig), cancellationToken);
         }
+
+        static readonly ILogger Logger = LoggerUtil.CreateStaticLogger<DatabaseSetup>();
     }
 }
