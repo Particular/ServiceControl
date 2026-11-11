@@ -19,7 +19,7 @@ EXPOSE 33333
 COPY --from=build /deploy/Particular.ServiceControl /app
 COPY --from=build /healthcheck /healthcheck
 
-ENV PersistenceType=RavenDB \
+ENV PersistenceType=RavenDB7 \
     ForwardErrorMessages=false \
     ErrorRetentionPeriod=15
 

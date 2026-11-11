@@ -19,7 +19,7 @@ EXPOSE 44444
 COPY --from=build /deploy/Particular.ServiceControl.Audit /app
 COPY --from=build /healthcheck /healthcheck
 
-ENV PersistenceType=RavenDB \
+ENV PersistenceType=RavenDB7 \
     AuditRetentionPeriod=7
 
 HEALTHCHECK --start-period=10s CMD ["/healthcheck/healthcheck", "http://localhost:44444/api/configuration"]
