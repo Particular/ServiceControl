@@ -65,12 +65,11 @@ public class PersistenceTestsContext : IPersistenceTestsContext
             return;
         }
 
-        var autoIndexes = DocumentStore == null
-            ? []
-            : await DocumentStore.FindAutoIndexes(databaseName);
+        var throughputDatabaseName = ((RavenPersisterSettings)PersistenceSettings).ThroughputDatabaseName;
+        var autoIndexes = await embeddedServer.FindAutoIndexes([databaseName, throughputDatabaseName]);
 
         await embeddedServer.DeleteDatabase(databaseName);
-        await embeddedServer.DeleteDatabase(((RavenPersisterSettings)PersistenceSettings).ThroughputDatabaseName);
+        await embeddedServer.DeleteDatabase(throughputDatabaseName);
 
         AutoIndexes.AssertNone(autoIndexes);
     }
