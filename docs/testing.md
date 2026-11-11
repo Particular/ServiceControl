@@ -74,7 +74,7 @@ Multi-instance tests validate the interaction between different ServiceControl i
 
 ## Container tests
 
-Container images generated for all builds are pushed to the [GitHub container registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry). Once pushed, all images are tested by [starting them all for each supported transport](/src/container-integration-test/).
+Container images generated for all builds are pushed to the [GitHub container registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry). Once pushed, all images are tested by [starting them all for each supported transport](/src/container-integration-test/). One more RabbitMQ run uses the RavenDB 6 persister (`PersistenceType=RavenDB`) and the `-ravendb6` database image.
 
 Containers built by a PR and stored on GitHub Container Registry can be tested locally:
 

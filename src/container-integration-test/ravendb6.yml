@@ -1,0 +1,11 @@
+services:
+
+  # Run the instances on the RavenDB 6 persister against the RavenDB 6 database image
+  servicecontrol:
+    environment:
+      PersistenceType: RavenDB
+  servicecontrol-audit:
+    environment:
+      PersistenceType: RavenDB
+  servicecontrol-db:
+    image: ghcr.io/particular/servicecontrol-ravendb:${SERVICECONTROL_TAG}-ravendb6
