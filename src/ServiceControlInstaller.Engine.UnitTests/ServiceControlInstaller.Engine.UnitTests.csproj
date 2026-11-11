@@ -19,6 +19,7 @@
     <PackageReference Include="NUnit3TestAdapter" />
     <PackageReference Include="Particular.Approvals" />
     <PackageReference Include="PublicApiGenerator" />
+    <PackageReference Include="RavenDB.Embedded" />
   </ItemGroup>
 
   <Target Name="WorkaroundForSqlClientWindowsFormsReference" BeforeTargets="AddTransitiveFrameworkReferences">

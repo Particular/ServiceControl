@@ -9,11 +9,6 @@
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit.Analyzers" />
     <PackageReference Include="Particular.Approvals" />
-    <PackageReference Include="RavenDB.Embedded" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.RavenDB\ServiceControl.RavenDB.csproj" />
   </ItemGroup>
 
   <!-- Workaround to prevent VS test discovery error -->

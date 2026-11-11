@@ -12,7 +12,7 @@ using ServiceControl.RavenDB;
 /// Renders the parts of an index definition that RavenDB compares when ServiceControl deploys its indexes at
 /// start-up. A difference in any of these parts makes RavenDB build a side-by-side replacement of the index.
 /// </summary>
-public static class IndexDefinitionText
+static class IndexDefinitionText
 {
     public static string Render(Assembly assembly)
     {
