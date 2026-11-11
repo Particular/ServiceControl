@@ -74,6 +74,14 @@ namespace ServiceControl.Persistence.RavenDB
                 if (definition != null)
                 {
                     Logger.LogInformation("Deleting the throughput index {IndexName} from the {DatabaseName} database", index.IndexName, settings.DatabaseName);
+
+                    // RavenDB ignores the deletion of a LockedIgnore index and rejects that of a LockedError index. An
+                    // operator might have locked the index after migrating it to Lucene.
+                    if (definition.LockMode is not (null or IndexLockMode.Unlock))
+                    {
+                        await documentStore.Maintenance.SendAsync(new SetIndexesLockOperation(index.IndexName, IndexLockMode.Unlock), cancellationToken);
+                    }
+
                     await documentStore.Maintenance.SendAsync(new DeleteIndexOperation(index.IndexName), cancellationToken);
                 }
             }

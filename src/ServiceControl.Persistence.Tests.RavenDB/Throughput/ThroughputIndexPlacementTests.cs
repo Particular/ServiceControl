@@ -10,16 +10,20 @@ using ServiceControl.Persistence.RavenDB.Throughput.Indexes;
 [TestFixture]
 class ThroughputIndexPlacementTests : RavenPersistenceTestBase
 {
-    [Test]
-    public async Task Setup_should_delete_the_throughput_index_from_the_error_database()
+    [TestCase(IndexLockMode.Unlock)]
+    [TestCase(IndexLockMode.LockedIgnore)]
+    [TestCase(IndexLockMode.LockedError)]
+    public async Task Setup_should_delete_the_throughput_index_from_the_error_database(IndexLockMode lockMode)
     {
         var settings = (RavenPersisterSettings)PersistenceSettings;
         var indexName = new EndpointIndex().IndexName;
 
-        // Earlier versions deployed the throughput indexes to the error database
+        // Earlier versions deployed the throughput indexes to the error database. An operator might have locked it
+        // after migrating it to Lucene.
         await DocumentStore.Maintenance.SendAsync(new PutIndexesOperation(new IndexDefinition
         {
             Name = indexName,
+            LockMode = lockMode,
             Maps = ["from message in docs.EndpointDocuments select new { message.EndpointId.ThroughputSource, message.EndpointId.Name }"]
         }));
 
