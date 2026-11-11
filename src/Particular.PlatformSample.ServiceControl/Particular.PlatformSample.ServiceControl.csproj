@@ -26,11 +26,11 @@
   <Target Name="AddFilesToPackage">
     <ItemGroup>
       <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl\**\*" Exclude="$(ArtifactsPath)Particular.ServiceControl\Persisters\**\*;$(ArtifactsPath)Particular.ServiceControl\Transports\**\*" PackagePath="platform\sc\servicecontrol" />
-      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl\Persisters\RavenDB\**\*" PackagePath="platform\sc\servicecontrol\Persisters\RavenDB" />
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl\Persisters\RavenDB7\**\*" PackagePath="platform\sc\servicecontrol\Persisters\RavenDB7" />
       <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl\Transports\LearningTransport\**\*" PackagePath="platform\sc\servicecontrol\Transports\LearningTransport" />
 
       <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Audit\**\*" Exclude="$(ArtifactsPath)Particular.ServiceControl.Audit\Persisters\**\*;$(ArtifactsPath)Particular.ServiceControl.Audit\Transports\**\*" PackagePath="platform\sc\servicecontrol-audit" />
-      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Audit\Persisters\RavenDB\**\*" PackagePath="platform\sc\servicecontrol-audit\Persisters\RavenDB" />
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Audit\Persisters\RavenDB7\**\*" PackagePath="platform\sc\servicecontrol-audit\Persisters\RavenDB7" />
       <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Audit\Transports\LearningTransport\**\*" PackagePath="platform\sc\servicecontrol-audit\Transports\LearningTransport" />
 
       <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Monitoring\**\*" Exclude="$(ArtifactsPath)Particular.ServiceControl.Monitoring\Transports\**\*" PackagePath="platform\sc\monitoring" />
