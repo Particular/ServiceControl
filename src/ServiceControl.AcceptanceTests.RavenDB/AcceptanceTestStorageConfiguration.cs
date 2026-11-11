@@ -12,7 +12,7 @@ using TestHelper;
 
 public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfiguration
 {
-    public string PersistenceType { get; } = "RavenDB7";
+    public string PersistenceType { get; } = RavenFlavour.PersistenceType;
 
 
     public async Task CustomizeSettings(Settings settings, CancellationToken cancellationToken = default)

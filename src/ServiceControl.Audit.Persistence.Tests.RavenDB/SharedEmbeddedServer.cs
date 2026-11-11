@@ -34,7 +34,7 @@
 
                 var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
                 var logPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs", "Audit");
-                var logsMinLevel = "Warn";
+                var logsMinLevel = RavenServerLogLevel.Default;
                 var serverUrl = $"http://localhost:{PortUtility.GetAssignedOrAvailablePort(33334)}";
 
                 var databaseConfiguration = new DatabaseConfiguration("audit", 60, true, TimeSpan.FromMinutes(5), 120000, 5, 5, new ServerConfiguration(dbPath, serverUrl, logPath, logsMinLevel), TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(30));

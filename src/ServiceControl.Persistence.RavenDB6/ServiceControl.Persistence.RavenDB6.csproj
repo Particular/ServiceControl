@@ -50,9 +50,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="ServiceControl.AcceptanceTests.RavenDB" />
-    <InternalsVisibleTo Include="ServiceControl.MultiInstance.AcceptanceTests" />
-    <InternalsVisibleTo Include="ServiceControl.Persistence.Tests.RavenDB" />
+    <InternalsVisibleTo Include="ServiceControl.AcceptanceTests.RavenDB6" />
+    <InternalsVisibleTo Include="ServiceControl.Persistence.Tests.RavenDB6" />
   </ItemGroup>
 
 </Project>

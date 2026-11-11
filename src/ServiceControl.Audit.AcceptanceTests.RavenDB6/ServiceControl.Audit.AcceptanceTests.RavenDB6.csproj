@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\RavenDB6.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <TestCategory>Raven6</TestCategory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="ServiceControl.Audit.AcceptanceTests.RavenDB" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj" />
+    <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDB6\ServiceControl.Audit.Persistence.RavenDB6.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
+    <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GitHubActionsTestLogger" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NServiceBus.SagaAudit" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit.Analyzers" />
+    <PackageReference Include="NUnit3TestAdapter" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.Audit.AcceptanceTests.RavenDB\**\*.cs" Exclude="..\ServiceControl.Audit.AcceptanceTests.RavenDB\bin\**;..\ServiceControl.Audit.AcceptanceTests.RavenDB\obj\**" LinkBase="." />
+    <Compile Include="..\ServiceControl.Audit.AcceptanceTests\**\*.cs" Exclude="..\ServiceControl.Audit.AcceptanceTests\obj\**\*.*;..\ServiceControl.Audit.AcceptanceTests\bin\**\*.*" LinkBase="Shared" />
+    <Compile Include="..\ServiceControl.Audit.Persistence.Tests.RavenDB\SharedEmbeddedServer.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\EmbeddedDatabaseExtensions.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\RavenFlavour.cs" />
+    <Compile Include="..\ServiceControl.Audit.Persistence.Tests.RavenDB\StopSharedDatabase.cs" />
+
+    <!-- RavenDB supports maintenance mode, so it has nothing to refuse. -->
+    <Compile Remove="..\ServiceControl.Audit.AcceptanceTests\MaintenanceModeTests.cs" />
+  </ItemGroup>
+
+</Project>

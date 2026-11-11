@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\RavenDB6.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <TestCategory>Raven6</TestCategory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />
+    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence.RavenDB6\ServiceControl.Persistence.RavenDB6.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
+    <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GitHubActionsTestLogger" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NServiceBus.Testing" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit.Analyzers" />
+    <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="Particular.Approvals" />
+    <PackageReference Include="PublicApiGenerator" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\**\*.cs" Exclude="..\ServiceControl.Persistence.Tests.RavenDB\bin\**;..\ServiceControl.Persistence.Tests.RavenDB\obj\**" LinkBase="." />
+    <Compile Include="..\ServiceControl.Persistence.Tests\**\*.cs" Exclude="..\ServiceControl.Persistence.Tests\bin\**;..\ServiceControl.Persistence.Tests\obj\**" LinkBase="Shared" />
+    <None Include="..\ServiceControl.Persistence.Tests.RavenDB\app.config" Link="app.config" />
+
+    <!-- Tests of behaviour specific to the EF Core persisters, shared by their two test projects only -->
+    <Compile Remove="..\ServiceControl.Persistence.Tests\EFCore\**\*.cs" />
+
+    <!-- Reads /admin/logs/configuration, which only RavenDB 7.2 serves -->
+    <Compile Remove="..\ServiceControl.Persistence.Tests.RavenDB\EmbeddedServerLoggingTests.cs" />
+  </ItemGroup>
+
+</Project>

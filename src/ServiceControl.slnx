@@ -29,9 +29,11 @@
   <Folder Name="/Instances/Audit/Testing/">
     <Project Path="ServiceControl.Audit.AcceptanceTests.PostgreSql/ServiceControl.Audit.AcceptanceTests.PostgreSql.csproj" />
     <Project Path="ServiceControl.Audit.AcceptanceTests.RavenDB/ServiceControl.Audit.AcceptanceTests.RavenDB.csproj" />
+    <Project Path="ServiceControl.Audit.AcceptanceTests.RavenDB6/ServiceControl.Audit.AcceptanceTests.RavenDB6.csproj" />
     <Project Path="ServiceControl.Audit.AcceptanceTests.SqlServer/ServiceControl.Audit.AcceptanceTests.SqlServer.csproj" />
     <Project Path="ServiceControl.Audit.Persistence.Tests.PostgreSql/ServiceControl.Audit.Persistence.Tests.PostgreSql.csproj" />
     <Project Path="ServiceControl.Audit.Persistence.Tests.RavenDB/ServiceControl.Audit.Persistence.Tests.RavenDB.csproj" />
+    <Project Path="ServiceControl.Audit.Persistence.Tests.RavenDB6/ServiceControl.Audit.Persistence.Tests.RavenDB6.csproj" />
     <Project Path="ServiceControl.Audit.Persistence.Tests.SqlServer/ServiceControl.Audit.Persistence.Tests.SqlServer.csproj" />
     <Project Path="ServiceControl.Audit.UnitTests/ServiceControl.Audit.UnitTests.csproj" />
   </Folder>
@@ -56,9 +58,11 @@
   <Folder Name="/Instances/Primary/Testing/">
     <Project Path="ServiceControl.AcceptanceTests.PostgreSql/ServiceControl.AcceptanceTests.PostgreSql.csproj" />
     <Project Path="ServiceControl.AcceptanceTests.RavenDB/ServiceControl.AcceptanceTests.RavenDB.csproj" />
+    <Project Path="ServiceControl.AcceptanceTests.RavenDB6/ServiceControl.AcceptanceTests.RavenDB6.csproj" />
     <Project Path="ServiceControl.AcceptanceTests.SqlServer/ServiceControl.AcceptanceTests.SqlServer.csproj" />
     <Project Path="ServiceControl.Persistence.Tests.InMemory/ServiceControl.Persistence.Tests.InMemory.csproj" />
     <Project Path="ServiceControl.Persistence.Tests.RavenDB/ServiceControl.Persistence.Tests.RavenDB.csproj" />
+    <Project Path="ServiceControl.Persistence.Tests.RavenDB6/ServiceControl.Persistence.Tests.RavenDB6.csproj" />
     <Project Path="ServiceControl.Persistence.Tests.PostgreSql/ServiceControl.Persistence.Tests.PostgreSql.csproj" />
     <Project Path="ServiceControl.Persistence.Tests.SqlServer/ServiceControl.Persistence.Tests.SqlServer.csproj" />
     <Project Path="ServiceControl.UnitTests/ServiceControl.UnitTests.csproj" />

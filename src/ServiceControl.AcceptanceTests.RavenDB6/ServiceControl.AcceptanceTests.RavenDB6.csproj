@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\RavenDB6.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <TestCategory>Raven6</TestCategory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="ServiceControl.AcceptanceTests.RavenDB" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence.RavenDB6\ServiceControl.Persistence.RavenDB6.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
+    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
+    <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GitHubActionsTestLogger" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NServiceBus.Heartbeat" />
+    <PackageReference Include="NServiceBus.SagaAudit" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit.Analyzers" />
+    <PackageReference Include="NUnit3TestAdapter" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.AcceptanceTests.RavenDB\**\*.cs" Exclude="..\ServiceControl.AcceptanceTests.RavenDB\bin\**;..\ServiceControl.AcceptanceTests.RavenDB\obj\**" LinkBase="." />
+    <Compile Include="..\ServiceControl.AcceptanceTests\**\*.cs" Exclude="..\ServiceControl.AcceptanceTests\bin\**;..\ServiceControl.AcceptanceTests\obj\**" LinkBase="Shared" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\SharedEmbeddedServer.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\EmbeddedDatabaseExtensions.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\RavenFlavour.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\StopSharedDatabase.cs" />
+    <Compile Include="..\ServiceControl.UnitTests\NUnitParallelRunnerSettings.cs" />
+
+    <!-- Error ingestion only mode is supported on SQL Server and PostgreSQL storage only. -->
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Recoverability\When_hosting_error_ingestion_only.cs" />
+
+    <!-- The file system body storage custom check is an EF Core persister feature; RavenDB stores bodies in the database. -->
+    <Compile Remove="..\ServiceControl.AcceptanceTests\Monitoring\CustomChecks\When_the_body_storage_check_is_reported.cs" />
+
+    <!-- RavenDB is the one persister that supports maintenance mode; StartupModeTests covers it. -->
+    <Compile Remove="..\ServiceControl.AcceptanceTests\MaintenanceModeTests.cs" />
+  </ItemGroup>
+
+</Project>
