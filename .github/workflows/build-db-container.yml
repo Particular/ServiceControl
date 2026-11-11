@@ -45,20 +45,32 @@ jobs:
           TAG_NAME: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
         shell: pwsh
         run: |
-          Write-Output "Determining RavenDB version from Directory.Packages.props file"
+          Write-Output "Determining RavenDB versions from Directory.Packages.props file"
           [xml]$packagesFile = Get-Content src/Directory.Packages.props
           $RavenVersion = $packagesFile.selectNodes("//Project/ItemGroup/PackageVersion[@Include='RavenDB.Embedded']").Version
+          $Raven6Version = $packagesFile.selectNodes("//Project/PropertyGroup/RavenDB6Version").InnerText
 
           if (-not $RavenVersion) { throw "Unable to determine RavenDB server version from Directory.Packages.props" }
+          if (-not $Raven6Version) { throw "Unable to determine RavenDB 6 server version from Directory.Packages.props" }
+
+          # The RavenDB 6 image uses the ubuntu.22.04 base image because RavenDB does not publish ubuntu.24.04 images for 6.2
+          $variants = @(
+            @{ Suffix = ""; RavenVersion = $RavenVersion; Os = "ubuntu.24.04" },
+            @{ Suffix = "-ravendb6"; RavenVersion = $Raven6Version; Os = "ubuntu.22.04" }
+          )
 
           Write-Output "Determining container variants to build"
           $containers = cat src/ServiceControl.RavenDB/containers.json | ConvertFrom-Json
-          $containers | ForEach-Object -Process {
-            $FULLTAG="${{ env.TAG_NAME }}-$($_.tag)"
-            $BASETAG="$($RavenVersion)-ubuntu.24.04-$($_.tag)"
-            Write-Output "::group::Building $FULLTAG for architecture $($_.arch) from $BASETAG"
-            docker build -t ghcr.io/particular/servicecontrol-ravendb:$FULLTAG --file src/ServiceControl.RavenDB/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --build-arg BASETAG=$BASETAG --platform linux/$($_.arch) .
-            Write-Output "::endgroup::"
+          foreach ($variant in $variants) {
+            $RAVENMAJOR = $variant.RavenVersion.Split('.')[0]
+            $containers | ForEach-Object -Process {
+              $FULLTAG="${{ env.TAG_NAME }}$($variant.Suffix)-$($_.tag)"
+              $BASETAG="$($variant.RavenVersion)-$($variant.Os)-$($_.tag)"
+              Write-Output "::group::Building $FULLTAG for architecture $($_.arch) from $BASETAG"
+              docker build -t ghcr.io/particular/servicecontrol-ravendb:$FULLTAG --file src/ServiceControl.RavenDB/Dockerfile --build-arg VERSION=${{ env.MinVerVersion }} --build-arg RAVENDBMAJOR=$RAVENMAJOR --build-arg BASETAG=$BASETAG --platform linux/$($_.arch) .
+              if ($LASTEXITCODE -ne 0) { throw "Building $FULLTAG failed" }
+              Write-Output "::endgroup::"
+            }
           }
       - name: List local images
         run: docker images
@@ -69,15 +81,17 @@ jobs:
           TAG_NAME: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || env.MinVerVersion }}
         shell: pwsh
         run: |
-          Write-Output "Creating multi-arch manifest creation command for containers specified in src/ServiceControl.RavenDB/containers.json"
-          $manifestCreate = "docker buildx imagetools create -t ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}"
+          Write-Output "Creating multi-arch manifest creation commands for containers specified in src/ServiceControl.RavenDB/containers.json"
           $containers = cat src/ServiceControl.RavenDB/containers.json | ConvertFrom-Json
-          $containers | ForEach-Object -Process {
-            $manifestCreate += " ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}-$($_.tag)"
+          foreach ($suffix in @("", "-ravendb6")) {
+            $manifestCreate = "docker buildx imagetools create -t ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}$suffix"
+            $containers | ForEach-Object -Process {
+              $manifestCreate += " ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}$suffix-$($_.tag)"
+            }
+            Write-Output "Invoking manifest creation command: > $manifestCreate"
+            Invoke-Expression $manifestCreate
+            if ($LASTEXITCODE -ne 0) { throw "Creating the manifest for ${{ env.TAG_NAME }}$suffix failed" }
+            Write-Output "Multi-arch image should now be on GitHub Container Registry at https://github.com/Particular/ServiceControl/pkgs/container/servicecontrol-ravendb/"
+            Write-Output "Inspecting resulting tag ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}$suffix"
+            docker buildx imagetools inspect ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}$suffix
           }
-          Write-Output "Invoking manifest creation command: > $manifestCreate"
-          Invoke-Expression $manifestCreate
-          Write-Output "Multi-arch image should now be on GitHub Container Registry at https://github.com/Particular/ServiceControl/pkgs/container/servicecontrol-ravendb/"
-          Write-Output "Inspecting resulting tag ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}"
-          docker buildx imagetools inspect ghcr.io/particular/servicecontrol-ravendb:${{ env.TAG_NAME }}
-
