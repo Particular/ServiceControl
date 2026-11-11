@@ -8,9 +8,25 @@ The zip files minimize duplication to control the overall file size of each inst
 - `ServiceControl.Audit.zip`
 - `ServiceControl.Monitoring.zip`
 - `InstanceShared.zip` - Contains the transport assemblies that are shared by each instance, as well as any other assemblies that are shared across all 3 instance zip files, such as `NServiceBus.Core.dll`.
-- `RavenDBServer.zip` - Contains the RavenDB server assemblies used by ServiceControl and Audit instances
+- `RavenDBServer.zip` - Contains the RavenDB 6.2 server, for the `RavenDB` persister (alias `RavenDB6`)
+- `RavenDB7Server.zip` - Contains the RavenDB 7.2 server, for the `RavenDB7` persister
 
-`RavenDBServer.zip` excludes the native Kafka dependencies `librdkafka.dll`, `librdkafkacpp.dll`, and `libcurl.dll`. ServiceControl does not configure RavenDB's Kafka ETL or sink tasks. The Windows installation engine tests extract this archive and verify document persistence and indexing across a server restart without these libraries.
+Both server archives exclude the native Kafka dependencies `librdkafka.dll`, `librdkafkacpp.dll`, and `libcurl.dll`, and the ONNX runtime and `LocalEmbeddings` files. ServiceControl does not configure RavenDB's Kafka ETL or sink tasks. The Windows installation engine tests extract each archive and verify document persistence and indexing across a server restart without these libraries.
+
+## RavenDB servers
+
+ServiceControl ships two RavenDB persisters. `RavenDB7` runs on RavenDB 7.2 and is the persister for new instances. `RavenDB` runs on RavenDB 6.2 and stays the persister of existing instances until ServiceControl 8 removes it. Both persisters use the same assembly names and the same manifest `TypeName`, and each finds its embedded server in a `RavenDBServer` folder next to its own assembly.
+
+A RavenDB 7.2 server that opens RavenDB 6.2 data converts it one way, which can take days. The installation engine therefore installs the server that matches the instance's persister, in one place (`RavenDBServerPackage`), whether it creates, upgrades, or force-upgrades the instance:
+
+- An instance on `RavenDB7` gets `RavenDB7Server.zip` in `Persisters\RavenDB7\RavenDBServer`.
+- Every other instance gets `RavenDBServer.zip` in `Persisters\RavenDB\RavenDBServer`. This includes SQL Server and PostgreSQL instances, because the planned migration from RavenDB to SQL reads the old 6.2 database through the `RavenDB` persister after the persistence type has changed.
+
+An upgrade never changes the persistence type of an instance. A force upgrade of a ServiceControl 4 instance on RavenDB 3.5 abandons the old database, so it moves the instance to `RavenDB7`.
+
+The persister projects place the servers in `deploy/RavenDBServer` (6.2) and `deploy/RavenDB7Server` (7.2) when they build on a developer machine. A CI or `WindowsSelfContained` build skips that step. `tools/download-ravendb-server.ps1` then downloads the self-contained 6.2 server (the `RavenDB6Version` property in `src/Directory.Packages.props`) and the self-contained 7.2 server (the central `RavenDB.Embedded` version) into those folders. The `ServiceControlInstaller.Packaging` project fails with an error that names the missing folder when either folder does not exist.
+
+The `ServiceControlInstaller.Engine` project compares the server an instance runs today with the archive bundled for the same persister to decide whether an upgrade converts the database (`RavenDBStorageSchema` and `RavenDBStorageUpgrade`). Upgrading an instance on `RavenDB` stays on 6.2 and does not convert. `RavenDBStorageUpgrade.ConvertsDatabase(instance, target)` answers the same question for a move to another persister, for example from `RavenDB` to `RavenDB7`.
 
 ## The mechanics
 
@@ -21,6 +37,8 @@ Every project that uses the artifacts needs a build-order `ProjectReference` to 
 
 - The `ServiceControlInstaller.Engine` project to create the above-mentioned required zip files
 - The `Particular.PlatformSample.ServiceControl` project to create the Platform sample required NuGet package
+
+The Platform sample package contains the `Persisters\RavenDB7` folder only, because the Platform sample always creates new databases. A consumer must configure the `RavenDB7` persistence type.
 
 ## Assembly version mismatches
 

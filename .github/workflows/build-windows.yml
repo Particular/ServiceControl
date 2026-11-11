@@ -102,7 +102,7 @@ jobs:
 
           $expectedAssetsCount = 2 # SCMU & PowerShell module
           $expectedNugetsCount = 1 # PlatformSample
-          $expectedZipCount = 5    # ServiceControl, Audit, & Monitoring + Transports & RavenDBServer
+          $expectedZipCount = 6    # ServiceControl, Audit, & Monitoring + Transports & RavenDBServer (6.2) & RavenDB7Server (7.2)
 
           if ($assetsCount -ne $expectedAssetsCount)
           {

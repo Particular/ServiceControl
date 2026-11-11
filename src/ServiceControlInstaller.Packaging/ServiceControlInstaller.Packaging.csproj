@@ -27,6 +27,7 @@
     <Monitoring>Particular.ServiceControl.Monitoring</Monitoring>
     <InstanceShared>InstanceShared</InstanceShared>
     <RavenDBServer>RavenDBServer</RavenDBServer>
+    <RavenDB7Server>RavenDB7Server</RavenDB7Server>
   </PropertyGroup>
 
   <UsingTask Condition="'$(ParticularPackagingTasksPath)' != ''" TaskName="Particular.Packaging.Tasks.GetDuplicateFiles" AssemblyFile="$(ParticularPackagingTasksPath)" />
@@ -39,7 +40,8 @@
   </Target>
 
   <Target Name="PrepareCreateZipFiles" DependsOnTargets="GetDuplicateInstanceFiles">
-    <Error Condition="!Exists('$(ArtifactsPath)$(RavenDBServer)')" Text="The 'download-ravendb-server.ps1' PowerShell script needs to be run before building when running a CI or WindowsSelfContained build." />
+    <Error Condition="!Exists('$(ArtifactsPath)$(RavenDBServer)')" Text="The RavenDB 6.2 server folder '$(ArtifactsPath)$(RavenDBServer)' does not exist. The 'download-ravendb-server.ps1' PowerShell script needs to be run before building when running a CI or WindowsSelfContained build." />
+    <Error Condition="!Exists('$(ArtifactsPath)$(RavenDB7Server)')" Text="The RavenDB 7.2 server folder '$(ArtifactsPath)$(RavenDB7Server)' does not exist. The 'download-ravendb-server.ps1' PowerShell script needs to be run before building when running a CI or WindowsSelfContained build." />
     <ItemGroup>
       <PrimaryFilesToZip Include="$(ArtifactsPath)$(Primary)\**\*" />
       <AuditFilesToZip Include="$(ArtifactsPath)$(Audit)\**\*" />
@@ -51,6 +53,12 @@
                                       $(ArtifactsPath)$(RavenDBServer)\onnxruntime_providers_shared.dll;$(ArtifactsPath)$(RavenDBServer)\onnxruntime_providers_shared.lib;
                                       $(ArtifactsPath)$(RavenDBServer)\onnxruntime-genai.dll;$(ArtifactsPath)$(RavenDBServer)\onnxruntime-genai.lib;
                                       $(ArtifactsPath)$(RavenDBServer)\LocalEmbeddings\**" />
+      <RavenDB7ServerFilesToZip Include="$(ArtifactsPath)$(RavenDB7Server)\**\*"
+                             Exclude="$(ArtifactsPath)$(RavenDB7Server)\libcurl.dll;$(ArtifactsPath)$(RavenDB7Server)\librdkafka.dll;$(ArtifactsPath)$(RavenDB7Server)\librdkafkacpp.dll;
+                                      $(ArtifactsPath)$(RavenDB7Server)\onnxruntime.dll;$(ArtifactsPath)$(RavenDB7Server)\onnxruntime.lib;
+                                      $(ArtifactsPath)$(RavenDB7Server)\onnxruntime_providers_shared.dll;$(ArtifactsPath)$(RavenDB7Server)\onnxruntime_providers_shared.lib;
+                                      $(ArtifactsPath)$(RavenDB7Server)\onnxruntime-genai.dll;$(ArtifactsPath)$(RavenDB7Server)\onnxruntime-genai.lib;
+                                      $(ArtifactsPath)$(RavenDB7Server)\LocalEmbeddings\**" />
     </ItemGroup>
   </Target>
 
@@ -77,6 +85,11 @@
   <Target Name="CreateRavenDBServerZipFile" AfterTargets="CopyArtifacts" DependsOnTargets="PrepareCreateZipFiles" Inputs="@(RavenDBServerFilesToZip)" Outputs="$(ZipFolder)$(RavenDBServer).zip">
     <MakeDir Directories="$(ZipFolder)" />
     <ZipFiles BasePath="$(ArtifactsPath)$(RavenDBServer)" Files="@(RavenDBServerFilesToZip)" DestinationFile="$(ZipFolder)$(RavenDBServer).zip" />
+  </Target>
+
+  <Target Name="CreateRavenDB7ServerZipFile" AfterTargets="CopyArtifacts" DependsOnTargets="PrepareCreateZipFiles" Inputs="@(RavenDB7ServerFilesToZip)" Outputs="$(ZipFolder)$(RavenDB7Server).zip">
+    <MakeDir Directories="$(ZipFolder)" />
+    <ZipFiles BasePath="$(ArtifactsPath)$(RavenDB7Server)" Files="@(RavenDB7ServerFilesToZip)" DestinationFile="$(ZipFolder)$(RavenDB7Server).zip" />
   </Target>
 
 </Project>
