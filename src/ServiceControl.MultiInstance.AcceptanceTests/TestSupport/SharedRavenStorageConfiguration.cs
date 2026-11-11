@@ -58,10 +58,14 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 return;
             }
             using var _ = await UseDatabaseLifecycleLock(cancellationToken);
+            var autoIndexes = await databaseInstance.FindAutoIndexes(databaseNames, cancellationToken);
+
             foreach (var databaseName in databaseNames)
             {
                 await databaseInstance.DeleteDatabase(databaseName, cancellationToken);
             }
+
+            AutoIndexes.AssertNone(autoIndexes);
         }
 
         public async Task<IDisposable> UseDatabaseLifecycleLock(CancellationToken cancellationToken = default)

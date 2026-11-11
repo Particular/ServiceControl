@@ -36,8 +36,12 @@ public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfigur
             return;
         }
         using var _ = await UseDatabaseLifecycleLock(cancellationToken);
+        var autoIndexes = await databaseInstance.FindAutoIndexes([databaseName, $"{databaseName}-throughput"], cancellationToken);
+
         await databaseInstance.DeleteDatabase(databaseName, cancellationToken);
         await databaseInstance.DeleteDatabase($"{databaseName}-throughput", cancellationToken);
+
+        AutoIndexes.AssertNone(autoIndexes);
     }
 
     /// <summary>

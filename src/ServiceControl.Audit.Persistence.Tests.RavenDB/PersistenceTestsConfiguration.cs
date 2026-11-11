@@ -12,6 +12,7 @@
     using Raven.Client.ServerWide.Operations;
     using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Persistence.RavenDB;
+    using TestHelper;
     using UnitOfWork;
 
     class PersistenceTestsConfiguration : IPersistenceTestsConfiguration
@@ -101,14 +102,20 @@
 
         public async Task Cleanup()
         {
+            string[] autoIndexes = [];
+
             if (DocumentStore != null)
             {
+                autoIndexes = await DocumentStore.FindAutoIndexes(databaseName);
+
                 await DocumentStore.Maintenance.Server.SendAsync(new DeleteDatabasesOperation(
                     new DeleteDatabasesOperation.Parameters { DatabaseNames = [databaseName], HardDelete = true }));
             }
 
             await host.StopAsync();
             host.Dispose();
+
+            AutoIndexes.AssertNone(autoIndexes);
         }
 
 

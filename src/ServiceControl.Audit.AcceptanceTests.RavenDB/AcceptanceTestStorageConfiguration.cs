@@ -38,7 +38,11 @@
                 return;
             }
             using var _ = await UseDatabaseLifecycleLock(cancellationToken);
+            var autoIndexes = await databaseInstance.FindAutoIndexes([databaseName], cancellationToken);
+
             await databaseInstance.DeleteDatabase(databaseName, cancellationToken);
+
+            AutoIndexes.AssertNone(autoIndexes);
         }
 
         /// <summary>

@@ -2,7 +2,6 @@ namespace ServiceControl.Persistence.Tests;
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +10,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
 using Raven.Client.Documents;
-using Raven.Client.Documents.Operations.Indexes;
 using Raven.Client.Documents.Session;
 using ServiceControl.Contracts.Operations;
 using ServiceControl.MessageFailures;
@@ -67,18 +65,14 @@ public class PersistenceTestsContext : IPersistenceTestsContext
             return;
         }
 
-        // A dynamic query makes RavenDB create an auto index, which has no per-index search engine setting, so the search
-        // engine custom check keeps reporting it after all static indexes use Lucene. Query through a static index instead.
         var autoIndexes = DocumentStore == null
             ? []
-            : (await DocumentStore.Maintenance.SendAsync(new GetIndexNamesOperation(0, int.MaxValue)))
-                .Where(name => name.StartsWith("Auto/", StringComparison.OrdinalIgnoreCase))
-                .ToArray();
+            : await DocumentStore.FindAutoIndexes(databaseName);
 
         await embeddedServer.DeleteDatabase(databaseName);
         await embeddedServer.DeleteDatabase(((RavenPersisterSettings)PersistenceSettings).ThroughputDatabaseName);
 
-        Assert.That(autoIndexes, Is.Empty, "A query in the error database created an auto index");
+        AutoIndexes.AssertNone(autoIndexes);
     }
 
     public PersistenceSettings PersistenceSettings { get; private set; }
