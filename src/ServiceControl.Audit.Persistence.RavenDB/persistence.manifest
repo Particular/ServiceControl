@@ -1,6 +1,6 @@
 ﻿{
-  "Name": "RavenDB",
-  "DisplayName": "RavenDB",
+  "Name": "RavenDB7",
+  "DisplayName": "RavenDB 7",
   "Description": "RavenDB ServiceControl Audit persister",
   "AssemblyName": "ServiceControl.Audit.Persistence.RavenDB",
   "TypeName": "ServiceControl.Audit.Persistence.RavenDB.RavenPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDB",
@@ -20,8 +20,5 @@
   ],
   "SettingsWithPathsToCleanup": [
     "ServiceControl.Audit/DBPath"
-  ],
-  "Aliases": [
-    "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb5"
   ]
 }

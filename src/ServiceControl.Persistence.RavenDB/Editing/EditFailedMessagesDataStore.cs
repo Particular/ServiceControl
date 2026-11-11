@@ -2,10 +2,10 @@ namespace ServiceControl.Persistence.RavenDB.Editing
 {
     using System.Threading;
     using System.Threading.Tasks;
-    using Raven.Client.Documents.Session;
     using Raven.Client.Exceptions;
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.Recoverability.Editing;
+    using ServiceControl.RavenDB;
 
     class EditFailedMessagesDataStore(IRavenSessionProvider sessionProvider, ExpirationManager expirationManager) : IEditFailedMessagesDataStore
     {
@@ -19,7 +19,7 @@ namespace ServiceControl.Persistence.RavenDB.Editing
         public async Task<BeginEditResult> TryBeginEdit(string failedMessageId, string editingMessageId, CancellationToken cancellationToken = default)
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
-            session.Advanced.OptimisticConcurrencyMode = OptimisticConcurrencyMode.Writes;
+            session.Advanced.UseOptimisticConcurrencyForWrites();
 
             var failedMessage = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId), cancellationToken);
             if (failedMessage is null)

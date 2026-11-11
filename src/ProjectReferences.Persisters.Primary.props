@@ -4,6 +4,7 @@
     <ProjectReference Include="..\ServiceControl.Persistence.EFCore.PostgreSql\ServiceControl.Persistence.EFCore.PostgreSql.csproj" ReferenceOutputAssembly="false" Private="false" />
     <ProjectReference Include="..\ServiceControl.Persistence.EFCore.SqlServer\ServiceControl.Persistence.EFCore.SqlServer.csproj" ReferenceOutputAssembly="false" Private="false" />
     <ProjectReference Include="..\ServiceControl.Persistence.RavenDB\ServiceControl.Persistence.RavenDB.csproj" ReferenceOutputAssembly="false" Private="false" />
+    <ProjectReference Include="..\ServiceControl.Persistence.RavenDB6\ServiceControl.Persistence.RavenDB6.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
 </Project>

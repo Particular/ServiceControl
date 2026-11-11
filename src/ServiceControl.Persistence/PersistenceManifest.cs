@@ -27,12 +27,11 @@
 
         public string[] Aliases { get; set; } = [];
 
-        internal bool IsMatch(string persistenceType) =>
+        internal bool IsNameMatch(string persistenceType) =>
             string.Equals(Name, persistenceType, StringComparison.OrdinalIgnoreCase)
-            || Aliases.Contains(persistenceType, StringComparer.Ordinal)
-            || IsTypeMatch(persistenceType);
+            || Aliases.Contains(persistenceType, StringComparer.OrdinalIgnoreCase);
 
-        bool IsTypeMatch(string persistenceType)
+        internal bool IsTypeMatch(string persistenceType)
         {
             if (string.Equals(TypeName, persistenceType, StringComparison.Ordinal)) // Type names are case-sensitive
             {
@@ -122,10 +121,13 @@
                 throw new Exception("No persistenceType has been configured. Either provide a Type or Name in the PersistenceType setting.");
             }
 
-            var persistenceManifest = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
-
-            return persistenceManifest;
+            return Find(PersistenceManifests, persistenceType);
         }
+
+        // Manifests can share a TypeName, so a type name only decides when no name or alias matched
+        internal static PersistenceManifest? Find(IEnumerable<PersistenceManifest> manifests, string persistenceType) =>
+            manifests.FirstOrDefault(m => m.IsNameMatch(persistenceType))
+            ?? manifests.FirstOrDefault(m => m.IsTypeMatch(persistenceType));
 
         static readonly ILogger logger = LoggerUtil.CreateStaticLogger(typeof(PersistenceManifestLibrary));
     }

@@ -36,6 +36,6 @@ class RavenPersisterSettings : PersistenceSettings, IRavenClientCertificateInfo
     public const string DatabaseNameDefault = "primary";
     public const int DatabaseMaintenancePortDefault = 33334;
     public const int ExpirationProcessTimerInSecondsDefault = 600;
-    public const string LogsMinLevelDefault = "Warn";
+    public const string LogsMinLevelDefault = RavenServerLogLevel.Default;
     public const int ExternalIntegrationsDispatchingBatchSizeDefault = 100;
 }

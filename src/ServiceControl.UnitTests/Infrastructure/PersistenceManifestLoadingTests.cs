@@ -85,3 +85,78 @@ public class PersistenceManifestLoadingTests
         }
     }
 }
+
+[TestFixture]
+public class PersistenceManifestFindTests
+{
+    const string RavenDBTypeName = "ServiceControl.Persistence.RavenDB.RavenPersistenceConfiguration, ServiceControl.Persistence.RavenDB";
+
+    static readonly PersistenceManifest RavenDB6 = new()
+    {
+        Name = "RavenDB",
+        DisplayName = "RavenDB 6",
+        Description = "RavenDB 6 ServiceControl persister",
+        TypeName = RavenDBTypeName,
+        Aliases = ["RavenDB6", RavenDBTypeName]
+    };
+
+    static readonly PersistenceManifest RavenDB7 = new()
+    {
+        Name = "RavenDB7",
+        DisplayName = "RavenDB 7",
+        Description = "RavenDB 7 ServiceControl persister",
+        TypeName = RavenDBTypeName
+    };
+
+    static IEnumerable<TestCaseData> ManifestOrders()
+    {
+        yield return new TestCaseData((object)new[] { RavenDB6, RavenDB7 }).SetName("Legacy_first");
+        yield return new TestCaseData((object)new[] { RavenDB7, RavenDB6 }).SetName("Modern_first");
+    }
+
+    [TestCaseSource(nameof(ManifestOrders))]
+    public void Name_alias_and_type_name_of_the_legacy_persister_find_the_legacy_manifest(PersistenceManifest[] manifests)
+    {
+        foreach (var persistenceType in new[] { "RavenDB", "ravendb", "RavenDB6", "ravendb6", RavenDBTypeName })
+        {
+            Assert.That(PersistenceManifestLibrary.Find(manifests, persistenceType), Is.SameAs(RavenDB6), persistenceType);
+        }
+    }
+
+    [TestCaseSource(nameof(ManifestOrders))]
+    public void Only_the_RavenDB7_name_finds_the_modern_manifest(PersistenceManifest[] manifests)
+    {
+        Assert.That(PersistenceManifestLibrary.Find(manifests, "RavenDB7"), Is.SameAs(RavenDB7));
+        Assert.That(PersistenceManifestLibrary.Find(manifests, "ravendb7"), Is.SameAs(RavenDB7));
+    }
+
+    [TestCaseSource(nameof(ManifestOrders))]
+    public void Unknown_persistence_type_finds_no_manifest(PersistenceManifest[] manifests) =>
+        Assert.That(PersistenceManifestLibrary.Find(manifests, "My.fake.persistence, fakePersistenceAssembly"), Is.Null);
+
+    [Test]
+    public void Type_name_finds_a_manifest_when_no_name_or_alias_matches()
+    {
+        var type = typeof(PersistenceManifestFindTests);
+        var manifest = new PersistenceManifest
+        {
+            Name = "Test",
+            DisplayName = "Test",
+            Description = "Test persister",
+            TypeName = $"{type.FullName}, {type.Assembly.GetName().Name}"
+        };
+
+        Assert.That(PersistenceManifestLibrary.Find([RavenDB6, manifest], type.AssemblyQualifiedName!), Is.SameAs(manifest));
+    }
+
+    [Test]
+    public void Shipped_manifests_resolve_the_same_way()
+    {
+        var manifests = PersistenceManifestLibrary.LoadManifests(DevelopmentPersistenceLocations.ManifestFiles);
+
+        Assert.That(PersistenceManifestLibrary.Find(manifests, "RavenDB")?.DisplayName, Is.EqualTo("RavenDB 6"));
+        Assert.That(PersistenceManifestLibrary.Find(manifests, "RavenDB6")?.DisplayName, Is.EqualTo("RavenDB 6"));
+        Assert.That(PersistenceManifestLibrary.Find(manifests, RavenDBTypeName)?.DisplayName, Is.EqualTo("RavenDB 6"));
+        Assert.That(PersistenceManifestLibrary.Find(manifests, "RavenDB7")?.DisplayName, Is.EqualTo("RavenDB 7"));
+    }
+}

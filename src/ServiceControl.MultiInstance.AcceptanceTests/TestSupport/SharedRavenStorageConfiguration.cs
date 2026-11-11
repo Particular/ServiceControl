@@ -17,7 +17,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     // RavenDB runs one embedded server per process, so the primary and the audit instance keep their databases on the same one
     class SharedRavenStorageConfiguration : PrimaryStorageConfiguration, AuditStorageConfiguration
     {
-        // Both persisters ship a manifest named RavenDB, and only one of them survives the copy into this project's output folder
+        // Both persisters ship a manifest named RavenDB7, and only one of them survives the copy into this project's output folder
         string PrimaryStorageConfiguration.PersistenceType => TypeNameOf(typeof(RavenPersistenceConfiguration));
 
         string AuditStorageConfiguration.PersistenceType => TypeNameOf(typeof(AuditRavenPersistenceConfiguration));

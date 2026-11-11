@@ -22,6 +22,7 @@
     <Project Path="ServiceControl.Audit.Persistence.EFCore.SqlServer/ServiceControl.Audit.Persistence.EFCore.SqlServer.csproj" />
     <Project Path="ServiceControl.Audit.Persistence.EFCore/ServiceControl.Audit.Persistence.EFCore.csproj" />
     <Project Path="ServiceControl.Audit.Persistence.RavenDB/ServiceControl.Audit.Persistence.RavenDB.csproj" />
+    <Project Path="ServiceControl.Audit.Persistence.RavenDB6/ServiceControl.Audit.Persistence.RavenDB6.csproj" />
     <Project Path="ServiceControl.Audit.Persistence.SagaAudit/ServiceControl.Audit.Persistence.SagaAudit.csproj" />
     <Project Path="ServiceControl.Audit.Persistence/ServiceControl.Audit.Persistence.csproj" />
   </Folder>
@@ -49,6 +50,7 @@
     <Project Path="ServiceControl.Persistence.EFCore.PostgreSql/ServiceControl.Persistence.EFCore.PostgreSql.csproj" />
     <Project Path="ServiceControl.Persistence.EFCore.SqlServer/ServiceControl.Persistence.EFCore.SqlServer.csproj" />
     <Project Path="ServiceControl.Persistence.RavenDB/ServiceControl.Persistence.RavenDB.csproj" />
+    <Project Path="ServiceControl.Persistence.RavenDB6/ServiceControl.Persistence.RavenDB6.csproj" />
     <Project Path="ServiceControl.Persistence/ServiceControl.Persistence.csproj" />
   </Folder>
   <Folder Name="/Instances/Primary/Testing/">
@@ -70,6 +72,7 @@
     <Project Path="ServiceControl.Infrastructure/ServiceControl.Infrastructure.csproj" />
     <Project Path="ServiceControl.LicenseManagement/ServiceControl.LicenseManagement.csproj" />
     <Project Path="ServiceControl.RavenDB/ServiceControl.RavenDB.csproj" />
+    <Project Path="ServiceControl.RavenDB6/ServiceControl.RavenDB6.csproj" />
     <Project Path="ServiceControl.SagaAudit/ServiceControl.SagaAudit.csproj" />
   </Folder>
   <Folder Name="/Instances/Shared/Testing/">

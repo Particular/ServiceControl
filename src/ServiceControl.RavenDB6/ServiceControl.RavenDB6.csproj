@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\RavenDB6.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>ServiceControl.RavenDB</AssemblyName>
+    <RootNamespace>ServiceControl.RavenDB</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ByteSize" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+    <PackageReference Include="NServiceBus" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.RavenDB\**\*.cs" Exclude="..\ServiceControl.RavenDB\bin\**;..\ServiceControl.RavenDB\obj\**" LinkBase="." />
+    <None Include="..\ServiceControl.RavenDB\RavenLicense.json" Link="RavenLicense.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

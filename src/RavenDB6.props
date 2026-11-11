@@ -1,0 +1,11 @@
+<Project>
+
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);RAVENDB6</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="RavenDB.Embedded" VersionOverride="$(RavenDB6Version)" />
+  </ItemGroup>
+
+</Project>
