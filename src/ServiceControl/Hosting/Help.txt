@@ -23,6 +23,17 @@ This mode runs no setup, so combining it with --setup or --setup-and-run is refu
 Message bodies must be stored somewhere every host can read, so this mode should not be combined with
 file system body storage unless the path is a shared mount.
 
+MIGRATION
+
+   ServiceControl.exe --migrate
+
+Copies required data from RavenDB into the configured SQL Server or PostgreSQL database.
+Stop ServiceControl and all ingestion workers first. The command never starts the service.
+After a successful offline copy, start ServiceControl to copy optional data in the background.
+Run --migrate again after an interruption to resume from saved progress. No migration enable
+setting is needed: the target database records the migration state.
+This build still blocks copying until the complete migration is released.
+
 SERVICE INSTALL AND UNINSTALL AND CONFIGURATION OPTIONS
 
 As of Service Control 1.7 the command line  uninstall and install switches have been removed.

@@ -10,7 +10,7 @@ This page describes the migration as designed, not what is built today. [The ins
 ### What this is
 
 - The migration moves an **error instance's** data from RavenDB to SQL Server or PostgreSQL, so a customer can switch persisters and keep their data.
-- It runs inside ServiceControl itself. There is no separate tool.
+- The ServiceControl executable provides an interactive offline command and an online background copier. There is no separate tool.
 - **The audit instance is out of scope.** There is no migration path for the audit instance.
 - **The monitoring instance is out of scope.** It keeps its data in memory, so there is nothing to move.
 
@@ -25,9 +25,10 @@ This page describes the migration as designed, not what is built today. [The ins
 
 ```mermaid
 flowchart LR
-    A["Checks"] --> B["Copy required data<br/>ServiceControl closed"]
-    B --> V["Required all Done<br/>or Abandoned"] --> C["ServiceControl opens<br/>optional data copies<br/>in the background"]
-    C --> D["Everything Done or<br/>Abandoned: turn<br/>migration off"]
+    A["--migrate: checks"] --> B["Copy required data<br/>ServiceControl stopped"]
+    B --> V["Required all Done<br/>or Abandoned"] --> P["Command exits:<br/>start ServiceControl"]
+    P --> C["ServiceControl detects checkpoints<br/>optional data copies<br/>in the background"]
+    C --> D["Everything Done or<br/>Abandoned: no further copying"]
 ```
 
 ### When something goes wrong, you decide what happens next
@@ -37,7 +38,7 @@ The end goal is simple: **either all the data comes across, or you explicitly gi
 - **Each *category* of data is in one of four states:** Copying, Done, Failed or Abandoned.
 - **A category goes Failed when something went wrong**, for example a row it could not copy. It stays Failed, and the status says why.
 - **You act with one of two commands**, with ServiceControl stopped:
-  - `--migration-retry <category>`, after fixing the cause: the next start copies the category again from the beginning.
+  - `--migration-retry <category>`, after fixing the cause: rerun `--migrate` for a required category, or restart ServiceControl for an optional category.
   - `--migration-abandon <category>`: give up on what it has not copied, and keep what it has.
 - **A restart never decides anything for you.** A Failed category stays Failed until you run a command, so a restart policy cannot loop or lose data.
 - **ServiceControl opens once every required category is Done or Abandoned**, and the migration is finished once every category is.
@@ -98,8 +99,8 @@ flowchart LR
 
 [The instructions](ravendb-to-sql-migration-instructions.md) define the migration steps.
 
-- **The [free abort](#going-back-to-ravendb) window runs from the first start with migration on until ServiceControl opens.** Until then, you can go back to RavenDB and lose only the copy.
-- **While required data is still copying, none of ServiceControl's own clean-up runs**: the retention sweep, the purge API, the heartbeat settings sync and throughput collection. The required copy runs before any of them starts, so they start only once it finishes. Optional categories never hold them back.
+- **The [free abort](#going-back-to-ravendb) window runs from the first `--migrate` invocation until ServiceControl opens.** A successful command does not end this window; starting ServiceControl does.
+- **While required data is still copying, none of ServiceControl's own clean-up runs**: the retention sweep, the purge API, the heartbeat settings sync and throughput collection. The offline command builds a persistence-only host and never starts it. Normal startup refuses unfinished required checkpoints before any hosted service starts. Optional categories never hold them back.
 
 ## Design
 
@@ -249,7 +250,7 @@ A value SQL can hold only after changing it is not a skip. Those rows are copied
 
 In this order, cheapest first:
 
-1. Source and target are the supported pair, RavenDB to SQL. Answered from settings alone. A RavenDB instance with migration on is refused here, because RavenDB is only ever the source.
+1. Source and target are the supported pair, RavenDB to SQL. Answered from settings alone. `--migrate` refuses a RavenDB target, because RavenDB is only ever the source.
 2. The optional category windows are valid time spans of zero or more.
 3. `ServiceControl/RetryHistoryDepth` is above zero. At zero or less, the first completed retry after the migration deletes the whole copied retry history, and no row count would ever show it.
 4. The SQL schema is current. This also refuses a database upgraded without `--setup`.
@@ -262,18 +263,18 @@ In this order, cheapest first:
    - an external server is at least the RavenDB client's version;
    - both databases load, within 5 minutes each on an embedded source.
 
-   If every required category is already Done or Abandoned, a source that will not open does not stop the start. ServiceControl opens, and the optional categories wait for the source.
+   If every required category is already Done or Abandoned, the offline command can succeed without opening the source. Normal startup does not need the source; only the online copier opens it.
 
 Checks stop at the first one that refuses, and the refusal names it. Once open, the source can add checks of its own. The RavenDB source adds none.
 
 ```mermaid
 flowchart LR
-    A["Checks pass?"] -->|No| X["Host stays closed<br/>and says why"]
+    A["--migrate: checks pass?"] -->|No| X["Command fails<br/>ServiceControl stays stopped"]
     A -->|Yes| B["Copy every required<br/>category"]
     B --> C["All Done<br/>or Abandoned?"]
     C -->|No| X
-    C -->|Yes| D["ServiceControl opens"]
-    D --> E["Copy optional<br/>categories"]
+    C -->|Yes| D["Command succeeds:<br/>prompt operator to start ServiceControl"]
+    D --> E["Start ServiceControl:<br/>copy optional categories"]
 ```
 
 - **The host also stays closed** if a second instance is writing the same checkpoints.
@@ -307,7 +308,7 @@ flowchart LR
 
 - **Batch size comes from the database.** SQL Server divides its parameter budget by the column count, PostgreSQL uses a flat 50 rows.
 - **Background batches have a pause between them**, 100 ms by default, set by `ServiceControl/Migration/ThrottlePauseMilliseconds`. The first batch of each category is not paused.
-- **Raise the pause if the copy competes with production.** Turning migration off is not a remedy: the host refuses to start until every category is Done or Abandoned.
+- **Raise the pause if the copy competes with production.** To stop an optional category permanently, abandon it. There is no enable switch.
 - **The required copy is never paused**, because ServiceControl is closed and nothing competes with it.
 
 ### Progress and checkpoints
@@ -329,7 +330,7 @@ sequenceDiagram
 ```
 
 - **Progress never gets ahead of the data.** Rows and cursor commit together, so a restart never skips rows that were not written.
-- **A crash costs only the batch in flight.** The next start carries on from the committed cursor.
+- **A crash costs only the batch in flight.** Rerun `--migrate` for required data, or restart ServiceControl for optional data. The copier resumes from the committed cursor.
 - **A batch read twice is counted once.** Rows already in SQL come back as *already present*, never as copies or skips, so every category is safe to run twice. Unreadable bodies stay off the checkpoint until the write commits.
 - **Every skip has a reason, or the save is refused.** The per-reason counts must add up exactly to the skipped count, and the target's counts must match what it committed.
 - **The stored counts always describe the rows in SQL.** The target adds its own outcome and saves the result beside the rows, so nothing is saved later or separately.
@@ -351,7 +352,7 @@ A category is *Failed* when something went wrong. Everything already copied stay
 **What does not make it Failed:**
 
 - **Harmless skips.**
-- **A shutdown or a crash.** The category stays Copying and the next start carries on from the cursor.
+- **A shutdown or a crash.** The category stays Copying. The next `--migrate` invocation resumes required data; the next ServiceControl start resumes optional data.
 - **An exception or a stall in an optional category.** The error is written on the category, shown in status, and the next start carries on from the cursor. A RavenDB outage after opening is handled the same way. So a network blip never forces anything to be abandoned. If the error keeps coming back, retry or abandon the category.
 
 **What a Failed category costs:**
@@ -366,18 +367,19 @@ Some losses leave a category Done without any check noticing. They are listed un
 
 ### Retry and abandon
 
-Stop ServiceControl, run one of these, then start it again. In a container, run the command as a one-off `docker run --rm <image> <command>` against the same database, the same way as `--migration-source-report`.
+Stop ServiceControl before running either command. Rerun `--migrate` for unfinished required data before starting the service again. In a container, run the command as a one-off `docker run --rm <image> <command>` against the same database, the same way as `--migration-source-report`.
 
 | Command | Works on | What it does |
 | --- | --- | --- |
-| `--migration-retry <category>` | A Failed category, or an optional one still copying with an error | The next start copies it again from the beginning |
+| `--migration-retry <category>` | A Failed category, or an optional one still copying with an error | The next `--migrate` invocation copies a required category again; the next ServiceControl start copies an optional category again |
 | `--migration-abandon <category>` | A Failed or started required category, or any optional one | Gives up on what it has not copied, and on any category whose rows hang off it. What they copied stays in SQL. Final |
 
 **To retry:**
 
 1. Read the reason in the refusal, the log or `--migration-status`. It names the skipped rows by reason, or the error.
 2. Fix the cause. It is usually outside the migration: the body store unreachable, a certificate expired, the source or target down, or the disk full.
-3. Run `--migration-retry <category>`, then start ServiceControl.
+3. Run `--migration-retry <category>`.
+4. For a required category, run `--migrate` again before starting ServiceControl. For an optional category, start ServiceControl.
 
 **What a retry does:**
 
@@ -400,19 +402,19 @@ Stop ServiceControl, run one of these, then start it again. In a container, run 
 ### Ingestion workers
 
 - **An `--error-ingestion-only` worker never runs the copy.** On RavenDB it is refused, as before, because only SQL can scale out.
-- **On SQL it starts only when every required category is Done or Abandoned**, whether or not its own migration setting is on. Otherwise it refuses and names each required category still outstanding. Optional categories still copying do not hold it back.
-- **That check runs even on a worker someone forgot to flag**, because ingesting into a part-copied database would make going back a loss.
+- **On SQL it starts only when every required category is Done or Abandoned**, based on SQL checkpoints. Otherwise it refuses and names each required category still outstanding. Optional categories still copying do not hold it back.
+- **Every SQL writer runs that check**, because ingesting into a part-copied database would make going back a loss.
 - **`--import-failed-errors` on SQL runs the same check**, because it writes failed messages too.
-- **A worker or import that gets past the check marks the target as opened**, whether or not its own migration setting is on. Once it has written, going back to RavenDB would lose that data, so it ends the free abort just as the main host opening does.
+- **A worker or import that gets past the check marks the target as opened**, without an enable setting. Once it has written, going back to RavenDB would lose that data, so it ends the free abort just as the main host opening does.
 
 > [!IMPORTANT]
-> **Start workers only after the main host has opened.** Nothing stops one started at the same moment as the first migration start, see [Open decisions](#gaps-nothing-enforces).
+> **Stop workers before running `--migrate`, and restart them only after the main host has opened.** A worker cannot detect a migration before its first checkpoint exists, see [Open decisions](#gaps-nothing-enforces).
 
 ### Going back to RavenDB
 
 **While ServiceControl is closed**, only the copier has written to SQL and the migration has written nothing to RavenDB, which is still the source of truth. This is the *free abort*. RavenDB's own expiration still runs, though, unless you disabled it.
 
-- **To go back:** set `ServiceControl/Migration/Enabled=false`, point `ServiceControl/PersistenceType` back at RavenDB, and start. You lose the copy, not your data.
+- **To go back:** point `ServiceControl/PersistenceType` back at RavenDB, and start. You lose the copy, not your data.
 - **To try again later:** start from a new, empty SQL database (`--setup`).
 
 > [!IMPORTANT]
@@ -420,16 +422,15 @@ Stop ServiceControl, run one of these, then start it again. In a container, run 
 >
 > **Once ServiceControl opens**, new failed messages go to SQL and there is no way back. You can only finish the migration, or abandon what is left.
 
-**Turning migration off before every category is Done or Abandoned is refused**, not a quiet exit. That is what stops a migration ending by accident.
+**Persisted progress replaces the migration enable setting.**
 
-- **Every SQL start checks the checkpoint table, with migration on or off.** It costs nothing when nothing is outstanding, and a RavenDB instance never reaches it.
-- **With nothing outstanding, nothing changes.** A SQL instance starts exactly as before, without opening RavenDB.
-- **An optional category that never started and whose window is `0` is not outstanding.** It was turned off before it began.
-- **With anything outstanding, the host refuses.** It names each category with its state, counts and last error, and the ways out:
-  - turn migration back on to finish, after `--migration-retry` for any Failed category;
-  - `--migration-abandon` what you are giving up on;
-  - point back at RavenDB, which is free only if ServiceControl never opened on SQL (the refusal says which);
-  - start over against a new, empty SQL database.
+- **Every SQL start checks the checkpoint table.** A RavenDB instance has no checkpoint store and skips the check.
+- **An unfinished required category keeps the host closed.** Run `--migrate` again, after retrying or abandoning Failed categories. Startup never runs the required copy.
+- **Outstanding optional checkpoints activate the online copier.** They do not prevent ServiceControl from opening. Failed optional categories remain Failed until an operator acts.
+- **With no outstanding categories, ServiceControl does not open RavenDB.** Completed checkpoints remain as the migration record.
+- **Before starting the copy, the offline command seeds required and selected optional checkpoints.** The online phase does not depend on a setting that an operator must remember to retain.
+
+Before ServiceControl opens, the other exits remain pointing back at RavenDB or starting over against a new, empty SQL database.
 
 **Keep RavenDB until every category is Done or Abandoned.** Before ServiceControl has opened, nothing can start without it. After, ServiceControl still opens, and the optional categories wait for RavenDB to come back, or can be abandoned.
 
@@ -475,7 +476,6 @@ It says nothing about load on the source.
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| `ServiceControl/Migration/Enabled` | `false` | Turns the migration on |
 | `ServiceControl/Migration/EventLogWindow` | `ServiceControl/EventRetentionPeriod` | How far back the event log copy goes. `0` turns it off |
 | `ServiceControl/Migration/ArchivedAndResolvedFailedMessagesWindow` | `ServiceControl/ErrorRetentionPeriod` | How far back the archived and resolved copy goes. `0` turns it off |
 | `ServiceControl/Migration/ThrottlePauseMilliseconds` | `100` | Pause between background batches |
@@ -484,7 +484,7 @@ It says nothing about load on the source.
 
 - **The source needs no new settings.** It reads the instance's existing RavenDB settings.
 - **Settings are read fresh at every start**, except that an optional category's window is fixed once that category starts.
-- **Progress shows in the ServicePulse activity feed, the log and `--migration-status`.** The activity feed records when the background copy starts and finishes, when a category fails, and when the source cannot be reached. A start with migration still on after every category is Done or Abandoned logs a warning to turn it off. There is no migration custom check, because custom checks are being removed from ServiceControl.
+- **Progress shows in the ServicePulse activity feed, the log and `--migration-status`.** The activity feed records when the background copy starts and finishes, when a category fails, and when the source cannot be reached. Finished checkpoints deactivate copying automatically; no enable setting needs to be removed. There is no migration custom check, because custom checks are being removed from ServiceControl.
 - **Decisions are two commands, run with ServiceControl stopped:** `--migration-retry` and `--migration-abandon`. There is no HTTP API, pause, resume or abort, and no way to add a category to a running instance.
 - **Stopping a copy takes a restart.**
 
@@ -542,7 +542,7 @@ The dry run counts the subscription and endpoint settings merges before anything
 - **Checkpoint:** the row in SQL recording one category's progress, saved in the same transaction as the rows it describes.
 - **Cursor:** the position in RavenDB the copy has reached in a category.
 - **State:** one of Copying, Done, Failed or Abandoned.
-- **Copying:** not finished yet, including waiting to start, or stopped on an error that the next start will try again.
+- **Copying:** not finished yet, including waiting to start, or interrupted until the next offline command or online copier invocation.
 - **Done:** every row is in SQL, or was left out for a harmless reason, and the counts balance.
 - **Failed:** something went wrong. Stays Failed until you run `--migration-retry` or `--migration-abandon`.
 - **Abandoned:** you gave up on what a category had not copied, or on one it depends on. Final.

@@ -62,6 +62,15 @@ namespace Particular.ServiceControl.Hosting
                 }
             };
 
+            var migrationOptions = new OptionSet
+            {
+                {
+                    "migrate",
+                    "Copy required migration data with ServiceControl stopped",
+                    s => Command = typeof(MigrateCommand)
+                }
+            };
+
             var migrationSourceReportOptions = new OptionSet
             {
                 {
@@ -94,6 +103,17 @@ namespace Particular.ServiceControl.Hosting
 
                 if (Command == typeof(ImportFailedErrorsCommand))
                 {
+                    return;
+                }
+
+                migrationOptions.Parse(args);
+
+                if (Command == typeof(MigrateCommand))
+                {
+                    if (ErrorIngestionOnly)
+                    {
+                        throw new Exception("--migrate cannot run with --error-ingestion-only. Stop every instance before running the offline migration.");
+                    }
                     return;
                 }
 

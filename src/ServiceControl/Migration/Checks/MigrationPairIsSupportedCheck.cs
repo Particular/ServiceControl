@@ -23,7 +23,7 @@ class MigrationPairIsSupportedCheck(Settings settings) : IMigrationStartupCheck
         if (!PersistenceFactory.SqlPersistenceNames.Contains(targetName, StringComparer.OrdinalIgnoreCase))
         {
             throw new Exception(
-                $"Migrating from '{PersistenceFactory.MigrationSourcePersistenceType}' to '{settings.PersistenceType}' is not supported. The only supported migration is from RavenDB to SQL Server or PostgreSQL, so set {Settings.SettingsRootNamespace}/PersistenceType to {string.Join(" or ", PersistenceFactory.SqlPersistenceNames)} before setting {MigrationSettings.EnabledKey}.");
+                $"Migrating from '{PersistenceFactory.MigrationSourcePersistenceType}' to '{settings.PersistenceType}' is not supported. The only supported migration is from RavenDB to SQL Server or PostgreSQL, so set {Settings.SettingsRootNamespace}/PersistenceType to {string.Join(" or ", PersistenceFactory.SqlPersistenceNames)} before running --migrate.");
         }
 
         return Task.CompletedTask;

@@ -64,6 +64,7 @@
                     new FinishedCopyBeforeAnIngestionNodeOpens(
                         provider.GetRequiredService<IMigrationCheckpointStore>(),
                         "--import-failed-errors"));
+                hostBuilder.Services.AddHostedService(provider => new RecordHostOpenedOnTarget(provider));
             }
 
             return hostBuilder.Build();

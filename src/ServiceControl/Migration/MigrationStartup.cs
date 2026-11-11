@@ -24,13 +24,9 @@ static class MigrationStartup
         [.. sourceSupports.Intersect(targetSupports, StringComparer.Ordinal)];
 
     /// <summary>
-    /// Runs the startup checks, copies every required category this build can copy that is not already settled,
-    /// and then seeds the <see cref="IMigrationState"/> the host reads. Once every required category this build
-    /// copies is settled and no row under an unknown id is unfinished, a source that will not open is logged and
-    /// recorded on the optional categories' rows instead of refused, nothing is copied, and the host still opens. Throws when a check refuses or a category does not
-    /// finish, with a message telling the operator what to do and how to go back; the caller must let that stop
-    /// the host. Call it after the host is built and before it starts, because the copy has to finish before
-    /// anything else opens on the target.
+    /// Runs the checks and required copy without starting ServiceControl. A completed required copy can succeed
+    /// without its source; optional checkpoints retain the outage for the online phase.
+    /// Throws if a check refuses or a required category does not finish. The caller must not start the host.
     /// </summary>
     public static async Task RunRequiredCopy(IServiceProvider services, Settings settings, CancellationToken cancellationToken = default)
     {
@@ -60,11 +56,6 @@ static class MigrationStartup
             options,
             loggerFactory.CreateLogger<MigrationEngine>());
 
-        // Optional categories copy beside the running services, so only the required ones hold those services back.
-        var holdingBack = engine.SelectCategories(MigrationCategoryKind.Required)
-            .Select(category => category.Id)
-            .ToArray();
-
         var toCopy = engine.SelectCategories(MigrationCategoryKind.Required)
             .Where(category => copyable.Contains(category.Id))
             .ToArray();
@@ -93,11 +84,10 @@ static class MigrationStartup
             var cause = exception.InnerException ?? exception;
 
             logger.LogError(cause,
-                "The {SourcePersistenceType} migration source could not be opened, so ServiceControl opens without it: every required category this build copies is Done or Abandoned and no row under an id it does not know is unfinished, so only the background copy of the optional categories reads the source. The optional categories still copying stay as they are until a start that can open the source, and their checkpoints carry this error.",
+                "The {SourcePersistenceType} migration source could not be opened. Every required category this build copies is Done or Abandoned and no unknown required row is unfinished, so the offline command can complete. Outstanding optional checkpoints carry the error; start ServiceControl to continue the online migration.",
                 PersistenceFactory.MigrationSourcePersistenceType);
 
             await RecordSourceOutage(checkpointStore, engine.SelectCategories(MigrationCategoryKind.Optional), cause, cancellationToken);
-            await SeedMigrationState(services, holdingBack, cancellationToken);
             return;
         }
         catch (Exception exception)
@@ -108,8 +98,17 @@ static class MigrationStartup
         await MigrationStartupCheckRunner.Run(source.ContributedChecks(), cancellationToken);
 
         logger.LogInformation(
-            "Migration mode: copying {CopyCount} required categories before ServiceControl opens ({DeferredCount} not yet implemented: {Deferred})",
+            "Offline migration: copying {CopyCount} required categories with ServiceControl stopped ({DeferredCount} not yet implemented: {Deferred})",
             toCopy.Length, deferred.Length, string.Join(", ", deferred));
+
+        // Seed both phases before copying so startup can detect a copy interrupted between categories.
+        foreach (var category in toCopy.Concat(engine.SelectCategories(MigrationCategoryKind.Optional)))
+        {
+            if (await checkpointStore.Read(category.Id, cancellationToken) is null)
+            {
+                await checkpointStore.Upsert(new MigrationCheckpoint(category.Id, MigrationCategoryState.NotStarted, null, 0, 0, null, null, null, null, null, null), cancellationToken);
+            }
+        }
 
         // Captured before the copy so the report can tell a category this run finished from one an earlier run did.
         var runStartedAt = timeProvider.GetUtcNow().UtcDateTime;
@@ -121,16 +120,6 @@ static class MigrationStartup
         ReportWhatTheCopyLeftBehind(finished, logger, runStartedAt);
 
         RefuseIfAnyCategoryDidNotComplete(toCopy, finished, unfinishedOutsideTheCopy, settings);
-
-        await SeedMigrationState(services, holdingBack, cancellationToken);
-    }
-
-    static async Task SeedMigrationState(IServiceProvider services, IReadOnlyCollection<string> holdingBack, CancellationToken cancellationToken)
-    {
-        if (services.GetRequiredService<IMigrationState>() is CheckpointMigrationState state)
-        {
-            await state.Seed(holdingBack, cancellationToken);
-        }
     }
 
     /// <summary>
@@ -298,7 +287,7 @@ static class MigrationStartup
         catch (MigrationCheckpointConflictException exception)
         {
             throw new Exception(
-                $"The required copy stopped because another writer saved a migration checkpoint for this instance, which is a second ServiceControl pointed at the same {settings.PersistenceType} database. ServiceControl will not start. {exception.Message} Stop the other instance, then restart with {MigrationSettings.EnabledKey} still on; the copy resumes from its last committed batch. " +
+                $"The required copy stopped because another writer saved a migration checkpoint for this instance, which is a second ServiceControl pointed at the same {settings.PersistenceType} database. ServiceControl will not start. {exception.Message} Stop the other instance, then run --migrate again; the copy resumes from its last committed batch. " +
                 RollbackAdvice(settings), exception);
         }
     }
@@ -463,7 +452,7 @@ static class MigrationStartup
         $"Halted: {stalledCategoryId} committed nothing for {ClosedWindowProgress.StallLimit.TotalMinutes:0.#} minutes, so it was stopped. The limit is not configurable: check that the source and the target are both responding rather than looking for a setting to change.";
 
     static string RollbackAdvice(Settings settings) =>
-        $"Nothing has opened on {settings.PersistenceType} yet, so setting {MigrationSettings.EnabledKey}=false and pointing PersistenceType back at {PersistenceFactory.MigrationSourcePersistenceType} discards the partial copy and returns the instance to {PersistenceFactory.MigrationSourcePersistenceType} with no loss.";
+        $"Nothing has opened on {settings.PersistenceType} yet, so pointing PersistenceType back at {PersistenceFactory.MigrationSourcePersistenceType} discards the partial copy and returns the instance to {PersistenceFactory.MigrationSourcePersistenceType} with no loss.";
 
     static string NoWayOutWithoutTheSource(Settings settings) =>
         $"If the {PersistenceFactory.MigrationSourcePersistenceType} source is already gone, a required category that is Failed or has started copying can be given up with --migration-abandon <category>, with ServiceControl stopped. " +

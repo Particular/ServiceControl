@@ -82,7 +82,6 @@ abstract class MigrationAcceptanceTest
         SetSourceVariable("SERVICECONTROL_RAVENDB_DATABASENAME", Source.PrimaryDatabase);
         SetSourceVariable("LICENSINGCOMPONENT_RAVENDB_THROUGHPUTDATABASENAME", Source.ThroughputDatabase);
         SetSourceVariable("SERVICECONTROL_ERRORRETENTIONPERIOD", "10.00:00:00");
-        SetSourceVariable("SERVICECONTROL_MIGRATION_ENABLED", "true");
 #if DEBUG
         // Cleared because a developer who set it to smoke test the migration would let every test past the release check, which only the test host's own AllowUnreleasedMigration registration may do.
         SetSourceVariable(RunCommand.AllowUnreleasedMigrationVariable, null);
@@ -287,6 +286,13 @@ abstract class MigrationAcceptanceTest
             customize?.Invoke(builder);
         };
 
+    protected async Task MigrateThenRunHost(Action<WebApplicationBuilder> customize = null)
+    {
+        await StopHost();
+        await MigrateCommand.Run(Settings, AllowingAnUnreleasedMigration(customize));
+        await RunHostUntilTheApiAnswers(customize);
+    }
+
     protected async Task RunHostUntilTheApiAnswers(Action<WebApplicationBuilder> customize = null)
     {
         await StopHost();
@@ -320,9 +326,8 @@ abstract class MigrationAcceptanceTest
         public Task StopAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 
-    protected Settings SettingsWithMigrationEnabled(bool copyEventLog = false, Action<Settings> customize = null)
+    protected Settings MigrationSettings(bool copyEventLog = false, Action<Settings> customize = null)
     {
-        SetSourceVariable("SERVICECONTROL_MIGRATION_ENABLED", "true");
         SetSourceVariable("SERVICECONTROL_MIGRATION_EVENTLOGWINDOW", copyEventLog ? null : "0");
         SetSourceVariable("SERVICECONTROL_MIGRATION_ARCHIVEDANDRESOLVEDFAILEDMESSAGESWINDOW", "0");
         customize?.Invoke(Settings);
@@ -334,9 +339,9 @@ abstract class MigrationAcceptanceTest
         bool leaveOptionalIncomplete = false,
         CancellationToken cancellationToken = default)
     {
-        SettingsWithMigrationEnabled(copyEventLog: leaveOptionalIncomplete);
+        MigrationSettings(copyEventLog: leaveOptionalIncomplete);
 
-        await RunHostUntilTheApiAnswers(builder => customize?.Invoke(builder.Services));
+        await MigrateThenRunHost(builder => customize?.Invoke(builder.Services));
 
         var copyable = MigrationStartup.CopyableCategoryIds(await SourceSupportedCategoryIds(), Target.SupportedCategoryIds);
 
@@ -352,11 +357,12 @@ abstract class MigrationAcceptanceTest
 
         if (leaveOptionalIncomplete)
         {
-            // The guarded services read IMigrationState.AnyCategoryIncomplete, which any selected category that has not finished holds true. Halted is one of those states.
-            await targetCheckpointStore.Upsert(
-                new MigrationCheckpoint("EventLog", MigrationCategoryState.Halted, null, 0, 0, null, null, null, null, null,
-                    "Halted by the test fixture so the guarded services see an unfinished category."),
-                cancellationToken);
+            var eventLog = await targetCheckpointStore.Read(MigrationCategoryIds.EventLog, cancellationToken);
+            await targetCheckpointStore.Upsert(eventLog with
+            {
+                State = MigrationCategoryState.Halted,
+                LastError = "Halted by the test fixture."
+            }, cancellationToken);
         }
     }
 
@@ -474,7 +480,11 @@ abstract class MigrationAcceptanceTest
         await using var scope = targetServices.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>();
 
-        await dbContext.UpsertCheckpoint(new MigrationCheckpoint(categoryId, state, null, 0, 0, null, null, null, null, null, null));
+        var existing = await targetCheckpointStore.Read(categoryId);
+        await dbContext.UpsertCheckpoint(new MigrationCheckpoint(categoryId, state, null, 0, 0, null, null, null, null, null, null)
+        {
+            Version = existing?.Version ?? 0
+        });
     }
 
     protected async Task DeleteCheckpoint(string categoryId)

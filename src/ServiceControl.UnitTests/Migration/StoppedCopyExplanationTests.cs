@@ -262,7 +262,7 @@ class StoppedCopyExplanationTests
         {
             Assert.That(exception!.Message, Does.Contain("a second ServiceControl pointed at the same SQLServer database"),
                 "the store's own message names a version, which tells nobody what is actually wrong");
-            Assert.That(exception.Message, Does.Contain($"Stop the other instance, then restart with {MigrationSettings.EnabledKey} still on"),
+            Assert.That(exception.Message, Does.Contain("Stop the other instance, then run --migrate again"),
                 "this is the only refusal in the subsystem where doing nothing makes it worse");
             Assert.That(exception.Message, Does.Contain(conflict.Message).And.Contain("Nothing has opened on SQLServer yet"));
             Assert.That(exception.InnerException, Is.SameAs(conflict));
