@@ -5,10 +5,11 @@ namespace ServiceControl.Persistence.RavenDB
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using Raven.Client.Documents;
     using ServiceControl.RavenDB;
 
-    sealed class RavenExternalPersistenceLifecycle(RavenPersisterSettings settings) : IRavenPersistenceLifecycle, IRavenDocumentStoreProvider, IDisposable
+    sealed class RavenExternalPersistenceLifecycle(RavenPersisterSettings settings, ILogger<RavenExternalPersistenceLifecycle> logger) : IRavenPersistenceLifecycle, IRavenDocumentStoreProvider, IDisposable
     {
         public async ValueTask<IDocumentStore> GetDocumentStore(CancellationToken cancellationToken = default)
         {
@@ -47,7 +48,7 @@ namespace ServiceControl.Persistence.RavenDB
                 await StartupChecks.EnsureServerVersion(store, cancellationToken);
 
                 var databaseSetup = new DatabaseSetup(settings, store);
-                await databaseSetup.Execute(cancellationToken).ConfigureAwait(false);
+                await DatabaseLoadRetry.Execute(databaseSetup.Execute, logger, cancellationToken);
             }
             finally
             {

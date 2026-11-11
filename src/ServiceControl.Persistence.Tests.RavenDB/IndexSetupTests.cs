@@ -1,6 +1,7 @@
 namespace ServiceControl.Persistence.Tests.RavenDB
 {
     using System;
+    using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
     using NUnit.Framework;
@@ -86,11 +87,18 @@ namespace ServiceControl.Persistence.Tests.RavenDB
 
             while (true)
             {
-                var newStats = await DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(oldStats.Name), timeout.Token);
-
-                if (newStats.CreatedTimestamp > oldStats.CreatedTimestamp)
+                try
                 {
-                    return newStats;
+                    var newStats = await DocumentStore.Maintenance.SendAsync(new GetIndexStatisticsOperation(oldStats.Name), timeout.Token);
+
+                    if (newStats.CreatedTimestamp > oldStats.CreatedTimestamp)
+                    {
+                        return newStats;
+                    }
+                }
+                catch (InvalidDataException)
+                {
+                    // The index does not exist for a moment while it is replaced
                 }
 
                 await Task.Delay(100, timeout.Token);

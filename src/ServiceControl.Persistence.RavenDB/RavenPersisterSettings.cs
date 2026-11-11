@@ -29,13 +29,13 @@ class RavenPersisterSettings : PersistenceSettings, IRavenClientCertificateInfo
     public string ClientCertificatePassword { get; set; }
     public bool UseEmbeddedServer => string.IsNullOrWhiteSpace(ConnectionString);
     public string LogPath { get; set; }
-    public string LogsMode { get; set; } = LogsModeDefault;
+    public string LogsMinLevel { get; set; } = LogsMinLevelDefault;
     public string DatabaseName { get; set; } = DatabaseNameDefault;
     public string ThroughputDatabaseName { get; set; } = ThroughputSettings.DefaultDatabaseName;
 
     public const string DatabaseNameDefault = "primary";
     public const int DatabaseMaintenancePortDefault = 33334;
     public const int ExpirationProcessTimerInSecondsDefault = 600;
-    public const string LogsModeDefault = "Operations";
+    public const string LogsMinLevelDefault = "Warn";
     public const int ExternalIntegrationsDispatchingBatchSizeDefault = 100;
 }

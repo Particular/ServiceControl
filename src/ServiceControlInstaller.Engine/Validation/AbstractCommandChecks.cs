@@ -23,6 +23,7 @@
         protected abstract Task NotifyForIncompatibleStorageEngine(IServiceControlBaseInstance baseInstance, CancellationToken cancellationToken = default);
         protected abstract Task NotifyForIncompatibleUpgradeVersion(UpgradeInfo upgradeInfo, CancellationToken cancellationToken = default);
         protected abstract Task NotifyError(string title, string message, CancellationToken cancellationToken = default);
+        protected abstract Task<bool> PromptForRavenDBStorageUpgrade(RavenDBStorageUpgrade storageUpgrade, CancellationToken cancellationToken = default);
 
         public async Task<bool> CanAddInstance(bool allowExpiredLicense = false, CancellationToken cancellationToken = default)
         {
@@ -166,6 +167,15 @@
             if (!await RabbitMqCheckIsOK(instance.TransportPackage, instance.Version, isUpgrade: true, cancellationToken).ConfigureAwait(false))
             {
                 return false;
+            }
+
+            if (instance is ServiceControlBaseService serviceControlInstance && !forceUpgradeDb)
+            {
+                var storageUpgrade = await RavenDBStorageUpgrade.Detect(serviceControlInstance, cancellationToken).ConfigureAwait(false);
+                if (storageUpgrade != null && !await PromptForRavenDBStorageUpgrade(storageUpgrade, cancellationToken).ConfigureAwait(false))
+                {
+                    return false;
+                }
             }
 
             return true;

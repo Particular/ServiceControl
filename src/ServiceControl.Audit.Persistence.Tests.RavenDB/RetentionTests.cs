@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using Auditing;
@@ -90,6 +91,32 @@
 
             Task<QueryResult<SagaHistory>> QuerySagaHistory(CancellationToken cancellationToken) =>
                 SagaHistoryStore.QuerySagaHistoryById(sagaId, cancellationToken);
+        }
+
+        [Test]
+        public async Task MessageBodyRetention()
+        {
+            await WaitForIndexesToBeBuilt();
+
+            var message = MakeMessage("MyMessageId");
+
+            await using (var unitOfWork = await StartAuditUnitOfWork(1))
+            {
+                await unitOfWork.RecordProcessedMessage(message, Encoding.UTF8.GetBytes("The body"));
+                await unitOfWork.Complete();
+            }
+
+            Assert.That(await BodyExists(message.Id, TestContext.CurrentContext.CancellationToken), Is.True);
+
+            var bodyExistsAfterExpiration = await WaitUntil(token => BodyExists(message.Id, token), exists => !exists);
+
+            Assert.That(bodyExistsAfterExpiration, Is.False);
+
+            async Task<bool> BodyExists(string documentId, CancellationToken cancellationToken)
+            {
+                using var session = configuration.DocumentStore.OpenAsyncSession();
+                return await session.Advanced.Attachments.ExistsAsync(documentId, "body", cancellationToken);
+            }
         }
 
         // The retention window starts at ingestion, so building the indexes of the fresh database must

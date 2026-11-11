@@ -10,6 +10,7 @@
     using ServiceControlInstaller.Engine;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
+    using ServiceControlInstaller.Engine.Validation;
 
     class PowerShellCommandChecks : AbstractCommandChecks
     {
@@ -94,6 +95,13 @@
         protected override Task<bool> PromptToStopRunningInstance(BaseService instance, CancellationToken cancellationToken = default)
         {
             // PowerShell assumes you always want to stop the service if it's running
+            return Task.FromResult(true);
+        }
+
+        protected override Task<bool> PromptForRavenDBStorageUpgrade(RavenDBStorageUpgrade storageUpgrade, CancellationToken cancellationToken = default)
+        {
+            // A warning instead of a required acknowledgement keeps unattended upgrade scripts working.
+            cmdlet.WriteWarning(storageUpgrade.Describe());
             return Task.FromResult(true);
         }
 

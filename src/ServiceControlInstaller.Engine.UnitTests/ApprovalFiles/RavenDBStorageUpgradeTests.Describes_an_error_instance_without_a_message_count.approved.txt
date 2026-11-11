@@ -1,0 +1,7 @@
+Upgrading Particular.ServiceControl converts its RavenDB database to a new storage format. The conversion runs once, while the instance is set up, and the instance is unavailable until it finishes.
+
+Database size: 300 MB
+
+The duration depends on the number of stored messages and on disk latency. For a large database, it can take hours or days.
+
+Do not stop the instance setup while the conversion runs. Stopping it starts the conversion over.

@@ -10,13 +10,13 @@
             ConnectionString = connectionString;
         }
 
-        public ServerConfiguration(string dbPath, string serverUrl, string logPath, string logsMode)
+        public ServerConfiguration(string dbPath, string serverUrl, string logPath, string logsMinLevel)
         {
             UseEmbeddedServer = true;
             DbPath = dbPath;
             ServerUrl = serverUrl;
             LogPath = logPath;
-            LogsMode = logsMode;
+            LogsMinLevel = logsMinLevel;
         }
 
         public string ConnectionString { get; }
@@ -27,6 +27,6 @@
         public string DbPath { get; internal set; } //Setter for ATT only
         public string ServerUrl { get; }
         public string LogPath { get; }
-        public string LogsMode { get; set; }
+        public string LogsMinLevel { get; set; }
     }
 }
