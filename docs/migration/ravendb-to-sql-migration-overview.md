@@ -196,6 +196,7 @@ There are eighteen *categories*: sixteen required and two optional.
   - The copy keeps the first in RavenDB document-id order. That id is a hash of the name, so which one survives is effectively arbitrary.
   - The copy logs a warning naming both endpoints and the one it kept.
   - The dry run lists each pair by asking SQL Server how the column compares. For unusual characters its list can differ from what the copy does.
+- **A message type over 450 characters is cut to its last 450 characters**, as ingestion does. The row is copied, not skipped.
 - **Event log items, historic retry operations and pending integration events get new numbers.** Nothing refers to the old ones, so this is safe.
 
 The dry run counts both kinds of merge before anything moves.
@@ -207,22 +208,39 @@ Every skipped row is counted under a reason, and its id is written to the log.
 > [!IMPORTANT]
 > The log is the only record of each skipped row. Look them up in RavenDB while you still have it.
 
-- *Fault* skips mean something went wrong.
-- *Harmless* skips are rows SQL would have removed anyway.
+A skip is one of three kinds:
 
-| Reason | Kind | Can a retry fix it? |
-| --- | --- | --- |
-| A message body that cannot be read after three tries. The whole message is skipped, because a message with no body is worse than none | Fault | Yes, once the cause is fixed |
-| A message body that RavenDB does not hold at all, counted as `BodyMissing`. The whole message is skipped, for the same reason | Fault | No. A retry meets the same missing body, so only abandoning gets past it. The one exception is a message that expired during the copy (see below) |
-| An error from the SQL target | Fault | Yes, once the cause is fixed |
-| A `UniqueMessageId` that is not a GUID. It is the key, the ServicePulse URL and the retry key, so it is never regenerated | Fault | No |
-| A failed message with no processing attempts, so nothing to fill its required failure time, failing endpoint and exception from | Fault | No |
-| A subscription whose message type or address is over 200 characters, the SQL key limit | Fault | No |
-| A row missing a value SQL requires, such as a known endpoint with no name, or a failed message with no failing endpoint address to retry to | Fault | No |
-| A text value too long for its SQL column, such as a failed message id or failing endpoint address over 450 characters. The skip names the column and the length, counted the way the database counts (PostgreSQL by characters, SQL Server by UTF-16 units). A message type is not skipped: it is cut to its last 450 characters, as ingestion does | Fault | No |
-| A value of the wrong type, such as a `TimeSent` that is not a date. On PostgreSQL, also a text value holding the character U+0000, which PostgreSQL cannot store | Fault | No |
-| A blank group comment, which SQL never stores | Harmless | Not needed |
-| An archived or resolved message, or event log item, already past its retention period | Harmless | Not needed |
+- **Fault, a retry can fix it.** Something outside the data went wrong. Fix the cause and retry.
+- **Fault, no retry can fix it.** The RavenDB document itself cannot become a SQL row. A retry reads the same document and skips it again, so only [abandoning](#retry-and-abandon) gets past it. It is a fault because the row is lost, not because anything is broken.
+- **Harmless.** A row SQL would have removed anyway.
+
+A value SQL can hold only after changing it is not a skip. Those rows are copied, and are listed under [Data that changes shape](#data-that-changes-shape).
+
+**Fault skips a retry can fix:**
+
+| Reason |
+| --- |
+| A message body that cannot be read after three tries. The whole message is skipped, because a message with no body is worse than none |
+| An error from the SQL target |
+
+**Fault skips no retry can fix:**
+
+| Reason |
+| --- |
+| A message body that RavenDB does not hold at all, counted as `BodyMissing`. The whole message is skipped, for the same reason. The one exception is a message that expired during the copy (see below), which a retry does get past |
+| A `UniqueMessageId` that is not a GUID. It is the key, the ServicePulse URL and the retry key, so it is never regenerated |
+| A failed message with no processing attempts, so nothing to fill its required failure time, failing endpoint and exception from |
+| A subscription whose message type or address is over 200 characters, the SQL key limit |
+| A row missing a value SQL requires, such as a known endpoint with no name, or a failed message with no failing endpoint address to retry to |
+| A text value too long for its SQL column, such as a failed message id or failing endpoint address over 450 characters. Cutting it would change a key or send retries to the wrong address, so the row is skipped. The skip names the column and the length, counted the way the database counts (PostgreSQL by characters, SQL Server by UTF-16 units) |
+| A value of the wrong type, such as a `TimeSent` that is not a date. On PostgreSQL, also a text value holding the character U+0000, which PostgreSQL cannot store |
+
+**Harmless skips:**
+
+| Reason |
+| --- |
+| A blank group comment, which SQL never stores |
+| An archived or resolved message, or event log item, already past its retention period |
 
 - **Any fault skip makes the category [Failed](#failed-categories)**, even one. Harmless skips leave it Done.
 - **A malformed document is skipped and counted, not a reason to stop the copy on its own.** The rest of the category carries on, so abandoning a category that read to the end and ended Failed this way gives up only those rows. But if the skips pass the [early-stop threshold](#failed-categories), the category stops where it is, and abandoning it then also gives up every row it had not yet read. In that case raise the threshold or fix the cause, and retry.
