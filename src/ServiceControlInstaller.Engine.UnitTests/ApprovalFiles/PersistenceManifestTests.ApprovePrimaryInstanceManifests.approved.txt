@@ -1,6 +1,7 @@
 [
   "PostgreSQL: PostgreSQL",
-  "RavenDB: RavenDB",
+  "RavenDB: RavenDB 6",
   "RavenDB35: RavenDB 3.5 (Legacy)",
+  "RavenDB7: RavenDB 7",
   "SQLServer: SQL Server"
 ]

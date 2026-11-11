@@ -23,9 +23,13 @@ namespace ServiceControlInstaller.Engine.Validation
 
         public TimeSpan? EstimatedDuration => StoredMessages is { } count ? TimeSpan.FromSeconds(count / BaselineMessagesPerSecond) : null;
 
-        public static async Task<RavenDBStorageUpgrade> Detect(ServiceControlBaseService instance, CancellationToken cancellationToken = default)
+        public static Task<RavenDBStorageUpgrade> Detect(ServiceControlBaseService instance, CancellationToken cancellationToken = default) =>
+            Detect(instance, CurrentPersistence(instance), cancellationToken);
+
+        // The target is the persister the instance runs after the operation. An upgrade keeps the current one.
+        public static async Task<RavenDBStorageUpgrade> Detect(ServiceControlBaseService instance, PersistenceManifest target, CancellationToken cancellationToken = default)
         {
-            if (!ConvertsDatabase(instance))
+            if (!ConvertsDatabase(instance, target))
             {
                 return null;
             }
@@ -43,11 +47,20 @@ namespace ServiceControlInstaller.Engine.Validation
             };
         }
 
-        // Every instance ships the RavenDB server, so the server files alone do not show that the instance stores its data in it.
-        public static bool ConvertsDatabase(ServiceControlBaseService instance) =>
-            instance is IPersistenceConfig { PersistenceManifest.Name: StorageEngineNames.RavenDB }
-            && !UsesExternalRavenDB(instance)
-            && RavenDBStorageSchema.RequiresDataUpgrade(instance.InstallPath);
+        public static bool ConvertsDatabase(ServiceControlBaseService instance) => ConvertsDatabase(instance, CurrentPersistence(instance));
+
+        public static bool ConvertsDatabase(ServiceControlBaseService instance, PersistenceManifest target) =>
+            CurrentPersistence(instance) is { } current
+            && ConvertsDatabase(current, target, instance.InstallPath, UsesExternalRavenDB(instance));
+
+        // Every instance ships a RavenDB server, so the server files alone do not show that the instance stores its data in it.
+        internal static bool ConvertsDatabase(PersistenceManifest current, PersistenceManifest target, string installPath, bool usesExternalRavenDB) =>
+            RavenDBServerPackage.IsRavenDBPersister(current)
+            && RavenDBServerPackage.IsRavenDBPersister(target)
+            && !usesExternalRavenDB
+            && RavenDBStorageSchema.RequiresDataUpgrade(installPath, current, target);
+
+        static PersistenceManifest CurrentPersistence(ServiceControlBaseService instance) => (instance as IPersistenceConfig)?.PersistenceManifest;
 
         static bool UsesExternalRavenDB(ServiceControlBaseService instance) =>
             UsesExternalRavenDB(

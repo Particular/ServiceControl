@@ -12,7 +12,7 @@
     {
         public static ServiceControlAuditNewInstance CreateWithDefaultPersistence()
         {
-            const string persisterToUseForBrandNewInstances = StorageEngineNames.RavenDB;
+            const string persisterToUseForBrandNewInstances = StorageEngineNames.RavenDB7;
             return CreateWithPersistence(persisterToUseForBrandNewInstances);
         }
 
@@ -31,7 +31,7 @@
 
         public string ServiceControlQueueAddress { get; set; }
 
-        public PersistenceManifest PersistenceManifest { get; }
+        public override PersistenceManifest PersistenceManifest { get; }
 
         public override void WriteConfigurationFile()
         {

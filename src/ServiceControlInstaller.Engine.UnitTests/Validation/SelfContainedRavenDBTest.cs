@@ -7,12 +7,13 @@
     [TestFixture]
     class SelfContainedRavenDBTest
     {
-        [Test]
-        public void CheckForSelfContainedRavenDB()
+        [TestCase("RavenDBServer")]
+        [TestCase("RavenDB7Server")]
+        public void CheckForSelfContainedRavenDB(string serverFolder)
         {
             bool isCI = Environment.GetEnvironmentVariable("CI") == "true";
 
-            var ravenServerPath = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "..", "..", "..", "..", "..", "deploy", "RavenDBServer"));
+            var ravenServerPath = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "..", "..", "..", "..", "..", "deploy", serverFolder));
             var ravenStudio = Path.Combine(ravenServerPath, "Raven.Studio.zip");
             var ravenServerDll = Path.Combine(ravenServerPath, "Raven.Server.dll");
             var ravenServerExe = Path.Combine(ravenServerPath, "Raven.Server.exe");

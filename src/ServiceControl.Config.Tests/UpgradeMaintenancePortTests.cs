@@ -13,6 +13,7 @@ namespace ServiceControl.Config.Tests
         static readonly Dictionary<string, bool> PrimaryUsesMaintenancePort = new()
         {
             ["RavenDB"] = true,
+            ["RavenDB7"] = true,
             ["RavenDB35"] = true,
             ["SQLServer"] = false,
             ["PostgreSQL"] = false

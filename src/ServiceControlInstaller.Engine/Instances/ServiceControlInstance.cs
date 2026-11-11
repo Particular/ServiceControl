@@ -235,7 +235,7 @@ namespace ServiceControlInstaller.Engine.Instances
             FileUtils.CloneDirectory(InstallPath, destDir, "license", $"{Constants.ServiceControlExe}.config");
             FileUtils.UnzipToSubdirectory(zipFilePath, destDir);
             FileUtils.UnzipToSubdirectory("InstanceShared.zip", destDir);
-            FileUtils.UnzipToSubdirectory("RavenDBServer.zip", Path.Combine(destDir, "Persisters", "RavenDB", "RavenDBServer"));
+            RavenDBServerPackage.Install(destDir, PersistenceManifest);
         }
 
         protected override IEnumerable<string> GetPersistencePathsToCleanUp()

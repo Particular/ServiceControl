@@ -15,7 +15,7 @@ namespace ServiceControlInstaller.Engine.Instances
     {
         public static ServiceControlNewInstance CreateWithDefaultPersistence()
         {
-            const string persisterUsedForBrandNewInstances = StorageEngineNames.RavenDB;
+            const string persisterUsedForBrandNewInstances = StorageEngineNames.RavenDB7;
             return CreateWithPersistence(persisterUsedForBrandNewInstances);
         }
 
@@ -38,7 +38,7 @@ namespace ServiceControlInstaller.Engine.Instances
             appConfig.Save();
         }
 
-        public PersistenceManifest PersistenceManifest { get; }
+        public override PersistenceManifest PersistenceManifest { get; }
 
         public override string DirectoryName => "ServiceControl";
 

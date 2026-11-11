@@ -101,7 +101,7 @@
             if (force)
             {
                 instance.CreateDatabaseBackup();
-                instance.PersistenceManifest = ServiceControlPersisters.GetAuditPersistence(StorageEngineNames.RavenDB);
+                instance.PersistenceManifest = ServiceControlPersisters.GetAuditPersistence(StorageEngineNames.RavenDB7);
             }
 
             try

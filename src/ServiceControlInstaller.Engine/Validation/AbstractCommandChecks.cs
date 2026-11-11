@@ -132,7 +132,7 @@
                 {
                     var forceUpgradeAllowed = instance is IPersistenceConfig persistenceCfg
                         && instance.Version.Major == 4
-                        && persistenceCfg.PersistenceManifest.Name != StorageEngineNames.RavenDB;
+                        && persistenceCfg.PersistenceManifest.Name == StorageEngineNames.RavenDB35;
 
                     if (!forceUpgradeAllowed)
                     {

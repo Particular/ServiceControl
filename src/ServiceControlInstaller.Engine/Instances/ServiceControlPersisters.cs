@@ -43,7 +43,7 @@
                 name = "RavenDB35";
             }
 
-            return manifestCollection.FirstOrDefault(m => m.IsMatch(name)) ?? new PersistenceManifest
+            return Find(manifestCollection, name) ?? new PersistenceManifest
             {
                 Name = name,
                 DisplayName = "Unknown Persistence: " + name,
@@ -51,6 +51,11 @@
                 Description = "This persistence is unknown. It may be from a future version of ServiceControl."
             };
         }
+
+        // The RavenDB persisters share a TypeName, so a type name only decides when no name or alias matched
+        internal static PersistenceManifest Find(IEnumerable<PersistenceManifest> manifests, string persistenceType) =>
+            manifests.FirstOrDefault(m => m.IsNameMatch(persistenceType))
+            ?? manifests.FirstOrDefault(m => m.IsTypeMatch(persistenceType));
 
         public static PersistenceManifest[] GetAllPrimaryManifests() => primaryPersistenceManifests;
         public static PersistenceManifest[] GetAllAuditManifests() => auditPersistenceManifests;

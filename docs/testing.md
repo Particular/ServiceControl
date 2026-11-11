@@ -12,6 +12,7 @@ Packaging tests check:
 
 - Folder structure and content of the [packaging process](packaging.md) output.
 - That packaged [assembly versions match](packaging.md#assembly-mismatches).
+- That `RavenDBServer.zip` holds the RavenDB 6.2 server pinned by `RavenDB6Version` and `RavenDB7Server.zip` holds the RavenDB 7.2 server pinned by `RavenDB.Embedded`.
 
 ## Installation engine tests
 
@@ -19,8 +20,9 @@ Installation engine tests run partial installations and check:
 
 - That the generated configuration is correct.
 - That transport and persistence are correctly extracted.
+- That an instance receives the RavenDB server that matches its persister, on install and on upgrade.
 
-On Windows, [PackagedRavenDBTests](../src/ServiceControlInstaller.Engine.UnitTests/Validation/PackagedRavenDBTests.cs) starts the server extracted from the installer's embedded `RavenDBServer.zip`. It verifies the native Kafka dependencies are absent and checks document persistence and indexing before and after a restart. These tests run in the `Windows-DefaultCore` CI job; the `Windows-Raven` tests use the separate server files supplied by `RavenDB.Embedded`.
+On Windows, [PackagedRavenDBTests](../src/ServiceControlInstaller.Engine.UnitTests/Validation/PackagedRavenDBTests.cs) starts the server extracted from each of the installer's embedded `RavenDBServer.zip` (RavenDB 6.2) and `RavenDB7Server.zip` (RavenDB 7.2) archives, using a RavenDB 6.2 client. It verifies the native Kafka dependencies are absent and checks document persistence and indexing before and after a restart. These tests run in the `Windows-DefaultCore` CI job; the `Windows-Raven` tests use the separate server files supplied by `RavenDB.Embedded`. The tests of `RavenDBStorageSchema` and `RavenDBStorageUpgrade` read the storage versions of both bundled archives, and the instance tests check which server each persister receives.
 
 ## Persistence tests
 

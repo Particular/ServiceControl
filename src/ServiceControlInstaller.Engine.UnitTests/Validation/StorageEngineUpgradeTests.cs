@@ -11,6 +11,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         static readonly Dictionary<string, bool> PrimaryUpgradableInPlace = new()
         {
             ["RavenDB"] = true,
+            ["RavenDB7"] = true,
             ["RavenDB35"] = false,
             ["SQLServer"] = true,
             ["PostgreSQL"] = true
@@ -19,6 +20,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         static readonly Dictionary<string, bool> AuditUpgradableInPlace = new()
         {
             ["RavenDB"] = true,
+            ["RavenDB7"] = true,
             ["RavenDB35"] = false,
             ["SQLServer"] = true,
             ["PostgreSQL"] = true
