@@ -403,7 +403,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(attempts.Select(attempt => attempt.FailureDetails?.AddressOfFailingEndpoint), Is.All.Empty, "a missing key reads back as the default object, not null, so the mapper has to treat an empty address as missing");
+            Assert.That(attempts.Select(attempt => attempt.FailureDetails?.AddressOfFailingEndpoint), Is.All.Empty, "a missing key reads back as the default object, not null, so the translator has to treat an empty address as missing");
             Assert.That(attempts.Select(attempt => attempt.FailureDetails.TimeOfFailure), Is.All.GreaterThanOrEqualTo(readStartedAt), "the default object stamps the time it was read, so its time of failure is invented");
         }
     }
@@ -420,8 +420,8 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(attempts[^1].FailureDetails.TimeOfFailure, Is.EqualTo(default(DateTime)), "the mapper skips a newest attempt with no time of failure, and the read time would copy it with a made-up one");
-            Assert.That(attempts[0].FailureDetails.TimeOfFailure, Is.EqualTo(default(DateTime)), "the mapper leaves an older attempt with no time out of the first and last failure times");
+            Assert.That(attempts[^1].FailureDetails.TimeOfFailure, Is.EqualTo(default(DateTime)), "the translator skips a newest attempt with no time of failure, and the read time would copy it with a made-up one");
+            Assert.That(attempts[0].FailureDetails.TimeOfFailure, Is.EqualTo(default(DateTime)), "the translator leaves an older attempt with no time out of the first and last failure times");
             Assert.That(attempts.Select(attempt => attempt.FailureDetails.AddressOfFailingEndpoint), Is.All.EqualTo("Sales@MACHINE"), "the rest of FailureDetails is still read as stored");
             Assert.That(attempts.Select(attempt => attempt.FailureDetails.Exception?.Message), Is.All.EqualTo(failure.ExceptionMessage));
         }
@@ -436,7 +436,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
 
         var attempt = ((FailedMessage)(await ReadAll()).Single().Document).ProcessingAttempts.Single();
 
-        Assert.That(attempt.FailureDetails, Is.Null, "the mapper skips an attempt with no FailureDetails, so one bad document must not halt the category");
+        Assert.That(attempt.FailureDetails, Is.Null, "the translator skips an attempt with no FailureDetails, so one bad document must not halt the category");
     }
 
     [TestCase("SendingEndpoint", NServiceBus.Headers.OriginatingHostId)]
@@ -472,7 +472,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
 
         var row = (await ReadAll()).Single();
 
-        Assert.That(row.Metadata[MigrationMetadataKeys.StatusChangedAt], Is.Null, "the mapper skips a message with no attempts, so the source passes it through rather than halting the category");
+        Assert.That(row.Metadata[MigrationMetadataKeys.StatusChangedAt], Is.Null, "the translator skips a message with no attempts, so the source passes it through rather than halting the category");
     }
 
     [Test]
@@ -492,7 +492,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
             Assert.That(metadata["ReceivingEndpoint"], Is.TypeOf<EndpointDetails>().And.Property(nameof(EndpointDetails.HostId)).EqualTo(failure.ReceivingEndpoint.HostId));
             Assert.That(metadata["MessageType"], Is.TypeOf<string>().And.EqualTo(failure.MessageType));
             Assert.That(metadata["ConversationId"], Is.TypeOf<string>().And.EqualTo(failure.ConversationId));
-            Assert.That(metadata["IsSystemMessage"], Is.TypeOf<bool>().And.True, "the mapper reads it with 'is true', so any other type reads as false");
+            Assert.That(metadata["IsSystemMessage"], Is.TypeOf<bool>().And.True, "the translator reads it with 'is true', so any other type reads as false");
         }
     }
 
@@ -573,7 +573,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
             Assert.That(sending.Name, Is.EqualTo("Ordering"));
             Assert.That(sending.Host, Is.EqualTo("SENDER"));
             Assert.That(sending.HostId, Is.EqualTo(sendingHostId));
-            Assert.That(older.MessageMetadata["TimeSent"], Is.EqualTo("2026-07-22T09:59:00.1234567"), "the mapper reads only the newest attempt, so an older one is left as stored");
+            Assert.That(older.MessageMetadata["TimeSent"], Is.EqualTo("2026-07-22T09:59:00.1234567"), "the translator reads only the newest attempt, so an older one is left as stored");
         }
     }
 
@@ -658,7 +658,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
         attempt.MessageMetadata = null;
 
         Assert.DoesNotThrow(() => FailedMessageStream.RestoreMetadataTypes(document));
-        Assert.That(attempt.MessageMetadata, Is.Null, "the mapper skips an attempt with no metadata, so an empty stand-in would hide the fault");
+        Assert.That(attempt.MessageMetadata, Is.Null, "the translator skips an attempt with no metadata, so an empty stand-in would hide the fault");
     }
 
     [Test]
@@ -704,7 +704,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
 
         var row = (await ReadAll()).Single();
 
-        Assert.That(row.Metadata[MigrationMetadataKeys.StatusChangedAt], Is.EqualTo(expected), "a null attempt is a data fault for the mapper to skip, not a reason to halt the category");
+        Assert.That(row.Metadata[MigrationMetadataKeys.StatusChangedAt], Is.EqualTo(expected), "a null attempt is a data fault for the translator to skip, not a reason to halt the category");
     }
 
     [Test]

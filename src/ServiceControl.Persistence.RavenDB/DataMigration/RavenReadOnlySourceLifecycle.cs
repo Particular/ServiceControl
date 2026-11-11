@@ -245,7 +245,7 @@ sealed class RavenReadOnlySourceLifecycle(RavenPersisterSettings settings, Setti
         }
     }
 
-    // The FailureDetails constructor sets TimeOfFailure to now. Starting from the default instead lets the mapper see a stored attempt that has no time.
+    // The FailureDetails constructor sets TimeOfFailure to now. Starting from the default instead lets the translator see a stored attempt that has no time.
     sealed class FailureDetailsConverter : JsonConverter<FailureDetails>
     {
         public override FailureDetails? ReadJson(JsonReader reader, Type objectType, FailureDetails? existingValue, bool hasExistingValue, JsonSerializer serializer)

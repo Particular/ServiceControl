@@ -9,43 +9,47 @@ using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
-static class FailedMessageRowMapper
+/// <summary>
+/// Translates one RavenDB failed message document into a failed message row and its group rows, or a skip with the reason
+/// when the document can't satisfy the target columns.
+/// </summary>
+static class FailedMessageDocumentTranslator
 {
-    public static FailedMessageRowMapping Map(MigrationRow source)
+    public static FailedMessageDocumentTranslation Translate(MigrationRow source)
     {
         var document = (FailedMessage)source.Document;
 
         if (!Guid.TryParse(document.UniqueMessageId, out var uniqueMessageId))
         {
-            return new FailedMessageRowMapping.Skipped(
+            return new FailedMessageDocumentTranslation.Skipped(
                 MigrationSkipReason.UnparseableUniqueMessageId,
                 $"UniqueMessageId '{document.UniqueMessageId}' on document '{source.SourceId}' is not a GUID and the target column is a uniqueidentifier");
         }
 
         if (document.ProcessingAttempts is not { Count: > 0 })
         {
-            return new FailedMessageRowMapping.Skipped(
+            return new FailedMessageDocumentTranslation.Skipped(
                 MigrationSkipReason.NoProcessingAttempts,
                 $"Document '{source.SourceId}' has no processing attempts, so no attempt supplies the required columns");
         }
 
         if (document.ProcessingAttempts[^1] is not { } newest)
         {
-            return new FailedMessageRowMapping.Skipped(
+            return new FailedMessageDocumentTranslation.Skipped(
                 MigrationSkipReason.RequiredValueMissing,
                 $"The newest attempt on document '{source.SourceId}' is null, so no attempt supplies the required columns");
         }
 
         if (MissingFrom(newest) is { } missing)
         {
-            return new FailedMessageRowMapping.Skipped(
+            return new FailedMessageDocumentTranslation.Skipped(
                 MigrationSkipReason.RequiredValueMissing,
                 $"The newest attempt on document '{source.SourceId}' has no {missing}, which the row's columns are built from");
         }
 
         if (MalformedIn(newest.MessageMetadata) is { } malformed)
         {
-            return new FailedMessageRowMapping.Skipped(
+            return new FailedMessageDocumentTranslation.Skipped(
                 MigrationSkipReason.MalformedValue,
                 $"The newest attempt on document '{source.SourceId}' holds a {malformed.Found.FullName} as its {malformed.Key} metadata, where the row needs a {malformed.Expected.FullName}: '{Shown(malformed.Value)}'");
         }
@@ -53,14 +57,14 @@ static class FailedMessageRowMapper
         // An attempt stored without FailureDetails reads back as the default object, whose address is empty.
         if (string.IsNullOrEmpty(newest.FailureDetails.AddressOfFailingEndpoint))
         {
-            return new FailedMessageRowMapping.Skipped(
+            return new FailedMessageDocumentTranslation.Skipped(
                 MigrationSkipReason.RequiredValueMissing,
                 $"FailedMessages.{nameof(FailedMessageEntity.FailingEndpointAddress)} is NOT NULL and the newest attempt on document '{source.SourceId}' has no AddressOfFailingEndpoint");
         }
 
         if (newest.FailureDetails.TimeOfFailure == default || newest.AttemptedAt == default)
         {
-            return new FailedMessageRowMapping.Skipped(
+            return new FailedMessageDocumentTranslation.Skipped(
                 MigrationSkipReason.RequiredValueMissing,
                 $"The newest attempt on document '{source.SourceId}' has no {(newest.FailureDetails.TimeOfFailure == default ? nameof(newest.FailureDetails.TimeOfFailure) : nameof(newest.AttemptedAt))}, which the row's failure times are built from");
         }
@@ -115,7 +119,7 @@ static class FailedMessageRowMapper
                 })
         ];
 
-        return new FailedMessageRowMapping.Mapped(row, groups);
+        return new FailedMessageDocumentTranslation.Translated(row, groups);
     }
 
     /// <summary>

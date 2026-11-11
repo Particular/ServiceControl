@@ -6,19 +6,19 @@ using ServiceControl.Persistence.EFCore.Entities;
 /// <summary>
 /// What one failed message document became: either a row with its failure group rows, or a skip with the reason.
 /// </summary>
-abstract record FailedMessageRowMapping
+abstract record FailedMessageDocumentTranslation
 {
-    FailedMessageRowMapping()
+    FailedMessageDocumentTranslation()
     {
     }
 
     /// <summary>
-    /// The document maps to a failed message row and the group rows keyed by it.
+    /// The document translates to a failed message row and the group rows keyed by it.
     /// </summary>
-    public sealed record Mapped(FailedMessageEntity Row, IReadOnlyList<FailedMessageGroupEntity> Groups) : FailedMessageRowMapping;
+    public sealed record Translated(FailedMessageEntity Row, IReadOnlyList<FailedMessageGroupEntity> Groups) : FailedMessageDocumentTranslation;
 
     /// <summary>
     /// The document cannot become a row, for the reason given, and <paramref name="Detail" /> says which document and why.
     /// </summary>
-    public sealed record Skipped(MigrationSkipReason Reason, string Detail) : FailedMessageRowMapping;
+    public sealed record Skipped(MigrationSkipReason Reason, string Detail) : FailedMessageDocumentTranslation;
 }

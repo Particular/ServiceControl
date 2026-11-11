@@ -48,8 +48,8 @@ class FailedMessageStream(RavenReadOnlySourceLifecycle lifecycle)
                 });
         };
 
-    // The mapper checks TimeSent, SendingEndpoint and ReceivingEndpoint by exact type, but RavenDB can hand them back as text or untyped objects.
-    // Only the newest attempt is fixed because the mapper reads no other, and a TimeSent that is not a date is left as it is for the mapper to skip.
+    // The translator checks TimeSent, SendingEndpoint and ReceivingEndpoint by exact type, but RavenDB can hand them back as text or untyped objects.
+    // Only the newest attempt is fixed because the translator reads no other, and a TimeSent that is not a date is left as it is for the translator to skip.
     internal static void RestoreMetadataTypes(FailedMessage document)
     {
         if (document.ProcessingAttempts is not { Count: > 0 } || document.ProcessingAttempts[^1] is not { MessageMetadata: { } metadata } newest)
@@ -79,7 +79,7 @@ class FailedMessageStream(RavenReadOnlySourceLifecycle lifecycle)
             return;
         }
 
-        // Storing null is deliberate, because the mapper reads it as no endpoint, the same as when ingestion stored none.
+        // Storing null is deliberate, because the translator reads it as no endpoint, the same as when ingestion stored none.
         metadata[key] = parseHeaders()!;
     }
 

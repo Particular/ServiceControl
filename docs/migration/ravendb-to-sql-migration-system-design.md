@@ -180,7 +180,7 @@ Windowing: `MigrationEngineOptions.WindowFor` supplies the window and the reader
 | Early stop | `HaltThreshold.Exceeded` on per-run counters | Fault skips (reasons not `IsBenign`, plus body skips) must exceed both `Migration/HaltThresholdPercent` and `Migration/HaltThresholdMinimum`. Counters are not persisted, so the threshold is per run |
 | Settle | `MigrationEngine.Settle`, after `IMigrationTarget.Count` at the end of the source | Saves the category's SQL row count on the row it settles, as `TargetCountAtSettle`. A halt saves without it, because the target may be what failed, and `--migration-abandon` reads it later. Logs before saving, because the checkpoint store shares the target database and a failed save would hide the cause |
 
-Body placement lives in `FailedMessagesWriter`, shared by `ArchivedAndResolvedFailedMessagesWriter`. `MessageBodyClassifier.Classify` decides placement and `FailedMessageRowMapper.SetBody` fills the columns: text up to `MaxBodySizeToStore` (100 KB default) inline; longer text inline prefix plus external copy; binary, invalid UTF-8 or NUL-containing text external only; empty bodies not stored. External writes go through `IBodyStoragePersistence.WriteBody`, which owns compression and the filesystem, Azure Blob or S3 backend, and complete before the transaction opens.
+Body placement lives in `FailedMessagesWriter`, shared by `ArchivedAndResolvedFailedMessagesWriter`. `MessageBodyClassifier.Classify` decides placement and `FailedMessageDocumentTranslator.SetBody` fills the columns: text up to `MaxBodySizeToStore` (100 KB default) inline; longer text inline prefix plus external copy; binary, invalid UTF-8 or NUL-containing text external only; empty bodies not stored. External writes go through `IBodyStoragePersistence.WriteBody`, which owns compression and the filesystem, Azure Blob or S3 backend, and complete before the transaction opens.
 
 Invariants enforced across class boundaries:
 
@@ -278,7 +278,7 @@ Every reader derives from `MigrationCategoryReader<TDocument>` and every writer 
 | 9 | `LicensingThroughput` | Required | `LicensingThroughputReader`, `LicensingThroughputWriter` | Throughput database. Data link to `LicensingEndpoints`. `SetLicensingEndpointThroughput` sets each day's count rather than incrementing, so re-reads are idempotent |
 | 10 | `LicensingReportMasks` | Required | `LicensingReportMasksReader`, `LicensingReportMasksWriter` | Throughput database via `LicensingSettingsSource`. One `Settings` row via `SettingRowMapper` |
 | 11 | `LicensedEndpointDetails` | Required | `LicensedEndpointDetailsReader`, `LicensedEndpointDetailsWriter` | Throughput database via `LicensingSettingsSource`. One `Settings` row via `SettingRowMapper` |
-| 12 | `UnresolvedAndRetryIssuedFailedMessages` | Required | `FailedMessagesReader`, `FailedMessagesWriter` | Carries bodies. `FailedMessageStream` projection, `FailedMessageRowMapper` |
+| 12 | `UnresolvedAndRetryIssuedFailedMessages` | Required | `FailedMessagesReader`, `FailedMessagesWriter` | Carries bodies. `FailedMessageStream` projection, `FailedMessageDocumentTranslator` |
 | 13 | `PendingIntegrationEvents` | Required | `PendingIntegrationEventsReader`, `PendingIntegrationEventsWriter` | Store-keyed via `StoreKeyedInsert`. Deletes its rows on retry |
 | 14 | `CustomChecks` | Required | `CustomChecksReader`, `CustomChecksWriter` | |
 | 15 | `FailedErrorImports` | Required | `FailedErrorImportsReader`, `FailedErrorImportsWriter` | Carries bodies inline in `Read`, never calls `ReadBody` |

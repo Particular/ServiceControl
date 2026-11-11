@@ -36,22 +36,22 @@ abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, I
         var messageInsert = MigrationInsert<FailedMessageEntity>.For(dbContext);
         var groupInsert = MigrationInsert<FailedMessageGroupEntity>.For(dbContext);
         List<(string SourceId, MigrationSkipReason Reason, string Detail)> skips = [];
-        List<FailedMessageRowMapping.Mapped> mapped = [];
-        HashSet<Guid> mappedIds = [];
+        List<FailedMessageDocumentTranslation.Translated> translated = [];
+        HashSet<Guid> translatedIds = [];
         List<(string SourceId, FailedMessageEntity Row, MigrationBody Body)> externalBodies = [];
 
         foreach (var (row, document) in documents)
         {
-            switch (NamingTheDocument(row, () => FailedMessageRowMapper.Map(row)))
+            switch (NamingTheDocument(row, () => FailedMessageDocumentTranslator.Translate(row)))
             {
-                case FailedMessageRowMapping.Mapped mapping:
+                case FailedMessageDocumentTranslation.Translated translation:
                     var body = row.Body ?? throw new InvalidOperationException($"Row '{row.SourceId}' in category {CategoryId} reached the writer without a body. The engine attaches a body to every row of a category that carries bodies, or skips the row.");
                     // Set before the length check, because the stored content type is a text column with a limit.
-                    var storeExternally = NamingTheDocument(row, () => FailedMessageRowMapper.SetBody(mapping.Row, document.ProcessingAttempts[^1].Headers, body, persisterSettings.BodyStorage.MaxBodySizeToStore));
+                    var storeExternally = NamingTheDocument(row, () => FailedMessageDocumentTranslator.SetBody(translation.Row, document.ProcessingAttempts[^1].Headers, body, persisterSettings.BodyStorage.MaxBodySizeToStore));
 
                     // A message copied without one of its groups would be missing from that group, so a group that cannot be stored skips the message.
-                    var unstorable = UnstorableValueSkip(messageInsert, migrationDialect, row, mapping.Row)
-                        ?? mapping.Groups.Select(group => UnstorableValueSkip(groupInsert, migrationDialect, row, group)).FirstOrDefault(groupSkip => groupSkip is not null);
+                    var unstorable = UnstorableValueSkip(messageInsert, migrationDialect, row, translation.Row)
+                        ?? translation.Groups.Select(group => UnstorableValueSkip(groupInsert, migrationDialect, row, group)).FirstOrDefault(groupSkip => groupSkip is not null);
 
                     if (unstorable is { } unstorableSkip)
                     {
@@ -59,27 +59,27 @@ abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, I
                     }
                     else
                     {
-                        mapped.Add(mapping);
+                        translated.Add(translation);
 
                         // The insert keeps only the first document with an id, so only its body may be stored under that id.
-                        if (mappedIds.Add(mapping.Row.UniqueMessageId) && storeExternally)
+                        if (translatedIds.Add(translation.Row.UniqueMessageId) && storeExternally)
                         {
-                            externalBodies.Add((row.SourceId, mapping.Row, body));
+                            externalBodies.Add((row.SourceId, translation.Row, body));
                         }
                     }
 
                     break;
-                case FailedMessageRowMapping.Skipped skip:
+                case FailedMessageDocumentTranslation.Skipped skip:
                     skips.Add((row.SourceId, skip.Reason, skip.Detail));
                     break;
                 default:
-                    throw new InvalidOperationException($"The mapper returned a mapping the writer does not know for document '{row.SourceId}'.");
+                    throw new InvalidOperationException($"The translator returned a translation the writer does not know for document '{row.SourceId}'.");
             }
         }
 
         await WriteBodiesTheTargetLacks(dbContext, externalBodies, cancellationToken);
 
-        return new PreparedBatch((context, token) => InsertFailedMessages(context, mapped, token), mapped.Count, skips, Merges: []);
+        return new PreparedBatch((context, token) => InsertFailedMessages(context, translated, token), translated.Count, skips, Merges: []);
     }
 
     // All bodies are written before the transaction opens, so a crash leaves a body with no row rather than a row pointing at a body that was never stored.
@@ -136,14 +136,14 @@ abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, I
         }
     }
 
-    async Task<int> InsertFailedMessages(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageRowMapping.Mapped> mapped, CancellationToken cancellationToken)
+    async Task<int> InsertFailedMessages(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageDocumentTranslation.Translated> translated, CancellationToken cancellationToken)
     {
-        var inserted = (await migrationDialect.InsertMissing(dbContext, [.. mapped.Select(mapping => mapping.Row)], cancellationToken))
+        var inserted = (await migrationDialect.InsertMissing(dbContext, [.. translated.Select(translation => translation.Row)], cancellationToken))
             .ToHashSet<FailedMessageEntity>(ReferenceEqualityComparer.Instance);
 
         // Matched by reference, because InsertMissing returns the row objects it kept, and a document it turned away can share a kept row's id.
         // A group goes in only when the message its foreign key points at went in, so a message already in the target keeps the groups it had.
-        await migrationDialect.InsertMissing(dbContext, [.. mapped.Where(mapping => inserted.Contains(mapping.Row)).SelectMany(mapping => mapping.Groups)], cancellationToken);
+        await migrationDialect.InsertMissing(dbContext, [.. translated.Where(translation => inserted.Contains(translation.Row)).SelectMany(translation => translation.Groups)], cancellationToken);
 
         // A retry-issued message needs a claim, or a retry by id sends it again while its first retry is still outstanding.
         await migrationDialect.InsertMissing(dbContext, [.. inserted

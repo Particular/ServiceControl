@@ -12,7 +12,7 @@ using ServiceControl.Persistence.EFCore.Entities;
 
 [TestFixture]
 [FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
-class FailedMessageRowMapperTests
+class FailedMessageDocumentTranslatorTests
 {
     static readonly DateTime StatusChangedAtFromTheSource = new(2026, 9, 1, 8, 0, 0, DateTimeKind.Utc);
     static readonly DateTime LastModifiedFromTheSource = new(2026, 9, 2, 8, 0, 0, DateTimeKind.Utc);
@@ -25,7 +25,7 @@ class FailedMessageRowMapperTests
         var document = failure.ToFailedMessage();
         document.UniqueMessageId = uniqueMessageId.ToString();
 
-        var row = RowOf(FailedMessageRowMapper.Map(Row(document)));
+        var row = RowOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         Assert.That(row.UniqueMessageId, Is.EqualTo(uniqueMessageId));
     }
@@ -36,7 +36,7 @@ class FailedMessageRowMapperTests
         var document = new IngestedFailure().ToFailedMessage();
         document.UniqueMessageId = "not-a-guid";
 
-        var skip = SkipOf(FailedMessageRowMapper.Map(Row(document)));
+        var skip = SkipOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         using (Assert.EnterMultipleScope())
         {
@@ -51,7 +51,7 @@ class FailedMessageRowMapperTests
         var document = new IngestedFailure().ToFailedMessage();
         document.ProcessingAttempts.Clear();
 
-        var skip = SkipOf(FailedMessageRowMapper.Map(Row(document)));
+        var skip = SkipOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         using (Assert.EnterMultipleScope())
         {
@@ -68,7 +68,7 @@ class FailedMessageRowMapperTests
         var complete = Row(document);
         var row = complete with { Metadata = new Dictionary<string, object?>(complete.Metadata) { [MigrationMetadataKeys.StatusChangedAt] = null } };
 
-        var skip = SkipOf(FailedMessageRowMapper.Map(row));
+        var skip = SkipOf(FailedMessageDocumentTranslator.Translate(row));
 
         Assert.That(skip.Reason, Is.EqualTo(MigrationSkipReason.NoProcessingAttempts), "the source resolves StatusChangedAt from the newest attempt, so an attemptless document always arrives without one");
     }
@@ -79,7 +79,7 @@ class FailedMessageRowMapperTests
         var document = new IngestedFailure().ToFailedMessage();
         document.ProcessingAttempts[^1].FailureDetails.AddressOfFailingEndpoint = null!;
 
-        var skip = SkipOf(FailedMessageRowMapper.Map(Row(document)));
+        var skip = SkipOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         using (Assert.EnterMultipleScope())
         {
@@ -108,7 +108,7 @@ class FailedMessageRowMapperTests
                 break;
         }
 
-        var skip = SkipOf(FailedMessageRowMapper.Map(Row(document)));
+        var skip = SkipOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         using (Assert.EnterMultipleScope())
         {
@@ -126,7 +126,7 @@ class FailedMessageRowMapperTests
         var document = new IngestedFailure().ToFailedMessage();
         document.ProcessingAttempts[^1].MessageMetadata[key] = malformed;
 
-        var skip = SkipOf(FailedMessageRowMapper.Map(Row(document)));
+        var skip = SkipOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         using (Assert.EnterMultipleScope())
         {
@@ -142,7 +142,7 @@ class FailedMessageRowMapperTests
         var document = new IngestedFailure().ToFailedMessage();
         document.ProcessingAttempts[^1].MessageMetadata["TimeSent"] = new string('a', 100) + new string('b', 400);
 
-        var skip = SkipOf(FailedMessageRowMapper.Map(Row(document)));
+        var skip = SkipOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         Assert.That(skip.Detail, Does.Contain($"'{new string('a', 100)}...'").And.Not.Contain(new string('a', 100) + "b"), "a stored value can be any length, and the detail is one log line");
     }
@@ -154,7 +154,7 @@ class FailedMessageRowMapperTests
         // What RavenDB hands back for an attempt stored without the key.
         document.ProcessingAttempts[^1].FailureDetails = new FailedMessage.ProcessingAttempt().FailureDetails;
 
-        var skip = SkipOf(FailedMessageRowMapper.Map(Row(document)));
+        var skip = SkipOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         using (Assert.EnterMultipleScope())
         {
@@ -178,7 +178,7 @@ class FailedMessageRowMapperTests
             newest.AttemptedAt = default;
         }
 
-        var skip = SkipOf(FailedMessageRowMapper.Map(Row(document)));
+        var skip = SkipOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         using (Assert.EnterMultipleScope())
         {
@@ -193,7 +193,7 @@ class FailedMessageRowMapperTests
         var document = ThreeAttempts();
         document.ProcessingAttempts[0].FailureDetails = new FailedMessage.ProcessingAttempt().FailureDetails;
 
-        var row = RowOf(FailedMessageRowMapper.Map(Row(document)));
+        var row = RowOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         using (Assert.EnterMultipleScope())
         {
@@ -208,7 +208,7 @@ class FailedMessageRowMapperTests
         var document = ThreeAttempts();
         document.ProcessingAttempts[0].FailureDetails.TimeOfFailure = default;
 
-        var row = RowOf(FailedMessageRowMapper.Map(Row(document)));
+        var row = RowOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         Assert.That(row.FirstTimeOfFailure, Is.EqualTo(document.ProcessingAttempts[1].FailureDetails.TimeOfFailure), "the year 1 is not a time the message failed");
     }
@@ -219,20 +219,20 @@ class FailedMessageRowMapperTests
         var document = new IngestedFailure().ToFailedMessage();
         document.ProcessingAttempts = null!;
 
-        var skip = SkipOf(FailedMessageRowMapper.Map(Row(document)));
+        var skip = SkipOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         Assert.That(skip.Reason, Is.EqualTo(MigrationSkipReason.NoProcessingAttempts));
     }
 
     [Test]
-    public void Maps_a_null_failure_groups_list_to_no_groups()
+    public void Translates_a_null_failure_groups_list_to_no_groups()
     {
         var document = new IngestedFailure().ToFailedMessage();
         document.FailureGroups = null!;
 
-        var mapping = FailedMessageRowMapper.Map(Row(document));
+        var translation = FailedMessageDocumentTranslator.Translate(Row(document));
 
-        Assert.That(((FailedMessageRowMapping.Mapped)mapping).Groups, Is.Empty);
+        Assert.That(((FailedMessageDocumentTranslation.Translated)translation).Groups, Is.Empty);
     }
 
     [Test]
@@ -241,9 +241,9 @@ class FailedMessageRowMapperTests
         var document = new IngestedFailure().ToFailedMessage();
         document.FailureGroups = [null!, new() { Id = "group-1", Title = "Title 1", Type = "Type 1" }];
 
-        var mapping = FailedMessageRowMapper.Map(Row(document));
+        var translation = FailedMessageDocumentTranslator.Translate(Row(document));
 
-        Assert.That(((FailedMessageRowMapping.Mapped)mapping).Groups.Select(group => group.GroupId), Is.EqualTo(new[] { "group-1" }));
+        Assert.That(((FailedMessageDocumentTranslation.Translated)translation).Groups.Select(group => group.GroupId), Is.EqualTo(new[] { "group-1" }));
     }
 
     [TestCase("SendingEndpoint", "not an endpoint")]
@@ -253,12 +253,12 @@ class FailedMessageRowMapperTests
         var document = new IngestedFailure().ToFailedMessage();
         document.ProcessingAttempts[^1].MessageMetadata[key] = wrongType;
 
-        Assert.Throws<InvalidCastException>(() => FailedMessageRowMapper.Map(Row(document)), "the source restores every endpoint before the mapper sees it, so a wrong type is a defect that must halt the copy, not a row with empty endpoint columns");
+        Assert.Throws<InvalidCastException>(() => FailedMessageDocumentTranslator.Translate(Row(document)), "the source restores every endpoint before the translator sees it, so a wrong type is a defect that must halt the copy, not a row with empty endpoint columns");
     }
 
     [TestCase(true)]
     [TestCase(false)]
-    public void Maps_a_TimeSent_or_endpoint_that_is_missing_or_null_to_null(bool keyPresent)
+    public void Translates_a_TimeSent_or_endpoint_that_is_missing_or_null_to_null(bool keyPresent)
     {
         var document = new IngestedFailure().ToFailedMessage();
         var metadata = document.ProcessingAttempts[^1].MessageMetadata;
@@ -274,7 +274,7 @@ class FailedMessageRowMapperTests
             }
         }
 
-        var row = RowOf(FailedMessageRowMapper.Map(Row(document)));
+        var row = RowOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         using (Assert.EnterMultipleScope())
         {
@@ -290,7 +290,7 @@ class FailedMessageRowMapperTests
         var document = ThreeAttempts();
         document.ProcessingAttempts[2] = null!;
 
-        var skip = SkipOf(FailedMessageRowMapper.Map(Row(document)));
+        var skip = SkipOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         using (Assert.EnterMultipleScope())
         {
@@ -306,7 +306,7 @@ class FailedMessageRowMapperTests
         var earliestWithDetails = document.ProcessingAttempts[1].FailureDetails.TimeOfFailure;
         document.ProcessingAttempts[0].FailureDetails = null!;
 
-        var row = RowOf(FailedMessageRowMapper.Map(Row(document)));
+        var row = RowOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         using (Assert.EnterMultipleScope())
         {
@@ -322,7 +322,7 @@ class FailedMessageRowMapperTests
         var earliestRemaining = document.ProcessingAttempts[1].FailureDetails.TimeOfFailure;
         document.ProcessingAttempts[0] = null!;
 
-        var row = RowOf(FailedMessageRowMapper.Map(Row(document)));
+        var row = RowOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         using (Assert.EnterMultipleScope())
         {
@@ -333,13 +333,13 @@ class FailedMessageRowMapperTests
     }
 
     [Test]
-    public void Maps_when_only_an_earlier_attempt_has_a_value_of_the_wrong_type()
+    public void Translates_when_only_an_earlier_attempt_has_a_value_of_the_wrong_type()
     {
         var document = ThreeAttempts();
         document.ProcessingAttempts[0].MessageMetadata["TimeSent"] = "garbage";
         document.ProcessingAttempts[0].MessageMetadata["ReceivingEndpoint"] = "not an endpoint";
 
-        var row = RowOf(FailedMessageRowMapper.Map(Row(document)));
+        var row = RowOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         Assert.That(row.FailingEndpointAddress, Is.EqualTo("newest-address"), "only the newest attempt's metadata becomes the row");
     }
@@ -351,7 +351,7 @@ class FailedMessageRowMapperTests
         var longType = new string('a', 100) + new string('b', 450);
         document.ProcessingAttempts[^1].MessageMetadata["MessageType"] = longType;
 
-        var row = RowOf(FailedMessageRowMapper.Map(Row(document)));
+        var row = RowOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         Assert.That(row.MessageType, Is.EqualTo(new string('b', 450)));
     }
@@ -361,7 +361,7 @@ class FailedMessageRowMapperTests
     {
         var document = ThreeAttempts();
 
-        var row = RowOf(FailedMessageRowMapper.Map(Row(document)));
+        var row = RowOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         using (Assert.EnterMultipleScope())
         {
@@ -380,24 +380,24 @@ class FailedMessageRowMapperTests
         var document = ThreeAttempts();
         document.ProcessingAttempts[2].FailureDetails.AddressOfFailingEndpoint = null!;
 
-        var skip = SkipOf(FailedMessageRowMapper.Map(Row(document)));
+        var skip = SkipOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         Assert.That(skip.Reason, Is.EqualTo(MigrationSkipReason.RequiredValueMissing));
     }
 
     [Test]
-    public void Maps_when_only_an_earlier_attempt_has_no_failing_endpoint_address()
+    public void Translates_when_only_an_earlier_attempt_has_no_failing_endpoint_address()
     {
         var document = ThreeAttempts();
         document.ProcessingAttempts[0].FailureDetails.AddressOfFailingEndpoint = null!;
 
-        var row = RowOf(FailedMessageRowMapper.Map(Row(document)));
+        var row = RowOf(FailedMessageDocumentTranslator.Translate(Row(document)));
 
         Assert.That(row.FailingEndpointAddress, Is.EqualTo("newest-address"));
     }
 
     [Test]
-    public void Maps_each_group_with_an_id_to_a_row_keyed_by_the_message_and_drops_a_group_with_no_id()
+    public void Translates_each_group_with_an_id_to_a_row_keyed_by_the_message_and_drops_a_group_with_no_id()
     {
         var uniqueMessageId = Guid.NewGuid();
         var document = new IngestedFailure().ToFailedMessage();
@@ -409,10 +409,10 @@ class FailedMessageRowMapperTests
             new() { Id = null!, Title = "No id", Type = "Type" }
         ];
 
-        var mapping = (FailedMessageRowMapping.Mapped)FailedMessageRowMapper.Map(Row(document));
+        var translation = (FailedMessageDocumentTranslation.Translated)FailedMessageDocumentTranslator.Translate(Row(document));
 
         Assert.That(
-            mapping.Groups.Select(group => (group.FailedMessageUniqueId, group.GroupId, group.Title, group.Type)),
+            translation.Groups.Select(group => (group.FailedMessageUniqueId, group.GroupId, group.Title, group.Type)),
             Is.EqualTo(new[]
             {
                 (uniqueMessageId, "group-1", "Title 1", "Type 1"),
@@ -426,7 +426,7 @@ class FailedMessageRowMapperTests
     [TestCase(FailedMessageStatus.Archived)]
     public void Preserves_the_stored_status(FailedMessageStatus status)
     {
-        var row = RowOf(FailedMessageRowMapper.Map(Row(new IngestedFailure().ToFailedMessage(status))));
+        var row = RowOf(FailedMessageDocumentTranslator.Translate(Row(new IngestedFailure().ToFailedMessage(status))));
 
         Assert.That(row.Status, Is.EqualTo(status));
     }
@@ -434,7 +434,7 @@ class FailedMessageRowMapperTests
     [Test]
     public void Stores_the_StatusChangedAt_the_source_resolved()
     {
-        var row = RowOf(FailedMessageRowMapper.Map(Row(new IngestedFailure().ToFailedMessage(FailedMessageStatus.Archived))));
+        var row = RowOf(FailedMessageDocumentTranslator.Translate(Row(new IngestedFailure().ToFailedMessage(FailedMessageStatus.Archived))));
 
         Assert.That(row.StatusChangedAt, Is.EqualTo(StatusChangedAtFromTheSource));
     }
@@ -442,7 +442,7 @@ class FailedMessageRowMapperTests
     [Test]
     public void Stores_the_LastModified_the_source_carried()
     {
-        var row = RowOf(FailedMessageRowMapper.Map(Row(new IngestedFailure().ToFailedMessage(FailedMessageStatus.Archived))));
+        var row = RowOf(FailedMessageDocumentTranslator.Translate(Row(new IngestedFailure().ToFailedMessage(FailedMessageStatus.Archived))));
 
         Assert.That(row.LastModified, Is.EqualTo(LastModifiedFromTheSource), "RavenDB's @last-modified, not the copy time");
     }
@@ -454,7 +454,7 @@ class FailedMessageRowMapperTests
         var complete = Row(new IngestedFailure().ToFailedMessage());
         var row = complete with { Metadata = complete.Metadata.Where(entry => entry.Key != missingKey).ToDictionary(entry => entry.Key, entry => entry.Value) };
 
-        var ex = Assert.Throws<InvalidOperationException>(() => FailedMessageRowMapper.Map(row));
+        var ex = Assert.Throws<InvalidOperationException>(() => FailedMessageDocumentTranslator.Translate(row));
 
         Assert.That(ex.Message, Does.Contain(missingKey).And.Contain(row.SourceId));
     }
@@ -466,7 +466,7 @@ class FailedMessageRowMapperTests
         var complete = Row(new IngestedFailure().ToFailedMessage());
         var row = complete with { Metadata = new Dictionary<string, object?>(complete.Metadata) { [key] = "2026-09-01T08:00:00Z" } };
 
-        var ex = Assert.Throws<InvalidOperationException>(() => FailedMessageRowMapper.Map(row));
+        var ex = Assert.Throws<InvalidOperationException>(() => FailedMessageDocumentTranslator.Translate(row));
 
         Assert.That(ex.Message, Does.Contain(typeof(string).FullName).And.Contain(key).And.Contain(row.SourceId), "a value that is present but mistyped must not read as missing");
     }
@@ -497,7 +497,7 @@ class FailedMessageRowMapperTests
             }
         };
 
-        var row = RowOf(FailedMessageRowMapper.Map(source));
+        var row = RowOf(FailedMessageDocumentTranslator.Translate(source));
 
         DateTime[] written = [row.StatusChangedAt, row.LastModified, row.FirstTimeOfFailure, row.LastTimeOfFailure, row.LastAttemptedAt, row.TimeSent!.Value];
         DateTime[] expected = [statusChangedAt, lastModified, document.ProcessingAttempts[0].FailureDetails.TimeOfFailure, newest.FailureDetails.TimeOfFailure, newest.AttemptedAt, timeSent];
@@ -509,16 +509,16 @@ class FailedMessageRowMapperTests
         }
     }
 
-    static FailedMessageEntity RowOf(FailedMessageRowMapping mapping)
+    static FailedMessageEntity RowOf(FailedMessageDocumentTranslation translation)
     {
-        Assert.That(mapping, Is.TypeOf<FailedMessageRowMapping.Mapped>());
-        return ((FailedMessageRowMapping.Mapped)mapping).Row;
+        Assert.That(translation, Is.TypeOf<FailedMessageDocumentTranslation.Translated>());
+        return ((FailedMessageDocumentTranslation.Translated)translation).Row;
     }
 
-    static FailedMessageRowMapping.Skipped SkipOf(FailedMessageRowMapping mapping)
+    static FailedMessageDocumentTranslation.Skipped SkipOf(FailedMessageDocumentTranslation translation)
     {
-        Assert.That(mapping, Is.TypeOf<FailedMessageRowMapping.Skipped>());
-        return (FailedMessageRowMapping.Skipped)mapping;
+        Assert.That(translation, Is.TypeOf<FailedMessageDocumentTranslation.Skipped>());
+        return (FailedMessageDocumentTranslation.Skipped)translation;
     }
 
     static FailedMessage ThreeAttempts()

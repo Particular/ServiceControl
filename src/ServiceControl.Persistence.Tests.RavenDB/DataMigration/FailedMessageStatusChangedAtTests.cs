@@ -58,7 +58,7 @@ namespace ServiceControl.Persistence.Tests.RavenDB.DataMigration
             var document = new IngestedFailure().ToFailedMessage();
             document.ProcessingAttempts = null;
 
-            Assert.That(FailedMessageStream.StatusChangedAt(document, null, ErrorRetentionPeriod), Is.Null, "the mapper skips a message with no attempts, so this must not throw and halt the category");
+            Assert.That(FailedMessageStream.StatusChangedAt(document, null, ErrorRetentionPeriod), Is.Null, "the translator skips a message with no attempts, so this must not throw and halt the category");
         }
 
         [Test]
