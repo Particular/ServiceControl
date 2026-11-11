@@ -45,6 +45,33 @@ class LicensingThroughputSourceTests : RavenMigrationSourceTestBase
     }
 
     [Test]
+    public async Task A_resume_reads_only_the_endpoints_after_the_cursor_whatever_order_they_were_stored_in()
+    {
+        foreach (var name in new[] { "Z", "A", "M" })
+        {
+            var documentId = $"{name}/Broker";
+            using var session = DocumentStore.OpenAsyncSession(ThroughputDatabaseName);
+            await session.StoreAsync(new EndpointDocument(new EndpointIdentifier(name, ThroughputSource.Broker)), documentId);
+            await session.SaveChangesAsync();
+
+            session.IncrementalTimeSeriesFor(documentId, RavenLicensingDataStore.ThroughputTimeSeriesName).Increment(new DateTime(2026, 1, 1), 100);
+            await session.SaveChangesAsync();
+        }
+
+        await using var source = await OpenMigrationSource();
+        var category = MigrationCategoryRegistry.All.Single(entry => entry.Id == "LicensingThroughput");
+
+        var batches = await CollectBatches(source, category);
+        var resumed = await CollectBatches(source, category, resumeAfter: batches[0].Cursor);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(batches.Select(batch => batch.Cursor), Is.EqualTo(new[] { "A/Broker", "M/Broker", "Z/Broker" }), "one endpoint per batch, in id order rather than the order RavenDB stored them");
+            Assert.That(resumed.SelectMany(batch => batch.Rows).Select(row => ((ThroughputDayRow)row.Document).Endpoint.Name), Is.EqualTo(new[] { "M", "Z" }), "a resume reads only the days of endpoints after the cursor");
+        }
+    }
+
+    [Test]
     public async Task Reads_more_endpoints_than_one_session_accepts_requests()
     {
         var endpointCount = new DocumentConventions().MaxNumberOfRequestsPerSession + 1;

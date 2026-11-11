@@ -40,6 +40,29 @@ class LicensingEndpointsSourceTests : RavenMigrationSourceTestBase
     }
 
     [Test]
+    public async Task Reads_endpoints_in_id_order_and_resumes_after_the_cursor_whatever_order_they_were_stored_in()
+    {
+        foreach (var name in new[] { "Z", "A", "M" })
+        {
+            using var session = DocumentStore.OpenAsyncSession(ThroughputDatabaseName);
+            await session.StoreAsync(new EndpointDocument(new EndpointIdentifier(name, ThroughputSource.Broker)) { SanitizedName = name.ToLowerInvariant() }, $"{name}/Broker");
+            await session.SaveChangesAsync();
+        }
+
+        await using var source = await OpenMigrationSource();
+        var category = MigrationCategoryRegistry.All.Single(entry => entry.Id == MigrationCategoryIds.LicensingEndpoints);
+
+        var batches = await CollectBatches(source, category, batchSize: 1);
+        var resumed = await CollectBatches(source, category, resumeAfter: batches[0].Cursor, batchSize: 1);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(batches.Select(batch => batch.Cursor), Is.EqualTo(new[] { "A/Broker", "M/Broker", "Z/Broker" }), "each batch cursors on its last endpoint, in id order rather than the order RavenDB stored them");
+            Assert.That(resumed.SelectMany(batch => batch.Rows).Select(row => row.SourceId), Is.EqualTo(new[] { "M/Broker", "Z/Broker" }), "a resume reads only the endpoints after the cursor");
+        }
+    }
+
+    [Test]
     public async Task A_document_of_another_collection_is_neither_read_nor_counted()
     {
         using (var session = DocumentStore.OpenAsyncSession(ThroughputDatabaseName))

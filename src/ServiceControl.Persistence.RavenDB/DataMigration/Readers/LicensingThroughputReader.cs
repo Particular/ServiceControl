@@ -13,7 +13,6 @@ using Particular.LicensingComponent.Contracts;
 using Raven.Client.Documents.Session.TimeSeries;
 using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.RavenDB.Throughput;
-using ServiceControl.Persistence.RavenDB.Throughput.Models;
 
 /// <summary>
 /// Reads each licensing endpoint's daily message counts out of the throughput database, one endpoint per batch,
@@ -29,7 +28,7 @@ sealed class LicensingThroughputReader(RavenReadOnlySourceLifecycle lifecycle) :
     async IAsyncEnumerable<MigrationBatch> ReadThroughputDays(string? resumeAfter, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         // One endpoint per batch, because the batch size counts rows and one endpoint can bring a year or more of days.
-        await foreach (var endpoints in RavenDocumentStream.ByPrefix<EndpointDocument>(Lifecycle, CategoryId, Lifecycle.Settings.ThroughputDatabaseName, string.Empty, resumeAfter, 1, RavenDocumentStream.MaxDocumentsWalkedPerBatch, ThroughputDocuments.Endpoint, cancellationToken))
+        await foreach (var endpoints in ThroughputDocuments.Endpoints(Lifecycle, CategoryId, resumeAfter, 1, cancellationToken))
         {
             var days = new List<MigrationRow>();
 
