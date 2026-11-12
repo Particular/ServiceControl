@@ -33,7 +33,7 @@
         {
             using var session = await sessionProvider.OpenSession(cancellationToken: cancellationToken);
             var documents = await session
-                .Query<EventLogItem>()
+                .Query<EventLogItem, EventLogItems_ByRaisedAt>()
                 .Statistics(out var stats)
                 .OrderByDescending(p => p.RaisedAt)
                 .Paging(pagingInfo)
