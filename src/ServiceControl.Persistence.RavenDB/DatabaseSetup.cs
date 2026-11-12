@@ -1,16 +1,21 @@
 namespace ServiceControl.Persistence.RavenDB
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Indexes;
     using Raven.Client.Documents.Operations.Expiration;
+    using Raven.Client.Documents.Operations.Indexes;
     using Raven.Client.Exceptions;
     using Raven.Client.ServerWide;
     using Raven.Client.ServerWide.Operations;
     using ServiceControl.Infrastructure;
     using ServiceControl.RavenDB;
+    using Throughput.Indexes;
 
     class DatabaseSetup(RavenPersisterSettings settings, IDocumentStore documentStore)
     {
@@ -25,7 +30,15 @@ namespace ServiceControl.Persistence.RavenDB
             await CreateDatabase(settings.DatabaseName, cancellationToken);
             await CreateDatabase(settings.ThroughputDatabaseName, cancellationToken);
 
-            await IndexDeployment.CreateIndexesAsync(typeof(DatabaseSetup).Assembly, documentStore, cancellationToken);
+            // The throughput indexes belong to the throughput database, all other indexes to the error database.
+            var indexes = IndexDeployment.FindIndexes(typeof(DatabaseSetup).Assembly).ToList();
+            var throughputIndexes = indexes.Where(IsThroughputIndex).ToList();
+            var errorIndexes = indexes.Except(throughputIndexes).ToList();
+
+            await DeleteThroughputIndexesFromErrorDatabase(throughputIndexes, cancellationToken);
+
+            await IndexDeployment.CreateIndexesAsync(errorIndexes, documentStore, cancellationToken: cancellationToken);
+            await IndexDeployment.CreateIndexesAsync(throughputIndexes, documentStore, settings.ThroughputDatabaseName, cancellationToken);
 
             await StartupChecks.WarnIfIndexesUseCorax(documentStore, settings.DatabaseName, cancellationToken);
             await StartupChecks.WarnIfIndexesUseCorax(documentStore, settings.ThroughputDatabaseName, cancellationToken);
@@ -33,6 +46,8 @@ namespace ServiceControl.Persistence.RavenDB
             await LicenseStatusCheck.WaitForLicenseOrThrow(documentStore, cancellationToken);
             await ConfigureExpiration(settings, cancellationToken);
         }
+
+        static bool IsThroughputIndex(AbstractIndexCreationTask index) => index.GetType().Namespace == typeof(EndpointIndex).Namespace;
 
         async Task CreateDatabase(string databaseName, CancellationToken cancellationToken)
         {
@@ -55,6 +70,29 @@ namespace ServiceControl.Persistence.RavenDB
                 catch (ConcurrencyException)
                 {
                     // The database was already created before calling CreateDatabaseOperation
+                }
+            }
+        }
+
+        // Earlier versions deployed the throughput indexes to the error database, where no query uses them.
+        async Task DeleteThroughputIndexesFromErrorDatabase(IEnumerable<AbstractIndexCreationTask> throughputIndexes, CancellationToken cancellationToken)
+        {
+            foreach (var index in throughputIndexes)
+            {
+                var definition = await documentStore.Maintenance.SendAsync(new GetIndexOperation(index.IndexName), cancellationToken);
+
+                if (definition != null)
+                {
+                    Logger.LogInformation("Deleting the throughput index {IndexName} from the {DatabaseName} database", index.IndexName, settings.DatabaseName);
+
+                    // RavenDB ignores the deletion of a LockedIgnore index and rejects that of a LockedError index. An
+                    // operator might have locked the index after migrating it to Lucene.
+                    if (definition.LockMode is not (null or IndexLockMode.Unlock))
+                    {
+                        await documentStore.Maintenance.SendAsync(new SetIndexesLockOperation(index.IndexName, IndexLockMode.Unlock), cancellationToken);
+                    }
+
+                    await documentStore.Maintenance.SendAsync(new DeleteIndexOperation(index.IndexName), cancellationToken);
                 }
             }
         }
