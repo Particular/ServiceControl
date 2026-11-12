@@ -15,6 +15,7 @@ using Raven.Client.Documents.Indexes;
 using Raven.Client.Documents.Operations;
 using Raven.Client.Documents.Operations.Indexes;
 using Raven.Client.Documents.Session;
+using Raven.Client.Exceptions;
 using ServiceControl.Infrastructure;
 using ServiceControl.MessageFailures;
 using ServiceControl.MessageFailures.Api;
@@ -98,7 +99,23 @@ sealed class FailedMessagesReader(RavenReadOnlySourceLifecycle lifecycle) : Migr
             // after the index count, because a deletion in between could hide a document the index left out. A stale index count
             // means something changed after the wait, so it waits and counts again.
             var storedBefore = await StoredFailedMessages(databaseName, cancellationToken);
-            var indexed = await Query(session).Statistics(out var statistics).WhereIn(nameof(FailedMessage.Status), StatusValues(CopiedStatuses)).CountAsync(cancellationToken);
+            int indexed;
+            QueryStatistics statistics;
+            try
+            {
+                indexed = await Query(session).Statistics(out statistics).WhereIn(nameof(FailedMessage.Status), StatusValues(CopiedStatuses)).CountAsync(cancellationToken);
+            }
+            catch (RavenException)
+            {
+                // RavenDB can mark the index errored after the wait saw it working, and then refuses the query. The next pass falls back to a full read.
+                if ((await WaitForIndex(databaseName, cancellationToken))?.State is IndexState.Error or IndexState.Disabled)
+                {
+                    continue;
+                }
+
+                throw;
+            }
+
             var storedAfter = await StoredFailedMessages(databaseName, cancellationToken);
 
             if (statistics.IsStale)
