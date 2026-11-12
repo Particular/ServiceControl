@@ -13,10 +13,14 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NServiceBus.Extensibility;
 using NServiceBus.Transport;
 using NUnit.Framework;
+using Particular.LicensingComponent.BrokerThroughput;
+using Particular.LicensingComponent.Contracts;
+using Particular.LicensingComponent.Persistence;
 using ServiceControl.Persistence.EFCore;
 using Particular.ServiceControl.Hosting;
 using ServiceBus.Management.Infrastructure.Settings;
@@ -36,6 +40,7 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 using ServiceControl.Persistence.Infrastructure;
 using ServiceControl.Persistence.Tests;
 using ServiceControl.Persistence.UnitOfWork;
+using ServiceControl.Transports.BrokerThroughput;
 using TestHelper;
 // Aliased rather than imported: Raven.Client.Documents carries LINQ extensions that collide with EF Core's.
 using IDocumentStore = Raven.Client.Documents.IDocumentStore;
@@ -52,6 +57,11 @@ abstract class MigrationAcceptanceTest
 
     ServiceProvider targetServices;
     IMigrationCheckpointStore targetCheckpointStore;
+    readonly FakeBrokerThroughputQuery brokerQuery = new();
+
+    // RavenDB refuses an incremental time series whose name does not start with "INC:".
+    // It must equal LicensingDataStore.ThroughputTimeSeriesName, which is internal to the RavenDB persister.
+    const string ThroughputTimeSeriesName = "INC: throughput data";
 
     protected Settings Settings { get; private set; }
     protected HttpClient HttpClient { get; private set; }
@@ -155,6 +165,64 @@ abstract class MigrationAcceptanceTest
 
     protected Task SeedSource(params (string Id, object Document)[] documents) =>
         SeedSource(Source.PrimaryDatabase, documents);
+
+    protected ILicensingDataStore TargetLicensingDataStore => targetServices.GetRequiredService<ILicensingDataStore>();
+
+    protected async Task SeedThroughputSource(Endpoint endpoint)
+    {
+        var documentId = $"{endpoint.Id.Name}/{endpoint.Id.ThroughputSource}";
+
+        var document = new
+        {
+            Id = documentId,
+            EndpointId = new { endpoint.Id.Name, endpoint.Id.ThroughputSource },
+            endpoint.SanitizedName,
+            EndpointIndicators = endpoint.EndpointIndicators ?? [],
+            UserIndicator = endpoint.UserIndicator ?? string.Empty,
+            Scope = endpoint.Scope ?? string.Empty
+        };
+
+        using var session = SourceStore.OpenAsyncSession(Source.ThroughputDatabase);
+        await session.StoreAsync(document, documentId);
+        session.Advanced.GetMetadataFor(document)["@collection"] = "EndpointDocuments";
+        await session.SaveChangesAsync();
+    }
+
+    protected async Task SeedThroughputTimeSeries(string documentId, DateOnly day, long count)
+    {
+        using var session = SourceStore.OpenAsyncSession(Source.ThroughputDatabase);
+        session.IncrementalTimeSeriesFor(documentId, ThroughputTimeSeriesName)
+            .Increment(day.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc), count);
+        await session.SaveChangesAsync();
+    }
+
+    protected void BrokerReports(string queue, DateOnly day, long count) => brokerQuery.Stage(queue, day, count);
+
+    protected IReadOnlyList<(string Queue, DateOnly StartDate)> BrokerRequests => brokerQuery.Requests;
+
+    protected Task WaitForCollectorPass() =>
+        WaitUntil(() => Task.FromResult(brokerQuery.CompletedPasses > 0), "the broker throughput collector completed a pass");
+
+    // The product adds the broker collector only when a query is registered before AddServiceControl, and customize runs after it.
+    protected void CollectFromTheBrokerImmediately(IServiceCollection services)
+    {
+        services.AddSingleton<IBrokerThroughputQuery>(brokerQuery);
+        services.AddHostedService(provider => new BrokerThroughputCollectorHostedService(
+            provider.GetRequiredService<ILogger<BrokerThroughputCollectorHostedService>>(),
+            brokerQuery,
+            provider.GetRequiredService<ThroughputSettings>(),
+            provider.GetRequiredService<ILicensingDataStore>(),
+            provider.GetRequiredService<TimeProvider>())
+        {
+            DelayStart = TimeSpan.Zero
+        });
+    }
+
+    protected Task SeedThroughputReportMasks(IReadOnlyList<string> maskedStrings) =>
+        SeedSource(Source.ThroughputDatabase, ("ReportMasks", new { MaskedStrings = maskedStrings.ToList() }));
+
+    protected Task SeedThroughputLicensedEndpointDetails(LicensedEndpointDetails details) =>
+        SeedSource(Source.ThroughputDatabase, ("LicensedEndpointDetails", details));
 
     protected Task SeedSourceWithBody(FailedMessage document, byte[] body, string contentType) =>
         SeedSourceWithBodies((document, body, contentType));
