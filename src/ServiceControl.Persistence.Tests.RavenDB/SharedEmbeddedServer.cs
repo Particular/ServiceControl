@@ -45,7 +45,7 @@
                 };
 
                 // TODO: See if more refactoring can be done between this and the RavenPersisterSettings above
-                var embeddedConfig = new EmbeddedDatabaseConfiguration(settings.ServerUrl, RavenPersisterSettings.DatabaseNameDefault, dbPath, logPath, logsMode) { RunInMemory = true };
+                var embeddedConfig = new EmbeddedDatabaseConfiguration(settings.ServerUrl, RavenPersisterSettings.DatabaseNameDefault, dbPath, logPath, logsMode) { RunInMemory = true, DisableAutoIndexes = true };
 
                 embeddedDatabase = EmbeddedDatabase.Start(embeddedConfig, new ApplicationLifetime(new NullLogger<ApplicationLifetime>()));
 
