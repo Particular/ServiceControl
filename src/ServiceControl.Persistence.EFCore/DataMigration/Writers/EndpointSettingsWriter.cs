@@ -16,21 +16,37 @@ sealed class EndpointSettingsWriter(IMigrationSqlDialect migrationDialect) : Mig
 {
     public override string CategoryId => MigrationCategoryIds.EndpointSettings;
 
-    public override int BatchSize(ServiceControlDbContext dbContext) => migrationDialect.RowsPerStatement(MigrationInsert<EndpointSettingsEntity>.For(dbContext).Columns.Count);
+    public override int BatchSize(ServiceControlDbContext dbContext) => migrationDialect.RowsPerStatementFor<EndpointSettingsEntity>(dbContext);
 
     public override Task<long> Count(ServiceControlDbContext dbContext, CancellationToken cancellationToken = default) =>
         dbContext.EndpointSettings.LongCountAsync(cancellationToken);
 
     protected override async Task<PreparedBatch> PrepareDocuments(ServiceControlDbContext dbContext, IReadOnlyList<(MigrationRow Row, EndpointSettings Document)> documents, CancellationToken cancellationToken = default)
     {
-        List<EndpointSettingsEntity> rows = [.. documents.Select(document => new EndpointSettingsEntity { Name = document.Document.Name, TrackInstances = document.Document.TrackInstances })];
-        List<string> rowSourceIds = [.. documents.Select(document => document.Row.SourceId)];
+        var insert = MigrationInsert<EndpointSettingsEntity>.For(dbContext);
+        List<EndpointSettingsEntity> rows = [];
+        List<string> rowSourceIds = [];
+        List<(string SourceId, MigrationSkipReason Reason, string Detail)> skips = [];
+
+        foreach (var (row, settings) in documents)
+        {
+            var entity = new EndpointSettingsEntity { Name = settings.Name, TrackInstances = settings.TrackInstances };
+
+            if (UnstorableValueSkip(insert, migrationDialect, row, entity) is { } unstorable)
+            {
+                skips.Add(unstorable);
+                continue;
+            }
+
+            rows.Add(entity);
+            rowSourceIds.Add(row.SourceId);
+        }
 
         // The source yields document-id order, and the statement keeps the first of any keys the database treats as one.
         return new PreparedBatch(
             async (context, token) => (await migrationDialect.InsertMissing(context, rows, token)).Count,
             rows.Count,
-            [],
+            skips,
             await MergesIn(dbContext, rows, rowSourceIds, cancellationToken));
     }
 

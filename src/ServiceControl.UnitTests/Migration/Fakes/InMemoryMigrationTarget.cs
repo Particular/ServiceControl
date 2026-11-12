@@ -14,6 +14,7 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
     readonly Dictionary<string, List<MigrationRow>> rowsHandedToWriteByCategory = [];
     readonly HashSet<string> preExistingKeys = [];
     readonly Dictionary<string, MigrationSkipReason> rejectedKeys = [];
+    readonly TaskCompletionSource ignoredCallReleased = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     public int DefaultBatchSize { get; set; } = 3;
     public string NoBatchSizeFor { get; set; }
@@ -46,7 +47,21 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
     /// Waits on this call until the token is cancelled and then throws, as a write stuck on a database that stopped answering does.
     /// </summary>
     public int? HangOnCall { get; set; }
+    /// <summary>
+    /// Waits on this call until ReleaseIgnoredCall and never looks at the token, then writes without it, as a driver call stuck below the token does.
+    /// If the store then refuses the checkpoint save, this fake has already recorded the batch's rows, unlike the real target, which rolls both back.
+    /// </summary>
+    public int? IgnoreTokenOnCall { get; set; }
+    /// <summary>
+    /// The write that IgnoreTokenOnCall holds, or null until that call is made. It ends only after ReleaseIgnoredCall.
+    /// </summary>
+    public Task<MigrationWriteResult> IgnoredCall { get; private set; }
     int callCount;
+
+    /// <summary>
+    /// Lets the write that IgnoreTokenOnCall holds carry on. Calling it again does nothing.
+    /// </summary>
+    public void ReleaseIgnoredCall() => ignoredCallReleased.TrySetResult();
 
     public void SeedExistingKey(string sourceId) => preExistingKeys.Add(sourceId);
 
@@ -66,32 +81,51 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
     public Task<int> BatchSizeFor(MigrationCategory category, CancellationToken cancellationToken = default) =>
         category.Id == NoBatchSizeFor ? throw new InvalidOperationException($"No batch size is mapped for category {category.Id}") : Task.FromResult(DefaultBatchSize);
 
-    public async Task<MigrationWriteResult> Write(
+    public Task<MigrationWriteResult> Write(
         MigrationCategory category,
         MigrationBatch batch,
         MigrationCheckpoint checkpointToExtend,
         CancellationToken cancellationToken = default)
     {
-        callCount++;
+        var callNumber = ++callCount;
         BeforeWrite?.Invoke(checkpointToExtend);
 
-        if (HangOnCall == callCount)
+        return IgnoreTokenOnCall == callNumber
+            ? IgnoredCall = WriteOnceReleased(category, batch, checkpointToExtend, callNumber)
+            : WriteNow(category, batch, checkpointToExtend, callNumber, cancellationToken);
+    }
+
+    // The commit ignores the token too, so a late commit meets the store's version check instead of the token.
+    async Task<MigrationWriteResult> WriteOnceReleased(MigrationCategory category, MigrationBatch batch, MigrationCheckpoint checkpointToExtend, int callNumber)
+    {
+        await ignoredCallReleased.Task;
+        return await WriteNow(category, batch, checkpointToExtend, callNumber, CancellationToken.None);
+    }
+
+    async Task<MigrationWriteResult> WriteNow(
+        MigrationCategory category,
+        MigrationBatch batch,
+        MigrationCheckpoint checkpointToExtend,
+        int callNumber,
+        CancellationToken cancellationToken)
+    {
+        if (HangOnCall == callNumber)
         {
             await Task.Delay(Timeout.Infinite, cancellationToken);
         }
 
-        if (StopOnCall is { } stop && stop.CallNumber == callCount)
+        if (StopOnCall is { } stop && stop.CallNumber == callNumber)
         {
             await stop.Source.CancelAsync();
             throw new OperationCanceledException(stop.Source.Token);
         }
 
-        if (FailOnCallNumber == callCount)
+        if (FailOnCallNumber == callNumber)
         {
-            throw FailWith ?? new InvalidOperationException($"Simulated failure on write {callCount}");
+            throw FailWith ?? new InvalidOperationException($"Simulated failure on write {callNumber}");
         }
 
-        if (CancelOnCall is { } cancel && cancel.CallNumber == callCount)
+        if (CancelOnCall is { } cancel && cancel.CallNumber == callNumber)
         {
             await cancel.Source.CancelAsync();
         }

@@ -1,6 +1,7 @@
 namespace ServiceControl.Persistence.EFCore.Implementation.UnitOfWork;
 
 using System.Text;
+using NServiceBus;
 using ServiceControl.Persistence.Infrastructure;
 
 /// <summary>
@@ -19,7 +20,8 @@ static class MessageBodyClassifier
             return (null, false);
         }
 
-        if (headers.IsBinary())
+        // A null content type says no more than a missing one, which IsBinary treats as binary, but IsBinary throws on null.
+        if (headers.GetValueOrDefault(Headers.ContentType) is null || headers.IsBinary())
         {
             return (null, true);
         }

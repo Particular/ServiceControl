@@ -25,6 +25,17 @@ public interface IMigrationSqlDialect
     int RowsPerStatement(int parametersPerRow);
 
     /// <summary>
+    /// The length of a text value as the database counts it when checking a column's maximum length.
+    /// </summary>
+    int TextLength(string value);
+
+    /// <summary>
+    /// Finds a character the database refuses to store in any text column, which would fail the whole statement the value goes into.
+    /// Returns that character, or null when the value has none.
+    /// </summary>
+    char? RejectedCharacterIn(string value);
+
+    /// <summary>
     /// Inserts the rows whose key the table does not hold, merges any whose keys the database treats as one, and returns the rows it inserted.
     /// </summary>
     Task<IReadOnlyList<TEntity>> InsertMissing<TEntity>(ServiceControlDbContext dbContext, IReadOnlyList<TEntity> rows, CancellationToken cancellationToken = default) where TEntity : class;
