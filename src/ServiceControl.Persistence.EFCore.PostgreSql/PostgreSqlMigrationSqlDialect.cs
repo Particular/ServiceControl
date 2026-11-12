@@ -1,6 +1,7 @@
 namespace ServiceControl.Persistence.EFCore.PostgreSql;
 
 using ServiceControl.Persistence.EFCore.DbContexts;
+using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
 /// <summary>
@@ -46,5 +47,31 @@ class PostgreSqlMigrationSqlDialect : PostgreSqlDialect, IMigrationSqlDialect
         }
 
         return inserted;
+    }
+
+    public async Task<int> SetLicensingEndpointThroughput(ServiceControlDbContext dbContext, IReadOnlyList<LicensingEndpointThroughputEntity> rows, CancellationToken cancellationToken = default)
+    {
+        var insert = MigrationInsert<LicensingEndpointThroughputEntity>.For(dbContext);
+        var keyColumns = string.Join(", ", insert.KeyColumns);
+        var written = 0;
+
+        foreach (var chunk in rows.Chunk(RowsPerStatement(insert.Columns.Count)))
+        {
+            written += (await insert.Execute(
+                dbContext,
+                $"""
+                 INSERT INTO {insert.Table} ({string.Join(", ", insert.Columns)})
+                 VALUES
+                 {ParameterRows(chunk.Length, insert.Columns.Count)}
+                 ON CONFLICT ({keyColumns})
+                 DO UPDATE SET {string.Join(", ", insert.Columns.Except(insert.KeyColumns).Select(column => $"{column} = excluded.{column}"))}
+                 RETURNING {keyColumns}
+                 """,
+                chunk,
+                configureParameter: null,
+                cancellationToken)).Count;
+        }
+
+        return written;
     }
 }

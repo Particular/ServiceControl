@@ -26,7 +26,11 @@ sealed class EFCoreMigrationTarget(
     {
         new KnownEndpointsWriter(migrationDialect),
         new EndpointSettingsWriter(migrationDialect),
-        new FailedMessagesWriter(migrationDialect, storagePersistence, settings)
+        new FailedMessagesWriter(migrationDialect, storagePersistence, settings),
+        new LicensingEndpointsWriter(migrationDialect),
+        new LicensingThroughputWriter(migrationDialect),
+        new LicensingReportMasksWriter(migrationDialect),
+        new LicensedEndpointDetailsWriter(migrationDialect)
     }.ToFrozenDictionary(writer => writer.CategoryId, StringComparer.Ordinal);
 
     public Task Open(CancellationToken cancellationToken = default) =>
