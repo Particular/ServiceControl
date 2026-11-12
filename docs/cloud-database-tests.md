@@ -9,9 +9,15 @@ The `Cloud database tests` workflow (`.github/workflows/cloud-database-tests.yml
 | `ServiceControl_Persistence_SqlServer_TokenConnectionString` | `azure-sqlserver` | A Microsoft Entra ID token |
 | `ServiceControl_Persistence_PostgreSql_TokenConnectionString` | `azure-postgresql`, `aurora-postgresql` | A Microsoft Entra ID token on Azure, an IAM token on Aurora |
 
+## Schema cleanup
+
+The cloud workflow sets `ServiceControl_TESTS_SKIP_SCHEMA_CLEANUP=true` on its test step. SQL Server and PostgreSQL test helpers leave each test's schema in place, avoiding schema-drop timeouts. Tests still use unique schemas and retain host shutdown, connection disposal, and temporary-file cleanup. The provisioning action deletes the server in its post step, including on test failure or cancellation.
+
+Schema cleanup remains enabled when the variable is unset or has any value other than `true` (case-insensitive). Set it only for disposable databases whose owner deletes the database after the run. Retained schemas and full-text indexes consume resources until deletion; this setting does not address full-text indexing failures.
+
 ## Token authentication fixtures
 
-The suites use the password connection strings. Only the token authentication fixtures use the token connection strings, and each fixture is ignored when its variable is not set. A token fixture applies the migrations to a new schema, writes a row and reads it back, then drops the schema, all through the token login.
+The suites use the password connection strings. Only the token authentication fixtures use the token connection strings, and each fixture is ignored when its variable is not set. A token fixture applies the migrations to a new schema, writes a row and reads it back, all through the token login. It drops the schema through that login unless schema cleanup is disabled.
 
 * `azure-sqlserver` makes the service principal that `azure/login` signed in as the server's Microsoft Entra admin and keeps SQL authentication enabled. The connection string has `Authentication=Active Directory Default` and no `User ID` or `Password`. SqlClient gets the token from `DefaultAzureCredential`, which finds the Azure CLI sign-in on the runner.
 * `azure-postgresql` enables Microsoft Entra authentication alongside password authentication and makes the same service principal a Microsoft Entra admin of the server. The admin's role name is the principal's client ID. The connection string uses that client ID as its `Username` and sets `Token Authentication=AzureEntraId`.
