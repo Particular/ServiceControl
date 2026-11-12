@@ -20,7 +20,7 @@ This page describes the migration as designed, not what is built today. [The ins
 - **What the instance needs to open is copied while it is closed.** This is the *required* data. Most of it is small.
 - **Everything else is copied in the background while it runs.** This is the *optional* data: the event log and archived and resolved messages.
 - **Anything not copied ages out of RavenDB**, and the customer deletes the old database when ready.
-- **The main thing that makes the outage long is a big backlog of unresolved failures.** They almost never age out (see the [6.18 exception](#skipped-rows)), they are required, and they can legitimately be months old. The strategy assumes you keep them low by resolving and archiving. The *dry run* tells you which case you are in.
+- **The main thing that makes the outage long is a big backlog of unresolved failures.** They almost never age out (see the [6.18 exception](#rows-removed-after-the-copy)), they are required, and they can legitimately be months old. The strategy assumes you keep them low by resolving and archiving. The *dry run* tells you which case you are in.
 - **A big archive does not make the outage longer, as long as RavenDB has indexed every failed message.** The copy finds the unresolved failures through a RavenDB index, so while ServiceControl is closed it reads only them. If the index is still catching up, the copy waits for it first. If the index is broken, or leaves out some failed messages, the copy reads every failed message instead, archived and resolved ones included, and logs a warning saying so. Then a big archive does make the outage longer.
 
 ```mermaid
@@ -161,7 +161,7 @@ There are eighteen *categories*: sixteen required and two optional.
 | Integration events still waiting to be sent | Required | Each is an event a subscriber has not received yet. There are only any if the old instance fell behind or could not reach the broker. They are sent once ServiceControl opens, later than they would have been. RavenDB sends them in no particular order anyway, so no ordering is lost |
 | Custom checks, with their last status | Required | Not every check reports again. An endpoint that is down never does, and a check with no repeat interval reports only when its endpoint starts. Leaving one out could hide a known failure until that endpoint restarts |
 | Failed error imports, with bodies | Required | Messages taken off the error queue but not ingested. They exist nowhere else and never expire. After the move the "Error Message Ingestion" custom check keeps flagging them and `--import-failed-errors` imports them into SQL. Importing them on RavenDB first is better still |
-| Group comments | Required | Copied after unresolved failed messages, so a note like "do not retry" is there when ServiceControl opens. Blank comments are not copied. A comment on a group whose messages are all archived or resolved is removed by ServiceControl's usual clean-up soon after it opens, because that group has no failed messages in SQL yet |
+| Group comments | Required | Copied after unresolved failed messages, so a note like "do not retry" is there when ServiceControl opens. Blank comments are not copied. Some comments are removed after ServiceControl opens, see [Open decisions](#rows-removed-after-the-copy) |
 | Event log | Optional | The history behind the ServicePulse activity feed. On a busy instance it holds a row for every failure, retry and submission |
 | Archived and resolved failed messages, with bodies | Optional | The biggest category by far, and most of the copying time |
 
@@ -172,12 +172,12 @@ There are eighteen *categories*: sixteen required and two optional.
 - `ArchiveBatches` and `UnarchiveBatches`, which exist only because of how RavenDB works.
 - The `ConnectedApplications` document, written only by versions 6.0 and 6.1. Since 6.2 the MassTransit connector status, which ServicePulse uses to turn features on and off, comes from the connector's own heartbeat. ServiceControl holds that in memory and refills it when the connector next reports, so nothing reads the document.
 - Broker and audit service version details, which refill on the next throughput collection.
-- Failed message edit locks, which stop one failed message being edited twice. An edited message is resolved, so the lock only matters if it fails again: on RavenDB it can then never be edited again, and after the move it can be edited once more.
+- Failed message edit locks, which stop one failed message being edited twice. See [Open decisions](#values-that-change-or-merge-in-sql).
 - Heartbeat state, which neither persister stores and which is rebuilt in memory after any restart. The known endpoints and monitored flags are copied, so heartbeat monitoring after the move behaves exactly as after any restart. An endpoint that is down shows as failing with no last heartbeat time, and raises no alert.
 
 **Written new by the copy rather than copied:**
 
-- Retry claims in `FailedMessageRetries` are not copied. A claim ties a message to the retry that sent it, and while it exists, retrying the message from the failed messages list sends nothing. The copy writes a new claim for each retry-issued message it inserts, even one whose claim RavenDB had already released. As on RavenDB, the claim goes when the retried message succeeds, when it fails again, or when it is resent from Pending Retries.
+- Retry claims in `FailedMessageRetries` are not copied. A claim ties a message to the retry that sent it, and while it exists, retrying the message from the failed messages list sends nothing. The copy writes a new claim for each retry-issued message it inserts, see [Open decisions](#values-that-change-or-merge-in-sql). As on RavenDB, the claim goes when the retried message succeeds, when it fails again, or when it is resent from Pending Retries.
 
 ### Optional data windows
 
@@ -189,22 +189,8 @@ There are eighteen *categories*: sixteen required and two optional.
 
 ### Data that changes shape
 
-- **Attempt history collapses to the newest attempt.** SQL has no attempts table, so it keeps the newest attempt and the number of attempts. A message that failed five times still shows five attempts and still shows as a repeated failure, but only the newest attempt keeps its headers and exception. This applies to every failed message, whatever its status.
-- **Subscriptions that differ only in message-type version merge into one row**, because the SQL key leaves the version out.
-- **On SQL Server, endpoint settings whose names differ only in case merge into one row.** The name column compares without case by default. PostgreSQL keeps both.
-  - The name column's own collation decides, not the database default. A case-sensitive database whose name column was given a case-insensitive collation still merges.
-  - The copy keeps the first in RavenDB document-id order. That id is a hash of the name, so which one survives is effectively arbitrary.
-  - The copy logs a warning naming both endpoints and the one it kept.
-  - The dry run lists each pair by asking SQL Server how the column compares. For unusual characters its list can differ from what the copy does.
-- **A message type over 450 characters is cut to its last 450 characters**, as ingestion does. The row is copied, not skipped.
-- **On SQL Server, licensing endpoints whose names differ only in trailing spaces become one row.** SQL Server ignores trailing spaces when it compares the key. PostgreSQL keeps both.
-  - The copy keeps the endpoint whose RavenDB document id sorts first in ordinal order.
-  - A day that both endpoints counted holds the sum of their counts, as it would if SQL Server had recorded both endpoints from the start.
-  - This is not counted as a merge. The copy logs no warning, and the dry run does not list them. The second endpoint and its share of each shared day count as already present.
-  - The copy adds counts only for names that differ in case and trailing spaces. A key column given a collation that also ignores, for example, accents still makes one row of other names, and that row keeps one endpoint's count.
 - **Event log items, historic retry operations and pending integration events get new numbers.** Nothing refers to the old ones, so this is safe.
-
-The dry run counts both kinds of merge before anything moves.
+- **Other values change or merge on the way into SQL.** Each is listed under [Open decisions](#values-that-change-or-merge-in-sql).
 
 ### Skipped rows
 
@@ -219,7 +205,7 @@ A skip is one of three kinds:
 - **Fault, no retry can fix it.** The RavenDB document itself cannot become a SQL row. A retry reads the same document and skips it again, so only [abandoning](#retry-and-abandon) gets past it. It is a fault because the row is lost, not because anything is broken.
 - **Harmless.** A row SQL would have removed anyway.
 
-A value SQL can hold only after changing it is not a skip. Those rows are copied, and are listed under [Data that changes shape](#data-that-changes-shape).
+A value SQL can hold only after changing it is not a skip. Those rows are copied, and are listed under [Open decisions](#values-that-change-or-merge-in-sql).
 
 **Fault skips a retry can fix:**
 
@@ -254,7 +240,7 @@ A value SQL can hold only after changing it is not a skip. Those rows are copied
 - **Rows RavenDB expires during the copy are not skips either.** A deleted row is never read, so it is an absence, not a loss.
   - Expiration only deletes a document carrying `@expires`, and only two kinds ever get one: archived or resolved failed messages, and event log items (`ExpirationManager.cs`).
   - A failed message loses its expiry whenever it becomes unresolved or retry-issued again: when it fails again, is unarchived, or is retried.
-  - The exception: a message that failed again after being archived or resolved on version 6.18 or earlier kept its old expiry, and upgrading does not remove it. So a few unresolved messages can still expire during the copy.
+  - The exception is an unresolved message from version 6.18 or earlier, which can still expire during the copy. See [Open decisions](#rows-removed-after-the-copy).
   - A failed message that expires after the copy reads it, but before the copy reads its body, is a skip. It counts as a body RavenDB does not hold, so it is a fault skip and the category ends Failed. For unresolved messages this happens only with a source last written by version 6.18 or earlier. A retry gets past it, because the expired message is no longer there to read.
   - If the copy stops, and the message it stopped at expires before the next start, that start cannot carry on. The category stops with an error saying RavenDB holds no document with that id. If RavenDB is the right database, `--migration-retry` gets past it, because a retry reads the category from the start.
   - Both shrinking categories copy in the background, so the copy has hours to race the sweep. A window shorter than the retention period keeps the copy clear of it, by the difference between the two.
@@ -303,11 +289,11 @@ flowchart LR
 
 ### Writing to SQL
 
-- **A failed message is written as one row**, with its status unchanged. Its older attempts are dropped, as described in [Data that changes shape](#data-that-changes-shape).
+- **A failed message is written as one row**, with its status unchanged. Its older attempts are dropped, see [Open decisions](#values-that-change-or-merge-in-sql).
 - **A failed message keeps its failure groups and its last-modified time.** `LastModified` is RavenDB's own `@last-modified`, copied as it is, so failure groups, and lists filtered by when a message last changed, show the same messages as before.
 - **`UniqueMessageId` keeps its value** but changes type, from a string in RavenDB to a `uniqueidentifier` column in SQL. It is the primary key, the ServicePulse URL, the retry correlation key and the body lookup key at once.
 - **`StatusChangedAt` is rebuilt.**
-  - For archived and resolved messages it comes from `@expires`, the only place RavenDB records it. `@expires` is the status-change time plus `ServiceControl/ErrorRetentionPeriod`, so the copy subtracts the current value. If you changed that setting since RavenDB stamped a message, its rebuilt time is off by the difference. It still ages out of SQL when RavenDB would have deleted it, because SQL adds the same current value back when it checks the row against the retention period.
+  - For archived and resolved messages it comes from `@expires`, the only place RavenDB records it. `@expires` is the status-change time plus `ServiceControl/ErrorRetentionPeriod`, so the copy subtracts the current value. A changed retention period makes this time wrong, see [Open decisions](#values-that-change-or-merge-in-sql).
   - For unresolved and retry-issued messages it is the newest attempt's time, because the column is `NOT NULL` and cannot be left empty. That is harmless, because the retention sweep only considers archived and resolved rows.
 - **Deciding whether a row is past retention needs two retention periods.** The source's turns `@expires` back into the status-change time. The target's current one decides whether that time is past the cutoff.
 - **Bodies go through `IBodyStoragePersistence`**, which owns compression and the choice of filesystem, Azure Blob or S3. The copier decides inline or external storage with the same rule ingestion uses, because `IBodyStoragePersistence` does not apply it. The size limit for inline storage defaults to 102,400 bytes and is set by `ServiceControl/MaxBodySizeToStore`.
@@ -374,12 +360,9 @@ A category is *Failed* when something went wrong. Everything already copied stay
 - **A Failed required category** keeps ServiceControl closed until it is retried to Done or abandoned. That is deliberate: opening the host is the point of no return.
 - **A Failed optional category** leaves the instance running with that slice missing, and stops the migration being finished.
 
-**What the checks cannot see, and accept:**
+**The threshold judges this run only.** A bad start can stop a category whose overall rate would have been fine, and the source must not read the rows most likely to be skipped first.
 
-- **Nothing counts RavenDB during the copy.** So a read that ends early, or skips a range, still balances, and the category ends Done. `--migration-verify` finds it afterwards, by counting RavenDB again and comparing that with the rows the copy read (see [the read-only commands](#the-dry-run)).
-- **Verify counts with the same reader the copy used.** So it finds rows one run missed, but not a reader that always misses the same rows, or a source pointed at the wrong database. Tests on each reader cover those.
-- **A write that silently stores fewer rows still ends Done.** Already present is what is left over after copied and skipped, so the counts balance. The counts check does catch rows dropped while a batch is prepared. Verify prints how many already-present rows were merges, so on a category copied once, already-present rows that merges do not explain point to it.
-- **The threshold judges this run only.** A bad start can stop a category whose overall rate would have been fine, and the source must not read the rows most likely to be skipped first.
+Some losses leave a category Done without any check noticing. They are listed under [Open decisions](#what-the-checks-do-not-catch).
 
 ### Retry and abandon
 
@@ -423,7 +406,7 @@ Stop ServiceControl, run one of these, then start it again. In a container, run 
 - **A worker or import that gets past the check marks the target as opened**, whether or not its own migration setting is on. Once it has written, going back to RavenDB would lose that data, so it ends the free abort just as the main host opening does.
 
 > [!IMPORTANT]
-> **Start workers only after the main host has opened.** One started at the same moment as the first migration start can slip in before the copy has written its first checkpoint, and nothing stops it.
+> **Start workers only after the main host has opened.** Nothing stops one started at the same moment as the first migration start, see [Open decisions](#gaps-nothing-enforces).
 
 ### Going back to RavenDB
 
@@ -433,7 +416,7 @@ Stop ServiceControl, run one of these, then start it again. In a container, run 
 - **To try again later:** start from a new, empty SQL database (`--setup`).
 
 > [!IMPORTANT]
-> Never reuse the old copy. It would skip every category already finished and miss anything RavenDB received since, and nothing can detect the reuse, because it looks exactly like a normal resume.
+> Never reuse the old copy. It would skip every category already finished and miss anything RavenDB received since. Nothing detects the reuse, see [Open decisions](#gaps-nothing-enforces).
 >
 > **Once ServiceControl opens**, new failed messages go to SQL and there is no way back. You can only finish the migration, or abandon what is left.
 
@@ -484,7 +467,7 @@ It says nothing about load on the source.
 - **RavenDB against the rows the copy read, never against SQL as it is now.** Once ServiceControl opens, normal use changes most categories' SQL rows within minutes: ingestion, heartbeats, retries, archiving, the licensing collectors, ServiceControl's own custom checks and the retention sweep. A SQL count then measures that use, not the copy.
 - **RavenDB holding more rows than the copy read means rows were never read.** Nothing writes to RavenDB once the copy starts, so it can only shrink. Verify flags these rows. They are not in SQL, so keep RavenDB. The same flag shows if something other than this migration wrote to RavenDB since, such as an old instance still running on it.
 - **RavenDB holding fewer is shown, not judged.** RavenDB's expiry keeps deleting archived and resolved messages, event log items and a few unresolved messages from 6.18 or earlier, after the copy has read them.
-- **The same expiry can hide rows that were never read**, because a deleted row and a missed row cancel out. A window shorter than the retention period keeps a windowed category clear of this, by the difference between the two.
+- **The same expiry can hide rows that were never read**, see [Open decisions](#what-the-checks-do-not-catch).
 - **A windowed category is counted inside the window it started with**, on RavenDB only.
 - **Verify also prints how many rows SQL held for each category when it settled.** Before ServiceControl opens nothing else writes, so for a required category that is exactly what the copy left in SQL. For the two optional categories it includes what ServiceControl wrote while they copied.
 
@@ -504,6 +487,50 @@ It says nothing about load on the source.
 - **Progress shows in the ServicePulse activity feed, the log and `--migration-status`.** The activity feed records when the background copy starts and finishes, when a category fails, and when the source cannot be reached. A start with migration still on after every category is Done or Abandoned logs a warning to turn it off. There is no migration custom check, because custom checks are being removed from ServiceControl.
 - **Decisions are two commands, run with ServiceControl stopped:** `--migration-retry` and `--migration-abandon`. There is no HTTP API, pause, resume or abort, and no way to add a category to a running instance.
 - **Stopping a copy takes a restart.**
+
+## Open decisions
+
+The design currently accepts each case below. Each one changes, merges or drops data, or lets a loss pass without failing a category. None is settled: each needs a decision before the migration ships. Where the design gives a reason for accepting a case, it is stated.
+
+### Values that change or merge in SQL
+
+- **Attempt history collapses to the newest attempt.** SQL has no attempts table, so it keeps the newest attempt and the number of attempts. A message that failed five times still shows five attempts and still shows as a repeated failure, but only the newest attempt keeps its headers and exception. This applies to every failed message, whatever its status.
+- **Subscriptions that differ only in message-type version merge into one row**, because the SQL key leaves the version out.
+- **On SQL Server, endpoint settings whose names differ only in case merge into one row.** The name column compares without case by default. PostgreSQL keeps both.
+  - The name column's own collation decides, not the database default. A case-sensitive database whose name column was given a case-insensitive collation still merges.
+  - The copy keeps the first in RavenDB document-id order. That id is a hash of the name, so which one survives is effectively arbitrary.
+  - The copy logs a warning naming both endpoints and the one it kept.
+  - The dry run lists each pair by asking SQL Server how the column compares. For unusual characters its list can differ from what the copy does.
+- **A message type over 450 characters is cut to its last 450 characters**, as ingestion does. The row is copied, not skipped.
+- **On SQL Server, licensing endpoints whose names differ only in trailing spaces become one row.** SQL Server ignores trailing spaces when it compares the key. PostgreSQL keeps both.
+  - The copy keeps the endpoint whose RavenDB document id sorts first in ordinal order.
+  - A day that both endpoints counted holds the sum of their counts, as it would if SQL Server had recorded both endpoints from the start.
+  - This is not counted as a merge. The copy logs no warning, and the dry run does not list them. The second endpoint and its share of each shared day count as already present.
+  - The copy adds counts only for names that differ in case and trailing spaces. A key column given a collation that also ignores, for example, accents still makes one row of other names, and that row keeps one endpoint's count. The other endpoint's counts are lost.
+- **`StatusChangedAt` is wrong for an archived or resolved message if `ServiceControl/ErrorRetentionPeriod` changed since RavenDB stamped it.** The copy subtracts the current value from `@expires`, so the rebuilt time is off by the difference. The message still ages out of SQL when RavenDB would have deleted it, because SQL adds the same current value back when it checks the row against the retention period.
+- **Every retry-issued message gets a retry claim, even one whose claim RavenDB had already released.** While the claim exists, retrying the message from the failed messages list sends nothing.
+- **Failed message edit locks are not copied.** On RavenDB, an edited message that fails again can never be edited again. After the move it can be edited once more.
+
+The dry run counts the subscription and endpoint settings merges before anything moves.
+
+### Rows removed after the copy
+
+- **A group comment on a group whose messages are all archived or resolved is removed soon after ServiceControl opens.** ServiceControl's usual clean-up removes it, because that group has no failed messages in SQL until the background copy brings the archived and resolved ones.
+- **Unresolved messages from version 6.18 or earlier can expire during the copy.** A message that failed again after being archived or resolved on 6.18 or earlier kept its old expiry, and upgrading does not remove it. One that RavenDB deletes before the copy reads it is not copied and not counted as a skip.
+
+### What the checks do not catch
+
+- **Nothing counts RavenDB during the copy.** A read that ends early, or skips a range, still balances, and the category ends Done. `--migration-verify` finds it afterwards, by counting RavenDB again and comparing that with the rows the copy read.
+- **Rows never read on a Done category are reported, not fixed.** Verify prints them, but its exit code ignores them, neither operator command takes a Done row, and nothing recounts RavenDB before ServiceControl opens. The current reasoning: the misses verify can see are particular to one run and rare, and keeping RavenDB is the remedy.
+- **Verify counts with the same reader the copy used.** So it finds rows one run missed, but not a reader that always misses the same rows, or a source pointed at the wrong database. Only tests on each reader cover those.
+- **Expiry can hide rows that were never read.** In verify, a deleted row and a missed row cancel out, so a flagged number is a floor. A window shorter than the retention period keeps a windowed category clear of this, by the difference between the two.
+- **A write that silently stores fewer rows still ends Done.** Already present is what is left over after copied and skipped, so the counts balance. The counts check does catch rows dropped while a batch is prepared. Verify prints how many already-present rows were merges, so on a category copied once, already-present rows that merges do not explain point to it.
+- **A crash during a batch that carries bodies leaves orphan bodies in the body store.** External bodies are written before the transaction opens, so a crash leaves bodies no row points at, never rows pointing at missing bodies.
+
+### Gaps nothing enforces
+
+- **An ingestion worker started at the same moment as the first migration start can slip in before the copy writes its first checkpoint.** The ingestion gate cannot see a copy with no checkpoint row, so the worker ingests into a part-copied database. Only the instructions prevent this.
+- **Reusing an old copy after going back to RavenDB cannot be detected**, because it looks exactly like a normal resume. The copy skips every category already finished and misses anything RavenDB received since.
 
 ## Glossary
 
