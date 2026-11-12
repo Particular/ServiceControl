@@ -36,11 +36,6 @@ class MigrateCommand : AbstractCommand
             Console.Out.WriteLine("The offline migration stopped. Run --migrate again to resume from the last committed batch.");
             Environment.ExitCode = 1;
         }
-        catch (Exception exception)
-        {
-            await Console.Error.WriteLineAsync(exception.Message);
-            Environment.ExitCode = 1;
-        }
         finally
         {
             Console.CancelKeyPress -= cancel;
