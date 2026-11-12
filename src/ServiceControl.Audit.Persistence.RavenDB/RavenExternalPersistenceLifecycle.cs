@@ -6,7 +6,6 @@ namespace ServiceControl.Audit.Persistence.RavenDB
     using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
-    using Raven.Client.Documents.Conventions;
     using ServiceControl.RavenDB;
 
     sealed class RavenExternalPersistenceLifecycle(DatabaseConfiguration configuration) : IRavenPersistenceLifecycle, IRavenDocumentStoreProvider, IDisposable
@@ -40,10 +39,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB
                     Database = configuration.Name,
                     Urls = [configuration.ServerConfiguration.ConnectionString],
                     Certificate = RavenClientCertificate.FindClientCertificate(configuration.ServerConfiguration),
-                    Conventions = new DocumentConventions
-                    {
-                        SaveEnumsAsIntegers = true
-                    }
+                    Conventions = DocumentStoreConventions.Create()
                 };
 
                 documentStore = store.Initialize();
