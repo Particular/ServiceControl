@@ -622,12 +622,11 @@ class RetentionSweepTests : ErrorIngestionTestBase
         EFSettings.ErrorRetentionPeriod = TimeSpan.FromDays(1_000_000);
 
         using var cancellation = new CancellationTokenSource();
+        // The failed messages pass throws before any database call, so the event log delete is the first command.
+        cancelDuringNextQuery.Arm(cancellation, PersistenceTestsContext.SqlToDelayFor(TimeSpan.FromSeconds(20)));
         var sweeper = GetSweeper();
 
-        // The failed messages pass throws before any database call, so by the time the start returns
-        // the event log pass is waiting on the database and the cancellation lands there.
         sweeper.TryStartManualSweep(null, null, cancellation.Token);
-        await cancellation.CancelAsync();
 
         await WaitForManualSweepToFinish();
 
@@ -849,13 +848,23 @@ class RetentionSweepTests : ErrorIngestionTestBase
 
         public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
         {
+            DelayIfArmed(command);
+            return base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
+        }
+
+        public override ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(DbCommand command, CommandEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+        {
+            DelayIfArmed(command);
+            return base.NonQueryExecutingAsync(command, eventData, result, cancellationToken);
+        }
+
+        void DelayIfArmed(DbCommand command)
+        {
             if (Interlocked.Exchange(ref cancellation, null) is { } armed)
             {
                 command.CommandText = delaySql + Environment.NewLine + command.CommandText;
                 armed.CancelAfter(TimeSpan.FromMilliseconds(500));
             }
-
-            return base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
         }
     }
 
