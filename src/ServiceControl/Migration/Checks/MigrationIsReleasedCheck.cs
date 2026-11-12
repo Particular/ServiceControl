@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 using ServiceControl.Persistence.DataMigration;
 
 /// <summary>
-/// Registered by a test host that needs a copy to run on a build that does not yet carry the whole migration.
+/// Registered by a test host, or by a Debug build whose SERVICECONTROL_MIGRATION_ALLOW_UNRELEASED environment
+/// variable is true, to let a copy run on a build that does not yet carry the whole migration. A Release build
+/// has no way to register it.
 /// </summary>
 class AllowUnreleasedMigration;
 

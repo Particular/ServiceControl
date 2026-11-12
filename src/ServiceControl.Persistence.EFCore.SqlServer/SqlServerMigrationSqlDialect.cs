@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.EFCore.SqlServer;
 
+using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -67,6 +68,12 @@ class SqlServerMigrationSqlDialect : SqlServerDialect, IMigrationSqlDialect
 
     public int RowsPerStatement(int parametersPerRow) => MaxRowsPerStatement(parametersPerRow);
 
+    // An nvarchar(n) column counts byte-pairs, which are UTF-16 units, so a surrogate pair takes two.
+    public int TextLength(string value) => value.Length;
+
+    // An nvarchar column stores any UTF-16 unit, U+0000 included.
+    public char? RejectedCharacterIn(string value) => null;
+
     public async Task<IReadOnlyList<TEntity>> InsertMissing<TEntity>(ServiceControlDbContext dbContext, IReadOnlyList<TEntity> rows, CancellationToken cancellationToken = default) where TEntity : class
     {
         var insert = MigrationInsert<TEntity>.For(dbContext);
@@ -79,10 +86,11 @@ class SqlServerMigrationSqlDialect : SqlServerDialect, IMigrationSqlDialect
         foreach (var chunk in rows.Chunk(RowsPerStatement(insert.Columns.Count)))
         {
             // HOLDLOCK, or two writers can both find a key missing and both insert it.
+            // FORCESEEK, because on a small table SQL Server scans a whole index instead of seeking the primary key, and HOLDLOCK then locks every row the scan reads.
             inserted.AddRange(await insert.Execute(
                 dbContext,
                 $"""
-                 MERGE {insert.Table} WITH (HOLDLOCK) AS t
+                 MERGE {insert.Table} WITH (HOLDLOCK, FORCESEEK) AS t
                  USING (
                      SELECT {columns}
                      FROM (
@@ -98,10 +106,21 @@ class SqlServerMigrationSqlDialect : SqlServerDialect, IMigrationSqlDialect
                  OUTPUT {string.Join(", ", insert.KeyColumns.Select(column => $"inserted.{column}"))};
                  """,
                 chunk,
+                DeclareUnboundedTextAsMax,
                 cancellationToken));
         }
 
         return inserted;
+    }
+
+    // EF declares unbounded text as nvarchar(4000) or nvarchar(max) by each value's length, and each new mix compiles its own plan.
+    // Size -1 declares every such value as the nvarchar(max) its column already is.
+    static void DeclareUnboundedTextAsMax(IProperty property, DbParameter parameter)
+    {
+        if (property.ClrType == typeof(string) && property.GetMaxLength() is null)
+        {
+            parameter.Size = -1;
+        }
     }
 
     OpenedKeys Keys => OpenedState ?? throw new InvalidOperationException($"The SQL Server migration dialect is not open. Call {nameof(Open)} first.");
