@@ -10,7 +10,7 @@ using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
 /// <summary>
-/// The migration's SQL Server statements. Two keys that differ only in case can be one row here, because a
+/// The migration's SQL Server statements. Two keys that differ only in case or trailing spaces can be one row here, because a
 /// column's collation decides what counts as equal, so the statements compare keys under the collation the
 /// schema gives them and the batch is de-duplicated the same way before it is offered to the table.
 /// </summary>
@@ -55,7 +55,7 @@ class SqlServerMigrationSqlDialect : SqlServerDialect, IMigrationSqlDialect
                     ?? throw new InvalidOperationException($"The migration target found no collation for {tableName}.{column}, so the SQL Server schema is missing or not current. Run ServiceControl with --setup against this database first.");
 
                 collations[(table, sql.DelimitIdentifier(column))] = collation.Name;
-                comparers[(entityType.ClrType, property.Name)] = (collation.ComparisonStyle & IgnoreCaseStyle) == 0 ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+                comparers[(entityType.ClrType, property.Name)] = new PaddedKeyComparer((collation.ComparisonStyle & IgnoreCaseStyle) == 0 ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
             }
         }
 
@@ -170,4 +170,12 @@ class SqlServerMigrationSqlDialect : SqlServerDialect, IMigrationSqlDialect
         IReadOnlyDictionary<(Type EntityType, string Property), IEqualityComparer<string>> Comparers);
 
     sealed record KeyColumnCollation(string Name, int ComparisonStyle);
+
+    // SQL Server pads the shorter value with spaces before it compares, so keys that differ only in trailing spaces are equal.
+    sealed class PaddedKeyComparer(StringComparer inner) : IEqualityComparer<string>
+    {
+        public bool Equals(string? x, string? y) => inner.Equals(x?.TrimEnd(' '), y?.TrimEnd(' '));
+
+        public int GetHashCode(string obj) => inner.GetHashCode(obj.TrimEnd(' '));
+    }
 }
