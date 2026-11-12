@@ -396,16 +396,17 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
     [Test]
     public void A_document_that_cannot_be_prepared_fails_the_write_naming_the_row_and_category()
     {
-        // A content type header stored with a null value is found by the classifier and then throws.
-        var document = new IngestedFailure { ContentType = null }.ToFailedMessage();
+        // The source rebuilds SendingEndpoint as EndpointDetails, so a value it left as stored is an engine defect the translator's cast rejects.
+        var document = new IngestedFailure().ToFailedMessage();
+        document.ProcessingAttempts[^1].MessageMetadata["SendingEndpoint"] = new Dictionary<string, object> { ["Name"] = "Stored" };
 
         var exception = Assert.ThrowsAsync<InvalidOperationException>(() => Target.Write(FailedMessagesCategory, BatchOf(document), Checkpoint()));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(exception.Message, Does.Contain($"'FailedMessages/{document.UniqueMessageId}'").And.Contain(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages).And.Contain(nameof(NullReferenceException)),
+            Assert.That(exception.Message, Does.Contain($"'FailedMessages/{document.UniqueMessageId}'").And.Contain(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages).And.Contain(nameof(InvalidCastException)),
                 "the halt's LastError is built from this message, and without the row the operator cannot tell which document to look at");
-            Assert.That(exception.InnerException, Is.TypeOf<NullReferenceException>());
+            Assert.That(exception.InnerException, Is.TypeOf<InvalidCastException>());
         }
     }
 

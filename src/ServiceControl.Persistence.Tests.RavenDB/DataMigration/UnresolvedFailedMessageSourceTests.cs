@@ -279,7 +279,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
     public async Task Reads_the_whole_collection_instead_of_waiting_for_an_errored_index()
     {
         var unindexable = await SeedFailedMessage(FailedMessageWithATimeSentThatIsNotADate());
-        await CompleteDatabaseOperation();
+        await DocumentStore.WaitForIndexingAllowingErrorsAsync(TestContext.CurrentContext.CancellationToken);
         Assert.That(await IndexStateNow(), Is.EqualTo(IndexState.Error), "one document that fails out of one attempt errors the index");
 
         // An errored index stops part way, so this one stays unindexed and the index stays stale.
@@ -302,7 +302,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
         }
 
         var unindexable = await SeedFailedMessage(FailedMessageWithATimeSentThatIsNotADate());
-        await CompleteDatabaseOperation();
+        await DocumentStore.WaitForIndexingAllowingErrorsAsync(TestContext.CurrentContext.CancellationToken);
         Assert.That(await IndexStateNow(), Is.EqualTo(IndexState.Normal), "RavenDB errors the whole index only above a 15 percent failure rate, so one bad document among many leaves it working and silently short");
 
         var rows = await ReadAll();
@@ -468,7 +468,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
         var document = new IngestedFailure().ToFailedMessage();
         document.ProcessingAttempts = null;
         await SeedFailedMessage(document);
-        await CompleteDatabaseOperation();
+        await DocumentStore.WaitForIndexingAllowingErrorsAsync(TestContext.CurrentContext.CancellationToken);
 
         var row = (await ReadAll()).Single();
 
@@ -529,7 +529,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
         stored.MessageMetadata["SendingEndpoint"] = new Dictionary<string, object> { ["Name"] = "Stored sender" };
         stored.MessageMetadata["ReceivingEndpoint"] = new Dictionary<string, object> { ["Name"] = "Stored receiver" };
         await SeedFailedMessage(document);
-        await CompleteDatabaseOperation();
+        await DocumentStore.WaitForIndexingAllowingErrorsAsync(TestContext.CurrentContext.CancellationToken);
 
         var metadata = ((FailedMessage)(await ReadAll()).Single().Document).ProcessingAttempts.Single().MessageMetadata;
 
@@ -700,7 +700,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
         var expected = document.ProcessingAttempts[1 - nullAttempt].AttemptedAt;
         document.ProcessingAttempts[nullAttempt] = null;
         await SeedFailedMessage(document);
-        await CompleteDatabaseOperation();
+        await DocumentStore.WaitForIndexingAllowingErrorsAsync(TestContext.CurrentContext.CancellationToken);
 
         var row = (await ReadAll()).Single();
 

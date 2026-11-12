@@ -20,7 +20,15 @@ public static class RavenIndexAwaiter
     public static Task WaitForIndexingAsync(this IDocumentStore store, CancellationToken cancellationToken = default) =>
         store.WaitForIndexingAsync(DefaultTimeout, cancellationToken);
 
-    public static async Task WaitForIndexingAsync(this IDocumentStore store, TimeSpan timeout, CancellationToken cancellationToken = default)
+    public static Task WaitForIndexingAsync(this IDocumentStore store, TimeSpan timeout, CancellationToken cancellationToken = default) =>
+        store.WaitForIndexingAsync(timeout, allowIndexErrors: false, cancellationToken);
+
+    // For a test that stores a document an index cannot map on purpose. An index in the error state counts as done,
+    // because it never catches up.
+    public static Task WaitForIndexingAllowingErrorsAsync(this IDocumentStore store, CancellationToken cancellationToken = default) =>
+        store.WaitForIndexingAsync(DefaultTimeout, allowIndexErrors: true, cancellationToken);
+
+    static async Task WaitForIndexingAsync(this IDocumentStore store, TimeSpan timeout, bool allowIndexErrors, CancellationToken cancellationToken)
     {
         var stopwatch = Stopwatch.StartNew();
         IndexStats[] stats;
@@ -31,14 +39,14 @@ public static class RavenIndexAwaiter
 
             // An index in the error state never becomes up to date. Fail now with the errors instead of after the timeout.
             var erroredIndexes = stats.Where(i => i.State == IndexState.Error || i.ErrorsCount > 0).Select(i => i.Name).ToArray();
-            if (erroredIndexes.Length > 0)
+            if (erroredIndexes.Length > 0 && !allowIndexErrors)
             {
                 var errors = await store.Maintenance.SendAsync(new GetIndexErrorsOperation(erroredIndexes), cancellationToken);
                 var details = errors.SelectMany(e => e.Errors.Select(x => $"{e.Name}: {x.Action} {x.Document} {x.Error}"));
                 Assert.Fail($"Indexes have errors:{Environment.NewLine}{string.Join(Environment.NewLine, details)}");
             }
 
-            if (stats.All(i => !i.IsStale))
+            if (stats.All(i => !i.IsStale || (allowIndexErrors && i.State == IndexState.Error)))
             {
                 return;
             }
