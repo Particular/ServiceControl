@@ -9,5 +9,9 @@
         public string LogsMode { get; } = logsMode;
 
         public bool RunInMemory { get; set; }
+
+        // Makes RavenDB throw on a query that would create an auto index, instead of creating it. Tests use it to fail
+        // on dynamic queries, which must go through a static index.
+        public bool DisableAutoIndexes { get; set; }
     }
 }
