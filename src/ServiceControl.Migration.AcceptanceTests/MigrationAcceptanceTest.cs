@@ -452,7 +452,7 @@ abstract class MigrationAcceptanceTest
         var category = MigrationCategoryRegistry.Find(categoryId) ?? throw new ArgumentException($"'{categoryId}' is not a migration category.", nameof(categoryId));
         var before = await targetCheckpointStore.Read(categoryId, cancellationToken);
         var target = new RecordingMigrationTarget(Target);
-        var options = new MigrationEngineOptions(TimeSpan.Zero, MigrationSettings.DefaultHaltThresholdPercent, MigrationSettings.DefaultHaltThresholdMinimum, []) { BodyRetryBackoff = TimeSpan.Zero };
+        var options = new MigrationEngineOptions(TimeSpan.Zero, Persistence.DataMigration.MigrationSettings.DefaultHaltThresholdPercent, Persistence.DataMigration.MigrationSettings.DefaultHaltThresholdMinimum, []) { BodyRetryBackoff = TimeSpan.Zero };
 
         await using var source = await OpenSource(cancellationToken);
         var engine = new MigrationEngine(source, target, targetCheckpointStore, TimeProvider.System, options, NullLogger<MigrationEngine>.Instance);

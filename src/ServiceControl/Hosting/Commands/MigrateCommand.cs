@@ -23,14 +23,15 @@ class MigrateCommand : AbstractCommand
             cancellation.Cancel();
         };
         Console.CancelKeyPress += cancel;
+        var migrationToken = cancellation.Token;
 
         try
         {
             Console.Out.WriteLine("Stop ServiceControl and all ingestion workers before running the offline migration.");
-            await Run(settings, cancellationToken: cancellation.Token);
+            await Run(settings, cancellationToken: migrationToken);
             Console.Out.WriteLine("The offline migration completed. Start the ServiceControl service or container to complete the online migration.");
         }
-        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+        catch (OperationCanceledException) when (migrationToken.IsCancellationRequested)
         {
             Console.Out.WriteLine("The offline migration stopped. Run --migrate again to resume from the last committed batch.");
             Environment.ExitCode = 1;

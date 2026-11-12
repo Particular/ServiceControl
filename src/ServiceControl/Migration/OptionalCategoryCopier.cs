@@ -14,16 +14,16 @@ using ServiceControl.Persistence.DataMigration;
 
 sealed class OptionalCategoryCopier(IServiceProvider services, Settings settings, IHostApplicationLifetime lifetime, ILogger<OptionalCategoryCopier> logger) : BackgroundService
 {
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             using var registration = lifetime.ApplicationStarted.Register(() => started.TrySetResult());
-            await started.Task.WaitAsync(stoppingToken);
-            await Copy(stoppingToken);
+            await started.Task.WaitAsync(cancellationToken);
+            await Copy(cancellationToken);
         }
-        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
         }
         catch (Exception exception)
@@ -71,7 +71,11 @@ sealed class OptionalCategoryCopier(IServiceProvider services, Settings settings
         {
             await source.Open(cancellationToken);
         }
-        catch (Exception exception) when (exception is not OperationCanceledException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
         {
             await MigrationStartup.RecordSourceOutage(store, categories, exception, cancellationToken);
             logger.LogError(exception, "The online migration cannot open its source. ServiceControl remains available. Restart ServiceControl to try again, or abandon the outstanding optional categories.");
