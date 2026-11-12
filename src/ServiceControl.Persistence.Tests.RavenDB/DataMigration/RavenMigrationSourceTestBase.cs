@@ -13,6 +13,8 @@ abstract class RavenMigrationSourceTestBase : RavenPersistenceTestBase
     static readonly SettingsRootNamespace SettingsRoot = new("ServiceControl");
     static readonly object SettingsGate = new();
 
+    protected string ThroughputDatabaseName => ((RavenPersisterSettings)PersistenceSettings).ThroughputDatabaseName;
+
     protected async Task<IMigrationSource> OpenMigrationSource()
     {
         var settings = (RavenPersisterSettings)PersistenceSettings;
