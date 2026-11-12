@@ -12,27 +12,28 @@ namespace ServiceControl.RavenDB
 
     public static class IndexDeployment
     {
-        public static Task CreateIndexesAsync(Assembly assembly, IDocumentStore store, CancellationToken cancellationToken = default)
-        {
-            var indexes = assembly.GetTypes()
+        public static Task CreateIndexesAsync(Assembly assembly, IDocumentStore store, CancellationToken cancellationToken = default) =>
+            CreateIndexesAsync(FindIndexes(assembly), store, cancellationToken: cancellationToken);
+
+        public static IEnumerable<AbstractIndexCreationTask> FindIndexes(Assembly assembly) =>
+            assembly.GetTypes()
                 .Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(AbstractIndexCreationTask)))
                 .Select(t => (AbstractIndexCreationTask)Activator.CreateInstance(t));
 
-            return CreateIndexesAsync(indexes, store, cancellationToken);
-        }
-
-        public static async Task CreateIndexesAsync(IEnumerable<AbstractIndexCreationTask> indexes, IDocumentStore store, CancellationToken cancellationToken = default)
+        // The indexes are deployed to the database of the store, unless another database is given.
+        public static async Task CreateIndexesAsync(IEnumerable<AbstractIndexCreationTask> indexes, IDocumentStore store, string database = null, CancellationToken cancellationToken = default)
         {
+            database ??= store.Database;
             var indexList = indexes.ToList();
             var lockedIndexesWithChanges = new List<string>();
 
             // RavenDB compares the configuration as part of the index definition. Our definitions set no search engine,
             // so the engine has to be resolved before deployment. Otherwise RavenDB builds a side-by-side replacement
             // with the database default, which can undo a migration done by an operator in RavenDB Studio.
-            var existingByName = await GetExistingDefinitions(store, cancellationToken);
-            var databaseDefault = await GetDatabaseSearchEngineType(store, cancellationToken);
+            var existingByName = await GetExistingDefinitions(store, database, cancellationToken);
+            var databaseDefault = await GetDatabaseSearchEngineType(store, database, cancellationToken);
 
-            Logger.LogInformation("Database {DatabaseName} static index search engine setting: {DatabaseDefault}", store.Database, databaseDefault ?? "not set, the server default applies");
+            Logger.LogInformation("Database {DatabaseName} static index search engine setting: {DatabaseDefault}", database, databaseDefault ?? "not set, the server default applies");
 
             foreach (var index in indexList)
             {
@@ -113,7 +114,7 @@ namespace ServiceControl.RavenDB
                 throw new Exception($"The definition of locked indexes changed and is not applied: {string.Join(", ", lockedIndexesWithChanges)}. Unlock the indexes and start ServiceControl again.");
             }
 
-            await IndexCreation.CreateIndexesAsync(indexList, store, null, null, cancellationToken);
+            await IndexCreation.CreateIndexesAsync(indexList, store, null, database, cancellationToken);
         }
 
         // Returns whether Lucene had to be set on the index, which is when the database does not default to it.
@@ -128,16 +129,16 @@ namespace ServiceControl.RavenDB
             return true;
         }
 
-        static async Task<Dictionary<string, IndexDefinition>> GetExistingDefinitions(IDocumentStore store, CancellationToken cancellationToken)
+        static async Task<Dictionary<string, IndexDefinition>> GetExistingDefinitions(IDocumentStore store, string database, CancellationToken cancellationToken)
         {
-            var definitions = await store.Maintenance.SendAsync(new GetIndexesOperation(0, int.MaxValue), cancellationToken);
+            var definitions = await store.Maintenance.ForDatabase(database).SendAsync(new GetIndexesOperation(0, int.MaxValue), cancellationToken);
 
             return definitions.ToDictionary(d => d.Name, StringComparer.OrdinalIgnoreCase);
         }
 
-        static async Task<string> GetDatabaseSearchEngineType(IDocumentStore store, CancellationToken cancellationToken)
+        static async Task<string> GetDatabaseSearchEngineType(IDocumentStore store, string database, CancellationToken cancellationToken)
         {
-            var record = await store.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(store.Database), cancellationToken);
+            var record = await store.Maintenance.Server.SendAsync(new GetDatabaseRecordOperation(database), cancellationToken);
 
             return record?.Settings != null && record.Settings.TryGetValue(StaticSearchEngineTypeKey, out var value) && !string.IsNullOrEmpty(value)
                 ? value

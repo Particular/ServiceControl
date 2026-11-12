@@ -16,12 +16,7 @@ public static class IndexDefinitionText
 {
     public static string Render(Assembly assembly)
     {
-        // Same discovery as IndexDeployment.CreateIndexesAsync(Assembly, ...)
-        var indexes = assembly.GetTypes()
-            .Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(AbstractIndexCreationTask)))
-            .Select(t => (AbstractIndexCreationTask)Activator.CreateInstance(t));
-
-        return Render(indexes);
+        return Render(IndexDeployment.FindIndexes(assembly));
     }
 
     public static string Render(IEnumerable<AbstractIndexCreationTask> indexes)

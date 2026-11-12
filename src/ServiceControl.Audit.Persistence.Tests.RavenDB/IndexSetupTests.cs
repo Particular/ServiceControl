@@ -137,7 +137,7 @@ class IndexSetupTests : PersistenceTestFixture
 
         Assert.That(statsBefore.SearchEngineType, Is.EqualTo(SearchEngineType.Lucene));
 
-        await IndexDeployment.CreateIndexesAsync([new FailedAuditImportIndexPinnedToCorax(useSearchEngineTypeProperty)], configuration.DocumentStore, TestTimeoutCancellationToken);
+        await IndexDeployment.CreateIndexesAsync([new FailedAuditImportIndexPinnedToCorax(useSearchEngineTypeProperty)], configuration.DocumentStore, cancellationToken: TestTimeoutCancellationToken);
 
         var statsAfter = await WaitForIndexDefinitionUpdate(statsBefore);
 
