@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Indexes;
 using Raven.Client.Documents.Operations.Expiration;
@@ -14,6 +15,7 @@ using Raven.Client.Exceptions;
 using Raven.Client.ServerWide;
 using Raven.Client.ServerWide.Operations;
 using Indexes;
+using ServiceControl.Infrastructure;
 using ServiceControl.RavenDB;
 using SagaAudit;
 
@@ -21,6 +23,12 @@ class DatabaseSetup(DatabaseConfiguration configuration)
 {
     public async Task Execute(IDocumentStore documentStore, CancellationToken cancellationToken = default)
     {
+        if (configuration.MaintenanceMode)
+        {
+            Logger.LogInformation("Skipping the database setup in maintenance mode");
+            return;
+        }
+
         await CreateDatabase(documentStore, configuration.Name, cancellationToken);
 
         await CreateIndexes(documentStore, configuration.EnableFullTextSearch, cancellationToken);
@@ -106,4 +114,6 @@ class DatabaseSetup(DatabaseConfiguration configuration)
     internal const string MessagesViewIndexWithFulltextSearchName = "MessagesViewIndexWithFullTextSearch";
     internal const string SagaDetailsIndexName = "SagaDetailsIndex";
     internal const string MessagesViewIndexName = "MessagesViewIndex";
+
+    static readonly ILogger Logger = LoggerUtil.CreateStaticLogger<DatabaseSetup>();
 }

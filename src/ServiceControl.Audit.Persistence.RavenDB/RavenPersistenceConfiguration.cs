@@ -138,7 +138,8 @@ namespace ServiceControl.Audit.Persistence.RavenDB
                 minimumStorageLeftRequiredForIngestion,
                 serverConfiguration,
                 bulkInsertTimeout,
-                queryTimeout);
+                queryTimeout,
+                settings.MaintenanceMode);
         }
 
         static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)
