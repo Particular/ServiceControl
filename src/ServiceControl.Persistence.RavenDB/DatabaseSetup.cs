@@ -3,17 +3,25 @@ namespace ServiceControl.Persistence.RavenDB
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Operations.Expiration;
     using Raven.Client.Exceptions;
     using Raven.Client.ServerWide;
     using Raven.Client.ServerWide.Operations;
+    using ServiceControl.Infrastructure;
     using ServiceControl.RavenDB;
 
     class DatabaseSetup(RavenPersisterSettings settings, IDocumentStore documentStore)
     {
         public async Task Execute(CancellationToken cancellationToken = default)
         {
+            if (settings.MaintenanceMode)
+            {
+                Logger.LogInformation("Skipping the database setup in maintenance mode");
+                return;
+            }
+
             await CreateDatabase(settings.DatabaseName, cancellationToken);
             await CreateDatabase(settings.ThroughputDatabaseName, cancellationToken);
 
@@ -61,5 +69,7 @@ namespace ServiceControl.Persistence.RavenDB
 
             await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig), cancellationToken);
         }
+
+        static readonly ILogger Logger = LoggerUtil.CreateStaticLogger<DatabaseSetup>();
     }
 }
