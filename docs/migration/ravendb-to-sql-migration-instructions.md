@@ -98,7 +98,7 @@ The report exits with 0 when it prints a report, and with 1 when it cannot. If t
 
 ## Step 3: Choose the optional data
 
-If you want less optional data, set a shorter window for the optional categories. A window is how far back an optional category copies. Set it to `0` to turn the category off. No migration enable setting is needed; the SQL checkpoints record the migration.
+If you want less optional data, set a shorter window for the optional categories. A window is how far back an optional category copies. Set it to `0` to turn the category off. The SQL checkpoints record the migration.
 
 | Setting | Default | What it does |
 | --- | --- | --- |
@@ -151,7 +151,7 @@ ServiceControl is open and works as usual while the optional categories copy. Yo
 If the copy slows down your production work, raise `ServiceControl/Migration/ThrottlePauseMilliseconds` and restart. This is the pause between two background batches. The default is 100 milliseconds.
 
 > [!IMPORTANT]
-> There is no migration enable switch. To give up an optional category, use [the abandon command](#to-abandon-a-category).
+> To give up an optional category, use [the abandon command](#to-abandon-a-category).
 
 Keep RavenDB running until every category is Done or Abandoned. If RavenDB goes down after ServiceControl opens, ServiceControl keeps running. The optional categories wait for RavenDB to come back, or you can abandon them.
 

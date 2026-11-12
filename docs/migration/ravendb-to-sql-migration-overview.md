@@ -422,8 +422,6 @@ Stop ServiceControl before running either command. Rerun `--migrate` for unfinis
 >
 > **Once ServiceControl opens**, new failed messages go to SQL and there is no way back. You can only finish the migration, or abandon what is left.
 
-**Persisted progress replaces the migration enable setting.**
-
 - **Every SQL start checks the checkpoint table.** A RavenDB instance has no checkpoint store and skips the check.
 - **An unfinished required category keeps the host closed.** Run `--migrate` again, after retrying or abandoning Failed categories. Startup never runs the required copy.
 - **Outstanding optional checkpoints activate the online copier.** They do not prevent ServiceControl from opening. Failed optional categories remain Failed until an operator acts.
@@ -484,7 +482,7 @@ It says nothing about load on the source.
 
 - **The source needs no new settings.** It reads the instance's existing RavenDB settings.
 - **Settings are read fresh at every start**, except that an optional category's window is fixed once that category starts.
-- **Progress shows in the ServicePulse activity feed, the log and `--migration-status`.** The activity feed records when the background copy starts and finishes, when a category fails, and when the source cannot be reached. Finished checkpoints deactivate copying automatically; no enable setting needs to be removed. There is no migration custom check, because custom checks are being removed from ServiceControl.
+- **Progress shows in the ServicePulse activity feed, the log and `--migration-status`.** The activity feed records when the background copy starts and finishes, when a category fails, and when the source cannot be reached. Finished checkpoints deactivate copying automatically. There is no migration custom check, because custom checks are being removed from ServiceControl.
 - **Decisions are two commands, run with ServiceControl stopped:** `--migration-retry` and `--migration-abandon`. There is no HTTP API, pause, resume or abort, and no way to add a category to a running instance.
 - **Stopping a copy takes a restart.**
 

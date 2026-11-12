@@ -1,7 +1,7 @@
 # Migration Engine: System Architecture Design
 
 > [!NOTE]
-> This build does not carry the whole migration yet. This page describes it as it will be when it ships. The offline command, checkpoint-based startup gate, and online orchestration are present, but production copying remains blocked by `MigrationIsReleasedCheck`. Optional readers, writers, window validation, verification, and operator commands still need to ship.
+> This build does not carry the whole migration yet. This page describes it as it will be when it ships. The offline command, checkpoint-based startup gate, and online orchestration are present, but production copying remains blocked by `MigrationIsReleasedCheck`.
 
 [The overview](ravendb-to-sql-migration-overview.md) covers behaviour and guarantees. [The instructions](ravendb-to-sql-migration-instructions.md) cover the operator procedure. This page maps both onto types, call order and assembly boundaries.
 
@@ -64,8 +64,6 @@ Supporting assemblies:
 The RavenDB persister registers no `IMigrationTarget`, `IMigrationTargetReadiness` or `IMigrationCheckpointStore`, so the guards below resolve `null` on RavenDB and return. `MigrationPairIsSupportedCheck` is what rejects RavenDB as a target.
 
 ## What runs on every SQL instance
-
-These use persisted checkpoints. There is no migration enable setting.
 
 - **Registrations.** `BasePersistence.RegisterDataStores`, reached through each provider's `AddPersistence`, registers `IMigrationCheckpointStore` as `EFMigrationCheckpointStore`, `IMigrationTargetReadiness` as `EFCoreMigrationTargetReadiness` and `IMigrationTarget` as `EFCoreMigrationTarget`, all singletons.
 - **`MigrationBeforeTheHostOpens`.** `RunCommand` registers a lifecycle service that checks required checkpoints in `StartingAsync`, before any hosted service starts or Kestrel binds. It delegates to `FinishedCopyBeforeAnIngestionNodeOpens`, treating unknown ids as required. An unfinished required row refuses startup and names `--migrate`. The service never copies data. With no checkpoint store registered (RavenDB), it returns immediately.
