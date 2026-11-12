@@ -33,7 +33,7 @@ class MigrateCommand : AbstractCommand
         }
         catch (OperationCanceledException) when (migrationToken.IsCancellationRequested)
         {
-            Console.Out.WriteLine("The offline migration stopped. Run --migrate again to resume from the last committed batch.");
+            Console.Out.WriteLine("The offline migration stopped. Run --start-data-migration again to resume from the last committed batch.");
             Environment.ExitCode = 1;
         }
         finally

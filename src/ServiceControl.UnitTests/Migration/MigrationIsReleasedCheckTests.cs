@@ -16,7 +16,7 @@ class MigrationIsReleasedCheckTests
     {
         var exception = Assert.ThrowsAsync<Exception>(() => new MigrationIsReleasedCheck().Run());
 
-        Assert.That(exception.Message, Does.Contain("does not yet carry the whole migration").And.Contain("--migrate"),
+        Assert.That(exception.Message, Does.Contain("does not yet carry the whole migration").And.Contain("--start-data-migration"),
             "the customer has to learn that the offline command is unavailable");
     }
 

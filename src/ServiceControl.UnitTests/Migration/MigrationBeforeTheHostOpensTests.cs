@@ -48,7 +48,7 @@ class MigrationBeforeTheHostOpensTests
         await store.Upsert(Checkpoint("NewRequiredCategory", MigrationCategoryState.NotStarted));
         using var services = Services(store);
         var exception = Assert.ThrowsAsync<Exception>(() => new MigrationBeforeTheHostOpens(services).StartingAsync());
-        Assert.That(exception.Message, Does.Contain("--migrate"));
+        Assert.That(exception.Message, Does.Contain("--start-data-migration"));
     }
 
     [TestCase(MigrationCategoryState.NotStarted)]

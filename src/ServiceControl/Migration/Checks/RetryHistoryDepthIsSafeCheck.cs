@@ -20,7 +20,7 @@ class RetryHistoryDepthIsSafeCheck(int retryHistoryDepth) : IMigrationStartupChe
         if (retryHistoryDepth <= 0)
         {
             throw new Exception(
-                $"ServiceControl/RetryHistoryDepth is {retryHistoryDepth}, and at that depth the SQL persisters delete every row of HistoricRetryOperations when a retry completes. The RetryOperations category copies that table, so the first completed retry after cutover would silently discard the migrated retry history. Set ServiceControl/RetryHistoryDepth to a positive number, or clear it to use the default of 10, before running --migrate.");
+                $"ServiceControl/RetryHistoryDepth is {retryHistoryDepth}, and at that depth the SQL persisters delete every row of HistoricRetryOperations when a retry completes. The RetryOperations category copies that table, so the first completed retry after cutover would silently discard the migrated retry history. Set ServiceControl/RetryHistoryDepth to a positive number, or clear it to use the default of 10, before running --start-data-migration.");
         }
 
         return Task.CompletedTask;

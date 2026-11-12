@@ -287,7 +287,7 @@ static class MigrationStartup
         catch (MigrationCheckpointConflictException exception)
         {
             throw new Exception(
-                $"The required copy stopped because another writer saved a migration checkpoint for this instance, which is a second ServiceControl pointed at the same {settings.PersistenceType} database. The offline migration stopped. {exception.Message} Stop the other instance, then run --migrate again; the copy resumes from its last committed batch. " +
+                $"The required copy stopped because another writer saved a migration checkpoint for this instance, which is a second ServiceControl pointed at the same {settings.PersistenceType} database. The offline migration stopped. {exception.Message} Stop the other instance, then run --start-data-migration again; the copy resumes from its last committed batch. " +
                 RollbackAdvice(settings), exception);
         }
     }

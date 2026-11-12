@@ -66,14 +66,14 @@ The RavenDB persister registers no `IMigrationTarget`, `IMigrationTargetReadines
 ## What runs on every SQL instance
 
 - **Registrations.** `BasePersistence.RegisterDataStores`, reached through each provider's `AddPersistence`, registers `IMigrationCheckpointStore` as `EFMigrationCheckpointStore`, `IMigrationTargetReadiness` as `EFCoreMigrationTargetReadiness` and `IMigrationTarget` as `EFCoreMigrationTarget`, all singletons.
-- **`MigrationBeforeTheHostOpens`.** `RunCommand` registers a lifecycle service that checks required checkpoints in `StartingAsync`, before any hosted service starts or Kestrel binds. It delegates to `FinishedCopyBeforeAnIngestionNodeOpens`, treating unknown ids as required. An unfinished required row refuses startup and names `--migrate`. The service never copies data. With no checkpoint store registered (RavenDB), it returns immediately.
+- **`MigrationBeforeTheHostOpens`.** `RunCommand` registers a lifecycle service that checks required checkpoints in `StartingAsync`, before any hosted service starts or Kestrel binds. It delegates to `FinishedCopyBeforeAnIngestionNodeOpens`, treating unknown ids as required. An unfinished required row refuses startup and names `--start-data-migration`. The service never copies data. With no checkpoint store registered (RavenDB), it returns immediately.
 - **`FinishedCopyBeforeAnIngestionNodeOpens`.** Registered by `ErrorIngestionOnlyCommand.BuildHost` on every ingestion-only host and by `ImportFailedErrorsCommand.BuildHost` on every SQL import. In `StartingAsync` it reads every checkpoint row, drops the rows the registry classifies as optional, and refuses unless every remaining row `IsFinished`. An id unknown to this build counts as required. The worker never copies: a single host owns the copy, because a second copier would race the offline command on the checkpoint version.
 - **`RecordHostOpenedOnTarget` on every writer.** The main host, ingestion workers, and SQL imports register `RecordHostOpenedOnTarget` and stamp `Migration/HostOpenedOnTarget` when checkpoint rows exist. Ingestion ends the free abort, so rollback advice must never offer a free abort after a worker has written.
 
 The ingestion gate sees categories the copy never reached because `MigrationStartup.RunRequiredCategories` upserts a `NotStarted` row for every category without one before copying the first. `MigrationEngine.RunCategories` does the same for the background copy. Without those rows, a copy interrupted between two categories leaves only terminal rows and the gate passes. The gate cannot see a copy that has not written its first row, see [open decisions](ravendb-to-sql-migration-overview.md#gaps-nothing-enforces).
 
 > [!IMPORTANT]
-> Stop workers before running `--migrate`. Restart them only after the command succeeds and the main host opens. A worker cannot detect a migration before its first checkpoint exists.
+> Stop workers before running `--start-data-migration`. Restart them only after the command succeeds and the main host opens. A worker cannot detect a migration before its first checkpoint exists.
 
 ## The required copy
 
@@ -85,7 +85,7 @@ Unresolved and retry-issued failed messages copy while the host is closed becaus
 
 Archived and resolved messages are safe to copy after the host opens. If one of them fails again, the live unresolved row should win, and an insert-only copy gives exactly that. Copying unresolved messages in the background would need a writer that merges by attempt time, and retry confirmations held until their row arrives. Both change live ingestion.
 
-For developer smoke tests, Debug builds honor `SERVICECONTROL_MIGRATION_ALLOW_UNRELEASED=true` in both `--migrate` and normal startup. Release builds ignore this override.
+For developer smoke tests, Debug builds honor `SERVICECONTROL_MIGRATION_ALLOW_UNRELEASED=true` in both `--start-data-migration` and normal startup. Release builds ignore this override.
 
 ```mermaid
 sequenceDiagram
@@ -97,7 +97,7 @@ sequenceDiagram
     participant Target as EFCoreMigrationTarget
     participant Engine as MigrationEngine
 
-    Run->>Copy: --migrate, with ServiceControl stopped
+    Run->>Copy: --start-data-migration, with ServiceControl stopped
     Copy->>Copy: build persistence-only host; never StartAsync
     Copy->>Start: RunRequiredCopy(app.Services, settings)
     Start->>Checks: MigrationPairIsSupportedCheck
@@ -119,8 +119,8 @@ sequenceDiagram
 
 Each position in the sequence is deliberate:
 
-1. **Inside the offline command.** `MigrateCommand` builds a host containing persistence, logging, and the clock. It never calls `StartAsync` or `RunAsync`, so no hosted services run. It calls `MigrationStartup.RunRequiredCopy` directly and prints the instruction to start ServiceControl only after success. Ctrl+C cancels the command; committed batches remain resumable through another `--migrate` invocation. The Windows service is not starting during this work, so its start timeout does not apply.
-2. **`MigrationPairIsSupportedCheck` first.** It needs no source, target or options. It resolves `PersistenceType` through `PersistenceManifestLibrary` and checks it against `PersistenceFactory.SqlPersistenceNames`; the source type is fixed at `PersistenceFactory.MigrationSourcePersistenceType`. `--migrate` against a RavenDB target is rejected here.
+1. **Inside the offline command.** `MigrateCommand` builds a host containing persistence, logging, and the clock. It never calls `StartAsync` or `RunAsync`, so no hosted services run. It calls `MigrationStartup.RunRequiredCopy` directly and prints the instruction to start ServiceControl only after success. Ctrl+C cancels the command; committed batches remain resumable through another `--start-data-migration` invocation. The Windows service is not starting during this work, so its start timeout does not apply.
+2. **`MigrationPairIsSupportedCheck` first.** It needs no source, target or options. It resolves `PersistenceType` through `PersistenceManifestLibrary` and checks it against `PersistenceFactory.SqlPersistenceNames`; the source type is fixed at `PersistenceFactory.MigrationSourcePersistenceType`. `--start-data-migration` against a RavenDB target is rejected here.
 3. **`PersistenceFactory.CreateMigrationSource`** resolves the source persistence and hard-casts its configuration to `IMigrationSourceFactory`, implemented only by `RavenPersistenceConfiguration`. A non-implementing persister fails with `InvalidCastException`. No I/O happens yet.
 4. **`MigrationStartup.RunChecksAndOpenTarget`**, the target half, in order:
    - `OptionalCategoryWindowsAreValidCheck` runs `MigrationEngineOptions.FromSettings`, refusing a window that is not a non-negative `TimeSpan` and naming the key. A zero window removes the category from `SelectedOptionalCategoryIds`.
@@ -153,13 +153,13 @@ Each position in the sequence is deliberate:
 `OptionalCategoryCopier` is a `BackgroundService` registered by `RunCommand` only on the main instance. It waits for `ApplicationStarted`, then reads checkpoints. With no unfinished optional rows, it exits without creating a source or opening a target.
 
 - It runs the selected, supported optional categories in registry order, `EventLog` then `ArchivedAndResolvedFailedMessages`, skipping rows that are `IsFinished` or `IsFailed`. The offline command has already seeded the rows that identify the online work.
-- It creates and opens its own source only when a supported category is still copying. On failure it calls `RecordSourceOutage` and exits for this start. It does not depend on in-process state from `--migrate`, which ran in another process.
+- It creates and opens its own source only when a supported category is still copying. On failure it calls `RecordSourceOutage` and exits for this start. It does not depend on in-process state from `--start-data-migration`, which ran in another process.
 - An exception leaves the category `InProgress` with `LastError`, untouched until the next start, so a transient failure never forces an abandon.
 
 Windowing: `MigrationEngineOptions.WindowFor` supplies the window and the reader applies it through `IWindowedMigrationCategoryReader`. The engine writes `StartedWindowSeconds` once, on the first `InProgress` upsert. `CopiesFrom` is `StartedAt` minus the currently configured window, so window stability across restarts depends entirely on `OptionalCategoryWindowsAreUnchangedCheck`. Verify counts from `StartedAt` minus `StartedWindowSeconds` instead, which is the same window while the category copies, because nothing stops the setting changing once it has finished.
 
 > [!IMPORTANT]
-> Do not remove or reorder `OptionalCategoryWindowsAreUnchangedCheck`. The stored `StartedWindowSeconds` column does not protect the window by itself. The online startup path must validate unchanged windows too, because `--migrate` no longer runs during normal startup.
+> Do not remove or reorder `OptionalCategoryWindowsAreUnchangedCheck`. The stored `StartedWindowSeconds` column does not protect the window by itself. The online startup path must validate unchanged windows too, because `--start-data-migration` no longer runs during normal startup.
 
 `Migration/ThrottlePauseMilliseconds` inserts a delay between optional-category batches, skipping the first batch of each category. Required categories are never throttled.
 
@@ -232,7 +232,7 @@ Every migration command except the source report builds a host with `AddPersiste
 
 | Command | Class | Opens RavenDB | Reads and writes |
 | --- | --- | --- | --- |
-| `--migrate` | `MigrateCommand` | Yes | Runs the required-copy checks and engine, seeds selected optional checkpoints, and exits. On success it instructs the operator to start ServiceControl; it never starts the service itself |
+| `--start-data-migration` | `MigrateCommand` | Yes | Runs the required-copy checks and engine, seeds selected optional checkpoints, and exits. On success it instructs the operator to start ServiceControl; it never starts the service itself |
 | `--migration-source-report` | `MigrationSourceReportCommand` | Yes | `IMigrationSource.Describe` and `Inventory` through `MigrationSourceDescriptionPrinter`; the copy never calls either. Each `MigrationSourceFact` carries its originating setting key. `Inventory` covers every collection, including uncopied ones |
 | `--migration-dry-run` | `MigrationDryRunCommand`, `MigrationDryRunArithmetic` | Yes | `MigrationPairIsSupportedCheck`, then `MigrationStartup.RunChecksAndOpen` (both halves), so it refuses wherever a real start would. Reads `Count`, `Read`, `ReadBody`, `ReadBodyVolume`, `Inventory`, `Describe`, `IMigrationTarget.Assess` (via `EFCoreMigrationRowAssessor`) and `BatchSizeFor`. Writes no row; the body probe is the only write. Exit code 0 even when the report shows problems; a refused check throws |
 | `--migration-status` | `MigrationStatusCommand`, `MigrationStatusView` | No | `IMigrationCheckpointStore.ReadAll` and `MigrationEngineOptions.FromSettings`. Read-only, safe while ServiceControl runs |

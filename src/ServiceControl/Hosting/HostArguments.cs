@@ -65,7 +65,7 @@ namespace Particular.ServiceControl.Hosting
             var migrationOptions = new OptionSet
             {
                 {
-                    "migrate",
+                    "start-data-migration",
                     "Copy required migration data with ServiceControl stopped",
                     s => Command = typeof(MigrateCommand)
                 }
@@ -112,7 +112,7 @@ namespace Particular.ServiceControl.Hosting
                 {
                     if (ErrorIngestionOnly)
                     {
-                        throw new Exception("--migrate cannot run with --error-ingestion-only. Stop every instance before running the offline migration.");
+                        throw new Exception("--start-data-migration cannot run with --error-ingestion-only. Stop every instance before running the offline migration.");
                     }
                     return;
                 }

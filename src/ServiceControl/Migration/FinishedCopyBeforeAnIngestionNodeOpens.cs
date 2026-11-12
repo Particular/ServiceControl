@@ -37,7 +37,7 @@ sealed class FinishedCopyBeforeAnIngestionNodeOpens(
             ? MigrationStartup.FailedDetail(checkpoint)
             : $"{checkpoint.CategoryId} is Copying ({checkpoint.State})"));
 
-        const string advice = "With ServiceControl and all ingestion workers stopped, resolve any Failed categories and run --migrate again before starting this host.";
+        const string advice = "With ServiceControl and all ingestion workers stopped, resolve any Failed categories and run --start-data-migration again before starting this host.";
 
         throw new Exception($"A copy into this database has not finished, so {hostDescription} will not start and nothing has been lost. {detail}. {advice}");
     }
