@@ -25,12 +25,14 @@ namespace ServiceControl.Persistence.RavenDB
             await CreateDatabase(settings.ThroughputDatabaseName, cancellationToken);
 
             // The throughput indexes belong to the throughput database, all other indexes to the error database.
-            var indexes = IndexDeployment.FindIndexes(typeof(DatabaseSetup).Assembly).ToLookup(index => index.GetType().Namespace == typeof(EndpointIndex).Namespace);
+            var indexes = IndexDeployment.FindIndexes(typeof(DatabaseSetup).Assembly).ToList();
+            var throughputIndexes = indexes.Where(IsThroughputIndex).ToList();
+            var errorIndexes = indexes.Except(throughputIndexes).ToList();
 
-            await DeleteThroughputIndexesFromErrorDatabase(indexes[true], cancellationToken);
+            await DeleteThroughputIndexesFromErrorDatabase(throughputIndexes, cancellationToken);
 
-            await IndexDeployment.CreateIndexesAsync(indexes[false], documentStore, cancellationToken: cancellationToken);
-            await IndexDeployment.CreateIndexesAsync(indexes[true], documentStore, settings.ThroughputDatabaseName, cancellationToken);
+            await IndexDeployment.CreateIndexesAsync(errorIndexes, documentStore, cancellationToken: cancellationToken);
+            await IndexDeployment.CreateIndexesAsync(throughputIndexes, documentStore, settings.ThroughputDatabaseName, cancellationToken);
 
             await StartupChecks.WarnIfIndexesUseCorax(documentStore, settings.DatabaseName, cancellationToken);
             await StartupChecks.WarnIfIndexesUseCorax(documentStore, settings.ThroughputDatabaseName, cancellationToken);
@@ -38,6 +40,8 @@ namespace ServiceControl.Persistence.RavenDB
             await LicenseStatusCheck.WaitForLicenseOrThrow(documentStore, cancellationToken);
             await ConfigureExpiration(settings, cancellationToken);
         }
+
+        static bool IsThroughputIndex(AbstractIndexCreationTask index) => index.GetType().Namespace == typeof(EndpointIndex).Namespace;
 
         async Task CreateDatabase(string databaseName, CancellationToken cancellationToken)
         {
