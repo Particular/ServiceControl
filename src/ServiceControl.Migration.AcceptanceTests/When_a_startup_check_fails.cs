@@ -244,7 +244,7 @@ class When_a_startup_check_fails : MigrationAcceptanceTest
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(refusal.Message, Does.Contain("this start has copied nothing"));
+            Assert.That(refusal.Message, Does.Contain("this run has copied nothing"));
             Assert.That(await TargetEndpointSettingsCount(), Is.Zero, "a check that fires after rows have moved is worse than no check");
             Assert.That(await ReadSetting(HostOpenedSetting), Is.Null, "a refused startup has opened on nothing, so the abort is still free");
         }

@@ -16,6 +16,46 @@ Run `--migrate` with ServiceControl stopped to copy the data it needs to open. *
 
 The migration copies the data in categories, and each category is Copying, Done, Failed or Abandoned. [The overview](ravendb-to-sql-migration-overview.md#when-something-goes-wrong-you-decide-what-happens-next) explains the categories and the states.
 
+The steps below follow this path:
+
+```mermaid
+flowchart TD
+    subgraph prepare["ServiceControl runs on RavenDB"]
+        S1["1. Upgrade and run --migration-source-report"]
+        S2["2. Create an empty SQL database and run --setup"]
+        S3["3. Choose the optional data windows"]
+        S4["4. Run --migration-dry-run and book the outage"]
+        S5["5. Back up RavenDB"]
+        S1 --> S2 --> S3 --> S4 --> S5
+    end
+
+    subgraph outage["ServiceControl stopped: the outage"]
+        S6["6. Stop ServiceControl and every ingestion worker, then run --migrate"]
+        Q1{"Did --migrate succeed?"}
+        Fix["Correct the reported cause"]
+        RetryAbandon1["Run --migration-retry or --migration-abandon for the Failed category"]
+        Back["Go back: set PersistenceType to RavenDB and start ServiceControl"]
+        S6 --> Q1
+        Q1 -->|"No: a check failed or the command stopped"| Fix --> S6
+        Q1 -->|"No: a required category is Failed"| RetryAbandon1 --> S6
+        Q1 -.->|"Give up, nothing is lost"| Back
+    end
+
+    subgraph online["ServiceControl open on SQL: no way back to RavenDB"]
+        S7["7. Start ServiceControl"]
+        S8["8. Watch the background copy with --migration-status"]
+        Q2{"Is an optional category Failed?"}
+        RetryAbandon2["Stop ServiceControl, run --migration-retry or --migration-abandon, then start it"]
+        S9["9. Stop ServiceControl, run --migration-verify, then start it"]
+        S7 --> S8 --> Q2
+        Q2 -->|Yes| RetryAbandon2 --> S8
+        Q2 -->|"No: every category is Done or Abandoned"| S9
+    end
+
+    S5 --> S6
+    Q1 -->|Yes| S7
+```
+
 ## Before you start
 
 Make sure that your setup is supported:

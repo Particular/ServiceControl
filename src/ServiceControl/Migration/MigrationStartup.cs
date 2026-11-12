@@ -80,7 +80,7 @@ static class MigrationStartup
         // Safe to open without the source, because every required category is settled and only the background copy of the optional ones reads it.
         catch (Exception exception) when (requiredCopySettled)
         {
-            // The runner's wrapper says ServiceControl will not start, which is false here and would land on the rows.
+            // The runner's wrapper describes a refused run, which this is not, and it would land on the rows.
             var cause = exception.InnerException ?? exception;
 
             logger.LogError(cause,
@@ -287,7 +287,7 @@ static class MigrationStartup
         catch (MigrationCheckpointConflictException exception)
         {
             throw new Exception(
-                $"The required copy stopped because another writer saved a migration checkpoint for this instance, which is a second ServiceControl pointed at the same {settings.PersistenceType} database. ServiceControl will not start. {exception.Message} Stop the other instance, then run --migrate again; the copy resumes from its last committed batch. " +
+                $"The required copy stopped because another writer saved a migration checkpoint for this instance, which is a second ServiceControl pointed at the same {settings.PersistenceType} database. The offline migration stopped. {exception.Message} Stop the other instance, then run --migrate again; the copy resumes from its last committed batch. " +
                 RollbackAdvice(settings), exception);
         }
     }
@@ -318,7 +318,7 @@ static class MigrationStartup
         }
 
         throw new Exception(
-            $"The required copy did not finish, so ServiceControl will not start and nothing has been lost. {string.Join(". ", outstanding)}. " +
+            $"The required copy did not finish, so ServiceControl cannot start yet, and nothing has been lost. {string.Join(". ", outstanding)}. " +
             RollbackAdvice(settings));
     }
 

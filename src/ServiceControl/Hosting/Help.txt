@@ -30,8 +30,7 @@ MIGRATION
 Copies required data from RavenDB into the configured SQL Server or PostgreSQL database.
 Stop ServiceControl and all ingestion workers first. The command never starts the service.
 After a successful offline copy, start ServiceControl to copy optional data in the background.
-Run --migrate again after an interruption to resume from saved progress. No migration enable
-setting is needed: the target database records the migration state.
+Run --migrate again after an interruption to resume from saved progress. The target database records the migration state.
 This build still blocks copying until the complete migration is released.
 
 SERVICE INSTALL AND UNINSTALL AND CONFIGURATION OPTIONS
