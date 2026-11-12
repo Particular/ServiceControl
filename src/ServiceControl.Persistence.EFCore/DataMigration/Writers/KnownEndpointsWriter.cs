@@ -14,13 +14,14 @@ sealed class KnownEndpointsWriter(IMigrationSqlDialect migrationDialect) : Migra
 {
     public override string CategoryId => MigrationCategoryIds.KnownEndpoints;
 
-    public override int BatchSize(ServiceControlDbContext dbContext) => migrationDialect.RowsPerStatement(MigrationInsert<KnownEndpointEntity>.For(dbContext).Columns.Count);
+    public override int BatchSize(ServiceControlDbContext dbContext) => migrationDialect.RowsPerStatementFor<KnownEndpointEntity>(dbContext);
 
     public override Task<long> Count(ServiceControlDbContext dbContext, CancellationToken cancellationToken = default) =>
         dbContext.KnownEndpoints.LongCountAsync(cancellationToken);
 
     protected override Task<PreparedBatch> PrepareDocuments(ServiceControlDbContext dbContext, IReadOnlyList<(MigrationRow Row, KnownEndpoint Document)> documents, CancellationToken cancellationToken = default)
     {
+        var insert = MigrationInsert<KnownEndpointEntity>.For(dbContext);
         var rows = new List<KnownEndpointEntity>(documents.Count);
         var skips = new List<(string SourceId, MigrationSkipReason Reason, string Detail)>();
 
@@ -33,14 +34,22 @@ sealed class KnownEndpointsWriter(IMigrationSqlDialect migrationDialect) : Migra
                 continue;
             }
 
-            rows.Add(new KnownEndpointEntity
+            var entity = new KnownEndpointEntity
             {
                 Id = endpoint.EndpointDetails.GetDeterministicId(),
                 Name = endpoint.EndpointDetails.Name,
                 HostId = endpoint.EndpointDetails.HostId,
                 Host = endpoint.EndpointDetails.Host,
                 Monitored = endpoint.Monitored
-            });
+            };
+
+            if (UnstorableValueSkip(insert, migrationDialect, row, entity) is { } unstorable)
+            {
+                skips.Add(unstorable);
+                continue;
+            }
+
+            rows.Add(entity);
         }
 
         return Task.FromResult(new PreparedBatch(

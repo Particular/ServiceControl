@@ -32,9 +32,6 @@ static class MigrationStartup
     /// the host. Call it after the host is built and before it starts, because the copy has to finish before
     /// anything else opens on the target.
     /// </summary>
-    /// <param name="services">The built host's services, which is where the target, the checkpoint store and the migration state come from.</param>
-    /// <param name="settings">The instance settings, read for the source and target persistence types.</param>
-    /// <param name="cancellationToken">Cancelled when the host is shutting down, which ends the copy without a refusal message.</param>
     public static async Task RunRequiredCopy(IServiceProvider services, Settings settings, CancellationToken cancellationToken = default)
     {
         await MigrationStartupCheckRunner.Run(
@@ -141,9 +138,6 @@ static class MigrationStartup
     /// them. The order is what the operator sees: a check that costs nothing comes before one that connects to a
     /// database, and the source's own checks run last because they need it open.
     /// </summary>
-    /// <param name="settings">The instance settings, whose retention periods are the optional category windows when none is set, and whose retry history depth the copy must not be thrown away by.</param>
-    /// <returns>The options read from the settings, which the window check parsed on its way past.</returns>
-    /// <exception cref="Exception">A check refused. The message names the check and says what to do, and this start has copied nothing.</exception>
     public static async Task<MigrationEngineOptions> RunChecksAndOpen(IServiceProvider services, Settings settings, IMigrationSource source, CancellationToken cancellationToken = default)
     {
         var options = await RunChecksAndOpenTarget(services, settings, cancellationToken);
@@ -160,12 +154,6 @@ static class MigrationStartup
     /// opening the target. A check that costs nothing comes before one that connects to a database. The target
     /// is open when this returns, and the source has not been touched.
     /// </summary>
-    /// <param name="services">The built host's services, which is where the target and its readiness checks come from.</param>
-    /// <param name="settings">The instance settings, whose retention periods are the optional category windows when none is set, and whose retry history depth the copy must not be thrown away by.</param>
-    /// <param name="cancellationToken">Cancelled when the host is shutting down, which stops the checks without a refusal message.</param>
-    /// <returns>The options read from the settings, which the window check parsed on its way past.</returns>
-    /// <exception cref="Exception">A check refused or the target did not open. The message names the check and says what to do, and this start has copied nothing.</exception>
-    /// <exception cref="OperationCanceledException">The host is shutting down.</exception>
     public static async Task<MigrationEngineOptions> RunChecksAndOpenTarget(IServiceProvider services, Settings settings, CancellationToken cancellationToken = default)
     {
         var target = services.GetRequiredService<IMigrationTarget>();
@@ -191,11 +179,6 @@ static class MigrationStartup
     /// a category with no row gets a new not-started row carrying the error, and a row that is Done, Failed or
     /// Abandoned is left alone. The next start that resumes a row clears the error.
     /// </summary>
-    /// <param name="checkpointStore">Where the rows are read and saved.</param>
-    /// <param name="optionalCategories">The optional categories this instance selected.</param>
-    /// <param name="exception">Why the source could not be opened. Its type and message go into the error.</param>
-    /// <param name="cancellationToken">Cancelled when the host is shutting down.</param>
-    /// <exception cref="MigrationCheckpointConflictException">Another writer saved one of these rows since it was read.</exception>
     internal static async Task RecordSourceOutage(IMigrationCheckpointStore checkpointStore, IReadOnlyList<MigrationCategory> optionalCategories, Exception exception, CancellationToken cancellationToken = default)
     {
         var error = $"The {PersistenceFactory.MigrationSourcePersistenceType} migration source could not be opened: {exception.GetType().Name}: {exception.Message.TrimEnd('.', ' ')}. This category stays as it is, and the next start tries the source again.";
@@ -221,15 +204,6 @@ static class MigrationStartup
     /// stopped and settled Halted, and the categories after it still get their go. Before copying anything it saves
     /// a not-started checkpoint for every category that has none, as <see cref="MigrationEngine.RunCategories" /> does.
     /// </summary>
-    /// <param name="engine">Copies each category.</param>
-    /// <param name="categories">The categories to copy, in the order to copy them.</param>
-    /// <param name="checkpointStore">Where each category's row is seeded, watched and, after a stall, settled.</param>
-    /// <param name="timeProvider">The clock the watchdog measures a stall on.</param>
-    /// <param name="logger">Receives the watchdog's progress lines and the stall.</param>
-    /// <param name="cancellationToken">The host's token. Cancelling it stops the copy and leaves the running category as its last committed batch left it, so the next start resumes it.</param>
-    /// <returns>The checkpoint each category ended on.</returns>
-    /// <exception cref="MigrationCheckpointConflictException">Another writer saved one of these checkpoints, which means a second instance is copying into the same database.</exception>
-    /// <exception cref="OperationCanceledException">The host is shutting down.</exception>
     internal static async Task<IReadOnlyList<MigrationCheckpoint>> RunRequiredCategories(
         MigrationEngine engine,
         IReadOnlyList<MigrationCategory> categories,
@@ -255,40 +229,60 @@ static class MigrationStartup
         {
             using var categoryCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             progress.Watch(category.Id, timeProvider.GetUtcNow().UtcDateTime, categoryCancellation);
+            var run = engine.RunCategoryAsync(category, categoryCancellation.Token);
 
             try
             {
-                results.Add(await engine.RunCategoryAsync(category, categoryCancellation.Token));
+                // Ends the wait on a stall or a host stop even when a call underneath ignores its token. That call keeps running, and the version check refuses its late commit or the settle below re-reads past it.
+                results.Add(await run.WaitAsync(categoryCancellation.Token));
             }
             // Only the watchdog cancels this source without the host's token, so the filter tells a stall from a shutdown.
 #pragma warning disable PS0020
             catch (OperationCanceledException) when (categoryCancellation.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
 #pragma warning restore PS0020
             {
-                // The host's token, because the stall has already cancelled the category's and a store call on that would fail.
-                var stalled = await checkpointStore.Read(category.Id, cancellationToken);
+                MigrationCheckpoint settled;
 
-                results.Add(await checkpointStore.Upsert(stalled with
+                try
                 {
-                    State = MigrationCategoryState.Halted,
-                    SettledAt = timeProvider.GetUtcNow().UtcDateTime,
-                    LastError = StallExplanation(category.Id)
-                }, cancellationToken));
+                    settled = await SettleStalled(checkpointStore, category.Id, timeProvider, cancellationToken);
+                }
+                // The stalled call can commit between the settle's read and its save, so one re-read settles from that commit. A second conflict is another instance, and it propagates.
+                catch (MigrationCheckpointConflictException)
+                {
+                    settled = await SettleStalled(checkpointStore, category.Id, timeProvider, cancellationToken);
+                }
+
+                results.Add(settled);
+
+                _ = run.ContinueWith(
+                    ended => logger.LogWarning(ended.Exception.GetBaseException(),
+                        "{CategoryId}: the call the stall stopped waiting for ended after the category was settled Halted, with {ExceptionType}. It changed nothing after the settle, because the checkpoint store refuses a save made from before it.",
+                        category.Id, ended.Exception.GetBaseException().GetType().Name),
+                    cancellationToken, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);
             }
         }
 
         return results;
     }
 
+    // Takes the host's token, because the stall has already cancelled the category's and a store call on that would fail.
+    static async Task<MigrationCheckpoint> SettleStalled(IMigrationCheckpointStore checkpointStore, string categoryId, TimeProvider timeProvider, CancellationToken cancellationToken)
+    {
+        var stalled = await checkpointStore.Read(categoryId, cancellationToken);
+
+        return await checkpointStore.Upsert(stalled with
+        {
+            State = MigrationCategoryState.Halted,
+            SettledAt = timeProvider.GetUtcNow().UtcDateTime,
+            LastError = StallExplanation(categoryId)
+        }, cancellationToken);
+    }
+
     /// <summary>
     /// Waits for the copy and turns a second instance writing checkpoints to the same database into a refusal the
     /// operator can act on. A shutdown and every other failure come out as they are.
     /// </summary>
-    /// <param name="copy">The copy, already running.</param>
-    /// <param name="settings">Read for the persistence type the refusal names.</param>
-    /// <returns>What the copy returned.</returns>
-    /// <exception cref="Exception">A checkpoint saved by another instance. The message says what to do and how to go back.</exception>
-    /// <exception cref="OperationCanceledException">The host is shutting down.</exception>
 #pragma warning disable PS0018 // The copy it waits on already runs under the host's token, so a token here would have nothing to cancel.
     internal static async Task<IReadOnlyList<MigrationCheckpoint>> CopyOrExplainWhyItStopped(
         Task<IReadOnlyList<MigrationCheckpoint>> copy,
@@ -313,7 +307,6 @@ static class MigrationStartup
     /// Throws unless every attempted category finished. A category that reported no checkpoint at all counts as
     /// outstanding too, because nothing says how much of it was copied.
     /// </summary>
-    /// <exception cref="Exception">A category did not finish. The message names each one with its state and counts, names the commands that move each Failed one on, and says how to go back.</exception>
     internal static void RefuseIfAnyCategoryDidNotComplete(
         IReadOnlyList<MigrationCategory> attempted,
         IReadOnlyList<MigrationCheckpoint> finished,
@@ -344,9 +337,6 @@ static class MigrationStartup
     /// Says whether the host may open without the source: every category this start copies is finished, and no row
     /// outside the copy is unfinished.
     /// </summary>
-    /// <param name="checkpoints">Every checkpoint row in the target.</param>
-    /// <param name="toCopy">The categories this start copies.</param>
-    /// <returns>True when nothing required is still outstanding.</returns>
     internal static bool RequiredCopyIsSettled(IReadOnlyList<MigrationCheckpoint> checkpoints, IReadOnlyList<MigrationCategory> toCopy) =>
         UnfinishedRowsOutsideTheCopy(checkpoints, toCopy).Count == 0
         && toCopy.All(category => checkpoints.Any(checkpoint => checkpoint.CategoryId == category.Id && checkpoint.State.IsFinished()));
@@ -355,11 +345,6 @@ static class MigrationStartup
     /// Throws unless every attempted category finished and no row outside the copy is unfinished, naming each
     /// outstanding row in the same words.
     /// </summary>
-    /// <param name="attempted">The categories this start copied.</param>
-    /// <param name="finished">Where each attempted category ended.</param>
-    /// <param name="unfinishedOutsideTheCopy">The rows <see cref="UnfinishedRowsOutsideTheCopy" /> found.</param>
-    /// <param name="settings">Read for the persistence type the refusal names.</param>
-    /// <exception cref="Exception">Something is outstanding. The message names it and says how to go back.</exception>
     internal static void RefuseIfAnyCategoryDidNotComplete(
         IReadOnlyList<MigrationCategory> attempted,
         IReadOnlyList<MigrationCheckpoint> finished,
@@ -372,9 +357,6 @@ static class MigrationStartup
     /// required because a newer build may have written it for a category that must finish, and a required row for a
     /// category this build cannot copy yet. A finished row, and a row known to be optional, hold nothing.
     /// </summary>
-    /// <param name="checkpoints">Every checkpoint row in the target.</param>
-    /// <param name="toCopy">The categories this start copies, whose rows the copy judges itself.</param>
-    /// <returns>The rows that keep the host closed, in the order they were read.</returns>
     internal static IReadOnlyList<MigrationCheckpoint> UnfinishedRowsOutsideTheCopy(IReadOnlyList<MigrationCheckpoint> checkpoints, IReadOnlyList<MigrationCategory> toCopy) =>
     [.. checkpoints
         .Where(checkpoint => MigrationCategoryRegistry.Find(checkpoint.CategoryId)?.Kind != MigrationCategoryKind.Optional)
@@ -402,7 +384,6 @@ static class MigrationStartup
     /// Logs one line per category saying what it copied and what it left behind. Skipped rows are warned about
     /// one at a time while the copy runs, and nothing else states the total or says what becomes of them.
     /// </summary>
-    /// <param name="runStartedAt">When this start began, which is what tells a category this run finished from one an earlier run did.</param>
     internal static void ReportWhatTheCopyLeftBehind(IReadOnlyList<MigrationCheckpoint> finished, ILogger logger, DateTime runStartedAt)
     {
         foreach (var checkpoint in finished)
@@ -455,18 +436,25 @@ static class MigrationStartup
         }
     }
 
-    // A retry re-reads the whole category, so it is offered only when some of the faults could come across on it.
+    // A retry reads the whole category again, so it is offered when a retry could copy some of the skipped rows, or when a halt left rows unread.
     static string WhatARetryCanDo(MigrationCheckpoint checkpoint)
     {
         var faults = checkpoint.SkipReasons?.Keys.Where(reason => !reason.IsBenign()).ToArray() ?? [];
         var permanent = faults.Where(reason => reason.IsPermanent()).ToArray();
+        var cannotFix = permanent.Length == 0 ? "" : $" No retry can fix the {string.Join(" or ", permanent)} ones.";
+
+        // A Halted category never read the rows after its cursor, so abandoning it gives up far more than the skipped rows.
+        if (faults.Length > 0 && checkpoint.State == MigrationCategoryState.Halted)
+        {
+            return $"The copy stopped before the end of the category, so these and every row not yet read stay only in the source database. " +
+                $"If it stopped because the skips passed the halt threshold, raise {MigrationSettings.HaltThresholdPercentKey} or {MigrationSettings.HaltThresholdMinimumKey}, or fix their cause, then run --migration-retry {checkpoint.CategoryId}, which copies the category again from the start.{cannotFix} " +
+                $"--migration-abandon {checkpoint.CategoryId} keeps what was copied and gives up every row not yet read, not only these.";
+        }
 
         if (faults.Length > 0 && permanent.Length == faults.Length)
         {
             return $"They stay only in the source database, and no retry can fix them, so --migration-abandon {checkpoint.CategoryId} keeps what was copied and gives up the rest.";
         }
-
-        var cannotFix = permanent.Length == 0 ? "" : $" No retry can fix the {string.Join(" or ", permanent)} ones.";
 
         return $"They stay only in the source database until --migration-retry {checkpoint.CategoryId} re-reads them once the cause is fixed.{cannotFix}";
     }
@@ -521,9 +509,6 @@ static class MigrationStartup
         /// Points the watchdog at the category that is starting now, in place of the one before it. Only this
         /// category is judged from here on, from the later of its last committed batch and <paramref name="runStartedAt" />.
         /// </summary>
-        /// <param name="categoryId">The category starting now.</param>
-        /// <param name="runStartedAt">When this start began running it. A row an earlier start left carries an older stamp, which would read as a stall at once.</param>
-        /// <param name="stop">Cancelled when the category stalls. The category must run under its token, and nothing else should.</param>
         public void Watch(string categoryId, DateTime runStartedAt, CancellationTokenSource stop) =>
             running = new RunningCategory(categoryId, runStartedAt, stop);
 

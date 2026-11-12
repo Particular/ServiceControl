@@ -56,6 +56,127 @@ class StoppedCopyExplanationTests
     }
 
     [Test]
+    public async Task A_stall_in_a_call_that_ignores_its_token_still_settles_the_category_failed_without_waiting_for_the_call()
+    {
+        var clock = new TimerRecordingTimeProvider();
+        var store = new CancellationHonouringCheckpointStore();
+        var writing = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var target = new InMemoryMigrationTarget(store) { IgnoreTokenOnCall = 1, BeforeWrite = _ => writing.TrySetResult() };
+        var source = new InMemoryMigrationSource();
+        source.Seed(MigrationCategoryIds.KnownEndpoints, Row("KnownEndpoints-1"));
+        source.Seed(MigrationCategoryIds.MessageRedirects, Row("MessageRedirects-1"));
+
+        try
+        {
+            var run = Task.Run(() => MigrationStartup.RunRequiredCategories(
+                Engine(source, target, store, clock), Categories(MigrationCategoryIds.KnownEndpoints, MigrationCategoryIds.MessageRedirects), store, clock, new CapturingLogger()));
+
+            Assert.That(await clock.TimerCreated.WaitAsync(TimeSpan.FromSeconds(10)), Is.True, "the watchdog never started its timer, so advancing the clock would tick nothing");
+            await writing.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            clock.Advance(StallLimit + PollInterval);
+            var results = await run.WaitAsync(TimeSpan.FromSeconds(10));
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(results.Select(checkpoint => checkpoint.CategoryId), Is.EqualTo(new[] { MigrationCategoryIds.KnownEndpoints, MigrationCategoryIds.MessageRedirects }));
+                Assert.That(results[0].State, Is.EqualTo(MigrationCategoryState.Halted));
+                Assert.That(results[0].SettledAt, Is.EqualTo(clock.GetUtcNow().UtcDateTime));
+                Assert.That(results[0].LastError, Does.Contain($"committed nothing for {StallLimit.TotalMinutes:0.#} minutes"));
+                Assert.That(results[1].State, Is.EqualTo(MigrationCategoryState.Complete), "one stuck call ended the whole start");
+            }
+
+            target.ReleaseIgnoredCall();
+
+            Assert.That(async () => await target.IgnoredCall, Throws.InstanceOf<MigrationCheckpointConflictException>(),
+                "the stuck call saves from the version it read before the stall, so the store must refuse it");
+            Assert.That(await store.Read(MigrationCategoryIds.KnownEndpoints), Is.EqualTo(results[0]), "a late commit from the stuck call reopened a settled category");
+        }
+        finally
+        {
+            target.ReleaseIgnoredCall();
+        }
+    }
+
+    [Test]
+    public async Task A_stalled_call_that_commits_while_the_stall_is_being_settled_still_leaves_the_category_failed()
+    {
+        var clock = new TimerRecordingTimeProvider();
+        var store = new CancellationHonouringCheckpointStore();
+        var writing = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var target = new InMemoryMigrationTarget(store) { IgnoreTokenOnCall = 1, BeforeWrite = _ => writing.TrySetResult() };
+        // The stuck call commits after the settle has read the row and before it saves, so the settle's save is from an old version.
+        store.BeforeUpsert = async checkpoint =>
+        {
+            if (checkpoint.State == MigrationCategoryState.Halted)
+            {
+                target.ReleaseIgnoredCall();
+                await target.IgnoredCall;
+            }
+        };
+        var source = new InMemoryMigrationSource();
+        source.Seed(MigrationCategoryIds.KnownEndpoints, Row("KnownEndpoints-1"));
+        source.Seed(MigrationCategoryIds.MessageRedirects, Row("MessageRedirects-1"));
+
+        try
+        {
+            var run = Task.Run(() => MigrationStartup.RunRequiredCategories(
+                Engine(source, target, store, clock), Categories(MigrationCategoryIds.KnownEndpoints, MigrationCategoryIds.MessageRedirects), store, clock, new CapturingLogger()));
+
+            Assert.That(await clock.TimerCreated.WaitAsync(TimeSpan.FromSeconds(10)), Is.True, "the watchdog never started its timer, so advancing the clock would tick nothing");
+            await writing.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            clock.Advance(StallLimit + PollInterval);
+            var results = await run.WaitAsync(TimeSpan.FromSeconds(10));
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(results[0].State, Is.EqualTo(MigrationCategoryState.Halted));
+                Assert.That(results[0].CopiedCount, Is.EqualTo(1), "the settle must keep the batch the stuck call committed");
+                Assert.That(results[0].LastError, Does.Contain($"committed nothing for {StallLimit.TotalMinutes:0.#} minutes"));
+                Assert.That(await store.Read(MigrationCategoryIds.KnownEndpoints), Is.EqualTo(results[0]));
+                Assert.That(results[1].State, Is.EqualTo(MigrationCategoryState.Complete), "a late commit from our own stuck call ended the whole start");
+            }
+        }
+        finally
+        {
+            target.ReleaseIgnoredCall();
+        }
+    }
+
+    [Test]
+    public async Task A_host_stopping_during_a_call_that_ignores_its_token_propagates_without_waiting_for_the_call()
+    {
+        var store = new InMemoryMigrationCheckpointStore();
+        using var host = new CancellationTokenSource();
+        var writing = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var target = new InMemoryMigrationTarget(store) { IgnoreTokenOnCall = 1, BeforeWrite = _ => writing.TrySetResult() };
+        var source = new InMemoryMigrationSource();
+        source.Seed(MigrationCategoryIds.KnownEndpoints, Row("KnownEndpoints-1"));
+        source.Seed(MigrationCategoryIds.MessageRedirects, Row("MessageRedirects-1"));
+        var clock = new FakeTimeProvider();
+
+        try
+        {
+            var run = Task.Run(() => MigrationStartup.RunRequiredCategories(
+                Engine(source, target, store, clock), Categories(MigrationCategoryIds.KnownEndpoints, MigrationCategoryIds.MessageRedirects), store, clock, new CapturingLogger(), host.Token));
+
+            await writing.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            await host.CancelAsync();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(async () => await run.WaitAsync(TimeSpan.FromSeconds(10)), Throws.InstanceOf<OperationCanceledException>(),
+                    "a shutdown waited for a call that ignores its token");
+                Assert.That((await store.Read(MigrationCategoryIds.KnownEndpoints))!.State, Is.EqualTo(MigrationCategoryState.InProgress), "a shutdown settled the category");
+                Assert.That((await store.Read(MigrationCategoryIds.MessageRedirects))!.State, Is.EqualTo(MigrationCategoryState.NotStarted), "a stopping host started the next category");
+            }
+        }
+        finally
+        {
+            target.ReleaseIgnoredCall();
+        }
+    }
+
+    [Test]
     public async Task A_host_stopping_mid_category_leaves_it_copying_and_the_stop_propagates()
     {
         var store = new InMemoryMigrationCheckpointStore();
@@ -173,6 +294,11 @@ class StoppedCopyExplanationTests
     {
         readonly InMemoryMigrationCheckpointStore inner = new();
 
+        /// <summary>
+        /// Runs before each save that gets past the token check, with the checkpoint about to be saved.
+        /// </summary>
+        public Func<MigrationCheckpoint, Task>? BeforeUpsert { get; set; }
+
         public Task<IReadOnlyList<MigrationCheckpoint>> ReadAll(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -185,10 +311,16 @@ class StoppedCopyExplanationTests
             return inner.Read(categoryId, cancellationToken);
         }
 
-        public Task<MigrationCheckpoint> Upsert(MigrationCheckpoint checkpoint, CancellationToken cancellationToken = default)
+        public async Task<MigrationCheckpoint> Upsert(MigrationCheckpoint checkpoint, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return inner.Upsert(checkpoint, cancellationToken);
+
+            if (BeforeUpsert is not null)
+            {
+                await BeforeUpsert(checkpoint);
+            }
+
+            return await inner.Upsert(checkpoint, cancellationToken);
         }
     }
 }
