@@ -87,6 +87,12 @@ namespace ServiceControl.Persistence.RavenDB
         public IPersistence Create(PersistenceSettings settings)
         {
             var specificSettings = (RavenPersisterSettings)settings;
+
+            if (specificSettings.MaintenanceMode && !specificSettings.UseEmbeddedServer)
+            {
+                throw new InvalidOperationException("Maintenance mode is not supported with an external RavenDB server. Stop the ServiceControl instance and access the database directly.");
+            }
+
             return new RavenPersistence(specificSettings);
         }
     }
