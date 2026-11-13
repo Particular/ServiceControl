@@ -7,6 +7,16 @@ using Microsoft.Data.SqlClient;
 
 static class TestSchema
 {
+    static readonly bool SkipCleanup = string.Equals(Environment.GetEnvironmentVariable("ServiceControl_TESTS_SKIP_SCHEMA_CLEANUP"), "true", StringComparison.OrdinalIgnoreCase);
+
+    static TestSchema()
+    {
+        if (SkipCleanup)
+        {
+            Console.WriteLine("Schema cleanup is disabled. The workflow must delete the test database after the tests finish.");
+        }
+    }
+
     public static Task Create(string connectionString, string schema, CancellationToken cancellationToken = default) =>
         Execute(connectionString, CreateSchemaSql, schema, cancellationToken);
 
@@ -16,7 +26,7 @@ static class TestSchema
     // SQL Server has no DROP SCHEMA CASCADE, so the objects have to go first, and the full-text
     // index has to go before the table it is on.
     public static Task Drop(string connectionString, string schema, CancellationToken cancellationToken = default) =>
-        Execute(connectionString, DropSchemaSql, schema, cancellationToken);
+        SkipCleanup ? Task.CompletedTask : Execute(connectionString, DropSchemaSql, schema, cancellationToken);
 
     // Tests share one database now, so a schema being set up or torn down contends on the system
     // catalogs with every other test's CREATE and DROP, and with the transport tests, which CI points

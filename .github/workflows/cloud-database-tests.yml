@@ -162,6 +162,7 @@ jobs:
           max-parallel: 2
         env:
           ServiceControl_TESTS_FILTER: ${{ matrix.provider }}
+          ServiceControl_TESTS_SKIP_SCHEMA_CLEANUP: 'true'
           PARTICULARSOFTWARE_LICENSE: ${{ secrets.LICENSETEXT }}
 
   notify:
