@@ -12,12 +12,12 @@ using ServiceControl.Persistence.DataMigration;
 class MigrationIsReleasedCheckTests
 {
     [Test]
-    public void A_build_without_the_whole_migration_refuses_MigrationEnabled()
+    public void A_build_without_the_whole_migration_refuses_the_offline_command()
     {
         var exception = Assert.ThrowsAsync<Exception>(() => new MigrationIsReleasedCheck().Run());
 
-        Assert.That(exception.Message, Does.Contain("does not yet carry the whole migration").And.Contain(MigrationSettings.EnabledKey),
-            "the customer has to learn that nothing will be copied, and which setting to turn back off");
+        Assert.That(exception.Message, Does.Contain("does not yet carry the whole migration").And.Contain("--start-data-migration"),
+            "the customer has to learn that the offline command is unavailable");
     }
 
     // A RavenDB target fails the pair check, so this only passes while the release check runs before it.

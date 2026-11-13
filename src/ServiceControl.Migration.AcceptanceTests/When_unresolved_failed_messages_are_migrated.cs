@@ -232,7 +232,7 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
         var failure = new IngestedFailure();
         await SeedFailure(failure);
 
-        await RunHostUntilTheApiAnswers();
+        await MigrateThenRunHost();
 
         var response = await HttpClient.GetAsync($"api/errors/last/{failure.UniqueMessageIdString}");
 
@@ -261,7 +261,7 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
             await SeedFailure(failure);
         }
 
-        await RunHostUntilTheApiAnswers();
+        await MigrateThenRunHost();
 
         var checkpoint = await ReadCheckpoint("UnresolvedAndRetryIssuedFailedMessages");
 
@@ -292,7 +292,7 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
 
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
-        var refused = Assert.ThrowsAsync<Exception>(async () => await RunCommand.Run(Settings, AllowingAnUnreleasedMigration(), cancellation.Token));
+        var refused = Assert.ThrowsAsync<Exception>(async () => await MigrateCommand.Run(Settings, AllowingAnUnreleasedMigration(), cancellation.Token));
 
         var checkpoint = await ReadCheckpoint("UnresolvedAndRetryIssuedFailedMessages");
 

@@ -98,7 +98,8 @@ namespace ServiceControl.AcceptanceTests.Recoverability
             "MetricsReporterHostedService",
             "HealthCheckPublisherHostedService",  // inert, no IHealthCheckPublisher is registered
             "ExternalIntegrationRequestsDataStore",  // its drain is inert here, nothing calls Subscribe
-            "FinishedCopyBeforeAnIngestionNodeOpens"  // keeps this node out of a database a copy has not finished filling
+            "FinishedCopyBeforeAnIngestionNodeOpens",  // keeps this node out of a database a copy has not finished filling
+            "RecordHostOpenedOnTarget"  // idempotent upsert of a marker only read for presence, safe on every node
         ];
 
         [Test]

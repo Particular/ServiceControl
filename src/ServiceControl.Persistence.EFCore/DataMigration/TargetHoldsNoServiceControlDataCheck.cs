@@ -68,7 +68,7 @@ sealed class TargetHoldsNoServiceControlDataCheck(IServiceScopeFactory scopeFact
 
             if (holdingRows.Count > 0)
             {
-                throw new Exception($"The database already holds ServiceControl data in {string.Join(", ", holdingRows)}, so ServiceControl has already run on it, and a migration copies only into an empty database. Create a new database, run ServiceControl with --setup against it, and do not start ServiceControl on it before migrating; then start again with migration on.");
+                throw new Exception($"The database already holds ServiceControl data in {string.Join(", ", holdingRows)}, so ServiceControl has already run on it, and a migration copies only into an empty database. Create a new database, run ServiceControl with --setup against it, and run --start-data-migration before starting ServiceControl on it.");
             }
         }, cancellationToken);
 }
