@@ -58,12 +58,12 @@ namespace ServiceControl.Hosting.Commands
 
         static void EnsureStorageCanScaleOut(Settings settings)
         {
-            var manifest = PersistenceManifestLibrary.Find(settings.PersistenceType);
+            var manifest = PersistenceManifestLibrary.Find(settings.StorageType);
 
             if (manifest == null || !SupportedStorageNames.Contains(manifest.Name, StringComparer.OrdinalIgnoreCase))
             {
                 throw new Exception(
-                    $"--error-ingestion-only requires SQL Server or PostgreSQL storage, but this instance is configured to use '{settings.PersistenceType}'. Scaling out error ingestion is not supported for this storage type.");
+                    $"--error-ingestion-only requires SQL Server or PostgreSQL storage, but this instance is configured to use '{settings.StorageType}'. Scaling out error ingestion is not supported for this storage type.");
             }
         }
 

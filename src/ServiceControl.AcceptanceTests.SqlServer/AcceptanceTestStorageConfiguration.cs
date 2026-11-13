@@ -13,7 +13,7 @@ using ServiceControl.Persistence.Tests;
 
 public class AcceptanceTestStorageConfiguration : IAcceptanceTestStorageConfiguration
 {
-    public string PersistenceType { get; } = "SQLServer";
+    public string StorageType { get; } = "SQLServer";
 
     public async Task CustomizeSettings(Settings settings, CancellationToken cancellationToken = default)
     {

@@ -24,7 +24,7 @@
     {
         public Settings(
             string transportType = null,
-            string persisterType = null,
+            string storageType = null,
             LoggingSettings loggingSettings = null,
             bool? forwardErrorMessages = default,
             TimeSpan? errorRetentionPeriod = default
@@ -47,7 +47,7 @@
 
             TransportConnectionString = GetConnectionString();
             TransportType = transportType ?? SettingsReader.Read<string>(SettingsRootNamespace, "TransportType");
-            PersistenceType = persisterType ?? SettingsReader.Read<string>(SettingsRootNamespace, "PersistenceType");
+            StorageType = storageType ?? SettingsReader.Read<string>(SettingsRootNamespace, "StorageType");
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             ForwardErrorMessages = forwardErrorMessages ?? GetForwardErrorMessages();
             ErrorRetentionPeriod = errorRetentionPeriod ?? GetErrorRetentionPeriod();
@@ -184,7 +184,7 @@
         public TimeSpan HeartbeatGracePeriod { get; set; }
 
         public string TransportType { get; set; }
-        public string PersistenceType { get; private set; }
+        public string StorageType { get; private set; }
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }
 

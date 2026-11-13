@@ -27,19 +27,19 @@
 
         public string[] Aliases { get; set; } = [];
 
-        internal bool IsMatch(string persistenceType) =>
-            string.Equals(Name, persistenceType, StringComparison.OrdinalIgnoreCase)
-            || Aliases.Contains(persistenceType, StringComparer.Ordinal)
-            || IsTypeMatch(persistenceType);
+        internal bool IsMatch(string storageType) =>
+            string.Equals(Name, storageType, StringComparison.OrdinalIgnoreCase)
+            || Aliases.Contains(storageType, StringComparer.Ordinal)
+            || IsTypeMatch(storageType);
 
-        bool IsTypeMatch(string persistenceType)
+        bool IsTypeMatch(string storageType)
         {
-            if (string.Equals(TypeName, persistenceType, StringComparison.Ordinal)) // Type names are case-sensitive
+            if (string.Equals(TypeName, storageType, StringComparison.Ordinal)) // Type names are case-sensitive
             {
                 return true;
             }
 
-            var type = Type.GetType(persistenceType);
+            var type = Type.GetType(storageType);
             if (type == null)
             {
                 return false;
@@ -115,14 +115,14 @@
                 ?? throw new InvalidOperationException("The persistence assembly has no containing directory.");
         }
 
-        public static PersistenceManifest? Find(string persistenceType)
+        public static PersistenceManifest? Find(string storageType)
         {
-            if (persistenceType == null)
+            if (storageType == null)
             {
-                throw new Exception("No persistenceType has been configured. Either provide a Type or Name in the PersistenceType setting.");
+                throw new Exception("No storageType has been configured. Either provide a Type or Name in the StorageType setting.");
             }
 
-            var persistenceManifest = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
+            var persistenceManifest = PersistenceManifests.FirstOrDefault(w => w.IsMatch(storageType));
 
             return persistenceManifest;
         }

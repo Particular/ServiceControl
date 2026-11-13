@@ -192,7 +192,7 @@
 
             var result = string.Empty;
 
-            var dataStoreSettings = new[] { nameof(Settings.PersistenceType) };
+            var dataStoreSettings = new[] { nameof(Settings.StorageType) };
 
             foreach (var settingLine in settingsLines)
             {
