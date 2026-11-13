@@ -339,17 +339,15 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
     public Task SaveLicensedEndpointDetailsAmendment(LicensedEndpointDetailsAmendment? result, CancellationToken cancellationToken = default) =>
         ExecuteWithDbContext(async (context, token) =>
             {
-                var existing = await context.GetSetting<LicensedEndpointDetailsAmendment>(SettingKeys.LicensedEndpointDetailsAmendment, token);
-                if (existing is not null)
+                if (result is null)
                 {
-                    if (result is null)
-                    {
-                        context.Remove(existing);
-                        await context.SaveChangesAsync(cancellationToken);
-                        return;
-                    }
-                    result.MergeWithExisting(existing);
+                    await context.Settings.Where(setting => setting.Key == SettingKeys.LicensedEndpointDetailsAmendment)
+                        .ExecuteDeleteAsync(token);
+                    return;
                 }
+
+                var existing = await context.GetSetting<LicensedEndpointDetailsAmendment>(SettingKeys.LicensedEndpointDetailsAmendment, token);
+                result.MergeWithExisting(existing);
                 await context.StoreSetting(SettingKeys.LicensedEndpointDetailsAmendment, result, token);
             }, cancellationToken);
 

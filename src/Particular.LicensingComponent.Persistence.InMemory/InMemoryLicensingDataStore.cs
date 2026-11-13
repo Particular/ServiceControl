@@ -185,12 +185,15 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         return Task.CompletedTask;
     }
 
-    public Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(bool amendWithUserChanges = true, CancellationToken cancellationToken = default) =>
-        Task.FromResult(amendWithUserChanges ? endpointDetails?.Amend(endpointDetailsAmendment) : endpointDetails);
+    public Task<LicensedEndpointDetails?> GetLicensedEndpointDetails(bool amendWithUserChanges = true, CancellationToken cancellationToken = default)
+    {
+        var details = Snapshot(endpointDetails);
+        return Task.FromResult(amendWithUserChanges ? details?.Amend(endpointDetailsAmendment) : details);
+    }
 
     public Task SaveLicensedEndpointDetails(LicensedEndpointDetails result, CancellationToken cancellationToken = default)
     {
-        endpointDetails = result;
+        endpointDetails = Snapshot(result);
         endpointDetailsAmendment = new LicensedEndpointDetailsAmendment();
         return Task.CompletedTask;
     }
@@ -204,6 +207,20 @@ public class InMemoryLicensingDataStore : ILicensingDataStore
         endpointDetailsAmendment = result;
         return Task.CompletedTask;
     }
+
+    static LicensedEndpointDetails? Snapshot(LicensedEndpointDetails? details) => details is null ? null : new()
+    {
+        LicenseId = details.LicenseId,
+        Endpoints = [.. details.Endpoints.Select(endpoint => endpoint with { Queues = SnapshotQueues(endpoint.Queues) })],
+        InfrastructureQueues = SnapshotQueues(details.InfrastructureQueues),
+        ExcludedQueues = SnapshotQueues(details.ExcludedQueues),
+        UnassignedQueues = SnapshotQueues(details.UnassignedQueues),
+        ServiceEndDate = details.ServiceEndDate,
+        Products = details.Products,
+        ValidId = details.ValidId
+    };
+
+    static QueueIdentity[] SnapshotQueues(QueueIdentity[] queues) => [.. queues.Select(queue => queue with { })];
 
     public Task RemoveEndpoints(EndpointIdentifier[] endpointIds, CancellationToken cancellationToken = default)
     {
