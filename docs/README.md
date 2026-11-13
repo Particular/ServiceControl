@@ -54,5 +54,3 @@ A pull request is listed here only when it is the canonical record for a decisio
 - New RavenDB databases use the Lucene search engine, and indexes still on Corax are flagged — [#5833](https://github.com/Particular/ServiceControl/pull/5833)
 
 Keep this index current when a canonical source is added, replaced, or retired; link, do not copy.
-
-<!-- temporary: exercise mixed docs and code PR checks -->
