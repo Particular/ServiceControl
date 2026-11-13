@@ -5,6 +5,10 @@ on:
       - master
       - release-*
   pull_request:
+    # Keep in sync with ci-docs-skip.yml
+    paths-ignore:
+      - "docs/**/*.md"
+      - "AGENTS.md"
   workflow_dispatch:
 env:
   DOTNET_NOLOGO: true

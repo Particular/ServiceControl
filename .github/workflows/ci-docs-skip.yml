@@ -1,0 +1,63 @@
+name: CI (docs skip)
+
+# Reports the required CI checks as passed for pull requests that only change documentation.
+# The jobs and names mirror ci.yml; keep both in sync, including the paths filter.
+on:
+  pull_request:
+    paths:
+      - "docs/**/*.md"
+      - "AGENTS.md"
+
+jobs:
+  build:
+    name: ${{ matrix.os-name }}-${{ matrix.test-category }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os-name: [ Windows, Linux ]
+        test-category: [ DefaultCore, DefaultMonitoring, Raven, SqlServer, PostgreSql, RabbitMQ, AzureServiceBus, AzureStorageQueues, MSMQ, SQS, IBMMQ ]
+      fail-fast: false
+    steps:
+      - run: echo "Docs-only change, skipping tests"
+
+  compile:
+    name: ${{ matrix.os-name }}-Compile
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os-name: [ Windows, Linux ]
+      fail-fast: false
+    steps:
+      - run: echo "Docs-only change, skipping build"
+
+  windows-installers:
+    name: windows-installers / build
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Docs-only change, skipping installer build"
+
+  containers:
+    name: containers / ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        name: [ servicecontrol, servicecontrol-audit, servicecontrol-monitoring ]
+      fail-fast: false
+    steps:
+      - run: echo "Docs-only change, skipping container build"
+
+  db-container:
+    name: db-container / db-container
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Docs-only change, skipping database container build"
+
+  container-test:
+    name: container-test / ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        name: [ rabbit, mssql, postgresql, asb, asq, sqs ]
+      fail-fast: false
+    steps:
+      - run: echo "Docs-only change, skipping container tests"
