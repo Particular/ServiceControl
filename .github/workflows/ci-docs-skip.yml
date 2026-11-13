@@ -8,6 +8,10 @@ on:
       - "docs/**/*.md"
       - "AGENTS.md"
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build:
     name: ${{ matrix.os-name }}-${{ matrix.test-category }}
