@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 public interface IMigrationStartupCheck
 {
     /// <summary>
-    /// What the check is called in the refusal the host prints, so it is phrased to finish the sentence
-    /// "Migration startup check '...' failed".
+    /// What the check is called in the refusal, so it is phrased to finish the sentence
+    /// "Migration check '...' failed".
     /// </summary>
     string Name { get; }
 

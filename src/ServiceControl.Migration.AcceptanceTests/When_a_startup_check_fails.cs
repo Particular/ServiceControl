@@ -152,7 +152,7 @@ class When_a_startup_check_fails : MigrationAcceptanceTest
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
         var exception = Assert.ThrowsAsync<Exception>(async () =>
-            await RunCommand.Run(Settings, AllowingAnUnreleasedMigration(builder => builder.HaltTheEndpointSettingsCategory()), cancellation.Token));
+            await MigrateCommand.Run(Settings, AllowingAnUnreleasedMigration(builder => builder.HaltTheEndpointSettingsCategory()), cancellation.Token));
 
         Assert.Multiple(() =>
         {
@@ -168,13 +168,13 @@ class When_a_startup_check_fails : MigrationAcceptanceTest
     {
         await SeedSourceKnownEndpoints("Sales");
         await SeedSourceEndpointSettings(("Sales", true));
-        await RunHostUntilTheApiAnswers();
+        await MigrateThenRunHost();
 
         var missing = $"{Source.PrimaryDatabase}-does-not-exist";
         SetSourceVariable("SERVICECONTROL_MIGRATION_EVENTLOGWINDOW", null);
         SetSourceVariable("SERVICECONTROL_RAVENDB_DATABASENAME", missing);
 
-        await RunHostUntilTheApiAnswers();
+        await MigrateThenRunHost();
 
         var endpointSettings = await GetEndpointSettings();
         var eventLog = await ReadCheckpoint(MigrationCategoryIds.EventLog);
@@ -214,7 +214,7 @@ class When_a_startup_check_fails : MigrationAcceptanceTest
     {
         await SeedSourceKnownEndpoints("Sales");
         await SeedSourceEndpointSettings(("Sales", true));
-        await RunHostUntilTheApiAnswers();
+        await MigrateThenRunHost();
 
         await SeedCheckpoint(MigrationCategoryIds.EventLog, MigrationCategoryState.CompleteWithErrors);
         SetSourceVariable("SERVICECONTROL_RAVENDB_DATABASENAME", $"{Source.PrimaryDatabase}-does-not-exist");
@@ -240,11 +240,11 @@ class When_a_startup_check_fails : MigrationAcceptanceTest
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
         var refusal = Assert.ThrowsAsync<Exception>(async () =>
-            await RunCommand.Run(Settings, allowUnreleasedMigration ? AllowingAnUnreleasedMigration() : null, cancellation.Token));
+            await MigrateCommand.Run(Settings, allowUnreleasedMigration ? AllowingAnUnreleasedMigration() : null, cancellation.Token));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(refusal.Message, Does.Contain("this start has copied nothing"));
+            Assert.That(refusal.Message, Does.Contain("this run has copied nothing"));
             Assert.That(await TargetEndpointSettingsCount(), Is.Zero, "a check that fires after rows have moved is worse than no check");
             Assert.That(await ReadSetting(HostOpenedSetting), Is.Null, "a refused startup has opened on nothing, so the abort is still free");
         }

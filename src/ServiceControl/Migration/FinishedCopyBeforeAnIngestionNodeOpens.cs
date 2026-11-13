@@ -8,8 +8,8 @@ using Microsoft.Extensions.Hosting;
 using ServiceControl.Persistence.DataMigration;
 
 /// <summary>
-/// Refuses to start a host that writes failed messages into the database, an error ingestion only host or
-/// --import-failed-errors, until every required category is Done or Abandoned. An optional category, which copies
+/// Refuses to start a host that writes failed messages into the database, including the main instance,
+/// an error ingestion only host, or --import-failed-errors, until every required category is Done or Abandoned. An optional category, which copies
 /// in the background once the main host has opened, never holds it back, but a category under an id this build
 /// does not know does. A refusal throws, which fails the start and stops the host. Start such a host only after the
 /// main host has opened, because a database with no checkpoint row yet reads as one no migration has touched.
@@ -20,9 +20,7 @@ sealed class FinishedCopyBeforeAnIngestionNodeOpens(
     IMigrationCheckpointStore checkpointStore,
     string hostDescription) : IHostedLifecycleService
 {
-    // It runs with the migration off too, because a node someone forgot to flag would ingest into a part-copied
-    // database and turn abandoning it from a clean rollback into permanent loss. A database that never migrated has
-    // nothing unfinished, so its nodes start as before.
+    // Every writer checks persisted progress, because ingesting into a partial copy ends the free abort.
     public async Task StartingAsync(CancellationToken cancellationToken = default)
     {
         var unfinished = (await checkpointStore.ReadAll(cancellationToken))
@@ -39,9 +37,7 @@ sealed class FinishedCopyBeforeAnIngestionNodeOpens(
             ? MigrationStartup.FailedDetail(checkpoint)
             : $"{checkpoint.CategoryId} is Copying ({checkpoint.State})"));
 
-        var advice = unfinished.Any(checkpoint => !checkpoint.State.IsFailed())
-            ? "Let the instance running the copy finish it and start this host again."
-            : "Start this host again once they are settled.";
+        const string advice = "With ServiceControl and all ingestion workers stopped, resolve any Failed categories and run --start-data-migration again before starting this host.";
 
         throw new Exception($"A copy into this database has not finished, so {hostDescription} will not start and nothing has been lost. {detail}. {advice}");
     }

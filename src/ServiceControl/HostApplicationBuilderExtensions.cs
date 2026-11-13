@@ -17,7 +17,6 @@
     using global::ServiceControl.Operations.Metrics;
     using global::ServiceControl.Recoverability.Retrying.Metrics;
     using global::ServiceControl.Persistence;
-    using global::ServiceControl.Persistence.DataMigration;
     using global::ServiceControl.Transports;
     using Licensing;
     using Microsoft.AspNetCore.HttpLogging;
@@ -108,10 +107,6 @@
 
             services.AddStartupChecks();
             services.AddPersistence(settings);
-
-            // The checkpoint store is optional: EF Core registers one, RavenDB does not.
-            services.TryAddSingleton<IMigrationState>(provider =>
-                new CheckpointMigrationState(provider.GetService<IMigrationCheckpointStore>()));
 
             services.AddMetrics(settings.PrintMetrics);
             hostBuilder.AddTelemetry(settings);

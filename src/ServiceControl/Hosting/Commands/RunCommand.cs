@@ -45,8 +45,7 @@
             Run(settings, customize: null, cancellationToken);
 
         /// <summary>
-        /// Builds and runs the full instance. When the migration is turned on, the required copy is added as the
-        /// first thing the host starts, so the instance opens only once the copy has finished.
+        /// Builds and runs the full instance after checking that any offline migration has finished.
         /// </summary>
         internal static async Task Run(Settings settings, Action<WebApplicationBuilder> customize, CancellationToken cancellationToken = default)
         {
@@ -70,11 +69,9 @@
             AllowUnreleasedMigrationWhenAsked(hostBuilder.Services, Environment.GetEnvironmentVariable(AllowUnreleasedMigrationVariable));
 #endif
 
-            if (settings.MigrationEnabled)
-            {
-                hostBuilder.Services.AddHostedService(provider => new RequiredCopyBeforeTheHostOpens(provider, settings));
-                hostBuilder.Services.AddHostedService(provider => new RecordHostOpenedOnTarget(provider));
-            }
+            hostBuilder.Services.AddHostedService(provider => new MigrationBeforeTheHostOpens(provider));
+            hostBuilder.Services.AddHostedService(provider => new RecordHostOpenedOnTarget(provider));
+            hostBuilder.Services.AddHostedService<OptionalCategoryCopier>();
 
             // A start that refuses would otherwise leave everything the host built undisposed.
             await using var app = hostBuilder.Build();
@@ -90,23 +87,7 @@
             app.Urls.Clear();
             app.Urls.Add(settings.RootUrl);
 
-            // Read before RunAsync, which disposes the host before the filter below runs, so reading it there would
-            // throw and the catch would never fire.
-            var lifetime = app.Lifetime;
-
-            // Starting the host is what marks the target as opened, through the RecordHostOpenedOnTarget hosted
-            // service registered above, so nothing here does it.
-            try
-            {
-                await app.RunAsync(cancellationToken);
-            }
-            // Stopping the service during the required copy cancels it inside host start, and that is a stop
-            // rather than a failure: every committed batch is durable and the next start resumes from the cursor.
-#pragma warning disable PS0020 // The host cancels on its own lifetime token, not the caller's, so that is the one to filter on
-            catch (OperationCanceledException) when (settings.MigrationEnabled && lifetime.ApplicationStopping.IsCancellationRequested)
-#pragma warning restore PS0020
-            {
-            }
+            await app.RunAsync(cancellationToken);
         }
     }
 }
