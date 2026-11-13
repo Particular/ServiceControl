@@ -164,7 +164,7 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup Azure Service Bus
-        uses: Particular/setup-azureservicebus-action@v2.5.0
+        uses: Particular/setup-azureservicebus-action@v3.0.0
         if: matrix.test-category == 'AzureServiceBus'
         with:
           connection-string-name: ServiceControl_TransportTests_ASBS_ConnectionString
