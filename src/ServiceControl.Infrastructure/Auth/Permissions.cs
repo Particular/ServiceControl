@@ -55,6 +55,11 @@ public static class Permissions
     /// <summary>Sagas area — viewing saga audit data.</summary>
     public const string ErrorSagasView = "error:sagas:view";
 
+    /// <summary>Saga timeouts area — viewing saga timeouts and requesting changes to them.</summary>
+    public const string ErrorTimeoutsView = "error:timeouts:view";
+    /// <inheritdoc cref="ErrorTimeoutsView"/>
+    public const string ErrorTimeoutsManage = "error:timeouts:manage";
+
     /// <summary>Event log area — viewing the event log.</summary>
     public const string ErrorEventLogView = "error:eventlog:view";
 
