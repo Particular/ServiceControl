@@ -45,23 +45,34 @@
 
                 var server = EmbeddedDatabase.Start(embeddedConfig, new ApplicationLifetime(new NullLogger<ApplicationLifetime>()));
 
-                //make sure that the database is up
-                using var documentStore = await server.Connect(cancellationToken);
-
-                var databaseSetup = new DatabaseSetup(databaseConfiguration);
-                await databaseSetup.Execute(documentStore, cancellationToken);
-
-                var cleanupDatabases = new DirectoryInfo(dbPath)
-                    .GetDirectories()
-                    .Select(di => di.Name)
-                    .Where(name => name.Length == 32)
-                    .ToArray();
-
-                if (cleanupDatabases.Length > 0)
+                try
                 {
-                    var cleanupOperation = new DeleteDatabasesOperation(new DeleteDatabasesOperation.Parameters { DatabaseNames = cleanupDatabases, HardDelete = true });
-                    await documentStore.Maintenance.Server.SendAsync(cleanupOperation, CancellationToken.None);
+                    //make sure that the database is up
+                    using var documentStore = await server.Connect(cancellationToken);
+
+                    var databaseSetup = new DatabaseSetup(databaseConfiguration);
+                    await databaseSetup.Execute(documentStore, cancellationToken);
+
+                    var cleanupDatabases = new DirectoryInfo(dbPath)
+                        .GetDirectories()
+                        .Select(di => di.Name)
+                        .Where(name => name.Length == 32)
+                        .ToArray();
+
+                    if (cleanupDatabases.Length > 0)
+                    {
+                        var cleanupOperation = new DeleteDatabasesOperation(new DeleteDatabasesOperation.Parameters { DatabaseNames = cleanupDatabases, HardDelete = true });
+                        await documentStore.Maintenance.Server.SendAsync(cleanupOperation, CancellationToken.None);
+                    }
                 }
+#pragma warning disable PS0019 // The catch rethrows everything, cancellation included
+                catch
+                {
+                    // A server left running makes every later caller fail with "The server was already started".
+                    server.Dispose();
+                    throw;
+                }
+#pragma warning restore PS0019
 
                 embeddedDatabase = server;
                 return embeddedDatabase;

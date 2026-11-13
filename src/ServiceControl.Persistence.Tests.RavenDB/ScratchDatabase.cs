@@ -32,20 +32,37 @@ sealed class ScratchDatabase : IAsyncDisposable
             Database = name,
             Conventions = DocumentStoreConventions.Create()
         };
-        store.Initialize();
 
-        var databaseRecord = new DatabaseRecord(name);
-        databaseRecord.Settings.Add("Indexing.Auto.SearchEngineType", "Lucene");
-        databaseRecord.Settings.Add("Indexing.Static.SearchEngineType", "Lucene");
-        await store.Maintenance.Server.SendAsync(new CreateDatabaseOperation(databaseRecord), cancellationToken);
+        try
+        {
+            store.Initialize();
+
+            var databaseRecord = new DatabaseRecord(name);
+            databaseRecord.Settings.Add("Indexing.Auto.SearchEngineType", "Lucene");
+            databaseRecord.Settings.Add("Indexing.Static.SearchEngineType", "Lucene");
+            await store.Maintenance.Server.SendAsync(new CreateDatabaseOperation(databaseRecord), cancellationToken);
+        }
+#pragma warning disable PS0019 // The catch rethrows everything, cancellation included
+        catch
+        {
+            store.Dispose();
+            throw;
+        }
+#pragma warning restore PS0019
 
         return new ScratchDatabase(server, name, store);
     }
 
     public async ValueTask DisposeAsync()
     {
-        Store.Dispose();
-        await server.DeleteDatabase(name);
+        try
+        {
+            await server.DeleteDatabase(name);
+        }
+        finally
+        {
+            Store.Dispose();
+        }
     }
 
     readonly EmbeddedDatabase server;

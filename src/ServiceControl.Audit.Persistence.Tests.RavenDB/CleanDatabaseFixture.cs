@@ -24,17 +24,30 @@ abstract class CleanDatabaseFixture
         var embeddedDatabase = await SharedEmbeddedServer.GetInstance(TestContext.CurrentContext.CancellationToken);
         databaseName = Guid.NewGuid().ToString();
 
-        Store = new DocumentStore
+        var store = new DocumentStore
         {
             Urls = [embeddedDatabase.ServerUrl],
             Database = databaseName,
             Conventions = DocumentStoreConventions.Create()
         };
-        Store.Initialize();
 
-        var databaseRecord = new DatabaseRecord(databaseName);
-        ConfigureDatabase(databaseRecord);
-        await Store.Maintenance.Server.SendAsync(new CreateDatabaseOperation(databaseRecord), TestTimeoutCancellationToken);
+        try
+        {
+            store.Initialize();
+
+            var databaseRecord = new DatabaseRecord(databaseName);
+            ConfigureDatabase(databaseRecord);
+            await store.Maintenance.Server.SendAsync(new CreateDatabaseOperation(databaseRecord), TestTimeoutCancellationToken);
+        }
+#pragma warning disable PS0019 // The catch rethrows everything, cancellation included
+        catch
+        {
+            store.Dispose();
+            throw;
+        }
+#pragma warning restore PS0019
+
+        Store = store;
     }
 
     protected virtual void ConfigureDatabase(DatabaseRecord databaseRecord)
@@ -44,14 +57,20 @@ abstract class CleanDatabaseFixture
     [TearDown]
     public async Task DeleteCleanDatabase()
     {
-        if (Store != null)
+        try
         {
-            await Store.Maintenance.Server.SendAsync(new DeleteDatabasesOperation(
-                new DeleteDatabasesOperation.Parameters { DatabaseNames = [databaseName], HardDelete = true }));
-            Store.Dispose();
+            if (Store != null)
+            {
+                await Store.Maintenance.Server.SendAsync(new DeleteDatabasesOperation(
+                    new DeleteDatabasesOperation.Parameters { DatabaseNames = [databaseName], HardDelete = true }));
+            }
         }
-
-        testCancellationTokenSource?.Dispose();
+        finally
+        {
+            Store?.Dispose();
+            Store = null;
+            testCancellationTokenSource?.Dispose();
+        }
     }
 
     string databaseName;
