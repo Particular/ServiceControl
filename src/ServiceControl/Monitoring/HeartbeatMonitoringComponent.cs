@@ -20,7 +20,7 @@
         public override void Setup(Settings settings, IComponentInstallationContext context, IHostApplicationBuilder hostBuilder)
         {
             // Integration Events
-            if (!settings.DisableExternalIntegrationsPublishing)
+            if (settings.EnableExternalIntegrationsPublishing)
             {
                 context.AddEventPublished<HeartbeatRestored>();
                 context.AddEventPublished<HeartbeatStopped>();

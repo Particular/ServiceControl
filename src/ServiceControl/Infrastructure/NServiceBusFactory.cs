@@ -41,7 +41,7 @@ namespace ServiceBus.Management.Infrastructure
             configuration.GetSettings().Set(settings.LoggingSettings);
             configuration.SetDiagnosticsPath(settings.LoggingSettings.LogPath);
 
-            if (!settings.DisableExternalIntegrationsPublishing)
+            if (settings.EnableExternalIntegrationsPublishing)
             {
                 configuration.EnableFeature<ExternalIntegrationsFeature>();
             }
