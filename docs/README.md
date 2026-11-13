@@ -44,7 +44,6 @@ This section points to sources that explain why ServiceControl is designed the w
 ## Upstream contracts
 
 - [NServiceBus: logging](https://github.com/Particular/NServiceBus/blob/master/docs/logging.md) — when Core guarantees an `ILoggerFactory` inside an endpoint, and how components should log
-- [NServiceBus: for downstream components](https://github.com/Particular/NServiceBus/blob/master/docs/README.md#for-downstream-components) — every contract NServiceBus documents for transports, persisters, and serializers
 
 ## Decisions and rationale
 
