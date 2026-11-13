@@ -102,10 +102,10 @@ class IndexDeploymentTests : CleanDatabaseFixture
             }
         }
 
-        static Task<List<MessagesViewIndex.SortAndFilterOptions>> Search(IAsyncDocumentSession session, string indexName, string searchTerm) =>
+        Task<List<MessagesViewIndex.SortAndFilterOptions>> Search(IAsyncDocumentSession session, string indexName, string searchTerm) =>
             session.Query<MessagesViewIndex.SortAndFilterOptions>(indexName)
                 .Search(x => x.Query, searchTerm)
-                .ToListAsync();
+                .ToListAsync(TestTimeoutCancellationToken);
     }
 
     async Task AssertSagaHistoryIsReduced()
