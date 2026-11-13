@@ -56,3 +56,4 @@ A pull request is listed here only when it is the canonical record for a decisio
 Keep this index current when a canonical source is added, replaced, or retired; link, do not copy.
 
 <!-- temporary: exercise mixed docs and code PR checks -->
+<!-- temporary: docs-only PR check test -->
