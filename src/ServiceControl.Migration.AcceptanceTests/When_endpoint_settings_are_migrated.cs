@@ -29,7 +29,7 @@ class When_endpoint_settings_are_migrated : MigrationAcceptanceTest
 
         // A clock that never moves keeps HeartbeatEndpointSettingsSyncHostedService's twenty second
         // delay from elapsing and rewriting these rows while the assertions read them.
-        await RunHostUntilTheApiAnswers(builder => builder.Services.AddSingleton<TimeProvider>(new FakeTimeProvider()));
+        await MigrateThenRunHost(builder => builder.Services.AddSingleton<TimeProvider>(new FakeTimeProvider()));
 
         var settings = await GetEndpointSettings();
 

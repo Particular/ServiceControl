@@ -18,18 +18,8 @@ using ServiceControl.Persistence.EFCore;
 class When_a_copy_is_killed_mid_category : MigrationAcceptanceTest
 {
     [Test]
-    public void A_migrating_host_stopped_while_starting_exits_cleanly()
-    {
-        using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-
-        Assert.DoesNotThrowAsync(async () =>
-            await RunCommand.Run(Settings, AllowingAnUnreleasedMigration(StoppedWhileStarting), cancellation.Token));
-    }
-
-    [Test]
     public void A_host_not_migrating_stopped_while_starting_still_fails()
     {
-        SetSourceVariable("SERVICECONTROL_MIGRATION_ENABLED", "false");
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
         Assert.CatchAsync<OperationCanceledException>(async () =>
@@ -56,20 +46,20 @@ class When_a_copy_is_killed_mid_category : MigrationAcceptanceTest
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
         var killed = Assert.ThrowsAsync<Exception>(async () =>
-            await RunCommand.Run(Settings, AllowingAnUnreleasedMigration(builder => builder.FailTheSecondMigrationWrite()), cancellation.Token));
+            await MigrateCommand.Run(Settings, AllowingAnUnreleasedMigration(builder => builder.FailTheSecondMigrationWrite()), cancellation.Token));
 
         Assert.That(killed, Is.Not.Null);
         Assert.That(await TargetEndpointSettingsCount(), Is.EqualTo(2), "the first batch and its cursor should have committed together");
 
         var refusedAgain = Assert.ThrowsAsync<Exception>(async () =>
-            await RunCommand.Run(Settings, AllowingAnUnreleasedMigration(), cancellation.Token));
+            await MigrateCommand.Run(Settings, AllowingAnUnreleasedMigration(), cancellation.Token));
         Assert.That(refusedAgain.Message, Is.EqualTo(killed.Message), "a start re-ran a Failed category the operator had not put back");
 
         // The row a kill part way through the category leaves: still copying, with the first batch's cursor and counts.
         var halted = await ReadCheckpoint("EndpointSettings");
         await QueryTarget(dbContext => dbContext.UpsertCheckpoint(halted with { State = MigrationCategoryState.InProgress, LastError = null, SettledAt = null }));
 
-        await RunHostUntilTheApiAnswers();
+        await MigrateThenRunHost();
 
         var checkpoint = await ReadCheckpoint("EndpointSettings");
 
@@ -92,10 +82,10 @@ class When_a_copy_is_killed_mid_category : MigrationAcceptanceTest
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
         Assert.ThrowsAsync<Exception>(async () =>
-            await RunCommand.Run(Settings, AllowingAnUnreleasedMigration(builder => builder.FailTheSecondMigrationWrite()), cancellation.Token));
+            await MigrateCommand.Run(Settings, AllowingAnUnreleasedMigration(builder => builder.FailTheSecondMigrationWrite()), cancellation.Token));
 
         await DeleteCheckpoint("EndpointSettings");
-        await RunHostUntilTheApiAnswers();
+        await MigrateThenRunHost();
 
         var checkpoint = await ReadCheckpoint("EndpointSettings");
 
@@ -112,7 +102,7 @@ class When_a_copy_is_killed_mid_category : MigrationAcceptanceTest
 
         using var stopping = new CancellationTokenSource(TimeSpan.FromMinutes(3));
         Assert.CatchAsync<OperationCanceledException>(async () =>
-            await RunCommand.Run(Settings, AllowingAnUnreleasedMigration(builder => builder.StopAfterTheFirstCategorySettles(stopping)), stopping.Token));
+            await MigrateCommand.Run(Settings, AllowingAnUnreleasedMigration(builder => builder.StopAfterTheFirstCategorySettles(stopping)), stopping.Token));
 
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
         var worker = ErrorIngestionOnlyCommand.BuildHost(Settings, AllowingAnUnreleasedMigration());

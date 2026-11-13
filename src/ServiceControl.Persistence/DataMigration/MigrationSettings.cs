@@ -19,13 +19,7 @@ public static class MigrationSettings
     /// retention period, and zero turns the category off.
     /// </summary>
     public const string ArchivedAndResolvedFailedMessagesWindowKey = "Migration/ArchivedAndResolvedFailedMessagesWindow";
-    /// <summary>
-    /// Turns the migration on: the required copy runs before the host opens.
-    /// </summary>
-    public const string EnabledKey = "Migration/Enabled";
-
     public const int DefaultThrottlePauseMilliseconds = 100;
     public const int DefaultHaltThresholdPercent = 5;
     public const int DefaultHaltThresholdMinimum = 100;
-    public const bool DefaultEnabled = false;
 }

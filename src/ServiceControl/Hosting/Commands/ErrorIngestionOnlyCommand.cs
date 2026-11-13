@@ -53,10 +53,7 @@ namespace ServiceControl.Hosting.Commands
                     provider.GetRequiredService<IMigrationCheckpointStore>(),
                     "this error ingestion only host"));
 
-            if (settings.MigrationEnabled)
-            {
-                hostBuilder.Services.AddHostedService(provider => new RecordHostOpenedOnTarget(provider));
-            }
+            hostBuilder.Services.AddHostedService(provider => new RecordHostOpenedOnTarget(provider));
 
             customize?.Invoke(hostBuilder);
 

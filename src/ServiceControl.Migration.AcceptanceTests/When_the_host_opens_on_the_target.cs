@@ -32,49 +32,45 @@ class When_the_host_opens_on_the_target : MigrationAcceptanceTest
 
         var copyIsParked = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var releaseTheCopy = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-        var host = RunCommand.Run(Settings, AllowingAnUnreleasedMigration(SignallingOnceStarted(started, builder => builder.ParkFirstMigrationWrite(copyIsParked, releaseTheCopy.Task))), cancellation.Token);
+        var copy = MigrateCommand.Run(Settings, AllowingAnUnreleasedMigration(builder => builder.ParkFirstMigrationWrite(copyIsParked, releaseTheCopy.Task)), cancellation.Token);
 
-        await copyIsParked.Task.WaitAsync(TimeSpan.FromMinutes(2));
-        Assert.That(await ReadSetting(HostOpenedSetting), Is.Null, "the abort is still free at this moment, and this row is what says it is not");
-
-        releaseTheCopy.SetResult();
-        await WaitForEndpointSettingsResponse(TimeSpan.FromMinutes(2));
-        await started.Task.WaitAsync(TimeSpan.FromMinutes(1));
-
-        Assert.That(await ReadSetting(HostOpenedSetting), Is.Not.Null);
-
-        await cancellation.CancelAsync();
-        await host;
-    }
-
-    [Test]
-    public async Task A_start_with_migration_off_does_not_stamp_the_target()
-    {
-        await SeedCheckpoint(MigrationCategoryIds.KnownEndpoints);
-        SetSourceVariable("SERVICECONTROL_MIGRATION_ENABLED", "false");
+        try
+        {
+            await copyIsParked.Task.WaitAsync(TimeSpan.FromMinutes(2));
+            Assert.That(await ReadSetting(HostOpenedSetting), Is.Null, "the abort is still free while the offline copy runs");
+        }
+        finally
+        {
+            releaseTheCopy.TrySetResult();
+            await copy;
+        }
+        Assert.That(await ReadSetting(HostOpenedSetting), Is.Null, "the offline command never opens the service");
 
         await RunHostUntilTheApiAnswers();
-
-        Assert.That(await ReadSetting(HostOpenedSetting), Is.Null, "only a start with the migration on may write the marker");
+        Assert.That(await ReadSetting(HostOpenedSetting), Is.Not.Null);
     }
 
     [Test]
-    public async Task A_start_with_migration_off_does_not_read_the_checkpoint_table()
+    public async Task A_start_detects_and_stamps_a_migration_without_an_enable_setting()
+    {
+        await SeedCheckpoint(MigrationCategoryIds.KnownEndpoints);
+        await RunHostUntilTheApiAnswers();
+        Assert.That(await ReadSetting(HostOpenedSetting), Is.Not.Null);
+    }
+
+    [Test]
+    public async Task A_start_requires_the_checkpoint_schema_to_check_for_an_unfinished_migration()
     {
         await DropTheCheckpointTable();
-        SetSourceVariable("SERVICECONTROL_MIGRATION_ENABLED", "false");
-
-        Assert.That(async () => await RunHostUntilTheApiAnswers(), Throws.Nothing, "every hosted service, StartedAsync included, ran without touching the missing table");
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+        Assert.That(async () => await RunCommand.Run(Settings, AllowingAnUnreleasedMigration(), cancellation.Token), Throws.Exception);
     }
 
     [Test]
     public async Task An_ingestion_only_host_is_refused_while_a_required_category_is_failed()
     {
         Settings.MaximumConcurrencyLevel = 1;
-        SetSourceVariable("SERVICECONTROL_MIGRATION_ENABLED", "false");
         await SeedRequiredCategoriesComplete(except: MigrationCategoryIds.MessageRedirects);
         await SeedCheckpoint(MigrationCategoryIds.MessageRedirects, MigrationCategoryState.CompleteWithErrors);
 
@@ -99,7 +95,6 @@ class When_the_host_opens_on_the_target : MigrationAcceptanceTest
     public async Task An_ingestion_only_host_starts_while_an_optional_category_is_still_copying_or_failed()
     {
         Settings.MaximumConcurrencyLevel = 1;
-        SetSourceVariable("SERVICECONTROL_MIGRATION_ENABLED", "false");
         await SeedRequiredCategoriesComplete();
         await SeedCheckpoint(MigrationCategoryIds.EventLog, MigrationCategoryState.InProgress);
         await SeedCheckpoint(MigrationCategoryIds.ArchivedAndResolvedFailedMessages, MigrationCategoryState.CompleteWithErrors);
@@ -122,7 +117,6 @@ class When_the_host_opens_on_the_target : MigrationAcceptanceTest
     public async Task An_ingestion_only_host_is_refused_over_a_category_this_build_does_not_know()
     {
         Settings.MaximumConcurrencyLevel = 1;
-        SetSourceVariable("SERVICECONTROL_MIGRATION_ENABLED", "false");
         await SeedRequiredCategoriesComplete();
         await SeedCheckpoint(CategoryFromANewerBuild, MigrationCategoryState.InProgress);
 
@@ -144,7 +138,6 @@ class When_the_host_opens_on_the_target : MigrationAcceptanceTest
     [Test]
     public async Task Importing_failed_errors_is_refused_while_a_copy_is_unfinished()
     {
-        SetSourceVariable("SERVICECONTROL_MIGRATION_ENABLED", "false");
         await SeedCheckpoint(MigrationCategoryIds.KnownEndpoints, MigrationCategoryState.InProgress);
 
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
@@ -158,7 +151,6 @@ class When_the_host_opens_on_the_target : MigrationAcceptanceTest
     [Test]
     public async Task Importing_failed_errors_starts_while_an_optional_category_is_still_copying_or_failed()
     {
-        SetSourceVariable("SERVICECONTROL_MIGRATION_ENABLED", "false");
         await SeedRequiredCategoriesComplete();
         await SeedCheckpoint(MigrationCategoryIds.EventLog, MigrationCategoryState.InProgress);
         await SeedCheckpoint(MigrationCategoryIds.ArchivedAndResolvedFailedMessages, MigrationCategoryState.CompleteWithErrors);
@@ -180,7 +172,7 @@ class When_the_host_opens_on_the_target : MigrationAcceptanceTest
 
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
-        Assert.That(async () => await RunCommand.Run(Settings, AllowingAnUnreleasedMigration(), cancellation.Token),
+        Assert.That(async () => await MigrateCommand.Run(Settings, AllowingAnUnreleasedMigration(), cancellation.Token),
             Throws.Exception.With.Message.Contains("NoSuchWindow"));
 
         Assert.That(await ReadSetting(HostOpenedSetting), Is.Null, "a refused startup has opened on nothing");

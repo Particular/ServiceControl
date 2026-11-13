@@ -26,7 +26,7 @@ class MigrationIsReleasedCheck(AllowUnreleasedMigration allowUnreleasedMigration
         if (allowUnreleasedMigration is null)
         {
             throw new Exception(
-                $"This build of ServiceControl does not yet carry the whole migration from RavenDB, so it will not copy anything. Set {MigrationSettings.EnabledKey} back to false and start ServiceControl again.");
+                $"This build of ServiceControl does not yet carry the whole migration from RavenDB, so it will not copy anything. --start-data-migration is not available in this build. Keep the instance on RavenDB.");
         }
 
         return Task.CompletedTask;

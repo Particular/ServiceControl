@@ -1,6 +1,5 @@
 namespace ServiceControl.UnitTests.Migration;
 
-using System;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
@@ -10,30 +9,8 @@ using ServiceControl.Persistence.DataMigration;
 
 [TestFixture]
 [NonParallelizable]
-class MigrationEnabledSettingsTests
+class MigrationOptionsSettingsTests
 {
-    static Settings NewSettings() =>
-        new(transportType: "LearningTransport", persisterType: "RavenDB", errorRetentionPeriod: TimeSpan.FromDays(10));
-
-    [TearDown]
-    public void ClearEnvironmentVariables()
-    {
-        Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_ENABLED", null);
-    }
-
-    [Test]
-    public void Migration_defaults_to_off()
-    {
-        Assert.That(NewSettings().MigrationEnabled, Is.False);
-    }
-
-    [Test]
-    public void MigrationEnabled_is_read_from_the_environment()
-    {
-        Environment.SetEnvironmentVariable("SERVICECONTROL_MIGRATION_ENABLED", "true");
-
-        Assert.That(NewSettings().MigrationEnabled, Is.True);
-    }
 
     [Test]
     public void Only_MigrationEngineOptions_parses_the_engine_settings_keys()

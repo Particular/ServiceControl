@@ -12,6 +12,14 @@ class MigrationSourceReportArgumentTests
         Assert.That(new HostArguments(["--migration-source-report"]).Command, Is.EqualTo(typeof(MigrationSourceReportCommand)));
 
     [Test]
+    public void The_migrate_flag_selects_the_offline_command() =>
+        Assert.That(new HostArguments(["--start-data-migration"]).Command, Is.EqualTo(typeof(MigrateCommand)));
+
+    [Test]
+    public void An_ingestion_worker_cannot_run_the_offline_command() =>
+        Assert.That(new HostArguments(["--start-data-migration", "--error-ingestion-only"]).Help, Is.True);
+
+    [Test]
     public void No_flag_still_selects_the_run_command() =>
         Assert.That(new HostArguments([]).Command, Is.EqualTo(typeof(RunCommand)));
 

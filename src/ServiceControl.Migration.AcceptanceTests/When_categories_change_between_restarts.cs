@@ -14,13 +14,13 @@ class When_categories_change_between_restarts : MigrationAcceptanceTest
         await SeedSourceEndpointSettings(("Sales", true));
 
         SetSourceVariable("SERVICECONTROL_MIGRATION_EVENTLOGWINDOW", "0");
-        await RunHostUntilTheApiAnswers();
-        Assert.That(await ReadCheckpoint("EventLog"), Is.Null, "a category no run has copied has no row, and no column anywhere says it was selected");
+        await MigrateThenRunHost();
+        Assert.That(await ReadCheckpoint("EventLog"), Is.Null, "a disabled optional category has no checkpoint");
         var firstRun = await ReadCheckpoint("EndpointSettings");
 
         SetSourceVariable("SERVICECONTROL_MIGRATION_EVENTLOGWINDOW", null);
         await RunHostUntilTheApiAnswers();
-        Assert.That(await ReadCheckpoint("EventLog"), Is.Null, "the required copy runs required categories only, so turning an optional one on starts nothing here");
+        Assert.That(await ReadCheckpoint("EventLog"), Is.Null, "normal startup does not select new migration categories; it uses the rows the offline command seeded");
 
         SetSourceVariable("SERVICECONTROL_MIGRATION_EVENTLOGWINDOW", "0");
         await RunHostUntilTheApiAnswers();

@@ -27,6 +27,7 @@ This section points to sources that explain why ServiceControl is designed the w
 - [Message body storage](message-body-storage.md) — where the Audit SQL Server and PostgreSQL persisters keep message bodies, how retention removes them, and which settings are optional
 - [Bulk retries design](bulk-retries-design.md) — how ServiceControl retries failed messages in bulk
 - [Retries over Azure Storage Queues transport](retries-asq-transport.md) — how retries behave with one or several storage accounts
+- [RavenDB-to-SQL migration design](migration/ravendb-to-sql-migration-overview.md) — why required data copies offline and persisted checkpoints drive online completion
 - [Data versioning design](data-versioning-design.md) — which invariant keeps a cached API response from going stale
 - [Event log design](eventlog-design.md) — what the event log is and what it records
 - [Multiple ServiceControl instances communication](multipleservicecontrolinstancescommunication.md) — how primary, audit, and monitoring instances talk to each other
