@@ -30,6 +30,8 @@ The RavenDB persistence test projects contain an `IndexDefinitionApprovals` test
 
 The RavenDB test servers run with `Indexing.DisableQueryOptimizerGeneratedIndexes`, so a query that would make RavenDB create an auto index throws. Query through a static index instead. Auto indexes have no search engine setting of their own, so the Lucene migration cannot reach them. See the [RavenDB index search engine ADR](decisions/2026-10-20-ravendb-index-search-engine-and-rebuilds.md).
 
+`IndexDeploymentTests` in the same projects deploys each index on its own to a new database and checks that the index uses Lucene. `IndexDeployment` sends all indexes in one call, so an index the server rejects blocks the deployment of every other index.
+
 The SQL Server and PostgreSQL persistence test projects contain a `SlowMigrationOperationApprovals` test. It approves the migration steps that can block writes on a large table: index, primary key, and unique constraint changes, new foreign keys and check constraints, altered columns, raw SQL, and new columns that are NOT NULL with a default or are stored computed columns. Other steps, such as renames and drops of columns, tables, and constraints, are not listed. The test lists these steps for each migration and leaves out steps on a table that the same migration creates, because that table is empty. Raw SQL is always listed. When the test fails because a step changed, record the change in the upgrade guide of the next release before you approve the new list. If a step changed inside an existing migration, for example through a shared SQL constant, add a new migration instead. Databases that already ran the old migration never run it again.
 
 ## Transport tests
