@@ -6,13 +6,16 @@ using ServiceControl.Audit.Persistence.EFCore.Infrastructure;
 
 class PostgreSqlFullTextSearchDialect : IFullTextSearchDialect
 {
+    // The function call must produce the same expression the GIN index uses, or the planner cannot
+    // match the query to the index and search degrades to a sequential scan without failing.
+    // FullTextSearchIndexTests pins the two together. Body cap and message-type normalization are
+    // in the SQL function (single source of truth), so the dialect no longer applies them.
     public IQueryable<AuditMessageEntity> Search(IQueryable<AuditMessageEntity> source, string searchTerms) =>
         source.Where(message =>
-            EF.Functions.ToTsVector(FullTextSearchSql.Configuration,
-                    message.HeadersJson + " " +
-                    (message.BodyText ?? "").Substring(0, FullTextSearchSql.IndexedBodyLength) + " " +
-                    (message.MessageType ?? "").Replace(".", " ").Replace("+", " "))
-                .Matches(EF.Functions.ToTsQuery(FullTextSearchSql.Configuration, ToOrQuery(searchTerms))));
+            SearchDocumentFunction.SearchDocument(message.HeadersJson, message.BodyText, message.MessageType)
+                .Matches(EF.Functions.ToTsQuery(FullTextSearchSql.Configuration, ToOrQuery(searchTerms)))
+            || message.MessageId == searchTerms
+            || message.ConversationId == searchTerms);
 
     static string ToOrQuery(string searchTerms) =>
         string.Join(" | ", searchTerms

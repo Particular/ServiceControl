@@ -16,5 +16,8 @@ class FailedMessageConfiguration : IEntityTypeConfiguration<FailedMessageEntity>
 
         builder.HasIndex(e => new { e.Status, e.LastModified, e.UniqueMessageId })
             .IncludeProperties(nameof(FailedMessageEntity.FirstTimeOfFailure), nameof(FailedMessageEntity.LastTimeOfFailure));
+
+        // Serves the exact MessageId arm of the full-text search predicate without a sequential scan.
+        builder.HasIndex(e => e.MessageId);
     }
 }
