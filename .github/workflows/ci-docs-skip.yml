@@ -20,6 +20,9 @@ jobs:
       matrix:
         os-name: [ Windows, Linux ]
         test-category: [ DefaultCore, DefaultMonitoring, Raven, SqlServer, PostgreSql, RabbitMQ, AzureServiceBus, AzureStorageQueues, MSMQ, SQS, IBMMQ ]
+        exclude:
+          - os-name: Linux
+            test-category: MSMQ
       fail-fast: false
     steps:
       - run: echo "Docs-only change, skipping tests"
