@@ -9,7 +9,7 @@ using Raven.Client.ServerWide;
 using Raven.Client.ServerWide.Operations;
 using ServiceControl.RavenDB;
 
-// A new database on the shared embedded server with no settings and no indexes, as opposed to the one DatabaseSetup prepares.
+// A new database on the shared embedded server with no indexes and, unless a fixture adds them, no settings.
 abstract class CleanDatabaseFixture
 {
     protected IDocumentStore Store { get; private set; }
@@ -32,7 +32,13 @@ abstract class CleanDatabaseFixture
         };
         Store.Initialize();
 
-        await Store.Maintenance.Server.SendAsync(new CreateDatabaseOperation(new DatabaseRecord(databaseName)), TestTimeoutCancellationToken);
+        var databaseRecord = new DatabaseRecord(databaseName);
+        ConfigureDatabase(databaseRecord);
+        await Store.Maintenance.Server.SendAsync(new CreateDatabaseOperation(databaseRecord), TestTimeoutCancellationToken);
+    }
+
+    protected virtual void ConfigureDatabase(DatabaseRecord databaseRecord)
+    {
     }
 
     [TearDown]

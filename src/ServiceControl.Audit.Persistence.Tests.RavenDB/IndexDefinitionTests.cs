@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using Particular.Approvals;
 using Persistence.RavenDB;
+using Raven.Client.Documents.Indexes;
+using Raven.Client.ServerWide;
 using ServiceControl.RavenDB;
 using TestHelper;
 
@@ -18,9 +20,16 @@ class IndexDefinitionTests : CleanDatabaseFixture
     {
         var indexes = IndexDeployment.FindIndexes(typeof(DatabaseSetup).Assembly).ToList();
 
-        // The database has no search engine setting, so deploying sets Lucene on every definition.
+        // On a Lucene database the indexes inherit the search engine, so deploying leaves no setting on the definition.
         await IndexDeployment.CreateIndexesAsync(indexes, Store, cancellationToken: TestTimeoutCancellationToken);
 
         Approver.Verify(IndexDefinitionText.Render(indexes));
+    }
+
+    // The search engine settings that DatabaseSetup uses for new databases.
+    protected override void ConfigureDatabase(DatabaseRecord databaseRecord)
+    {
+        databaseRecord.Settings["Indexing.Auto.SearchEngineType"] = nameof(SearchEngineType.Lucene);
+        databaseRecord.Settings["Indexing.Static.SearchEngineType"] = nameof(SearchEngineType.Lucene);
     }
 }
