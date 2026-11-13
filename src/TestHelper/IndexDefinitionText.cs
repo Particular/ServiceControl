@@ -3,135 +3,104 @@ namespace TestHelper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Raven.Client.Documents.Indexes;
 using ServiceControl.RavenDB;
 
 /// <summary>
-/// Renders the parts of an index definition that RavenDB compares when ServiceControl deploys its indexes at
-/// start-up. A difference in any of these parts makes RavenDB build a side-by-side replacement of the index.
+/// Renders the index definitions that ServiceControl deploys at start-up. RavenDB builds a side-by-side replacement
+/// of an index when the deployed definition differs from the one on the server.
 /// </summary>
 public static class IndexDefinitionText
 {
-    public static string Render(Assembly assembly)
-    {
-        return Render(IndexDeployment.FindIndexes(assembly));
-    }
-
+    // IndexDeployment can set the search engine on an index, so render after deployment to approve what the server received.
     public static string Render(IEnumerable<AbstractIndexCreationTask> indexes)
     {
-        var builder = new StringBuilder();
+        var text = new StringBuilder();
 
-        foreach (var index in indexes.OrderBy(i => i.IndexName, StringComparer.Ordinal))
+        foreach (var index in indexes.OrderBy(index => index.IndexName, StringComparer.Ordinal))
         {
             // The conventions change the rendered definition, for example how enum literals appear in a map.
             index.Conventions = DocumentStoreConventions.Create();
-            Render(builder, index.CreateIndexDefinition());
-            builder.AppendLine();
+            Describe(text, index.IndexName, index.CreateIndexDefinition());
         }
 
-        return builder.ToString();
+        return text.ToString();
     }
 
-    static void Render(StringBuilder builder, IndexDefinition definition)
+    static void Describe(StringBuilder text, string name, IndexDefinition definition)
     {
-        builder.AppendLine(definition.Name);
+        text.AppendLine($"Index: {name}");
+        text.AppendLine($"  Type: {definition.Type}");
+        text.AppendLine($"  SourceType: {definition.SourceType}");
+        AppendIfSet(text, nameof(definition.LockMode), definition.LockMode);
+        AppendIfSet(text, nameof(definition.Priority), definition.Priority);
+        AppendIfSet(text, nameof(definition.State), definition.State);
+        AppendIfSet(text, nameof(definition.DeploymentMode), definition.DeploymentMode);
+        AppendIfSet(text, nameof(definition.ArchivedDataProcessingBehavior), definition.ArchivedDataProcessingBehavior);
 
-        AppendSection(builder, "Maps", definition.Maps.OrderBy(m => m, StringComparer.Ordinal), map => AppendBlock(builder, map));
-        AppendSection(builder, "Reduce", [definition.Reduce], reduce => AppendBlock(builder, reduce));
-        AppendSection(builder, "Fields", definition.Fields.OrderBy(f => f.Key, StringComparer.Ordinal), field => builder.AppendLine($"    {field.Key}: {RenderFieldOptions(field.Value)}"));
-        AppendSection(builder, "Configuration", definition.Configuration.OrderBy(c => c.Key, StringComparer.Ordinal), setting => builder.AppendLine($"    {setting.Key} = {setting.Value}"));
-        AppendSection(builder, "AdditionalSources", definition.AdditionalSources.OrderBy(s => s.Key, StringComparer.Ordinal), source =>
+        foreach (var map in definition.Maps.OrderBy(map => map, StringComparer.Ordinal))
         {
-            builder.AppendLine($"    {source.Key}:");
-            AppendBlock(builder, source.Value, "      ");
-        });
-        AppendSection(builder, "AdditionalAssemblies", definition.AdditionalAssemblies.Select(a => a.ToString()).OrderBy(a => a, StringComparer.Ordinal), assembly => builder.AppendLine($"    {assembly}"));
+            text.AppendLine("  Map:");
+            AppendBlock(text, map);
+        }
 
-        AppendValue(builder, "OutputReduceToCollection", definition.OutputReduceToCollection);
-        AppendValue(builder, "PatternForOutputReduceToCollectionReferences", definition.PatternForOutputReduceToCollectionReferences);
-        AppendValue(builder, "PatternReferencesCollectionName", definition.PatternReferencesCollectionName);
-        AppendValue(builder, "LockMode", definition.LockMode);
-        AppendValue(builder, "Priority", definition.Priority);
-        AppendValue(builder, "State", definition.State);
-        AppendValue(builder, "DeploymentMode", definition.DeploymentMode);
+        if (definition.Reduce is not null)
+        {
+            text.AppendLine("  Reduce:");
+            AppendBlock(text, definition.Reduce);
+        }
+
+        foreach (var (field, options) in definition.Fields.OrderBy(field => field.Key, StringComparer.Ordinal))
+        {
+            text.AppendLine($"  Field {field}: {JsonSerializer.Serialize(options, JsonOptions)}");
+        }
+
+        foreach (var compoundField in definition.CompoundFields ?? [])
+        {
+            text.AppendLine($"  CompoundField: {string.Join(", ", compoundField)}");
+        }
+
+        foreach (var (key, value) in definition.Configuration.OrderBy(setting => setting.Key, StringComparer.Ordinal))
+        {
+            text.AppendLine($"  Configuration {key}: {value}");
+        }
+
+        foreach (var (key, value) in definition.AdditionalSources.OrderBy(source => source.Key, StringComparer.Ordinal))
+        {
+            text.AppendLine($"  AdditionalSource {key}:");
+            AppendBlock(text, value);
+        }
+
+        foreach (var assembly in definition.AdditionalAssemblies.Select(assembly => JsonSerializer.Serialize(assembly, JsonOptions)).OrderBy(assembly => assembly, StringComparer.Ordinal))
+        {
+            text.AppendLine($"  AdditionalAssembly: {assembly}");
+        }
+
+        AppendIfSet(text, nameof(definition.OutputReduceToCollection), definition.OutputReduceToCollection);
+        AppendIfSet(text, nameof(definition.ReduceOutputIndex), definition.ReduceOutputIndex);
+        AppendIfSet(text, nameof(definition.PatternForOutputReduceToCollectionReferences), definition.PatternForOutputReduceToCollectionReferences);
+        AppendIfSet(text, nameof(definition.PatternReferencesCollectionName), definition.PatternReferencesCollectionName);
+        text.AppendLine();
     }
 
-    static void AppendSection<T>(StringBuilder builder, string name, IEnumerable<T> items, Action<T> appendItem)
+    static void AppendBlock(StringBuilder text, string block)
     {
-        var list = items.Where(item => item is not string { Length: 0 } and not null).ToList();
-
-        if (list.Count == 0)
+        foreach (var line in block.Replace("\r\n", "\n").Split('\n'))
         {
-            return;
-        }
-
-        builder.AppendLine($"  {name}:");
-
-        foreach (var item in list)
-        {
-            appendItem(item);
+            text.AppendLine($"    {line}");
         }
     }
 
-    static void AppendValue(StringBuilder builder, string name, object value)
+    static void AppendIfSet(StringBuilder text, string name, object value)
     {
-        if (value is null or string { Length: 0 })
+        if (value is not null)
         {
-            return;
-        }
-
-        builder.AppendLine($"  {name}: {value}");
-    }
-
-    static string RenderFieldOptions(IndexFieldOptions options)
-    {
-        var parts = new List<string>();
-
-        if (options.Indexing.HasValue)
-        {
-            parts.Add($"Indexing={options.Indexing}");
-        }
-
-        if (options.Storage.HasValue)
-        {
-            parts.Add($"Storage={options.Storage}");
-        }
-
-        if (options.TermVector.HasValue)
-        {
-            parts.Add($"TermVector={options.TermVector}");
-        }
-
-        if (options.Analyzer != null)
-        {
-            parts.Add($"Analyzer={options.Analyzer}");
-        }
-
-        if (options.Suggestions.HasValue)
-        {
-            parts.Add($"Suggestions={options.Suggestions}");
-        }
-
-        if (options.Spatial != null)
-        {
-            parts.Add($"Spatial={options.Spatial.Type}/{options.Spatial.Strategy}/{options.Spatial.Units}/MaxTreeLevel={options.Spatial.MaxTreeLevel}");
-        }
-
-        return string.Join(", ", parts);
-    }
-
-    static void AppendBlock(StringBuilder builder, string text, string indent = "    ")
-    {
-        if (string.IsNullOrEmpty(text))
-        {
-            return;
-        }
-
-        foreach (var line in text.Split('\n'))
-        {
-            builder.Append(indent).AppendLine(line.TrimEnd('\r'));
+            text.AppendLine($"  {name}: {value}");
         }
     }
+
+    static readonly JsonSerializerOptions JsonOptions = new() { Converters = { new JsonStringEnumConverter() }, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 }
