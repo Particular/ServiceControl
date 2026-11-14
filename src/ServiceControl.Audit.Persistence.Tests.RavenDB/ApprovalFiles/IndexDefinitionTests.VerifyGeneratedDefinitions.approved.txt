@@ -1,11 +1,15 @@
-FailedAuditImportIndex
-  Maps:
+Index: FailedAuditImportIndex
+  Type: Map
+  SourceType: Documents
+  Map:
     docs.FailedAuditImports.Select(cc => new {
         Id = Id(cc)
     })
 
-MessagesViewIndex
-  Maps:
+Index: MessagesViewIndex
+  Type: Map
+  SourceType: Documents
+  Map:
     docs.ProcessedMessages.Select(message => new {
         MessageId = ((string) message.MessageMetadata["MessageId"]),
         MessageType = ((string) message.MessageMetadata["MessageType"]),
@@ -23,11 +27,12 @@ MessagesViewIndex
         })),
         ConversationId = ((string) message.MessageMetadata["ConversationId"])
     })
-  Fields:
-    Query: Indexing=Search, Analyzer=Lucene.Net.Analysis.Standard.StandardAnalyzer, Lucene.Net, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181
+  Field Query: {"Indexing":"Search","Analyzer":"Lucene.Net.Analysis.Standard.StandardAnalyzer, Lucene.Net, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181"}
 
-MessagesViewIndexWithFullTextSearch
-  Maps:
+Index: MessagesViewIndexWithFullTextSearch
+  Type: Map
+  SourceType: Documents
+  Map:
     docs.ProcessedMessages.Select(message => new {
         MessageId = ((string) message.MessageMetadata["MessageId"]),
         MessageType = ((string) message.MessageMetadata["MessageType"]),
@@ -46,17 +51,19 @@ MessagesViewIndexWithFullTextSearch
         })),
         ConversationId = ((string) message.MessageMetadata["ConversationId"])
     })
-  Fields:
-    Query: Indexing=Search, Analyzer=Lucene.Net.Analysis.Standard.StandardAnalyzer, Lucene.Net, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181
+  Field Query: {"Indexing":"Search","Analyzer":"Lucene.Net.Analysis.Standard.StandardAnalyzer, Lucene.Net, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181"}
 
-SagaDetailsIndex
-  Maps:
+Index: SagaDetailsIndex
+  Type: MapReduce
+  SourceType: Documents
+  Map:
     docs.SagaHistories.Select(doc => new {
         SagaId = doc.SagaId,
         Id = doc.SagaId,
         SagaType = doc.SagaType,
         Changes = doc.Changes
     })
+  Map:
     docs.SagaSnapshots.Select(doc => new {
         SagaId = doc.SagaId,
         Id = doc.SagaId,
@@ -83,8 +90,7 @@ SagaDetailsIndex
         SagaType = this0.first.SagaType,
         Changes = Enumerable.ToList(DynamicEnumerable.OrderByDescending(this0.g.SelectMany(x => x.Changes), x0 => x0.FinishTime).Take(50000))
     })
-  Fields:
-    Changes: Indexing=No
-    SagaId: Indexing=Exact
-    SagaType: Indexing=No
+  Field Changes: {"Indexing":"No"}
+  Field SagaId: {"Indexing":"Exact"}
+  Field SagaType: {"Indexing":"No"}
 

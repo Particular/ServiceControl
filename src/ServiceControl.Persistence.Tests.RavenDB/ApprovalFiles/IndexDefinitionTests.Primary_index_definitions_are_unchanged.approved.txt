@@ -1,5 +1,7 @@
-ArchivedGroupsViewIndex
-  Maps:
+Index: ArchivedGroupsViewIndex
+  Type: MapReduce
+  SourceType: Documents
+  Map:
     docs.FailedMessages.Where(doc => doc.Status == 4).Select(doc => new {
         doc = doc,
         failureTimes = doc.ProcessingAttempts.Select(x => x.FailureDetails.TimeOfFailure)
@@ -25,8 +27,10 @@ ArchivedGroupsViewIndex
         Type = g.Key.Type
     })
 
-CustomChecksIndex
-  Maps:
+Index: CustomChecksIndex
+  Type: Map
+  SourceType: Documents
+  Map:
     docs.CustomChecks.Select(cc => new {
         Status = cc.Status,
         ReportedAt = cc.ReportedAt,
@@ -34,8 +38,10 @@ CustomChecksIndex
         CustomCheckId = cc.CustomCheckId
     })
 
-EndpointIndex
-  Maps:
+Index: EndpointIndex
+  Type: Map
+  SourceType: Documents
+  Map:
     docs.EndpointDocuments.Select(endpoint => new {
         EndpointId_ThroughputSource = endpoint.EndpointId.ThroughputSource,
         EndpointId_Name = endpoint.EndpointId.Name,
@@ -43,20 +49,26 @@ EndpointIndex
         EndpointIndicators = endpoint.EndpointIndicators
     })
 
-EventLogItems/ByRaisedAt
-  Maps:
+Index: EventLogItems/ByRaisedAt
+  Type: Map
+  SourceType: Documents
+  Map:
     docs.EventLogItems.Select(doc => new {
         RaisedAt = doc.RaisedAt
     })
 
-FailedErrorImportIndex
-  Maps:
+Index: FailedErrorImportIndex
+  Type: Map
+  SourceType: Documents
+  Map:
     docs.FailedErrorImports.Select(cc => new {
         Id = Id(cc)
     })
 
-FailedMessageFacetsIndex
-  Maps:
+Index: FailedMessageFacetsIndex
+  Type: Map
+  SourceType: Documents
+  Map:
     docs.FailedMessages.Where(failure => failure.Status == 1).Select(failure => new {
         failure = failure,
         t = ((DynamicEnumerable.LastOrDefault(failure.ProcessingAttempts)).MessageMetadata["ReceivingEndpoint"])
@@ -65,19 +77,22 @@ FailedMessageFacetsIndex
         Host = this0.t.Host,
         MessageType = (DynamicEnumerable.LastOrDefault(this0.failure.ProcessingAttempts)).MessageMetadata["MessageType"]
     })
-  Fields:
-    Host: Indexing=Exact
-    MessageType: Indexing=Exact
-    Name: Indexing=Exact
+  Field Host: {"Indexing":"Exact"}
+  Field MessageType: {"Indexing":"Exact"}
+  Field Name: {"Indexing":"Exact"}
 
-FailedMessageRetries/ByBatch
-  Maps:
+Index: FailedMessageRetries/ByBatch
+  Type: Map
+  SourceType: Documents
+  Map:
     docs.FailedMessageRetries.Select(doc => new {
         RetryBatchId = doc.RetryBatchId
     })
 
-FailedMessageViewIndex
-  Maps:
+Index: FailedMessageViewIndex
+  Type: Map
+  SourceType: Documents
+  Map:
     docs.FailedMessages.Select(message => new {
         message = message,
         processingAttemptsLast = DynamicEnumerable.LastOrDefault(message.ProcessingAttempts)
@@ -92,8 +107,10 @@ FailedMessageViewIndex
         LastModified = (this.MetadataFor(this0.message).Value < DateTime > ("@last-modified")).Ticks
     })
 
-FailedMessages/ByGroup
-  Maps:
+Index: FailedMessages/ByGroup
+  Type: Map
+  SourceType: Documents
+  Map:
     docs.FailedMessages.Select(doc => new {
         doc = doc,
         processingAttemptsLast = DynamicEnumerable.LastOrDefault(doc.ProcessingAttempts)
@@ -108,11 +125,12 @@ FailedMessages/ByGroup
         TimeOfFailure = this0.processingAttemptsLast.FailureDetails.TimeOfFailure,
         LastModified = (this.MetadataFor(this0.doc).Value < DateTime > ("@last-modified")).Ticks
     })
-  Fields:
-    __all_fields: Storage=Yes
+  Field __all_fields: {"Storage":"Yes"}
 
-FailureGroupsViewIndex
-  Maps:
+Index: FailureGroupsViewIndex
+  Type: MapReduce
+  SourceType: Documents
+  Map:
     docs.FailedMessages.Where(doc => doc.Status == 1).Select(doc => new {
         doc = doc,
         failureTimes = doc.ProcessingAttempts.Select(x => x.FailureDetails.TimeOfFailure)
@@ -138,15 +156,19 @@ FailureGroupsViewIndex
         Type = g.Key.Type
     })
 
-GroupCommentIndex
-  Maps:
+Index: GroupCommentIndex
+  Type: Map
+  SourceType: Documents
+  Map:
     docs.GroupComments.Select(gc => new {
         Id = Id(gc),
         Comment = gc.Comment
     })
 
-KnownEndpointIndex
-  Maps:
+Index: KnownEndpointIndex
+  Type: Map
+  SourceType: Documents
+  Map:
     docs.KnownEndpoints.Select(message => new {
         EndpointDetails_Name = message.EndpointDetails.Name,
         EndpointDetails_Host = message.EndpointDetails.Host,
@@ -154,8 +176,10 @@ KnownEndpointIndex
         Monitored = message.Monitored
     })
 
-MessagesViewIndex
-  Maps:
+Index: MessagesViewIndex
+  Type: Map
+  SourceType: Documents
+  Map:
     docs.FailedMessages.Select(message => new {
         message = message,
         last = DynamicEnumerable.LastOrDefault(message.ProcessingAttempts)
@@ -175,11 +199,12 @@ MessagesViewIndex
         })),
         ConversationId = ((string) this0.last.MessageMetadata["ConversationId"])
     })
-  Fields:
-    Query: Indexing=Search
+  Field Query: {"Indexing":"Search"}
 
-QueueAddressIndex
-  Maps:
+Index: QueueAddressIndex
+  Type: MapReduce
+  SourceType: Documents
+  Map:
     docs.FailedMessages.Select(message => new {
         message = message,
         processingAttemptsLast = DynamicEnumerable.LastOrDefault(message.ProcessingAttempts)
@@ -193,8 +218,10 @@ QueueAddressIndex
         FailedMessageCount = Enumerable.Sum(g, m => ((int) m.FailedMessageCount))
     })
 
-RetryBatches/ByStatus/ReduceInitialBatchSize
-  Maps:
+Index: RetryBatches/ByStatus/ReduceInitialBatchSize
+  Type: MapReduce
+  SourceType: Documents
+  Map:
     docs.RetryBatches.Select(doc => new {
         RequestId = doc.RequestId,
         RetryType = doc.RetryType,
@@ -222,8 +249,10 @@ RetryBatches/ByStatus/ReduceInitialBatchSize
         Classifier = (DynamicEnumerable.FirstOrDefault(g)).Classifier
     })
 
-RetryBatches/ByStatusAndSession
-  Maps:
+Index: RetryBatches/ByStatusAndSession
+  Type: Map
+  SourceType: Documents
+  Map:
     docs.RetryBatches.Select(doc => new {
         RetrySessionId = doc.RetrySessionId,
         Status = doc.Status
