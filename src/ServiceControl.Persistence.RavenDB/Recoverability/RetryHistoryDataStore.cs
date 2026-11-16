@@ -9,7 +9,7 @@
 
     class RetryHistoryDataStore(IRavenSessionProvider sessionProvider) : IRetryHistoryDataStore
     {
-        const string DocumentId = "RetryOperations/History";
+        internal const string DocumentId = "RetryOperations/History";
 
         public async Task<QueryResult<RetryHistory>> GetRetryHistory(CancellationToken cancellationToken = default)
         {

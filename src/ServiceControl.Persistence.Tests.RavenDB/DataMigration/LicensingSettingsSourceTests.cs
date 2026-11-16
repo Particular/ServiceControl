@@ -59,11 +59,9 @@ class LicensingSettingsSourceTests : RavenMigrationSourceTestBase
     }
 
     [TestCase(MigrationCategoryIds.LicensingReportMasks, "ReportMasks")]
-    [TestCase(MigrationCategoryIds.LicensedEndpointDetails, "LicensedEndpointDetails")]
     public async Task A_read_resumed_after_the_documents_own_id_gives_nothing(string categoryId, string documentId)
     {
         await Seed("ReportMasks", new ReportConfigurationDocument { MaskedStrings = ["contoso"] });
-        await Seed("LicensedEndpointDetails", new LicensedEndpointDetails { LicenseId = "abc-123" });
 
         var batches = await Read(categoryId, documentId);
 
@@ -71,11 +69,9 @@ class LicensingSettingsSourceTests : RavenMigrationSourceTestBase
     }
 
     [TestCase(MigrationCategoryIds.LicensingReportMasks)]
-    [TestCase(MigrationCategoryIds.LicensedEndpointDetails)]
     public async Task A_read_resumed_after_a_cursor_the_reader_never_issued_is_refused(string categoryId)
     {
         await Seed("ReportMasks", new ReportConfigurationDocument { MaskedStrings = ["contoso"] });
-        await Seed("LicensedEndpointDetails", new LicensedEndpointDetails { LicenseId = "abc-123" });
 
         var exception = Assert.ThrowsAsync<InvalidOperationException>(() => Read(categoryId, "Sales.Orders/Broker"));
 

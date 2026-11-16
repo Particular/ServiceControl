@@ -193,7 +193,7 @@ static class FailedMessageDocumentTranslator
 
     // Npgsql only writes UTC to a timestamp with time zone column, and a value whose kind is Unspecified is already UTC, so it must not be shifted.
     // Kept apart from the RavenDB source's copy because this project does not reference it.
-    static DateTime AsUtc(DateTime value) =>
+    internal static DateTime AsUtc(DateTime value) =>
         value.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(value, DateTimeKind.Utc) : value.ToUniversalTime();
 
     // Uses the same length limit that ingestion applies to the MessageType column.

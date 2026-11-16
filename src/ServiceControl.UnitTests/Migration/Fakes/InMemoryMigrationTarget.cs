@@ -176,6 +176,13 @@ public sealed class InMemoryMigrationTarget(IMigrationCheckpointStore checkpoint
     public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) =>
         Task.FromResult((long)(writtenRowsByCategory.TryGetValue(category.Id, out var rows) ? rows.Count : 0));
 
+    /// <summary>
+    /// Saves the reset through the checkpoint store, so a stale Version throws as on the real target.
+    /// It deletes no rows, because no unit test needs that.
+    /// </summary>
+    public Task<MigrationCheckpoint> ResetForRetry(MigrationCheckpoint reset, CancellationToken cancellationToken = default) =>
+        checkpointStore.Upsert(reset, cancellationToken);
+
     public IReadOnlyCollection<string> SupportedCategoryIds => [.. MigrationCategoryRegistry.All.Select(category => category.Id)];
 
     public IReadOnlyDictionary<string, Type> DocumentTypes => MigrationCategoryRegistry.All.ToDictionary(category => category.Id, _ => typeof(object));
