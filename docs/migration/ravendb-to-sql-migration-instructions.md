@@ -25,12 +25,11 @@ flowchart TD
         S2["2. Create an empty SQL database and run --setup"]
         S3["3. Choose the optional data windows"]
         S4["4. Run --migration-dry-run and book the outage"]
-        S5["5. Back up RavenDB"]
-        S1 --> S2 --> S3 --> S4 --> S5
+        S1 --> S2 --> S3 --> S4
     end
 
     subgraph outage["ServiceControl stopped: the outage"]
-        S6["6. Stop ServiceControl and every ingestion worker, then run --start-data-migration"]
+        S6["5. Stop ServiceControl and every ingestion worker, then run --start-data-migration"]
         Q1{"Did --start-data-migration succeed?"}
         Fix["Correct the reported cause"]
         RetryAbandon1["Run --migration-retry or --migration-abandon for the Failed category"]
@@ -42,17 +41,17 @@ flowchart TD
     end
 
     subgraph online["ServiceControl open on SQL: no way back to RavenDB"]
-        S7["7. Start ServiceControl"]
-        S8["8. Watch the background copy with --migration-status"]
+        S7["6. Start ServiceControl"]
+        S8["7. Watch the background copy with --migration-status"]
         Q2{"Is an optional category Failed?"}
         RetryAbandon2["Stop ServiceControl, run --migration-retry or --migration-abandon, then start it"]
-        S9["9. Stop ServiceControl, run --migration-verify, then start it"]
+        S9["8. Stop ServiceControl, run --migration-verify, then start it"]
         S7 --> S8 --> Q2
         Q2 -->|Yes| RetryAbandon2 --> S8
         Q2 -->|"No: every category is Done or Abandoned"| S9
     end
 
-    S5 --> S6
+    S4 --> S6
     Q1 -->|Yes| S7
 ```
 
@@ -99,7 +98,7 @@ In an environment variable, you can leave out the `SERVICECONTROL_` prefix. You 
 > [!IMPORTANT]
 >
 > - Upgrade the instance to the latest version in the usual way, and keep it on RavenDB. The version that copies the data must be the version that last ran against RavenDB.
-> - Do not start ServiceControl again until step 7. If ServiceControl starts on the new database before `--start-data-migration`, it writes rows to the database, and the migration then refuses that database. If this happens, start again from a new, empty database.
+> - Do not start ServiceControl again until step 6. If ServiceControl starts on the new database before `--start-data-migration`, it writes rows to the database, and the migration then refuses that database. If this happens, start again from a new, empty database.
 
 Then make the source report. The report shows what ServiceControl can read from RavenDB, so you find a wrong setting early. Start the instance executable with the `--migration-source-report` argument:
 
@@ -153,14 +152,7 @@ The dry run reads RavenDB and tells you what the migration will do, including an
 
 Book the outage from the estimate in the report, and add a margin. It is an estimate, not a promise. If the report says that a required category will end Failed and that a retry cannot fix it, plan to abandon that category after it fails.
 
-## Step 5: Back up RavenDB
-
-> [!IMPORTANT]
-> Back up both RavenDB databases, primary and throughput, before you start the copy. Or turn off RavenDB expiration on them.
-
-RavenDB keeps deleting old failed messages and event log items during the migration and after it. Without a backup, the RavenDB database that you keep to go back to loses data every day.
-
-## Step 6: Run the offline command
+## Step 5: Run the offline command
 
 1. Stop ServiceControl and every ingestion worker.
 2. Run `ServiceControl.exe --start-data-migration` from the instance installation folder. In a container deployment, run the command in a one-off container against the same databases.
@@ -169,7 +161,7 @@ RavenDB keeps deleting old failed messages and event log items during the migrat
 
 The command exits without starting ServiceControl.
 
-## Step 7: Start ServiceControl
+## Step 6: Start ServiceControl
 
 After the offline command reports success, start the ServiceControl service or container. ServiceControl detects the migration from SQL checkpoints and copies optional categories in the background.
 
@@ -180,7 +172,7 @@ Normal startup refuses an unfinished required copy and tells you to run `--start
 
 If something goes wrong, read [If something goes wrong](#if-something-goes-wrong).
 
-## Step 8: Watch the background copy
+## Step 7: Watch the background copy
 
 ServiceControl is open and works as usual while the optional categories copy. You can see the progress in three places:
 
@@ -195,7 +187,7 @@ If the copy slows down your production work, raise `ServiceControl/Migration/Thr
 
 Keep RavenDB running until every category is Done or Abandoned. If RavenDB goes down after ServiceControl opens, ServiceControl keeps running. The optional categories wait for RavenDB to come back, or you can abandon them.
 
-## Step 9: Finish the migration
+## Step 8: Finish the migration
 
 1. Stop ServiceControl.
 2. Run `--migration-verify`. It counts the rows in RavenDB again, and compares them with the rows that the copy read. It also shows the skipped and merged rows. It exits with 0 only when every category is Done or Abandoned.
