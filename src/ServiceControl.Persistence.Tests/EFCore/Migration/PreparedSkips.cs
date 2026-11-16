@@ -24,6 +24,17 @@ static class PreparedSkips
     }
 
     /// <summary>
+    /// Prepares a batch without writing it, and returns the rows the writer reports as merges with their log detail.
+    /// </summary>
+    public static async Task<IReadOnlyList<(string SourceId, string Detail)>> MergesFrom(IServiceProvider services, IMigrationCategoryWriter writer, MigrationBatch batch)
+    {
+        using var scope = services.CreateScope();
+        var prepared = await writer.Prepare(scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>(), batch);
+
+        return prepared.Merges;
+    }
+
+    /// <summary>
     /// The table and column a property is stored in, as this provider names them.
     /// </summary>
     public static string TableAndColumnOf<TEntity>(IServiceProvider services, string property)

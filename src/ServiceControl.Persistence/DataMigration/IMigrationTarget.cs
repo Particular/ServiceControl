@@ -11,22 +11,19 @@ using System.Threading.Tasks;
 public interface IMigrationTarget
 {
     /// <summary>
-    /// Makes the target ready to write. The host calls it before the copy and after the target's own checks have passed.
+    /// Makes the target ready to write. Called once, before the copy starts.
     /// </summary>
     Task Open(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// The most rows a source may return in one batch for this category.
-    /// The target picks it because its own database sets the limit, and a bigger batch fails the write.
+    /// The most rows this target can write in one batch for the category. A bigger batch fails.
     /// </summary>
     Task<int> BatchSizeFor(MigrationCategory category, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Saves the batch's rows and the checkpoint in one transaction, so progress never gets ahead of the data.
-    /// Add this batch's own outcome with <see cref="MigrationCheckpoint.Extend"/> and save that, so the stored counts are never a guess.
-    /// For a category that carries bodies, every row must have its body.
-    /// Bodies that go to external storage are written first, outside the transaction. So a failed write can leave a
-    /// stored body that no row points to, but never a row that points to a body that was not stored.
+    /// Build the checkpoint with <see cref="MigrationCheckpoint.Extend"/>.
+    /// Bodies kept outside the database are written first, so a failure can leave an unused body but never a row without one.
     /// </summary>
     Task<MigrationWriteResult> Write(
         MigrationCategory category,
@@ -35,26 +32,30 @@ public interface IMigrationTarget
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// How many rows the target holds for one category, for progress and verify.
-    /// Counts only that category, even where two categories share a table.
+    /// How many rows the target holds for one category, even where categories share a table.
     /// </summary>
     Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// The categories this target can write. A category outside this set is never handed to the engine.
-    /// Answers before Open and does not change across it.
+    /// Saves a reset checkpoint so its category can be copied again, and returns it with its new version.
+    /// Where the database makes the row keys, it also deletes the rows already copied, so none are copied twice.
+    /// Throws <see cref="MigrationCheckpointConflictException" /> if another writer saved the checkpoint first.
+    /// </summary>
+    Task<MigrationCheckpoint> ResetForRetry(MigrationCheckpoint reset, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// The categories this target can write. Known before Open and never changes.
     /// </summary>
     IReadOnlyCollection<string> SupportedCategoryIds { get; }
 
     /// <summary>
-    /// The type of <see cref="MigrationRow.Document" /> this target takes, for each category in
-    /// <see cref="SupportedCategoryIds" />. A row holding any other type fails its batch with an
-    /// <see cref="InvalidCastException" />. Answers before Open and does not change across it.
+    /// The <see cref="MigrationRow.Document" /> type this target expects for each supported category.
+    /// A row of any other type fails its batch. Known before Open and never changes.
     /// </summary>
     IReadOnlyDictionary<string, Type> DocumentTypes { get; }
 }
 
 /// <summary>
-/// What the target did with one batch, and the checkpoint it committed alongside the rows. Every skipped row must have a reason in SkipReasons.
+/// What the target did with one batch, and the checkpoint it saved with it. Every skipped row has a reason in SkipReasons.
 /// </summary>
 public sealed record MigrationWriteResult(MigrationCheckpoint Saved, int Copied, int Skipped, IReadOnlyList<string> SkippedIds, int AlreadyPresent = 0, IReadOnlyDictionary<MigrationSkipReason, long>? SkipReasons = null);

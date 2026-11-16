@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Particular.ServiceControl.Hosting;
 using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.Infrastructure;
@@ -47,6 +48,7 @@ class MigrateCommand : AbstractCommand
         var builder = WebApplication.CreateBuilder();
         // Persistence also registers runtime-only services whose dependencies this command does not need.
         builder.Host.UseDefaultServiceProvider(options => options.ValidateOnBuild = false);
+        builder.Logging.ClearProviders();
         builder.Logging.ConfigureLogging(settings.LoggingSettings.LogLevel);
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddPersistence(settings);

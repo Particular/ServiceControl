@@ -67,6 +67,8 @@ sealed class FaultingMigrationTarget(IMigrationTarget inner, int failingWrite) :
 
     public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) => inner.Count(category, cancellationToken);
 
+    public Task<MigrationCheckpoint> ResetForRetry(MigrationCheckpoint reset, CancellationToken cancellationToken = default) => inner.ResetForRetry(reset, cancellationToken);
+
     public IReadOnlyCollection<string> SupportedCategoryIds => inner.SupportedCategoryIds;
 
     public IReadOnlyDictionary<string, Type> DocumentTypes => inner.DocumentTypes;
@@ -114,6 +116,8 @@ sealed class ParkingMigrationTarget(IMigrationTarget inner, TaskCompletionSource
     }
 
     public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) => inner.Count(category, cancellationToken);
+
+    public Task<MigrationCheckpoint> ResetForRetry(MigrationCheckpoint reset, CancellationToken cancellationToken = default) => inner.ResetForRetry(reset, cancellationToken);
 
     public IReadOnlyCollection<string> SupportedCategoryIds => inner.SupportedCategoryIds;
 

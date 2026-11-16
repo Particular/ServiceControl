@@ -4,11 +4,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using NServiceBus.Unicast.Subscriptions;
 using NUnit.Framework;
 using Particular.LicensingComponent.Contracts;
 using Raven.Client.Documents.Operations.Indexes;
+using ServiceControl.Infrastructure.RavenDB.Subscriptions;
+using ServiceControl.Notifications;
 using ServiceControl.Operations;
 using ServiceControl.Persistence.DataMigration;
+using ServiceControl.Persistence.MessageRedirects;
 using ServiceControl.Persistence.RavenDB.Throughput.Models;
 using RavenLicensingDataStore = Persistence.RavenDB.Throughput.LicensingDataStore;
 
@@ -133,13 +138,22 @@ class RavenMigrationSourceTests : RavenMigrationSourceTestBase
         [MigrationCategoryIds.LicensingEndpoints] = tests => tests.SeedThroughputDocument("Sales.Orders/Broker", new EndpointDocument(new EndpointIdentifier("Sales.Orders", ThroughputSource.Broker))),
         [MigrationCategoryIds.LicensingThroughput] = tests => tests.SeedThroughputDocument("Sales.Orders/Broker", new EndpointDocument(new EndpointIdentifier("Sales.Orders", ThroughputSource.Broker))),
         [MigrationCategoryIds.LicensingReportMasks] = tests => tests.SeedThroughputDocument(RavenLicensingDataStore.ReportMasksDocumentId, new ReportConfigurationDocument { MaskedStrings = ["contoso"] }),
-        [MigrationCategoryIds.LicensedEndpointDetails] = tests => tests.SeedThroughputDocument(RavenLicensingDataStore.LicencedEndpointDetailsDocumentId, new LicensedEndpointDetails { LicenseId = "abc-123" })
+        [MigrationCategoryIds.LicensedEndpointDetails] = tests => tests.SeedThroughputDocument(RavenLicensingDataStore.LicencedEndpointDetailsDocumentId, new LicensedEndpointDetails { LicenseId = "abc-123" }),
+        [MigrationCategoryIds.MessageRedirects] = tests => tests.MessageRedirectsDataStore.AddRedirect(new MessageRedirect { FromPhysicalAddress = "Sales@OLDHOST", ToPhysicalAddress = "Sales@NEWHOST", LastModified = DateTime.UtcNow }),
+        [MigrationCategoryIds.Subscriptions] = tests => tests.SeedSubscription(),
+        [MigrationCategoryIds.NotificationSettings] = tests => tests.NotificationsStore.SaveSettings(new NotificationsSettings { Email = new EmailNotifications { SmtpServer = "smtp.contoso.com" } }),
+        [MigrationCategoryIds.TrialEndDate] = tests => tests.ServiceProvider.GetRequiredService<ITrialLicenseDataProvider>().StoreTrialEndDate(new DateOnly(2027, 3, 15)),
+        [MigrationCategoryIds.RetryOperations] = tests => tests.RetryHistoryStore.RecordRetryOperationCompleted("group-1", RetryType.FailureGroup, DateTime.UtcNow, DateTime.UtcNow, "Sales.Orders", "Exception Type", false, 1, DateTime.UtcNow, 10)
     };
 
     string DatabaseName => ((RavenPersisterSettings)PersistenceSettings).DatabaseName;
 
+    // Both databases, because the licensing readers read the throughput database.
     async Task<string[]> IndexNames() =>
-        await DocumentStore.Maintenance.SendAsync(new GetIndexNamesOperation(0, IndexNamePageSize), TestContext.CurrentContext.CancellationToken);
+        [.. await IndexNamesIn(DatabaseName), .. await IndexNamesIn(ThroughputDatabaseName)];
+
+    Task<string[]> IndexNamesIn(string database) =>
+        DocumentStore.Maintenance.ForDatabase(database).SendAsync(new GetIndexNamesOperation(0, IndexNamePageSize), TestContext.CurrentContext.CancellationToken);
 
     const int IndexNamePageSize = 1024;
 
@@ -149,6 +163,21 @@ class RavenMigrationSourceTests : RavenMigrationSourceTestBase
     {
         using var session = DocumentStore.OpenAsyncSession(ThroughputDatabaseName);
         await session.StoreAsync(document, id);
+        await session.SaveChangesAsync();
+    }
+
+    async Task SeedSubscription()
+    {
+        var document = new Subscriptions();
+        document.All["v1"] = new Subscription
+        {
+            Id = "v1",
+            MessageType = new MessageType("MyMessages.OrderPlaced", new Version(1, 0, 0)),
+            Subscribers = [new SubscriptionClient { Endpoint = "Billing", TransportAddress = "Billing@BILLING01" }]
+        };
+
+        using var session = await SessionProvider.OpenSession();
+        await session.StoreAsync(document, Subscriptions.SingleDocumentId);
         await session.SaveChangesAsync();
     }
 
