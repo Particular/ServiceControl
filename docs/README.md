@@ -36,6 +36,10 @@ This section points to sources that explain why ServiceControl is designed the w
 - [SQL persister schemas](sql-persister-schemas.md) — which schema each SQL persister uses by default and why a primary and an audit instance cannot share one
 - [Usage report contents](usage-report.md): every key the usage report carries, every setting it leaves out, and why
 
+## Guidelines
+
+- [Database schema and index changes](guidelines/database-schema-and-index-changes.md) — any change to a RavenDB index definition, a document convention, or an EF Core entity or migration: treat it as a breaking change, ship it in a major release or opt-in in a minor, and record it in the upgrade guide in the same pull request.
+
 ## Decisions and rationale
 
 - [Architecture and design decisions](decisions/)
