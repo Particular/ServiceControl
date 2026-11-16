@@ -13,7 +13,7 @@
 
   <PropertyGroup>
     <RuntimeFrameworkVersion>10.0.15</RuntimeFrameworkVersion>
-    <RollForward>Disable</RollForward>
+    <RollForward Condition="'$(CI)' != ''">Disable</RollForward>
   </PropertyGroup>
 
   <PropertyGroup>

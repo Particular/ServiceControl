@@ -48,6 +48,7 @@ namespace Tests
             Assert.That(detectedMismatches, Is.Empty, $"Component assembly version mismatch detected");
         }
 
+        // This test will fail if you are not using the exact runtime version specified in the RuntimeFrameworkVersion property in the Custom.Build.props file
         [Test]
         public void DuplicateAssembliesFromRuntimeShouldHaveMatchingVersions()
         {
@@ -64,6 +65,7 @@ namespace Tests
             Assert.That(detectedMismatches, Is.Empty, $"Component assembly version mismatch detected");
         }
 
+        // This test will fail if you are not using the exact runtime version specified in the RuntimeFrameworkVersion property in the Custom.Build.props file
         [Test]
         public void DuplicateAssembliesFromASPNetCoreShouldHaveMatchingVersions()
         {
