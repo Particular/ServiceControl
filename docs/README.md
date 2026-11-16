@@ -39,7 +39,7 @@ This section points to sources that explain why ServiceControl is designed the w
 ## Decisions and rationale
 
 - [Architecture and design decisions](decisions/)
-- [RavenDB index search engine and rebuilds](decisions/2026-10-20-ravendb-index-search-engine-and-rebuilds.md) — which search engine a new or rebuilt index uses, why ServiceControl no longer writes database engine settings, how developers and operators learn about an index rebuild, and why a locked index with a changed definition stops the start-up
+- [RavenDB index search engine and rebuilds](decisions/2026-10-20-ravendb-index-search-engine-and-rebuilds.md) — which search engine a new or rebuilt index uses, why ServiceControl no longer writes database engine settings, how developers and operators learn about an index rebuild, why a locked index with a changed definition stops the start-up, and why ServiceControl queries only through static indexes
 
 ### Decisions recorded in pull requests
 
