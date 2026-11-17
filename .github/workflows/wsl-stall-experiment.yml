@@ -1,7 +1,11 @@
 # Experiment: does pinning WSL to 2.7.12 (the last version before the runner image bump in
 # September 2026) stop the Setup WSL stalls? Two arms, four container categories, twenty
-# iterations each. A stalled job shows up as cancelled at the job timeout with Setup WSL still
-# running. Temporary; delete the branch when the experiment is done.
+# iterations each. Timed-out jobs may have no step records or final log.
+# For optional liveness probes, create two Healthchecks.io checks with notifications
+# disabled, add their UUIDs as the WSL_STALL_IMAGE_CHECK_ID and WSL_STALL_PINNED_CHECK_ID
+# Actions secrets, and set the WSL_STALL_HEARTBEAT Actions variable to true.
+# Only RabbitMQ iteration 1 in each arm sends pings; the checks are idle between runs.
+# Temporary; delete the branch when the experiment is done.
 name: WSL stall experiment
 on:
   push:
@@ -19,6 +23,9 @@ jobs:
   probe:
     name: ${{ matrix.arm }}-${{ matrix.test-category }}-${{ matrix.iteration }}
     runs-on: windows-latest
+    concurrency:
+      group: ${{ format('wsl-stall-experiment-{0}', vars.WSL_STALL_HEARTBEAT == 'true' && matrix.test-category == 'RabbitMQ' && matrix.iteration == 1 && matrix.arm || format('{0}-{1}-{2}-{3}', github.run_id, matrix.arm, matrix.test-category, matrix.iteration)) }}
+      cancel-in-progress: false
     # A healthy job finishes in about six minutes. A stall never finishes, so cap it early.
     timeout-minutes: 15
     strategy:
@@ -53,10 +60,55 @@ jobs:
           ./tools/dotnet-install.ps1 -SkipNonVersionedFiles -InstallDir "C:\Program Files\dotnet" -Runtime windowsdesktop -Version ${{ env.RuntimeVersion }}
       - name: Select test projects
         run: ./tools/select-test-projects.ps1 -Category ${{ matrix.test-category }}
-      - name: Runner details
+      - name: Healthchecks heartbeat
+        if: vars.WSL_STALL_HEARTBEAT == 'true' && matrix.test-category == 'RabbitMQ' && matrix.iteration == 1
+        background: true
+        continue-on-error: true
+        timeout-minutes: 15
+        env:
+          HEALTHCHECK_ID: ${{ secrets[matrix.arm == 'image-wsl' && 'WSL_STALL_IMAGE_CHECK_ID' || 'WSL_STALL_PINNED_CHECK_ID'] }}
         run: |
-          Write-Host "ImageOS=$env:ImageOS ImageVersion=$env:ImageVersion"
-          (wsl.exe --version) -replace "`0", '' | Where-Object { $_ } | Out-Host
+          $check = $env:HEALTHCHECK_ID
+          if ($check -notmatch '^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$') {
+            Write-Warning 'Healthchecks heartbeat is disabled: the check ID for this arm is missing or invalid.'
+            exit 0
+          }
+          $stop = Join-Path $env:RUNNER_TEMP 'wsl-heartbeat.stop'
+          $handler = [Net.Http.HttpClientHandler]::new()
+          $handler.AllowAutoRedirect = $false
+          $client = [Net.Http.HttpClient]::new($handler)
+          $client.Timeout = [TimeSpan]::FromSeconds(5)
+          try {
+            while (-not (Test-Path -LiteralPath $stop)) {
+              try {
+                $response = $client.GetAsync("https://hc-ping.com/$check").GetAwaiter().GetResult()
+                try {
+                  if (-not $response.IsSuccessStatusCode) {
+                    Write-Warning "Healthchecks heartbeat returned HTTP $([int]$response.StatusCode)."
+                  }
+                } finally {
+                  $response.Dispose()
+                }
+              } catch [Net.Http.HttpRequestException], [OperationCanceledException] {
+                Write-Warning 'Healthchecks heartbeat request failed or timed out.'
+              }
+              for ($i = 0; $i -lt 60 -and -not (Test-Path -LiteralPath $stop); $i++) {
+                Start-Sleep -Seconds 1
+              }
+            }
+          } finally {
+            $client.Dispose()
+          }
+      - name: Runner details
+        timeout-minutes: 1
+        run: |
+          $checkpoint = Join-Path $env:RUNNER_TEMP 'wsl-checkpoint.txt'
+          @(
+            "utc=$([DateTimeOffset]::UtcNow.ToString('o'))"
+            "ImageOS=$env:ImageOS ImageVersion=$env:ImageVersion"
+          ) | Set-Content -LiteralPath $checkpoint
+          (wsl.exe --version) -replace "`0", '' | Where-Object { $_ } | Add-Content -LiteralPath $checkpoint
+          Get-Content -LiteralPath $checkpoint | Out-Host
           Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall', 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall' -ErrorAction SilentlyContinue |
             Get-ItemProperty |
             Where-Object { $_.DisplayName -like 'Windows Subsystem for Linux*' } |
@@ -64,6 +116,14 @@ jobs:
           Get-AppxPackage -AllUsers -Name 'MicrosoftCorporationII.WindowsSubsystemForLinux' -ErrorAction SilentlyContinue |
             ForEach-Object { Write-Host "Installed Appx: $($_.PackageFullName)" }
           $global:LASTEXITCODE = 0
+      - name: Save runner details
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: wsl-${{ github.run_attempt }}-${{ matrix.arm }}-${{ matrix.test-category }}-${{ matrix.iteration }}-runner
+          path: ${{ runner.temp }}/wsl-checkpoint.txt
+          retention-days: 7
       - name: Pin WSL to 2.7.12
         if: matrix.arm == 'wsl-2.7.12'
         run: |
@@ -97,7 +157,19 @@ jobs:
           $version | Out-Host
           $reported = ($version | Select-String -Pattern 'WSL version:\s*(\S+)').Matches.Groups[1].Value
           if ($reported -ne $target) { throw "Expected WSL $target after pinning, but wsl --version reports '$reported'" }
+          "Pinned WSL version: $reported" | Add-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'wsl-checkpoint.txt')
           $global:LASTEXITCODE = 0
+      - name: Record start of overlap
+        run: |
+          "Ready for Build and Setup WSL at $([DateTimeOffset]::UtcNow.ToString('o'))" |
+            Add-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'wsl-checkpoint.txt')
+      - name: Save checkpoint before Build and Setup WSL
+        continue-on-error: true
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: wsl-${{ github.run_attempt }}-${{ matrix.arm }}-${{ matrix.test-category }}-${{ matrix.iteration }}-before-overlap
+          path: ${{ runner.temp }}/wsl-checkpoint.txt
+          retention-days: 7
       # The build only exists to load the runner while WSL provisions. NU1902 for
       # System.Security.Cryptography.Pkcs would otherwise fail it before the contention starts.
       - name: Build
@@ -106,6 +178,7 @@ jobs:
         timeout-minutes: 5
         run: dotnet build tests.proj --configuration Release -graph -p:NuGetAudit=false
       - name: Setup WSL
+        id: setup-wsl
         uses: Particular/setup-wsl-action@7e67069143b27e935a5c156d4c5319a7f152f6e8
         timeout-minutes: 5
         with:
@@ -113,3 +186,23 @@ jobs:
           enable-cache: false
       - name: Wait for build
         wait: build
+      - name: Stop heartbeat and record step outcomes
+        if: always()
+        env:
+          WSL_OUTCOME: ${{ steps.setup-wsl.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+        run: |
+          New-Item -ItemType File -Force -Path (Join-Path $env:RUNNER_TEMP 'wsl-heartbeat.stop') | Out-Null
+          @(
+            "utc=$([DateTimeOffset]::UtcNow.ToString('o'))"
+            "Setup WSL outcome: $env:WSL_OUTCOME"
+            "Build outcome: $env:BUILD_OUTCOME"
+          ) | Add-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'wsl-checkpoint.txt')
+      - name: Save step outcomes
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: wsl-${{ github.run_attempt }}-${{ matrix.arm }}-${{ matrix.test-category }}-${{ matrix.iteration }}-outcomes
+          path: ${{ runner.temp }}/wsl-checkpoint.txt
+          retention-days: 7
