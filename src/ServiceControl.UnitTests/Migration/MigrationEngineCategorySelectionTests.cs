@@ -75,7 +75,7 @@ class MigrationEngineCategorySelectionTests
         var target = new InMemoryMigrationTarget(checkpointStore);
         var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, [stillConfigured]);
         var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
-        var previousRun = new MigrationCheckpoint(MigrationCategoryIds.ArchivedAndResolvedFailedMessages, MigrationCategoryState.CompleteWithErrors, "cursor-99", 40, 2, 42, null, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, null);
+        var previousRun = new MigrationCheckpoint(MigrationCategoryIds.ArchivedAndResolvedFailedMessages, MigrationCategoryState.InProgress, "cursor-99", 40, 2, 42, null, DateTime.UtcNow, DateTime.UtcNow, null, null);
         await checkpointStore.Upsert(previousRun);
 
         var results = await engine.RunCategories(engine.SelectCategories(MigrationCategoryKind.Optional));

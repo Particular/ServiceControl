@@ -2,7 +2,7 @@
 namespace ServiceControl.UnitTests.Migration;
 
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using NUnit.Framework;
 using ServiceControl.Persistence.DataMigration;
 
@@ -10,9 +10,38 @@ using ServiceControl.Persistence.DataMigration;
 class MigrationCategoryStateExtensionsTests
 {
     [Test]
-    public void Exactly_the_two_harmless_reasons_are_harmless_and_every_other_skip_reason_is_a_fault() =>
-        Assert.That(
-            Enum.GetValues<MigrationSkipReason>().Where(reason => reason.IsBenign()),
-            Is.EquivalentTo(new[] { MigrationSkipReason.PastRetention, MigrationSkipReason.BlankGroupComment }),
-            "a harmless reason is exempt from the halt threshold and the settle rule, so any number of rows lost to one settles the category Done");
+    public void Every_skip_reason_is_exactly_one_of_harmless_permanent_or_retryable()
+    {
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(Kinds.Keys, Is.EquivalentTo(Enum.GetValues<MigrationSkipReason>()), "a reason on neither list is treated as a fault a retry can fix, so each new reason has to be placed here on purpose");
+
+            foreach (var (reason, kind) in Kinds)
+            {
+                Assert.That((reason.IsBenign(), reason.IsPermanent()), Is.EqualTo((kind == SkipKind.Harmless, kind == SkipKind.Permanent)), $"{reason} is {kind}");
+            }
+        }
+    }
+
+    enum SkipKind
+    {
+        Harmless,
+        Permanent,
+        Retryable
+    }
+
+    static readonly Dictionary<MigrationSkipReason, SkipKind> Kinds = new()
+    {
+        [MigrationSkipReason.BodyUnreadable] = SkipKind.Retryable,
+        [MigrationSkipReason.PastRetention] = SkipKind.Harmless,
+        [MigrationSkipReason.RequiredValueMissing] = SkipKind.Permanent,
+        [MigrationSkipReason.BlankGroupComment] = SkipKind.Harmless,
+        [MigrationSkipReason.SourceStorageCheck] = SkipKind.Harmless,
+        [MigrationSkipReason.UnparseableUniqueMessageId] = SkipKind.Permanent,
+        [MigrationSkipReason.NoProcessingAttempts] = SkipKind.Permanent,
+        [MigrationSkipReason.ValueTooLong] = SkipKind.Permanent,
+        [MigrationSkipReason.MalformedValue] = SkipKind.Permanent,
+        [MigrationSkipReason.BodyMissing] = SkipKind.Permanent,
+        [MigrationSkipReason.Unknown] = SkipKind.Retryable
+    };
 }

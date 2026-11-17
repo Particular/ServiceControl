@@ -9,6 +9,7 @@ using NUnit.Framework;
 using Particular.LicensingComponent.Contracts;
 using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.EFCore.DataMigration.Writers;
+using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
 class LicensingEndpointsMigrationTargetTests : PersistenceTestBase
@@ -54,6 +55,89 @@ class LicensingEndpointsMigrationTargetTests : PersistenceTestBase
             Assert.That(details[1], Does.EndWith("takes at most 450 characters and the value holds 451, on document 'Endpoint/3'"));
         }
     }
+
+    [Test]
+    public async Task Two_names_differing_only_in_a_trailing_space_in_one_batch_are_reported_as_one_merge_where_the_key_folds_them()
+    {
+        var dialect = ServiceProvider.GetRequiredService<IMigrationSqlDialect>();
+        var batch = BatchOf(
+            ("Sales.Orders/Broker", new Endpoint("Sales.Orders", ThroughputSource.Broker) { SanitizedName = "sales.orders" }),
+            ("Sales.Orders /Broker", new Endpoint("Sales.Orders ", ThroughputSource.Broker) { SanitizedName = "sales.orders" }));
+        var keyIgnoresTrailingSpace = KeyIgnoresTrailingSpace(dialect);
+
+        var merges = await PreparedSkips.MergesFrom(ServiceProvider, new LicensingEndpointsWriter(dialect), batch);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(merges.Select(merge => merge.SourceId), Is.EqualTo(keyIgnoresTrailingSpace ? new[] { "Sales.Orders/Broker" } : Array.Empty<string>()),
+                "the row whose id sorts first is kept, and the other is reported only where the key folds a trailing space");
+
+            if (keyIgnoresTrailingSpace)
+            {
+                Assert.That(merges[0].Detail, Does.Contain("kept 'sales.orders ', 'Broker' and dropped the row for 'sales.orders', 'Broker'"), "the line names both endpoints and the one kept");
+            }
+        }
+    }
+
+    [Test]
+    public async Task A_name_differing_only_in_a_trailing_space_from_a_stored_endpoint_is_reported_as_a_merge_where_the_key_folds_them()
+    {
+        var dialect = ServiceProvider.GetRequiredService<IMigrationSqlDialect>();
+        var first = await Target.Write(LicensingEndpointsCategory, BatchOf(("Sales.Orders/Broker", new Endpoint("Sales.Orders", ThroughputSource.Broker) { SanitizedName = "sales.orders" })), CheckpointAfter("Sales.Orders/Broker"));
+        var second = BatchOf(("Sales.Orders /Broker", new Endpoint("Sales.Orders ", ThroughputSource.Broker) { SanitizedName = "sales.orders" }));
+        var keyIgnoresTrailingSpace = KeyIgnoresTrailingSpace(dialect);
+
+        var merges = await PreparedSkips.MergesFrom(ServiceProvider, new LicensingEndpointsWriter(dialect), second);
+        var result = await Target.Write(LicensingEndpointsCategory, second, first.Saved with { Cursor = second.Cursor });
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(merges.Select(merge => merge.SourceId), Is.EqualTo(keyIgnoresTrailingSpace ? new[] { "Sales.Orders /Broker" } : Array.Empty<string>()));
+
+            if (keyIgnoresTrailingSpace)
+            {
+                Assert.That(merges[0].Detail, Does.Contain("kept 'sales.orders', 'Broker' and dropped the row for 'sales.orders ', 'Broker'"), "the stored endpoint is the one kept");
+            }
+
+            Assert.That(result.AlreadyPresent, Is.EqualTo(keyIgnoresTrailingSpace ? 1 : 0), "the folded endpoint is counted as already present");
+        }
+    }
+
+    [Test]
+    public async Task An_exact_replay_of_a_stored_endpoint_is_already_present_and_not_a_merge()
+    {
+        var batch = BatchOf(("Sales.Orders/Broker", new Endpoint("Sales.Orders", ThroughputSource.Broker) { SanitizedName = "sales.orders" }));
+        var first = await Target.Write(LicensingEndpointsCategory, batch, CheckpointAfter("Sales.Orders/Broker"));
+
+        var merges = await PreparedSkips.MergesFrom(ServiceProvider, new LicensingEndpointsWriter(ServiceProvider.GetRequiredService<IMigrationSqlDialect>()), batch);
+        var again = await Target.Write(LicensingEndpointsCategory, batch, first.Saved);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(merges, Is.Empty, "a retry re-reads the rows an earlier pass copied, and the stored row is that same endpoint");
+            Assert.That((again.Copied, again.AlreadyPresent, again.Merged), Is.EqualTo((0, 1, 0)));
+        }
+    }
+
+    [Test]
+    public async Task Two_names_differing_only_in_case_are_reported_as_one_merge_on_every_provider()
+    {
+        var dialect = ServiceProvider.GetRequiredService<IMigrationSqlDialect>();
+        var batch = BatchOf(
+            ("SALES.ORDERS/Broker", new Endpoint("SALES.ORDERS", ThroughputSource.Broker) { SanitizedName = "sales.orders" }),
+            ("Sales.Orders/Broker", new Endpoint("Sales.Orders", ThroughputSource.Broker) { SanitizedName = "sales.orders" }));
+
+        var merges = await PreparedSkips.MergesFrom(ServiceProvider, new LicensingEndpointsWriter(dialect), batch);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(merges.Select(merge => merge.SourceId), Is.EqualTo(new[] { "Sales.Orders/Broker" }), "the product lower-cases the name, so both providers store one row");
+            Assert.That(merges[0].Detail, Does.Contain("kept 'sales.orders', 'Broker' and dropped the row for 'sales.orders', 'Broker'"));
+        }
+    }
+
+    static bool KeyIgnoresTrailingSpace(IMigrationSqlDialect dialect) =>
+        dialect.KeyComparer(typeof(LicensingEndpointEntity), nameof(LicensingEndpointEntity.NormalizedName)).Equals("a", "a ");
 
     static MigrationBatch BatchOf(params (string Id, object Document)[] rows) =>
         new([.. rows.Select(row => new MigrationRow(row.Id, row.Document, new Dictionary<string, object>()))], rows[^1].Id);

@@ -167,6 +167,7 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
         var retryIssued = new IngestedFailure();
         await SeedFailure(unresolved);
         await SeedFailure(retryIssued, FailedMessageStatus.RetryIssued);
+        await SeedSourceRetryClaim(retryIssued.UniqueMessageIdString);
 
         var copy = await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
 
@@ -187,10 +188,16 @@ class When_unresolved_failed_messages_are_migrated : MigrationAcceptanceTest
     {
         var retryIssued = new IngestedFailure();
         await SeedFailure(retryIssued, FailedMessageStatus.RetryIssued);
+        await SeedSourceRetryClaim(retryIssued.UniqueMessageIdString);
 
         var copy = await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
 
-        Assert.That(copy.Copied, Is.EqualTo(1), "the test proves nothing unless the message reached the target");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(copy.Copied, Is.EqualTo(1), "the test proves nothing unless the message reached the target");
+            Assert.That(await QueryTarget(db => db.FailedMessageRetries.CountAsync(claim => claim.UniqueMessageId == retryIssued.UniqueMessageId)), Is.EqualTo(1),
+                "the test proves nothing about releasing a migrated claim unless the copy wrote one");
+        }
 
         // Pending Retries releases the claim, then sends a retry by id.
         await FailedMessageRetryDataStore.RemoveFailedMessageRetry(retryIssued.UniqueMessageIdString);

@@ -4,7 +4,7 @@ using ServiceControl.Persistence.EFCore.DbContexts;
 using ServiceControl.Persistence.EFCore.Entities;
 
 /// <summary>
-/// The migration's provider-specific SQL. Statements run inside the caller's transaction and insert only what is absent.
+/// The migration's provider-specific SQL. Statements run inside the caller's transaction.
 /// </summary>
 public interface IMigrationSqlDialect
 {
@@ -42,10 +42,10 @@ public interface IMigrationSqlDialect
     Task<IReadOnlyList<TEntity>> InsertMissing<TEntity>(ServiceControlDbContext dbContext, IReadOnlyList<TEntity> rows, CancellationToken cancellationToken = default) where TEntity : class;
 
     /// <summary>
-    /// Sets each day's message count: a day the table does not hold is inserted, and a day it holds gets its count replaced, never added to.
+    /// Adds each day's message count to the count the table holds for that day, and inserts a day the table does not hold.
+    /// Rows whose keys the key columns' collation treats as one are summed in the statement, so the database decides which names are one day.
     /// The rows go to the database in the order given. Every row's endpoint must already be in the table, or the foreign key fails the statement.
-    /// Two rows with the same key in one call are not allowed on PostgreSQL, which refuses the statement. SQL Server keeps the last of them, which also covers names that differ only by a trailing space.
     /// Returns how many rows the statements inserted or updated. It runs on the caller's open transaction, and throws <see cref="InvalidOperationException"/> when there is none or when a returned key matches no row given.
     /// </summary>
-    Task<int> SetLicensingEndpointThroughput(ServiceControlDbContext dbContext, IReadOnlyList<LicensingEndpointThroughputEntity> rows, CancellationToken cancellationToken = default);
+    Task<int> AddLicensingEndpointThroughput(ServiceControlDbContext dbContext, IReadOnlyList<LicensingEndpointThroughputEntity> rows, CancellationToken cancellationToken = default);
 }

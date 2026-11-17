@@ -13,6 +13,7 @@ using ServiceControl.MessageFailures;
 using ServiceControl.MessageFailures.Api;
 using ServiceControl.Operations;
 using ServiceControl.Persistence.DataMigration;
+using ServiceControl.Persistence.RavenDB;
 using ServiceControl.Persistence.RavenDB.DataMigration;
 
 [TestFixture]
@@ -97,6 +98,32 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
         var row = (await ReadAll()).Single();
 
         Assert.That(row.Metadata.Keys, Is.EquivalentTo(new[] { MigrationMetadataKeys.StatusChangedAt, MigrationMetadataKeys.LastModified }), "a store's own metadata, such as @expires, never travels");
+    }
+
+    [Test]
+    public async Task A_retry_issued_message_says_whether_the_source_still_holds_its_retry_claim()
+    {
+        var claimed = await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.RetryIssued));
+        var released = await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.RetryIssued));
+        var unresolved = await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.Unresolved));
+
+        using (var session = DocumentStore.OpenAsyncSession())
+        {
+            await session.StoreAsync(new FailedMessageRetry { FailedMessageId = claimed.Id, RetryBatchId = "RetryBatches/forwarded" }, RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(claimed.UniqueMessageId));
+            await session.StoreAsync(new FailedMessageRetry { FailedMessageId = unresolved.Id, RetryBatchId = "RetryBatches/staging" }, RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(unresolved.UniqueMessageId));
+            await session.SaveChangesAsync();
+        }
+
+        await CompleteDatabaseOperation();
+
+        var rows = (await ReadAll()).ToDictionary(row => ((FailedMessage)row.Document).UniqueMessageId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(rows[claimed.UniqueMessageId].Metadata[MigrationMetadataKeys.RetryClaimHeld], Is.True);
+            Assert.That(rows[released.UniqueMessageId].Metadata[MigrationMetadataKeys.RetryClaimHeld], Is.False);
+            Assert.That(rows[unresolved.UniqueMessageId].Metadata, Does.Not.ContainKey(MigrationMetadataKeys.RetryClaimHeld), "only a retry-issued message gets a claim in SQL, even when the source holds one for another");
+        }
     }
 
     [Test]
@@ -258,10 +285,21 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
     {
         await DocumentStore.Maintenance.SendAsync(new DeleteIndexOperation(IndexName), TestContext.CurrentContext.CancellationToken);
         var stored = await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.Unresolved));
+        var claimed = await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.RetryIssued));
+
+        using (var session = DocumentStore.OpenAsyncSession())
+        {
+            await session.StoreAsync(new FailedMessageRetry { FailedMessageId = claimed.Id, RetryBatchId = "RetryBatches/forwarded" }, RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(claimed.UniqueMessageId));
+            await session.SaveChangesAsync();
+        }
 
         var rows = await ReadAll().WaitAsync(TimeSpan.FromSeconds(30), TestContext.CurrentContext.CancellationToken);
 
-        Assert.That(rows.Select(row => row.SourceId), Is.EqualTo(new[] { stored.Id }), "the copy cannot build the index on a source it only reads, so reading everything is the only way through");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(rows.Select(row => row.SourceId), Is.EquivalentTo(new[] { stored.Id, claimed.Id }), "the copy cannot build the index on a source it only reads, so reading everything is the only way through");
+            Assert.That(rows.Single(row => row.SourceId == claimed.Id).Metadata[MigrationMetadataKeys.RetryClaimHeld], Is.True, "the whole-collection read must resolve claims too, or the writer stops on the first retry-issued row");
+        }
     }
 
     [Test]

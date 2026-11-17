@@ -44,7 +44,9 @@
             return status;
         }
 
-        static string MakeId(Guid id) => $"CustomChecks/{id}";
+        internal const string CollectionName = "CustomChecks";
+
+        static string MakeId(Guid id) => $"{CollectionName}/{id}";
 
         public async Task<QueryResult<IList<CustomCheckView>>> GetStats(PagingInfo paging, string status = null, CancellationToken cancellationToken = default)
         {

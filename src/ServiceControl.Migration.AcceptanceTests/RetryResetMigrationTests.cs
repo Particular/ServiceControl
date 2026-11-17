@@ -3,10 +3,12 @@ namespace ServiceControl.Migration.AcceptanceTests;
 using System;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using ServiceControl.ExternalIntegrations;
 using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.EFCore;
 using ServiceControl.Persistence.MessageRedirects;
 using ServiceControl.Recoverability;
+using ServiceControl.Recoverability.ExternalIntegration;
 
 [TestFixture]
 [NonParallelizable]
@@ -65,8 +67,27 @@ class RetryResetMigrationTests : MigrationAcceptanceTest
         Assert.That(await Target.Count(RetryOperations), Is.EqualTo(4), "the delete shares the reset's transaction, so a refused reset leaves every copied row");
     }
 
+    [Test]
+    public async Task A_retry_of_pending_integration_events_dispatches_each_event_once()
+    {
+        await SeedSource(
+            ($"ExternalIntegrationDispatchRequests/{Guid.NewGuid()}", new ExternalIntegrationDispatchRequest { DispatchContext = new FailedMessageArchivedPublisher.DispatchContext { FailedMessageId = "FailedMessages/1" } }),
+            ($"ExternalIntegrationDispatchRequests/{Guid.NewGuid()}", new ExternalIntegrationDispatchRequest { DispatchContext = new FailedMessageArchivedPublisher.DispatchContext { FailedMessageId = "FailedMessages/2" } }));
+        await CopyCategory(MigrationCategoryIds.PendingIntegrationEvents);
+        var copied = await Target.Count(PendingIntegrationEvents);
+
+        await Target.ResetForRetry(ResetForRetry(await ReadCheckpoint(MigrationCategoryIds.PendingIntegrationEvents)));
+        await CopyCategory(MigrationCategoryIds.PendingIntegrationEvents);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(copied, Is.EqualTo(2), "the first copy writes both requests");
+            Assert.That(await Target.Count(PendingIntegrationEvents), Is.EqualTo(copied), "each request gets a new key on every insert, so a retry that kept them would dispatch every event twice");
+        }
+    }
+
     // The same reset --migration-retry makes. It keeps StartedAt and leaves SourceTotal alone, because the engine does not write it.
-    static MigrationCheckpoint ResetForRetry(MigrationCheckpoint checkpoint) => checkpoint with
+    internal static MigrationCheckpoint ResetForRetry(MigrationCheckpoint checkpoint) => checkpoint with
     {
         State = MigrationCategoryState.NotStarted,
         Cursor = null,
@@ -87,6 +108,8 @@ class RetryResetMigrationTests : MigrationAcceptanceTest
         history.UnacknowledgedOperations.Add(RetryOperationsMigrationTests.PendingOperation("group-4", ChangedAt.AddMinutes(-10)));
         return history;
     }
+
+    static MigrationCategory PendingIntegrationEvents => MigrationCategoryRegistry.Find(MigrationCategoryIds.PendingIntegrationEvents)!;
 
     static MigrationCategory RetryOperations => MigrationCategoryRegistry.Find(MigrationCategoryIds.RetryOperations)!;
 

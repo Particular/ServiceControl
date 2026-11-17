@@ -29,6 +29,12 @@ public enum MigrationSkipReason
     BlankGroupComment,
 
     /// <summary>
+    /// The source marked the row as a result of a check its own storage runs about itself.
+    /// Nothing reports such a check once the instance runs on the target, so a copied result would never change.
+    /// </summary>
+    SourceStorageCheck,
+
+    /// <summary>
     /// The document's unique message id is not a GUID, and the row's key has to be one.
     /// </summary>
     UnparseableUniqueMessageId,

@@ -51,8 +51,21 @@ class MigrationTargetCoverageTests : PersistenceTestBase
         Assert.That(model.FindEntityType(typeof(SettingEntity))!.FindProperty(nameof(SettingEntity.Value))!.GetMaxLength(), Is.Null, "NoValueCanBeTooLong exempts the settings categories because of this; give them a value-too-long test if the column gains a limit");
     }
 
+    [TestCase(typeof(CustomCheckEntity))]
+    [TestCase(typeof(FailedErrorImportEntity))]
+    public async Task No_text_column_of_the_entity_has_a_maximum_length_so_no_value_can_be_too_long(Type entity)
+    {
+        await using var scope = ServiceProvider.CreateAsyncScope();
+        var entityType = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>().Model.FindEntityType(entity)!;
+
+        Assert.That(
+            entityType.GetProperties().Where(property => property.ClrType == typeof(string) && property.GetMaxLength() is not null).Select(property => $"{entityType.GetTableName()}.{property.GetColumnName()}"),
+            Is.Empty,
+            "NoValueCanBeTooLong exempts this entity's category because of this; give it a value-too-long test if a column gains a limit");
+    }
+
     [Test]
-    public async Task Every_writer_whose_rows_get_their_key_from_the_store_deletes_them_for_a_retry_and_no_other_writer_does()
+    public async Task Every_writer_whose_rows_a_re_read_cannot_recognise_deletes_them_for_a_retry_and_no_other_writer_does()
     {
         await using var scope = ServiceProvider.CreateAsyncScope();
         var model = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>().Model;
@@ -67,14 +80,14 @@ class MigrationTargetCoverageTests : PersistenceTestBase
             {
                 var storeKeyed = entities.Any(entity => model.FindEntityType(entity)!.FindPrimaryKey()!.Properties.Any(property => property.ValueGenerated != ValueGenerated.Never));
 
-                Assert.That(typeof(IStoreKeyedCategoryWriter).IsAssignableFrom(writer), Is.EqualTo(storeKeyed),
-                    $"{writer.Name}: a retry keeps the rows of a writer that is not an IStoreKeyedCategoryWriter, so a re-read adds rows with store keys a second time, and a writer whose keys the copy supplies must not delete");
+                Assert.That(typeof(IStoreKeyedCategoryWriter).IsAssignableFrom(writer), Is.EqualTo(storeKeyed || WritersThatAddToRowsTheyCopied.Contains(writer)),
+                    $"{writer.Name}: a retry keeps the rows of a writer that is not an IStoreKeyedCategoryWriter, so a re-read adds rows with store keys or added counts a second time, and a writer whose rows a re-read finds already present must not delete");
             }
         }
     }
 
-    // Each is one Settings row under a constant key whose value column has no maximum length, so no source value can be too long for it.
-    static readonly string[] NoValueCanBeTooLong = [MigrationCategoryIds.LicensingReportMasks, MigrationCategoryIds.LicensedEndpointDetails, MigrationCategoryIds.NotificationSettings, MigrationCategoryIds.TrialEndDate];
+    // None of these copies a source value into a text column with a maximum length, which the two no-maximum-length tests above pin.
+    static readonly string[] NoValueCanBeTooLong = [MigrationCategoryIds.LicensingReportMasks, MigrationCategoryIds.LicensedEndpointDetails, MigrationCategoryIds.NotificationSettings, MigrationCategoryIds.TrialEndDate, MigrationCategoryIds.CustomChecks, MigrationCategoryIds.FailedErrorImports];
 
     // Uses nameof, so renaming or deleting one of these tests fails the build instead of leaving this list out of date.
     static readonly Dictionary<string, string> ValueTooLongTests = new()
@@ -86,8 +99,13 @@ class MigrationTargetCoverageTests : PersistenceTestBase
         [MigrationCategoryIds.LicensingThroughput] = nameof(LicensingThroughputMigrationTargetTests.A_day_whose_endpoint_name_is_longer_than_its_column_is_skipped_as_value_too_long_and_the_rest_copy),
         [MigrationCategoryIds.MessageRedirects] = nameof(MessageRedirectsMigrationTargetTests.A_redirect_with_an_address_longer_than_its_column_is_skipped_as_value_too_long_and_the_rest_copy),
         [MigrationCategoryIds.Subscriptions] = nameof(SubscriptionsMigrationTargetTests.A_subscription_with_a_value_longer_than_its_column_is_skipped_under_its_reason_and_the_rest_copy),
-        [MigrationCategoryIds.RetryOperations] = nameof(RetryOperationsMigrationTargetTests.A_retry_operation_with_a_value_longer_than_its_column_is_skipped_as_value_too_long_and_the_rest_copy)
+        [MigrationCategoryIds.RetryOperations] = nameof(RetryOperationsMigrationTargetTests.A_retry_operation_with_a_value_longer_than_its_column_is_skipped_as_value_too_long_and_the_rest_copy),
+        [MigrationCategoryIds.PendingIntegrationEvents] = nameof(PendingIntegrationEventsMigrationTargetTests.A_request_whose_context_type_name_is_longer_than_its_column_is_skipped_as_value_too_long_and_the_rest_copy),
+        [MigrationCategoryIds.GroupComments] = nameof(GroupCommentsMigrationTargetTests.A_comment_whose_group_id_is_longer_than_its_column_is_skipped_as_value_too_long_and_the_rest_copy)
     };
+
+    // Their keys come from the source, but a re-read adds its counts to the stored ones, so a re-read cannot find them already present.
+    static readonly Type[] WritersThatAddToRowsTheyCopied = [typeof(LicensingThroughputWriter)];
 
     // The writers do not say which entities they write, so this list does.
     static readonly Dictionary<Type, Type[]> EntitiesEachWriterWrites = new()
@@ -103,6 +121,10 @@ class MigrationTargetCoverageTests : PersistenceTestBase
         [typeof(SubscriptionsWriter)] = [typeof(SubscriptionEntity)],
         [typeof(NotificationSettingsWriter)] = [typeof(SettingEntity)],
         [typeof(TrialEndDateWriter)] = [typeof(SettingEntity)],
-        [typeof(RetryOperationsWriter)] = [typeof(HistoricRetryOperationEntity), typeof(UnacknowledgedRetryOperationEntity)]
+        [typeof(RetryOperationsWriter)] = [typeof(HistoricRetryOperationEntity), typeof(UnacknowledgedRetryOperationEntity)],
+        [typeof(PendingIntegrationEventsWriter)] = [typeof(ExternalIntegrationDispatchRequestEntity)],
+        [typeof(CustomChecksWriter)] = [typeof(CustomCheckEntity)],
+        [typeof(FailedErrorImportsWriter)] = [typeof(FailedErrorImportEntity)],
+        [typeof(GroupCommentsWriter)] = [typeof(GroupCommentEntity)]
     };
 }

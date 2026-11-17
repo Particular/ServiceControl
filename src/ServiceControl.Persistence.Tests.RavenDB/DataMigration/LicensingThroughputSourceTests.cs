@@ -72,7 +72,7 @@ class LicensingThroughputSourceTests : RavenMigrationSourceTestBase
     }
 
     [Test]
-    public async Task Endpoints_whose_names_differ_only_in_case_and_trailing_spaces_come_in_one_batch()
+    public async Task Endpoints_whose_names_differ_only_in_case_and_trailing_spaces_come_in_separate_batches()
     {
         foreach (var name in new[] { "Sales.Orders", "Sales.Orders.Archive", "SALES.ORDERS  " })
         {
@@ -93,9 +93,9 @@ class LicensingThroughputSourceTests : RavenMigrationSourceTestBase
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(batches.Select(batch => batch.Cursor), Is.EqualTo(new[] { "Sales.Orders.Archive/Broker", "Sales.Orders/Broker" }), "each group cursors on its last id in ordinal order, so a resume never splits a group");
-            Assert.That(batches[1].Rows.Select(row => ((ThroughputDayRow)row.Document).Endpoint.Name), Is.EquivalentTo(new[] { "Sales.Orders", "SALES.ORDERS  " }), "the writer can add the two endpoints' days only when they arrive in one batch");
-            Assert.That(resumed.SelectMany(batch => batch.Rows).Select(row => ((ThroughputDayRow)row.Document).Endpoint.Name), Is.EquivalentTo(new[] { "Sales.Orders", "SALES.ORDERS  " }), "a resume after the first group reads the whole second group");
+            Assert.That(batches.Select(batch => batch.Cursor), Is.EqualTo(new[] { "SALES.ORDERS  /Broker", "Sales.Orders.Archive/Broker", "Sales.Orders/Broker" }), "the source groups by its own document id only, and which names are one key is the target's to decide");
+            Assert.That(batches.Select(batch => batch.Rows.Select(row => ((ThroughputDayRow)row.Document).Endpoint.Name).Single()), Is.EqualTo(new[] { "SALES.ORDERS  ", "Sales.Orders.Archive", "Sales.Orders" }), "each batch holds the days of the one endpoint its cursor names");
+            Assert.That(resumed.SelectMany(batch => batch.Rows).Select(row => ((ThroughputDayRow)row.Document).Endpoint.Name), Is.EqualTo(new[] { "Sales.Orders.Archive", "Sales.Orders" }), "a resume reads only the endpoints after the cursor, even one whose name differs from the cursor's only in case and spaces");
         }
     }
 
