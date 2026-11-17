@@ -67,6 +67,7 @@ namespace Tests
             var expectedVersion = typeof(DeploymentPackageTests).Assembly
                 .GetCustomAttributes<AssemblyMetadataAttribute>()
                 .Single(a => a.Key == "RuntimeFrameworkVersion").Value;
+
             var runtimeMessage = Environment.Version > Version.Parse(expectedVersion)
                 ? $" Runtime rolled forward from requested {expectedVersion} to {Environment.Version}. This test requires the exact runtime version specified in Custom.Build.props."
                 : $" Requested runtime: {expectedVersion}; running runtime: {Environment.Version}.";
@@ -91,6 +92,7 @@ namespace Tests
             var expectedVersion = typeof(DeploymentPackageTests).Assembly
                 .GetCustomAttributes<AssemblyMetadataAttribute>()
                 .Single(a => a.Key == "RuntimeFrameworkVersion").Value;
+
             var runtimeMessage = Version.Parse(aspNetCoreDirectory.Name) > Version.Parse(expectedVersion)
                 ? $" ASP.NET Core runtime rolled forward from requested {expectedVersion} to {aspNetCoreDirectory.Name}. This test requires the exact runtime version specified in Custom.Build.props."
                 : $" Requested ASP.NET Core runtime: {expectedVersion}; running runtime: {aspNetCoreDirectory.Name}.";

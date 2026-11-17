@@ -9,10 +9,6 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
-  <ItemGroup>
-    <AssemblyMetadata Include="RuntimeFrameworkVersion" Value="$(RuntimeFrameworkVersion)" />
-  </ItemGroup>
-
   <ItemGroup Label="Needed for build ordering">
     <ProjectReference Include="..\ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
@@ -27,6 +23,10 @@
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit.Analyzers" />
     <PackageReference Include="NUnit3TestAdapter" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="RuntimeFrameworkVersion" Value="$(RuntimeFrameworkVersion)" />
   </ItemGroup>
 
 </Project>
