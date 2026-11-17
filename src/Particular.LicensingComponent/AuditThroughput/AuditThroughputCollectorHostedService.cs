@@ -104,7 +104,8 @@ public class AuditThroughputCollectorHostedService(
         var endpoint = new Endpoint(scEndpoint.Name, ThroughputSource.Audit)
         {
             SanitizedName = brokerThroughputQuery != null ? brokerThroughputQuery.SanitizeEndpointName(scEndpoint.Name) : scEndpoint.Name,
-            EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()]
+            EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()],
+            CreatedDate = DateTime.UtcNow,
         };
 
         if (PlatformEndpointHelper.IsPlatformEndpoint(scEndpoint.Name, throughputSettings))

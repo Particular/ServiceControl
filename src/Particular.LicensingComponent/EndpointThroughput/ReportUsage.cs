@@ -31,7 +31,8 @@ class EndpointUsageReportHandler(
             endpoint = new Particular.LicensingComponent.Contracts.Endpoint(endpointId)
             {
                 EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()],
-                SanitizedName = brokerThroughputQuery?.SanitizeEndpointName(endpointId.Name) ?? endpointId.Name
+                SanitizedName = brokerThroughputQuery?.SanitizeEndpointName(endpointId.Name) ?? endpointId.Name,
+                CreatedDate = DateTime.UtcNow
             };
 
             await licensingDataStore.SaveEndpoint(endpoint, context.CancellationToken);

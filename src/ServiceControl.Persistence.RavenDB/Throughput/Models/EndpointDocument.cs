@@ -1,12 +1,15 @@
 ﻿#nullable enable
 namespace ServiceControl.Persistence.RavenDB.Throughput.Models;
 
+using System;
 using System.Collections.Generic;
 using Particular.LicensingComponent.Contracts;
 
 class EndpointDocument(EndpointIdentifier id)
 {
     public string Id { get; set; } = id.GenerateDocumentId();
+
+    public DateTime? CreatedDate { get; set; }
 
     public EndpointIdentifier EndpointId { get; set; } = id;
 

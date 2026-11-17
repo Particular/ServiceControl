@@ -310,7 +310,7 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
             }
             else
             {
-                await dataStore.RemoveEndpoints([.. endpointGroupPerQueue.Where(endpoint => endpoint.LastCollectedDate > default(DateOnly)).Select(endpoint => endpoint.Id)], cancellationToken);
+                await dataStore.RemoveEndpoints([.. endpointGroupPerQueue.Where(endpoint => !endpoint.CreatedDate.HasValue || endpoint.CreatedDate.Value <= DateTime.UtcNow.AddDays(-1)).Select(endpoint => endpoint.Id)], cancellationToken);
             }
         }
     }

@@ -17,7 +17,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.11")
+                .HasAnnotation("ProductVersion", "10.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -493,6 +493,9 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
 
                     b.Property<int>("ThroughputSource")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreatedDate")
+                        .HasColumnType("datetime2");
 
                     b.PrimitiveCollection<string>("EndpointIndicators")
                         .IsRequired()

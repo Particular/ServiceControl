@@ -18,5 +18,7 @@ public class LicensingEndpointEntity
 
     public string? Scope { get; set; }
 
+    public DateTime? CreatedDate { get; set; }
+
     public List<string> EndpointIndicators { get; set; } = [];
 }
