@@ -1,9 +1,11 @@
 namespace Tests
 {
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Runtime.InteropServices;
     using Microsoft.AspNetCore.Http;
     using NUnit.Framework;
@@ -48,6 +50,7 @@ namespace Tests
             Assert.That(detectedMismatches, Is.Empty, $"Component assembly version mismatch detected");
         }
 
+        // This test will fail if you are not using the exact runtime version specified in the RuntimeFrameworkVersion property in the Custom.Build.props file
         [Test]
         public void DuplicateAssembliesFromRuntimeShouldHaveMatchingVersions()
         {
@@ -61,9 +64,18 @@ namespace Tests
                 detectedMismatches.AddRange(GetAssemblyMismatches(deploymentUnit, runtimeDeploymentUnit));
             }
 
-            Assert.That(detectedMismatches, Is.Empty, $"Component assembly version mismatch detected");
+            var expectedVersion = typeof(DeploymentPackageTests).Assembly
+                .GetCustomAttributes<AssemblyMetadataAttribute>()
+                .Single(a => a.Key == "RuntimeFrameworkVersion").Value;
+
+            var runtimeMessage = Environment.Version > Version.Parse(expectedVersion)
+                ? $" Runtime rolled forward from requested {expectedVersion} to {Environment.Version}. This test requires the exact runtime version specified in Custom.Build.props."
+                : $" Requested runtime: {expectedVersion}; running runtime: {Environment.Version}.";
+
+            Assert.That(detectedMismatches, Is.Empty, $"Component assembly version mismatch detected.{runtimeMessage}");
         }
 
+        // This test will fail if you are not using the exact runtime version specified in the RuntimeFrameworkVersion property in the Custom.Build.props file
         [Test]
         public void DuplicateAssembliesFromASPNetCoreShouldHaveMatchingVersions()
         {
@@ -77,7 +89,15 @@ namespace Tests
                 detectedMismatches.AddRange(GetAssemblyMismatches(deploymentUnit, aspNetCoreDeploymentUnit));
             }
 
-            Assert.That(detectedMismatches, Is.Empty, $"Component assembly version mismatch detected");
+            var expectedVersion = typeof(DeploymentPackageTests).Assembly
+                .GetCustomAttributes<AssemblyMetadataAttribute>()
+                .Single(a => a.Key == "RuntimeFrameworkVersion").Value;
+
+            var runtimeMessage = Version.Parse(aspNetCoreDirectory.Name) > Version.Parse(expectedVersion)
+                ? $" ASP.NET Core runtime rolled forward from requested {expectedVersion} to {aspNetCoreDirectory.Name}. This test requires the exact runtime version specified in Custom.Build.props."
+                : $" Requested ASP.NET Core runtime: {expectedVersion}; running runtime: {aspNetCoreDirectory.Name}.";
+
+            Assert.That(detectedMismatches, Is.Empty, $"Component assembly version mismatch detected.{runtimeMessage}");
         }
 
         IEnumerable<string> GetAssemblyMismatches(DeploymentPackage.DeploymentUnit leftDeploymentUnit, DeploymentPackage.DeploymentUnit rightDeploymentUnit)

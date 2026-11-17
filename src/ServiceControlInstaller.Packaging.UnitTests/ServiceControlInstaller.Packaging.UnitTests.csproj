@@ -25,4 +25,8 @@
     <PackageReference Include="NUnit3TestAdapter" />
   </ItemGroup>
 
+  <ItemGroup>
+    <AssemblyMetadata Include="RuntimeFrameworkVersion" Value="$(RuntimeFrameworkVersion)" />
+  </ItemGroup>
+
 </Project>
