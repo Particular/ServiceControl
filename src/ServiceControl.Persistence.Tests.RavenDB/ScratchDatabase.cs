@@ -9,6 +9,7 @@ using Raven.Client.ServerWide.Operations;
 using ServiceControl.RavenDB;
 using TestHelper;
 
+// An empty database on the shared embedded server, created with the search engine settings that DatabaseSetup uses for new databases.
 sealed class ScratchDatabase : IAsyncDisposable
 {
     ScratchDatabase(EmbeddedDatabase server, string name, DocumentStore store)
@@ -37,6 +38,8 @@ sealed class ScratchDatabase : IAsyncDisposable
             store.Initialize();
 
             var databaseRecord = new DatabaseRecord(name);
+            databaseRecord.Settings.Add("Indexing.Auto.SearchEngineType", "Lucene");
+            databaseRecord.Settings.Add("Indexing.Static.SearchEngineType", "Lucene");
             await store.Maintenance.Server.SendAsync(new CreateDatabaseOperation(databaseRecord), cancellationToken);
         }
 #pragma warning disable PS0019 // The catch rethrows everything, cancellation included
