@@ -7,13 +7,13 @@ using Microsoft.Data.SqlClient;
 
 static class TestSchema
 {
-    static readonly bool SkipCleanup = string.Equals(Environment.GetEnvironmentVariable("ServiceControl_TESTS_SKIP_SCHEMA_CLEANUP"), "true", StringComparison.OrdinalIgnoreCase);
+    public static readonly bool SkipCleanup = string.Equals(Environment.GetEnvironmentVariable("ServiceControl_TESTS_SKIP_SCHEMA_CLEANUP"), "true", StringComparison.OrdinalIgnoreCase);
 
     static TestSchema()
     {
         if (SkipCleanup)
         {
-            Console.WriteLine("Schema cleanup is disabled. The workflow must delete the test database after the tests finish.");
+            Console.WriteLine("Schema cleanup is disabled. Full-text indexes are disabled at teardown; the workflow must delete the test database after the tests finish.");
         }
     }
 
@@ -26,7 +26,10 @@ static class TestSchema
     // SQL Server has no DROP SCHEMA CASCADE, so the objects have to go first, and the full-text
     // index has to go before the table it is on.
     public static Task Drop(string connectionString, string schema, CancellationToken cancellationToken = default) =>
-        SkipCleanup ? Task.CompletedTask : Execute(connectionString, DropSchemaSql, schema, cancellationToken);
+        Drop(connectionString, schema, SkipCleanup, cancellationToken);
+
+    internal static Task Drop(string connectionString, string schema, bool skipCleanup, CancellationToken cancellationToken = default) =>
+        Execute(connectionString, skipCleanup ? DisableFullTextIndexesSql : DropSchemaSql, schema, cancellationToken);
 
     // Tests share one database now, so a schema being set up or torn down contends on the system
     // catalogs with every other test's CREATE and DROP, and with the transport tests, which CI points
@@ -65,6 +68,21 @@ static class TestSchema
             DECLARE @create nvarchar(max) = N'CREATE SCHEMA ' + QUOTENAME(@schema);
             EXEC sp_executesql @create;
         END
+        """;
+
+    // Retained schemas must not leave full-text populations competing with later tests.
+    const string DisableFullTextIndexesSql = """
+        SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
+        DECLARE @sql nvarchar(max) = N'';
+
+        SELECT @sql = @sql + N'ALTER FULLTEXT INDEX ON ' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N' DISABLE;'
+        FROM sys.fulltext_indexes fi
+        JOIN sys.tables t ON fi.object_id = t.object_id
+        JOIN sys.schemas s ON t.schema_id = s.schema_id
+        WHERE s.name = @schema AND fi.is_enabled = 1;
+
+        EXEC sp_executesql @sql;
         """;
 
     const string DropSchemaSql = """

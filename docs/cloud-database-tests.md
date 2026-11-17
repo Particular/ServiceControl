@@ -13,7 +13,11 @@ The `Cloud database tests` workflow (`.github/workflows/cloud-database-tests.yml
 
 The cloud workflow sets `ServiceControl_TESTS_SKIP_SCHEMA_CLEANUP=true` on its test step. SQL Server and PostgreSQL test helpers leave each test's schema in place, avoiding schema-drop timeouts. Tests still use unique schemas and retain host shutdown, connection disposal, and temporary-file cleanup. The provisioning action deletes the server in its post step, including on test failure or cancellation.
 
-Schema cleanup remains enabled when the variable is unset or has any value other than `true` (case-insensitive). Set it only for disposable databases whose owner deletes the database after the run. Retained schemas and full-text indexes consume resources until deletion; this setting does not address full-text indexing failures.
+When schema cleanup is disabled, SQL Server cleanup disables each completed test's full-text indexes after its host stops. This stops unfinished populations and automatic updates without dropping tables or schemas, so retained indexes do not keep indexing for later tests. Cleanup uses a separate connection because host disposal can dispose the test's data source. PostgreSQL cleanup remains a no-op.
+
+Disabling an index still executes DDL and can encounter lock contention. This does not remove contention from concurrent schema creation or migrations, or guarantee that a live test's full-text population completes. See [ALTER FULLTEXT INDEX](https://learn.microsoft.com/en-us/sql/t-sql/statements/alter-fulltext-index-transact-sql#arguments) for the effects of `DISABLE`.
+
+Schema cleanup remains enabled when the variable is unset or has any value other than `true` (case-insensitive). Set it only for disposable databases whose owner deletes the database after the run. Retained tables and indexes consume storage until deletion.
 
 ## Token authentication fixtures
 
