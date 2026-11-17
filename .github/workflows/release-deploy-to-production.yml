@@ -36,6 +36,7 @@ jobs:
           with:
             version: ${{ inputs.version }}
             deploy-environment: production
+            exclude-package-pattern: "Particular.ServiceControl.Management.*.nupkg"
   push-powershell-packages:
     needs: publish-release-notes
     uses: Particular/deployment-workflows/.github/workflows/push-powershell-packages.yml@1.0.0
