@@ -7,7 +7,7 @@ name: WSL stall experiment
 on:
   push:
     branches:
-      - wsl-stall-experiment
+      - wsl-stall-diagnostics
   workflow_dispatch:
 permissions:
   contents: read
