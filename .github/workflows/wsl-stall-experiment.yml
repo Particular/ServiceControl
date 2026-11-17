@@ -1,9 +1,6 @@
 # Experiment: does pinning WSL to 2.7.12 (the last version before the runner image bump in
 # September 2026) stop the Setup WSL stalls? Two arms, four container categories, twenty
 # iterations each. Timed-out jobs may have no step records or final log.
-# For optional liveness probes, create two Healthchecks.io checks with notifications
-# disabled, add their UUIDs as the WSL_STALL_IMAGE_CHECK_ID and WSL_STALL_PINNED_CHECK_ID
-# Actions secrets, and set the WSL_STALL_HEARTBEAT Actions variable to true.
 # Only RabbitMQ iteration 1 in each arm sends pings; the checks are idle between runs.
 # Temporary; delete the branch when the experiment is done.
 name: WSL stall experiment
@@ -24,7 +21,7 @@ jobs:
     name: ${{ matrix.arm }}-${{ matrix.test-category }}-${{ matrix.iteration }}
     runs-on: windows-latest
     concurrency:
-      group: ${{ format('wsl-stall-experiment-{0}', vars.WSL_STALL_HEARTBEAT == 'true' && matrix.test-category == 'RabbitMQ' && matrix.iteration == 1 && matrix.arm || format('{0}-{1}-{2}-{3}', github.run_id, matrix.arm, matrix.test-category, matrix.iteration)) }}
+      group: ${{ format('wsl-stall-experiment-{0}', matrix.test-category == 'RabbitMQ' && matrix.iteration == 1 && matrix.arm || format('{0}-{1}-{2}-{3}', github.run_id, matrix.arm, matrix.test-category, matrix.iteration)) }}
       cancel-in-progress: false
     # A healthy job finishes in about six minutes. A stall never finishes, so cap it early.
     timeout-minutes: 15
@@ -61,12 +58,12 @@ jobs:
       - name: Select test projects
         run: ./tools/select-test-projects.ps1 -Category ${{ matrix.test-category }}
       - name: Healthchecks heartbeat
-        if: vars.WSL_STALL_HEARTBEAT == 'true' && matrix.test-category == 'RabbitMQ' && matrix.iteration == 1
+        if: matrix.test-category == 'RabbitMQ' && matrix.iteration == 1
         background: true
         continue-on-error: true
         timeout-minutes: 15
         env:
-          HEALTHCHECK_ID: ${{ secrets[matrix.arm == 'image-wsl' && 'WSL_STALL_IMAGE_CHECK_ID' || 'WSL_STALL_PINNED_CHECK_ID'] }}
+          HEALTHCHECK_ID: ${{ matrix.arm == 'image-wsl' && 'ea91a5c0-a8fb-40e7-b6c7-21a4aa891303' || '7f9d698f-2e97-4e58-9b15-d8ae6983e2e5' }}
         run: |
           $check = $env:HEALTHCHECK_ID
           if ($check -notmatch '^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$') {
