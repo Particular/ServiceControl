@@ -6,8 +6,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using ServiceControl.Contracts.CustomChecks;
 using ServiceControl.Operations;
 using ServiceControl.Persistence.DataMigration;
+using ServiceControl.Persistence.EFCore.Abstractions;
 using ServiceControl.Persistence.EFCore.DataMigration.Writers;
 using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
@@ -76,6 +78,86 @@ class MigrationValueLengthTests : PersistenceTestBase
             }));
         }
     }
+
+    [Test]
+    public async Task A_custom_check_whose_failure_reason_holds_a_NUL_character_is_skipped_as_malformed_and_the_rest_copy()
+    {
+        var endpoint = new EndpointDetails { Name = "Sales", HostId = Guid.NewGuid(), Host = "SALES01" };
+        var batch = new MigrationBatch(
+            [
+                new MigrationRow("CustomChecks/1", CustomCheck(endpoint, "Sales.HealthCheck", "timed out"), new Dictionary<string, object>()),
+                new MigrationRow("CustomChecks/2", CustomCheck(endpoint, "Sales.DiskCheck", "disk \u0000 full"), new Dictionary<string, object>()),
+                new MigrationRow("CustomChecks/3", CustomCheck(endpoint, "Sales.QueueCheck", null), new Dictionary<string, object>())
+            ],
+            "CustomChecks/3");
+
+        var details = await PreparedSkips.DetailsFrom(ServiceProvider, new CustomChecksWriter(ServiceProvider.GetRequiredService<IMigrationSqlDialect>()), batch);
+        var result = await Target.Write(CustomChecksCategory, batch, new MigrationCheckpoint(MigrationCategoryIds.CustomChecks, MigrationCategoryState.InProgress, "CustomChecks/3", 0, 0, null, null, null, null, null, null));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Copied, Is.EqualTo(2), "PostgreSQL refuses U+0000 in text, which would fail the whole insert and halt the category");
+            Assert.That(result.SkipReasons, Is.EqualTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.MalformedValue] = 1 }));
+            Assert.That(details, Is.EqualTo(new[]
+            {
+                $"{PreparedSkips.TableAndColumnOf<CustomCheckEntity>(ServiceProvider, nameof(CustomCheckEntity.FailureReason))} cannot hold the character U+0000, which the value contains, on document 'CustomChecks/2'"
+            }));
+            Assert.That(await Target.Count(CustomChecksCategory), Is.EqualTo(2));
+        }
+    }
+
+    [Test]
+    public async Task A_failed_error_import_whose_exception_info_holds_a_NUL_character_is_skipped_as_malformed_and_the_rest_copy()
+    {
+        var batch = new MigrationBatch(
+            [
+                FailedErrorImportRow("native-1", "Deserialization failed"),
+                FailedErrorImportRow("native-2", "Deserialization \u0000 failed"),
+                FailedErrorImportRow("native-3", "Deserialization failed")
+            ],
+            "FailedErrorImports/native-3");
+        var writer = new FailedErrorImportsWriter(ServiceProvider.GetRequiredService<IMigrationSqlDialect>(), ServiceProvider.GetRequiredService<IBodyStoragePersistence>(), ServiceProvider.GetRequiredService<EFPersisterSettings>());
+
+        var details = await PreparedSkips.DetailsFrom(ServiceProvider, writer, batch);
+        var result = await Target.Write(FailedErrorImportsCategory, batch, new MigrationCheckpoint(MigrationCategoryIds.FailedErrorImports, MigrationCategoryState.InProgress, "FailedErrorImports/native-3", 0, 0, null, null, null, null, null, null));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Copied, Is.EqualTo(2), "PostgreSQL refuses U+0000 in text, which would fail the whole insert and halt the category");
+            Assert.That(result.SkipReasons, Is.EqualTo(new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.MalformedValue] = 1 }));
+            Assert.That(details, Is.EqualTo(new[]
+            {
+                $"{PreparedSkips.TableAndColumnOf<FailedErrorImportEntity>(ServiceProvider, nameof(FailedErrorImportEntity.ExceptionInfo))} cannot hold the character U+0000, which the value contains, on document 'FailedErrorImports/native-2'"
+            }));
+            Assert.That(await Target.Count(FailedErrorImportsCategory), Is.EqualTo(2));
+        }
+    }
+
+    static readonly MigrationCategory FailedErrorImportsCategory = MigrationCategoryRegistry.Find(MigrationCategoryIds.FailedErrorImports)!;
+
+    // The NUL goes in ExceptionInfo, because the headers are written as JSON, which escapes it.
+    static MigrationRow FailedErrorImportRow(string nativeMessageId, string exceptionInfo) => new(
+        $"FailedErrorImports/{nativeMessageId}",
+        new FailedErrorImport
+        {
+            Id = $"FailedErrorImports/{nativeMessageId}",
+            Message = new FailedTransportMessage { Id = nativeMessageId, Headers = new Dictionary<string, string> { ["NServiceBus.MessageId"] = nativeMessageId }, Body = [1, 2, 3] },
+            ExceptionInfo = exceptionInfo
+        },
+        new Dictionary<string, object> { [MigrationMetadataKeys.FailedAt] = new DateTime(2026, 9, 1, 8, 0, 0, DateTimeKind.Utc) },
+        new MigrationBody(new byte[] { 1, 2, 3 }, "application/octet-stream"));
+
+    static readonly MigrationCategory CustomChecksCategory = MigrationCategoryRegistry.Find(MigrationCategoryIds.CustomChecks)!;
+
+    static CustomCheckDetail CustomCheck(EndpointDetails endpoint, string customCheckId, string failureReason) => new()
+    {
+        OriginatingEndpoint = endpoint,
+        CustomCheckId = customCheckId,
+        Category = "Ping",
+        ReportedAt = new DateTime(2026, 9, 1, 8, 0, 0, DateTimeKind.Utc),
+        HasFailed = failureReason is not null,
+        FailureReason = failureReason
+    };
 
     static string Repeat(int codePoints) => string.Concat(Enumerable.Repeat(OutsideTheBasicPlane, codePoints));
 }

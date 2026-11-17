@@ -197,7 +197,8 @@ class RequiredCopyGateTests
                 [MigrationSkipReason.BodyUnreadable] = 1
             })],
             logger,
-            RunStartedAt);
+            RunStartedAt,
+            NothingMergedOrChanged);
 
         var entry = logger.Entries.Single();
 
@@ -224,7 +225,8 @@ class RequiredCopyGateTests
                 [MigrationSkipReason.RequiredValueMissing] = 2
             })],
             logger,
-            RunStartedAt);
+            RunStartedAt,
+            NothingMergedOrChanged);
 
         var entry = logger.Entries.Single();
 
@@ -245,7 +247,8 @@ class RequiredCopyGateTests
             [Settled(MigrationCategoryState.Halted, copied: 7, skipped: 120, new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.MalformedValue] = 120 })
                 with { LastError = "Halted: 120 of 127 rows skipped in this run exceeds the configured threshold of 5% and 100 rows." }],
             logger,
-            RunStartedAt);
+            RunStartedAt,
+            NothingMergedOrChanged);
 
         var entry = logger.Entries.Single();
 
@@ -268,7 +271,8 @@ class RequiredCopyGateTests
         MigrationStartup.ReportWhatTheCopyLeftBehind(
             [Settled(MigrationCategoryState.Halted, copied: 7, skipped: 120, new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.BodyUnreadable] = 120 })],
             logger,
-            RunStartedAt);
+            RunStartedAt,
+            NothingMergedOrChanged);
 
         var entry = logger.Entries.Single();
 
@@ -288,7 +292,7 @@ class RequiredCopyGateTests
             with
         { LastError = "TimeoutException at cursor r-7: the target did not answer" };
 
-        MigrationStartup.ReportWhatTheCopyLeftBehind([stoppedByAnException], logger, RunStartedAt);
+        MigrationStartup.ReportWhatTheCopyLeftBehind([stoppedByAnException], logger, RunStartedAt, NothingMergedOrChanged);
 
         Assert.That(logger.Entries.Single().Message, Does.Contain($"--migration-retry {MigrationCategoryIds.EndpointSettings} re-reads them").And.Not.Contain("--migration-abandon"),
             "no fault skip stands in the way of a retry, so the exception's cause is what the operator fixes");
@@ -302,7 +306,8 @@ class RequiredCopyGateTests
         MigrationStartup.ReportWhatTheCopyLeftBehind(
             [Settled(MigrationCategoryState.Complete, copied: 7, skipped: 3, new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.PastRetention] = 3 })],
             logger,
-            RunStartedAt);
+            RunStartedAt,
+            NothingMergedOrChanged);
 
         var entry = logger.Entries.Single();
 
@@ -315,11 +320,58 @@ class RequiredCopyGateTests
     }
 
     [Test]
+    public void Every_harmless_skip_reason_has_its_own_explanation_and_no_other_reason_has_one() =>
+        Assert.That(MigrationStartup.HarmlessSkipExplanations.Keys, Is.EquivalentTo(Enum.GetValues<MigrationSkipReason>().Where(reason => reason.IsBenign())),
+            "the warning for a Done category explains each harmless reason it skipped, so a harmless reason with no explanation would be left out unexplained");
+
+    [Test]
+    public void A_done_category_is_told_why_each_of_its_harmless_reasons_is_harmless_and_nothing_about_the_others()
+    {
+        var logger = new CapturingLogger();
+
+        MigrationStartup.ReportWhatTheCopyLeftBehind(
+            [Settled(MigrationCategoryState.Complete, copied: 7, skipped: 8, new Dictionary<MigrationSkipReason, long>
+            {
+                [MigrationSkipReason.SourceStorageCheck] = 6,
+                [MigrationSkipReason.BlankGroupComment] = 2
+            })],
+            logger,
+            RunStartedAt,
+            NothingMergedOrChanged);
+
+        var message = logger.Entries.Single().Message;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(message, Does.Contain(MigrationStartup.HarmlessSkipExplanations[MigrationSkipReason.SourceStorageCheck]).And.Contain(MigrationStartup.HarmlessSkipExplanations[MigrationSkipReason.BlankGroupComment]));
+            Assert.That(message, Does.Not.Contain(MigrationStartup.HarmlessSkipExplanations[MigrationSkipReason.PastRetention]), "a reason the category did not skip for would give the operator a false reason");
+        });
+    }
+
+    [Test]
+    public void The_refusal_marks_a_harmless_reason_so_it_does_not_read_as_rows_a_retry_could_copy()
+    {
+        var failed = Checkpoint(MigrationCategoryState.CompleteWithErrors, MigrationCategoryIds.CustomChecks) with
+        {
+            SkippedCount = 7,
+            SkipReasons = new Dictionary<MigrationSkipReason, long>
+            {
+                [MigrationSkipReason.SourceStorageCheck] = 6,
+                [MigrationSkipReason.MalformedValue] = 1
+            }
+        };
+
+        var exception = Assert.Throws<Exception>(() => MigrationStartup.RefuseIfAnyCategoryDidNotComplete([CustomChecks], [failed], NewSettings()));
+
+        Assert.That(exception.Message, Does.Contain("SourceStorageCheck 6, harmless").And.Contain("MalformedValue 1, no retry can fix"), "a retry skips the six harmless rows again");
+    }
+
+    [Test]
     public void A_blocked_category_is_left_to_the_refusal_rather_than_reported_as_a_clean_copy()
     {
         var logger = new CapturingLogger();
 
-        MigrationStartup.ReportWhatTheCopyLeftBehind([Settled(MigrationCategoryState.Blocked, copied: 0, skipped: 0, null)], logger, RunStartedAt);
+        MigrationStartup.ReportWhatTheCopyLeftBehind([Settled(MigrationCategoryState.Blocked, copied: 0, skipped: 0, null)], logger, RunStartedAt, NothingMergedOrChanged);
 
         Assert.That(logger.Entries, Is.Empty);
     }
@@ -332,7 +384,7 @@ class RequiredCopyGateTests
 
         var stalled = Settled(MigrationCategoryState.Halted, copied: 10, skipped: 0, null) with { LastError = MigrationStartup.StallExplanation(MigrationCategoryIds.EndpointSettings) };
 
-        MigrationStartup.ReportWhatTheCopyLeftBehind([stalled], logger, RunStartedAt);
+        MigrationStartup.ReportWhatTheCopyLeftBehind([stalled], logger, RunStartedAt, NothingMergedOrChanged);
 
         var entry = logger.Entries.Single();
 
@@ -348,7 +400,7 @@ class RequiredCopyGateTests
     {
         var logger = new CapturingLogger();
 
-        MigrationStartup.ReportWhatTheCopyLeftBehind([Settled(MigrationCategoryState.Complete, copied: 7, skipped: 0, null)], logger, RunStartedAt);
+        MigrationStartup.ReportWhatTheCopyLeftBehind([Settled(MigrationCategoryState.Complete, copied: 7, skipped: 0, null)], logger, RunStartedAt, NothingMergedOrChanged);
 
         var entry = logger.Entries.Single();
 
@@ -370,7 +422,7 @@ class RequiredCopyGateTests
             with
         { SettledAt = RunStartedAt.AddMinutes(-5) };
 
-        MigrationStartup.ReportWhatTheCopyLeftBehind([alreadyDone], logger, RunStartedAt);
+        MigrationStartup.ReportWhatTheCopyLeftBehind([alreadyDone], logger, RunStartedAt, NothingMergedOrChanged);
 
         var entry = logger.Entries.Single();
 
@@ -393,7 +445,7 @@ class RequiredCopyGateTests
             with
         { SettledAt = RunStartedAt.AddSeconds(2) };
 
-        MigrationStartup.ReportWhatTheCopyLeftBehind([justDone], logger, RunStartedAt);
+        MigrationStartup.ReportWhatTheCopyLeftBehind([justDone], logger, RunStartedAt, NothingMergedOrChanged);
 
         Assert.That(logger.Entries.Single().Message, Does.Contain("7 copied").And.Not.Contain("already finished"));
     }
@@ -408,7 +460,7 @@ class RequiredCopyGateTests
             with
         { SettledAt = RunStartedAt.AddMinutes(-5) };
 
-        MigrationStartup.ReportWhatTheCopyLeftBehind([failedEarlier], logger, RunStartedAt);
+        MigrationStartup.ReportWhatTheCopyLeftBehind([failedEarlier], logger, RunStartedAt, NothingMergedOrChanged);
 
         var entry = logger.Entries.Single();
 
@@ -420,6 +472,68 @@ class RequiredCopyGateTests
         });
     }
 
+    [Test]
+    public void A_category_that_merged_or_changed_rows_says_how_many_apart_from_already_present_and_warns()
+    {
+        var logger = new CapturingLogger();
+        var done = Settled(MigrationCategoryState.Complete, copied: 15, skipped: 0, null) with { AlreadyPresentCount = 3, SettledAt = RunStartedAt.AddSeconds(2) };
+
+        MigrationStartup.ReportWhatTheCopyLeftBehind([done], logger, RunStartedAt, new Dictionary<string, (long Merged, long Changed)> { [MigrationCategoryIds.EndpointSettings] = (1, 4) });
+
+        var entry = logger.Entries.Single();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(entry.Message, Is.EqualTo($"{MigrationCategoryIds.EndpointSettings}: 15 copied (4 changed), 2 already present, 1 merged, nothing skipped"),
+                "a merged row is counted as already present, so without taking it out the summary says nothing changed");
+            Assert.That(entry.Level, Is.EqualTo(LogLevel.Warning), "a merged or changed row is one the operator did not expect, and the per-row warnings above name each one");
+        });
+    }
+
+    [Test]
+    public void A_category_that_merged_rows_and_skipped_some_counts_both()
+    {
+        var logger = new CapturingLogger();
+        var failed = Settled(MigrationCategoryState.CompleteWithErrors, copied: 7, skipped: 2, new Dictionary<MigrationSkipReason, long> { [MigrationSkipReason.RequiredValueMissing] = 2 })
+            with
+        { AlreadyPresentCount = 5 };
+
+        MigrationStartup.ReportWhatTheCopyLeftBehind([failed], logger, RunStartedAt, new Dictionary<string, (long Merged, long Changed)> { [MigrationCategoryIds.EndpointSettings] = (2, 0) });
+
+        Assert.That(logger.Entries.Single().Message, Does.StartWith($"{MigrationCategoryIds.EndpointSettings}: 7 copied (0 changed), 3 already present, 2 merged, 2 skipped (RequiredValueMissing 2)."));
+    }
+
+    [Test]
+    public void More_merged_rows_than_rows_already_present_is_a_warning_naming_both_counts()
+    {
+        var logger = new CapturingLogger();
+        var done = Settled(MigrationCategoryState.Complete, copied: 5, skipped: 0, null) with { AlreadyPresentCount = 1, SettledAt = RunStartedAt.AddSeconds(2) };
+
+        MigrationStartup.ReportWhatTheCopyLeftBehind([done], logger, RunStartedAt, new Dictionary<string, (long Merged, long Changed)> { [MigrationCategoryIds.EndpointSettings] = (3, 0) });
+
+        var messages = logger.Entries.Select(entry => entry.Message).ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(messages, Has.Member($"{MigrationCategoryIds.EndpointSettings}: the target reported 3 merged rows but only 1 rows already present. Its key comparer disagrees with the database about which keys are equal, so the merge lines for this category may name the wrong rows."),
+                "every merged row is also already present, so more merges than that is the comparer predicting wrongly");
+            Assert.That(messages, Has.Member($"{MigrationCategoryIds.EndpointSettings}: 5 copied (0 changed), 0 already present, 3 merged, nothing skipped"), "never a negative count");
+        });
+    }
+
+    [Test]
+    public void A_failed_category_that_skipped_nothing_still_counts_its_merged_and_changed_rows()
+    {
+        var logger = new CapturingLogger();
+        var stalled = Settled(MigrationCategoryState.Halted, copied: 10, skipped: 0, null) with { AlreadyPresentCount = 3, LastError = MigrationStartup.StallExplanation(MigrationCategoryIds.EndpointSettings) };
+
+        MigrationStartup.ReportWhatTheCopyLeftBehind([stalled], logger, RunStartedAt, new Dictionary<string, (long Merged, long Changed)> { [MigrationCategoryIds.EndpointSettings] = (1, 2) });
+
+        Assert.That(logger.Entries.Single().Message, Does.StartWith($"{MigrationCategoryIds.EndpointSettings} is Failed (Halted) after 10 copied (2 changed), 2 already present and 1 merged."));
+    }
+
+    static readonly IReadOnlyDictionary<string, (long Merged, long Changed)> NothingMergedOrChanged = new Dictionary<string, (long Merged, long Changed)>();
+
     static readonly DateTime RunStartedAt = new(2026, 9, 20, 12, 0, 0, DateTimeKind.Utc);
 
     static MigrationCheckpoint Settled(MigrationCategoryState state, long copied, long skipped, IReadOnlyDictionary<MigrationSkipReason, long>? skipReasons) =>
@@ -428,6 +542,7 @@ class RequiredCopyGateTests
     static readonly MigrationCategory EndpointSettings = MigrationCategoryRegistry.Find(MigrationCategoryIds.EndpointSettings)!;
     static readonly MigrationCategory KnownEndpoints = MigrationCategoryRegistry.Find(MigrationCategoryIds.KnownEndpoints)!;
     static readonly MigrationCategory MessageRedirects = MigrationCategoryRegistry.Find(MigrationCategoryIds.MessageRedirects)!;
+    static readonly MigrationCategory CustomChecks = MigrationCategoryRegistry.Find(MigrationCategoryIds.CustomChecks)!;
     static readonly MigrationCategory UnresolvedAndRetryIssuedFailedMessages = MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages)!;
 
     const string UnknownCategoryId = "SomeCategoryFromANewerBuild";

@@ -80,6 +80,44 @@ class SubscriptionsMigrationTargetTests : PersistenceTestBase
     }
 
     [Test]
+    public async Task A_merged_subscription_names_the_version_and_endpoint_of_the_row_kept_and_the_row_dropped()
+    {
+        var dialect = ServiceProvider.GetRequiredService<IMigrationSqlDialect>();
+        var batch = BatchOf(
+            ("s/1", new SubscriptionRow("MyMessages.OrderPlaced", new Version(1, 0, 0), "Billing@BILLING01", "Billing")),
+            ("s/2", new SubscriptionRow("MyMessages.OrderPlaced", new Version(2, 0, 0), "Billing@BILLING01", "Billing.V2")));
+
+        var merges = await PreparedSkips.MergesFrom(ServiceProvider, new SubscriptionsWriter(dialect), batch);
+        var result = await Target.Write(SubscriptionsCategory, batch, CheckpointAfter("s/2"));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(merges.Single().Detail, Does.EndWith("It kept the row from 's/1' (version 1.0.0, endpoint 'Billing') and dropped the row from 's/2' (version 2.0.0, endpoint 'Billing.V2')."),
+                "both keys print the same, so only the source rows tell the operator which version survived");
+            Assert.That((result.AlreadyPresent, result.Merged), Is.EqualTo((1, 1)), "the summary counts the merge apart from the other rows already present");
+        }
+    }
+
+    [Test]
+    public async Task A_subscription_merged_on_a_re_read_names_the_row_an_earlier_pass_copied()
+    {
+        var dialect = ServiceProvider.GetRequiredService<IMigrationSqlDialect>();
+        var kept = ("s/1", new SubscriptionRow("MyMessages.OrderPlaced", new Version(1, 0, 0), "Billing@BILLING01", "Billing"));
+        var first = await Target.Write(SubscriptionsCategory, BatchOf(kept), CheckpointAfter("s/1"));
+        var reRead = BatchOf(kept, ("s/2", new SubscriptionRow("MyMessages.OrderPlaced", new Version(2, 0, 0), "Billing@BILLING01", "Billing")));
+
+        var merges = await PreparedSkips.MergesFrom(ServiceProvider, new SubscriptionsWriter(dialect), reRead);
+        var result = await Target.Write(SubscriptionsCategory, reRead, first.Saved);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(merges.Single().Detail, Does.EndWith("It kept the row from 's/1' (version 1.0.0, endpoint 'Billing') and dropped the row from 's/2' (version 2.0.0, endpoint 'Billing')."),
+                "the stored row is the one 's/1' copied on the earlier pass, so the line names that source row");
+            Assert.That((result.AlreadyPresent, result.Merged), Is.EqualTo((2, 1)));
+        }
+    }
+
+    [Test]
     public async Task A_key_the_target_already_holds_merges_only_a_variant_the_column_treats_as_the_same()
     {
         var dialect = ServiceProvider.GetRequiredService<IMigrationSqlDialect>();
@@ -103,6 +141,7 @@ class SubscriptionsMigrationTargetTests : PersistenceTestBase
             if (addressIgnoresCase)
             {
                 Assert.That(merges[0].Detail, Does.Contain("kept 'MyMessages.OrderPlaced', 'Billing@BILLING01' and dropped the row for 'MyMessages.OrderPlaced', 'billing@billing01'"));
+                Assert.That(merges[0].Detail, Does.EndWith("It kept the row the table already held and dropped the row from 's/2' (version 1.0.0, endpoint 'Billing')."), "no row of this batch claimed the stored row");
             }
 
             Assert.That(result.Copied, Is.EqualTo(addressIgnoresCase ? 1 : 2), "the other address is copied, and so is the case variant where the column tells it apart");

@@ -166,34 +166,4 @@ class EndpointSettingsKeyCollationTests : PersistenceTestBase
                 "the dry run predicts merges with this comparer, so it follows the same column the statement does");
         }
     }
-
-    // RecordingLoggerProvider lives in ServiceControl.Infrastructure.Tests, which this project does not reference.
-    sealed class TargetWarnings : ILoggerProvider
-    {
-        readonly System.Collections.Concurrent.ConcurrentQueue<string> messages = new();
-
-        public IReadOnlyList<string> Messages => [.. messages];
-
-        public ILogger CreateLogger(string categoryName) =>
-            categoryName == typeof(EFCoreMigrationTarget).FullName ? new WarningLogger(messages) : Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
-
-        public void Dispose()
-        {
-        }
-
-        sealed class WarningLogger(System.Collections.Concurrent.ConcurrentQueue<string> messages) : ILogger
-        {
-            public IDisposable BeginScope<TState>(TState state) where TState : notnull => null;
-
-            public bool IsEnabled(LogLevel logLevel) => logLevel == LogLevel.Warning;
-
-            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-            {
-                if (logLevel == LogLevel.Warning)
-                {
-                    messages.Enqueue(formatter(state, exception));
-                }
-            }
-        }
-    }
 }

@@ -46,10 +46,14 @@ sealed class SubscriptionsWriter(IMigrationSqlDialect migrationDialect) : Migrat
             rows.Add((row.SourceId, entity));
         }
 
+        // The key leaves the version out, so a merge line names each row's version and endpoint as well as its source id.
+        var subscriptions = documents.ToDictionary(document => document.Row.SourceId, document => document.Document, StringComparer.Ordinal);
+        var (merges, _) = await KeyMerges.Split(dbContext, migrationDialect, rows, sourceId => $"'{sourceId}' (version {subscriptions[sourceId].Version}, endpoint '{subscriptions[sourceId].Endpoint}')", cancellationToken);
+
         return new PreparedBatch(
             async (context, token) => (await migrationDialect.InsertMissing(context, [.. rows.Select(row => row.Row)], token)).Count,
             rows.Count,
             skips,
-            await KeyMerges.In(dbContext, migrationDialect, rows, cancellationToken));
+            merges);
     }
 }

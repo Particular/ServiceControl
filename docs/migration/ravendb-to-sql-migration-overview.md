@@ -155,8 +155,8 @@ There are eighteen *categories*: sixteen required and two optional.
 | Licensing report masks | Required | |
 | Uploaded licensed endpoint details file | Required | Nothing recomputes it. Losing it means downloading it again from the licence portal and uploading it again |
 | Subscriptions | Required | |
-| Integration events still waiting to be sent | Required | Each is an event a subscriber has not received yet. There are only any if the old instance fell behind or could not reach the broker. They are sent once ServiceControl opens, later than they would have been. RavenDB sends them in no particular order anyway, so no ordering is lost |
-| Custom checks, with their last status | Required | Not every check reports again. An endpoint that is down never does, and a check with no repeat interval reports only when its endpoint starts. Leaving one out could hide a known failure until that endpoint restarts |
+| Integration events still waiting to be sent | Required | Each is an event a subscriber has not received yet. There are only any if the old instance fell behind or could not reach the broker. They are sent once ServiceControl opens, later than they would have been, except a `MessageFailed` event for a message archived or resolved before the move (see [Rows removed after the copy](#rows-removed-after-the-copy)). RavenDB sends them in no particular order anyway, so no ordering is lost |
+| Custom checks, with their last status | Required | Not every check reports again. An endpoint that is down never does, and a check with no repeat interval reports only when its endpoint starts. Leaving one out could hide a known failure until that endpoint restarts. Results of the six checks the RavenDB persister runs about its own database, matched on id and category, are left out, as harmless skips |
 | Failed error imports, with bodies | Required | Messages taken off the error queue but not ingested. They exist nowhere else and never expire. After the move the "Error Message Ingestion" custom check keeps flagging them and `--import-failed-errors` imports them into SQL. Importing them on RavenDB first is better still |
 | Group comments | Required | Copied after unresolved failed messages, so a note like "do not retry" is there when ServiceControl opens. Blank comments are not copied. Some comments are removed after ServiceControl opens, see [Open decisions](#rows-removed-after-the-copy) |
 | Event log | Optional | The history behind the ServicePulse activity feed. On a busy instance it holds a row for every failure, retry and submission |
@@ -174,7 +174,7 @@ There are eighteen *categories*: sixteen required and two optional.
 
 **Written new by the copy rather than copied:**
 
-- Retry claims in `FailedMessageRetries`. A claim ties a message to the retry that sent it. The copy writes one for each retry-issued message it inserts, see [Open decisions](#values-that-change-or-merge-in-sql).
+- Retry claims in `FailedMessageRetries`. A claim ties a message to the retry that sent it. The copy writes one for each retry-issued message it inserts that RavenDB still held a claim for, so a retry by id sends or holds back a message just as it did before the move.
 
 ### Optional data windows
 
@@ -186,8 +186,13 @@ There are eighteen *categories*: sixteen required and two optional.
 
 ### Data that changes shape
 
-- **Event log items, historic retry operations and pending integration events get new numbers.** Nothing refers to the old ones, so this is safe.
-- **Other values change or merge on the way into SQL.** Each is listed under [Open decisions](#values-that-change-or-merge-in-sql).
+- **Event log items, historic retry operations and pending integration events get new numbers.** Nothing refers to the old ones, so this is safe. For historic retry operations and pending integration events, the log says so once per category, in an information line.
+- **Other values change or merge on the way into SQL.** Each is listed under [Open decisions](#values-that-change-or-merge-in-sql), with the line the log shows for it.
+  - A row copied with a changed value logs a warning starting `Changed <source id> in category <category> on the way into SQL:`, followed by what changed and what was kept.
+  - A row merged into another logs a warning starting `Merged <source id> in category <category> into a row with the same key:`, naming both keys, the source row kept, or the row SQL already held, and the source row dropped.
+  - The category's summary at the end of the copy counts both, apart from the rows already present, for example `Subscriptions: 14 copied (0 changed), 0 already present, 1 merged, nothing skipped`. The summary is a warning when anything was changed or merged. The counts cover only the current run: a category resumed after a crash counts only the changes and merges of the run that finished it, and counts earlier merges as already present.
+  - The summary's already present count leaves out the merged rows. If the copy reports more merged rows than SQL found already present in total, the summary adds a warning naming both counts, because the copy's prediction of which keys SQL treats as equal then disagrees with SQL.
+  - The per-row lines are written after each batch commits. If the process stops between a batch's commit and its log lines, those lines are lost. A resumed copy does not repeat them, because it finds those rows already present.
 
 ### Skipped rows
 
@@ -200,7 +205,7 @@ A skip is one of three kinds:
 
 - **Fault, a retry can fix it.** Something outside the data went wrong. Fix the cause and retry.
 - **Fault, no retry can fix it.** The RavenDB document cannot become a SQL row, so a retry skips it again. Only [abandoning](#retry-and-abandon) gets past it.
-- **Harmless.** A row SQL would have removed anyway.
+- **Harmless.** A row SQL would have removed anyway, or a result of a check the source's own storage runs about itself (the RavenDB source flags its own checks, and the target skips flagged rows).
 
 A value SQL can hold only after changing it is not a skip. Those rows are copied, and are listed under [Open decisions](#values-that-change-or-merge-in-sql).
 
@@ -228,6 +233,7 @@ A value SQL can hold only after changing it is not a skip. Those rows are copied
 | --- |
 | A blank group comment, which SQL never stores |
 | An archived or resolved message, or event log item, already past its retention period |
+| A result of one of the six checks the RavenDB persister runs about its own database, such as index lag or free disk space, matched on the check's id and category. Only a RavenDB primary instance reports these checks, so nothing updates them after the move. A check that reuses one of these ids under another category is copied, such as a RavenDB audit instance's dirty memory check |
 
 - **Any fault skip makes the category [Failed](#failed-categories)**, even one. Harmless skips leave it Done.
 - **A malformed document does not stop the copy.** It is skipped and counted, and the rest of the category carries on. If skips pass the [early-stop threshold](#failed-categories), the category stops where it is, and abandoning it then gives up every unread row too. Raise the threshold or fix the cause, and retry.
@@ -283,11 +289,11 @@ flowchart LR
 ### Writing to SQL
 
 - **A failed message is written as one row**, with its status unchanged. Its older attempts are dropped, see [Open decisions](#values-that-change-or-merge-in-sql).
-- **A failed message keeps its failure groups and its last-modified time**, so filtered lists show the same messages as before.
+- **A failed message keeps its failure groups and its last-modified time**, so filtered lists show the same messages as before. A failure group with no id is the exception, see [Open decisions](#values-that-change-or-merge-in-sql).
 - **`UniqueMessageId` keeps its value** but becomes a `uniqueidentifier`. It is the primary key, the ServicePulse URL, the retry key and the body key.
 - **`StatusChangedAt` is rebuilt.** For archived and resolved messages it is `@expires` minus the current `ServiceControl/ErrorRetentionPeriod` (wrong if that changed, see [Open decisions](#values-that-change-or-merge-in-sql)). For unresolved and retry-issued messages it is the newest attempt's time, because the column is `NOT NULL`.
 - **Bodies go through `IBodyStoragePersistence`**, which handles compression and the body store. The copier keeps a body inline when it is within `ServiceControl/MaxBodySizeToStore` (102,400 bytes by default), as ingestion does.
-- **Throughput rows are written directly, and each day's count is set, not added**, so a resumed copy cannot double-count. The copied rows also stop the collectors gathering the same days again.
+- **Throughput rows are written directly, and each day's count is added to the stored count**, as ServiceControl's own throughput write adds it. Endpoints whose names the SQL key treats as one have their counts for a day summed into one row: SQL Server compares names under the key column's own collation, and PostgreSQL compares them as its deterministic collations do, character for character. A resumed copy cannot double-count, because each batch and its checkpoint commit together. The copied rows also stop the collectors gathering the same days again.
 
 ### Batch size and throttling
 
@@ -366,7 +372,7 @@ Stop ServiceControl before either command. In a container, run it as a one-off `
 **What a retry does:**
 
 - **It re-reads the whole category from the start**, leaving rows already in SQL alone. Every body is read again, so a retry takes about as long as the first copy.
-- **Historic retry operations and pending integration events** get new keys on every insert, so a retry first deletes what the category copied, in the same save as the reset. This is safe because both are required, so the target started empty.
+- **Historic retry operations, pending integration events and throughput history** are deleted first. The first two get new keys on every insert, and throughput history adds each day's count to the stored one, so a re-read would copy them a second time. The retry deletes what the category copied, in the same save as the reset. This is safe because all three are required, so the target started empty and ServiceControl has not opened on it. Once ServiceControl has opened on the database, a retry of any of them is refused and deletes nothing.
 - **The event log cannot be retried.** It also gets new keys, but it copies after ServiceControl opens, when copied rows cannot be told apart from live ones. It can only be abandoned.
 
 **To abandon:**
@@ -464,29 +470,35 @@ Each case below changes, merges or drops data, or lets a loss pass without faili
 
 ### Values that change or merge in SQL
 
-- **Attempt history collapses to the newest attempt.** SQL keeps the newest attempt and the attempt count, so only the newest attempt keeps its headers and exception.
-- **Message redirects, subscriptions and pending retry operations merge when their keys match in SQL.** The copy keeps one row, counts the other as already present, and logs a warning naming both.
+- **Attempt history collapses to the newest attempt.** SQL keeps the newest attempt and the attempt count, so only the newest attempt keeps its headers and exception. This is not logged and not counted as a change, because SQL keeps only the newest attempt for every message that failed more than once, by design.
+- **A failure group with no id is dropped from its message, and a group with no title or type is stored with an empty one.** SQL keys a group by its id, so the message is missing from that group in ServicePulse, and a group retry or archive leaves it out. ServiceControl's classifiers always set an id, so this needs hand-made data. The log names each message, in a warning whose detail starts `Dropped the failure groups with no id` or `Stored an empty title or type for the failure groups that had none`.
+- **Two failure groups of one message whose ids SQL treats as one key become one**, keeping the first group's title and type. ServiceControl never gives a message the same group twice. The log names each message, in a warning whose detail starts `Kept the failure group '<id>' titled '<title>' and dropped`.
+- **Message redirects, subscriptions, pending retry operations, group comments and failed error imports merge when their keys match in SQL.** The copy keeps one row, counts the other as already present, and logs a warning starting `Merged <source id> in category <category> into a row with the same key:` naming both. On SQL Server the copy predicts these merges from the key column's collation settings for case, accents, kana type and width, plus SQL Server's trailing-space rule, and reports the merges those settings make. It compares text with .NET's culture rules rather than SQL Server's own tables, so an unusual character the two treat differently can merge without a line.
   - Redirects merge on source addresses the key column treats as equal. On SQL Server, by default, that includes addresses that differ only in case.
-  - Subscriptions also merge when they differ only in message-type version, because the SQL key leaves the version out.
-  - Pending retry operations with the same retry type and request id merge, keeping the latest.
-- **On SQL Server, endpoint settings whose names differ only in case merge into one row**, because the name column compares without case by default. PostgreSQL keeps both.
+  - Subscriptions also merge when they differ only in message-type version, because the SQL key leaves the version out. The warning names the version and endpoint of the row kept and of the row dropped.
+  - Pending retry operations with the same retry type and request id merge, keeping the latest. The warning names the source row kept and the one dropped, and each source id ends with that operation's completion time.
+  - On SQL Server, group comments merge when their group ids differ only in trailing spaces. ServiceControl makes every group id from a GUID, so only a comment written on a hand-made group id can merge. PostgreSQL keeps both.
+  - Failed error imports of the same message merge. Version 6.18 and earlier stored each failed import attempt as its own document, and SQL keeps one row per message. The copy keeps the first it reads, and for those documents RavenDB order is effectively random, so it can keep an older attempt's exception. The warning names both documents, or the stored row's failure time and this one's.
+- **On SQL Server, endpoint settings whose names differ only in case, kana type or width merge into one row**, because the name column's default collation ignores all three. A column whose collation also ignores accents merges those too. PostgreSQL keeps both.
   - The copy keeps the setting whose name exactly matches a known endpoint, because ServiceControl deletes the other. Otherwise it keeps the first in RavenDB order, which is effectively arbitrary.
   - The choice is made within one batch of up to a thousand. Across batches, the first one met wins.
-  - The copy logs a warning, and the dry run lists each pair.
-- **A message type over 450 characters is cut to its last 450 characters**, as ingestion does. The row is copied, not skipped.
+  - The copy logs a warning starting `Merged EndpointSettings/<name>` that names both names and the one kept, and the dry run lists each pair.
+- **A message type over 450 characters is cut to its last 450 characters**, as ingestion does. The row is copied, not skipped. The log names each message, in a warning whose detail starts `Cut the message type from <length> characters to its last 450`.
 - **On SQL Server, licensing endpoints whose names differ only in trailing spaces become one row**, and a day both counted holds the sum. PostgreSQL keeps both.
-  - This is not reported as a merge: the copy logs no warning, and the dry run does not list it.
-  - A key column whose collation also ignores, for example, accents still makes one row, but keeps only one endpoint's counts. The other's counts are lost.
-- **`StatusChangedAt` is wrong for an archived or resolved message if `ServiceControl/ErrorRetentionPeriod` changed since RavenDB stamped it.** It is off by the difference, but the message still ages out of SQL when RavenDB would have deleted it.
-- **Every retry-issued message gets a retry claim, even one whose claim RavenDB had already released.** While the claim exists, retrying the message from the failed messages list sends nothing.
-- **Failed message edit locks are not copied.** On RavenDB, an edited message that fails again can never be edited again. After the move it can be edited once more.
+  - The copy keeps the endpoint it meets first, counts the other as already present and logs a warning starting `Merged <source id> in category LicensingEndpoints` naming both. Within one batch the endpoint met first is the one whose source id sorts first, and an endpoint SQL already holds is met before any in the batch. The dry run does not list it.
+  - A key column whose collation also ignores, for example, accents, kana type or width makes one row in the same way, a day holds the sum of every endpoint the column treats as one, and the copy logs the same warning for it.
+- **`StatusChangedAt` is wrong for an archived or resolved message if `ServiceControl/ErrorRetentionPeriod` changed since RavenDB stamped it.** It is off by the difference, but the message still ages out of SQL when RavenDB would have deleted it. Archived and resolved messages are not copied yet, so no log line flags these.
+- **Failed message edit locks are not copied.** On RavenDB, an edited message that fails again can never be edited again. After the move it can be edited once more. No log line lists these messages.
+- **A failed message's sending and receiving endpoints are rebuilt from its headers** when RavenDB hands back the stored endpoint without its type, following ingestion's own rules on the same headers. A message whose headers name no endpoint gets none. No log line names these messages.
+- **A failed error import's failure time is when RavenDB last modified its document**, because RavenDB stores no failure time for an import. ServiceControl never changes an import after storing it, so this is when the import was stored. No log line names imports for this. A missing exception or body is stored empty, and the log names each such import, in a warning whose detail starts `Stored an empty exception`, `Stored an empty body` or `Stored an empty exception and an empty body`.
 
 The dry run counts the subscription and endpoint settings merges before anything moves.
 
 ### Rows removed after the copy
 
-- **A group comment on a group whose messages are all archived or resolved is removed soon after ServiceControl opens**, because that group has no failed messages in SQL until the background copy brings them.
-- **Unresolved messages from version 6.18 or earlier can expire during the copy.** On those versions, a message that failed again after being archived or resolved kept its expiry. One deleted before the copy reads it is not copied and not counted.
+- **A group comment on a group whose messages are all archived or resolved is removed soon after ServiceControl opens**, because that group has no failed messages in SQL until the background copy brings them. The same happens when the group's messages are gone from RavenDB or were skipped by the copy. The copy names each such comment, in a warning starting `Changed GroupComment/<group id> in category GroupComments on the way into SQL: The group '<group id>' has no copied failed message`, which also quotes the whole comment.
+- **A `MessageFailed` event still waiting to be sent for a message archived or resolved before the move is never sent.** ServiceControl looks the message up when it sends the event. Archived and resolved messages arrive only with the background copy, so the lookup finds nothing, and the event is deleted with no log line. RavenDB would have sent it.
+- **Unresolved messages from version 6.18 or earlier can expire during the copy.** On those versions, a message that failed again after being archived or resolved kept its expiry. One deleted before the copy reads it is not copied and not counted. No log line names these messages yet.
 
 ### What the checks do not catch
 
@@ -518,7 +530,7 @@ The dry run counts the subscription and endpoint settings merges before anything
 - **Abandoned:** you gave up on what a category had not copied, or on one it depends on. Final.
 - **Already present:** a row the copier found in SQL already, so it left it alone.
 - **Fault skip:** a row lost because something went wrong.
-- **Harmless skip:** a row left behind because SQL would have removed it anyway.
+- **Harmless skip:** a row left behind because SQL would have removed it anyway, or because it is a result of a check the source's own storage runs about itself (the RavenDB source flags its own checks, and the target skips flagged rows).
 - **Free abort:** going back to RavenDB at no cost, possible only while ServiceControl is still closed.
 - **Dry run:** a read-only rehearsal that reports what would move, what would be skipped and how long the outage would be.
 

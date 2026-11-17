@@ -119,7 +119,33 @@ static class FailedMessageDocumentTranslator
                 })
         ];
 
-        return new FailedMessageDocumentTranslation.Translated(row, groups);
+        return new FailedMessageDocumentTranslation.Translated(row, groups, ChangesMadeTo(document, metadata.GetValueOrDefault("MessageType") as string));
+    }
+
+    // One sentence per way the row differs from the document, for the warning the target logs after the commit.
+    static IReadOnlyList<string> ChangesMadeTo(FailedMessage document, string? messageType)
+    {
+        List<string> changes = [];
+        var groups = document.FailureGroups ?? [];
+        FailedMessage.FailureGroup?[] withoutId = [.. groups.Where(failureGroup => failureGroup is not { Id: not null })];
+        FailedMessage.FailureGroup[] withoutTitleOrType = [.. groups.Where(failureGroup => failureGroup is { Id: not null } && (failureGroup.Title is null || failureGroup.Type is null))];
+
+        if (messageType is { Length: > ColumnLengths.ShortTextLength })
+        {
+            changes.Add($"Cut the message type from {messageType.Length} characters to its last {ColumnLengths.ShortTextLength}, as ingestion does.");
+        }
+
+        if (withoutId.Length > 0)
+        {
+            changes.Add($"Dropped the failure groups with no id, because SQL keys a group by its id: {string.Join(", ", withoutId.Select(failureGroup => failureGroup is null ? "an empty entry" : $"the group titled '{failureGroup.Title}'"))}.");
+        }
+
+        if (withoutTitleOrType.Length > 0)
+        {
+            changes.Add($"Stored an empty title or type for the failure groups that had none: {string.Join(", ", withoutTitleOrType.Select(failureGroup => $"'{failureGroup.Id}'"))}.");
+        }
+
+        return changes;
     }
 
     /// <summary>

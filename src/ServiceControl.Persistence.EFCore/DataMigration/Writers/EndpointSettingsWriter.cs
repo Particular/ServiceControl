@@ -8,7 +8,7 @@ using ServiceControl.Persistence.DataMigration;
 
 /// <summary>
 /// Copies every per-endpoint setting as stored.
-/// Where the name column ignores case, names that differ only in case become one row, and the dropped ones are
+/// Where the name column's collation ignores case, accents, kana type or width, names that differ only in those become one row, and the dropped ones are
 /// reported as merges. The row kept is the one whose name matches a known endpoint exactly.
 /// </summary>
 sealed class EndpointSettingsWriter(IMigrationSqlDialect migrationDialect) : MigrationCategoryWriter<EndpointSettings>

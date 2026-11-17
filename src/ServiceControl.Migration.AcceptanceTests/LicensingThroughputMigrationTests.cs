@@ -102,14 +102,15 @@ class LicensingThroughputMigrationTests : MigrationAcceptanceTest
     }
 
     [Test]
-    public async Task Running_the_category_twice_produces_the_same_count()
+    public async Task A_retry_copies_the_category_again_with_the_same_count()
     {
         await SeedThroughputSource(new Endpoint("Sales.Orders", ThroughputSource.Broker) { SanitizedName = "sales.orders" });
         await SeedThroughputTimeSeries("Sales.Orders/Broker", new DateOnly(2026, 1, 1), 100);
         await CopyCategory("LicensingEndpoints");
 
         await CopyCategory("LicensingThroughput");
-        await DeleteCheckpoint("LicensingThroughput");
+        await Target.ResetForRetry(RetryResetMigrationTests.ResetForRetry(await ReadCheckpoint("LicensingThroughput")));
+        var afterReset = await QueryTarget(dbContext => dbContext.LicensingEndpointThroughput.CountAsync());
         var second = await CopyCategory("LicensingThroughput");
 
         var total = await QueryTarget(dbContext => dbContext.LicensingEndpointThroughput
@@ -117,33 +118,26 @@ class LicensingThroughputMigrationTests : MigrationAcceptanceTest
             .Select(row => row.MessageCount)
             .SingleAsync());
 
-        Assert.That(second.Copied, Is.EqualTo(1), "the second run wrote nothing, so the count below cannot tell setting from adding");
-        Assert.That(total, Is.EqualTo(100), "running the category twice must set the day's count, not add to it");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(afterReset, Is.Zero, "the reset deletes the copied days before the category is read again");
+            Assert.That(second.Copied, Is.EqualTo(1), "the second run writes the one day once");
+            Assert.That(total, Is.EqualTo(100), "the reset deletes the copied days, so copying again does not add the count a second time");
+        }
     }
 
     [Test]
-    public async Task Two_names_differing_only_in_a_trailing_space_add_their_counts_into_one_day_without_failing_the_batch()
+    public async Task Two_names_differing_only_in_a_trailing_space_add_their_counts_into_one_day_without_failing_the_copy()
     {
-        var endpoints = MigrationCategoryRegistry.All.Single(entry => entry.Id == "LicensingEndpoints");
-        var endpointBatch = new MigrationBatch(
-            [
-                new MigrationRow("Sales.Orders /Broker", new Endpoint("Sales.Orders ", ThroughputSource.Broker) { SanitizedName = "sales.orders" }, new Dictionary<string, object>()),
-                new MigrationRow("Sales.Orders/Broker", new Endpoint("Sales.Orders", ThroughputSource.Broker) { SanitizedName = "sales.orders" }, new Dictionary<string, object>())
-            ],
-            "Sales.Orders/Broker");
-        await Target.Write(endpoints, endpointBatch, new MigrationCheckpoint(endpoints.Id, MigrationCategoryState.InProgress, endpointBatch.Cursor, 0, 0, null, null, null, null, null, null));
-
-        var category = MigrationCategoryRegistry.All.Single(entry => entry.Id == "LicensingThroughput");
         var day = new DateOnly(2026, 1, 1);
-        var batch = new MigrationBatch(
-            [
-                new MigrationRow("Sales.Orders /Broker|2026-01-01", new ThroughputDayRow(new EndpointIdentifier("Sales.Orders ", ThroughputSource.Broker), day, 100), new Dictionary<string, object>()),
-                new MigrationRow("Sales.Orders/Broker|2026-01-01", new ThroughputDayRow(new EndpointIdentifier("Sales.Orders", ThroughputSource.Broker), day, 250), new Dictionary<string, object>())
-            ],
-            "Sales.Orders/Broker");
-        var checkpointToExtend = new MigrationCheckpoint(category.Id, MigrationCategoryState.InProgress, batch.Cursor, 0, 0, null, null, null, null, null, null);
+        await SeedThroughputSource(new Endpoint("Sales.Orders ", ThroughputSource.Broker) { SanitizedName = "sales.orders" });
+        await SeedThroughputSource(new Endpoint("Sales.Orders", ThroughputSource.Broker) { SanitizedName = "sales.orders" });
+        await SeedThroughputTimeSeries("Sales.Orders /Broker", day, 100);
+        await SeedThroughputTimeSeries("Sales.Orders/Broker", day, 250);
+        await CopyCategory("LicensingEndpoints");
+        var category = MigrationCategoryRegistry.All.Single(entry => entry.Id == "LicensingThroughput");
 
-        var result = await Target.Write(category, batch, checkpointToExtend);
+        var result = await CopyCategory("LicensingThroughput");
 
         var keyIgnoresTrailingSpace = (await QueryTarget(dbContext => Task.FromResult(dbContext.Database.ProviderName))).Contains("SqlServer");
         var count = await QueryTarget(dbContext => dbContext.LicensingEndpointThroughput
@@ -153,10 +147,10 @@ class LicensingThroughputMigrationTests : MigrationAcceptanceTest
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Copied, Is.EqualTo(keyIgnoresTrailingSpace ? 1 : 2), "SQL Server's key ignores the trailing space, so the two days are one row; PostgreSQL's does not, so they are two");
-            Assert.That(result.AlreadyPresent, Is.EqualTo(keyIgnoresTrailingSpace ? 1 : 0), "the day SQL Server's key folds into the other is already present, not lost or failed");
+            Assert.That(result.Copied, Is.EqualTo(2), "the reader sends each endpoint in its own batch, and a day added to the row an earlier batch stored counts as copied");
+            Assert.That(result.AlreadyPresent, Is.Zero);
             Assert.That(result.Skipped, Is.Zero);
-            Assert.That(await Target.Count(category), Is.EqualTo(result.Copied), "in a single batch, every row reported as copied is a row in the table");
+            Assert.That(await Target.Count(category), Is.EqualTo(keyIgnoresTrailingSpace ? 1 : 2), "SQL Server's key ignores the trailing space, so the two days are one row; PostgreSQL's does not, so they are two");
             Assert.That(count, Is.EqualTo(keyIgnoresTrailingSpace ? 350 : 250), "where the key makes the two endpoints one, their counts for the day are added, as the product's own throughput write adds them");
         }
     }

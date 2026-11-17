@@ -57,5 +57,7 @@ public interface IMigrationTarget
 
 /// <summary>
 /// What the target did with one batch, and the checkpoint it saved with it. Every skipped row has a reason in SkipReasons.
+/// Merged counts the rows inside AlreadyPresent that the target dropped because their key matched another row's.
+/// Changed counts the rows inside Copied whose stored value differs from the source's on purpose. The target logs each merged and changed row.
 /// </summary>
-public sealed record MigrationWriteResult(MigrationCheckpoint Saved, int Copied, int Skipped, IReadOnlyList<string> SkippedIds, int AlreadyPresent = 0, IReadOnlyDictionary<MigrationSkipReason, long>? SkipReasons = null);
+public sealed record MigrationWriteResult(MigrationCheckpoint Saved, int Copied, int Skipped, IReadOnlyList<string> SkippedIds, int AlreadyPresent = 0, IReadOnlyDictionary<MigrationSkipReason, long>? SkipReasons = null, int Merged = 0, int Changed = 0);

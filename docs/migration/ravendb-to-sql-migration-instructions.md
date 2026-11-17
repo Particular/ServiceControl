@@ -190,7 +190,7 @@ Keep RavenDB running until every category is Done or Abandoned. If RavenDB goes 
 ## Step 8: Finish the migration
 
 1. Stop ServiceControl.
-2. Run `--migration-verify`. It counts the rows in RavenDB again, and compares them with the rows that the copy read. It also shows the skipped and merged rows. It exits with 0 only when every category is Done or Abandoned.
+2. Run `--migration-verify`. It counts the rows in RavenDB again, and compares them with the rows that the copy read. It also shows the skipped rows. Merged and changed rows are not shown here. Each one is logged as a warning by the copy run that merged or changed it, and that run's summary counts them. It exits with 0 only when every category is Done or Abandoned.
 3. Start ServiceControl. Finished checkpoints remain in SQL, but no background copy runs and RavenDB is not opened.
 
 Verify reads all the data in RavenDB again, but not the message bodies. On a large instance this takes time, and ServiceControl is stopped during that time.

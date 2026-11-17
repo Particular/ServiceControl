@@ -9,6 +9,8 @@ using NServiceBus.Unicast.Subscriptions;
 using NUnit.Framework;
 using Particular.LicensingComponent.Contracts;
 using Raven.Client.Documents.Operations.Indexes;
+using ServiceControl.Contracts.CustomChecks;
+using ServiceControl.ExternalIntegrations;
 using ServiceControl.Infrastructure.RavenDB.Subscriptions;
 using ServiceControl.Notifications;
 using ServiceControl.Operations;
@@ -143,7 +145,11 @@ class RavenMigrationSourceTests : RavenMigrationSourceTestBase
         [MigrationCategoryIds.Subscriptions] = tests => tests.SeedSubscription(),
         [MigrationCategoryIds.NotificationSettings] = tests => tests.NotificationsStore.SaveSettings(new NotificationsSettings { Email = new EmailNotifications { SmtpServer = "smtp.contoso.com" } }),
         [MigrationCategoryIds.TrialEndDate] = tests => tests.ServiceProvider.GetRequiredService<ITrialLicenseDataProvider>().StoreTrialEndDate(new DateOnly(2027, 3, 15)),
-        [MigrationCategoryIds.RetryOperations] = tests => tests.RetryHistoryStore.RecordRetryOperationCompleted("group-1", RetryType.FailureGroup, DateTime.UtcNow, DateTime.UtcNow, "Sales.Orders", "Exception Type", false, 1, DateTime.UtcNow, 10)
+        [MigrationCategoryIds.RetryOperations] = tests => tests.RetryHistoryStore.RecordRetryOperationCompleted("group-1", RetryType.FailureGroup, DateTime.UtcNow, DateTime.UtcNow, "Sales.Orders", "Exception Type", false, 1, DateTime.UtcNow, 10),
+        [MigrationCategoryIds.PendingIntegrationEvents] = tests => tests.ExternalIntegrationStore.StoreDispatchRequest([new ExternalIntegrationDispatchRequest { DispatchContext = new TestDispatchContext { Value = "seed" } }]),
+        [MigrationCategoryIds.CustomChecks] = tests => tests.CustomChecks.UpdateCustomCheckStatus(new CustomCheckDetail { OriginatingEndpoint = new EndpointDetails { Name = "Sales.Orders", HostId = Guid.NewGuid(), Host = "HOST01" }, CustomCheckId = "Sales.HealthCheck", Category = "Ping" }),
+        [MigrationCategoryIds.FailedErrorImports] = tests => tests.FailedImportStore.StoreFailedErrorImport(new FailedErrorImport { Id = "native-1", Message = new FailedTransportMessage { Id = "native-1", Headers = new Dictionary<string, string> { ["NServiceBus.MessageId"] = "native-1" }, Body = [1, 2, 3] }, ExceptionInfo = "Deserialization failed" }),
+        [MigrationCategoryIds.GroupComments] = tests => tests.GroupsStore.EditComment("group-1", "Known issue, ignore until Thursday")
     };
 
     string DatabaseName => ((RavenPersisterSettings)PersistenceSettings).DatabaseName;
@@ -187,5 +193,10 @@ class RavenMigrationSourceTests : RavenMigrationSourceTestBase
         {
             await EndpointSettingsStore.UpdateEndpointSettings(new EndpointSettings { Name = $"Endpoint{index}", TrackInstances = true });
         }
+    }
+
+    public class TestDispatchContext
+    {
+        public string Value { get; set; }
     }
 }

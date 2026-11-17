@@ -14,8 +14,9 @@ abstract record FailedMessageDocumentTranslation
 
     /// <summary>
     /// The document translates to a failed message row and the group rows keyed by it.
+    /// Changes has one sentence for each way the row differs from the document on purpose, and is empty when it differs in none.
     /// </summary>
-    public sealed record Translated(FailedMessageEntity Row, IReadOnlyList<FailedMessageGroupEntity> Groups) : FailedMessageDocumentTranslation;
+    public sealed record Translated(FailedMessageEntity Row, IReadOnlyList<FailedMessageGroupEntity> Groups, IReadOnlyList<string> Changes) : FailedMessageDocumentTranslation;
 
     /// <summary>
     /// The document cannot become a row, for the reason given, and <paramref name="Detail" /> says which document and why.

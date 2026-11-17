@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.EFCore.DataMigration.Writers;
@@ -14,6 +15,10 @@ using ServiceControl.Recoverability;
 
 class RetryOperationsMigrationTargetTests : PersistenceTestBase
 {
+    readonly TargetWarnings targetLog = new();
+
+    public RetryOperationsMigrationTargetTests() => RegisterServices = services => services.AddSingleton<ILoggerProvider>(targetLog);
+
     [SetUp]
     public Task OpenTarget() => Target.Open();
 
@@ -152,6 +157,24 @@ class RetryOperationsMigrationTargetTests : PersistenceTestBase
     }
 
     [Test]
+    public async Task A_merged_pending_operation_names_the_source_row_kept_and_the_row_dropped()
+    {
+        var dialect = ServiceProvider.GetRequiredService<IMigrationSqlDialect>();
+        var batch = BatchOf(
+            ("unacknowledged|group-2|FailureGroup|older", new RetryOperationRow(null, Pending("group-2", "Shipping-Failures"))),
+            ("unacknowledged|group-2|FailureGroup|newer", new RetryOperationRow(null, Pending("group-2", "Shipping-Failures"))));
+
+        var merges = await PreparedSkips.MergesFrom(ServiceProvider, new RetryOperationsWriter(dialect), batch);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(merges.Select(merge => merge.SourceId), Is.EqualTo(new[] { "unacknowledged|group-2|FailureGroup|older" }), "the latest retry wins");
+            Assert.That(merges.Single().Detail, Does.EndWith("It kept the row from 'unacknowledged|group-2|FailureGroup|newer' and dropped the row from 'unacknowledged|group-2|FailureGroup|older'."),
+                "both keys print the same, so only the source rows, whose ids carry the completion time, tell the operator which run survived");
+        }
+    }
+
+    [Test]
     public async Task A_pending_key_the_target_already_holds_merges_only_a_variant_the_column_treats_as_the_same()
     {
         var dialect = ServiceProvider.GetRequiredService<IMigrationSqlDialect>();
@@ -212,6 +235,24 @@ class RetryOperationsMigrationTargetTests : PersistenceTestBase
                 "an Unspecified time is already UTC and a Local time is converted, so both keep their instant");
             Assert.That(stored.UnacknowledgedOperations.Select(operation => (operation.StartTime, operation.CompletionTime, operation.Last)), Is.EqualTo(new[] { (CompletedAt.AddMinutes(-1), CompletedAt, CompletedAt.AddMinutes(1)) }));
         }
+    }
+
+    [Test]
+    public async Task Copied_historic_operations_get_one_line_saying_the_database_gives_them_new_ids()
+    {
+        var first = await Target.Write(RetryOperationsCategory, BatchOf(("historic/1", new RetryOperationRow(Historic("group-1"), null)), ("pending/1", new RetryOperationRow(null, Pending("group-2", "Shipping-Failures")))), CheckpointAfter("pending/1"));
+        await Target.Write(RetryOperationsCategory, BatchOf(("historic/2", new RetryOperationRow(Historic("group-3"), null))), first.Saved with { Cursor = "historic/2" });
+
+        Assert.That(targetLog.Information, Is.EqualTo(new[] { $"Category {MigrationCategoryIds.RetryOperations}: the database gives the copied historic retry operations new ids. Nothing in SQL refers to the ids they had in the source." }),
+            "one line per category says the ids changed, rather than one per row or per batch");
+    }
+
+    [Test]
+    public async Task Copied_pending_operations_alone_get_no_line_about_new_ids()
+    {
+        await Target.Write(RetryOperationsCategory, BatchOf(("pending/1", new RetryOperationRow(null, Pending("group-2", "Shipping-Failures")))), CheckpointAfter("pending/1"));
+
+        Assert.That(targetLog.Information, Has.None.Contains("new ids"), "a pending operation keeps its key, so nothing about it is renumbered");
     }
 
     static HistoricRetryOperation Historic(string requestId) => new()

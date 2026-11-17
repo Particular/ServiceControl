@@ -75,8 +75,8 @@ class LicensingThroughputMigrationTargetTests : PersistenceTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Copied, Is.EqualTo(1));
-            Assert.That(result.AlreadyPresent, Is.EqualTo(1), "PostgreSQL refuses a statement that updates one row twice, so the repeat is dropped before it and counted rather than failing the batch");
-            Assert.That(stored, Is.EqualTo(250), "the row whose id sorts last by ordinal order sets the day, whatever order the batch arrives in");
+            Assert.That(result.AlreadyPresent, Is.EqualTo(1), "the repeat is the same day of the same endpoint, so it is dropped before the statement and counted");
+            Assert.That(stored, Is.EqualTo(250), "the row whose id sorts last by ordinal order sets the day rather than adding to it, whatever order the batch arrives in");
         }
     }
 
@@ -94,7 +94,6 @@ class LicensingThroughputMigrationTargetTests : PersistenceTestBase
             ("Sales.Orders/Broker|2026-01-01", new ThroughputDayRow(new EndpointIdentifier("Sales.Orders", ThroughputSource.Broker), day, 250)));
 
         var first = await Target.Write(LicensingThroughputCategory, batch, CheckpointAfter("Sales.Orders/Broker"));
-        var again = await Target.Write(LicensingThroughputCategory, batch, first.Saved);
 
         await using var scope = ServiceProvider.CreateAsyncScope();
         var keyIgnoresTrailingSpace = scope.ServiceProvider.GetRequiredService<ServiceControlDbContext>().Database.ProviderName!.Contains("SqlServer");
@@ -102,26 +101,118 @@ class LicensingThroughputMigrationTargetTests : PersistenceTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(first.Copied, Is.EqualTo(keyIgnoresTrailingSpace ? 1 : 2));
-            Assert.That(first.AlreadyPresent, Is.EqualTo(keyIgnoresTrailingSpace ? 1 : 0), "the endpoint folded into the other's row is counted, not lost");
+            Assert.That(first.AlreadyPresent, Is.EqualTo(keyIgnoresTrailingSpace ? 1 : 0), "the folded endpoint's days are summed into the kept row, and the endpoint writer reports the fold");
             Assert.That(await StoredCounts(), Is.EqualTo(keyIgnoresTrailingSpace ? new[] { 350L } : new[] { 100L, 250L }), "SQL Server's key makes the two one day, which holds both counts, as the product's own throughput write would");
-            Assert.That(again.Copied, Is.EqualTo(first.Copied), "copying the batch again sets the same sum rather than adding to it");
         }
     }
 
     [Test]
-    public async Task A_later_batch_replaces_the_count_an_earlier_batch_stored_for_the_same_day()
+    public async Task Days_of_two_endpoints_differing_only_in_case_are_added_when_they_arrive_in_one_batch()
+    {
+        await LicensingDataStore.SaveEndpoint(new Endpoint("Sales.Orders", ThroughputSource.Broker) { SanitizedName = "sales.orders" });
+        var day = new DateOnly(2026, 1, 1);
+        var batch = BatchOf(
+            ("Sales.Orders/Broker|2026-01-01", new ThroughputDayRow(new EndpointIdentifier("Sales.Orders", ThroughputSource.Broker), day, 100)),
+            ("SALES.ORDERS/Broker|2026-01-01", new ThroughputDayRow(new EndpointIdentifier("SALES.ORDERS", ThroughputSource.Broker), day, 250)));
+
+        var result = await Target.Write(LicensingThroughputCategory, batch, CheckpointAfter("SALES.ORDERS/Broker"));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Copied, Is.EqualTo(1));
+            Assert.That(result.AlreadyPresent, Is.EqualTo(1), "the folded endpoint's days are summed into the kept row, and the endpoint writer reports the fold");
+            Assert.That(await StoredCounts(), Is.EqualTo(new[] { 350L }), "two source endpoints store the same lower-cased name, so their days are added, not one kept as a repeat of the other");
+        }
+    }
+
+    [Test]
+    public async Task A_later_batch_adds_its_count_to_the_day_an_earlier_batch_stored_for_a_name_differing_only_in_case()
     {
         await LicensingDataStore.SaveEndpoint(new Endpoint("Sales.Orders", ThroughputSource.Broker) { SanitizedName = "sales.orders" });
         var day = new DateOnly(2026, 1, 1);
 
         var first = await Target.Write(LicensingThroughputCategory, BatchOf(("Sales.Orders/Broker|2026-01-01", new ThroughputDayRow(new EndpointIdentifier("Sales.Orders", ThroughputSource.Broker), day, 100))), CheckpointAfter("Sales.Orders/Broker"));
-        var second = await Target.Write(LicensingThroughputCategory, BatchOf(("Sales.Orders/Broker|2026-01-01", new ThroughputDayRow(new EndpointIdentifier("Sales.Orders", ThroughputSource.Broker), day, 250))), first.Saved);
+        var second = await Target.Write(LicensingThroughputCategory, BatchOf(("SALES.ORDERS/Broker|2026-01-01", new ThroughputDayRow(new EndpointIdentifier("SALES.ORDERS", ThroughputSource.Broker), day, 250))), first.Saved);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(second.Copied, Is.EqualTo(1), "an update is a row the statement wrote");
-            Assert.That(await StoredCounts(), Is.EqualTo(new[] { 250L }), "the count RavenDB holds now replaces the stored one, and is never added to it or ignored");
+            Assert.That(await StoredCounts(), Is.EqualTo(new[] { 350L }), "both endpoints store the same lower-cased name, so the second batch adds its count to the day rather than replacing it");
         }
+    }
+
+    [Test]
+    public async Task A_batch_written_again_from_the_checkpoint_it_already_extended_is_refused_and_adds_nothing()
+    {
+        await LicensingDataStore.SaveEndpoint(new Endpoint("Sales.Orders", ThroughputSource.Broker) { SanitizedName = "sales.orders" });
+        var batch = BatchOf(("Sales.Orders/Broker|2026-01-01", new ThroughputDayRow(new EndpointIdentifier("Sales.Orders", ThroughputSource.Broker), new DateOnly(2026, 1, 1), 100)));
+        var checkpointToExtend = CheckpointAfter("Sales.Orders/Broker");
+
+        await Target.Write(LicensingThroughputCategory, batch, checkpointToExtend);
+
+        Assert.ThrowsAsync<MigrationCheckpointConflictException>(() => Target.Write(LicensingThroughputCategory, batch, checkpointToExtend));
+        Assert.That(await StoredCounts(), Is.EqualTo(new[] { 100L }), "the add and the checkpoint commit together, so a replay of a committed batch rolls back instead of counting the day twice");
+    }
+
+    [Test]
+    public async Task A_retry_deletes_the_copied_days_so_copying_again_gives_the_same_totals()
+    {
+        await LicensingDataStore.SaveEndpoint(new Endpoint("Sales.Orders", ThroughputSource.Broker) { SanitizedName = "sales.orders" });
+        var batch = BatchOf(("Sales.Orders/Broker|2026-01-01", new ThroughputDayRow(new EndpointIdentifier("Sales.Orders", ThroughputSource.Broker), new DateOnly(2026, 1, 1), 100)));
+        var first = await Target.Write(LicensingThroughputCategory, batch, CheckpointAfter("Sales.Orders/Broker"));
+
+        var reset = await Target.ResetForRetry(ResetForRetry(first.Saved));
+        var afterReset = await StoredCounts();
+        await Target.Write(LicensingThroughputCategory, batch, reset);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(afterReset, Is.Empty, "the reset deletes the days the first copy added, because copying them again adds each count a second time");
+            Assert.That(await StoredCounts(), Is.EqualTo(new[] { 100L }), "copying again after the retry gives the totals one copy gave, not double");
+        }
+    }
+
+    [Test]
+    public async Task A_stale_retry_reset_deletes_no_copied_day()
+    {
+        await LicensingDataStore.SaveEndpoint(new Endpoint("Sales.Orders", ThroughputSource.Broker) { SanitizedName = "sales.orders" });
+        var batch = BatchOf(("Sales.Orders/Broker|2026-01-01", new ThroughputDayRow(new EndpointIdentifier("Sales.Orders", ThroughputSource.Broker), new DateOnly(2026, 1, 1), 100)));
+        var stale = (await Target.Write(LicensingThroughputCategory, batch, CheckpointAfter("Sales.Orders/Broker"))).Saved;
+        await ServiceProvider.GetRequiredService<IMigrationCheckpointStore>().Upsert(stale);
+
+        Assert.ThrowsAsync<MigrationCheckpointConflictException>(() => Target.ResetForRetry(ResetForRetry(stale)));
+        Assert.That(await StoredCounts(), Is.EqualTo(new[] { 100L }), "the delete shares the reset's transaction, so a refused reset leaves every copied day");
+    }
+
+    [Test]
+    public async Task A_retry_reset_after_ServiceControl_opened_on_the_target_is_refused_and_deletes_nothing()
+    {
+        await LicensingDataStore.SaveEndpoint(new Endpoint("Sales.Orders", ThroughputSource.Broker) { SanitizedName = "sales.orders" });
+        var batch = BatchOf(("Sales.Orders/Broker|2026-01-01", new ThroughputDayRow(new EndpointIdentifier("Sales.Orders", ThroughputSource.Broker), new DateOnly(2026, 1, 1), 100)));
+        var copied = (await Target.Write(LicensingThroughputCategory, batch, CheckpointAfter("Sales.Orders/Broker"))).Saved;
+        await ServiceProvider.GetRequiredService<IMigrationTargetReadiness>().RecordHostOpened();
+
+        var refused = Assert.ThrowsAsync<InvalidOperationException>(() => Target.ResetForRetry(ResetForRetry(copied)));
+        var stored = await ServiceProvider.GetRequiredService<IMigrationCheckpointStore>().Read(MigrationCategoryIds.LicensingThroughput);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(refused.Message, Does.Contain(MigrationCategoryIds.LicensingThroughput).And.Contain("only possible before ServiceControl first opens on this database"));
+            Assert.That(await StoredCounts(), Is.EqualTo(new[] { 100L }), "the days may now include counts the running instance collected, so deleting them would lose live throughput");
+            Assert.That((stored!.Version, stored.State, stored.Cursor, stored.CopiedCount), Is.EqualTo((copied.Version, copied.State, copied.Cursor, copied.CopiedCount)), "a refused reset saves nothing");
+        }
+    }
+
+    [Test]
+    public async Task A_retry_reset_that_deletes_nothing_still_succeeds_after_ServiceControl_opened_on_the_target()
+    {
+        var checkpoints = ServiceProvider.GetRequiredService<IMigrationCheckpointStore>();
+        var stopped = await checkpoints.Upsert(new MigrationCheckpoint(MigrationCategoryIds.ArchivedAndResolvedFailedMessages, MigrationCategoryState.InProgress, "FailedMessages/1", 1, 0, null, null, null, null, null, "RavenDB is unreachable"));
+        await ServiceProvider.GetRequiredService<IMigrationTargetReadiness>().RecordHostOpened();
+
+        var reset = await Target.ResetForRetry(ResetForRetry(stopped));
+
+        Assert.That((reset.State, reset.Cursor, reset.LastError), Is.EqualTo((MigrationCategoryState.NotStarted, (string)null, (string)null)), "an optional category copies after ServiceControl opens, and its reset deletes nothing, so it is still allowed");
     }
 
     [Test]
@@ -157,7 +248,7 @@ class LicensingThroughputMigrationTargetTests : PersistenceTestBase
     }
 
     [Test]
-    public async Task A_later_batch_sets_a_day_stored_under_a_name_that_differs_only_by_a_trailing_space()
+    public async Task A_later_batch_adds_to_a_day_stored_under_a_name_that_differs_only_by_a_trailing_space()
     {
         var endpoints = MigrationCategoryRegistry.All.Single(category => category.Id == MigrationCategoryIds.LicensingEndpoints);
         var endpointBatch = BatchOf(
@@ -175,7 +266,7 @@ class LicensingThroughputMigrationTargetTests : PersistenceTestBase
         using (Assert.EnterMultipleScope())
         {
             Assert.That(second.Copied, Is.EqualTo(1), "the second batch's day is matched back to the row that produced it, not refused because the stored name keeps its trailing space");
-            Assert.That(await StoredCounts(), Is.EqualTo(keyIgnoresTrailingSpace ? new[] { 250L } : new[] { 100L, 250L }), "SQL Server's key makes the two names one day, which the later count sets; PostgreSQL's keeps two");
+            Assert.That(await StoredCounts(), Is.EqualTo(keyIgnoresTrailingSpace ? new[] { 350L } : new[] { 100L, 250L }), "SQL Server's key makes the two names one day, which the later count adds to; PostgreSQL's keeps two");
         }
     }
 
@@ -187,6 +278,19 @@ class LicensingThroughputMigrationTargetTests : PersistenceTestBase
 
     static MigrationBatch BatchOf(params (string Id, object Document)[] rows) =>
         new([.. rows.Select(row => new MigrationRow(row.Id, row.Document, new Dictionary<string, object>()))], rows[^1].Id);
+
+    // The reset --migration-retry makes.
+    static MigrationCheckpoint ResetForRetry(MigrationCheckpoint checkpoint) => checkpoint with
+    {
+        State = MigrationCategoryState.NotStarted,
+        Cursor = null,
+        CopiedCount = 0,
+        SkippedCount = 0,
+        AlreadyPresentCount = 0,
+        SkipReasons = null,
+        SettledAt = null,
+        LastError = null
+    };
 
     static MigrationCheckpoint CheckpointAfter(string cursor) =>
         new(MigrationCategoryIds.LicensingThroughput, MigrationCategoryState.InProgress, cursor, 0, 0, null, null, null, null, null, null);

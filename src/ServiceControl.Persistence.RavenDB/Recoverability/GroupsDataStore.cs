@@ -146,6 +146,8 @@ namespace ServiceControl.Persistence.RavenDB.Recoverability
             await session.SaveChangesAsync(cancellationToken);
         }
 
-        public static string MakeId(string groupId) => $"GroupComment/{groupId}";
+        internal const string CommentIdPrefix = "GroupComment/";
+
+        public static string MakeId(string groupId) => $"{CommentIdPrefix}{groupId}";
     }
 }

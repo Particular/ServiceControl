@@ -3,7 +3,8 @@ namespace ServiceControl.Persistence.EFCore.DataMigration;
 using DbContexts;
 
 /// <summary>
-/// A category writer whose rows get their keys from the database, so a re-read would add every row again.
+/// A category writer whose rows a re-read cannot recognise as already copied, so copying the category again would add every row a second time.
+/// Rows whose keys the database makes are one kind, and throughput days, whose counts the copy adds to, are another.
 /// The target deletes those rows when it resets the category for a retry.
 /// The delete empties whole tables, so it is only safe for a category copied while ServiceControl is stopped.
 /// </summary>

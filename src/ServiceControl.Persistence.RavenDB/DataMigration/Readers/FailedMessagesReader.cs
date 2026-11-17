@@ -41,7 +41,8 @@ sealed class FailedMessagesReader(RavenReadOnlySourceLifecycle lifecycle) : Migr
     public override async IAsyncEnumerable<MigrationBatch> Read(string? resumeAfter, int batchSize, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var databaseName = Lifecycle.Settings.DatabaseName;
-        var project = new FailedMessageStream(Lifecycle).Project(MigrationCategoryRegistry.UnresolvedAndRetryIssuedStatuses);
+        var stream = new FailedMessageStream(Lifecycle);
+        var project = stream.Project(MigrationCategoryRegistry.UnresolvedAndRetryIssuedStatuses);
 
         var batches = await IndexHoldsEveryCopiedFailedMessage(databaseName, cancellationToken)
             ? ThroughIndex(databaseName, resumeAfter, batchSize, project, cancellationToken)
@@ -49,7 +50,7 @@ sealed class FailedMessagesReader(RavenReadOnlySourceLifecycle lifecycle) : Migr
 
         await foreach (var batch in batches)
         {
-            yield return batch;
+            yield return await stream.ResolveRetryClaims(batch, cancellationToken);
         }
     }
 

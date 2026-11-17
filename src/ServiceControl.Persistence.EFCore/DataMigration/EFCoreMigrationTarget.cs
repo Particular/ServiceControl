@@ -35,7 +35,11 @@ sealed class EFCoreMigrationTarget(
         new SubscriptionsWriter(migrationDialect),
         new NotificationSettingsWriter(migrationDialect),
         new TrialEndDateWriter(migrationDialect),
-        new RetryOperationsWriter(migrationDialect)
+        new RetryOperationsWriter(migrationDialect),
+        new PendingIntegrationEventsWriter(migrationDialect),
+        new CustomChecksWriter(migrationDialect),
+        new FailedErrorImportsWriter(migrationDialect, storagePersistence, settings),
+        new GroupCommentsWriter(migrationDialect)
     }.ToFrozenDictionary(writer => writer.CategoryId, StringComparer.Ordinal);
 
     public Task Open(CancellationToken cancellationToken = default) =>
@@ -84,13 +88,26 @@ sealed class EFCoreMigrationTarget(
                 logger.LogWarning("Merged {SourceId} in category {CategoryId} into a row with the same key: {Detail}", sourceId, category.Id, detail);
             }
 
+            foreach (var (sourceId, detail) in prepared.Changes)
+            {
+                logger.LogWarning("Changed {SourceId} in category {CategoryId} on the way into SQL: {Detail}", sourceId, category.Id, detail);
+            }
+
+            // Once per copy of the category, because the line describes every batch alike and a retry's reset clears the count.
+            if (prepared.RenumberedRows is { } renumbered && checkpointToExtend.CopiedCount == 0)
+            {
+                logger.LogInformation("Category {CategoryId}: the database gives the copied {RenumberedRows} new ids. Nothing in SQL refers to the ids they had in the source.", category.Id, renumbered);
+            }
+
             return new MigrationWriteResult(
                 saved,
                 copied,
                 prepared.Skips.Count,
                 [.. prepared.Skips.Select(skip => skip.SourceId)],
                 AlreadyPresent: alreadyPresent,
-                SkipReasons: skipReasons);
+                SkipReasons: skipReasons,
+                Merged: prepared.Merges.Count,
+                Changed: prepared.Changes.Count);
         }, cancellationToken);
 
     // Checked before the insert, because the subtraction below can only catch a writer that over-reports.
@@ -129,6 +146,12 @@ sealed class EFCoreMigrationTarget(
 
                 await using var transaction = await dbContext.Database.BeginTransactionAsync(token);
 
+                // Only a reset that deletes is refused, because an optional category is retried after ServiceControl opens and keeps its rows.
+                if (storeKeyed is not null && await dbContext.GetSetting<DateTime?>(SettingKeys.MigrationHostOpenedOnTarget, token) is not null)
+                {
+                    throw new InvalidOperationException($"Category {reset.CategoryId} cannot be retried, because ServiceControl has opened on this database since the copy and its tables may now hold live rows. A retry deletes every row in them, so it is only possible before ServiceControl first opens on this database.");
+                }
+
                 var deletedRows = storeKeyed is null ? 0 : await storeKeyed.DeleteCopiedRows(dbContext, token);
                 var stored = await dbContext.UpsertCheckpoint(reset, token);
                 await transaction.CommitAsync(token);
@@ -142,7 +165,7 @@ sealed class EFCoreMigrationTarget(
             }
             else
             {
-                logger.LogInformation("Reset category {CategoryId} for a retry and deleted the {DeletedRowCount} rows it copied, because a re-read would add them again under new keys", reset.CategoryId, deleted);
+                logger.LogInformation("Reset category {CategoryId} for a retry and deleted the {DeletedRowCount} rows it copied, because a re-read would add them a second time", reset.CategoryId, deleted);
             }
 
             return saved;
