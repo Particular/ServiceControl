@@ -50,6 +50,7 @@ This section points to sources that explain why ServiceControl is designed the w
 
 - [Architecture and design decisions](decisions/)
 - [RavenDB index search engine and rebuilds](decisions/2026-10-20-ravendb-index-search-engine-and-rebuilds.md) — which search engine a new or rebuilt index uses, why ServiceControl no longer writes database engine settings, how developers and operators learn about an index rebuild, why a locked index with a changed definition stops the start-up, and why ServiceControl queries only through static indexes
+- [RavenDB index database placement](decisions/2026-11-12-ravendb-index-database-placement.md) — which database an index class is deployed to in the error persister, why the namespace decides it, and how to add a new index
 
 ### Decisions recorded in pull requests
 
