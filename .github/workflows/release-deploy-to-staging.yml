@@ -18,6 +18,7 @@ jobs:
         with:
           version: ${{ inputs.version }}
           deploy-environment: staging
+          exclude-package-pattern: "Particular.ServiceControl.Management.*.nupkg"
           api-key: ${{ secrets.FEEDZIO_PUBLISH_API_KEY }}
   push-powershell-packages-staging:
     uses: Particular/deployment-workflows/.github/workflows/push-powershell-packages.yml@1.0.0
