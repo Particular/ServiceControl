@@ -1,4 +1,4 @@
-name: Release
+name: Build And Stage Release Artifacts
 on:
   push:
     tags:
@@ -8,6 +8,8 @@ env:
   DOTNET_NOLOGO: true
 jobs:
   windows-installers:
+    permissions:
+      contents: write
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
   containers:
@@ -18,4 +20,12 @@ jobs:
     secrets: inherit
   cloud-tests:
     uses: ./.github/workflows/cloud-database-tests.yml
+    secrets: inherit
+  stage-artifacts:
+    needs: [windows-installers, containers, db-container]
+    permissions:
+      contents: write
+    uses: ./.github/workflows/release-deploy-to-staging.yml
+    with:
+      version: ${{ github.ref_name }}
     secrets: inherit
