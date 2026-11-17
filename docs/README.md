@@ -2,10 +2,10 @@
 
 ## About this repository
 
-ServiceControl is the monitoring component of the Particular Service Platform: it ingests audit and error messages, tracks endpoint heartbeats, and exposes results over an HTTP API consumed by ServicePulse. For local run and debug steps, see the `README.md`. For test categories and setup, see `testing.md`. For coding conventions, see `coding-and-design-guidelines.md`.
+ServiceControl is the monitoring component of the Particular Service Platform: it ingests audit and error messages, tracks endpoint heartbeats, and exposes results over an HTTP API consumed by ServicePulse. For local run and debug steps, see the `README.md`. For test categories and setup, see `testing.md`. For rules a change must follow, see the Guidelines section.
 
 - `src/` — ServiceControl, ServiceControl.Audit, ServiceControl.Monitoring instances, persisters, and their test projects
-- `docs/` — design rationale, testing guidance, and architecture decision records
+- `docs/` — design rationale, testing guidance, guidelines, and architecture decision records
 - `deploy/` — PowerShell installation and management modules for ServiceControl instances
 - `tools/` — build and CI helper scripts
 - `.github/workflows/` — CI pipelines for build, test, container publishing, and dependency maintenance
@@ -15,7 +15,6 @@ ServiceControl is the monitoring component of the Particular Service Platform: i
 - [ServiceControl documentation](https://docs.particular.net/servicecontrol/) — public documentation entry point
 - [README.md](../README.md) — how to run and debug ServiceControl, ServiceControl.Audit, and ServiceControl.Monitoring locally
 - [Testing overview](testing.md) — index of test kinds, local setup for each, the cloud database tests, and the scenario checklists to rerun after a change
-- [Coding and design guidelines](coding-and-design-guidelines.md) — conventions for new code
 - [Deployment](deployment.md) and [Packaging](packaging.md) — how instances are packaged and deployed
 
 ## Architecture and design
@@ -39,6 +38,13 @@ This section points to sources that explain why ServiceControl is designed the w
 ## Guidelines
 
 - [Database schema and index changes](guidelines/database-schema-and-index-changes.md) — any change to a RavenDB index definition, a document convention, or an EF Core entity or migration: treat it as a breaking change, ship it in a major release or opt-in in a minor, and record it in the upgrade guide in the same pull request.
+- [Prefer Microsoft abstractions](guidelines/microsoft-abstractions.md) — changes under `src/**` except `src/ServiceControl.Config/**` that add or change a hosted service, host or builder extension, service registration, or logging: use the Microsoft abstraction, an `IHostedService` for background work, and `ILogger<T>`.
+- [Prefer explicit container registration](guidelines/explicit-container-registration.md) — changes under `src/**` except `src/ServiceControl.Config/**` that add or change a service registration or constructor dependency: register services explicitly and inject through constructors.
+- [Prefer explicit persistence operations](guidelines/explicit-persistence-operations.md) — changes under `src/*Persistence*/**` and any change that adds or changes a persistence operation or unit of work: use a direct data-store method that commits before it returns, and a unit of work only for caller-composed atomic batches.
+
+## Upstream contracts
+
+- [NServiceBus: logging](https://github.com/Particular/NServiceBus/blob/master/docs/logging.md) — when Core guarantees an `ILoggerFactory` inside an endpoint, and how components should log
 
 ## Decisions and rationale
 
