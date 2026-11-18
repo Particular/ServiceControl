@@ -37,12 +37,12 @@
                         {
                             try
                             {
+                                //it's possible that endpoints have been created but haven't yet had their throughput written. Give leeway on CreatedDate to allow for this scenario.
+                                //endpoints that were created before the CreatedDate field was introduced are guaranteed to be older and hence have valid throughput
                                 var endpointsWithoutThroughput = data.EndpointGroupPerQueue.Where(endpoint => !endpoint.CreatedDate.HasValue || endpoint.CreatedDate.Value <= timeProvider.GetUtcNow().AddDays(-1)).ToArray();
                                 if (endpointsWithoutThroughput.Any())
                                 {
                                     logger.LogInformation("Removing Endpoint {EndpointName} from throughput due to no recent activity", data.EndpointName);
-                                    //it's possible that endpoints have been created but haven't yet had their throughput written. Give leeway on CreatedDate to allow for this scenario.
-                                    //endpoints that were created before the CreatedDate field was introduced are guaranteed to be older and hence have valid throughput
                                     await dataStore.RemoveEndpoints([.. endpointsWithoutThroughput.Select(endpoint => endpoint.Id)], cancellationToken);
                                 }
                             }
