@@ -189,11 +189,6 @@ public sealed class MigrationEngine(
                     break;
                 }
 
-                foreach (var id in result.SkippedIds)
-                {
-                    logger.LogWarning("Skipped {SourceId} in category {CategoryId}", id, category.Id);
-                }
-
                 processedThisRun += bodySkips + result.Copied + result.Skipped + result.AlreadyPresent;
                 skippedThisRun += bodySkips + FaultSkips(result.SkipReasons);
 

@@ -378,25 +378,6 @@ class MigrationEngineFailurePathTests
     }
 
     [Test]
-    public async Task Every_row_the_target_skips_is_named_in_the_log()
-    {
-        // The counts say how much was left behind. Only the log says which rows, and it is the way back
-        // to them while the RavenDB database still exists.
-        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
-        var source = new InMemoryMigrationSource();
-        source.Seed(category.Id, Row("a"), Row("b"));
-        var checkpointStore = new InMemoryMigrationCheckpointStore();
-        var target = new InMemoryMigrationTarget(checkpointStore);
-        target.RejectKey("b", MigrationSkipReason.PastRetention);
-        var logger = new CapturingLogger();
-        var engine = new MigrationEngine(source, target, checkpointStore, new FakeTimeProvider(), new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []), logger);
-
-        await engine.RunCategoryAsync(category);
-
-        Assert.That(logger.Entries.Select(entry => entry.Message), Has.Some.EqualTo("Skipped b in category KnownEndpoints"));
-    }
-
-    [Test]
     public async Task A_stop_between_batches_leaves_the_row_in_progress_at_the_batch_that_committed()
     {
         // The stop lands in the source rather than in a write, so nothing is mid-transaction: the row
