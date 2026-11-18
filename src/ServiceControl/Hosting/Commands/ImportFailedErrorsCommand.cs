@@ -4,13 +4,16 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using EndpointControl.Handlers;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Monitoring;
     using NServiceBus;
     using Operations;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
+    using Persistence;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
@@ -53,6 +56,10 @@
 
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.AddServiceControl(settings, endpointConfiguration, new RecoverabilityComponent());
+
+            // Heartbeat monitoring normally registers the enricher that records each message's endpoints, and this host does not run it.
+            hostBuilder.Services.AddSingleton<IEndpointInstanceMonitoring, EndpointInstanceMonitoring>();
+            hostBuilder.Services.AddErrorMessageEnricher<DetectNewEndpointsFromErrorImportsEnricher>();
 
             return hostBuilder.Build();
         }
