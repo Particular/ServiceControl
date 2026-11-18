@@ -1,0 +1,5 @@
+name: Monitor Windows runner resources
+description: Save resource samples to GitHub artifacts while the WSL experiment runs
+runs:
+  using: node24
+  main: monitor.mjs

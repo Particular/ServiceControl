@@ -1,0 +1,11 @@
+{
+  "name": "wsl-stall-monitor",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@actions/artifact": "6.3.1"
+  }
+}

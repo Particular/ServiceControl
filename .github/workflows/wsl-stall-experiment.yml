@@ -1,7 +1,6 @@
-# Experiment: does pinning WSL to 2.7.12 (the last version before the runner image bump in
-# September 2026) stop the Setup WSL stalls? Two arms, four container categories, twenty
-# iterations each. Timed-out jobs may have no step records or final log.
-# Only RabbitMQ iteration 1 in each arm sends pings; the checks are idle between runs.
+# Compare Build alone, Setup WSL alone, and both together, with image WSL and WSL 2.7.12.
+# Resource samples are taken every 15 seconds and uploaded to GitHub about once a minute.
+# Timed-out jobs may have no final log; already uploaded snapshots remain available.
 # Temporary; delete the branch when the experiment is done.
 name: WSL stall experiment
 on:
@@ -18,19 +17,19 @@ defaults:
     shell: pwsh
 jobs:
   probe:
-    name: ${{ matrix.arm }}-${{ matrix.test-category }}-${{ matrix.iteration }}
+    name: ${{ matrix.arm }}-${{ matrix.workload }}-${{ matrix.test-category }}-${{ matrix.iteration }}
     runs-on: windows-latest
-    concurrency:
-      group: ${{ format('wsl-stall-experiment-{0}', matrix.test-category == 'RabbitMQ' && matrix.iteration == 1 && matrix.arm || format('{0}-{1}-{2}-{3}', github.run_id, matrix.arm, matrix.test-category, matrix.iteration)) }}
-      cancel-in-progress: false
     # A healthy job finishes in about six minutes. A stall never finishes, so cap it early.
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         arm: [ image-wsl, wsl-2.7.12 ]
+        workload: [ build-only, wsl-only, concurrent ]
         test-category: [ SqlServer, PostgreSql, RabbitMQ, IBMMQ ]
-        iteration: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 ]
+        iteration: [ 1, 2, 3, 4, 5 ]
+    env:
+      DIAGNOSTIC_PREFIX: wsl-${{ github.run_attempt }}-${{ matrix.arm }}-${{ matrix.workload }}-${{ matrix.test-category }}-${{ matrix.iteration }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
@@ -57,45 +56,12 @@ jobs:
           ./tools/dotnet-install.ps1 -SkipNonVersionedFiles -InstallDir "C:\Program Files\dotnet" -Runtime windowsdesktop -Version ${{ env.RuntimeVersion }}
       - name: Select test projects
         run: ./tools/select-test-projects.ps1 -Category ${{ matrix.test-category }}
-      - name: Healthchecks heartbeat
-        if: matrix.test-category == 'RabbitMQ' && matrix.iteration == 1
-        background: true
-        continue-on-error: true
-        timeout-minutes: 15
-        env:
-          HEALTHCHECK_ID: ${{ matrix.arm == 'image-wsl' && 'ea91a5c0-a8fb-40e7-b6c7-21a4aa891303' || '7f9d698f-2e97-4e58-9b15-d8ae6983e2e5' }}
-        run: |
-          $check = $env:HEALTHCHECK_ID
-          if ($check -notmatch '^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$') {
-            Write-Warning 'Healthchecks heartbeat is disabled: the check ID for this arm is missing or invalid.'
-            exit 0
-          }
-          $stop = Join-Path $env:RUNNER_TEMP 'wsl-heartbeat.stop'
-          $handler = [Net.Http.HttpClientHandler]::new()
-          $handler.AllowAutoRedirect = $false
-          $client = [Net.Http.HttpClient]::new($handler)
-          $client.Timeout = [TimeSpan]::FromSeconds(5)
-          try {
-            while (-not (Test-Path -LiteralPath $stop)) {
-              try {
-                $response = $client.GetAsync("https://hc-ping.com/$check").GetAwaiter().GetResult()
-                try {
-                  if (-not $response.IsSuccessStatusCode) {
-                    Write-Warning "Healthchecks heartbeat returned HTTP $([int]$response.StatusCode)."
-                  }
-                } finally {
-                  $response.Dispose()
-                }
-              } catch [Net.Http.HttpRequestException], [OperationCanceledException] {
-                Write-Warning 'Healthchecks heartbeat request failed or timed out.'
-              }
-              for ($i = 0; $i -lt 60 -and -not (Test-Path -LiteralPath $stop); $i++) {
-                Start-Sleep -Seconds 1
-              }
-            }
-          } finally {
-            $client.Dispose()
-          }
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Install resource monitor
+        run: npm ci --prefix tools/wsl-stall-monitor --no-audit --no-fund
       - name: Runner details
         timeout-minutes: 1
         run: |
@@ -118,7 +84,7 @@ jobs:
         continue-on-error: true
         uses: actions/upload-artifact@v7.0.2
         with:
-          name: wsl-${{ github.run_attempt }}-${{ matrix.arm }}-${{ matrix.test-category }}-${{ matrix.iteration }}-runner
+          name: ${{ env.DIAGNOSTIC_PREFIX }}-runner
           path: ${{ runner.temp }}/wsl-checkpoint.txt
           retention-days: 7
       - name: Pin WSL to 2.7.12
@@ -156,25 +122,44 @@ jobs:
           if ($reported -ne $target) { throw "Expected WSL $target after pinning, but wsl --version reports '$reported'" }
           "Pinned WSL version: $reported" | Add-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'wsl-checkpoint.txt')
           $global:LASTEXITCODE = 0
-      - name: Record start of overlap
+      - name: Record start of workload
+        env:
+          WORKLOAD: ${{ matrix.workload }}
         run: |
-          "Ready for Build and Setup WSL at $([DateTimeOffset]::UtcNow.ToString('o'))" |
+          "Ready for $env:WORKLOAD at $([DateTimeOffset]::UtcNow.ToString('o'))" |
             Add-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'wsl-checkpoint.txt')
-      - name: Save checkpoint before Build and Setup WSL
+      - name: Save checkpoint before workload
         continue-on-error: true
         uses: actions/upload-artifact@v7.0.2
         with:
-          name: wsl-${{ github.run_attempt }}-${{ matrix.arm }}-${{ matrix.test-category }}-${{ matrix.iteration }}-before-overlap
+          name: ${{ env.DIAGNOSTIC_PREFIX }}-before-workload
           path: ${{ runner.temp }}/wsl-checkpoint.txt
           retention-days: 7
-      # The build only exists to load the runner while WSL provisions. NU1902 for
-      # System.Security.Cryptography.Pkcs would otherwise fail it before the contention starts.
+      - name: Monitor runner resources
+        background: true
+        continue-on-error: true
+        timeout-minutes: 15
+        uses: ./tools/wsl-stall-monitor
+      - name: Wait for first resource snapshot
+        timeout-minutes: 1
+        run: |
+          $ready = Join-Path $env:RUNNER_TEMP 'wsl-resources/ready'
+          $deadline = [DateTimeOffset]::UtcNow.AddSeconds(45)
+          while (-not (Test-Path -LiteralPath $ready)) {
+            if ([DateTimeOffset]::UtcNow -ge $deadline) {
+              throw 'The resource monitor did not upload its first snapshot within 45 seconds.'
+            }
+            Start-Sleep -Seconds 1
+          }
+      # Audit failures would remove the build load before the contention starts.
       - name: Build
+        if: matrix.workload != 'wsl-only'
         id: build
         background: true
         timeout-minutes: 5
         run: dotnet build tests.proj --configuration Release -graph -p:NuGetAudit=false
       - name: Setup WSL
+        if: matrix.workload != 'build-only'
         id: setup-wsl
         uses: Particular/setup-wsl-action@7e67069143b27e935a5c156d4c5319a7f152f6e8
         timeout-minutes: 5
@@ -183,13 +168,13 @@ jobs:
           enable-cache: false
       - name: Wait for build
         wait: build
-      - name: Stop heartbeat and record step outcomes
+      - name: Stop resource monitor and record step outcomes
         if: always()
         env:
           WSL_OUTCOME: ${{ steps.setup-wsl.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
         run: |
-          New-Item -ItemType File -Force -Path (Join-Path $env:RUNNER_TEMP 'wsl-heartbeat.stop') | Out-Null
+          New-Item -ItemType File -Force -Path (Join-Path $env:RUNNER_TEMP 'wsl-monitor.stop') | Out-Null
           @(
             "utc=$([DateTimeOffset]::UtcNow.ToString('o'))"
             "Setup WSL outcome: $env:WSL_OUTCOME"
@@ -200,6 +185,6 @@ jobs:
         continue-on-error: true
         uses: actions/upload-artifact@v7.0.2
         with:
-          name: wsl-${{ github.run_attempt }}-${{ matrix.arm }}-${{ matrix.test-category }}-${{ matrix.iteration }}-outcomes
+          name: ${{ env.DIAGNOSTIC_PREFIX }}-outcomes
           path: ${{ runner.temp }}/wsl-checkpoint.txt
           retention-days: 7
