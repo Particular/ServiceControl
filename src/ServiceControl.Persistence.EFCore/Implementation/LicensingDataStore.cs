@@ -104,7 +104,6 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
                     row.NormalizedSanitizedName = Normalize(sanitizedName);
                     row.UserIndicator = endpoint.UserIndicator ?? string.Empty;
                     row.Scope = endpoint.Scope;
-                    row.CreatedDate = endpoint.CreatedDate;
                     row.EndpointIndicators = indicators;
                 },
                 token);
