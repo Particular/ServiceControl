@@ -620,14 +620,15 @@ class RetentionSweepTests : ErrorIngestionTestBase
     public async Task A_cancelled_sweep_keeps_the_errors_of_passes_that_failed_first()
     {
         EFSettings.ErrorRetentionPeriod = TimeSpan.FromDays(1_000_000);
+        EFSettings.EventsRetentionPeriod = TimeSpan.FromDays(14);
+        await Store([.. Enumerable.Range(0, 1500).Select(i => EventLogRow($"expired-{i}", Now.AddDays(-15)))]);
 
+        // The failed messages pass throws before any database call, so the first delete is an event log batch.
         using var cancellation = new CancellationTokenSource();
-        var sweeper = GetSweeper();
+        cancelAfterBatchDelete.Cancellation = cancellation;
 
-        // The failed messages pass throws before any database call, so by the time the start returns
-        // the event log pass is waiting on the database and the cancellation lands there.
+        var sweeper = GetSweeper();
         sweeper.TryStartManualSweep(null, null, cancellation.Token);
-        await cancellation.CancelAsync();
 
         await WaitForManualSweepToFinish();
 
@@ -643,13 +644,14 @@ class RetentionSweepTests : ErrorIngestionTestBase
     [Test]
     public async Task Manual_sweep_cancelled_part_way_reports_cancelled()
     {
-        using var cancellation = new CancellationTokenSource();
-        var sweeper = GetSweeper();
+        EFSettings.EventsRetentionPeriod = TimeSpan.FromDays(14);
+        await Store([.. Enumerable.Range(0, 1500).Select(i => EventLogRow($"expired-{i}", Now.AddDays(-15)))]);
 
-        // The background sweep runs on this thread until its first database call, so it is still
-        // running when the token is cancelled.
+        using var cancellation = new CancellationTokenSource();
+        cancelAfterBatchDelete.Cancellation = cancellation;
+
+        var sweeper = GetSweeper();
         sweeper.TryStartManualSweep(null, null, cancellation.Token);
-        await cancellation.CancelAsync();
 
         await WaitForManualSweepToFinish();
 
