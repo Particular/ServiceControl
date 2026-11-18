@@ -8,7 +8,7 @@ using Persistence;
 using ServiceControl.Transports.BrokerThroughput;
 using Shared;
 
-public class MonitoringService(ILicensingDataStore dataStore, IBrokerThroughputQuery? brokerThroughputQuery = null)
+public class MonitoringService(ILicensingDataStore dataStore, TimeProvider timeProvider, IBrokerThroughputQuery? brokerThroughputQuery = null)
 {
     public async Task RecordMonitoringThroughput(byte[] throughputMessage, CancellationToken cancellationToken = default)
     {
@@ -31,7 +31,7 @@ public class MonitoringService(ILicensingDataStore dataStore, IBrokerThroughputQ
                     {
                         SanitizedName = brokerThroughputQuery != null ? brokerThroughputQuery.SanitizeEndpointName(e.Name) : e.Name,
                         EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()],
-                        CreatedDate = DateTime.UtcNow,
+                        CreatedDate = timeProvider.GetUtcNow().Date
                     };
                     await dataStore.SaveEndpoint(endpoint, cancellationToken);
                 }
