@@ -97,7 +97,7 @@ public class BrokerThroughputCollectorHostedService(
                     SanitizedName = queueName.SanitizedName + postfix,
                     Scope = queueName.Scope,
                     EndpointIndicators = [.. queueName.EndpointIndicators],
-                    CreatedDate = timeProvider.GetUtcNow().DateTime,
+                    CreatedDate = timeProvider.GetUtcNow().UtcDateTime,
                 };
 
                 await dataStore.SaveEndpoint(endpoint, cancellationToken);
