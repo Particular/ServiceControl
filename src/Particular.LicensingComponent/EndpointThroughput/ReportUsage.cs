@@ -33,7 +33,7 @@ class EndpointUsageReportHandler(
             {
                 EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()],
                 SanitizedName = brokerThroughputQuery?.SanitizeEndpointName(endpointId.Name) ?? endpointId.Name,
-                CreatedDate = timeProvider.GetUtcNow().Date
+                CreatedDate = timeProvider.GetUtcNow().DateTime
             };
 
             await licensingDataStore.SaveEndpoint(endpoint, context.CancellationToken);

@@ -31,7 +31,7 @@ public class MonitoringService(ILicensingDataStore dataStore, TimeProvider timeP
                     {
                         SanitizedName = brokerThroughputQuery != null ? brokerThroughputQuery.SanitizeEndpointName(e.Name) : e.Name,
                         EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()],
-                        CreatedDate = timeProvider.GetUtcNow().Date
+                        CreatedDate = timeProvider.GetUtcNow().DateTime
                     };
                     await dataStore.SaveEndpoint(endpoint, cancellationToken);
                 }
