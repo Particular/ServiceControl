@@ -62,7 +62,7 @@
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, $"Error encountered during decomissioned endpoint cleanup. Will try again in {timerPeriodDays} days.");
+                        logger.LogError(ex, $"Error encountered during decommissioned endpoint cleanup. Will try again in {timerPeriodDays} days.");
                     }
                 } while (await timer.WaitForNextTickAsync(cancellationToken));
             }
