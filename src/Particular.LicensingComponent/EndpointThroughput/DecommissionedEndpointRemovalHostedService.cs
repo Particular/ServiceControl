@@ -52,7 +52,7 @@
                             }
                             catch (Exception ex)
                             {
-                                logger.LogError(ex, $"Error encountered during decomissioned endpoint cleanup for endpoint {data.EndpointName}. Will try again in {timerPeriodDays} days.");
+                                logger.LogError(ex, $"Error encountered during decommissioned endpoint cleanup for endpoint {data.EndpointName}. Will try again in {timerPeriodDays} days.");
                             }
                         }
                     }
