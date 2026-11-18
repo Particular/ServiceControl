@@ -13,5 +13,6 @@
         Task<ReportGenerationState> GetReportGenerationState(CancellationToken cancellationToken = default);
         Task<List<string>> GetReportMasks(CancellationToken cancellationToken = default);
         Task UpdateReportMasks(List<string> reportMaskUpdates, CancellationToken cancellationToken = default);
+        IAsyncEnumerable<EndpointThroughput> GetDistinctEndpointThroughput(DateOnly? throughputMaxDate = null, CancellationToken cancellationToken = default);
     }
 }
