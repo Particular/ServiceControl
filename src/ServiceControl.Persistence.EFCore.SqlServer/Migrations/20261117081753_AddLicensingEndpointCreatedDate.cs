@@ -15,7 +15,7 @@ namespace ServiceControl.Persistence.EFCore.SqlServer.Migrations
                 name: "CreatedDate",
                 table: "LicensingEndpoints",
                 type: "datetime2",
-                nullable: true);
+                nullable: false);
         }
 
         /// <inheritdoc />

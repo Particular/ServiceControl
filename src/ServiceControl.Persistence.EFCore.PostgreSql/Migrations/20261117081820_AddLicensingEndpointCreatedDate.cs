@@ -15,7 +15,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                 name: "created_date",
                 table: "licensing_endpoints",
                 type: "timestamp with time zone",
-                nullable: true);
+                nullable: false);
         }
 
         /// <inheritdoc />
