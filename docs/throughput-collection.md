@@ -6,6 +6,9 @@ The Error instance orchestrates the collection of usage data from three sources:
 - The broker is queried once a day. Depending on the broker, the initial query retrieves the last 30 days of data.
 - The Monitoring instance uses its metrics calculations to send usage data to the Error instance every 5 minutes. It sends the data to a predefined satellite queue with the default name `servicecontrol.throughput`.
 
+### Cleanup
+
+As of 6.20.0, any throughput entity from any of the above sources that doesn't have any throughput recorded for the throughput reporting period (14 months) will be removed. As of 6.22.3 this removal check is a separate hosted service that runs once a day. New endpoints get a one-day grace period (allowing for the processes listed above to query and write throughput for newly discovered queues, see [#6142](https://github.com/Particular/ServiceControl/issues/6142))
 
 ### Why is the "servicecontrol.throughput" queue not a sub queue of the Error instance?
 
@@ -16,7 +19,6 @@ At the time of creating this feature it was decided that having a queue name tha
 If the queue name was based on the Error instance name (for example "ErrorInstanceQueueName.throughput") then **every** customer would have to make updates to their Monitoring instance config to set the correct queue name.
 
 The decision favored simplicity of upgrade over existing ServiceControl queue name conventions, consistent with the tech lead preferences for [software that "just works"](https://github.com/Particular/Strategy/blob/master/tech-lead-preferences/it-just-works.md#it-just-works) and [convenience](https://github.com/Particular/Strategy/blob/master/tech-lead-preferences/usability.md#convenience).
-
 
 #### Why isn't the ServiceControl Management Utility (SCMU) used to ensure the names match?
 

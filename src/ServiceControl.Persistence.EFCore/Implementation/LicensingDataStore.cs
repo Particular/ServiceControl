@@ -94,6 +94,7 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
                     NormalizedSanitizedName = Normalize(sanitizedName),
                     UserIndicator = endpoint.UserIndicator ?? string.Empty,
                     Scope = endpoint.Scope,
+                    CreatedDate = endpoint.CreatedDate ?? DateTime.MinValue, // Not specifying as UTC since that could overflow the min datetime2 in SQL Server
                     EndpointIndicators = indicators
                 },
                 row =>
@@ -360,6 +361,7 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
             EndpointIndicators = [.. row.EndpointIndicators],
             UserIndicator = row.UserIndicator,
             Scope = row.Scope,
+            CreatedDate = row.CreatedDate,
             LastCollectedDate = lastCollectedDate ?? default
         };
 

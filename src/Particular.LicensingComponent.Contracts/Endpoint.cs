@@ -9,6 +9,7 @@ public record Endpoint(EndpointIdentifier Id)
     {
     }
 
+    public DateTime? CreatedDate { get; set; }
     public string SanitizedName { get; set; }
     public string[] EndpointIndicators { get; set; }
     public string UserIndicator { get; set; }

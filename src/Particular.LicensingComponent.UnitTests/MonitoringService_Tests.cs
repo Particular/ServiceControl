@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Approvals;
 using Contracts;
 using Infrastructure;
+using Microsoft.Extensions.Time.Testing;
 using MonitoringThroughput;
 using NUnit.Framework;
 using Persistence;
@@ -84,7 +85,7 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
             EndpointThroughputData = new EndpointThroughputData[] { new() { Name = endpointName, Throughput = 15 } }
         };
 
-        var monitoringService = new MonitoringService(DataStore, new BrokerThroughputQuery_WithSanitization());
+        var monitoringService = new MonitoringService(DataStore, new FakeTimeProvider(), new BrokerThroughputQuery_WithSanitization());
         byte[] messageBytes = JsonSerializer.SerializeToUtf8Bytes(message);
         await monitoringService.RecordMonitoringThroughput(messageBytes);
         string endpointNameSanitized = "e-ndpoint-1";
@@ -166,7 +167,7 @@ class MonitoringService_Tests : ThroughputCollectorTestFixture
     {
         // Arrange
         var dataStore = new YieldingLicensingDataStore();
-        var monitoringService = new MonitoringService(dataStore);
+        var monitoringService = new MonitoringService(dataStore, new FakeTimeProvider());
 
         string[] endpointNames = [.. Enumerable.Range(1, 20).Select(i => $"Endpoint{i}")];
         var message = new RecordEndpointThroughputData

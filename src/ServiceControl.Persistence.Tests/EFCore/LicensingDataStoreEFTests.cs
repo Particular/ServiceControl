@@ -17,6 +17,25 @@ class LicensingDataStoreEFTests : PersistenceTestBase
     static DateOnly Today => DateOnly.FromDateTime(DateTime.UtcNow);
 
     [Test]
+    public async Task Saving_an_endpoint_again_preserves_its_created_date()
+    {
+        var createdDate = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc);
+        var endpoint = new Endpoint("Endpoint", ThroughputSource.Broker)
+        {
+            SanitizedName = "Endpoint",
+            CreatedDate = createdDate
+        };
+        await LicensingDataStore.SaveEndpoint(endpoint);
+
+        endpoint.CreatedDate = null;
+        await LicensingDataStore.SaveEndpoint(endpoint);
+
+        var storedEndpoint = await LicensingDataStore.GetEndpoint(endpoint.Id);
+        Assert.That(storedEndpoint, Is.Not.Null);
+        Assert.That(storedEndpoint.CreatedDate, Is.EqualTo(createdDate));
+    }
+
+    [Test]
     public async Task Recording_the_same_day_twice_adds_to_that_day()
     {
         await SaveEndpoint("Endpoint", ThroughputSource.Monitoring);

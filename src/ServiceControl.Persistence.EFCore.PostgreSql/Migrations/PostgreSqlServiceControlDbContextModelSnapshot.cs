@@ -18,7 +18,7 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.11")
+                .HasAnnotation("ProductVersion", "10.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -618,6 +618,10 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                     b.Property<int>("ThroughputSource")
                         .HasColumnType("integer")
                         .HasColumnName("throughput_source");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date");
 
                     b.PrimitiveCollection<List<string>>("EndpointIndicators")
                         .IsRequired()

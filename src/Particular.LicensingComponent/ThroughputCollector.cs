@@ -275,7 +275,7 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
         return throughputReport;
     }
 
-    async IAsyncEnumerable<EndpointData> GetDistinctEndpointData(DateOnly? throughputMaxDate, [EnumeratorCancellation] CancellationToken cancellationToken)
+    public async IAsyncEnumerable<EndpointThroughput> GetDistinctEndpointThroughput(DateOnly? throughputMaxDate = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var endpoints = (await dataStore.GetAllEndpoints(false, cancellationToken)).ToArray();
         var queueNames = endpoints.Select(endpoint => endpoint.SanitizedName).Distinct().ToList();
@@ -302,16 +302,21 @@ public class ThroughputCollector(ILogger<ThroughputCollector> logger, ILicensing
                 }
             }
 
-            var userIndicator = UserIndicator(endpointGroupPerQueue) ?? null;
+            yield return new(endpointName, endpointGroupPerQueue, throughputData);
+        }
+    }
 
-            if (throughputData.Any(x => x.Any()))
-            {
-                yield return new EndpointData(endpointName, throughputData, userIndicator, EndpointScope(endpointGroupPerQueue), EndpointIndicators(endpointGroupPerQueue), IsKnownEndpoint(endpointGroupPerQueue));
-            }
-            else
-            {
-                await dataStore.RemoveEndpoints([.. endpointGroupPerQueue.Select(endpoint => endpoint.Id)], cancellationToken);
-            }
+    async IAsyncEnumerable<EndpointData> GetDistinctEndpointData(DateOnly? throughputMaxDate, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        await foreach (var data in GetDistinctEndpointThroughput(throughputMaxDate, cancellationToken).Where(data => data.ThroughputData.Any(x => x.Any())))
+        {
+            yield return new EndpointData(
+                data.EndpointName,
+                data.ThroughputData,
+                UserIndicator(data.EndpointGroupPerQueue) ?? null,
+                EndpointScope(data.EndpointGroupPerQueue),
+                EndpointIndicators(data.EndpointGroupPerQueue),
+                IsKnownEndpoint(data.EndpointGroupPerQueue));
         }
     }
 

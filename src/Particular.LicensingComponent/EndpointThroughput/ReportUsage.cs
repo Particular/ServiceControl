@@ -15,6 +15,7 @@ public class EndpointUsageReport : IMessage
 [Handler]
 class EndpointUsageReportHandler(
     ILicensingDataStore licensingDataStore,
+    TimeProvider timeProvider,
     IBrokerThroughputQuery? brokerThroughputQuery = null
 ) : IHandleMessages<EndpointUsageReport>
 {
@@ -31,7 +32,8 @@ class EndpointUsageReportHandler(
             endpoint = new Particular.LicensingComponent.Contracts.Endpoint(endpointId)
             {
                 EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()],
-                SanitizedName = brokerThroughputQuery?.SanitizeEndpointName(endpointId.Name) ?? endpointId.Name
+                SanitizedName = brokerThroughputQuery?.SanitizeEndpointName(endpointId.Name) ?? endpointId.Name,
+                CreatedDate = timeProvider.GetUtcNow().UtcDateTime
             };
 
             await licensingDataStore.SaveEndpoint(endpoint, context.CancellationToken);
