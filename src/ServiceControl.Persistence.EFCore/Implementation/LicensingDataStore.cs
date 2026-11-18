@@ -113,17 +113,7 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
         {
             var results = queueNames.ToDictionary(queueName => queueName, _ => Enumerable.Empty<ThroughputData>());
 
-            var requestedByNormalizedName = new Dictionary<string, string>();
-            foreach (var queueName in queueNames)
-            {
-                var normalizedName = Normalize(queueName);
-                if (!requestedByNormalizedName.ContainsKey(normalizedName))
-                {
-                    requestedByNormalizedName[normalizedName] = queueName;
-                }
-            }
-
-            var normalizedNames = requestedByNormalizedName.Keys.ToList();
+            var normalizedNames = queueNames.Select(Normalize).Distinct().ToList();
             var from = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime).AddMonths(-ThroughputReporting.ReportedMonths);
 
             var rows = await context.LicensingEndpoints
@@ -134,15 +124,23 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
                     throughput => new { throughput.NormalizedName, throughput.ThroughputSource },
                     (endpoint, throughput) => new
                     {
-                        endpoint.NormalizedSanitizedName,
+                        endpoint.NormalizedName,
+                        endpoint.SanitizedName,
                         endpoint.ThroughputSource,
                         throughput.DateUtc,
                         throughput.MessageCount
                     })
                 .ToListAsync(token);
 
-            foreach (var endpointRows in rows.GroupBy(row => (row.NormalizedSanitizedName, row.ThroughputSource)))
+            foreach (var endpointRows in rows.GroupBy(row => (row.NormalizedName, row.ThroughputSource, row.SanitizedName)))
             {
+                // The query ignores case, so it can return spellings nobody asked for. Each endpoint's throughput goes under its
+                // own spelling, because the collector deletes any endpoint whose spelling comes back empty.
+                if (!results.TryGetValue(endpointRows.Key.SanitizedName, out var queueThroughput))
+                {
+                    continue;
+                }
+
                 var throughputData = new ThroughputData(endpointRows
                     .Where(row => !throughputMaxDate.HasValue || row.DateUtc < throughputMaxDate.Value)
                     .OrderBy(row => row.DateUtc)
@@ -151,8 +149,7 @@ class LicensingDataStore(IServiceScopeFactory scopeFactory, TimeProvider timePro
                     ThroughputSource = endpointRows.Key.ThroughputSource
                 };
 
-                var queueName = requestedByNormalizedName[endpointRows.Key.NormalizedSanitizedName];
-                results[queueName] = results[queueName].Append(throughputData);
+                results[endpointRows.Key.SanitizedName] = queueThroughput.Append(throughputData);
             }
 
             return (IDictionary<string, IEnumerable<ThroughputData>>)results;

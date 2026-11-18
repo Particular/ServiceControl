@@ -103,6 +103,65 @@ class EndpointsTests : PersistenceTestBase
     }
 
     [Test]
+    public async Task Should_return_each_spelling_its_own_throughput_when_sanitized_names_differ_only_in_case()
+    {
+        var yesterday = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
+        var broker = new Endpoint("Smoke.Billing", ThroughputSource.Broker) { SanitizedName = "Smoke.Billing" };
+        var monitoring = new Endpoint("smoke.billing", ThroughputSource.Monitoring) { SanitizedName = "smoke.billing" };
+        await LicensingDataStore.SaveEndpoint(broker);
+        await LicensingDataStore.SaveEndpoint(monitoring);
+        await LicensingDataStore.RecordEndpointThroughput(broker.Id.Name, ThroughputSource.Broker, yesterday, 100);
+        await LicensingDataStore.RecordEndpointThroughput(monitoring.Id.Name, ThroughputSource.Monitoring, yesterday, 30);
+
+        var throughput = await LicensingDataStore.GetEndpointThroughputByQueueName([broker.SanitizedName, monitoring.SanitizedName]);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(throughput[broker.SanitizedName].Select(data => (data.ThroughputSource, data[yesterday])),
+                Is.EqualTo(new[] { (ThroughputSource.Broker, 100L) }), broker.SanitizedName);
+            Assert.That(throughput[monitoring.SanitizedName].Select(data => (data.ThroughputSource, data[yesterday])),
+                Is.EqualTo(new[] { (ThroughputSource.Monitoring, 30L) }), monitoring.SanitizedName);
+        }
+    }
+
+    [Test]
+    public async Task Should_leave_out_a_spelling_that_was_not_requested()
+    {
+        var yesterday = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
+        var broker = new Endpoint("Smoke.Billing", ThroughputSource.Broker) { SanitizedName = "Smoke.Billing" };
+        var monitoring = new Endpoint("smoke.billing", ThroughputSource.Monitoring) { SanitizedName = "smoke.billing" };
+        await LicensingDataStore.SaveEndpoint(broker);
+        await LicensingDataStore.SaveEndpoint(monitoring);
+        await LicensingDataStore.RecordEndpointThroughput(broker.Id.Name, ThroughputSource.Broker, yesterday, 100);
+        await LicensingDataStore.RecordEndpointThroughput(monitoring.Id.Name, ThroughputSource.Monitoring, yesterday, 30);
+
+        var throughput = await LicensingDataStore.GetEndpointThroughputByQueueName([broker.SanitizedName]);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(throughput.Keys, Is.EqualTo(new[] { broker.SanitizedName }));
+            Assert.That(throughput[broker.SanitizedName].Select(data => (data.ThroughputSource, data[yesterday])),
+                Is.EqualTo(new[] { (ThroughputSource.Broker, 100L) }));
+        }
+    }
+
+    [Test]
+    public async Task Should_return_one_throughput_entry_per_endpoint_when_endpoints_share_a_sanitized_name()
+    {
+        var yesterday = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
+        var dotted = new Endpoint("Sales.Billing", ThroughputSource.Audit) { SanitizedName = "Sales-Billing" };
+        var dashed = new Endpoint("Sales-Billing", ThroughputSource.Audit) { SanitizedName = "Sales-Billing" };
+        await LicensingDataStore.SaveEndpoint(dotted);
+        await LicensingDataStore.SaveEndpoint(dashed);
+        await LicensingDataStore.RecordEndpointThroughput(dotted.Id.Name, ThroughputSource.Audit, yesterday, 10);
+        await LicensingDataStore.RecordEndpointThroughput(dashed.Id.Name, ThroughputSource.Audit, yesterday, 20);
+
+        var throughput = await LicensingDataStore.GetEndpointThroughputByQueueName(["Sales-Billing"]);
+
+        Assert.That(throughput["Sales-Billing"].Select(data => data[yesterday]), Is.EquivalentTo(new[] { 10L, 20L }));
+    }
+
+    [Test]
     public async Task Should_retrieve_matching_endpoint_when_same_source()
     {
         // Arrange
