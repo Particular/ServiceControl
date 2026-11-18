@@ -1,4 +1,5 @@
-# Compare Build alone, Setup WSL alone, and both together, with image WSL and WSL 2.7.12.
+# Run Build and Setup WSL together, with image WSL and WSL 2.7.12. The restored-concurrent workload
+# restores NuGet packages before Setup WSL starts, so the overlapping build makes no package downloads.
 # Resource samples are taken every 15 seconds and uploaded to GitHub about once a minute.
 # Timed-out jobs may have no final log; already uploaded snapshots remain available.
 # Temporary; delete the branch when the experiment is done.
@@ -25,9 +26,9 @@ jobs:
       fail-fast: false
       matrix:
         arm: [ image-wsl, wsl-2.7.12 ]
-        workload: [ build-only, wsl-only, concurrent ]
+        workload: [ concurrent, restored-concurrent ]
         test-category: [ SqlServer, PostgreSql, RabbitMQ, IBMMQ ]
-        iteration: [ 1, 2, 3, 4, 5 ]
+        iteration: [ 1, 2, 3, 4, 5, 6, 7, 8 ]
     env:
       DIAGNOSTIC_PREFIX: wsl-${{ github.run_attempt }}-${{ matrix.arm }}-${{ matrix.workload }}-${{ matrix.test-category }}-${{ matrix.iteration }}
     steps:
@@ -122,6 +123,10 @@ jobs:
           if ($reported -ne $target) { throw "Expected WSL $target after pinning, but wsl --version reports '$reported'" }
           "Pinned WSL version: $reported" | Add-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'wsl-checkpoint.txt')
           $global:LASTEXITCODE = 0
+      - name: Restore NuGet packages
+        if: matrix.workload == 'restored-concurrent'
+        timeout-minutes: 5
+        run: dotnet restore tests.proj -p:Configuration=Release -p:NuGetAudit=false
       - name: Record start of workload
         env:
           WORKLOAD: ${{ matrix.workload }}
@@ -153,13 +158,11 @@ jobs:
           }
       # Audit failures would remove the build load before the contention starts.
       - name: Build
-        if: matrix.workload != 'wsl-only'
         id: build
         background: true
         timeout-minutes: 5
-        run: dotnet build tests.proj --configuration Release -graph -p:NuGetAudit=false
+        run: dotnet build tests.proj --configuration Release -graph -p:NuGetAudit=false ${{ matrix.workload == 'restored-concurrent' && '--no-restore' || '' }}
       - name: Setup WSL
-        if: matrix.workload != 'build-only'
         id: setup-wsl
         uses: Particular/setup-wsl-action@7e67069143b27e935a5c156d4c5319a7f152f6e8
         timeout-minutes: 5
