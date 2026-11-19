@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Raven.Client;
@@ -20,7 +21,7 @@ class FailedMessageStream(RavenReadOnlySourceLifecycle lifecycle)
 {
     /// <summary>
     /// Builds the function that turns each streamed failed message into a row. The function returns null for a message whose
-    /// status is not in <paramref name="statuses" />, and throws <see cref="InvalidOperationException" /> for a status that neither
+    /// status is not in <paramref name="statuses" />, and throws <see cref="InvalidOperationException" /> for a status that no
     /// failed message category copies.
     /// </summary>
     public Func<StreamResult<FailedMessage>, MigrationRow?> Project(IReadOnlyCollection<FailedMessageStatus> statuses) =>
@@ -28,9 +29,9 @@ class FailedMessageStream(RavenReadOnlySourceLifecycle lifecycle)
         {
             var status = result.Document.Status;
 
-            if (!MigrationCategoryRegistry.UnresolvedAndRetryIssuedStatuses.Contains(status) && !MigrationCategoryRegistry.ArchivedAndResolvedStatuses.Contains(status))
+            if (!CopiedStatuses.Contains(status))
             {
-                throw new InvalidOperationException($"The failed message document '{result.Id}' has the status value {(int)status}, which neither failed message category copies, so it would be left behind without a skip to show for it.");
+                throw new InvalidOperationException($"The failed message document '{result.Id}' has the status value {(int)status}, which no failed message category copies, so it would be left behind without a skip to show for it.");
             }
 
             if (!statuses.Contains(status))
@@ -49,6 +50,62 @@ class FailedMessageStream(RavenReadOnlySourceLifecycle lifecycle)
                     [MigrationMetadataKeys.LastModified] = ReadMetadataDate(result, Constants.Documents.Metadata.LastModified)
                 });
         };
+
+    /// <summary>
+    /// Every status some failed message category copies.
+    /// </summary>
+    public static readonly FailedMessageStatus[] CopiedStatuses =
+        [.. MigrationCategoryRegistry.RetryIssuedStatuses, .. MigrationCategoryRegistry.UnresolvedStatuses, .. MigrationCategoryRegistry.ArchivedAndResolvedStatuses];
+
+    /// <summary>
+    /// The cursor of a batch from <see cref="ClaimHolders" />, which follows the id of the last retry claim document it walked. It cannot be a
+    /// message id, so a resume tells the retry-issued messages apart from the claim holders that come after them.
+    /// </summary>
+    public const string ClaimHolderCursorPrefix = "claim-holder:";
+
+    /// <summary>
+    /// Reads the messages that hold a retry claim and are not retry-issued, whatever their status, after the claim document id in
+    /// <paramref name="resumeAfter" />, each row carrying <see cref="MigrationMetadataKeys.RetryClaimHeld" /> as true. The claim documents
+    /// stream in id order through <see cref="RavenDocumentStream.ByPrefix{TDocument}" />, so memory stays bounded by the batch size.
+    /// A claim whose message is gone makes no row. Every batch's cursor is <see cref="ClaimHolderCursorPrefix" /> and the last claim document id it walked.
+    /// </summary>
+    public async IAsyncEnumerable<MigrationBatch> ClaimHolders(string categoryId, string? resumeAfter, int batchSize, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var claimPrefix = RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId("");
+        var project = Project(CopiedStatuses);
+
+        // The claim document stands in as the row so the stream can batch it; the message it names replaces it below.
+        await foreach (var claims in RavenDocumentStream.ByPrefix<FailedMessageRetry>(
+            lifecycle, categoryId, lifecycle.Settings.DatabaseName, claimPrefix, resumeAfter, batchSize, RavenDocumentStream.MaxDocumentsWalkedPerBatch,
+            result => new MigrationRow(result.Id, result.Document, new Dictionary<string, object?>()), cancellationToken))
+        {
+            string[] messageIds = [.. claims.Rows.Select(claim => FailedMessageIdGenerator.MakeDocumentId(claim.SourceId[claimPrefix.Length..]))];
+            var found = new Dictionary<string, MigrationRow>(StringComparer.OrdinalIgnoreCase);
+
+            if (messageIds.Length > 0)
+            {
+                using var session = lifecycle.OpenSession(lifecycle.Settings.DatabaseName);
+
+                // Queried by id on the collection, which builds no index. A load would not do, because a session that does not track cannot hand back the document's metadata.
+                var query = session.Advanced.AsyncDocumentQuery<FailedMessage>(collectionName: FailedMessageIdGenerator.CollectionName).WhereIn("id()", messageIds.Cast<object>());
+                await using var results = await session.Advanced.StreamAsync(query, cancellationToken);
+
+                // The metadata is valid only while the stream is on its result, so each result becomes a row as it arrives.
+                while (await results.MoveNextAsync())
+                {
+                    // A retry-issued message is already in the batches before these.
+                    if (results.Current.Document.Status != FailedMessageStatus.RetryIssued)
+                    {
+                        var row = project(results.Current)!;
+                        found[results.Current.Id] = row with { Metadata = new Dictionary<string, object?>(row.Metadata) { [MigrationMetadataKeys.RetryClaimHeld] = true } };
+                    }
+                }
+            }
+
+            // A claim can outlive its message, which then has no row.
+            yield return new MigrationBatch([.. messageIds.Where(found.ContainsKey).Select(id => found[id])], ClaimHolderCursorPrefix + claims.Cursor);
+        }
+    }
 
     /// <summary>
     /// Returns the batch with every retry-issued row carrying <see cref="MigrationMetadataKeys.RetryClaimHeld" />, true when

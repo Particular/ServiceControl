@@ -12,10 +12,16 @@ using ServiceControl.MessageFailures;
 public static class MigrationCategoryRegistry
 {
     /// <summary>
-    /// The failed message statuses that are copied before the host opens. A message in one of these is waiting on
-    /// somebody, so an operator who cannot see it after the cutover has lost work.
+    /// The failed message status that is copied before the host opens, whether or not a retry claim is held. A retry
+    /// confirmation that arrives after the cutover resolves a message only if its row is already there.
     /// </summary>
-    public static readonly IReadOnlyList<FailedMessageStatus> UnresolvedAndRetryIssuedStatuses = [FailedMessageStatus.Unresolved, FailedMessageStatus.RetryIssued];
+    public static readonly IReadOnlyList<FailedMessageStatus> RetryIssuedStatuses = [FailedMessageStatus.RetryIssued];
+
+    /// <summary>
+    /// The failed message status that is copied in the background without a window, because an operator is waiting on
+    /// these however old they are.
+    /// </summary>
+    public static readonly IReadOnlyList<FailedMessageStatus> UnresolvedStatuses = [FailedMessageStatus.Unresolved];
 
     /// <summary>
     /// The failed message statuses that are copied in the background. These are history, so the instance is usable
@@ -44,8 +50,9 @@ public static class MigrationCategoryRegistry
         new(MigrationCategoryIds.GroupComments, MigrationCategoryKind.Required, CarriesBodies: false, Order: 16, MustFollow: MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages),
 
         // Optional, copied in the background once the host is open.
-        new(MigrationCategoryIds.EventLog, MigrationCategoryKind.Optional, CarriesBodies: false, Order: 1),
-        new(MigrationCategoryIds.ArchivedAndResolvedFailedMessages, MigrationCategoryKind.Optional, CarriesBodies: true, Order: 2),
+        new(MigrationCategoryIds.UnresolvedFailedMessages, MigrationCategoryKind.Optional, CarriesBodies: true, Order: 1),
+        new(MigrationCategoryIds.EventLog, MigrationCategoryKind.Optional, CarriesBodies: false, Order: 2),
+        new(MigrationCategoryIds.ArchivedAndResolvedFailedMessages, MigrationCategoryKind.Optional, CarriesBodies: true, Order: 3),
     ];
 
     public static MigrationCategory? Find(string id) => All.FirstOrDefault(c => c.Id == id);

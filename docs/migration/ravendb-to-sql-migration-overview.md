@@ -1,7 +1,7 @@
 # Migration Engine: Design Overview
 
 > [!NOTE]
-> This build does not carry the whole migration yet. This page describes it as it will be when it ships.
+> This build does not carry the whole migration yet. This page describes it as it will be when it ships. The failed-message split described below has unresolved release blockers, listed under [Unresolved release blockers](#unresolved-release-blockers). Each one must be resolved or explicitly accepted before the migration ships.
 
 [The instructions](ravendb-to-sql-migration-instructions.md) describe how an operator runs the migration, and the [system design](ravendb-to-sql-migration-system-design.md) provides the system architecture. See the [glossary](#glossary) for terms used throughout.
 
@@ -18,10 +18,10 @@
 
 - **Retention does most of the work.** Error retention is 5 to 45 days and event retention defaults to 14 days, so most of RavenDB ages out on its own within weeks.
 - **What the instance needs to open is copied while it is closed.** This is the *required* data. Most of it is small.
-- **Everything else is copied in the background while it runs.** This is the *optional* data: the event log and archived and resolved messages.
+- **Everything else is copied in the background while it runs.** This is the *optional* data: the unresolved failed messages, the event log and archived and resolved messages.
 - **Anything not copied ages out of RavenDB**, and the customer deletes the old database when ready.
-- **The main thing that makes the outage long is a big backlog of unresolved failures.** They are required, rarely age out (see the [6.18 exception](#rows-removed-after-the-copy)), and can be months old. Keep them low by resolving and archiving. The *dry run* tells you where you stand.
-- **A big archive does not make the outage longer, as long as RavenDB has indexed every failed message.** The copy finds unresolved failures through a RavenDB index, and waits for it to catch up first. If the index is broken or incomplete, the copy reads every failed message instead and logs a warning. Then a big archive does make the outage longer.
+- **The failed messages copied during the outage are every retry-issued message, whether or not its retry claim remains, and every other failed message that still holds a retry claim.** This does not cover every delayed retry confirmation, see the [unresolved release blockers](#unresolved-release-blockers). Unresolved messages that hold no claim copy in the background, however old they are, so a big unresolved backlog does not lengthen the outage.
+- **A big archive does not make the outage longer, as long as RavenDB has indexed every failed message.** The copy finds retry-issued messages through a RavenDB index, and waits for it to catch up first. If the index is broken or incomplete, the copy reads every failed message instead and logs a warning. Then a big archive does make the outage longer.
 
 ```mermaid
 flowchart LR
@@ -139,11 +139,11 @@ The copy goes from RavenDB, through the ServiceControl host, to SQL, because doc
 
 ### What data moves
 
-There are eighteen *categories*: sixteen required and two optional.
+There are nineteen *categories*: sixteen required and three optional.
 
 | Category | Kind | Why |
 | --- | --- | --- |
-| Unresolved and retry-issued failed messages, with bodies | Required | The point of the instance. Issuing a retry removes the expiry, so retry-issued messages never age out. Leave one behind and the retry confirmation finds no row to resolve, so the message stays missing even though the retry succeeded |
+| Retry-issued failed messages, and failed messages that hold a retry claim, with bodies | Required | Issuing a retry removes the expiry, so retry-issued messages never age out. Leave one behind and the retry confirmation finds no row to resolve, so the message stays missing even though the retry succeeded. A message of any other status that still holds a retry claim copies with it, with its groups, body and claim. The category keeps the checkpoint id `UnresolvedAndRetryIssuedFailedMessages` from the layout that copied every unresolved message here, see [Progress and checkpoints](#progress-and-checkpoints) |
 | Message redirects | Required | |
 | Known endpoints, with the monitored flag | Required | The flag is part of the endpoint row |
 | Endpoint settings | Required | Copied after known endpoints |
@@ -158,7 +158,8 @@ There are eighteen *categories*: sixteen required and two optional.
 | Integration events still waiting to be sent | Required | Each is an event a subscriber has not received yet. There are only any if the old instance fell behind or could not reach the broker. They are sent once ServiceControl opens, later than they would have been, except a `MessageFailed` event for a message archived or resolved before the move (see [Rows removed after the copy](#rows-removed-after-the-copy)). RavenDB sends them in no particular order anyway, so no ordering is lost |
 | Custom checks, with their last status | Required | Not every check reports again. An endpoint that is down never does, and a check with no repeat interval reports only when its endpoint starts. Leaving one out could hide a known failure until that endpoint restarts. Results of the six checks the RavenDB persister runs about its own database, matched on id and category, are left out, as harmless skips |
 | Failed error imports, with bodies | Required | Messages taken off the error queue but not ingested. They exist nowhere else and never expire. After the move the "Error Message Ingestion" custom check keeps flagging them and `--import-failed-errors` imports them into SQL. Importing them on RavenDB first is better still |
-| Group comments | Required | Copied after unresolved failed messages, so a note like "do not retry" is there when ServiceControl opens. Blank comments are not copied. Some comments are removed after ServiceControl opens, see [Open decisions](#rows-removed-after-the-copy) |
+| Group comments | Required | Copied after the required failed messages and never waiting for an optional category. Blank comments are not copied. A comment on a group whose messages have not reached SQL yet is removed shortly after ServiceControl opens, which is an [unresolved release blocker](#unresolved-release-blockers) |
+| Unresolved failed messages, with bodies | Optional | Copied once ServiceControl has opened, whatever the age of the message, because an operator is waiting on each one. It has no window and no setting turns it off. A message that already holds a retry claim copied with the required category, so it counts as already present. An existing SQL row always wins, see [Writing to SQL](#writing-to-sql) |
 | Event log | Optional | The history behind the ServicePulse activity feed. On a busy instance it holds a row for every failure, retry and submission |
 | Archived and resolved failed messages, with bodies | Optional | The biggest category by far, and most of the copying time |
 
@@ -173,11 +174,11 @@ There are eighteen *categories*: sixteen required and two optional.
 
 **Written new by the copy rather than copied:**
 
-- Retry claims in `FailedMessageRetries`. A claim ties a message to the retry that sent it. The copy writes one for each retry-issued message it inserts that RavenDB still held a claim for, so a retry by id sends or holds back a message just as it did before the move.
+- Retry claims in `FailedMessageRetries`. A claim ties a message to the retry that sent it. The copy writes one for each message it inserts that RavenDB still held a claim for, whatever the status of the message, so a retry by id sends or holds back a message just as it did before the move.
 
 ### Optional data windows
 
-- **Each optional category copies only rows inside its *window*:** events raised within it, or messages archived or resolved within it.
+- **Each windowed optional category copies only rows inside its *window*:** events raised within it, or messages archived or resolved within it. The unresolved failed messages have no window. The migration always selects that category and copies every unresolved message however old.
 - **The window defaults to the instance's own retention period**: `ServiceControl/EventRetentionPeriod` for the event log, `ServiceControl/ErrorRetentionPeriod` for archived and resolved messages. So by default everything RavenDB still holds is copied.
 - **`0` turns a category off before it starts.** A longer window than the retention period copies nothing extra, because older rows would only be deleted by SQL's clean-up.
 - **The window counts back from when the category first started copying**, which the checkpoint records, so a restart copies the same window rather than one that has slid forward.
@@ -290,6 +291,8 @@ flowchart LR
 ### Writing to SQL
 
 - **A failed message is written as one row**, with its status unchanged. Its older attempts are dropped, see [Open decisions](#values-that-change-or-merge-in-sql).
+- **An existing SQL row always wins.** The copy never updates a row and counts an existing row as already present, not as a skip. When ingestion created the row first, its attempt count and first failure time can omit earlier RavenDB failures, and it can hold an older payload than RavenDB's newest attempt. These outcomes are accepted.
+- **Bodies are immutable and written only if absent.** The body store keeps one body per `UniqueMessageId`, and each backend refuses to replace one that exists: the file system through an exclusive move, Azure Blob and S3 through a conditional upload. The first writer wins, so a body the copy stores just before ingestion does is the body that stays. That is safe only because every attempt of one message carries the same body bytes, which ingestion already assumes. An S3-compatible store that ignores `If-None-Match` falls back to a check followed by an unconditional upload, which can replace a live body.
 - **A failed message keeps its failure groups and its last-modified time**, so filtered lists show the same messages as before. A failure group with no id is the exception, see [Open decisions](#values-that-change-or-merge-in-sql).
 - **`UniqueMessageId` keeps its value** but becomes a `uniqueidentifier`. It is the primary key, the ServicePulse URL, the retry key and the body key.
 - **`StatusChangedAt` is rebuilt.** For archived and resolved messages it is `@expires` minus the current `ServiceControl/ErrorRetentionPeriod` (wrong if that changed, see [Open decisions](#values-that-change-or-merge-in-sql)). For unresolved and retry-issued messages it is the newest attempt's time, because the column is `NOT NULL`.
@@ -350,7 +353,7 @@ A category is *Failed* when something went wrong. What it copied stays committed
 
 - **The other categories still run**, so one fix-and-retry covers them all. A category that depends on a Failed one waits.
 - **A Failed required category** keeps ServiceControl closed until it is retried to Done or abandoned. That is deliberate: opening the host is the point of no return.
-- **A Failed optional category** leaves the instance running with that slice missing, and stops the migration being finished.
+- **A Failed optional category** leaves the instance running with that slice missing, and stops the migration being finished. For the unresolved failed messages that slice is the unresolved backlog, which then exists only in RavenDB.
 
 Some losses leave a category Done without any check noticing. They are listed under [Open decisions](#what-the-checks-do-not-catch).
 
@@ -495,10 +498,19 @@ Each case below changes, merges or drops data, or lets a loss pass without faili
 
 The dry run counts the subscription and endpoint settings merges before anything moves.
 
+### Unresolved release blockers
+
+Moving the unresolved messages that hold no retry claim online opens the cases below. The operator chose to continue with the split and defer each decision. None of them is an accepted outcome, and each one blocks the release. The migration stays blocked from copying in production until each is resolved or explicitly accepted, because `MigrationIsReleasedCheck` still refuses every copy. This split changes no retry confirmation handling and adds no runtime restriction.
+
+- **A retry confirmation can be consumed before its message arrives.** A re-failure can leave a message `Unresolved` after its retry claim is removed, and a confirmation for it can still be queued when ServiceControl stops. The offline cohort leaves that message for the online copy. If SQL consumes the confirmation first, the conditional update matches no row and succeeds, the claim delete matches nothing, and the confirmation is gone. The online copy then inserts RavenDB's message as unresolved, though a retry of it succeeded. Retrying the migration cannot recover the confirmation. A blank or unreadable success time makes this worse, because the confirmation then counts as newer than any failure. The plan records the interleaving, and `Known_release_blocker_a_retry_confirmation_for_a_message_the_unresolved_copy_has_not_inserted_is_consumed_and_the_message_arrives_unresolved` pins today's behavior without handling it.
+- **Group comments on groups the online copy has not reached are removed.** See [Rows removed after the copy](#rows-removed-after-the-copy). The partial cleanup of comments for groups that are only partly copied is deferred as well.
+- **A SQL row can be resurrected as unresolved.** Ingestion creates the row, an operator archives or resolves it in SQL, and the retention sweep deletes it before the online copy reaches the message. The copy then finds no row and inserts RavenDB's unresolved message. The insert-only rule protects only a row that still exists.
+- **Online operations on partly copied data are not restricted.** Group retry, archive and unarchive act on the messages copied so far, a queued edit-and-retry command is discarded when its original message has not arrived, and a pending `MessageFailed` event is deleted when its message has not arrived. The deferred investigation must decide whether to restrict, defer or accept each, and how they behave if the unresolved category is abandoned.
+
 ### Rows removed after the copy
 
-- **A group comment on a group whose messages are all archived or resolved is removed soon after ServiceControl opens**, because that group has no failed messages in SQL until the background copy brings them. The same happens when the group's messages are gone from RavenDB or were skipped by the copy. The copy names each such comment, in a warning starting `Changed GroupComment/<group id> in category GroupComments on the way into SQL: The group '<group id>' has no copied failed message`, which also quotes the whole comment.
-- **A `MessageFailed` event still waiting to be sent for a message archived or resolved before the move is never sent.** ServiceControl looks the message up when it sends the event. Archived and resolved messages arrive only with the background copy, so the lookup finds nothing, and the event is deleted with no log line. RavenDB would have sent it.
+- **A group comment on a group that has no failed message in SQL is removed soon after ServiceControl opens**, because the retention sweep deletes a comment whose group has no row. The group has none when its messages are unresolved without a retry claim and the background copy has not reached them, when they are archived or resolved, when they are gone from RavenDB, or when the copy skipped them. The sweep first runs about a minute after ServiceControl opens and then hourly, so this is deterministic for such groups and not a rare race. The copy names each such comment, in a warning starting `Changed GroupComment/<group id> in category GroupComments on the way into SQL: The group '<group id>' has no copied failed message`, which also quotes the whole comment. The comment loss is an [unresolved release blocker](#unresolved-release-blockers), not an accepted outcome.
+- **A `MessageFailed` event still waiting to be sent for a message archived or resolved before the move is never sent.** ServiceControl looks the message up when it sends the event. Archived and resolved messages arrive only with the background copy, so the lookup finds nothing, and the event is deleted with no log line. RavenDB would have sent it. The same lookup can fail for an unresolved message the background copy has not reached yet, see [Unresolved release blockers](#unresolved-release-blockers).
 - **Unresolved messages from version 6.18 or earlier can expire during the copy.** On those versions, a message that failed again after being archived or resolved kept its expiry. One deleted before the copy reads it is not copied and not counted. No log line names these messages yet.
 
 ### What the checks do not catch

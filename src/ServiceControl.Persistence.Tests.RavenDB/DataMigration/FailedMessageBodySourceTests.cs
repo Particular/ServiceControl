@@ -33,6 +33,18 @@ class FailedMessageBodySourceTests : RavenMigrationSourceTestBase
     }
 
     [Test]
+    public async Task Reads_the_attachment_for_the_unresolved_failed_messages_too()
+    {
+        var content = Encoding.UTF8.GetBytes("<order>2</order>");
+        var documentId = await SeedWithAttachment(content, "application/json");
+
+        await using var source = await OpenMigrationSource();
+        var body = await source.ReadBody(MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedFailedMessages), documentId);
+
+        Assert.That(body?.Content.ToArray(), Is.EqualTo(content));
+    }
+
+    [Test]
     public async Task Reads_a_zero_length_attachment_as_an_empty_body()
     {
         var documentId = await SeedWithAttachment([], "text/plain");

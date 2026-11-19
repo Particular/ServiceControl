@@ -1,7 +1,7 @@
 # Migration Engine: Instructions
 
 > [!NOTE]
-> Production copying remains blocked until the complete migration ships. `--migration-source-report` works; `--start-data-migration` reports that copying is unavailable.
+> Production copying remains blocked until the complete migration ships. `--migration-source-report` works; `--start-data-migration` reports that copying is unavailable. The release blockers for the failed-message split are listed under [Unresolved release blockers](ravendb-to-sql-migration-overview.md#unresolved-release-blockers) in the overview.
 
 This page tells you how to move the data of a ServiceControl error instance from RavenDB to SQL Server or PostgreSQL. The ServiceControl executable provides the offline command and the online copier, so you do not need a separate tool. [The migration overview](ravendb-to-sql-migration-overview.md) explains how the migration works and why.
 
@@ -9,7 +9,7 @@ The migration does not move the audit instance or the monitoring instance. The a
 
 ## How the migration runs
 
-Run `--start-data-migration` with ServiceControl stopped to copy the data it needs to open. **This part is your outage**. After the command succeeds, start ServiceControl to copy the event log and the archived and resolved failed messages in the background. **The migration never writes to RavenDB**.
+Run `--start-data-migration` with ServiceControl stopped to copy the data it needs to open. **This part is your outage**. After the command succeeds, start ServiceControl to copy the unresolved failed messages, the event log and the archived and resolved failed messages in the background. **The migration never writes to RavenDB**.
 
 > [!IMPORTANT]
 > Until ServiceControl opens, you can go back to RavenDB and lose nothing. After it opens, you cannot go back.
@@ -70,7 +70,7 @@ Make sure that your setup is supported:
 
 Get the data ready:
 
-- Resolve or archive as many unresolved failed messages as you can. They never age out, and ServiceControl stays closed until they are all copied. **A large backlog makes the outage long**. The copy reads archived and resolved messages only after ServiceControl opens. The exception is a RavenDB index that is broken or leaves out some failed messages: then the copy reads every failed message during the outage, logs a warning, and a large archive makes the outage longer too.
+- Let retries finish where you can. ServiceControl stays closed until every retry-issued message and every message that holds a retry claim is copied, and a retry-issued message never ages out. Unresolved messages without a claim copy after ServiceControl opens, so a large unresolved backlog does not lengthen the outage, but it does lengthen the background copy. The copy reads archived and resolved messages only after ServiceControl opens. The exception is a RavenDB index that is broken or leaves out some failed messages: then the copy reads every failed message during the outage, logs a warning, and a large archive makes the outage longer too.
 - Run `--import-failed-errors` while the instance is still on RavenDB. A failed error import is a message that ServiceControl took off the error queue but failed to store. The migration copies these either way, but imported ones arrive as ordinary failed messages.
 - Let retry, archive and unarchive operations finish on RavenDB before stopping ServiceControl. Migration refuses persisted batches, the retry forwarding marker, and archive or unarchive operation documents. Stopping ServiceControl leaves unfinished work persisted.
 
@@ -146,6 +146,8 @@ If you want less optional data, set a shorter window for the optional categories
 | `ServiceControl/Migration/ArchivedAndResolvedFailedMessagesWindow` | The value of `ServiceControl/ErrorRetentionPeriod` | How far back the copy of archived and resolved messages goes. |
 
 By default, the migration copies all the optional data that RavenDB still holds (current retension period setting). A window longer than the retention period copies nothing extra. After a category starts copying, you cannot change its window. To stop it early, abandon it.
+
+The unresolved failed messages have no window and no setting turns them off. They copy once ServiceControl opens, however old they are.
 
 ## Step 4: Run the dry run
 

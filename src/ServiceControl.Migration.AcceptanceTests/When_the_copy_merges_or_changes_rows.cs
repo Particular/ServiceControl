@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using ServiceControl.Hosting.Commands;
+using ServiceControl.MessageFailures;
 using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.Tests;
 
@@ -19,7 +20,7 @@ class When_the_copy_merges_or_changes_rows : MigrationAcceptanceTest
     public async Task The_category_summary_counts_changed_and_merged_rows_apart_from_the_rest()
     {
         var retried = new IngestedFailure { MessageType = new string('m', 600) };
-        await SeedSourceWithBody(retried.ToFailedMessage(numberOfAttempts: 2), retried.Body, retried.ContentType);
+        await SeedSourceWithBody(retried.ToFailedMessage(FailedMessageStatus.RetryIssued, numberOfAttempts: 2), retried.Body, retried.ContentType);
         await SeedSourceSubscriptions(
             new SubscriptionRow("MyMessages.OrderPlaced", new Version(1, 0, 0), "Billing@BILLING01", "Billing"),
             new SubscriptionRow("MyMessages.OrderPlaced", new Version(2, 0, 0), "Billing@BILLING01", "Billing"));

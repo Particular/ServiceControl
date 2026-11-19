@@ -14,13 +14,13 @@ class When_a_batch_exceeds_one_statement : MigrationAcceptanceTest
     [Test]
     public async Task Copies_more_messages_than_fit_in_one_statement()
     {
-        var category = MigrationCategoryRegistry.All.Single(entry => entry.Id == MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        var category = MigrationCategoryRegistry.All.Single(entry => entry.Id == MigrationCategoryIds.UnresolvedFailedMessages);
         var batchSize = await Target.BatchSizeFor(category);
         var failures = Enumerable.Range(0, (batchSize * 2) + 1).Select(_ => new IngestedFailure()).ToArray();
 
         await SeedSourceWithBodies([.. failures.Select(failure => (failure.ToFailedMessage(), failure.Body, failure.ContentType))]);
 
-        var result = await CopyCategory(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+        var result = await CopyCategory(MigrationCategoryIds.UnresolvedFailedMessages);
 
         Assert.That(result.Copied, Is.EqualTo(failures.Length));
 

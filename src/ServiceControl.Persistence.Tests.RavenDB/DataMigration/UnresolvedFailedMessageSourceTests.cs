@@ -20,10 +20,10 @@ using ServiceControl.Persistence.RavenDB.DataMigration;
 class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
 {
     [Test]
-    public async Task Reads_both_unresolved_statuses_and_neither_of_the_others()
+    public async Task Reads_the_unresolved_status_and_none_of_the_others()
     {
         var unresolved = await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.Unresolved));
-        var retryIssued = await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.RetryIssued));
+        await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.RetryIssued));
         await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.Archived));
         await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.Resolved));
         await CompleteDatabaseOperation();
@@ -32,7 +32,19 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
 
         Assert.That(
             rows.Select(row => ((FailedMessage)row.Document).UniqueMessageId),
-            Is.EquivalentTo(new[] { unresolved.UniqueMessageId, retryIssued.UniqueMessageId }));
+            Is.EquivalentTo(new[] { unresolved.UniqueMessageId }));
+    }
+
+    [Test]
+    public async Task Reads_an_unresolved_message_however_old_it_is()
+    {
+        var failure = new IngestedFailure();
+        var message = failure.ToFailedMessage(FailedMessageStatus.Unresolved);
+        message.ProcessingAttempts.ForEach(attempt => attempt.AttemptedAt = DateTime.UtcNow.AddDays(-4000));
+        var stored = await SeedFailedMessage(message);
+        await CompleteDatabaseOperation();
+
+        Assert.That((await ReadAll()).Select(row => row.SourceId), Is.EqualTo(new[] { stored.Id }), "the category has no window, because an operator is waiting on an unresolved message however old it is");
     }
 
     [Test]
@@ -101,29 +113,19 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
     }
 
     [Test]
-    public async Task A_retry_issued_message_says_whether_the_source_still_holds_its_retry_claim()
+    public async Task An_unresolved_message_carries_no_claim_state_even_when_the_source_holds_a_claim_for_it()
     {
-        var claimed = await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.RetryIssued));
-        var released = await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.RetryIssued));
         var unresolved = await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.Unresolved));
 
         using (var session = DocumentStore.OpenAsyncSession())
         {
-            await session.StoreAsync(new FailedMessageRetry { FailedMessageId = claimed.Id, RetryBatchId = "RetryBatches/forwarded" }, RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(claimed.UniqueMessageId));
             await session.StoreAsync(new FailedMessageRetry { FailedMessageId = unresolved.Id, RetryBatchId = "RetryBatches/staging" }, RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(unresolved.UniqueMessageId));
             await session.SaveChangesAsync();
         }
 
         await CompleteDatabaseOperation();
 
-        var rows = (await ReadAll()).ToDictionary(row => ((FailedMessage)row.Document).UniqueMessageId);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(rows[claimed.UniqueMessageId].Metadata[MigrationMetadataKeys.RetryClaimHeld], Is.True);
-            Assert.That(rows[released.UniqueMessageId].Metadata[MigrationMetadataKeys.RetryClaimHeld], Is.False);
-            Assert.That(rows[unresolved.UniqueMessageId].Metadata, Does.Not.ContainKey(MigrationMetadataKeys.RetryClaimHeld), "only a retry-issued message gets a claim in SQL, even when the source holds one for another");
-        }
+        Assert.That((await ReadAll()).Single().Metadata, Does.Not.ContainKey(MigrationMetadataKeys.RetryClaimHeld), "the claim holder is copied with the required category, and this copy finds it already present");
     }
 
     [Test]
@@ -182,9 +184,9 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(first.Rows.Select(row => row.SourceId), Is.EqualTo(new[] { ids[0], ids[2] }));
-            Assert.That(first.Cursor, Is.EqualTo(ids[2]));
-            Assert.That(resumed.SelectMany(batch => batch.Rows).Select(row => row.SourceId), Is.EqualTo(new[] { ids[3], ids[5] }), "a resume neither repeats a row nor skips one");
+            Assert.That(first.Rows.Select(row => row.SourceId), Is.EqualTo(new[] { ids[0], ids[3] }));
+            Assert.That(first.Cursor, Is.EqualTo(ids[3]));
+            Assert.That(resumed.SelectMany(batch => batch.Rows).Select(row => row.SourceId), Is.EqualTo(new[] { ids[5] }), "a resume neither repeats a row nor skips one");
         }
     }
 
@@ -248,7 +250,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
         await using var source = await OpenMigrationSource();
         var batches = await CollectBatches(source, Category);
 
-        Assert.That(batches.Select(batch => (batch.Cursor, batch.Rows.Select(row => row.SourceId))), Is.EqualTo(new[] { (ids[2], new[] { ids[0], ids[2] }) }), "a full read would walk on to the resolved message and save its cursor past it");
+        Assert.That(batches.Select(batch => (batch.Cursor, batch.Rows.Select(row => row.SourceId))), Is.EqualTo(new[] { (ids[0], new[] { ids[0] }) }), "a full read would walk on to the resolved message and save its cursor past it");
     }
 
     [Test]
@@ -257,7 +259,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
         await UseCorax();
         var statuses = Enumerable.Range(0, 60).Select(position => (FailedMessageStatus)((position % 4) + 1)).ToArray();
         var ids = await SeedInIdOrder(statuses);
-        var expected = ids.Where((_, position) => statuses[position] is FailedMessageStatus.Unresolved or FailedMessageStatus.RetryIssued).ToList();
+        var expected = ids.Where((_, position) => statuses[position] == FailedMessageStatus.Unresolved).ToList();
 
         await using var source = await OpenMigrationSource();
         var read = new List<string>();
@@ -285,21 +287,12 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
     {
         await DocumentStore.Maintenance.SendAsync(new DeleteIndexOperation(IndexName), TestContext.CurrentContext.CancellationToken);
         var stored = await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.Unresolved));
-        var claimed = await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.RetryIssued));
-
-        using (var session = DocumentStore.OpenAsyncSession())
-        {
-            await session.StoreAsync(new FailedMessageRetry { FailedMessageId = claimed.Id, RetryBatchId = "RetryBatches/forwarded" }, RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(claimed.UniqueMessageId));
-            await session.SaveChangesAsync();
-        }
+        await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.RetryIssued));
+        await SeedFailedMessage(new IngestedFailure().ToFailedMessage(FailedMessageStatus.Archived));
 
         var rows = await ReadAll().WaitAsync(TimeSpan.FromSeconds(30), TestContext.CurrentContext.CancellationToken);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(rows.Select(row => row.SourceId), Is.EquivalentTo(new[] { stored.Id, claimed.Id }), "the copy cannot build the index on a source it only reads, so reading everything is the only way through");
-            Assert.That(rows.Single(row => row.SourceId == claimed.Id).Metadata[MigrationMetadataKeys.RetryClaimHeld], Is.True, "the whole-collection read must resolve claims too, or the writer stops on the first retry-issued row");
-        }
+        Assert.That(rows.Select(row => row.SourceId), Is.EqualTo(new[] { stored.Id }), "the copy cannot build the index on a source it only reads, so reading everything is the only way through");
     }
 
     [Test]
@@ -919,7 +912,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
 
         await foreach (var batch in RavenDocumentStream.ByPrefix(
             lifecycle, Category.Id, settings.DatabaseName, $"{FailedMessageIdGenerator.CollectionName}/", null, batchSize, maxDocumentsWalkedPerBatch,
-            new FailedMessageStream(lifecycle).Project(MigrationCategoryRegistry.UnresolvedAndRetryIssuedStatuses), TestContext.CurrentContext.CancellationToken))
+            new FailedMessageStream(lifecycle).Project(MigrationCategoryRegistry.UnresolvedStatuses), TestContext.CurrentContext.CancellationToken))
         {
             batches.Add(batch);
         }
@@ -927,7 +920,7 @@ class UnresolvedFailedMessageSourceTests : RavenMigrationSourceTestBase
         return batches;
     }
 
-    static readonly MigrationCategory Category = MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
+    static readonly MigrationCategory Category = MigrationCategoryRegistry.Find(MigrationCategoryIds.UnresolvedFailedMessages);
     static readonly string IndexName = new FailedMessageViewIndex().IndexName;
 
     // The parsers read headers through IReadOnlyDictionary, so re-implementing its lookup makes every header read fail.

@@ -14,5 +14,6 @@ Required 13: PendingIntegrationEvents
 Required 14: CustomChecks
 Required 15: FailedErrorImports, with bodies
 Required 16: GroupComments, after UnresolvedAndRetryIssuedFailedMessages
-Optional 1: EventLog
-Optional 2: ArchivedAndResolvedFailedMessages, with bodies
+Optional 1: UnresolvedFailedMessages, with bodies
+Optional 2: EventLog
+Optional 3: ArchivedAndResolvedFailedMessages, with bodies

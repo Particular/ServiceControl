@@ -59,7 +59,7 @@ sealed class GroupCommentsWriter(IMigrationSqlDialect migrationDialect) : Migrat
         };
     }
 
-    // Group comments copy after the unresolved failed messages, so the groups the target holds now are the groups it holds when ServiceControl opens.
+    // Group comments copy after the required failed messages. The unresolved messages without a retry claim arrive after ServiceControl opens, so a group that only they belong to is missing here.
     async Task<IReadOnlyList<(string SourceId, string Detail)>> CommentsTheSweepWillDelete(ServiceControlDbContext dbContext, IReadOnlyList<(string SourceId, GroupCommentEntity Row)> inserted, CancellationToken cancellationToken)
     {
         string[] groupIds = [.. inserted.Select(comment => comment.Row.GroupId).Distinct(StringComparer.Ordinal)];
@@ -73,7 +73,7 @@ sealed class GroupCommentsWriter(IMigrationSqlDialect migrationDialect) : Migrat
         return [.. inserted
             .Where(comment => !held.Contains(comment.Row.GroupId))
             .Select(comment => (comment.SourceId, $"The group '{comment.Row.GroupId}' has no copied failed message, so the retention sweep removes this comment shortly after ServiceControl opens. " +
-                "Its messages are archived or resolved, are gone from the source, or were skipped by the copy. " +
+                "Its messages have not been copied yet, are archived or resolved, are gone from the source, or were skipped by the copy. " +
                 $"The comment was: '{comment.Row.Comment}'"))];
     }
 }
