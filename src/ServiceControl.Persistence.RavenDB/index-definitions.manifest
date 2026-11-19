@@ -1,0 +1,170 @@
+{
+  "Indexes": [
+    {
+      "Name": "ArchivedGroupsViewIndex",
+      "Maps": [
+        "docs.FailedMessages.Where(doc => doc.Status == 4).Select(doc => new {\n    doc = doc,\n    failureTimes = doc.ProcessingAttempts.Select(x => x.FailureDetails.TimeOfFailure)\n}).SelectMany(this0 => this0.doc.FailureGroups, (this0, failureGroup) => new {\n    Id = failureGroup.Id,\n    Title = failureGroup.Title,\n    Count = 1,\n    First = DynamicEnumerable.Min(this0.failureTimes),\n    Last = DynamicEnumerable.Max(this0.failureTimes),\n    Type = failureGroup.Type\n})"
+      ],
+      "Reduce": "results.GroupBy(result => new {\n    Id = result.Id,\n    Title = result.Title,\n    Type = result.Type\n}).Select(g => new {\n    Id = g.Key.Id,\n    Title = g.Key.Title,\n    Count = Enumerable.Sum(g, x => ((int) x.Count)),\n    First = DynamicEnumerable.Min(g, x0 => ((DateTime) x0.First)),\n    Last = DynamicEnumerable.Max(g, x1 => ((DateTime) x1.Last)),\n    Type = g.Key.Type\n})",
+      "Fields": {},
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    },
+    {
+      "Name": "CustomChecksIndex",
+      "Maps": [
+        "docs.CustomChecks.Select(cc => new {\n    Status = cc.Status,\n    ReportedAt = cc.ReportedAt,\n    Category = cc.Category,\n    CustomCheckId = cc.CustomCheckId\n})"
+      ],
+      "Fields": {},
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    },
+    {
+      "Name": "EndpointIndex",
+      "Maps": [
+        "docs.EndpointDocuments.Select(endpoint => new {\n    EndpointId_ThroughputSource = endpoint.EndpointId.ThroughputSource,\n    EndpointId_Name = endpoint.EndpointId.Name,\n    SanitizedName = endpoint.SanitizedName,\n    EndpointIndicators = endpoint.EndpointIndicators\n})"
+      ],
+      "Fields": {},
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    },
+    {
+      "Name": "EventLogItems/ByRaisedAt",
+      "Maps": [
+        "docs.EventLogItems.Select(doc => new {\n    RaisedAt = doc.RaisedAt\n})"
+      ],
+      "Fields": {},
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    },
+    {
+      "Name": "FailedErrorImportIndex",
+      "Maps": [
+        "docs.FailedErrorImports.Select(cc => new {\n    Id = Id(cc)\n})"
+      ],
+      "Fields": {},
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    },
+    {
+      "Name": "FailedMessageFacetsIndex",
+      "Maps": [
+        "docs.FailedMessages.Where(failure => failure.Status == 1).Select(failure => new {\n    failure = failure,\n    t = ((DynamicEnumerable.LastOrDefault(failure.ProcessingAttempts)).MessageMetadata[\"ReceivingEndpoint\"])\n}).Select(this0 => new {\n    Name = this0.t.Name,\n    Host = this0.t.Host,\n    MessageType = (DynamicEnumerable.LastOrDefault(this0.failure.ProcessingAttempts)).MessageMetadata[\"MessageType\"]\n})"
+      ],
+      "Fields": {
+        "Host": {
+          "Indexing": "Exact"
+        },
+        "MessageType": {
+          "Indexing": "Exact"
+        },
+        "Name": {
+          "Indexing": "Exact"
+        }
+      },
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    },
+    {
+      "Name": "FailedMessageRetries/ByBatch",
+      "Maps": [
+        "docs.FailedMessageRetries.Select(doc => new {\n    RetryBatchId = doc.RetryBatchId\n})"
+      ],
+      "Fields": {},
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    },
+    {
+      "Name": "FailedMessageViewIndex",
+      "Maps": [
+        "docs.FailedMessages.Select(message => new {\n    message = message,\n    processingAttemptsLast = DynamicEnumerable.LastOrDefault(message.ProcessingAttempts)\n}).Select(this0 => new {\n    MessageId = this0.processingAttemptsLast.MessageMetadata[\"MessageId\"],\n    MessageType = this0.processingAttemptsLast.MessageMetadata[\"MessageType\"],\n    Status = this0.message.Status,\n    TimeSent = ((DateTime) this0.processingAttemptsLast.MessageMetadata[\"TimeSent\"]),\n    ReceivingEndpointName = ((this0.processingAttemptsLast.MessageMetadata[\"ReceivingEndpoint\"])).Name,\n    QueueAddress = this0.processingAttemptsLast.FailureDetails.AddressOfFailingEndpoint,\n    TimeOfFailure = this0.processingAttemptsLast.FailureDetails.TimeOfFailure,\n    LastModified = (this.MetadataFor(this0.message).Value < DateTime > (\"@last-modified\")).Ticks\n})"
+      ],
+      "Fields": {},
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    },
+    {
+      "Name": "FailedMessages/ByGroup",
+      "Maps": [
+        "docs.FailedMessages.Select(doc => new {\n    doc = doc,\n    processingAttemptsLast = DynamicEnumerable.LastOrDefault(doc.ProcessingAttempts)\n}).SelectMany(this0 => this0.doc.FailureGroups, (this0, failureGroup) => new {\n    Id = Id(this0.doc),\n    MessageId = this0.doc.UniqueMessageId,\n    FailureGroupId = failureGroup.Id,\n    FailureGroupName = failureGroup.Title,\n    Status = this0.doc.Status,\n    MessageType = ((string) this0.processingAttemptsLast.MessageMetadata[\"MessageType\"]),\n    TimeSent = ((DateTime) this0.processingAttemptsLast.MessageMetadata[\"TimeSent\"]),\n    TimeOfFailure = this0.processingAttemptsLast.FailureDetails.TimeOfFailure,\n    LastModified = (this.MetadataFor(this0.doc).Value < DateTime > (\"@last-modified\")).Ticks\n})"
+      ],
+      "Fields": {
+        "__all_fields": {
+          "Storage": "Yes"
+        }
+      },
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    },
+    {
+      "Name": "FailureGroupsViewIndex",
+      "Maps": [
+        "docs.FailedMessages.Where(doc => doc.Status == 1).Select(doc => new {\n    doc = doc,\n    failureTimes = doc.ProcessingAttempts.Select(x => x.FailureDetails.TimeOfFailure)\n}).SelectMany(this0 => this0.doc.FailureGroups, (this0, failureGroup) => new {\n    Id = failureGroup.Id,\n    Title = failureGroup.Title,\n    Count = 1,\n    First = DynamicEnumerable.Min(this0.failureTimes),\n    Last = DynamicEnumerable.Max(this0.failureTimes),\n    Type = failureGroup.Type\n})"
+      ],
+      "Reduce": "results.GroupBy(result => new {\n    Id = result.Id,\n    Title = result.Title,\n    Type = result.Type\n}).Select(g => new {\n    Id = g.Key.Id,\n    Title = g.Key.Title,\n    Count = Enumerable.Sum(g, x => ((int) x.Count)),\n    First = DynamicEnumerable.Min(g, x0 => ((DateTime) x0.First)),\n    Last = DynamicEnumerable.Max(g, x1 => ((DateTime) x1.Last)),\n    Type = g.Key.Type\n})",
+      "Fields": {},
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    },
+    {
+      "Name": "GroupCommentIndex",
+      "Maps": [
+        "docs.GroupComments.Select(gc => new {\n    Id = Id(gc),\n    Comment = gc.Comment\n})"
+      ],
+      "Fields": {},
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    },
+    {
+      "Name": "KnownEndpointIndex",
+      "Maps": [
+        "docs.KnownEndpoints.Select(message => new {\n    EndpointDetails_Name = message.EndpointDetails.Name,\n    EndpointDetails_Host = message.EndpointDetails.Host,\n    HostDisplayName = message.HostDisplayName,\n    Monitored = message.Monitored\n})"
+      ],
+      "Fields": {},
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    },
+    {
+      "Name": "MessagesViewIndex",
+      "Maps": [
+        "docs.FailedMessages.Select(message => new {\n    message = message,\n    last = DynamicEnumerable.LastOrDefault(message.ProcessingAttempts)\n}).Select(this0 => new {\n    MessageId = this0.last.MessageId,\n    MessageType = ((string) this0.last.MessageMetadata[\"MessageType\"]),\n    IsSystemMessage = ((bool) this0.last.MessageMetadata[\"IsSystemMessage\"]),\n    Status = this0.message.Status == 4 ? 5 : (this0.message.Status == 2 ? 4 : (this0.message.ProcessingAttempts.Count == 1 ? 1 : 2)),\n    TimeSent = ((DateTime) this0.last.MessageMetadata[\"TimeSent\"]),\n    ProcessedAt = this0.last.AttemptedAt,\n    ReceivingEndpointName = ((this0.last.MessageMetadata[\"ReceivingEndpoint\"])).Name,\n    CriticalTime = ((TimeSpan ? ) this0.last.MessageMetadata[\"CriticalTime\"]),\n    ProcessingTime = ((TimeSpan ? ) this0.last.MessageMetadata[\"ProcessingTime\"]),\n    DeliveryTime = ((TimeSpan ? ) this0.last.MessageMetadata[\"DeliveryTime\"]),\n    Query = Enumerable.ToArray(DynamicEnumerable.Union(this0.last.MessageMetadata.ToDictionary(e1 => e1.Key, e1 => e1.Value).Select(_ => _.Value.ToString()), new string[] {\n        String.Join(\" \", this0.last.Headers.ToDictionary(e1 => e1.Key, e1 => e1.Value).Select(x => x.Value))\n    })),\n    ConversationId = ((string) this0.last.MessageMetadata[\"ConversationId\"])\n})"
+      ],
+      "Fields": {
+        "Query": {
+          "Indexing": "Search"
+        }
+      },
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    },
+    {
+      "Name": "QueueAddressIndex",
+      "Maps": [
+        "docs.FailedMessages.Select(message => new {\n    message = message,\n    processingAttemptsLast = DynamicEnumerable.LastOrDefault(message.ProcessingAttempts)\n}).Select(this0 => new {\n    PhysicalAddress = this0.processingAttemptsLast.FailureDetails.AddressOfFailingEndpoint,\n    FailedMessageCount = 1\n})"
+      ],
+      "Reduce": "results.GroupBy(result => result.PhysicalAddress).Select(g => new {\n    PhysicalAddress = g.Key,\n    FailedMessageCount = Enumerable.Sum(g, m => ((int) m.FailedMessageCount))\n})",
+      "Fields": {},
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    },
+    {
+      "Name": "RetryBatches/ByStatus/ReduceInitialBatchSize",
+      "Maps": [
+        "docs.RetryBatches.Select(doc => new {\n    RequestId = doc.RequestId,\n    RetryType = doc.RetryType,\n    HasStagingBatches = doc.Status == 2,\n    HasForwardingBatches = doc.Status == 3,\n    InitialBatchSize = doc.InitialBatchSize,\n    Originator = doc.Originator,\n    Classifier = doc.Classifier,\n    StartTime = doc.StartTime,\n    Last = doc.Last\n})"
+      ],
+      "Reduce": "results.GroupBy(result => new {\n    RequestId = result.RequestId,\n    RetryType = result.RetryType\n}).Select(g => new {\n    RequestId = g.Key.RequestId,\n    RetryType = g.Key.RetryType,\n    Originator = (DynamicEnumerable.FirstOrDefault(g)).Originator,\n    HasStagingBatches = Enumerable.Any(g, x => x.HasStagingBatches),\n    HasForwardingBatches = Enumerable.Any(g, x0 => x0.HasForwardingBatches),\n    InitialBatchSize = Enumerable.Sum(g, x1 => ((int) x1.InitialBatchSize)),\n    StartTime = (DynamicEnumerable.FirstOrDefault(g)).StartTime,\n    Last = DynamicEnumerable.Max(g, x2 => ((DateTime) x2.Last)),\n    Classifier = (DynamicEnumerable.FirstOrDefault(g)).Classifier\n})",
+      "Fields": {},
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    },
+    {
+      "Name": "RetryBatches/ByStatusAndSession",
+      "Maps": [
+        "docs.RetryBatches.Select(doc => new {\n    RetrySessionId = doc.RetrySessionId,\n    Status = doc.Status\n})"
+      ],
+      "Fields": {},
+      "AdditionalSources": {},
+      "AdditionalAssemblies": []
+    }
+  ]
+}
