@@ -106,7 +106,7 @@ sequenceDiagram
     Checks->>Target: Open
     Start->>Start: IMigrationCheckpointStore.ReadAll
     Start->>Source: Open
-    Start->>Checks: source.ContributedChecks(), empty for RavenDB
+    Start->>Checks: source.ContributedChecks(), UnfinishedOperationsCheck
     Start->>Engine: RunRequiredCategories under ClosedWindowProgress
     Engine-->>Start: one checkpoint per category
     Start->>Start: ReportWhatTheCopyLeftBehind
@@ -140,7 +140,7 @@ Each position in the sequence is deliberate:
    > [!IMPORTANT]
    > Readers must stream by id prefix, load by id, or query a static index. `RefuseWrite` blocks writes but passes query POSTs (`/queries`, `/multi_get`, `/streams/queries`), and a dynamic query creates an `Auto/` index. Only the embedded server sets `DisableAutoIndexes`.
 7. **Source outage tolerance.** A failed source open is tolerated only when every required category already `IsFinished`. The host logs it, `MigrationStartup.RecordSourceOutage` writes the exception (inner exception when present) as `LastError` on each selected optional category still copying, creating `NotStarted` rows where absent, the command skips the copy and succeeds. The operator can then start ServiceControl; its online copier handles any later source outage independently. In every other case the host refuses and writes nothing; if a required category never started, the refusal says the only exits are pointing back at RavenDB or starting over.
-8. **`source.ContributedChecks()`** runs once the source is open, because such a check needs a session. `RavenMigrationSource` returns none, and a refusal here is never tolerated.
+8. **`source.ContributedChecks()`** runs once the source is open, because such a check needs a session. `RavenMigrationSource` contributes `UnfinishedOperationsCheck`, which streams one document from each of `RetryBatches/`, `ArchiveOperations/` and `UnarchiveOperations/`. These prefixes cover retry batches and the forwarding marker, plus archive and unarchive operation documents and their batches. Any match refuses the run before checkpoint initialization or copying, names an example document from each unfinished family, and instructs the operator to restart on RavenDB and let the work finish. Completed retry history and retry claims use different prefixes and do not cause this refusal. A refusal here is never tolerated.
 9. **Checkpoint initialization.** The command seeds `NotStarted` rows for required and selected optional categories before copying. `MigrationStartup.RunRequiredCategories` also ensures required rows exist, then runs each required category under its own linked `CancellationTokenSource`, awaited with `WaitAsync` on that token.
 10. **`ClosedWindowProgress`** polls the checkpoint store every 30 seconds and logs progress. When the running category has committed nothing for 30 minutes, measured from the later of `LastProgressAt` and its run start, it cancels that category's token. `WaitAsync` returns even if the call underneath ignores cancellation, the category settles `Halted` with the stall in `LastError`, and the next category runs. The abandoned call keeps running until the host refuses and the process exits. A host shutdown leaves the row `InProgress`.
 11. **`CopyOrExplainWhyItStopped`** maps `MigrationCheckpointConflictException` to a message about a second instance writing the same checkpoints.
@@ -154,6 +154,7 @@ Each position in the sequence is deliberate:
 
 - It runs the selected, supported optional categories in registry order, `EventLog` then `ArchivedAndResolvedFailedMessages`, skipping rows that are `IsFinished` or `IsFailed`. The offline command has already seeded the rows that identify the online work.
 - It creates and opens its own source only when a supported category is still copying. On failure it calls `RecordSourceOutage` and exits for this start. It does not depend on in-process state from `--start-data-migration`, which ran in another process.
+- It reruns source-contributed checks before copying. The RavenDB unfinished-operation check should still pass because the source is read-only and new operations run on SQL. A refusal stops the online copy for that start, not ServiceControl.
 - An exception leaves the category `InProgress` with `LastError`, untouched until the next start, so a transient failure never forces an abandon.
 
 Windowing: `MigrationEngineOptions.WindowFor` supplies the window and the reader applies it through `IWindowedMigrationCategoryReader`. The engine writes `StartedWindowSeconds` once, on the first `InProgress` upsert. `CopiesFrom` is `StartedAt` minus the currently configured window, so window stability across restarts depends entirely on `OptionalCategoryWindowsAreUnchangedCheck`. Verify counts from `StartedAt` minus `StartedWindowSeconds` instead, which is the same window while the category copies, because nothing stops the setting changing once it has finished.

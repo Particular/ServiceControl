@@ -72,6 +72,7 @@ Get the data ready:
 
 - Resolve or archive as many unresolved failed messages as you can. They never age out, and ServiceControl stays closed until they are all copied. **A large backlog makes the outage long**. The copy reads archived and resolved messages only after ServiceControl opens. The exception is a RavenDB index that is broken or leaves out some failed messages: then the copy reads every failed message during the outage, logs a warning, and a large archive makes the outage longer too.
 - Run `--import-failed-errors` while the instance is still on RavenDB. A failed error import is a message that ServiceControl took off the error queue but failed to store. The migration copies these either way, but imported ones arrive as ordinary failed messages.
+- Let retry, archive and unarchive operations finish on RavenDB before stopping ServiceControl. Migration refuses persisted batches, the retry forwarding marker, and archive or unarchive operation documents. Stopping ServiceControl leaves unfinished work persisted.
 
 Keep these settings as they are:
 
@@ -204,6 +205,20 @@ No configuration change is needed to finish. Once every category is Done or Aban
 ### A startup check fails
 
 ServiceControl does not start, and its log names the check that failed. Nothing is copied. Correct the cause, then run `--start-data-migration` again. The dry run runs the same checks, so you can use it to test your correction.
+
+### RavenDB holds unfinished operations
+
+The refusal names the unfinished operation families and an example document id from each. The migration does not copy active operation state. Completed retry history and outstanding retry claims do not cause this refusal.
+
+1. Set `ServiceControl/PersistenceType` back to RavenDB.
+2. Start ServiceControl.
+3. Request the same group action again if an archive or unarchive operation does not resume.
+4. Wait until the retry, archive and unarchive operations finish.
+5. Stop ServiceControl.
+6. Set `ServiceControl/PersistenceType` back to the SQL target.
+7. Run `--start-data-migration` again.
+
+If the refusal persists, contact support rather than deleting operation documents. A batch document can remain without its operation document.
 
 ### A category is Failed
 

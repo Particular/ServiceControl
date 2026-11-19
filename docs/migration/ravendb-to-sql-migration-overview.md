@@ -165,8 +165,7 @@ There are eighteen *categories*: sixteen required and two optional.
 **Never copied, because nothing needs them:**
 
 - RavenDB index definitions.
-- In-flight work collections, which are empty when nothing is running: `RetryBatches`, `RetryBatchNowForwardings`, `ArchiveOperations` and `UnarchiveOperations`.
-- `ArchiveBatches` and `UnarchiveBatches`, which exist only because of how RavenDB works.
+- In-flight retry, archive and unarchive work: `RetryBatches`, `RetryBatchNowForwardings`, `ArchiveOperations`, `UnarchiveOperations`, `ArchiveBatches` and `UnarchiveBatches`. Migration refuses while any of these documents remain. Stopping ServiceControl does not finish persisted work; restart on RavenDB, let the operations finish, stop it, and retry migration.
 - The `ConnectedApplications` document, written only by versions 6.0 and 6.1. Nothing has read it since 6.2.
 - Broker and audit service version details, which refill on the next throughput collection.
 - Failed message edit locks, which stop one failed message being edited twice. See [Open decisions](#values-that-change-or-merge-in-sql).
@@ -263,7 +262,9 @@ In this order, cheapest first:
 
    If every required category is already Done or Abandoned, the offline command can succeed without opening the source. Normal startup does not need the source; only the online copier opens it.
 
-Checks stop at the first refusal, which names the check.
+9. The source holds no persisted retry batches, forwarding marker, archive operations or batches, or unarchive operations or batches. The check names an example document from each unfinished family. Completed retry history and outstanding retry claims do not cause this refusal.
+
+Checks stop at the first refusal, which names the check. If persisted operations remain, start ServiceControl on RavenDB again, let them finish, stop it, and rerun `--start-data-migration`.
 
 ```mermaid
 flowchart LR
