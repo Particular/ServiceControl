@@ -10,6 +10,7 @@
     using ServiceControlInstaller.Engine;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
+    using ServiceControlInstaller.Engine.Validation;
 
     class PowerShellCommandChecks : AbstractCommandChecks
     {
@@ -95,6 +96,18 @@
         {
             // PowerShell assumes you always want to stop the service if it's running
             return Task.FromResult(true);
+        }
+
+        protected override Task<bool> PromptForRavenDBIndexRebuild(RavenDBIndexChanges indexChanges, CancellationToken cancellationToken = default)
+        {
+            if (acknowledgements.Any(ack => ack.Equals(AcknowledgementValues.RavenDBIndexRebuild, StringComparison.OrdinalIgnoreCase)))
+            {
+                cmdlet.WriteWarning(indexChanges.Describe());
+                return Task.FromResult(true);
+            }
+
+            Terminate($"{indexChanges.Describe()}{Environment.NewLine}{Environment.NewLine}Use -Acknowledgements {AcknowledgementValues.RavenDBIndexRebuild} to upgrade and rebuild the indexes.", "Install Error", ErrorCategory.InvalidArgument);
+            return Task.FromResult(false);
         }
 
         protected override Task<bool> PromptToContinueWithForcedUpgrade(CancellationToken cancellationToken = default)

@@ -4,5 +4,6 @@
     {
         public const string RabbitMQBrokerVersion310 = "RabbitMQBrokerVersion310";
         public const string RabbitMQManagementApi = "RabbitMQManagementApi";
+        public const string RavenDBIndexRebuild = "RavenDBIndexRebuild";
     }
 }
