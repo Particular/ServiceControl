@@ -29,7 +29,7 @@ class UsageSummaryTests : PersistenceTestBase
             LicensingDataStore,
             new ThroughputSettings("Particular.ServiceControl", "error", "Learning", "TestCustomer", "6.0.0"),
             null,
-            new MonitoringService(LicensingDataStore),
+            new MonitoringService(LicensingDataStore, TimeProvider.System),
             []);
 
         var summary = await collector.GetThroughputSummary();
