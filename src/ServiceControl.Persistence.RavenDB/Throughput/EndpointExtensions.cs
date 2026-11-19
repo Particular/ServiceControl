@@ -15,7 +15,8 @@ static class EndpointExtensions
         SanitizedName = endpointDocument.SanitizedName,
         EndpointIndicators = [.. endpointDocument.EndpointIndicators],
         UserIndicator = endpointDocument.UserIndicator,
-        Scope = endpointDocument.Scope
+        Scope = endpointDocument.Scope,
+        CreatedDate = endpointDocument.CreatedDate,
     };
 
     public static EndpointDocument ToEndpointDocument(this Endpoint endpoint)
@@ -23,7 +24,8 @@ static class EndpointExtensions
         var document = new EndpointDocument(endpoint.Id)
         {
             SanitizedName = endpoint.SanitizedName,
-            UserIndicator = endpoint.UserIndicator
+            UserIndicator = endpoint.UserIndicator,
+            CreatedDate = endpoint.CreatedDate
         };
 
         foreach (var indicator in endpoint.EndpointIndicators ?? [])

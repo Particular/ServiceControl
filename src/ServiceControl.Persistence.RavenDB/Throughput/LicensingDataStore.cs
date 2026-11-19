@@ -127,6 +127,11 @@ class LicensingDataStore(
 
     public async Task RemoveEndpoints(EndpointIdentifier[] endpointIds, CancellationToken cancellationToken = default)
     {
+        if (endpointIds.Length == 0)
+        {
+            return;
+        }
+
         var documentIds = endpointIds.Select(id => id.GenerateDocumentId());
 
         var store = await storeProvider.GetDocumentStore(cancellationToken);

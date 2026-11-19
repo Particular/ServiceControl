@@ -619,6 +619,10 @@ namespace ServiceControl.Persistence.EFCore.PostgreSql.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("throughput_source");
 
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date");
+
                     b.PrimitiveCollection<List<string>>("EndpointIndicators")
                         .IsRequired()
                         .HasColumnType("text[]")

@@ -18,6 +18,7 @@ public static class LicensingComponentHostBuilderExtensions
         services.AddSingleton(throughputSettings);
         services.AddHostedService<AuditThroughputCollectorHostedService>();
         services.AddHostedService<MonitoringThroughputHostedService>();
+        services.AddHostedService<DecommissionedEndpointRemovalHostedService>();
         services.AddSingleton<IThroughputCollector, ThroughputCollector>();
         services.AddSingleton<IAuditQuery, AuditQuery>();
         services.AddSingleton<MonitoringService>();

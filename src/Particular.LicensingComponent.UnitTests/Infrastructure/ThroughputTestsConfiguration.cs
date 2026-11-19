@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AuditThroughput;
 using Contracts;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Time.Testing;
 using MonitoringThroughput;
 using Persistence;
 using Persistence.InMemory;
@@ -30,6 +31,7 @@ class ThroughputTestsConfiguration
 
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddSingleton(throughputSettings);
+        serviceCollection.AddSingleton<TimeProvider>(new FakeTimeProvider());
 
         serviceCollection.AddLogging();
 
