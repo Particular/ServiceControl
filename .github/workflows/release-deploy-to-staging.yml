@@ -1,0 +1,34 @@
+name: Deploy To Staging
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+env:
+  DOTNET_NOLOGO: true
+jobs:
+  push-nuget-packages-staging:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Push NuGet packages
+        uses: Particular/deployment-workflows/.github/actions/push-nuget-packages@1.0.0
+        with:
+          version: ${{ inputs.version }}
+          deploy-environment: staging
+          exclude-package-pattern: "Particular.ServiceControl.Management.*.nupkg"
+          api-key: ${{ secrets.FEEDZIO_PUBLISH_API_KEY }}
+  push-powershell-packages-staging:
+    uses: Particular/deployment-workflows/.github/workflows/push-powershell-packages.yml@1.0.0
+    with:
+      version: ${{ inputs.version }}
+      deploy-environment: staging
+      package-pattern: 'Particular.ServiceControl.Management.*.nupkg'
+    secrets: inherit
+  generate-release-notes:
+    uses: Particular/deployment-workflows/.github/workflows/generate-release-notes.yml@1.0.0
+    with:
+      version: ${{ inputs.version }}
+    secrets: inherit

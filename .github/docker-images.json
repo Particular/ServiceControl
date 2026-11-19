@@ -1,0 +1,22 @@
+[
+  {
+    "name": "servicecontrol",
+    "readme_filepath": "./src/ServiceControl/Container-README.md",
+    "short_description": "Gather status, performance and monitoring data for multiple endpoints from a single location."
+  },
+  {
+    "name": "servicecontrol-audit",
+    "readme_filepath": "./src/ServiceControl.Audit/Container-README.md",
+    "short_description": "Provide valuable information about the message flow through a system."
+  },
+  {
+    "name": "servicecontrol-monitoring",
+    "readme_filepath": "./src/ServiceControl.Monitoring/Container-README.md",
+    "short_description": "Track the health of a distributed system."
+  },
+  {
+    "name": "servicecontrol-ravendb",
+    "readme_filepath": "./src/ServiceControl.RavenDB/Container-README.md",
+    "short_description": "The default storage for ServiceControl instances."
+  }
+]

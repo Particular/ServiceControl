@@ -27,7 +27,7 @@ jobs:
         uses: Particular/run-minver-action@v1.0.0
       - name: Validate build version
         if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
-        uses: ./.github/actions/validate-version
+        uses: Particular/deployment-workflows/.github/actions/determine-image-tags@1.0.0
         with:
           version: ${{ env.MinVerVersion }}
       - name: Set up Docker Buildx
