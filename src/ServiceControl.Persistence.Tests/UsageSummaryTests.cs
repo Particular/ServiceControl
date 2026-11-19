@@ -15,7 +15,7 @@ class UsageSummaryTests : PersistenceTestBase
     [Test]
     public async Task Reading_the_summary_keeps_endpoints_whose_sanitized_names_differ_only_in_case()
     {
-        var yesterday = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
+        var yesterday = DateOnly.FromDateTime(Now).AddDays(-1);
         var broker = new Endpoint("Smoke.Billing", ThroughputSource.Broker) { SanitizedName = "Smoke.Billing" };
         var monitoring = new Endpoint("smoke.billing", ThroughputSource.Monitoring) { SanitizedName = "smoke.billing" };
         await LicensingDataStore.SaveEndpoint(broker);
@@ -29,7 +29,7 @@ class UsageSummaryTests : PersistenceTestBase
             LicensingDataStore,
             new ThroughputSettings("Particular.ServiceControl", "error", "Learning", "TestCustomer", "6.0.0"),
             null,
-            new MonitoringService(LicensingDataStore),
+            new MonitoringService(LicensingDataStore, PersistenceTestsContext.FakeTime),
             []);
 
         var summary = await collector.GetThroughputSummary();
