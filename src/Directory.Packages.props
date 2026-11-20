@@ -106,7 +106,7 @@
     <PackageVersion Include="Azure.Core" Version="1.62.0" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.1.1" />
     <!-- Enforced by DeploymentPackageTests.DuplicateAssembliesInDeploymentUnitsShouldHaveMatchingVersions -->
-    <PackageVersion Include="Microsoft.Data.SqlClient.Extensions.Abstractions" Version="7.1.1" />
+    <PackageVersion Include="Microsoft.Data.SqlClient.Extensions.Abstractions" Version="7.1.2" />
     <PackageVersion Include="Microsoft.Data.SqlClient.Internal.Logging" Version="7.1.1" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(RuntimeFrameworkVersion)" />
     <PackageVersion Include="Microsoft.Extensions.FileProviders.Embedded" Version="$(RuntimeFrameworkVersion)" />
