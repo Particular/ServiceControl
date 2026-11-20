@@ -9,13 +9,12 @@ using Particular.LicensingComponent.Contracts;
 using ServiceControl.Persistence.DataMigration;
 
 /// <summary>
-/// Writes the licensing endpoints' daily message counts, setting each day's count rather than adding to it, so a copy
-/// run twice leaves the same numbers. A batch naming an endpoint the target does not hold is refused with an
-/// <see cref="InvalidOperationException" /> naming that endpoint and its source. A day repeated for one endpoint keeps
-/// its last row. Days of different endpoints whose names the key column treats as the same are added into one row,
-/// as the product's own throughput write would add them. Either way the rows folded away are counted as already present.
+/// Adds each day's message count to the stored count for that day, and the database sums endpoints whose names its key treats as one.
+/// A day repeated for one source endpoint keeps its last row, and a retry deletes every copied day first.
+/// It reports no merge, because the endpoints writer reports an endpoint the key folds into another.
+/// Throws <see cref="InvalidOperationException" /> when a batch names an endpoint the target does not hold.
 /// </summary>
-sealed class LicensingThroughputWriter(IMigrationSqlDialect migrationDialect) : MigrationCategoryWriter<ThroughputDayRow>
+sealed class LicensingThroughputWriter(IMigrationSqlDialect migrationDialect) : MigrationCategoryWriter<ThroughputDayRow>, IStoreKeyedCategoryWriter
 {
     public override string CategoryId => MigrationCategoryIds.LicensingThroughput;
 
@@ -24,12 +23,13 @@ sealed class LicensingThroughputWriter(IMigrationSqlDialect migrationDialect) : 
     public override Task<long> Count(ServiceControlDbContext dbContext, CancellationToken cancellationToken = default) =>
         dbContext.LicensingEndpointThroughput.LongCountAsync(cancellationToken);
 
+    public Task<int> DeleteCopiedRows(ServiceControlDbContext dbContext, CancellationToken cancellationToken = default) =>
+        dbContext.LicensingEndpointThroughput.ExecuteDeleteAsync(cancellationToken);
+
     protected override async Task<PreparedBatch> PrepareDocuments(ServiceControlDbContext dbContext, IReadOnlyList<(MigrationRow Row, ThroughputDayRow Document)> documents, CancellationToken cancellationToken = default)
     {
         var insert = MigrationInsert<LicensingEndpointThroughputEntity>.For(dbContext);
-        var nameComparer = migrationDialect.KeyComparer(typeof(LicensingEndpointThroughputEntity), nameof(LicensingEndpointThroughputEntity.NormalizedName));
-        var mapped = new List<LicensingEndpointThroughputEntity>(documents.Count);
-        var endpoints = new List<EndpointIdentifier>(documents.Count);
+        var mapped = new List<(EndpointIdentifier Endpoint, LicensingEndpointThroughputEntity Day)>(documents.Count);
         var skips = new List<(string SourceId, MigrationSkipReason Reason, string Detail)>();
 
         // Date order is the order the product's own throughput write takes row locks in.
@@ -49,11 +49,10 @@ sealed class LicensingThroughputWriter(IMigrationSqlDialect migrationDialect) : 
                 continue;
             }
 
-            mapped.Add(entity);
-            endpoints.Add(day.Endpoint);
+            mapped.Add((day.Endpoint, entity));
         }
 
-        foreach (var endpoint in endpoints.Distinct())
+        foreach (var endpoint in mapped.Select(day => day.Endpoint).Distinct())
         {
             var normalizedName = LicensingDataStore.Normalize(endpoint.Name);
 
@@ -67,19 +66,11 @@ sealed class LicensingThroughputWriter(IMigrationSqlDialect migrationDialect) : 
         List<LicensingEndpointThroughputEntity> rows =
         [
             .. mapped
-                .GroupBy(day => (day.ThroughputSource, day.DateUtc))
-                .SelectMany(sameDay => sameDay.GroupBy(day => day.NormalizedName, nameComparer).Select(AddEndpoints))
+                .GroupBy(day => (day.Endpoint.Name, day.Endpoint.ThroughputSource, day.Day.DateUtc))
+                .Select(sameEndpointDay => sameEndpointDay.Last().Day)
         ];
 
-        return new PreparedBatch((context, token) => migrationDialect.SetLicensingEndpointThroughput(context, rows, token), mapped.Count, skips, Merges: []);
-    }
-
-    // The sum is set, not added to the stored count, so the reader must put every endpoint that can share a key in one batch.
-    static LicensingEndpointThroughputEntity AddEndpoints(IEnumerable<LicensingEndpointThroughputEntity> sameKey)
-    {
-        var perEndpoint = sameKey.GroupBy(day => day.NormalizedName, StringComparer.Ordinal).Select(sameEndpoint => sameEndpoint.Last()).ToList();
-        var kept = perEndpoint[0];
-        kept.MessageCount = perEndpoint.Sum(day => day.MessageCount);
-        return kept;
+        // Adding is safe to resume, because the batch and its checkpoint commit in one transaction, and a replayed checkpoint save is refused.
+        return new PreparedBatch((context, token) => migrationDialect.AddLicensingEndpointThroughput(context, rows, token), mapped.Count, skips, Merges: []);
     }
 }

@@ -38,6 +38,7 @@ public static class MigrationCategoryRegistry
         new(MigrationCategoryIds.LicensingReportMasks, MigrationCategoryKind.Required, CarriesBodies: false, Order: 10),
         new(MigrationCategoryIds.LicensedEndpointDetails, MigrationCategoryKind.Required, CarriesBodies: false, Order: 11),
         new(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages, MigrationCategoryKind.Required, CarriesBodies: true, Order: 12),
+        new(MigrationCategoryIds.PendingIntegrationEvents, MigrationCategoryKind.Required, CarriesBodies: false, Order: 13),
         new(MigrationCategoryIds.CustomChecks, MigrationCategoryKind.Required, CarriesBodies: false, Order: 14),
         new(MigrationCategoryIds.FailedErrorImports, MigrationCategoryKind.Required, CarriesBodies: true, Order: 15),
         new(MigrationCategoryIds.GroupComments, MigrationCategoryKind.Required, CarriesBodies: false, Order: 16, MustFollow: MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages),

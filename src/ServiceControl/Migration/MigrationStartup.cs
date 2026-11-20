@@ -117,7 +117,7 @@ static class MigrationStartup
             RunRequiredCategories(engine, toCopy, checkpointStore, timeProvider, logger, cancellationToken),
             settings);
 
-        ReportWhatTheCopyLeftBehind(finished, logger, runStartedAt);
+        ReportWhatTheCopyLeftBehind(finished, logger, runStartedAt, engine.MergedAndChangedThisRun);
 
         RefuseIfAnyCategoryDidNotComplete(toCopy, finished, unfinishedOutsideTheCopy, settings);
     }
@@ -355,7 +355,7 @@ static class MigrationStartup
     internal static string FailedDetail(MigrationCheckpoint checkpoint)
     {
         var reasons = checkpoint.SkipReasons is { Count: > 0 } counts
-            ? $" ({string.Join("; ", counts.Select(reason => $"{reason.Key} {reason.Value}{(reason.Key.IsPermanent() ? ", no retry can fix" : "")}"))})"
+            ? $" ({string.Join("; ", counts.Select(reason => $"{reason.Key} {reason.Value}{(reason.Key.IsPermanent() ? ", no retry can fix" : reason.Key.IsBenign() ? ", harmless" : "")}"))})"
             : "";
 
         return $"{checkpoint.CategoryId} is Failed ({checkpoint.State}) after copying {checkpoint.CopiedCount} and skipping {checkpoint.SkippedCount}{reasons}{LastErrorClause(checkpoint)}; " +
@@ -372,8 +372,11 @@ static class MigrationStartup
     /// <summary>
     /// Logs one line per category saying what it copied and what it left behind. Skipped rows are warned about
     /// one at a time while the copy runs, and nothing else states the total or says what becomes of them.
+    /// The merged and changed counts are this run's, by category id, and the line counts merged rows apart from the other rows already present.
+    /// A category that merged or changed a row is reported as a warning even when it skipped nothing.
+    /// A category with more merged rows than rows already present gets a warning naming both counts, because the target's key comparer then disagrees with the database.
     /// </summary>
-    internal static void ReportWhatTheCopyLeftBehind(IReadOnlyList<MigrationCheckpoint> finished, ILogger logger, DateTime runStartedAt)
+    internal static void ReportWhatTheCopyLeftBehind(IReadOnlyList<MigrationCheckpoint> finished, ILogger logger, DateTime runStartedAt, IReadOnlyDictionary<string, (long Merged, long Changed)> mergedAndChanged)
     {
         foreach (var checkpoint in finished)
         {
@@ -393,18 +396,29 @@ static class MigrationStartup
                 continue;
             }
 
+            var (merged, changed) = mergedAndChanged.GetValueOrDefault(checkpoint.CategoryId);
+
+            // Every merged row is also counted as already present, so more merges than that means the merge lines were predicted wrongly.
+            if (merged > checkpoint.AlreadyPresentCount)
+            {
+                logger.LogWarning("{CategoryId}: the target reported {Merged} merged rows but only {AlreadyPresent} rows already present. Its key comparer disagrees with the database about which keys are equal, so the merge lines for this category may name the wrong rows.",
+                    checkpoint.CategoryId, merged, checkpoint.AlreadyPresentCount);
+            }
+
+            var alreadyPresent = Math.Max(0, checkpoint.AlreadyPresentCount - merged);
+
             // An exception, a stall or unbalanced counts fail a category without a skip, and that is not a clean copy.
             if (checkpoint.State.IsFailed() && checkpoint.SkippedCount == 0)
             {
-                logger.LogWarning("{CategoryId} is Failed ({State}) after {Copied} copied and {AlreadyPresent} already present. The refusal that follows says why and what to run.",
-                    checkpoint.CategoryId, checkpoint.State, checkpoint.CopiedCount, checkpoint.AlreadyPresentCount);
+                logger.LogWarning("{CategoryId} is Failed ({State}) after {Copied} copied ({Changed} changed), {AlreadyPresent} already present and {Merged} merged. The refusal that follows says why and what to run.",
+                    checkpoint.CategoryId, checkpoint.State, checkpoint.CopiedCount, changed, alreadyPresent, merged);
                 continue;
             }
 
             if (checkpoint.SkippedCount == 0)
             {
-                logger.LogInformation("{CategoryId}: {Copied} copied, {AlreadyPresent} already present, nothing skipped",
-                    checkpoint.CategoryId, checkpoint.CopiedCount, checkpoint.AlreadyPresentCount);
+                logger.Log(merged + changed == 0 ? LogLevel.Information : LogLevel.Warning, "{CategoryId}: {Copied} copied ({Changed} changed), {AlreadyPresent} already present, {Merged} merged, nothing skipped",
+                    checkpoint.CategoryId, checkpoint.CopiedCount, changed, alreadyPresent, merged);
                 continue;
             }
 
@@ -416,14 +430,27 @@ static class MigrationStartup
             var whatBecomesOfThem = checkpoint.State.IsFailed()
                 ? WhatARetryCanDo(checkpoint)
                 : checkpoint.State == MigrationCategoryState.Complete
-                    ? "They were left out as harmless, because ServiceControl would have removed them anyway, and they stay only in the source database."
+                    ? string.Join(" ", ["They were left out as harmless.", .. HarmlessReasonsIn(checkpoint), "They stay only in the source database."])
                     : "They stay only in the source database.";
 
             logger.LogWarning(
-                "{CategoryId}: {Copied} copied, {AlreadyPresent} already present, {Skipped} skipped ({Reasons}). {WhatBecomesOfThem}",
-                checkpoint.CategoryId, checkpoint.CopiedCount, checkpoint.AlreadyPresentCount, checkpoint.SkippedCount, reasons, whatBecomesOfThem);
+                "{CategoryId}: {Copied} copied ({Changed} changed), {AlreadyPresent} already present, {Merged} merged, {Skipped} skipped ({Reasons}). {WhatBecomesOfThem}",
+                checkpoint.CategoryId, checkpoint.CopiedCount, changed, alreadyPresent, merged, checkpoint.SkippedCount, reasons, whatBecomesOfThem);
         }
     }
+
+    /// <summary>
+    /// Why each harmless skip reason loses nothing, in one sentence or two that the operator reads in the log. Every reason <see cref="MigrationSkipReasonExtensions.IsBenign" /> accepts has one.
+    /// </summary>
+    internal static readonly IReadOnlyDictionary<MigrationSkipReason, string> HarmlessSkipExplanations = new Dictionary<MigrationSkipReason, string>
+    {
+        [MigrationSkipReason.PastRetention] = "PastRetention rows were past the retention period, so ServiceControl would have deleted them soon anyway.",
+        [MigrationSkipReason.BlankGroupComment] = "BlankGroupComment rows are blank group comments, and ServiceControl keeps no row for a blank comment.",
+        [MigrationSkipReason.SourceStorageCheck] = "SourceStorageCheck rows are results of the checks the source's own storage runs about itself, such as the RavenDB persister's checks on its database. Nothing reports those checks once the primary instance runs on SQL, so a copied result would never change."
+    };
+
+    static IEnumerable<string> HarmlessReasonsIn(MigrationCheckpoint checkpoint) =>
+        checkpoint.SkipReasons?.Keys.Where(reason => reason.IsBenign()).Order().Select(reason => HarmlessSkipExplanations[reason]) ?? [];
 
     // A retry reads the whole category again, so it is offered when a retry could copy some of the skipped rows, or when a halt left rows unread.
     static string WhatARetryCanDo(MigrationCheckpoint checkpoint)

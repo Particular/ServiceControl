@@ -45,7 +45,12 @@ class FailedMessageMigrationCoverageTests : PersistenceTestBase
     {
         var target = ServiceProvider.GetRequiredService<IMigrationTarget>();
         var category = MigrationCategoryRegistry.All.Single(entry => entry.Id == MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages);
-        var source = FullyPopulatedRow() with { Body = new MigrationBody(Encoding.UTF8.GetBytes("<order>1</order>"), "text/xml") };
+        var row = FullyPopulatedRow();
+        var source = row with
+        {
+            Metadata = new Dictionary<string, object?>(row.Metadata) { [MigrationMetadataKeys.RetryClaimHeld] = true },
+            Body = new MigrationBody(Encoding.UTF8.GetBytes("<order>1</order>"), "text/xml")
+        };
         ((FailedMessage)source.Document).Status = FailedMessageStatus.RetryIssued;
         await target.Open();
 

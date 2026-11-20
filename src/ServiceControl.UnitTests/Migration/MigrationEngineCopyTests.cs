@@ -3,6 +3,8 @@ namespace ServiceControl.UnitTests.Migration;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
@@ -247,5 +249,43 @@ class MigrationEngineCopyTests
             Assert.That(checkpoint, Is.EqualTo(alreadyDone with { Version = 1 }), "the row is read back untouched, at the version the seeding save left it");
             Assert.That(target.WrittenRows(category.Id), Is.Empty);
         }
+    }
+
+    [Test]
+    public async Task The_merged_and_changed_rows_the_target_reports_add_up_for_each_category_in_this_run()
+    {
+        var category = MigrationCategoryRegistry.Find("KnownEndpoints")!;
+        var source = new InMemoryMigrationSource();
+        source.Seed(category.Id, Row("a"), Row("b"), Row("c"), Row("d"), Row("e"), Row("f"));
+        var checkpointStore = new InMemoryMigrationCheckpointStore();
+        var options = new MigrationEngineOptions(TimeSpan.Zero, 5, 100, []);
+        var engine = new MigrationEngine(source, new MergingTarget(checkpointStore), checkpointStore, new FakeTimeProvider(), options, NullLogger<MigrationEngine>.Instance);
+
+        await engine.RunCategoryAsync(category);
+
+        Assert.That(engine.MergedAndChangedThisRun, Is.EquivalentTo(new Dictionary<string, (long Merged, long Changed)> { [category.Id] = (2, 4) }),
+            "the checkpoint does not hold these counts, so the summary after the copy has only what the engine adds up");
+    }
+
+    // Reports one row of every batch merged and two of the rest changed.
+    sealed class MergingTarget(IMigrationCheckpointStore checkpointStore) : IMigrationTarget
+    {
+        public Task Open(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public Task<int> BatchSizeFor(MigrationCategory category, CancellationToken cancellationToken = default) => Task.FromResult(3);
+
+        public async Task<MigrationWriteResult> Write(MigrationCategory category, MigrationBatch batch, MigrationCheckpoint checkpointToExtend, CancellationToken cancellationToken = default)
+        {
+            var saved = await checkpointStore.Upsert(checkpointToExtend.Extend(batch.Rows.Count - 1, 0, 1, null), cancellationToken);
+            return new MigrationWriteResult(saved, batch.Rows.Count - 1, 0, [], AlreadyPresent: 1, Merged: 1, Changed: 2);
+        }
+
+        public Task<long> Count(MigrationCategory category, CancellationToken cancellationToken = default) => Task.FromResult(0L);
+
+        public Task<MigrationCheckpoint> ResetForRetry(MigrationCheckpoint reset, CancellationToken cancellationToken = default) => checkpointStore.Upsert(reset, cancellationToken);
+
+        public IReadOnlyCollection<string> SupportedCategoryIds => [.. MigrationCategoryRegistry.All.Select(category => category.Id)];
+
+        public IReadOnlyDictionary<string, Type> DocumentTypes => MigrationCategoryRegistry.All.ToDictionary(category => category.Id, _ => typeof(object));
     }
 }

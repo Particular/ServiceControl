@@ -1,6 +1,7 @@
 namespace ServiceControl.Persistence.EFCore.SqlServer;
 
 using System.Data.Common;
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -10,14 +11,12 @@ using ServiceControl.Persistence.EFCore.Entities;
 using ServiceControl.Persistence.EFCore.Infrastructure;
 
 /// <summary>
-/// The migration's SQL Server statements. Two keys that differ only in case or trailing spaces can be one row here, because a
+/// The migration's SQL Server statements. Two keys that differ only in case, accents, kana type, width or trailing spaces can be one row here, because a
 /// column's collation decides what counts as equal, so the statements compare keys under the collation the
 /// schema gives them and the batch is de-duplicated the same way before it is offered to the table.
 /// </summary>
 class SqlServerMigrationSqlDialect : SqlServerDialect, IMigrationSqlDialect
 {
-    const int IgnoreCaseStyle = 1;
-
     OpenedKeys? OpenedState { get; set; }
 
     public async Task Open(ServiceControlDbContext dbContext, CancellationToken cancellationToken = default)
@@ -55,7 +54,7 @@ class SqlServerMigrationSqlDialect : SqlServerDialect, IMigrationSqlDialect
                     ?? throw new InvalidOperationException($"The migration target found no collation for {tableName}.{column}, so the SQL Server schema is missing or not current. Run ServiceControl with --setup against this database first.");
 
                 collations[(table, sql.DelimitIdentifier(column))] = collation.Name;
-                comparers[(entityType.ClrType, property.Name)] = new PaddedKeyComparer((collation.ComparisonStyle & IgnoreCaseStyle) == 0 ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
+                comparers[(entityType.ClrType, property.Name)] = new PaddedKeyComparer(ComparerFor(collation.ComparisonStyle));
             }
         }
 
@@ -114,12 +113,13 @@ class SqlServerMigrationSqlDialect : SqlServerDialect, IMigrationSqlDialect
         return inserted;
     }
 
-    public async Task<int> SetLicensingEndpointThroughput(ServiceControlDbContext dbContext, IReadOnlyList<LicensingEndpointThroughputEntity> rows, CancellationToken cancellationToken = default)
+    public async Task<int> AddLicensingEndpointThroughput(ServiceControlDbContext dbContext, IReadOnlyList<LicensingEndpointThroughputEntity> rows, CancellationToken cancellationToken = default)
     {
         var insert = MigrationInsert<LicensingEndpointThroughputEntity>.For(dbContext);
         var columns = string.Join(", ", insert.Columns);
-        var partitionBy = string.Join(", ", insert.KeyColumns.Select(column =>
-            Keys.Collations.TryGetValue((insert.Table, column), out var collation) ? $"{column} COLLATE {collation}" : column));
+        var counts = insert.Columns.Except(insert.KeyColumns).ToList();
+        var collatedKeys = insert.KeyColumns.ToDictionary(column => column, column =>
+            Keys.Collations.TryGetValue((insert.Table, column), out var collation) ? $"{column} COLLATE {collation}" : column);
         var written = 0;
 
         foreach (var chunk in rows.Chunk(RowsPerStatement(insert.Columns.Count)))
@@ -131,17 +131,14 @@ class SqlServerMigrationSqlDialect : SqlServerDialect, IMigrationSqlDialect
                 $"""
                  MERGE {insert.Table} WITH (HOLDLOCK) AS t
                  USING (
-                     SELECT {columns}
-                     FROM (
-                         SELECT {columns}, ROW_NUMBER() OVER (PARTITION BY {partitionBy} ORDER BY [MigrationOrdinal] DESC) AS [MigrationDuplicate]
-                         FROM (VALUES
-                 {ParameterRowsWithOrdinal(chunk.Length, insert.Columns.Count)}
-                         ) AS v ({columns}, [MigrationOrdinal])
-                     ) AS deduplicated
-                     WHERE [MigrationDuplicate] = 1
+                     SELECT {string.Join(", ", insert.Columns.Select(column => collatedKeys.TryGetValue(column, out var key) ? key : $"SUM({column})"))}
+                     FROM (VALUES
+                 {ParameterRows(chunk.Length, insert.Columns.Count)}
+                     ) AS v ({columns})
+                     GROUP BY {string.Join(", ", collatedKeys.Values)}
                  ) AS s ({columns})
                  ON {string.Join(" AND ", insert.KeyColumns.Select(column => $"t.{column} = s.{column}"))}
-                 WHEN MATCHED THEN UPDATE SET {string.Join(", ", insert.Columns.Except(insert.KeyColumns).Select(column => $"{column} = s.{column}"))}
+                 WHEN MATCHED THEN UPDATE SET {string.Join(", ", counts.Select(column => $"{column} = t.{column} + s.{column}"))}
                  WHEN NOT MATCHED THEN INSERT ({columns}) VALUES ({string.Join(", ", insert.Columns.Select(column => $"s.{column}"))})
                  OUTPUT {string.Join(", ", insert.KeyColumns.Select(column => $"s.{column}"))};
                  """,
@@ -162,6 +159,29 @@ class SqlServerMigrationSqlDialect : SqlServerDialect, IMigrationSqlDialect
             parameter.Size = -1;
         }
     }
+
+    // COLLATIONPROPERTY's ComparisonStyle is 0 for a binary collation and for one that ignores nothing, and otherwise sets one bit for each thing the collation ignores.
+    static StringComparer ComparerFor(int comparisonStyle)
+    {
+        if (comparisonStyle == 0)
+        {
+            return StringComparer.Ordinal;
+        }
+
+        var options = ComparisonStyleOptions
+            .Where(style => (comparisonStyle & style.Bit) != 0)
+            .Aggregate(CompareOptions.None, (combined, style) => combined | style.Option);
+
+        return CultureInfo.InvariantCulture.CompareInfo.GetStringComparer(options);
+    }
+
+    static readonly (int Bit, CompareOptions Option)[] ComparisonStyleOptions =
+    [
+        (1, CompareOptions.IgnoreCase),
+        (2, CompareOptions.IgnoreNonSpace),
+        (0x10000, CompareOptions.IgnoreKanaType),
+        (0x20000, CompareOptions.IgnoreWidth)
+    ];
 
     OpenedKeys Keys => OpenedState ?? throw new InvalidOperationException($"The SQL Server migration dialect is not open. Call {nameof(Open)} first.");
 

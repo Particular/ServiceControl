@@ -49,22 +49,28 @@ class PostgreSqlMigrationSqlDialect : PostgreSqlDialect, IMigrationSqlDialect
         return inserted;
     }
 
-    public async Task<int> SetLicensingEndpointThroughput(ServiceControlDbContext dbContext, IReadOnlyList<LicensingEndpointThroughputEntity> rows, CancellationToken cancellationToken = default)
+    public async Task<int> AddLicensingEndpointThroughput(ServiceControlDbContext dbContext, IReadOnlyList<LicensingEndpointThroughputEntity> rows, CancellationToken cancellationToken = default)
     {
         var insert = MigrationInsert<LicensingEndpointThroughputEntity>.For(dbContext);
+        var columns = string.Join(", ", insert.Columns);
         var keyColumns = string.Join(", ", insert.KeyColumns);
+        var counts = insert.Columns.Except(insert.KeyColumns).ToList();
         var written = 0;
 
         foreach (var chunk in rows.Chunk(RowsPerStatement(insert.Columns.Count)))
         {
+            // Grouped first, because ON CONFLICT refuses a statement that reaches one row twice.
             written += (await insert.Execute(
                 dbContext,
                 $"""
-                 INSERT INTO {insert.Table} ({string.Join(", ", insert.Columns)})
-                 VALUES
+                 INSERT INTO {insert.Table} ({columns})
+                 SELECT {string.Join(", ", insert.Columns.Select(column => counts.Contains(column) ? $"SUM({column})" : column))}
+                 FROM (VALUES
                  {ParameterRows(chunk.Length, insert.Columns.Count)}
+                 ) AS v ({columns})
+                 GROUP BY {keyColumns}
                  ON CONFLICT ({keyColumns})
-                 DO UPDATE SET {string.Join(", ", insert.Columns.Except(insert.KeyColumns).Select(column => $"{column} = excluded.{column}"))}
+                 DO UPDATE SET {string.Join(", ", counts.Select(column => $"{column} = {insert.Table}.{column} + excluded.{column}"))}
                  RETURNING {keyColumns}
                  """,
                 chunk,

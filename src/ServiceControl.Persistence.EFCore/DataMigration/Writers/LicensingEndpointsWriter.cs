@@ -10,6 +10,7 @@ using ServiceControl.Persistence.DataMigration;
 /// <summary>
 /// Writes the licensing endpoints. An endpoint the target already holds, or a second one in the same batch whose key
 /// the column treats as the same, is left as it is and counted as already present.
+/// Each endpoint folded into another's key is also reported as a merge, naming both.
 /// </summary>
 sealed class LicensingEndpointsWriter(IMigrationSqlDialect migrationDialect) : MigrationCategoryWriter<Endpoint>
 {
@@ -20,10 +21,10 @@ sealed class LicensingEndpointsWriter(IMigrationSqlDialect migrationDialect) : M
     public override Task<long> Count(ServiceControlDbContext dbContext, CancellationToken cancellationToken = default) =>
         dbContext.LicensingEndpoints.LongCountAsync(cancellationToken);
 
-    protected override Task<PreparedBatch> PrepareDocuments(ServiceControlDbContext dbContext, IReadOnlyList<(MigrationRow Row, Endpoint Document)> documents, CancellationToken cancellationToken = default)
+    protected override async Task<PreparedBatch> PrepareDocuments(ServiceControlDbContext dbContext, IReadOnlyList<(MigrationRow Row, Endpoint Document)> documents, CancellationToken cancellationToken = default)
     {
         var insert = MigrationInsert<LicensingEndpointEntity>.For(dbContext);
-        var rows = new List<LicensingEndpointEntity>(documents.Count);
+        var rows = new List<(string SourceId, LicensingEndpointEntity Row)>(documents.Count);
         var skips = new List<(string SourceId, MigrationSkipReason Reason, string Detail)>();
 
         foreach (var (row, endpoint) in documents.OrderBy(document => document.Row.SourceId, StringComparer.Ordinal))
@@ -42,13 +43,13 @@ sealed class LicensingEndpointsWriter(IMigrationSqlDialect migrationDialect) : M
                 continue;
             }
 
-            rows.Add(entity);
+            rows.Add((row.SourceId, entity));
         }
 
-        return Task.FromResult(new PreparedBatch(
-            async (context, token) => (await migrationDialect.InsertMissing(context, rows, token)).Count,
+        return new PreparedBatch(
+            async (context, token) => (await migrationDialect.InsertMissing(context, [.. rows.Select(row => row.Row)], token)).Count,
             rows.Count,
             skips,
-            Merges: []));
+            await KeyMerges.In(dbContext, migrationDialect, rows, cancellationToken));
     }
 }

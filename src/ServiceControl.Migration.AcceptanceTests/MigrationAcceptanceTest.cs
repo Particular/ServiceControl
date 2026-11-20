@@ -28,6 +28,7 @@ using ServiceControl.Persistence.EFCore;
 using Particular.ServiceControl.Hosting;
 using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.AcceptanceTesting.InfrastructureConfig;
+using ServiceControl.Contracts.CustomChecks;
 using ServiceControl.Hosting.Commands;
 using ServiceControl.Infrastructure.WebApi;
 using ServiceControl.MessageFailures;
@@ -118,6 +119,7 @@ abstract class MigrationAcceptanceTest
         targetServiceCollection.AddLogging();
         targetServiceCollection.AddPersistence(Settings);
         targetServiceCollection.AddSingleton<IBodyStoragePersistence>(RecordedBodies);
+        targetServiceCollection.AddSingleton(new NServiceBus.CriticalError((_, _) => Task.CompletedTask));
         targetServices = targetServiceCollection.BuildServiceProvider();
 
         Target = targetServices.GetRequiredService<IMigrationTarget>();
@@ -269,6 +271,17 @@ abstract class MigrationAcceptanceTest
     protected Task SeedSourceRetryHistory(RetryHistory history) =>
         SeedSource(("RetryOperations/History", history));
 
+    // The id is the one the RavenDB persister gives a claim, retyped because this project cannot reference that persister.
+    protected async Task SeedSourceRetryClaim(string uniqueMessageId)
+    {
+        var document = new { FailedMessageId = $"FailedMessages/{uniqueMessageId}", RetryBatchId = "RetryBatches/forwarded" };
+
+        using var session = SourceStore.OpenAsyncSession(Source.PrimaryDatabase);
+        await session.StoreAsync(document, $"FailedMessageRetries/{uniqueMessageId}");
+        session.Advanced.GetMetadataFor(document)["@collection"] = "FailedMessageRetries";
+        await session.SaveChangesAsync();
+    }
+
     protected Task SeedSourceWithBody(FailedMessage document, byte[] body, string contentType) =>
         SeedSourceWithBodies((document, body, contentType));
 
@@ -304,6 +317,42 @@ abstract class MigrationAcceptanceTest
         SeedSource([.. names
             .Select(name => new KnownEndpoint { EndpointDetails = new EndpointDetails { Name = name, HostId = Guid.NewGuid(), Host = "HOST01" } })
             .Select(endpoint => ($"KnownEndpoints/{endpoint.EndpointDetails.GetDeterministicId()}", (object)endpoint))]);
+
+    // A whole second in UTC, because PostgreSQL refuses an unspecified kind and keeps only microseconds.
+    protected static readonly DateTime SeededReportedAt = new(2026, 9, 1, 8, 0, 0, DateTimeKind.Utc);
+
+    // Written out by shape, because the RavenDB persister's CustomCheck type is in an assembly this project does not reference.
+    protected async Task SeedSourceCustomCheck(
+        EndpointDetails endpoint, string customCheckId, string category = "Ping", bool failed = false, string reason = null)
+    {
+        var detail = new CustomCheckDetail
+        {
+            OriginatingEndpoint = endpoint,
+            CustomCheckId = customCheckId,
+            Category = category,
+            ReportedAt = SeededReportedAt,
+            HasFailed = failed,
+            FailureReason = reason
+        };
+
+        var documentId = $"CustomChecks/{detail.GetDeterministicId()}";
+        var document = new
+        {
+            Id = documentId,
+            detail.CustomCheckId,
+            detail.Category,
+            // The integer, so the document reads back the same whether or not the seeding store saves enums as integers.
+            Status = (int)(failed ? Status.Fail : Status.Pass),
+            detail.ReportedAt,
+            FailureReason = reason,
+            OriginatingEndpoint = endpoint
+        };
+
+        using var session = SourceStore.OpenAsyncSession(Source.PrimaryDatabase);
+        await session.StoreAsync(document, documentId);
+        session.Advanced.GetMetadataFor(document)["@collection"] = "CustomChecks";
+        await session.SaveChangesAsync();
+    }
 
     protected Task<IMigrationSource> OpenSource(CancellationToken cancellationToken = default) =>
         PersistenceFactory.OpenMigrationSource(Settings, cancellationToken);
@@ -536,6 +585,10 @@ abstract class MigrationAcceptanceTest
     protected INotificationsDataStore NotificationsStore => targetServices.GetRequiredService<INotificationsDataStore>();
     protected ITrialLicenseDataProvider TrialLicenseDataProvider => targetServices.GetRequiredService<ITrialLicenseDataProvider>();
     protected IRetryHistoryDataStore RetryHistoryStore => targetServices.GetRequiredService<IRetryHistoryDataStore>();
+    protected ExternalIntegrationRequestsDataStore ExternalIntegrationStore => targetServices.GetRequiredService<ExternalIntegrationRequestsDataStore>();
+    protected ICustomChecksDataStore CustomChecks => targetServices.GetRequiredService<ICustomChecksDataStore>();
+    protected IFailedErrorImportDataStore FailedImportStore => targetServices.GetRequiredService<IFailedErrorImportDataStore>();
+    protected IGroupsDataStore GroupsStore => targetServices.GetRequiredService<IGroupsDataStore>();
 
     // Built by hand, because its DI constructor needs NServiceBus settings the target services do not have.
     // A zero cache duration makes every read go to the table.

@@ -15,8 +15,8 @@ using ServiceControl.Persistence.DataMigration;
 using ServiceControl.Persistence.RavenDB.Throughput;
 
 /// <summary>
-/// Reads each licensing endpoint's daily message counts out of the throughput database, one batch per group from
-/// <see cref="ThroughputDocuments.EndpointGroups" />, with the batch's cursor on the group's last document id.
+/// Reads each licensing endpoint's daily message counts out of the throughput database, one batch per endpoint in
+/// ordinal document-id order, with the batch's cursor on that endpoint's document id.
 /// </summary>
 sealed class LicensingThroughputReader(RavenReadOnlySourceLifecycle lifecycle) : MigrationCategoryReader<ThroughputDayRow>(lifecycle)
 {
@@ -27,13 +27,12 @@ sealed class LicensingThroughputReader(RavenReadOnlySourceLifecycle lifecycle) :
 
     async IAsyncEnumerable<MigrationBatch> ReadThroughputDays(string? resumeAfter, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        // One group of endpoints per batch, because the batch size counts rows and one endpoint can bring a year or more of days,
-        // and because the writer adds the days of a group's endpoints only when they arrive in one batch.
-        await foreach (var endpoints in ThroughputDocuments.EndpointGroups(Lifecycle, CategoryId, resumeAfter, cancellationToken))
+        // One endpoint per batch, because the batch size counts rows and one endpoint can bring a year or more of days.
+        await foreach (var endpoints in ThroughputDocuments.Endpoints(Lifecycle, CategoryId, resumeAfter, batchSize: 1, cancellationToken))
         {
             var days = new List<MigrationRow>();
 
-            foreach (var endpoint in endpoints)
+            foreach (var endpoint in endpoints.Rows)
             {
                 var id = ((Endpoint)endpoint.Document).Id;
 
@@ -43,7 +42,7 @@ sealed class LicensingThroughputReader(RavenReadOnlySourceLifecycle lifecycle) :
                 }
             }
 
-            yield return new MigrationBatch(days, endpoints[^1].SourceId);
+            yield return new MigrationBatch(days, endpoints.Cursor);
         }
     }
 

@@ -9,9 +9,11 @@ using ServiceControl.MessageFailures;
 using ServiceControl.Persistence.DataMigration;
 
 /// <summary>
-/// Writes failed messages, their failure group rows and a retry claim for each retry-issued message, inserting only
-/// messages the target does not already hold and never updating one it does. Each category that copies failed
-/// messages derives from this and names its category id and the statuses it copies.
+/// Writes failed messages, their failure group rows and a retry claim for each retry-issued message the source still
+/// held one for, inserting only messages the target does not already hold and never updating one it does. The claims
+/// mirror the source, so a retry by id behaves as it did before the move. A retry-issued row with no bool RetryClaimHeld
+/// value fails the batch. Each category that copies failed messages derives from this and names its category id and the
+/// statuses it copies.
 /// </summary>
 abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, IBodyStoragePersistence storagePersistence, EFPersisterSettings persisterSettings) : MigrationCategoryWriter<FailedMessage>
 {
@@ -39,6 +41,9 @@ abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, I
         List<FailedMessageDocumentTranslation.Translated> translated = [];
         HashSet<Guid> translatedIds = [];
         List<(string SourceId, FailedMessageEntity Row, MigrationBody Body)> externalBodies = [];
+        List<(string SourceId, Guid UniqueMessageId, string Detail)> changes = [];
+        HashSet<Guid> heldClaims = [];
+        var groupIds = migrationDialect.KeyComparer(typeof(FailedMessageGroupEntity), nameof(FailedMessageGroupEntity.GroupId));
 
         foreach (var (row, document) in documents)
         {
@@ -61,10 +66,23 @@ abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, I
                     {
                         translated.Add(translation);
 
-                        // The insert keeps only the first document with an id, so only its body may be stored under that id.
-                        if (translatedIds.Add(translation.Row.UniqueMessageId) && storeExternally)
+                        // The insert keeps only the first document with an id, so only its body is stored under that id, only its changes are reported and only its claim is copied.
+                        if (translatedIds.Add(translation.Row.UniqueMessageId))
                         {
-                            externalBodies.Add((row.SourceId, translation.Row, body));
+                            if (storeExternally)
+                            {
+                                externalBodies.Add((row.SourceId, translation.Row, body));
+                            }
+
+                            if (translation.Row.Status == FailedMessageStatus.RetryIssued && SourceHeldRetryClaim(row))
+                            {
+                                heldClaims.Add(translation.Row.UniqueMessageId);
+                            }
+
+                            if (ChangesIn(translation, groupIds) is { Count: > 0 } changed)
+                            {
+                                changes.Add((row.SourceId, translation.Row.UniqueMessageId, string.Join(" ", changed)));
+                            }
                         }
                     }
 
@@ -77,32 +95,47 @@ abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, I
             }
         }
 
-        await WriteBodiesTheTargetLacks(dbContext, externalBodies, cancellationToken);
+        // This only skips the bodies and changes of messages the target already holds; InsertMissing still decides which rows go in.
+        var present = externalBodies.Count == 0 && changes.Count == 0
+            ? []
+            : await MessagesTheTargetHolds(dbContext, [.. externalBodies.Select(external => external.Row.UniqueMessageId), .. changes.Select(change => change.UniqueMessageId)], cancellationToken);
 
-        return new PreparedBatch((context, token) => InsertFailedMessages(context, translated, token), translated.Count, skips, Merges: []);
+        // All bodies are written before the transaction opens, so a crash leaves a body with no row rather than a row pointing at a body that was never stored.
+        await Task.WhenAll(externalBodies
+            .Where(external => !present.Contains(external.Row.UniqueMessageId))
+            .Select(external => WriteBody(external, cancellationToken)));
+
+        return new PreparedBatch((context, token) => InsertFailedMessages(context, translated, heldClaims, token), translated.Count, skips, Merges: [])
+        {
+            Changes = [.. changes.Where(change => !present.Contains(change.UniqueMessageId)).Select(change => (change.SourceId, change.Detail))]
+        };
     }
 
-    // All bodies are written before the transaction opens, so a crash leaves a body with no row rather than a row pointing at a body that was never stored.
-    async Task WriteBodiesTheTargetLacks(ServiceControlDbContext dbContext, IReadOnlyList<(string SourceId, FailedMessageEntity Row, MigrationBody Body)> externalBodies, CancellationToken cancellationToken)
-    {
-        if (externalBodies.Count == 0)
-        {
-            return;
-        }
-
-        var ids = externalBodies.Select(external => external.Row.UniqueMessageId).ToArray();
-
-        // This only skips writing bodies for messages the target already holds; InsertMissing still decides which rows go in.
-        var present = (await dbContext.FailedMessages
+    static async Task<HashSet<Guid>> MessagesTheTargetHolds(ServiceControlDbContext dbContext, Guid[] ids, CancellationToken cancellationToken) =>
+        (await dbContext.FailedMessages
             .AsNoTracking()
             .Where(message => ids.Contains(message.UniqueMessageId))
             .Select(message => message.UniqueMessageId)
             .ToListAsync(cancellationToken)).ToHashSet();
 
-        await Task.WhenAll(externalBodies
-            .Where(external => !present.Contains(external.Row.UniqueMessageId))
-            .Select(external => WriteBody(external, cancellationToken)));
-    }
+    // The group insert keeps the first of the ids its key treats as one, so a later group with such an id loses its title and type.
+    static IReadOnlyList<string> ChangesIn(FailedMessageDocumentTranslation.Translated translation, IEqualityComparer<string> groupIds) =>
+    [
+        .. translation.Changes,
+        .. translation.Groups
+            .GroupBy(group => group.GroupId, groupIds)
+            .Where(sameKey => sameKey.Count() > 1)
+            .Select(sameKey => $"Kept the failure group '{sameKey.First().GroupId}' titled '{sameKey.First().Title}' and dropped {string.Join(", ", sameKey.Skip(1).Select(group => $"'{group.GroupId}' titled '{group.Title}'"))}, because SQL treats their ids as one key.")
+    ];
+
+    // Throws rather than guess, because a wrong guess either blocks a retry by id or lets one send the message twice.
+    static bool SourceHeldRetryClaim(MigrationRow row) =>
+        row.Metadata.GetValueOrDefault(MigrationMetadataKeys.RetryClaimHeld) switch
+        {
+            bool held => held,
+            null => throw new InvalidOperationException($"Row '{row.SourceId}' is retry-issued but arrived without a {MigrationMetadataKeys.RetryClaimHeld} value, which the source resolves for every retry-issued failed message"),
+            var other => throw new InvalidOperationException($"Row '{row.SourceId}' carries a {other.GetType().FullName} as its {MigrationMetadataKeys.RetryClaimHeld} value, where the source sets a {typeof(bool).FullName}")
+        };
 
     async Task WriteBody((string SourceId, FailedMessageEntity Row, MigrationBody Body) external, CancellationToken cancellationToken)
     {
@@ -136,7 +169,7 @@ abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, I
         }
     }
 
-    async Task<int> InsertFailedMessages(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageDocumentTranslation.Translated> translated, CancellationToken cancellationToken)
+    async Task<int> InsertFailedMessages(ServiceControlDbContext dbContext, IReadOnlyList<FailedMessageDocumentTranslation.Translated> translated, IReadOnlySet<Guid> heldClaims, CancellationToken cancellationToken)
     {
         var inserted = (await migrationDialect.InsertMissing(dbContext, [.. translated.Select(translation => translation.Row)], cancellationToken))
             .ToHashSet<FailedMessageEntity>(ReferenceEqualityComparer.Instance);
@@ -145,9 +178,9 @@ abstract class FailedMessagesWriterBase(IMigrationSqlDialect migrationDialect, I
         // A group goes in only when the message its foreign key points at went in, so a message already in the target keeps the groups it had.
         await migrationDialect.InsertMissing(dbContext, [.. translated.Where(translation => inserted.Contains(translation.Row)).SelectMany(translation => translation.Groups)], cancellationToken);
 
-        // A retry-issued message needs a claim, or a retry by id sends it again while its first retry is still outstanding.
+        // The claims mirror the source, so a retry by id stays blocked or goes through exactly as it would have before the move.
         await migrationDialect.InsertMissing(dbContext, [.. inserted
-            .Where(row => row.Status == FailedMessageStatus.RetryIssued)
+            .Where(row => heldClaims.Contains(row.UniqueMessageId))
             .Select(row => new FailedMessageRetryEntity { UniqueMessageId = row.UniqueMessageId, RetryBatchId = MigratedRetryClaimBatchId })], cancellationToken);
 
         return inserted.Count;

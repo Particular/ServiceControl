@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Raven.Client;
 using Raven.Client.Documents.Commands;
 using ServiceControl.MessageFailures;
@@ -47,6 +49,37 @@ class FailedMessageStream(RavenReadOnlySourceLifecycle lifecycle)
                     [MigrationMetadataKeys.LastModified] = ReadMetadataDate(result, Constants.Documents.Metadata.LastModified)
                 });
         };
+
+    /// <summary>
+    /// Returns the batch with every retry-issued row carrying <see cref="MigrationMetadataKeys.RetryClaimHeld" />, true when
+    /// RavenDB still holds a retry claim for the message. It looks up every claim in the batch with one request, and returns a
+    /// batch with no retry-issued row as it is.
+    /// </summary>
+    public async Task<MigrationBatch> ResolveRetryClaims(MigrationBatch batch, CancellationToken cancellationToken = default)
+    {
+        string[] claimIds = [.. batch.Rows.Where(IsRetryIssued).Select(ClaimId)];
+
+        if (claimIds.Length == 0)
+        {
+            return batch;
+        }
+
+        using var session = lifecycle.OpenSession(lifecycle.Settings.DatabaseName);
+
+        var claims = await session.LoadAsync<FailedMessageRetry>(claimIds.Distinct(StringComparer.OrdinalIgnoreCase), cancellationToken);
+        var held = claims.Where(claim => claim.Value is not null).Select(claim => claim.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        return batch with
+        {
+            Rows = [.. batch.Rows.Select(row => IsRetryIssued(row)
+                ? row with { Metadata = new Dictionary<string, object?>(row.Metadata) { [MigrationMetadataKeys.RetryClaimHeld] = held.Contains(ClaimId(row)) } }
+                : row)]
+        };
+    }
+
+    static bool IsRetryIssued(MigrationRow row) => ((FailedMessage)row.Document).Status == FailedMessageStatus.RetryIssued;
+
+    static string ClaimId(MigrationRow row) => RetryDocumentDataStore.MakeFailedMessageRetriesDocumentId(((FailedMessage)row.Document).UniqueMessageId);
 
     // The translator checks TimeSent, SendingEndpoint and ReceivingEndpoint by exact type, but RavenDB can hand them back as text or untyped objects.
     // Only the newest attempt is fixed because the translator reads no other, and a TimeSent that is not a date is left as it is for the translator to skip.
@@ -98,7 +131,7 @@ class FailedMessageStream(RavenReadOnlySourceLifecycle lifecycle)
     static DateTime AsUtc(DateTime value) =>
         value.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(value, DateTimeKind.Utc) : value.ToUniversalTime();
 
-    static DateTime? ReadMetadataDate(StreamResult<FailedMessage> result, string key) =>
+    internal static DateTime? ReadMetadataDate<TDocument>(StreamResult<TDocument> result, string key) =>
         result.Metadata.TryGetValue(key, out var value) && value != null
             ? AsUtc(DateTime.Parse(value.ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind))
             : null;

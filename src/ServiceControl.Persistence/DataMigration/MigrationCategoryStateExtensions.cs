@@ -23,14 +23,16 @@ public static class MigrationCategoryStateExtensions
 public static class MigrationSkipReasonExtensions
 {
     /// <summary>
-    /// Whether the running product would have dropped this row anyway, which makes the skip no loss. The halt
-    /// threshold and the settle rule never count a harmless skip, so no number of them can stop a category or
-    /// leave it Failed. The list is fixed. <see cref="MigrationSkipReason.Unknown" /> is not on it, because a
-    /// newer build's reason read back here may be a real loss.
+    /// Whether the skip is no loss, because the running product would have dropped the row anyway, or the row
+    /// is a result of a check the source's own storage runs about itself, which nothing reports on the target. The halt threshold and the settle rule never count a
+    /// harmless skip, so no number of them can stop a category or leave it Failed. The list is fixed, and
+    /// <see cref="MigrationSkipReason.Unknown" /> is not on it, because a newer build's reason read back here
+    /// may be a real loss.
     /// </summary>
     public static bool IsBenign(this MigrationSkipReason reason) =>
         reason is MigrationSkipReason.PastRetention
-               or MigrationSkipReason.BlankGroupComment;
+               or MigrationSkipReason.BlankGroupComment
+               or MigrationSkipReason.SourceStorageCheck;
 
     /// <summary>
     /// Whether no retry can fix a row skipped for this reason.

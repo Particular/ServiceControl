@@ -89,7 +89,7 @@ class LicensingEndpointsMigrationTests : MigrationAcceptanceTest
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Copied, Is.EqualTo(keyIgnoresTrailingSpace ? 1 : 2), "SQL Server's key ignores the trailing space and keeps the first row; PostgreSQL's does not and keeps both");
-            Assert.That(result.AlreadyPresent, Is.EqualTo(keyIgnoresTrailingSpace ? 1 : 0), "the row SQL Server's key treats as the first's is already present, not lost");
+            Assert.That(result.AlreadyPresent, Is.EqualTo(keyIgnoresTrailingSpace ? 1 : 0), "the row SQL Server's key treats as the first's is counted as already present");
             Assert.That(result.Skipped, Is.Zero);
             Assert.That(await Target.Count(category), Is.EqualTo(result.Copied), "every row reported as copied is a row in the table");
 

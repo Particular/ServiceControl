@@ -18,6 +18,7 @@ public static class MigrationCategoryIds
     public const string LicensingReportMasks = nameof(LicensingReportMasks);
     public const string LicensedEndpointDetails = nameof(LicensedEndpointDetails);
     public const string UnresolvedAndRetryIssuedFailedMessages = nameof(UnresolvedAndRetryIssuedFailedMessages);
+    public const string PendingIntegrationEvents = nameof(PendingIntegrationEvents);
 
     public const string EventLog = nameof(EventLog);
     public const string CustomChecks = nameof(CustomChecks);

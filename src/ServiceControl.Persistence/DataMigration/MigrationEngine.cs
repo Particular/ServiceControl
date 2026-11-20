@@ -1,6 +1,7 @@
 namespace ServiceControl.Persistence.DataMigration;
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -30,6 +31,14 @@ public sealed class MigrationEngine(
     public const int MaxBodyReadAttempts = 3;
 
     readonly MigrationBodyLoader bodyLoader = new(source, timeProvider, options.BodyRetryBackoff, logger);
+
+    readonly ConcurrentDictionary<string, (long Merged, long Changed)> mergedAndChangedThisRun = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// For each category this engine wrote to, how many rows the target merged into another row and how many it changed on the way in.
+    /// The counts are not saved, so they cover only the batches this engine wrote, and a category it resumed counts none from earlier runs.
+    /// </summary>
+    public IReadOnlyDictionary<string, (long Merged, long Changed)> MergedAndChangedThisRun => mergedAndChangedThisRun;
 
     /// <summary>
     /// The categories of one kind to copy, in the order to copy them. Optional categories the operator did not
@@ -167,6 +176,7 @@ public sealed class MigrationEngine(
                 // The target has committed this row, so every halt below settles from it. A halt settling from the
                 // older version would be refused by the store as a conflict and lose its reason.
                 checkpoint = result.Saved;
+                mergedAndChangedThisRun.AddOrUpdate(category.Id, (result.Merged, result.Changed), (_, sum) => (sum.Merged + result.Merged, sum.Changed + result.Changed));
 
                 // The result states the batch's outcome twice, as its own counts and as deltas on the checkpoint
                 // it committed. The halt threshold reads the first and status and verify read the second.
@@ -177,11 +187,6 @@ public sealed class MigrationEngine(
                     logger.LogError("Category {CategoryId} halted at cursor {Cursor}: {LastError}", category.Id, checkpoint.Cursor, mismatch);
                     halt = checkpoint with { State = MigrationCategoryState.Halted, LastError = mismatch };
                     break;
-                }
-
-                foreach (var id in result.SkippedIds)
-                {
-                    logger.LogWarning("Skipped {SourceId} in category {CategoryId}", id, category.Id);
                 }
 
                 processedThisRun += bodySkips + result.Copied + result.Skipped + result.AlreadyPresent;
@@ -239,7 +244,7 @@ public sealed class MigrationEngine(
         return await Settle(checkpoint with { State = FaultSkips(checkpoint.SkipReasons) > 0 ? MigrationCategoryState.CompleteWithErrors : MigrationCategoryState.Complete }, cancellationToken);
     }
 
-    // Harmless skips are rows the product would have removed anyway, so they neither stop a category nor leave it Failed.
+    // A harmless skip loses nothing, as IsBenign says, so it neither stops a category nor leaves it Failed.
     static long FaultSkips(IReadOnlyDictionary<MigrationSkipReason, long>? skipReasons) =>
         skipReasons is null ? 0 : skipReasons.Where(reason => !reason.Key.IsBenign()).Sum(reason => reason.Value);
 

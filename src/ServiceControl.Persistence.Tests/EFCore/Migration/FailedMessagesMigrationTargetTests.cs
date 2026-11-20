@@ -22,6 +22,10 @@ using ServiceControl.Persistence.EFCore.Infrastructure;
 
 class FailedMessagesMigrationTargetTests : PersistenceTestBase
 {
+    readonly TargetWarnings targetWarnings = new();
+
+    public FailedMessagesMigrationTargetTests() => RegisterServices = services => services.AddSingleton<ILoggerProvider>(targetWarnings);
+
     [SetUp]
     public Task OpenTarget() => Target.Open();
 
@@ -261,6 +265,221 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
     }
 
     [Test]
+    public async Task A_change_is_not_logged_when_the_batch_does_not_commit()
+    {
+        var longType = new IngestedFailure { MessageType = new string('m', 600) };
+        await Target.Write(FailedMessagesCategory, BatchOf(new IngestedFailure().ToFailedMessage()), Checkpoint());
+
+        Assert.ThrowsAsync<MigrationCheckpointConflictException>(() => Target.Write(FailedMessagesCategory, BatchOf(longType.ToFailedMessage()), Checkpoint()),
+            "the checkpoint it extends is older than the stored one, so the save in the batch's transaction is refused");
+        Assert.That(targetWarnings.Messages, Has.None.StartsWith("Changed "), "a change line written before the commit would name a row SQL never stored");
+    }
+
+    [Test]
+    public async Task A_second_document_with_the_same_message_id_reports_no_change_of_its_own()
+    {
+        var first = new IngestedFailure();
+        var second = new IngestedFailure { MessageType = new string('m', 600) }.ToFailedMessage();
+        second.UniqueMessageId = first.UniqueMessageIdString;
+        var batch = BatchOf(first.ToFailedMessage(), second);
+
+        var changes = await PreparedSkips.ChangesFrom(ServiceProvider, Writer(), batch);
+
+        Assert.That(changes, Is.Empty, "the insert keeps the first document, so the second's cut message type never reaches SQL");
+    }
+
+    [Test]
+    public async Task A_message_type_longer_than_its_column_is_copied_with_a_change_naming_its_length()
+    {
+        var longType = new IngestedFailure { MessageType = new string('m', 600) };
+        var batch = BatchOf(longType.ToFailedMessage());
+
+        var changes = await PreparedSkips.ChangesFrom(ServiceProvider, Writer(), batch);
+        var result = await Target.Write(FailedMessagesCategory, batch, Checkpoint());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(changes, Is.EqualTo(new[] { ($"FailedMessages/{longType.UniqueMessageIdString}", "Cut the message type from 600 characters to its last 450, as ingestion does.") }));
+            Assert.That(result.Changed, Is.EqualTo(1));
+        }
+    }
+
+    [Test]
+    public async Task A_failure_group_with_no_id_or_no_title_is_reported_as_a_change_naming_the_group()
+    {
+        var failure = new IngestedFailure
+        {
+            Groups =
+            [
+                new() { Id = "group-kept", Title = null, Type = "Exception Type" },
+                new() { Id = null!, Title = "Has no id", Type = "Message Type" },
+                null!
+            ]
+        };
+        var batch = BatchOf(failure.ToFailedMessage());
+
+        var changes = await PreparedSkips.ChangesFrom(ServiceProvider, Writer(), batch);
+        var result = await Target.Write(FailedMessagesCategory, batch, Checkpoint());
+        var groups = await Query(db => db.FailedMessageGroups.AsNoTracking().Select(group => new { group.GroupId, group.Title }).ToListAsync());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(changes, Is.EqualTo(new[]
+            {
+                ($"FailedMessages/{failure.UniqueMessageIdString}",
+                    "Dropped the failure groups with no id, because SQL keys a group by its id: the group titled 'Has no id', an empty entry. Stored an empty title or type for the failure groups that had none: 'group-kept'.")
+            }));
+            Assert.That(result.Changed, Is.EqualTo(1));
+            Assert.That(groups.Select(group => (group.GroupId, group.Title)), Is.EqualTo(new[] { ("group-kept", "") }), "the message is missing from the group with no id, which the line has to say");
+        }
+    }
+
+    [Test]
+    public async Task Two_failure_groups_of_one_message_with_one_key_are_reported_as_a_change_naming_both()
+    {
+        var failure = new IngestedFailure
+        {
+            Groups =
+            [
+                new() { Id = "group-a", Title = "First", Type = "Exception Type" },
+                new() { Id = "group-a", Title = "Second", Type = "Exception Type" }
+            ]
+        };
+        var batch = BatchOf(failure.ToFailedMessage());
+
+        var changes = await PreparedSkips.ChangesFrom(ServiceProvider, Writer(), batch);
+        var result = await Target.Write(FailedMessagesCategory, batch, Checkpoint());
+        var titles = await Query(db => db.FailedMessageGroups.AsNoTracking().Select(group => group.Title).ToListAsync());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(changes, Is.EqualTo(new[]
+            {
+                ($"FailedMessages/{failure.UniqueMessageIdString}", "Kept the failure group 'group-a' titled 'First' and dropped 'group-a' titled 'Second', because SQL treats their ids as one key.")
+            }));
+            Assert.That(result.Changed, Is.EqualTo(1));
+            Assert.That(titles, Is.EqualTo(new[] { "First" }), "the line names the group the insert kept");
+        }
+    }
+
+    [Test]
+    public async Task A_retry_issued_message_gets_a_retry_claim_only_when_the_source_still_held_one()
+    {
+        var released = new IngestedFailure();
+        var held = new IngestedFailure();
+        var batch = BatchOf(
+            WithClaimHeld(RowOf(released.ToFailedMessage(FailedMessageStatus.RetryIssued), SmallTextBody), false),
+            WithClaimHeld(RowOf(held.ToFailedMessage(FailedMessageStatus.RetryIssued), SmallTextBody), true));
+
+        var result = await Target.Write(FailedMessagesCategory, batch, Checkpoint());
+        var claims = await Query(db => db.FailedMessageRetries.AsNoTracking().Select(claim => claim.UniqueMessageId).ToListAsync());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Copied, Is.EqualTo(2), "the test proves nothing unless both messages reached the target");
+            Assert.That(claims, Is.EqualTo(new[] { held.UniqueMessageId }), "a claim the source had released would block a retry by id that RavenDB would have sent");
+            Assert.That(result.Changed, Is.Zero, "the claims match the source, so nothing changed on the way in");
+        }
+    }
+
+    [Test]
+    public async Task A_retry_by_id_after_the_copy_stages_the_message_whose_claim_the_source_had_released()
+    {
+        var released = new IngestedFailure();
+        var held = new IngestedFailure();
+        await Target.Write(FailedMessagesCategory, BatchOf(
+            WithClaimHeld(RowOf(released.ToFailedMessage(FailedMessageStatus.RetryIssued), SmallTextBody), false),
+            WithClaimHeld(RowOf(held.ToFailedMessage(FailedMessageStatus.RetryIssued), SmallTextBody), true)), Checkpoint());
+
+        string[] ids = [released.UniqueMessageIdString, held.UniqueMessageIdString];
+        var batchId = await RetryBatchStore.CreateBatch("migration-test-session", "retry-by-id", RetryType.MultipleMessages, ids, null, DateTime.UtcNow);
+        await RetryBatchStore.AssignMessagesToBatch(batchId, ids);
+
+        var staged = await RetryStagingStore.GetMessagesToStage(batchId);
+
+        Assert.That(staged.Select(message => message.UniqueMessageId), Is.EqualTo(new[] { released.UniqueMessageIdString }),
+            "RavenDB would send the released message and hold back the claimed one, so after the move a retry by id must do the same");
+    }
+
+    [Test]
+    public void A_retry_issued_message_without_its_claim_flag_fails_the_write_naming_the_row()
+    {
+        var document = new IngestedFailure().ToFailedMessage(FailedMessageStatus.RetryIssued);
+
+        var exception = Assert.ThrowsAsync<InvalidOperationException>(() => Target.Write(FailedMessagesCategory, BatchOf(WithClaimHeld(RowOf(document, SmallTextBody), null)), Checkpoint()));
+
+        Assert.That(exception.Message, Does.Contain($"'FailedMessages/{document.UniqueMessageId}'").And.Contain(MigrationMetadataKeys.RetryClaimHeld),
+            "the source resolves the flag for every retry-issued message, so a missing one is a defect that must not pass as a held claim");
+    }
+
+    [Test]
+    public async Task A_retry_issued_message_whose_claim_flag_is_not_a_bool_fails_the_write_and_stores_nothing()
+    {
+        var document = new IngestedFailure().ToFailedMessage(FailedMessageStatus.RetryIssued);
+        var row = WithClaimHeld(RowOf(document, SmallTextBody), null);
+        row = row with { Metadata = new Dictionary<string, object>(row.Metadata) { [MigrationMetadataKeys.RetryClaimHeld] = "true" } };
+
+        var exception = Assert.ThrowsAsync<InvalidOperationException>(() => Target.Write(FailedMessagesCategory, BatchOf(row), Checkpoint()));
+        var claims = await Query(db => db.FailedMessageRetries.AsNoTracking().CountAsync());
+        var messages = await Query(db => db.FailedMessages.AsNoTracking().CountAsync());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(exception.Message, Does.Contain($"'FailedMessages/{document.UniqueMessageId}'").And.Contain(MigrationMetadataKeys.RetryClaimHeld).And.Contain(typeof(string).FullName));
+            Assert.That((claims, messages), Is.EqualTo((0, 0)), "a flag the writer cannot read must stop the batch before anything is stored, not be read as either answer");
+        }
+    }
+
+    [Test]
+    public async Task Two_retry_issued_documents_sharing_a_unique_message_id_take_the_claim_flag_of_the_first()
+    {
+        var first = new IngestedFailure();
+        var second = first.ToFailedMessage(FailedMessageStatus.RetryIssued);
+        var batch = BatchOf(
+            WithClaimHeld(RowOf(first.ToFailedMessage(FailedMessageStatus.RetryIssued), SmallTextBody), false),
+            WithClaimHeld(RowOf(second, SmallTextBody) with { SourceId = "FailedMessages/second" }, true));
+
+        var result = await Target.Write(FailedMessagesCategory, batch, Checkpoint());
+        var claims = await Query(db => db.FailedMessageRetries.AsNoTracking().CountAsync());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Copied, Is.EqualTo(1), "the test proves nothing unless the insert kept one of the two");
+            Assert.That(claims, Is.Zero, "the insert keeps the first document, whose claim the source had released, so the second's held flag must not add one");
+        }
+    }
+
+    [Test]
+    public async Task Copying_a_batch_with_a_held_claim_again_leaves_one_claim()
+    {
+        var held = new IngestedFailure();
+        var batch = BatchOf(held.ToFailedMessage(FailedMessageStatus.RetryIssued));
+
+        var first = await Target.Write(FailedMessagesCategory, batch, Checkpoint());
+        await Target.Write(FailedMessagesCategory, batch, first.Saved);
+        var claims = await Query(db => db.FailedMessageRetries.AsNoTracking().Select(claim => claim.UniqueMessageId).ToListAsync());
+
+        Assert.That(claims, Is.EqualTo(new[] { held.UniqueMessageId }), "a retry re-reads rows an earlier pass copied, and must not add a second claim or fail on the first");
+    }
+
+    [Test]
+    public async Task A_changed_message_the_target_already_holds_is_not_reported_again()
+    {
+        var changed = new IngestedFailure { MessageType = new string('m', 600) };
+        var batch = BatchOf(changed.ToFailedMessage());
+
+        var first = await Target.Write(FailedMessagesCategory, batch, Checkpoint());
+        var again = await Target.Write(FailedMessagesCategory, batch, first.Saved);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That((first.Changed, again.Changed), Is.EqualTo((1, 0)), "a retry re-reads rows an earlier pass copied, and this write changed nothing");
+            Assert.That(again.AlreadyPresent, Is.EqualTo(1));
+            Assert.That(targetWarnings.Messages.Count(message => message.StartsWith("Changed ")), Is.EqualTo(1));
+        }
+    }
+
+    [Test]
     public async Task Count_takes_in_only_unresolved_and_retry_issued_messages()
     {
         await Target.Write(FailedMessagesCategory, BatchOf(new IngestedFailure().ToFailedMessage(), new IngestedFailure().ToFailedMessage(FailedMessageStatus.RetryIssued)), Checkpoint());
@@ -443,13 +662,36 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
 
     static MigrationBatch BatchOf(params MigrationRow[] rows) => new(rows, rows[^1].SourceId);
 
-    // Every row carries the two dates the source resolves, as a real source's rows do.
-    static MigrationRow RowOf(FailedMessage document, MigrationBody body) =>
-        new($"FailedMessages/{document.UniqueMessageId}", document, new Dictionary<string, object>
+    // Every row carries the values the source resolves, as a real source's rows do, and a retry-issued one finds its claim still held.
+    static MigrationRow RowOf(FailedMessage document, MigrationBody body)
+    {
+        var metadata = new Dictionary<string, object>
         {
             [MigrationMetadataKeys.StatusChangedAt] = new DateTime(2026, 9, 1, 8, 0, 0, DateTimeKind.Utc),
             [MigrationMetadataKeys.LastModified] = new DateTime(2026, 9, 2, 8, 0, 0, DateTimeKind.Utc)
-        }, body);
+        };
+
+        if (document.Status == FailedMessageStatus.RetryIssued)
+        {
+            metadata[MigrationMetadataKeys.RetryClaimHeld] = true;
+        }
+
+        return new($"FailedMessages/{document.UniqueMessageId}", document, metadata, body);
+    }
+
+    // A null removes the flag, as a source that never resolved it would send the row.
+    static MigrationRow WithClaimHeld(MigrationRow row, bool? held)
+    {
+        var metadata = new Dictionary<string, object>(row.Metadata);
+        metadata.Remove(MigrationMetadataKeys.RetryClaimHeld);
+
+        if (held is { } value)
+        {
+            metadata[MigrationMetadataKeys.RetryClaimHeld] = value;
+        }
+
+        return row with { Metadata = metadata };
+    }
 
     sealed class UnwritableBodyStore : IBodyStoragePersistence
     {
@@ -461,6 +703,8 @@ class FailedMessagesMigrationTargetTests : PersistenceTestBase
 
         public Task DeleteBodyIfExists(string bodyId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
+
+    FailedMessagesWriter Writer() => new(ServiceProvider.GetRequiredService<IMigrationSqlDialect>(), BodyStore, ServiceProvider.GetRequiredService<EFPersisterSettings>());
 
     static MigrationCheckpoint Checkpoint() =>
         new(MigrationCategoryIds.UnresolvedAndRetryIssuedFailedMessages, MigrationCategoryState.InProgress, null, 0, 0, null, null, null, null, null, null);

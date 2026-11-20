@@ -36,7 +36,11 @@ sealed class RavenMigrationSource(RavenReadOnlySourceLifecycle lifecycle) : IMig
         new SubscriptionsReader(lifecycle),
         new NotificationSettingsReader(lifecycle),
         new TrialEndDateReader(lifecycle),
-        new RetryOperationsReader(lifecycle)
+        new RetryOperationsReader(lifecycle),
+        new PendingIntegrationEventsReader(lifecycle),
+        new CustomChecksReader(lifecycle),
+        new FailedErrorImportsReader(lifecycle),
+        new GroupCommentsReader(lifecycle)
     }.ToFrozenDictionary(reader => reader.CategoryId, StringComparer.Ordinal);
 
     public Task Open(CancellationToken cancellationToken = default) => lifecycle.Open(cancellationToken);
