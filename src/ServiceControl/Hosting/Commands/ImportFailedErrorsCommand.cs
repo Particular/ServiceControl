@@ -18,7 +18,6 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
     using ServiceControl.Migration;
-    using ServiceControl.Persistence;
     using ServiceControl.Persistence.DataMigration;
 
     class ImportFailedErrorsCommand : AbstractCommand
